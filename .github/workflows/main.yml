@@ -19,16 +19,16 @@ jobs:
         run: |
           python -m pip install tox
       - name: Run tests
-        run: tox
-      - name: Install coveragepy tool
-        run: pip install coverage
+        run: tox -- --junit-xml=.test-results/pytest/cov.xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         with:
-          flags: >-
+          file: .test-results/pytest/cov.xml  # Explicitly point at the correct coverage report
+          flags: >-  # Mark which lines are covered by which envs
             GHA,
             ${{ runner.os }},
             ${{ matrix.python }}
+          functionalities: gcov  # disable C coverage autodiscovery
 
   release:
     needs: test
