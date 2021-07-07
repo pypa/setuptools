@@ -123,7 +123,7 @@ class build_py(orig.build_py, Mixin2to3):
                 outf, copied = self.copy_file(srcfile, target)
                 make_writable(target)
                 srcfile = os.path.abspath(srcfile)
-                if (copied and
+                if (copied and self.distribution.convert_2to3_doctests and
                         srcfile in self.distribution.convert_2to3_doctests):
                     self.__doctests_2to3.append(outf)
 
