@@ -24,6 +24,11 @@ jobs:
         run: pip install coverage
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
+        with:
+          flags: >-
+            GHA,
+            ${{ runner.os }},
+            ${{ matrix.python }}
 
   release:
     needs: test
