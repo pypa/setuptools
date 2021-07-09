@@ -1,0 +1,1 @@
+Added support for ``SETUPTOOLS_EXT_SUFFIX`` environment variable to override the suffix normally detected from the ``sysconfig`` module.

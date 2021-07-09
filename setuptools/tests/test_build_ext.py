@@ -1,3 +1,4 @@
+import os
 import sys
 import distutils.command.build_ext as orig
 from distutils.sysconfig import get_config_var
@@ -46,6 +47,31 @@ class TestBuildExt:
             assert res.endswith('eggs.pyd')
         else:
             assert 'abi3' in res
+
+    def test_ext_suffix_override(self):
+        """
+        SETUPTOOLS_EXT_SUFFIX variable always overrides
+        default extension options.
+        """
+        dist = Distribution()
+        cmd = build_ext(dist)
+        cmd.ext_map['for_abi3'] = ext = Extension(
+            'for_abi3',
+            ['s.c'],
+            # Override shouldn't affect abi3 modules
+            py_limited_api=True,
+        )
+        # Mock value needed to pass tests
+        ext._links_to_dynamic = False
+        expect = cmd.get_ext_filename('for_abi3')
+        try:
+            os.environ['SETUPTOOLS_EXT_SUFFIX'] = '.test-suffix'
+            res = cmd.get_ext_filename('normal')
+            assert 'normal.test-suffix' == res
+            res = cmd.get_ext_filename('for_abi3')
+            assert expect == res
+        finally:
+            del os.environ['SETUPTOOLS_EXT_SUFFIX']
 
 
 def test_build_ext_config_handling(tmpdir_cwd):
