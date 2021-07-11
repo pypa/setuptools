@@ -24,13 +24,12 @@ jobs:
           python -m pip install tox
       - name: Run tests
         run: tox -- --cov-report xml
-      - name: Upload coverage to Codecov
+      - name: Publish coverage
         uses: codecov/codecov-action@v1
         with:
           flags: >-  # Mark which lines are covered by which envs
             ${{ runner.os }},
             ${{ matrix.python }}
-          functionalities: gcov  # disable C coverage autodiscovery
 
   release:
     needs: test
