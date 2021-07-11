@@ -24,7 +24,6 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           flags: >-  # Mark which lines are covered by which envs
-            GHA,
             ${{ runner.os }},
             ${{ matrix.python }}
           functionalities: gcov  # disable C coverage autodiscovery
