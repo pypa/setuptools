@@ -72,7 +72,7 @@ class TestBuildExt:
         else:
             # PyPy builds do not use ABI3 tag, so they will
             # also get the overridden suffix.
-            expect = 'for_abi3.test_suffix'
+            expect = 'for_abi3.test-suffix'
 
         try:
             os.environ['SETUPTOOLS_EXT_SUFFIX'] = '.test-suffix'
