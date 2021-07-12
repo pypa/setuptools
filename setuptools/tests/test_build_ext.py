@@ -13,6 +13,9 @@ from . import environment
 from .textwrap import DALS
 
 
+IS_PYPY = '__pypy__' in sys.builtin_module_names
+
+
 class TestBuildExt:
     def test_get_ext_filename(self):
         """
@@ -63,7 +66,14 @@ class TestBuildExt:
         )
         # Mock value needed to pass tests
         ext._links_to_dynamic = False
-        expect = cmd.get_ext_filename('for_abi3')
+
+        if not IS_PYPY:
+            expect = cmd.get_ext_filename('for_abi3')
+        else:
+            # PyPy builds do not use ABI3 tag, so they will
+            # also get the overridden suffix.
+            expect = 'for_abi3.test_suffix'
+
         try:
             os.environ['SETUPTOOLS_EXT_SUFFIX'] = '.test-suffix'
             res = cmd.get_ext_filename('normal')
