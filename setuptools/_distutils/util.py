@@ -103,6 +103,7 @@ def get_platform():
             'x86' : 'win32',
             'x64' : 'win-amd64',
             'arm' : 'win-arm32',
+            'arm64': 'win-arm64',
         }
         return TARGET_TO_PLAT.get(os.environ.get('VSCMD_ARG_TGT_ARCH')) or get_host_platform()
     else:
