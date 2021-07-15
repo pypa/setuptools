@@ -1,3 +1,12 @@
+v57.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2724: Added detection of Windows ARM64 build environments using the ``VSCMD_ARG_TGT_ARCH`` environment variable.
+
+
 v57.1.0
 -------
 
