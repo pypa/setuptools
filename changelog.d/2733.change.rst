@@ -1,0 +1,1 @@
+Remove redundant assignments -- by :user:`donno2048`
