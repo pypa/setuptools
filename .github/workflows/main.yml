@@ -25,6 +25,7 @@ jobs:
       - name: Run tests
         run: tox -- --cov-report xml
       - name: Publish coverage
+        if: false  # disabled for #2727
         uses: codecov/codecov-action@v1
         with:
           flags: >-  # Mark which lines are covered by which envs
