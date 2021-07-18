@@ -10,6 +10,13 @@ eggs, support for merging packages that have separately-distributed modules or
 subpackages, and APIs for managing Python's current "working set" of active
 packages.
 
+Use of ``pkg_resources`` is discouraged in favor of
+`importlib.resources <https://docs.python.org/3/library/importlib.html#module-importlib.resources>`_,
+`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_,
+and their backports (`resources <https://pypi.org/project/importlib_resources>`_,
+`metadata <https://pypi.org/project/importlib_metadata>`_).
+Please consider using those libraries instead of pkg_resources.
+
 
 --------
 Overview
@@ -1219,7 +1226,7 @@ Resource Extraction
 
 If you are implementing an ``IResourceProvider`` and/or ``IMetadataProvider``
 for a new distribution archive format, you may need to use the following
-``IResourceManager`` methods to co-ordinate extraction of resources to the
+``IResourceManager`` methods to coordinate extraction of resources to the
 filesystem.  If you're not implementing an archive format, however, you have
 no need to use these methods.  Unlike the other methods listed above, they are
 *not* available as top-level functions tied to the global ``ResourceManager``;

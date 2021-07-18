@@ -1,3 +1,305 @@
+v57.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2724: Added detection of Windows ARM64 build environments using the ``VSCMD_ARG_TGT_ARCH`` environment variable.
+
+
+v57.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2692: Globs are now sorted in 'license_files' restoring reproducibility by eliminating variance from disk order.
+* #2714: Update to distutils at pypa/distutils@e2627b7.
+* #2715: Removed reliance on deprecated ssl.match_hostname by removing the ssl support. Now any index operations rely on the native SSL implementation.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2604: Revamped the backward/cross tool compatibility section to remove
+  some confusion.
+  Add some examples and the version since when ``entry_points`` are
+  supported in declarative configuration.
+  Tried to make the reading flow a bit leaner, gather some informations
+  that were a bit dispersed.
+
+
+v57.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2645: License files excluded via the ``MANIFEST.in`` but matched by either
+  the ``license_file`` (deprecated) or ``license_files`` options,
+  will be nevertheless included in the source distribution. - by :user:`cdce8p`
+
+Changes
+^^^^^^^
+* #2628: Write long description in message payload of PKG-INFO file. - by :user:`cdce8p`
+* #2645: Added ``License-File`` (multiple) to the output package metadata.
+  The field will contain the path of a license file, matched by the
+  ``license_file`` (deprecated) and ``license_files`` options,
+  relative to ``.dist-info``. - by :user:`cdce8p`
+* #2678: Moved Setuptools' own entry points into declarative config.
+* #2680: Vendored `more_itertools <https://pypi.org/project/more-itertools>`_ for Setuptools.
+* #2681: Setuptools own setup.py no longer declares setup_requires, but instead expects wheel to be installed as declared by pyproject.toml.
+
+Misc
+^^^^
+* #2650: Updated the docs build tooling to support the latest version of
+  Towncrier and show the previews of not-yet-released setuptools versions
+  in the changelog -- :user:`webknjaz`
+
+
+v56.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2640: Fixed handling of multiline license strings. - by :user:`cdce8p`
+* #2641: Setuptools will now always try to use the latest supported
+  metadata version for ``PKG-INFO``. - by :user:`cdce8p`
+
+
+v56.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2653: Incorporated assorted changes from pypa/distutils.
+* #2657: Adopted docs from distutils.
+* #2663: Added Visual Studio Express 2017 support -- by :user:`dofuuz`
+
+Misc
+^^^^
+* #2644: Fixed ``DeprecationWarning`` due to ``threading.Thread.setDaemon`` in tests -- by :user:`tirkarthi`
+* #2654: Made the changelog generator compatible
+  with Towncrier >= 19.9 -- :user:`webknjaz`
+* #2664: Relax the deprecation message in the distutils hack.
+
+
+v56.0.0
+-------
+
+
+Deprecations
+^^^^^^^^^^^^
+* #2620: The ``license_file`` option is now marked as deprecated.
+  Use ``license_files`` instead. -- by :user:`cdce8p`
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2620: If neither ``license_file`` nor ``license_files`` is specified, the ``sdist``
+  option will now auto-include files that match the following patterns:
+  ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS*``.
+  This matches the behavior of ``bdist_wheel``. -- by :user:`cdce8p`
+
+Changes
+^^^^^^^
+* #2620: The ``license_file`` and ``license_files`` options now support glob patterns. -- by :user:`cdce8p`
+* #2632: Implemented ``VendorImporter.find_spec()`` method to get rid
+  of ``ImportWarning`` that Python 3.10 emits when only the old-style
+  importer hooks are present -- by :user:`webknjaz`
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2620: Added documentation for the ``license_files`` option. -- by :user:`cdce8p`
+
+
+v55.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2566: Remove the deprecated ``bdist_wininst`` command. Binary packages should be built as wheels instead. -- by :user:`hroncok`
+
+
+v54.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2608: Added informative error message to PEP 517 build failures owing to
+  an empty ``setup.py`` -- by :user:`layday`
+
+
+v54.1.3
+-------
+
+No significant changes.
+
+
+v54.1.2
+-------
+
+
+Misc
+^^^^
+* #2595: Reduced scope of dash deprecation warning to Setuptools/distutils only -- by :user:`melissa-kun-li`
+
+
+v54.1.1
+-------
+
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2584: Added ``sphinx-inline-tabs`` extension to allow for comparison of ``setup.py`` and its equivalent ``setup.cfg`` -- by :user:`amy-lei`
+
+Misc
+^^^^
+* #2592: Made option keys in the ``[metadata]`` section of ``setup.cfg`` case-sensitive. Users having
+  uppercase option spellings will get a warning suggesting to make them to lowercase
+  -- by :user:`melissa-kun-li`
+
+
+v54.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #1608: Removed the conversion of dashes to underscores in the :code:`extras_require` and :code:`data_files` of :code:`setup.cfg` to support the usage of dashes. Method will warn users when they use a dash-separated key which in the future will only allow an underscore. Note: the method performs the dash to underscore conversion to preserve compatibility, but future versions will no longer support it -- by :user:`melissa-kun-li`
+
+
+v54.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2582: Simplified build-from-source story by providing bootstrapping metadata in a separate egg-info directory. Build requirements no longer include setuptools itself. Sdist once again includes the pyproject.toml. Project can no longer be installed from source on pip 19.x, but install from source is still supported on pip < 19 and pip >= 20 and install from wheel is still supported with pip >= 9.
+
+Changes
+^^^^^^^
+* #1932: Handled :code:`AttributeError` by raising :code:`DistutilsSetupError` in :code:`dist.check_specifier()` when specifier is not a string -- by :user:`melissa-kun-li`
+* #2570: Correctly parse cmdclass in setup.cfg.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2553: Added userguide example for markers in extras_require -- by :user:`pwoolvett`
+
+
+v53.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #1937: Preserved case-sensitivity of keys in setup.cfg so that entry point names are case-sensitive. Changed sensitivity of configparser. NOTE: Any projects relying on case-insensitivity will need to adapt to accept the original case as published. -- by :user:`melissa-kun-li`
+* #2573: Fixed error in uploading a Sphinx doc with the :code:`upload_docs` command. An html builder will be used.
+  Note: :code:`upload_docs` is deprecated for PyPi, but is supported for other sites -- by :user:`melissa-kun-li`
+
+
+v53.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #1527: Removed bootstrap script. Now Setuptools requires pip or another pep517-compliant builder such as 'build' to build. Now Setuptools can be installed from Github main branch.
+
+
+v52.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2537: Remove fallback support for fetch_build_eggs using easy_install. Now pip is required for setup_requires to succeed.
+* #2544: Removed 'easy_install' top-level model (runpy entry point) and 'easy_install' console script.
+* #2545: Removed support for eggsecutables.
+
+Changes
+^^^^^^^
+* #2459: Tests now run in parallel via pytest-xdist, completing in about half the time. Special thanks to :user:`webknjaz` for hard work implementing test isolation. To run without parallelization, disable the plugin with ``tox -- -p no:xdist``.
+
+
+v51.3.3
+-------
+
+
+Misc
+^^^^
+* #2539: Fix AttributeError in Description validation.
+
+
+v51.3.2
+-------
+
+
+Misc
+^^^^
+* #1390: Validation of Description field now is more lenient, emitting a warning and mangling the value to be valid (replacing newlines with spaces).
+
+
+v51.3.1
+-------
+
+
+Misc
+^^^^
+* #2536: Reverted tag deduplication handling.
+
+
+v51.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #1390: Newlines in metadata description/Summary now trigger a ValueError.
+* #2481: Define ``create_module()`` and ``exec_module()`` methods in ``VendorImporter``
+  to get rid of ``ImportWarning`` -- by :user:`hroncok`
+* #2489: ``pkg_resources`` behavior for zipimport now matches the regular behavior, and finds
+  ``.egg-info`` (previoulsy would only find ``.dist-info``) -- by :user:`thatch`
+* #2529: Fixed an issue where version tags may be added multiple times
+
+
+v51.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2493: Use importlib.import_module() rather than the deprecated loader.load_module()
+  in pkg_resources namespace delaration -- by :user:`encukou`
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2525: Fix typo in the document page about entry point. -- by :user:`jtr109`
+
+Misc
+^^^^
+* #2534: Avoid hitting network during test_easy_install.
+
+
+v51.1.2
+-------
+
+
+Misc
+^^^^
+* #2505: Disable inclusion of package data as it causes 'tests' to be included as data.
+
+
+v51.1.1
+-------
+
+
+Misc
+^^^^
+* #2534: Avoid hitting network during test_virtualenv.test_test_command.
+
+
 v51.1.0
 -------
 
@@ -371,6 +673,7 @@ v47.2.0
 Changes
 ^^^^^^^
 * #2194: Editable-installed entry points now load significantly faster on Python versions 3.8+.
+* #1471: Incidentally fixed by #2194 on Python 3.8 or when importlib_metadata is present.
 
 
 v47.1.1
@@ -4049,7 +4352,7 @@ how it parses version numbers.
   (platform.mac_ver() fails)
 * Distribute #103: test_get_script_header_jython_workaround not run
   anymore under py3 with C or POSIX local. Contributed by Arfrever.
-* Distribute #104: remvoved the assertion when the installation fails,
+* Distribute #104: removed the assertion when the installation fails,
   with a nicer message for the end user.
 * Distribute #100: making sure there's no SandboxViolation when
   the setup script patches setuptools.
@@ -4186,7 +4489,7 @@ setuptools
 bootstrapping
 ^^^^^^^^^^^^^
 
-* The boostrap process leave setuptools alone if detected in the system
+* The bootstrap process leave setuptools alone if detected in the system
   and --root or --prefix is provided, but is not in the same location.
   This closes Distribute #10.
 

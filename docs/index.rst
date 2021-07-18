@@ -17,3 +17,5 @@ designed to facilitate packaging Python projects.
    Development guide <development/index>
    Backward compatibility & deprecated practice <deprecated/index>
    Changelog <history>
+
+.. tidelift-referral-banner::

@@ -46,6 +46,18 @@ def update_changelog():
         '--yes',
     ]
     subprocess.check_call(cmd)
+    _repair_changelog()
+
+
+def _repair_changelog():
+    """
+    Workaround for #2666
+    """
+    changelog_fn = pathlib.Path('CHANGES.rst')
+    changelog = changelog_fn.read_text()
+    fixed = re.sub(r'^(v[0-9.]+)v[0-9.]+$', r'\1', changelog, flags=re.M)
+    changelog_fn.write_text(fixed)
+    subprocess.check_output(['git', 'add', changelog_fn])
 
 
 def bump_version():

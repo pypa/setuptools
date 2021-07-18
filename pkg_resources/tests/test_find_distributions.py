@@ -32,3 +32,12 @@ class TestFindDistributions:
         assert [dist.project_name for dist in dists] == ['my-test-package']
         dists = pkg_resources.find_distributions(str(target_dir), only=True)
         assert not list(dists)
+
+    def test_zipped_sdist_one_level_removed(self, target_dir):
+        (TESTS_DATA_DIR / 'my-test-package-zip').copy(target_dir)
+        dists = pkg_resources.find_distributions(
+            str(target_dir / "my-test-package.zip"))
+        assert [dist.project_name for dist in dists] == ['my-test-package']
+        dists = pkg_resources.find_distributions(
+            str(target_dir / "my-test-package.zip"), only=True)
+        assert not list(dists)

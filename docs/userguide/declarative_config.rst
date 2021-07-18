@@ -18,15 +18,7 @@ to the ``setup()`` function (declarative config).
 This approach not only allows automation scenarios but also reduces
 boilerplate code in some cases.
 
-.. note::
-
-    This implementation has limited compatibility with the distutils2-like
-    ``setup.cfg`` sections used by the ``pbr`` and ``d2to1`` packages.
-
-    Namely: only metadata-related keys from ``metadata`` section are supported
-    (except for ``description-file``); keys from ``files``, ``entry_points``
-    and ``backwards_compat`` are not supported.
-
+.. _example-setup-config:
 
 .. code-block:: ini
 
@@ -57,6 +49,10 @@ boilerplate code in some cases.
     [options.package_data]
     * = *.txt, *.rst
     hello = *.msg
+
+    [options.entry_points]
+    console_scripts =
+        executable-name = package.module:function
 
     [options.extras_require]
     pdf = ReportLab>=1.2; RXP
@@ -156,10 +152,9 @@ Special directives:
 
 * ``file:`` - Value is read from a list of files and then concatenated
 
-
-.. note::
-    The ``file:`` directive is sandboxed and won't reach anything outside
-    the directory containing ``setup.py``.
+  .. note::
+      The ``file:`` directive is sandboxed and won't reach anything outside
+      the directory containing ``setup.py``.
 
 
 Metadata
@@ -169,11 +164,11 @@ Metadata
     The aliases given below are supported for compatibility reasons,
     but their use is not advised.
 
-==============================  =================  =================  =============== =====
+==============================  =================  =================  =============== ==========
 Key                             Aliases            Type               Minimum Version Notes
-==============================  =================  =================  =============== =====
+==============================  =================  =================  =============== ==========
 name                                               str
-version                                            attr:, file:, str  39.2.0          (1)
+version                                            attr:, file:, str  39.2.0          [#meta-1]_
 url                             home-page          str
 download_url                    download-url       str
 project_urls                                       dict               38.3.0
@@ -183,8 +178,7 @@ maintainer                                         str
 maintainer_email                maintainer-email   str
 classifiers                     classifier         file:, list-comma
 license                                            str
-license_file                                       str
-license_files                                      list-comma
+license_files                   license_file       list-comma         42.0.0
 description                     summary            file:, str
 long_description                long-description   file:, str
 long_description_content_type                      str                38.6.0
@@ -193,28 +187,29 @@ platforms                       platform           list-comma
 provides                                           list-comma
 requires                                           list-comma
 obsoletes                                          list-comma
-==============================  =================  =================  =============== =====
+==============================  =================  =================  =============== ==========
 
-.. note::
-    A version loaded using the ``file:`` directive must comply with PEP 440.
-    It is easy to accidentally put something other than a valid version
-    string in such a file, so validation is stricter in this case.
+**Notes**:
 
-Notes:
-1. The ``version`` file attribute has only been supported since 39.2.0.
+.. [#meta-1] The ``version`` file attribute has only been supported since 39.2.0.
+
+   A version loaded using the ``file:`` directive must comply with PEP 440.
+   It is easy to accidentally put something other than a valid version
+   string in such a file, so validation is stricter in this case.
+
 
 Options
 -------
 
-=======================  ===================================  =============== =====
+=======================  ===================================  =============== =========
 Key                      Type                                 Minimum Version Notes
-=======================  ===================================  =============== =====
+=======================  ===================================  =============== =========
 zip_safe                 bool
 setup_requires           list-semi
 install_requires         list-semi
-extras_require           section
+extras_require           section                                              [#opt-2]_
 python_requires          str
-entry_points             file:, section
+entry_points             file:, section                       51.0.0
 use_2to3                 bool
 use_2to3_fixers          list-comma
 use_2to3_exclude_fixers  list-comma
@@ -224,25 +219,74 @@ eager_resources          list-comma
 dependency_links         list-comma
 tests_require            list-semi
 include_package_data     bool
-packages                 find:, find_namespace:, list-comma
+packages                 find:, find_namespace:, list-comma                   [#opt-3]_
 package_dir              dict
-package_data             section                                              (1)
+package_data             section                                              [#opt-1]_
 exclude_package_data     section
 namespace_packages       list-comma
 py_modules               list-comma
 data_files               dict                                 40.6.0
-=======================  ===================================  =============== =====
+=======================  ===================================  =============== =========
 
-.. note::
+**Notes**:
 
-    **packages** - The ``find:`` and ``find_namespace:`` directive can be further configured
-    in a dedicated subsection ``options.packages.find``. This subsection
-    accepts the same keys as the ``setuptools.find_packages`` and the
-    ``setuptools.find_namespace_packages`` function:
-    ``where``, ``include``, and ``exclude``.
+.. [#opt-1] In the ``package_data`` section, a key named with a single asterisk
+   (``*``) refers to all packages, in lieu of the empty string used in ``setup.py``.
+ 
+.. [#opt-2] In the ``extras_require`` section, values are parsed as ``list-semi``.
+   This implies that in order to include markers, they **must** be *dangling*:
+ 
+   .. code-block:: ini
 
-    **find_namespace directive** - The ``find_namespace:`` directive is supported since Python >=3.3.
+      [options.extras_require]
+      rest = docutils>=0.3; pack ==1.1, ==1.3
+      pdf =
+        ReportLab>=1.2
+        RXP
+        importlib-metadata; python_version < "3.8"
 
-Notes:
-1. In the ``package_data`` section, a key named with a single asterisk (``*``)
-refers to all packages, in lieu of the empty string used in ``setup.py``.
+.. [#opt-3] The ``find:`` and ``find_namespace:`` directive can be further configured
+   in a dedicated subsection ``options.packages.find``. This subsection accepts the
+   same keys as the ``setuptools.find_packages`` and the
+   ``setuptools.find_namespace_packages`` function:
+   ``where``, ``include``, and ``exclude``.
+
+   The ``find_namespace:`` directive is supported since Python >=3.3.
+
+
+Compatibility with other tools
+==============================
+
+Historically, several tools explored declarative package configuration
+in parallel. And several of them chose to place the packaging
+configuration within the project's :file:`setup.cfg` file.
+One of the first was ``distutils2``, which development has stopped in
+2013. Other include ``pbr`` which is still under active development or
+``d2to1``, which was a plug-in that backports declarative configuration
+to ``distutils``, but has had no release since Oct. 2015.
+As a way to harmonize packaging tools, ``setuptools``, having held the
+position of *de facto* standard, has gradually integrated those
+features as part of its core features.
+
+Still this has lead to some confusion and feature incompatibilities:
+
+- some tools support features others don't;
+- some have similar features but the declarative syntax differs;
+
+The table below tries to summarize the differences. But, please, refer
+to each tool documentation for up-to-date information.
+
+=========================== ========== ========== ===== ===
+feature                     setuptools distutils2 d2to1 pbr
+=========================== ========== ========== ===== ===
+[metadata] description-file S          Y          Y     Y
+[files]                     S          Y          Y     Y
+entry_points                Y          Y          Y     S
+[backwards_compat]          N          Y          Y     Y
+=========================== ========== ========== ===== ===
+
+Y: supported, N: unsupported, S: syntax differs (see
+:ref:`above example<example-setup-config>`).
+
+Also note that some features were only recently added to ``setuptools``.
+Please refer to the previous sections to find out when.

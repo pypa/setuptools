@@ -520,6 +520,11 @@ class ConfigMetadataHandler(ConfigHandler):
             'obsoletes': parse_list,
             'classifiers': self._get_parser_compound(parse_file, parse_list),
             'license': exclude_files_parser('license'),
+            'license_file': self._deprecated_config_handler(
+                exclude_files_parser('license_file'),
+                "The license_file parameter is deprecated, "
+                "use license_files instead.",
+                DeprecationWarning),
             'license_files': parse_list,
             'description': parse_file,
             'long_description': parse_file,
@@ -574,6 +579,7 @@ class ConfigOptionsHandler(ConfigHandler):
         parse_list_semicolon = partial(self._parse_list, separator=';')
         parse_bool = self._parse_bool
         parse_dict = self._parse_dict
+        parse_cmdclass = self._parse_cmdclass
 
         return {
             'zip_safe': parse_bool,
@@ -594,6 +600,22 @@ class ConfigOptionsHandler(ConfigHandler):
             'entry_points': self._parse_file,
             'py_modules': parse_list,
             'python_requires': SpecifierSet,
+            'cmdclass': parse_cmdclass,
+        }
+
+    def _parse_cmdclass(self, value):
+        def resolve_class(qualified_class_name):
+            idx = qualified_class_name.rfind('.')
+            class_name = qualified_class_name[idx+1:]
+            pkg_name = qualified_class_name[:idx]
+
+            module = __import__(pkg_name)
+
+            return getattr(module, class_name)
+
+        return {
+            k: resolve_class(v)
+            for k, v in self._parse_dict(value).items()
         }
 
     def _parse_packages(self, value):

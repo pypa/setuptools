@@ -1,3 +1,6 @@
+import types
+import sys
+
 import contextlib
 import configparser
 
@@ -7,6 +10,7 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
+from distutils.core import Command
 from .textwrap import DALS
 
 
@@ -206,8 +210,8 @@ class TestMetadata:
         fake_env(
             tmpdir,
             '[metadata]\n'
-            'author-email = test@test.com\n'
-            'home-page = http://test.test.com/test/\n'
+            'author_email = test@test.com\n'
+            'home_page = http://test.test.com/test/\n'
             'summary = Short summary\n'
             'platform = a, b\n'
             'classifier =\n'
@@ -503,6 +507,44 @@ class TestMetadata:
             with get_dist(tmpdir):
                 pass
 
+    def test_warn_dash_deprecation(self, tmpdir):
+        # warn_dash_deprecation() is a method in setuptools.dist
+        # remove this test and the method when no longer needed
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'author-email = test@test.com\n'
+            'maintainer_email = foo@foo.com\n'
+            )
+        msg = ("Usage of dash-separated 'author-email' will not be supported "
+               "in future versions. "
+               "Please use the underscore name 'author_email' instead")
+        with pytest.warns(UserWarning, match=msg):
+            with get_dist(tmpdir) as dist:
+                metadata = dist.metadata
+
+        assert metadata.author_email == 'test@test.com'
+        assert metadata.maintainer_email == 'foo@foo.com'
+
+    def test_make_option_lowercase(self, tmpdir):
+        # remove this test and the method make_option_lowercase() in setuptools.dist
+        # when no longer needed
+        fake_env(
+            tmpdir,
+            '[metadata]\n'
+            'Name = foo\n'
+            'description = Some description\n'
+        )
+        msg = ("Usage of uppercase key 'Name' in 'metadata' will be deprecated in "
+               "future versions. "
+               "Please use lowercase 'name' instead")
+        with pytest.warns(UserWarning, match=msg):
+            with get_dist(tmpdir) as dist:
+                metadata = dist.metadata
+
+        assert metadata.name == 'foo'
+        assert metadata.description == 'Some description'
+
 
 class TestOptions:
 
@@ -768,6 +810,20 @@ class TestOptions:
             }
             assert dist.metadata.provides_extras == set(['pdf', 'rest'])
 
+    def test_dash_preserved_extras_require(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[options.extras_require]\n'
+            'foo-a = foo\n'
+            'foo_b = test\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.extras_require == {
+                'foo-a': ['foo'],
+                'foo_b': ['test']
+            }
+
     def test_entry_points(self, tmpdir):
         _, config = fake_env(
             tmpdir,
@@ -801,6 +857,24 @@ class TestOptions:
 
         with get_dist(tmpdir) as dist:
             assert dist.entry_points == expected
+
+    def test_case_sensitive_entry_points(self, tmpdir):
+        _, config = fake_env(
+            tmpdir,
+            '[options.entry_points]\n'
+            'GROUP1 = point1 = pack.module:func, '
+            '.point2 = pack.module2:func_rest [rest]\n'
+            'group2 = point3 = pack.module:func2\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.entry_points == {
+                'GROUP1': [
+                    'point1 = pack.module:func',
+                    '.point2 = pack.module2:func_rest [rest]',
+                ],
+                'group2': ['point3 = pack.module:func2']
+            }
 
     def test_data_files(self, tmpdir):
         fake_env(
@@ -852,6 +926,26 @@ class TestOptions:
         with pytest.raises(Exception):
             with get_dist(tmpdir) as dist:
                 dist.parse_config_files()
+
+    def test_cmdclass(self, tmpdir):
+        class CustomCmd(Command):
+            pass
+
+        m = types.ModuleType('custom_build', 'test package')
+
+        m.__dict__['CustomCmd'] = CustomCmd
+
+        sys.modules['custom_build'] = m
+
+        fake_env(
+            tmpdir,
+            '[options]\n'
+            'cmdclass =\n'
+            '    customcmd = custom_build.CustomCmd\n'
+        )
+
+        with get_dist(tmpdir) as dist:
+            assert dist.cmdclass == {'customcmd': CustomCmd}
 
 
 saved_dist_init = _Distribution.__init__

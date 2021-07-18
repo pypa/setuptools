@@ -23,11 +23,12 @@ from pkg_resources import (
     Environment, find_distributions, safe_name, safe_version,
     to_filename, Requirement, DEVELOP_DIST, EGG_DIST,
 )
-from setuptools import ssl_support
 from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
+from setuptools.extern.more_itertools import unique_everseen
+
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -161,7 +162,7 @@ def interpret_distro_name(
     # Generate alternative interpretations of a source distro name
     # Because some packages are ambiguous as to name/versions split
     # e.g. "adns-python-1.1.0", "egenix-mx-commercial", etc.
-    # So, we generate each possible interepretation (e.g. "adns, python-1.1.0"
+    # So, we generate each possible interpretation (e.g. "adns, python-1.1.0"
     # "adns-python, 1.1.0", and "adns-python-1.1.0, no version").  In practice,
     # the spurious interpretations should be ignored, because in the event
     # there's also an "adns" package, the spurious "python-1.1.0" version will
@@ -181,25 +182,6 @@ def interpret_distro_name(
             py_version=py_version, precedence=precedence,
             platform=platform
         )
-
-
-# From Python 2.7 docs
-def unique_everseen(iterable, key=None):
-    "List unique elements, preserving order. Remember all elements ever seen."
-    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
-    # unique_everseen('ABBCcAD', str.lower) --> A B C D
-    seen = set()
-    seen_add = seen.add
-    if key is None:
-        for element in itertools.filterfalse(seen.__contains__, iterable):
-            seen_add(element)
-            yield element
-    else:
-        for element in iterable:
-            k = key(element)
-            if k not in seen:
-                seen_add(k)
-                yield element
 
 
 def unique_values(func):
@@ -310,17 +292,10 @@ class PackageIndex(Environment):
         self.package_pages = {}
         self.allows = re.compile('|'.join(map(translate, hosts))).match
         self.to_scan = []
-        use_ssl = (
-            verify_ssl
-            and ssl_support.is_available
-            and (ca_bundle or ssl_support.find_ca_bundle())
-        )
-        if use_ssl:
-            self.opener = ssl_support.opener_for(ca_bundle)
-        else:
-            self.opener = urllib.request.urlopen
+        self.opener = urllib.request.urlopen
 
-    def process_url(self, url, retrieve=False):
+    # FIXME: 'PackageIndex.process_url' is too complex (14)
+    def process_url(self, url, retrieve=False):  # noqa: C901
         """Evaluate a URL as a possible download, and maybe retrieve it"""
         if url in self.scanned_urls and not retrieve:
             return
@@ -428,48 +403,52 @@ class PackageIndex(Environment):
             dist.precedence = SOURCE_DIST
             self.add(dist)
 
+    def _scan(self, link):
+        # Process a URL to see if it's for a package page
+        NO_MATCH_SENTINEL = None, None
+        if not link.startswith(self.index_url):
+            return NO_MATCH_SENTINEL
+
+        parts = list(map(
+            urllib.parse.unquote, link[len(self.index_url):].split('/')
+        ))
+        if len(parts) != 2 or '#' in parts[1]:
+            return NO_MATCH_SENTINEL
+
+        # it's a package page, sanitize and index it
+        pkg = safe_name(parts[0])
+        ver = safe_version(parts[1])
+        self.package_pages.setdefault(pkg.lower(), {})[link] = True
+        return to_filename(pkg), to_filename(ver)
+
     def process_index(self, url, page):
         """Process the contents of a PyPI page"""
-
-        def scan(link):
-            # Process a URL to see if it's for a package page
-            if link.startswith(self.index_url):
-                parts = list(map(
-                    urllib.parse.unquote, link[len(self.index_url):].split('/')
-                ))
-                if len(parts) == 2 and '#' not in parts[1]:
-                    # it's a package page, sanitize and index it
-                    pkg = safe_name(parts[0])
-                    ver = safe_version(parts[1])
-                    self.package_pages.setdefault(pkg.lower(), {})[link] = True
-                    return to_filename(pkg), to_filename(ver)
-            return None, None
 
         # process an index page into the package-page index
         for match in HREF.finditer(page):
             try:
-                scan(urllib.parse.urljoin(url, htmldecode(match.group(1))))
+                self._scan(urllib.parse.urljoin(url, htmldecode(match.group(1))))
             except ValueError:
                 pass
 
-        pkg, ver = scan(url)  # ensure this page is in the page index
-        if pkg:
-            # process individual package page
-            for new_url in find_external_links(url, page):
-                # Process the found URL
-                base, frag = egg_info_for_url(new_url)
-                if base.endswith('.py') and not frag:
-                    if ver:
-                        new_url += '#egg=%s-%s' % (pkg, ver)
-                    else:
-                        self.need_version_info(url)
-                self.scan_url(new_url)
-
-            return PYPI_MD5.sub(
-                lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1, 3, 2), page
-            )
-        else:
+        pkg, ver = self._scan(url)  # ensure this page is in the page index
+        if not pkg:
             return ""  # no sense double-scanning non-package pages
+
+        # process individual package page
+        for new_url in find_external_links(url, page):
+            # Process the found URL
+            base, frag = egg_info_for_url(new_url)
+            if base.endswith('.py') and not frag:
+                if ver:
+                    new_url += '#egg=%s-%s' % (pkg, ver)
+                else:
+                    self.need_version_info(url)
+            self.scan_url(new_url)
+
+        return PYPI_MD5.sub(
+            lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1, 3, 2), page
+        )
 
     def need_version_info(self, url):
         self.scan_all(
@@ -591,7 +570,7 @@ class PackageIndex(Environment):
                 spec = parse_requirement_arg(spec)
         return getattr(self.fetch_distribution(spec, tmpdir), 'location', None)
 
-    def fetch_distribution(
+    def fetch_distribution(  # noqa: C901  # is too complex (14)  # FIXME
             self, requirement, tmpdir, force_scan=False, source=False,
             develop_ok=False, local_index=None):
         """Obtain a distribution suitable for fulfilling `requirement`
@@ -762,7 +741,8 @@ class PackageIndex(Environment):
     def reporthook(self, url, filename, blocknum, blksize, size):
         pass  # no-op
 
-    def open_url(self, url, warning=None):
+    # FIXME:
+    def open_url(self, url, warning=None):  # noqa: C901  # is too complex (12)
         if url.startswith('file:'):
             return local_open(url)
         try:
