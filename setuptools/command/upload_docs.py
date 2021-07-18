@@ -170,8 +170,6 @@ class upload_docs(upload):
             conn = http.client.HTTPSConnection(netloc)
         else:
             raise AssertionError("unsupported schema " + schema)
-
-        data = ''
         try:
             conn.connect()
             conn.putrequest("POST", url)

@@ -430,7 +430,6 @@ class bdist_msi(Command):
         # see "Dialog Style Bits"
         modal = 3      # visible | modal
         modeless = 1   # visible
-        track_disk_space = 32
 
         # UI customization properties
         add_data(db, "Property",
