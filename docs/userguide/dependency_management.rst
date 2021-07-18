@@ -11,8 +11,6 @@ dependency.
     version by following `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_
 
 
-.. contents::
-
 Build system requirement
 ========================
 

@@ -92,6 +92,9 @@ extensions += ['sphinx.ext.extlinks', 'sphinx.ext.intersphinx']
 #      #diff-85987f48f1258d9ee486e3191495582dR82
 default_role = 'any'
 
+# HTML theme
+html_theme = 'furo'
+
 # Add support for inline tabs
 extensions += ['sphinx_inline_tabs']
 

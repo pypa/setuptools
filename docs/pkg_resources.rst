@@ -18,9 +18,6 @@ and their backports (`resources <https://pypi.org/project/importlib_resources>`_
 Please consider using those libraries instead of pkg_resources.
 
 
-.. contents:: **Table of Contents**
-
-
 --------
 Overview
 --------

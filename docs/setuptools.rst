@@ -47,9 +47,6 @@ Feature Highlights:
 * Full support for PEP 420 via ``find_namespace_packages()``, which is also backwards
   compatible to the existing ``find_packages()`` for Python >= 3.3.
 
-.. contents:: **Table of Contents**
-
-
 -----------------
 Developer's Guide
 -----------------

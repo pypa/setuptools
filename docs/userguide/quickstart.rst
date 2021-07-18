@@ -2,8 +2,6 @@
 ``setuptools`` Quickstart
 ==========================
 
-.. contents::
-
 Installation
 ============
 

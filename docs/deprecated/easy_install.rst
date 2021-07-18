@@ -25,9 +25,6 @@ own packages work better with EasyInstall, or provide EasyInstall-like features
 without requiring your users to use EasyInstall directly, you'll probably want
 to check out the full documentation as well.)
 
-.. contents:: **Table of Contents**
-
-
 Using "Easy Install"
 ====================
 
