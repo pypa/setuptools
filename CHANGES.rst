@@ -1,3 +1,12 @@
+v57.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #2465: Documentation is now published using the Furo theme.
+
+
 v57.2.0
 -------
 
