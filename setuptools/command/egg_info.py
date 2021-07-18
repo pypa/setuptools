@@ -596,7 +596,6 @@ class manifest_maker(sdist):
         license_files = self.distribution.metadata.license_files or []
         for lf in license_files:
             log.info("adding license file '%s'", lf)
-            pass
         self.filelist.extend(license_files)
 
     def prune_file_list(self):
