@@ -1,0 +1,1 @@
+Remove ``pass`` after ``log.info`` and ``DistutilsPlatformError`` -- by :user:`donno2048`
