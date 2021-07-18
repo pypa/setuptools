@@ -330,21 +330,6 @@ Keywords
     mess with it.  For more details on how this argument works, see the section
     below on :ref:`Automatic Resource Extraction`.
 
-``use_2to3``
-    Convert the source code from Python 2 to Python 3 with 2to3 during the
-    build process. See :doc:`../deprecated/python3` for more details.
-
-``convert_2to3_doctests``
-    List of doctest source files that need to be converted with 2to3.
-    See :doc:`../deprecated/python3` for more details.
-
-``use_2to3_fixers``
-    A list of modules to search for additional fixers to be used during
-    the 2to3 conversion. See :doc:`../deprecated/python3` for more details.
-
-``use_2to3_exclude_fixers``
-    List of fixer names to be skipped.
-
 ``project_urls``
     An arbitrary map of URL names to hyperlinks, allowing more extensible
     documentation of where various resources can be found than the simple
