@@ -1,3 +1,12 @@
+v57.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #2722: Added support for ``SETUPTOOLS_EXT_SUFFIX`` environment variable to override the suffix normally detected from the ``sysconfig`` module.
+
+
 v57.3.0
 -------
 
