@@ -62,11 +62,8 @@ finesse to it, let's start with a simple example.
     .. code-block:: python
 
         setup(
-            #...,
-            install_requires = [
-                'docutils',
-                'BazSpam ==1.1'
-            ]
+            # ...,
+            install_requires=["docutils", "BazSpam ==1.1"]
         )
 
 
@@ -98,9 +95,10 @@ the Python version is older than 3.4. To accomplish this
     .. code-block:: python
 
         setup(
-            #...
+            # ...
             install_requires=[
-                "enum34;python_version<'3.4'",]
+                "enum34;python_version<'3.4'",
+            ]
         )
 
 Similarly, if you also wish to declare ``pywin32`` with a minimal version of 1.0
@@ -121,11 +119,11 @@ and only install it if the user is using a Windows operating system:
     .. code-block:: python
 
         setup(
-            #...
+            # ...
             install_requires=[
                 "enum34;python_version<'3.4'",
-                "pywin32 >= 1.0;platform_system=='Windows'"
-                ]
+                "pywin32 >= 1.0;platform_system=='Windows'",
+            ]
         )
 
 The environmental markers that may be used for testing platform types are
@@ -204,10 +202,8 @@ distributions, if the package's dependencies aren't already installed:
     .. code-block:: python
 
         setup(
-            #...
-            dependency_links=[
-                "http://peak.telecommunity.com/snapshots/"
-            ],
+            # ...
+            dependency_links=["http://peak.telecommunity.com/snapshots/"],
         )
 
 
@@ -242,10 +238,10 @@ dependencies for it to work:
 
         setup(
             name="Project-A",
-            #...
+            # ...
             extras_require={
-                "PDF":  ["ReportLab>=1.2", "RXP"],
-            }
+                "PDF": ["ReportLab>=1.2", "RXP"],
+            },
         )
 
 The name ``PDF`` is an arbitrary identifier of such a list of dependencies, to
@@ -274,14 +270,14 @@ First is the console_scripts entry point:
     .. code-block:: python
 
         setup(
-            name = "Project-A"
-            #...,
+            name="Project-A",
+            ...,
             entry_points={
                 "console_scripts": [
                     "rst2pdf = project_a.tools.pdfgen [PDF]",
                     "rst2html = project_a.tools.htmlgen",
                 ],
-            }
+            },
         )
 
 This syntax indicates that the entry point (in this case a console script)
@@ -312,11 +308,7 @@ installed, it might declare the dependency like this:
 
     .. code-block:: python
 
-        setup(
-            name="Project-B",
-            install_requires=["Project-A[PDF]"],
-            ...
-        )
+        setup(name="Project-B", install_requires=["Project-A[PDF]"], ...)
 
 This will cause ReportLab to be installed along with project A, if project B is
 installed -- even if project A was already installed.  In this way, a project

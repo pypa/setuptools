@@ -36,7 +36,8 @@ and ``__main__.py`` providing a hook:
 .. code-block:: python
 
     from . import hello_world
-    if __name__ == '__main__':
+
+    if __name__ == "__main__":
         hello_world()
 
 After installing the package, the function may be invoked through the
@@ -102,10 +103,10 @@ module (part of stdlib since Python 3.8) or its backport,
 
 For example, to find the console script entry points from the example above:
 
-.. code-block:: python
+.. code-block:: pycon
 
     >>> from importlib import metadata
-    >>> eps = metadata.entry_points()['console_scripts']
+    >>> eps = metadata.entry_points()["console_scripts"]
 
 ``eps`` is now a list of ``EntryPoint`` objects, one of which corresponds
 to the ``hello-world = timmins:hello_world`` defined above. Each ``EntryPoint``
@@ -121,13 +122,14 @@ method to import and load that entry point (module or object).
 Then, a different project wishing to load 'my.plugins' plugins could run
 the following routine to load (and invoke) such plugins:
 
-.. code-block:: python
+.. code-block:: pycon
 
     >>> from importlib import metadata
-    >>> eps = metadata.entry_points()['my.plugins']
+    >>> eps = metadata.entry_points()["my.plugins"]
     >>> for ep in eps:
     ...     plugin = ep.load()
     ...     plugin()
+    ...
 
 The project soliciting the entry points needs not to have any dependency
 or prior knowledge about the libraries implementing the entry points, and
