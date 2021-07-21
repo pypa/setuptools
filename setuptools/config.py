@@ -258,27 +258,36 @@ class ConfigHandler:
 
     @classmethod
     def _parse_list_glob(cls, value, separator=','):
-        """Equivalent to _parse_list() but expands 'glob:' directives using glob().
+        """Equivalent to _parse_list() but expands any glob patterns using glob().
 
-        However, unlike glob(), the resolved results stay relative paths.
+        However, unlike direct calls to glob(), the resolved results remain relative paths.
 
         :param value:
         :param separator: List items separator character.
         :rtype: list
         """
-        directive = 'glob:'
+        glob_characters = ('*', '?', '[', ']', '{', '}')
+        get_relpath = lambda value: os.path.relpath(value, os.getcwd())
         values = cls._parse_list(value, separator=separator)
         expanded_values = []
         for value in values:
             trimmed_value = value.strip()
-            if trimmed_value.startswith(directive):
-                # take what is after "glob:"
-                value = trimmed_value.split(directive, 1)[-1].strip()
+
+            # Has globby characters?
+            if any(char in value for char in glob_characters):
                 value = os.path.abspath(value)
-                # and expand it while keeping as a relative path:
+
+                # check if this path has globby characters but does in fact exist:
+                if os.path.exists(value):
+                    # if it does, treat it literally and do not expand any patterns:
+                    expanded_values.append(get_relpath(value))
+                    continue
+
+                # else expand the glob pattern while keeping paths *relative*:
                 value = sorted(
-                    os.path.relpath(path, os.getcwd()) for path in iglob(value))
+                    get_relpath(path) for path in iglob(value))
                 expanded_values.extend(value)
+
             else:
                 expanded_values.append(value)
 

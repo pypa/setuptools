@@ -68,7 +68,7 @@ boilerplate code in some cases.
         site.d/00_default.conf
         host.d/00_default.conf
     data = data/img/logo.png, data/svg/icon.svg
-    fonts = glob: data/fonts/*.ttf, glob: data/fonts/*.otf
+    fonts = data/fonts/*.ttf, data/fonts/*.otf
 
 Metadata and options are set in the config sections of the same name.
 
@@ -157,8 +157,6 @@ Special directives:
       The ``file:`` directive is sandboxed and won't reach anything outside
       the directory containing ``setup.py``.
 
-* ``glob:`` - Value will be treated as a glob() pattern and expanded accordingly.
-
 
 Metadata
 --------
@@ -228,7 +226,7 @@ package_data             section                                              [#
 exclude_package_data     section
 namespace_packages       list-comma
 py_modules               list-comma
-data_files               glob:, dict                          40.6.0
+data_files               dict                                 40.6.0
 =======================  ===================================  =============== =========
 
 **Notes**:

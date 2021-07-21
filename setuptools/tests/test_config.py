@@ -900,12 +900,13 @@ class TestOptions:
             'cfg =\n'
             '      a/b.conf\n'
             '      c/d.conf\n'
-            'data = glob: *.dat\n'
+            'data = *.dat\n'
             'icons = \n'
-            '      glob: *.ico\n'
+            '      *.ico\n'
             'audio = \n'
-            '      glob:*.wav\n'
+            '      *.wav\n'
             '      sounds.db\n'
+            'strangeness = literal_weird_filename?.txt\n'
         )
 
         # Create dummy files for glob()'s sake:
@@ -918,6 +919,7 @@ class TestOptions:
         tmpdir.join('beep.wav').write('')
         tmpdir.join('boop.wav').write('')
         tmpdir.join('sounds.db').write('')
+        tmpdir.join('literal_weird_filename?.txt').write('')
 
         with get_dist(tmpdir) as dist:
             expected = [
@@ -925,6 +927,7 @@ class TestOptions:
                 ('data', ['a.dat', 'b.dat', 'c.dat']),
                 ('icons', ['a.ico', 'b.ico', 'c.ico']),
                 ('audio', ['beep.wav', 'boop.wav', 'sounds.db']),
+                ('strangeness', ['literal_weird_filename?.txt']),
             ]
             assert sorted(dist.data_files) == sorted(expected)
 

@@ -1,1 +1,1 @@
-Added `glob:` directive for use inside `[options.data_files]` values.
+Added implicit globbing support for `[options.data_files]` values.
