@@ -132,7 +132,7 @@ only a ``setuptools.setup()`` call.
 .. note::
 
     :pep:`517` doesn't support editable installs so this is currently
-    incompatible with ``pip install -e .``, as :pep:`517` does not support editable installs.
+    incompatible with ``pip install -e .``.
 
 This means that you can have a Python project with all build configuration
 specified in ``setup.cfg``, without a ``setup.py`` file, if you **can rely
