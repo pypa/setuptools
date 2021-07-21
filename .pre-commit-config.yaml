@@ -3,8 +3,3 @@ repos:
   rev: 20.8b1
   hooks:
   - id: black
-
-- repo: https://github.com/asottile/blacken-docs
-  rev: v1.9.1
-  hooks:
-  - id: blacken-docs
