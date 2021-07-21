@@ -35,7 +35,7 @@ included manually in the following manner:
 
         setup(
             # ...
-            packages=["mypkg1", "mypkg2"]
+            packages=['mypkg1', 'mypkg2']
         )
 
 This can get tiresome reallly quickly. To speed things up, we introduce two
@@ -101,9 +101,9 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
         setup(
             # ...
             packages=find_packages(
-                where="src",
-                include=["pkg*"],
-                exclude=["additional"],
+                where='src',
+                include=['pkg*'],
+                exclude=['additional'],
             ),
             package_dir={"": "src"}
             # ...
@@ -221,7 +221,7 @@ And the ``namespace_packages`` keyword in your ``setup.cfg`` or ``setup.py``:
 
         setup(
             # ...
-            namespace_packages=["timmins"]
+            namespace_packages=['timmins']
         )
 
 And your directory should look like this
@@ -246,6 +246,6 @@ file contains the following:
 
 .. code-block:: python
 
-    __path__ = __import__("pkgutil").extend_path(__path__, __name__)
+    __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 The project layout remains the same and ``setup.cfg`` remains the same.

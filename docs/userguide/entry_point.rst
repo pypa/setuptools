@@ -37,7 +37,7 @@ and ``__main__.py`` providing a hook:
 
     from . import hello_world
 
-    if __name__ == "__main__":
+    if __name__ == '__main__':
         hello_world()
 
 After installing the package, the function may be invoked through the
@@ -106,7 +106,7 @@ For example, to find the console script entry points from the example above:
 .. code-block:: pycon
 
     >>> from importlib import metadata
-    >>> eps = metadata.entry_points()["console_scripts"]
+    >>> eps = metadata.entry_points()['console_scripts']
 
 ``eps`` is now a list of ``EntryPoint`` objects, one of which corresponds
 to the ``hello-world = timmins:hello_world`` defined above. Each ``EntryPoint``
@@ -125,7 +125,7 @@ the following routine to load (and invoke) such plugins:
 .. code-block:: pycon
 
     >>> from importlib import metadata
-    >>> eps = metadata.entry_points()["my.plugins"]
+    >>> eps = metadata.entry_points()['my.plugins']
     >>> for ep in eps:
     ...     plugin = ep.load()
     ...     plugin()
