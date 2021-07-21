@@ -102,12 +102,8 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
             # ...
             packages=find_packages(
                 where="src",
-                include=[
-                    "pkg*",
-                ],
-                exclude=[
-                    "additional",
-                ],
+                include=["pkg*"],
+                exclude=["additional"],
             ),
             package_dir={"": "src"}
             # ...
