@@ -202,7 +202,7 @@ called "foobar", you would write a function something like this:
 .. code-block:: python
 
     def find_files_for_foobar(dirname):
-        # loop to yield paths that start with `dirname`
+        ...  # loop to yield paths that start with `dirname`
 
 And you would register it in a setup script using something like this::
 

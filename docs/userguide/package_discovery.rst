@@ -34,8 +34,8 @@ included manually in the following manner:
     .. code-block:: python
 
         setup(
-            #...
-            packages = ['mypkg1', 'mypkg2']
+            # ...
+            packages=['mypkg1', 'mypkg2']
         )
 
 This can get tiresome reallly quickly. To speed things up, we introduce two
@@ -55,7 +55,8 @@ functions provided by setuptools:
     .. code-block:: python
 
         from setuptools import find_packages
-        #or
+
+        # or
         from setuptools import find_namespace_packages
 
 
@@ -98,14 +99,14 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
     .. code-block:: python
 
         setup(
-            #...
-            packages = find_packages(
-                where = 'src',
-                include = ['pkg*',],
-                exclude = ['additional',]
+            # ...
+            packages=find_packages(
+                where='src',
+                include=['pkg*'],
+                exclude=['additional'],
             ),
-            package_dir = {"":"src"}
-            #...
+            package_dir={"": "src"}
+            # ...
         )
 
 
@@ -129,7 +130,7 @@ If both ``Desktop`` and ``Library`` are on your ``PYTHONPATH``, then a
 namespace package called ``timmins`` will be created automatically for you when
 you invoke the import mechanism, allowing you to accomplish the following
 
-.. code-block:: python
+.. code-block:: pycon
 
     >>> import timmins.foo
     >>> import timmins.bar
@@ -220,7 +221,7 @@ And the ``namespace_packages`` keyword in your ``setup.cfg`` or ``setup.py``:
 
         setup(
             # ...
-            namespace_packages = ['timmins']
+            namespace_packages=['timmins']
         )
 
 And your directory should look like this
