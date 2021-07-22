@@ -267,7 +267,6 @@ class ConfigHandler:
         :rtype: list
         """
         glob_characters = ('*', '?', '[', ']', '{', '}')
-        get_relpath = lambda value: os.path.relpath(value, os.getcwd())
         values = cls._parse_list(value, separator=separator)
         expanded_values = []
         for value in values:
@@ -276,7 +275,8 @@ class ConfigHandler:
             if any(char in value for char in glob_characters):
                 # then expand the glob pattern while keeping paths *relative*:
                 expanded_values.extend(sorted(
-                    get_relpath(path) for path in iglob(os.path.abspath(value))))
+                    os.path.relpath(path, os.getcwd())
+                    for path in iglob(os.path.abspath(value))))
 
             else:
                 # take the value as-is:
