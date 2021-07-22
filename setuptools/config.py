@@ -271,24 +271,15 @@ class ConfigHandler:
         values = cls._parse_list(value, separator=separator)
         expanded_values = []
         for value in values:
-            trimmed_value = value.strip()
 
             # Has globby characters?
             if any(char in value for char in glob_characters):
-                value = os.path.abspath(value)
-
-                # check if this path has globby characters but does in fact exist:
-                if os.path.exists(value):
-                    # if it does, treat it literally and do not expand any patterns:
-                    expanded_values.append(get_relpath(value))
-                    continue
-
-                # else expand the glob pattern while keeping paths *relative*:
-                value = sorted(
-                    get_relpath(path) for path in iglob(value))
-                expanded_values.extend(value)
+                # then expand the glob pattern while keeping paths *relative*:
+                expanded_values.extend(sorted(
+                    get_relpath(path) for path in iglob(os.path.abspath(value))))
 
             else:
+                # take the value as-is:
                 expanded_values.append(value)
 
         return expanded_values
