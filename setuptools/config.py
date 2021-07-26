@@ -260,7 +260,7 @@ class ConfigHandler:
     def _parse_list_glob(cls, value, separator=','):
         """Equivalent to _parse_list() but expands any glob patterns using glob().
 
-        However, unlike direct calls to glob(), the resolved results remain relative paths.
+        However, unlike with glob() calls, the results remain relative paths.
 
         :param value:
         :param separator: List items separator character.
