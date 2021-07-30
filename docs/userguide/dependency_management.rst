@@ -341,4 +341,25 @@ In some cases, you might need to specify the minimum required python version.
 This is handled with the ``python_requires`` keyword supplied to ``setup.cfg``
 or ``setup.py``.
 
-Example WIP
+
+.. tab:: setup.cfg
+
+    .. code-block:: ini
+
+        [metadata]
+        name = Project-B
+        #...
+
+        [options]
+        #...
+        python_requires = >=3.6
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            name="Project-B",
+            python_requires=[">=3.6"],
+            ...,
+        )
