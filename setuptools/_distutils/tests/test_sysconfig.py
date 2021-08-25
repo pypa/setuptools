@@ -125,6 +125,7 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         os.environ['ARFLAGS'] = '--env-arflags'
         os.environ['CFLAGS'] = '--env-cflags'
         os.environ['CPPFLAGS'] = '--env-cppflags'
+        os.environ['RANLIB'] = 'env_ranlib'
 
         comp = self.customize_compiler()
         self.assertEqual(comp.exes['archiver'],
@@ -145,6 +146,12 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
                           ' --env-cppflags'))
         self.assertEqual(comp.shared_lib_extension, 'sc_shutil_suffix')
 
+        if sys.platform == "darwin":
+            self.assertEqual(comp.exes['ranlib'],
+                         'env_ranlib')
+        else:
+            self.assertTrue('ranlib' not in comp.exes)
+
         del os.environ['AR']
         del os.environ['CC']
         del os.environ['CPP']
@@ -154,6 +161,7 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         del os.environ['ARFLAGS']
         del os.environ['CFLAGS']
         del os.environ['CPPFLAGS']
+        del os.environ['RANLIB']
 
         comp = self.customize_compiler()
         self.assertEqual(comp.exes['archiver'],
@@ -171,6 +179,12 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         self.assertEqual(comp.exes['linker_so'],
                          'sc_ldshared')
         self.assertEqual(comp.shared_lib_extension, 'sc_shutil_suffix')
+        if sys.platform == "darwin":
+            self.assertEqual(comp.exes['ranlib'],
+                         'ranlib')
+        else:
+            # For platforms other than macOS, ranlib is not used
+            self.assertTrue('ranlib' not in comp.exes)
 
     def test_parse_makefile_base(self):
         self.makefile = TESTFN
