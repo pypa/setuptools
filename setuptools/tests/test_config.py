@@ -893,6 +893,41 @@ class TestOptions:
             ]
             assert sorted(dist.data_files) == sorted(expected)
 
+    def test_data_files_globby(self, tmpdir):
+        fake_env(
+            tmpdir,
+            '[options.data_files]\n'
+            'cfg =\n'
+            '      a/b.conf\n'
+            '      c/d.conf\n'
+            'data = *.dat\n'
+            'icons = \n'
+            '      *.ico\n'
+            'audio = \n'
+            '      *.wav\n'
+            '      sounds.db\n'
+        )
+
+        # Create dummy files for glob()'s sake:
+        tmpdir.join('a.dat').write('')
+        tmpdir.join('b.dat').write('')
+        tmpdir.join('c.dat').write('')
+        tmpdir.join('a.ico').write('')
+        tmpdir.join('b.ico').write('')
+        tmpdir.join('c.ico').write('')
+        tmpdir.join('beep.wav').write('')
+        tmpdir.join('boop.wav').write('')
+        tmpdir.join('sounds.db').write('')
+
+        with get_dist(tmpdir) as dist:
+            expected = [
+                ('cfg', ['a/b.conf', 'c/d.conf']),
+                ('data', ['a.dat', 'b.dat', 'c.dat']),
+                ('icons', ['a.ico', 'b.ico', 'c.ico']),
+                ('audio', ['beep.wav', 'boop.wav', 'sounds.db']),
+            ]
+            assert sorted(dist.data_files) == sorted(expected)
+
     def test_python_requires_simple(self, tmpdir):
         fake_env(
             tmpdir,

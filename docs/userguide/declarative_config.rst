@@ -68,6 +68,7 @@ boilerplate code in some cases.
         site.d/00_default.conf
         host.d/00_default.conf
     data = data/img/logo.png, data/svg/icon.svg
+    fonts = data/fonts/*.ttf, data/fonts/*.otf
 
 Metadata and options are set in the config sections of the same name.
 

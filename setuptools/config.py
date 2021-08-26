@@ -9,6 +9,7 @@ import importlib
 from collections import defaultdict
 from functools import partial
 from functools import wraps
+from glob import iglob
 import contextlib
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
@@ -254,6 +255,34 @@ class ConfigHandler:
             value = value.split(separator)
 
         return [chunk.strip() for chunk in value if chunk.strip()]
+
+    @classmethod
+    def _parse_list_glob(cls, value, separator=','):
+        """Equivalent to _parse_list() but expands any glob patterns using glob().
+
+        However, unlike with glob() calls, the results remain relative paths.
+
+        :param value:
+        :param separator: List items separator character.
+        :rtype: list
+        """
+        glob_characters = ('*', '?', '[', ']', '{', '}')
+        values = cls._parse_list(value, separator=separator)
+        expanded_values = []
+        for value in values:
+
+            # Has globby characters?
+            if any(char in value for char in glob_characters):
+                # then expand the glob pattern while keeping paths *relative*:
+                expanded_values.extend(sorted(
+                    os.path.relpath(path, os.getcwd())
+                    for path in iglob(os.path.abspath(value))))
+
+            else:
+                # take the value as-is:
+                expanded_values.append(value)
+
+        return expanded_values
 
     @classmethod
     def _parse_dict(cls, value):
@@ -711,5 +740,5 @@ class ConfigOptionsHandler(ConfigHandler):
 
         :param dict section_options:
         """
-        parsed = self._parse_section_to_dict(section_options, self._parse_list)
+        parsed = self._parse_section_to_dict(section_options, self._parse_list_glob)
         self['data_files'] = [(k, v) for k, v in parsed.items()]
