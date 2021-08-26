@@ -2264,7 +2264,7 @@ def get_win_launcher(type):
     """
     launcher_fn = '%s.exe' % type
     if is_64bit():
-        if platform.machine() == "ARM64":
+        if get_platform() == "win-arm64":
             launcher_fn = launcher_fn.replace(".", "-arm64.")
         else:
             launcher_fn = launcher_fn.replace(".", "-64.")
