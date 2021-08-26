@@ -22,6 +22,7 @@ from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
 from distutils.spawn import find_executable
 import sys
+import platform
 import os
 import zipimport
 import shutil
@@ -2263,7 +2264,10 @@ def get_win_launcher(type):
     """
     launcher_fn = '%s.exe' % type
     if is_64bit():
-        launcher_fn = launcher_fn.replace(".", "-64.")
+        if platform.machine() == "ARM64":
+            launcher_fn = launcher_fn.replace(".", "-arm64.")
+        else:
+            launcher_fn = launcher_fn.replace(".", "-64.")
     else:
         launcher_fn = launcher_fn.replace(".", "-32.")
     return resource_string('setuptools', launcher_fn)
