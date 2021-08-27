@@ -1,3 +1,16 @@
+v57.5.0
+-------
+
+
+Changes
+^^^^^^^
+* #2712: Added implicit globbing support for `[options.data_files]` values.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2737: fix various syntax and style errors in code snippets in docs
+
+
 v57.4.0
 -------
 

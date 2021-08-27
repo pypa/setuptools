@@ -1,1 +1,0 @@
-Added implicit globbing support for `[options.data_files]` values.

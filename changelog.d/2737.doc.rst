@@ -1,1 +1,0 @@
-fix various syntax and style errors in code snippets in docs
