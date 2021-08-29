@@ -99,10 +99,13 @@ def get_python_inc(plat_specific=0, prefix=None):
     """
     if prefix is None:
         prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
-    if IS_PYPY:
-        return os.path.join(prefix, 'include')
-    elif os.name == "posix":
-        if python_build:
+    if os.name == "posix":
+        implementation = 'python'
+        if IS_PYPY:
+            if sys.version_info < (3, 8, 0):
+                return os.path.join(prefix, 'include')
+            implementation = 'pypy'
+        elif python_build:
             # Assume the executable is in the build directory.  The
             # pyconfig.h file should be in the same directory.  Since
             # the build directory may not be the source directory, we
@@ -113,7 +116,7 @@ def get_python_inc(plat_specific=0, prefix=None):
             else:
                 incdir = os.path.join(get_config_var('srcdir'), 'Include')
                 return os.path.normpath(incdir)
-        python_dir = 'python' + get_python_version() + build_flags
+        python_dir = implementation + get_python_version() + build_flags
         return os.path.join(prefix, "include", python_dir)
     elif os.name == "nt":
         if python_build:
