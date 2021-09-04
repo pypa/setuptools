@@ -56,9 +56,9 @@ setuptools, the content would be::
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
 
-The ``setuptools`` package will implement the ``build_sdist``
-function and the ``wheel`` package will provide the ``build_wheel``
-function; both are required to be compliant with PEP 517.
+The ``setuptools`` package implements the ``build_sdist``
+command and the ``wheel`` package implements the ``build_wheel``
+command; both are required to be compliant with PEP 517.
 
 Use ``setuptools``' :ref:`declarative config <declarative config>` to
 specify the package information::
