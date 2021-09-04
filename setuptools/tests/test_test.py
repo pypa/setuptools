@@ -1,4 +1,3 @@
-import mock
 from distutils import log
 import os
 

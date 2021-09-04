@@ -2,9 +2,7 @@
 """
 
 import os
-import site
 import sys
-import io
 import subprocess
 import platform
 import pathlib
