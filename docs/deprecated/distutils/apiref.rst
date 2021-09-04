@@ -1941,24 +1941,6 @@ Subclasses of :class:`Command` must define the following methods.
 
 .. class:: build_py
 
-.. class:: build_py_2to3
-
-   Alternative implementation of build_py which also runs the
-   2to3 conversion library on each .py file that is going to be
-   installed. To use this in a setup.py file for a distribution
-   that is designed to run with both Python 2.x and 3.x, add::
-
-     try:
-         from distutils.command.build_py import build_py_2to3 as build_py
-     except ImportError:
-         from distutils.command.build_py import build_py
-
-   to your setup.py, and later::
-
-      cmdclass = {'build_py': build_py}
-
-   to the invocation of setup().
-
 
 :mod:`distutils.command.build_scripts` --- Build the scripts of a package
 =========================================================================
