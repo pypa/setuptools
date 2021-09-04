@@ -211,10 +211,6 @@ install_requires         list-semi
 extras_require           section                                              [#opt-2]_
 python_requires          str
 entry_points             file:, section                       51.0.0
-use_2to3                 bool
-use_2to3_fixers          list-comma
-use_2to3_exclude_fixers  list-comma
-convert_2to3_doctests    list-comma
 scripts                  list-comma
 eager_resources          list-comma
 dependency_links         list-comma
