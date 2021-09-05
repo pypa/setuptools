@@ -1,3 +1,16 @@
+v58.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2086: Removed support for 2to3 during builds. Projects should port to a unified codebase or pin to an older version of Setuptools using PEP 518 build-requires.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2746: add python_requires example
+
+
 v57.5.0
 -------
 
