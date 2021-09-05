@@ -143,7 +143,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
     If 'prefix' is supplied, use it instead of sys.base_prefix or
     sys.base_exec_prefix -- i.e., ignore 'plat_specific'.
     """
-    
+
     if IS_PYPY and sys.version_info < (3, 8):
         # PyPy-specific schema
         if prefix is None:
@@ -254,6 +254,9 @@ def customize_compiler(compiler):
             linker_so=ldshared,
             linker_exe=cc,
             archiver=archiver)
+
+        if 'RANLIB' in os.environ and compiler.executables.get('ranlib', None):
+            compiler.set_executables(ranlib=os.environ['RANLIB'])
 
         compiler.shared_lib_extension = shlib_suffix
 
