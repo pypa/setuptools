@@ -27,9 +27,10 @@ from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.util import rfc822_escape
 from distutils.version import StrictVersion
 
-from setuptools.extern import packaging
-from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen
+import packaging.specifiers
+import packaging.version
+import ordered_set
+from more_itertools import unique_everseen
 
 from . import SetuptoolsDeprecationWarning
 
@@ -42,9 +43,6 @@ import pkg_resources
 
 if TYPE_CHECKING:
     from email.message import Message
-
-__import__('setuptools.extern.packaging.specifiers')
-__import__('setuptools.extern.packaging.version')
 
 
 def _get_unpatched(cls):

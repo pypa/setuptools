@@ -27,7 +27,7 @@ from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
-from setuptools.extern.more_itertools import unique_everseen
+from more_itertools import unique_everseen
 
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')

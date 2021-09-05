@@ -13,6 +13,7 @@ from distutils.util import convert_path
 
 from ._deprecation_warning import SetuptoolsDeprecationWarning
 
+import _setuptools_vendored  # noqa: F401
 import setuptools.version
 from setuptools.extension import Extension
 from setuptools.dist import Distribution

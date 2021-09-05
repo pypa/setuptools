@@ -8,7 +8,7 @@ import io
 import distutils.errors
 import itertools
 import stat
-from setuptools.extern.more_itertools import unique_everseen
+from more_itertools import unique_everseen
 
 
 def make_writable(target):

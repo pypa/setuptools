@@ -71,12 +71,13 @@ try:
 except ImportError:
     importlib_machinery = None
 
-from pkg_resources.extern import appdirs
-from pkg_resources.extern import packaging
-__import__('pkg_resources.extern.packaging.version')
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.requirements')
-__import__('pkg_resources.extern.packaging.markers')
+import _setuptools_vendored  # noqa: F401
+
+import appdirs
+import packaging.version
+import packaging.specifiers
+import packaging.requirements
+import packaging.markers
 
 if sys.version_info < (3, 5):
     raise RuntimeError("Python 3.5 or later is required")

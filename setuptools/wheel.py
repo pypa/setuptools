@@ -12,8 +12,8 @@ import zipfile
 import pkg_resources
 import setuptools
 from pkg_resources import parse_version
-from setuptools.extern.packaging.tags import sys_tags
-from setuptools.extern.packaging.utils import canonicalize_name
+from packaging.tags import sys_tags
+from packaging.utils import canonicalize_name
 from setuptools.command.egg_info import write_requirements
 
 

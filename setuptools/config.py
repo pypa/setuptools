@@ -13,8 +13,8 @@ from glob import iglob
 import contextlib
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.extern.packaging.version import LegacyVersion, parse
-from setuptools.extern.packaging.specifiers import SpecifierSet
+from packaging.version import LegacyVersion, parse
+from packaging.specifiers import SpecifierSet
 
 
 class StaticModule:

@@ -28,7 +28,7 @@ from pkg_resources import (
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
-from setuptools.extern import packaging
+import packaging
 from setuptools import SetuptoolsDeprecationWarning
 
 

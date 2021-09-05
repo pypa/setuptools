@@ -29,8 +29,8 @@ import platform
 import itertools
 import subprocess
 import distutils.errors
-from setuptools.extern.packaging.version import LegacyVersion
-from setuptools.extern.more_itertools import unique_everseen
+from packaging.version import LegacyVersion
+from more_itertools import unique_everseen
 
 from .monkey import get_unpatched
 

@@ -19,7 +19,7 @@ from pkg_resources import (
     EntryPoint,
 )
 from setuptools import Command
-from setuptools.extern.more_itertools import unique_everseen
+from more_itertools import unique_everseen
 
 
 class ScanningLoader(TestLoader):
