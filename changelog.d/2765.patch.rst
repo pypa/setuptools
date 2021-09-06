@@ -1,0 +1,1 @@
+In Distribution.finalize_options, suppress known removed entry points to avoid issues with older Setuptools.
