@@ -1,3 +1,12 @@
+v58.0.2
+-------
+
+
+Misc
+^^^^
+* #2769: Build now fails fast when ``use_2to3`` is supplied.
+
+
 v58.0.1
 -------
 
