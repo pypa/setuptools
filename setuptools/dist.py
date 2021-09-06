@@ -5,7 +5,6 @@ import io
 import sys
 import re
 import os
-import datetime
 import warnings
 import numbers
 import distutils.log
@@ -819,30 +818,24 @@ class Distribution(_Distribution):
             return getattr(hook, 'order', 0)
 
         defined = pkg_resources.iter_entry_points(group)
-        filtered = self._suppress_removed_finalization_eps(defined)
+        filtered = itertools.filterfalse(self._removed, defined)
         loaded = map(lambda e: e.load(), filtered)
         for ep in sorted(loaded, key=by_order):
             ep(self)
 
     @staticmethod
-    def _suppress_removed_finalization_eps(defined):
+    def _removed(ep):
         """
         When removing an entry point, if metadata is loaded
         from an older version of Setuptools, that removed
         entry point will attempt to be loaded and will fail.
-        See #2765 for more details. Remove these known
-        removed entry points for a year to limit the
-        disruption.
+        See #2765 for more details.
         """
         removed = {
-            '2to3_doctests': datetime.date(2021, 9, 5),
+            # removed 2021-09-05
+            '2to3_doctests',
         }
-        duration = datetime.timedelta(days=365)
-        today = datetime.date.today()
-
-        def suppress(ep):
-            return ep.name in removed and today - removed[ep.name] < duration
-        return itertools.filterfalse(suppress, defined)
+        return ep.name in removed
 
     def _finalize_setup_keywords(self):
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):

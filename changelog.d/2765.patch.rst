@@ -1,1 +1,1 @@
-In Distribution.finalize_options, suppress known removed entry points for a year to avoid issues with older Setuptools.
+In Distribution.finalize_options, suppress known removed entry points to avoid issues with older Setuptools.
