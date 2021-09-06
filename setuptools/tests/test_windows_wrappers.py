@@ -51,6 +51,7 @@ class WrapperTester:
             w = pkg_resources.resource_string('setuptools', cls.wrapper_source)
             f.write(w)
 
+
 def win_launcher_exe(prefix):
     """ A simple routine to select launcher script based on platform."""
     assert prefix in ('cli', 'gui')
@@ -58,6 +59,7 @@ def win_launcher_exe(prefix):
         return "{}-arm64.exe".format(prefix)
     else:
         return "{}-32.exe".format(prefix)
+
 
 class TestCLI(WrapperTester):
     script_name = 'foo-script.py'

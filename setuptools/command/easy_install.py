@@ -22,7 +22,6 @@ from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
 from distutils.spawn import find_executable
 import sys
-import platform
 import os
 import zipimport
 import shutil
