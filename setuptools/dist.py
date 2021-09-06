@@ -289,6 +289,10 @@ def assert_bool(dist, attr, value):
         raise DistutilsSetupError(tmpl.format(attr=attr, value=value))
 
 
+def invalid(dist, attr, value):
+    raise DistutilsSetupError(f"{attr} is invalid.")
+
+
 def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
