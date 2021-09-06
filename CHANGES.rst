@@ -1,3 +1,12 @@
+v58.0.1
+-------
+
+
+Misc
+^^^^
+* #2765: In Distribution.finalize_options, suppress known removed entry points to avoid issues with older Setuptools.
+
+
 v58.0.0
 -------
 
