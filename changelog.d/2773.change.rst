@@ -1,0 +1,1 @@
+Preserve case of keys during edit_config
