@@ -291,7 +291,7 @@ def assert_bool(dist, attr, value):
 
 def invalid_ignored_if_false(dist, attr, value):
     if not value:
-        warnings.warn("{attr} is ignored")
+        warnings.warn("{attr} is ignored", DistDeprecationWarning)
         return
     raise DistutilsSetupError(f"{attr} is invalid if it is set to a true value.")
 
