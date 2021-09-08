@@ -289,11 +289,11 @@ def assert_bool(dist, attr, value):
         raise DistutilsSetupError(tmpl.format(attr=attr, value=value))
 
 
-def invalid_ignored_if_false(dist, attr, value):
+def invalid_unless_false(dist, attr, value):
     if not value:
-        warnings.warn("{attr} is ignored", DistDeprecationWarning)
+        warnings.warn(f"{attr} is ignored.", DistDeprecationWarning)
         return
-    raise DistutilsSetupError(f"{attr} is invalid if it is set to a true value.")
+    raise DistutilsSetupError(f"{attr} is invalid.")
 
 
 def check_requirements(dist, attr, value):
