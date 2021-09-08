@@ -15,7 +15,8 @@ from distutils.core import setup
 import foo
 
 setup(name='foo', version='0.1', py_modules=['foo'],
-      url='xxx', author='xxx', author_email='xxx')
+      url='xxx', author='xxx', author_email='xxx',
+      options={})
 
 """
 
@@ -127,6 +128,49 @@ class BuildRpmTestCase(support.TempdirManager,
         self.assertIn(('bdist_rpm', 'any', 'dist/foo-0.1-1.noarch.rpm'), dist.dist_files)
 
         os.remove(os.path.join(pkg_dir, 'dist', 'foo-0.1-1.noarch.rpm'))
+
+    # XXX I am unable yet to make this test work without
+    # spurious sdtout/stderr output under Mac OS X
+    @unittest.skipUnless(sys.platform.startswith('linux'),
+                         'spurious sdtout/stderr output under Mac OS X')
+    @requires_zlib
+    @unittest.skipIf(find_executable('rpm') is None,
+                     'the rpm command is not found')
+    @unittest.skipIf(find_executable('rpmbuild') is None,
+                     'the rpmbuild command is not found')
+    def test_force_version(self):
+        # let's create a package
+        tmp_dir = self.mkdtemp()
+        os.environ['HOME'] = tmp_dir   # to confine dir '.rpmdb' creation
+        pkg_dir = os.path.join(tmp_dir, 'foo')
+        os.mkdir(pkg_dir)
+        self.write_file((pkg_dir, 'setup.py'), SETUP_PY.format('{"bdist_rpm":{"force_version": "1.1"}}'))
+        self.write_file((pkg_dir, 'foo.py'), '#')
+        self.write_file((pkg_dir, 'MANIFEST.in'), 'include foo.py')
+        self.write_file((pkg_dir, 'README'), '')
+
+        dist = Distribution({'name': 'foo', 'version': '0.1',
+                             'py_modules': ['foo'],
+                             'url': 'xxx', 'author': 'xxx',
+                             'author_email': 'xxx',
+                             'options': {'bdist_rpm': {
+                             'force_version': '1.1'}}})
+        dist.script_name = 'setup.py'
+        os.chdir(pkg_dir)
+
+        sys.argv = ['setup.py']
+        cmd = bdist_rpm(dist)
+        cmd.fix_python = True
+
+        cmd.ensure_finalized()
+        cmd.run()
+
+        dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
+        self.assertIn('foo-1.1-1.noarch.rpm', dist_created)
+
+        # bug #2945: upload ignores bdist_rpm files
+        self.assertIn(('bdist_rpm', 'any', 'dist/foo-1.1-1.src.rpm'), dist.dist_files)
+        self.assertIn(('bdist_rpm', 'any', 'dist/foo-1.1-1.noarch.rpm'), dist.dist_files)
 
 def test_suite():
     return unittest.makeSuite(BuildRpmTestCase)

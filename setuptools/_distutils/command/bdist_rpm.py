@@ -120,6 +120,10 @@ class bdist_rpm(Command):
         ('force-arch=', None,
          "Force an architecture onto the RPM build process"),
 
+        # Allow a packager to explicitly force a version
+        ('force-version=', None,
+         "Force a version onto the RPM instead of using metadata"),
+
         ('quiet', 'q',
          "Run the INSTALL phase of RPM building in quiet mode"),
         ]
@@ -175,6 +179,7 @@ class bdist_rpm(Command):
         self.no_autoreq = 0
 
         self.force_arch = None
+        self.force_version = None
         self.quiet = 0
 
     def finalize_options(self):
@@ -252,6 +257,7 @@ class bdist_rpm(Command):
         self.ensure_string_list('obsoletes')
 
         self.ensure_string('force_arch')
+        self.ensure_string('force_version')
 
     def run(self):
         if DEBUG:
@@ -392,10 +398,14 @@ class bdist_rpm(Command):
         """Generate the text of an RPM spec file and return it as a
         list of strings (one per line).
         """
+        if self.force_version is None:
+            pkg_version = self.distribution.get_version()
+        else:
+            pkg_version = self.force_version
         # definitions and headers
         spec_file = [
             '%define name ' + self.distribution.get_name(),
-            '%define version ' + self.distribution.get_version().replace('-','_'),
+            '%define version ' + pkg_version.replace('-','_'),
             '%define unmangled_version ' + self.distribution.get_version(),
             '%define release ' + self.release.replace('-','_'),
             '',
