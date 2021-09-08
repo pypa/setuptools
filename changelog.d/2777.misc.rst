@@ -1,0 +1,1 @@
+Build does not fail fast when ``use_2to3`` is supplied but set to a false value.
