@@ -1,2 +1,2 @@
-Deprecated the ``bdist_rom`` command. Binary packages should be built as wheels instead.
+Deprecated the ``bdist_rpm`` command. Binary packages should be built as wheels instead.
 -- by :user:`hugovk`
