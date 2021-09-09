@@ -31,8 +31,11 @@ class TestEdit:
 
     def test_case_retained(self, tmpdir):
         """
+        When editing a file, case of keys should be retained.
         """
         config = tmpdir.join('setup.cfg')
-        self.write_text(str(config), '[names]\nJARACO=jaraco')
-        setopt.edit_config(str(config), dict())
-        assert 'JARACO' in config.read_text(encoding='ascii')
+        self.write_text(str(config), '[names]\nFoO=bAr')
+        setopt.edit_config(str(config), dict(names=dict(oTher='yes')))
+        actual = config.read_text(encoding='ascii')
+        assert 'FoO' in actual
+        assert 'oTher' in actual
