@@ -28,3 +28,11 @@ class TestEdit:
         parser = self.parse_config(str(config))
         assert parser.get('names', 'jaraco') == 'джарако'
         assert parser.get('names', 'other') == 'yes'
+
+    def test_case_retained(self, tmpdir):
+        """
+        """
+        config = tmpdir.join('setup.cfg')
+        self.write_text(str(config), '[names]\nJARACO=jaraco')
+        setopt.edit_config(str(config), dict())
+        assert 'JARACO' in config.read_text(encoding='ascii')
