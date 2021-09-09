@@ -1,1 +1,0 @@
-Retain case in setup.cfg during sdist.

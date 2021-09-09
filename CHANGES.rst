@@ -1,3 +1,12 @@
+v58.0.4
+-------
+
+
+Misc
+^^^^
+* #2773: Retain case in setup.cfg during sdist.
+
+
 v58.0.3
 -------
 
