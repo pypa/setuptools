@@ -36,6 +36,6 @@ class TestEdit:
         config = tmpdir.join('setup.cfg')
         self.write_text(str(config), '[names]\nFoO=bAr')
         setopt.edit_config(str(config), dict(names=dict(oTher='yes')))
-        parser = self.parse_config(str(config))
-        assert parser.get('names', 'FoO') == 'bAr'
-        assert parser.get('names', 'oTher') == 'yes'
+        actual = config.read_text(encoding='ascii')
+        assert 'FoO' in actual
+        assert 'oTher' in actual

@@ -1,3 +1,21 @@
+v58.0.4
+-------
+
+
+Misc
+^^^^
+* #2773: Retain case in setup.cfg during sdist.
+
+
+v58.0.3
+-------
+
+
+Misc
+^^^^
+* #2777: Build does not fail fast when ``use_2to3`` is supplied but set to a false value.
+
+
 v58.0.2
 -------
 
