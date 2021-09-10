@@ -99,9 +99,9 @@ def get_python_inc(plat_specific=0, prefix=None):
     """
     if prefix is None:
         prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
-    if IS_PYPY:
-        return os.path.join(prefix, 'include')
-    elif os.name == "posix":
+    if os.name == "posix":
+        if IS_PYPY and sys.version_info < (3, 8):
+            return os.path.join(prefix, 'include')
         if python_build:
             # Assume the executable is in the build directory.  The
             # pyconfig.h file should be in the same directory.  Since
@@ -113,7 +113,8 @@ def get_python_inc(plat_specific=0, prefix=None):
             else:
                 incdir = os.path.join(get_config_var('srcdir'), 'Include')
                 return os.path.normpath(incdir)
-        python_dir = 'python' + get_python_version() + build_flags
+        implementation = 'pypy' if IS_PYPY else 'python'
+        python_dir = implementation + get_python_version() + build_flags
         return os.path.join(prefix, "include", python_dir)
     elif os.name == "nt":
         if python_build:
@@ -142,7 +143,8 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
     If 'prefix' is supplied, use it instead of sys.base_prefix or
     sys.base_exec_prefix -- i.e., ignore 'plat_specific'.
     """
-    if IS_PYPY:
+    
+    if IS_PYPY and sys.version_info < (3, 8):
         # PyPy-specific schema
         if prefix is None:
             prefix = PREFIX
@@ -164,8 +166,9 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         else:
             # Pure Python
             libdir = "lib"
+        implementation = 'pypy' if IS_PYPY else 'python'
         libpython = os.path.join(prefix, libdir,
-                                 "python" + get_python_version())
+                                 implementation + get_python_version())
         if standard_lib:
             return libpython
         else:
