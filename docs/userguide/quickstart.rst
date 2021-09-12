@@ -201,7 +201,7 @@ Then::
     pip install --editable .
 
 This creates a link file in your interpreter site package directory which
-associate with your source code. For more information, see: (WIP)
+associate with your source code. For more information, see :doc:`development_mode`.
 
 
 Uploading your package to PyPI
