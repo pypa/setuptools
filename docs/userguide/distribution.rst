@@ -184,11 +184,11 @@ tag.  Pre-release tags make a version be considered *older* than the version
 they are appended to.  So, revision ``2.4`` is *newer* than revision ``2.4c1``,
 which in turn is newer than ``2.4b1`` or ``2.4a1``.  Postrelease tags make
 a version be considered *newer* than the version they are appended to.  So,
-revisions like ``2.4-1`` is newer than ``2.4``, but *older*
+revisions like ``2.4-1`` are newer than ``2.4``, but *older*
 than ``2.4.1`` (which has a higher release number).
 
-In the case of legacy versions (for example, ``2.4pl1``) are always considered
-older than non-legacy versions. Taking that in count, a version ``2.4pl1``
+In the case of legacy versions (for example, ``2.4pl1``), they are considered
+older than non-legacy versions. Taking that in count, a revision ``2.4pl1``
 is *older* than ``2.4``
 
 A pre-release tag is a series of letters that are alphabetically before
