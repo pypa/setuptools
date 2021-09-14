@@ -161,7 +161,10 @@ without Cython.
 Specifying Your Project's Version
 ---------------------------------
 
-Setuptools can work well with most versioning schemes; there are, however, a
+Setuptools can work well with most versioning schemes. Over the years,
+setuptools has tried to closely follow the 
+`PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_ scheme, but it
+also supports legacy versions. There are, however, a
 few special things to watch out for, in order to ensure that setuptools and
 other tools can always tell what version of your package is newer than another
 version.  Knowing these things will also help you correctly specify what
@@ -181,8 +184,12 @@ tag.  Pre-release tags make a version be considered *older* than the version
 they are appended to.  So, revision ``2.4`` is *newer* than revision ``2.4c1``,
 which in turn is newer than ``2.4b1`` or ``2.4a1``.  Postrelease tags make
 a version be considered *newer* than the version they are appended to.  So,
-revisions like ``2.4-1`` and ``2.4pl3`` are newer than ``2.4``, but are *older*
+revisions like ``2.4-1`` is newer than ``2.4``, but *older*
 than ``2.4.1`` (which has a higher release number).
+
+In the case of legacy versions (for example, ``2.4pl1``) are always considered
+older than non-legacy versions. Taking that in count, a version ``2.4pl1``
+is *older* than ``2.4``
 
 A pre-release tag is a series of letters that are alphabetically before
 "final".  Some examples of prerelease tags would include ``alpha``, ``beta``,
