@@ -261,7 +261,7 @@ class UnixCCompiler(CCompiler):
                 # No idea how --enable-new-dtags would be passed on to
                 # ld if this system was using GNU ld.  Don't know if a
                 # system like this even exists.
-                return "-R" + dir
+                return "-Wl,-R" + dir
 
     def library_option(self, lib):
         return "-l" + lib
