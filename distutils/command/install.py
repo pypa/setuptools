@@ -285,11 +285,10 @@ class install(Command):
         # input a heady brew of prefix, exec_prefix, home, install_base,
         # install_platbase, user-supplied versions of
         # install_{purelib,platlib,lib,scripts,data,...}, and the
-        # INSTALL_SCHEME dictionary above.  Phew!
+        # install schemes.  Phew!
 
         self.dump_dirs("pre-finalize_{unix,other}")
 
-        self._load_schemes()
         if os.name == 'posix':
             self.finalize_unix()
         else:
@@ -417,10 +416,12 @@ class install(Command):
         Allow sysconfig and runtime behaviors to alter schemes.
         """
 
+        schemes = dict(INSTALL_SCHEMES)
+
         try:
             import sysconfig
-            INSTALL_SCHEMES.update(sysconfig.INSTALL_SCHEMES)
-            return
+            schemes.update(sysconfig.INSTALL_SCHEMES)
+            return schemes
         except (ImportError, AttributeError):
             pass
 
@@ -432,7 +433,7 @@ class install(Command):
             )
 
         if not is_virtualenv():
-            INSTALL_SCHEMES['unix_prefix'] = INSTALL_SCHEMES['unix_local']
+            schemes['unix_prefix'] = schemes['unix_local']
 
         # debian:
         def is_deb_system():
@@ -440,7 +441,7 @@ class install(Command):
             return self.install_layout.lower() == 'deb'
 
         if is_deb_system():
-            INSTALL_SCHEMES['unix_prefix'] = {
+            schemes['unix_prefix'] = {
                 'purelib': '$base/lib/python3/dist-packages',
                 'platlib': '$platbase/lib/python3/dist-packages',
                 'headers': '$base/include/python$py_version_short/$dist_name',
@@ -448,7 +449,9 @@ class install(Command):
                 'data'   : '$base',
             }
         if not is_virtualenv():
-            INSTALL_SCHEMES['unix_prefix'] = INSTALL_SCHEMES['unix_local']
+            schemes['unix_prefix'] = schemes['unix_local']
+
+        return schemes
 
     def finalize_unix(self):
         """Finalizes options for posix platforms."""
@@ -521,7 +524,7 @@ class install(Command):
                 name = 'pypy_nt'
             else:
                 name = 'pypy'
-        scheme = INSTALL_SCHEMES[name]
+        scheme = self._load_schemes()[name]
         for key in SCHEME_KEYS:
             attrname = 'install_' + key
             if getattr(self, attrname) is None:
