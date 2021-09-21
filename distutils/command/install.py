@@ -406,7 +406,7 @@ class install(Command):
 
     def _load_schemes(self):
         """
-        Allow sysconfig and runtime behaviors to alter schemes.
+        Allow sysconfig to alter schemes.
         """
 
         schemes = dict(INSTALL_SCHEMES)
@@ -414,23 +414,8 @@ class install(Command):
         try:
             import sysconfig
             schemes.update(sysconfig.INSTALL_SCHEMES)
-            return schemes
         except (ImportError, AttributeError):
             pass
-
-        # debian:
-        def is_deb_system():
-            # TODO: how to solicit without an additional parameter to build?
-            return self.install_layout.lower() == 'deb'
-
-        if is_deb_system():
-            schemes['unix_prefix'] = {
-                'purelib': '$base/lib/python3/dist-packages',
-                'platlib': '$platbase/lib/python3/dist-packages',
-                'headers': '$base/include/python$py_version_short/$dist_name',
-                'scripts': '$base/bin',
-                'data'   : '$base',
-            }
 
         return schemes
 
