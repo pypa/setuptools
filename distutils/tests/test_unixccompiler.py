@@ -181,8 +181,8 @@ class UnixCCompilerTestCase(unittest.TestCase):
         sysconfig.get_config_var = gcv
         self.assertEqual(self.cc.rpath_foo(), '-R/foo')
 
-    @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for OS X')
-    def test_osx_cc_overrides_ldshared(self):
+    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    def test_cc_overrides_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable also changes default linker
         def gcv(v):
@@ -202,8 +202,8 @@ class UnixCCompilerTestCase(unittest.TestCase):
             sysconfig.customize_compiler(self.cc)
         self.assertEqual(self.cc.linker_so[0], 'my_cc')
 
-    @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for OS X')
-    def test_osx_explicit_ldshared(self):
+    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    def test_explicit_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable does not change
         #   explicit LDSHARED setting for linker
