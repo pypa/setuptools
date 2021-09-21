@@ -35,13 +35,6 @@ INSTALL_SCHEMES = {
         'scripts': '$base/bin',
         'data'   : '$base',
         },
-    'unix_local': {
-        'purelib': '$base/local/lib/python$py_version_short/site-packages',
-        'platlib': '$platbase/local/$platlibdir/python$py_version_short/site-packages',
-        'headers': '$base/local/include/python$py_version_short$abiflags/$dist_name',
-        'scripts': '$base/local/bin',
-        'data'   : '$base/local',
-        },
     'unix_home': {
         'purelib': '$base/lib/python',
         'platlib': '$base/$platlibdir/python',
@@ -425,16 +418,6 @@ class install(Command):
         except (ImportError, AttributeError):
             pass
 
-        def is_virtualenv():
-            return (
-                hasattr(sys, 'real_prefix') or
-                sys.prefix != sys.base_prefix or
-                'VIRTUAL_ENV' in os.environ
-            )
-
-        if not is_virtualenv():
-            schemes['unix_prefix'] = schemes['unix_local']
-
         # debian:
         def is_deb_system():
             # TODO: how to solicit without an additional parameter to build?
@@ -448,8 +431,6 @@ class install(Command):
                 'scripts': '$base/bin',
                 'data'   : '$base',
             }
-        if not is_virtualenv():
-            schemes['unix_prefix'] = schemes['unix_local']
 
         return schemes
 
