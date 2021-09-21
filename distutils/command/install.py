@@ -421,7 +421,7 @@ class install(Command):
             import sysconfig
             INSTALL_SCHEMES.update(sysconfig.INSTALL_SCHEMES)
             return
-        except Exception:
+        except (ImportError, AttributeError):
             pass
 
         def is_virtualenv():
