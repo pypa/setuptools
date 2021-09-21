@@ -431,11 +431,7 @@ class install(Command):
                 'VIRTUAL_ENV' in os.environ
             )
 
-        # fedora:
-        def is_rpm_build():
-            return 'RPM_BUILD_ROOT' in os.environ
-
-        if not is_virtualenv() and not is_rpm_build():
+        if not is_virtualenv():
             INSTALL_SCHEMES['unix_prefix'] = INSTALL_SCHEMES['unix_local']
 
         # debian:
