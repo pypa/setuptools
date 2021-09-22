@@ -1,0 +1,3 @@
+Added ``--owner`` and ``--group`` options to the ``sdist`` command,
+for specifying file ownership within the produced tarball (similarly
+to the corresponding distutils ``sdist`` options).
