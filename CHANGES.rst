@@ -1,3 +1,12 @@
+v58.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2796: Merge with pypa/distutils@02e9f65ab0
+
+
 v58.0.4
 -------
 
