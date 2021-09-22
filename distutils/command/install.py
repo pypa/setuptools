@@ -84,6 +84,22 @@ if HAS_USER_SITE:
 SCHEME_KEYS = ('purelib', 'platlib', 'headers', 'scripts', 'data')
 
 
+def _load_schemes():
+    """
+    Extend default schemes with schemes from sysconfig.
+    """
+
+    schemes = dict(INSTALL_SCHEMES)
+
+    try:
+        import sysconfig
+        schemes.update(sysconfig.INSTALL_SCHEMES)
+    except (ImportError, AttributeError):
+        pass
+
+    return schemes
+
+
 class install(Command):
 
     description = "install everything from build directory"
@@ -404,21 +420,6 @@ class install(Command):
                 val = getattr(self, opt_name)
             log.debug("  %s: %s", opt_name, val)
 
-    def _load_schemes(self):
-        """
-        Allow sysconfig to alter schemes.
-        """
-
-        schemes = dict(INSTALL_SCHEMES)
-
-        try:
-            import sysconfig
-            schemes.update(sysconfig.INSTALL_SCHEMES)
-        except (ImportError, AttributeError):
-            pass
-
-        return schemes
-
     def finalize_unix(self):
         """Finalizes options for posix platforms."""
         if self.install_base is not None or self.install_platbase is not None:
@@ -490,7 +491,7 @@ class install(Command):
                 name = 'pypy_nt'
             else:
                 name = 'pypy'
-        scheme = self._load_schemes()[name]
+        scheme = _load_schemes()[name]
         for key in SCHEME_KEYS:
             attrname = 'install_' + key
             if getattr(self, attrname) is None:
