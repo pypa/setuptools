@@ -38,7 +38,7 @@ included manually in the following manner:
             packages=['mypkg1', 'mypkg2']
         )
 
-This can get tiresome reallly quickly. To speed things up, we introduce two
+This can get tiresome really quickly. To speed things up, we introduce two
 functions provided by setuptools:
 
 .. tab:: setup.cfg
