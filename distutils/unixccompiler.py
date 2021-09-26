@@ -245,18 +245,16 @@ class UnixCCompiler(CCompiler):
             if self._is_gcc(compiler):
                 return ["-Wl,+s", "-L" + dir]
             return ["+s", "-L" + dir]
+
+        # For all compilers, `-Wl` is the presumed way to
+        # pass a compiler option to the linker and `-R` is
+        # the way to pass an RPATH.
+        if sysconfig.get_config_var("GNULD") == "yes":
+            # GNU ld needs an extra option to get a RUNPATH
+            # instead of just an RPATH.
+            return "-Wl,--enable-new-dtags,-R" + dir
         else:
-            # gcc on non-GNU systems does not need -Wl, but can
-            # use it anyway. for all compilers including gcc we assume that
-            # -Wl is the way to pass a compiler option to the linker
-            # and for all linkers we assume that -R is the way to set
-            # an rpath.
-            if sysconfig.get_config_var("GNULD") == "yes":
-                # GNU ld needs an extra option to get a RUNPATH
-                # instead of just an RPATH.
-                return "-Wl,--enable-new-dtags,-R" + dir
-            else:
-                return "-Wl,-R" + dir
+            return "-Wl,-R" + dir
 
     def library_option(self, lib):
         return "-l" + lib
