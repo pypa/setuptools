@@ -218,8 +218,13 @@ class egg_info(InfoCommon, Command):
             ) from e
 
         if self.egg_base is None:
-            dirs = self.distribution.package_dir
-            self.egg_base = (dirs or {}).get('', os.curdir)
+            dirs = self.distribution.package_dir or {}
+            if '' in dirs:
+                self.egg_base = dirs['']
+            elif self.egg_name in dirs:
+                self.egg_base =os.path.dirname(dirs[self.egg_name])
+            else:
+                self.egg_base = os.curdir
 
         self.ensure_dirname('egg_base')
         self.egg_info = to_filename(self.egg_name) + '.egg-info'
