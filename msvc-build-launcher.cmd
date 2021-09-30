@@ -34,3 +34,6 @@ if "%ERRORLEVEL%"=="0" (
 ) else (
   echo Windows SDK 6.1 not found to build Windows 64-bit version
 )
+
+set PATH=%PATH_OLD%
+
