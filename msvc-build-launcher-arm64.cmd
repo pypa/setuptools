@@ -1,7 +1,9 @@
 @echo off
 
+REM Build with jaraco/windows Docker image
+
 set PATH_OLD=%PATH%
-set PATH=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build;%PATH_OLD%
+set PATH=C:\BuildTools\VC\Auxiliary\Build;%PATH_OLD%
 
 REM now for arm 64-bit
 REM Cross compile for arm64
