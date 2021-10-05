@@ -25,7 +25,7 @@ the command line ahead of the ``sdist`` or ``bdist`` commands that you want
 to generate a daily build or snapshot for.  See the section below on the
 :ref:`egg_info <egg_info>` command for more details.
 
-(Also, before you release your project, be sure to see the section above on
+(Also, before you release your project, be sure to see the section on
 :ref:`Specifying Your Project's Version` for more information about how pre- and
 post-release tags affect how version numbers are interpreted.  This is
 important in order to make sure that dependency processing tools will know
