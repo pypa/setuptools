@@ -236,10 +236,7 @@ def cpython_tags(
     interpreter = "cp{}".format(_version_nodot(python_version[:2]))
 
     if abis is None:
-        if len(python_version) > 1:
-            abis = _cpython_abis(python_version, warn)
-        else:
-            abis = []
+        abis = _cpython_abis(python_version, warn) if len(python_version) > 1 else []
     abis = list(abis)
     # 'abi3' and 'none' are explicitly handled later.
     for explicit_abi in ("abi3", "none"):
@@ -253,11 +250,8 @@ def cpython_tags(
         for platform_ in platforms:
             yield Tag(interpreter, abi, platform_)
     if _abi3_applies(python_version):
-        for tag in (Tag(interpreter, "abi3", platform_) for platform_ in platforms):
-            yield tag
-    for tag in (Tag(interpreter, "none", platform_) for platform_ in platforms):
-        yield tag
-
+        yield from (Tag(interpreter, "abi3", platform_) for platform_ in platforms)
+    yield from (Tag(interpreter, "none", platform_) for platform_ in platforms)
     if _abi3_applies(python_version):
         for minor_version in range(python_version[1] - 1, 1, -1):
             for platform_ in platforms:
@@ -401,10 +395,7 @@ def mac_platforms(version=None, arch=None):
         version = cast("MacVersion", tuple(map(int, version_str.split(".")[:2])))
     else:
         version = version
-    if arch is None:
-        arch = _mac_arch(cpu_arch)
-    else:
-        arch = arch
+    arch = _mac_arch(cpu_arch) if arch is None else arch
     for minor_version in range(version[1], -1, -1):
         compat_version = version[0], minor_version
         binary_formats = _mac_binary_formats(compat_version, arch)
@@ -713,19 +704,13 @@ def interpreter_version(**kwargs):
     """
     warn = _warn_keyword_parameter("interpreter_version", kwargs)
     version = _get_config_var("py_version_nodot", warn=warn)
-    if version:
-        version = str(version)
-    else:
-        version = _version_nodot(sys.version_info[:2])
+    version = str(version) if version else _version_nodot(sys.version_info[:2])
     return version
 
 
 def _version_nodot(version):
     # type: (PythonVersion) -> str
-    if any(v >= 10 for v in version):
-        sep = "_"
-    else:
-        sep = ""
+    sep = "_" if any(v >= 10 for v in version) else ""
     return sep.join(map(str, version))
 
 
@@ -741,11 +726,7 @@ def sys_tags(**kwargs):
 
     interp_name = interpreter_name()
     if interp_name == "cp":
-        for tag in cpython_tags(warn=warn):
-            yield tag
+        yield from cpython_tags(warn=warn)
     else:
-        for tag in generic_tags():
-            yield tag
-
-    for tag in compatible_tags():
-        yield tag
+        yield from generic_tags()
+    yield from compatible_tags()

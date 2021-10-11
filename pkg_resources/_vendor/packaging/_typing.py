@@ -26,14 +26,12 @@ In packaging, all static-typing related imports should be guarded as follows:
 Ref: https://github.com/python/mypy/issues/3216
 """
 
+
 __all__ = ["TYPE_CHECKING", "cast"]
 
 # The TYPE_CHECKING constant defined by the typing module is False at runtime
 # but True while type checking.
-if False:  # pragma: no cover
-    from typing import TYPE_CHECKING
-else:
-    TYPE_CHECKING = False
+TYPE_CHECKING = False # pragma: no cover
 
 # typing's cast syntax requires calling typing.cast at runtime, but we don't
 # want to import typing at runtime. Here, we inform the type checkers that

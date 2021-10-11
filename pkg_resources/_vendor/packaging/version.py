@@ -334,20 +334,17 @@ class Version(_BaseVersion):
     @property
     def epoch(self):
         # type: () -> int
-        _epoch = self._version.epoch  # type: int
-        return _epoch
+        return self._version.epoch
 
     @property
     def release(self):
         # type: () -> Tuple[int, ...]
-        _release = self._version.release  # type: Tuple[int, ...]
-        return _release
+        return self._version.release
 
     @property
     def pre(self):
         # type: () -> Optional[Tuple[str, int]]
-        _pre = self._version.pre  # type: Optional[Tuple[str, int]]
-        return _pre
+        return self._version.pre
 
     @property
     def post(self):
@@ -504,19 +501,9 @@ def _cmpkey(
         _pre = pre
 
     # Versions without a post segment should sort before those with one.
-    if post is None:
-        _post = NegativeInfinity  # type: PrePostDevType
-
-    else:
-        _post = post
-
+    _post = NegativeInfinity if post is None else post
     # Versions without a development segment should sort after those with one.
-    if dev is None:
-        _dev = Infinity  # type: PrePostDevType
-
-    else:
-        _dev = dev
-
+    _dev = Infinity if dev is None else dev
     if local is None:
         # Versions without a local segment should sort before those with one.
         _local = NegativeInfinity  # type: LocalType
