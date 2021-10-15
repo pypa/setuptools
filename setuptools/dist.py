@@ -466,6 +466,29 @@ class Distribution(_Distribution):
         )
         self._finalize_requires()
 
+    def _validate_metadata(self):
+        required = ["name", "version"]
+        missing = []
+
+        for req_attr in required:
+            if getattr(self.metadata, req_attr) is None:
+                missing.append(req_attr)
+
+        if missing:
+            if len(missing) == 1:
+                message = "%s attribute" % missing[0]
+            else:
+                message = "%s and %s attributes" % (", ".join(missing[:-1]),
+                                                    missing[-1])
+            raise DistutilsSetupError(
+                "Required package metadata is missing: please supply the %s." % message
+            )
+
+    def run_commands(self):
+        self._validate_metadata()
+        super().run_commands()
+
+
     def _set_metadata_defaults(self, attrs):
         """
         Fill-in missing metadata fields not supported by distutils.
