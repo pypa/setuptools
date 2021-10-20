@@ -1,0 +1,2 @@
+Changed codecov.yml to configure the threshold to be lower
+-- by :user:`tanvimoharir`
