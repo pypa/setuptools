@@ -6,6 +6,7 @@ docs/build
 include
 lib
 distribute.egg-info
+foo.egg-info
 setuptools.egg-info
 .coverage
 .eggs

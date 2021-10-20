@@ -7,10 +7,10 @@ jobs:
     strategy:
       matrix:
         python:
+        - pypy3
         - 3.6
         - 3.9
         - 3.10.0-alpha - 3.10.99
-        - pypy3
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:

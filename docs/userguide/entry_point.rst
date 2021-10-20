@@ -141,7 +141,7 @@ Dependency Management
 =====================
 
 Some entry points may require additional dependencies to properly function.
-For such an entry point, declare in square brakets any number of dependency
+For such an entry point, declare in square brackets any number of dependency
 ``extras`` following the entry point definition. Such entry points will only
 be viable if their extras were declared and installed. See the
 :doc:`guide on dependencies management <dependency_management>` for

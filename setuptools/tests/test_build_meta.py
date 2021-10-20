@@ -167,7 +167,7 @@ class TestBuildMetaBackend:
             'pyproject.toml': DALS("""
                 [build-system]
                 requires = ["setuptools", "wheel"]
-                build-backend = "setuptools.build_meta
+                build-backend = "setuptools.build_meta"
             """),
         }
 
@@ -260,7 +260,7 @@ class TestBuildMetaBackend:
             'pyproject.toml': DALS("""
                 [build-system]
                 requires = ["setuptools", "wheel"]
-                build-backend = "setuptools.build_meta
+                build-backend = "setuptools.build_meta"
                 """),
         }
         path.build(files)

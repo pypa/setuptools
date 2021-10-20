@@ -16,6 +16,7 @@ import mock
 import time
 import re
 import subprocess
+import pathlib
 
 import pytest
 from jaraco import path
@@ -669,26 +670,24 @@ class TestSetupRequires:
 
     def test_setup_requires_with_allow_hosts(self, mock_index):
         ''' The `allow-hosts` option in not supported anymore. '''
+        files = {
+            'test_pkg': {
+                'setup.py': DALS('''
+                    from setuptools import setup
+                    setup(setup_requires='python-xlib')
+                    '''),
+                'setup.cfg': DALS('''
+                    [easy_install]
+                    allow_hosts = *
+                    '''),
+            }
+        }
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
-                test_pkg = os.path.join(temp_dir, 'test_pkg')
-                test_setup_py = os.path.join(test_pkg, 'setup.py')
-                test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
-                os.mkdir(test_pkg)
-                with open(test_setup_py, 'w') as fp:
-                    fp.write(DALS(
-                        '''
-                        from setuptools import setup
-                        setup(setup_requires='python-xlib')
-                        '''))
-                with open(test_setup_cfg, 'w') as fp:
-                    fp.write(DALS(
-                        '''
-                        [easy_install]
-                        allow_hosts = *
-                        '''))
+                path.build(files, prefix=temp_dir)
+                setup_py = str(pathlib.Path(temp_dir, 'test_pkg', 'setup.py'))
                 with pytest.raises(distutils.errors.DistutilsError):
-                    run_setup(test_setup_py, [str('--version')])
+                    run_setup(setup_py, [str('--version')])
         assert len(mock_index.requests) == 0
 
     def test_setup_requires_with_python_requires(self, monkeypatch, tmpdir):

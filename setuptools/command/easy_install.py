@@ -1508,7 +1508,7 @@ def extract_wininst_cfg(dist_filename):
             # Now the config is in bytes, but for RawConfigParser, it should
             #  be text, so decode it.
             config = config.decode(sys.getfilesystemencoding())
-            cfg.readfp(io.StringIO(config))
+            cfg.read_file(io.StringIO(config))
         except configparser.Error:
             return None
         if not cfg.has_section('metadata') or not cfg.has_section('Setup'):
@@ -2263,7 +2263,10 @@ def get_win_launcher(type):
     """
     launcher_fn = '%s.exe' % type
     if is_64bit():
-        launcher_fn = launcher_fn.replace(".", "-64.")
+        if get_platform() == "win-arm64":
+            launcher_fn = launcher_fn.replace(".", "-arm64.")
+        else:
+            launcher_fn = launcher_fn.replace(".", "-64.")
     else:
         launcher_fn = launcher_fn.replace(".", "-32.")
     return resource_string('setuptools', launcher_fn)

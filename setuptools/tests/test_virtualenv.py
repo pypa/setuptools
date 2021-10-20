@@ -44,7 +44,8 @@ def test_clean_env_install(bare_virtualenv, tmp_src):
     """
     Check setuptools can be installed in a clean environment.
     """
-    bare_virtualenv.run(['python', 'setup.py', 'install'], cd=tmp_src)
+    cmd = [bare_virtualenv.python, 'setup.py', 'install']
+    bare_virtualenv.run(cmd, cd=tmp_src)
 
 
 def _get_pip_versions():
@@ -206,5 +207,5 @@ def test_no_missing_dependencies(bare_virtualenv, request):
     Quick and dirty test to ensure all external dependencies are vendored.
     """
     for command in ('upload',):  # sorted(distutils.command.__all__):
-        cmd = ['python', 'setup.py', command, '-h']
+        cmd = [bare_virtualenv.python, 'setup.py', command, '-h']
         bare_virtualenv.run(cmd, cd=request.config.rootdir)
