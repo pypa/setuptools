@@ -332,6 +332,14 @@ class MetadataTestCase(support.TempdirManager, support.EnvironGuard,
         dist = Distribution(attrs)
         self.assertIsInstance(dist.metadata.requires, list)
 
+    def test_install_requires(self):
+        attrs = {"name": "package",
+                 "version": "1.0",
+                 "install_requires": ["other", "another (<1.0)"]}
+
+        dist = Distribution(attrs)
+        self.assertEqual(dist.metadata.get_install_requires(),
+                         ["other", "another (<1.0)"])
 
     def test_obsoletes(self):
         attrs = {"name": "package",

@@ -156,6 +156,55 @@ def setup(**attrs):
 setup.__doc__ = distutils.core.setup.__doc__
 
 
+_DistributionMetadata = monkey.get_unpatched(distutils.dist.DistributionMetadata)
+
+
+class DistributionMetadata(_DistributionMetadata):
+    """Dummy class to hold the distribution meta-data: name, version,
+    author, and so forth.
+    """
+
+    _METHOD_BASENAMES = ("name", "version", "author", "author_email",
+                         "maintainer", "maintainer_email", "url",
+                         "license", "description", "long_description",
+                         "keywords", "platforms", "fullname", "contact",
+                         "contact_email", "classifiers", "download_url",
+                         # PEP 314
+                         "provides", "requires", "obsoletes",
+                         "install_requires",
+                         )
+
+    def __init__(self, path=None):
+        if path is not None:
+            self.read_pkg_file(open(path))
+        else:
+            self.name = None
+            self.version = None
+            self.author = None
+            self.author_email = None
+            self.maintainer = None
+            self.maintainer_email = None
+            self.url = None
+            self.license = None
+            self.description = None
+            self.long_description = None
+            self.keywords = None
+            self.platforms = None
+            self.classifiers = None
+            self.download_url = None
+            # PEP 314
+            self.provides = None
+            self.requires = None
+            self.obsoletes = None
+            self.install_requires = None
+
+    def get_install_requires(self):
+        return self.install_requires or []
+
+    def set_install_requires(self, value):
+        self.install_requires = list(value)
+
+
 _Command = monkey.get_unpatched(distutils.core.Command)
 
 

@@ -171,6 +171,7 @@ def test_read_metadata(name, attrs):
         ('platforms', dist_class.get_platforms),
         ('obsoletes', dist_class.get_obsoletes),
         ('requires', dist_class.get_requires),
+        ('install_requires', dist_class.get_install_requires),
         ('classifiers', dist_class.get_classifiers),
         ('project_urls', lambda s: getattr(s, 'project_urls', {})),
         ('provides_extras', lambda s: getattr(s, 'provides_extras', set())),

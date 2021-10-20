@@ -64,6 +64,8 @@ def patch_all():
     # we can't patch distutils.cmd, alas
     distutils.core.Command = setuptools.Command
 
+    distutils.dist.DistributionMetadata = setuptools.DistributionMetadata
+
     has_issue_12885 = sys.version_info <= (3, 5, 3)
 
     if has_issue_12885:

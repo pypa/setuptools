@@ -424,6 +424,11 @@ class Distribution(_Distribution):
 
     _patched_dist = None
 
+    _Distribution.display_options.append(
+        ('install-requires', None,
+         "print the list of packages/modules required when installing"),
+    )
+
     def patch_missing_pkg_info(self, attrs):
         # Fake up a replacement for the data that would normally come from
         # PKG-INFO, but which might not yet be built if this is a fresh
