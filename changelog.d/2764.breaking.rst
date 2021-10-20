@@ -1,0 +1,1 @@
+Setuptools now declares its dependencies in metadata but also vendors libraries satisfying those dependencies if they're not present. This change means that Setuptools cannot install from source under pip earlier than 20.
