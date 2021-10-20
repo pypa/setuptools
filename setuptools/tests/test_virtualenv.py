@@ -2,7 +2,6 @@ import glob
 import os
 import sys
 import itertools
-
 import pathlib
 
 import pytest
@@ -79,10 +78,14 @@ def _get_pip_versions():
         reason="pypa/setuptools#2599",
     )
 
+    issue2764 = pytest.mark.skip(
+        reason="pypa/setuptools#2764",
+    )
+
     network_versions = [
-        mark('pip==9.0.3', issue2599),
-        mark('pip==10.0.1', issue2599),
-        mark('pip==18.1', issue2599),
+        mark('pip==9.0.3', issue2599, issue2764),
+        mark('pip==10.0.1', issue2599, issue2764),
+        mark('pip==18.1', issue2599, issue2764),
         mark('pip==19.3.1', pytest.mark.xfail(reason='pypa/pip#6599')),
         'pip==20.0.2',
         'https://github.com/pypa/pip/archive/main.zip',
