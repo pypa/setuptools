@@ -283,6 +283,12 @@ class PackageIndex(Environment):
         self.to_scan = []
         self.opener = urllib.request.urlopen
 
+    def add(self, dist):
+        # ignore invalid pbr version
+        if dist.version == '0.5.2.5.g5b3e942':
+            return
+        return super().add(dist)
+
     # FIXME: 'PackageIndex.process_url' is too complex (14)
     def process_url(self, url, retrieve=False):  # noqa: C901
         """Evaluate a URL as a possible download, and maybe retrieve it"""
