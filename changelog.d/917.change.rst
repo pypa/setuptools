@@ -1,1 +1,0 @@
-``setup.py install`` and ``easy_install`` commands are now officially deprecated. Use other standards-based installers (like pip) and builders (like build). Workloads reliant on this behavior should pin to this major version of Setuptools.

@@ -1,3 +1,22 @@
+v58.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #917: ``setup.py install`` and ``easy_install`` commands are now officially deprecated. Use other standards-based installers (like pip) and builders (like build). Workloads reliant on this behavior should pin to this major version of Setuptools.
+* #1988: Deprecated the ``bdist_rpm`` command. Binary packages should be built as wheels instead.
+  -- by :user:`hugovk`
+* #2785: Replace confirparser's readfp with read_file, deprecated since Python 3.2.
+  -- by :user:`hugovk`
+* #2823: Officially deprecated support for ``setup_requires``. Users are encouraged instead to migrate to PEP 518 ``build-system.requires`` in ``pyproject.toml``. Users reliant on ``setup_requires`` should consider pinning to this major version to avoid disruption.
+
+Misc
+^^^^
+* #2762: Changed codecov.yml to configure the threshold to be lower
+  -- by :user:`tanvimoharir`
+
+
 v58.2.0
 -------
 

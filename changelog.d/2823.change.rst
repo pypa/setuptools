@@ -1,1 +1,0 @@
-Officially deprecated support for ``setup_requires``. Users are encouraged instead to migrate to PEP 518 ``build-system.requires`` in ``pyproject.toml``. Users reliant on ``setup_requires`` should consider pinning to this major version to avoid disruption.
