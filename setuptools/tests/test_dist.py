@@ -9,6 +9,9 @@ from setuptools.dist import (
     _get_unpatched,
     check_package_data,
     DistDeprecationWarning,
+    check_specifier,
+    rfc822_escape,
+    rfc822_unescape,
 )
 from setuptools import sic
 from setuptools import Distribution
@@ -81,11 +84,8 @@ def __read_test_cases():
 
     test_cases = [
         ('Metadata version 1.0', params()),
-        ('Metadata version 1.1: Provides', params(
-            provides=['package'],
-        )),
-        ('Metadata version 1.1: Obsoletes', params(
-            obsoletes=['foo'],
+        ('Metadata Version 1.0: Short long description', params(
+            long_description='Short long description',
         )),
         ('Metadata version 1.1: Classifiers', params(
             classifiers=[
@@ -109,6 +109,10 @@ def __read_test_cases():
         ),
         ('Metadata Version 2.1: Long Description Content Type', params(
             long_description_content_type='text/x-rst; charset=UTF-8',
+        )),
+        ('License', params(license='MIT', )),
+        ('License multiline', params(
+            license='This is a long license \nover multiple lines',
         )),
         pytest.param(
             'Metadata Version 2.1: Provides Extra',
@@ -161,6 +165,7 @@ def test_read_metadata(name, attrs):
         ('metadata_version', dist_class.get_metadata_version),
         ('provides', dist_class.get_provides),
         ('description', dist_class.get_description),
+        ('long_description', dist_class.get_long_description),
         ('download_url', dist_class.get_download_url),
         ('keywords', dist_class.get_keywords),
         ('platforms', dist_class.get_platforms),
@@ -246,8 +251,8 @@ def test_maintainer_author(name, attrs, tmpdir):
     with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
         raw_pkg_lines = f.readlines()
 
-    # Drop blank lines
-    pkg_lines = list(filter(None, raw_pkg_lines))
+    # Drop blank lines and strip lines from default description
+    pkg_lines = list(filter(None, raw_pkg_lines[:-2]))
 
     pkg_lines_set = set(pkg_lines)
 
@@ -323,3 +328,49 @@ def test_check_package_data(package_data, expected_message):
         with pytest.raises(
                 DistutilsSetupError, match=re.escape(expected_message)):
             check_package_data(None, str('package_data'), package_data)
+
+
+def test_check_specifier():
+    # valid specifier value
+    attrs = {'name': 'foo', 'python_requires': '>=3.0, !=3.1'}
+    dist = Distribution(attrs)
+    check_specifier(dist, attrs, attrs['python_requires'])
+
+    # invalid specifier value
+    attrs = {'name': 'foo', 'python_requires': ['>=3.0', '!=3.1']}
+    with pytest.raises(DistutilsSetupError):
+        dist = Distribution(attrs)
+
+
+@pytest.mark.parametrize(
+    'content, result',
+    (
+        pytest.param(
+            "Just a single line",
+            None,
+            id="single_line",
+        ),
+        pytest.param(
+            "Multiline\nText\nwithout\nextra indents\n",
+            None,
+            id="multiline",
+        ),
+        pytest.param(
+            "Multiline\n    With\n\nadditional\n  indentation",
+            None,
+            id="multiline_with_indentation",
+        ),
+        pytest.param(
+            "  Leading whitespace",
+            "Leading whitespace",
+            id="remove_leading_whitespace",
+        ),
+        pytest.param(
+            "  Leading whitespace\nIn\n    Multiline comment",
+            "Leading whitespace\nIn\n    Multiline comment",
+            id="remove_leading_whitespace_multiline",
+        ),
+    )
+)
+def test_rfc822_unescape(content, result):
+    assert (result or content) == rfc822_unescape(rfc822_escape(content))

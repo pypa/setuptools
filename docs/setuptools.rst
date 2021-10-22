@@ -47,14 +47,11 @@ Feature Highlights:
 * Full support for PEP 420 via ``find_namespace_packages()``, which is also backwards
   compatible to the existing ``find_packages()`` for Python >= 3.3.
 
-.. contents:: **Table of Contents**
-
-
 -----------------
 Developer's Guide
 -----------------
 
-
+The developer's guide has been updated. See the :doc:`most recent version <userguide/index>`.
 
 
 
@@ -135,7 +132,7 @@ only a ``setuptools.setup()`` call.
 .. note::
 
     :pep:`517` doesn't support editable installs so this is currently
-    incompatible with ``pip install -e .``, as :pep:`517` does not support editable installs.
+    incompatible with ``pip install -e .``.
 
 This means that you can have a Python project with all build configuration
 specified in ``setup.cfg``, without a ``setup.py`` file, if you **can rely
@@ -157,7 +154,7 @@ To use this feature:
       ]
       build-backend = "setuptools.build_meta"
 
-* Use a :pep:`517` compatible build frontend, such as ``pip >= 19`` or ``pep517``.
+* Use a :pep:`517` compatible build frontend, such as ``pip >= 19`` or ``build``.
 
   .. warning::
 

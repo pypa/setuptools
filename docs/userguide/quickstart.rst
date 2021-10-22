@@ -2,8 +2,6 @@
 ``setuptools`` Quickstart
 ==========================
 
-.. contents::
-
 Installation
 ============
 
@@ -22,7 +20,7 @@ be generated with whatever tools that provides a ``build sdist``-alike
 functionality. While this may appear cumbersome, given the added pieces,
 it in fact tremendously enhances the portability of your package. The
 change is driven under :pep:`PEP 517 <517#build-requirements>`. To learn more about Python packaging in general,
-navigate to the `bottom <Resources on python packaging>`_ of this page.
+navigate to the :ref:`bottom <packaging-resources>` of this page.
 
 
 Basic Use
@@ -37,33 +35,52 @@ package your project:
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
 
-Then, you will need a ``setup.cfg`` to specify your package information,
-such as metadata, contents, dependencies, etc. Here we demonstrate the minimum
+Then, you will need a ``setup.cfg`` or ``setup.py`` to specify your package
+information, such as metadata, contents, dependencies, etc. Here we demonstrate
+the minimum
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [metadata]
-    name = mypackage
-    version = 0.0.1
+    .. code-block:: ini
 
-    [options]
-    packages = mypackage
-    install_requires =
-      requests
-      importlib; python_version == "2.6"
+        [metadata]
+        name = mypackage
+        version = 0.0.1
+
+        [options]
+        packages = mypackage
+        install_requires =
+            requests
+            importlib; python_version == "2.6"
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        from setuptools import setup
+
+        setup(
+            name='mypackage',
+            version='0.0.1',
+            packages=['mypackage'],
+            install_requires=[
+                'requests',
+                'importlib; python_version == "2.6"',
+            ],
+        )
 
 This is what your project would look like::
 
     ~/mypackage/
         pyproject.toml
-        setup.cfg
+        setup.cfg # or setup.py
         mypackage/__init__.py
 
-Then, you need an installer, such as `pep517 <https://pypi.org/project/pep517/>`_
-which you can obtain via ``pip install pep517``. After downloading it, invoke
-the installer::
+Then, you need an builder, such as :std:doc:`PyPA build <pypa-build:index>`
+which you can obtain via ``pip install build``. After downloading it, invoke
+the builder::
 
-    python -m pep517.build .
+    python -m build
 
 You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl``
 file in the ``dist`` directory), which you can upload to PyPI!
@@ -154,7 +171,7 @@ Including Data Files
 ====================
 The distutils have traditionally allowed installation of "data files", which
 are placed in a platform-specific location. Setuptools offers three ways to
-specify data files to be included in your packages. For the simpliest use, you
+specify data files to be included in your packages. For the simplest use, you
 can simply use the ``include_package_data`` keyword:
 
 .. code-block:: ini
@@ -170,7 +187,7 @@ For more details, see :doc:`datafiles`
 Development mode
 ================
 ``setuptools`` allows you to install a package without copying any files
-to your interpretor directory (e.g. the ``site-packages`` directory). This
+to your interpreter directory (e.g. the ``site-packages`` directory). This
 allows you to modify your source code and have the changes take effect without
 you having to rebuild and reinstall. This is currently incompatible with
 PEP 517 and therefore it requires a ``setup.py`` script with the following
@@ -183,8 +200,8 @@ Then::
 
     pip install --editable .
 
-This creates a link file in your interpretor site package directory which
-associate with your source code. For more information, see: (WIP)
+This creates a link file in your interpreter site package directory which
+associate with your source code. For more information, see :doc:`development_mode`.
 
 
 Uploading your package to PyPI
@@ -196,13 +213,14 @@ basic use here.
 
 
 Transitioning from ``setup.py`` to ``setup.cfg``
-==================================================
-To avoid executing arbitary scripts and boilerplate code, we are transitioning
+================================================
+To avoid executing arbitrary scripts and boilerplate code, we are transitioning
 into a full-fledged ``setup.cfg`` to declare your package information instead
 of running ``setup()``. This inevitably brings challenges due to a different
 syntax. Here we provide a quick guide to understanding how ``setup.cfg`` is
 parsed by ``setuptool`` to ease the pain of transition.
 
+.. _packaging-resources:
 
 Resources on Python packaging
 =============================

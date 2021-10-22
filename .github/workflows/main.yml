@@ -1,4 +1,4 @@
-name: Automated Tests
+name: tests
 
 on: [push, pull_request]
 
@@ -6,7 +6,11 @@ jobs:
   test:
     strategy:
       matrix:
-        python: [3.6, 3.8, 3.9, pypy3]
+        python:
+        - pypy3
+        - 3.6
+        - 3.9
+        - 3.10.0-alpha - 3.10.99
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -19,7 +23,14 @@ jobs:
         run: |
           python -m pip install tox
       - name: Run tests
-        run: tox
+        run: tox -- --cov-report xml
+      - name: Publish coverage
+        if: false  # disabled for #2727
+        uses: codecov/codecov-action@v1
+        with:
+          flags: >-  # Mark which lines are covered by which envs
+            ${{ runner.os }},
+            ${{ matrix.python }}
 
   release:
     needs: test
@@ -40,4 +51,3 @@ jobs:
         env:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TIDELIFT_TOKEN: ${{ secrets.TIDELIFT_TOKEN }}

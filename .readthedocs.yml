@@ -1,4 +1,6 @@
 version: 2
 python:
   install:
-  - requirements: docs/requirements.txt
+  - path: .
+    extra_requirements:
+      - docs

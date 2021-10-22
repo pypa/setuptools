@@ -348,7 +348,7 @@ class install(Command):
         # module distribution is pure or not.  Of course, if the user
         # already specified install_lib, use their selection.
         if self.install_lib is None:
-            if self.distribution.ext_modules: # has extensions: non-pure
+            if self.distribution.has_ext_modules(): # has extensions: non-pure
                 self.install_lib = self.install_platlib
             else:
                 self.install_lib = self.install_purelib
@@ -470,6 +470,7 @@ class install(Command):
         """Sets the install directories by applying the install schemes."""
         # it's the caller's problem if they supply a bad name!
         if (hasattr(sys, 'pypy_version_info') and
+                sys.version_info < (3, 8) and
                 not name.endswith(('_user', '_home'))):
             if os.name == 'nt':
                 name = 'pypy_nt'

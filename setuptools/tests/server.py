@@ -65,7 +65,7 @@ class MockServer(http.server.HTTPServer, threading.Thread):
         http.server.HTTPServer.__init__(
             self, server_address, RequestHandlerClass)
         threading.Thread.__init__(self)
-        self.setDaemon(True)
+        self.daemon = True
         self.requests = []
 
     def run(self):

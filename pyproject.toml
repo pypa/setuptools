@@ -1,7 +1,5 @@
 [build-system]
 requires = [
-    # avoid self install on Python 2; ref #1996
-    "setuptools >= 40.8; python_version > '3'",
     "wheel",
 ]
 build-backend = "setuptools.build_meta"
@@ -12,19 +10,20 @@ skip-string-normalization = true
 
 [tool.setuptools_scm]
 
-# jaraco/skeleton#22
-[tool.jaraco.pytest.plugins.black]
+[pytest.enabler.black]
 #addopts = "--black"
 
-# jaraco/skeleton#22
-[tool.jaraco.pytest.plugins.mypy]
+[pytest.enabler.mypy]
 #addopts = "--mypy"
 
-[tool.jaraco.pytest.plugins.flake8]
+[pytest.enabler.flake8]
 addopts = "--flake8"
 
-[tool.jaraco.pytest.plugins.cov]
+[pytest.enabler.cov]
 addopts = "--cov"
+
+[pytest.enabler.xdist]
+addopts = "-n auto"
 
 [tool.towncrier]
     package = "setuptools"

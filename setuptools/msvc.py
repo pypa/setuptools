@@ -24,11 +24,13 @@ from io import open
 from os import listdir, pathsep
 from os.path import join, isfile, isdir, dirname
 import sys
+import contextlib
 import platform
 import itertools
 import subprocess
 import distutils.errors
 from setuptools.extern.packaging.version import LegacyVersion
+from setuptools.extern.more_itertools import unique_everseen
 
 from .monkey import get_unpatched
 
@@ -192,7 +194,9 @@ def _msvc14_find_vc2017():
             join(root, "Microsoft Visual Studio", "Installer", "vswhere.exe"),
             "-latest",
             "-prerelease",
+            "-requiresAny",
             "-requires", "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+            "-requires", "Microsoft.VisualStudio.Workload.WDExpress",
             "-property", "installationPath",
             "-products", "*",
         ]).decode(encoding="mbcs", errors="strict").strip()
@@ -724,28 +728,23 @@ class SystemInfo:
         ms = self.ri.microsoft
         vckeys = (self.ri.vc, self.ri.vc_for_python, self.ri.vs)
         vs_vers = []
-        for hkey in self.ri.HKEYS:
-            for key in vckeys:
-                try:
-                    bkey = winreg.OpenKey(hkey, ms(key), 0, winreg.KEY_READ)
-                except (OSError, IOError):
-                    continue
-                with bkey:
-                    subkeys, values, _ = winreg.QueryInfoKey(bkey)
-                    for i in range(values):
-                        try:
-                            ver = float(winreg.EnumValue(bkey, i)[0])
-                            if ver not in vs_vers:
-                                vs_vers.append(ver)
-                        except ValueError:
-                            pass
-                    for i in range(subkeys):
-                        try:
-                            ver = float(winreg.EnumKey(bkey, i))
-                            if ver not in vs_vers:
-                                vs_vers.append(ver)
-                        except ValueError:
-                            pass
+        for hkey, key in itertools.product(self.ri.HKEYS, vckeys):
+            try:
+                bkey = winreg.OpenKey(hkey, ms(key), 0, winreg.KEY_READ)
+            except (OSError, IOError):
+                continue
+            with bkey:
+                subkeys, values, _ = winreg.QueryInfoKey(bkey)
+                for i in range(values):
+                    with contextlib.suppress(ValueError):
+                        ver = float(winreg.EnumValue(bkey, i)[0])
+                        if ver not in vs_vers:
+                            vs_vers.append(ver)
+                for i in range(subkeys):
+                    with contextlib.suppress(ValueError):
+                        ver = float(winreg.EnumKey(bkey, i))
+                        if ver not in vs_vers:
+                            vs_vers.append(ver)
         return sorted(vs_vers)
 
     def find_programdata_vs_vers(self):
@@ -925,8 +924,8 @@ class SystemInfo:
         """
         return self._use_last_dir_name(join(self.WindowsSdkDir, 'lib'))
 
-    @property
-    def WindowsSdkDir(self):
+    @property  # noqa: C901
+    def WindowsSdkDir(self):  # noqa: C901  # is too complex (12)  # FIXME
         """
         Microsoft Windows SDK directory.
 
@@ -1802,29 +1801,5 @@ class EnvironmentInfo:
         if not extant_paths:
             msg = "%s environment variable is empty" % name.upper()
             raise distutils.errors.DistutilsPlatformError(msg)
-        unique_paths = self._unique_everseen(extant_paths)
+        unique_paths = unique_everseen(extant_paths)
         return pathsep.join(unique_paths)
-
-    # from Python docs
-    @staticmethod
-    def _unique_everseen(iterable, key=None):
-        """
-        List unique elements, preserving order.
-        Remember all elements ever seen.
-
-        _unique_everseen('AAAABBBCCDAABBB') --> A B C D
-
-        _unique_everseen('ABBCcAD', str.lower) --> A B C D
-        """
-        seen = set()
-        seen_add = seen.add
-        if key is None:
-            for element in itertools.filterfalse(seen.__contains__, iterable):
-                seen_add(element)
-                yield element
-        else:
-            for element in iterable:
-                k = key(element)
-                if k not in seen:
-                    seen_add(k)
-                    yield element

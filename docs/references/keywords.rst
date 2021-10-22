@@ -76,6 +76,17 @@ Keywords
 ``license``
     A string specifying the license of the package.
 
+``license_file``
+
+    .. warning::
+        ``license_file`` is deprecated. Use ``license_files`` instead.
+
+``license_files``
+
+    A list of glob patterns for license related files that should be included.
+    If neither ``license_file`` nor ``license_files`` is specified, this option
+    defaults to ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, and ``AUTHORS*``.
+
 ``keywords``
     A list of strings or a comma-separated string providing descriptive
     meta-data. See: `PEP 0314`_.
@@ -318,21 +329,6 @@ Keywords
     shared libraries), you probably do NOT need this argument and shouldn't
     mess with it.  For more details on how this argument works, see the section
     below on :ref:`Automatic Resource Extraction`.
-
-``use_2to3``
-    Convert the source code from Python 2 to Python 3 with 2to3 during the
-    build process. See :doc:`../deprecated/python3` for more details.
-
-``convert_2to3_doctests``
-    List of doctest source files that need to be converted with 2to3.
-    See :doc:`../deprecated/python3` for more details.
-
-``use_2to3_fixers``
-    A list of modules to search for additional fixers to be used during
-    the 2to3 conversion. See :doc:`../deprecated/python3` for more details.
-
-``use_2to3_exclude_fixers``
-    List of fixer names to be skipped.
 
 ``project_urls``
     An arbitrary map of URL names to hyperlinks, allowing more extensible

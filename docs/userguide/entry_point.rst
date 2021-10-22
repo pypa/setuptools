@@ -28,7 +28,7 @@ with ``__init__.py`` as:
 
 .. code-block:: python
 
-    def helloworld():
+    def hello_world():
         print("Hello world")
 
 and ``__main__.py`` providing a hook:
@@ -36,6 +36,7 @@ and ``__main__.py`` providing a hook:
 .. code-block:: python
 
     from . import hello_world
+
     if __name__ == '__main__':
         hello_world()
 
@@ -64,7 +65,7 @@ After installing the package, a user may invoke that function by simply calling
 
 The syntax for entry points is specified as follows:
 
-.. code-block::
+.. code-block:: ini
 
     <name> = [<package>.[<subpackage>.]]<module>[:<object>.<object>]
 
@@ -102,7 +103,7 @@ module (part of stdlib since Python 3.8) or its backport,
 
 For example, to find the console script entry points from the example above:
 
-.. code-block:: python
+.. code-block:: pycon
 
     >>> from importlib import metadata
     >>> eps = metadata.entry_points()['console_scripts']
@@ -121,13 +122,14 @@ method to import and load that entry point (module or object).
 Then, a different project wishing to load 'my.plugins' plugins could run
 the following routine to load (and invoke) such plugins:
 
-.. code-block:: python
+.. code-block:: pycon
 
     >>> from importlib import metadata
     >>> eps = metadata.entry_points()['my.plugins']
     >>> for ep in eps:
     ...     plugin = ep.load()
     ...     plugin()
+    ...
 
 The project soliciting the entry points needs not to have any dependency
 or prior knowledge about the libraries implementing the entry points, and
@@ -139,7 +141,7 @@ Dependency Management
 =====================
 
 Some entry points may require additional dependencies to properly function.
-For such an entry point, declare in square brakets any number of dependency
+For such an entry point, declare in square brackets any number of dependency
 ``extras`` following the entry point definition. Such entry points will only
 be viable if their extras were declared and installed. See the
 :doc:`guide on dependencies management <dependency_management>` for

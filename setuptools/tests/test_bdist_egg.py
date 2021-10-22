@@ -7,7 +7,6 @@ import zipfile
 import pytest
 
 from setuptools.dist import Distribution
-from setuptools import SetuptoolsDeprecationWarning
 
 from . import contexts
 
@@ -65,17 +64,3 @@ class Test:
         names = list(zi.filename for zi in zip.filelist)
         assert 'hi.pyc' in names
         assert 'hi.py' not in names
-
-    def test_eggsecutable_warning(self, setup_context, user_override):
-        dist = Distribution(dict(
-            script_name='setup.py',
-            script_args=['bdist_egg'],
-            name='foo',
-            py_modules=['hi'],
-            entry_points={
-                'setuptools.installation':
-                    ['eggsecutable = my_package.some_module:main_func']},
-        ))
-        dist.parse_command_line()
-        with pytest.warns(SetuptoolsDeprecationWarning):
-            dist.run_commands()

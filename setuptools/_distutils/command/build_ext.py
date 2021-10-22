@@ -220,7 +220,7 @@ class build_ext(Command):
         # For extensions under Cygwin, Python's library directory must be
         # appended to library_dirs
         if sys.platform[:6] == 'cygwin':
-            if sys.executable.startswith(os.path.join(sys.exec_prefix, "bin")):
+            if not sysconfig.python_build:
                 # building third party extensions
                 self.library_dirs.append(os.path.join(sys.prefix, "lib",
                                                       "python" + get_python_version(),
@@ -690,13 +690,15 @@ class build_ext(Command):
         provided, "PyInit_" + module_name.  Only relevant on Windows, where
         the .pyd file (DLL) must export the module "PyInit_" function.
         """
-        suffix = '_' + ext.name.split('.')[-1]
+        name = ext.name.split('.')[-1]
         try:
             # Unicode module name support as defined in PEP-489
             # https://www.python.org/dev/peps/pep-0489/#export-hook-name
-            suffix.encode('ascii')
+            name.encode('ascii')
         except UnicodeEncodeError:
-            suffix = 'U' + suffix.encode('punycode').replace(b'-', b'_').decode('ascii')
+            suffix = 'U_' + name.encode('punycode').replace(b'-', b'_').decode('ascii')
+        else:
+            suffix = "_" + name
 
         initfunc_name = "PyInit" + suffix
         if initfunc_name not in ext.export_symbols:

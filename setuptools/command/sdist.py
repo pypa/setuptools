@@ -5,8 +5,6 @@ import sys
 import io
 import contextlib
 
-from setuptools.extern import ordered_set
-
 from .py36compat import sdist_add_defaults
 
 import pkg_resources
@@ -33,6 +31,10 @@ class sdist(sdist_add_defaults, orig.sdist):
         ('dist-dir=', 'd',
          "directory to put the source distribution archive(s) in "
          "[default: dist]"),
+        ('owner=', 'u',
+         "Owner name used when creating a tar file [default: current user]"),
+        ('group=', 'g',
+         "Group name used when creating a tar file [default: current group]"),
     ]
 
     negative_opt = {}
@@ -189,34 +191,3 @@ class sdist(sdist_add_defaults, orig.sdist):
                 continue
             self.filelist.append(line)
         manifest.close()
-
-    def check_license(self):
-        """Checks if license_file' or 'license_files' is configured and adds any
-        valid paths to 'self.filelist'.
-        """
-
-        files = ordered_set.OrderedSet()
-
-        opts = self.distribution.get_option_dict('metadata')
-
-        # ignore the source of the value
-        _, license_file = opts.get('license_file', (None, None))
-
-        if license_file is None:
-            log.debug("'license_file' option was not specified")
-        else:
-            files.add(license_file)
-
-        try:
-            files.update(self.distribution.metadata.license_files)
-        except TypeError:
-            log.warn("warning: 'license_files' option is malformed")
-
-        for f in files:
-            if not os.path.exists(f):
-                log.warn(
-                    "warning: Failed to find the configured license file '%s'",
-                    f)
-                files.remove(f)
-
-        self.filelist.extend(files)

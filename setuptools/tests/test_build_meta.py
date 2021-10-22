@@ -3,15 +3,16 @@ import shutil
 import tarfile
 import importlib
 from concurrent import futures
+import re
 
 import pytest
+from jaraco import path
 
-from .files import build_files
 from .textwrap import DALS
 
 
 class BuildBackendBase:
-    def __init__(self, cwd=None, env={}, backend_name='setuptools.build_meta'):
+    def __init__(self, cwd='.', env={}, backend_name='setuptools.build_meta'):
         self.cwd = cwd
         self.env = env
         self.backend_name = backend_name
@@ -126,11 +127,11 @@ class TestBuildMetaBackend:
     backend_name = 'setuptools.build_meta'
 
     def get_build_backend(self):
-        return BuildBackend(cwd='.', backend_name=self.backend_name)
+        return BuildBackend(backend_name=self.backend_name)
 
     @pytest.fixture(params=defns)
     def build_backend(self, tmpdir, request):
-        build_files(request.param, prefix=str(tmpdir))
+        path.build(request.param, prefix=str(tmpdir))
         with tmpdir.as_cwd():
             yield self.get_build_backend()
 
@@ -166,11 +167,11 @@ class TestBuildMetaBackend:
             'pyproject.toml': DALS("""
                 [build-system]
                 requires = ["setuptools", "wheel"]
-                build-backend = "setuptools.build_meta
+                build-backend = "setuptools.build_meta"
             """),
         }
 
-        build_files(files)
+        path.build(files)
 
         dist_dir = os.path.abspath('preexisting-' + build_type)
 
@@ -259,10 +260,10 @@ class TestBuildMetaBackend:
             'pyproject.toml': DALS("""
                 [build-system]
                 requires = ["setuptools", "wheel"]
-                build-backend = "setuptools.build_meta
+                build-backend = "setuptools.build_meta"
                 """),
         }
-        build_files(files)
+        path.build(files)
         build_backend = self.get_build_backend()
         targz_path = build_backend.build_sdist("temp")
         with tarfile.open(os.path.join("temp", targz_path)) as tar:
@@ -271,7 +272,7 @@ class TestBuildMetaBackend:
     def test_build_sdist_setup_py_exists(self, tmpdir_cwd):
         # If build_sdist is called from a script other than setup.py,
         # ensure setup.py is included
-        build_files(defns[0])
+        path.build(defns[0])
 
         build_backend = self.get_build_backend()
         targz_path = build_backend.build_sdist("temp")
@@ -293,7 +294,7 @@ class TestBuildMetaBackend:
         """)
         }
 
-        build_files(files)
+        path.build(files)
 
         build_backend = self.get_build_backend()
         targz_path = build_backend.build_sdist("temp")
@@ -315,7 +316,7 @@ class TestBuildMetaBackend:
                 """)
         }
 
-        build_files(files)
+        path.build(files)
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
@@ -335,9 +336,9 @@ class TestBuildMetaBackend:
     }
 
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
-        build_files(self._relative_path_import_files)
+        path.build(self._relative_path_import_files)
         build_backend = self.get_build_backend()
-        with pytest.raises(ImportError):
+        with pytest.raises(ImportError, match="^No module named 'hello'$"):
             build_backend.build_sdist("temp")
 
     @pytest.mark.parametrize('setup_literal, requirements', [
@@ -374,7 +375,7 @@ class TestBuildMetaBackend:
             """),
         }
 
-        build_files(files)
+        path.build(files)
 
         build_backend = self.get_build_backend()
 
@@ -409,7 +410,7 @@ class TestBuildMetaBackend:
                     """),
         }
 
-        build_files(files)
+        path.build(files)
 
         build_backend = self.get_build_backend()
 
@@ -437,10 +438,20 @@ class TestBuildMetaBackend:
     }
 
     def test_sys_argv_passthrough(self, tmpdir_cwd):
-        build_files(self._sys_argv_0_passthrough)
+        path.build(self._sys_argv_0_passthrough)
         build_backend = self.get_build_backend()
         with pytest.raises(AssertionError):
             build_backend.build_sdist("temp")
+
+    @pytest.mark.parametrize('build_hook', ('build_sdist', 'build_wheel'))
+    def test_build_with_empty_setuppy(self, build_backend, build_hook):
+        files = {'setup.py': ''}
+        path.build(files)
+
+        with pytest.raises(
+                ValueError,
+                match=re.escape('No distribution was found.')):
+            getattr(build_backend, build_hook)("temp")
 
 
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
@@ -449,13 +460,13 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     # build_meta_legacy-specific tests
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
         # This must fail in build_meta, but must pass in build_meta_legacy
-        build_files(self._relative_path_import_files)
+        path.build(self._relative_path_import_files)
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
 
     def test_sys_argv_passthrough(self, tmpdir_cwd):
-        build_files(self._sys_argv_0_passthrough)
+        path.build(self._sys_argv_0_passthrough)
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")

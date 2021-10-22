@@ -331,6 +331,16 @@ class FindAllTestCase(unittest.TestCase):
             expected = [file1]
             self.assertEqual(filelist.findall(temp_dir), expected)
 
+    @os_helper.skip_unless_symlink
+    def test_symlink_loop(self):
+        with os_helper.temp_dir() as temp_dir:
+            link = os.path.join(temp_dir, 'link-to-parent')
+            content = os.path.join(temp_dir, 'somefile')
+            os_helper.create_empty_file(content)
+            os.symlink('.', link)
+            files = filelist.findall(temp_dir)
+            assert len(files) == 1
+
 
 def test_suite():
     return unittest.TestSuite([

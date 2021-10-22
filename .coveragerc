@@ -1,5 +1,7 @@
 [run]
-omit = .tox/*
+omit =
+	# leading `*/` for pytest-dev/pytest-cov#456
+	*/.tox/*
 
 [report]
 show_missing = True

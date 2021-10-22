@@ -1,13 +1,12 @@
-Documentation
-=============
+setuptools
+==========
 
 Setuptools is a fully-featured, actively-maintained, and stable library
 designed to facilitate packaging Python projects.
 
-Documentation content:
-
 .. toctree::
    :maxdepth: 1
+   :hidden:
 
    User guide <userguide/index>
    build_meta
@@ -18,3 +17,5 @@ Documentation content:
    Development guide <development/index>
    Backward compatibility & deprecated practice <deprecated/index>
    Changelog <history>
+
+.. tidelift-referral-banner::

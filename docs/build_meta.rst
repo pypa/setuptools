@@ -5,9 +5,9 @@ Build System Support
 What is it?
 -------------
 
-Python packaging has come `a long way <https://www.bernat.tech/pep-517-518/>`_.
+Python packaging has come `a long way <https://bernat.tech/posts/pep-517-518/>`_.
 
-The traditional ``setuptools`` way of packgaging Python modules
+The traditional ``setuptools`` way of packaging Python modules
 uses a ``setup()`` function within the ``setup.py`` script. Commands such as
 ``python setup.py bdist`` or ``python setup.py bdist_wheel`` generate a 
 distribution bundle and ``python setup.py install`` installs the distribution. 
@@ -54,7 +54,11 @@ setuptools, the content would be::
 
     [build-system]
     requires = ["setuptools", "wheel"]
-    build-backend = "setuptools.build_meta" 
+    build-backend = "setuptools.build_meta"
+
+The ``setuptools`` package implements the ``build_sdist``
+command and the ``wheel`` package implements the ``build_wheel``
+command; both are required to be compliant with PEP 517.
 
 Use ``setuptools``' :ref:`declarative config <declarative config>` to
 specify the package information::
@@ -67,14 +71,11 @@ specify the package information::
     [options]
     packages = find:
 
-Now generate the distribution. Although the PyPA is still working to
-`provide a recommended tool <https://github.com/pypa/packaging-problems/issues/219>`_
-to build packages, the `pep517 package <https://pypi.org/project/pep517>`_
-provides this functionality. To build the package::
+Now generate the distribution. To build the package, use
+`PyPA build <https://pypa-build.readthedocs.io/en/latest/>`_::
 
-    $ pip install -q pep517
-    $ mkdir dist
-    $ python -m pep517.build .
+    $ pip install -q build
+    $ python -m build
 
 And now it's done! The ``.whl`` file  and ``.tar.gz`` can then be distributed 
 and installed::

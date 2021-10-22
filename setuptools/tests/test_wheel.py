@@ -15,6 +15,7 @@ import sys
 import zipfile
 
 import pytest
+from jaraco import path
 
 from pkg_resources import Distribution, PathMetadata, PY_MAJOR
 from setuptools.extern.packaging.utils import canonicalize_name
@@ -22,7 +23,6 @@ from setuptools.extern.packaging.tags import parse_tag
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir
-from .files import build_files
 from .textwrap import DALS
 
 
@@ -91,7 +91,7 @@ def build_wheel(extra_file_defs=None, **kwargs):
     if extra_file_defs:
         file_defs.update(extra_file_defs)
     with tempdir() as source_dir:
-        build_files(file_defs, source_dir)
+        path.build(file_defs, source_dir)
         subprocess.check_call((sys.executable, 'setup.py',
                                '-q', 'bdist_wheel'), cwd=source_dir)
         yield glob.glob(os.path.join(source_dir, 'dist', '*.whl'))[0]

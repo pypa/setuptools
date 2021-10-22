@@ -21,10 +21,10 @@ class VirtualEnv(jaraco.envs.VirtualEnv):
 
 
 @pytest.fixture
-def venv(tmpdir):
+def venv(tmp_path, tmp_src):
     env = VirtualEnv()
-    env.root = path.Path(tmpdir)
-    env.req = os.getcwd()
+    env.root = path.Path(tmp_path / 'venv')
+    env.req = str(tmp_src)
     return env.create()
 
 
