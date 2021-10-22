@@ -189,7 +189,7 @@ class TestPackageIndex:
             for locs in local]
         for v, vc in versions:
             dists = list(setuptools.package_index.distros_for_url(
-                'http://example.com/example.zip#egg=example-' + v))
+                'http://example.com/example-foo.zip#egg=example-foo-' + v))
             assert dists[0].version == ''
             assert dists[1].version == vc
 

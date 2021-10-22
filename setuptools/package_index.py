@@ -165,7 +165,14 @@ def interpret_distro_name(
         # it is a bdist_dumb, not an sdist -- bail out
         return
 
-    p = len(parts) - 1
+    # find the pivot (p) that splits the name from the version.
+    # infer the version as the first item that has a digit.
+    for p in range(len(parts)):
+        if parts[p][:1].isdigit():
+            break
+    else:
+        p = len(parts)
+
     yield Distribution(
         location, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
         py_version=py_version, precedence=precedence,
