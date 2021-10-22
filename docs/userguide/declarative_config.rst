@@ -206,10 +206,10 @@ Options
 Key                      Type                                 Minimum Version Notes
 =======================  ===================================  =============== =========
 zip_safe                 bool
-setup_requires           list-semi
+setup_requires           list-semi                            36.7.0
 install_requires         list-semi
 extras_require           section                                              [#opt-2]_
-python_requires          str
+python_requires          str                                  34.4.0
 entry_points             file:, section                       51.0.0
 scripts                  list-comma
 eager_resources          list-comma
@@ -221,7 +221,7 @@ package_dir              dict
 package_data             section                                              [#opt-1]_
 exclude_package_data     section
 namespace_packages       list-comma
-py_modules               list-comma
+py_modules               list-comma                            34.4.0
 data_files               dict                                 40.6.0
 =======================  ===================================  =============== =========
 
