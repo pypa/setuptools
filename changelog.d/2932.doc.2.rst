@@ -1,0 +1,3 @@
+Change type of ``data_files`` option from ``dict`` to ``section`` in
+declarative configuration docs (to match previous example) -- by
+:user:`abravalheri`
