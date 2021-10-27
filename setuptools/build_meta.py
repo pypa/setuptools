@@ -279,3 +279,6 @@ build_sdist = _BACKEND.build_sdist
 
 # The legacy backend
 __legacy__ = _BuildMetaLegacyBackend()
+
+# The backend used to build setuptools itself from path.
+_build_self = __legacy__

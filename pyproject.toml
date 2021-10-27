@@ -2,7 +2,7 @@
 requires = [
     "wheel",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "setuptools.build_meta:_build_self"
 backend-path = ["."]
 
 [tool.black]
