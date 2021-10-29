@@ -71,8 +71,6 @@ try:
 except ImportError:
     importlib_machinery = None
 
-import _setuptools_vendored  # noqa: F401
-
 import appdirs
 import packaging.version
 import packaging.specifiers

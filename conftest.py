@@ -17,7 +17,6 @@ collect_ignore = [
     'setuptools/_distutils',
     '_distutils_hack',
     'pkg_resources/tests/data',
-    '_setuptools_vendored',
 ]
 
 
