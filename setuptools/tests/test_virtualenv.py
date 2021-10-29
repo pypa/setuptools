@@ -113,15 +113,12 @@ def test_pip_upgrade_from_source(pip_version, tmp_src, virtualenv):
         upgrade_pip = ('python -m pip install -U {pip_version} --retries=1',)
     virtualenv.run(' && '.join((
         'pip uninstall -y setuptools',
-        'pip install -U wheel',
+        'pip install build',
     ) + upgrade_pip).format(pip_version=pip_version))
     dist_dir = virtualenv.workspace
     # Generate source distribution / wheel.
-    virtualenv.run(' && '.join((
-        'python setup.py -q sdist -d {dist}',
-        'python setup.py -q bdist_wheel -d {dist}',
-    )).format(dist=dist_dir), cd=tmp_src)
-    sdist = glob.glob(os.path.join(dist_dir, '*.zip'))[0]
+    virtualenv.run(f'python -m build --outdir {dist_dir}', cd=tmp_src)
+    sdist = glob.glob(os.path.join(dist_dir, '*.tar.gz'))[0]
     wheel = glob.glob(os.path.join(dist_dir, '*.whl'))[0]
     # Then update from wheel.
     virtualenv.run('pip install ' + wheel)
