@@ -1,0 +1,1 @@
+Removed `requires` sorting when installing wheels as an egg dir.
