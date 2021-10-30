@@ -133,16 +133,16 @@ class Wheel:
         # Note: Evaluate and strip markers now,
         # as it's difficult to convert back from the syntax:
         # foobar; "linux" in sys_platform and extra == 'test'
-        def raw_req(req):
+        def to_raw(req):
             req.marker = None
             return str(req)
-        install_requires = list(sorted(map(raw_req, dist.requires())))
+        install_requires = list(map(raw_req, dist.requires()))
         extras_require = {
-            extra: sorted(
+            extra: [
                 req
                 for req in map(raw_req, dist.requires((extra,)))
                 if req not in install_requires
-            )
+            ]
             for extra in dist.extras
         }
         os.rename(dist_info, egg_info)
