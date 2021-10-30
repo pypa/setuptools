@@ -133,7 +133,7 @@ class Wheel:
         # Note: Evaluate and strip markers now,
         # as it's difficult to convert back from the syntax:
         # foobar; "linux" in sys_platform and extra == 'test'
-        def to_raw(req):
+        def raw_req(req):
             req.marker = None
             return str(req)
         install_requires = list(map(raw_req, dist.requires()))
