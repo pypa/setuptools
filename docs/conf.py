@@ -76,9 +76,16 @@ link_files = {
 # Be strict about any broken references:
 nitpicky = True
 
+# Include Python intersphinx mapping to prevent failures
+# jaraco/skeleton#51
+extensions += ['sphinx.ext.intersphinx']
 intersphinx_mapping = {
-    'pypa-build': ('https://pypa-build.readthedocs.io/en/latest/', None)
+    'python': ('https://docs.python.org/3', None),
 }
+
+intersphinx_mapping.update({
+    'pypa-build': ('https://pypa-build.readthedocs.io/en/latest/', None)
+})
 
 # Add support for linking usernames
 github_url = 'https://github.com'
@@ -86,7 +93,7 @@ github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
     'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
 }
-extensions += ['sphinx.ext.extlinks', 'sphinx.ext.intersphinx']
+extensions += ['sphinx.ext.extlinks']
 
 # Ref: https://github.com/python-attrs/attrs/pull/571/files\
 #      #diff-85987f48f1258d9ee486e3191495582dR82
