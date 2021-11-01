@@ -1,0 +1,1 @@
+Officially deprecated PEP 440 non-compliant versions.
