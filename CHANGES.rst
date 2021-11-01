@@ -8,9 +8,9 @@ Changes
 
 Documentation changes
 ^^^^^^^^^^^^^^^^^^^^^
-* #2932: Removed the deprecated ``data_files`` option from the example in the
+* #2832: Removed the deprecated ``data_files`` option from the example in the
   declarative configuration docs -- by :user:`abravalheri`
-* #2932: Change type of ``data_files`` option from ``dict`` to ``section`` in
+* #2832: Change type of ``data_files`` option from ``dict`` to ``section`` in
   declarative configuration docs (to match previous example) -- by
   :user:`abravalheri`
 
