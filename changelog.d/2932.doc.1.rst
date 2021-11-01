@@ -1,2 +1,0 @@
-Removed the deprecated ``data_files`` option from the example in the
-declarative configuration docs -- by :user:`abravalheri`
