@@ -75,15 +75,7 @@ def _get_pip_versions():
     def skip_network(param):
         return param if network else mark(param, pytest.mark.skip(reason="no network"))
 
-    issue2599 = pytest.mark.skipif(
-        sys.version_info > (3, 10),
-        reason="pypa/setuptools#2599",
-    )
-
     network_versions = [
-        mark('pip==9.0.3', issue2599),
-        mark('pip==10.0.1', issue2599),
-        mark('pip==18.1', issue2599),
         mark('pip==19.3.1', pytest.mark.xfail(reason='pypa/pip#6599')),
         'pip==20.0.2',
         'https://github.com/pypa/pip/archive/main.zip',
