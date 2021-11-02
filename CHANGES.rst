@@ -21,7 +21,7 @@ v58.3.0
 
 Changes
 ^^^^^^^
-* #917: ``setup.py install`` and ``easy_install`` commands are now officially deprecated. Use other standards-based installers (like pip) and builders (like build). Workloads reliant on this behavior should pin to this major version of Setuptools.
+* #917: ``setup.py install`` and ``easy_install`` commands are now officially deprecated. Use other standards-based installers (like pip) and builders (like build). Workloads reliant on this behavior should pin to this major version of Setuptools. See `Why you shouldn't invoke setup.py directly <https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html>`_ for more background.
 * #1988: Deprecated the ``bdist_rpm`` command. Binary packages should be built as wheels instead.
   -- by :user:`hugovk`
 * #2785: Replace ``configparser``'s ``readfp`` with ``read_file``, deprecated since Python 3.2.
