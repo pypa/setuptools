@@ -1,3 +1,12 @@
+v58.5.1
+-------
+
+
+Misc
+^^^^
+* #2486: Move PkgResourcesDeprecationWarning above implicitly-called function so that it's in the namespace when version warnings are generated in an environment that contains them.
+
+
 v58.5.0
 -------
 
