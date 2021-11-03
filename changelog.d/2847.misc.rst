@@ -1,1 +1,0 @@
-Suppress 'setup.py install' warning under bdist_wheel.

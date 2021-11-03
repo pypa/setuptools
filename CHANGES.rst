@@ -1,3 +1,12 @@
+v58.5.2
+-------
+
+
+Misc
+^^^^
+* #2847: Suppress 'setup.py install' warning under bdist_wheel.
+
+
 v58.5.1
 -------
 
