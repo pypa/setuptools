@@ -126,6 +126,28 @@ class TestSdistTest:
         assert os.path.join('sdist_test', 'c.rst') not in manifest
         assert os.path.join('d', 'e.dat') in manifest
 
+    def test_package_data_and_include_package_data_in_sdist(self):
+        """
+        Ensure package_data and include_package_data work
+        together.
+        """
+        setup_attrs = {**SETUP_ATTRS, 'include_package_data': True}
+        assert setup_attrs['package_data']
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        manifest = cmd.filelist.files
+        assert os.path.join('sdist_test', 'a.txt') in manifest
+        assert os.path.join('sdist_test', 'b.txt') in manifest
+        assert os.path.join('sdist_test', 'c.rst') not in manifest
+        assert os.path.join('d', 'e.dat') in manifest
+
     def test_setup_py_exists(self):
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'foo.py'
