@@ -610,12 +610,13 @@ class manifest_maker(sdist):
 
     def _safe_data_files(self, build_py):
         """
-        The parent class implementation of this method (``sdist``) will try to
-        include data files, which might cause recursion problems, when
+        The parent class implementation of this method
+        (``sdist``) will try to include data files, which
+        might cause recursion problems when
         ``include_package_data=True``.
 
-        Therefore we have to avoid triggering any attempt of analyzing/building
-        the manifest again.
+        Therefore, avoid triggering any attempt of
+        analyzing/building the manifest again.
         """
         return build_py.get_data_files_without_manifest()
 
