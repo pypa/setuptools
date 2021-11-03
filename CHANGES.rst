@@ -1,3 +1,14 @@
+v58.5.0
+-------
+
+
+Changes
+^^^^^^^
+* #1461: Fix inconsistency with ``include_package_data`` and ``packages_data`` in sdist
+  by replacing the loop breaking mechanism between the ``sdist`` and
+  ``egg_info`` commands -- by :user:`abravalheri`
+
+
 v58.4.0
 -------
 
