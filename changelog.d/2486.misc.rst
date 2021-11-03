@@ -1,0 +1,1 @@
+Move PkgResourcesDeprecationWarning above implicitly-called function so that it's in the namespace when version warnings are generated in an environment that contains them.

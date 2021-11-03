@@ -3244,6 +3244,15 @@ def _initialize(g=globals()):
     )
 
 
+class PkgResourcesDeprecationWarning(Warning):
+    """
+    Base class for warning about deprecations in ``pkg_resources``
+
+    This class is not derived from ``DeprecationWarning``, and as such is
+    visible by default.
+    """
+
+
 @_call_aside
 def _initialize_master_working_set():
     """
@@ -3282,12 +3291,3 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
-
-
-class PkgResourcesDeprecationWarning(Warning):
-    """
-    Base class for warning about deprecations in ``pkg_resources``
-
-    This class is not derived from ``DeprecationWarning``, and as such is
-    visible by default.
-    """
