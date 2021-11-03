@@ -127,14 +127,12 @@ class TestSdistTest:
         assert os.path.join('d', 'e.dat') in manifest
 
     def test_package_data_and_include_package_data_in_sdist(self):
-        """Make sure there is no recursion when ``include_package_data=True``.
-
-        The mention to a recursion can be first found in:
-        https://github.com/pypa/setuptools/commit/f6cb3d29d919ff6b9313b8a3281c66cfb368c29b
         """
-
+        Ensure package_data and include_package_data work
+        together.
+        """
         setup_attrs = {**SETUP_ATTRS, 'include_package_data': True}
-        assert setup_attrs['package_data']  # make sure we have both options
+        assert setup_attrs['package_data']
 
         dist = Distribution(setup_attrs)
         dist.script_name = 'setup.py'
