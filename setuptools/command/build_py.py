@@ -72,9 +72,6 @@ class build_py(orig.build_py):
         Generate list of ``(package,src_dir,build_dir,filenames)`` tuples,
         but without triggering any attempt to analyze or build the manifest.
         """
-        # Avoid triggering dynamic behavior in __getattr__
-        if 'data_files' in self.__dict__:
-            return self.data_files
         # Prevent eventual errors from unset `manifest_files`
         # (that would otherwise be set by `analyze_manifest`)
         self.__dict__.setdefault('manifest_files', {})
