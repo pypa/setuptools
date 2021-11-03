@@ -113,13 +113,6 @@ class sdist(sdist_add_defaults, orig.sdist):
             self._add_data_files(self._safe_data_files(build_py))
 
     def _safe_data_files(self, build_py):
-        """
-        Extracting data_files from build_py is known to cause
-        infinite recursion errors when `include_package_data`
-        is enabled, so suppress it in that case.
-        """
-        if self.distribution.include_package_data:
-            return ()
         return build_py.data_files
 
     def _add_data_files(self, data_files):
