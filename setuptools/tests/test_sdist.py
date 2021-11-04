@@ -148,7 +148,8 @@ class TestSdistTest:
 
         self.assert_package_data_in_manifest(cmd)
 
-    def test_custom_build_py(self):
+    @mock.patch('setuptools.command.egg_info.log')
+    def test_custom_build_py(self, log_stub):
         """
         Ensure projects defining custom build_py don't break
         when creating sdists (issue #2849)
@@ -184,6 +185,19 @@ class TestSdistTest:
 
         using_custom_command_guard.assert_called()
         self.assert_package_data_in_manifest(cmd)
+
+        warn_stub = log_stub.warn
+        warn_stub.assert_called()
+        for call in warn_stub.call_args_list:
+            args, _kw = call
+            if "setuptools instead of distutils" in args[0]:
+                return
+        else:
+            raise AssertionError(
+                "The user should have been warned to extend setuptools command"
+                " classes instead of distutils",
+                warn_stub.call_args_list
+            )
 
     def test_setup_py_exists(self):
         dist = Distribution(SETUP_ATTRS)
