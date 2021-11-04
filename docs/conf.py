@@ -101,6 +101,19 @@ default_role = 'any'
 
 # HTML theme
 html_theme = 'furo'
+html_logo = "images/logo.png"
+
+html_theme_options = {
+    "sidebar_hide_name": True,
+    "light_css_variables": {
+        "color-brand-primary": "#336790",  # "blue"
+        "color-brand-content": "#336790",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#E5B62F",  # "yellow"
+        "color-brand-content": "#E5B62F",
+    },
+}
 
 # Add support for inline tabs
 extensions += ['sphinx_inline_tabs']
