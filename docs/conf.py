@@ -102,7 +102,6 @@ default_role = 'any'
 # HTML theme
 html_theme = 'furo'
 html_logo = "images/logo.png"
-html_static_path = ['images']
 
 html_theme_options = {
     "sidebar_hide_name": True,
