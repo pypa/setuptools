@@ -1,5 +1,8 @@
-setuptools
-==========
+.. image:: logo/banner-github.svg
+   :align: center
+
+Documentation
+=============
 
 Setuptools is a fully-featured, actively-maintained, and stable library
 designed to facilitate packaging Python projects.
