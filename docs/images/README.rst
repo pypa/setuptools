@@ -4,7 +4,7 @@
 Artwork
 =======
 
-.. figure:: paths-over-white.svg
+.. figure:: logo-over-white.svg
    :align: center
 
    Setuptools logo, designed in 2021 by `Anderson Bravalheri`_
@@ -37,7 +37,7 @@ on the circumstances:
 
 The following image illustrate these alternatives:
 
-.. image:: demo-editable-inkscape.png
+.. image:: logo-demo-editable-inkscape.png
    :align: center
 
 Please refer to the SVG files in the `setuptools repository`_ for the specific
@@ -48,7 +48,7 @@ Working with the Design
 =======================
 
 The `setuptools repository`_ contains a series of vector representations of the
-design under the ``docs/logo`` directory. These representations can be
+design under the ``docs/images`` directory. These representations can be
 manipulated via any graphic editor that support SVG files,
 however the free and open-source software Inkscape_ is recommended for maximum
 compatibility.

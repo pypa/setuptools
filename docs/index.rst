@@ -1,4 +1,4 @@
-.. image:: logo/banner-github.svg
+.. image:: logo/banner-640x320.svg
    :align: center
 
 Documentation

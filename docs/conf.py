@@ -101,16 +101,15 @@ default_role = 'any'
 
 # HTML theme
 html_theme = 'furo'
-html_static_path = ['logo']
+html_logo = "images/logo.png"
+html_static_path = ['images']
 
 html_theme_options = {
     "sidebar_hide_name": True,
-    "light_logo": "paths.png",
     "light_css_variables": {
         "color-brand-primary": "#336790",  # "blue"
         "color-brand-content": "#336790",
     },
-    "dark_logo": "paths-negative.png",
     "dark_css_variables": {
         "color-brand-primary": "#E5B62F",  # "yellow"
         "color-brand-content": "#E5B62F",
