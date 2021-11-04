@@ -1,3 +1,14 @@
+v58.5.3
+-------
+
+
+Misc
+^^^^
+* #2849: Add fallback for custom ``build_py`` commands inheriting directly from
+  :mod:`distutils`, while still handling ``include_package_data=True`` for
+  ``sdist``.
+
+
 v58.5.2
 -------
 
