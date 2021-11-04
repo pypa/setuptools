@@ -59,6 +59,18 @@ Also notice that you might have to `install the correct fonts`_ to be able to
 visualise or edit some of the designs.
 
 
+Inspiration
+===========
+
+This design was inspired by :user:`cajhne`'s `original proposal`_ and the
+ancient symbol of the ouroboros_.
+It features a snake moving in a circular trajectory not only as a reference to
+the Python programming language but also to the `wheel package format`_ as one
+of the distribution formats supported by setuptools.
+The shape of the snake also resembles a cog, which together with the hammer is
+a nod to the two words that compose the name of the project.
+
+
 License
 =======
 
@@ -102,3 +114,6 @@ https://github.com/pypa/setuptools.
 .. _Inkscape: https://inkscape.org
 .. _setuptools repository: https://github.com/pypa/setuptools
 .. _install the correct fonts: https://wiki.inkscape.org/wiki/Installing_fonts
+.. _original proposal: https://github.com/pypa/setuptools/issues/2227#issuecomment-653628344
+.. _wheel package format: https://www.python.org/dev/peps/pep-0427/
+.. _ouroboros: https://en.wikipedia.org/wiki/Ouroboros
