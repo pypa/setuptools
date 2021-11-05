@@ -1,4 +1,5 @@
-.. image:: https://github.com/pypa/setuptools/raw/main/docs/images/banner-640x320.svg
+.. image:: https://raw.githubusercontent.com/pypa/setuptools/main/docs/images/banner-640x320.svg
+   :align: center
 
 |
 
