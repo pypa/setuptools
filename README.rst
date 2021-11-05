@@ -1,3 +1,7 @@
+.. image:: https://github.com/pypa/setuptools/raw/main/docs/images/banner-640x320.svg
+
+|
+
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: `PyPI link`_
 
