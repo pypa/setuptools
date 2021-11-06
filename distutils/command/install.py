@@ -4,6 +4,7 @@ Implements the Distutils 'install' command."""
 
 import sys
 import os
+import contextlib
 
 from distutils import log
 from distutils.core import Command
@@ -91,15 +92,13 @@ def _load_schemes():
 
     schemes = dict(INSTALL_SCHEMES)
 
-    try:
+    with contextlib.suppress(ImportError, AttributeError):
         import sysconfig
         sysconfig_schemes = {
             scheme: sysconfig.get_paths(scheme, expand=False)
             for scheme in sysconfig.get_scheme_names()
         }
         schemes.update(sysconfig_schemes)
-    except (ImportError, AttributeError):
-        pass
 
     return schemes
 
