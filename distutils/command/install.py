@@ -21,62 +21,62 @@ from site import USER_SITE
 HAS_USER_SITE = True
 
 WINDOWS_SCHEME = {
-    'purelib': '$base/Lib/site-packages',
-    'platlib': '$base/Lib/site-packages',
-    'include': '$base/Include/$dist_name',
-    'scripts': '$base/Scripts',
-    'data'   : '$base',
+    'purelib': '{base}/Lib/site-packages',
+    'platlib': '{base}/Lib/site-packages',
+    'include': '{base}/Include/{dist_name}',
+    'scripts': '{base}/Scripts',
+    'data'   : '{base}',
 }
 
 INSTALL_SCHEMES = {
     'unix_prefix': {
-        'purelib': '$base/lib/python$py_version_short/site-packages',
-        'platlib': '$platbase/$platlibdir/python$py_version_short/site-packages',
-        'include': '$base/include/python$py_version_short$abiflags/$dist_name',
-        'scripts': '$base/bin',
-        'data'   : '$base',
+        'purelib': '{base}/lib/python{py_version_short}/site-packages',
+        'platlib': '{platbase}/{platlibdir}/python{py_version_short}/site-packages',
+        'include': '{base}/include/python{py_version_short}{abiflags}/{dist_name}',
+        'scripts': '{base}/bin',
+        'data'   : '{base}',
         },
     'unix_home': {
-        'purelib': '$base/lib/python',
-        'platlib': '$base/$platlibdir/python',
-        'include': '$base/include/python/$dist_name',
-        'scripts': '$base/bin',
-        'data'   : '$base',
+        'purelib': '{base}/lib/python',
+        'platlib': '{base}/{platlibdir}/python',
+        'include': '{base}/include/python/{dist_name}',
+        'scripts': '{base}/bin',
+        'data'   : '{base}',
         },
     'nt': WINDOWS_SCHEME,
     'pypy': {
-        'purelib': '$base/site-packages',
-        'platlib': '$base/site-packages',
-        'include': '$base/include/$dist_name',
-        'scripts': '$base/bin',
-        'data'   : '$base',
+        'purelib': '{base}/site-packages',
+        'platlib': '{base}/site-packages',
+        'include': '{base}/include/{dist_name}',
+        'scripts': '{base}/bin',
+        'data'   : '{base}',
         },
     'pypy_nt': {
-        'purelib': '$base/site-packages',
-        'platlib': '$base/site-packages',
-        'include': '$base/include/$dist_name',
-        'scripts': '$base/Scripts',
-        'data'   : '$base',
+        'purelib': '{base}/site-packages',
+        'platlib': '{base}/site-packages',
+        'include': '{base}/include/{dist_name}',
+        'scripts': '{base}/Scripts',
+        'data'   : '{base}',
         },
     }
 
 # user site schemes
 if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
-        'purelib': '$usersite',
-        'platlib': '$usersite',
-        'include': '$userbase/Python$py_version_nodot/Include/$dist_name',
-        'scripts': '$userbase/Python$py_version_nodot/Scripts',
-        'data'   : '$userbase',
+        'purelib': '{usersite}',
+        'platlib': '{usersite}',
+        'include': '{userbase}/Python{py_version_nodot}/Include/{dist_name}',
+        'scripts': '{userbase}/Python{py_version_nodot}/Scripts',
+        'data'   : '{userbase}',
         }
 
     INSTALL_SCHEMES['unix_user'] = {
-        'purelib': '$usersite',
-        'platlib': '$usersite',
+        'purelib': '{usersite}',
+        'platlib': '{usersite}',
         'include':
-            '$userbase/include/python$py_version_short$abiflags/$dist_name',
-        'scripts': '$userbase/bin',
-        'data'   : '$userbase',
+            '{userbase}/include/python{py_version_short}{abiflags}/{dist_name}',
+        'scripts': '{userbase}/bin',
+        'data'   : '{userbase}',
         }
 
 # The keys to an installation scheme; if any new types of files are to be
