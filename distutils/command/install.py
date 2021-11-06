@@ -457,10 +457,10 @@ class install(Command):
                 raise DistutilsPlatformError(
                     "User base directory is not specified")
             self.install_base = self.install_platbase = self.install_userbase
-            self.select_scheme("unix_user")
+            self.select_scheme("posix_user")
         elif self.home is not None:
             self.install_base = self.install_platbase = self.home
-            self.select_scheme("unix_home")
+            self.select_scheme("posix_home")
         else:
             if self.prefix is None:
                 if self.exec_prefix is not None:
@@ -476,7 +476,7 @@ class install(Command):
 
             self.install_base = self.prefix
             self.install_platbase = self.exec_prefix
-            self.select_scheme("unix_prefix")
+            self.select_scheme("posix_prefix")
 
     def finalize_other(self):
         """Finalizes options for non-posix platforms"""
@@ -488,7 +488,7 @@ class install(Command):
             self.select_scheme(os.name + "_user")
         elif self.home is not None:
             self.install_base = self.install_platbase = self.home
-            self.select_scheme("unix_home")
+            self.select_scheme("posix_home")
         else:
             if self.prefix is None:
                 self.prefix = os.path.normpath(sys.prefix)
