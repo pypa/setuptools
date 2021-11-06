@@ -30,16 +30,16 @@ WINDOWS_SCHEME = {
 
 INSTALL_SCHEMES = {
     'unix_prefix': {
-        'purelib': '{base}/lib/python{py_version_short}/site-packages',
-        'platlib': '{platbase}/{platlibdir}/python{py_version_short}/site-packages',
-        'include': '{base}/include/python{py_version_short}{abiflags}/{dist_name}',
+        'purelib': '{base}/lib/{implementation_lower}{py_version_short}/site-packages',
+        'platlib': '{platbase}/{platlibdir}/{implementation_lower}{py_version_short}/site-packages',
+        'include': '{base}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
         'scripts': '{base}/bin',
         'data'   : '{base}',
         },
     'unix_home': {
-        'purelib': '{base}/lib/python',
-        'platlib': '{base}/{platlibdir}/python',
-        'include': '{base}/include/python/{dist_name}',
+        'purelib': '{base}/lib/{implementation_lower}',
+        'platlib': '{base}/{platlibdir}/{implementation_lower}',
+        'include': '{base}/include/{implementation_lower}/{dist_name}',
         'scripts': '{base}/bin',
         'data'   : '{base}',
         },
@@ -65,8 +65,8 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
         'purelib': '{usersite}',
         'platlib': '{usersite}',
-        'include': '{userbase}/Python{py_version_nodot}/Include/{dist_name}',
-        'scripts': '{userbase}/Python{py_version_nodot}/Scripts',
+        'include': '{userbase}/{implementation}{py_version_nodot}/Include/{dist_name}',
+        'scripts': '{userbase}/{implementation}{py_version_nodot}/Scripts',
         'data'   : '{userbase}',
         }
 
@@ -74,7 +74,7 @@ if HAS_USER_SITE:
         'purelib': '{usersite}',
         'platlib': '{usersite}',
         'include':
-            '{userbase}/include/python{py_version_short}{abiflags}/{dist_name}',
+            '{userbase}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
         'scripts': '{userbase}/bin',
         'data'   : '{userbase}',
         }
@@ -101,6 +101,12 @@ def _load_schemes():
         schemes.update(sysconfig_schemes)
 
     return schemes
+
+def _get_implementation():
+    if hasattr(sys, 'pypy_version_info'):
+        return 'PyPy'
+    else:
+        return 'Python'
 
 
 class install(Command):
@@ -336,6 +342,8 @@ class install(Command):
                             'exec_prefix': exec_prefix,
                             'abiflags': abiflags,
                             'platlibdir': getattr(sys, 'platlibdir', 'lib'),
+                            'implementation_lower': _get_implementation().lower(),
+                            'implementation': _get_implementation(),
                            }
 
         if HAS_USER_SITE:
@@ -371,7 +379,7 @@ class install(Command):
         # module distribution is pure or not.  Of course, if the user
         # already specified install_lib, use their selection.
         if self.install_lib is None:
-            if self.distribution.ext_modules: # has extensions: non-pure
+            if self.distribution.has_ext_modules(): # has extensions: non-pure
                 self.install_lib = self.install_platlib
             else:
                 self.install_lib = self.install_purelib
@@ -493,6 +501,7 @@ class install(Command):
         """Sets the install directories by applying the install schemes."""
         # it's the caller's problem if they supply a bad name!
         if (hasattr(sys, 'pypy_version_info') and
+                sys.version_info < (3, 8) and
                 not name.endswith(('_user', '_home'))):
             if os.name == 'nt':
                 name = 'pypy_nt'
