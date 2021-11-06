@@ -5,6 +5,7 @@ Implements the Distutils 'install' command."""
 import sys
 import os
 import contextlib
+import sysconfig
 
 from distutils import log
 from distutils.core import Command
@@ -92,8 +93,7 @@ def _load_schemes():
 
     schemes = dict(INSTALL_SCHEMES)
 
-    with contextlib.suppress(ImportError, AttributeError):
-        import sysconfig
+    with contextlib.suppress(AttributeError):
         sysconfig_schemes = {
             scheme: sysconfig.get_paths(scheme, expand=False)
             for scheme in sysconfig.get_scheme_names()
@@ -101,6 +101,7 @@ def _load_schemes():
         schemes.update(sysconfig_schemes)
 
     return schemes
+
 
 def _get_implementation():
     if hasattr(sys, 'pypy_version_info'):
@@ -358,6 +359,8 @@ class install(Command):
         # everything else.
         self.config_vars['base'] = self.install_base
         self.config_vars['platbase'] = self.install_platbase
+        self.config_vars['installed_base'] = (
+            sysconfig.get_config_vars()['installed_base'])
 
         if DEBUG:
             from pprint import pprint
