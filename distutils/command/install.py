@@ -93,7 +93,11 @@ def _load_schemes():
 
     try:
         import sysconfig
-        schemes.update(sysconfig.INSTALL_SCHEMES)
+        sysconfig_schemes = {
+            scheme: sysconfig.get_paths(scheme, expand=False)
+            for scheme in sysconfig.get_scheme_names()
+        }
+        schemes.update(sysconfig_schemes)
     except (ImportError, AttributeError):
         pass
 
