@@ -47,8 +47,8 @@ script defines entry points for them!
 
 .. note::
    When creating commands, and specially when defining custom ways of building
-   compiled extensions (for example via ``build_ext``), you might want to
-   handle exceptions such as ``CompileError``, ``LinkError``, ``LibError``,
+   compiled extensions (for example via ``build_ext``), consider
+   handling exceptions such as ``CompileError``, ``LinkError``, ``LibError``,
    among others.  These exceptions are available in the ``setuptools.errors``
    module.
 
