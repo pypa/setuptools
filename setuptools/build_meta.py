@@ -22,6 +22,10 @@ bug reports or API stability):
   - `prepare_metadata_for_build_wheel`: get the `install_requires`
   - `build_sdist`: build an sdist in the folder and return the basename
   - `get_requires_for_build_sdist`: get the `setup_requires` to build
+  - `build_editable`: build a wheel containing a .pth file and dist-info
+                      metadata, and return the basename (PEP 660)
+  - `get_requires_for_build_wheel`: get the `setup_requires` to build
+  ` `prepare_metadata_for_build_editable`: get the `install_requires`
 
 Again, this is not a formal definition! Just a "taste" of the module.
 """
@@ -34,17 +38,27 @@ import shutil
 import contextlib
 import tempfile
 import warnings
+import zipfile
+import base64
+import textwrap
+import hashlib
+import csv
 
 import setuptools
+import setuptools.command.egg_info
 import distutils
 
+import pkg_resources
 from pkg_resources import parse_requirements
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
+           'get_requires_for_build_editable'
            'prepare_metadata_for_build_wheel',
+           'prepare_metadata_for_build_editable',
            'build_wheel',
            'build_sdist',
+           'build_editable',
            '__legacy__',
            'SetupRequirementsError']
 
@@ -74,6 +88,24 @@ class Distribution(setuptools.dist.Distribution):
             yield
         finally:
             distutils.core.Distribution = orig
+
+
+class _egg_info_EditableShim(setuptools.command.egg_info.egg_info):
+    _captured_instance = None
+
+    def finalize_options(self):
+        super().finalize_options()
+        self.__class__._captured_instance = self
+
+    @classmethod
+    @contextlib.contextmanager
+    def patch(cls):
+        orig = setuptools.command.egg_info.egg_info
+        setuptools.command.egg_info.egg_info = cls
+        try:
+            yield
+        finally:
+            setuptools.command.egg_info.egg_info = orig
 
 
 @contextlib.contextmanager
@@ -124,6 +156,25 @@ def suppress_known_deprecation():
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', 'setup.py install is deprecated')
         yield
+
+
+def _urlsafe_b64encode(data):
+    """urlsafe_b64encode without padding"""
+    return base64.urlsafe_b64encode(data).rstrip(b"=")
+
+
+def _add_wheel_record(archive, dist_info):
+    """Add the wheel RECORD manifest."""
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, delimiter=',', quotechar='"', lineterminator='\n')
+    for f in archive.namelist():
+        data = archive.read(f)
+        size = len(data)
+        digest = hashlib.sha256(data).digest()
+        digest = "sha256=" + (_urlsafe_b64encode(digest).decode("ascii"))
+        writer.writerow((f, digest, size))
+    record_path = os.path.join(dist_info, "RECORD")
+    archive.writestr(record_path, buffer.read())
 
 
 class _BuildMetaBackend(object):
@@ -235,6 +286,55 @@ class _BuildMetaBackend(object):
                                          '.tar.gz', sdist_directory,
                                          config_settings)
 
+    def build_editable(self, wheel_directory, config_settings=None,
+                       metadata_directory=None):
+        config_settings = self._fix_config(config_settings)
+
+        sys.argv = [*sys.argv[:1], 'dist_info']
+        with no_install_setup_requires(), _egg_info_EditableShim.patch():
+            self.run_setup()
+        # HACK: to get the distribution's location we'll have to capture the
+        # egg_info instance created by dist_info. It'd be even more difficult
+        # to statically recalcuate the location (i.e. the proper way) AFAICT.
+        egg_info = _egg_info_EditableShim._captured_instance
+        dist_info = egg_info.egg_name + '.dist-info'
+        dist_info_path = os.path.join(os.getcwd(), egg_info.egg_info)
+        dist_info_path = dist_info_path[:-len('.egg-info')] + '.dist-info'
+        location = os.path.join(os.getcwd(), egg_info.egg_base)
+
+        sys.argv = [
+            *sys.argv[:1], 'build_ext', '--inplace',
+            *config_settings['--global-option']
+        ]
+        with no_install_setup_requires():
+            self.run_setup()
+
+        metadata = pkg_resources.PathMetadata(location, dist_info_path)
+        dist = pkg_resources.DistInfoDistribution.from_location(
+            location, dist_info, metadata=metadata
+        )
+        wheel_name = f'{dist.project_name}-{dist.version}-ed.py3-none-any.whl'
+        wheel_path = os.path.join(wheel_directory, wheel_name)
+        with zipfile.ZipFile(wheel_path, 'w') as archive:
+            archive.writestr(f'{dist.project_name}.pth', location)
+            for file in os.scandir(dist_info_path):
+                with open(file.path, encoding='utf-8') as metadata:
+                    zip_filename = os.path.relpath(file.path, location)
+                    archive.writestr(zip_filename, metadata.read())
+
+            archive.writestr(
+                os.path.join(dist_info, 'WHEEL'),
+                textwrap.dedent(f"""\
+                    Wheel-Version: 1.0
+                    Generator: setuptools ({setuptools.__version__})
+                    Root-Is-Purelib: false
+                    Tag: ed.py3-none-any
+                """)
+            )
+            _add_wheel_record(archive, dist_info)
+
+        return os.path.basename(wheel_path)
+
 
 class _BuildMetaLegacyBackend(_BuildMetaBackend):
     """Compatibility backend for setuptools
@@ -281,9 +381,14 @@ _BACKEND = _BuildMetaBackend()
 
 get_requires_for_build_wheel = _BACKEND.get_requires_for_build_wheel
 get_requires_for_build_sdist = _BACKEND.get_requires_for_build_sdist
+# Fortunately we can just reuse the wheel hook for editables in this case.
+get_requires_for_build_editable = _BACKEND.get_requires_for_build_wheel
 prepare_metadata_for_build_wheel = _BACKEND.prepare_metadata_for_build_wheel
+# Ditto reuse of wheel's equivalent.
+prepare_metadata_for_build_editable = _BACKEND.prepare_metadata_for_build_wheel
 build_wheel = _BACKEND.build_wheel
 build_sdist = _BACKEND.build_sdist
+build_editable = _BACKEND.build_editable
 
 
 # The legacy backend
