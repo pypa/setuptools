@@ -802,10 +802,7 @@ int main (int argc, char **argv) {
         except (LinkError, TypeError):
             return False
         else:
-            output_dir = self.output_dir
-            if output_dir is None:
-                output_dir = ''
-            os.remove(os.path.join(output_dir, "a.out"))
+            os.remove(os.path.join(self.output_dir or '', "a.out"))
         finally:
             for fn in objects:
                 os.remove(fn)
