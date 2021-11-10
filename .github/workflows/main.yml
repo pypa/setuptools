@@ -18,7 +18,6 @@ jobs:
         - ubuntu-latest
         - macos-latest
         - windows-latest
-      fail-fast: false
     runs-on: ${{ matrix.platform }}
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
