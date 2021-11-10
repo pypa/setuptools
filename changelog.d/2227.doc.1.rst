@@ -1,0 +1,2 @@
+Added new setuptools logo, including editable files and artwork documentation
+-- by :user:`abravalheri`

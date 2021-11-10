@@ -1,0 +1,2 @@
+Added mentions to ``setuptools.errors`` as a way of handling custom command
+errors.
