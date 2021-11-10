@@ -1,3 +1,6 @@
+import os
+import sys
+
 extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
 
 master_doc = "index"
@@ -101,8 +104,7 @@ default_role = 'any'
 
 # HTML theme
 html_theme = 'furo'
-html_logo = "images/logo.png"
-html_favicon = "images/favicon.ico"
+html_logo = "images/logo.svg"
 
 html_theme_options = {
     "sidebar_hide_name": True,
@@ -171,3 +173,26 @@ towncrier_draft_working_directory = '..'
 towncrier_draft_include_empty = False
 
 extensions += ['jaraco.tidelift']
+
+# Add icons (aka "favicons") to documentation
+sys.path.append(os.path.join(os.path.dirname(__file__), '_ext'))
+extensions += ['_custom_icons']
+
+# List of dicts with <link> HTML attributes
+# as defined in https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
+# except that ``file`` gets replaced with the correct ``href``
+icons = [
+    {  # "Catch-all" goes first, otherwise some browsers will overwrite
+        "rel": "icon",
+        "type": "image/svg+xml",
+        "file": "images/logo-symbol-only.svg",
+        "sizes": "any"
+    },
+    {  # Version with thicker strokes for better visibility at smaller sizes
+        "rel": "icon",
+        "type": "image/svg+xml",
+        "file": "images/favicon.svg",
+        "sizes": "16x16 24x24 32x32 48x48"
+    },
+    # rel="apple-touch-icon" does not support SVG yet
+]
