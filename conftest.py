@@ -36,3 +36,16 @@ if sys.version_info > (3, 10):
         'ignore',
         'The distutils.sysconfig module is deprecated, use sysconfig instead',
     )
+
+
+is_pypy = '__pypy__' in sys.builtin_module_names
+if is_pypy:
+    # Workaround for pypa/setuptools#2868
+    warnings.filterwarnings(
+        'ignore',
+        'Distutils was imported before setuptools',
+    )
+    warnings.filterwarnings(
+        'ignore',
+        'Setuptools is replacing distutils',
+    )
