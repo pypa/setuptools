@@ -204,7 +204,7 @@ Documentation changes
   some confusion.
   Add some examples and the version since when ``entry_points`` are
   supported in declarative configuration.
-  Tried to make the reading flow a bit leaner, gather some informations
+  Tried to make the reading flow a bit leaner, gather some information
   that were a bit dispersed.
 
 
@@ -4291,7 +4291,7 @@ how it parses version numbers.
 
 * Fix test suite with Python 2.6.
 * Fix some DeprecationWarnings and ResourceWarnings.
-* Distribute #335: Backed out ``setup_requires`` superceding installed requirements
+* Distribute #335: Backed out ``setup_requires`` superseding installed requirements
   until regression can be addressed.
 
 0.6.31
@@ -4310,7 +4310,7 @@ how it parses version numbers.
      PYTHONIOENCODING=utf8 pip install numpy
 
 * Fix for encoding issue when installing from Windows executable on Python 3.
-* Distribute #323: Allow ``setup_requires`` requirements to supercede installed
+* Distribute #323: Allow ``setup_requires`` requirements to supersede installed
   requirements. Added some new keyword arguments to existing pkg_resources
   methods. Also had to updated how __path__ is handled for namespace packages
   to ensure that when a new egg distribution containing a namespace package is
@@ -4333,13 +4333,13 @@ how it parses version numbers.
 * If Sphinx is installed, the ``upload_docs`` command now runs ``build_sphinx``
   to produce uploadable documentation.
 * Distribute #326: ``upload_docs`` provided mangled auth credentials under Python 3.
-* Distribute #320: Fix check for "createable" in distribute_setup.py.
+* Distribute #320: Fix check for "creatable" in distribute_setup.py.
 * Distribute #305: Remove a warning that was triggered during normal operations.
 * Distribute #311: Print metadata in UTF-8 independent of platform.
 * Distribute #303: Read manifest file with UTF-8 encoding under Python 3.
 * Distribute #301: Allow to run tests of namespace packages when using 2to3.
 * Distribute #304: Prevent import loop in site.py under Python 3.3.
-* Distribute #283: Reenable scanning of ``*.pyc`` / ``*.pyo`` files on Python 3.3.
+* Distribute #283: Re-enable scanning of ``*.pyc`` / ``*.pyo`` files on Python 3.3.
 * Distribute #299: The develop command didn't work on Python 3, when using 2to3,
   as the egg link would go to the Python 2 source. Linking to the 2to3'd code
   in build/lib makes it work, although you will have to rebuild the module
