@@ -144,12 +144,14 @@ def read_pkg_file(self, file):
     self.license_files = _read_list_from_msg(msg, 'license-file')
 
 
-def single_line(val):
-    # quick and dirty validation for description pypa/setuptools#1390
+def ensure_summary_single_line(val):
+    """Validate that the summary does not have line breaks."""
+    # Ref: https://github.com/pypa/setuptools/issues/1390
     if '\n' in val:
-        # TODO after 2021-07-31: Replace with `raise ValueError("newlines not allowed")`
-        warnings.warn("newlines not allowed and will break in the future")
-        val = val.replace('\n', ' ')
+        raise ValueError(
+            'Newlines in the package distribution summary are not allowed',
+        )
+
     return val
 
 
@@ -164,7 +166,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
     write_field('Version', self.get_version())
-    write_field('Summary', single_line(self.get_description()))
+    write_field('Summary', ensure_summary_single_line(self.get_description()))
     write_field('Home-page', self.get_url())
 
     optional_fields = (
