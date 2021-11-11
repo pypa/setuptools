@@ -89,6 +89,10 @@ def _get_pip_versions():
     return list(versions)
 
 
+@pytest.mark.skipif(
+    'platform.python_implementation() == "PyPy"',
+    reason="https://github.com/pypa/setuptools/pull/2865#issuecomment-965834995",
+)
 @pytest.mark.parametrize('pip_version', _get_pip_versions())
 def test_pip_upgrade_from_source(pip_version, tmp_src, virtualenv):
     """
