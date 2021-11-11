@@ -49,7 +49,7 @@ import setuptools.command.egg_info
 import distutils
 
 import pkg_resources
-from pkg_resources import parse_requirements
+from pkg_resources import parse_requirements, safe_name, safe_version
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
@@ -313,7 +313,11 @@ class _BuildMetaBackend(object):
         dist = pkg_resources.DistInfoDistribution.from_location(
             location, dist_info, metadata=metadata
         )
-        wheel_name = f'{dist.project_name}-{dist.version}-ed.py3-none-any.whl'
+        # Seems like the distribution name and version attributes aren't always
+        # 100% normalized ...
+        dist_name = safe_name(dist.project_name).replace("-", "_")
+        version = safe_version(dist.version).replace("-", "_")
+        wheel_name = f'{dist_name}-{version}-ed.py3-none-any.whl'
         wheel_path = os.path.join(wheel_directory, wheel_name)
         with zipfile.ZipFile(wheel_path, 'w') as archive:
             archive.writestr(f'{dist.project_name}.pth', location)
