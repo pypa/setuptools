@@ -186,17 +186,17 @@ For more details, see :doc:`datafiles`
 
 Development mode
 ================
+
+.. tip::
+
+	When there is no ``setup.py`` script present, this is only
+	compatible with :pep:`517` since :ref:`pip v21.1 <pip:v21-1>`.
+
 ``setuptools`` allows you to install a package without copying any files
-to your interpreter directory (e.g. the ``site-packages`` directory). This
-allows you to modify your source code and have the changes take effect without
-you having to rebuild and reinstall. This is currently incompatible with
-PEP 517 and therefore it requires a ``setup.py`` script with the following
-content::
-
-    import setuptools
-    setuptools.setup()
-
-Then::
+to your interpreter directory (e.g. the ``site-packages`` directory).
+This allows you to modify your source code and have the changes take
+effect without you having to rebuild and reinstall.
+Here's how to do it::
 
     pip install --editable .
 
