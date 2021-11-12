@@ -6,6 +6,7 @@ import sys
 import os
 import contextlib
 import sysconfig
+import itertools
 
 from distutils import log
 from distutils.core import Command
@@ -30,14 +31,14 @@ WINDOWS_SCHEME = {
 }
 
 INSTALL_SCHEMES = {
-    'unix_prefix': {
+    'posix_prefix': {
         'purelib': '{base}/lib/{implementation_lower}{py_version_short}/site-packages',
         'platlib': '{platbase}/{platlibdir}/{implementation_lower}{py_version_short}/site-packages',
         'headers': '{base}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
         'scripts': '{base}/bin',
         'data'   : '{base}',
         },
-    'unix_home': {
+    'posix_home': {
         'purelib': '{base}/lib/{implementation_lower}',
         'platlib': '{base}/{platlibdir}/{implementation_lower}',
         'headers': '{base}/include/{implementation_lower}/{dist_name}',
@@ -71,7 +72,7 @@ if HAS_USER_SITE:
         'data'   : '{userbase}',
         }
 
-    INSTALL_SCHEMES['unix_user'] = {
+    INSTALL_SCHEMES['posix_user'] = {
         'purelib': '{usersite}',
         'platlib': '{usersite}',
         'headers':
@@ -86,21 +87,28 @@ if HAS_USER_SITE:
 SCHEME_KEYS = ('purelib', 'platlib', 'headers', 'scripts', 'data')
 
 
+def _load_sysconfig_schemes():
+    with contextlib.suppress(AttributeError):
+        return {
+            scheme: sysconfig.get_paths(scheme, expand=False)
+            for scheme in sysconfig.get_scheme_names()
+        }
+
+
 def _load_schemes():
     """
     Extend default schemes with schemes from sysconfig.
     """
 
-    schemes = dict(INSTALL_SCHEMES)
+    sysconfig_schemes = _load_sysconfig_schemes() or {}
 
-    with contextlib.suppress(AttributeError):
-        sysconfig_schemes = {
-            scheme: sysconfig.get_paths(scheme, expand=False)
-            for scheme in sysconfig.get_scheme_names()
+    return {
+        scheme: {
+            **INSTALL_SCHEMES.get(scheme, {}),
+            **sysconfig_schemes.get(scheme, {}),
         }
-        schemes.update(sysconfig_schemes)
-
-    return schemes
+        for scheme in set(itertools.chain(INSTALL_SCHEMES, sysconfig_schemes))
+    }
 
 
 def _get_implementation():
