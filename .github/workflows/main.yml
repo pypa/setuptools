@@ -6,6 +6,9 @@ jobs:
   test:
     strategy:
       matrix:
+        distutils:
+        - stdlib
+        - local
         python:
         - pypy3
         - 3.6
@@ -16,6 +19,8 @@ jobs:
         - macos-latest
         - windows-latest
     runs-on: ${{ matrix.platform }}
+    env:
+      SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
