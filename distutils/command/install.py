@@ -24,7 +24,7 @@ HAS_USER_SITE = True
 WINDOWS_SCHEME = {
     'purelib': '{base}/Lib/site-packages',
     'platlib': '{base}/Lib/site-packages',
-    'include': '{base}/Include/{dist_name}',
+    'headers': '{base}/Include/{dist_name}',
     'scripts': '{base}/Scripts',
     'data'   : '{base}',
 }
@@ -33,14 +33,14 @@ INSTALL_SCHEMES = {
     'unix_prefix': {
         'purelib': '{base}/lib/{implementation_lower}{py_version_short}/site-packages',
         'platlib': '{platbase}/{platlibdir}/{implementation_lower}{py_version_short}/site-packages',
-        'include': '{base}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
+        'headers': '{base}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
         'scripts': '{base}/bin',
         'data'   : '{base}',
         },
     'unix_home': {
         'purelib': '{base}/lib/{implementation_lower}',
         'platlib': '{base}/{platlibdir}/{implementation_lower}',
-        'include': '{base}/include/{implementation_lower}/{dist_name}',
+        'headers': '{base}/include/{implementation_lower}/{dist_name}',
         'scripts': '{base}/bin',
         'data'   : '{base}',
         },
@@ -48,14 +48,14 @@ INSTALL_SCHEMES = {
     'pypy': {
         'purelib': '{base}/site-packages',
         'platlib': '{base}/site-packages',
-        'include': '{base}/include/{dist_name}',
+        'headers': '{base}/include/{dist_name}',
         'scripts': '{base}/bin',
         'data'   : '{base}',
         },
     'pypy_nt': {
         'purelib': '{base}/site-packages',
         'platlib': '{base}/site-packages',
-        'include': '{base}/include/{dist_name}',
+        'headers': '{base}/include/{dist_name}',
         'scripts': '{base}/Scripts',
         'data'   : '{base}',
         },
@@ -66,7 +66,7 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
         'purelib': '{usersite}',
         'platlib': '{usersite}',
-        'include': '{userbase}/{implementation}{py_version_nodot}/Include/{dist_name}',
+        'headers': '{userbase}/{implementation}{py_version_nodot}/Include/{dist_name}',
         'scripts': '{userbase}/{implementation}{py_version_nodot}/Scripts',
         'data'   : '{userbase}',
         }
@@ -74,7 +74,7 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['unix_user'] = {
         'purelib': '{usersite}',
         'platlib': '{usersite}',
-        'include':
+        'headers':
             '{userbase}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
         'scripts': '{userbase}/bin',
         'data'   : '{userbase}',
@@ -83,7 +83,7 @@ if HAS_USER_SITE:
 # The keys to an installation scheme; if any new types of files are to be
 # installed, be sure to add an entry to every installation scheme above,
 # and to SCHEME_KEYS here.
-SCHEME_KEYS = ('purelib', 'platlib', 'include', 'scripts', 'data')
+SCHEME_KEYS = ('purelib', 'platlib', 'headers', 'scripts', 'data')
 
 
 def _load_schemes():
@@ -205,7 +205,7 @@ class install(Command):
         # that installation scheme.
         self.install_purelib = None     # for pure module distributions
         self.install_platlib = None     # non-pure (dists w/ extensions)
-        self.install_include = None     # for C/C++ headers
+        self.install_headers = None     # for C/C++ headers
         self.install_lib = None         # set to either purelib or platlib
         self.install_scripts = None
         self.install_data = None
@@ -254,10 +254,6 @@ class install(Command):
 
         self.record = None
 
-    @property
-    def install_headers(self):
-        # for compatibility
-        return self.install_include
 
     # -- Option finalizing methods -------------------------------------
     # (This is rather more involved than for most commands,
@@ -391,7 +387,7 @@ class install(Command):
         # Convert directories from Unix /-separated syntax to the local
         # convention.
         self.convert_paths('lib', 'purelib', 'platlib',
-                           'scripts', 'data', 'include',
+                           'scripts', 'data', 'headers',
                            'userbase', 'usersite')
 
         # Deprecated
@@ -407,7 +403,7 @@ class install(Command):
         # dirs relative to it.
         if self.root is not None:
             self.change_roots('libbase', 'lib', 'purelib', 'platlib',
-                              'scripts', 'data', 'include')
+                              'scripts', 'data', 'headers')
 
         self.dump_dirs("after prepending root")
 
@@ -444,7 +440,7 @@ class install(Command):
             if ((self.install_lib is None and
                  self.install_purelib is None and
                  self.install_platlib is None) or
-                self.install_include is None or
+                self.install_headers is None or
                 self.install_scripts is None or
                 self.install_data is None):
                 raise DistutilsOptionError(
@@ -533,7 +529,7 @@ class install(Command):
     def expand_dirs(self):
         """Calls `os.path.expanduser` on install dirs."""
         self._expand_attrs(['install_purelib', 'install_platlib',
-                            'install_lib', 'install_include',
+                            'install_lib', 'install_headers',
                             'install_scripts', 'install_data',])
 
     def convert_paths(self, *names):
