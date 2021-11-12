@@ -189,8 +189,9 @@ Development mode
 
 .. tip::
 
-	When there is no ``setup.py`` script present, this is only
-	compatible with :pep:`517` since :ref:`pip v21.1 <pip:v21-1>`.
+	Prior to :ref:`pip v21.1 <pip:v21-1>`, a ``setup.py`` script was
+	required to be compatible with development mode. With late
+	versions of pip, any project may be installed in this mode.
 
 ``setuptools`` allows you to install a package without copying any files
 to your interpreter directory (e.g. the ``site-packages`` directory).
