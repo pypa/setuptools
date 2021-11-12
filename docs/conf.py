@@ -171,3 +171,5 @@ towncrier_draft_working_directory = '..'
 towncrier_draft_include_empty = False
 
 extensions += ['jaraco.tidelift']
+
+intersphinx_mapping['pip'] = 'https://pip.pypa.io/en/latest', None

@@ -1,0 +1,4 @@
+Added a note to the docs that it is possible to install
+``setup.py``-less projects in editable mode with :doc:`pip v21.1+
+<pip:index>`, only having ``setup.cfg`` and ``pyproject.toml`` in
+project root -- by :user:`webknjaz`
