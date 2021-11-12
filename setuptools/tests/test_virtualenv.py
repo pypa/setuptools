@@ -76,9 +76,14 @@ def _get_pip_versions():
         return param if network else mark(param, pytest.mark.skip(reason="no network"))
 
     network_versions = [
-        mark('pip==19.3.1', pytest.mark.xfail(reason='pypa/pip#6599')),
-        'pip==20.0.2',
-        'https://github.com/pypa/pip/archive/main.zip',
+        mark('pip<20', pytest.mark.xfail(reason='pypa/pip#6599')),
+        'pip<20.1',
+        'pip<21',
+        'pip<22',
+        mark(
+            'https://github.com/pypa/pip/archive/main.zip',
+            pytest.mark.skipif('sys.version_info < (3, 7)'),
+        ),
     ]
 
     versions = itertools.chain(
@@ -103,7 +108,7 @@ def test_pip_upgrade_from_source(pip_version, tmp_src, virtualenv):
     if pip_version is None:
         upgrade_pip = ()
     else:
-        upgrade_pip = ('python -m pip install -U {pip_version} --retries=1',)
+        upgrade_pip = ('python -m pip install -U "{pip_version}" --retries=1',)
     virtualenv.run(' && '.join((
         'pip uninstall -y setuptools',
         'pip install -U wheel',
