@@ -129,6 +129,13 @@ def get_python_inc(plat_specific=0, prefix=None):
             "on platform '%s'" % os.name)
 
 
+def _posix_lib(standard_lib, libpython, early_prefix, prefix):
+    if standard_lib:
+        return libpython
+    else:
+        return os.path.join(libpython, "site-packages")
+
+
 def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
     """Return the directory containing the Python library (standard or
     site additions).
@@ -152,6 +159,8 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             return os.path.join(prefix, "lib-python", sys.version[0])
         return os.path.join(prefix, 'site-packages')
 
+    early_prefix = prefix
+
     if prefix is None:
         if standard_lib:
             prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
@@ -169,10 +178,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         implementation = 'pypy' if IS_PYPY else 'python'
         libpython = os.path.join(prefix, libdir,
                                  implementation + get_python_version())
-        if standard_lib:
-            return libpython
-        else:
-            return os.path.join(libpython, "site-packages")
+        return _posix_lib(standard_lib, libpython, early_prefix, prefix)
     elif os.name == "nt":
         if standard_lib:
             return os.path.join(prefix, "Lib")
