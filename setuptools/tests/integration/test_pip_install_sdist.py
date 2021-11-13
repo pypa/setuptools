@@ -10,7 +10,6 @@ The number of tested packages is purposefully kept small, to minimise duration
 and the associated maintenance cost (changes in the way these packages define
 their build process may require changes in the tests).
 """
-import importlib
 import json
 import os
 import subprocess
@@ -19,16 +18,17 @@ import tarfile
 from enum import Enum
 from glob import glob
 from hashlib import md5
-from itertools import chain
 from urllib.request import urlopen
 from zipfile import ZipFile
 
 import pytest
+import setuptools
 from packaging.requirements import Requirement
 
 
 pytestmark = pytest.mark.integration
 
+SETUPTOOLS_ROOT = os.path.dirname(next(iter(setuptools.__path__)))
 
 LATEST, = list(Enum("v", "LATEST"))
 """Default version to be checked"""
@@ -55,6 +55,9 @@ EXAMPLES = [
     ("botocore", LATEST),
     ("kiwisolver", "1.3.2"),  # build_ext, version pinned due to setup_requires
     ("brotli", LATEST),  # not in the list but used by urllib3
+
+    # When adding packages to this list, make sure they expose a `__version__`
+    # attribute, or modify the tests bellow
 ]
 
 
@@ -66,11 +69,13 @@ EXTRA_BUILD_DEPS = {
 }
 
 
+VIRTUALENV = (sys.executable, "-m", "virtualenv")
+
+
 # By default, pip will try to build packages in isolation (PEP 517), which
 # means it will download the previous stable version of setuptools.
 # `pip` flags can avoid that (the version of setuptools under test
 # should be the one to be used)
-PIP = (sys.executable, "-m", "pip")
 SDIST_OPTIONS = (
     "--ignore-installed",
     "--no-build-isolation",
@@ -81,9 +86,14 @@ SDIST_OPTIONS = (
 # dependencies. The test script will have to also handle that.
 
 
+@pytest.fixture
+def venv_python(tmp_path):
+    run_command([*VIRTUALENV, str(tmp_path / ".venv")])
+    return str(next(tmp_path.glob(".venv/*/python")))
+
+
 @pytest.fixture(autouse=True)
-def _prepare(tmp_path, monkeypatch, request):
-    (tmp_path / "lib").mkdir(exist_ok=True)
+def _prepare(tmp_path, venv_python, monkeypatch, request):
     download_path = os.getenv("DOWNLOAD_PATH", str(tmp_path))
     os.makedirs(download_path, exist_ok=True)
 
@@ -95,8 +105,9 @@ def _prepare(tmp_path, monkeypatch, request):
         # it is necessary to debug the tests directly from the CI logs.
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         print("Temporary directory:")
-        for entry in chain(tmp_path.glob("*"), tmp_path.glob("lib/*")):
-            print(entry)
+        map(print, tmp_path.glob("*"))
+        print("Virtual environment:")
+        run_command([venv_python, "-m", "pip", "freeze"])
     request.addfinalizer(_debug_info)
 
 
@@ -104,57 +115,48 @@ ALREADY_LOADED = ("pytest", "mypy")  # loaded by pytest/pytest-enabler
 
 
 @pytest.mark.parametrize('package, version', EXAMPLES)
-def test_install_sdist(package, version, tmp_path, monkeypatch):
-    lib = tmp_path / "lib"
+def test_install_sdist(package, version, tmp_path, venv_python):
+    venv_pip = (venv_python, "-m", "pip")
     sdist = retrieve_sdist(package, version, tmp_path)
     deps = build_deps(package, sdist)
     if deps:
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         print("Dependencies:", deps)
-        pip_install(*deps, target=lib)
+        run_command([*venv_pip, "install", *deps])
 
-    pip_install(*SDIST_OPTIONS, sdist, target=lib)
+    # Use a virtualenv to simulate PEP 517 isolation
+    # but install setuptools to force the version under development
+    correct_setuptools = os.getenv("PROJECT_ROOT") or SETUPTOOLS_ROOT
+    assert os.path.exists(os.path.join(correct_setuptools, "pyproject.toml"))
+    run_command([*venv_pip, "install", "-Ie", correct_setuptools])
+    run_command([*venv_pip, "install", *SDIST_OPTIONS, sdist])
 
-    if package in ALREADY_LOADED:
-        # We cannot import packages already in use from a different location
-        assert (lib / package).exists()
-        return
-
-    # Make sure the package was installed correctly
-    with monkeypatch.context() as m:
-        m.syspath_prepend(str(lib))  # add installed packages to path
-        pkg = importlib.import_module(package)
-        if hasattr(pkg, '__version__'):
-            print(pkg.__version__)
-        for path in getattr(pkg, '__path__', []):
-            assert os.path.abspath(path).startswith(os.path.abspath(tmp_path))
+    # Execute a simple script to make sure the package was installed correctly
+    script = f"import {package}; print(getattr({package}, '__version__', 0))"
+    run_command([venv_python, "-c", script])
 
 
 # ---- Helper Functions ----
 
 
-def pip_install(*args, target):
-    """Install packages in the ``target`` directory"""
-    cmd = [*PIP, 'install', '--target', str(target), *args]
-    env = {**os.environ, "PYTHONPATH": str(target)}
-    # ^-- use libs installed in the target for build, but keep
-    #     compiling/build-related env variables
+def run_command(cmd, env=None):
+    r = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+        env={**os.environ, **(env or {})}
+        # ^-- allow overwriting instead of discarding the current env
+    )
 
-    try:
-        subprocess.run(
-            cmd,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            universal_newlines=True,
-            env=env
-        )
-    except subprocess.CalledProcessError as ex:
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print("Command", repr(ex.cmd), "failed with code", ex.returncode)
-        print(ex.stdout)
-        print(ex.stderr)
-        raise
+    out = r.stdout + "\n" + r.stderr
+    # pytest omits stdout/err by default, if the test fails they help debugging
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(f"Command: {cmd}\nreturn code: {r.returncode}\n\n{out}")
+
+    if r.returncode == 0:
+        return out
+    raise subprocess.CalledProcessError(r.returncode, cmd, r.stdout, r.stderr)
 
 
 def retrieve_sdist(package, version, tmp_path):
@@ -212,10 +214,6 @@ def download(url, dest, md5_digest):
     assert os.path.exists(dest)
 
 
-IN_TEST_VENV = ("setuptools", "wheel", "packaging")
-"""Don't re-install"""
-
-
 def build_deps(package, sdist_file):
     """Find out what are the build dependencies for a package.
 
@@ -234,7 +232,7 @@ def build_deps(package, sdist_file):
     deps += EXTRA_BUILD_DEPS.get(package, [])
     # Remove setuptools from requirements (and deduplicate)
     requirements = {Requirement(d).name: d for d in deps}
-    return [v for k, v in requirements.items() if k not in IN_TEST_VENV]
+    return [v for k, v in requirements.items() if k != "setuptools"]
 
 
 def _read_pyproject(archive):
