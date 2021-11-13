@@ -24,7 +24,6 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 import pytest
-import tomli as toml
 from packaging.requirements import Requirement
 
 
@@ -223,6 +222,10 @@ def build_deps(package, sdist_file):
     We need to "manually" install them, since pip will not install build
     deps with `--no-build-isolation`.
     """
+    import tomli as toml
+    # delay importing, since pytest discovery phase may hit this file from a
+    # testenv without tomli
+
     archive = Archive(sdist_file)
     pyproject = _read_pyproject(archive)
 
