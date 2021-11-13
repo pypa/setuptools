@@ -13,19 +13,19 @@ their build process may require changes in the tests).
 import json
 import os
 import shutil
-import subprocess
 import sys
-import tarfile
 from enum import Enum
 from glob import glob
 from hashlib import md5
 from urllib.request import urlopen
-from zipfile import ZipFile
 
 import pytest
 from packaging.requirements import Requirement
 
 import setuptools
+
+from .helpers import Archive, run
+
 
 pytestmark = pytest.mark.integration
 
@@ -89,7 +89,7 @@ SDIST_OPTIONS = (
 
 @pytest.fixture
 def venv_python(tmp_path):
-    run_command([*VIRTUALENV, str(tmp_path / ".venv")])
+    run([*VIRTUALENV, str(tmp_path / ".venv")])
     possible_path = (str(p.parent) for p in tmp_path.glob(".venv/*/python*"))
     return shutil.which("python", path=os.pathsep.join(possible_path))
 
@@ -109,7 +109,7 @@ def _prepare(tmp_path, venv_python, monkeypatch, request):
         print("Temporary directory:")
         map(print, tmp_path.glob("*"))
         print("Virtual environment:")
-        run_command([venv_python, "-m", "pip", "freeze"])
+        run([venv_python, "-m", "pip", "freeze"])
     request.addfinalizer(_debug_info)
 
 
@@ -124,41 +124,21 @@ def test_install_sdist(package, version, tmp_path, venv_python):
     if deps:
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         print("Dependencies:", deps)
-        run_command([*venv_pip, "install", *deps])
+        run([*venv_pip, "install", *deps])
 
     # Use a virtualenv to simulate PEP 517 isolation
     # but install setuptools to force the version under development
     correct_setuptools = os.getenv("PROJECT_ROOT") or SETUPTOOLS_ROOT
     assert os.path.exists(os.path.join(correct_setuptools, "pyproject.toml"))
-    run_command([*venv_pip, "install", "-Ie", correct_setuptools])
-    run_command([*venv_pip, "install", *SDIST_OPTIONS, sdist])
+    run([*venv_pip, "install", "-Ie", correct_setuptools])
+    run([*venv_pip, "install", *SDIST_OPTIONS, sdist])
 
     # Execute a simple script to make sure the package was installed correctly
     script = f"import {package}; print(getattr({package}, '__version__', 0))"
-    run_command([venv_python, "-c", script])
+    run([venv_python, "-c", script])
 
 
 # ---- Helper Functions ----
-
-
-def run_command(cmd, env=None):
-    r = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-        env={**os.environ, **(env or {})}
-        # ^-- allow overwriting instead of discarding the current env
-    )
-
-    out = r.stdout + "\n" + r.stderr
-    # pytest omits stdout/err by default, if the test fails they help debugging
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    print(f"Command: {cmd}\nreturn code: {r.returncode}\n\n{out}")
-
-    if r.returncode == 0:
-        return out
-    raise subprocess.CalledProcessError(r.returncode, cmd, r.stdout, r.stderr)
 
 
 def retrieve_sdist(package, version, tmp_path):
@@ -243,34 +223,3 @@ def _read_pyproject(archive):
         if os.path.basename(archive.get_name(member)) == "pyproject.toml":
             return archive.get_content(member)
     return ""
-
-
-class Archive:
-    """Compatibility layer for ZipFile/Info and TarFile/Info"""
-    def __init__(self, filename):
-        self._filename = filename
-        if filename.endswith("tar.gz"):
-            self._obj = tarfile.open(filename, "r:gz")
-        elif filename.endswith("zip"):
-            self._obj = ZipFile(filename)
-        else:
-            raise ValueError(f"{filename} doesn't seem to be a zip or tar.gz")
-
-    def __iter__(self):
-        if hasattr(self._obj, "infolist"):
-            return iter(self._obj.infolist())
-        return iter(self._obj)
-
-    def get_name(self, zip_or_tar_info):
-        if hasattr(zip_or_tar_info, "filename"):
-            return zip_or_tar_info.filename
-        return zip_or_tar_info.name
-
-    def get_content(self, zip_or_tar_info):
-        if hasattr(self._obj, "extractfile"):
-            content = self._obj.extractfile(zip_or_tar_info)
-            if content is None:
-                msg = f"Invalid {zip_or_tar_info.name} in {self._filename}"
-                raise ValueError(msg)
-            return str(content.read(), "utf-8")
-        return str(self._obj.read(zip_or_tar_info), "utf-8")
