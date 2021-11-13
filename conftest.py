@@ -20,10 +20,6 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     config.addinivalue_line("markers", "integration: indicate integration tests")
 
-    if config.option.integration:
-        # Assume unit tests and flake already run
-        config.option.flake8 = False
-
 
 collect_ignore = [
     'tests/manual_test.py',
