@@ -5,12 +5,7 @@ Extracts the customized behavior from patches as reported
 in pypa/distutils#2 and applies those customizations (except
 for scheme definitions) to those commands.
 
-Call ``apply_customizations`` to have these customizations
-take effect. Debian can do that from site.py or similar::
-
-    with contextlib.suppress(ImportError):
-        import distutils.debian
-        distutils.debian.apply_customizations()
+Place this module somewhere in sys.path to take effect.
 """
 
 import os
@@ -121,3 +116,6 @@ def apply_customizations():
     orig_install.install = install
     orig_install_egg_info.install_egg_info = install_egg_info
     distutils.sysconfig._posix_lib = _posix_lib
+
+
+apply_customizations()
