@@ -196,3 +196,5 @@ icons = [
     },
     # rel="apple-touch-icon" does not support SVG yet
 ]
+
+intersphinx_mapping['pip'] = 'https://pip.pypa.io/en/latest', None
