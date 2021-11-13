@@ -1,0 +1,11 @@
+pull_request_rules:
+- name: auto-merge
+  conditions:
+  - base=master
+  - label=auto-merge
+  - status-success=continuous-integration/appveyor/pr
+  - status-success=continuous-integration/travis-ci/pr
+  - status-success=deploy/netlify
+  actions:
+    merge:
+      method: merge

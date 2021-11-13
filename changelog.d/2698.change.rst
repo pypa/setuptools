@@ -1,0 +1,1 @@
+Exposed exception classes from ``distutils.errors`` via ``setuptools.errors``.

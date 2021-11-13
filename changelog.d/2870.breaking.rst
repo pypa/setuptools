@@ -1,0 +1,1 @@
+Started failing on invalid inline description with line breaks :class:`ValueError` -- by :user:`webknjaz`

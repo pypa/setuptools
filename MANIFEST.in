@@ -1,0 +1,17 @@
+recursive-include setuptools *.py *.exe *.xml *.tmpl
+recursive-include tests *.py
+recursive-include setuptools/tests *.html
+recursive-include docs *.py *.txt *.rst *.conf *.css *.css_t Makefile indexsidebar.html
+recursive-include setuptools/_vendor *.py *.txt
+recursive-include pkg_resources *.py *.txt
+recursive-include pkg_resources/tests/data *
+recursive-include tools *
+recursive-include changelog.d *
+include *.py
+include *.rst
+include MANIFEST.in
+include LICENSE
+include launcher.c
+include msvc-build-launcher.cmd
+include pytest.ini
+include tox.ini
