@@ -45,7 +45,7 @@ class install(orig_install.install):
             if self.install_layout.lower() in ['deb']:
                 self.select_scheme("deb_system")
             elif self.install_layout.lower() in ['unix']:
-                self.select_scheme("unix_prefix")
+                self.select_scheme("posix_prefix")
             else:
                 raise DistutilsOptionError(
                     "unknown value for --install-layout")
@@ -55,12 +55,12 @@ class install(orig_install.install):
               or 'PYTHONUSERBASE' in os.environ
               or 'VIRTUAL_ENV' in os.environ
               or 'real_prefix' in sys.__dict__):
-            self.select_scheme("unix_prefix")
+            self.select_scheme("posix_prefix")
         else:
             if os.path.normpath(self.prefix) == '/usr/local':
                 self.prefix = self.exec_prefix = '/usr'
                 self.install_base = self.install_platbase = '/usr'
-            self.select_scheme("unix_local")
+            self.select_scheme("posix_local")
 
 
 class install_egg_info(orig_install_egg_info.install_egg_info):
