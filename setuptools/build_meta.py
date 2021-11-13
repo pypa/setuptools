@@ -131,6 +131,8 @@ class _BuildMetaBackend(object):
     def _fix_config(self, config_settings):
         config_settings = config_settings or {}
         config_settings.setdefault('--global-option', [])
+        if isinstance(config_settings["--global-option"], str):
+            config_settings["--global-option"] = [config_settings["--global-option"]]
         return config_settings
 
     def _get_build_requires(self, config_settings, requirements):
