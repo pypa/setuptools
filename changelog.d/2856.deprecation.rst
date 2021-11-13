@@ -1,2 +1,0 @@
-Support for custom commands that inherit directly from ``distutils`` is
-**deprecated**. Users should extend classes provided by setuptools instead.

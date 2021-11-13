@@ -1,2 +1,0 @@
-Added instructions to migrate from ``distutils.commands`` and
-``distutils.errors`` in the porting guide.

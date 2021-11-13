@@ -1,3 +1,37 @@
+v59.0.0
+-------
+
+
+Deprecations
+^^^^^^^^^^^^
+* #2856: Support for custom commands that inherit directly from ``distutils`` is
+  **deprecated**. Users should extend classes provided by setuptools instead.
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2870: Started failing on invalid inline description with line breaks :class:`ValueError` -- by :user:`webknjaz`
+
+Changes
+^^^^^^^
+* #2698: Exposed exception classes from ``distutils.errors`` via ``setuptools.errors``.
+* #2866: Incorporate changes from pypa/distutils@f1b0a2b.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2227: Added sphinx theme customisations to display the new logo in the sidebar and
+  use its colours as "accent" in the documentation -- by :user:`abravalheri`
+* #2227: Added new setuptools logo, including editable files and artwork documentation
+  -- by :user:`abravalheri`
+* #2698: Added mentions to ``setuptools.errors`` as a way of handling custom command
+  errors.
+* #2698: Added instructions to migrate from ``distutils.commands`` and
+  ``distutils.errors`` in the porting guide.
+* #2871: Added a note to the docs that it is possible to install
+  ``setup.py``-less projects in editable mode with :doc:`pip v21.1+
+  <pip:index>`, only having ``setup.cfg`` and ``pyproject.toml`` in
+  project root -- by :user:`webknjaz`
+
+
 v58.5.3
 -------
 

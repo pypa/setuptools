@@ -1,2 +1,0 @@
-Added sphinx theme customisations to display the new logo in the sidebar and
-use its colours as "accent" in the documentation -- by :user:`abravalheri`
