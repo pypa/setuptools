@@ -6,7 +6,6 @@ import tempfile
 import unicodedata
 import contextlib
 import io
-from configparser import ConfigParser
 from unittest import mock
 
 import pytest
@@ -534,100 +533,3 @@ def test_default_revctrl():
     ep = pkg_resources.EntryPoint.parse(ep_def)
     res = ep.resolve()
     assert hasattr(res, '__iter__')
-
-
-class TestDefaultPackagesAndPyModules:
-    """Make sure default values for ``packages`` and ``py_modules`` work
-    similarly to explicit configuration for the simple scenarios.
-    """
-    @pytest.fixture(autouse=True)
-    def _chdir(self, tmp_path):
-        here = os.curdir
-        try:
-            os.chdir(tmp_path)
-            yield
-        finally:
-            os.chdir(here)
-
-    METADATA = {
-        "name": "example",
-        "version": "0.0.1",
-        "author": "Example Author"
-    }
-    OPTIONS = {
-        # Different options according to the circumstance being tested
-        "explicit-src": {
-            "package_dir": {"": "src"},
-            "packages": ["example"]
-        },
-        "explicit-flat": {
-            "packages": ["example"]
-        },
-        "explicit-single_module": {
-            "py_modules": ["example"]
-        },
-        "explicit-namespace": {
-            "packages": ["ns", "ns.example"]
-        },
-        "automatic-src": {},
-        "automatic-flat": {},
-        "automatic-single_module": {},
-        "automatic-namespace": {}
-    }
-    FILES = {
-        "src": ["src/example/__init__.py", "src/example/main.py"],
-        "flat": ["example/__init__.py", "example/main.py"],
-        "single_module": ["example.py"],
-        "namespace": ["ns/example/__init__.py"]
-    }
-
-    @pytest.mark.parametrize("circumstance", OPTIONS.keys())
-    def test_options(self, tmp_path, circumstance):
-        _, _, layout = circumstance.partition("-")
-        files = self.FILES[layout]
-        options = self.OPTIONS[circumstance]
-        metadata = self.METADATA
-        if layout == "namespace":
-            metadata = {**metadata, "name": "ns.example"}
-
-        self._populate_project_dir(tmp_path, files, metadata, options)
-
-        dist = Distribution({**metadata, **options, "src_root": tmp_path})
-        dist.script_name = 'setup.py'
-        dist.set_option_defaults()
-        cmd = sdist(dist)
-        cmd.ensure_finalized()
-        assert cmd.distribution.packages or cmd.distribution.py_modules
-
-        with quiet():
-            cmd.run()
-
-        manifest = cmd.filelist.files
-        for file in files:
-            assert any(f.endswith(file) for f in manifest)
-
-    def _populate_project_dir(self, root, files, metadata, options):
-        (root / "README.md").write_text("# Example Package")
-        (root / "LICENSE").write_text("Copyright (c) 2018")
-        self._write_setupcfg(root, metadata, options)
-
-        for file in files:
-            path = root / file
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.touch()
-
-    def _write_setupcfg(self, root, metadata, options):
-        setupcfg = ConfigParser()
-        setupcfg.add_section("metadata")
-        setupcfg["metadata"].update(metadata)
-        setupcfg.add_section("options")
-        for key, value in options.items():
-            if isinstance(value, list):
-                setupcfg["options"][key] = ", ".join(value)
-            elif isinstance(value, dict):
-                str_value = "\n".join("\t{k} = {v}" for k, v in value.items())
-                setupcfg["options"][key] = "\n" + str_value
-            else:
-                setupcfg["options"][key] = str(value)
-        with open(root / "setup.cfg", "w") as f:
-            setupcfg.write(f)
