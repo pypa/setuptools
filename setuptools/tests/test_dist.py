@@ -69,16 +69,19 @@ def test_dist__get_unpatched_deprecated():
     pytest.warns(DistDeprecationWarning, _get_unpatched, [""])
 
 
+EXAMPLE_BASE_INFO = dict(
+    name="package",
+    version="0.0.1",
+    author="Foo Bar",
+    author_email="foo@bar.net",
+    long_description="Long\ndescription",
+    description="Short description",
+    keywords=["one", "two"],
+)
+
+
 def __read_test_cases():
-    base = dict(
-        name="package",
-        version="0.0.1",
-        author="Foo Bar",
-        author_email="foo@bar.net",
-        long_description="Long\ndescription",
-        description="Short description",
-        keywords=["one", "two"],
-    )
+    base = EXAMPLE_BASE_INFO
 
     params = functools.partial(dict, base)
 
@@ -374,3 +377,92 @@ def test_check_specifier():
 )
 def test_rfc822_unescape(content, result):
     assert (result or content) == rfc822_unescape(rfc822_escape(content))
+
+
+@pytest.mark.parametrize(
+    "dist_name, py_module",
+    [
+        ("my.pkg", "my_pkg"),
+        ("my-pkg", "my_pkg"),
+        ("my_pkg", "my_pkg"),
+        ("pkg", "pkg"),
+    ]
+)
+def test_dist_default_py_modules(tmp_path, dist_name, py_module):
+    (tmp_path / f"{py_module}.py").touch()
+    (tmp_path / "otherfile.py").touch()
+    # ^-- just files matching dist name should be included by default
+
+    attrs = {
+        **EXAMPLE_BASE_INFO,
+        "name": dist_name,
+        "src_root": str(tmp_path)
+    }
+    # Find `py_modules` corresponding to dist_name if not given
+    dist = Distribution(attrs)
+    dist.set_option_defaults()
+    assert dist.py_modules == [py_module]
+    # When `py_modules` is given, don't do anything
+    dist = Distribution({**attrs, "py_modules": ["explicity_py_module"]})
+    dist.set_option_defaults()
+    assert dist.py_modules == ["explicity_py_module"]
+    # When `packages` is given, don't do anything
+    dist = Distribution({**attrs, "packages": ["explicity_package"]})
+    dist.set_option_defaults()
+    assert not dist.py_modules
+
+
+@pytest.mark.parametrize(
+    "dist_name, package_dir, package_files, packages",
+    [
+        ("my.pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
+        ("my-pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
+        ("my_pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
+        ("my.pkg", None, ["my/pkg/__init__.py"], ["my", "my.pkg"]),
+        (
+            "my_pkg",
+            None,
+            ["src/my_pkg/__init__.py", "src/my_pkg2/__init__.py"],
+            ["my_pkg", "my_pkg2"]
+        ),
+        (
+            "my_pkg",
+            {"pkg": "lib", "pkg2": "lib2"},
+            ["lib/__init__.py", "lib/nested/__init__.pyt", "lib2/__init__.py"],
+            ["pkg", "pkg.nested", "pkg2"]
+        ),
+    ]
+)
+def test_dist_default_packages(
+    tmp_path, dist_name, package_dir, package_files, packages
+):
+    for file in package_files:
+        path = tmp_path / file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
+
+    (tmp_path / "otherfile.py").touch()
+    # ^-- should not be included by default
+
+    attrs = {
+        **EXAMPLE_BASE_INFO,
+        "name": dist_name,
+        "src_root": str(tmp_path),
+        "package_dir": package_dir
+    }
+    # Find `packages` either corresponding to dist_name or inside src
+    dist = Distribution(attrs)
+    dist.set_option_defaults()
+    assert not dist.py_modules
+    assert not dist.py_modules
+    assert dist.packages == packages
+    # When `py_modules` is given, don't do anything
+    dist = Distribution({**attrs, "py_modules": ["explicity_py_module"]})
+    dist.set_option_defaults()
+    assert not dist.packages
+    assert not dist.py_modules == ["explicit_py_module"]
+    # When `packages` is given, don't do anything
+    dist = Distribution({**attrs, "packages": ["explicity_package"]})
+    dist.set_option_defaults()
+    assert not dist.py_modules
+    assert dist.packages == ["explicity_package"]
