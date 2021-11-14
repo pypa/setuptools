@@ -12,6 +12,7 @@ their build process may require changes in the tests).
 """
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -22,9 +23,9 @@ from urllib.request import urlopen
 from zipfile import ZipFile
 
 import pytest
-import setuptools
 from packaging.requirements import Requirement
 
+import setuptools
 
 pytestmark = pytest.mark.integration
 
@@ -89,7 +90,8 @@ SDIST_OPTIONS = (
 @pytest.fixture
 def venv_python(tmp_path):
     run_command([*VIRTUALENV, str(tmp_path / ".venv")])
-    return str(next(tmp_path.glob(".venv/*/python")))
+    possible_path = (str(p.parent) for p in tmp_path.glob(".venv/*/python*"))
+    return shutil.which("python", path=os.pathsep.join(possible_path))
 
 
 @pytest.fixture(autouse=True)
@@ -221,6 +223,7 @@ def build_deps(package, sdist_file):
     deps with `--no-build-isolation`.
     """
     import tomli as toml
+
     # delay importing, since pytest discovery phase may hit this file from a
     # testenv without tomli
 
