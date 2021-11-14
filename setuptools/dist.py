@@ -30,6 +30,7 @@ from distutils.version import StrictVersion
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
 from setuptools.extern.more_itertools import unique_everseen
+from setuptools.extern.packaging import utils
 
 from . import SetuptoolsDeprecationWarning
 
@@ -359,6 +360,11 @@ def check_packages(dist, attr, value):
             )
 
 
+def _find_packages_within(root_pkg, pkg_dir):
+    nested = setuptools.find_namespace_packages(pkg_dir)
+    return [root_pkg] + [".".join((root_pkg, n)) for n in nested]
+
+
 _Distribution = get_unpatched(distutils.core.Distribution)
 
 
@@ -459,6 +465,8 @@ class Distribution(_Distribution):
             },
         )
 
+        self._option_defaults_already_set = False
+
         self._set_metadata_defaults(attrs)
 
         self.metadata.version = self._normalize_version(
@@ -475,6 +483,89 @@ class Distribution(_Distribution):
         """
         for option, default in self._DISTUTILS_UNSUPPORTED_METADATA.items():
             vars(self.metadata).setdefault(option, attrs.get(option, default()))
+
+    def set_option_defaults(self):
+        """Fill-in options that can be automatically derived
+        (from other options, the file system itself and conventions).
+        """
+        if self.packages or self.py_modules:
+            # For backward compatibility, just try to find modules/packages
+            # when nothing is given
+            return
+
+        if not self.packages:
+            self.packages = self._default_packages()
+
+        if not self.packages:
+            # If packages are found there is no need to consider single files
+            self.py_modules = self._default_py_modules()
+
+        self._option_defaults_already_set = True
+
+    def _default_py_modules(self):
+        """By default setuptools will try to find a single Python module in the
+        root directory of the project whose name matches the distribution name.
+
+        This covers the common use case of single module packages.
+        """
+        root_dir = self.src_root or os.getcwd()
+
+        if not self.metadata.name:
+            return []
+
+        canonical_name = utils.canonicalize_name(self.metadata.name)
+        module_name = canonical_name.replace("-", "_")
+
+        # Single module package
+        single_module = os.path.join(root_dir, module_name + ".py")
+        if os.path.isfile(single_module):
+            return [module_name]
+
+        return []
+
+    def _default_packages(self):
+        """By default setuptools will try to find a directory that matches the
+        distribution name (or at least the first part of it in the case of
+        ``.`` separated namespaces). If that directory exists, it will be
+        considered the top-level package of the distribution (this covers the
+        use case know as *flat-layout*).
+
+        When this directory does not exists, it will try to find packages under
+        ``src``, or anything pointed by ``package_dir[""]`` (this covers the
+        use case know as *src-layout*).
+        """
+        root_dir = self.src_root or os.getcwd()
+
+        # ---- Simple scenario, specific package_dir is given ----
+        if self.package_dir and "" not in self.package_dir:
+            pkgs = itertools.chain.from_iterable(
+                _find_packages_within(pkg, os.path.join(root_dir, dirname))
+                for pkg, dirname in (self.package_dir or {}).items()
+            )
+            return list(pkgs)
+
+        # ---- "flat" layout: single folder with package name ----
+        if self.metadata.name:
+            canonical_name = utils.canonicalize_name(self.metadata.name)
+            package_name = canonical_name.replace("-", "_")
+            # namespaces are indicated with "." so we cannot use canonical_name
+            namespaced = re.sub(r"\.+", ".", self.metadata.name)
+            namespaced = re.sub(r"[-_]+", "_", namespaced)
+            namespace, _, _ = namespaced.partition(".")
+            for candidate in (package_name, namespace):
+                pkg_dir = os.path.join(root_dir, candidate)
+                if os.path.isdir(pkg_dir):
+                    _pkgs = _find_packages_within(candidate, pkg_dir)
+                    return _pkgs
+
+        # ---- "src" layout: single folder with package name ----
+        self.package_dir = self.package_dir or {}
+        src_dir = os.path.join(root_dir, self.package_dir.get("", "src"))
+        if not os.path.isdir(src_dir):
+            return []
+
+        self.package_dir.setdefault("", os.path.basename(src_dir))
+        return setuptools.find_namespace_packages(src_dir)
 
     @staticmethod
     def _normalize_version(version):
@@ -1143,6 +1234,14 @@ class Distribution(_Distribution):
             sys.stdout = io.TextIOWrapper(
                 sys.stdout.detach(), encoding, errors, newline, line_buffering
             )
+
+    def run_command(self, command):
+        if not self._option_defaults_already_set:
+            # Postpone default options until all configuration is considered
+            # (setup() args, config files, command line and plugins)
+            self.set_option_defaults()
+
+        super().run_command(command)
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):
