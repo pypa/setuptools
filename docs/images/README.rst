@@ -35,7 +35,7 @@ on the circumstances:
 
 The following image illustrate these alternatives:
 
-.. image:: logo-demo-editable-inkscape.png
+.. image:: logo-demo.svg
    :align: center
 
 Please refer to the SVG files in the `setuptools repository`_ for the specific
