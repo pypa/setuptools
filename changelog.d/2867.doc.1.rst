@@ -1,1 +1,0 @@
-PNG/ICO images replaced with SVG in the docs.

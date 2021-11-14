@@ -1,3 +1,19 @@
+v59.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2497: Update packaging to 21.2.
+* #2877: Back out deprecation of setup_requires and replace instead by a deprecation of setuptools.installer and fetch_build_egg. Now setup_requires is still supported when installed as part of a PEP 517 build, but is deprecated when an unsatisfied requirement is encountered.
+* #2879: Bump packaging to 21.2.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2867: PNG/ICO images replaced with SVG in the docs.
+* #2867: Added support to SVG "favicons" via "in-tree" Sphinx extension.
+
+
 v59.0.1
 -------
 
