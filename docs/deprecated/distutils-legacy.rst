@@ -18,8 +18,17 @@ As Distutils is deprecated, any usage of functions or objects from distutils is 
 
 ``distutils.cmd.Command`` → ``setuptools.Command``
 
+``distutils.command.{build_clib,build_ext,build_py,sdist}`` → ``setuptools.command.*``
+
 ``distutils.log`` → (no replacement yet)
 
 ``distutils.version.*`` → ``packaging.version.*``
 
+``distutils.errors.*`` → ``setuptools.errors.*`` [#errors]_
+
 If a project relies on uses of ``distutils`` that do not have a suitable replacement above, please search the `Setuptools issue tracker <https://github.com/pypa/setuptools/issues/>`_ and file a request, describing the use-case so that Setuptools' maintainers can investigate. Please provide enough detail to help the maintainers understand how distutils is used, what value it provides, and why that behavior should be supported.
+
+
+.. [#errors] Please notice errors related to the command line usage of
+   ``setup.py``, such as ``DistutilsArgError``, are intentionally not exposed
+   by setuptools, since this is considered a deprecated practice.

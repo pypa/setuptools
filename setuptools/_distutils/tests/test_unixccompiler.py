@@ -232,6 +232,13 @@ class UnixCCompilerTestCase(unittest.TestCase):
             sysconfig.customize_compiler(self.cc)
         self.assertEqual(self.cc.linker_so[0], 'my_ld')
 
+    def test_has_function(self):
+        # Issue https://github.com/pypa/distutils/issues/64:
+        # ensure that setting output_dir does not raise
+        # FileNotFoundError: [Errno 2] No such file or directory: 'a.out'
+        self.cc.output_dir = 'scratch'
+        self.cc.has_function('abort', includes=['stdlib.h'])
+
 
 def test_suite():
     return unittest.makeSuite(UnixCCompilerTestCase)

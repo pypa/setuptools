@@ -45,6 +45,14 @@ entry points in the active distributions on ``sys.path``.  In fact, this is
 how setuptools' own commands are installed: the setuptools project's setup
 script defines entry points for them!
 
+.. note::
+   When creating commands, and specially when defining custom ways of building
+   compiled extensions (for example via ``build_ext``), consider
+   handling exceptions such as ``CompileError``, ``LinkError``, ``LibError``,
+   among others.  These exceptions are available in the ``setuptools.errors``
+   module.
+
+
 Adding ``setup()`` Arguments
 ----------------------------
 

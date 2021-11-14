@@ -63,13 +63,6 @@ boilerplate code in some cases.
         src.subpackage1
         src.subpackage2
 
-    [options.data_files]
-    /etc/my_package =
-        site.d/00_default.conf
-        host.d/00_default.conf
-    data = data/img/logo.png, data/svg/icon.svg
-    fonts = data/fonts/*.ttf, data/fonts/*.otf
-
 Metadata and options are set in the config sections of the same name.
 
 * Keys are the same as the keyword arguments one provides to the ``setup()``
@@ -206,10 +199,10 @@ Options
 Key                      Type                                 Minimum Version Notes
 =======================  ===================================  =============== =========
 zip_safe                 bool
-setup_requires           list-semi
+setup_requires           list-semi                            36.7.0
 install_requires         list-semi
 extras_require           section                                              [#opt-2]_
-python_requires          str
+python_requires          str                                  34.4.0
 entry_points             file:, section                       51.0.0
 scripts                  list-comma
 eager_resources          list-comma
@@ -221,8 +214,8 @@ package_dir              dict
 package_data             section                                              [#opt-1]_
 exclude_package_data     section
 namespace_packages       list-comma
-py_modules               list-comma
-data_files               dict                                 40.6.0
+py_modules               list-comma                            34.4.0
+data_files               section                              40.6.0          [#opt-4]_
 =======================  ===================================  =============== =========
 
 **Notes**:
@@ -249,6 +242,9 @@ data_files               dict                                 40.6.0
    ``where``, ``include``, and ``exclude``.
 
    The ``find_namespace:`` directive is supported since Python >=3.3.
+
+.. [#opt-4] ``data_files`` is deprecated and should be avoided.
+   Please check :doc:`/userguide/datafiles` for more information.
 
 
 Compatibility with other tools

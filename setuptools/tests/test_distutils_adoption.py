@@ -14,6 +14,11 @@ IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 class VirtualEnv(jaraco.envs.VirtualEnv):
     name = '.env'
+    # Some version of PyPy will import distutils on startup, implicitly
+    # importing setuptools, and thus leading to BackendInvalid errors
+    # when upgrading Setuptools. Bypass this behavior by avoiding the
+    # early availability and need to upgrade.
+    create_opts = ['--no-setuptools']
 
     def run(self, cmd, *args, **kwargs):
         cmd = [self.exe(cmd[0])] + cmd[1:]
