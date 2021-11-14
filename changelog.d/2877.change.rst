@@ -1,0 +1,1 @@
+Back out deprecation of setup_requires and replace instead by a deprecation of setuptools.installer and fetch_build_egg. Now setup_requires is still supported when installed as part of a PEP 517 build, but is deprecated when an unsatisfied requirement is encountered.
