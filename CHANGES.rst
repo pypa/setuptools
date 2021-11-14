@@ -1,3 +1,14 @@
+v59.0.1
+-------
+
+
+Misc
+^^^^
+* #2880: Removed URL requirement for ``pytest-virtualenv`` in ``setup.cfg``.
+  PyPI rejects packages with dependencies external to itself.
+  Instead the test dependency was overwritten via ``tox.ini``
+
+
 v59.0.0
 -------
 
