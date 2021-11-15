@@ -1,0 +1,8 @@
+Added default values for the ``py_modules`` and ``packages`` options.
+Setuptools will try to find the best values assuming that the package uses
+either the *src-layout* (a ``src`` directory containing all the packages),
+the *flat-layout* (a single directory with the same name as the distribution
+as the top-level package), or the *single-module* approach (a single Python
+file with the same name as the distribution).
+This behavior will be observed **only if both of options are not explicitly
+set**.
