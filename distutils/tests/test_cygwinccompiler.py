@@ -147,7 +147,7 @@ class CygwinCCompilerTestCase(support.TempdirManager,
 
         # unknown
         sys.version = ('2.5.1 (r251:54863, Apr 18 2007, 08:51:08) '
-                       '[MSC v.1999 32 bits (Intel)]')
+                       '[MSC v.2000 32 bits (Intel)]')
         self.assertRaises(ValueError, get_msvcr)
 
 def test_suite():
