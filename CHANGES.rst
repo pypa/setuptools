@@ -1,3 +1,12 @@
+v59.1.1
+-------
+
+
+Misc
+^^^^
+* #2885: Fixed errors when encountering LegacyVersions.
+
+
 v59.1.0
 -------
 
