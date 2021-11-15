@@ -57,3 +57,10 @@ addopts = "-n auto"
         directory = "misc"
         name = "Misc"
         showcontent = true
+
+[tool.vendoring]
+destination = "setuptools/_vendor/"
+requirements = "setuptools/_vendor/vendored.txt"
+namespace = "setuptools._vendor"
+
+protected-files = ["__init__.py", "README.rst", "vendored.txt"]
