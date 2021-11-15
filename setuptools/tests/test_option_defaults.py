@@ -81,7 +81,7 @@ class TestDefaultPackagesAndPyModules:
         finally:
             os.chdir(here)
 
-        manifest = cmd.filelist.files
+        manifest = [f.replace(os.sep, "/") for f in cmd.filelist.files]
         for file in files:
             assert any(f.endswith(file) for f in manifest)
 
