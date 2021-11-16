@@ -1151,7 +1151,7 @@ paths.
     will be read as-is.
 
 ``resource_string(package_or_requirement, resource_name)``
-    Return the specified resource as a string.  The resource is read in
+    Return the specified resource as ``bytes``.  The resource is read in
     binary fashion, such that the returned string contains exactly the bytes
     that are stored in the resource.
 
