@@ -73,7 +73,7 @@ body:
       Have you tried to workaround the problem using other tools? Or a
       different approach to solving this issue? Please elaborate here.
     placeholder: >-
-      I tried doing X, Y and Z. But they are subobpimal because of P.
+      I tried doing X, Y and Z. But they are suboptimal because of P.
 
 - type: textarea
   attributes:
