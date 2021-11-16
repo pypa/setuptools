@@ -555,8 +555,7 @@ class Distribution(_Distribution):
             for candidate in (package_name, namespace):
                 pkg_dir = os.path.join(root_dir, candidate)
                 if os.path.isdir(pkg_dir):
-                    _pkgs = _find_packages_within(candidate, pkg_dir)
-                    return _pkgs
+                    return _find_packages_within(candidate, pkg_dir)
 
         # ---- "src" layout: single folder with package name ----
         self.package_dir = self.package_dir or {}
