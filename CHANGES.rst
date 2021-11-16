@@ -2273,7 +2273,7 @@ v30.3.0
 
 * #394 via #862: Added support for `declarative package
   config in a setup.cfg file
-  <https://setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
+  <https://setuptools.pypa.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
 
 v30.2.1
 -------
@@ -2734,7 +2734,7 @@ v23.0.0
   about, please comment in the ticket.
 * #604: Removed docs building support. The project
   now relies on documentation hosted at
-  https://setuptools.readthedocs.io/.
+  https://setuptools.pypa.io/.
 
 v22.0.5
 -------
@@ -2884,7 +2884,7 @@ v20.6.0
   `semver <https://semver.org>`_ precisely.
   The 'v' prefix on version numbers now also allows
   version numbers to be referenced in the changelog,
-  e.g. http://setuptools.readthedocs.io/en/latest/history.html#v20-6-0.
+  e.g. http://setuptools.pypa.io/en/latest/history.html#v20-6-0.
 
 20.5
 ----
@@ -2964,7 +2964,7 @@ v20.6.0
 
 * Added support for using passwords from keyring in the upload
   command. See `the upload docs
-  <https://setuptools.readthedocs.io/en/latest/setuptools.html#upload-upload-source-and-or-egg-distributions-to-pypi>`_
+  <https://setuptools.pypa.io/en/latest/setuptools.html#upload-upload-source-and-or-egg-distributions-to-pypi>`_
   for details.
 
 20.0
@@ -3718,7 +3718,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 ---
 
 * Added a `Developer Guide
-  <https://setuptools.readthedocs.io/en/latest/developer-guide.html>`_ to the official
+  <https://setuptools.pypa.io/en/latest/developer-guide.html>`_ to the official
   documentation.
 * Some code refactoring and cleanup was done with no intended behavioral
   changes.
@@ -5425,7 +5425,7 @@ easy_install
  * ``setuptools`` now finds its commands, ``setup()`` argument validators, and
    metadata writers using entry points, so that they can be extended by
    third-party packages. See `Creating distutils Extensions
-   <https://setuptools.readthedocs.io/en/latest/setuptools.html#creating-distutils-extensions>`_
+   <https://setuptools.pypa.io/en/latest/setuptools.html#creating-distutils-extensions>`_
    for more details.
 
  * The vestigial ``depends`` command has been removed. It was never finished
