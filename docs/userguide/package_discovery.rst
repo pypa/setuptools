@@ -110,9 +110,9 @@ that correspond to well-known conventions, such as distributing documentation
 alongside the project code) are automatically filtered in the case of
 *flat-layouts*:
 
-.. autodata:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
+.. autoattribute:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
 
-.. autodata:: setuptools.discovery.FlatLayoutModuleFinder.DEFAULT_EXCLUDE
+.. autoattribute:: setuptools.discovery.FlatLayoutModuleFinder.DEFAULT_EXCLUDE
 
 Also note that you can customise your project layout by explicitly setting
 :doc:`package_dir <userguide/declarative_config>`.
@@ -121,12 +121,6 @@ Also note that you can customise your project layout by explicitly setting
    provide any configuration for both ``packages`` and ``py_modules``.
    If at least one of them is explicitly set, automatic discovery will not take
    place.
-
-
-.. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
-.. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
-
-.. _editable install: https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs
 
 
 Using setuptools functions
@@ -346,3 +340,9 @@ file contains the following:
     __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
 The project layout remains the same and ``setup.cfg`` remains the same.
+
+
+.. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
+.. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
+
+.. _editable install: https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs
