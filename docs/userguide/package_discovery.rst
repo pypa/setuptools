@@ -65,11 +65,11 @@ src-layout:
                 └── mymodule.py
 
     This layout is very handy when you wish to use automatic discovery,
-    since you don't have to worry about other Python files or folder in your
-    project root being distributed by mistake. In some circumstances it can
+    since you don't have to worry about other Python files or folders in your
+    project root being distributed by mistake. In some circumstances it can be
     also less error-prone for testing or when using :pep:`420`-style packages.
     On the other hand you cannot rely on the implicit ``PYTHONPATH=.`` to fire
-    up the Python REPL and play with the your package (you will need an
+    up the Python REPL and play with your package (you will need an
     `editable install`_ to be able to do that).
 
 flat-layout (also known as "adhoc"):
@@ -92,8 +92,8 @@ There is also a handy variation of the *flat-layout* for utilities/libraries
 that can be implemented with a single Python file:
 
 single-module approach (or "few top-level modules"):
-    Modules are placed directly under the project root, instead of inside
-    a package folder::
+    Standalone modules are placed directly under the project root, instead of
+    inside a package folder::
 
         project_root_directory
         ├── pyproject.toml
@@ -102,8 +102,8 @@ single-module approach (or "few top-level modules"):
         └── single_file_lib.py
 
 Setuptools will automatically scan your project directory looking for these
-layouts and try to guess the correct values for the :doc:`packages
-<userguide/declarative_config>` and :doc:`py_modules <keywords>` configuration.
+layouts and try to guess the correct values for the :ref:`packages <declarative
+config>` and :doc:`py_modules </references/keywords>` configuration.
 
 To avoid confusion, file and folder names that are used by popular tools (or
 that correspond to well-known conventions, such as distributing documentation
