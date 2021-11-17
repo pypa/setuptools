@@ -1,5 +1,39 @@
 """Automatic discovery for Python modules and packages for inclusion in the
 distribution.
+
+For the purposes of this module, the following nomenclature is used:
+
+- "src-layout": a directory representing a Python project that contains a "src"
+  folder. Everything under the "src" folder is meant to be included in the
+  distribution when packaging the project. Example::
+
+    .
+    ├── tox.ini
+    ├── pyproject.toml
+    └── src/
+        └── mypkg/
+            ├── __init__.py
+            ├── mymodule.py
+            └── my_data_file.txt
+
+- "flat-layout": a Python project that does not use "src-layout" but instead
+  have a folder direct under the project root for each package::
+
+    .
+    ├── tox.ini
+    ├── pyproject.toml
+    └── mypkg/
+        ├── __init__.py
+        ├── mymodule.py
+        └── my_data_file.txt
+
+- "single-module": a project that contains a single Python script::
+
+    .
+    ├── tox.ini
+    ├── pyproject.toml
+    └── mymodule.py
+
 """
 
 import os
@@ -87,3 +121,36 @@ class PEP420PackageFinder(PackageFinder):
     @staticmethod
     def _looks_like_package(path):
         return True
+
+
+class FlatLayoutPackageFinder(PEP420PackageFinder):
+    """When trying to find packages right under the root directory of a
+    repository/project, we have to be extra careful to not include things that
+    are not meant for inclusion (such as tool configuration files)
+    """
+
+    EXCLUDE = (
+        "doc",
+        "docs",
+        "test",
+        "tests",
+        "example",
+        "examples",
+        # ---- Task runners / Build tools ----
+        "tasks",  # invoke
+        "fabfile",  # fabric
+        "site_scons",  # SCons
+        # ---- Hidden directories/Private packages ----
+        ".*",
+        "_*"
+    )
+
+    @classmethod
+    def find(cls, where='.', exclude=(), include=('*',)):
+        exclude = [*exclude, *cls.EXCLUDE] + [f"{e}.*" for e in cls.EXCLUDE]
+        return super().find(where, exclude, include)
+
+    @staticmethod
+    def _looks_like_package(path):
+        # Ignore invalid names that cannot be imported directly
+        return os.path.basename(path).isidentifier()
