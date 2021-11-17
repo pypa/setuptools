@@ -1,15 +1,11 @@
 """Tests for automatic discovery of modules"""
 import os
-import sys
-import shutil
-import tempfile
-import platform
 
 import pytest
 
-from setuptools.discovery import ModuleFinder, FlatLayoutModuleFinder
+from setuptools.discovery import FlatLayoutModuleFinder, ModuleFinder
 
-from .test_find_packages import has_symlink, ensure_files
+from .test_find_packages import ensure_files, has_symlink
 
 
 class TestModuleFinder:
