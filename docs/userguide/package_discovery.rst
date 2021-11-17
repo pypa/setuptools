@@ -107,8 +107,8 @@ layouts and try to guess the correct values for the :doc:`packages
 
 To avoid confusion, file and folder names that are used by popular tools (or
 that correspond to well-known conventions, such as distributing documentation
-alongside the project code) are automatically filtered out of the
-*flat-layout*:
+alongside the project code) are automatically filtered in the case of
+*flat-layouts*:
 
 .. autodata:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
 
