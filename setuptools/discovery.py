@@ -1,5 +1,5 @@
-"""Automatic discovery for Python modules and packages for inclusion in the
-distribution.
+"""Automatic discovery of Python modules and packages (for inclusion in the
+distribution) and other config values.
 
 For the purposes of this module, the following nomenclature is used:
 
@@ -17,7 +17,7 @@ For the purposes of this module, the following nomenclature is used:
             └── my_data_file.txt
 
 - "flat-layout": a Python project that does not use "src-layout" but instead
-  have a folder direct under the project root for each package::
+  have a directory under the project root for each package::
 
     .
     ├── tox.ini
@@ -27,7 +27,8 @@ For the purposes of this module, the following nomenclature is used:
         ├── mymodule.py
         └── my_data_file.txt
 
-- "single-module": a project that contains a single Python script::
+- "single-module": a project that contains a single Python script direct under
+  the project root (no directory used)::
 
     .
     ├── tox.ini
@@ -36,12 +37,14 @@ For the purposes of this module, the following nomenclature is used:
 
 """
 
+import itertools
 import os
-from glob import glob
 from fnmatch import fnmatchcase
+from glob import glob
 
 import _distutils_hack.override  # noqa: F401
 
+from distutils import log
 from distutils.util import convert_path
 
 
@@ -209,3 +212,172 @@ class FlatLayoutModuleFinder(ModuleFinder):
         # ---- Hidden files/Private modules ----
         "[._]*",
     )
+
+
+def _find_packages_within(root_pkg, pkg_dir):
+    nested = PEP420PackageFinder.find(pkg_dir)
+    return [root_pkg] + [".".join((root_pkg, n)) for n in nested]
+
+
+class ConfigDiscovery:
+    """Fill-in metadata and options that can be automatically derived
+    (from other metadata/options, the file system or conventions)
+    """
+
+    def __init__(self, distribution):
+        self.dist = distribution
+        self._called = False
+        self._root_dir = distribution.src_root or os.getcwd()
+
+    def __call__(self, force=False):
+        """Automatically discover missing configuration fields
+        and modifies the given ``distribution`` object in-place.
+
+        Note that by default this will only have an effect the first time the
+        ``ConfigDiscovery`` object is called.
+
+        To repeatedly invoke automatic discovery (e.g. when the project
+        directory changes), please use ``force=True`` (or create a new
+        ``ConfigDiscovery`` instance).
+        """
+        if force is False and self._called:
+            # Avoid overhead of multiple calls
+            return
+
+        self._analyse_package_layout()
+        self._analyse_name()  # depends on ``packages`` and ``py_modules``
+
+        self._called = True
+
+    def _analyse_package_layout(self):
+        if self.dist.packages or self.dist.py_modules:
+            # For backward compatibility, just try to find modules/packages
+            # when nothing is given
+            return None
+
+        log.debug(
+            "No `packages` or `py_modules` configuration, performing "
+            "automatic discovery."
+        )
+
+        return (
+            self._analyse_explicit_layout()
+            or self._analyse_src_layout()
+            # flat-layout is the trickiest for discovery so it should be last
+            or self._analyse_flat_layout()
+        )
+
+    def _analyse_explicit_layout(self):
+        """The user can explicitly give a package layout via ``package_dir``"""
+        package_dir = (self.dist.package_dir or {}).copy()
+        package_dir.pop("", None)  # This falls under the "src-layout" umbrella
+        root_dir = self._root_dir
+
+        if not package_dir:
+            return False
+
+        pkgs = itertools.chain.from_iterable(
+            _find_packages_within(pkg, os.path.join(root_dir, parent_dir))
+            for pkg, parent_dir in package_dir.items()
+        )
+        self.dist.packages = list(pkgs)
+        log.debug(f"`explicit-layout` detected -- analysing {package_dir}")
+        return True
+
+    def _analyse_src_layout(self):
+        """Try to find all packages or modules under the ``src`` directory
+        (or anything pointed by ``package_dir[""]``).
+
+        The "src-layout" is relatively safe for automatic discovery.
+        We assume that everything within is meant to be included in the
+        distribution.
+
+        If ``package_dir[""]`` is not given, but the ``src`` directory exists,
+        this function will set ``package_dir[""] = "src"``.
+        """
+        package_dir = self.dist.package_dir = self.dist.package_dir or {}
+        src_dir = os.path.join(self._root_dir, package_dir.get("", "src"))
+        if not os.path.isdir(src_dir):
+            return False
+
+        package_dir.setdefault("", os.path.basename(src_dir))
+        self.dist.packages = PEP420PackageFinder.find(src_dir)
+        self.dist.py_modules = ModuleFinder.find(src_dir)
+        log.debug(f"`src-layout` detected -- analysing {src_dir}")
+        return True
+
+    def _analyse_flat_layout(self):
+        """Try to find all packages and modules under the project root"""
+        self.dist.packages = FlatLayoutPackageFinder.find(self._root_dir)
+        self.dist.py_modules = FlatLayoutModuleFinder.find(self._root_dir)
+        log.debug(f"`flat-layout` detected -- analysing {self._root_dir}")
+        return True
+
+    def _analyse_name(self):
+        """The packages/modules are the essential contribution of the author.
+        Therefore the name of the distribution can be derived from them.
+        """
+        if self.dist.metadata.name or self.dist.name:
+            # get_name() is not reliable (can return "UNKNOWN")
+            return None
+
+        log.debug("No `name` configuration, performing automatic discovery")
+
+        name = (
+            self._find_name_single_package_or_module()
+            or self._find_name_from_packages()
+        )
+        if name:
+            self.dist.metadata.name = name
+            self.dist.name = name
+
+    def _find_name_single_package_or_module(self):
+        """Exactly one module or package"""
+        for field in ('packages', 'py_modules'):
+            items = getattr(self.dist, field, None) or []
+            if items and len(items) == 1:
+                log.debug(f"Single module/package detected, name: {items[0]}")
+                return items[0]
+
+        return None
+
+    def _find_name_from_packages(self):
+        """Try to find the root package that is not a PEP 420 namespace"""
+        if not self.dist.packages:
+            return None
+
+        packages = sorted(self.dist.packages, key=len)
+        common_ancestors = []
+        for i, name in enumerate(packages):
+            if not all(n.startswith(name) for n in packages[i+1:]):
+                # Since packages are sorted by length, this condition is able
+                # to find a list of all common ancestors.
+                # When there is divergence (e.g. multiple root packages)
+                # the list will be empty
+                break
+            common_ancestors.append(name)
+
+        for name in common_ancestors:
+            init = os.path.join(self._find_package_path(name), "__init__.py")
+            if os.path.isfile(init):
+                log.debug(f"Common parent package detected, name: {name}")
+                return name
+
+        log.warn("No parent package detected, impossible to derive `name`")
+        return None
+
+    def _find_package_path(self, name):
+        """Given a package name, return the path where it should be found on
+        disk, considering the ``package_dir`` option.
+        """
+        package_dir = self.dist.package_dir or {}
+        parts = name.split(".")
+        for i in range(len(parts), 0, -1):
+            # Look backwards, the most specific package_dir first
+            partial_name = ".".join(parts[:i])
+            if partial_name in package_dir:
+                parent = package_dir[partial_name]
+                return os.path.join(self._root_dir, parent, *parts[i:])
+
+        parent = (package_dir.get("") or "").split("/")
+        return os.path.join(self._root_dir, *parent, *parts)
