@@ -7,13 +7,14 @@ the *flat-layout* (package directories directly under the project root),
 or the *single-module* approach (isolated Python files, directly under
 the project root).
 
-The automatic discovery will also respect layouts that are explicit configured
-using the ``package_dir`` option.
+The automatic discovery will also respect layouts that are explicitly
+configured using the ``package_dir`` option.
 
 For backward-compatibility, this behavior will be observed **only if both**
-``py_modules`` **and** ``packages`` **are not explicitly set**.
+``py_modules`` **and** ``packages`` **are not set**.
 
 If setuptools detects modules or packages that are not supposed to be in the
-distribution, please explicitly set ``py_modules`` and ``packages``.
+distribution, please manually set ``py_modules`` and ``packages`` in your
+``setup.cfg`` or ``setup.py`` file.
 If you are using a *flat-layout*, you can also consider switching to
 *src-layout*.
