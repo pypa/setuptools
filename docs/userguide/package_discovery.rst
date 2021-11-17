@@ -115,7 +115,50 @@ alongside the project code) are automatically filtered in the case of
 .. autoattribute:: setuptools.discovery.FlatLayoutModuleFinder.DEFAULT_EXCLUDE
 
 Also note that you can customise your project layout by explicitly setting
-:doc:`package_dir <userguide/declarative_config>`.
+``package_dir``:
+
+.. tab:: setup.cfg
+
+    .. code-block:: ini
+
+        [options]
+        # ...
+        package_dir =
+            = lib
+            # similar to "src-layout" but using the "lib" folder
+            # pkg.mod corresponds to lib/pkg/mod.py
+        # OR
+        package_dir =
+            pkg1 = lib1
+            # pkg1.mod corresponds to lib1/mod.py
+            # pkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
+            pkg2 = lib2
+            # pkg2.mod corresponds to lib2/mod.py
+            pkg2.subpkg = lib3
+            # pkg2.subpkg.mod corresponds to lib3/mod.py
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            # ...
+            package_dir = {"": "pkg"}
+            # similar to "src-layout" but using the "pkg" folder
+            # mylib.mod corresponds to pkg/mylib/mod.py
+        )
+
+        # OR
+
+        setup(
+            # ...
+            package_dir = {
+                "pkg1": "lib1",  # pkg1.mod corresponds to lib1/mod.py
+                                 # pkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
+                "pkg2": "lib2",   # pkg2.mod corresponds to lib2/mod.py
+                "pkg2.subpkg": "lib3"  # pkg2.subpkg.mod corresponds to lib3/mod.py
+                # ...
+        )
 
 .. important:: Automatic discovery will **only** be enabled if you don't
    provide any configuration for both ``packages`` and ``py_modules``.
