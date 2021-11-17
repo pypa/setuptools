@@ -143,9 +143,9 @@ Also note that you can customise your project layout by explicitly setting
 
         setup(
             # ...
-            package_dir = {"": "pkg"}
-            # similar to "src-layout" but using the "pkg" folder
-            # mylib.mod corresponds to pkg/mylib/mod.py
+            package_dir = {"": "lib"}
+            # similar to "src-layout" but using the "lib" folder
+            # pkg.mod corresponds to lib/pkg/mod.py
         )
 
         # OR
