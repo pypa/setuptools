@@ -191,6 +191,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
     )
 
     DEFAULT_EXCLUDE = tuple(chain_iter((p, f"{p}.*") for p in _EXCLUDE))
+    """Reserved package names"""
 
     _looks_like_package = staticmethod(_valid_name)
 
@@ -216,6 +217,7 @@ class FlatLayoutModuleFinder(ModuleFinder):
         # ---- Hidden files/Private modules ----
         "[._]*",
     )
+    """Reserved top-level module names"""
 
 
 def _find_packages_within(root_pkg, pkg_dir):

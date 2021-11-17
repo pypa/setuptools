@@ -52,7 +52,18 @@ its own set of advantages and disadvantages [#layout1]_ [#layout2]_.
 src-layout:
     The project should contain a ``src`` directory under the project root and
     all modules and packages meant for distribution are placed inside this
-    directory.
+    directory::
+
+        project_root_directory
+        ├── pyproject.toml
+        ├── setup.cfg  # or setup.py
+        ├── ...
+        └── src/
+            └── mypkg/
+                ├── __init__.py
+                ├── ...
+                └── mymodule.py
+
     This layout is very handy when you wish to use automatic discovery,
     since you don't have to worry about other Python files or folder in your
     project root being distributed by mistake. In some circumstances it can
@@ -62,7 +73,17 @@ src-layout:
     `editable install`_ to be able to do that).
 
 flat-layout (also known as "adhoc"):
-    The package folder(s) are placed directly under the project root.
+    The package folder(s) are placed directly under the project root::
+
+        project_root_directory
+        ├── pyproject.toml
+        ├── setup.cfg  # or setup.py
+        ├── ...
+        └── mypkg/
+            ├── __init__.py
+            ├── ...
+            └── mymodule.py
+
     This layout is very practical for using the REPL, but in some situations
     it can be can be more error-prone (e.g. during tests or if you have a bunch
     of folders or Python files hanging around your project root)
@@ -72,7 +93,13 @@ be implemented with a single Python file:
 
 single-module approach (or "few top-level modules"):
     This Python files are placed directly under the project root,
-    instead of inside a package folder.
+    instead of inside a package folder::
+
+        project_root_directory
+        ├── pyproject.toml
+        ├── setup.cfg  # or setup.py
+        ├── ...
+        └── single_file_lib.py
 
 Setuptools will automatically scan your project directory looking for these
 layouts and try to guess the correct values for the :doc:`packages
@@ -83,10 +110,8 @@ that correspond to well-known conventions, such as distributing documentation
 alongside the project code) are automatically filtered out of the
 *flat-layout*:
 
-- reserved package names:
-    .. autodata:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
+.. autodata:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
 
-- reserved top-level module names:
 .. autodata:: setuptools.discovery.FlatLayoutModuleFinder.DEFAULT_EXCLUDE
 
 Also note that you can customise your project layout by explicitly setting
