@@ -50,7 +50,46 @@ def _valid_name(path):
     return os.path.basename(path).isidentifier()
 
 
-class Finder:
+class _Finder:
+    """Base class that exposes functionality for module/package finders"""
+
+    ALWAYS_EXCLUDE = ()
+    DEFAULT_EXCLUDE = ()
+
+    @classmethod
+    def find(cls, where='.', exclude=(), include=('*',)):
+        """Return a list of all Python items (packages or modules, depending on
+        the finder implementation) found within directory 'where'.
+
+        'where' is the root directory which will be searched.
+        It should be supplied as a "cross-platform" (i.e. URL-style) path;
+        it will be converted to the appropriate local path syntax.
+
+        'exclude' is a sequence of names to exclude; '*' can be used
+        as a wildcard in the names.
+        When finding packages, 'foo.*' will exclude all subpackages of 'foo'
+        (but not 'foo' itself).
+
+        'include' is a sequence of names to include.
+        If it's specified, only the named items will be included.
+        If it's not specified, all found items will be included.
+        'include' can contain shell style wildcard patterns just like
+        'exclude'.
+        """
+
+        exclude = exclude or cls.DEFAULT_EXCLUDE
+        return list(
+            cls._find_iter(
+                convert_path(where),
+                cls._build_filter(*cls.ALWAYS_EXCLUDE, *exclude),
+                cls._build_filter(*include),
+            )
+        )
+
+    @classmethod
+    def _find_iter(cls, where, exclude, include):
+        raise NotImplementedError
+
     @staticmethod
     def _build_filter(*patterns):
         """
@@ -60,39 +99,15 @@ class Finder:
         return lambda name: any(fnmatchcase(name, pat) for pat in patterns)
 
 
-class PackageFinder(Finder):
+class PackageFinder(_Finder):
     """
     Generate a list of all Python packages found within a directory
     """
 
-    @classmethod
-    def find(cls, where='.', exclude=(), include=('*',)):
-        """Return a list all Python packages found within directory 'where'
-
-        'where' is the root directory which will be searched for packages.  It
-        should be supplied as a "cross-platform" (i.e. URL-style) path; it will
-        be converted to the appropriate local path syntax.
-
-        'exclude' is a sequence of package names to exclude; '*' can be used
-        as a wildcard in the names, such that 'foo.*' will exclude all
-        subpackages of 'foo' (but not 'foo' itself).
-
-        'include' is a sequence of package names to include.  If it's
-        specified, only the named packages will be included.  If it's not
-        specified, all found packages will be included.  'include' can contain
-        shell style wildcard patterns just like 'exclude'.
-        """
-
-        return list(
-            cls._find_packages_iter(
-                convert_path(where),
-                cls._build_filter('ez_setup', '*__pycache__', *exclude),
-                cls._build_filter(*include),
-            )
-        )
+    ALWAYS_EXCLUDE = ("ez_setup", "*__pycache__")
 
     @classmethod
-    def _find_packages_iter(cls, where, exclude, include):
+    def _find_iter(cls, where, exclude, include):
         """
         All the packages found in 'where' that pass the 'include' filter, but
         not the 'exclude' filter.
@@ -131,13 +146,31 @@ class PEP420PackageFinder(PackageFinder):
         return True
 
 
-class FlatLayoutPackageFinder(PEP420PackageFinder):
-    """When trying to find packages right under the root directory of a
-    repository/project, we have to be extra careful to not include things that
-    are not meant for inclusion (such as tool configuration files)
+class ModuleFinder(_Finder):
+    """Find isolated Python modules.
+    This function will **not** recurse subdirectories.
     """
 
-    EXCLUDE = (
+    @classmethod
+    def _find_iter(cls, where, exclude, include):
+        for file in glob(os.path.join(where, "*.py")):
+            module, _ext = os.path.splitext(os.path.basename(file))
+
+            if not cls._looks_like_module(module):
+                continue
+
+            if include(module) and not exclude(module):
+                yield module
+
+    _looks_like_module = staticmethod(_valid_name)
+
+
+# We have to be extra careful in the case of flat layout to not include files
+# and directories not meant for distribution (e.g. tool-related)
+
+
+class FlatLayoutPackageFinder(PEP420PackageFinder):
+    DEFAULT_EXCLUDE = (
         "doc",
         "docs",
         "test",
@@ -152,54 +185,11 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "[._]*",
     )
 
-    @classmethod
-    def find(cls, where='.', exclude=(), include=('*',)):
-        exclude = [*exclude, *cls.EXCLUDE] + [f"{e}.*" for e in cls.EXCLUDE]
-        return super().find(where, exclude, include)
-
     _looks_like_package = staticmethod(_valid_name)
 
 
-class ModuleFinder(Finder):
-    INCLUDE = ()
-    EXCLUDE = ()
-
-    @classmethod
-    def find(cls, where='.', exclude=(), include=('*',)):
-        """Find isolated Python modules.
-
-        The arguments ``where``, ``exclude`` and ``include`` have basically the
-        same meaning as in PackageFinder. This function will **not** recurse
-        subdirectories.
-        """
-        return list(
-            cls._find_modules_iter(
-                convert_path(where),
-                cls._build_filter(*cls.EXCLUDE, *exclude),
-                cls._build_filter(*cls.INCLUDE, *include),
-            )
-        )
-
-    @classmethod
-    def _find_modules_iter(cls, where, exclude, include):
-        for file in glob(os.path.join(where, "*.py")):
-            module, _ext = os.path.splitext(os.path.basename(file))
-
-            if not cls._looks_like_module(module):
-                continue
-
-            if include(module) and not exclude(module):
-                yield module
-
-    _looks_like_module = staticmethod(_valid_name)
-
-
 class FlatLayoutModuleFinder(ModuleFinder):
-    """We have to be very careful in the case of flat layout and
-    single-modules
-    """
-
-    EXCLUDE = (
+    DEFAULT_EXCLUDE = (
         "setup",
         "conftest",
         "test",
@@ -207,10 +197,10 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "example",
         "examples",
         # ---- Task runners ----
-        "pavement",
-        "tasks",
         "noxfile",
+        "pavement",
         "dodo",
+        "tasks",
         "fabfile",
         # ---- Other tools ----
         "[Ss][Cc]onstruct",  # SCons
@@ -219,4 +209,3 @@ class FlatLayoutModuleFinder(ModuleFinder):
         # ---- Hidden files/Private modules ----
         "[._]*",
     )
-    _looks_like_module = staticmethod(_valid_name)
