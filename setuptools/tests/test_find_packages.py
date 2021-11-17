@@ -219,7 +219,9 @@ class TestFlatLayoutPackageFinder:
             [
                 "pkg/__init__.py",
                 "tasks/__init__.py",
+                "tasks/subpackage/__init__.py",
                 "fabfile/__init__.py",
+                "fabfile/subpackage/__init__.py",
                 # Sub-packages should always be fine
                 "pkg/tasks/__init__.py",
                 "pkg/fabfile/__init__.py",

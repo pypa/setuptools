@@ -47,6 +47,8 @@ import _distutils_hack.override  # noqa: F401
 from distutils import log
 from distutils.util import convert_path
 
+chain_iter = itertools.chain.from_iterable
+
 
 def _valid_name(path):
     # Ignore invalid names that cannot be imported directly
@@ -173,7 +175,7 @@ class ModuleFinder(_Finder):
 
 
 class FlatLayoutPackageFinder(PEP420PackageFinder):
-    DEFAULT_EXCLUDE = (
+    _EXCLUDE = (
         "doc",
         "docs",
         "test",
@@ -187,6 +189,8 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         # ---- Hidden directories/Private packages ----
         "[._]*",
     )
+
+    DEFAULT_EXCLUDE = tuple(chain_iter((p, f"{p}.*") for p in _EXCLUDE))
 
     _looks_like_package = staticmethod(_valid_name)
 
@@ -276,7 +280,7 @@ class ConfigDiscovery:
         if not package_dir:
             return False
 
-        pkgs = itertools.chain.from_iterable(
+        pkgs = chain_iter(
             _find_packages_within(pkg, os.path.join(root_dir, parent_dir))
             for pkg, parent_dir in package_dir.items()
         )
