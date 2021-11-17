@@ -231,7 +231,7 @@ class ConfigDiscovery:
     def __init__(self, distribution):
         self.dist = distribution
         self._called = False
-        self._root_dir = distribution.src_root or os.getcwd()
+        self._root_dir = None  # delay so `src_root` can be set in dist
 
     def __call__(self, force=False):
         """Automatically discover missing configuration fields
@@ -247,6 +247,8 @@ class ConfigDiscovery:
         if force is False and self._called:
             # Avoid overhead of multiple calls
             return
+
+        self._root_dir = self.dist.src_root or os.curdir
 
         self._analyse_package_layout()
         self._analyse_name()  # depends on ``packages`` and ``py_modules``

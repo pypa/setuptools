@@ -59,7 +59,8 @@ class TestDiscoverPackagesAndPyModules:
         _populate_project_dir(tmp_path, files, options)
 
         here = os.getcwd()
-        dist = Distribution({**options, "src_root": tmp_path})
+        root = "/".join(os.path.split(tmp_path))  # POSIX-style
+        dist = Distribution({**options, "src_root": root})
         dist.script_name = 'setup.py'
         dist.set_defaults()
         cmd = sdist(dist)

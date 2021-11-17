@@ -2,6 +2,7 @@ import io
 import collections
 import re
 import functools
+import os
 import urllib.request
 import urllib.parse
 from distutils.errors import DistutilsSetupError
@@ -498,7 +499,7 @@ def test_dist_default_name(tmp_path, dist_name, package_dir, package_files):
     ensure_files(tmp_path, package_files)
     attrs = {
         **EXAMPLE_BASE_INFO,
-        "src_root": str(tmp_path),
+        "src_root": "/".join(os.path.split(tmp_path)),  # POSIX-style
         "package_dir": package_dir
     }
     del attrs["name"]
