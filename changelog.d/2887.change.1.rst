@@ -10,8 +10,8 @@ the project root).
 The automatic discovery will also respect layouts that are explicit configured
 using the ``package_dir`` option.
 
-For backward-compatibility, this behavior will be observed **only if both
-``py_modules`` and ``packages`` are not explicitly set**.
+For backward-compatibility, this behavior will be observed **only if both**
+``py_modules`` **and** ``packages`` **are not explicitly set**.
 
 If setuptools detects modules or packages that are not supposed to be in the
 distribution, please explicitly set ``py_modules`` and ``packages``.
