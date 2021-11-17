@@ -38,8 +38,80 @@ included manually in the following manner:
             packages=['mypkg1', 'mypkg2']
         )
 
-This can get tiresome really quickly. To speed things up, we introduce two
-functions provided by setuptools:
+This can get tiresome really quickly. To speed things up, you can rely on
+setuptools automatic discovery, or use the provided functions, as explained in
+the following sections.
+
+
+Automatic discovery
+===================
+
+By default setuptools will consider 2 popular project layouts, each one with
+its own set of advantages and disadvantages [#layout1]_ [#layout2]_.
+
+src-layout:
+    The project should contain a ``src`` directory under the project root and
+    all modules and packages meant for distribution are placed inside this
+    directory.
+    This layout is very handy when you wish to use automatic discovery,
+    since you don't have to worry about other Python files or folder in your
+    project root being distributed by mistake. In some circumstances it can
+    also less error-prone for testing or when using :pep:`420`-style packages.
+    On the other hand you cannot rely on the implicit ``PYTHONPATH=.`` to fire
+    up the Python REPL and play with the your package (you will need an
+    `editable install`_ to be able to do that).
+
+flat-layout (also known as "adhoc"):
+    The package folder(s) are placed directly under the project root.
+    This layout is very practical for using the REPL, but in some situations
+    it can be can be more error-prone (e.g. during tests or if you have a bunch
+    of folders or Python files hanging around your project root)
+
+There is also a variation of the *flat-layout* for utilities/libraries that can
+be implemented with a single Python file:
+
+single-module approach (or "few top-level modules"):
+    This Python files are placed directly under the project root,
+    instead of inside a package folder.
+
+Setuptools will automatically scan your project directory looking for these
+layouts and try to guess the correct values for the :doc:`packages
+<userguide/declarative_config>` and :doc:`py_modules <keywords>`.
+
+To avoid confusion, file and folder names that are used by popular tools (or
+that correspond to well-known conventions, such as distributing documentation
+alongside the project code) are automatically filtered out of the
+*flat-layout*:
+
+- reserved package names:
+    .. autodata:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
+
+- reserved top-level module names:
+.. autodata:: setuptools.discovery.FlatLayoutModuleFinder.DEFAULT_EXCLUDE
+
+Also note that you can customise your project layout by explicitly setting
+:doc:`package_dir <userguide/declarative_config>`.
+
+.. important:: Automatic discovery will **only** be enabled if you don't
+   provide any configuration for both ``packages`` and ``py_modules``.
+   If at least one of them is explicitly set, automatic discovery will not take
+   place.
+
+
+.. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
+.. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
+
+.. _editable install: https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs
+
+
+Using setuptools functions
+==========================
+
+If the automatic discovery does not work for you
+(e.g., you want to *include* in the distribution top-level packages with
+reserved names such as ``tasks``, ``example`` or ``docs``, or you want to
+*exclude* nested packages that would be otherwise included), you can set up
+setuptools to use special functions for the package discovery:
 
 .. tab:: setup.cfg
 
@@ -61,7 +133,7 @@ functions provided by setuptools:
 
 
 Using ``find:`` or ``find_packages``
-====================================
+------------------------------------
 Let's start with the first tool. ``find:`` (``find_packages``) takes a source
 directory and two lists of package name patterns to exclude and include, and
 then return a list of ``str`` representing the packages it could find. To use
@@ -113,7 +185,7 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
 .. _Namespace Packages:
 
 Using ``find_namespace:`` or ``find_namespace_packages``
-========================================================
+--------------------------------------------------------
 ``setuptools``  provides the ``find_namespace:`` (``find_namespace_packages``)
 which behaves similarly to ``find:`` but works with namespace package. Before
 diving in, it is important to have a good understanding of what namespace
