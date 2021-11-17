@@ -39,7 +39,7 @@ included manually in the following manner:
         )
 
 This can get tiresome really quickly. To speed things up, you can rely on
-setuptools automatic discovery, or use the provided functions, as explained in
+setuptools automatic discovery, or use the provided tools, as explained in
 the following sections.
 
 
@@ -88,12 +88,12 @@ flat-layout (also known as "adhoc"):
     it can be can be more error-prone (e.g. during tests or if you have a bunch
     of folders or Python files hanging around your project root)
 
-There is also a variation of the *flat-layout* for utilities/libraries that can
-be implemented with a single Python file:
+There is also a handy variation of the *flat-layout* for utilities/libraries
+that can be implemented with a single Python file:
 
 single-module approach (or "few top-level modules"):
-    This Python files are placed directly under the project root,
-    instead of inside a package folder::
+    Modules are placed directly under the project root, instead of inside
+    a package folder::
 
         project_root_directory
         ├── pyproject.toml
@@ -103,7 +103,7 @@ single-module approach (or "few top-level modules"):
 
 Setuptools will automatically scan your project directory looking for these
 layouts and try to guess the correct values for the :doc:`packages
-<userguide/declarative_config>` and :doc:`py_modules <keywords>`.
+<userguide/declarative_config>` and :doc:`py_modules <keywords>` configuration.
 
 To avoid confusion, file and folder names that are used by popular tools (or
 that correspond to well-known conventions, such as distributing documentation
@@ -123,14 +123,14 @@ Also note that you can customise your project layout by explicitly setting
    place.
 
 
-Using setuptools functions
-==========================
+Custom discovery
+================
 
 If the automatic discovery does not work for you
 (e.g., you want to *include* in the distribution top-level packages with
 reserved names such as ``tasks``, ``example`` or ``docs``, or you want to
-*exclude* nested packages that would be otherwise included), you can set up
-setuptools to use special functions for the package discovery:
+*exclude* nested packages that would be otherwise included), you can use
+the provided tools for package discovery:
 
 .. tab:: setup.cfg
 
