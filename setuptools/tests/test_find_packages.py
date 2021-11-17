@@ -1,4 +1,4 @@
-"""Tests for setuptools.find_packages()."""
+"""Tests for automatic package discovery"""
 import os
 import sys
 import shutil
@@ -230,12 +230,14 @@ class TestFlatLayoutPackageFinder:
 
     @pytest.mark.parametrize("example", EXAMPLES.keys())
     def test_unwanted_directories_not_included(self, tmp_path, example):
-        package_files, packages = self.EXAMPLES[example]
+        files, expected_packages = self.EXAMPLES[example]
+        ensure_files(tmp_path, files)
+        found_packages = FlatLayoutPackageFinder.find(str(tmp_path))
+        assert set(found_packages) == set(expected_packages)
 
-        for file in package_files:
-            path = tmp_path / file
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.touch()
 
-        found_packages = FlatLayoutPackageFinder.find(tmp_path)
-        assert set(found_packages) == set(packages)
+def ensure_files(root_path, files):
+    for file in files:
+        path = root_path / file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()

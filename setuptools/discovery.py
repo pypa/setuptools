@@ -37,6 +37,7 @@ For the purposes of this module, the following nomenclature is used:
 """
 
 import os
+from glob import glob
 from fnmatch import fnmatchcase
 
 import _distutils_hack.override  # noqa: F401
@@ -44,7 +45,22 @@ import _distutils_hack.override  # noqa: F401
 from distutils.util import convert_path
 
 
-class PackageFinder:
+def _valid_name(path):
+    # Ignore invalid names that cannot be imported directly
+    return os.path.basename(path).isidentifier()
+
+
+class Finder:
+    @staticmethod
+    def _build_filter(*patterns):
+        """
+        Given a list of patterns, return a callable that will be true only if
+        the input matches at least one of the patterns.
+        """
+        return lambda name: any(fnmatchcase(name, pat) for pat in patterns)
+
+
+class PackageFinder(Finder):
     """
     Generate a list of all Python packages found within a directory
     """
@@ -108,14 +124,6 @@ class PackageFinder:
         """Does a directory look like a package?"""
         return os.path.isfile(os.path.join(path, '__init__.py'))
 
-    @staticmethod
-    def _build_filter(*patterns):
-        """
-        Given a list of patterns, return a callable that will be true only if
-        the input matches at least one of the patterns.
-        """
-        return lambda name: any(fnmatchcase(name, pat=pat) for pat in patterns)
-
 
 class PEP420PackageFinder(PackageFinder):
     @staticmethod
@@ -141,8 +149,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "fabfile",  # fabric
         "site_scons",  # SCons
         # ---- Hidden directories/Private packages ----
-        ".*",
-        "_*"
+        "[._]*",
     )
 
     @classmethod
@@ -150,7 +157,66 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         exclude = [*exclude, *cls.EXCLUDE] + [f"{e}.*" for e in cls.EXCLUDE]
         return super().find(where, exclude, include)
 
-    @staticmethod
-    def _looks_like_package(path):
-        # Ignore invalid names that cannot be imported directly
-        return os.path.basename(path).isidentifier()
+    _looks_like_package = staticmethod(_valid_name)
+
+
+class ModuleFinder(Finder):
+    INCLUDE = ()
+    EXCLUDE = ()
+
+    @classmethod
+    def find(cls, where='.', exclude=(), include=('*',)):
+        """Find isolated Python modules.
+
+        The arguments ``where``, ``exclude`` and ``include`` have basically the
+        same meaning as in PackageFinder. This function will **not** recurse
+        subdirectories.
+        """
+        return list(
+            cls._find_modules_iter(
+                convert_path(where),
+                cls._build_filter(*cls.EXCLUDE, *exclude),
+                cls._build_filter(*cls.INCLUDE, *include),
+            )
+        )
+
+    @classmethod
+    def _find_modules_iter(cls, where, exclude, include):
+        for file in glob(os.path.join(where, "*.py")):
+            module, _ext = os.path.splitext(os.path.basename(file))
+
+            if not cls._looks_like_module(module):
+                continue
+
+            if include(module) and not exclude(module):
+                yield module
+
+    _looks_like_module = staticmethod(_valid_name)
+
+
+class FlatLayoutModuleFinder(ModuleFinder):
+    """We have to be very careful in the case of flat layout and
+    single-modules
+    """
+
+    EXCLUDE = (
+        "setup",
+        "conftest",
+        "test",
+        "tests",
+        "example",
+        "examples",
+        # ---- Task runners ----
+        "pavement",
+        "tasks",
+        "noxfile",
+        "dodo",
+        "fabfile",
+        # ---- Other tools ----
+        "[Ss][Cc]onstruct",  # SCons
+        "conanfile",  # Connan: C/C++ build tool
+        "manage",  # Django
+        # ---- Hidden files/Private modules ----
+        "[._]*",
+    )
+    _looks_like_module = staticmethod(_valid_name)
