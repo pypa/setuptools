@@ -279,6 +279,7 @@ def get_config_h_filename():
     return os.path.join(inc_dir, 'pyconfig.h')
 
 
+# Allow this value to be patched by pkgsrc. Ref pypa/distutils#16.
 _makefile_tmpl = 'config-{python_ver}{build_flags}{multiarch}'
 
 
