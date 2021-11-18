@@ -141,10 +141,13 @@ class CygwinCCompilerTestCase(support.TempdirManager,
         sys.version = ('2.5.1 (r251:54863, Apr 18 2007, 08:51:08) '
                        '[MSC v.1500 32 bits (Intel)]')
         self.assertEqual(get_msvcr(), ['msvcr90'])
+        
+        sys.version = '3.10.0 (tags/v3.10.0:b494f59, Oct  4 2021, 18:46:30) [MSC v.1929 32 bit (Intel)]'
+        self.assertEqual(get_msvcr(), ['ucrt', 'vcruntime140'])
 
         # unknown
         sys.version = ('2.5.1 (r251:54863, Apr 18 2007, 08:51:08) '
-                       '[MSC v.1999 32 bits (Intel)]')
+                       '[MSC v.2000 32 bits (Intel)]')
         self.assertRaises(ValueError, get_msvcr)
 
 def test_suite():
