@@ -129,6 +129,7 @@ def get_python_inc(plat_specific=0, prefix=None):
             "on platform '%s'" % os.name)
 
 
+# allow this behavior to be monkey-patched. Ref pypa/distutils#2.
 def _posix_lib(standard_lib, libpython, early_prefix, prefix):
     if standard_lib:
         return libpython
