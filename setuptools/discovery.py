@@ -176,6 +176,7 @@ class ModuleFinder(_Finder):
 
 class FlatLayoutPackageFinder(PEP420PackageFinder):
     _EXCLUDE = (
+        "bin",
         "doc",
         "docs",
         "test",
