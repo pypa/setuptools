@@ -94,7 +94,7 @@ class InstallTestCase(support.TempdirManager,
 
         self.addCleanup(cleanup)
 
-        for key in ('nt_user', 'unix_user'):
+        for key in ('nt_user', 'posix_user'):
             self.assertIn(key, INSTALL_SCHEMES)
 
         dist = Distribution({'name': 'xx'})
