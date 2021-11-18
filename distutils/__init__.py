@@ -9,5 +9,15 @@ used from a setup script as
 """
 
 import sys
+import importlib
 
 __version__ = sys.version[:sys.version.index(' ')]
+
+
+try:
+    # Allow Debian (only) to customize system behavior.
+    # Ref pypa/distutils#2. This hook is deprecated and
+    # no other environments should use it.
+    importlib.import_module('_distutils_system_mod')
+except ImportError:
+    pass
