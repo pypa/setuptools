@@ -107,7 +107,7 @@ config>` and :doc:`py_modules </references/keywords>` configuration.
 
 To avoid confusion, file and folder names that are used by popular tools (or
 that correspond to well-known conventions, such as distributing documentation
-alongside the project code) are automatically filtered in the case of
+alongside the project code) are automatically filtered out in the case of
 *flat-layouts*:
 
 .. autoattribute:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE

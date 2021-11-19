@@ -1,0 +1,4 @@
+If you purposefully want to create an *"empty distribution"*, please be aware
+that some Python files (or general folders) might be automatically detected and
+included. You can check details about the automatic discovery behaviour (and
+how to configure a different one) in :doc:`/userguide/package_discovery`.
