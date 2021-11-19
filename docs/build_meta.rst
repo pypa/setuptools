@@ -106,6 +106,11 @@ users machine before deciding these requirements. One way of doing that, as
 specified by :pep:`517`, is to "tweak" ``setuptools.build_meta`` by using a
 :pep:`in-tree backend <517#in-tree-build-backends>`.
 
+.. tip:: Before implementing a *in-tree* backend, have a look on
+   :pep:`PEP 508 <508#environment-markers>`. Most of the times, dependencies
+   with **environment markers** are enough to differentiate operating systems
+   and platforms.
+
 If you add the following configuration to your ``pyprojec.toml``:
 
 
@@ -141,7 +146,7 @@ Note that you can override any of the functions specified in :pep:`PEP 517
 <517#build-backend-interface>`, not only the ones responsible for gathering
 requirements.
 
-.. tip:: Make sure your backend script is included in the :doc:`source
+.. important:: Make sure your backend script is included in the :doc:`source
    distribution </userguide/distribution>`, otherwise the build will fail.
    This can be done by using a SCM_/VCS_ plugin (like :pypi:`setuptools-scm`
    and :pypi:`setuptools-svn`), or by correctly setting up :ref:`MANIFEST.in
