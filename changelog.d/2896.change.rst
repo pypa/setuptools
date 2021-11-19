@@ -1,0 +1,1 @@
+Setuptools once again makes its local copy of distutils the default. To override, set SETUPTOOLS_USE_DISTUTILS=stdlib.
