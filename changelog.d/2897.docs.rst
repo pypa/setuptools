@@ -1,0 +1,4 @@
+Added documentation about wrapping ``setuptools.build_meta`` in a in-tree
+custom backend. This is a :pep:`517`-compliant way of dynamically specifying
+build dependencies (e.g. when platform, OS and other markers are not enough)
+-- by :user:`abravalheri`.
