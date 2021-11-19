@@ -1,3 +1,12 @@
+v59.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2875: Introduce changes from pypa/distutils@514e9d0, including support for overrides from Debian and pkgsrc, unlocking the possibility of making SETUPTOOLS_USE_DISTUTILS=local the default again.
+
+
 v59.1.1
 -------
 
