@@ -95,6 +95,7 @@ github_url = 'https://github.com'
 github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
     'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
+    'pypi': ('https://pypi.org/project/%s', '%s'),
 }
 extensions += ['sphinx.ext.extlinks']
 
