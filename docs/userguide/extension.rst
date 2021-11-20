@@ -78,6 +78,59 @@ the ``setuptools.errors`` module.
 .. autoclass:: setuptools.Command
    :members:
 
+.. _setuptools sub commands:
+
+Adding Custom Build Steps
+-------------------------
+
+For simple scenarios where you want to add custom steps to the build process,
+you can create new ``build`` sub commands, by defining
+``setuptools.sub_commands.build`` entry-points that represent sub classes of
+``setuptools.Command``. For example:
+
+.. code-block:: ini
+
+   # setup.cfg
+   [options.entry_points]
+   setuptools.sub_commands.build =
+       build_js = mypkg.myextension:BuildJs
+
+.. code-block:: python
+
+    # mypkg/myextension.py
+    class BuildJs(setuptools.Command):
+        after = "build_ext"
+
+        def initialize_options(self):
+            """Not needed for simple tasks"""
+
+        def finalize_options(self):
+            # Copy attributes from the ``build`` parent command
+            options = ('build_lib', 'build_temp', 'force')
+            self.set_undefined_options('build', *zip(options, options))
+            # Now the object has access to the ``self.build_lib``,
+            # ``self.build_temp`` and ``self.force``.
+            #
+            # ``build_lib`` is effectively the "root build directory"
+            # i.e. where the distribution files are going to be placed
+
+        def run(self):
+            code_dir = self.distribution.src_root or os.getcwd()
+            # ... do some JavaScript bundling/transpiling magic
+
+If defined by sub command class, the following (optional) attributes will be
+considered:
+
+- ``after`` or ``before`` (:obj:`str`): name of another (already defined) sub
+  command. Out of the box, the order ``build`` sub commands run is:
+  ``build_py``, ``build_clib``, ``build_ext`` and ``build_scripts`` and
+  when not specified, the new sub command is placed at the end of this list.
+
+- ``condition`` (:obj:`str`): name of a method in the parent command
+  class. If this method returns ``False`` the sub command is skipped.
+  Possible values include: ``has_pure_modules``, ``has_c_libraries``,
+  ``has_ext_modules``, ``has_scripts``.
+
 
 Supporting sdists and editable installs in ``build`` sub-commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
