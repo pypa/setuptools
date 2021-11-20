@@ -1,0 +1,3 @@
+Added ``setuptools.sub_commands.*`` entry-points allowing plugins to specify
+custom build steps in a more ergonomic way. This process is documented in
+:ref:`setuptools sub commands` -- by :user:`abravalheri`
