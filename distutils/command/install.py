@@ -190,6 +190,8 @@ class install(Command):
 
     negative_opt = {'no-compile' : 'compile'}
 
+    # Allow Fedora to add components to the prefix
+    _prefix_addition = ""
 
     def initialize_options(self):
         """Initializes options."""
@@ -471,24 +473,10 @@ class install(Command):
                     raise DistutilsOptionError(
                           "must not supply exec-prefix without prefix")
 
-                # Fedora (and Fedora derived distros) used to patch distutils
-                # until Fedora 36 and/or Python 3.11.
-                # Here, we preserve that behavior conditionally on a special
-                # _distutils_mangle_rpm_prefix attribute of sysconfig
-                # that Fedora sets on their older Pythons to support this check.
-                # When it is set and true-ish,
-                # self.prefix is set to sys.prefix + /local/
-                # if neither RPM build nor virtual environment is
-                # detected to make pip and distutils install packages to /usr/local.
-                addition = ""
-                if (getattr(sysconfig, "_distutils_mangle_rpm_prefix", False) and
-                    not (hasattr(sys, 'real_prefix') or
-                    sys.prefix != sys.base_prefix) and
-                    'RPM_BUILD_ROOT' not in os.environ):
-                        addition = "/local"
-
-                self.prefix = os.path.normpath(sys.prefix) + addition
-                self.exec_prefix = os.path.normpath(sys.exec_prefix) + addition
+                self.prefix = (
+                    os.path.normpath(sys.prefix) + self._prefix_addition)
+                self.exec_prefix = (
+                    os.path.normpath(sys.exec_prefix) + self._prefix_addition)
 
             else:
                 if self.exec_prefix is None:
