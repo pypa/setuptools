@@ -132,6 +132,14 @@ class CoreTestCase(support.EnvironGuard, unittest.TestCase):
         self.assertIsInstance(dist, Distribution)
         self.assertEqual(dist.get_name(), "setup_within_if_main")
 
+    def test_run_commands(self):
+        sys.argv = ['setup.py', 'build']
+        dist = distutils.core.run_setup(
+            self.write_setup(setup_within_if_main), stop_after="commandline")
+        self.assertNotIn('build', dist.have_run)
+        distutils.core.run_commands(dist)
+        self.assertIn('build', dist.have_run)
+
     def test_debug_mode(self):
         # this covers the code called when DEBUG is set
         sys.argv = ['setup.py', '--name']
