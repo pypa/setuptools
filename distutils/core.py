@@ -143,29 +143,39 @@ def setup (**attrs):
     if _setup_stop_after == "commandline":
         return dist
 
-    # And finally, run all the commands found on the command line.
     if ok:
-        try:
-            dist.run_commands()
-        except KeyboardInterrupt:
-            raise SystemExit("interrupted")
-        except OSError as exc:
-            if DEBUG:
-                sys.stderr.write("error: %s\n" % (exc,))
-                raise
-            else:
-                raise SystemExit("error: %s" % (exc,))
-
-        except (DistutilsError,
-                CCompilerError) as msg:
-            if DEBUG:
-                raise
-            else:
-                raise SystemExit("error: " + str(msg))
-
-    return dist
+        return run_commands(dist)
 
 # setup ()
+
+
+def run_commands (dist):
+    """Given a Distribution object run all the commands,
+    raising ``SystemExit`` errors in the case of failure.
+
+    This function assumes that either ``sys.argv`` or ``dist.script_args``
+    is already set accordingly.
+    """
+    # And finally, run all the commands found on the command line.
+    try:
+        dist.run_commands()
+    except KeyboardInterrupt:
+        raise SystemExit("interrupted")
+    except OSError as exc:
+        if DEBUG:
+            sys.stderr.write("error: %s\n" % (exc,))
+            raise
+        else:
+            raise SystemExit("error: %s" % (exc,))
+
+    except (DistutilsError,
+            CCompilerError) as msg:
+        if DEBUG:
+            raise
+        else:
+            raise SystemExit("error: " + str(msg))
+
+    return dist
 
 
 def run_setup (script_name, script_args=None, stop_after="run"):
