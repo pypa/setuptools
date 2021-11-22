@@ -146,6 +146,8 @@ def setup (**attrs):
     if ok:
         return run_commands(dist)
 
+    return dist
+
 # setup ()
 
 
