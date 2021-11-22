@@ -10,6 +10,7 @@ from . import py38compat as os_helper
 import unittest
 from distutils.tests import support
 from distutils import log
+from distutils.dist import Distribution
 
 # setup script that uses __file__
 setup_using___file__ = """\
@@ -43,6 +44,16 @@ class install(_install):
     sub_commands = _install.sub_commands + ['cmd']
 
 setup(cmdclass={'install': install})
+"""
+
+setup_within_if_main = """\
+from distutils.core import setup
+
+def main():
+    return setup(name="setup_within_if_main")
+
+if __name__ == "__main__":
+    main()
 """
 
 class CoreTestCase(support.EnvironGuard, unittest.TestCase):
@@ -114,6 +125,20 @@ class CoreTestCase(support.EnvironGuard, unittest.TestCase):
         if output.endswith("\n"):
             output = output[:-1]
         self.assertEqual(cwd, output)
+
+    def test_run_setup_within_if_main(self):
+        dist = distutils.core.run_setup(
+            self.write_setup(setup_within_if_main), stop_after="config")
+        self.assertIsInstance(dist, Distribution)
+        self.assertEqual(dist.get_name(), "setup_within_if_main")
+
+    def test_run_commands(self):
+        sys.argv = ['setup.py', 'build']
+        dist = distutils.core.run_setup(
+            self.write_setup(setup_within_if_main), stop_after="commandline")
+        self.assertNotIn('build', dist.have_run)
+        distutils.core.run_commands(dist)
+        self.assertIn('build', dist.have_run)
 
     def test_debug_mode(self):
         # this covers the code called when DEBUG is set
