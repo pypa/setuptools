@@ -224,9 +224,8 @@ def run_setup (script_name, script_args=None, stop_after="run"):
             sys.argv[0] = script_name
             if script_args is not None:
                 sys.argv[1:] = script_args
-            _open = getattr(tokenize, 'open', open)
-            # ^-- tokenize.open supports automatic encoding detection
-            with _open(script_name) as f:
+            # tokenize.open supports automatic encoding detection
+            with tokenize.open(script_name) as f:
                 code = f.read().replace(r'\r\n', r'\n')
                 exec(code, g)
         finally:
