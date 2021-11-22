@@ -168,10 +168,6 @@ Common commands: (see '--help-commands' for more)
         # for the setup script to override command classes
         self.cmdclass = {}
 
-        # Make sure 'commands' is defined, so dist.run_commands can run
-        # It might be overwritten by parse_command_line()
-        self.commands = []
-
         # 'command_packages' is a list of packages in which commands
         # are searched for.  The factory for command 'foo' is expected
         # to be named 'foo' in the module 'foo' in one of the packages
