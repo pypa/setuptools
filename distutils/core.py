@@ -143,6 +143,7 @@ def setup (**attrs):
     if _setup_stop_after == "commandline":
         return dist
 
+    # And finally, run all the commands found on the command line.
     if ok:
         return run_commands(dist)
 
@@ -158,7 +159,6 @@ def run_commands (dist):
     This function assumes that either ``sys.argv`` or ``dist.script_args``
     is already set accordingly.
     """
-    # And finally, run all the commands found on the command line.
     try:
         dist.run_commands()
     except KeyboardInterrupt:
