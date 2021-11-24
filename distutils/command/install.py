@@ -191,7 +191,7 @@ class install(Command):
     negative_opt = {'no-compile' : 'compile'}
 
     # Allow Fedora to add components to the prefix
-    _prefix_addition = ""
+    _prefix_addition = getattr(sysconfig, '_prefix_addition', "")
 
     def initialize_options(self):
         """Initializes options."""
