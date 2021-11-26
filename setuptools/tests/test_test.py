@@ -1,5 +1,3 @@
-from distutils import log
-
 import pytest
 from jaraco import path
 
@@ -13,7 +11,8 @@ from .textwrap import DALS
 def quiet_log():
     # Running some of the other tests will automatically
     # change the log level to info, messing our output.
-    log.set_verbosity(0)
+    import distutils.log
+    distutils.log.set_verbosity(0)
 
 
 @pytest.mark.usefixtures('tmpdir_cwd', 'quiet_log')

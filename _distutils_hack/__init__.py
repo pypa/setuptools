@@ -49,7 +49,7 @@ def enabled():
 def ensure_local_distutils():
     clear_distutils()
 
-    # ensure the DistutilsMetaFinder is in place and
+    # With the DistutilsMetaFinder in place,
     # perform an import to cause distutils to be
     # loaded from setuptools._distutils. Ref #2906.
     add_shim()
