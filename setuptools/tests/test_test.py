@@ -2,6 +2,7 @@ from distutils import log
 import os
 
 import pytest
+from jaraco import path
 
 from setuptools.command.test import test
 from setuptools.dist import Distribution
@@ -80,25 +81,24 @@ def test_tests_are_run_once(capfd):
         name='foo',
         packages=['dummy'],
     )
-    with open('setup.py', 'wt') as f:
-        f.write('from setuptools import setup; setup(\n')
-        for k, v in sorted(params.items()):
-            f.write('    %s=%r,\n' % (k, v))
-        f.write(')\n')
-    os.makedirs('dummy')
-    with open('dummy/__init__.py', 'wt'):
-        pass
-    with open('dummy/test_dummy.py', 'wt') as f:
-        f.write(
-            DALS(
+    files = {
+        'setup.py':
+            'from setuptools import setup; setup('
+            + ','.join(f'{name}={params[name]!r}' for name in params)
+            + ')',
+        'dummy': {
+            '__init__.py': '',
+            'test_dummy.py': DALS(
                 """
-            import unittest
-            class TestTest(unittest.TestCase):
-                def test_test(self):
-                    print('Foo')
-             """
-            )
-        )
+                import unittest
+                class TestTest(unittest.TestCase):
+                    def test_test(self):
+                        print('Foo')
+                """
+                ),
+            },
+    }
+    path.build(files)
     dist = Distribution(params)
     dist.script_name = 'setup.py'
     cmd = test(dist)
