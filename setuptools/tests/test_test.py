@@ -1,5 +1,3 @@
-from distutils import log
-
 import pytest
 from jaraco import path
 
@@ -9,14 +7,7 @@ from setuptools.dist import Distribution
 from .textwrap import DALS
 
 
-@pytest.fixture
-def quiet_log():
-    # Running some of the other tests will automatically
-    # change the log level to info, messing our output.
-    log.set_verbosity(0)
-
-
-@pytest.mark.usefixtures('tmpdir_cwd', 'quiet_log')
+@pytest.mark.usefixtures('tmpdir_cwd')
 def test_tests_are_run_once(capfd):
     params = dict(
         name='foo',
@@ -46,4 +37,5 @@ def test_tests_are_run_once(capfd):
     cmd.ensure_finalized()
     cmd.run()
     out, err = capfd.readouterr()
-    assert out == 'Foo\n'
+    assert out.endswith('Foo\n')
+    assert len(out.split('Foo')) == 2
