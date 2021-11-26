@@ -20,7 +20,6 @@ import pathlib
 import pytest
 from jaraco import path
 
-from setuptools import sandbox
 from setuptools.sandbox import run_setup
 import setuptools.command.easy_install as ei
 from setuptools.command.easy_install import (
@@ -344,25 +343,6 @@ class TestUserInstallTest:
         actual = os.path.normcase(os.path.realpath(res.location))
         expected = os.path.normcase(os.path.realpath(foo_package))
         assert actual == expected
-
-    @contextlib.contextmanager
-    def user_install_setup_context(self, *args, **kwargs):
-        """
-        Wrap sandbox.setup_context to patch easy_install in that context to
-        appear as user-installed.
-        """
-        with self.orig_context(*args, **kwargs):
-            import setuptools.command.easy_install as ei
-            ei.__file__ = site.USER_SITE
-            yield
-
-    def patched_setup_context(self):
-        self.orig_context = sandbox.setup_context
-
-        return mock.patch(
-            'setuptools.sandbox.setup_context',
-            self.user_install_setup_context,
-        )
 
 
 @pytest.fixture
