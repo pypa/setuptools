@@ -46,13 +46,12 @@ from sysconfig import get_config_vars, get_path
 from setuptools import SetuptoolsDeprecationWarning
 
 from setuptools import Command
-from setuptools.sandbox import run_setup
 from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
 from setuptools.package_index import (
     PackageIndex, parse_requirement_arg, URL_SCHEME,
 )
-from setuptools.command import bdist_egg, egg_info
+from setuptools.command import bdist_egg
 from setuptools.wheel import Wheel
 from pkg_resources import (
     yield_lines, normalize_path, resource_string, ensure_directory,
@@ -1134,26 +1133,7 @@ class easy_install(Command):
         return '\n' + self.__editable_msg % locals()
 
     def run_setup(self, setup_script, setup_base, args):
-        sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
-        sys.modules.setdefault('distutils.command.egg_info', egg_info)
-
-        args = list(args)
-        if self.verbose > 2:
-            v = 'v' * (self.verbose - 1)
-            args.insert(0, '-' + v)
-        elif self.verbose < 2:
-            args.insert(0, '-q')
-        if self.dry_run:
-            args.insert(0, '-n')
-        log.info(
-            "Running %s %s", setup_script[len(setup_base) + 1:], ' '.join(args)
-        )
-        try:
-            run_setup(setup_script, args)
-        except SystemExit as v:
-            raise DistutilsError(
-                "Setup script exited with %s" % (v.args[0],)
-            ) from v
+        raise NotImplementedError("easy_install support has been removed")
 
     def build_and_install(self, setup_script, setup_base):
         args = ['bdist_egg', '--dist-dir']

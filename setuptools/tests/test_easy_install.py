@@ -15,7 +15,6 @@ import zipfile
 import mock
 import time
 import re
-import subprocess
 import pathlib
 
 import pytest
@@ -32,7 +31,6 @@ from setuptools.dist import Distribution
 from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
 from setuptools.tests.server import MockServer, path_to_url
-from setuptools.tests import fail_on_ascii
 import pkg_resources
 
 from . import contexts
@@ -162,24 +160,6 @@ class TestEasyInstallTest:
         sdist_zip.close()
         return str(sdist)
 
-    @fail_on_ascii
-    def test_unicode_filename_in_sdist(
-            self, sdist_unicode, tmpdir, monkeypatch):
-        """
-        The install command should execute correctly even if
-        the package has unicode filenames.
-        """
-        dist = Distribution({'script_args': ['easy_install']})
-        target = (tmpdir / 'target').ensure_dir()
-        cmd = ei.easy_install(
-            dist,
-            install_dir=str(target),
-            args=['x'],
-        )
-        monkeypatch.setitem(os.environ, 'PYTHONPATH', str(target))
-        cmd.ensure_finalized()
-        cmd.easy_install(sdist_unicode)
-
     @pytest.fixture
     def sdist_unicode_in_script(self, tmpdir):
         files = [
@@ -219,20 +199,6 @@ class TestEasyInstallTest:
         sdist_zip.close()
         return str(sdist)
 
-    @fail_on_ascii
-    def test_unicode_content_in_sdist(
-            self, sdist_unicode_in_script, tmpdir, monkeypatch):
-        """
-        The install command should execute correctly even if
-        the package has unicode in scripts.
-        """
-        dist = Distribution({"script_args": ["easy_install"]})
-        target = (tmpdir / "target").ensure_dir()
-        cmd = ei.easy_install(dist, install_dir=str(target), args=["x"])
-        monkeypatch.setitem(os.environ, "PYTHONPATH", str(target))
-        cmd.ensure_finalized()
-        cmd.easy_install(sdist_unicode_in_script)
-
     @pytest.fixture
     def sdist_script(self, tmpdir):
         files = [
@@ -259,24 +225,6 @@ class TestEasyInstallTest:
         sdist = str(tmpdir / sdist_name)
         make_sdist(sdist, files)
         return sdist
-
-    @pytest.mark.skipif(not sys.platform.startswith('linux'),
-                        reason="Test can only be run on Linux")
-    def test_script_install(self, sdist_script, tmpdir, monkeypatch):
-        """
-        Check scripts are installed.
-        """
-        dist = Distribution({'script_args': ['easy_install']})
-        target = (tmpdir / 'target').ensure_dir()
-        cmd = ei.easy_install(
-            dist,
-            install_dir=str(target),
-            args=['x'],
-        )
-        monkeypatch.setitem(os.environ, 'PYTHONPATH', str(target))
-        cmd.ensure_finalized()
-        cmd.easy_install(sdist_script)
-        assert (target / 'mypkg_script').exists()
 
     def test_dist_get_script_args_deprecated(self):
         with pytest.warns(EasyInstallDeprecationWarning):
@@ -447,33 +395,6 @@ class TestDistutilsPackage:
 
 
 class TestSetupRequires:
-
-    def test_setup_requires_honors_fetch_params(self, mock_index, monkeypatch):
-        """
-        When easy_install installs a source distribution which specifies
-        setup_requires, it should honor the fetch parameters (such as
-        index-url, and find-links).
-        """
-        monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
-        monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
-        monkeypatch.setenv('PIP_NO_INDEX', 'false')
-        with contexts.quiet():
-            # create an sdist that has a build-time dependency.
-            with TestSetupRequires.create_sdist() as dist_file:
-                with contexts.tempdir() as temp_install_dir:
-                    with contexts.environment(PYTHONPATH=temp_install_dir):
-                        cmd = [
-                            sys.executable,
-                            '-m', 'setup',
-                            'easy_install',
-                            '--index-url', mock_index.url,
-                            '--exclude-scripts',
-                            '--install-dir', temp_install_dir,
-                            dist_file,
-                        ]
-                        subprocess.Popen(cmd).wait()
-        # there should have been one requests to the server
-        assert [r.path for r in mock_index.requests] == ['/does-not-exist/']
 
     @staticmethod
     @contextlib.contextmanager
