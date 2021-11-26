@@ -1,3 +1,16 @@
+v59.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #2902: Merge with pypa/distutils@85db7a41242.
+
+Misc
+^^^^
+* #2906: In ensure_local_distutils, re-use DistutilsMetaFinder to load the module. Avoids race conditions when _distutils_system_mod is employed.
+
+
 v59.2.0
 -------
 
