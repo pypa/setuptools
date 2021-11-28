@@ -145,11 +145,11 @@ def read_pkg_file(self, file):
 
 
 def single_line(val):
-    """Validate that the value does not have line breaks."""
-    # Ref: https://github.com/pypa/setuptools/issues/1390
+    # quick and dirty validation for description pypa/setuptools#1390
     if '\n' in val:
-        raise ValueError('Newlines are not allowed')
-
+        # TODO after 2021-07-31: Replace with `raise ValueError("newlines not allowed")`
+        warnings.warn("newlines not allowed and will break in the future")
+        val = val.replace('\n', ' ')
     return val
 
 
