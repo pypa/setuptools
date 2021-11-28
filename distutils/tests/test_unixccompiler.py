@@ -11,9 +11,12 @@ from distutils.errors import DistutilsPlatformError
 from distutils.unixccompiler import UnixCCompiler
 from distutils.util import _clear_cached_macosx_ver
 
-class UnixCCompilerTestCase(unittest.TestCase):
+from . import support
+
+class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
     def setUp(self):
+        super().setUp()
         self._backup_platform = sys.platform
         self._backup_get_config_var = sysconfig.get_config_var
         self._backup_get_config_vars = sysconfig.get_config_vars
@@ -23,6 +26,7 @@ class UnixCCompilerTestCase(unittest.TestCase):
         self.cc = CompilerWrapper()
 
     def tearDown(self):
+        super().tearDown()
         sys.platform = self._backup_platform
         sysconfig.get_config_var = self._backup_get_config_var
         sysconfig.get_config_vars = self._backup_get_config_vars
@@ -237,6 +241,7 @@ class UnixCCompilerTestCase(unittest.TestCase):
         # ensure that setting output_dir does not raise
         # FileNotFoundError: [Errno 2] No such file or directory: 'a.out'
         self.cc.output_dir = 'scratch'
+        os.chdir(self.mkdtemp())
         self.cc.has_function('abort', includes=['stdlib.h'])
 
 
