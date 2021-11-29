@@ -1,3 +1,12 @@
+v59.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #2893: Restore deprecated support for newlines in the Summary field.
+
+
 v59.3.0
 -------
 
