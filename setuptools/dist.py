@@ -149,7 +149,7 @@ def single_line(val):
     if '\n' in val:
         # TODO after 2021-07-31: Replace with `raise ValueError("newlines not allowed")`
         warnings.warn("newlines not allowed and will break in the future")
-        val = val.replace('\n', ' ')
+        val = val.strip().split('\n')[0]
     return val
 
 
