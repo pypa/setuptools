@@ -1,60 +1,16 @@
-import ast
-import io
+"""Load setuptools configuration from ``setup.cfg`` files"""
 import os
-import sys
 
 import warnings
 import functools
-import importlib
 from collections import defaultdict
 from functools import partial
 from functools import wraps
-from glob import iglob
-import contextlib
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.version import Version, InvalidVersion
 from setuptools.extern.packaging.specifiers import SpecifierSet
-
-
-class StaticModule:
-    """
-    Attempt to load the module by the name
-    """
-
-    def __init__(self, name):
-        spec = importlib.util.find_spec(name)
-        with open(spec.origin) as strm:
-            src = strm.read()
-        module = ast.parse(src)
-        vars(self).update(locals())
-        del self.self
-
-    def __getattr__(self, attr):
-        try:
-            return next(
-                ast.literal_eval(statement.value)
-                for statement in self.module.body
-                if isinstance(statement, ast.Assign)
-                for target in statement.targets
-                if isinstance(target, ast.Name) and target.id == attr
-            )
-        except Exception as e:
-            raise AttributeError(
-                "{self.name} has no attribute {attr}".format(**locals())
-            ) from e
-
-
-@contextlib.contextmanager
-def patch_path(path):
-    """
-    Add path to front of sys.path for the duration of the context.
-    """
-    try:
-        sys.path.insert(0, path)
-        yield
-    finally:
-        sys.path.remove(path)
+from setuptools.config import expand
 
 
 def read_configuration(filepath, find_others=False, ignore_option_errors=False):
@@ -258,34 +214,6 @@ class ConfigHandler:
         return [chunk.strip() for chunk in value if chunk.strip()]
 
     @classmethod
-    def _parse_list_glob(cls, value, separator=','):
-        """Equivalent to _parse_list() but expands any glob patterns using glob().
-
-        However, unlike with glob() calls, the results remain relative paths.
-
-        :param value:
-        :param separator: List items separator character.
-        :rtype: list
-        """
-        glob_characters = ('*', '?', '[', ']', '{', '}')
-        values = cls._parse_list(value, separator=separator)
-        expanded_values = []
-        for value in values:
-
-            # Has globby characters?
-            if any(char in value for char in glob_characters):
-                # then expand the glob pattern while keeping paths *relative*:
-                expanded_values.extend(sorted(
-                    os.path.relpath(path, os.getcwd())
-                    for path in iglob(os.path.abspath(value))))
-
-            else:
-                # take the value as-is:
-                expanded_values.append(value)
-
-        return expanded_values
-
-    @classmethod
     def _parse_dict(cls, value):
         """Represents value as a dict.
 
@@ -361,21 +289,7 @@ class ConfigHandler:
 
         spec = value[len(include_directive) :]
         filepaths = (os.path.abspath(path.strip()) for path in spec.split(','))
-        return '\n'.join(
-            cls._read_file(path)
-            for path in filepaths
-            if (cls._assert_local(path) or True) and os.path.isfile(path)
-        )
-
-    @staticmethod
-    def _assert_local(filepath):
-        if not filepath.startswith(os.getcwd()):
-            raise DistutilsOptionError('`file:` directive can not access %s' % filepath)
-
-    @staticmethod
-    def _read_file(filepath):
-        with io.open(filepath, encoding='utf-8') as f:
-            return f.read()
+        return expand.read_files(filepaths)
 
     @classmethod
     def _parse_attr(cls, value, package_dir=None):
@@ -392,36 +306,8 @@ class ConfigHandler:
         if not value.startswith(attr_directive):
             return value
 
-        attrs_path = value.replace(attr_directive, '').strip().split('.')
-        attr_name = attrs_path.pop()
-
-        module_name = '.'.join(attrs_path)
-        module_name = module_name or '__init__'
-
-        parent_path = os.getcwd()
-        if package_dir:
-            if attrs_path[0] in package_dir:
-                # A custom path was specified for the module we want to import
-                custom_path = package_dir[attrs_path[0]]
-                parts = custom_path.rsplit('/', 1)
-                if len(parts) > 1:
-                    parent_path = os.path.join(os.getcwd(), parts[0])
-                    module_name = parts[1]
-                else:
-                    module_name = custom_path
-            elif '' in package_dir:
-                # A custom parent directory was specified for all root modules
-                parent_path = os.path.join(os.getcwd(), package_dir[''])
-
-        with patch_path(parent_path):
-            try:
-                # attempt to load value statically
-                return getattr(StaticModule(module_name), attr_name)
-            except Exception:
-                # fallback to simple import
-                module = importlib.import_module(module_name)
-
-        return getattr(module, attr_name)
+        attr_desc = value.replace(attr_directive, '')
+        return expand.read_attr(attr_desc, package_dir)
 
     @classmethod
     def _get_parser_compound(cls, *parse_methods):
@@ -596,18 +482,7 @@ class ConfigMetadataHandler(ConfigHandler):
 
             return version
 
-        version = self._parse_attr(value, self.package_dir)
-
-        if callable(version):
-            version = version()
-
-        if not isinstance(version, str):
-            if hasattr(version, '__iter__'):
-                version = '.'.join(map(str, version))
-            else:
-                version = '%s' % version
-
-        return version
+        return expand.version(self._parse_attr(value, self.package_dir))
 
 
 class ConfigOptionsHandler(ConfigHandler):
@@ -642,16 +517,7 @@ class ConfigOptionsHandler(ConfigHandler):
         }
 
     def _parse_cmdclass(self, value):
-        def resolve_class(qualified_class_name):
-            idx = qualified_class_name.rfind('.')
-            class_name = qualified_class_name[idx + 1 :]
-            pkg_name = qualified_class_name[:idx]
-
-            module = __import__(pkg_name)
-
-            return getattr(module, class_name)
-
-        return {k: resolve_class(v) for k, v in self._parse_dict(value).items()}
+        return expand.cmdclass(self._parse_dict(value))
 
     def _parse_packages(self, value):
         """Parses `packages` option value.
@@ -673,11 +539,9 @@ class ConfigOptionsHandler(ConfigHandler):
         )
 
         if findns:
-            from setuptools import find_namespace_packages as find_packages
-        else:
-            from setuptools import find_packages
+            find_kwargs["namespaces"] = True
 
-        return find_packages(**find_kwargs)
+        return expand.find_packages(**find_kwargs)
 
     def parse_section_packages__find(self, section_options):
         """Parses `packages.find` configuration file section.
@@ -709,14 +573,8 @@ class ConfigOptionsHandler(ConfigHandler):
         self['entry_points'] = parsed
 
     def _parse_package_data(self, section_options):
-        parsed = self._parse_section_to_dict(section_options, self._parse_list)
-
-        root = parsed.get('*')
-        if root:
-            parsed[''] = root
-            del parsed['*']
-
-        return parsed
+        package_data = self._parse_section_to_dict(section_options, self._parse_list)
+        return expand.canonic_package_data(package_data)
 
     def parse_section_package_data(self, section_options):
         """Parses `package_data` configuration file section.
@@ -747,5 +605,5 @@ class ConfigOptionsHandler(ConfigHandler):
 
         :param dict section_options:
         """
-        parsed = self._parse_section_to_dict(section_options, self._parse_list_glob)
-        self['data_files'] = [(k, v) for k, v in parsed.items()]
+        parsed = self._parse_section_to_dict(section_options, self._parse_list)
+        self['data_files'] = expand.canonic_data_files(parsed)
