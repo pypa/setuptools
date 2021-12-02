@@ -71,41 +71,46 @@ def patch_path(path):
         sys.path.remove(path)
 
 
-def glob_relative(patterns):
+def glob_relative(patterns, root_dir=None):
     """Expand the list of glob patterns, but preserving relative paths.
 
     :param list[str] patterns: List of glob patterns
+    :param str root_dir: Path to which globs should be relative
+                         (current directory by default)
     :rtype: list
     """
     glob_characters = ('*', '?', '[', ']', '{', '}')
     expanded_values = []
-    root_dir = os.getcwd()
+    root_dir = root_dir or os.getcwd()
     for value in patterns:
 
         # Has globby characters?
         if any(char in value for char in glob_characters):
             # then expand the glob pattern while keeping paths *relative*:
+            glob_path = os.path.abspath(os.path.join(root_dir, value))
             expanded_values.extend(sorted(
                 os.path.relpath(path, root_dir)
-                for path in iglob(os.path.abspath(value), recursive=True)))
+                for path in iglob(glob_path, recursive=True)))
 
         else:
-            # take the value as-is:
-            expanded_values.append(value)
+            # take the value as-is
+            expanded_values.append(os.path.relpath(value, root_dir))
 
     return expanded_values
 
 
-def read_files(filepaths):
+def read_files(filepaths, root_dir=None):
     """Return the content of the files concatenated using ``\n`` as str
 
-    This function is sandboxed and won't reach anything outside the directory
-    with ``setup.py``.
+    This function is sandboxed and won't reach anything outside ``root_dir``
+
+    (By default ``root_dir`` is the current directory).
     """
-    root_dir = os.getcwd()
+    root_dir = os.path.abspath(root_dir or os.getcwd())
+    _filepaths = (os.path.join(root_dir, path) for path in filepaths)
     return '\n'.join(
         _read_file(path)
-        for path in filepaths
+        for path in _filepaths
         if _assert_local(path, root_dir) and os.path.isfile(path)
     )
 
@@ -116,13 +121,14 @@ def _read_file(filepath):
 
 
 def _assert_local(filepath, root_dir):
-    if not os.path.abspath(filepath).startswith(os.path.abspath(root_dir)):
-        raise DistutilsOptionError(f'Cannot access {filepath!r}')
+    if not os.path.abspath(filepath).startswith(root_dir):
+        msg = f"Cannot access {filepath!r} (or anything outside {root_dir!r})"
+        raise DistutilsOptionError(msg)
 
     return True
 
 
-def read_attr(attr_desc, package_dir=None):
+def read_attr(attr_desc, package_dir=None, root_dir=None):
     """Reads the value of an attribute from a module.
 
     This function will try to read the attributed statically first
@@ -135,10 +141,12 @@ def read_attr(attr_desc, package_dir=None):
     :param str attr_desc: Dot-separated string describing how to reach the
         attribute (see examples above)
     :param dict[str, str] package_dir: Mapping of package names to their
-        location in disk.
+        location in disk (represented by paths relative to ``root_dir``).
+    :param str root_dir: Path to directory containing all the packages in
+        ``package_dir`` (current directory by default).
     :rtype: str
     """
-    root_dir = os.getcwd()
+    root_dir = root_dir or os.getcwd()
     attrs_path = attr_desc.strip().split('.')
     attr_name = attrs_path.pop()
 
