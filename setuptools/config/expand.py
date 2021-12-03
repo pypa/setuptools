@@ -91,6 +91,9 @@ def read_files(filepaths, root_dir=None):
 
     (By default ``root_dir`` is the current directory).
     """
+    if isinstance(filepaths, (str, bytes)):
+        filepaths = [filepaths]
+
     root_dir = os.path.abspath(root_dir or os.getcwd())
     _filepaths = (os.path.join(root_dir, path) for path in filepaths)
     return '\n'.join(
