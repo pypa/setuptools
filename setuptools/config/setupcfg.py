@@ -494,18 +494,7 @@ class ConfigMetadataHandler(ConfigHandler):
 
             return version
 
-        version = self._parse_attr(value, self.package_dir)
-
-        if callable(version):
-            version = version()
-
-        if not isinstance(version, str):
-            if hasattr(version, '__iter__'):
-                version = '.'.join(map(str, version))
-            else:
-                version = '%s' % version
-
-        return version
+        return expand.version(self._parse_attr(value, self.package_dir))
 
 
 class ConfigOptionsHandler(ConfigHandler):

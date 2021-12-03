@@ -214,3 +214,19 @@ def find_packages(namespaces=False, **kwargs):
         where = [where]
 
     return list(chain_iter(PackageFinder.find(x, **kwargs) for x in where))
+
+
+def version(value):
+    """When getting the version directly from an attribute,
+    it should be normalised to string.
+    """
+    if callable(value):
+        value = value()
+
+    if not isinstance(value, str):
+        if hasattr(value, '__iter__'):
+            value = '.'.join(map(str, value))
+        else:
+            value = '%s' % value
+
+    return value
