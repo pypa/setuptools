@@ -1,6 +1,11 @@
+import os
 import re
 import sys
+import shutil
+import string
 import subprocess
+import venv
+from tempfile import TemporaryDirectory
 
 from path import Path
 
@@ -127,12 +132,46 @@ def update_pkg_resources():
 def update_setuptools():
     vendor = Path('setuptools/_vendor')
     install(vendor)
+    install_validate_pyproject(vendor)
     rewrite_packaging(vendor / 'packaging', 'setuptools.extern')
     rewrite_jaraco_text(vendor / 'jaraco/text', 'setuptools.extern')
     rewrite_jaraco(vendor / 'jaraco', 'setuptools.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
     rewrite_importlib_metadata(vendor / 'importlib_metadata', 'setuptools.extern')
     rewrite_more_itertools(vendor / "more_itertools")
+
+
+def install_validate_pyproject(vendor):
+    """``validate-pyproject`` can be vendorized to remove all dependencies"""
+    req = next(
+        (x for x in (vendor / "vendored.txt").lines() if 'validate-pyproject' in x),
+        "validate-pyproject[all]"
+    )
+
+    pkg, _, _ = req.strip(string.whitespace + "#").partition("#")
+    pkg = pkg.strip()
+
+    opts = {}
+    if sys.version_info[:2] >= (3, 10):
+        opts["ignore_cleanup_errors"] = True
+
+    with TemporaryDirectory(**opts) as tmp:
+        venv.create(tmp, with_pip=True)
+        path = os.pathsep.join(Path(tmp).glob("*"))
+        venv_python = shutil.which("python", path=path)
+        subprocess.check_call([venv_python, "-m", "pip", "install", pkg])
+        cmd = [
+            venv_python,
+            "-m",
+            "validate_pyproject.vendoring",
+            "--output-dir",
+            str(vendor / "_validate_pyproject"),
+            "--enable-plugins",
+            "setuptools",
+            "distutils",
+            "--very-verbose"
+        ]
+        subprocess.check_call(cmd)
 
 
 __name__ == '__main__' and update_vendored()
