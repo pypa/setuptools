@@ -3,4 +3,5 @@ pyparsing==2.2.1
 ordered-set==3.1.1
 more_itertools==8.8.0
 tomli==1.2.2
+ini2toml==0.6
 # validate-pyproject[all]==0.3.1  # Special handling, don't remove

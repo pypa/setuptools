@@ -60,7 +60,9 @@ def install(vendor):
     remove_all(vendor.glob('*.dist-info'))
     remove_all(vendor.glob('*.egg-info'))
     remove_all(vendor.glob('six.py'))
+    remove_ini2toml_extras(vendor)
     (vendor / '__init__.py').write_text('')
+    (vendor / 'bin').rmtree()
 
 
 def update_pkg_resources():
@@ -109,3 +111,22 @@ def install_validate_pyproject(vendor):
         ]
         subprocess.check_output(cmd)
         info(f"{pkg!r} vendorized")
+
+
+def remove_ini2toml_extras(vendor):
+    """Remove unnecessary files from `ini2toml`"""
+    unecessary = [
+        "ini2toml/__main__.py",
+        "ini2toml/api.py",
+        "ini2toml/cli.py",
+        "ini2toml/drivers/configupdater.py",
+        "ini2toml/drivers/full_toml.py",
+        "ini2toml/drivers/lite_toml.py",
+        "ini2toml/plugins/coverage.py",
+        "ini2toml/plugins/isort.py",
+        "ini2toml/plugins/mypy.py",
+        "ini2toml/plugins/profile_independent_tasks.py",
+        "ini2toml/plugins/pytest.py",
+        "ini2toml/translator.py",
+    ]
+    remove_all(vendor / file for file in unecessary)

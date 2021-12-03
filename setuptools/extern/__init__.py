@@ -70,5 +70,5 @@ class VendorImporter:
 
 
 names = ('packaging', 'pyparsing', 'ordered_set', 'more_itertools',
-         'tomli', '_validate_pyproject')
+         'tomli', 'ini2toml', '_validate_pyproject')
 VendorImporter(__name__, names, 'setuptools._vendor').install()
