@@ -159,7 +159,7 @@ When your project is installed, all of the dependencies not already installed
 will be located (via PyPI), downloaded, built (if necessary), and installed.
 This, of course, is a simplified scenarios. ``setuptools`` also provide
 additional keywords such as ``setup_requires`` that allows you to install
-dependencies before running the script, and ``extras_requires`` that take
+dependencies before running the script, and ``extras_require`` that take
 care of those needed by automatically generated scripts. It also provides
 mechanisms to handle dependencies that are not in PyPI. For more advanced use,
 see :doc:`dependency_management`

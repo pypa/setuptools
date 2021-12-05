@@ -360,6 +360,6 @@ or ``setup.py``.
 
         setup(
             name="Project-B",
-            python_requires=[">=3.6"],
+            python_requires=">=3.6",
             ...,
         )
