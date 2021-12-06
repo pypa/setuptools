@@ -517,7 +517,7 @@ class ConfigOptionsHandler(ConfigHandler):
         }
 
     def _parse_cmdclass(self, value):
-        return {k: expand.resolve_class(v) for k, v in self._parse_dict(value).items()}
+        return expand.cmdclass(self._parse_dict(value))
 
     def _parse_packages(self, value):
         """Parses `packages` option value.

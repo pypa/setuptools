@@ -192,6 +192,13 @@ def resolve_class(qualified_class_name):
     return getattr(module, class_name)
 
 
+def cmdclass(values):
+    """Given a dictionary mapping command names to strings for qualified class
+    names, apply :func:`resolve_class` to the dict values.
+    """
+    return {k: resolve_class(v) for k, v in values.items()}
+
+
 def find_packages(namespaces=False, **kwargs):
     """Works similarly to :func:`setuptools.find_packages`, but with all
     arguments given as keyword arguments. Moreover, ``where`` can be given
