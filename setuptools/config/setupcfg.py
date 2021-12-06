@@ -585,14 +585,8 @@ class ConfigOptionsHandler(ConfigHandler):
         self['entry_points'] = parsed
 
     def _parse_package_data(self, section_options):
-        parsed = self._parse_section_to_dict(section_options, self._parse_list)
-
-        root = parsed.get('*')
-        if root:
-            parsed[''] = root
-            del parsed['*']
-
-        return parsed
+        package_data = self._parse_section_to_dict(section_options, self._parse_list)
+        return expand.canonic_package_data(package_data)
 
     def parse_section_package_data(self, section_options):
         """Parses `package_data` configuration file section.

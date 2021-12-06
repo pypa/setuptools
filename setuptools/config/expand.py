@@ -230,3 +230,9 @@ def version(value):
             value = '%s' % value
 
     return value
+
+
+def canonic_package_data(package_data):
+    if "*" in package_data:
+        package_data[""] = package_data.pop("*")
+    return package_data
