@@ -214,18 +214,6 @@ class ConfigHandler:
         return [chunk.strip() for chunk in value if chunk.strip()]
 
     @classmethod
-    def _parse_list_glob(cls, value, separator=','):
-        """Equivalent to _parse_list() but expands any glob patterns using glob().
-
-        However, unlike with glob() calls, the results remain relative paths.
-
-        :param value:
-        :param separator: List items separator character.
-        :rtype: list
-        """
-        return expand.glob_relative(cls._parse_list(value, separator=separator))
-
-    @classmethod
     def _parse_dict(cls, value):
         """Represents value as a dict.
 
