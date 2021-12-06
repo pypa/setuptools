@@ -617,5 +617,5 @@ class ConfigOptionsHandler(ConfigHandler):
 
         :param dict section_options:
         """
-        parsed = self._parse_section_to_dict(section_options, self._parse_list_glob)
-        self['data_files'] = [(k, v) for k, v in parsed.items()]
+        parsed = self._parse_section_to_dict(section_options, self._parse_list)
+        self['data_files'] = expand.canonic_data_files(parsed)

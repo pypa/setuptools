@@ -236,3 +236,18 @@ def canonic_package_data(package_data):
     if "*" in package_data:
         package_data[""] = package_data.pop("*")
     return package_data
+
+
+def canonic_data_files(data_files, root_dir=None):
+    """For compatibility with ``setup.py``, ``data_files`` should be a list
+    of pairs instead of a dict.
+
+    This function also expands glob patterns.
+    """
+    if isinstance(data_files, list):
+        return data_files
+
+    return [
+        (dest, glob_relative(patterns, root_dir))
+        for dest, patterns in data_files.items()
+    ]
