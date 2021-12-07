@@ -156,21 +156,7 @@ def read_attr(attr_desc, package_dir=None, root_dir=None):
     module_name = '.'.join(attrs_path)
     module_name = module_name or '__init__'
 
-    parent_path = root_dir
-    if package_dir:
-        if attrs_path[0] in package_dir:
-            # A custom path was specified for the module we want to import
-            custom_path = package_dir[attrs_path[0]]
-            parts = custom_path.rsplit('/', 1)
-            if len(parts) > 1:
-                parent_path = os.path.join(root_dir, parts[0])
-                parent_module = parts[1]
-            else:
-                parent_module = custom_path
-            module_name = ".".join([parent_module, *attrs_path[1:]])
-        elif '' in package_dir:
-            # A custom parent directory was specified for all root modules
-            parent_path = os.path.join(root_dir, package_dir[''])
+    parent_path, module_name = _find_module(module_name, package_dir, root_dir)
 
     with patch_path(parent_path):
         try:
@@ -183,20 +169,50 @@ def read_attr(attr_desc, package_dir=None, root_dir=None):
     return getattr(module, attr_name)
 
 
-def resolve_class(qualified_class_name):
+def _find_module(module_name, package_dir, root_dir):
+    """Given a module (that could normally be imported by ``module_name``
+    after the build is complete), find the path to the parent directory where
+    it is contained and the canonical name that could be used to import it
+    considering the ``package_dir`` in the build configuration and ``root_dir``
+    """
+    parent_path = root_dir
+    module_parts = module_name.split('.')
+    if package_dir:
+        if module_parts[0] in package_dir:
+            # A custom path was specified for the module we want to import
+            custom_path = package_dir[module_parts[0]]
+            parts = custom_path.rsplit('/', 1)
+            if len(parts) > 1:
+                parent_path = os.path.join(root_dir, parts[0])
+                parent_module = parts[1]
+            else:
+                parent_module = custom_path
+            module_name = ".".join([parent_module, *module_parts[1:]])
+        elif '' in package_dir:
+            # A custom parent directory was specified for all root modules
+            parent_path = os.path.join(root_dir, package_dir[''])
+
+    return parent_path, module_name
+
+
+def resolve_class(qualified_class_name, package_dir=None, root_dir=None):
     """Given a qualified class name, return the associated class object"""
+    root_dir = root_dir or os.getcwd()
     idx = qualified_class_name.rfind('.')
     class_name = qualified_class_name[idx + 1 :]
     pkg_name = qualified_class_name[:idx]
-    module = importlib.import_module(pkg_name)
+
+    parent_path, module_name = _find_module(pkg_name, package_dir, root_dir)
+    with patch_path(parent_path):
+        module = importlib.import_module(module_name)
     return getattr(module, class_name)
 
 
-def cmdclass(values):
+def cmdclass(values, package_dir=None, root_dir=None):
     """Given a dictionary mapping command names to strings for qualified class
     names, apply :func:`resolve_class` to the dict values.
     """
-    return {k: resolve_class(v) for k, v in values.items()}
+    return {k: resolve_class(v, package_dir, root_dir) for k, v in values.items()}
 
 
 def find_packages(namespaces=False, **kwargs):
