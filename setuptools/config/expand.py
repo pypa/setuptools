@@ -215,7 +215,7 @@ def cmdclass(values, package_dir=None, root_dir=None):
     return {k: resolve_class(v, package_dir, root_dir) for k, v in values.items()}
 
 
-def find_packages(namespaces=False, **kwargs):
+def find_packages(*, namespaces=False, root_dir=None, **kwargs):
     """Works similarly to :func:`setuptools.find_packages`, but with all
     arguments given as keyword arguments. Moreover, ``where`` can be given
     as a list (the results will be simply concatenated).
@@ -232,11 +232,17 @@ def find_packages(namespaces=False, **kwargs):
     else:
         from setuptools import PackageFinder
 
+    root_dir = root_dir or "."
     where = kwargs.pop('where', ['.'])
     if isinstance(where, str):
         where = [where]
+    target = (_nest_url_style_path(root_dir, path) for path in where)
+    return list(chain_iter(PackageFinder.find(x, **kwargs) for x in target))
 
-    return list(chain_iter(PackageFinder.find(x, **kwargs) for x in where))
+
+def _nest_url_style_path(parent, path):
+    path = parent if path == "." else os.path.join(parent, path)
+    return path.replace(os.sep, "/").rstrip("/")
 
 
 def version(value):
