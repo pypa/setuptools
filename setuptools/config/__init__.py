@@ -1,6 +1,6 @@
 # For backward compatibility, the following classes/functions are exposed
 # from `config.setupcfg`
-from setuptools.config.setupcfg import (
+from setuptools.config.legacy_setupcfg import (
     ConfigHandler,
     parse_configuration,
     read_configuration,
