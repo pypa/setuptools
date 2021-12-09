@@ -7,6 +7,7 @@ object, etc..).
 import os
 from email.headerregistry import Address
 from functools import partial
+from itertools import chain
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Set, Union
 
 from setuptools.extern.packaging import version
@@ -84,7 +85,7 @@ def json_compatible_key(key: str) -> str:
     return key.lower().replace("-", "_")
 
 
-RFC822_KEYS = {json_compatible_key(k): k for k in CORE_METADATA}
+RFC822_MAP = {json_compatible_key(k): k for k in CORE_METADATA}
 """Mapping between JSON compatible keys (:pep:`566#json-compatible-metadata`)
 and email-header style (:rfc:`822`) core metadata keys.
 """
@@ -92,7 +93,7 @@ and email-header style (:rfc:`822`) core metadata keys.
 
 def normalise_key(key: str) -> str:
     key = json_compatible_key(key)
-    if key[-1] == "s" and key[:-1] in RFC822_KEYS:
+    if key[-1] == "s" and key[:-1] in RFC822_MAP:
         # Sometimes some keys come in the plural (e.g. "classifiers", "license_files")
         return key[:-1]
     return key
@@ -239,7 +240,7 @@ def _from_project_table(metadata: dict, project: dict, dynamic: set, root_dir: _
             dynamic.remove(norm_key)
         if json_key in PYPROJECT_CORRESPONDENCE:
             PYPROJECT_CORRESPONDENCE[json_key](val, metadata, root_dir)
-        elif norm_key in RFC822_KEYS:
+        elif norm_key in RFC822_MAP:
             metadata[norm_key] = val
 
 
@@ -250,8 +251,13 @@ def _from_tool_table(metadata: dict, tool_table: dict):
             metadata[norm_key] = tool_table[key]
 
 
-SETUPTOOLS_RENAMES = {"long_description_content_type": "description_content_type"}
+SETUPTOOLS_RENAMES = {
+    "long_description_content_type": "description_content_type",
+    "license_files": "license_file"
+}
 OUTDATED_SETTERS = {"requires_dist": "requires"}
+SETUPTOOLS_PATCHES = {"long_description_content_type", "project_urls",
+                      "provides_extras", "license_file", "license_files"}
 
 
 def apply(metadata: dict, dist: "Distribution", _source: str = "pyproject.toml"):
@@ -260,10 +266,12 @@ def apply(metadata: dict, dist: "Distribution", _source: str = "pyproject.toml")
     (configuring the distribution object accordingly)
     """
     metadata_obj = dist.metadata
-    norm_attrs = ((normalise_key(x), x) for x in metadata_obj.__dict__)
+    keys = set(metadata_obj.__dict__) | SETUPTOOLS_PATCHES
+    print(f"{keys=}")
+    norm_attrs = ((normalise_key(x), x) for x in keys)
     norm_attrs = ((UPDATES.get(k, k) , v) for k, v in norm_attrs)
     norm_attrs = ((SETUPTOOLS_RENAMES.get(k, k) , v) for k, v in norm_attrs)
-    metadata_attrs = ((k, v) for k, v in norm_attrs if k in RFC822_KEYS)
+    metadata_attrs = ((k, v) for k, v in norm_attrs if k in RFC822_MAP)
     metadata_setters = {
         k: getattr(metadata_obj, f"set_{v}", partial(setattr, metadata_obj, v))
         for k, v in metadata_attrs
@@ -271,7 +279,9 @@ def apply(metadata: dict, dist: "Distribution", _source: str = "pyproject.toml")
 
     for key, value in metadata.items():
         norm_key = normalise_key(key)
-        if norm_key in OUTDATED_SETTERS:
+        if norm_key == "license_file":
+            metadata_obj.license_files = value  # plural for setuptools
+        elif norm_key in OUTDATED_SETTERS:
             setattr(metadata_obj, OUTDATED_SETTERS[norm_key], value)
         elif norm_key in metadata_setters:
             metadata_setters[norm_key](value)
@@ -290,7 +300,7 @@ def compare(metadata1: dict, metadata2: dict) -> Union[bool, int]:
     JSON-compatible metadata, as defined in :pep:`566#json-compatible-metadata`.
     Extra keys will be ignored.
     """
-    valid_keys = set(RFC822_KEYS)
+    valid_keys = set(RFC822_MAP)
     return_value: Union[bool, int] = True
     metadata1_keys = valid_keys & set(metadata1)
     metadata2_keys = valid_keys & set(metadata2)
@@ -307,7 +317,7 @@ def compare(metadata1: dict, metadata2: dict) -> Union[bool, int]:
             value1, value2 = version.parse(value1), version.parse(value2)
         elif key == "requires_dist":
             value1, value2 = _norm_reqs(value1), _norm_reqs(value2)
-        if RFC822_KEYS.get(key, key) in LIST_VALUES:
+        if RFC822_MAP.get(key, key) in LIST_VALUES:
             value1, value2 = set(value1), set(value2)
         if value1 != value2:
             return False
@@ -317,3 +327,26 @@ def compare(metadata1: dict, metadata2: dict) -> Union[bool, int]:
 
 def _norm_reqs(reqs: Iterable[str]) -> Set[str]:
     return set(map(lambda req: str(Requirement(req)), reqs))
+
+
+def from_dist(dist: "Distribution") -> dict:
+    """Given a distribution object, extract core metadata from it,
+    and returns as a JSON-like dict as defined in
+    :pep:`566#json-compatible-metadata`
+    """
+    metadata = {}
+    target = dist.metadata
+    old = chain(UPDATES.items(), SETUPTOOLS_RENAMES.items(), OUTDATED_SETTERS.items())
+    outdated = {v: k for k, v in old}
+    for key in set(RFC822_MAP):
+        candidates = [outdated.get(key, key)]
+        if key[-1] != 's':
+            candidates.append(f"{key}s")  # sometimes the key is in the plural form
+        attr = next((k for k in candidates if hasattr(target, k)), None)
+        if attr is None:
+            continue
+        value = getattr(target, attr)
+        if value or value is False:
+            metadata[key] = value
+
+    return metadata

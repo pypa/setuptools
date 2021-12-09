@@ -126,7 +126,14 @@ def test_apply(tmp_path):
     meta.apply(metadata, dist)
     internal_meta = dist.metadata
     assert internal_meta.name == EXPECTED_METADATA["name"]
+    assert internal_meta.license_files == EXPECTED_METADATA["license_file"]
     assert (
         internal_meta.long_description_content_type
         == EXPECTED_METADATA["description_content_type"]
     )
+
+    reconstructed = meta.from_dist(dist)
+    cmp = meta.compare(metadata, reconstructed)
+    if cmp is not True:
+        print("cmp:", cmp)
+        assert metadata == reconstructed  # just so pytest will print the diff
