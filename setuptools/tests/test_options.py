@@ -108,7 +108,11 @@ EXPECTED_OPTIONS = {
     "package_data": {"": ["*.txt"]},
     "data_files": [("data", ["files/file.txt"])],
     "cmdclass": {"sdist": Mock(__qualname__="pkg.mod.CustomSdist")},
-    "entry_points": {"console_scripts": ["exec = pkg.__main__:exec"]}
+    "entry_points": {"console_scripts": ["exec = pkg.__main__:exec"]},
+    "command_options": {
+        "sdist": {"formats": "gztar"},
+        "bdist_wheel": {"universal": True},
+    }
 }
 
 
@@ -134,3 +138,5 @@ def test_apply(tmp_path):
     cls = dist.cmdclass["sdist"]
     assert f"{cls.__module__}.{cls.__name__}" == "pkg.mod.CustomSdist"
     assert set(dist.entry_points["console_scripts"]) == {"exec = pkg.__main__:exec"}
+    assert dist.command_options["sdist"]["formats"] == ("pyproject.toml", "gztar")
+    assert dist.command_options["bdist_wheel"]["universal"] == ("pyproject.toml", True)
