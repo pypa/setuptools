@@ -249,3 +249,20 @@ def _comparable_items(
     if isinstance(values, list):
         return (key, *sorted(values))
     return (key, values)
+
+
+def from_dist(dist: "Distribution") -> dict:
+    """Given a distribution object, extract options from it"""
+    options = {}
+    for key in OPTIONS:
+        value = getattr(dist, key, None)
+        if value or value is False:
+            options[key] = value
+
+    for cmd, opts in dist.command_options.items():
+        command_options = options.setdefault("command_options", {})
+        for key, (_src, value) in opts.items():
+            dest = command_options.setdefault(cmd, {})
+            dest[key] = value
+
+    return options

@@ -140,3 +140,9 @@ def test_apply(tmp_path):
     assert set(dist.entry_points["console_scripts"]) == {"exec = pkg.__main__:exec"}
     assert dist.command_options["sdist"]["formats"] == ("pyproject.toml", "gztar")
     assert dist.command_options["bdist_wheel"]["universal"] == ("pyproject.toml", True)
+
+    reconstructed = options.from_dist(dist)
+    cmp = options.compare(opts, reconstructed)
+    if cmp is not True:
+        print("cmp:", cmp)
+        assert opts == reconstructed  # just so pytest will print the diff
