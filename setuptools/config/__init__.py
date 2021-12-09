@@ -1,13 +1,7 @@
 # For backward compatibility, the following classes/functions are exposed
-# from `config.setupcfg`
-from setuptools.config.legacy_setupcfg import (
-    ConfigHandler,
-    parse_configuration,
-    read_configuration,
-)
+# from `config.legacy_setupcfg`
+from setuptools.config.legacy_setupcfg import parse_configuration
 
 __all__ = [
-    'ConfigHandler',
-    'parse_configuration',
-    'read_configuration'
+    'parse_configuration',  # still required by setuptools.dist
 ]
