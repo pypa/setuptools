@@ -1,3 +1,5 @@
+from configparser import ConfigParser
+
 from setuptools.config.pyprojecttoml import read_configuration, expand_configuration
 
 EXAMPLE = """
@@ -101,3 +103,36 @@ def test_read_configuration(tmp_path):
     assert expanded["tool"]["setuptools"]["data-files"] == [
         ("data", ["files/file.txt"])
     ]
+
+
+ENTRY_POINTS = {
+    "console_scripts": {"a": "mod.a:func"},
+    "gui_scripts": {"b": "mod.b:func"},
+    "other": {"c": "mod.c:func [extra]"},
+}
+
+
+def test_expand_entry_point(tmp_path):
+    entry_points = ConfigParser()
+    entry_points.read_dict(ENTRY_POINTS)
+    with open(tmp_path / "entry-points.txt", "w") as f:
+        entry_points.write(f)
+
+    tool = {"setuptools": {"dynamic": {"entry-points": {"file": "entry-points.txt"}}}}
+    project = {"dynamic": ["scripts", "gui-scripts", "entry-points"]}
+    pyproject = {"project": project, "tool": tool}
+    expanded = expand_configuration(pyproject, tmp_path)
+    assert len(expanded["project"]["scripts"]) == 1
+    assert expanded["project"]["scripts"]["a"] == "mod.a:func"
+    assert len(expanded["project"]["gui-scripts"]) == 1
+    assert expanded["project"]["gui-scripts"]["b"] == "mod.b:func"
+    print(expanded["project"]["entry-points"])
+    assert len(expanded["project"]["entry-points"]) == 1
+    assert expanded["project"]["entry-points"]["other"]["c"] == "mod.c:func [extra]"
+
+    project = {"dynamic": ["entry-points"]}
+    pyproject = {"project": project, "tool": tool}
+    expanded = expand_configuration(pyproject, tmp_path)
+    assert len(expanded["project"]["entry-points"]) == 3
+    assert "scripts" not in expanded["project"]
+    assert "gui-scripts" not in expanded["project"]

@@ -23,6 +23,7 @@ import os
 import sys
 from glob import iglob
 from itertools import chain
+from configparser import ConfigParser
 
 from distutils.errors import DistutilsOptionError
 
@@ -280,3 +281,17 @@ def canonic_data_files(data_files, root_dir=None):
         (dest, glob_relative(patterns, root_dir))
         for dest, patterns in data_files.items()
     ]
+
+
+def entry_points(text, text_source="entry-points"):
+    """Given the contents of entry-points file,
+    process it into a 2-level dictionary (``dict[str, dict[str, str]]``).
+    The first level keys are entry-point groups, the second level keys are
+    entry-point names, and the second level values are references to objects
+    (that correspond to the entry-point value).
+    """
+    parser = ConfigParser(default_section=None)
+    parser.read_string(text, text_source)
+    groups = {k: dict(v.items()) for k, v in parser.items()}
+    groups.pop(parser.default_section, None)
+    return groups
