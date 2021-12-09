@@ -16,7 +16,6 @@ This module focus on the second step, and therefore allow sharing the expansion
 functions among several configuration file formats.
 """
 import ast
-import contextlib
 import importlib
 import io
 import os
@@ -35,10 +34,7 @@ class StaticModule:
     Attempt to load the module by the name
     """
 
-    def __init__(self, name):
-        spec = importlib.util.find_spec(name)
-        if spec is None:
-            raise ModuleNotFoundError(name)
+    def __init__(self, name, spec):
         with open(spec.origin) as strm:
             src = strm.read()
         module = ast.parse(src)
@@ -58,18 +54,6 @@ class StaticModule:
             raise AttributeError(
                 "{self.name} has no attribute {attr}".format(**locals())
             ) from e
-
-
-@contextlib.contextmanager
-def patch_path(path):
-    """
-    Add path to front of sys.path for the duration of the context.
-    """
-    try:
-        sys.path.insert(0, path)
-        yield
-    finally:
-        sys.path.remove(path)
 
 
 def glob_relative(patterns, root_dir=None):
@@ -153,21 +137,37 @@ def read_attr(attr_desc, package_dir=None, root_dir=None):
     root_dir = root_dir or os.getcwd()
     attrs_path = attr_desc.strip().split('.')
     attr_name = attrs_path.pop()
-
     module_name = '.'.join(attrs_path)
     module_name = module_name or '__init__'
+    parent_path, path, module_name = _find_module(module_name, package_dir, root_dir)
+    spec = _find_spec(module_name, path, parent_path)
 
-    parent_path, module_name = _find_module(module_name, package_dir, root_dir)
+    try:
+        return getattr(StaticModule(module_name, spec), attr_name)
+    except Exception:
+        # fallback to evaluate module
+        module = _load_spec(spec, module_name)
+        return getattr(module, attr_name)
 
-    with patch_path(parent_path):
-        try:
-            # attempt to load value statically
-            return getattr(StaticModule(module_name), attr_name)
-        except Exception:
-            # fallback to simple import
-            module = importlib.import_module(module_name)
 
-    return getattr(module, attr_name)
+def _find_spec(module_name, module_path, parent_path):
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    spec = spec or importlib.util.find_spec(module_name)
+
+    if spec is None:
+        raise ModuleNotFoundError(module_name)
+
+    return spec
+
+
+def _load_spec(spec, module_name):
+    name = getattr(spec, "__name__", module_name)
+    if name in sys.modules:
+        return sys.modules[name]
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module  # cache (it also ensures `==` works on loaded items)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _find_module(module_name, package_dir, root_dir):
@@ -193,7 +193,13 @@ def _find_module(module_name, package_dir, root_dir):
             # A custom parent directory was specified for all root modules
             parent_path = os.path.join(root_dir, package_dir[''])
 
-    return parent_path, module_name
+    path_start = os.path.join(parent_path, *module_name.split("."))
+    candidates = chain(
+        (f"{path_start}.py", os.path.join(path_start, "__init__.py")),
+        iglob(f"{path_start}.*")
+    )
+    module_path = next((x for x in candidates if os.path.isfile(x)), None)
+    return parent_path, module_path, module_name
 
 
 def resolve_class(qualified_class_name, package_dir=None, root_dir=None):
@@ -203,9 +209,8 @@ def resolve_class(qualified_class_name, package_dir=None, root_dir=None):
     class_name = qualified_class_name[idx + 1 :]
     pkg_name = qualified_class_name[:idx]
 
-    parent_path, module_name = _find_module(pkg_name, package_dir, root_dir)
-    with patch_path(parent_path):
-        module = importlib.import_module(module_name)
+    parent_path, path, module_name = _find_module(pkg_name, package_dir, root_dir)
+    module = _load_spec(_find_spec(module_name, path, parent_path), module_name)
     return getattr(module, class_name)
 
 

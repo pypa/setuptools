@@ -76,8 +76,8 @@ def test_read_attr(tmp_path):
 
 
 def test_resolve_class():
-    from distutils.command import sdist
-    assert expand.resolve_class('distutils.command.sdist') == sdist
+    from setuptools.command.sdist import sdist
+    assert expand.resolve_class("setuptools.command.sdist.sdist") == sdist
 
 
 def test_find_packages(tmp_path):
