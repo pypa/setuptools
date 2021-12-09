@@ -7,7 +7,7 @@ from functools import partial
 from setuptools.extern import tomli
 from setuptools.extern._validate_pyproject import validate
 from setuptools.config import expand as _expand
-from setuptools.errors import OptionError
+from setuptools.errors import OptionError, FileError
 
 
 def read_configuration(filepath, expand=True, ignore_option_errors=False):
@@ -27,6 +27,9 @@ def read_configuration(filepath, expand=True, ignore_option_errors=False):
     :rtype: dict
     """
     filepath = os.path.abspath(filepath)
+
+    if not os.path.isfile(filepath):
+        raise FileError(f"Configuration file {filepath!r} does not exist.")
 
     with open(filepath, "rb") as file:
         asdict = tomli.load(file)
