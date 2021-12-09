@@ -137,6 +137,11 @@ def _expand_all_dynamic(project_cfg, setuptools_cfg, root_dir, ignore_option_err
     if "readme" in dynamic:
         project_cfg["readme"] = _expand_readme(dynamic_cfg, root_dir, silent)
 
+    if "entry-points" in dynamic:
+        field = "entry-points"
+        value = _expand_dynamic(dynamic_cfg, field, package_dir, root_dir, silent)
+        project_cfg.update(_expand_entry_points(value, dynamic))
+
 
 def _expand_dynamic(dynamic_cfg, field, package_dir, root_dir, ignore_option_errors):
     if field in dynamic_cfg:
@@ -158,6 +163,16 @@ def _expand_readme(dynamic_cfg, root_dir, ignore_option_errors):
         "text": _expand_dynamic(dynamic_cfg, "readme", None, root_dir, silent),
         "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst")
     }
+
+
+def _expand_entry_points(text, dynamic):
+    groups = _expand.entry_points(text)
+    expanded = {"entry-points": groups}
+    if "scripts" in dynamic and "console_scripts" in groups:
+        expanded["scripts"] = groups.pop("console_scripts")
+    if "gui-scripts" in dynamic and "gui_scripts" in groups:
+        expanded["gui-scripts"] = groups.pop("gui_scripts")
+    return expanded
 
 
 def _expand_packages(setuptools_cfg, root_dir, ignore_option_errors=False):

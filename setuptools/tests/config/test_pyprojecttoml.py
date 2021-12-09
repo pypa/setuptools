@@ -1,4 +1,4 @@
-import os
+from configparser import ConfigParser
 
 from setuptools.config.pyprojecttoml import read_configuration, expand_configuration
 
@@ -88,9 +88,10 @@ def test_read_configuration(tmp_path):
     assert config["project"].get("readme") is None
 
     expanded = expand_configuration(config, tmp_path)
+    expanded_project = expanded["project"]
     assert read_configuration(pyproject, expand=True) == expanded
-    assert expanded["project"]["version"] == "3.10"
-    assert expanded["project"]["readme"]["text"] == "hello world"
+    assert expanded_project["version"] == "3.10"
+    assert expanded_project["readme"]["text"] == "hello world"
     assert set(expanded["tool"]["setuptools"]["packages"]) == {
         "pkg",
         "other",
@@ -101,3 +102,37 @@ def test_read_configuration(tmp_path):
     assert expanded["tool"]["setuptools"]["data-files"] == [
         ("data", ["files/file.txt"])
     ]
+
+
+ENTRY_POINTS = {
+    "console_scripts": {"a": "mod.a:func"},
+    "gui_scripts": {"b": "mod.b:func"},
+    "other": {"c": "mod.c:func [extra]"},
+}
+
+
+def test_expand_entry_point(tmp_path):
+    entry_points = ConfigParser()
+    entry_points.read_dict(ENTRY_POINTS)
+    with open(tmp_path / "entry-points.txt", "w") as f:
+        entry_points.write(f)
+
+    tool = {"setuptools": {"dynamic": {"entry-points": {"file": "entry-points.txt"}}}}
+    project = {"dynamic": ["scripts", "gui-scripts", "entry-points"]}
+    pyproject = {"project": project, "tool": tool}
+    expanded = expand_configuration(pyproject, tmp_path)
+    expanded_project = expanded["project"]
+    assert len(expanded_project["scripts"]) == 1
+    assert expanded_project["scripts"]["a"] == "mod.a:func"
+    assert len(expanded_project["gui-scripts"]) == 1
+    assert expanded_project["gui-scripts"]["b"] == "mod.b:func"
+    assert len(expanded_project["entry-points"]) == 1
+    assert expanded_project["entry-points"]["other"]["c"] == "mod.c:func [extra]"
+
+    project = {"dynamic": ["entry-points"]}
+    pyproject = {"project": project, "tool": tool}
+    expanded = expand_configuration(pyproject, tmp_path)
+    expanded_project = expanded["project"]
+    assert len(expanded_project["entry-points"]) == 3
+    assert "scripts" not in expanded_project
+    assert "gui-scripts" not in expanded_project
