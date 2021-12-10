@@ -4,9 +4,11 @@ distutils configuration options.
 object, etc..).
 """
 import os
+from collections.abc import Mapping
 from itertools import chain
 from typing import (TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Set, Tuple,
                     Type, Union)
+from types import MappingProxyType
 
 if TYPE_CHECKING:
     from pkg_resources import EntryPoint  # noqa
@@ -14,6 +16,7 @@ if TYPE_CHECKING:
 
 Scalar = Union[int, float, bool, None, str]
 _Path = Union[os.PathLike, str, None]
+EMPTY = MappingProxyType({})  # Immutable dict-like
 
 OPTIONS = {
     # "obsoletes", "provides" => covered in metadata
@@ -63,6 +66,9 @@ def from_pyproject(pyproject: dict, root_dir: _Path = None) -> dict:
 
     This function is "forgiving" with its inputs, but strict with its outputs.
     """
+    if not pyproject:
+        return {}
+
     options = {}
     _ = root_dir  # argument exists for symmetry with setuptools.metadata
 
@@ -101,19 +107,9 @@ def _normalise_entry_points(pyproject: dict, options: dict):
 def _copy_command_options(pyproject: dict, options: dict):
     from distutils import log
 
-    from pkg_resources import iter_entry_points
-    from setuptools.dist import Distribution
-
     tool_table = pyproject.get("tool", {})
-    valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}
-
-    cmdclass = tool_table.get("setuptools", {}).get("cmdclass", {}).items()
-    entry_points = (_load_ep(ep) for ep in iter_entry_points('distutils.commands'))
-    entry_points = (ep for ep in entry_points if ep)
-    for cmd, cmd_class in chain(entry_points, cmdclass):
-        opts = valid_options.get(cmd, set())
-        opts = opts | _normalise_cmd_options(getattr(cmd_class, "user_options", []))
-        valid_options[cmd] = opts
+    cmdclass = tool_table.get("setuptools", {}).get("cmdclass", {})
+    valid_options = _valid_command_options(cmdclass)
 
     cmd_opts = {}
     for cmd, config in pyproject.get("tool", {}).get("distutils", {}).items():
@@ -130,6 +126,22 @@ def _copy_command_options(pyproject: dict, options: dict):
 
     if cmd_opts:
         options["command_options"] = cmd_opts
+
+
+def _valid_command_options(cmdclass: Mapping = EMPTY) -> Dict[str, Set[str]]:
+    from pkg_resources import iter_entry_points
+    from setuptools.dist import Distribution
+
+    valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}
+
+    entry_points = (_load_ep(ep) for ep in iter_entry_points('distutils.commands'))
+    entry_points = (ep for ep in entry_points if ep)
+    for cmd, cmd_class in chain(entry_points, cmdclass.items()):
+        opts = valid_options.get(cmd, set())
+        opts = opts | _normalise_cmd_options(getattr(cmd_class, "user_options", []))
+        valid_options[cmd] = opts
+
+    return valid_options
 
 
 def _load_ep(ep: "EntryPoint") -> Optional[Tuple[str, Type]]:
@@ -180,56 +192,43 @@ def compare(options1: dict, options2: dict) -> Union[bool, int]:
     Both ``options1`` and ``options2`` should be dicts similar to the ones
     returned by :func:`from_pyproject`. Extra keys will be ignored.
     """
+    from .metadata import _compare_sets
+
     valid_keys = OPTIONS
     options1_keys = valid_keys & set(options1)
     options2_keys = valid_keys & set(options2)
-    return_value: Union[bool, int] = _compare_sets(options1_keys, options2_keys)
+    return_value = _compare_sets(options1_keys, options2_keys)
     if return_value is False:
         return False
 
     for key in (options1_keys & options2_keys):
-        value1, value2 = options1[key], options1[key]
-        if key == "data_files":
-            value1, value2 = _norm_items(value1), _norm_items(value2)
-        elif key == "cmdclass":
-            value1 = {(k, v.__qualname__) for k, v in value1.items()}
-            value2 = {(k, v.__qualname__) for k, v in value2.items()}
-        elif key == "command_options":
-            value1 = _norm_items(_comparable_cmd_opts(value1).items())
-            value2 = _norm_items(_comparable_cmd_opts(value2).items())
+        value1, value2 = _norm_values(key, options1[key], options1[key])
+        if isinstance(value1, set) and isinstance(value2, set):
             cmp = _compare_sets(value1, value2)
-            # Let's be more relaxed with command options, since they can be read
-            # from other files in disk
-            all_int = isinstance(cmp, int) and isinstance(return_value, int)
-            if cmp is False or (cmp != return_value and all_int):
+            diff_returns = (cmp != return_value and return_value is not True)
+            if cmp is False or (cmp is not True and diff_returns):
                 return False
             return_value = cmp
-            continue
-        elif key in DICT_VALUES:
-            value1, value2 = _norm_items(value1.items()), _norm_items(value2.items())
-        elif key in LIST_VALUES:
-            value1, value2 = set(value1), set(value2)
-        if value1 != value2:
+        elif value1 != value2:
             return False
 
     return return_value
 
 
-def _compare_sets(value1: set, value2: set) -> Union[bool, int]:
-    """
-    ``True`` if ``value1 == ``value2``
-    ``1`` if ``value1`` is a subset of ``value2``
-    ``-1`` if ``value2`` is a subset of ``value1``
-    ``False`` otherwise
-    """
-    return_value: Union[bool, int] = True
-    if value1 ^ value2:
-        return False
-    if value1 - value2:
-        return_value = -1
-    elif value2 - value1:
-        return_value = 1
-    return return_value
+def _norm_values(key: str, value1, value2) -> tuple:
+    if key == "data_files":
+        value1, value2 = _norm_items(value1), _norm_items(value2)
+    elif key == "cmdclass":
+        value1 = {(k, v.__qualname__) for k, v in value1.items()}
+        value2 = {(k, v.__qualname__) for k, v in value2.items()}
+    elif key == "command_options":
+        value1 = _norm_items(_comparable_cmd_opts(value1).items())
+        value2 = _norm_items(_comparable_cmd_opts(value2).items())
+    elif key in DICT_VALUES:
+        value1, value2 = _norm_items(value1.items()), _norm_items(value2.items())
+    elif key in LIST_VALUES:
+        value1, value2 = set(value1), set(value2)
+    return value1, value2
 
 
 def _norm_items(
@@ -254,15 +253,24 @@ def _comparable_items(
 def from_dist(dist: "Distribution") -> dict:
     """Given a distribution object, extract options from it"""
     options = {}
-    for key in OPTIONS:
+    for key in OPTIONS - {"command_options"}:
         value = getattr(dist, key, None)
         if value or value is False:
             options[key] = value
 
+    valid_cmd = set(_valid_command_options(dist.cmdclass)) - {"metadata", "options"}
+
+    command_options = {}
     for cmd, opts in dist.command_options.items():
-        command_options = options.setdefault("command_options", {})
+        if cmd not in valid_cmd:
+            continue
         for key, (_src, value) in opts.items():
             dest = command_options.setdefault(cmd, {})
             dest[key] = value
+
+    if command_options:
+        options["command_options"] = command_options
+
+    # TODO: make sure entry_points are not strings (parse if they are)
 
     return options

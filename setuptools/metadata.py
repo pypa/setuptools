@@ -105,12 +105,12 @@ def _summary(val: str, dest: dict, _root_dir: _Path):
 
 
 def _description(val: _DictOrStr, dest: dict, root_dir: _Path):
+    from setuptools.config import expand
+
     if isinstance(val, str):
-        text = val
+        text = expand.read_files(val)
         ctype = "text/x-rst"
     else:
-        from setuptools.config import expand
-
         text = expand.read_files(val["file"]) if "file" in val else val["text"]
         ctype = val["content-type"]
 
@@ -194,6 +194,9 @@ def from_pyproject(pyproject: dict, root_dir: _Path = None) -> dict:
 
     This function is "forgiving" with its inputs, but strict with its outputs.
     """
+    if not pyproject:
+        return {}
+
     metadata = {}
     project = pyproject.get("project", {}).copy()
     dynamic = {normalise_key(k) for k in project.pop("dynamic", [])}
@@ -223,8 +226,9 @@ def _finalize_dynamic(metadata: dict, dynamic: set, dynamic_cfg: dict, root_dir:
         if json_key == "license_files":
             files = {v: v for v in expand.glob_relative(val, root_dir)}  # deduplicate
             val = [v for v in files.keys() if not v.endswith("~")]
-        metadata[normalise_key(key)] = val
         dynamic.discard("license")
+        if val:
+            metadata[normalise_key(key)] = val
 
     if dynamic:
         metadata["dynamic"] = sorted(list(dynamic))
@@ -252,8 +256,12 @@ def _from_tool_table(metadata: dict, tool_table: dict):
 
 
 SETUPTOOLS_RENAMES = {
+    "long_description": "description",
     "long_description_content_type": "description_content_type",
-    "license_files": "license_file"
+    "license_files": "license_file",
+    "python_requires": "requires_python",
+    "description": "summary",
+    "url": "home_page",
 }
 OUTDATED_SETTERS = {"requires_dist": "requires"}
 SETUPTOOLS_PATCHES = {"long_description_content_type", "project_urls",
@@ -267,7 +275,6 @@ def apply(metadata: dict, dist: "Distribution", _source: str = "pyproject.toml")
     """
     metadata_obj = dist.metadata
     keys = set(metadata_obj.__dict__) | SETUPTOOLS_PATCHES
-    print(f"{keys=}")
     norm_attrs = ((normalise_key(x), x) for x in keys)
     norm_attrs = ((UPDATES.get(k, k) , v) for k, v in norm_attrs)
     norm_attrs = ((SETUPTOOLS_RENAMES.get(k, k) , v) for k, v in norm_attrs)
@@ -281,6 +288,12 @@ def apply(metadata: dict, dist: "Distribution", _source: str = "pyproject.toml")
         norm_key = normalise_key(key)
         if norm_key == "license_file":
             metadata_obj.license_files = value  # plural for setuptools
+        elif norm_key == "project_url":
+            urls = {}
+            for url in value:
+                name, _, address = url.partition(",")
+                urls[name.strip()] = address.strip()
+            metadata_obj.project_urls = urls
         elif norm_key in OUTDATED_SETTERS:
             setattr(metadata_obj, OUTDATED_SETTERS[norm_key], value)
         elif norm_key in metadata_setters:
@@ -301,15 +314,11 @@ def compare(metadata1: dict, metadata2: dict) -> Union[bool, int]:
     Extra keys will be ignored.
     """
     valid_keys = set(RFC822_MAP)
-    return_value: Union[bool, int] = True
     metadata1_keys = valid_keys & set(metadata1)
     metadata2_keys = valid_keys & set(metadata2)
-    if metadata1_keys ^ metadata2_keys:
+    return_value = _compare_sets(metadata1_keys, metadata2_keys)
+    if return_value is False:
         return False
-    if metadata1_keys - metadata2_keys:
-        return_value = -1
-    elif metadata2_keys - metadata1_keys:
-        return_value = 1
 
     for key in (metadata1_keys & metadata2_keys):
         value1, value2 = metadata1[key], metadata2[key]
@@ -319,10 +328,33 @@ def compare(metadata1: dict, metadata2: dict) -> Union[bool, int]:
             value1, value2 = _norm_reqs(value1), _norm_reqs(value2)
         if RFC822_MAP.get(key, key) in LIST_VALUES:
             value1, value2 = set(value1), set(value2)
-        if value1 != value2:
+
+        if isinstance(value1, set) and isinstance(value2, set):
+            cmp = _compare_sets(value1, value2)
+            diff_returns = (cmp != return_value and return_value is not True)
+            if cmp is False or (cmp is not True and diff_returns):
+                return False
+            return_value = cmp
+        elif value1 != value2:
             return False
 
     return return_value
+
+
+def _compare_sets(value1: set, value2: set) -> Union[bool, int]:
+    """
+    ``True`` if ``value1 == ``value2``
+    ``1`` if ``value1`` is a subset of ``value2``
+    ``-1`` if ``value2`` is a subset of ``value1``
+    ``False`` otherwise
+    """
+    if value1 == value2:
+        return True
+    if value1 > value2:
+        return -1
+    if value1 < value2:
+        return 1
+    return False  # both sets have unique keys
 
 
 def _norm_reqs(reqs: Iterable[str]) -> Set[str]:
@@ -339,14 +371,16 @@ def from_dist(dist: "Distribution") -> dict:
     old = chain(UPDATES.items(), SETUPTOOLS_RENAMES.items(), OUTDATED_SETTERS.items())
     outdated = {v: k for k, v in old}
     for key in set(RFC822_MAP):
-        candidates = [outdated.get(key, key)]
+        candidates = [outdated.get(key, key), key]
         if key[-1] != 's':
             candidates.append(f"{key}s")  # sometimes the key is in the plural form
         attr = next((k for k in candidates if hasattr(target, k)), None)
         if attr is None:
             continue
         value = getattr(target, attr)
-        if value or value is False:
+        if key == "project_url" and isinstance(value, dict) and value:
+            metadata[key] = [", ".join(i) for i in value.items()]
+        elif value or value is False:
             metadata[key] = value
 
     return metadata
