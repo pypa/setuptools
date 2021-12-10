@@ -136,7 +136,7 @@ def _expand_entry_points(text, dynamic):
 
 def _expand_packages(setuptools_cfg, root_dir, ignore_option_errors=False):
     packages = setuptools_cfg.get("packages")
-    if packages is None:
+    if packages is None or isinstance(packages, (list, tuple)):
         return
 
     find = packages.get("find")
