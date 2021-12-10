@@ -374,3 +374,23 @@ def test_check_specifier():
 )
 def test_rfc822_unescape(content, result):
     assert (result or content) == rfc822_unescape(rfc822_escape(content))
+
+
+def test_skip_setupcfg(tmpdir):
+    setupcfg = """\
+    [metadata]
+    name = example
+    version = 0.0.1
+    """
+    tmpdir.join("setup.cfg").write(DALS(setupcfg))
+    with tmpdir.as_cwd():
+        dist = Distribution()
+        dist.parse_config_files()
+        assert dist.get_name() == "example"
+        assert dist.get_version() == "0.0.1"
+
+        dist = Distribution()
+        dist.skip_setupcfg = True
+        dist.parse_config_files()
+        assert dist.get_name() == "UNKNOWN"
+        assert dist.get_version() == "0.0.0"

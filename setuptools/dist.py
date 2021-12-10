@@ -453,6 +453,7 @@ class Distribution(_Distribution):
         self.patch_missing_pkg_info(attrs)
         self.dependency_links = attrs.pop('dependency_links', [])
         self.setup_requires = attrs.pop('setup_requires', [])
+        self.skip_setupcfg = attrs.pop("skip_setupcfg", False)
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
         _Distribution.__init__(
@@ -656,6 +657,9 @@ class Distribution(_Distribution):
 
         if filenames is None:
             filenames = self.find_config_files()
+
+        if self.skip_setupcfg:
+            filenames = [x for x in filenames if os.path.basename(x) != 'setup.cfg']
 
         if DEBUG:
             self.announce("Distribution.parse_config_files():")
