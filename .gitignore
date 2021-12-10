@@ -21,3 +21,4 @@ setuptools.egg-info
 .idea/
 .pytest_cache/
 .mypy_cache/
+/setuptools/tests/config/downloads
