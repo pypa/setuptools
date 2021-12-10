@@ -10,7 +10,7 @@ from setuptools.extern.ini2toml.drivers import configparser as configparser_driv
 from setuptools.extern.ini2toml.drivers import plain_builtins as plain_builtins_driver
 from setuptools.extern.ini2toml.plugins import setuptools_pep621 as setuptools_plugin
 
-from setuptools.config import pyprojecttoml as pyproject_config
+from . import pyprojecttoml as pyproject_config
 
 
 _Path = Union[os.PathLike, str, None]

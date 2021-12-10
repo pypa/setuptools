@@ -36,7 +36,6 @@ import setuptools
 import setuptools.command
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
-from setuptools.config import parse_configuration
 import pkg_resources
 from setuptools.extern.packaging import version
 
@@ -799,6 +798,8 @@ class Distribution(_Distribution):
         and loads configuration.
 
         """
+        from setuptools.config.legacy_setupcfg import parse_configuration
+
         self._parse_config_files(filenames=filenames)
 
         parse_configuration(

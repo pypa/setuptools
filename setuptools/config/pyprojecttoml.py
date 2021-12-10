@@ -1,13 +1,14 @@
 """Load setuptools configuration from ``pyproject.toml`` files"""
 import os
 from contextlib import contextmanager
-from distutils import log
 from functools import partial
 
 from setuptools.extern import tomli
 from setuptools.extern._validate_pyproject import validate
-from setuptools.config import expand as _expand
 from setuptools.errors import OptionError, FileError
+from distutils import log
+
+from . import expand as _expand
 
 
 def read_configuration(filepath, expand=True, ignore_option_errors=False):

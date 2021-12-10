@@ -10,7 +10,8 @@ from functools import wraps
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.version import Version, InvalidVersion
 from setuptools.extern.packaging.specifiers import SpecifierSet
-from setuptools.config import expand
+
+from . import expand
 
 
 def read_configuration(filepath, find_others=False, ignore_option_errors=False):
