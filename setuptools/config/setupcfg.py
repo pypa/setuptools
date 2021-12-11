@@ -73,7 +73,7 @@ def read_configuration(
         asdict.get("tool", {}).pop("setuptools", None)
 
     with pyproject_config._ignore_errors(ignore_option_errors):
-        pyproject_config.validate(asdict)
+        pyproject_config.validate(asdict, filepath)
 
     if "options" in cfg and "setup_requires" in cfg["options"]:
         # TODO: Workaround needed while `setup_requires` is still handled
