@@ -34,6 +34,7 @@ import shutil
 import contextlib
 import tempfile
 import warnings
+from uuid import uuid4
 
 import setuptools
 import distutils
@@ -125,12 +126,52 @@ def suppress_known_deprecation():
         yield
 
 
+@contextlib.contextmanager
+def _patch_distutils_exec():
+    """Make sure distutils uses the code exec-ing enhancements"""
+    orig_exec = exec
+    if hasattr(distutils.core, "run_commands"):
+        yield  # do nothing, already using the improved version of distutils
+        return
+
+    def _exec(code, global_vars):
+        try:
+            fid, tmp = tempfile.mkstemp(suffix=f"{uuid4()}-setup.py", text=False)
+            os.close(fid)  # Ignore the low level API
+            with open(tmp, "wb") as f:
+                f.write(code)
+            with tokenize.open(tmp) as f:
+                code = f.read().replace(r'\r\n', r'\n')
+        finally:
+            os.remove(tmp)
+        orig_exec(code, {**global_vars, "__name__": "__main__"})
+
+    distutils.core.exec = _exec
+    try:
+        yield
+    finally:
+        distutils.core.exec = orig_exec
+
+
 class _BuildMetaBackend(object):
 
     def _fix_config(self, config_settings):
         config_settings = config_settings or {}
         config_settings.setdefault('--global-option', [])
         return config_settings
+
+    def _get_dist(self, setup_script="setup.py"):
+        """Retrieve a distribution object already configured."""
+
+        if os.path.exists(setup_script) and os.stat(setup_script).st_size > 0:
+            with no_install_setup_requires(), _patch_distutils_exec():
+                dist = distutils.core.run_setup(setup_script, stop_after="init")
+        else:
+            dist = setuptools.dist.Distribution()
+
+        dist.parse_config_files()
+        dist.finalize_options()
+        return dist
 
     def _get_build_requires(self, config_settings, requirements):
         config_settings = self._fix_config(config_settings)
