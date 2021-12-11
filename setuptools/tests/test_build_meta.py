@@ -3,7 +3,7 @@ import shutil
 import tarfile
 import importlib
 from concurrent import futures
-import re
+import warnings
 
 import pytest
 from jaraco import path
@@ -120,6 +120,22 @@ defns = [
             print('hello')
         """)
     },
+    {
+        'setup.cfg': DALS("""
+        [metadata]
+        name = foo
+        version = 0.0.0
+
+        [options]
+        py_modules=hello
+        setup_requires=six
+        """),
+        'setup.py': "__import__('setuptools').setup()",
+        'hello.py': DALS("""
+        def run():
+            print('hello')
+        """)
+    },
 ]
 
 
@@ -131,9 +147,18 @@ class TestBuildMetaBackend:
 
     @pytest.fixture(params=defns)
     def build_backend(self, tmpdir, request):
+        if 'legacy' in self.backend_name and 'setup.py' not in request.param:
+            pytest.skip("Legacy backend needs 'setup.py'")
+            # TODO: Is there a motivation behind testing the legacy backend
+            #       without a setup.py script?
+
         path.build(request.param, prefix=str(tmpdir))
         with tmpdir.as_cwd():
-            yield self.get_build_backend()
+            with warnings.catch_warnings():
+                # Most of the scripts in this test use `setup_requires`
+                # and ini2toml will issue a deprecation warning for that field
+                warnings.simplefilter("ignore", category=DeprecationWarning)
+                yield self.get_build_backend()
 
     def test_get_requires_for_build_wheel(self, build_backend):
         actual = build_backend.get_requires_for_build_wheel()
@@ -437,6 +462,10 @@ class TestBuildMetaBackend:
             """)
     }
 
+    @pytest.mark.skip("TODO: Clarify the use case motivating this test")
+    # Why is it necessary that the assertion error is raised?
+    # Or is it just a side effect that was found to happen,
+    # but it is not necessary for setuptools to work properly?
     def test_sys_argv_passthrough(self, tmpdir_cwd):
         path.build(self._sys_argv_0_passthrough)
         build_backend = self.get_build_backend()
@@ -448,9 +477,12 @@ class TestBuildMetaBackend:
         files = {'setup.py': ''}
         path.build(files)
 
-        with pytest.raises(
-                ValueError,
-                match=re.escape('No distribution was found.')):
+        error_messages = (
+            r"(setup\(\)' was never called)|"
+            "(Empty or missing 'setup.py')"
+        )
+
+        with pytest.raises((ValueError, RuntimeError), match=error_messages):
             getattr(build_backend, build_hook)("temp")
 
 
