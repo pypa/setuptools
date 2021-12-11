@@ -2,6 +2,7 @@
 in memory data structure, and then proceed to load the configuration.
 """
 import os
+from configparser import ConfigParser
 from typing import Union
 
 from setuptools.errors import FileError
@@ -59,9 +60,28 @@ def read_configuration(
 
     asdict = convert(filepath)
 
+    with open(filepath, "r") as f:
+        cfg = ConfigParser()
+        cfg.read_file(f)
+
+    if not(
+        "metadata" in cfg
+        or any(x.startswith("option") for x in cfg.sections())
+    ):
+        # Secondary use of `setup.cfg`, probably for distutils commands or other tools
+        asdict.pop("project", None)
+        asdict.get("tool", {}).pop("setuptools", None)
+
     with pyproject_config._ignore_errors(ignore_option_errors):
         pyproject_config.validate(asdict)
+
+    if "options" in cfg and "setup_requires" in cfg["options"]:
+        # TODO: Workaround needed while `setup_requires` is still handled
+        tool_table = asdict.setdefault("tool", {}).setdefault("setuptools", {})
+        tool_table["setup_requires"] = cfg["options"]["setup_requires"]
 
     if expand:
         root_dir = os.path.dirname(filepath)
         return expand_configuration(asdict, root_dir, ignore_option_errors)
+
+    return asdict
