@@ -2,8 +2,9 @@ import os
 import shutil
 import tarfile
 import importlib
-from concurrent import futures
 import warnings
+from concurrent import futures
+from zipfile import ZipFile
 
 import pytest
 from jaraco import path
@@ -223,6 +224,95 @@ class TestBuildMetaBackend:
         third_result = build_method(dist_dir)
         assert third_result == second_result
         assert os.path.getsize(os.path.join(dist_dir, third_result)) > 0
+
+    def test_build_with_pyproject_metadata(self, tmpdir_cwd):
+        if 'legacy' in self.backend_name:
+            pytest.skip("Legacy backend does not support 'pyproject.toml' metadata")
+
+        files = {
+            'setup.py': "__import__('setuptools').setup()",
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta"
+
+                [project]
+                name = "foo"
+                description = "This is a Python package"
+                dynamic = ["version", "license", "readme"]
+                classifiers = [
+                    "Development Status :: 5 - Production/Stable",
+                    "Intended Audience :: Developers"
+                ]
+                urls = {Homepage = "http://github.com"}
+                dependencies = [
+                    "appdirs",
+                ]
+
+                [project.optional-dependencies]
+                all = [
+                    "tomli>=1",
+                    "pyscaffold>=4,<5",
+                    'importlib; python_version == "2.6"',
+                ]
+
+                [project.scripts]
+                foo = "foo.cli:main"
+
+                [tool.setuptools]
+                package-dir = {"" = "src"}
+                packages = {find = {where = ["src"]}}
+
+                [tool.setuptools.dynamic]
+                version = {attr = "foo.__version__"}
+                license = "MIT"
+                license_files = ["LICENSE*"]
+                readme = {file = "README.rst"}
+                """),
+            "README.rst": "This is a ``README``",
+            "LICENSE.txt": "---- placeholder MIT license ----",
+            "src": {
+                "foo": {
+                    "__init__.py": "__version__ = '0.1'",
+                    "cli.py": "def main(): print('hello world')",
+                    "data.txt": "def main(): print('hello world')",
+                }
+            }
+        }
+        path.build(files)
+        build_backend = self.get_build_backend()
+        wheel_file = build_backend.build_wheel("temp")
+
+        with ZipFile(os.path.join("temp", wheel_file)) as zipfile:
+            wheel_contents = set(zipfile.namelist())
+            metadata = str(zipfile.read("foo-0.1.dist-info/METADATA"), "utf-8")
+            license = str(zipfile.read("foo-0.1.dist-info/LICENSE.txt"), "utf-8")
+            epoints = str(zipfile.read("foo-0.1.dist-info/entry_points.txt"), "utf-8")
+
+        assert "foo/data.txt" not in wheel_contents
+        assert wheel_contents == {
+            "foo/__init__.py",
+            "foo/cli.py",
+            "foo-0.1.dist-info/LICENSE.txt",
+            "foo-0.1.dist-info/METADATA",
+            "foo-0.1.dist-info/WHEEL",
+            "foo-0.1.dist-info/entry_points.txt",
+            "foo-0.1.dist-info/top_level.txt",
+            "foo-0.1.dist-info/RECORD",
+        }
+        assert license == "---- placeholder MIT license ----"
+        for line in (
+            "Summary: This is a Python package",
+            "License: MIT",
+            "Classifier: Intended Audience :: Developers",
+            "Requires: appdirs",
+            "Requires: tomli>=1; extra == 'all'",
+            "Requires: importlib; python_version == \"2.6\" and extra == 'all'",
+        ):
+            assert line in metadata
+
+        assert metadata.strip().endswith("This is a ``README``")
+        assert epoints.strip() == "[console_scripts]\nfoo = foo.cli:main"
 
     def test_build_sdist(self, build_backend):
         dist_dir = os.path.abspath('pip-sdist')

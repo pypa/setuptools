@@ -161,6 +161,8 @@ class _BuildMetaBackend(object):
             config = setuptools.config.read(config_file)
             setuptools.config.apply(config, dist)
 
+        dist.finalize_options()
+
         return dist
 
     def _get_build_requires(self, config_settings, requirements):
