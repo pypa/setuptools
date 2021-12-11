@@ -269,6 +269,10 @@ class TestBuildMetaBackend:
                 license_files = ["LICENSE*"]
                 readme = {file = "README.rst"}
                 """),
+            "MANIFEST.in": DALS("""
+                global-include *.py *.txt
+                global-exclude *.py[cod]
+                """),
             "README.rst": "This is a ``README``",
             "LICENSE.txt": "---- placeholder MIT license ----",
             "src": {
@@ -289,10 +293,10 @@ class TestBuildMetaBackend:
             license = str(zipfile.read("foo-0.1.dist-info/LICENSE.txt"), "utf-8")
             epoints = str(zipfile.read("foo-0.1.dist-info/entry_points.txt"), "utf-8")
 
-        assert "foo/data.txt" not in wheel_contents
         assert wheel_contents == {
             "foo/__init__.py",
             "foo/cli.py",
+            "foo/data.txt",  # include_package_data defaults to True
             "foo-0.1.dist-info/LICENSE.txt",
             "foo-0.1.dist-info/METADATA",
             "foo-0.1.dist-info/WHEEL",

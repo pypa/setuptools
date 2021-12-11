@@ -76,6 +76,12 @@ def read_configuration(filepath, expand=True, ignore_option_errors=False):
     if not asdict or not(project_table or tool_table):
         return {}  # User is not using pyproject to configure setuptools
 
+    # There is an overall sense in the community that making include_package_data=True
+    # the default would be an improvement.
+    # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
+    # therefore setting a default here is backwards compatible.
+    tool_table.setdefault("include-package-data", True)
+
     with _ignore_errors(ignore_option_errors):
         validate(asdict, filepath)
 
