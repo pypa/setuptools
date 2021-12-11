@@ -126,12 +126,78 @@ def suppress_known_deprecation():
         yield
 
 
+@contextlib.contextmanager
+def _patch_distutils_exec():
+    """Make sure distutils uses the code exec-ing enhancements"""
+    orig_exec = exec
+    if hasattr(distutils.core, "run_commands"):
+        yield  # do nothing, already using the improved version of distutils
+        return
+
+    def _exec(code, global_vars):
+        try:
+            _, tmp = tempfile.mkstemp(suffix="setup.py")
+            with open(tmp, "wb") as f:
+                f.write(code)
+            with tokenize.open(tmp) as f:
+                code = f.read().replace(r'\r\n', r'\n')
+        finally:
+            os.remove(tmp)
+        orig_exec(code, {**global_vars, "__name__": "__main__"})
+
+    distutils.core.exec = _exec
+    try:
+        yield
+    finally:
+        distutils.core.exec = orig_exec
+
+
 class _BuildMetaBackend(object):
 
     def _fix_config(self, config_settings):
         config_settings = config_settings or {}
         config_settings.setdefault('--global-option', [])
         return config_settings
+
+    def _get_dist(self, setup_script="setup.py", config_file="pyproject.toml",
+                  legacy_config_file="setup.cfg"):
+        """Retrieve a distribution object already configured."""
+        import setuptools.config
+
+        read_opts = {}
+        if os.path.exists(setup_script):
+            with no_install_setup_requires(), _patch_distutils_exec():
+                dist = distutils.core.run_setup(setup_script, stop_after="init")
+            # read_opts['ignore_option_errors'] = True
+        else:
+            dist = setuptools.dist.Distribution()
+
+        if os.path.exists(legacy_config_file):
+            from setuptools.config import _backward_compatibility
+
+            try:
+                config = setuptools.config.read(legacy_config_file, **read_opts)
+                setuptools.config.apply(config, dist)
+                dist.skip_setupcfg = True
+                tool_table = config.get("tool", {}).get("setuptools", {})
+                # TODO: Remove when `setup_requires` is no longer supported
+                dist.setup_requires = tool_table.get("setup_requires", [])
+            except _backward_compatibility.FailedExperimentalConversion as e:
+                # Let's take a conservative approach during the transition between
+                # `setup.cfg` and `pyproject.toml`:
+                # In the case there is a problem with the automatic conversion
+                # we tell the user (so they can open an issue or fix bad configuration)
+                # but still fallback to the old procedure.
+                # TODO: Just fail after the transition period ends.
+                e.warn()
+
+        dist.parse_config_files()  # Should we read files out of the dist dir??
+
+        if os.path.exists(config_file):
+            config = setuptools.config.read(config_file)
+            setuptools.config.apply(config, dist)
+
+        return dist
 
     def _get_build_requires(self, config_settings, requirements):
         config_settings = self._fix_config(config_settings)
