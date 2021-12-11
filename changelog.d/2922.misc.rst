@@ -1,0 +1,3 @@
+Modified ``tmp_src`` test fixture to prevent copying hidden or unnecessary
+files and folders. As a side effect, the tests are expected to run slightly
+faster -- by :user:`abravalheri`.
