@@ -26,7 +26,6 @@ bug reports or API stability):
 Again, this is not a formal definition! Just a "taste" of the module.
 """
 
-import io
 import os
 import sys
 import tokenize
@@ -34,6 +33,7 @@ import shutil
 import contextlib
 import tempfile
 import warnings
+from itertools import chain
 from uuid import uuid4
 
 import setuptools
@@ -45,35 +45,7 @@ __all__ = ['get_requires_for_build_sdist',
            'prepare_metadata_for_build_wheel',
            'build_wheel',
            'build_sdist',
-           '__legacy__',
-           'SetupRequirementsError']
-
-
-class SetupRequirementsError(BaseException):
-    def __init__(self, specifiers):
-        self.specifiers = specifiers
-
-
-class Distribution(setuptools.dist.Distribution):
-    def fetch_build_eggs(self, specifiers):
-        specifier_list = list(parse_strings(specifiers))
-
-        raise SetupRequirementsError(specifier_list)
-
-    @classmethod
-    @contextlib.contextmanager
-    def patch(cls):
-        """
-        Replace
-        distutils.dist.Distribution with this class
-        for the duration of this context.
-        """
-        orig = distutils.core.Distribution
-        distutils.core.Distribution = cls
-        try:
-            yield
-        finally:
-            distutils.core.Distribution = orig
+           '__legacy__']
 
 
 @contextlib.contextmanager
@@ -174,17 +146,11 @@ class _BuildMetaBackend(object):
         return dist
 
     def _get_build_requires(self, config_settings, requirements):
-        config_settings = self._fix_config(config_settings)
-
-        sys.argv = sys.argv[:1] + ['egg_info'] + \
-            config_settings["--global-option"]
-        try:
-            with Distribution.patch():
-                self.run_setup()
-        except SetupRequirementsError as e:
-            requirements += e.specifiers
-
-        return requirements
+        dist = self._get_dist()
+        parsed = chain(parse_strings(requirements),
+                       parse_strings(dist.setup_requires))
+        deduplicated = {r.key: str(r) for r in parsed}
+        return list(deduplicated.values())
 
     def run_command(self, *args):
         # Note that we can reuse our build directory between calls
