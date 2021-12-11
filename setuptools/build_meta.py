@@ -111,14 +111,6 @@ def _file_with_extension(directory, extension):
     return file
 
 
-def _open_setup_script(setup_script):
-    if not os.path.exists(setup_script):
-        # Supply a default setup.py
-        return io.StringIO(u"from setuptools import setup; setup()")
-
-    return getattr(tokenize, 'open', open)(setup_script)
-
-
 @contextlib.contextmanager
 def suppress_known_deprecation():
     with warnings.catch_warnings():
@@ -212,16 +204,20 @@ class _BuildMetaBackend(object):
 
         return requirements
 
-    def run_setup(self, setup_script='setup.py'):
+    def run_command(self, *args):
         # Note that we can reuse our build directory between calls
         # Correctness comes first, then optimization later
-        __file__ = setup_script
-        __name__ = '__main__'
+        dist = self._get_dist()
+        dist.script_name = sys.argv[0]
+        dist.script_args = args
+        dist.parse_command_line()
 
-        with _open_setup_script(__file__) as f:
-            code = f.read().replace(r'\r\n', r'\n')
-
-        exec(compile(code, __file__, 'exec'), locals())
+        if hasattr(distutils.core, 'run_commands'):
+            return distutils.core.run_commands(dist)
+        try:  # TODO: remove fallback once seuptools can use local distutils
+            dist.run_commands()
+        except Exception as ex:
+            raise SystemExit("error:" + str(ex))
 
     def get_requires_for_build_wheel(self, config_settings=None):
         config_settings = self._fix_config(config_settings)
@@ -234,10 +230,7 @@ class _BuildMetaBackend(object):
 
     def prepare_metadata_for_build_wheel(self, metadata_directory,
                                          config_settings=None):
-        sys.argv = sys.argv[:1] + [
-            'dist_info', '--egg-base', metadata_directory]
-        with no_install_setup_requires():
-            self.run_setup()
+        self.run_command('dist_info', '--egg-base', metadata_directory)
 
         dist_info_directory = metadata_directory
         while True:
@@ -274,11 +267,10 @@ class _BuildMetaBackend(object):
         # Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
-            sys.argv = (sys.argv[:1] + setup_command +
-                        ['--dist-dir', tmp_dist_dir] +
-                        config_settings["--global-option"])
-            with no_install_setup_requires():
-                self.run_setup()
+            self.run_command(
+                *setup_command, "--dist-dir", tmp_dist_dir,
+                *config_settings["--global-option"]
+            )
 
             result_basename = _file_with_extension(
                 tmp_dist_dir, result_extension)
@@ -313,11 +305,19 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
     packaging mechanism,
     and will eventually be removed.
     """
-    def run_setup(self, setup_script='setup.py'):
+    setup_script = "setup.py"
+
+    def run_command(self, *args):
         # In order to maintain compatibility with scripts assuming that
         # the setup.py script is in a directory on the PYTHONPATH, inject
         # '' into sys.path. (pypa/setuptools#1642)
         sys_path = list(sys.path)           # Save the original path
+
+        setup_script = self.setup_script
+        if not os.path.exists(setup_script) or os.stat(setup_script).st_size == 0:
+            msg = f"Empty or missing {setup_script!r}. A valid script that calls "
+            msg += "`setup()` is required by the legacy backend."
+            raise ValueError(msg)
 
         script_dir = os.path.dirname(os.path.abspath(setup_script))
         if script_dir not in sys.path:
@@ -325,13 +325,10 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
 
         # Some setup.py scripts (e.g. in pygame and numpy) use sys.argv[0] to
         # get the directory of the source code. They expect it to refer to the
-        # setup.py script.
-        sys_argv_0 = sys.argv[0]
-        sys.argv[0] = setup_script
-
+        # setup.py script. ==> This is already handled in distutils.core
         try:
-            super(_BuildMetaLegacyBackend,
-                  self).run_setup(setup_script=setup_script)
+            with no_install_setup_requires(), _patch_distutils_exec():
+                distutils.core.run_setup(setup_script, args)
         finally:
             # While PEP 517 frontends should be calling each hook in a fresh
             # subprocess according to the standard (and thus it should not be
@@ -339,7 +336,6 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
             # the original path so that the path manipulation does not persist
             # within the hook after run_setup is called.
             sys.path[:] = sys_path
-            sys.argv[0] = sys_argv_0
 
 
 # The primary backend
