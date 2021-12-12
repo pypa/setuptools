@@ -1,3 +1,12 @@
+v59.6.0
+-------
+
+
+Changes
+^^^^^^^
+* #2925: Merge with pypa/distutils@92082ee42c including introduction of deprecation warning on Version classes.
+
+
 v59.5.0
 -------
 
