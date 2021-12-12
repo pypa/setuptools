@@ -27,6 +27,8 @@ Every version number class implements the following interface:
 """
 
 import re
+import warnings
+
 
 class Version:
     """Abstract base class for version numbering classes.  Just provides
@@ -36,6 +38,12 @@ class Version:
     """
 
     def __init__ (self, vstring=None):
+        warnings.warn(
+            "distutils Version classes are deprecated. "
+            "Use packaging.version instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if vstring:
             self.parse(vstring)
 
