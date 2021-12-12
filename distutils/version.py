@@ -28,6 +28,18 @@ Every version number class implements the following interface:
 
 import re
 import warnings
+import contextlib
+
+
+@contextlib.contextmanager
+def suppress_known_deprecation():
+    with warnings.catch_warnings(record=True) as ctx:
+        warnings.filterwarnings(
+            action='default',
+            category=DeprecationWarning,
+            message="distutils Version classes are deprecated.",
+        )
+        yield ctx
 
 
 class Version:
@@ -173,7 +185,8 @@ class StrictVersion (Version):
 
     def _cmp (self, other):
         if isinstance(other, str):
-            other = StrictVersion(other)
+            with suppress_known_deprecation():
+                other = StrictVersion(other)
         elif not isinstance(other, StrictVersion):
             return NotImplemented
 
