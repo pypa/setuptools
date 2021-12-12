@@ -2,6 +2,11 @@
 egg_info = setuptools.command.egg_info:egg_info
 build_py = setuptools.command.build_py:build_py
 sdist = setuptools.command.sdist:sdist
+dist_info = setuptools.command.dist_info:dist_info
+develop = setuptools.command.develop:develop
+install_scripts = setuptools.command.install_scripts:install_scripts
+bdist_egg = setuptools.command.bdist_egg:bdist_egg
+install_egg_info = setuptools.command.install_egg_info:install_egg_info
 
 [distutils.setup_keywords]
 include_package_data = setuptools.dist:assert_bool
