@@ -1,0 +1,7 @@
+Deprecated ``setuptools.config.read_configuration``,
+``setuptools.config.parse_configuration`` and other functions or classes
+from ``setuptools.config``.
+
+This API is now replaced by ``setuptools.config.read`` and
+``setuptools.config.apply``, which *do not output* the same format of data
+(instead they are oriented toward the ``pyproject.toml`` format).

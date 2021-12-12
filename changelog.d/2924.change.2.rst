@@ -1,0 +1,5 @@
+Added vendored dependencies for :pypi:`tomli`,
+:pypi:`validate-pyproject` and :pypi:`ini2toml`.
+
+These dependencies are used to read ``pyproject.toml``
+or automatically convert existing ``setup.cfg`` files.

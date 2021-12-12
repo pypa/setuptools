@@ -1,0 +1,2 @@
+Removed public class ``SetupRequirementsError`` from the
+``setuptools.build_meta`` module.
