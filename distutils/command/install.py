@@ -445,12 +445,17 @@ class install(Command):
     def finalize_unix(self):
         """Finalizes options for posix platforms."""
         if self.install_base is not None or self.install_platbase is not None:
-            if ((self.install_lib is None and
-                 self.install_purelib is None and
-                 self.install_platlib is None) or
+            incomplete_scheme = (
+                (
+                    self.install_lib is None and
+                    self.install_purelib is None and
+                    self.install_platlib is None
+                ) or
                 self.install_headers is None or
                 self.install_scripts is None or
-                self.install_data is None):
+                self.install_data is None
+            )
+            if incomplete_scheme:
                 raise DistutilsOptionError(
                       "install-base or install-platbase supplied, but "
                       "installation scheme is incomplete")
