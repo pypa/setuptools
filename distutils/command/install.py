@@ -517,18 +517,19 @@ class install(Command):
     def select_scheme(self, name):
         """Sets the install directories by applying the install schemes."""
         # it's the caller's problem if they supply a bad name!
-        if (hasattr(sys, 'pypy_version_info') and
-                sys.version_info < (3, 8) and
-                not name.endswith(('_user', '_home'))):
-            if os.name == 'nt':
-                name = 'pypy_nt'
-            else:
-                name = 'pypy'
-        scheme = _load_schemes()[name]
+        scheme = _load_schemes()[self._pypy_hack(name)]
         for key in SCHEME_KEYS:
             attrname = 'install_' + key
             if getattr(self, attrname) is None:
                 setattr(self, attrname, scheme[key])
+
+    @staticmethod
+    def _pypy_hack(name):
+        PY37 = sys.version_info < (3, 8)
+        old_pypy = hasattr(sys, 'pypy_version_info') and PY37
+        prefix = not name.endswith(('_user', '_home'))
+        pypy_name = 'pypy' + '_nt' * (os.name == 'nt')
+        return pypy_name if old_pypy and prefix else name
 
     def _expand_attrs(self, attrs):
         for attr in attrs:
