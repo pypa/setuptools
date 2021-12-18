@@ -81,6 +81,11 @@ if HAS_USER_SITE:
         'data'   : '{userbase}',
         }
 
+    INSTALL_SCHEMES['osx_framework_user'] = {
+        'headers':
+            '{userbase}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
+    }
+
 # The keys to an installation scheme; if any new types of files are to be
 # installed, be sure to add an entry to every installation scheme above,
 # and to SCHEME_KEYS here.
@@ -515,9 +520,17 @@ class install(Command):
                       "I don't know how to install stuff on '%s'" % os.name)
 
     def select_scheme(self, name):
+        os_name, sep, key = name.partition('_')
+        try:
+            resolved = sysconfig.get_preferred_scheme(key)
+        except Exception:
+            resolved = self._pypy_hack(name)
+        return self._select_scheme(resolved)
+
+    def _select_scheme(self, name):
         """Sets the install directories by applying the install schemes."""
         # it's the caller's problem if they supply a bad name!
-        scheme = _load_schemes()[self._pypy_hack(name)]
+        scheme = _load_schemes()[name]
         for key in SCHEME_KEYS:
             attrname = 'install_' + key
             if getattr(self, attrname) is None:
