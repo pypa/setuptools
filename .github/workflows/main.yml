@@ -11,7 +11,7 @@ jobs:
         - local
         python:
         - pypy3
-        - 3.6
+        - 3.7
         - 3.9
         - "3.10"
         platform:
