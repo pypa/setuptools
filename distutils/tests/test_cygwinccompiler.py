@@ -2,27 +2,13 @@
 import unittest
 import sys
 import os
-from io import BytesIO
 from test.support import run_unittest
 
-from distutils import cygwinccompiler
 from distutils.cygwinccompiler import (check_config_h,
                                        CONFIG_H_OK, CONFIG_H_NOTOK,
                                        CONFIG_H_UNCERTAIN,
                                        get_msvcr)
 from distutils.tests import support
-
-class FakePopen(object):
-    test_class = None
-
-    def __init__(self, cmd, shell, stdout):
-        self.cmd = cmd.split()[0]
-        exes = self.test_class._exes
-        if self.cmd in exes:
-            # issue #6438 in Python 3.x, Popen returns bytes
-            self.stdout = BytesIO(exes[self.cmd])
-        else:
-            self.stdout = os.popen(cmd, 'r')
 
 
 class CygwinCCompilerTestCase(support.TempdirManager,
@@ -35,28 +21,15 @@ class CygwinCCompilerTestCase(support.TempdirManager,
         from distutils import sysconfig
         self.old_get_config_h_filename = sysconfig.get_config_h_filename
         sysconfig.get_config_h_filename = self._get_config_h_filename
-        self.old_find_executable = cygwinccompiler.find_executable
-        cygwinccompiler.find_executable = self._find_executable
-        self._exes = {}
-        self.old_popen = cygwinccompiler.Popen
-        FakePopen.test_class = self
-        cygwinccompiler.Popen = FakePopen
 
     def tearDown(self):
         sys.version = self.version
         from distutils import sysconfig
         sysconfig.get_config_h_filename = self.old_get_config_h_filename
-        cygwinccompiler.find_executable = self.old_find_executable
-        cygwinccompiler.Popen = self.old_popen
         super(CygwinCCompilerTestCase, self).tearDown()
 
     def _get_config_h_filename(self):
         return self.python_h
-
-    def _find_executable(self, name):
-        if name in self._exes:
-            return name
-        return None
 
     def test_check_config_h(self):
 
