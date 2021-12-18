@@ -10,7 +10,7 @@ jobs:
         - stdlib
         - local
         python:
-        - pypy3
+        - pypy-3.7
         - 3.7
         - 3.9
         - "3.10"
