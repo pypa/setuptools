@@ -50,6 +50,7 @@ cygwin in no-cygwin mode).
 import os
 import sys
 import copy
+import shlex
 from subprocess import Popen, PIPE, check_output
 import re
 
@@ -421,5 +422,5 @@ def get_versions():
 
 def is_cygwincc(cc):
     '''Try to determine if the compiler that would be used is from cygwin.'''
-    out_string = check_output([cc, '-dumpmachine'])
+    out_string = check_output(shlex.split(cc) + ['-dumpmachine'])
     return out_string.strip().endswith(b'cygwin')
