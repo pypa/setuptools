@@ -7,6 +7,7 @@ import zipfile
 from os.path import join
 from textwrap import dedent
 from test.support import captured_stdout, run_unittest
+from .unix_compat import require_unix_id, require_uid_0, pwd, grp
 
 from .py38compat import check_warnings
 
@@ -15,13 +16,6 @@ try:
     ZLIB_SUPPORT = True
 except ImportError:
     ZLIB_SUPPORT = False
-
-try:
-    import grp
-    import pwd
-    UID_GID_SUPPORT = True
-except ImportError:
-    UID_GID_SUPPORT = False
 
 from distutils.command.sdist import sdist, show_formats
 from distutils.core import Distribution
@@ -440,7 +434,8 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
                                              'fake-1.0/README.manual'])
 
     @unittest.skipUnless(ZLIB_SUPPORT, "requires zlib")
-    @unittest.skipUnless(UID_GID_SUPPORT, "Requires grp and pwd support")
+    @require_unix_id
+    @require_uid_0
     @unittest.skipIf(find_executable('tar') is None,
                      "The tar command is not found")
     @unittest.skipIf(find_executable('gzip') is None,
