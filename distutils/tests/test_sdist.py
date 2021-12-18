@@ -1,5 +1,6 @@
 """Tests for distutils.command.sdist."""
 import os
+import sys
 import tarfile
 import unittest
 import warnings
@@ -441,6 +442,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
     @unittest.skipUnless(ZLIB_SUPPORT, "requires zlib")
     @unittest.skipUnless(UID_GID_SUPPORT, "Requires grp and pwd support")
+    @unittest.skipUnless(sys.platform != "cygwin", "Cygwin doesn't have UID=0")
     @unittest.skipIf(find_executable('tar') is None,
                      "The tar command is not found")
     @unittest.skipIf(find_executable('gzip') is None,

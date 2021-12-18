@@ -339,7 +339,7 @@ class ArchiveUtilTestCase(support.TempdirManager,
     def test_make_archive_owner_group(self):
         # testing make_archive with owner and group, with various combinations
         # this works even if there's not gid/uid support
-        if UID_GID_SUPPORT:
+        if UID_GID_SUPPORT and sys.platform != "cygwin":
             group = grp.getgrgid(0)[0]
             owner = pwd.getpwuid(0)[0]
         else:
@@ -365,6 +365,7 @@ class ArchiveUtilTestCase(support.TempdirManager,
 
     @unittest.skipUnless(ZLIB_SUPPORT, "Requires zlib")
     @unittest.skipUnless(UID_GID_SUPPORT, "Requires grp and pwd support")
+    @unittest.skipUnless(sys.platform != "cygwin", "Cygwin doesn't have UID=0")
     def test_tarfile_root_owner(self):
         tmpdir =  self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
