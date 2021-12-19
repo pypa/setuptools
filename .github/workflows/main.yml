@@ -6,54 +6,21 @@ jobs:
   test:
     strategy:
       matrix:
-        python: [3.6, 3.8, 3.9]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.platform }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-      - name: Install tox
-        run: |
-          python -m pip install tox
-      - name: Run tests
-        run: tox
-
-  test_cygwin:
-    strategy:
-      matrix:
-        python: [39]
-        platform: [windows-latest]
-    runs-on: ${{ matrix.platform }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install Cygwin
-        uses: cygwin/cygwin-install-action@v1
-        with:
-          platform: x86_64
-          packages: >-
-            python${{ matrix.python }},
-            python${{ matrix.python }}-devel,
-            python${{ matrix.python }}-pytest,
-            gcc-core,
-            gcc-g++,
-            ncompress
-      - name: Run tests
-        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
-        run: |
-          pytest -rs
-
-  ci_setuptools:
-    # Integration testing with setuptools
-    strategy:
-      matrix:
-        python: [3.9]
-        platform: [ubuntu-latest]
+        distutils:
+        - stdlib
+        - local
+        python:
+        - pypy-3.7
+        - 3.7
+        - 3.9
+        - "3.10"
+        platform:
+        - ubuntu-latest
+        - macos-latest
+        - windows-latest
     runs-on: ${{ matrix.platform }}
     env:
-      SETUPTOOLS_USE_DISTUTILS: local
+      SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -63,21 +30,15 @@ jobs:
       - name: Install tox
         run: |
           python -m pip install tox
-      - name: Check out pypa/setuptools
-        uses: actions/checkout@v2
+      - name: Run tests
+        run: tox -- --cov-report xml
+      - name: Publish coverage
+        if: false  # disabled for #2727
+        uses: codecov/codecov-action@v1
         with:
-          repository: pypa/setuptools
-          ref: main
-          path: integration/setuptools
-      - name: Replace vendored distutils
-        run: |
-          cd integration/setuptools/setuptools
-          rm -rf _distutils
-          cp -rp ../../../distutils _distutils
-      - name: Run setuptools tests
-        run: |
-          cd integration/setuptools
-          tox
+          flags: >-  # Mark which lines are covered by which envs
+            ${{ runner.os }},
+            ${{ matrix.python }}
 
   release:
     needs: test
@@ -89,7 +50,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: "3.10"
       - name: Install tox
         run: |
           python -m pip install tox

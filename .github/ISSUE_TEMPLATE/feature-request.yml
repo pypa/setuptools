@@ -1,0 +1,104 @@
+---
+name: ✨ Feature request
+description: Suggest an idea for setuptools
+title: '[FR] '
+labels:
+- enhancement
+- Needs Triage
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      **Thank you for wanting to suggest a feature for setuptools!**
+
+
+      💡
+      Before you go ahead with your request, please first consider if it
+      would be useful for majority of the setuptools users. As a general
+      rule of thumb, any feature that is only of interest to a small sub
+      group should be implemented in a third-party plugin or maybe even
+      just your project alone. Be mindful of the fact that the core
+      setuptools features have a broad impact.
+
+
+      <details>
+        <summary>
+          ❗ Every change breaks someone's workflow.
+        </summary>
+
+
+        [![❗ Every change breaks someone's workflow.](https://imgs.xkcd.com/comics/workflow.png)
+        ](https://xkcd.com/1172/)
+      </details>
+
+
+      ⚠
+      Verify first that your idea is not [already requested on GitHub][issue search].
+
+
+
+      [issue search]: https://github.com/pypa/setuptools/search?q=is%3Aissue&type=issues
+
+- type: textarea
+  attributes:
+    label: What's the problem this feature will solve?
+    description: >-
+      What are you trying to do, that you are unable to achieve
+      with setuptools as it currently stands?
+    placeholder: >-
+      I'm trying to do X and I'm missing feature Y for this to be
+      easily achievable.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Describe the solution you'd like
+    description: >
+      Clear and concise description of what you want to happen.
+
+
+      Provide examples of real world use cases that this would enable
+      and how it solves the problem described above.
+    placeholder: >-
+      When I do X, I want to achieve Y in a situation when Z.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Alternative Solutions
+    description: >-
+      Have you tried to workaround the problem using other tools? Or a
+      different approach to solving this issue? Please elaborate here.
+    placeholder: >-
+      I tried doing X, Y and Z. But they are suboptimal because of P.
+
+- type: textarea
+  attributes:
+    label: Additional context
+    description: >
+      Add any other context, links, etc. about the feature here.
+      Describe how the feature would be used, why it is needed and what
+      it would solve.
+
+
+      **HINT:** You can paste https://gist.github.com links for
+      larger files.
+    placeholder: >-
+      I asked on https://stackoverflow.com/.... and the community
+      advised me to do X, Y and Z.
+
+
+- type: checkboxes
+  attributes:
+    label: Code of Conduct
+    description: |
+      Read the [PSF Code of Conduct][CoC] first.
+
+      [CoC]: https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md
+    options:
+    - label: I agree to follow the PSF Code of Conduct
+      required: true
+...

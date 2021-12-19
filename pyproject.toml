@@ -1,0 +1,59 @@
+[build-system]
+requires = []
+build-backend = "setuptools.build_meta"
+backend-path = ["."]
+
+[tool.black]
+skip-string-normalization = true
+
+[tool.setuptools_scm]
+
+[pytest.enabler.black]
+#addopts = "--black"
+
+[pytest.enabler.mypy]
+#addopts = "--mypy"
+
+[pytest.enabler.flake8]
+addopts = "--flake8"
+
+[pytest.enabler.cov]
+addopts = "--cov"
+
+[pytest.enabler.xdist]
+addopts = "-n auto"
+
+[tool.towncrier]
+    package = "setuptools"
+    package_dir = "setuptools"
+    filename = "CHANGES.rst"
+    directory = "changelog.d"
+    title_format = "v{version}"
+    issue_format = "#{issue}"
+    template = "towncrier_template.rst"
+    underlines = ["-", "^"]
+
+    [[tool.towncrier.type]]
+        directory = "deprecation"
+        name = "Deprecations"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "breaking"
+        name = "Breaking Changes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "change"
+        name = "Changes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "doc"
+        name = "Documentation changes"
+        showcontent = true
+
+    [[tool.towncrier.type]]
+        directory = "misc"
+        name = "Misc"
+        showcontent = true
