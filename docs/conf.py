@@ -69,6 +69,10 @@ link_files = {
                 url='{GH}/pypa/distutils/issues/{distutils}',
             ),
             dict(
+                pattern=r'pypa/distutils@(?P<distutils_commit>[\da-f]+)',
+                url='{GH}/pypa/distutils/commit/{distutils_commit}',
+            ),
+            dict(
                 pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
                 with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
             ),
