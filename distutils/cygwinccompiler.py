@@ -51,13 +51,14 @@ import os
 import sys
 import copy
 import shlex
+import warnings
 from subprocess import check_output
 
 from distutils.unixccompiler import UnixCCompiler
 from distutils.file_util import write_file
 from distutils.errors import (DistutilsExecError, CCompilerError,
         CompileError, UnknownFileError)
-from distutils.version import LooseVersion
+from distutils.version import LooseVersion, suppress_known_deprecation
 
 def get_msvcr():
     """Include the appropriate MSVC runtime library if Python was built
@@ -122,12 +123,6 @@ class CygwinCCompiler(UnixCCompiler):
         self.cc = os.environ.get('CC', 'gcc')
         self.cxx = os.environ.get('CXX', 'g++')
 
-        # Older numpy dependend on this existing to check for ancient
-        # gcc versions. This doesn't make much sense with clang etc so
-        # just hardcode to something recent.
-        # https://github.com/numpy/numpy/pull/20333
-        self.gcc_version = LooseVersion("11.2.0")
-
         self.linker_dll = self.cc
         shared_option = "-shared"
 
@@ -141,6 +136,21 @@ class CygwinCCompiler(UnixCCompiler):
         # Include the appropriate MSVC runtime library if Python was built
         # with MSVC 7.0 or later.
         self.dll_libraries = get_msvcr()
+
+    @property
+    def gcc_version(self):
+        # Older numpy dependend on this existing to check for ancient
+        # gcc versions. This doesn't make much sense with clang etc so
+        # just hardcode to something recent.
+        # https://github.com/numpy/numpy/pull/20333
+        warnings.warn(
+            "gcc_version attribute of CygwinCCompiler is deprecated. "
+            "Instead of returning actual gcc version a fixed value 11.2.0 is returned.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        with suppress_known_deprecation():
+            return LooseVersion("11.2.0")
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         """Compiles the source by spawning GCC and windres if needed."""
