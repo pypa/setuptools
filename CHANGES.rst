@@ -1,3 +1,12 @@
+v59.8.0
+-------
+
+
+Changes
+^^^^^^^
+* #2935: Merge pypa/distutils@460b59f0e68dba17e2465e8dd421bbc14b994d1f.
+
+
 v59.7.0
 -------
 
