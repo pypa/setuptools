@@ -1,7 +1,7 @@
 """develop tests
 """
-import mock
 import sys
+from unittest import mock
 
 import pytest
 
@@ -10,8 +10,8 @@ from setuptools import SetuptoolsDeprecationWarning
 
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='non-Windows only')
-@mock.patch('distutils.command.bdist_rpm.bdist_rpm')
-def test_bdist_rpm_warning(distutils_cmd):
+@mock.patch('distutils.command.bdist_rpm.bdist_rpm.run')
+def test_bdist_rpm_warning(distutils_cmd_run):
     dist = Distribution(
         dict(
             script_name='setup.py',
@@ -24,4 +24,4 @@ def test_bdist_rpm_warning(distutils_cmd):
     with pytest.warns(SetuptoolsDeprecationWarning):
         dist.run_commands()
 
-    distutils_cmd.run.assert_called_once()
+    distutils_cmd_run.assert_called_once()
