@@ -1,0 +1,1 @@
+Add support for extended install schemes in easy_install.
