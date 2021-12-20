@@ -1,3 +1,12 @@
+v60.0.1
+-------
+
+
+Misc
+^^^^
+* #2944: Add support for extended install schemes in easy_install.
+
+
 v60.0.0
 -------
 
