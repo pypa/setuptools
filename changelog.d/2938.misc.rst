@@ -1,1 +1,0 @@
-Select 'posix_user' for the scheme unless falling back to stdlib, then use 'unix_user'.

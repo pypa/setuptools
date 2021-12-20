@@ -1,3 +1,12 @@
+v60.0.2
+-------
+
+
+Misc
+^^^^
+* #2938: Select 'posix_user' for the scheme unless falling back to stdlib, then use 'unix_user'.
+
+
 v60.0.1
 -------
 
