@@ -252,9 +252,13 @@ class easy_install(Command):
             # Only python 3.2+ has abiflags
             'abiflags': getattr(sys, 'abiflags', ''),
             'platlibdir': getattr(sys, 'platlibdir', 'lib'),
-            'implementation_lower': install._get_implementation().lower(),
-            'implementation': install._get_implementation(),
         }
+        with contextlib.suppress(AttributeError):
+            # only for distutils outside stdlib
+            self.config_vars.update({
+                'implementation_lower': install._get_implementation().lower(),
+                'implementation': install._get_implementation(),
+            })
 
         if site.ENABLE_USER_SITE:
             self.config_vars['userbase'] = self.install_userbase
@@ -714,7 +718,11 @@ class easy_install(Command):
                     return dist
 
     def select_scheme(self, name):
-        install._select_scheme(self, name)
+        try:
+            install._select_scheme(self, name)
+        except AttributeError:
+            # stdlib distutils
+            install.install.select_scheme(self, name)
 
     # FIXME: 'easy_install.process_distribution' is too complex (12)
     def process_distribution(  # noqa: C901
