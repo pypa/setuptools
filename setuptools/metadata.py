@@ -5,10 +5,13 @@ object, etc..).
 .. _core metadata: https://packaging.python.org/en/latest/specifications/core-metadata
 """
 import os
+import re
+import string
 from email.headerregistry import Address
 from functools import partial
 from itertools import chain
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Set, Union
+from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Sequence, Set,
+                    Union)
 
 from setuptools.extern.packaging import version
 from setuptools.extern.packaging.requirements import Requirement
@@ -164,12 +167,14 @@ def _add_extra(dep: str, extra_name: str) -> str:
 
 
 def _optional_dependencies(val: dict, dest: dict, root_dir: _Path):
-    extra = set(dest.get("provides_extra", []))
+    from setuptools.extern.ordered_set import OrderedSet
+
+    extra = OrderedSet(dest.get("provides_extra", []))
     for key, deps in val.items():
         extra.add(key)
         cond_deps = [_add_extra(x, key) for x in deps]
         _dependencies(cond_deps, dest, root_dir)
-    dest["provides_extra"] = list(extra)
+    dest["provides_extra"] = extra
 
 
 PYPROJECT_CORRESPONDENCE: Dict[str, _CorrespFn] = {
@@ -300,6 +305,53 @@ def apply(metadata: dict, dist: "Distribution", _source: str = "pyproject.toml")
             metadata_setters[norm_key](value)
         else:
             setattr(metadata_obj, norm_key, value)
+
+    _ensure_editable_install_requirements(dist)
+
+
+def _ensure_editable_install_requirements(dist: "Distribution"):
+    """Ensure requirements work for editable installs"""
+    reqs, extras = _separate_extras(dist.metadata.requires or [])
+    install_reqs = getattr(dist, 'install_requires', ())
+    extra_reqs = getattr(dist, 'extras_require', {})
+    dist.extras_require = extra_reqs
+
+    # egg-info writer need `install_requires` to be set to generate `requires.txt`
+    dist.install_requires = _dedup_deps(chain(install_reqs, reqs))
+    for extra in {*extras.keys(), *extra_reqs.keys()}:
+        deps = _dedup_deps(chain(extra_reqs.get(extra, []), extras.get(extra, [])))
+        dist.extras_require[extra] = deps
+
+    dist._finalize_requires()
+    # ^-- markers need to go to headers section in `*.egg-info/requires.txt`
+
+
+def _dedup_deps(deps: Iterable[str]) -> List[str]:
+    from pkg_resources import parse_requirements
+
+    return list({r.key: str(r) for r in parse_requirements(deps)}.values())
+
+
+def _separate_extras(requires: Sequence[str]):
+    # NOTE: this function only handles 'extra == ...' (enough for _add_extra)
+    base = []
+    extras = {}
+    for dep in requires:
+        matches = re.search(r"(extra\s*==\s*(['\"])(.*?)\2)", dep, re.M)
+        if matches:
+            extra, extra_marker = matches[3], matches[1]
+            extras.setdefault(extra, []).append(_remove_extra(dep, extra_marker))
+        else:
+            base.append(dep)
+
+    return base, extras
+
+
+def _remove_extra(dep: str, extra: str):
+    dep = dep.replace(extra, "")
+    # Fix operations
+    dep = re.sub(r"\b(and|or)\s+(and|or)\b", r"\2", dep)
+    return re.sub(r"\b(and|or)\s*$", "", dep.strip()).strip(string.whitespace + ";")
 
 
 def compare(metadata1: dict, metadata2: dict) -> Union[bool, int]:
