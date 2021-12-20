@@ -34,6 +34,7 @@ import contextlib
 import tempfile
 import warnings
 from itertools import chain
+from uuid import uuid4
 
 import setuptools
 import distutils
@@ -100,7 +101,8 @@ def _patch_distutils_exec():
 
     def _exec(code, global_vars):
         try:
-            _, tmp = tempfile.mkstemp(suffix="setup.py")
+            fid, tmp = tempfile.mkstemp(suffix=f"{uuid4()}-setup.py", text=False)
+            os.close(fid)  # Ignore the low level API
             with open(tmp, "wb") as f:
                 f.write(code)
             with tokenize.open(tmp) as f:
