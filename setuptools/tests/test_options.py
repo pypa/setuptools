@@ -1,3 +1,4 @@
+import os
 from configparser import ConfigParser
 from unittest.mock import Mock
 
@@ -106,7 +107,7 @@ EXPECTED_OPTIONS = {
     "package_dir": {"": "src"},
     "packages": ["pkg", "other", "other.nested"],
     "package_data": {"": ["*.txt"]},
-    "data_files": [("data", ["files/file.txt"])],
+    "data_files": [("data", [os.path.join("files", "file.txt")])],
     "cmdclass": {"sdist": Mock(__qualname__="pkg.mod.CustomSdist")},
     "entry_points": {"console_scripts": ["exec = pkg.__main__:exec"]},
     "command_options": {
@@ -134,7 +135,7 @@ def test_apply(tmp_path):
     options.apply(opts, dist)
     assert dist.zip_safe is True
     assert dist.include_package_data is True
-    assert set(dist.data_files[0][1]) == {"files/file.txt"}
+    assert set(dist.data_files[0][1]) == {os.path.join("files", "file.txt")}
     cls = dist.cmdclass["sdist"]
     assert f"{cls.__module__}.{cls.__name__}" == "pkg.mod.CustomSdist"
     assert set(dist.entry_points["console_scripts"]) == {"exec = pkg.__main__:exec"}

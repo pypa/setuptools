@@ -23,6 +23,7 @@ import sys
 from glob import iglob
 from itertools import chain
 from configparser import ConfigParser
+from pathlib import Path
 
 from distutils.errors import DistutilsOptionError
 
@@ -248,7 +249,11 @@ def find_packages(*, namespaces=False, root_dir=None, **kwargs):
 
 def _nest_url_style_path(parent, path):
     path = parent if path == "." else os.path.join(parent, path)
-    return path.replace(os.sep, "/").rstrip("/")
+    return _url_style_path(path)
+
+
+def _url_style_path(path):
+    return "/".join(Path(os.path.normpath(path)).parts) or "."
 
 
 def version(value):

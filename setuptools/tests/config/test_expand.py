@@ -16,13 +16,13 @@ def write_files(files, root_dir):
 
 def test_glob_relative(tmp_path):
     files = {
-        "dir1/dir2/dir3/file1.txt",
-        "dir1/dir2/file2.txt",
-        "dir1/file3.txt",
-        "a.ini",
-        "b.ini",
-        "dir1/c.ini",
-        "dir1/dir2/a.ini",
+        os.path.join("dir1", "dir2", "dir3", "file1.txt"),
+        os.path.join("dir1", "dir2", "file2.txt"),
+        os.path.join("dir1", "file3.txt"),
+        os.path.join("a.ini"),
+        os.path.join("b.ini"),
+        os.path.join("dir1", "c.ini"),
+        os.path.join("dir1", "dir2", "a.ini"),
     }
 
     write_files({k: "" for k in files}, tmp_path)
