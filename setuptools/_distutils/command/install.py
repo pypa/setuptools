@@ -123,6 +123,47 @@ def _get_implementation():
         return 'Python'
 
 
+def _select_scheme(ob, name):
+    vars(ob).update(_remove_set(ob, _scheme_attrs(_resolve_scheme(name))))
+
+
+def _remove_set(ob, attrs):
+    """
+    Include only attrs that are None in ob.
+    """
+    return {
+        key: value
+        for key, value in attrs.items()
+        if getattr(ob, key) is None
+    }
+
+
+def _resolve_scheme(name):
+    os_name, sep, key = name.partition('_')
+    try:
+        resolved = sysconfig.get_preferred_scheme(key)
+    except Exception:
+        resolved = _pypy_hack(name)
+    return resolved
+
+
+def _scheme_attrs(name):
+    """Resolve install directories by applying the install schemes."""
+    scheme = _load_schemes()[name]
+    return {
+        f'install_{key}': scheme[key]
+        for key in SCHEME_KEYS
+    }
+
+
+def _pypy_hack(name):
+    PY37 = sys.version_info < (3, 8)
+    old_pypy = hasattr(sys, 'pypy_version_info') and PY37
+    prefix = not name.endswith(('_user', '_home'))
+    pypy_name = 'pypy' + '_nt' * (os.name == 'nt')
+    return pypy_name if old_pypy and prefix else name
+
+
 class install(Command):
 
     description = "install everything from build directory"
@@ -520,29 +561,7 @@ class install(Command):
                       "I don't know how to install stuff on '%s'" % os.name)
 
     def select_scheme(self, name):
-        os_name, sep, key = name.partition('_')
-        try:
-            resolved = sysconfig.get_preferred_scheme(key)
-        except Exception:
-            resolved = self._pypy_hack(name)
-        return self._select_scheme(resolved)
-
-    def _select_scheme(self, name):
-        """Sets the install directories by applying the install schemes."""
-        # it's the caller's problem if they supply a bad name!
-        scheme = _load_schemes()[name]
-        for key in SCHEME_KEYS:
-            attrname = 'install_' + key
-            if getattr(self, attrname) is None:
-                setattr(self, attrname, scheme[key])
-
-    @staticmethod
-    def _pypy_hack(name):
-        PY37 = sys.version_info < (3, 8)
-        old_pypy = hasattr(sys, 'pypy_version_info') and PY37
-        prefix = not name.endswith(('_user', '_home'))
-        pypy_name = 'pypy' + '_nt' * (os.name == 'nt')
-        return pypy_name if old_pypy and prefix else name
+        _select_scheme(self, name)
 
     def _expand_attrs(self, attrs):
         for attr in attrs:
