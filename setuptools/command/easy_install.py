@@ -17,10 +17,10 @@ from distutils.errors import (
     DistutilsArgError, DistutilsOptionError,
     DistutilsError, DistutilsPlatformError,
 )
-from distutils.command.install import INSTALL_SCHEMES, SCHEME_KEYS
 from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
 from distutils.spawn import find_executable
+from distutils.command import install
 import sys
 import os
 import zipimport
@@ -251,6 +251,9 @@ class easy_install(Command):
             'exec_prefix': exec_prefix,
             # Only python 3.2+ has abiflags
             'abiflags': getattr(sys, 'abiflags', ''),
+            'platlibdir': getattr(sys, 'platlibdir', 'lib'),
+            'implementation_lower': install._get_implementation().lower(),
+            'implementation': install._get_implementation(),
         }
 
         if site.ENABLE_USER_SITE:
@@ -711,13 +714,7 @@ class easy_install(Command):
                     return dist
 
     def select_scheme(self, name):
-        """Sets the install directories by applying the install schemes."""
-        # it's the caller's problem if they supply a bad name!
-        scheme = INSTALL_SCHEMES[name]
-        for key in SCHEME_KEYS:
-            attrname = 'install_' + key
-            if getattr(self, attrname) is None:
-                setattr(self, attrname, scheme[key])
+        install._select_scheme(self, name)
 
     # FIXME: 'easy_install.process_distribution' is too complex (12)
     def process_distribution(  # noqa: C901
