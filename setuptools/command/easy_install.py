@@ -378,7 +378,7 @@ class easy_install(Command):
             msg = "User base directory is not specified"
             raise DistutilsPlatformError(msg)
         self.install_base = self.install_platbase = self.install_userbase
-        scheme_name = os.name.replace('posix', 'unix') + '_user'
+        scheme_name = f'{os.name}_user'
         self.select_scheme(scheme_name)
 
     def _expand_attrs(self, attrs):
@@ -722,7 +722,7 @@ class easy_install(Command):
             install._select_scheme(self, name)
         except AttributeError:
             # stdlib distutils
-            install.install.select_scheme(self, name)
+            install.install.select_scheme(self, name.replace('posix', 'unix'))
 
     # FIXME: 'easy_install.process_distribution' is too complex (12)
     def process_distribution(  # noqa: C901
