@@ -1,3 +1,12 @@
+v60.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2896: Setuptools once again makes its local copy of distutils the default. To override, set SETUPTOOLS_USE_DISTUTILS=stdlib.
+
+
 v59.8.0
 -------
 
