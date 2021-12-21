@@ -106,16 +106,20 @@ class DistutilsMetaFinder:
         clear_distutils()
         self.spec_for_distutils = lambda: None
 
-    @staticmethod
-    def pip_imported_during_build():
+    @classmethod
+    def pip_imported_during_build(cls):
         """
         Detect if pip is being imported in a build script. Ref #2355.
         """
         import traceback
         return any(
-            frame.f_globals['__file__'].endswith('setup.py')
+            cls.frame_file_is_setup(frame)
             for frame, line in traceback.walk_stack(None)
         )
+
+    @staticmethod
+    def frame_file_is_setup(frame):
+        return frame.f_globals['__file__'].endswith('setup.py')
 
 
 DISTUTILS_FINDER = DistutilsMetaFinder()
