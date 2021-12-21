@@ -243,17 +243,29 @@ def find_packages(*, namespaces=False, root_dir=None, **kwargs):
     where = kwargs.pop('where', ['.'])
     if isinstance(where, str):
         where = [where]
-    target = (_nest_url_style_path(root_dir, path) for path in where)
+    target = [_nest_url_style_path(root_dir, path) for path in where]
+    from distutils import log
+    log.warn(f"find_packages cwd={os.getcwd()!r} root_dir={root_dir!r}")
+    for p in target:
+        log.warn(f"find_packages where={p!r} {kwargs!r}")
     return list(chain_iter(PackageFinder.find(x, **kwargs) for x in target))
 
 
 def _nest_url_style_path(parent, path):
+    from distutils import log
+
+    log.warn(f"_nest_url_style_path parent={parent!r} path={path!r}")
+
     path = parent if path == "." else os.path.join(parent, path)
     return _url_style_path(path)
 
 
 def _url_style_path(path):
-    return "/".join(Path(os.path.normpath(path)).parts) or "."
+    from distutils import log
+
+    parts = Path(os.path.normpath(path)).parts
+    log.warn(f"_url_style_path parts={parts!r}")
+    return "/".join(parts) or "."
 
 
 def version(value):
