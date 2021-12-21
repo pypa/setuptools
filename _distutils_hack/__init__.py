@@ -119,7 +119,11 @@ class DistutilsMetaFinder:
 
     @staticmethod
     def frame_file_is_setup(frame):
-        return frame.f_globals['__file__'].endswith('setup.py')
+        """
+        Return True if the indicated frame suggests a setup.py file.
+        """
+        # some frames may not have __file__ (#2940)
+        return frame.f_globals.get('__file__', '').endswith('setup.py')
 
 
 DISTUTILS_FINDER = DistutilsMetaFinder()
