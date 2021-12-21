@@ -1,7 +1,6 @@
 import re
 import sys
 import subprocess
-from itertools import chain
 from fnmatch import fnmatch
 
 from paver.easy import task, path as Path
@@ -65,7 +64,7 @@ def move_licenses(vendor):
     license_patterns = ("*LICEN[CS]E*", "COPYING*", "NOTICE*", "AUTHORS*")
     licenses = (
         entry
-        for path in chain(vendor.glob("*.dist-info"), vendor.glob("*.egg-info"))
+        for path in vendor.glob("*.dist-info")
         for entry in path.glob("*")
         if any(fnmatch(str(entry), p) for p in license_patterns)
     )
@@ -75,7 +74,7 @@ def move_licenses(vendor):
 
 def _find_license_dest(license_file, vendor):
     basename = license_file.basename()
-    pkg = license_file.dirname().replace(".dist-info", "").replace(".egg-info", "")
+    pkg = license_file.dirname().replace(".dist-info", "")
     parts = pkg.split("-")
     acc = []
     for part in parts:
