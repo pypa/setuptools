@@ -1,1 +1,0 @@
-Avoid KeyError in distutils hack when pip is imported during ensurepip.

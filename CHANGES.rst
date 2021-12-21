@@ -1,3 +1,12 @@
+v60.0.3
+-------
+
+
+Misc
+^^^^
+* #2940: Avoid KeyError in distutils hack when pip is imported during ensurepip.
+
+
 v60.0.2
 -------
 
