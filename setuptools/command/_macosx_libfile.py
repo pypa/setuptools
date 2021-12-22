@@ -363,14 +363,14 @@ def calculate_macosx_platform_tag(archive_root, platform_tag):
     Example platform tag `macosx-10.14-x86_64`
     """
     prefix, base_version, suffix = platform_tag.split('-')
-    base_version = tuple([int(x) for x in base_version.split(".")])
+    base_version = tuple(int(x) for x in base_version.split("."))
     base_version = base_version[:2]
     if base_version[0] > 10:
         base_version = (base_version[0], 0)
     assert len(base_version) == 2
     if "MACOSX_DEPLOYMENT_TARGET" in os.environ:
-        deploy_target = tuple([int(x) for x in os.environ[
-            "MACOSX_DEPLOYMENT_TARGET"].split(".")])
+        deploy_target = tuple(int(x) for x in os.environ[
+            "MACOSX_DEPLOYMENT_TARGET"].split("."))
         deploy_target = deploy_target[:2]
         if deploy_target[0] > 10:
             deploy_target = (deploy_target[0], 0)
