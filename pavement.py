@@ -74,13 +74,14 @@ def move_licenses(vendor):
 
 def _find_license_dest(license_file, vendor):
     basename = license_file.basename()
-    pkg = license_file.dirname().replace(".dist-info", "")
+    pkg = license_file.dirname().basename().replace(".dist-info", "")
     parts = pkg.split("-")
     acc = []
     for part in parts:
+        # Find actual name from normalized name + version
         acc.append(part)
         for option in ("_".join(acc), "-".join(acc), ".".join(acc)):
-            candidate = Path(option)
+            candidate = vendor / option
             if candidate.isdir():
                 return candidate / basename
             if Path(f"{candidate}.py").isfile():
