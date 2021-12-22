@@ -1,16 +1,14 @@
-import types
-import sys
-
-import contextlib
 import configparser
+import contextlib
+import importlib
+import os
+from unittest.mock import patch
 
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
-from distutils.core import Command
 from ..textwrap import DALS
 
 
@@ -858,23 +856,23 @@ class TestOptions:
             with get_dist(tmpdir) as dist:
                 dist.parse_config_files()
 
-    def test_cmdclass(self, tmpdir):
-        class CustomCmd(Command):
-            pass
-
-        m = types.ModuleType('custom_build', 'test package')
-
-        m.__dict__['CustomCmd'] = CustomCmd
-
-        sys.modules['custom_build'] = m
+    def test_cmdclass(self, tmpdir, monkeypatch):
+        module_path = os.path.join(tmpdir, "custom_build.py")
+        with open(module_path, "w") as f:
+            f.write("from distutils.core import Command\n")
+            f.write("class CustomCmd(Command): pass\n")
 
         fake_env(
             tmpdir,
             '[options]\n' 'cmdclass =\n' '    customcmd = custom_build.CustomCmd\n',
         )
 
+        with monkeypatch.context() as m:
+            m.syspath_prepend(tmpdir)
+            custom_build = importlib.import_module("custom_build")
+
         with get_dist(tmpdir) as dist:
-            assert dist.cmdclass == {'customcmd': CustomCmd}
+            assert dist.cmdclass == {'customcmd': custom_build.CustomCmd}
 
 
 saved_dist_init = _Distribution.__init__
