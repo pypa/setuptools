@@ -314,13 +314,15 @@ def check_requirements(dist, attr, value):
 
 def check_specifier(dist, attr, value):
     """Verify that value is a valid version specifier"""
+    if value.__class__.__name__ == "SpecifierSet":
+        # ^-- avoid isinstance because 'packaging.specifiers' module might have been
+        #     evaluated twice (generating 2 different class objects)
+        return value
     try:
         packaging.specifiers.SpecifierSet(value)
     except (packaging.specifiers.InvalidSpecifier, AttributeError) as error:
-        tmpl = (
-            "{attr!r} must be a string " "containing valid version specifiers; {error}"
-        )
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error)) from error
+        msg = f"{attr!r} must be a string containing valid version specifiers; {error}"
+        raise DistutilsSetupError(msg) from error
 
 
 def check_entry_points(dist, attr, value):
