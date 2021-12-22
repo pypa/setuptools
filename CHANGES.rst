@@ -1,3 +1,12 @@
+v60.0.4
+-------
+
+
+Misc
+^^^^
+* #2954: Merge with pypa/distutils@eba2bcd310. Adds platsubdir to config vars available for substitution.
+
+
 v60.0.3
 -------
 
