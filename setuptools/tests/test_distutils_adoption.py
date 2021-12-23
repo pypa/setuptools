@@ -3,6 +3,7 @@ import sys
 import functools
 import subprocess
 import platform
+import textwrap
 
 import pytest
 import jaraco.envs
@@ -49,12 +50,24 @@ def find_distutils(venv, imports='distutils', env=None, **kwargs):
     return popen_text(venv.run)(cmd, env=env, **kwargs)
 
 
+def count_meta_path(venv, env=None):
+    py_cmd = textwrap.dedent(
+        """
+        import sys
+        is_distutils = lambda finder: finder.__class__.__name__ == "DistutilsMetaFinder"
+        print(len(list(filter(is_distutils, sys.meta_path))))
+        """)
+    cmd = ['python', '-c', py_cmd]
+    return int(popen_text(venv.run)(cmd, env=env))
+
+
 def test_distutils_stdlib(venv):
     """
     Ensure stdlib distutils is used when appropriate.
     """
     env = dict(SETUPTOOLS_USE_DISTUTILS='stdlib')
     assert venv.name not in find_distutils(venv, env=env).split(os.sep)
+    assert count_meta_path(venv, env=env) == 0
 
 
 def test_distutils_local_with_setuptools(venv):
@@ -64,6 +77,7 @@ def test_distutils_local_with_setuptools(venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS='local')
     loc = find_distutils(venv, imports='setuptools, distutils', env=env)
     assert venv.name in loc.split(os.sep)
+    assert count_meta_path(venv, env=env) <= 1
 
 
 @pytest.mark.xfail('IS_PYPY', reason='pypy imports distutils on startup')
@@ -74,3 +88,4 @@ def test_distutils_local(venv):
     """
     env = dict(SETUPTOOLS_USE_DISTUTILS='local')
     assert venv.name in find_distutils(venv, env=env).split(os.sep)
+    assert count_meta_path(venv, env=env) <= 1
