@@ -58,7 +58,9 @@ def ensure_local_distutils():
 
     # check that submodules load as expected
     core = importlib.import_module('distutils.core')
-    assert '_distutils' in core.__file__, core.__file__
+    # FIXME: this assertion blows up if the MetaFinder below has no-opped on a
+    #  setuptools from another path
+    # assert '_distutils' in core.__file__, core.__file__
 
 
 def do_override():
@@ -85,6 +87,15 @@ class DistutilsMetaFinder:
     def spec_for_distutils(self):
         import importlib.abc
         import importlib.util
+        from pathlib import Path
+
+        st_mod = importlib.import_module('setuptools')
+
+        # prevent this import redirection shim from interacting with a possibly
+        # incompatible setuptools in another location on sys.path
+        # see pypa/setuptools#2957
+        if not Path(__file__).parents[1].samefile(Path(st_mod.__file__).parents[1]):
+            return None
 
         class DistutilsLoader(importlib.abc.Loader):
 
