@@ -1,1 +1,0 @@
-Install schemes fall back to default scheme for headers.

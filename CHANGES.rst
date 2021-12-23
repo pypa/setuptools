@@ -1,3 +1,12 @@
+v60.0.5
+-------
+
+
+Misc
+^^^^
+* #2960: Install schemes fall back to default scheme for headers.
+
+
 v60.0.4
 -------
 
