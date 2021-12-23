@@ -130,7 +130,9 @@ DISTUTILS_FINDER = DistutilsMetaFinder()
 
 
 def add_shim():
-    sys.meta_path.insert(0, DISTUTILS_FINDER)
+    # ensure finder is only added once; it will be removed once setuptools has been imported successfully
+    if DISTUTILS_FINDER not in sys.meta_path:
+      sys.meta_path.insert(0, DISTUTILS_FINDER)
 
 
 def remove_shim():
