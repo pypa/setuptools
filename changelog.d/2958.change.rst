@@ -1,0 +1,1 @@
+In distutils_hack, only add the metadata finder once. In ensure_local_distutils, rely on a context manager for reliable manipulation.
