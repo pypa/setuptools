@@ -408,7 +408,8 @@ class install(Command):
                             'platlibdir': getattr(sys, 'platlibdir', 'lib'),
                             'implementation_lower': _get_implementation().lower(),
                             'implementation': _get_implementation(),
-                            'platsubdir': sysconfig.get_config_var('platsubdir') or '',
+                            # all values must be str; see #86
+                            'platsubdir': str(sysconfig.get_config_var('platsubdir')),
                            }
 
         if HAS_USER_SITE:
