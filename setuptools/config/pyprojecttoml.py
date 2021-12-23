@@ -1,15 +1,19 @@
 """Load setuptools configuration from ``pyproject.toml`` files"""
+import json
 import os
 import sys
 from contextlib import contextmanager
-from functools import partial
-from typing import Union
-import json
-
-from setuptools.errors import OptionError, FileError
 from distutils import log
+from functools import partial
+from typing import TYPE_CHECKING, Union
+
+from setuptools.errors import FileError, OptionError
 
 from . import expand as _expand
+from ._apply_pyprojecttoml import apply
+
+if TYPE_CHECKING:
+    from setuptools.dist import Distribution  # noqa
 
 _Path = Union[str, os.PathLike]
 
@@ -47,6 +51,14 @@ def validate(config: dict, filepath: _Path):
 
         log.error("\n\n".join(msg) + "\n")
         raise
+
+
+def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution":
+    """Apply the configuration from a ``pyproject.toml`` file into an existing
+    distribution object.
+    """
+    config = read_configuration(filepath)
+    return apply(dist, config, filepath)
 
 
 def read_configuration(filepath, expand=True, ignore_option_errors=False):
