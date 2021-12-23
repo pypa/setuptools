@@ -10,7 +10,8 @@ from functools import wraps
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.version import Version, InvalidVersion
 from setuptools.extern.packaging.specifiers import SpecifierSet
-from setuptools.config import expand
+
+from . import expand
 
 
 def read_configuration(filepath, find_others=False, ignore_option_errors=False):
@@ -29,7 +30,26 @@ def read_configuration(filepath, find_others=False, ignore_option_errors=False):
 
     :rtype: dict
     """
-    from setuptools.dist import Distribution, _Distribution
+    from setuptools.dist import Distribution
+
+    dist = Distribution()
+    filenames = dist.find_config_files() if find_others else []
+    handlers = _apply(dist, filepath, filenames, ignore_option_errors)
+    return configuration_to_dict(handlers)
+
+
+def apply_configuration(dist, filepath):
+    """Apply the configuration from a ``setup.cfg`` file into an existing
+    distribution object.
+    """
+    _apply(dist, filepath)
+    dist._finalize_requires()
+    return dist
+
+
+def _apply(dist, filepath, other_files=(), ignore_option_errors=False):
+    """Read configuration from ``filepath`` and applies to the ``dist`` object."""
+    from setuptools.dist import _Distribution
 
     filepath = os.path.abspath(filepath)
 
@@ -38,24 +58,18 @@ def read_configuration(filepath, find_others=False, ignore_option_errors=False):
 
     current_directory = os.getcwd()
     os.chdir(os.path.dirname(filepath))
+    filenames = [*other_files, filepath]
 
     try:
-        dist = Distribution()
-
-        filenames = dist.find_config_files() if find_others else []
-        if filepath not in filenames:
-            filenames.append(filepath)
-
         _Distribution.parse_config_files(dist, filenames=filenames)
-
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )
-
+        dist._finalize_license_files()
     finally:
         os.chdir(current_directory)
 
-    return configuration_to_dict(handlers)
+    return handlers
 
 
 def _get_option(target_obj, key):
