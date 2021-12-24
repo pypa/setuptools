@@ -5,7 +5,8 @@ import functools
 import os
 import re
 
-import _distutils_hack.override  # noqa: F401
+from ._distutils_shim import do_override  # noqa: F401
+do_override()
 
 import distutils.core
 from distutils.errors import DistutilsOptionError

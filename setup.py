@@ -51,11 +51,15 @@ class install_with_pth(install):
     """
 
     _pth_name = 'distutils-precedence'
+    # NB: this abuses the fact that site.py directly execs this with a `sitedir` local that contains the current sitedir it's working on; __file__ is no good here
     _pth_contents = textwrap.dedent("""
         import os
+        from importlib.util import spec_from_file_location, module_from_spec
         var = 'SETUPTOOLS_USE_DISTUTILS'
         enabled = os.environ.get(var, 'local') == 'local'
-        enabled and __import__('_distutils_hack').ensure_shim()
+        mod = module_from_spec(spec_from_file_location('_shimmod', os.path.join(sitedir, 'setuptools', '_distutils_shim.py'))) if enabled else None
+        mod and mod.__spec__.loader.exec_module(mod)
+        mod and mod.ensure_shim()
         """).lstrip().replace('\n', '; ')
 
     def initialize_options(self):

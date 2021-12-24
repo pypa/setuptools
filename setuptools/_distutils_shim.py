@@ -74,6 +74,9 @@ def do_override():
 
 
 class DistutilsMetaFinder:
+    # for forensic purposes, since we may not be able to get at the module object easily
+    _fromfile = __file__
+
     def find_spec(self, fullname, path, target=None):
         if path is not None:
             return
@@ -86,8 +89,16 @@ class DistutilsMetaFinder:
         import importlib.abc
         import importlib.util
 
-        class DistutilsLoader(importlib.abc.Loader):
+        st = importlib.import_module('setuptools')
+        if os.path.dirname(st.__file__) != os.path.dirname(__file__):
+            # no-op; the setuptools we imported was from a foreign site-packages dir, remove self from meta_path
+            remove_shim()
+            return None
+        else:
+            # we're a sibling of the setuptools that actually got imported; kill any other shims
+            remove_foreign_shims()
 
+        class DistutilsLoader(importlib.abc.Loader):
             def create_module(self, spec):
                 return importlib.import_module('setuptools._distutils')
 
@@ -130,7 +141,8 @@ DISTUTILS_FINDER = DistutilsMetaFinder()
 
 
 def ensure_shim():
-    DISTUTILS_FINDER in sys.meta_path or add_shim()
+    if not (any(s for s in sys.meta_path if type(s).__name__ == 'DistutilsMetaFinder' and getattr(s, '_fromfile', None) == DistutilsMetaFinder._fromfile)):
+        add_shim()
 
 
 @contextlib.contextmanager
@@ -150,4 +162,16 @@ def remove_shim():
     try:
         sys.meta_path.remove(DISTUTILS_FINDER)
     except ValueError:
+        pass
+
+
+def remove_foreign_shims():
+    """
+    Remove setuptools metapath shims that might've been installed by other installations on sys.path
+    """
+    try:
+        foreign_shims = [l for l in sys.meta_path if type(l).__name__ == 'DistutilsMetaFinder' and l is not DISTUTILS_FINDER]
+        for shim in foreign_shims:
+            sys.meta_path.remove(shim)
+    except Exception:
         pass
