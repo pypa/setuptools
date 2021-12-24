@@ -408,8 +408,7 @@ class install(Command):
                             'platlibdir': getattr(sys, 'platlibdir', 'lib'),
                             'implementation_lower': _get_implementation().lower(),
                             'implementation': _get_implementation(),
-                            # all values must be str; see #86
-                            'platsubdir': str(sysconfig.get_config_var('platsubdir')),
+                            'platsubdir': sysconfig.get_config_var('platsubdir'),
                            }
 
         if HAS_USER_SITE:
@@ -650,7 +649,7 @@ class install(Command):
             return
         home = convert_path(os.path.expanduser("~"))
         for name, path in self.config_vars.items():
-            if path.startswith(home) and not os.path.isdir(path):
+            if str(path).startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0o700)" % path)
                 os.makedirs(path, 0o700)
 
