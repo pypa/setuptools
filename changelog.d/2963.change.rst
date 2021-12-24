@@ -1,1 +1,0 @@
-Merge with pypa/distutils@a5af364910. Includes revisited fix for pypa/distutils#15 and improved MinGW/Cygwin support from pypa/distutils#77.
