@@ -4,8 +4,9 @@ import shutil
 import subprocess
 
 import pytest
+import path
 
-from . import contexts
+from . import contexts, environment
 
 
 @pytest.fixture
@@ -104,3 +105,32 @@ def setuptools_wheel(tmp_path_factory, request):
             "--outdir", str(tmp) , str(request.config.rootdir)
         ])
         return next(tmp.glob("*.whl"))
+
+
+@pytest.fixture
+def venv(tmp_path, setuptools_wheel):
+    """Virtual env with the version of setuptools under test installed"""
+    env = environment.VirtualEnv()
+    env.root = path.Path(tmp_path / 'venv')
+    env.req = str(setuptools_wheel)
+    return env.create()
+
+
+@pytest.fixture
+def venv_without_setuptools(tmp_path):
+    """Virtual env without any version of setuptools installed"""
+    env = environment.VirtualEnv()
+    env.root = path.Path(tmp_path / 'venv_without_setuptools')
+    env.create_opts = ['--no-setuptools']
+    env.ensure_env()
+    return env
+
+
+@pytest.fixture
+def bare_venv(tmp_path):
+    """Virtual env without any common packages installed"""
+    env = environment.VirtualEnv()
+    env.root = path.Path(tmp_path / 'bare_venv')
+    env.create_opts = ['--no-setuptools', '--no-pip', '--no-wheel', '--no-seed']
+    env.ensure_env()
+    return env

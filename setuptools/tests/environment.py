@@ -1,8 +1,23 @@
 import os
 import sys
+import subprocess
 import unicodedata
-
 from subprocess import Popen as _Popen, PIPE as _PIPE
+
+import jaraco.envs
+
+
+class VirtualEnv(jaraco.envs.VirtualEnv):
+    name = '.env'
+    # Some version of PyPy will import distutils on startup, implicitly
+    # importing setuptools, and thus leading to BackendInvalid errors
+    # when upgrading Setuptools. Bypass this behavior by avoiding the
+    # early availability and need to upgrade.
+    create_opts = ['--no-setuptools']
+
+    def run(self, cmd, *args, **kwargs):
+        cmd = [self.exe(cmd[0])] + cmd[1:]
+        return subprocess.check_output(cmd, *args, cwd=self.root, **kwargs)
 
 
 def _which_dirs(cmd):
