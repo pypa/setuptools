@@ -17,7 +17,8 @@ class VirtualEnv(jaraco.envs.VirtualEnv):
 
     def run(self, cmd, *args, **kwargs):
         cmd = [self.exe(cmd[0])] + cmd[1:]
-        return subprocess.check_output(cmd, *args, cwd=self.root, **kwargs)
+        kwargs = {"cwd": self.root, **kwargs}  # Allow overriding
+        return subprocess.check_output(cmd, *args, **kwargs)
 
 
 def _which_dirs(cmd):
