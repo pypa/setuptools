@@ -22,18 +22,22 @@ import os
 import sys
 from glob import iglob
 from configparser import ConfigParser
+from importlib.machinery import ModuleSpec
 from itertools import chain
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
+from types import ModuleType
 
 from distutils.errors import DistutilsOptionError
 
 chain_iter = chain.from_iterable
+_Path = Union[str, os.PathLike]
 
 
 class StaticModule:
     """Proxy to a module object that avoids executing arbitrary code."""
 
-    def __init__(self, name, spec):
-        with open(spec.origin) as strm:
+    def __init__(self, name: str, spec: ModuleSpec):
+        with open(spec.origin) as strm:  # type: ignore
             src = strm.read()
         module = ast.parse(src)
         vars(self).update(locals())
@@ -62,7 +66,9 @@ class StaticModule:
             raise AttributeError(f"{self.name} has no attribute {attr}") from e
 
 
-def glob_relative(patterns, root_dir=None):
+def glob_relative(
+    patterns: Iterable[str], root_dir: Optional[_Path] = None
+) -> List[str]:
     """Expand the list of glob patterns, but preserving relative paths.
 
     :param list[str] patterns: List of glob patterns
@@ -91,7 +97,7 @@ def glob_relative(patterns, root_dir=None):
     return expanded_values
 
 
-def read_files(filepaths, root_dir=None):
+def read_files(filepaths: Union[str, bytes, Iterable[_Path]], root_dir=None) -> str:
     """Return the content of the files concatenated using ``\n`` as str
 
     This function is sandboxed and won't reach anything outside ``root_dir``
@@ -99,7 +105,7 @@ def read_files(filepaths, root_dir=None):
     (By default ``root_dir`` is the current directory).
     """
     if isinstance(filepaths, (str, bytes)):
-        filepaths = [filepaths]
+        filepaths = [filepaths]  # type: ignore
 
     root_dir = os.path.abspath(root_dir or os.getcwd())
     _filepaths = (os.path.join(root_dir, path) for path in filepaths)
@@ -110,12 +116,12 @@ def read_files(filepaths, root_dir=None):
     )
 
 
-def _read_file(filepath):
+def _read_file(filepath: Union[bytes, _Path]) -> str:
     with io.open(filepath, encoding='utf-8') as f:
         return f.read()
 
 
-def _assert_local(filepath, root_dir):
+def _assert_local(filepath: _Path, root_dir: str):
     if not os.path.abspath(filepath).startswith(root_dir):
         msg = f"Cannot access {filepath!r} (or anything outside {root_dir!r})"
         raise DistutilsOptionError(msg)
@@ -123,7 +129,11 @@ def _assert_local(filepath, root_dir):
     return True
 
 
-def read_attr(attr_desc, package_dir=None, root_dir=None):
+def read_attr(
+    attr_desc: str,
+    package_dir: Optional[dict] = None,
+    root_dir: Optional[_Path] = None
+):
     """Reads the value of an attribute from a module.
 
     This function will try to read the attributed statically first
@@ -146,8 +156,8 @@ def read_attr(attr_desc, package_dir=None, root_dir=None):
     attr_name = attrs_path.pop()
     module_name = '.'.join(attrs_path)
     module_name = module_name or '__init__'
-    parent_path, path, module_name = _find_module(module_name, package_dir, root_dir)
-    spec = _find_spec(module_name, path, parent_path)
+    _parent_path, path, module_name = _find_module(module_name, package_dir, root_dir)
+    spec = _find_spec(module_name, path)
 
     try:
         return getattr(StaticModule(module_name, spec), attr_name)
@@ -157,7 +167,7 @@ def read_attr(attr_desc, package_dir=None, root_dir=None):
         return getattr(module, attr_name)
 
 
-def _find_spec(module_name, module_path, parent_path):
+def _find_spec(module_name: str, module_path: Optional[_Path]) -> ModuleSpec:
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     spec = spec or importlib.util.find_spec(module_name)
 
@@ -167,17 +177,19 @@ def _find_spec(module_name, module_path, parent_path):
     return spec
 
 
-def _load_spec(spec, module_name):
+def _load_spec(spec: ModuleSpec, module_name: str) -> ModuleType:
     name = getattr(spec, "__name__", module_name)
     if name in sys.modules:
         return sys.modules[name]
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module  # cache (it also ensures `==` works on loaded items)
-    spec.loader.exec_module(module)
+    spec.loader.exec_module(module)  # type: ignore
     return module
 
 
-def _find_module(module_name, package_dir, root_dir):
+def _find_module(
+    module_name: str, package_dir: Optional[dict], root_dir: _Path
+) -> Tuple[_Path, Optional[str], str]:
     """Given a module (that could normally be imported by ``module_name``
     after the build is complete), find the path to the parent directory where
     it is contained and the canonical name that could be used to import it
@@ -209,26 +221,36 @@ def _find_module(module_name, package_dir, root_dir):
     return parent_path, module_path, module_name
 
 
-def resolve_class(qualified_class_name, package_dir=None, root_dir=None):
+def resolve_class(
+    qualified_class_name: str,
+    package_dir: Optional[dict] = None,
+    root_dir: Optional[_Path] = None
+) -> Callable:
     """Given a qualified class name, return the associated class object"""
     root_dir = root_dir or os.getcwd()
     idx = qualified_class_name.rfind('.')
     class_name = qualified_class_name[idx + 1 :]
     pkg_name = qualified_class_name[:idx]
 
-    parent_path, path, module_name = _find_module(pkg_name, package_dir, root_dir)
-    module = _load_spec(_find_spec(module_name, path, parent_path), module_name)
+    _parent_path, path, module_name = _find_module(pkg_name, package_dir, root_dir)
+    module = _load_spec(_find_spec(module_name, path), module_name)
     return getattr(module, class_name)
 
 
-def cmdclass(values, package_dir=None, root_dir=None):
+def cmdclass(
+    values: Dict[str, str],
+    package_dir: Optional[dict] = None,
+    root_dir: Optional[_Path] = None
+) -> Dict[str, Callable]:
     """Given a dictionary mapping command names to strings for qualified class
     names, apply :func:`resolve_class` to the dict values.
     """
     return {k: resolve_class(v, package_dir, root_dir) for k, v in values.items()}
 
 
-def find_packages(*, namespaces=False, root_dir=None, **kwargs):
+def find_packages(
+    *, namespaces=False, root_dir: Optional[_Path] = None, **kwargs
+) -> List[str]:
     """Works similarly to :func:`setuptools.find_packages`, but with all
     arguments given as keyword arguments. Moreover, ``where`` can be given
     as a list (the results will be simply concatenated).
@@ -243,7 +265,7 @@ def find_packages(*, namespaces=False, root_dir=None, **kwargs):
     if namespaces:
         from setuptools import PEP420PackageFinder as PackageFinder
     else:
-        from setuptools import PackageFinder
+        from setuptools import PackageFinder  # type: ignore
 
     root_dir = root_dir or "."
     where = kwargs.pop('where', ['.'])
@@ -253,17 +275,19 @@ def find_packages(*, namespaces=False, root_dir=None, **kwargs):
     return list(chain_iter(PackageFinder.find(x, **kwargs) for x in target))
 
 
-def _nest_path(parent, path):
+def _nest_path(parent: _Path, path: _Path) -> str:
     path = parent if path == "." else os.path.join(parent, path)
     return os.path.normpath(path)
 
 
-def version(value):
+def version(value: Union[Callable, Iterable[Union[str, int]], str]) -> str:
     """When getting the version directly from an attribute,
     it should be normalised to string.
     """
     if callable(value):
         value = value()
+
+    value = cast(Iterable[Union[str, int]], value)
 
     if not isinstance(value, str):
         if hasattr(value, '__iter__'):
@@ -274,13 +298,15 @@ def version(value):
     return value
 
 
-def canonic_package_data(package_data):
+def canonic_package_data(package_data: dict) -> dict:
     if "*" in package_data:
         package_data[""] = package_data.pop("*")
     return package_data
 
 
-def canonic_data_files(data_files, root_dir=None):
+def canonic_data_files(
+    data_files: Union[list, dict], root_dir: Optional[_Path] = None
+) -> List[Tuple[str, List[str]]]:
     """For compatibility with ``setup.py``, ``data_files`` should be a list
     of pairs instead of a dict.
 
@@ -295,14 +321,14 @@ def canonic_data_files(data_files, root_dir=None):
     ]
 
 
-def entry_points(text, text_source="entry-points"):
+def entry_points(text: str, text_source="entry-points") -> Dict[str, dict]:
     """Given the contents of entry-points file,
     process it into a 2-level dictionary (``dict[str, dict[str, str]]``).
     The first level keys are entry-point groups, the second level keys are
     entry-point names, and the second level values are references to objects
     (that correspond to the entry-point value).
     """
-    parser = ConfigParser(default_section=None, delimiters=("=",))
+    parser = ConfigParser(default_section=None, delimiters=("=",))  # type: ignore
     parser.optionxform = str  # case sensitive
     parser.read_string(text, text_source)
     groups = {k: dict(v.items()) for k, v in parser.items()}
