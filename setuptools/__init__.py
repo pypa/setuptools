@@ -18,6 +18,7 @@ from setuptools.extension import Extension
 from setuptools.dist import Distribution
 from setuptools.depends import Require
 from . import monkey
+from . import logging
 
 
 __all__ = [
@@ -149,6 +150,7 @@ def _install_setup_requires(attrs):
 
 def setup(**attrs):
     # Make sure we have any requirements needed to interpret 'attrs'.
+    logging.configure()
     _install_setup_requires(attrs)
     return distutils.core.setup(**attrs)
 
