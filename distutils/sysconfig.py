@@ -281,25 +281,9 @@ def get_config_h_filename():
 
 
 
-# Allow this value to be patched by pkgsrc. Ref pypa/distutils#16.
-_makefile_tmpl = 'config-{python_ver}{build_flags}{multiarch}'
-
-
 def get_makefile_filename():
     """Return full pathname of installed Makefile from the Python build."""
-    if python_build:
-        return os.path.join(_sys_home or project_base, "Makefile")
-    lib_dir = get_python_lib(plat_specific=0, standard_lib=1)
-    multiarch = (
-        '-%s' % sys.implementation._multiarch
-        if hasattr(sys.implementation, '_multiarch') else ''
-    )
-    config_file = _makefile_tmpl.format(
-        python_ver=get_python_version(),
-        build_flags=build_flags,
-        multiarch=multiarch,
-    )
-    return os.path.join(lib_dir, config_file, 'Makefile')
+    return sysconfig.get_makefile_filename()
 
 
 def parse_config_h(fp, g=None):
