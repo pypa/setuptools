@@ -283,6 +283,16 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         outs, errs = p.communicate()
         self.assertEqual(0, p.returncode, "Subprocess failed: " + outs)
 
+    def test_parse_config_h(self):
+        config_h = sysconfig.get_config_h_filename()
+        input = {}
+        with open(config_h, encoding="utf-8") as f:
+            result = sysconfig.parse_config_h(f, g=input)
+        self.assertTrue(input)
+        self.assertTrue(input is result)
+        with open(config_h, encoding="utf-8") as f:
+            result = sysconfig.parse_config_h(f)
+        self.assertTrue(result)
 
 def test_suite():
     suite = unittest.TestSuite()

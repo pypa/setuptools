@@ -13,6 +13,7 @@ import _imp
 import os
 import re
 import sys
+import sysconfig
 
 from .errors import DistutilsPlatformError
 
@@ -308,26 +309,7 @@ def parse_config_h(fp, g=None):
     optional dictionary is passed in as the second argument, it is
     used instead of a new dictionary.
     """
-    if g is None:
-        g = {}
-    define_rx = re.compile("#define ([A-Z][A-Za-z0-9_]+) (.*)\n")
-    undef_rx = re.compile("/[*] #undef ([A-Z][A-Za-z0-9_]+) [*]/\n")
-    #
-    while True:
-        line = fp.readline()
-        if not line:
-            break
-        m = define_rx.match(line)
-        if m:
-            n, v = m.group(1, 2)
-            try: v = int(v)
-            except ValueError: pass
-            g[n] = v
-        else:
-            m = undef_rx.match(line)
-            if m:
-                g[m.group(1)] = 0
-    return g
+    return sysconfig.parse_config_h(fp, vars=g)
 
 
 # Regexes needed for parsing Makefile (and similar syntaxes,
