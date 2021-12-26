@@ -1,5 +1,7 @@
 import sys
 import logging
+import distutils.log
+from . import monkey
 
 
 def _not_warning(record):
@@ -20,3 +22,9 @@ def configure():
     handlers = err_handler, out_handler
     logging.basicConfig(
         format="{message}", style='{', handlers=handlers, level=logging.DEBUG)
+    monkey.patch_func(set_threshold, distutils.log, 'set_threshold')
+
+
+def set_threshold(level):
+    logging.root.setLevel(level*10)
+    return set_threshold.unpatched(level)
