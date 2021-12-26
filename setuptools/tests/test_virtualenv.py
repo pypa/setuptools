@@ -82,6 +82,7 @@ def _get_pip_versions():
         'pip<22',
         mark(
             'https://github.com/pypa/pip/archive/main.zip',
+            pytest.mark.xfail(reason='#2975'),
         ),
     ]
 
