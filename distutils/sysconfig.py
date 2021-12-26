@@ -13,6 +13,7 @@ import _imp
 import os
 import re
 import sys
+import sysconfig
 
 from .errors import DistutilsPlatformError
 
@@ -274,10 +275,10 @@ def get_config_h_filename():
             inc_dir = os.path.join(_sys_home or project_base, "PC")
         else:
             inc_dir = _sys_home or project_base
+        return os.path.join(inc_dir, 'pyconfig.h')
     else:
-        inc_dir = get_python_inc(plat_specific=1)
+        return sysconfig.get_config_h_filename()
 
-    return os.path.join(inc_dir, 'pyconfig.h')
 
 
 # Allow this value to be patched by pkgsrc. Ref pypa/distutils#16.
