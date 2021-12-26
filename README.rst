@@ -32,7 +32,7 @@
    :target: https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=readme
 
 .. image:: https://img.shields.io/discord/803025117553754132
-   :target: https://discord.com/channels/803025117553754132
+   :target: https://discord.com/channels/803025117553754132/815945031150993468
    :alt: Discord
 
 See the `Installation Instructions
