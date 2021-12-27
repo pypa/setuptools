@@ -98,7 +98,7 @@ class TestSpawn(unittest.TestCase):
         compiler = _msvccompiler.MSVCCompiler()
         compiler._paths = "expected"
         inner_cmd = 'import os; assert os.environ["PATH"] == "expected"'
-        command = ['python', '-c', inner_cmd]
+        command = [sys.executable, '-c', inner_cmd]
 
         threads = [
             CheckThread(target=compiler.spawn, args=[command])
