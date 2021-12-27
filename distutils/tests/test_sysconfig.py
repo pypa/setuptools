@@ -288,11 +288,10 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         input = {}
         with open(config_h, encoding="utf-8") as f:
             result = sysconfig.parse_config_h(f, g=input)
-        self.assertTrue(input)
         self.assertTrue(input is result)
         with open(config_h, encoding="utf-8") as f:
             result = sysconfig.parse_config_h(f)
-        self.assertTrue(result)
+        self.assertTrue(isinstance(result, dict))
 
 def test_suite():
     suite = unittest.TestSuite()
