@@ -246,7 +246,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
 
 def test_suite():
-    return unittest.makeSuite(UnixCCompilerTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(UnixCCompilerTestCase)
 
 if __name__ == "__main__":
     run_unittest(test_suite())
