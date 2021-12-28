@@ -1,3 +1,12 @@
+v60.1.1
+-------
+
+
+Misc
+^^^^
+* #2980: Bypass distutils loader when setuptools module is no longer available on sys.path.
+
+
 v60.1.0
 -------
 

@@ -1,1 +1,0 @@
-Bypass distutils loader when setuptools module is no longer available on sys.path.
