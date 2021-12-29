@@ -136,20 +136,20 @@ class DistutilsMetaFinder:
 DISTUTILS_FINDER = DistutilsMetaFinder()
 
 
-def ensure_shim():
-    DISTUTILS_FINDER in sys.meta_path or add_shim()
+def add_shim():
+    DISTUTILS_FINDER in sys.meta_path or insert_shim()
 
 
 @contextlib.contextmanager
 def shim():
-    add_shim()
+    insert_shim()
     try:
         yield
     finally:
         remove_shim()
 
 
-def add_shim():
+def insert_shim():
     sys.meta_path.insert(0, DISTUTILS_FINDER)
 
 

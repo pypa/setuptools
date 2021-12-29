@@ -55,7 +55,7 @@ class install_with_pth(install):
         import os
         var = 'SETUPTOOLS_USE_DISTUTILS'
         enabled = os.environ.get(var, 'local') == 'local'
-        enabled and __import__('_distutils_hack').ensure_shim()
+        enabled and __import__('_distutils_hack').add_shim()
         """).lstrip().replace('\n', '; ')
 
     def initialize_options(self):
