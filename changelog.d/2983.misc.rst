@@ -1,0 +1,1 @@
+Restore 'add_shim' as the way to invoke the hook. Avoids compatibility issues between different versions of Setuptools with the distutils local implementation.
