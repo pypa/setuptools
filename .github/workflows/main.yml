@@ -5,7 +5,6 @@ on: [push, pull_request]
 env:
   # pypa/distutils#99
   VIRTUALENV_NO_SETUPTOOLS: 1
-  PIP_USE_PEP517: 1
 
 jobs:
   test:
@@ -93,6 +92,8 @@ jobs:
         run: |
           cd integration/setuptools
           tox
+        env:
+          VIRTUALENV_NO_SETUPTOOLS: null
 
   release:
     needs: test
