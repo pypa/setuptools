@@ -1,1 +1,0 @@
-Sync with pypa/distutils@2def21c5d74fdd2fe7996ee4030ac145a9d751bd, including fix for missing get_versions attribute (#2969), more reliance on sysconfig from stdlib.

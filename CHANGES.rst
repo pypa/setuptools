@@ -1,3 +1,18 @@
+v60.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2974: Setuptools now relies on the Python logging infrastructure to log messages. Instead of using ``distutils.log.*``, use ``logging.getLogger(name).*``.
+* #2987: Sync with pypa/distutils@2def21c5d74fdd2fe7996ee4030ac145a9d751bd, including fix for missing get_versions attribute (#2969), more reliance on sysconfig from stdlib.
+
+Misc
+^^^^
+* #2962: Avoid attempting to use local distutils when the presiding version of Setuptools on the path doesn't have one.
+* #2983: Restore 'add_shim' as the way to invoke the hook. Avoids compatibility issues between different versions of Setuptools with the distutils local implementation.
+
+
 v60.1.1
 -------
 

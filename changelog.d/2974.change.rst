@@ -1,1 +1,0 @@
-Setuptools now relies on the Python logging infrastructure to log messages. Instead of using ``distutils.log.*``, use ``logging.getLogger(name).*``.
