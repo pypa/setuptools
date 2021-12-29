@@ -85,20 +85,18 @@ class DistutilsMetaFinder:
     def spec_for_distutils(self):
         import importlib.abc
         import importlib.util
-        from pathlib import Path
 
-        st_mod = importlib.import_module('setuptools')
-
-        # prevent this import redirection shim from interacting with a possibly
-        # incompatible setuptools in another location on sys.path
-        # see pypa/setuptools#2957
-        if not Path(__file__).parents[1].samefile(Path(st_mod.__file__).parents[1]):
+        try:
+            mod = importlib.import_module('setuptools._distutils')
+        except Exception:
+            # an older Setuptools without a local distutils is taking
+            # precedence, so fall back to stdlib. Ref #2957.
             return None
 
         class DistutilsLoader(importlib.abc.Loader):
 
             def create_module(self, spec):
-                return importlib.import_module('setuptools._distutils')
+                return mod
 
             def exec_module(self, module):
                 pass
