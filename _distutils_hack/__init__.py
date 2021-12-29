@@ -3,6 +3,7 @@ import os
 import re
 import importlib
 import warnings
+import contextlib
 
 
 is_pypy = '__pypy__' in sys.builtin_module_names
@@ -52,9 +53,8 @@ def ensure_local_distutils():
     # With the DistutilsMetaFinder in place,
     # perform an import to cause distutils to be
     # loaded from setuptools._distutils. Ref #2906.
-    add_shim()
-    importlib.import_module('distutils')
-    remove_shim()
+    with shim():
+        importlib.import_module('distutils')
 
     # check that submodules load as expected
     core = importlib.import_module('distutils.core')
@@ -89,9 +89,15 @@ class DistutilsMetaFinder:
         try:
             mod = importlib.import_module('setuptools._distutils')
         except Exception:
-            # an older Setuptools without a local distutils is taking
-            # precedence, so fall back to stdlib. Ref #2957.
-            return None
+            # There are a couple of cases where setuptools._distutils
+            # may not be present:
+            # - An older Setuptools without a local distutils is
+            #   taking precedence. Ref #2957.
+            # - Path manipulation during sitecustomize removes
+            #   setuptools from the path but only after the hook
+            #   has been loaded. Ref #2980.
+            # In either case, fall back to stdlib behavior.
+            return
 
         class DistutilsLoader(importlib.abc.Loader):
 
@@ -134,6 +140,19 @@ class DistutilsMetaFinder:
 
 
 DISTUTILS_FINDER = DistutilsMetaFinder()
+
+
+def ensure_shim():
+    DISTUTILS_FINDER in sys.meta_path or add_shim()
+
+
+@contextlib.contextmanager
+def shim():
+    add_shim()
+    try:
+        yield
+    finally:
+        remove_shim()
 
 
 def add_shim():

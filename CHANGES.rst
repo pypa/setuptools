@@ -1,3 +1,31 @@
+v60.1.1
+-------
+
+
+Misc
+^^^^
+* #2980: Bypass distutils loader when setuptools module is no longer available on sys.path.
+
+
+v60.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2958: In distutils_hack, only add the metadata finder once. In ensure_local_distutils, rely on a context manager for reliable manipulation.
+* #2963: Merge with pypa/distutils@a5af364910. Includes revisited fix for pypa/distutils#15 and improved MinGW/Cygwin support from pypa/distutils#77.
+
+
+v60.0.5
+-------
+
+
+Misc
+^^^^
+* #2960: Install schemes fall back to default scheme for headers.
+
+
 v60.0.4
 -------
 

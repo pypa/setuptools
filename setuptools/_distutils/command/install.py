@@ -81,11 +81,6 @@ if HAS_USER_SITE:
         'data'   : '{userbase}',
         }
 
-    INSTALL_SCHEMES['osx_framework_user'] = {
-        'headers':
-            '{userbase}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
-    }
-
 # The keys to an installation scheme; if any new types of files are to be
 # installed, be sure to add an entry to every installation scheme above,
 # and to SCHEME_KEYS here.
@@ -124,7 +119,8 @@ def _get_implementation():
 
 
 def _select_scheme(ob, name):
-    vars(ob).update(_remove_set(ob, _scheme_attrs(_resolve_scheme(name))))
+    scheme = _inject_headers(name, _load_scheme(_resolve_scheme(name)))
+    vars(ob).update(_remove_set(ob, _scheme_attrs(scheme)))
 
 
 def _remove_set(ob, attrs):
@@ -147,9 +143,26 @@ def _resolve_scheme(name):
     return resolved
 
 
-def _scheme_attrs(name):
+def _load_scheme(name):
+    return _load_schemes()[name]
+
+
+def _inject_headers(name, scheme):
+    """
+    Given a scheme name and the resolved scheme,
+    if the scheme does not include headers, resolve
+    the fallback scheme for the name and use headers
+    from it. pypa/distutils#88
+    """
+    # Bypass the preferred scheme, which may not
+    # have defined headers.
+    fallback = _load_scheme(_pypy_hack(name))
+    scheme.setdefault('headers', fallback['headers'])
+    return scheme
+
+
+def _scheme_attrs(scheme):
     """Resolve install directories by applying the install schemes."""
-    scheme = _load_schemes()[name]
     return {
         f'install_{key}': scheme[key]
         for key in SCHEME_KEYS
@@ -636,7 +649,7 @@ class install(Command):
             return
         home = convert_path(os.path.expanduser("~"))
         for name, path in self.config_vars.items():
-            if path.startswith(home) and not os.path.isdir(path):
+            if str(path).startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0o700)" % path)
                 os.makedirs(path, 0o700)
 
