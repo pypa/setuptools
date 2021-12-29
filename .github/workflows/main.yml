@@ -36,7 +36,7 @@ jobs:
     strategy:
       matrix:
         python:
-        - "3.10"
+        - 3.9
         platform:
         - windows-latest
     runs-on: ${{ matrix.platform }}
@@ -47,9 +47,9 @@ jobs:
         with:
           platform: x86_64
           packages: >-
-            python${{ matrix.python }},
-            python${{ matrix.python }}-devel,
-            python${{ matrix.python }}-pytest,
+            python${{ matrix.python//.// }},
+            python${{ matrix.python//.// }}-devel,
+            python${{ matrix.python//.// }}-pytest,
             gcc-core,
             gcc-g++,
             ncompress
