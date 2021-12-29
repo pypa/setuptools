@@ -354,3 +354,9 @@ def is_cygwincc(cc):
     out_string = check_output(shlex.split(cc) + ['-dumpmachine'])
     return out_string.strip().endswith(b'cygwin')
 
+
+get_versions = None
+"""
+A stand-in for the previous get_versions() function to prevent failures
+when monkeypatched. See pypa/setuptools#2969.
+"""

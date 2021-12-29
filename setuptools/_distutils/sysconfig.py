@@ -13,6 +13,7 @@ import _imp
 import os
 import re
 import sys
+import sysconfig
 
 from .errors import DistutilsPlatformError
 
@@ -274,31 +275,15 @@ def get_config_h_filename():
             inc_dir = os.path.join(_sys_home or project_base, "PC")
         else:
             inc_dir = _sys_home or project_base
+        return os.path.join(inc_dir, 'pyconfig.h')
     else:
-        inc_dir = get_python_inc(plat_specific=1)
+        return sysconfig.get_config_h_filename()
 
-    return os.path.join(inc_dir, 'pyconfig.h')
-
-
-# Allow this value to be patched by pkgsrc. Ref pypa/distutils#16.
-_makefile_tmpl = 'config-{python_ver}{build_flags}{multiarch}'
 
 
 def get_makefile_filename():
     """Return full pathname of installed Makefile from the Python build."""
-    if python_build:
-        return os.path.join(_sys_home or project_base, "Makefile")
-    lib_dir = get_python_lib(plat_specific=0, standard_lib=1)
-    multiarch = (
-        '-%s' % sys.implementation._multiarch
-        if hasattr(sys.implementation, '_multiarch') else ''
-    )
-    config_file = _makefile_tmpl.format(
-        python_ver=get_python_version(),
-        build_flags=build_flags,
-        multiarch=multiarch,
-    )
-    return os.path.join(lib_dir, config_file, 'Makefile')
+    return sysconfig.get_makefile_filename()
 
 
 def parse_config_h(fp, g=None):
@@ -308,26 +293,7 @@ def parse_config_h(fp, g=None):
     optional dictionary is passed in as the second argument, it is
     used instead of a new dictionary.
     """
-    if g is None:
-        g = {}
-    define_rx = re.compile("#define ([A-Z][A-Za-z0-9_]+) (.*)\n")
-    undef_rx = re.compile("/[*] #undef ([A-Z][A-Za-z0-9_]+) [*]/\n")
-    #
-    while True:
-        line = fp.readline()
-        if not line:
-            break
-        m = define_rx.match(line)
-        if m:
-            n, v = m.group(1, 2)
-            try: v = int(v)
-            except ValueError: pass
-            g[n] = v
-        else:
-            m = undef_rx.match(line)
-            if m:
-                g[m.group(1)] = 0
-    return g
+    return sysconfig.parse_config_h(fp, vars=g)
 
 
 # Regexes needed for parsing Makefile (and similar syntaxes,
