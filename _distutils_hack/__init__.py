@@ -58,9 +58,7 @@ def ensure_local_distutils():
 
     # check that submodules load as expected
     core = importlib.import_module('distutils.core')
-    # FIXME: this assertion blows up if the MetaFinder below has no-opped on a
-    #  setuptools from another path
-    # assert '_distutils' in core.__file__, core.__file__
+    assert '_distutils' in core.__file__, core.__file__
 
 
 def do_override():
