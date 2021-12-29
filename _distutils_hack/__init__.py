@@ -86,17 +86,23 @@ class DistutilsMetaFinder:
         import importlib.abc
         import importlib.util
 
-        # In cases of path manipulation during sitecustomize,
-        # Setuptools might actually not be present even though
-        # the hook has been loaded. Allow the caller to fall
-        # back to stdlib behavior. See #2980.
-        if not importlib.util.find_spec('setuptools'):
+        try:
+            mod = importlib.import_module('setuptools._distutils')
+        except Exception:
+            # There are a couple of cases where setuptools._distutils
+            # may not be present:
+            # - An older Setuptools without a local distutils is
+            #   taking precedence. Ref #2957.
+            # - Path manipulation during sitecustomize removes
+            #   setuptools from the path but only after the hook
+            #   has been loaded. Ref #2980.
+            # In either case, fall back to stdlib behavior.
             return
 
         class DistutilsLoader(importlib.abc.Loader):
 
             def create_module(self, spec):
-                return importlib.import_module('setuptools._distutils')
+                return mod
 
             def exec_module(self, module):
                 pass
