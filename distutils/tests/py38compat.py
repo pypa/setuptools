@@ -2,6 +2,11 @@
 
 import contextlib
 import builtins
+import sys
+
+from test.support import requires_zlib
+import test.support
+
 
 ModuleNotFoundError = getattr(builtins, 'ModuleNotFoundError', ImportError)
 
@@ -51,3 +56,7 @@ try:
     from test.support.warnings_helper import save_restore_warnings_filters
 except (ModuleNotFoundError, ImportError):
     save_restore_warnings_filters = _save_restore_warnings_filters
+
+
+if sys.version_info < (3, 9):
+    requires_zlib = lambda: test.support.requires_zlib
