@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import distutils.util
 import os
 import sys

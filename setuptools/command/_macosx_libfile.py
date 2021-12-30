@@ -38,6 +38,8 @@ Important remarks:
   target when the arm64 target is 11.0.
 """
 
+from __future__ import annotations
+
 import ctypes
 import os
 import sys
@@ -421,7 +423,7 @@ def calculate_macosx_platform_tag(archive_root, platform_tag):
     assert len(base_version) == 2
     start_version = base_version
     versions_dict = {}
-    for (dirpath, dirnames, filenames) in os.walk(archive_root):
+    for (dirpath, _dirnames, filenames) in os.walk(archive_root):
         for filename in filenames:
             if filename.endswith(".dylib") or filename.endswith(".so"):
                 lib_path = os.path.join(dirpath, filename)
