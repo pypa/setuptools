@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import distutils.util
 import os
 import sys
+import sysconfig
 
 from wheel.bdist_wheel import get_platform
 from wheel.macosx_libfile import extract_macosx_min_system_version
@@ -52,7 +52,7 @@ class TestGetPlatformMacosx:
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(
-            distutils.util, "get_platform", return_factory("macosx-11.0-x86_64")
+            sysconfig, "get_platform", return_factory("macosx-11.0-x86_64")
         )
         assert get_platform(dylib_dir) == "macosx_11_0_x86_64"
 
@@ -60,7 +60,7 @@ class TestGetPlatformMacosx:
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(
-            distutils.util, "get_platform", return_factory("macosx-10.9-x86_64")
+            sysconfig, "get_platform", return_factory("macosx-10.9-x86_64")
         )
         assert get_platform(dylib_dir) == "macosx_11_0_x86_64"
         captured = capsys.readouterr()
@@ -72,7 +72,7 @@ class TestGetPlatformMacosx:
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(
-            distutils.util, "get_platform", return_factory("macosx-10.9-x86_64")
+            sysconfig, "get_platform", return_factory("macosx-10.9-x86_64")
         )
         monkeypatch.setattr(
             os,
@@ -95,7 +95,7 @@ class TestGetPlatformMacosx:
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(
-            distutils.util, "get_platform", return_factory("macosx-10.9-x86_64")
+            sysconfig, "get_platform", return_factory("macosx-10.9-x86_64")
         )
         monkeypatch.setenv("MACOSX_DEPLOYMENT_TARGET", "10.8")
         monkeypatch.setattr(
@@ -115,7 +115,7 @@ class TestGetPlatformMacosx:
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(
-            distutils.util, "get_platform", return_factory("macosx-10.9-x86_64")
+            sysconfig, "get_platform", return_factory("macosx-10.9-x86_64")
         )
         monkeypatch.setattr(
             os,
@@ -134,7 +134,7 @@ class TestGetPlatformMacosx:
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(
-            distutils.util, "get_platform", return_factory("macosx-10.9-x86_64")
+            sysconfig, "get_platform", return_factory("macosx-10.9-x86_64")
         )
         monkeypatch.setattr(
             os,
@@ -165,7 +165,7 @@ class TestGetPlatformMacosx:
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(
-            distutils.util, "get_platform", return_factory("macosx-10.9-x86_64")
+            sysconfig, "get_platform", return_factory("macosx-10.9-x86_64")
         )
         monkeypatch.setenv("MACOSX_DEPLOYMENT_TARGET", "10.8")
         monkeypatch.setattr(
@@ -186,7 +186,7 @@ class TestGetPlatformMacosx:
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(
-            distutils.util, "get_platform", return_factory("macosx-10.9-x86_64")
+            sysconfig, "get_platform", return_factory("macosx-10.9-x86_64")
         )
         monkeypatch.setenv("MACOSX_DEPLOYMENT_TARGET", "11")
         monkeypatch.setattr(
@@ -202,7 +202,7 @@ class TestGetPlatformMacosx:
         dirname = os.path.dirname(__file__)
         dylib_dir = os.path.join(dirname, "testdata", "macosx_minimal_system_version")
         monkeypatch.setattr(
-            distutils.util, "get_platform", return_factory("macosx-11-x86_64")
+            sysconfig, "get_platform", return_factory("macosx-11-x86_64")
         )
         monkeypatch.setattr(
             os,
@@ -215,6 +215,6 @@ class TestGetPlatformMacosx:
 
 
 def test_get_platform_linux(monkeypatch):
-    monkeypatch.setattr(distutils.util, "get_platform", return_factory("linux_x86_64"))
+    monkeypatch.setattr(sysconfig, "get_platform", return_factory("linux-x86_64"))
     monkeypatch.setattr(sys, "maxsize", 2147483647)
     assert get_platform(None) == "linux_i686"
