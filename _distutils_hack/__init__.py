@@ -118,7 +118,9 @@ class DistutilsMetaFinder:
             def exec_module(self, module):
                 pass
 
-        return importlib.util.spec_from_loader('distutils', DistutilsLoader())
+        return importlib.util.spec_from_loader(
+            'distutils', DistutilsLoader(), origin=mod.__file__
+        )
 
     def spec_for_pip(self):
         """
