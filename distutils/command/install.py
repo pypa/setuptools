@@ -17,6 +17,7 @@ from distutils.file_util import write_file
 from distutils.util import convert_path, subst_vars, change_root
 from distutils.util import get_platform
 from distutils.errors import DistutilsOptionError
+from .. import _collections
 
 from site import USER_BASE
 from site import USER_SITE
@@ -394,7 +395,8 @@ class install(Command):
         except AttributeError:
             # sys.abiflags may not be defined on all platforms.
             abiflags = ''
-        self.config_vars = {'dist_name': self.distribution.get_name(),
+        local_vars = {
+            'dist_name': self.distribution.get_name(),
                             'dist_version': self.distribution.get_version(),
                             'dist_fullname': self.distribution.get_fullname(),
                             'py_version': py_version,
@@ -408,12 +410,14 @@ class install(Command):
                             'platlibdir': getattr(sys, 'platlibdir', 'lib'),
                             'implementation_lower': _get_implementation().lower(),
                             'implementation': _get_implementation(),
-                            'platsubdir': sysconfig.get_config_var('platsubdir'),
                            }
 
         if HAS_USER_SITE:
-            self.config_vars['userbase'] = self.install_userbase
-            self.config_vars['usersite'] = self.install_usersite
+            local_vars['userbase'] = self.install_userbase
+            local_vars['usersite'] = self.install_usersite
+
+        self.config_vars = _collections.DictStack(
+            [sysconfig.get_config_vars(), local_vars])
 
         self.expand_basedirs()
 
@@ -421,15 +425,13 @@ class install(Command):
 
         # Now define config vars for the base directories so we can expand
         # everything else.
-        self.config_vars['base'] = self.install_base
-        self.config_vars['platbase'] = self.install_platbase
-        self.config_vars['installed_base'] = (
-            sysconfig.get_config_vars()['installed_base'])
+        local_vars['base'] = self.install_base
+        local_vars['platbase'] = self.install_platbase
 
         if DEBUG:
             from pprint import pprint
             print("config vars:")
-            pprint(self.config_vars)
+            pprint(dict(self.config_vars))
 
         # Expand "~" and configuration variables in the installation
         # directories.
