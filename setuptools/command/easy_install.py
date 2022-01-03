@@ -1350,7 +1350,7 @@ class easy_install(Command):
 
         if self.prefix:
             # Set default install_dir/scripts from --prefix
-            config_vars = config_vars.copy()
+            config_vars = dict(config_vars)
             config_vars['base'] = self.prefix
             scheme = self.INSTALL_SCHEMES.get(os.name, self.DEFAULT_SCHEME)
             for attr, val in scheme.items():
