@@ -19,8 +19,29 @@ from .py35compat import _optim_args_from_interpreter_flags
 
 
 def get_host_platform():
-    """Returns the same as `get_platform()` from sysconfig.
+    """Return a string that identifies the current platform.  This is used mainly to
+    distinguish platform-specific build directories and platform-specific built
+    distributions.
     """
+
+    # We initially exposed platforms as defined in Python 3.9
+    # even with older Python versions when distutils was split out.
+    # Now that we delegate to stdlib sysconfig we need to restore this
+    # in case anyone has started to depend on it.
+
+    if sys.version_info < (3, 8):
+        if os.name == 'nt':
+            if '(arm)' in sys.version.lower():
+                return 'win-arm32'
+            if '(arm64)' in sys.version.lower():
+                return 'win-arm64'
+
+    if sys.version_info < (3, 9):
+        if os.name == "posix" and hasattr(os, 'uname'):
+            osname, host, release, version, machine = os.uname()
+            if osname[:3] == "aix":
+                from .py38compat import aix_platform
+                return aix_platform(osname, version, release)
 
     return sysconfig.get_platform()
 

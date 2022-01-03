@@ -63,7 +63,14 @@ class UtilTestCase(support.EnvironGuard, unittest.TestCase):
         return self._uname
 
     def test_get_host_platform(self):
-        self.assertEqual(get_host_platform(), stdlib_sysconfig.get_platform())
+        with unittest.mock.patch('os.name', 'nt'):
+             with unittest.mock.patch('sys.version', '... [... (ARM64)]'):
+                self.assertEqual(get_host_platform(), 'win-arm64')
+             with unittest.mock.patch('sys.version', '... [... (ARM)]'):
+                self.assertEqual(get_host_platform(), 'win-arm32')
+
+        with unittest.mock.patch('sys.version_info', (3, 9, 0, 'final', 0)):
+            self.assertEqual(get_host_platform(), stdlib_sysconfig.get_platform())
 
     def test_get_platform(self):
         with unittest.mock.patch('os.name', 'nt'):
