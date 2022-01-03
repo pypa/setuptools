@@ -1,3 +1,16 @@
+v60.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #2993: In _distutils_hack, bypass the distutils exception for pip when get-pip is being invoked, because it imports setuptools.
+
+Misc
+^^^^
+* #2989: Merge with pypa/distutils@1560a1f. Includes fix for config vars missing from sysconfig.
+
+
 v60.2.0
 -------
 
