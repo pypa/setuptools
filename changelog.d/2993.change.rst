@@ -1,0 +1,1 @@
+In _distutils_hack, bypass the distutils exception for pip when get-pip is being invoked, because it imports setuptools.
