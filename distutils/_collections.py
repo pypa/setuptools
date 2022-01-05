@@ -2,7 +2,7 @@ import collections
 import itertools
 
 
-# from jaraco.collections 3.5
+# from jaraco.collections 3.5.1
 class DictStack(list, collections.abc.Mapping):
     """
     A stack of dictionaries that behaves as a view on those dictionaries,
@@ -15,6 +15,8 @@ class DictStack(list, collections.abc.Mapping):
     2
     >>> stack['c']
     2
+    >>> len(stack)
+    3
     >>> stack.push(dict(a=3))
     >>> stack['a']
     3
@@ -40,7 +42,7 @@ class DictStack(list, collections.abc.Mapping):
         return iter(set(itertools.chain.from_iterable(c.keys() for c in dicts)))
 
     def __getitem__(self, key):
-        for scope in reversed(self):
+        for scope in reversed(tuple(list.__iter__(self))):
             if key in scope:
                 return scope[key]
         raise KeyError(key)
@@ -49,3 +51,6 @@ class DictStack(list, collections.abc.Mapping):
 
     def __contains__(self, other):
         return collections.abc.Mapping.__contains__(self, other)
+
+    def __len__(self):
+        return len(list(iter(self)))
