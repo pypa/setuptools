@@ -1,6 +1,6 @@
 name: tests
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test:
@@ -60,8 +60,43 @@ jobs:
         run: |
           C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -- --cov-report xml'
 
-  release:
+  integration-test:
+    strategy:
+      matrix:
+        distutils:
+        - stdlib
+        - local
     needs: test
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.ref, 'refs/tags/'))
+    # To avoid long times and high resource usage, we assume that:
+    # 1. The setuptools APIs used by packages don't vary too much with OS or
+    #    Python implementation
+    # 2. Any circumstance for which the previous assumption is not valid is
+    #    already tested via unit tests (or other tests not classified here as
+    #    "integration")
+    # With that in mind, the integration tests can run for a single setup
+    runs-on: ubuntu-latest
+    env:
+      SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install OS-level dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential gfortran libopenblas-dev
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          # Use a release that is not very new but still have a long life:
+          python-version: "3.8"
+      - name: Install tox
+        run: |
+          python -m pip install tox
+      - name: Run integration tests
+        run: tox -e integration
+
+  release:
+    needs: [test, integration-test]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
