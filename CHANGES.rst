@@ -1,3 +1,12 @@
+v60.3.1
+-------
+
+
+Misc
+^^^^
+* #3002: Suppress AttributeError when detecting get-pip.
+
+
 v60.3.0
 -------
 
