@@ -1,3 +1,104 @@
+v60.3.1
+-------
+
+
+Misc
+^^^^
+* #3002: Suppress AttributeError when detecting get-pip.
+
+
+v60.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #2993: In _distutils_hack, bypass the distutils exception for pip when get-pip is being invoked, because it imports setuptools.
+
+Misc
+^^^^
+* #2989: Merge with pypa/distutils@788cc159. Includes fix for config vars missing from sysconfig.
+
+
+v60.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2974: Setuptools now relies on the Python logging infrastructure to log messages. Instead of using ``distutils.log.*``, use ``logging.getLogger(name).*``.
+* #2987: Sync with pypa/distutils@2def21c5d74fdd2fe7996ee4030ac145a9d751bd, including fix for missing get_versions attribute (#2969), more reliance on sysconfig from stdlib.
+
+Misc
+^^^^
+* #2962: Avoid attempting to use local distutils when the presiding version of Setuptools on the path doesn't have one.
+* #2983: Restore 'add_shim' as the way to invoke the hook. Avoids compatibility issues between different versions of Setuptools with the distutils local implementation.
+
+
+v60.1.1
+-------
+
+
+Misc
+^^^^
+* #2980: Bypass distutils loader when setuptools module is no longer available on sys.path.
+
+
+v60.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2958: In distutils_hack, only add the metadata finder once. In ensure_local_distutils, rely on a context manager for reliable manipulation.
+* #2963: Merge with pypa/distutils@a5af364910. Includes revisited fix for pypa/distutils#15 and improved MinGW/Cygwin support from pypa/distutils#77.
+
+
+v60.0.5
+-------
+
+
+Misc
+^^^^
+* #2960: Install schemes fall back to default scheme for headers.
+
+
+v60.0.4
+-------
+
+
+Misc
+^^^^
+* #2954: Merge with pypa/distutils@eba2bcd310. Adds platsubdir to config vars available for substitution.
+
+
+v60.0.3
+-------
+
+
+Misc
+^^^^
+* #2940: Avoid KeyError in distutils hack when pip is imported during ensurepip.
+
+
+v60.0.2
+-------
+
+
+Misc
+^^^^
+* #2938: Select 'posix_user' for the scheme unless falling back to stdlib, then use 'unix_user'.
+
+
+v60.0.1
+-------
+
+
+Misc
+^^^^
+* #2944: Add support for extended install schemes in easy_install.
+
+
 v60.0.0
 -------
 

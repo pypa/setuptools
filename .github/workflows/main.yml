@@ -12,6 +12,7 @@ jobs:
         python:
         - pypy-3.7
         - 3.7
+        - 3.8
         - 3.9
         - "3.10"
         platform:

@@ -17,6 +17,7 @@ from distutils.file_util import write_file
 from distutils.util import convert_path, subst_vars, change_root
 from distutils.util import get_platform
 from distutils.errors import DistutilsOptionError
+from .. import _collections
 
 from site import USER_BASE
 from site import USER_SITE
@@ -81,11 +82,6 @@ if HAS_USER_SITE:
         'data'   : '{userbase}',
         }
 
-    INSTALL_SCHEMES['osx_framework_user'] = {
-        'headers':
-            '{userbase}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
-    }
-
 # The keys to an installation scheme; if any new types of files are to be
 # installed, be sure to add an entry to every installation scheme above,
 # and to SCHEME_KEYS here.
@@ -121,6 +117,65 @@ def _get_implementation():
         return 'PyPy'
     else:
         return 'Python'
+
+
+def _select_scheme(ob, name):
+    scheme = _inject_headers(name, _load_scheme(_resolve_scheme(name)))
+    vars(ob).update(_remove_set(ob, _scheme_attrs(scheme)))
+
+
+def _remove_set(ob, attrs):
+    """
+    Include only attrs that are None in ob.
+    """
+    return {
+        key: value
+        for key, value in attrs.items()
+        if getattr(ob, key) is None
+    }
+
+
+def _resolve_scheme(name):
+    os_name, sep, key = name.partition('_')
+    try:
+        resolved = sysconfig.get_preferred_scheme(key)
+    except Exception:
+        resolved = _pypy_hack(name)
+    return resolved
+
+
+def _load_scheme(name):
+    return _load_schemes()[name]
+
+
+def _inject_headers(name, scheme):
+    """
+    Given a scheme name and the resolved scheme,
+    if the scheme does not include headers, resolve
+    the fallback scheme for the name and use headers
+    from it. pypa/distutils#88
+    """
+    # Bypass the preferred scheme, which may not
+    # have defined headers.
+    fallback = _load_scheme(_pypy_hack(name))
+    scheme.setdefault('headers', fallback['headers'])
+    return scheme
+
+
+def _scheme_attrs(scheme):
+    """Resolve install directories by applying the install schemes."""
+    return {
+        f'install_{key}': scheme[key]
+        for key in SCHEME_KEYS
+    }
+
+
+def _pypy_hack(name):
+    PY37 = sys.version_info < (3, 8)
+    old_pypy = hasattr(sys, 'pypy_version_info') and PY37
+    prefix = not name.endswith(('_user', '_home'))
+    pypy_name = 'pypy' + '_nt' * (os.name == 'nt')
+    return pypy_name if old_pypy and prefix else name
 
 
 class install(Command):
@@ -340,7 +395,8 @@ class install(Command):
         except AttributeError:
             # sys.abiflags may not be defined on all platforms.
             abiflags = ''
-        self.config_vars = {'dist_name': self.distribution.get_name(),
+        local_vars = {
+            'dist_name': self.distribution.get_name(),
                             'dist_version': self.distribution.get_version(),
                             'dist_fullname': self.distribution.get_fullname(),
                             'py_version': py_version,
@@ -357,8 +413,11 @@ class install(Command):
                            }
 
         if HAS_USER_SITE:
-            self.config_vars['userbase'] = self.install_userbase
-            self.config_vars['usersite'] = self.install_usersite
+            local_vars['userbase'] = self.install_userbase
+            local_vars['usersite'] = self.install_usersite
+
+        self.config_vars = _collections.DictStack(
+            [sysconfig.get_config_vars(), local_vars])
 
         self.expand_basedirs()
 
@@ -366,15 +425,13 @@ class install(Command):
 
         # Now define config vars for the base directories so we can expand
         # everything else.
-        self.config_vars['base'] = self.install_base
-        self.config_vars['platbase'] = self.install_platbase
-        self.config_vars['installed_base'] = (
-            sysconfig.get_config_vars()['installed_base'])
+        local_vars['base'] = self.install_base
+        local_vars['platbase'] = self.install_platbase
 
         if DEBUG:
             from pprint import pprint
             print("config vars:")
-            pprint(self.config_vars)
+            pprint(dict(self.config_vars))
 
         # Expand "~" and configuration variables in the installation
         # directories.
@@ -520,29 +577,7 @@ class install(Command):
                       "I don't know how to install stuff on '%s'" % os.name)
 
     def select_scheme(self, name):
-        os_name, sep, key = name.partition('_')
-        try:
-            resolved = sysconfig.get_preferred_scheme(key)
-        except Exception:
-            resolved = self._pypy_hack(name)
-        return self._select_scheme(resolved)
-
-    def _select_scheme(self, name):
-        """Sets the install directories by applying the install schemes."""
-        # it's the caller's problem if they supply a bad name!
-        scheme = _load_schemes()[name]
-        for key in SCHEME_KEYS:
-            attrname = 'install_' + key
-            if getattr(self, attrname) is None:
-                setattr(self, attrname, scheme[key])
-
-    @staticmethod
-    def _pypy_hack(name):
-        PY37 = sys.version_info < (3, 8)
-        old_pypy = hasattr(sys, 'pypy_version_info') and PY37
-        prefix = not name.endswith(('_user', '_home'))
-        pypy_name = 'pypy' + '_nt' * (os.name == 'nt')
-        return pypy_name if old_pypy and prefix else name
+        _select_scheme(self, name)
 
     def _expand_attrs(self, attrs):
         for attr in attrs:
@@ -616,7 +651,7 @@ class install(Command):
             return
         home = convert_path(os.path.expanduser("~"))
         for name, path in self.config_vars.items():
-            if path.startswith(home) and not os.path.isdir(path):
+            if str(path).startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0o700)" % path)
                 os.makedirs(path, 0o700)
 
