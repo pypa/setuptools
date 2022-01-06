@@ -8,7 +8,7 @@ Changes
 
 Misc
 ^^^^
-* #2989: Merge with pypa/distutils@1560a1f. Includes fix for config vars missing from sysconfig.
+* #2989: Merge with pypa/distutils@788cc159. Includes fix for config vars missing from sysconfig.
 
 
 v60.2.0
