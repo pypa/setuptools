@@ -1,0 +1,1 @@
+Added protection for `get-pip` in cases where `__main__` does not have a `__file__` attribute.
