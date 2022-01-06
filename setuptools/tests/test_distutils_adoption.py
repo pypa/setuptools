@@ -93,9 +93,8 @@ def test_distutils_local(venv):
 
 def test_pip_import(venv):
     """
-    Ensure pip can be imported with the hack installed.
+    Ensure pip can be imported.
     Regression test for #3002.
     """
-    env = dict(SETUPTOOLS_USE_DISTUTILS='local')
     cmd = ['python', '-c', 'import pip']
-    popen_text(venv.run)(cmd, env=env)
+    popen_text(venv.run)(cmd)
