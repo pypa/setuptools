@@ -96,7 +96,7 @@ jobs:
         run: tox -e integration
 
   release:
-    needs: [test, integration-test]
+    needs: [test, test_cygwin, integration-test]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
