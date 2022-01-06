@@ -138,7 +138,7 @@ class DistutilsMetaFinder:
         Detect if get-pip is being invoked. Ref #2993.
         """
         import __main__
-        return os.path.basename(__main__.__file__) == 'get-pip.py'
+        return os.path.basename(getattr(__main__, '__file__', '')) == 'get-pip.py'
 
     @staticmethod
     def frame_file_is_setup(frame):
