@@ -1,14 +1,29 @@
 # don't import any costly modules
 import sys
 import os
+import warnings
 
 
 is_pypy = '__pypy__' in sys.builtin_module_names
 
-import warnings
-warnings.filterwarnings('ignore',
-                       r'.+ distutils\b.+ deprecated',
-                       DeprecationWarning)
+
+class _TrivialRe:
+    def __init__(self, *patterns):
+        self._patterns = patterns
+
+    def match(self, string):
+        return all(pat in string for pat in self._patterns)
+
+
+# warnings.filterwarnings() imports the re module
+warnings._add_filter(
+    'ignore',
+    _TrivialRe("distutils", "deprecated"),
+    DeprecationWarning,
+    None,
+    0,
+    append=False
+)
 
 
 def warn_distutils_present():
@@ -18,7 +33,6 @@ def warn_distutils_present():
         # PyPy for 3.6 unconditionally imports distutils, so bypass the warning
         # https://foss.heptapod.net/pypy/pypy/-/blob/be829135bc0d758997b3566062999ee8b23872b4/lib-python/3/site.py#L250
         return
-    import warnings
     warnings.warn(
         "Distutils was imported before Setuptools, but importing Setuptools "
         "also replaces the `distutils` module in `sys.modules`. This may lead "
@@ -31,7 +45,6 @@ def warn_distutils_present():
 def clear_distutils():
     if 'distutils' not in sys.modules:
         return
-    import warnings
     warnings.warn("Setuptools is replacing distutils.")
     mods = [
         name for name in sys.modules
