@@ -22,14 +22,10 @@ from urllib.request import urlopen
 import pytest
 from packaging.requirements import Requirement
 
-import setuptools
-
 from .helpers import Archive, run
 
 
 pytestmark = pytest.mark.integration
-
-SETUPTOOLS_ROOT = os.path.dirname(next(iter(setuptools.__path__)))
 
 LATEST, = list(Enum("v", "LATEST"))
 """Default version to be checked"""
@@ -117,7 +113,7 @@ ALREADY_LOADED = ("pytest", "mypy")  # loaded by pytest/pytest-enabler
 
 
 @pytest.mark.parametrize('package, version', EXAMPLES)
-def test_install_sdist(package, version, tmp_path, venv_python):
+def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel):
     venv_pip = (venv_python, "-m", "pip")
     sdist = retrieve_sdist(package, version, tmp_path)
     deps = build_deps(package, sdist)
@@ -127,10 +123,8 @@ def test_install_sdist(package, version, tmp_path, venv_python):
         run([*venv_pip, "install", *deps])
 
     # Use a virtualenv to simulate PEP 517 isolation
-    # but install setuptools to force the version under development
-    correct_setuptools = os.getenv("PROJECT_ROOT") or SETUPTOOLS_ROOT
-    assert os.path.exists(os.path.join(correct_setuptools, "pyproject.toml"))
-    run([*venv_pip, "install", "-Ie", correct_setuptools])
+    # but install fresh setuptools wheel to ensure the version under development
+    run([*venv_pip, "install", "-I", setuptools_wheel])
     run([*venv_pip, "install", *SDIST_OPTIONS, sdist])
 
     # Execute a simple script to make sure the package was installed correctly
