@@ -1,6 +1,3 @@
-import os
-import sys
-
 extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
 
 master_doc = "index"
