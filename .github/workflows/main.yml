@@ -1,6 +1,6 @@
 name: tests
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test:
@@ -67,7 +67,7 @@ jobs:
         - stdlib
         - local
     needs: test
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.ref, 'refs/tags/'))
     # To avoid long times and high resource usage, we assume that:
     # 1. The setuptools APIs used by packages don't vary too much with OS or
     #    Python implementation
