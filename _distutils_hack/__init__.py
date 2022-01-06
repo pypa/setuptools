@@ -73,6 +73,17 @@ def do_override():
         ensure_local_distutils()
 
 
+class suppress(contextlib.suppress, contextlib.ContextDecorator):
+    """
+    A version of contextlib.suppress with decorator support.
+
+    >>> @suppress(KeyError)
+    ... def key_error():
+    ...     {}['']
+    >>> key_error()
+    """
+
+
 class DistutilsMetaFinder:
     def find_spec(self, fullname, path, target=None):
         if path is not None:
@@ -133,6 +144,7 @@ class DistutilsMetaFinder:
         )
 
     @classmethod
+    @suppress(AttributeError)
     def is_get_pip(cls):
         """
         Detect if get-pip is being invoked. Ref #2993.
