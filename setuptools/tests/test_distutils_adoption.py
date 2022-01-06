@@ -89,3 +89,13 @@ def test_distutils_local(venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS='local')
     assert venv.name in find_distutils(venv, env=env).split(os.sep)
     assert count_meta_path(venv, env=env) <= 1
+
+
+def test_pip_import(venv):
+    """
+    Ensure pip can be imported with the hack installed.
+    Regression test for #3002.
+    """
+    env = dict(SETUPTOOLS_USE_DISTUTILS='local')
+    cmd = ['python', '-c', 'import pip']
+    popen_text(venv.run)(cmd, env=env)
