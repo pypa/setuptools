@@ -5,10 +5,10 @@ import os
 
 is_pypy = '__pypy__' in sys.builtin_module_names
 
-
-# warnings.filterwarnings('ignore',
-#                        r'.+ distutils\b.+ deprecated',
-#                        DeprecationWarning)
+import warnings
+warnings.filterwarnings('ignore',
+                       r'.+ distutils\b.+ deprecated',
+                       DeprecationWarning)
 
 
 def warn_distutils_present():
