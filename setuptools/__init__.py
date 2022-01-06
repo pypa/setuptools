@@ -4,7 +4,6 @@ from fnmatch import fnmatchcase
 import functools
 import os
 import re
-import warnings
 
 import _distutils_hack.override  # noqa: F401
 
@@ -19,6 +18,7 @@ from setuptools.extension import Extension
 from setuptools.dist import Distribution
 from setuptools.depends import Require
 from . import monkey
+from . import logging
 
 
 __all__ = [
@@ -145,16 +145,12 @@ def _install_setup_requires(attrs):
     # Honor setup.cfg's options.
     dist.parse_config_files(ignore_option_errors=True)
     if dist.setup_requires:
-        warnings.warn(
-            "setup_requires is deprecated. Supply build "
-            "dependencies using PEP 517 pyproject.toml build-requires.",
-            SetuptoolsDeprecationWarning,
-        )
         dist.fetch_build_eggs(dist.setup_requires)
 
 
 def setup(**attrs):
     # Make sure we have any requirements needed to interpret 'attrs'.
+    logging.configure()
     _install_setup_requires(attrs)
     return distutils.core.setup(**attrs)
 

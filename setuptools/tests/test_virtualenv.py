@@ -75,18 +75,15 @@ def _get_pip_versions():
     def skip_network(param):
         return param if network else mark(param, pytest.mark.skip(reason="no network"))
 
-    issue2599 = pytest.mark.skipif(
-        sys.version_info > (3, 10),
-        reason="pypa/setuptools#2599",
-    )
-
     network_versions = [
-        mark('pip==9.0.3', issue2599),
-        mark('pip==10.0.1', issue2599),
-        mark('pip==18.1', issue2599),
-        mark('pip==19.3.1', pytest.mark.xfail(reason='pypa/pip#6599')),
-        'pip==20.0.2',
-        'https://github.com/pypa/pip/archive/main.zip',
+        mark('pip<20', pytest.mark.xfail(reason='pypa/pip#6599')),
+        'pip<20.1',
+        'pip<21',
+        'pip<22',
+        mark(
+            'https://github.com/pypa/pip/archive/main.zip',
+            pytest.mark.xfail(reason='#2975'),
+        ),
     ]
 
     versions = itertools.chain(
@@ -97,6 +94,10 @@ def _get_pip_versions():
     return list(versions)
 
 
+@pytest.mark.skipif(
+    'platform.python_implementation() == "PyPy"',
+    reason="https://github.com/pypa/setuptools/pull/2865#issuecomment-965834995",
+)
 @pytest.mark.parametrize('pip_version', _get_pip_versions())
 def test_pip_upgrade_from_source(pip_version, tmp_src, virtualenv):
     """
@@ -107,7 +108,7 @@ def test_pip_upgrade_from_source(pip_version, tmp_src, virtualenv):
     if pip_version is None:
         upgrade_pip = ()
     else:
-        upgrade_pip = ('python -m pip install -U {pip_version} --retries=1',)
+        upgrade_pip = ('python -m pip install -U "{pip_version}" --retries=1',)
     virtualenv.run(' && '.join((
         'pip uninstall -y setuptools',
         'pip install -U wheel',

@@ -110,7 +110,7 @@ To build the docs locally, use tox::
     $ tox -e docs
 
 .. _Sphinx: http://www.sphinx-doc.org/en/master/
-.. _published documentation: https://setuptools.readthedocs.io/en/latest/
+.. _published documentation: https://setuptools.pypa.io/en/latest/
 
 ---------------------
 Vendored Dependencies
@@ -123,5 +123,14 @@ setuptools from source. Eventually, this limitation may be lifted as
 PEP 517/518 reach ubiquitous adoption, but for now, Setuptools
 cannot declare dependencies other than through
 ``setuptools/_vendor/vendored.txt`` and
-``pkg_resources/_vendor/vendored.txt`` and refreshed by way of
-``paver update_vendored`` (pavement.py).
+``pkg_resources/_vendor/vendored.txt``.
+
+All the dependencies specified in these files are "vendorized" using Paver_, a
+simple Python-based project scripting and task running tool.
+
+To refresh the dependencies, you can run the following command (defined in
+``pavement.py``)::
+
+    $ paver update_vendored
+
+.. _Paver: https://pythonhosted.org/Paver/

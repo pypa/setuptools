@@ -3,12 +3,15 @@
 import unittest
 import sys
 import os
-from test.support import run_unittest, requires_zlib
+from test.support import run_unittest
 
 from distutils.core import Distribution
 from distutils.command.bdist_rpm import bdist_rpm
 from distutils.tests import support
 from distutils.spawn import find_executable
+
+from .py38compat import requires_zlib
+
 
 SETUP_PY = """\
 from distutils.core import setup
@@ -44,7 +47,7 @@ class BuildRpmTestCase(support.TempdirManager,
     # spurious sdtout/stderr output under Mac OS X
     @unittest.skipUnless(sys.platform.startswith('linux'),
                          'spurious sdtout/stderr output under Mac OS X')
-    @requires_zlib
+    @requires_zlib()
     @unittest.skipIf(find_executable('rpm') is None,
                      'the rpm command is not found')
     @unittest.skipIf(find_executable('rpmbuild') is None,
@@ -87,7 +90,7 @@ class BuildRpmTestCase(support.TempdirManager,
     # spurious sdtout/stderr output under Mac OS X
     @unittest.skipUnless(sys.platform.startswith('linux'),
                          'spurious sdtout/stderr output under Mac OS X')
-    @requires_zlib
+    @requires_zlib()
     # http://bugs.python.org/issue1533164
     @unittest.skipIf(find_executable('rpm') is None,
                      'the rpm command is not found')
@@ -129,7 +132,7 @@ class BuildRpmTestCase(support.TempdirManager,
         os.remove(os.path.join(pkg_dir, 'dist', 'foo-0.1-1.noarch.rpm'))
 
 def test_suite():
-    return unittest.makeSuite(BuildRpmTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(BuildRpmTestCase)
 
 if __name__ == '__main__':
     run_unittest(test_suite())

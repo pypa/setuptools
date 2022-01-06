@@ -219,6 +219,6 @@ class TestNamespaces:
         # now run 'sample' with the prefix on the PYTHONPATH
         bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
         exe = prefix / bin / 'sample'
-        if sys.version_info < (3, 7) and platform.system() == 'Windows':
+        if sys.version_info < (3, 8) and platform.system() == 'Windows':
             exe = str(exe)
         subprocess.check_call([exe], env=env)

@@ -94,7 +94,7 @@ class InstallTestCase(support.TempdirManager,
 
         self.addCleanup(cleanup)
 
-        for key in ('nt_user', 'unix_user'):
+        for key in ('nt_user', 'posix_user'):
             self.assertIn(key, INSTALL_SCHEMES)
 
         dist = Distribution({'name': 'xx'})
@@ -244,7 +244,7 @@ class InstallTestCase(support.TempdirManager,
 
 
 def test_suite():
-    return unittest.makeSuite(InstallTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(InstallTestCase)
 
 if __name__ == "__main__":
     run_unittest(test_suite())

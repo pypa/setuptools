@@ -1,7 +1,5 @@
 [build-system]
-requires = [
-    "wheel",
-]
+requires = []
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 

@@ -1,3 +1,8 @@
+.. image:: https://raw.githubusercontent.com/pypa/setuptools/main/docs/images/banner-640x320.svg
+   :align: center
+
+|
+
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
    :target: `PyPI link`_
 
@@ -15,7 +20,7 @@
    :alt: Code style: Black
 
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
-    :target: https://setuptools.readthedocs.io
+    :target: https://setuptools.pypa.io
 
 .. image:: https://img.shields.io/badge/skeleton-2021-informational
    :target: https://blog.jaraco.com/skeleton
@@ -25,6 +30,10 @@
 
 .. image:: https://tidelift.com/badges/github/pypa/setuptools?style=flat
    :target: https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=readme
+
+.. image:: https://img.shields.io/discord/803025117553754132
+   :target: https://discord.com/channels/803025117553754132/815945031150993468
+   :alt: Discord
 
 See the `Installation Instructions
 <https://packaging.python.org/installing/>`_ in the Python Packaging

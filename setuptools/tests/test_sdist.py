@@ -6,10 +6,12 @@ import tempfile
 import unicodedata
 import contextlib
 import io
+from unittest import mock
 
 import pytest
 
 import pkg_resources
+from setuptools import SetuptoolsDeprecationWarning
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
@@ -106,6 +108,13 @@ class TestSdistTest:
         with tmpdir.as_cwd():
             yield
 
+    def assert_package_data_in_manifest(self, cmd):
+        manifest = cmd.filelist.files
+        assert os.path.join('sdist_test', 'a.txt') in manifest
+        assert os.path.join('sdist_test', 'b.txt') in manifest
+        assert os.path.join('sdist_test', 'c.rst') not in manifest
+        assert os.path.join('d', 'e.dat') in manifest
+
     def test_package_data_in_sdist(self):
         """Regression test for pull request #4: ensures that files listed in
         package_data are included in the manifest even if they're not added to
@@ -120,11 +129,63 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        manifest = cmd.filelist.files
-        assert os.path.join('sdist_test', 'a.txt') in manifest
-        assert os.path.join('sdist_test', 'b.txt') in manifest
-        assert os.path.join('sdist_test', 'c.rst') not in manifest
-        assert os.path.join('d', 'e.dat') in manifest
+        self.assert_package_data_in_manifest(cmd)
+
+    def test_package_data_and_include_package_data_in_sdist(self):
+        """
+        Ensure package_data and include_package_data work
+        together.
+        """
+        setup_attrs = {**SETUP_ATTRS, 'include_package_data': True}
+        assert setup_attrs['package_data']
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        self.assert_package_data_in_manifest(cmd)
+
+    def test_custom_build_py(self):
+        """
+        Ensure projects defining custom build_py don't break
+        when creating sdists (issue #2849)
+        """
+        from distutils.command.build_py import build_py as OrigBuildPy
+
+        using_custom_command_guard = mock.Mock()
+
+        class CustomBuildPy(OrigBuildPy):
+            """
+            Some projects have custom commands inheriting from `distutils`
+            """
+
+            def get_data_files(self):
+                using_custom_command_guard()
+                return super().get_data_files()
+
+        setup_attrs = {**SETUP_ATTRS, 'include_package_data': True}
+        assert setup_attrs['package_data']
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        # Make sure we use the custom command
+        cmd.cmdclass = {'build_py': CustomBuildPy}
+        cmd.distribution.cmdclass = {'build_py': CustomBuildPy}
+        assert cmd.distribution.get_command_class('build_py') == CustomBuildPy
+
+        msg = "setuptools instead of distutils"
+        with quiet(), pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+            cmd.run()
+
+        using_custom_command_guard.assert_called()
+        self.assert_package_data_in_manifest(cmd)
 
     def test_setup_py_exists(self):
         dist = Distribution(SETUP_ATTRS)

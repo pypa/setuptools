@@ -1,13 +1,317 @@
+v60.3.1
+-------
+
+
+Misc
+^^^^
+* #3002: Suppress AttributeError when detecting get-pip.
+
+
+v60.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #2993: In _distutils_hack, bypass the distutils exception for pip when get-pip is being invoked, because it imports setuptools.
+
+Misc
+^^^^
+* #2989: Merge with pypa/distutils@788cc159. Includes fix for config vars missing from sysconfig.
+
+
+v60.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2974: Setuptools now relies on the Python logging infrastructure to log messages. Instead of using ``distutils.log.*``, use ``logging.getLogger(name).*``.
+* #2987: Sync with pypa/distutils@2def21c5d74fdd2fe7996ee4030ac145a9d751bd, including fix for missing get_versions attribute (#2969), more reliance on sysconfig from stdlib.
+
+Misc
+^^^^
+* #2962: Avoid attempting to use local distutils when the presiding version of Setuptools on the path doesn't have one.
+* #2983: Restore 'add_shim' as the way to invoke the hook. Avoids compatibility issues between different versions of Setuptools with the distutils local implementation.
+
+
+v60.1.1
+-------
+
+
+Misc
+^^^^
+* #2980: Bypass distutils loader when setuptools module is no longer available on sys.path.
+
+
+v60.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2958: In distutils_hack, only add the metadata finder once. In ensure_local_distutils, rely on a context manager for reliable manipulation.
+* #2963: Merge with pypa/distutils@a5af364910. Includes revisited fix for pypa/distutils#15 and improved MinGW/Cygwin support from pypa/distutils#77.
+
+
+v60.0.5
+-------
+
+
+Misc
+^^^^
+* #2960: Install schemes fall back to default scheme for headers.
+
+
+v60.0.4
+-------
+
+
+Misc
+^^^^
+* #2954: Merge with pypa/distutils@eba2bcd310. Adds platsubdir to config vars available for substitution.
+
+
+v60.0.3
+-------
+
+
+Misc
+^^^^
+* #2940: Avoid KeyError in distutils hack when pip is imported during ensurepip.
+
+
+v60.0.2
+-------
+
+
+Misc
+^^^^
+* #2938: Select 'posix_user' for the scheme unless falling back to stdlib, then use 'unix_user'.
+
+
+v60.0.1
+-------
+
+
+Misc
+^^^^
+* #2944: Add support for extended install schemes in easy_install.
+
+
+v60.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2896: Setuptools once again makes its local copy of distutils the default. To override, set SETUPTOOLS_USE_DISTUTILS=stdlib.
+
+
+v59.8.0
+-------
+
+
+Changes
+^^^^^^^
+* #2935: Merge pypa/distutils@460b59f0e68dba17e2465e8dd421bbc14b994d1f.
+
+
+v59.7.0
+-------
+
+
+Changes
+^^^^^^^
+* #2930: Require Python 3.7
+
+
+v59.6.0
+-------
+
+
+Changes
+^^^^^^^
+* #2925: Merge with pypa/distutils@92082ee42c including introduction of deprecation warning on Version classes.
+
+
+v59.5.0
+-------
+
+
+Changes
+^^^^^^^
+* #2914: Merge with pypa/distutils@8f2df0bf6.
+
+
+v59.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #2893: Restore deprecated support for newlines in the Summary field.
+
+
+v59.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #2902: Merge with pypa/distutils@85db7a41242.
+
+Misc
+^^^^
+* #2906: In ensure_local_distutils, re-use DistutilsMetaFinder to load the module. Avoids race conditions when _distutils_system_mod is employed.
+
+
+v59.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #2875: Introduce changes from pypa/distutils@514e9d0, including support for overrides from Debian and pkgsrc, unlocking the possibility of making SETUPTOOLS_USE_DISTUTILS=local the default again.
+
+
+v59.1.1
+-------
+
+
+Misc
+^^^^
+* #2885: Fixed errors when encountering LegacyVersions.
+
+
+v59.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #2497: Update packaging to 21.2.
+* #2877: Back out deprecation of setup_requires and replace instead by a deprecation of setuptools.installer and fetch_build_egg. Now setup_requires is still supported when installed as part of a PEP 517 build, but is deprecated when an unsatisfied requirement is encountered.
+* #2879: Bump packaging to 21.2.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2867: PNG/ICO images replaced with SVG in the docs.
+* #2867: Added support to SVG "favicons" via "in-tree" Sphinx extension.
+
+
+v59.0.1
+-------
+
+
+Misc
+^^^^
+* #2880: Removed URL requirement for ``pytest-virtualenv`` in ``setup.cfg``.
+  PyPI rejects packages with dependencies external to itself.
+  Instead the test dependency was overwritten via ``tox.ini``
+
+
+v59.0.0
+-------
+
+
+Deprecations
+^^^^^^^^^^^^
+* #2856: Support for custom commands that inherit directly from ``distutils`` is
+  **deprecated**. Users should extend classes provided by setuptools instead.
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2870: Started failing on invalid inline description with line breaks :class:`ValueError` -- by :user:`webknjaz`
+
+Changes
+^^^^^^^
+* #2698: Exposed exception classes from ``distutils.errors`` via ``setuptools.errors``.
+* #2866: Incorporate changes from pypa/distutils@f1b0a2b.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2227: Added sphinx theme customisations to display the new logo in the sidebar and
+  use its colours as "accent" in the documentation -- by :user:`abravalheri`
+* #2227: Added new setuptools logo, including editable files and artwork documentation
+  -- by :user:`abravalheri`
+* #2698: Added mentions to ``setuptools.errors`` as a way of handling custom command
+  errors.
+* #2698: Added instructions to migrate from ``distutils.commands`` and
+  ``distutils.errors`` in the porting guide.
+* #2871: Added a note to the docs that it is possible to install
+  ``setup.py``-less projects in editable mode with :doc:`pip v21.1+
+  <pip:index>`, only having ``setup.cfg`` and ``pyproject.toml`` in
+  project root -- by :user:`webknjaz`
+
+
+v58.5.3
+-------
+
+
+Misc
+^^^^
+* #2849: Add fallback for custom ``build_py`` commands inheriting directly from
+  :mod:`distutils`, while still handling ``include_package_data=True`` for
+  ``sdist``.
+
+
+v58.5.2
+-------
+
+
+Misc
+^^^^
+* #2847: Suppress 'setup.py install' warning under bdist_wheel.
+
+
+v58.5.1
+-------
+
+
+Misc
+^^^^
+* #2846: Move PkgResourcesDeprecationWarning above implicitly-called function so that it's in the namespace when version warnings are generated in an environment that contains them.
+
+
+v58.5.0
+-------
+
+
+Changes
+^^^^^^^
+* #1461: Fix inconsistency with ``include_package_data`` and ``packages_data`` in sdist
+  by replacing the loop breaking mechanism between the ``sdist`` and
+  ``egg_info`` commands -- by :user:`abravalheri`
+
+
+v58.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #2497: Officially deprecated PEP 440 non-compliant versions.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2832: Removed the deprecated ``data_files`` option from the example in the
+  declarative configuration docs -- by :user:`abravalheri`
+* #2832: Change type of ``data_files`` option from ``dict`` to ``section`` in
+  declarative configuration docs (to match previous example) -- by
+  :user:`abravalheri`
+
+
 v58.3.0
 -------
 
 
 Changes
 ^^^^^^^
-* #917: ``setup.py install`` and ``easy_install`` commands are now officially deprecated. Use other standards-based installers (like pip) and builders (like build). Workloads reliant on this behavior should pin to this major version of Setuptools.
+* #917: ``setup.py install`` and ``easy_install`` commands are now officially deprecated. Use other standards-based installers (like pip) and builders (like build). Workloads reliant on this behavior should pin to this major version of Setuptools. See `Why you shouldn't invoke setup.py directly <https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html>`_ for more background.
 * #1988: Deprecated the ``bdist_rpm`` command. Binary packages should be built as wheels instead.
   -- by :user:`hugovk`
-* #2785: Replace confirparser's readfp with read_file, deprecated since Python 3.2.
+* #2785: Replace ``configparser``'s ``readfp`` with ``read_file``, deprecated since Python 3.2.
   -- by :user:`hugovk`
 * #2823: Officially deprecated support for ``setup_requires``. Users are encouraged instead to migrate to PEP 518 ``build-system.requires`` in ``pyproject.toml``. Users reliant on ``setup_requires`` should consider pinning to this major version to avoid disruption.
 
@@ -147,7 +451,7 @@ Documentation changes
   some confusion.
   Add some examples and the version since when ``entry_points`` are
   supported in declarative configuration.
-  Tried to make the reading flow a bit leaner, gather some informations
+  Tried to make the reading flow a bit leaner, gather some information
   that were a bit dispersed.
 
 
@@ -2146,7 +2450,7 @@ v30.3.0
 
 * #394 via #862: Added support for `declarative package
   config in a setup.cfg file
-  <https://setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
+  <https://setuptools.pypa.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files>`_.
 
 v30.2.1
 -------
@@ -2607,7 +2911,7 @@ v23.0.0
   about, please comment in the ticket.
 * #604: Removed docs building support. The project
   now relies on documentation hosted at
-  https://setuptools.readthedocs.io/.
+  https://setuptools.pypa.io/.
 
 v22.0.5
 -------
@@ -2757,7 +3061,7 @@ v20.6.0
   `semver <https://semver.org>`_ precisely.
   The 'v' prefix on version numbers now also allows
   version numbers to be referenced in the changelog,
-  e.g. http://setuptools.readthedocs.io/en/latest/history.html#v20-6-0.
+  e.g. http://setuptools.pypa.io/en/latest/history.html#v20-6-0.
 
 20.5
 ----
@@ -2837,7 +3141,7 @@ v20.6.0
 
 * Added support for using passwords from keyring in the upload
   command. See `the upload docs
-  <https://setuptools.readthedocs.io/en/latest/setuptools.html#upload-upload-source-and-or-egg-distributions-to-pypi>`_
+  <https://setuptools.pypa.io/en/latest/setuptools.html#upload-upload-source-and-or-egg-distributions-to-pypi>`_
   for details.
 
 20.0
@@ -3591,7 +3895,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 ---
 
 * Added a `Developer Guide
-  <https://setuptools.readthedocs.io/en/latest/developer-guide.html>`_ to the official
+  <https://setuptools.pypa.io/en/latest/developer-guide.html>`_ to the official
   documentation.
 * Some code refactoring and cleanup was done with no intended behavioral
   changes.
@@ -4234,7 +4538,7 @@ how it parses version numbers.
 
 * Fix test suite with Python 2.6.
 * Fix some DeprecationWarnings and ResourceWarnings.
-* Distribute #335: Backed out ``setup_requires`` superceding installed requirements
+* Distribute #335: Backed out ``setup_requires`` superseding installed requirements
   until regression can be addressed.
 
 0.6.31
@@ -4253,7 +4557,7 @@ how it parses version numbers.
      PYTHONIOENCODING=utf8 pip install numpy
 
 * Fix for encoding issue when installing from Windows executable on Python 3.
-* Distribute #323: Allow ``setup_requires`` requirements to supercede installed
+* Distribute #323: Allow ``setup_requires`` requirements to supersede installed
   requirements. Added some new keyword arguments to existing pkg_resources
   methods. Also had to updated how __path__ is handled for namespace packages
   to ensure that when a new egg distribution containing a namespace package is
@@ -4276,13 +4580,13 @@ how it parses version numbers.
 * If Sphinx is installed, the ``upload_docs`` command now runs ``build_sphinx``
   to produce uploadable documentation.
 * Distribute #326: ``upload_docs`` provided mangled auth credentials under Python 3.
-* Distribute #320: Fix check for "createable" in distribute_setup.py.
+* Distribute #320: Fix check for "creatable" in distribute_setup.py.
 * Distribute #305: Remove a warning that was triggered during normal operations.
 * Distribute #311: Print metadata in UTF-8 independent of platform.
 * Distribute #303: Read manifest file with UTF-8 encoding under Python 3.
 * Distribute #301: Allow to run tests of namespace packages when using 2to3.
 * Distribute #304: Prevent import loop in site.py under Python 3.3.
-* Distribute #283: Reenable scanning of ``*.pyc`` / ``*.pyo`` files on Python 3.3.
+* Distribute #283: Re-enable scanning of ``*.pyc`` / ``*.pyo`` files on Python 3.3.
 * Distribute #299: The develop command didn't work on Python 3, when using 2to3,
   as the egg link would go to the Python 2 source. Linking to the 2to3'd code
   in build/lib makes it work, although you will have to rebuild the module
@@ -5298,7 +5602,7 @@ easy_install
  * ``setuptools`` now finds its commands, ``setup()`` argument validators, and
    metadata writers using entry points, so that they can be extended by
    third-party packages. See `Creating distutils Extensions
-   <https://setuptools.readthedocs.io/en/latest/setuptools.html#creating-distutils-extensions>`_
+   <https://setuptools.pypa.io/en/latest/setuptools.html#creating-distutils-extensions>`_
    for more details.
 
  * The vestigial ``depends`` command has been removed. It was never finished
