@@ -3047,7 +3047,7 @@ class DistInfoDistribution(Distribution):
                 if not req.marker or req.marker.evaluate({'extra': extra}):
                     yield req
 
-        common = dict.fromkeys(reqs_for_extra(None))
+        common = types.MappingProxyType(dict.fromkeys(reqs_for_extra(None)))
         dm[None].extend(common)
 
         for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
