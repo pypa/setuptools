@@ -42,12 +42,24 @@ def popen_text(call):
         if sys.version_info < (3, 7) else functools.partial(call, text=True)
 
 
+def win_sr(env):
+    """
+    On Windows, SYSTEMROOT must be present to avoid
+
+    > Fatal Python error: _Py_HashRandomization_Init: failed to
+    > get random numbers to initialize Python
+    """
+    if env is None:
+        return
+    if platform.system() == 'Windows':
+        env['SYSTEMROOT'] = os.environ['SYSTEMROOT']
+    return env
+
+
 def find_distutils(venv, imports='distutils', env=None, **kwargs):
     py_cmd = 'import {imports}; print(distutils.__file__)'.format(**locals())
     cmd = ['python', '-c', py_cmd]
-    if platform.system() == 'Windows':
-        env['SYSTEMROOT'] = os.environ['SYSTEMROOT']
-    return popen_text(venv.run)(cmd, env=env, **kwargs)
+    return popen_text(venv.run)(cmd, env=win_sr(env), **kwargs)
 
 
 def count_meta_path(venv, env=None):
@@ -58,7 +70,7 @@ def count_meta_path(venv, env=None):
         print(len(list(filter(is_distutils, sys.meta_path))))
         """)
     cmd = ['python', '-c', py_cmd]
-    return int(popen_text(venv.run)(cmd, env=env))
+    return int(popen_text(venv.run)(cmd, env=win_sr(env)))
 
 
 def test_distutils_stdlib(venv):
