@@ -2,7 +2,7 @@
 Artwork
 =======
 
-.. figure:: logo-over-white.svg
+.. figure:: images/logo-over-white.svg
    :align: center
 
    Setuptools logo, designed in 2021 by `Anderson Bravalheri`_
@@ -35,7 +35,7 @@ on the circumstances:
 
 The following image illustrate these alternatives:
 
-.. image:: logo-demo.svg
+.. image:: images/logo-demo.svg
    :align: center
 
 Please refer to the SVG files in the `setuptools repository`_ for the specific
@@ -107,7 +107,7 @@ used by the setuptools software (MIT):
    SETUPTOOLS PROJECT.
 
 Whenever possible, please make the image a link to
-https://github.com/pypa/setuptools.
+https://github.com/pypa/setuptools or https://setuptools.pypa.io.
 
 
 .. _Anderson Bravalheri: https://github.com/abravalheri
