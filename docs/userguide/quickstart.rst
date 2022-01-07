@@ -227,4 +227,4 @@ Resources on Python packaging
 =============================
 Packaging in Python can be hard and is constantly evolving.
 `Python Packaging User Guide <https://packaging.python.org>`_ has tutorials and
-up-to-date references.
+up-to-date references that can help you when it is time to distribute your work.
