@@ -225,5 +225,6 @@ parsed by ``setuptool`` to ease the pain of transition.
 
 Resources on Python packaging
 =============================
-Packaging in Python is hard. Here we provide a list of links for those that
-want to learn more.
+Packaging in Python can be hard and is constantly evolving.
+`Python Packaging User Guide <https://packaging.python.org>`_ has tutorials and
+up-to-date references.
