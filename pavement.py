@@ -1,6 +1,7 @@
 import re
 import sys
 import subprocess
+from fnmatch import fnmatch
 
 from paver.easy import task, path as Path
 
@@ -52,10 +53,41 @@ def install(vendor):
         '-t', str(vendor),
     ]
     subprocess.check_call(install_args)
+    move_licenses(vendor)
     remove_all(vendor.glob('*.dist-info'))
     remove_all(vendor.glob('*.egg-info'))
     remove_all(vendor.glob('six.py'))
     (vendor / '__init__.py').write_text('')
+
+
+def move_licenses(vendor):
+    license_patterns = ("*LICEN[CS]E*", "COPYING*", "NOTICE*", "AUTHORS*")
+    licenses = (
+        entry
+        for path in vendor.glob("*.dist-info")
+        for entry in path.glob("*")
+        if any(fnmatch(str(entry), p) for p in license_patterns)
+    )
+    for file in licenses:
+        file.move(_find_license_dest(file, vendor))
+
+
+def _find_license_dest(license_file, vendor):
+    basename = license_file.basename()
+    pkg = license_file.dirname().basename().replace(".dist-info", "")
+    parts = pkg.split("-")
+    acc = []
+    for part in parts:
+        # Find actual name from normalized name + version
+        acc.append(part)
+        for option in ("_".join(acc), "-".join(acc), ".".join(acc)):
+            candidate = vendor / option
+            if candidate.isdir():
+                return candidate / basename
+            if Path(f"{candidate}.py").isfile():
+                return Path(f"{candidate}.{basename}")
+
+    raise FileNotFoundError(f"No destination found for {license_file}")
 
 
 def update_pkg_resources():
