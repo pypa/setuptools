@@ -1,11 +1,11 @@
 import contextlib
 import sys
-import shutil
 import subprocess
 
 import pytest
+import path
 
-from . import contexts
+from . import contexts, environment
 
 
 @pytest.fixture
@@ -26,22 +26,6 @@ def user_override(monkeypatch):
 def tmpdir_cwd(tmpdir):
     with tmpdir.as_cwd() as orig:
         yield orig
-
-
-@pytest.fixture
-def tmp_src(request, tmp_path):
-    """Make a copy of the source dir under `$tmp/src`.
-
-    This fixture is useful whenever it's necessary to run `setup.py`
-    or `pip install` against the source directory when there's no
-    control over the number of simultaneous invocations. Such
-    concurrent runs create and delete directories with the same names
-    under the target directory and so they influence each other's runs
-    when they are not being executed sequentially.
-    """
-    tmp_src_path = tmp_path / 'src'
-    shutil.copytree(request.config.rootdir, tmp_src_path)
-    return tmp_src_path
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -72,3 +56,64 @@ def sample_project(tmp_path):
     except Exception:
         pytest.skip("Unable to clone sampleproject")
     return tmp_path / 'sampleproject'
+
+
+# sdist and wheel artifacts should be stable across a round of tests
+# so we can build them once per session and use the files as "readonly"
+
+
+@pytest.fixture(scope="session")
+def setuptools_sdist(tmp_path_factory, request):
+    with contexts.session_locked_tmp_dir(tmp_path_factory, "sdist_build") as tmp:
+        dist = next(tmp.glob("*.tar.gz"), None)
+        if dist:
+            return dist
+
+        subprocess.check_call([
+            sys.executable, "-m", "build", "--sdist",
+            "--outdir", str(tmp), str(request.config.rootdir)
+        ])
+        return next(tmp.glob("*.tar.gz"))
+
+
+@pytest.fixture(scope="session")
+def setuptools_wheel(tmp_path_factory, request):
+    with contexts.session_locked_tmp_dir(tmp_path_factory, "wheel_build") as tmp:
+        dist = next(tmp.glob("*.whl"), None)
+        if dist:
+            return dist
+
+        subprocess.check_call([
+            sys.executable, "-m", "build", "--wheel",
+            "--outdir", str(tmp) , str(request.config.rootdir)
+        ])
+        return next(tmp.glob("*.whl"))
+
+
+@pytest.fixture
+def venv(tmp_path, setuptools_wheel):
+    """Virtual env with the version of setuptools under test installed"""
+    env = environment.VirtualEnv()
+    env.root = path.Path(tmp_path / 'venv')
+    env.req = str(setuptools_wheel)
+    return env.create()
+
+
+@pytest.fixture
+def venv_without_setuptools(tmp_path):
+    """Virtual env without any version of setuptools installed"""
+    env = environment.VirtualEnv()
+    env.root = path.Path(tmp_path / 'venv_without_setuptools')
+    env.create_opts = ['--no-setuptools']
+    env.ensure_env()
+    return env
+
+
+@pytest.fixture
+def bare_venv(tmp_path):
+    """Virtual env without any common packages installed"""
+    env = environment.VirtualEnv()
+    env.root = path.Path(tmp_path / 'bare_venv')
+    env.create_opts = ['--no-setuptools', '--no-pip', '--no-wheel', '--no-seed']
+    env.ensure_env()
+    return env

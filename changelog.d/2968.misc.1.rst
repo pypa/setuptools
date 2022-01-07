@@ -1,0 +1,9 @@
+Removed ``tmp_src`` test fixture. Previously this fixture was copying all the
+files and folders under the project root, including the ``.git`` directory,
+which is error prone and increases testing time.
+
+Since ``tmp_src`` was used to populate virtual environments (installing the
+version of ``setuptools`` under test via the source tree), it was replaced by
+the new ``setuptools_sdist`` and ``setuptools_wheel`` fixtures (that are build
+only once per session testing and can be shared between all the workers for
+read-only usage).

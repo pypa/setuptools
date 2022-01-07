@@ -18,6 +18,11 @@ import setuptools.depends as dep
 from setuptools.depends import Require
 
 
+@pytest.fixture(autouse=True)
+def isolated_dir(tmpdir_cwd):
+    yield
+
+
 def makeSetup(**args):
     """Return distribution from 'setup(**args)', without executing commands"""
 
