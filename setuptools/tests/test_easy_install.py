@@ -17,6 +17,8 @@ import time
 import re
 import subprocess
 import pathlib
+import warnings
+from collections import namedtuple
 
 import pytest
 from jaraco import path
@@ -1058,3 +1060,50 @@ class TestWindowsScriptWriter:
         hdr = hdr.rstrip('\n')
         # header should not start with an escaped quote
         assert not hdr.startswith('\\"')
+
+
+VersionStub = namedtuple("VersionStub", "major, minor, micro, releaselevel, serial")
+
+
+@pytest.mark.skipif(
+    os.name == 'nt',
+    reason='Installation schemes for Windows may use values for interpolation '
+    'that come directly from sysconfig and are difficult to patch/mock'
+)
+def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
+    # In issue #3001, easy_install wrongly uses the `python3.1` directory
+    # when the interpreter is `python3.10` and the `--user` option is given.
+    # See pypa/setuptools#3001.
+    dist = Distribution()
+    cmd = dist.get_command_obj('easy_install')
+    cmd.args = ['ok']
+    cmd.optimize = 0
+    cmd.user = True
+    cmd.install_userbase = str(tmpdir)
+    cmd.install_usersite = None
+    install_cmd = dist.get_command_obj('install')
+    install_cmd.install_userbase = str(tmpdir)
+    install_cmd.install_usersite = None
+
+    with monkeypatch.context() as patch, warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        version = '3.10.1 (main, Dec 21 2021, 09:17:12) [GCC 10.2.1 20210110]'
+        info = VersionStub(3, 10, 1, "final", 0)
+        patch.setattr('site.ENABLE_USER_SITE', True)
+        patch.setattr('sys.version', version)
+        patch.setattr('sys.version_info', info)
+        patch.setattr(cmd, 'create_home_path', mock.Mock())
+        cmd.finalize_options()
+
+    if os.getenv('SETUPTOOLS_USE_DISTUTILS', 'local') == 'local':
+        # Installation schemes in stdlib distutils might be outdated/bugged
+        name = "pypy" if hasattr(sys, 'pypy_version_info') else "python"
+        install_dir = cmd.install_dir.lower()
+        assert f"{name}3.10" in install_dir or f"{name}310" in install_dir
+
+    # The following "variables" are used for interpolation in distutils
+    # installation schemes, so it should be fair to treat them as "semi-public",
+    # or at least public enough so we can have a test to make sure they are correct
+    assert cmd.config_vars['py_version'] == '3.10.1'
+    assert cmd.config_vars['py_version_short'] == '3.10'
+    assert cmd.config_vars['py_version_nodot'] == '310'
