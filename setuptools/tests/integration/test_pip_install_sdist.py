@@ -41,7 +41,6 @@ LATEST, = list(Enum("v", "LATEST"))
 # that `build-essential`, `gfortran` and `libopenblas-dev` are installed,
 # due to their relevance to the numerical/scientific programming ecosystem)
 EXAMPLES = [
-    ("numpy", LATEST),  # custom distutils-based commands
     ("pandas", LATEST),  # cython + custom build_ext
     ("sphinx", LATEST),  # custom setup.py
     ("pip", LATEST),  # just in case...
@@ -174,7 +173,7 @@ def retrieve_pypi_sdist_metadata(package, version):
         if dist["filename"].endswith(".tar.gz"):
             return dist
 
-    # Not all packages are publishing tar.gz, e.g. numpy==1.21.4
+    # Not all packages are publishing tar.gz
     return dist
 
 
