@@ -1,3 +1,12 @@
+v60.5.0
+-------
+
+
+Changes
+^^^^^^^
+* #2990: Set the ``.origin`` attribute of the ``distutils`` module to the module's ``__file__``.
+
+
 v60.4.0
 -------
 

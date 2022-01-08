@@ -1,1 +1,0 @@
-Set the ``.origin`` attribute of the ``distutils`` module to the module's ``__file__``.
