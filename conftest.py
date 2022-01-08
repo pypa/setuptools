@@ -1,6 +1,28 @@
+import os
 import sys
+from importlib.util import spec_from_file_location
 
 import pytest
+
+
+class _ImportFinder:
+    """Allow in-tree pytest plugins when setuptools is installed from distribution"""
+
+    _root_dir = os.path.dirname(__file__)
+    _handled = ('setuptools.tests', 'pkg_resources.tests')
+
+    @classmethod
+    def find_spec(cls, fullname, _path, _target=None):
+        if all(not fullname.startswith(n) for n in cls._handled):
+            return None
+
+        loc = os.path.join(cls._root_dir, *fullname.split("."))
+        loc = os.path.join(loc, "__init__.py") if os.path.isdir(loc) else f"{loc}.py"
+        return spec_from_file_location(fullname, loc)
+
+
+sys.meta_path.append(_ImportFinder)
+pytest_plugins = ['setuptools.tests.fixtures']
 
 
 def pytest_addoption(parser):
