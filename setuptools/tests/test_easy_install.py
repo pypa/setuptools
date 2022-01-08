@@ -466,7 +466,7 @@ class TestSetupRequires:
                     with contexts.environment(PYTHONPATH=temp_install_dir):
                         cmd = [
                             sys.executable,
-                            '-m', 'setup',
+                            '-c', '__import__("setuptools").setup()',
                             'easy_install',
                             '--index-url', mock_index.url,
                             '--exclude-scripts',
