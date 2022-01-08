@@ -22,6 +22,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
+      PY_IGNORE_IMPORTMISMATCH: ${{ contains(matrix.python, 'pypy') && 1 }}
+      TOXENV: native
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -51,6 +53,7 @@ jobs:
     runs-on: windows-latest
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
+      TOXENV: native
     steps:
       - uses: actions/checkout@v2
       - name: Install Cygwin with Python and tox
