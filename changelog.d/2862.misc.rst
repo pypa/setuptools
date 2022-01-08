@@ -1,2 +1,0 @@
-Added integration tests that focus on building and installing some packages in
-the Python ecosystem via ``pip`` -- by :user:`abravalheri`

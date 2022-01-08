@@ -1,3 +1,45 @@
+v60.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #2839: Removed `requires` sorting when installing wheels as an egg dir.
+* #2953: Fixed a bug that easy install incorrectly parsed Python 3.10 version string.
+* #3006: Fixed startup performance issue of Python interpreter due to imports of
+  costly modules in ``_distutils_hack`` -- by :user:`tiran`
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2674: Added link to additional resources on packaging in Quickstart guide
+* #3008: "In-tree" Sphinx extension for "favicons" replaced with ``sphinx-favicon``.
+* #3008: SVG images (logo, banners, ...) optimised with the help of the ``scour``
+  package.
+
+Misc
+^^^^
+* #2862: Added integration tests that focus on building and installing some packages in
+  the Python ecosystem via ``pip`` -- by :user:`abravalheri`
+* #2952: Modified "vendoring" logic to keep license files.
+* #2968: Improved isolation for some tests that where inadvertently using the project
+  root for builds, and therefore creating directories (e.g. ``build``, ``dist``,
+  ``*.egg-info``) that could interfere with the outcome of other tests
+  -- by :user:`abravalheri`.
+* #2968: Introduced new test fixtures ``venv``, ``venv_without_setuptools``,
+  ``bare_venv`` that rely on the ``jaraco.envs`` package.
+  These new test fixtures were also used to remove the (currently problematic)
+  dependency on the ``pytest_virtualenv`` plugin.
+* #2968: Removed ``tmp_src`` test fixture. Previously this fixture was copying all the
+  files and folders under the project root, including the ``.git`` directory,
+  which is error prone and increases testing time.
+
+  Since ``tmp_src`` was used to populate virtual environments (installing the
+  version of ``setuptools`` under test via the source tree), it was replaced by
+  the new ``setuptools_sdist`` and ``setuptools_wheel`` fixtures (that are build
+  only once per session testing and can be shared between all the workers for
+  read-only usage).
+
+
 v60.3.1
 -------
 

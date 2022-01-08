@@ -1,1 +1,0 @@
-Modified "vendoring" logic to keep license files.

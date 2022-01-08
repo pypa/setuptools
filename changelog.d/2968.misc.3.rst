@@ -1,4 +1,0 @@
-Improved isolation for some tests that where inadvertently using the project
-root for builds, and therefore creating directories (e.g. ``build``, ``dist``,
-``*.egg-info``) that could interfere with the outcome of other tests
--- by :user:`abravalheri`.

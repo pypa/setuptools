@@ -1,4 +1,0 @@
-Introduced new test fixtures ``venv``, ``venv_without_setuptools``,
-``bare_venv`` that rely on the ``jaraco.envs`` package.
-These new test fixtures were also used to remove the (currently problematic)
-dependency on the ``pytest_virtualenv`` plugin.

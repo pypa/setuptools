@@ -1,2 +1,0 @@
-SVG images (logo, banners, ...) optimised with the help of the ``scour``
-package.

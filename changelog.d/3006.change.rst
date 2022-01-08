@@ -1,2 +1,0 @@
-Fixed startup performance issue of Python interpreter due to imports of
-costly modules in ``_distutils_hack`` -- by :user:`tiran`

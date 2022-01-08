@@ -1,1 +1,0 @@
-Added link to additional resources on packaging in Quickstart guide
