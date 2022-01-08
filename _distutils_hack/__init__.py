@@ -1,17 +1,9 @@
+# don't import any costly modules
 import sys
 import os
-import re
-import importlib
-import warnings
-import contextlib
 
 
 is_pypy = '__pypy__' in sys.builtin_module_names
-
-
-warnings.filterwarnings('ignore',
-                        r'.+ distutils\b.+ deprecated',
-                        DeprecationWarning)
 
 
 def warn_distutils_present():
@@ -21,6 +13,7 @@ def warn_distutils_present():
         # PyPy for 3.6 unconditionally imports distutils, so bypass the warning
         # https://foss.heptapod.net/pypy/pypy/-/blob/be829135bc0d758997b3566062999ee8b23872b4/lib-python/3/site.py#L250
         return
+    import warnings
     warnings.warn(
         "Distutils was imported before Setuptools, but importing Setuptools "
         "also replaces the `distutils` module in `sys.modules`. This may lead "
@@ -33,8 +26,12 @@ def warn_distutils_present():
 def clear_distutils():
     if 'distutils' not in sys.modules:
         return
+    import warnings
     warnings.warn("Setuptools is replacing distutils.")
-    mods = [name for name in sys.modules if re.match(r'distutils\b', name)]
+    mods = [
+        name for name in sys.modules
+        if name == "distutils" or name.startswith("distutils.")
+    ]
     for name in mods:
         del sys.modules[name]
 
@@ -48,6 +45,7 @@ def enabled():
 
 
 def ensure_local_distutils():
+    import importlib
     clear_distutils()
 
     # With the DistutilsMetaFinder in place,
@@ -73,15 +71,12 @@ def do_override():
         ensure_local_distutils()
 
 
-class suppress(contextlib.suppress, contextlib.ContextDecorator):
-    """
-    A version of contextlib.suppress with decorator support.
+class _TrivialRe:
+    def __init__(self, *patterns):
+        self._patterns = patterns
 
-    >>> @suppress(KeyError)
-    ... def key_error():
-    ...     {}['']
-    >>> key_error()
-    """
+    def match(self, string):
+        return all(pat in string for pat in self._patterns)
 
 
 class DistutilsMetaFinder:
@@ -94,8 +89,20 @@ class DistutilsMetaFinder:
         return method()
 
     def spec_for_distutils(self):
+        import importlib
         import importlib.abc
         import importlib.util
+        import warnings
+
+        # warnings.filterwarnings() imports the re module
+        warnings._add_filter(
+            'ignore',
+            _TrivialRe("distutils", "deprecated"),
+            DeprecationWarning,
+            None,
+            0,
+            append=True
+        )
 
         try:
             mod = importlib.import_module('setuptools._distutils')
@@ -144,13 +151,15 @@ class DistutilsMetaFinder:
         )
 
     @classmethod
-    @suppress(AttributeError)
     def is_get_pip(cls):
         """
         Detect if get-pip is being invoked. Ref #2993.
         """
-        import __main__
-        return os.path.basename(__main__.__file__) == 'get-pip.py'
+        try:
+            import __main__
+            return os.path.basename(__main__.__file__) == 'get-pip.py'
+        except AttributeError:
+            pass
 
     @staticmethod
     def frame_file_is_setup(frame):
@@ -168,12 +177,11 @@ def add_shim():
     DISTUTILS_FINDER in sys.meta_path or insert_shim()
 
 
-@contextlib.contextmanager
-def shim():
-    insert_shim()
-    try:
-        yield
-    finally:
+class shim:
+    def __enter__(self):
+        insert_shim()
+
+    def __exit__(self, exc, value, tb):
         remove_shim()
 
 
