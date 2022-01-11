@@ -2205,12 +2205,14 @@ def _handle_ns(packageName, path_item):
 
     # use find_spec (PEP 451) and fall-back to find_module (PEP 302)
     try:
-        loader = importer.find_spec(packageName).loader
+        spec = importer.find_spec(packageName)
     except AttributeError:
         # capture warnings due to #1111
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             loader = importer.find_module(packageName)
+    else:
+        loader = spec.loader if spec else None
 
     if loader is None:
         return None
