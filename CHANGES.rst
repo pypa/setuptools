@@ -1,3 +1,12 @@
+v60.5.1
+-------
+
+
+Misc
+^^^^
+* #2918: Correct support for Python 3 native loaders.
+
+
 v60.5.0
 -------
 
