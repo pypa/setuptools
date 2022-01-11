@@ -1,1 +1,0 @@
-In _distutils_hack, for get-pip, simulate existence of setuptools.

@@ -1,3 +1,12 @@
+v60.5.2
+-------
+
+
+Misc
+^^^^
+* #2993: In _distutils_hack, for get-pip, simulate existence of setuptools.
+
+
 v60.5.1
 -------
 
