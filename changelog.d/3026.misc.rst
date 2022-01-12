@@ -1,0 +1,1 @@
+Honor sysconfig variables in easy_install.
