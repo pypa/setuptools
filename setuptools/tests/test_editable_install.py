@@ -18,8 +18,6 @@ def venv(tmp_path, setuptools_wheel):
     return env.create()
 
 
-SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
-
 EXAMPLE = {
     'pyproject.toml': dedent("""\
         [build-system]
@@ -86,11 +84,17 @@ EXAMPLE = {
 }
 
 
-@pytest.mark.parametrize("setup_script", [SETUP_SCRIPT_STUB, None])
-def test_editable_with_pyproject(tmp_path, venv, setup_script):
-    if setup_script is None:
-        pytest.skip("Editable install currently only supported with `setup.py` stub")
+SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
+MISSING_SETUP_SCRIPT = pytest.param(
+    None,
+    marks=pytest.mark.xfail(
+        reason="Editable install is currently only supported with `setup.py`"
+    )
+)
 
+
+@pytest.mark.parametrize("setup_script", [SETUP_SCRIPT_STUB, MISSING_SETUP_SCRIPT])
+def test_editable_with_pyproject(tmp_path, venv, setup_script):
     project = tmp_path / "mypkg"
     files = {**EXAMPLE, "setup.py": setup_script}
     project.mkdir()
