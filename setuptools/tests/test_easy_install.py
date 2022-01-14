@@ -1065,11 +1065,6 @@ class TestWindowsScriptWriter:
 VersionStub = namedtuple("VersionStub", "major, minor, micro, releaselevel, serial")
 
 
-@pytest.mark.skipif(
-    os.name == 'nt',
-    reason='Installation schemes for Windows may use values for interpolation '
-    'that come directly from sysconfig and are difficult to patch/mock'
-)
 def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
     # In issue #3001, easy_install wrongly uses the `python3.1` directory
     # when the interpreter is `python3.10` and the `--user` option is given.
@@ -1095,11 +1090,18 @@ def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
         patch.setattr(cmd, 'create_home_path', mock.Mock())
         cmd.finalize_options()
 
-    if os.getenv('SETUPTOOLS_USE_DISTUTILS', 'local') == 'local':
-        # Installation schemes in stdlib distutils might be outdated/bugged
-        name = "pypy" if hasattr(sys, 'pypy_version_info') else "python"
-        install_dir = cmd.install_dir.lower()
-        assert f"{name}3.10" in install_dir or f"{name}310" in install_dir
+    name = "pypy" if hasattr(sys, 'pypy_version_info') else "python"
+    install_dir = cmd.install_dir.lower()
+
+    # In some platforms (e.g. Windows), install_dir is mostly determined
+    # via `sysconfig`, which define constants eagerly at module creation.
+    # This means that monkeypatching `sys.version` to emulate 3.10 for testing
+    # may have no effect.
+    # The safest test here is to rely on the fact that 3.1 is no longer
+    # supported/tested, and make sure that if 'python3.1' ever appears in the string
+    # it is followed by another digit (e.g. 'python3.10').
+    if re.search(name + r'3\.?1', install_dir):
+        assert re.search(name + r'3\.?1\d', install_dir)
 
     # The following "variables" are used for interpolation in distutils
     # installation schemes, so it should be fair to treat them as "semi-public",
