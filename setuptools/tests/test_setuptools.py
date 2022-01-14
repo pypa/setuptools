@@ -18,6 +18,8 @@ import setuptools.dist
 import setuptools.depends as dep
 from setuptools.depends import Require
 
+from . import __name__ as __pkg__
+
 
 @pytest.fixture(autouse=True)
 def isolated_dir(tmpdir_cwd):
@@ -74,7 +76,7 @@ class TestDepends:
             dep.find_module('no-such.-thing')
         with pytest.raises(ImportError):
             dep.find_module('setuptools.non-existent')
-        f, p, i = dep.find_module('setuptools.tests')
+        f, p, i = dep.find_module(__pkg__)
         f.close()
 
     @needs_bytecode
@@ -82,8 +84,7 @@ class TestDepends:
         from json import __version__
         assert dep.get_module_constant('json', '__version__') == __version__
         assert dep.get_module_constant('sys', 'version') == sys.version
-        assert dep.get_module_constant(
-            'setuptools.tests.test_setuptools', '__doc__') == __doc__
+        assert dep.get_module_constant(__name__, '__doc__') == __doc__
 
     @needs_bytecode
     def testRequire(self):
@@ -120,8 +121,8 @@ class TestDepends:
         assert req.full_name() == 'Tests'
         assert req.homepage == 'http://example.com'
 
-        from setuptools.tests import __path__
-        paths = [os.path.dirname(p) for p in __path__]
+        from . import __path__
+        paths = [os.path.dirname(os.path.dirname(p)) for p in __path__]
         assert req.is_present(paths)
         assert req.is_current(paths)
 

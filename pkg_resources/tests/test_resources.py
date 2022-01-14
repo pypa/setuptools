@@ -391,11 +391,11 @@ class TestWorkingSet:
 class TestEntryPoints:
     def assertfields(self, ep):
         assert ep.name == "foo"
-        assert ep.module_name == "pkg_resources.tests.test_resources"
+        assert ep.module_name == __name__
         assert ep.attrs == ("TestEntryPoints",)
         assert ep.extras == ("x",)
         assert ep.load() is TestEntryPoints
-        expect = "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
+        expect = f"foo = {__name__}:TestEntryPoints [x]"
         assert str(ep) == expect
 
     def setup_method(self, method):
@@ -404,13 +404,13 @@ class TestEntryPoints:
 
     def testBasics(self):
         ep = EntryPoint(
-            "foo", "pkg_resources.tests.test_resources", ["TestEntryPoints"],
+            "foo", __name__, ["TestEntryPoints"],
             ["x"], self.dist
         )
         self.assertfields(ep)
 
     def testParse(self):
-        s = "foo = pkg_resources.tests.test_resources:TestEntryPoints [x]"
+        s = f"foo = {__name__}:TestEntryPoints [x]"
         ep = EntryPoint.parse(s, self.dist)
         self.assertfields(ep)
 
@@ -489,10 +489,7 @@ class TestEntryPoints:
             EntryPoint.parse_map(self.submap_str)
 
     def testDeprecationWarnings(self):
-        ep = EntryPoint(
-            "foo", "pkg_resources.tests.test_resources", ["TestEntryPoints"],
-            ["x"]
-        )
+        ep = EntryPoint("foo", __name__, ["TestEntryPoints"], ["x"])
         with pytest.warns(pkg_resources.PkgResourcesDeprecationWarning):
             ep.load(require=False)
 
