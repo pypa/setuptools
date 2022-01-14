@@ -175,8 +175,10 @@ class TestResourceManager:
         that action doesn't cause setuptools to be imported.
         """
         lines = (
-            'import pkg_resources',
             'import sys',
+            'sys.modules.pop("setuptools", None)',
+            # ^-- make sure test does not fail if imported elsewhere
+            'import pkg_resources',
             (
                 'assert "setuptools" not in sys.modules, '
                 '"setuptools was imported"'
