@@ -39,9 +39,10 @@ import subprocess
 import shlex
 import io
 import configparser
+import sysconfig
 
 
-from sysconfig import get_config_vars, get_path
+from sysconfig import get_path
 
 from setuptools import SetuptoolsDeprecationWarning
 
@@ -236,23 +237,22 @@ class easy_install(Command):
         self.version and self._render_version()
 
         py_version = sys.version.split()[0]
-        prefix, exec_prefix = get_config_vars('prefix', 'exec_prefix')
 
-        self.config_vars = {
+        self.config_vars = dict(sysconfig.get_config_vars())
+
+        self.config_vars.update({
             'dist_name': self.distribution.get_name(),
             'dist_version': self.distribution.get_version(),
             'dist_fullname': self.distribution.get_fullname(),
             'py_version': py_version,
             'py_version_short': f'{sys.version_info.major}.{sys.version_info.minor}',
             'py_version_nodot': f'{sys.version_info.major}{sys.version_info.minor}',
-            'sys_prefix': prefix,
-            'prefix': prefix,
-            'sys_exec_prefix': exec_prefix,
-            'exec_prefix': exec_prefix,
+            'sys_prefix': self.config_vars['prefix'],
+            'sys_exec_prefix': self.config_vars['exec_prefix'],
             # Only python 3.2+ has abiflags
             'abiflags': getattr(sys, 'abiflags', ''),
             'platlibdir': getattr(sys, 'platlibdir', 'lib'),
-        }
+        })
         with contextlib.suppress(AttributeError):
             # only for distutils outside stdlib
             self.config_vars.update({
