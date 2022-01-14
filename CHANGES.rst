@@ -1,3 +1,12 @@
+v60.5.3
+-------
+
+
+Misc
+^^^^
+* #3026: Honor sysconfig variables in easy_install.
+
+
 v60.5.2
 -------
 
