@@ -3,7 +3,7 @@ import sys
 import subprocess
 from fnmatch import fnmatch
 
-from paver.easy import task, path as Path
+from path import Path
 
 
 def remove_all(paths):
@@ -11,7 +11,6 @@ def remove_all(paths):
         path.rmtree() if path.isdir() else path.remove()
 
 
-@task
 def update_vendored():
     update_pkg_resources()
     update_setuptools()
@@ -100,3 +99,6 @@ def update_setuptools():
     vendor = Path('setuptools/_vendor')
     install(vendor)
     rewrite_packaging(vendor / 'packaging', 'setuptools.extern')
+
+
+__name__ == '__main__' and update_vendored()
