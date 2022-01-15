@@ -55,7 +55,6 @@ def install(vendor):
     move_licenses(vendor)
     remove_all(vendor.glob('*.dist-info'))
     remove_all(vendor.glob('*.egg-info'))
-    remove_all(vendor.glob('six.py'))
     (vendor / '__init__.py').write_text('')
 
 
