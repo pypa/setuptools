@@ -92,17 +92,6 @@ class DistutilsMetaFinder:
         import importlib
         import importlib.abc
         import importlib.util
-        import warnings
-
-        # warnings.filterwarnings() imports the re module
-        warnings._add_filter(
-            'ignore',
-            _TrivialRe("distutils", "deprecated"),
-            DeprecationWarning,
-            None,
-            0,
-            append=True
-        )
 
         try:
             mod = importlib.import_module('setuptools._distutils')
