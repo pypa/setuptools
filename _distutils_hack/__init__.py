@@ -89,6 +89,9 @@ class DistutilsMetaFinder:
         return method()
 
     def spec_for_distutils(self):
+        if self.is_cpython():
+            return
+
         import importlib
         import importlib.abc
         import importlib.util
@@ -117,6 +120,14 @@ class DistutilsMetaFinder:
         return importlib.util.spec_from_loader(
             'distutils', DistutilsLoader(), origin=mod.__file__
         )
+
+    @staticmethod
+    def is_cpython():
+        """
+        Suppress supplying distutils for CPython (build and tests).
+        Ref #2965 and #3007.
+        """
+        return os.path.isfile('pybuilddir.txt')
 
     def spec_for_pip(self):
         """

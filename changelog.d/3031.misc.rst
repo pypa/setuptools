@@ -1,0 +1,1 @@
+Suppress distutils replacement when building or testing CPython.
