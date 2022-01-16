@@ -135,9 +135,9 @@ class DistutilsMetaFinder:
         a stubbed spec to represent setuptools being present
         without invoking any behavior.
 
-        Workaround for pypa/get-pip#137.
+        Workaround for pypa/get-pip#137. Ref #2993.
         """
-        if not self.is_get_pip():
+        if not self.is_script('get-pip'):
             return
 
         import importlib
@@ -166,14 +166,11 @@ class DistutilsMetaFinder:
             for frame, line in traceback.walk_stack(None)
         )
 
-    @classmethod
-    def is_get_pip(cls):
-        """
-        Detect if get-pip is being invoked. Ref #2993.
-        """
+    @staticmethod
+    def is_script(name):
         try:
             import __main__
-            return os.path.basename(__main__.__file__) == 'get-pip.py'
+            return os.path.basename(__main__.__file__) == f'{name}.py'
         except AttributeError:
             pass
 
