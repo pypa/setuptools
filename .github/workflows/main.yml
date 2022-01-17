@@ -53,13 +53,24 @@ jobs:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
     steps:
       - uses: actions/checkout@v2
-      - name: Install Cygwin with Python and tox
+      - name: Install Cygwin with Python
+        uses: cygwin/cygwin-install-action@v1
+        with:
+          platform: x86_64
+          packages: >-
+            git,
+            gcc-core,
+            python38,
+            python38-devel,
+            python38-pip
+      - name: Install tox
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
-          choco install git gcc-core python38-devel python38-pip --source cygwin
-          C:\\tools\\cygwin\\bin\\bash -l -x -c 'python3.8 -m pip install tox'
+          python3.8 -m pip install tox
       - name: Run tests
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
-          C:\\tools\\cygwin\\bin\\bash -l -x -c 'cd $(cygpath -u "$GITHUB_WORKSPACE") && tox -- --cov-report xml'
+          tox -- --cov-report xml
 
   integration-test:
     strategy:
