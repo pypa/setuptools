@@ -1,3 +1,14 @@
+v60.5.4
+-------
+
+
+Misc
+^^^^
+* #NNN: 
+* #3009: Remove filtering of distutils warnings.
+* #3031: Suppress distutils replacement when building or testing CPython.
+
+
 v60.5.3
 -------
 
