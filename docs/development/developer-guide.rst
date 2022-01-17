@@ -125,12 +125,9 @@ cannot declare dependencies other than through
 ``setuptools/_vendor/vendored.txt`` and
 ``pkg_resources/_vendor/vendored.txt``.
 
-All the dependencies specified in these files are "vendorized" using Paver_, a
-simple Python-based project scripting and task running tool.
+All the dependencies specified in these files are "vendorized" using a
+simple Python script ``tools/vendor.py``.
 
-To refresh the dependencies, you can run the following command (defined in
-``pavement.py``)::
+To refresh the dependencies, run the following command::
 
-    $ paver update_vendored
-
-.. _Paver: https://pythonhosted.org/Paver/
+    $ tox -e vendor
