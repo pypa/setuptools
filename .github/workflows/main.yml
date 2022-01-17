@@ -42,7 +42,6 @@ jobs:
             ${{ matrix.python }}
 
   test_cygwin:
-    if: ${{ false }}  # failing #3016
     strategy:
       matrix:
         distutils:
