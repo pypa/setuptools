@@ -1,0 +1,4 @@
+Replaced occurrences of the defunct distutils-sig mailing list with pointers
+to GitHub Discussions.
+-- by :user:`ashemedai`
+

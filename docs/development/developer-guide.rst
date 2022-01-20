@@ -26,11 +26,12 @@ Python Packaging Authority (PyPA) with several core contributors. All bugs
 for Setuptools are filed and the canonical source is maintained in GitHub.
 
 User support and discussions are done through the issue tracker (for specific)
-issues, through the `distutils-sig mailing list <https://mail.python.org/mailman3/lists/distutils-sig.python.org/>`_, or on IRC (Freenode) at
-#pypa.
+issues, through `GitHub Discussions <https://github.com/pypa/setuptools/discussions>`_,
+or on IRC (Freenode) at #pypa.
 
-Discussions about development happen on the distutils-sig mailing list or on
-`Gitter <https://gitter.im/pypa/setuptools>`_.
+Discussions about development happen on GitHub Discussions,
+`Gitter <https://gitter.im/pypa/setuptools>`_ or
+the ``setuptools`` channel on `PyPA Discord <https://discord.com/invite/pypa>`_.
 
 -----------------
 Authoring Tickets

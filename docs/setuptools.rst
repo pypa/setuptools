@@ -201,13 +201,13 @@ As a consequence, the resulting dictionary will include no such options.
 
 
 
-Mailing List and Bug Tracker
-============================
+Forum and Bug Tracker
+=====================
 
-Please use the `distutils-sig mailing list`_ for questions and discussion about
+Please use `GitHub Discussions`_ for questions and discussion about
 setuptools, and the `setuptools bug tracker`_ ONLY for issues you have
-confirmed via the list are actual bugs, and which you have reduced to a minimal
+confirmed via the forum are actual bugs, and which you have reduced to a minimal
 set of steps to reproduce.
 
-.. _distutils-sig mailing list: http://mail.python.org/pipermail/distutils-sig/
+.. _GitHub Discussions: https://github.com/pypa/setuptools/discussions
 .. _setuptools bug tracker: https://github.com/pypa/setuptools/
