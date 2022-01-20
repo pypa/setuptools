@@ -40,8 +40,8 @@ See the `Installation Instructions
 User's Guide for instructions on installing, upgrading, and uninstalling
 Setuptools.
 
-Questions and comments should be directed to the `distutils-sig
-mailing list <http://mail.python.org/pipermail/distutils-sig/>`_.
+Questions and comments should be directed to `GitHub Discussions
+<https://github.com/pypa/setuptools/discussions>`_.
 Bug reports and especially tested patches may be
 submitted directly to the `bug tracker
 <https://github.com/pypa/setuptools/issues>`_.
@@ -51,7 +51,7 @@ Code of Conduct
 ===============
 
 Everyone interacting in the setuptools project's codebases, issue trackers,
-chat rooms, and mailing lists is expected to follow the
+chat rooms, and fora is expected to follow the
 `PSF Code of Conduct <https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md>`_.
 
 
