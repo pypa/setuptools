@@ -25,12 +25,11 @@ Setuptools is maintained primarily in GitHub at `this home
 Python Packaging Authority (PyPA) with several core contributors. All bugs
 for Setuptools are filed and the canonical source is maintained in GitHub.
 
-User support and discussions are done through the issue tracker (for specific)
-issues, through `GitHub Discussions <https://github.com/pypa/setuptools/discussions>`_,
-or on IRC (Freenode) at #pypa.
+User support and discussions are done through
+`GitHub Discussions <https://github.com/pypa/setuptools/discussions>`_,
+or the issue tracker (for specific issues).
 
-Discussions about development happen on GitHub Discussions,
-`Gitter <https://gitter.im/pypa/setuptools>`_ or
+Discussions about development happen on GitHub Discussions or
 the ``setuptools`` channel on `PyPA Discord <https://discord.com/invite/pypa>`_.
 
 -----------------
