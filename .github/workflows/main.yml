@@ -3,7 +3,73 @@ name: tests
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      python-version-for-build: ${{ steps.python-version-for-build.outputs.version }}
+      wheel-distribution: ${{ steps.wheel-distribution.outputs.path }}
+      sdist-distribution: ${{ steps.sdist-distribution.outputs.path }}
+
+    steps:
+      - name: Set Python version for build step
+        id: python-version-for-build
+        run: echo "::set-output name=version::3.10"  # <- Python version used for build release
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ steps.python-version-for-build.outputs.version }}
+      - name: Install tox
+        run: python -m pip install tox
+      - name: Lint code
+        run: python -m tox -e lint
+      - name: Build distribution files
+        run: python -m tox -e build
+      - name: Record the path of wheel distribution
+        id: wheel-distribution
+        run: |
+          echo "::set-output name=path::$(ls dist/*.whl)"
+      - name: Record the path of sdist distribution
+        id: sdist-distribution
+        run: |
+          echo "::set-output name=path::$(ls dist/*.tar.gz)"
+      - name: Store the distribution files for use in other stages
+        uses: actions/upload-artifact@v2
+        with:
+          name: python-distribution-files
+          path: |
+            ${{ steps.wheel-distribution.outputs.path }}
+            ${{ steps.sdist-distribution.outputs.path }}
+          retention-days: 2
+      - name: Debug pipeline stage output
+        run: |
+          echo python-version-for-build = ${{ steps.python-version-for-build.outputs.version }}
+          echo wheel-distribution = ${{ steps.wheel-distribution.outputs.path }}
+          echo sdist-distribution = ${{ steps.sdist-distribution.outputs.path }}
+
+  develop-test:
+    # Make sure `setuptools` can be installed in editable mode
+    # and tests also run as they would do in the developer's machine
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          # Use a release that is not very new but still have a long life:
+          python-version: "3.8"
+      - name: Ensure setuptools can be installed in editable mode
+        run: |
+          python -m pip install -e .
+      - name: Install tox
+        run: |
+          python -m pip install tox
+      - name: Run tests
+        run: |
+          python -m tox
+
   test:
+    needs: prepare
     strategy:
       matrix:
         distutils:
@@ -22,6 +88,10 @@ jobs:
     runs-on: ${{ matrix.platform }}
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
+      PRE_BUILT_SETUPTOOLS_WHEEL: ${{ needs.prepare.outputs.wheel-distribution }}
+      PRE_BUILT_SETUPTOOLS_SDIST: ${{ needs.prepare.outputs.sdist-distribution }}
+      # Run pytest-perf only with `develop-test` to avoid installing `.`:
+      PYTEST_ADDOPTS: -p no:perf
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -31,8 +101,26 @@ jobs:
       - name: Install tox
         run: |
           python -m pip install tox
+      - name: Isolate tests to avoid PYTHONPATH interference
+        run: |
+          # Avoid problems with import paths, see #2318, #3015:
+          git mv setuptools/tests test_setuptools
+          git mv pkg_resources/tests test_pkg_resources
+          # Prevent local directories to take precedence over installed packages:
+          git rm -rf _distutils_hack
+          git rm -rf setuptools
+          git rm -rf pkg_resources
+          # `git rm` and `git mv` are OS-independent commands
+      - name: Retrieve pre-built distribution archive
+        uses: actions/download-artifact@v2
+        with:
+          name: python-distribution-files
+          path: dist/
       - name: Run tests
-        run: tox -- --cov-report xml
+        run: >-
+          python -m tox
+          --installpkg '${{ needs.prepare.outputs.wheel-distribution }}'
+          -- --cov-report xml
       - name: Publish coverage
         if: false  # disabled for #2727
         uses: codecov/codecov-action@v1
@@ -42,6 +130,7 @@ jobs:
             ${{ matrix.python }}
 
   test_cygwin:
+    needs: prepare
     strategy:
       matrix:
         distutils:
@@ -50,6 +139,10 @@ jobs:
     runs-on: windows-latest
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
+      PRE_BUILT_SETUPTOOLS_WHEEL: ${{ needs.prepare.outputs.wheel-distribution }}
+      PRE_BUILT_SETUPTOOLS_SDIST: ${{ needs.prepare.outputs.sdist-distribution }}
+      # Run pytest-perf only with `develop-test` to avoid installing `.`:
+      PYTEST_ADDOPTS: -p no:perf
     steps:
       - uses: actions/checkout@v2
       - name: Install Cygwin with Python
@@ -66,10 +159,28 @@ jobs:
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
           python3.8 -m pip install tox
-      - name: Run tests
+      - name: Isolate tests to avoid PYTHONPATH interference
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
-          tox -- --cov-report xml
+          # Avoid problems with import paths, see #2318, #3015:
+          git mv setuptools/tests test_setuptools
+          git mv pkg_resources/tests test_pkg_resources
+          # Prevent local directories to take precedence over installed packages:
+          git rm -rf _distutils_hack
+          git rm -rf setuptools
+          git rm -rf pkg_resources
+          # `git rm` and `git mv` are OS-independent commands
+      - name: Retrieve pre-built distribution archive
+        uses: actions/download-artifact@v2
+        with:
+          name: python-distribution-files
+          path: dist/
+      - name: Run tests
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+        run: >-
+          python -m tox
+          --installpkg '${{ needs.prepare.outputs.wheel-distribution }}'
+          -- --cov-report xml
 
   integration-test:
     strategy:
@@ -77,7 +188,7 @@ jobs:
         distutils:
         - stdlib
         - local
-    needs: test
+    needs: [prepare, test]
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.ref, 'refs/tags/'))
     # To avoid long times and high resource usage, we assume that:
     # 1. The setuptools APIs used by packages don't vary too much with OS or
@@ -89,6 +200,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
+      PRE_BUILT_SETUPTOOLS_WHEEL: ${{ needs.prepare.outputs.wheel-distribution }}
+      PRE_BUILT_SETUPTOOLS_SDIST: ${{ needs.prepare.outputs.sdist-distribution }}
     steps:
       - uses: actions/checkout@v2
       - name: Install OS-level dependencies
@@ -103,11 +216,30 @@ jobs:
       - name: Install tox
         run: |
           python -m pip install tox
+      - name: Isolate tests to avoid PYTHONPATH interference
+        run: |
+          # Avoid problems with import paths, see #2318, #3015:
+          git mv setuptools/tests test_setuptools
+          git mv pkg_resources/tests test_pkg_resources
+          # Prevent local directories to take precedence over installed packages:
+          git rm -rf _distutils_hack
+          git rm -rf setuptools
+          git rm -rf pkg_resources
+          # `git rm` and `git mv` are OS-independent commands
+      - name: Retrieve pre-built distribution files
+        uses: actions/download-artifact@v2
+        with:
+          name: python-distribution-files
+          path: dist/
       - name: Run integration tests
-        run: tox -e integration
+        run: >-
+          python -m tox -e integration
+          --installpkg '${{ needs.prepare.outputs.wheel-distribution }}'
+          -- -vv --durations=10
+          test_setuptools/integration
 
   release:
-    needs: [test, test_cygwin, integration-test]
+    needs: [prepare, test, test_cygwin, develop-test, integration-test]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
@@ -116,7 +248,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: "3.10"
+          python-version: ${{ needs.prepare.outputs-python-version-for-build }}
       - name: Install tox
         run: |
           python -m pip install tox

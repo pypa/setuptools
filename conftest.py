@@ -20,7 +20,6 @@ def pytest_configure(config):
 
 collect_ignore = [
     'tests/manual_test.py',
-    'setuptools/tests/mod_with_constant.py',
     'setuptools/_distutils',
     '_distutils_hack',
     'setuptools/extern',
@@ -28,6 +27,10 @@ collect_ignore = [
     'pkg_resources/tests/data',
     'setuptools/_vendor',
     'pkg_resources/_vendor',
+]
+
+collect_ignore_glob = [
+    '*/mod_with_constant.py',
 ]
 
 
