@@ -173,5 +173,8 @@ def test_no_missing_dependencies(bare_venv, request):
     Quick and dirty test to ensure all external dependencies are vendored.
     """
     setuptools_dir = request.config.rootdir
+    if not pathlib.Path(str(setuptools_dir), "setuptools").is_dir():
+        pytest.skip("Running from CI, with source code removed")
+
     for command in ('upload',):  # sorted(distutils.command.__all__):
         bare_venv.run(['python', 'setup.py', command, '-h'], cwd=setuptools_dir)
