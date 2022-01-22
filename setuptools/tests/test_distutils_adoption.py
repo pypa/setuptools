@@ -96,36 +96,46 @@ def test_distutils_has_origin():
 
 
 ENSURE_IMPORTS_ARE_NOT_DUPLICATED = r"""
-# Depending on the importlib machinery and _distutils_hack, some imports can be
+# Depending on the importlib machinery and _distutils_hack, some imports are
 # duplicated resulting in different module objects being loaded, which prevents
-# patches from being applied as shown in #3042.
+# patches as shown in #3042.
 # This script provides a way of verifying if this duplication is happening.
 
+from distutils import cmd
 import distutils.command.sdist as sdist
 
 # import last to prevent caching
-from distutils import dir_util, file_util, archive_util
+from distutils import {imported_module}
 
-assert sdist.dir_util == dir_util, (
-    f"\n{sdist.dir_util}\n!=\n{dir_util}"
-)
-
-assert sdist.file_util == file_util, (
-    f"\n{sdist.file_util}\n!=\n{file_util}"
-)
-
-assert sdist.archive_util == archive_util, (
-    f"\n{sdist.archive_util}\n!=\n{archive_util}"
-)
+for mod in (cmd, sdist):
+    assert mod.{imported_module} == {imported_module}, (
+        f"\n{{mod.dir_util}}\n!=\n{{{imported_module}}}"
+    )
 
 print("success")
 """
 
 
-@pytest.mark.parametrize("distutils_version", ("local", "stdlib"))
-def test_modules_are_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
+@pytest.mark.parametrize(
+    "distutils_version, imported_module",
+    [
+        ("stdlib", "dir_util"),
+        ("stdlib", "file_util"),
+        ("stdlib", "archive_util"),
+        ("local", "dir_util"),
+        pytest.param(
+            "local", "file_util",
+            marks=pytest.mark.xfail(reason="duplicated distutils.file_util, #3042")
+        ),
+        ("local", "archive_util"),
+    ]
+)
+def test_modules_are_not_duplicated_on_import(
+        distutils_version, imported_module, tmpdir_cwd, venv
+):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
-    cmd = ['python', '-c', ENSURE_IMPORTS_ARE_NOT_DUPLICATED]
+    script = ENSURE_IMPORTS_ARE_NOT_DUPLICATED.format(imported_module=imported_module)
+    cmd = ['python', '-c', script]
     output = popen_text(venv.run)(cmd, env=win_sr(env)).strip()
     assert output == "success"
 
