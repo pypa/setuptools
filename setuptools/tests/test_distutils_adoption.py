@@ -93,3 +93,68 @@ def test_distutils_has_origin():
     Distutils module spec should have an origin. #2990.
     """
     assert __import__('distutils').__spec__.origin
+
+
+ENSURE_IMPORTS_ARE_NOT_DUPLICATED = r"""
+# Depending on the importlib machinery and _distutils_hack, some imports can be
+# duplicated resulting in different module objects being loaded, which prevents
+# patches from being applied as shown in #3042.
+# This script provides a way of verifying if this duplication is happening.
+
+import distutils.command.sdist as sdist
+
+# import last to prevent caching
+from distutils import dir_util, file_util, archive_util
+
+assert sdist.dir_util == dir_util, (
+    f"\n{sdist.dir_util}\n!=\n{dir_util}"
+)
+
+assert sdist.file_util == file_util, (
+    f"\n{sdist.file_util}\n!=\n{file_util}"
+)
+
+assert sdist.archive_util == archive_util, (
+    f"\n{sdist.archive_util}\n!=\n{archive_util}"
+)
+
+print("success")
+"""
+
+
+@pytest.mark.parametrize("distutils_version", ("local", "stdlib"))
+def test_modules_are_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
+    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    cmd = ['python', '-c', ENSURE_IMPORTS_ARE_NOT_DUPLICATED]
+    output = popen_text(venv.run)(cmd, env=win_sr(env)).strip()
+    assert output == "success"
+
+
+ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED = r"""
+# Similar to ENSURE_IMPORTS_ARE_NOT_DUPLICATED
+import distutils.dist as dist
+from distutils import log
+
+assert dist.log == log, (
+    f"\n{dist.log}\n!=\n{log}"
+)
+
+print("success")
+"""
+
+
+@pytest.mark.parametrize(
+    "distutils_version",
+    [
+        pytest.param(
+            "local",
+            marks=pytest.mark.xfail(reason="duplicated distutils.log, #3038 #3042")
+        ),
+        "stdlib"
+    ]
+)
+def test_log_module_is_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
+    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    cmd = ['python', '-c', ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED]
+    output = popen_text(venv.run)(cmd, env=win_sr(env)).strip()
+    assert output == "success"
