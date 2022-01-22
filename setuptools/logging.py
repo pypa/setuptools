@@ -25,9 +25,9 @@ def configure():
     monkey.patch_func(set_threshold, distutils.log, 'set_threshold')
 
     # For some reason `distutils.log` module is getting cached in `distutils.dist`
-    # and then loaded again when we have the opportunity to patch it.
-    # This implies: id(distutils.log) != id(distutils.dist.log).
-    # We need to make sure the same module object is used everywhere:
+    # and then loaded again when patched,
+    # implying: id(distutils.log) != id(distutils.dist.log).
+    # Make sure the same module object is used everywhere:
     distutils.dist.log = distutils.log
 
 
