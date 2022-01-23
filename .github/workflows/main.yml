@@ -71,6 +71,7 @@ jobs:
   test:
     needs: prepare
     strategy:
+      fail-fast: false
       matrix:
         distutils:
         - stdlib
