@@ -6,11 +6,11 @@ import sys
 import subprocess
 import platform
 import pathlib
-import textwrap
 
 from setuptools.command import test
 
 import pytest
+import pip_run.launch
 
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
@@ -166,21 +166,6 @@ class TestNamespaces:
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp)
 
-    @staticmethod
-    def install_workaround(site_packages):
-        site_packages.mkdir(parents=True)
-        sc = site_packages / 'sitecustomize.py'
-        sc.write_text(
-            textwrap.dedent(
-                """
-            import site
-            import pathlib
-            here = pathlib.Path(__file__).parent
-            site.addsitedir(str(here))
-            """
-            ).lstrip()
-        )
-
     @pytest.mark.xfail(
         platform.python_implementation() == 'PyPy',
         reason="Workaround fails on PyPy (why?)",
@@ -190,7 +175,6 @@ class TestNamespaces:
         Editable install to a prefix should be discoverable.
         """
         prefix = tmp_path / 'prefix'
-        prefix.mkdir()
 
         # figure out where pip will likely install the package
         site_packages = prefix / next(
@@ -198,9 +182,10 @@ class TestNamespaces:
             for path in sys.path
             if 'site-packages' in path and path.startswith(sys.prefix)
         )
+        site_packages.mkdir(parents=True)
 
-        # install the workaround
-        self.install_workaround(site_packages)
+        # install workaround
+        pip_run.launch.inject_sitecustomize(str(site_packages))
 
         env = dict(os.environ, PYTHONPATH=str(site_packages))
         cmd = [
