@@ -1,4 +1,5 @@
 import sys
+import os
 
 import pytest
 
@@ -16,6 +17,8 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "integration: integration tests")
+    if os.environ.get("PRE_BUILT_SETUPTOOLS_WHEEL"):
+        config.option.perf_target = os.environ["PRE_BUILT_SETUPTOOLS_WHEEL"]
 
 
 collect_ignore = [

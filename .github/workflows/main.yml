@@ -91,7 +91,6 @@ jobs:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
       PRE_BUILT_SETUPTOOLS_WHEEL: ${{ needs.prepare.outputs.wheel-distribution }}
       PRE_BUILT_SETUPTOOLS_SDIST: ${{ needs.prepare.outputs.sdist-distribution }}
-      PYTEST_PERF_WHEEL_TARGET: ${{ needs.prepare.outputs.wheel-distribution }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -149,7 +148,6 @@ jobs:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
       PRE_BUILT_SETUPTOOLS_WHEEL: ${{ needs.prepare.outputs.wheel-distribution }}
       PRE_BUILT_SETUPTOOLS_SDIST: ${{ needs.prepare.outputs.sdist-distribution }}
-      PYTEST_PERF_WHEEL_TARGET: ${{ needs.prepare.outputs.wheel-distribution }}
     steps:
       - uses: actions/checkout@v2
       - name: Install Cygwin with Python
