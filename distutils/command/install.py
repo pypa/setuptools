@@ -68,8 +68,8 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
         'purelib': '{usersite}',
         'platlib': '{usersite}',
-        'headers': '{userbase}/{implementation}{py_version_nodot}/Include/{dist_name}',
-        'scripts': '{userbase}/{implementation}{py_version_nodot}/Scripts',
+        'headers': '{userbase}/{implementation}{py_version_nodot_plat}/Include/{dist_name}',
+        'scripts': '{userbase}/{implementation}{py_version_nodot_plat}/Scripts',
         'data'   : '{userbase}',
         }
 
@@ -411,6 +411,10 @@ class install(Command):
                             'implementation_lower': _get_implementation().lower(),
                             'implementation': _get_implementation(),
                            }
+        try:
+            local_vars['py_version_nodot_plat'] = sys.winver.replace('.', '')
+        except AttributeError:
+            local_vars['py_version_nodot_plat'] = ''
 
         if HAS_USER_SITE:
             local_vars['userbase'] = self.install_userbase
