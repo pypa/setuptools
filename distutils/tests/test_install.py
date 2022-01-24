@@ -125,18 +125,7 @@ class InstallTestCase(support.TempdirManager,
         self.assertIn('usersite', cmd.config_vars)
 
         actual_headers = os.path.relpath(cmd.install_headers, self.user_base)
-        if os.name == 'nt':
-            expect_headers = os.path.join(
-                os.path.relpath(os.path.dirname(self.old_user_site), self.old_user_base),
-                'Include',
-                'xx',
-            )
-        else:
-            expect_headers = os.path.join(
-                'include',
-                os.path.relpath(os.path.dirname(self.old_user_site), self.old_user_base).rpartition(os.sep)[2],
-                'xx',
-            )
+        expect_headers = os.path.join(sysconfig.get_python_inc(0, ''), 'xx')
 
         self.assertEqual(os.path.normcase(actual_headers), os.path.normcase(expect_headers))
 
