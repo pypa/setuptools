@@ -2404,7 +2404,20 @@ def _nonblank(str):
 
 @functools.singledispatch
 def yield_lines(iterable):
-    """Yield valid lines of a string or iterable"""
+    r"""
+    Yield valid lines of a string or iterable.
+
+    >>> list(yield_lines(''))
+    []
+    >>> list(yield_lines(['foo', 'bar']))
+    ['foo', 'bar']
+    >>> list(yield_lines('foo\nbar'))
+    ['foo', 'bar']
+    >>> list(yield_lines('\nfoo\n#bar\nbaz #comment'))
+    ['foo', 'baz #comment']
+    >>> list(yield_lines(['foo\nbar', 'baz', 'bing\n\n\n']))
+    ['foo', 'bar', 'baz', 'bing']
+    """
     return itertools.chain.from_iterable(map(yield_lines, iterable))
 
 
