@@ -162,7 +162,7 @@ Specifying Your Project's Version
 ---------------------------------
 
 Setuptools can work well with most versioning schemes. Over the years,
-setuptools has tried to closely follow the 
+setuptools has tried to closely follow the
 `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_ scheme, but it
 also supports legacy versions. There are, however, a
 few special things to watch out for, in order to ensure that setuptools and

@@ -96,7 +96,7 @@ to specify to properly package your project.
 Automatic package discovery
 ===========================
 For simple projects, it's usually easy enough to manually add packages to
-the ``packages`` keyword in ``setup.cfg``.  However, for very large projects, 
+the ``packages`` keyword in ``setup.cfg``.  However, for very large projects,
 it can be a big burden to keep the package list updated. ``setuptools``
 therefore provides two convenient tools to ease the burden: :literal:`find:\ ` and
 :literal:`find_namespace:\ `. To use it in your project:
@@ -189,9 +189,9 @@ Development mode
 
 .. tip::
 
-	Prior to :ref:`pip v21.1 <pip:v21-1>`, a ``setup.py`` script was
-	required to be compatible with development mode. With late
-	versions of pip, any project may be installed in this mode.
+    Prior to :ref:`pip v21.1 <pip:v21-1>`, a ``setup.py`` script was
+    required to be compatible with development mode. With late
+    versions of pip, any project may be installed in this mode.
 
 ``setuptools`` allows you to install a package without copying any files
 to your interpreter directory (e.g. the ``site-packages`` directory).
