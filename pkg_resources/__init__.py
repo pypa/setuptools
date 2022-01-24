@@ -3092,18 +3092,30 @@ def issue_warning(*args, **kw):
     warnings.warn(stacklevel=level + 1, *args, **kw)
 
 
+def drop_comment(line):
+    """
+    Drop comments.
+
+    >>> drop_comment('foo # bar')
+    'foo'
+
+    A hash without a space may be in a URL.
+
+    >>> drop_comment('http://example.com/foo#bar')
+    'http://example.com/foo#bar'
+    """
+    return line.partition(' #')[0]
+
+
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
     `strs` must be a string, or a (possibly-nested) iterable thereof.
     """
     # create a steppable iterator, so we can handle \-continuations
-    lines = iter(yield_lines(strs))
+    lines = iter(map(drop_comment, yield_lines(strs)))
 
     for line in lines:
-        # Drop comments -- a hash without a space may be in a URL.
-        if ' #' in line:
-            line = line[:line.find(' #')]
         # If there is a line continuation, drop it, and append the next line.
         if line.endswith('\\'):
             line = line[:-2].strip()
