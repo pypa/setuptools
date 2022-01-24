@@ -3107,23 +3107,46 @@ def drop_comment(line):
     return line.partition(' #')[0]
 
 
+def join_continuation(lines):
+    r"""
+    Join lines continued by a trailing backslash.
+
+    >>> list(join_continuation(['foo \\', 'bar', 'baz']))
+    ['foobar', 'baz']
+    >>> list(join_continuation(['foo \\', 'bar', 'baz']))
+    ['foobar', 'baz']
+    >>> list(join_continuation(['foo \\', 'bar \\', 'baz']))
+    ['foobarbaz']
+
+    Not sure why, but...
+    The character preceeding the backslash is also elided.
+
+    >>> list(join_continuation(['goo\\', 'dly']))
+    ['godly']
+
+    A terrible idea, but...
+    If no line is available to continue, suppress the lines.
+
+    >>> list(join_continuation(['foo', 'bar\\', 'baz\\']))
+    ['foo']
+    """
+    lines = iter(lines)
+    for item in lines:
+        while item.endswith('\\'):
+            try:
+                item = item[:-2].strip() + next(lines)
+            except StopIteration:
+                return
+        yield item
+
+
 def parse_requirements(strs):
     """Yield ``Requirement`` objects for each specification in `strs`
 
     `strs` must be a string, or a (possibly-nested) iterable thereof.
     """
-    # create a steppable iterator, so we can handle \-continuations
-    lines = iter(map(drop_comment, yield_lines(strs)))
-
-    for line in lines:
-        # If there is a line continuation, drop it, and append the next line.
-        if line.endswith('\\'):
-            line = line[:-2].strip()
-            try:
-                line += next(lines)
-            except StopIteration:
-                return
-        yield Requirement(line)
+    lines = map(drop_comment, yield_lines(strs))
+    return map(Requirement, join_continuation(lines))
 
 
 class RequirementParseError(packaging.requirements.InvalidRequirement):
