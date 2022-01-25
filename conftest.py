@@ -22,6 +22,7 @@ def pytest_configure(config):
 
 
 collect_ignore = [
+    'src',
     'tests/manual_test.py',
     'setuptools/_distutils',
     '_distutils_hack',

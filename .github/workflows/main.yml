@@ -65,8 +65,7 @@ jobs:
         run: |
           python -m pip install tox
       - name: Run tests
-        run: |
-          python -m tox
+        run: python -m tox -- --cov-report xml --cov-report term
 
   test:
     needs: prepare
@@ -103,14 +102,15 @@ jobs:
       - name: Isolate tests to avoid PYTHONPATH interference
         run: |
           # Avoid problems with import paths, see #2318, #3015:
+          # `mkdir` `git rm` and `git mv` are OS-independent commands
           git mv setuptools/tests test_setuptools
           git mv pkg_resources/tests test_pkg_resources
           # Prevent local directories to take precedence over installed packages:
-          git rm -rf _distutils_hack
-          git rm -rf setuptools
-          git rm -rf pkg_resources
-          # `git rm` and `git mv` are OS-independent commands
-      - name: Retrieve pre-built distribution archive
+          mkdir src
+          git mv _distutils_hack src
+          git mv setuptools src
+          git mv pkg_resources src
+      - name: Retrieve pre-built distribution files
         uses: actions/download-artifact@v2
         with:
           name: python-distribution-files
@@ -127,9 +127,8 @@ jobs:
         run: >-
           python -m tox
           --installpkg '${{ needs.prepare.outputs.wheel-distribution }}'
-          -- --cov-report xml
+          -- --cov-report xml --cov-report term --cov-config .coveragerc.ci
       - name: Publish coverage
-        if: false  # disabled for #2727
         uses: codecov/codecov-action@v1
         with:
           flags: >-  # Mark which lines are covered by which envs
@@ -168,14 +167,15 @@ jobs:
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
           # Avoid problems with import paths, see #2318, #3015:
+          # `mkdir` `git rm` and `git mv` are OS-independent commands
           git mv setuptools/tests test_setuptools
           git mv pkg_resources/tests test_pkg_resources
           # Prevent local directories to take precedence over installed packages:
-          git rm -rf _distutils_hack
-          git rm -rf setuptools
-          git rm -rf pkg_resources
-          # `git rm` and `git mv` are OS-independent commands
-      - name: Retrieve pre-built distribution archive
+          mkdir src
+          git mv _distutils_hack src
+          git mv setuptools src
+          git mv pkg_resources src
+      - name: Retrieve pre-built distribution files
         uses: actions/download-artifact@v2
         with:
           name: python-distribution-files
@@ -185,7 +185,13 @@ jobs:
         run: >-
           python -m tox
           --installpkg '${{ needs.prepare.outputs.wheel-distribution }}'
-          -- --cov-report xml
+          -- --cov-report xml --cov-report term --cov-config .coveragerc.ci
+      - name: Publish coverage
+        uses: codecov/codecov-action@v1
+        with:
+          flags: >-  # Mark which lines are covered by which envs
+            cygwin
+            ${{ matrix.python }}
 
   integration-test:
     strategy:
@@ -224,13 +230,14 @@ jobs:
       - name: Isolate tests to avoid PYTHONPATH interference
         run: |
           # Avoid problems with import paths, see #2318, #3015:
+          # `mkdir` `git rm` and `git mv` are OS-independent commands
           git mv setuptools/tests test_setuptools
           git mv pkg_resources/tests test_pkg_resources
           # Prevent local directories to take precedence over installed packages:
-          git rm -rf _distutils_hack
-          git rm -rf setuptools
-          git rm -rf pkg_resources
-          # `git rm` and `git mv` are OS-independent commands
+          mkdir src
+          git mv _distutils_hack src
+          git mv setuptools src
+          git mv pkg_resources src
       - name: Retrieve pre-built distribution files
         uses: actions/download-artifact@v2
         with:
