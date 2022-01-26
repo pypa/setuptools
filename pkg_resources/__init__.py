@@ -1581,7 +1581,7 @@ class EggProvider(NullProvider):
     """Provider based on a virtual filesystem"""
 
     def __init__(self, module):
-        NullProvider.__init__(self, module)
+        super().__init__(module)
         self._setup_prefix()
 
     def _setup_prefix(self):
@@ -1701,7 +1701,7 @@ class ZipProvider(EggProvider):
     _zip_manifests = MemoizedZipManifests()
 
     def __init__(self, module):
-        EggProvider.__init__(self, module)
+        super().__init__(module)
         self.zip_pre = self.loader.archive + os.sep
 
     def _zipinfo_name(self, fspath):
