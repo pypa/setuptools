@@ -32,7 +32,7 @@ package your project:
 .. code-block:: toml
 
     [build-system]
-    requires = ["setuptools", "wheel"]
+    requires = ["setuptools"]
     build-backend = "setuptools.build_meta"
 
 Then, you will need a ``setup.cfg`` or ``setup.py`` to specify your package

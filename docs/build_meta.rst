@@ -53,12 +53,13 @@ being used to package your scripts and install from source). To use it with
 setuptools, the content would be::
 
     [build-system]
-    requires = ["setuptools", "wheel"]
+    requires = ["setuptools"]
     build-backend = "setuptools.build_meta"
 
 The ``setuptools`` package implements the ``build_sdist``
 command and the ``wheel`` package implements the ``build_wheel``
-command; both are required to be compliant with PEP 517.
+command; the latter is a dependency of the former
+exposed via :pep:`517` hooks.
 
 Use ``setuptools``' :ref:`declarative config <declarative config>` to
 specify the package information::
