@@ -484,10 +484,6 @@ class Distribution(_Distribution):
                 "Required package metadata is missing: please supply the %s." % message
             )
 
-    def run_commands(self):
-        self._validate_metadata()
-        super().run_commands()
-
     def _set_metadata_defaults(self, attrs):
         """
         Fill-in missing metadata fields not supported by distutils.
