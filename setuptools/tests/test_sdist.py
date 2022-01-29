@@ -15,7 +15,8 @@ from setuptools import SetuptoolsDeprecationWarning
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
-from setuptools.tests import fail_on_ascii
+
+from . import fail_on_ascii
 from .text import Filenames
 
 

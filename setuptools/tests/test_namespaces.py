@@ -104,7 +104,7 @@ class TestNamespaces:
         with test.test.paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp, cwd=str(pkg_A))
 
-    def test_packages_in_the_same_namespace_installed_and_cwd(self, tmpdir):
+    def test_packages_in_the_same_namespace_installed_and_cwd(self, tmpdir, venv):
         """
         Installing one namespace package and also have another in the same
         namespace in the current working directory, both of them must be
@@ -112,23 +112,10 @@ class TestNamespaces:
         """
         pkg_A = namespaces.build_namespace_package(tmpdir, 'myns.pkgA')
         pkg_B = namespaces.build_namespace_package(tmpdir, 'myns.pkgB')
-        target = tmpdir / 'packages'
-        # use pip to install to the target directory
-        install_cmd = [
-            sys.executable,
-            '-m',
-            'pip.__main__',
-            'install',
-            str(pkg_A),
-            '-t', str(target),
-        ]
-        subprocess.check_call(install_cmd)
-        namespaces.make_site_dir(target)
 
-        # ensure that all packages import and pkg_resources imports
-        pkg_resources_imp = [
-            sys.executable,
-            '-c', 'import pkg_resources; import myns.pkgA; import myns.pkgB',
-        ]
-        with test.test.paths_on_pythonpath([str(target)]):
-            subprocess.check_call(pkg_resources_imp, cwd=str(pkg_B))
+        # Install pkgA regularly
+        venv.run(['python', '-m', 'pip', 'install', str(pkg_A)])
+
+        # ensure that all packages import when running from pkgB dir
+        cmd = ['python', '-c', 'import pkg_resources, myns.pkgA, myns.pkgB']
+        venv.run(cmd, cwd=str(pkg_B))

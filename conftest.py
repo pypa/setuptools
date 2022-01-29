@@ -1,9 +1,7 @@
 import sys
+import os
 
 import pytest
-
-
-pytest_plugins = 'setuptools.tests.fixtures'
 
 
 def pytest_addoption(parser):
@@ -19,11 +17,13 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "integration: integration tests")
+    if os.environ.get("PRE_BUILT_SETUPTOOLS_WHEEL"):
+        config.option.perf_target = os.environ["PRE_BUILT_SETUPTOOLS_WHEEL"]
 
 
 collect_ignore = [
+    'src',
     'tests/manual_test.py',
-    'setuptools/tests/mod_with_constant.py',
     'setuptools/_distutils',
     '_distutils_hack',
     'setuptools/extern',
@@ -31,6 +31,10 @@ collect_ignore = [
     'pkg_resources/tests/data',
     'setuptools/_vendor',
     'pkg_resources/_vendor',
+]
+
+collect_ignore_glob = [
+    '*/mod_with_constant.py',
 ]
 
 

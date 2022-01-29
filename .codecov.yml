@@ -2,4 +2,7 @@ comment: false
 coverage:
   status:
     project:
-      threshold: 0.5%
+      default:
+        threshold: 0.5%
+fixes:
+  - "src/::"        # reduce root e.g., "src/setuptools/" => "setuptools/"

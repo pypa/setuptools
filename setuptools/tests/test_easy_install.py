@@ -33,11 +33,10 @@ from setuptools.command.easy_install import (
 from setuptools.dist import Distribution
 from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
-from setuptools.tests.server import MockServer, path_to_url
-from setuptools.tests import fail_on_ascii
 import pkg_resources
 
-from . import contexts
+from . import contexts, fail_on_ascii
+from .server import MockServer, path_to_url
 from .textwrap import DALS
 
 
@@ -466,7 +465,7 @@ class TestSetupRequires:
                     with contexts.environment(PYTHONPATH=temp_install_dir):
                         cmd = [
                             sys.executable,
-                            '-m', 'setup',
+                            '-c', '__import__("setuptools").setup()',
                             'easy_install',
                             '--index-url', mock_index.url,
                             '--exclude-scripts',
