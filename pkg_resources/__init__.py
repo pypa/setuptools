@@ -2404,7 +2404,20 @@ def _nonblank(str):
 
 @functools.singledispatch
 def yield_lines(iterable):
-    """Yield valid lines of a string or iterable"""
+    r"""
+    Yield valid lines of a string or iterable.
+
+    >>> list(yield_lines(''))
+    []
+    >>> list(yield_lines(['foo', 'bar']))
+    ['foo', 'bar']
+    >>> list(yield_lines('foo\nbar'))
+    ['foo', 'bar']
+    >>> list(yield_lines('\nfoo\n#bar\nbaz #comment'))
+    ['foo', 'baz #comment']
+    >>> list(yield_lines(['foo\nbar', 'baz', 'bing\n\n\n']))
+    ['foo', 'bar', 'baz', 'bing']
+    """
     return itertools.chain.from_iterable(map(yield_lines, iterable))
 
 
@@ -3079,26 +3092,61 @@ def issue_warning(*args, **kw):
     warnings.warn(stacklevel=level + 1, *args, **kw)
 
 
+def drop_comment(line):
+    """
+    Drop comments.
+
+    >>> drop_comment('foo # bar')
+    'foo'
+
+    A hash without a space may be in a URL.
+
+    >>> drop_comment('http://example.com/foo#bar')
+    'http://example.com/foo#bar'
+    """
+    return line.partition(' #')[0]
+
+
+def join_continuation(lines):
+    r"""
+    Join lines continued by a trailing backslash.
+
+    >>> list(join_continuation(['foo \\', 'bar', 'baz']))
+    ['foobar', 'baz']
+    >>> list(join_continuation(['foo \\', 'bar', 'baz']))
+    ['foobar', 'baz']
+    >>> list(join_continuation(['foo \\', 'bar \\', 'baz']))
+    ['foobarbaz']
+
+    Not sure why, but...
+    The character preceeding the backslash is also elided.
+
+    >>> list(join_continuation(['goo\\', 'dly']))
+    ['godly']
+
+    A terrible idea, but...
+    If no line is available to continue, suppress the lines.
+
+    >>> list(join_continuation(['foo', 'bar\\', 'baz\\']))
+    ['foo']
+    """
+    lines = iter(lines)
+    for item in lines:
+        while item.endswith('\\'):
+            try:
+                item = item[:-2].strip() + next(lines)
+            except StopIteration:
+                return
+        yield item
+
+
 def parse_requirements(strs):
-    """Yield ``Requirement`` objects for each specification in `strs`
+    """
+    Yield ``Requirement`` objects for each specification in `strs`.
 
     `strs` must be a string, or a (possibly-nested) iterable thereof.
     """
-    # create a steppable iterator, so we can handle \-continuations
-    lines = iter(yield_lines(strs))
-
-    for line in lines:
-        # Drop comments -- a hash without a space may be in a URL.
-        if ' #' in line:
-            line = line[:line.find(' #')]
-        # If there is a line continuation, drop it, and append the next line.
-        if line.endswith('\\'):
-            line = line[:-2].strip()
-            try:
-                line += next(lines)
-            except StopIteration:
-                return
-        yield Requirement(line)
+    return map(Requirement, join_continuation(map(drop_comment, yield_lines(strs))))
 
 
 class RequirementParseError(packaging.requirements.InvalidRequirement):
