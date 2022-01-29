@@ -1577,7 +1577,7 @@ class PthDistributions(Environment):
         self.sitedirs = list(map(normalize_path, sitedirs))
         self.basedir = normalize_path(os.path.dirname(self.filename))
         self._load()
-        Environment.__init__(self, [], None, None)
+        super().__init__([], None, None)
         for path in yield_lines(self.paths):
             list(map(self.add, find_distributions(path, True)))
 
