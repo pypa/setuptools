@@ -467,7 +467,7 @@ class Distribution(_Distribution):
         self._finalize_requires()
 
     def _validate_metadata(self):
-        required = ["name", "version"]
+        required = ["name"]
         missing = []
 
         for req_attr in required:
@@ -487,7 +487,6 @@ class Distribution(_Distribution):
     def run_commands(self):
         self._validate_metadata()
         super().run_commands()
-
 
     def _set_metadata_defaults(self, attrs):
         """
