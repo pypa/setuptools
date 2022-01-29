@@ -21,7 +21,7 @@ import setuptools
 from pkg_resources import (
     CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
     Environment, find_distributions, safe_name, safe_version,
-    to_filename, Requirement, DEVELOP_DIST, EGG_DIST,
+    to_filename, Requirement, DEVELOP_DIST, EGG_DIST, parse_version,
 )
 from distutils import log
 from distutils.errors import DistutilsError
@@ -285,7 +285,7 @@ class PackageIndex(Environment):
             self, index_url="https://pypi.org/simple/", hosts=('*',),
             ca_bundle=None, verify_ssl=True, *args, **kw
     ):
-        Environment.__init__(self, *args, **kw)
+        super().__init__(*args, **kw)
         self.index_url = index_url + "/" [:not index_url.endswith('/')]
         self.scanned_urls = {}
         self.fetched_urls = {}
@@ -293,6 +293,14 @@ class PackageIndex(Environment):
         self.allows = re.compile('|'.join(map(translate, hosts))).match
         self.to_scan = []
         self.opener = urllib.request.urlopen
+
+    def add(self, dist):
+        # ignore invalid versions
+        try:
+            parse_version(dist.version)
+        except Exception:
+            return
+        return super().add(dist)
 
     # FIXME: 'PackageIndex.process_url' is too complex (14)
     def process_url(self, url, retrieve=False):  # noqa: C901
@@ -994,7 +1002,7 @@ class PyPIConfig(configparser.RawConfigParser):
         Load from ~/.pypirc
         """
         defaults = dict.fromkeys(['username', 'password', 'repository'], '')
-        configparser.RawConfigParser.__init__(self, defaults)
+        super().__init__(defaults)
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):

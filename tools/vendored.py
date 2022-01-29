@@ -2,7 +2,7 @@ import re
 import sys
 import subprocess
 
-from paver.easy import task, path as Path
+from path import Path
 
 
 def remove_all(paths):
@@ -10,7 +10,6 @@ def remove_all(paths):
         path.rmtree() if path.isdir() else path.remove()
 
 
-@task
 def update_vendored():
     update_pkg_resources()
     update_setuptools()
@@ -52,9 +51,6 @@ def install(vendor):
         '-t', str(vendor),
     ]
     subprocess.check_call(install_args)
-    remove_all(vendor.glob('*.dist-info'))
-    remove_all(vendor.glob('*.egg-info'))
-    remove_all(vendor.glob('six.py'))
     (vendor / '__init__.py').write_text('')
 
 
@@ -68,3 +64,6 @@ def update_setuptools():
     vendor = Path('setuptools/_vendor')
     install(vendor)
     rewrite_packaging(vendor / 'packaging', 'setuptools.extern')
+
+
+__name__ == '__main__' and update_vendored()

@@ -7,14 +7,21 @@ import distutils.cmd
 from distutils.errors import DistutilsOptionError
 from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
-from distutils.version import LooseVersion
+from zipfile import ZipFile
 
 import pytest
+
+from setuptools.extern.packaging import version
 
 import setuptools
 import setuptools.dist
 import setuptools.depends as dep
 from setuptools.depends import Require
+
+
+@pytest.fixture(autouse=True)
+def isolated_dir(tmpdir_cwd):
+    yield
 
 
 def makeSetup(**args):
@@ -84,23 +91,18 @@ class TestDepends:
 
         assert req.name == 'Json'
         assert req.module == 'json'
-        assert req.requested_version == '1.0.3'
+        assert req.requested_version == version.Version('1.0.3')
         assert req.attribute == '__version__'
         assert req.full_name() == 'Json-1.0.3'
 
         from json import __version__
-        assert req.get_version() == __version__
+        assert str(req.get_version()) == __version__
         assert req.version_ok('1.0.9')
         assert not req.version_ok('0.9.1')
         assert not req.version_ok('unknown')
 
         assert req.is_present()
         assert req.is_current()
-
-        req = Require('Json 3000', '03000', 'json', format=LooseVersion)
-        assert req.is_present()
-        assert not req.is_current()
-        assert not req.version_ok('unknown')
 
         req = Require('Do-what-I-mean', '1.0', 'd-w-i-m')
         assert not req.is_present()
@@ -293,3 +295,11 @@ def test_findall_missing_symlink(tmpdir, can_symlink):
         os.symlink('foo', 'bar')
         found = list(setuptools.findall())
         assert found == []
+
+
+def test_its_own_wheel_does_not_contain_tests(setuptools_wheel):
+    with ZipFile(setuptools_wheel) as zipfile:
+        contents = [f.replace(os.sep, '/') for f in zipfile.namelist()]
+
+    for member in contents:
+        assert '/tests/' not in member

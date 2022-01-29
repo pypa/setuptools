@@ -1,7 +1,5 @@
 [build-system]
-requires = [
-    "wheel",
-]
+requires = []
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
@@ -32,7 +30,7 @@ addopts = "-n auto"
     directory = "changelog.d"
     title_format = "v{version}"
     issue_format = "#{issue}"
-    template = "towncrier_template.rst"
+    template = "tools/towncrier_template.rst"
     underlines = ["-", "^"]
 
     [[tool.towncrier.type]]

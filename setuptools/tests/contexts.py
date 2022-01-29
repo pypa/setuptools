@@ -7,6 +7,7 @@ import site
 import io
 
 import pkg_resources
+from filelock import FileLock
 
 
 @contextlib.contextmanager
@@ -96,3 +97,15 @@ def suppress_exceptions(*excs):
         yield
     except excs:
         pass
+
+
+@contextlib.contextmanager
+def session_locked_tmp_dir(tmp_path_factory, name):
+    """Uses a file lock to guarantee only one worker can access a temp dir"""
+    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+    # ^-- get the temp directory shared by all workers
+    locked_dir = root_tmp_dir / name
+    with FileLock(locked_dir.with_suffix(".lock")):
+        # ^-- prevent multiple workers to access the directory at once
+        locked_dir.mkdir(exist_ok=True, parents=True)
+        yield locked_dir

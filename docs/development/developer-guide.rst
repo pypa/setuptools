@@ -25,12 +25,12 @@ Setuptools is maintained primarily in GitHub at `this home
 Python Packaging Authority (PyPA) with several core contributors. All bugs
 for Setuptools are filed and the canonical source is maintained in GitHub.
 
-User support and discussions are done through the issue tracker (for specific)
-issues, through the `distutils-sig mailing list <https://mail.python.org/mailman3/lists/distutils-sig.python.org/>`_, or on IRC (Freenode) at
-#pypa.
+User support and discussions are done through
+`GitHub Discussions <https://github.com/pypa/setuptools/discussions>`_,
+or the issue tracker (for specific issues).
 
-Discussions about development happen on the distutils-sig mailing list or on
-`Gitter <https://gitter.im/pypa/setuptools>`_.
+Discussions about development happen on GitHub Discussions or
+the ``setuptools`` channel on `PyPA Discord <https://discord.com/invite/pypa>`_.
 
 -----------------
 Authoring Tickets
@@ -110,7 +110,7 @@ To build the docs locally, use tox::
     $ tox -e docs
 
 .. _Sphinx: http://www.sphinx-doc.org/en/master/
-.. _published documentation: https://setuptools.readthedocs.io/en/latest/
+.. _published documentation: https://setuptools.pypa.io/en/latest/
 
 ---------------------
 Vendored Dependencies
@@ -123,5 +123,11 @@ setuptools from source. Eventually, this limitation may be lifted as
 PEP 517/518 reach ubiquitous adoption, but for now, Setuptools
 cannot declare dependencies other than through
 ``setuptools/_vendor/vendored.txt`` and
-``pkg_resources/_vendor/vendored.txt`` and refreshed by way of
-``paver update_vendored`` (pavement.py).
+``pkg_resources/_vendor/vendored.txt``.
+
+All the dependencies specified in these files are "vendorized" using a
+simple Python script ``tools/vendor.py``.
+
+To refresh the dependencies, run the following command::
+
+    $ tox -e vendor

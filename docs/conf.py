@@ -66,6 +66,10 @@ link_files = {
                 url='{GH}/pypa/distutils/issues/{distutils}',
             ),
             dict(
+                pattern=r'pypa/distutils@(?P<distutils_commit>[\da-f]+)',
+                url='{GH}/pypa/distutils/commit/{distutils_commit}',
+            ),
+            dict(
                 pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
                 with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
             ),
@@ -76,9 +80,16 @@ link_files = {
 # Be strict about any broken references:
 nitpicky = True
 
+# Include Python intersphinx mapping to prevent failures
+# jaraco/skeleton#51
+extensions += ['sphinx.ext.intersphinx']
 intersphinx_mapping = {
-    'pypa-build': ('https://pypa-build.readthedocs.io/en/latest/', None)
+    'python': ('https://docs.python.org/3', None),
 }
+
+intersphinx_mapping.update({
+    'pypa-build': ('https://pypa-build.readthedocs.io/en/latest/', None)
+})
 
 # Add support for linking usernames
 github_url = 'https://github.com'
@@ -86,7 +97,7 @@ github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
     'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
 }
-extensions += ['sphinx.ext.extlinks', 'sphinx.ext.intersphinx']
+extensions += ['sphinx.ext.extlinks']
 
 # Ref: https://github.com/python-attrs/attrs/pull/571/files\
 #      #diff-85987f48f1258d9ee486e3191495582dR82
@@ -94,6 +105,19 @@ default_role = 'any'
 
 # HTML theme
 html_theme = 'furo'
+html_logo = "images/logo.svg"
+
+html_theme_options = {
+    "sidebar_hide_name": True,
+    "light_css_variables": {
+        "color-brand-primary": "#336790",  # "blue"
+        "color-brand-content": "#336790",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#E5B62F",  # "yellow"
+        "color-brand-content": "#E5B62F",
+    },
+}
 
 # Add support for inline tabs
 extensions += ['sphinx_inline_tabs']
@@ -150,3 +174,27 @@ towncrier_draft_working_directory = '..'
 towncrier_draft_include_empty = False
 
 extensions += ['jaraco.tidelift']
+
+# Add icons (aka "favicons") to documentation
+extensions += ['sphinx-favicon']
+html_static_path = ['images']  # should contain the folder with icons
+
+# List of dicts with <link> HTML attributes
+# static-file points to files in the html_static_path (href is computed)
+favicons = [
+    {  # "Catch-all" goes first, otherwise some browsers will overwrite
+        "rel": "icon",
+        "type": "image/svg+xml",
+        "static-file": "logo-symbol-only.svg",
+        "sizes": "any"
+    },
+    {  # Version with thicker strokes for better visibility at smaller sizes
+        "rel": "icon",
+        "type": "image/svg+xml",
+        "static-file": "favicon.svg",
+        "sizes": "16x16 24x24 32x32 48x48"
+    },
+    # rel="apple-touch-icon" does not support SVG yet
+]
+
+intersphinx_mapping['pip'] = 'https://pip.pypa.io/en/latest', None

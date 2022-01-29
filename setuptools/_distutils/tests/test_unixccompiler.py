@@ -11,9 +11,12 @@ from distutils.errors import DistutilsPlatformError
 from distutils.unixccompiler import UnixCCompiler
 from distutils.util import _clear_cached_macosx_ver
 
-class UnixCCompilerTestCase(unittest.TestCase):
+from . import support
+
+class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
     def setUp(self):
+        super().setUp()
         self._backup_platform = sys.platform
         self._backup_get_config_var = sysconfig.get_config_var
         self._backup_get_config_vars = sysconfig.get_config_vars
@@ -23,6 +26,7 @@ class UnixCCompilerTestCase(unittest.TestCase):
         self.cc = CompilerWrapper()
 
     def tearDown(self):
+        super().tearDown()
         sys.platform = self._backup_platform
         sysconfig.get_config_var = self._backup_get_config_var
         sysconfig.get_config_vars = self._backup_get_config_vars
@@ -177,7 +181,7 @@ class UnixCCompilerTestCase(unittest.TestCase):
             elif v == 'GNULD':
                 return 'yes'
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-R/foo')
+        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
 
         # non-GCC non-GNULD
         sys.platform = 'bar'
@@ -187,7 +191,7 @@ class UnixCCompilerTestCase(unittest.TestCase):
             elif v == 'GNULD':
                 return 'no'
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-R/foo')
+        self.assertEqual(self.cc.rpath_foo(), '-Wl,-R/foo')
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_cc_overrides_ldshared(self):
@@ -232,9 +236,17 @@ class UnixCCompilerTestCase(unittest.TestCase):
             sysconfig.customize_compiler(self.cc)
         self.assertEqual(self.cc.linker_so[0], 'my_ld')
 
+    def test_has_function(self):
+        # Issue https://github.com/pypa/distutils/issues/64:
+        # ensure that setting output_dir does not raise
+        # FileNotFoundError: [Errno 2] No such file or directory: 'a.out'
+        self.cc.output_dir = 'scratch'
+        os.chdir(self.mkdtemp())
+        self.cc.has_function('abort', includes=['stdlib.h'])
+
 
 def test_suite():
-    return unittest.makeSuite(UnixCCompilerTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(UnixCCompilerTestCase)
 
 if __name__ == "__main__":
     run_unittest(test_suite())

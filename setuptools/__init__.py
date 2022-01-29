@@ -18,6 +18,7 @@ from setuptools.extension import Extension
 from setuptools.dist import Distribution
 from setuptools.depends import Require
 from . import monkey
+from . import logging
 
 
 __all__ = [
@@ -131,7 +132,7 @@ def _install_setup_requires(attrs):
         def __init__(self, attrs):
             _incl = 'dependency_links', 'setup_requires'
             filtered = {k: attrs[k] for k in set(_incl) & set(attrs)}
-            distutils.core.Distribution.__init__(self, filtered)
+            super().__init__(filtered)
 
         def finalize_options(self):
             """
@@ -149,6 +150,7 @@ def _install_setup_requires(attrs):
 
 def setup(**attrs):
     # Make sure we have any requirements needed to interpret 'attrs'.
+    logging.configure()
     _install_setup_requires(attrs)
     return distutils.core.setup(**attrs)
 
@@ -169,7 +171,7 @@ class Command(_Command):
         Construct the command for dist, updating
         vars(self) with any keyword parameters.
         """
-        _Command.__init__(self, dist)
+        super().__init__(dist)
         vars(self).update(kw)
 
     def _ensure_stringlike(self, option, what, default=None):
