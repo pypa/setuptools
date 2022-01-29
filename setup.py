@@ -13,6 +13,7 @@ here = os.path.dirname(__file__)
 package_data = dict(
     setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
 )
+package_data.update({'pkg_resources._vendor.jaraco.text': ['*.txt']})
 
 force_windows_specific_files = (
     os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES", "1").lower()

@@ -44,6 +44,9 @@ def rewrite_jaraco(pkg_files, new_root):
     """
     Rewrite imports in jaraco.functools to redirect to vendored copies.
     """
+    # jaraco is a namespace package, but for data to be discovered,
+    # such as in jaraco.txt, it must be a regular package.
+    pkg_files.joinpath('__init__.py').write_text('')
     for file in pkg_files.glob('*.py'):
         text = file.read_text()
         text = re.sub(r' (more_itertools)', rf' {new_root}.\1', text)
