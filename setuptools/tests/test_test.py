@@ -13,7 +13,7 @@ SETUP_PY = DALS(
     """
     from setuptools import setup
 
-    setup(name='foo',
+    setup(
         packages=['name', 'name.space', 'name.space.tests'],
         namespace_packages=['name'],
         test_suite='name.space.tests.test_suite',
@@ -77,7 +77,6 @@ def quiet_log():
 @pytest.mark.usefixtures('tmpdir_cwd', 'quiet_log')
 def test_tests_are_run_once(capfd):
     params = dict(
-        name='foo',
         packages=['dummy'],
     )
     with open('setup.py', 'wt') as f:

@@ -62,7 +62,7 @@ class FakeDist:
 SETUP_PY = DALS("""
     from setuptools import setup
 
-    setup(name='foo')
+    setup()
     """)
 
 

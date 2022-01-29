@@ -25,7 +25,6 @@ def sphinx_doc_sample_project(tmpdir_cwd):
 class TestSphinxUploadDocs:
     def test_sphinx_doc(self):
         params = dict(
-            name='foo',
             packages=['test'],
         )
         dist = Distribution(params)
