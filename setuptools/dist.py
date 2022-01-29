@@ -467,22 +467,17 @@ class Distribution(_Distribution):
         self._finalize_requires()
 
     def _validate_metadata(self):
-        required = ["name"]
-        missing = []
-
-        for req_attr in required:
-            if getattr(self.metadata, req_attr) is None:
-                missing.append(req_attr)
+        required = {"name"}
+        provided = {
+            key
+            for key in vars(self.metadata)
+            if getattr(self.metadata, key, None) is not None
+        }
+        missing = required - provided
 
         if missing:
-            if len(missing) == 1:
-                message = "%s attribute" % missing[0]
-            else:
-                message = "%s and %s attributes" % (", ".join(missing[:-1]),
-                                                    missing[-1])
-            raise DistutilsSetupError(
-                "Required package metadata is missing: please supply the %s." % message
-            )
+            msg = f"Required package metadata is missing: {missing}"
+            raise DistutilsSetupError(msg)
 
     def _set_metadata_defaults(self, attrs):
         """
