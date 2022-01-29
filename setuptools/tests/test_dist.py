@@ -374,3 +374,8 @@ def test_check_specifier():
 )
 def test_rfc822_unescape(content, result):
     assert (result or content) == rfc822_unescape(rfc822_escape(content))
+
+
+def test_metadata_name():
+    with pytest.raises(DistutilsSetupError, match='missing.*name'):
+        Distribution()._validate_metadata()
