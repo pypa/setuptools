@@ -1,0 +1,1 @@
+Merge with pypa/distutils@b53a824ec3 including improved support for lib directories on non-x64 Windows builds.
