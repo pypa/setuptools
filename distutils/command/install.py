@@ -411,17 +411,19 @@ class install(Command):
                             'implementation_lower': _get_implementation().lower(),
                             'implementation': _get_implementation(),
                            }
-        try:
-            local_vars['py_version_nodot_plat'] = sys.winver.replace('.', '')
-        except AttributeError:
-            local_vars['py_version_nodot_plat'] = ''
+
+        # vars for compatibility on older Pythons
+        compat_vars = dict(
+            # Python 3.9 and earlier
+            py_version_nodot_plat=getattr(sys, 'winver', '').replace('.', ''),
+        )
 
         if HAS_USER_SITE:
             local_vars['userbase'] = self.install_userbase
             local_vars['usersite'] = self.install_usersite
 
         self.config_vars = _collections.DictStack(
-            [sysconfig.get_config_vars(), local_vars])
+            [compat_vars, sysconfig.get_config_vars(), local_vars])
 
         self.expand_basedirs()
 
