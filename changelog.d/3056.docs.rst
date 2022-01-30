@@ -1,0 +1,2 @@
+The documentation has stopped suggesting to add ``wheel`` to
+:pep:`517` requirements -- by :user:`webknjaz`

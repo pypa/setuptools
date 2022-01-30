@@ -1,0 +1,22 @@
+# syntax: glob
+bin
+build
+dist
+docs/build
+include
+lib
+distribute.egg-info
+setuptools.egg-info
+.coverage
+.eggs
+.tox
+.venv
+*.egg
+*.py[cod]
+*.swp
+*~
+.hg*
+.cache
+.idea/
+.pytest_cache/
+.mypy_cache/

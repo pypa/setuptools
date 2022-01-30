@@ -1,0 +1,91 @@
+---
+name: 📝 Documentation Report
+title: '[Docs] '
+description: Ask us about docs
+labels:
+- documentation
+- Needs Triage
+
+body:
+- type: markdown
+  attributes:
+    value: >
+      **Thank you for wanting to report a problem with setuptools
+      documentation!**
+
+
+      Please fill out your suggestions below. If the problem seems
+      straightforward, feel free to go ahead and
+      submit a pull request instead!
+
+
+      ⚠
+      Verify first that your issue is not [already reported on
+      GitHub][issue search].
+
+
+      If you are seeking community support, please consider
+      [starting a discussion][Discussions].
+
+
+      Thank you for your collaboration!
+
+
+      [issue search]: https://github.com/pypa/setuptools/search?q=is%3Aissue&type=issues
+
+      [Discussions]: https://github.com/pypa/setuptools/discussions
+
+- type: textarea
+  attributes:
+    label: Summary
+    description: >
+      Explain the problem briefly below, add suggestions to wording
+      or structure.
+
+
+      **HINT:** Did you know the documentation has a `View on GitHub`
+      link on every page? Feel free to use it to start a pull request
+      right from the GitHub UI!
+    placeholder: >-
+      I was reading the setuptools documentation of version X and I'm
+      having problems understanding Y. It would be very helpful if that
+      got rephrased as Z.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: OS / Environment
+    description: >-
+      Provide all relevant information below, e.g. OS version,
+      browser, etc.
+    placeholder: Fedora 33, Firefox etc.
+
+
+- type: textarea
+  attributes:
+    label: Additional Information
+    description: >
+      Describe how this improves the documentation, e.g. before/after
+      situation or screenshots.
+
+
+      **HINT:** You can paste https://gist.github.com links for larger files.
+    placeholder: >-
+      When the improvement is applied, it makes it more straightforward
+      to understand X.
+  validations:
+    required: true
+
+
+- type: checkboxes
+  attributes:
+    label: Code of Conduct
+    description: |
+      Read the [PSF Code of Conduct][CoC] first.
+
+      [CoC]: https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md
+    options:
+    - label: I agree to follow the PSF Code of Conduct
+      required: true
+...
