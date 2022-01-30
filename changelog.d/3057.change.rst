@@ -1,0 +1,1 @@
+Don't include optional ``Home-page`` in metadata if no ``url`` is specified. -- by :user:`cdce8p`
