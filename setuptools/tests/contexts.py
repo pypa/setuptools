@@ -99,12 +99,26 @@ def suppress_exceptions(*excs):
         pass
 
 
+def multiproc(request):
+    """
+    Return True if running under xdist and multiple
+    workers are used.
+    """
+    try:
+        worker_id = request.getfixturevalue('worker_id')
+    except Exception:
+        return False
+    return worker_id != 'master'
+
+
 @contextlib.contextmanager
-def session_locked_tmp_dir(tmp_path_factory, name):
+def session_locked_tmp_dir(request, tmp_path_factory, name):
     """Uses a file lock to guarantee only one worker can access a temp dir"""
-    root_tmp_dir = tmp_path_factory.getbasetemp().parent
-    # ^-- get the temp directory shared by all workers
-    locked_dir = root_tmp_dir / name
+    # get the temp directory shared by all workers
+    base = tmp_path_factory.getbasetemp()
+    shared_dir = base.parent if multiproc(request) else base
+
+    locked_dir = shared_dir / name
     with FileLock(locked_dir.with_suffix(".lock")):
         # ^-- prevent multiple workers to access the directory at once
         locked_dir.mkdir(exist_ok=True, parents=True)
