@@ -1,3 +1,18 @@
+v60.6.0
+-------
+
+
+Changes
+^^^^^^^
+* #3043: Merge with pypa/distutils@bb018f1ac3 including consolidated behavior in sysconfig.get_platform (pypa/distutils#104).
+* #3057: Don't include optional ``Home-page`` in metadata if no ``url`` is specified. -- by :user:`cdce8p`
+* #3062: Merge with pypa/distutils@b53a824ec3 including improved support for lib directories on non-x64 Windows builds.
+
+Misc
+^^^^
+* #3054: Used Py3 syntax ``super().__init__()`` -- by :user:`imba-tjd`
+
+
 v60.5.4
 -------
 

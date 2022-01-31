@@ -1,1 +1,0 @@
-Used Py3 syntax ``super().__init__()`` -- by :user:`imba-tjd`
