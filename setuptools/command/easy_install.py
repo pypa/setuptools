@@ -260,6 +260,12 @@ class easy_install(Command):
                 'implementation': install._get_implementation(),
             })
 
+        # pypa/distutils#113 Python 3.9 compat
+        self.config_vars.setdefault(
+            'py_version_nodot_plat',
+            getattr(sys, 'windir', '').replace('.', ''),
+        )
+
         if site.ENABLE_USER_SITE:
             self.config_vars['userbase'] = self.install_userbase
             self.config_vars['usersite'] = self.install_usersite

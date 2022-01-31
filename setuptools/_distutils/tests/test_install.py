@@ -81,7 +81,9 @@ class InstallTestCase(support.TempdirManager,
         install_module.USER_SITE = self.user_site
 
         def _expanduser(path):
-            return self.tmpdir
+            if path.startswith('~'):
+                return os.path.normpath(self.tmpdir + path[1:])
+            return path
         self.old_expand = os.path.expanduser
         os.path.expanduser = _expanduser
 
@@ -121,6 +123,17 @@ class InstallTestCase(support.TempdirManager,
 
         self.assertIn('userbase', cmd.config_vars)
         self.assertIn('usersite', cmd.config_vars)
+
+        actual_headers = os.path.relpath(cmd.install_headers, self.user_base)
+        if os.name == 'nt':
+            site_path = os.path.relpath(
+                os.path.dirname(self.old_user_site), self.old_user_base)
+            include = os.path.join(site_path, 'Include')
+        else:
+            include = sysconfig.get_python_inc(0, '')
+        expect_headers = os.path.join(include, 'xx')
+
+        self.assertEqual(os.path.normcase(actual_headers), os.path.normcase(expect_headers))
 
     def test_handle_extra_path(self):
         dist = Distribution({'name': 'xx', 'extra_path': 'path,dirs'})
