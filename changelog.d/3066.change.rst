@@ -1,0 +1,3 @@
+Added vendored dependencies for :pypi:`tomli`, :pypi:`validate-pyproject`.
+
+These dependencies are used to read ``pyproject.toml`` files and validate them.
