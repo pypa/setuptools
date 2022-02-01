@@ -1,0 +1,3 @@
+Changed the means of interaction between :doc:`setuptools.build_meta <build_meta>`
+and ``setuptools.setup``. Instead of simply executing the script, the backend
+now relies on ``distutils.core.run_setup`` to obtain a distribution object.
