@@ -1,0 +1,13 @@
+Added **experimental** support for ``pyproject.toml`` configuration
+(as introduced by :pep:`621`). Configuration parameters not covered by
+standards are handled in the ``[tool.setuptools]`` sub-table.
+
+In the future, existing ``setup.cfg`` configuration
+may be automatically converted into the ``pyproject.toml`` equivalent before taking effect
+(as proposed in :issue:`1688`). Meanwhile users can use automated tools like
+:pypi:`ini2toml` to help in the transition.
+
+Please note that the legacy backend is not guaranteed to work with
+``pyproject.toml`` configuration.
+
+-- by :user:`abravalheri`
