@@ -1,0 +1,1 @@
+Avoid AttributeError in easy_install.create_home_path when sysconfig.get_config_vars values are not strings.
