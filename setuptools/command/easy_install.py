@@ -1334,7 +1334,7 @@ class easy_install(Command):
         if not self.user:
             return
         home = convert_path(os.path.expanduser("~"))
-        for name, path in self.config_vars.items():
+        for path in only_strs(self.config_vars.values()):
             if path.startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0o700)" % path)
                 os.makedirs(path, 0o700)
@@ -2302,6 +2302,13 @@ def current_umask():
     tmp = os.umask(0o022)
     os.umask(tmp)
     return tmp
+
+
+def only_strs(values):
+    """
+    Exclude non-str values. Ref #3063.
+    """
+    return filter(lambda val: isinstance(val, str), values)
 
 
 class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):
