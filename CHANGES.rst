@@ -1,3 +1,16 @@
+v60.7.0
+-------
+
+
+Changes
+^^^^^^^
+* #3061: Vendored jaraco.text and use line processing from that library in pkg_resources.
+
+Misc
+^^^^
+* #3070: Avoid AttributeError in easy_install.create_home_path when sysconfig.get_config_vars values are not strings.
+
+
 v60.6.0
 -------
 

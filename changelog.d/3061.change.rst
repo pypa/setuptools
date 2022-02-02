@@ -1,1 +1,0 @@
-Vendored jaraco.text and use line processing from that library in pkg_resources.
