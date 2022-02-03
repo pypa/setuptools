@@ -1,1 +1,0 @@
-Remove lorem_ipsum from jaraco.text when vendored.

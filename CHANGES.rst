@@ -1,3 +1,12 @@
+v60.7.1
+-------
+
+
+Misc
+^^^^
+* #3072: Remove lorem_ipsum from jaraco.text when vendored.
+
+
 v60.7.0
 -------
 
