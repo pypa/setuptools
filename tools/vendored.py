@@ -37,6 +37,8 @@ def rewrite_jaraco_text(pkg_files, new_root):
         text = file.read_text()
         text = re.sub(r' (jaraco\.)', rf' {new_root}.\1', text)
         text = re.sub(r' (importlib_resources)', rf' {new_root}.\1', text)
+        # suppress loading of lorem_ipsum; ref #3072
+        text = re.sub(r'^lorem_ipsum.*\n$', '', text, flags=re.M)
         file.write_text(text)
 
 
