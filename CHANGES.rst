@@ -30,6 +30,18 @@ Changes
 * #3057: Don't include optional ``Home-page`` in metadata if no ``url`` is specified. -- by :user:`cdce8p`
 * #3062: Merge with pypa/distutils@b53a824ec3 including improved support for lib directories on non-x64 Windows builds.
 
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2897: Added documentation about wrapping ``setuptools.build_meta`` in a in-tree
+  custom backend. This is a :pep:`517`-compliant way of dynamically specifying
+  build dependencies (e.g. when platform, OS and other markers are not enough).
+  -- by :user:`abravalheri`
+* #3034: Replaced occurrences of the defunct distutils-sig mailing list with pointers
+  to GitHub Discussions.
+  -- by :user:`ashemedai`
+* #3056: The documentation has stopped suggesting to add ``wheel`` to
+  :pep:`517` requirements -- by :user:`webknjaz`
+
 Misc
 ^^^^
 * #3054: Used Py3 syntax ``super().__init__()`` -- by :user:`imba-tjd`
