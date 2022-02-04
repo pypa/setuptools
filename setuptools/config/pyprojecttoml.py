@@ -1,7 +1,6 @@
 """Load setuptools configuration from ``pyproject.toml`` files"""
 import json
 import os
-import sys
 from contextlib import contextmanager
 from distutils import log
 from functools import partial
@@ -18,17 +17,8 @@ if TYPE_CHECKING:
 _Path = Union[str, os.PathLike]
 
 
-def load_file(filepath: _Path):
-    try:
-        from setuptools.extern import tomli
-    except ImportError:  # Bootstrap problem (?) diagnosed by test_distutils_adoption
-        sys_path = sys.path.copy()
-        try:
-            from setuptools import _vendor
-            sys.path.append(_vendor.__path__[0])
-            import tomli
-        finally:
-            sys.path = sys_path
+def load_file(filepath: _Path) -> dict:
+    from setuptools.extern import tomli  # type: ignore
 
     with open(filepath, "rb") as file:
         return tomli.load(file)
