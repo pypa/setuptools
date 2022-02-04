@@ -94,6 +94,16 @@ def rewrite_more_itertools(pkg_files: Path):
     more_file.write_text(text)
 
 
+def rewrite_tomli(pkg_files, new_root):
+    """
+    Rewrite imports in tomli to use the relative form.
+    """
+    for file in pkg_files.glob('*.py'):
+        text = file.read_text().replace('tomli.', '.')
+        text = text.replace('tomli', f'{new_root}.tomli')
+        file.write_text(text)
+
+
 def clean(vendor):
     """
     Remove all files out of the vendor directory except the meta
@@ -139,6 +149,7 @@ def update_setuptools():
     rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
     rewrite_importlib_metadata(vendor / 'importlib_metadata', 'setuptools.extern')
     rewrite_more_itertools(vendor / "more_itertools")
+    rewrite_tomli(vendor / 'tomli', 'setuptools.extern')
 
 
 def install_validate_pyproject(vendor):

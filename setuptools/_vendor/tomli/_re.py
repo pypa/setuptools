@@ -3,7 +3,7 @@ from functools import lru_cache
 import re
 from typing import Any, Optional, Union
 
-from tomli._types import ParseFloat
+from ._types import ParseFloat
 
 # E.g.
 # - 00:32:00.999999
