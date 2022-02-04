@@ -71,6 +71,78 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
         assert extra_req_toml == extra_req_cfg
 
 
+PEP621_EXAMPLE = """\
+[project]
+name = "spam"
+version = "2020.0.0"
+description = "Lovely Spam! Wonderful Spam!"
+readme = "README.rst"
+requires-python = ">=3.8"
+license = {file = "LICENSE.txt"}
+keywords = ["egg", "bacon", "sausage", "tomatoes", "Lobster Thermidor"]
+authors = [
+  {email = "hi@pradyunsg.me"},
+  {name = "Tzu-Ping Chung"}
+]
+maintainers = [
+  {name = "Brett Cannon", email = "brett@python.org"}
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python"
+]
+
+dependencies = [
+  "httpx",
+  "gidgethub[httpx]>4.0.0",
+  "django>2.1; os_name != 'nt'",
+  "django>2.0; os_name == 'nt'"
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest < 5.0.0",
+  "pytest-cov[all]"
+]
+
+[project.urls]
+homepage = "http://example.com"
+documentation = "http://readthedocs.org"
+repository = "http://github.com"
+changelog = "http://github.com/me/spam/blob/master/CHANGELOG.md"
+
+[project.scripts]
+spam-cli = "spam:main_cli"
+
+[project.gui-scripts]
+spam-gui = "spam:main_gui"
+
+[project.entry-points."spam.magical"]
+tomatoes = "spam:main_tomatoes"
+"""
+
+PEP621_EXAMPLE_SCRIPT = """
+def main_cli(): pass
+def main_gui(): pass
+def main_tomatoes(): pass
+"""
+
+
+def test_pep621_example(tmp_path):
+    """Make sure the example in PEP 621 works"""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(PEP621_EXAMPLE)
+    (tmp_path / "README.rst").write_text("hello world")
+    (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---")
+    (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT)
+
+    dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
+    assert set(dist.metadata.license_files) == {"LICENSE.txt"}
+
+
+# --- Auxiliary Functions ---
+
+
 NAME_REMOVE = ("http://", "https://", "github.com/", "/raw/")
 
 

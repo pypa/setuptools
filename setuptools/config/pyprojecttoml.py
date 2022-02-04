@@ -84,7 +84,7 @@ def read_configuration(filepath, expand=True, ignore_option_errors=False):
 
     asdict = load_file(filepath) or {}
     project_table = asdict.get("project")
-    tool_table = asdict.get("tool", {}).get("setuptools")
+    tool_table = asdict.get("tool", {}).get("setuptools", {})
     if not asdict or not(project_table or tool_table):
         return {}  # User is not using pyproject to configure setuptools
 
