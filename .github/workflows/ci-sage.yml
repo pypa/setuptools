@@ -56,10 +56,11 @@ env:
   # Standard setting: Test the current beta release of Sage:
   SAGE_REPO:   sagemath/sage
   SAGE_REF:    develop
-  # Temporarily test with the branch from sage ticket
-  # (this is a no-op after that ticket is merged)
-  #SAGE_TRAC_GIT: https://github.com/sagemath/sagetrac-mirror.git
-  #SAGE_TICKET: 32579
+  # Test with the branch from https://trac.sagemath.org/ticket/33288
+  # This may provide hotfixes for the CI that have not been merged into
+  # the sage develop branch yet.
+  SAGE_TRAC_GIT:  https://github.com/sagemath/sagetrac-mirror.git
+  SAGE_TICKET:    33288
   REMOVE_PATCHES: "*"
 
 jobs:
