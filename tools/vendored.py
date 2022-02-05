@@ -100,6 +100,9 @@ def update_setuptools():
     vendor = Path('setuptools/_vendor')
     install(vendor)
     rewrite_packaging(vendor / 'packaging', 'setuptools.extern')
+    rewrite_jaraco_text(vendor / 'jaraco/text', 'setuptools.extern')
+    rewrite_jaraco(vendor / 'jaraco', 'setuptools.extern')
+    rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
 
 
 __name__ == '__main__' and update_vendored()

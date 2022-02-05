@@ -71,6 +71,6 @@ class VendorImporter:
 
 names = (
     'packaging', 'pyparsing', 'ordered_set', 'more_itertools', 'importlib_metadata',
-    'zipp', 'importlib_resources',
+    'zipp', 'importlib_resources', 'jaraco',
 )
 VendorImporter(__name__, names, 'setuptools._vendor').install()

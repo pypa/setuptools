@@ -4,3 +4,6 @@ ordered-set==3.1.1
 more_itertools==8.8.0
 importlib_resources
 importlib_metadata
+jaraco.text==3.7.0
+# required for importlib_resources on older Pythons
+zipp==3.7.0
