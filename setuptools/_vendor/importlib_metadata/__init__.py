@@ -161,8 +161,8 @@ class EntryPoint(DeprecatedTuple):
 
     pattern = re.compile(
         r'(?P<module>[\w.]+)\s*'
-        r'(:\s*(?P<attr>[\w.]+))?\s*'
-        r'(?P<extras>\[.*\])?\s*$'
+        r'(:\s*(?P<attr>[\w.]+)\s*)?'
+        r'((?P<extras>\[.*\])\s*)?$'
     )
     """
     A regular expression describing the syntax for an entry point,
@@ -576,18 +576,6 @@ class Distribution:
         )
         return filter(None, declared)
 
-    @classmethod
-    def _local(cls, root='.'):
-        from pep517 import build, meta
-
-        system = build.compat_system(root)
-        builder = functools.partial(
-            meta.build,
-            source_dir=root,
-            system=system,
-        )
-        return PathDistribution(zipp.Path(meta.build_as_zip(builder)))
-
     @property
     def metadata(self) -> _meta.PackageMetadata:
         """Return the parsed metadata for this Distribution.
@@ -696,7 +684,7 @@ class Distribution:
         def make_condition(name):
             return name and f'extra == "{name}"'
 
-        def parse_condition(section):
+        def quoted_marker(section):
             section = section or ''
             extra, sep, markers = section.partition(':')
             if extra and markers:
@@ -704,8 +692,17 @@ class Distribution:
             conditions = list(filter(None, [markers, make_condition(extra)]))
             return '; ' + ' and '.join(conditions) if conditions else ''
 
+        def url_req_space(req):
+            """
+            PEP 508 requires a space between the url_spec and the quoted_marker.
+            Ref python/importlib_metadata#357.
+            """
+            # '@' is uniquely indicative of a url_req.
+            return ' ' * ('@' in req)
+
         for section in sections:
-            yield section.value + parse_condition(section.name)
+            space = url_req_space(section.value)
+            yield section.value + space + quoted_marker(section.name)
 
 
 class DistributionFinder(MetaPathFinder):
