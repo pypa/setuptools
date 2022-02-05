@@ -39,6 +39,7 @@ from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
 import pkg_resources
 from setuptools.extern.packaging import version
+from . import _reqs
 
 if TYPE_CHECKING:
     from email.message import Message
@@ -280,7 +281,7 @@ def _check_extra(extra, reqs):
     name, sep, marker = extra.partition(':')
     if marker and pkg_resources.invalid_marker(marker):
         raise DistutilsSetupError("Invalid environment marker: " + marker)
-    list(pkg_resources.parse_requirements(reqs))
+    list(_reqs.parse(reqs))
 
 
 def assert_bool(dist, attr, value):
@@ -300,7 +301,7 @@ def invalid_unless_false(dist, attr, value):
 def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
-        list(pkg_resources.parse_requirements(value))
+        list(_reqs.parse(value))
         if isinstance(value, (dict, set)):
             raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
@@ -552,7 +553,7 @@ class Distribution(_Distribution):
         for section, v in spec_ext_reqs.items():
             # Do not strip empty sections.
             self._tmp_extras_require[section]
-            for r in pkg_resources.parse_requirements(v):
+            for r in _reqs.parse(v):
                 suffix = self._suffix_for(r)
                 self._tmp_extras_require[section + suffix].append(r)
 
@@ -578,7 +579,7 @@ class Distribution(_Distribution):
             return not req.marker
 
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
-        inst_reqs = list(pkg_resources.parse_requirements(spec_inst_reqs))
+        inst_reqs = list(_reqs.parse(spec_inst_reqs))
         simple_reqs = filter(is_simple_req, inst_reqs)
         complex_reqs = itertools.filterfalse(is_simple_req, inst_reqs)
         self.install_requires = list(map(str, simple_reqs))
@@ -818,7 +819,7 @@ class Distribution(_Distribution):
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
         resolved_dists = pkg_resources.working_set.resolve(
-            pkg_resources.parse_requirements(requires),
+            _reqs.parse(requires),
             installer=self.fetch_build_egg,
             replace_conflicting=True,
         )
