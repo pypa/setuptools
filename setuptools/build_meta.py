@@ -37,8 +37,7 @@ import warnings
 
 import setuptools
 import distutils
-
-from pkg_resources import parse_requirements
+from ._reqs import parse_strings
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
@@ -56,7 +55,7 @@ class SetupRequirementsError(BaseException):
 
 class Distribution(setuptools.dist.Distribution):
     def fetch_build_eggs(self, specifiers):
-        specifier_list = list(map(str, parse_requirements(specifiers)))
+        specifier_list = list(parse_strings(specifiers))
 
         raise SetupRequirementsError(specifier_list)
 

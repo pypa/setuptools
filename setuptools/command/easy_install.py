@@ -56,12 +56,13 @@ from setuptools.package_index import (
 from setuptools.command import bdist_egg, egg_info
 from setuptools.wheel import Wheel
 from pkg_resources import (
-    yield_lines, normalize_path, resource_string, ensure_directory,
+    yield_lines, normalize_path, resource_string,
     get_distribution, find_distributions, Environment, Requirement,
     Distribution, PathMetadata, EggMetadata, WorkingSet, DistributionNotFound,
     VersionConflict, DEVELOP_DIST,
 )
 import pkg_resources
+from .._path import ensure_directory
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)

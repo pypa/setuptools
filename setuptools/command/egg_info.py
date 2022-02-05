@@ -23,7 +23,7 @@ from setuptools.command.sdist import walk_revctrl
 from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
 from pkg_resources import (
-    parse_requirements, safe_name, parse_version,
+    Requirement, safe_name, parse_version,
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
@@ -205,12 +205,8 @@ class egg_info(InfoCommon, Command):
 
         try:
             is_version = isinstance(parsed_version, packaging.version.Version)
-            spec = (
-                "%s==%s" if is_version else "%s===%s"
-            )
-            list(
-                parse_requirements(spec % (self.egg_name, self.egg_version))
-            )
+            spec = "%s==%s" if is_version else "%s===%s"
+            Requirement(spec % (self.egg_name, self.egg_version))
         except ValueError as e:
             raise distutils.errors.DistutilsOptionError(
                 "Invalid distribution name or version syntax: %s-%s" %
