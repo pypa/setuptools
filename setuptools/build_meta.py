@@ -37,8 +37,7 @@ import warnings
 
 import setuptools
 import distutils
-
-import setuptools.extern.jaraco.text as text
+from ._reqs import parse_strings
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
@@ -49,15 +48,6 @@ __all__ = ['get_requires_for_build_sdist',
            'SetupRequirementsError']
 
 
-def parse_requirements(strs):
-    """
-    Yield requirement strings for each specification in `strs`.
-
-    `strs` must be a string, or a (possibly-nested) iterable thereof.
-    """
-    return text.join_continuation(map(text.drop_comment, text.yield_lines(strs)))
-
-
 class SetupRequirementsError(BaseException):
     def __init__(self, specifiers):
         self.specifiers = specifiers
@@ -65,7 +55,7 @@ class SetupRequirementsError(BaseException):
 
 class Distribution(setuptools.dist.Distribution):
     def fetch_build_eggs(self, specifiers):
-        specifier_list = list(parse_requirements(specifiers))
+        specifier_list = list(parse_strings(specifiers))
 
         raise SetupRequirementsError(specifier_list)
 
