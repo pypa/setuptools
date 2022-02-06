@@ -42,6 +42,7 @@ from setuptools.config import parse_configuration
 import pkg_resources
 from setuptools.extern.packaging import version, requirements
 from . import _reqs
+from . import _entry_points
 
 if TYPE_CHECKING:
     from email.message import Message
@@ -328,8 +329,8 @@ def check_specifier(dist, attr, value):
 def check_entry_points(dist, attr, value):
     """Verify that entry_points map is parseable"""
     try:
-        pkg_resources.EntryPoint.parse_map(value)
-    except ValueError as e:
+        _entry_points.load(value)
+    except Exception as e:
         raise DistutilsSetupError(e) from e
 
 
