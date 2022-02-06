@@ -16,10 +16,9 @@ import io
 import warnings
 import time
 import collections
-import operator
 
 from .._importlib import metadata
-from .._itertools import ensure_unique
+from .. import _entry_points
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
@@ -717,43 +716,8 @@ def write_arg(cmd, basename, filename, force=False):
     cmd.write_or_delete_file(argname, filename, value, force)
 
 
-@functools.singledispatch
-def entry_point_definition_to_str(value):
-    """
-    Given a value of an entry point or series of entry points,
-    return each entry point on a single line.
-    """
-    # normalize to a single sequence of lines
-    lines = yield_lines(value)
-    parsed = metadata.EntryPoints._from_text('[x]\n' + '\n'.join(lines))
-    valid = ensure_unique(parsed, key=operator.attrgetter('name'))
-
-    def ep_to_str(ep):
-        return f'{ep.name} = {ep.value}'
-    return '\n'.join(sorted(map(ep_to_str, valid)))
-
-
-entry_point_definition_to_str.register(str, lambda x: x)
-
-
-@functools.singledispatch
-def entry_points_definition(eps):
-    """
-    Given a Distribution.entry_points, produce a multiline
-    string definition of those entry points.
-    """
-    return ''.join(
-        f'[{section}]\n{entry_point_definition_to_str(contents)}\n\n'
-        for section, contents in sorted(eps.items())
-    )
-
-
-entry_points_definition.register(type(None), lambda x: x)
-entry_points_definition.register(str, lambda x: x)
-
-
 def write_entries(cmd, basename, filename):
-    defn = entry_points_definition(cmd.distribution.entry_points)
+    defn = _entry_points.render(cmd.distribution.entry_points)
     cmd.write_or_delete_file('entry points', filename, defn, True)
 
 
