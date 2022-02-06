@@ -716,18 +716,26 @@ def write_arg(cmd, basename, filename, force=False):
 
 
 @functools.singledispatch
+def entry_point_definition_to_str(value):
+    """
+    Given a value of an entry point or series of entry points,
+    return each entry point on a single line.
+    """
+    parsed = EntryPoint.parse_group('anything', value)
+    return '\n'.join(sorted(map(str, parsed.values())))
+
+
+entry_point_definition_to_str.register(str, lambda x: x)
+
+
+@functools.singledispatch
 def entry_points_definition(eps):
     """
     Given a Distribution.entry_points, produce a multiline
     string definition of those entry points.
     """
-    def to_str(contents):
-        if isinstance(contents, str):
-            return contents
-        parsed = EntryPoint.parse_group('anything', contents)
-        return '\n'.join(sorted(map(str, parsed.values())))
     return ''.join(
-        f'[{section}]\n{to_str(contents)}\n\n'
+        f'[{section}]\n{entry_point_definition_to_str(contents)}\n\n'
         for section, contents in sorted(eps.items())
     )
 
