@@ -10,7 +10,7 @@ from unittest import mock
 
 import pytest
 
-import pkg_resources
+from setuptools._importlib import metadata
 from setuptools import SetuptoolsDeprecationWarning
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
@@ -529,7 +529,9 @@ def test_default_revctrl():
     This interface must be maintained until Ubuntu 12.04 is no longer
     supported (by Setuptools).
     """
-    ep_def = 'svn_cvs = setuptools.command.sdist:_default_revctrl'
-    ep = pkg_resources.EntryPoint.parse(ep_def)
-    res = ep.resolve()
+    ep, = metadata.EntryPoints._from_text("""
+        [setuptools.file_finders]
+        svn_cvs = setuptools.command.sdist:_default_revctrl
+        """)
+    res = ep.load()
     assert hasattr(res, '__iter__')
