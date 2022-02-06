@@ -17,6 +17,8 @@ import warnings
 import time
 import collections
 
+from .._importlib import metadata
+
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
@@ -24,7 +26,7 @@ from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
 from pkg_resources import (
     Requirement, safe_name, parse_version,
-    safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename)
+    safe_version, yield_lines, EntryPoint, to_filename)
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
@@ -281,10 +283,9 @@ class egg_info(InfoCommon, Command):
     def run(self):
         self.mkpath(self.egg_info)
         os.utime(self.egg_info, None)
-        installer = self.distribution.fetch_build_egg
-        for ep in iter_entry_points('egg_info.writers'):
-            ep.require(installer=installer)
-            writer = ep.resolve()
+        for ep in metadata.entry_points(group='egg_info.writers'):
+            self.distribution._install_dependencies(ep)
+            writer = ep.load()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 
         # Get rid of native_libs.txt if it was put there by older bdist_egg
