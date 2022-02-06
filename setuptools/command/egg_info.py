@@ -27,11 +27,12 @@ from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
 from pkg_resources import (
     Requirement, safe_name, parse_version,
-    safe_version, yield_lines, to_filename)
+    safe_version, to_filename)
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
 from setuptools.extern import packaging
+from setuptools.extern.jaraco.text import yield_lines
 from setuptools import SetuptoolsDeprecationWarning
 
 
