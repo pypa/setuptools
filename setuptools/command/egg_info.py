@@ -721,13 +721,15 @@ def write_entries(cmd, basename, filename):
     if isinstance(ep, str) or ep is None:
         data = ep
     else:
-        lines = []
-        for section, contents in sorted(ep.items()):
-            if not isinstance(contents, str):
-                contents = EntryPoint.parse_group(section, contents)
-                contents = '\n'.join(sorted(map(str, contents.values())))
-            lines.append('[%s]\n%s\n\n' % (section, contents))
-        data = ''.join(lines)
+        def to_str(contents):
+            if isinstance(contents, str):
+                return contents
+            eps = EntryPoint.parse_group('anything', contents)
+            return '\n'.join(sorted(map(str, eps.values())))
+        data = ''.join(
+            f'[{section}]\n{to_str(contents)}\n\n'
+            for section, contents in sorted(ep.items())
+        )
 
     cmd.write_or_delete_file('entry points', filename, data, True)
 
