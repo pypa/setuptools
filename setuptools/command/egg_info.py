@@ -16,8 +16,10 @@ import io
 import warnings
 import time
 import collections
+import operator
 
 from .._importlib import metadata
+from .._itertools import ensure_unique
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
@@ -26,7 +28,7 @@ from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
 from pkg_resources import (
     Requirement, safe_name, parse_version,
-    safe_version, yield_lines, EntryPoint, to_filename)
+    safe_version, yield_lines, to_filename)
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
@@ -721,8 +723,14 @@ def entry_point_definition_to_str(value):
     Given a value of an entry point or series of entry points,
     return each entry point on a single line.
     """
-    parsed = EntryPoint.parse_group('anything', value)
-    return '\n'.join(sorted(map(str, parsed.values())))
+    # normalize to a single sequence of lines
+    lines = yield_lines(value)
+    parsed = metadata.EntryPoints._from_text('[x]\n' + '\n'.join(lines))
+    valid = ensure_unique(parsed, key=operator.attrgetter('name'))
+
+    def ep_to_str(ep):
+        return f'{ep.name} = {ep.value}'
+    return '\n'.join(sorted(map(ep_to_str, valid)))
 
 
 entry_point_definition_to_str.register(str, lambda x: x)
