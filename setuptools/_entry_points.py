@@ -1,7 +1,7 @@
 import functools
 import operator
 
-from pkg_resources import yield_lines
+from .extern.jaraco.text import yield_lines
 from ._importlib import metadata
 from ._itertools import ensure_unique
 
