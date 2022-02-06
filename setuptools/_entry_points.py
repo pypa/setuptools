@@ -1,41 +1,79 @@
 import functools
 import operator
+import itertools
 
 from .extern.jaraco.text import yield_lines
+from .extern.jaraco.functools import pass_none
 from ._importlib import metadata
 from ._itertools import ensure_unique
 
 
-@functools.singledispatch
-def render_items(value):
+def ensure_valid(ep):
+    """
+    Exercise one of the dynamic properties to trigger
+    the pattern match.
+    """
+    ep.extras
+    return ep
+
+
+def load_group(value, group):
     """
     Given a value of an entry point or series of entry points,
-    return each entry point on a single line.
+    return each as an EntryPoint.
     """
     # normalize to a single sequence of lines
     lines = yield_lines(value)
-    parsed = metadata.EntryPoints._from_text('[x]\n' + '\n'.join(lines))
-    valid = ensure_unique(parsed, key=operator.attrgetter('name'))
-
-    def ep_to_str(ep):
-        return f'{ep.name} = {ep.value}'
-    return '\n'.join(sorted(map(ep_to_str, valid)))
+    text = f'[{group}]\n' + '\n'.join(lines)
+    return metadata.EntryPoints._from_text(text)
 
 
-render_items.register(str, lambda x: x)
+def by_group_and_name(ep):
+    return ep.group, ep.name
+
+
+def validate(eps: metadata.EntryPoints):
+    """
+    Ensure entry points are unique by group and name and validate the pattern.
+    """
+    for ep in ensure_unique(eps, key=by_group_and_name):
+        # exercise one of the dynamic properties to trigger validation
+        ep.extras
+    return eps
 
 
 @functools.singledispatch
-def render(eps):
+def load(eps):
     """
-    Given a Distribution.entry_points, produce a multiline
-    string definition of those entry points.
+    Given a Distribution.entry_points, produce EntryPoints.
     """
-    return ''.join(
-        f'[{section}]\n{render_items(contents)}\n\n'
-        for section, contents in sorted(eps.items())
+    groups = itertools.chain.from_iterable(
+        load_group(value, group)
+        for group, value in eps.items())
+    return validate(metadata.EntryPoints(groups))
+
+
+@load.register(str)
+def _(eps):
+    return validate(metadata.EntryPoints._from_text(eps))
+
+
+load.register(type(None), lambda x: x)
+
+
+@pass_none
+def render(eps: metadata.EntryPoints):
+    by_group = operator.attrgetter('group')
+    groups = itertools.groupby(sorted(eps, key=by_group), by_group)
+
+    return '\n'.join(
+        f'[{group}]\n{render_items(items)}\n'
+        for group, items in groups
     )
 
 
-render.register(type(None), lambda x: x)
-render.register(str, lambda x: x)
+def render_items(eps):
+    return '\n'.join(
+        f'{ep.name} = {ep.value}'
+        for ep in sorted(eps)
+    )
