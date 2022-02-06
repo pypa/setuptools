@@ -720,7 +720,7 @@ def write_entries(cmd, basename, filename):
 
     if isinstance(ep, str) or ep is None:
         data = ep
-    elif ep is not None:
+    else:
         lines = []
         for section, contents in sorted(ep.items()):
             if not isinstance(contents, str):
