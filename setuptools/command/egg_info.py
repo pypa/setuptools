@@ -715,23 +715,30 @@ def write_arg(cmd, basename, filename, force=False):
     cmd.write_or_delete_file(argname, filename, value, force)
 
 
+@functools.singledispatch
+def entry_points_definition(eps):
+    """
+    Given a Distribution.entry_points, produce a multiline
+    string definition of those entry points.
+    """
+    def to_str(contents):
+        if isinstance(contents, str):
+            return contents
+        parsed = EntryPoint.parse_group('anything', contents)
+        return '\n'.join(sorted(map(str, parsed.values())))
+    return ''.join(
+        f'[{section}]\n{to_str(contents)}\n\n'
+        for section, contents in sorted(eps.items())
+    )
+
+
+entry_points_definition.register(type(None), lambda x: x)
+entry_points_definition.register(str, lambda x: x)
+
+
 def write_entries(cmd, basename, filename):
-    ep = cmd.distribution.entry_points
-
-    if isinstance(ep, str) or ep is None:
-        data = ep
-    else:
-        def to_str(contents):
-            if isinstance(contents, str):
-                return contents
-            eps = EntryPoint.parse_group('anything', contents)
-            return '\n'.join(sorted(map(str, eps.values())))
-        data = ''.join(
-            f'[{section}]\n{to_str(contents)}\n\n'
-            for section, contents in sorted(ep.items())
-        )
-
-    cmd.write_or_delete_file('entry points', filename, data, True)
+    defn = entry_points_definition(cmd.distribution.entry_points)
+    cmd.write_or_delete_file('entry points', filename, defn, True)
 
 
 def get_pkg_info_revision():
