@@ -50,6 +50,8 @@ def rewrite_jaraco(pkg_files, new_root):
         text = file.read_text()
         text = re.sub(r' (more_itertools)', rf' {new_root}.\1', text)
         file.write_text(text)
+    # required for zip-packaged setuptools #3084
+    pkg_files.joinpath('__init__.py').write_text('')
 
 
 def rewrite_importlib_resources(pkg_files, new_root):
