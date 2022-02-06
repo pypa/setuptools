@@ -1,3 +1,12 @@
+v60.8.1
+-------
+
+
+Misc
+^^^^
+* #3084: When vendoring jaraco packages, ensure the namespace package is converted to a simple package to support zip importer.
+
+
 v60.8.0
 -------
 
