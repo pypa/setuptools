@@ -225,7 +225,7 @@ sequence = tuple, list
 
 def check_importable(dist, attr, value):
     try:
-        ep = pkg_resources.EntryPoint.parse('x=' + value)
+        ep = metadata.EntryPoint(value=value, name=None, group=None)
         assert not ep.extras
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
