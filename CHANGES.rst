@@ -1,3 +1,12 @@
+v60.8.0
+-------
+
+
+Changes
+^^^^^^^
+* #3085: Setuptools now vendors importlib_resources and importlib_metadata and jaraco.text. Setuptools no longer relies on pkg_resources for ensure_directory nor parse_requirements.
+
+
 v60.7.1
 -------
 
