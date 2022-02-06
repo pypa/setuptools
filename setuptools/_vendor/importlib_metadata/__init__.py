@@ -3,7 +3,7 @@ import re
 import abc
 import csv
 import sys
-import zipp
+from .. import zipp
 import email
 import pathlib
 import operator
