@@ -179,10 +179,13 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "bin",
         "doc",
         "docs",
+        "documentation",
         "test",
         "tests",
         "example",
         "examples",
+        "scripts",
+        "tools",
         # ---- Task runners / Build tools ----
         "tasks",  # invoke
         "fabfile",  # fabric
@@ -205,6 +208,7 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "tests",
         "example",
         "examples",
+        "build",
         # ---- Task runners ----
         "noxfile",
         "pavement",
