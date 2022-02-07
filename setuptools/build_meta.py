@@ -39,6 +39,7 @@ from uuid import uuid4
 import setuptools
 import distutils
 from ._reqs import parse_strings
+from setuptools.extern.packaging.requirements import Requirement
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
@@ -161,9 +162,10 @@ class _BuildMetaBackend(object):
 
     def _get_build_requires(self, config_settings, requirements):
         dist = self._get_dist()
-        parsed = chain(parse_strings(requirements),
-                       parse_strings(dist.setup_requires))
-        deduplicated = {r.key: str(r) for r in parsed}
+        req_strings = chain(parse_strings(requirements),
+                            parse_strings(dist.setup_requires))
+        parsed = (Requirement(r) for r in req_strings)
+        deduplicated = {r.name: str(r) for r in parsed}
         return list(deduplicated.values())
 
     def run_command(self, *args):
