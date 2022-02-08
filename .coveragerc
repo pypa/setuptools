@@ -1,25 +1,11 @@
 [run]
-source_pkgs =
+source =
 	setuptools
 	pkg_resources
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
 	*/_vendor/*
 	*/_distutils/*
-	*/tests/*
-	*/test_*
-
-[paths]
-setuptools =
-	setuptools/
-	*/site-packages/setuptools/
-	*/pip-install-*/setuptools_*/setuptools/
-	*/tmp*/setuptools
-pkg_resources =
-	pkg_resources/
-	*/site-packages/pkg_resources/
-	*/pip-install-*/setuptools_*/pkg_resources/
-	*/tmp*/pkg_resources
 
 [report]
 show_missing = True
