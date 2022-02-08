@@ -68,10 +68,11 @@ def rewrite_more_itertools(pkg_files: Path):
     """
     Rewrite more_itertools to remove unused more_itertools.more
     """
-    (pkg_files / "more.py").remove()
-    init_file = pkg_files / "__init__.py"
-    init_text = "".join(ln for ln in init_file.lines() if "from .more " not in ln)
-    init_file.write_text(init_text)
+    for more_file in pkg_files.glob("more.py*"):
+        more_file.remove()
+    for init_file in pkg_files.glob("__init__.py*"):
+        text = "".join(ln for ln in init_file.lines() if "from .more " not in ln)
+        init_file.write_text(text)
 
 
 def clean(vendor):
