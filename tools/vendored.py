@@ -66,13 +66,17 @@ def rewrite_importlib_resources(pkg_files, new_root):
 
 def rewrite_more_itertools(pkg_files: Path):
     """
-    Rewrite more_itertools to remove unused more_itertools.more
+    Defer import of concurrent.futures. Workaround for #3090.
     """
-    for more_file in pkg_files.glob("more.py*"):
-        more_file.remove()
-    for init_file in pkg_files.glob("__init__.py*"):
-        text = "".join(ln for ln in init_file.lines() if "from .more " not in ln)
-        init_file.write_text(text)
+    more_file = pkg_files.joinpath('more.py')
+    text = more_file.read_text()
+    text = re.sub(r'^.*concurrent.futures.*?\n', '', text, flags=re.MULTILINE)
+    text = re.sub(
+        'ThreadPoolExecutor',
+        '__import__("concurrent.futures").futures.ThreadPoolExecutor',
+        text,
+    )
+    more_file.write_text(text)
 
 
 def clean(vendor):
