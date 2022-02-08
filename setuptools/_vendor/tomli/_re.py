@@ -1,7 +1,13 @@
+# SPDX-License-Identifier: MIT
+# SPDX-FileCopyrightText: 2021 Taneli Hukkinen
+# Licensed to PSF under a Contributor Agreement.
+
+from __future__ import annotations
+
 from datetime import date, datetime, time, timedelta, timezone, tzinfo
 from functools import lru_cache
 import re
-from typing import Any, Optional, Union
+from typing import Any
 
 from ._types import ParseFloat
 
@@ -31,7 +37,7 @@ RE_NUMBER = re.compile(
 )
 RE_LOCALTIME = re.compile(_TIME_RE_STR)
 RE_DATETIME = re.compile(
-    fr"""
+    rf"""
 ([0-9]{{4}})-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])  # date, e.g. 1988-10-27
 (?:
     [Tt ]
@@ -43,7 +49,7 @@ RE_DATETIME = re.compile(
 )
 
 
-def match_to_datetime(match: "re.Match") -> Union[datetime, date]:
+def match_to_datetime(match: re.Match) -> datetime | date:
     """Convert a `RE_DATETIME` match to `datetime.datetime` or `datetime.date`.
 
     Raises ValueError if the match does not correspond to a valid date
@@ -68,7 +74,7 @@ def match_to_datetime(match: "re.Match") -> Union[datetime, date]:
     hour, minute, sec = int(hour_str), int(minute_str), int(sec_str)
     micros = int(micros_str.ljust(6, "0")) if micros_str else 0
     if offset_sign_str:
-        tz: Optional[tzinfo] = cached_tz(
+        tz: tzinfo | None = cached_tz(
             offset_hour_str, offset_minute_str, offset_sign_str
         )
     elif zulu_time:
@@ -89,13 +95,13 @@ def cached_tz(hour_str: str, minute_str: str, sign_str: str) -> timezone:
     )
 
 
-def match_to_localtime(match: "re.Match") -> time:
+def match_to_localtime(match: re.Match) -> time:
     hour_str, minute_str, sec_str, micros_str = match.groups()
     micros = int(micros_str.ljust(6, "0")) if micros_str else 0
     return time(int(hour_str), int(minute_str), int(sec_str), micros)
 
 
-def match_to_number(match: "re.Match", parse_float: "ParseFloat") -> Any:
+def match_to_number(match: re.Match, parse_float: ParseFloat) -> Any:
     if match.group("floatpart"):
         return parse_float(match.group())
     return int(match.group(), 0)

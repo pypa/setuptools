@@ -10,7 +10,7 @@
 # *** PLEASE DO NOT MODIFY DIRECTLY: Automatically generated code *** 
 
 
-VERSION = "2.15.2"
+VERSION = "2.15.3"
 import re
 from .fastjsonschema_exceptions import JsonSchemaValueException
 
