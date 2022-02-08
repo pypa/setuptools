@@ -64,6 +64,16 @@ def rewrite_importlib_resources(pkg_files, new_root):
         file.write_text(text)
 
 
+def rewrite_more_itertools(pkg_files: Path):
+    """
+    Rewrite more_itertools to remove unused more_itertools.more
+    """
+    (pkg_files / "more.py").remove()
+    init_file = pkg_files / "__init__.py"
+    init_text = "".join(ln for ln in init_file.lines() if "from .more " not in ln)
+    init_file.write_text(init_text)
+
+
 def clean(vendor):
     """
     Remove all files out of the vendor directory except the meta
@@ -96,6 +106,7 @@ def update_pkg_resources():
     rewrite_jaraco_text(vendor / 'jaraco/text', 'pkg_resources.extern')
     rewrite_jaraco(vendor / 'jaraco', 'pkg_resources.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'pkg_resources.extern')
+    rewrite_more_itertools(vendor / "more_itertools")
 
 
 def update_setuptools():
@@ -105,6 +116,7 @@ def update_setuptools():
     rewrite_jaraco_text(vendor / 'jaraco/text', 'setuptools.extern')
     rewrite_jaraco(vendor / 'jaraco', 'setuptools.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
+    rewrite_more_itertools(vendor / "more_itertools")
 
 
 __name__ == '__main__' and update_vendored()
