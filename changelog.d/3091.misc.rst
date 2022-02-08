@@ -1,0 +1,4 @@
+Removed unused more_itertools.more module from vendored more_itertools
+package to avoid importing threading as a side effect (which caused
+gevent/gevent#1865).
+-- by :user:`maciejp-ro`
