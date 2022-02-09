@@ -45,12 +45,13 @@ def test_read_files(tmp_path, monkeypatch):
         m.chdir(tmp_path)
         assert expand.read_files(list(files)) == "a\nb\nc"
 
-        with pytest.raises(DistutilsOptionError):
+        cannot_access_msg = r"Cannot access '.*\.\..a\.txt'"
+        with pytest.raises(DistutilsOptionError, match=cannot_access_msg):
             expand.read_files(["../a.txt"])
 
     # Make sure the same APIs work outside cwd
     assert expand.read_files(list(files), tmp_path) == "a\nb\nc"
-    with pytest.raises(DistutilsOptionError):
+    with pytest.raises(DistutilsOptionError, match=cannot_access_msg):
         expand.read_files(["../a.txt"], tmp_path)
 
 
