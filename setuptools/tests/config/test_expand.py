@@ -85,29 +85,30 @@ def test_resolve_class():
     assert expand.resolve_class("setuptools.command.sdist.sdist") == sdist
 
 
-def test_find_packages(tmp_path, monkeypatch):
+@pytest.mark.parametrize(
+    'args, pkgs',
+    [
+        ({"where": ["."]}, {"pkg", "other"}),
+        ({"where": [".", "dir1"]}, {"pkg", "other", "dir2"}),
+        ({"namespaces": True}, {"pkg", "other", "dir1", "dir1.dir2"}),
+    ]
+)
+def test_find_packages(tmp_path, monkeypatch, args, pkgs):
     files = {
         "pkg/__init__.py",
         "other/__init__.py",
         "dir1/dir2/__init__.py",
     }
-
     write_files({k: "" for k in files}, tmp_path)
 
     with monkeypatch.context() as m:
         m.chdir(tmp_path)
-        assert set(expand.find_packages(where=['.'])) == {"pkg", "other"}
-        expected = {"pkg", "other", "dir2"}
-        assert set(expand.find_packages(where=['.', "dir1"])) == expected
-        expected = {"pkg", "other", "dir1", "dir1.dir2"}
-        assert set(expand.find_packages(namespaces="True")) == expected
+        assert set(expand.find_packages(**args)) == pkgs
 
     # Make sure the same APIs work outside cwd
-    path = str(tmp_path).replace(os.sep, '/')  # ensure posix-style paths
-    dir1_path = str(tmp_path / "dir1").replace(os.sep, '/')
+    where = [
+        str((tmp_path / p).resolve()).replace(os.sep, "/")  # ensure posix-style paths
+        for p in args.pop("where", ["."])
+    ]
 
-    assert set(expand.find_packages(where=[path])) == {"pkg", "other"}
-    expected = {"pkg", "other", "dir2"}
-    assert set(expand.find_packages(where=[path, dir1_path])) == expected
-    expected = {"pkg", "other", "dir1", "dir1.dir2"}
-    assert set(expand.find_packages(where=[path], namespaces="True")) == expected
+    assert set(expand.find_packages(where=where, **args)) == pkgs
