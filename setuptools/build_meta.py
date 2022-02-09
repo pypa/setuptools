@@ -33,6 +33,7 @@ import shutil
 import contextlib
 import tempfile
 import warnings
+from io import BytesIO, TextIOWrapper
 from itertools import chain
 from uuid import uuid4
 
@@ -119,16 +120,12 @@ def _patch_distutils_core():
         return
 
     def _exec(code, global_vars):
-        try:
-            fid, tmp = tempfile.mkstemp(suffix=f"{uuid4()}-setup.py", text=False)
-            os.close(fid)  # Ignore the low level API
-            with open(tmp, "wb") as f:
-                f.write(code)
-            with tokenize.open(tmp) as f:
-                code = f.read().replace(r'\r\n', r'\n')
-        finally:
-            os.remove(tmp)
-        orig_exec(code, {**global_vars, "__name__": "__main__"})
+        with BytesIO(code) as bytes_buffer:
+            encoding, _lines = tokenize.detect_encoding(bytes_buffer.readline)
+            bytes_buffer.seek(0)
+            with TextIOWrapper(bytes_buffer, encoding, line_buffering=True) as text:
+                code = text.read().replace(r'\r\n', r'\n')
+        return orig_exec(code, {**global_vars, "__name__": "__main__"})
 
     def _run_commands(dist):
         try:
