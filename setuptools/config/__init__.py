@@ -5,7 +5,7 @@ from setuptools.config.setupcfg import (
     read_configuration,
 )
 
-__all__ = [
+__all__ = (
     'parse_configuration',
     'read_configuration'
-]
+)
