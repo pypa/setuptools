@@ -96,12 +96,16 @@ def _file_with_extension(directory, extension):
     except ValueError:
         raise ValueError(
             'No distribution was found. Ensure that `setup.py` '
-            'is not empty and that it calls `setup()`.')
+            'is not empty and that it calls `setuptools.setup()`.')
     return file
 
 
-def _exists_and_is_not_empty(file):
-    return os.path.exists(file) and os.stat(file).st_size > 0
+def _ensure_setup_script_is_not_empty(file):
+    if os.stat(file).st_size == 0:
+        raise ValueError(
+            f"Empty {file!r} detected. Setuptools no longer needs a setup script. "
+            "Please remove the file or ensure that it calls `setuptools.setup()`."
+        )
 
 
 @contextlib.contextmanager
@@ -152,7 +156,8 @@ class _BuildMetaBackend(object):
     def _get_dist(self):
         """Retrieve a distribution object already configured."""
 
-        if _exists_and_is_not_empty(SETUP_SCRIPT):
+        if os.path.exists(SETUP_SCRIPT):
+            _ensure_setup_script_is_not_empty(SETUP_SCRIPT)
             with no_install_setup_requires(), _patch_distutils_core():
                 dist = distutils.core.run_setup(SETUP_SCRIPT, stop_after="init")
                 dist.script_name = SETUP_SCRIPT
@@ -276,11 +281,12 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
         # '' into sys.path. (pypa/setuptools#1642)
         sys_path = list(sys.path)           # Save the original path
 
-        if not _exists_and_is_not_empty(SETUP_SCRIPT):
+        if not os.path.exists(SETUP_SCRIPT):
             msg = f"__legacy__ backend conflicts with empty/missing {SETUP_SCRIPT!r}"
             warnings.warn(msg, setuptools.SetuptoolsDeprecationWarning)
             return super().run_command(*args)
 
+        _ensure_setup_script_is_not_empty(SETUP_SCRIPT)
         script_dir = os.path.dirname(os.path.abspath(SETUP_SCRIPT))
         if script_dir not in sys.path:
             sys.path.insert(0, script_dir)

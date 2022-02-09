@@ -456,14 +456,8 @@ class TestBuildMetaBackend:
         files = {'setup.py': ''}
         path.build(files)
 
-        # TODO: Clarify why is it necessary that the error is raised?
-        # Or is it just a side effect that was found to happen,
-        # but it is not necessary for setuptools to work properly?
-        # >>> with pytest.raises(
-        # >>>         ValueError,
-        # >>>         match=re.escape('No distribution was found.')):
-
-        getattr(build_backend, build_hook)("temp")
+        with pytest.raises(ValueError, match="Empty 'setup.py' detected"):
+            getattr(build_backend, build_hook)("temp")
 
 
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
