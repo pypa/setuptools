@@ -51,13 +51,17 @@ __all__ = ['get_requires_for_build_sdist',
 SETUP_SCRIPT = "setup.py"
 CONFIG_FILE = "pyproject.toml"
 LEGACY_CONFIG_FILE = "setup.cfg"
-SAFE_SCRIPT_NAME = "%%setuptools.build_meta%%"
-# ^-- distutils.sdist:sdist._add_defaults_standards will try to add `script_name`
-#     to the list of files to include in the distribution.
-#     If the SETUP_SCRIPT does not exist, the best is to use some made-up name
-#     that is unlikely to exist as a file.
-#     If we use `sys.argv[0]` setuptools might try to add things like
-#     `.tox/python/bin/pytest` to the tar.gz (and this will result in an error)
+
+
+def _safe_script_name():
+    """``distutils.sdist:sdist._add_defaults_standards`` will try to add ``script_name``
+    to the list of files to include in the distribution.
+    If the ``SETUP_SCRIPT`` does not exist, the best is to use some made-up name
+    that is unlikely to exist as a file.
+    If we use `sys.argv[0]` setuptools might try to add things like
+    `.tox/python/bin/pytest` to the tar.gz (and this will result in an error)
+    """
+    return f"%%setuptools.build_meta%%{uuid4()!s}"
 
 
 @contextlib.contextmanager
@@ -154,7 +158,7 @@ class _BuildMetaBackend(object):
                 # ^-- preserve _add_defaults_standards behaviour
         else:
             dist = setuptools.dist.Distribution()
-            dist.script_name = SAFE_SCRIPT_NAME
+            dist.script_name = _safe_script_name()
 
         dist.parse_config_files()
         dist.finalize_options()
