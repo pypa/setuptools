@@ -1,7 +1,5 @@
-import os
 import re
 import sys
-import shutil
 import string
 import subprocess
 import venv
@@ -156,16 +154,17 @@ def install_validate_pyproject(vendor):
         opts["ignore_cleanup_errors"] = True
 
     with TemporaryDirectory(**opts) as tmp:
-        venv.create(tmp, with_pip=True)
-        path = os.pathsep.join(Path(tmp).glob("*"))
-        venv_python = shutil.which("python", path=path)
+        env_builder = venv.EnvBuilder(with_pip=True)
+        env_builder.create(tmp)
+        context = env_builder.ensure_directories(tmp)
+        venv_python = getattr(context, 'env_exec_cmd', context.env_exe)
+
         subprocess.check_call([venv_python, "-m", "pip", "install", pkg])
         cmd = [
             venv_python,
             "-m",
             "validate_pyproject.vendoring",
-            "--output-dir",
-            str(vendor / "_validate_pyproject"),
+            f"--output-dir={vendor / '_validate_pyproject' !s}",
             "--enable-plugins",
             "setuptools",
             "distutils",
