@@ -2,7 +2,6 @@ import importlib
 import os
 import shutil
 import tarfile
-import warnings
 from concurrent import futures
 
 import pytest
@@ -130,11 +129,13 @@ class TestBuildMetaBackend:
         return BuildBackend(backend_name=self.backend_name)
 
     @pytest.fixture(params=defns)
-    def build_backend(self, tmpdir, request):
-        path.build(request.param, prefix=str(tmpdir))
-        with tmpdir.as_cwd(), warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
-            warnings.filterwarnings("ignore", "__legacy__ backend conflicts")
+    def example_project(self, request):
+        return request.param
+
+    @pytest.fixture()
+    def build_backend(self, tmpdir, example_project):
+        path.build(example_project, prefix=str(tmpdir))
+        with tmpdir.as_cwd():
             yield self.get_build_backend()
 
     def test_get_requires_for_build_wheel(self, build_backend):
@@ -463,6 +464,15 @@ class TestBuildMetaBackend:
 class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
     backend_name = 'setuptools.build_meta:__legacy__'
 
+    examples_with_setup_script = [d for d in defns if "setup.py" in d]
+    examples_without_setup_script = [d for d in defns if "setup.py" not in d]
+
+    @pytest.fixture(params=examples_with_setup_script)
+    def example_project(self, request):
+        # Overwrite parent definition to avoid examples missing `setup.py`
+        # (incompatible with the legacy backend).
+        return request.param
+
     # build_meta_legacy-specific tests
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
         # This must fail in build_meta, but must pass in build_meta_legacy
@@ -476,3 +486,12 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
+
+    @pytest.mark.parametrize("files", examples_without_setup_script)
+    def test_missing_setup_script(self, tmpdir, files):
+        path.build(files, prefix=str(tmpdir))
+        build_backend = self.get_build_backend()
+
+        expected_msg = "__legacy__ backend should not be used without 'setup.py'"
+        with tmpdir.as_cwd(), pytest.raises(ValueError, match=expected_msg):
+            build_backend.build_sdist("temp")

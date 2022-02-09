@@ -282,9 +282,10 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
         sys_path = list(sys.path)           # Save the original path
 
         if not os.path.exists(SETUP_SCRIPT):
-            msg = f"__legacy__ backend conflicts with empty/missing {SETUP_SCRIPT!r}"
-            warnings.warn(msg, setuptools.SetuptoolsDeprecationWarning)
-            return super().run_command(*args)
+            raise ValueError(
+                f"__legacy__ backend should not be used without {SETUP_SCRIPT!r}."
+                "Try using `setuptools.build_meta` instead."
+            )
 
         _ensure_setup_script_is_not_empty(SETUP_SCRIPT)
         script_dir = os.path.dirname(os.path.abspath(SETUP_SCRIPT))
