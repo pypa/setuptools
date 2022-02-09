@@ -3,6 +3,7 @@ import os
 import pytest
 
 from distutils.errors import DistutilsOptionError
+from setuptools.command.sdist import sdist
 from setuptools.config import expand
 from setuptools.sandbox import pushd
 
@@ -76,7 +77,6 @@ def test_read_attr(tmp_path):
 
 
 def test_resolve_class():
-    from setuptools.command.sdist import sdist
     assert expand.resolve_class("setuptools.command.sdist.sdist") == sdist
 
 

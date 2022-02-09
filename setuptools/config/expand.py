@@ -58,9 +58,7 @@ class StaticModule:
             )
             return next(ast.literal_eval(value) for value in matching_values)
         except Exception as e:
-            raise AttributeError(
-                "{self.name} has no attribute {attr}".format(**locals())
-            ) from e
+            raise AttributeError(f"{self.name} has no attribute {attr}") from e
 
 
 def glob_relative(patterns, root_dir=None):
@@ -71,7 +69,7 @@ def glob_relative(patterns, root_dir=None):
                          (current directory by default)
     :rtype: list
     """
-    glob_characters = ('*', '?', '[', ']', '{', '}')
+    glob_characters = {'*', '?', '[', ']', '{', '}'}
     expanded_values = []
     root_dir = root_dir or os.getcwd()
     for value in patterns:
