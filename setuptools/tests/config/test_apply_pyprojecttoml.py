@@ -23,6 +23,7 @@ DOWNLOAD_DIR = Path(__file__).parent / "downloads"
 
 @pytest.mark.parametrize("url", EXAMPLE_URLS)
 @pytest.mark.filterwarnings("ignore")
+@pytest.mark.uses_network
 def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
     monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.0.1"))
     setupcfg_example = retrieve_file(url, DOWNLOAD_DIR)

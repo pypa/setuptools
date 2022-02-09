@@ -112,6 +112,7 @@ ALREADY_LOADED = ("pytest", "mypy")  # loaded by pytest/pytest-enabler
 
 
 @pytest.mark.parametrize('package, version', EXAMPLES)
+@pytest.mark.uses_network
 def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel):
     venv_pip = (venv_python, "-m", "pip")
     sdist = retrieve_sdist(package, version, tmp_path)
