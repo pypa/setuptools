@@ -113,7 +113,7 @@ def suppress_known_deprecation():
 
 @contextlib.contextmanager
 def _patch_distutils_core():
-    """Make sure distutils.core uses the latest enhancements"""
+    """Make sure distutils.core uses the latest enhancements."""
     orig_exec = exec
     if hasattr(distutils.core, "run_commands"):
         yield  # do nothing, already using the improved version of distutils
@@ -131,7 +131,7 @@ def _patch_distutils_core():
         try:
             dist.run_commands()
         except Exception as ex:
-            raise SystemExit("error:" + str(ex))
+            raise SystemExit(f"error: {ex!s}") from ex
 
     distutils.core.exec = _exec
     distutils.core.run_commands = _run_commands
