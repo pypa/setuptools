@@ -99,6 +99,10 @@ def _file_with_extension(directory, extension):
     return file
 
 
+def _exists_and_is_not_empty(file):
+    return os.path.exists(file) and os.stat(file).st_size > 0
+
+
 @contextlib.contextmanager
 def suppress_known_deprecation():
     with warnings.catch_warnings():
@@ -151,7 +155,7 @@ class _BuildMetaBackend(object):
     def _get_dist(self):
         """Retrieve a distribution object already configured."""
 
-        if os.path.exists(SETUP_SCRIPT) and os.stat(SETUP_SCRIPT).st_size > 0:
+        if _exists_and_is_not_empty(SETUP_SCRIPT):
             with no_install_setup_requires(), _patch_distutils_core():
                 dist = distutils.core.run_setup(SETUP_SCRIPT, stop_after="init")
                 dist.script_name = SETUP_SCRIPT
@@ -275,7 +279,7 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
         # '' into sys.path. (pypa/setuptools#1642)
         sys_path = list(sys.path)           # Save the original path
 
-        if not os.path.exists(SETUP_SCRIPT) or os.stat(SETUP_SCRIPT).st_size == 0:
+        if not _exists_and_is_not_empty(SETUP_SCRIPT):
             msg = f"__legacy__ backend conflicts with empty/missing {SETUP_SCRIPT!r}"
             warnings.warn(msg, setuptools.SetuptoolsDeprecationWarning)
             return super().run_command(*args)
