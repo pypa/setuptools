@@ -169,9 +169,9 @@ def download(url, dest):
 
 
 def core_metadata(dist) -> str:
-    buffer = io.StringIO()
-    dist.metadata.write_pkg_file(buffer)
-    value = "\n".join(buffer.getvalue().strip().splitlines())
+    with io.StringIO() as buffer:
+        dist.metadata.write_pkg_file(buffer)
+        value = "\n".join(buffer.getvalue().strip().splitlines())
 
     # ---- DIFF NORMALISATION ----
     # PEP 621 is very particular about author/maintainer metadata conversion, so skip
