@@ -72,7 +72,6 @@ try:
         except _req.InvalidRequirement:
             return False
 
-
 except ImportError:  # pragma: no cover
     _logger.warning(
         "Could not find an installation of `packaging`. Requirements, dependencies and "
@@ -115,7 +114,6 @@ try:
 
     def trove_classifier(value: str) -> bool:
         return value in _trove_classifiers
-
 
 except ImportError:  # pragma: no cover
 
