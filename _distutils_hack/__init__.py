@@ -96,6 +96,13 @@ class DistutilsMetaFinder:
         import importlib.abc
         import importlib.util
 
+        spec = importlib.util.find_spec('setuptools')
+        setuptools_site = os.path.dirname(os.path.dirname(spec.origin))
+        hook_site = os.path.dirname(os.path.dirname(__file__))
+        if setuptools_site != hook_site:
+            print(setuptools_site, hook_site)
+            return
+
         try:
             mod = importlib.import_module('setuptools._distutils')
         except Exception:
