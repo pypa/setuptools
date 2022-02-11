@@ -132,6 +132,29 @@ defns = [
                 print('hello')
             """),
     },
+    {  # setup.py script that constructs temp files to be included in the distribution
+        'setup.py': DALS("""
+            # Some packages construct files on the fly, include them in the package,
+            # and immediately remove them after `setup()` (e.g. pybind11==2.9.1).
+            # Therefore, we cannot use `distutils.core.run_setup(..., stop_after=...)`
+            # to obtain a distribution object first, and then run the distutils
+            # commands later, because these files will be removed in the meantime.
+
+            with open('world.py', 'w') as f:
+                f.write('x = 42')
+
+            try:
+                __import__('setuptools').setup(
+                    name='foo',
+                    version='0.0.0',
+                    py_modules=['world'],
+                    setup_requires=['six'],
+                )
+            finally:
+                # Some packages will clean temporary files
+                __import__('os').unlink('world.py')
+            """),
+    },
     {  # setup.cfg only
         'setup.cfg': DALS("""
         [metadata]
@@ -193,7 +216,20 @@ class TestBuildMetaBackend:
         os.makedirs(dist_dir)
         wheel_name = build_backend.build_wheel(dist_dir)
 
-        assert os.path.isfile(os.path.join(dist_dir, wheel_name))
+        wheel_file = os.path.join(dist_dir, wheel_name)
+        assert os.path.isfile(wheel_file)
+
+        # Temporary files should be removed
+        assert not os.path.isfile('world.py')
+
+        with ZipFile(wheel_file) as zipfile:
+            wheel_contents = set(zipfile.namelist())
+
+        # Each one of the examples have a single module
+        # that should be included in the distribution
+        python_scripts = (f for f in wheel_contents if f.endswith('.py'))
+        modules = [f for f in python_scripts if not f.endswith('setup.py')]
+        assert len(modules) == 1
 
     @pytest.mark.parametrize('build_type', ('wheel', 'sdist'))
     def test_build_with_existing_file_present(self, build_type, tmpdir_cwd):
