@@ -310,6 +310,7 @@ class TestBuildMetaBackend:
                 foo = "foo.cli:main"
 
                 [tool.setuptools]
+                zip-safe = false
                 package-dir = {"" = "src"}
                 packages = {find = {where = ["src"]}}
 
@@ -377,6 +378,7 @@ class TestBuildMetaBackend:
             'foo-0.1/src/foo.egg-info/entry_points.txt',
             'foo-0.1/src/foo.egg-info/requires.txt',
             'foo-0.1/src/foo.egg-info/top_level.txt',
+            'foo-0.1/src/foo.egg-info/not-zip-safe',
         }
         assert wheel_contents == {
             "foo/__init__.py",
