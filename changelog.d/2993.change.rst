@@ -1,1 +1,0 @@
-Removed workaround in distutils hack for get-pip now that pypa/get-pip#137 is closed.

@@ -1,1 +1,0 @@
-Setuptools no longer relies on ``pkg_resources`` for entry point handling.

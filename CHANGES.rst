@@ -1,3 +1,15 @@
+v60.9.0
+-------
+
+
+Changes
+^^^^^^^
+* #2876: In the build backend, allow single config settings to be supplied.
+* #2993: Removed workaround in distutils hack for get-pip now that pypa/get-pip#137 is closed.
+* #3085: Setuptools no longer relies on ``pkg_resources`` for entry point handling.
+* #3098: Bump vendored packaging to 21.3.
+
+
 v60.8.2
 -------
 
