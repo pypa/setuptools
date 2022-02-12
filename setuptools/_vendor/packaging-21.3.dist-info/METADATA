@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: packaging
-Version: 21.2
+Version: 21.3
 Summary: Core utilities for Python packages
 Home-page: https://github.com/pypa/packaging
 Author: Donald Stufft and individual contributors
@@ -26,7 +26,7 @@ Description-Content-Type: text/x-rst
 License-File: LICENSE
 License-File: LICENSE.APACHE
 License-File: LICENSE.BSD
-Requires-Dist: pyparsing (<3,>=2.0.2)
+Requires-Dist: pyparsing (!=3.0.5,>=2.0.2)
 
 packaging
 =========
@@ -104,6 +104,13 @@ recent changes and project history.
 
 Changelog
 ---------
+
+21.3 - 2021-11-17
+~~~~~~~~~~~~~~~~~
+
+* Add a ``pp3-none-any`` tag (`#311 <https://github.com/pypa/packaging/issues/311>`__)
+* Replace the blank pyparsing 3 exclusion with a 3.0.5 exclusion (`#481 <https://github.com/pypa/packaging/issues/481>`__, `#486 <https://github.com/pypa/packaging/issues/486>`__)
+* Fix a spelling mistake (`#479 <https://github.com/pypa/packaging/issues/479>`__)
 
 21.2 - 2021-10-29
 ~~~~~~~~~~~~~~~~~
