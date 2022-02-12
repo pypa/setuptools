@@ -6,6 +6,7 @@ from .extern.jaraco.text import yield_lines
 from .extern.jaraco.functools import pass_none
 from ._importlib import metadata
 from ._itertools import ensure_unique
+from .extern.more_itertools import consume
 
 
 def ensure_valid(ep):
@@ -14,7 +15,6 @@ def ensure_valid(ep):
     the pattern match.
     """
     ep.extras
-    return ep
 
 
 def load_group(value, group):
@@ -34,11 +34,9 @@ def by_group_and_name(ep):
 
 def validate(eps: metadata.EntryPoints):
     """
-    Ensure entry points are unique by group and name and validate the pattern.
+    Ensure entry points are unique by group and name and validate each.
     """
-    for ep in ensure_unique(eps, key=by_group_and_name):
-        # exercise one of the dynamic properties to trigger validation
-        ep.extras
+    consume(map(ensure_valid, ensure_unique(eps, key=by_group_and_name)))
     return eps
 
 
