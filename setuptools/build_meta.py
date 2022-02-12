@@ -38,6 +38,8 @@ import warnings
 import setuptools
 import distutils
 from ._reqs import parse_strings
+from .extern.more_itertools import always_iterable
+
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
@@ -127,9 +129,24 @@ def suppress_known_deprecation():
 
 class _BuildMetaBackend:
 
-    def _fix_config(self, config_settings):
+    @staticmethod
+    def _fix_config(config_settings):
+        """
+        Ensure config settings meet certain expectations.
+
+        >>> fc = _BuildMetaBackend._fix_config
+        >>> fc(None)
+        {'--global-option': []}
+        >>> fc({})
+        {'--global-option': []}
+        >>> fc({'--global-option': 'foo'})
+        {'--global-option': ['foo']}
+        >>> fc({'--global-option': ['foo']})
+        {'--global-option': ['foo']}
+        """
         config_settings = config_settings or {}
-        config_settings.setdefault('--global-option', [])
+        config_settings['--global-option'] = list(always_iterable(
+            config_settings.get('--global-option')))
         return config_settings
 
     def _get_build_requires(self, config_settings, requirements):

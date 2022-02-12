@@ -1,0 +1,1 @@
+In the build backend, allow single config settings to be supplied.
