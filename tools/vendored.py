@@ -74,6 +74,21 @@ def rewrite_importlib_metadata(pkg_files, new_root):
         file.write_text(text)
 
 
+def rewrite_more_itertools(pkg_files: Path):
+    """
+    Defer import of concurrent.futures. Workaround for #3090.
+    """
+    more_file = pkg_files.joinpath('more.py')
+    text = more_file.read_text()
+    text = re.sub(r'^.*concurrent.futures.*?\n', '', text, flags=re.MULTILINE)
+    text = re.sub(
+        'ThreadPoolExecutor',
+        '__import__("concurrent.futures").futures.ThreadPoolExecutor',
+        text,
+    )
+    more_file.write_text(text)
+
+
 def clean(vendor):
     """
     Remove all files out of the vendor directory except the meta
@@ -106,6 +121,7 @@ def update_pkg_resources():
     rewrite_jaraco_text(vendor / 'jaraco/text', 'pkg_resources.extern')
     rewrite_jaraco(vendor / 'jaraco', 'pkg_resources.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'pkg_resources.extern')
+    rewrite_more_itertools(vendor / "more_itertools")
 
 
 def update_setuptools():
@@ -116,6 +132,7 @@ def update_setuptools():
     rewrite_jaraco(vendor / 'jaraco', 'setuptools.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
     rewrite_importlib_metadata(vendor / 'importlib_metadata', 'setuptools.extern')
+    rewrite_more_itertools(vendor / "more_itertools")
 
 
 __name__ == '__main__' and update_vendored()

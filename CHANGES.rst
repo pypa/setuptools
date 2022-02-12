@@ -1,3 +1,15 @@
+v60.8.2
+-------
+
+
+Misc
+^^^^
+* #3091: Make ``concurrent.futures`` import lazy in vendored ``more_itertools``
+  package to a  avoid importing threading as a side effect (which caused
+  `gevent/gevent#1865 <https://github.com/gevent/gevent/issues/1865>`__).
+  -- by :user:`maciejp-ro`
+
+
 v60.8.1
 -------
 
