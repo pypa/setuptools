@@ -38,6 +38,8 @@ import warnings
 import setuptools
 import distutils
 from ._reqs import parse_strings
+from .extern.more_itertools import always_iterable
+
 
 __all__ = ['get_requires_for_build_sdist',
            'get_requires_for_build_wheel',
@@ -129,9 +131,8 @@ class _BuildMetaBackend(object):
 
     def _fix_config(self, config_settings):
         config_settings = config_settings or {}
-        config_settings.setdefault('--global-option', [])
-        if isinstance(config_settings["--global-option"], str):
-            config_settings["--global-option"] = [config_settings["--global-option"]]
+        config_settings['--global-option'] = list(always_iterable(
+            config_settings.get('--global-option')))
         return config_settings
 
     def _get_build_requires(self, config_settings, requirements):
