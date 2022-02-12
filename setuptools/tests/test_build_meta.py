@@ -405,6 +405,63 @@ class TestBuildMetaBackend:
         assert metadata.strip().endswith("This is a ``README``")
         assert epoints.strip() == "[console_scripts]\nfoo = foo.cli:main"
 
+    def test_static_metadata_in_pyproject_config(self, tmpdir):
+        # Make sure static metadata in pyproject.toml is not overwritten by setup.py
+        # as required by PEP 621
+        files = {
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta"
+
+                [project]
+                name = "foo"
+                description = "This is a Python package"
+                version = "42"
+                dependencies = ["six"]
+                """),
+            'hello.py': DALS("""
+                def run():
+                    print('hello')
+                """),
+            'setup.py': DALS("""
+                __import__('setuptools').setup(
+                    name='bar',
+                    version='13',
+                )
+                """),
+        }
+        build_backend = self.get_build_backend()
+        with tmpdir.as_cwd():
+            path.build(files)
+            sdist_path = build_backend.build_sdist("temp")
+            wheel_file = build_backend.build_wheel("temp")
+
+        assert (tmpdir / "temp/foo-42.tar.gz").exists()
+        assert (tmpdir / "temp/foo-42-py3-none-any.whl").exists()
+        assert not (tmpdir / "temp/bar-13.tar.gz").exists()
+        assert not (tmpdir / "temp/bar-42.tar.gz").exists()
+        assert not (tmpdir / "temp/foo-13.tar.gz").exists()
+        assert not (tmpdir / "temp/bar-13-py3-none-any.whl").exists()
+        assert not (tmpdir / "temp/bar-42-py3-none-any.whl").exists()
+        assert not (tmpdir / "temp/foo-13-py3-none-any.whl").exists()
+
+        with tarfile.open(os.path.join(tmpdir, "temp", sdist_path)) as tar:
+            pkg_info = str(tar.extractfile('foo-42/PKG-INFO').read(), "utf-8")
+            members = tar.getnames()
+            assert "bar-13/PKG-INFO" not in members
+
+        with ZipFile(os.path.join(tmpdir, "temp", wheel_file)) as zipfile:
+            metadata = str(zipfile.read("foo-42.dist-info/METADATA"), "utf-8")
+            members = zipfile.namelist()
+            assert "bar-13.dist-info/METADATA" not in members
+
+        for file in pkg_info, metadata:
+            for line in ("Name: foo", "Version: 42"):
+                assert line in file
+            for line in ("Name: bar", "Version: 13"):
+                assert line not in file
+
     def test_build_sdist(self, build_backend):
         dist_dir = os.path.abspath('pip-sdist')
         os.makedirs(dist_dir)
