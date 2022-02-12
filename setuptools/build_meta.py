@@ -129,7 +129,21 @@ def suppress_known_deprecation():
 
 class _BuildMetaBackend(object):
 
-    def _fix_config(self, config_settings):
+    @staticmethod
+    def _fix_config(config_settings):
+        """
+        Ensure config settings meet certain expectations.
+
+        >>> fc = _BuildMetaBackend._fix_config
+        >>> fc(None)
+        {'--global-option': []}
+        >>> fc({})
+        {'--global-option': []}
+        >>> fc({'--global-option': 'foo'})
+        {'--global-option': ['foo']}
+        >>> fc({'--global-option': ['foo']})
+        {'--global-option': ['foo']}
+        """
         config_settings = config_settings or {}
         config_settings['--global-option'] = list(always_iterable(
             config_settings.get('--global-option')))
