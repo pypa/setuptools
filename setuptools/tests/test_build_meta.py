@@ -11,7 +11,7 @@ from jaraco import path
 from .textwrap import DALS
 
 
-TIMEOUT = os.getenv("TIMEOUT_BACKEND_TEST", 3 * 60)
+TIMEOUT = int(os.getenv("TIMEOUT_BACKEND_TEST", "180"))  # in seconds
 
 
 class BuildBackendBase:
