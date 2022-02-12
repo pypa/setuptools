@@ -8,7 +8,6 @@ from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
 
 from .contexts import quiet
-from .test_find_packages import ensure_files
 from .integration.helpers import get_sdist_members, get_wheel_members, run
 
 
@@ -118,7 +117,10 @@ def _populate_project_dir(root, files, options):
     (root / "README.md").write_text("# Example Package")
     (root / "LICENSE").write_text("Copyright (c) 2018")
     _write_setupcfg(root, options)
-    ensure_files(root, files)
+    paths = (root / f for f in files)
+    for path in paths:
+        path.parent.mkdir(exist_ok=True, parents=True)
+        path.touch()
 
 
 def _write_setupcfg(root, options):
