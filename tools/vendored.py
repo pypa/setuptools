@@ -64,6 +64,16 @@ def rewrite_importlib_resources(pkg_files, new_root):
         file.write_text(text)
 
 
+def rewrite_importlib_metadata(pkg_files, new_root):
+    """
+    Rewrite imports in importlib_metadata to redirect to vendored copies.
+    """
+    for file in pkg_files.glob('*.py'):
+        text = file.read_text().replace('typing_extensions', '..typing_extensions')
+        text = text.replace('import zipp', 'from .. import zipp')
+        file.write_text(text)
+
+
 def rewrite_more_itertools(pkg_files: Path):
     """
     Defer import of concurrent.futures. Workaround for #3090.
@@ -121,6 +131,7 @@ def update_setuptools():
     rewrite_jaraco_text(vendor / 'jaraco/text', 'setuptools.extern')
     rewrite_jaraco(vendor / 'jaraco', 'setuptools.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
+    rewrite_importlib_metadata(vendor / 'importlib_metadata', 'setuptools.extern')
     rewrite_more_itertools(vendor / "more_itertools")
 
 

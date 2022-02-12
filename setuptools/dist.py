@@ -28,7 +28,9 @@ from distutils.util import rfc822_escape
 
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen
+from setuptools.extern.more_itertools import unique_everseen, always_iterable
+
+from ._importlib import metadata
 
 from . import SetuptoolsDeprecationWarning
 
@@ -38,8 +40,9 @@ from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
 import pkg_resources
-from setuptools.extern.packaging import version
+from setuptools.extern.packaging import version, requirements
 from . import _reqs
+from . import _entry_points
 
 if TYPE_CHECKING:
     from email.message import Message
@@ -223,7 +226,7 @@ sequence = tuple, list
 
 def check_importable(dist, attr, value):
     try:
-        ep = pkg_resources.EntryPoint.parse('x=' + value)
+        ep = metadata.EntryPoint(value=value, name=None, group=None)
         assert not ep.extras
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
@@ -326,8 +329,8 @@ def check_specifier(dist, attr, value):
 def check_entry_points(dist, attr, value):
     """Verify that entry_points map is parseable"""
     try:
-        pkg_resources.EntryPoint.parse_map(value)
-    except ValueError as e:
+        _entry_points.load(value)
+    except Exception as e:
         raise DistutilsSetupError(e) from e
 
 
@@ -450,7 +453,7 @@ class Distribution(_Distribution):
         self.patch_missing_pkg_info(attrs)
         self.dependency_links = attrs.pop('dependency_links', [])
         self.setup_requires = attrs.pop('setup_requires', [])
-        for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
+        for ep in metadata.entry_points(group='distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
         _Distribution.__init__(
             self,
@@ -720,7 +723,10 @@ class Distribution(_Distribution):
             return opt
 
         underscore_opt = opt.replace('-', '_')
-        commands = distutils.command.__all__ + self._setuptools_commands()
+        commands = list(itertools.chain(
+            distutils.command.__all__,
+            self._setuptools_commands(),
+        ))
         if (
             not section.startswith('options')
             and section != 'metadata'
@@ -738,9 +744,8 @@ class Distribution(_Distribution):
 
     def _setuptools_commands(self):
         try:
-            dist = pkg_resources.get_distribution('setuptools')
-            return list(dist.get_entry_map('distutils.commands'))
-        except pkg_resources.DistributionNotFound:
+            return metadata.distribution('setuptools').entry_points.names
+        except metadata.PackageNotFoundError:
             # during bootstrapping, distribution doesn't exist
             return []
 
@@ -839,7 +844,7 @@ class Distribution(_Distribution):
         def by_order(hook):
             return getattr(hook, 'order', 0)
 
-        defined = pkg_resources.iter_entry_points(group)
+        defined = metadata.entry_points(group=group)
         filtered = itertools.filterfalse(self._removed, defined)
         loaded = map(lambda e: e.load(), filtered)
         for ep in sorted(loaded, key=by_order):
@@ -860,11 +865,35 @@ class Distribution(_Distribution):
         return ep.name in removed
 
     def _finalize_setup_keywords(self):
-        for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
+        for ep in metadata.entry_points(group='distutils.setup_keywords'):
             value = getattr(self, ep.name, None)
             if value is not None:
-                ep.require(installer=self.fetch_build_egg)
+                self._install_dependencies(ep)
                 ep.load()(self, ep.name, value)
+
+    def _install_dependencies(self, ep):
+        """
+        Given an entry point, ensure that any declared extras for
+        its distribution are installed.
+        """
+        reqs = {
+            req
+            for req in map(requirements.Requirement, always_iterable(ep.dist.requires))
+            for extra in ep.extras
+            if extra in req.extras
+        }
+        missing = itertools.filterfalse(self._is_installed, reqs)
+        for req in missing:
+            # fetch_build_egg expects pkg_resources.Requirement
+            self.fetch_build_egg(pkg_resources.Requirement(str(req)))
+
+    def _is_installed(self, req):
+        try:
+            dist = metadata.distribution(req.name)
+        except metadata.PackageNotFoundError:
+            return False
+        found_ver = packaging.version.Version(dist.version())
+        return found_ver in req.specifier
 
     def get_egg_cache_dir(self):
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
@@ -896,27 +925,25 @@ class Distribution(_Distribution):
         if command in self.cmdclass:
             return self.cmdclass[command]
 
-        eps = pkg_resources.iter_entry_points('distutils.commands', command)
+        eps = metadata.entry_points(group='distutils.commands', name=command)
         for ep in eps:
-            ep.require(installer=self.fetch_build_egg)
+            self._install_dependencies(ep)
             self.cmdclass[command] = cmdclass = ep.load()
             return cmdclass
         else:
             return _Distribution.get_command_class(self, command)
 
     def print_commands(self):
-        for ep in pkg_resources.iter_entry_points('distutils.commands'):
+        for ep in metadata.entry_points(group='distutils.commands'):
             if ep.name not in self.cmdclass:
-                # don't require extras as the commands won't be invoked
-                cmdclass = ep.resolve()
+                cmdclass = ep.load()
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.print_commands(self)
 
     def get_command_list(self):
-        for ep in pkg_resources.iter_entry_points('distutils.commands'):
+        for ep in metadata.entry_points(group='distutils.commands'):
             if ep.name not in self.cmdclass:
-                # don't require extras as the commands won't be invoked
-                cmdclass = ep.resolve()
+                cmdclass = ep.load()
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.get_command_list(self)
 
