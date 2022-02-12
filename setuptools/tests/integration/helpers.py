@@ -8,6 +8,7 @@ import os
 import subprocess
 import tarfile
 from zipfile import ZipFile
+from pathlib import Path
 
 
 def run(cmd, env=None):
@@ -59,3 +60,16 @@ class Archive:
                 raise ValueError(msg)
             return str(content.read(), "utf-8")
         return str(self._obj.read(zip_or_tar_info), "utf-8")
+
+
+def get_sdist_members(sdist_path):
+    with tarfile.open(sdist_path, "r:gz") as tar:
+        files = [Path(f) for f in tar.getnames()]
+    # remove root folder
+    relative_files = ("/".join(f.parts[1:]) for f in files)
+    return {f for f in relative_files if f}
+
+
+def get_wheel_members(wheel_path):
+    with ZipFile(wheel_path) as zipfile:
+        return set(zipfile.namelist())

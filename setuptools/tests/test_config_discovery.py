@@ -1,11 +1,6 @@
 import os
-import subprocess
 import sys
-import tarfile
 from configparser import ConfigParser
-from pathlib import Path
-from subprocess import CalledProcessError
-from zipfile import ZipFile
 
 import pytest
 
@@ -14,6 +9,7 @@ from setuptools.dist import Distribution
 
 from .contexts import quiet
 from .test_find_packages import ensure_files
+from .integration.helpers import get_sdist_members, get_wheel_members, run
 
 
 class TestDiscoverPackagesAndPyModules:
@@ -85,12 +81,12 @@ class TestDiscoverPackagesAndPyModules:
 
         _run_build(tmp_path)
 
-        sdist_files = _get_sdist_members(next(tmp_path.glob("dist/*.tar.gz")))
+        sdist_files = get_sdist_members(next(tmp_path.glob("dist/*.tar.gz")))
         print("~~~~~ sdist_members ~~~~~")
         print('\n'.join(sdist_files))
         assert sdist_files >= set(files)
 
-        wheel_files = _get_wheel_members(next(tmp_path.glob("dist/*.whl")))
+        wheel_files = get_wheel_members(next(tmp_path.glob("dist/*.whl")))
         print("~~~~~ wheel_members ~~~~~")
         print('\n'.join(wheel_files))
         assert wheel_files >= {f.replace("src/", "") for f in files}
@@ -145,34 +141,6 @@ def _write_setupcfg(root, options):
     print((root / "setup.cfg").read_text())
 
 
-def _get_sdist_members(sdist_path):
-    with tarfile.open(sdist_path, "r:gz") as tar:
-        files = [Path(f) for f in tar.getnames()]
-    relative_files = ("/".join(f.parts[1:]) for f in files)
-    # remove root folder
-    return {f for f in relative_files if f}
-
-
-def _get_wheel_members(wheel_path):
-    with ZipFile(wheel_path) as zipfile:
-        return set(zipfile.namelist())
-
-
 def _run_build(path, *flags):
     cmd = [sys.executable, "-m", "build", "--no-isolation", *flags, str(path)]
-    r = subprocess.run(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-        env={**os.environ, 'DISTUTILS_DEBUG': '1'}
-    )
-    out = r.stdout + "\n" + r.stderr
-    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-    print("Command", repr(cmd), "returncode", r.returncode)
-    print(out)
-    map(print, path.glob("*"))
-
-    if r.returncode != 0:
-        raise CalledProcessError(r.returncode, cmd, r.stdout, r.stderr)
-    return out
+    return run(cmd, env={'DISTUTILS_DEBUG': '1'})
