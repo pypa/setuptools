@@ -157,12 +157,10 @@ class _BuildMetaBackend(object):
         exec(compile(code, __file__, 'exec'), locals())
 
     def get_requires_for_build_wheel(self, config_settings=None):
-        config_settings = self._fix_config(config_settings)
         return self._get_build_requires(
             config_settings, requirements=['wheel'])
 
     def get_requires_for_build_sdist(self, config_settings=None):
-        config_settings = self._fix_config(config_settings)
         return self._get_build_requires(config_settings, requirements=[])
 
     def prepare_metadata_for_build_wheel(self, metadata_directory,
