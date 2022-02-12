@@ -11,6 +11,9 @@ from jaraco import path
 from .textwrap import DALS
 
 
+TIMEOUT = os.getenv("TIMEOUT_BACKEND_TEST", 3 * 60)
+
+
 class BuildBackendBase:
     def __init__(self, cwd='.', env={}, backend_name='setuptools.build_meta'):
         self.cwd = cwd
@@ -31,7 +34,11 @@ class BuildBackend(BuildBackendBase):
         def method(*args, **kw):
             root = os.path.abspath(self.cwd)
             caller = BuildBackendCaller(root, self.env, self.backend_name)
-            return self.pool.submit(caller, name, *args, **kw).result()
+            task = self.pool.submit(caller, name, *args, **kw)
+            try:
+                return task.result(TIMEOUT)
+            except futures.TimeoutError:
+                pytest.xfail(f"Backend did not respond before timeout ({TIMEOUT} s)")
 
         return method
 
