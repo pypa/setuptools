@@ -66,6 +66,10 @@ link_files = {
                 url='{GH}/pypa/distutils/issues/{distutils}',
             ),
             dict(
+                pattern=r'pypa/distutils@(?P<distutils_commit>[\da-f]+)',
+                url='{GH}/pypa/distutils/commit/{distutils_commit}',
+            ),
+            dict(
                 pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
                 with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
             ),
@@ -92,6 +96,7 @@ github_url = 'https://github.com'
 github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
     'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
+    'pypi': ('https://pypi.org/project/%s', '%s'),
 }
 extensions += ['sphinx.ext.extlinks']
 
@@ -101,8 +106,7 @@ default_role = 'any'
 
 # HTML theme
 html_theme = 'furo'
-html_logo = "images/logo.png"
-html_favicon = "images/favicon.ico"
+html_logo = "images/logo.svg"
 
 html_theme_options = {
     "sidebar_hide_name": True,
@@ -171,5 +175,27 @@ towncrier_draft_working_directory = '..'
 towncrier_draft_include_empty = False
 
 extensions += ['jaraco.tidelift']
+
+# Add icons (aka "favicons") to documentation
+extensions += ['sphinx-favicon']
+html_static_path = ['images']  # should contain the folder with icons
+
+# List of dicts with <link> HTML attributes
+# static-file points to files in the html_static_path (href is computed)
+favicons = [
+    {  # "Catch-all" goes first, otherwise some browsers will overwrite
+        "rel": "icon",
+        "type": "image/svg+xml",
+        "static-file": "logo-symbol-only.svg",
+        "sizes": "any"
+    },
+    {  # Version with thicker strokes for better visibility at smaller sizes
+        "rel": "icon",
+        "type": "image/svg+xml",
+        "static-file": "favicon.svg",
+        "sizes": "16x16 24x24 32x32 48x48"
+    },
+    # rel="apple-touch-icon" does not support SVG yet
+]
 
 intersphinx_mapping['pip'] = 'https://pip.pypa.io/en/latest', None

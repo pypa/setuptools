@@ -14,16 +14,11 @@ from distutils.archive_util import (check_archive_formats, make_tarball,
 from distutils.spawn import find_executable, spawn
 from distutils.tests import support
 from test.support import run_unittest, patch
+from .unix_compat import require_unix_id, require_uid_0, grp, pwd, UID_0_SUPPORT
 
 from .py38compat import change_cwd
 from .py38compat import check_warnings
 
-try:
-    import grp
-    import pwd
-    UID_GID_SUPPORT = True
-except ImportError:
-    UID_GID_SUPPORT = False
 
 try:
     import zipfile
@@ -339,7 +334,7 @@ class ArchiveUtilTestCase(support.TempdirManager,
     def test_make_archive_owner_group(self):
         # testing make_archive with owner and group, with various combinations
         # this works even if there's not gid/uid support
-        if UID_GID_SUPPORT:
+        if UID_0_SUPPORT:
             group = grp.getgrgid(0)[0]
             owner = pwd.getpwuid(0)[0]
         else:
@@ -364,7 +359,8 @@ class ArchiveUtilTestCase(support.TempdirManager,
         self.assertTrue(os.path.exists(res))
 
     @unittest.skipUnless(ZLIB_SUPPORT, "Requires zlib")
-    @unittest.skipUnless(UID_GID_SUPPORT, "Requires grp and pwd support")
+    @require_unix_id
+    @require_uid_0
     def test_tarfile_root_owner(self):
         tmpdir =  self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
@@ -391,7 +387,7 @@ class ArchiveUtilTestCase(support.TempdirManager,
             archive.close()
 
 def test_suite():
-    return unittest.makeSuite(ArchiveUtilTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(ArchiveUtilTestCase)
 
 if __name__ == "__main__":
     run_unittest(test_suite())

@@ -28,7 +28,7 @@ other two types of dependency keyword, this one is specified in your
 .. code-block:: ini
 
     [build-system]
-    requires = ["setuptools", "wheel"]
+    requires = ["setuptools"]
     #...
 
 .. note::
@@ -360,6 +360,6 @@ or ``setup.py``.
 
         setup(
             name="Project-B",
-            python_requires=[">=3.6"],
+            python_requires=">=3.6",
             ...,
         )

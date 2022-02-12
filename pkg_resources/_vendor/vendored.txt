@@ -1,3 +1,8 @@
-packaging==20.4
+packaging==21.2
 pyparsing==2.2.1
 appdirs==1.4.3
+jaraco.text==3.7.0
+# required for jaraco.text on older Pythons
+importlib_resources==5.4.0
+# required for importlib_resources on older Pythons
+zipp==3.7.0

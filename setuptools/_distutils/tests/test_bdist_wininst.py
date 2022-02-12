@@ -34,7 +34,7 @@ class BuildWinInstTestCase(support.TempdirManager,
         self.assertGreater(len(exe_file), 10)
 
 def test_suite():
-    return unittest.makeSuite(BuildWinInstTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(BuildWinInstTestCase)
 
 if __name__ == '__main__':
     run_unittest(test_suite())

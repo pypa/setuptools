@@ -79,11 +79,18 @@ def check_changes():
     """
     allowed = 'deprecation', 'breaking', 'change', 'doc', 'misc'
     except_ = 'README.rst', '.gitignore'
-    assert all(
-        any(key in file.name for key in allowed)
+    news_fragments = (
+        file
         for file in pathlib.Path('changelog.d').iterdir()
         if file.name not in except_
     )
+    unrecognized = [
+        str(file)
+        for file in news_fragments
+        if not any(f".{key}" in file.suffixes for key in allowed)
+    ]
+    if unrecognized:
+        raise ValueError(f"Some news fragments have invalid names: {unrecognized}")
 
 
 if __name__ == '__main__':

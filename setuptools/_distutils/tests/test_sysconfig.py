@@ -38,6 +38,12 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         config_h = sysconfig.get_config_h_filename()
         self.assertTrue(os.path.isfile(config_h), config_h)
 
+    @unittest.skipIf(sys.platform == 'win32',
+                     'Makefile only exists on Unix like systems')
+    def test_get_makefile_filename(self):
+        makefile = sysconfig.get_makefile_filename()
+        self.assertTrue(os.path.isfile(makefile), makefile)
+
     def test_get_python_lib(self):
         # XXX doesn't work on Linux when Python was never installed before
         #self.assertTrue(os.path.isdir(lib_dir), lib_dir)
@@ -283,10 +289,19 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         outs, errs = p.communicate()
         self.assertEqual(0, p.returncode, "Subprocess failed: " + outs)
 
+    def test_parse_config_h(self):
+        config_h = sysconfig.get_config_h_filename()
+        input = {}
+        with open(config_h, encoding="utf-8") as f:
+            result = sysconfig.parse_config_h(f, g=input)
+        self.assertTrue(input is result)
+        with open(config_h, encoding="utf-8") as f:
+            result = sysconfig.parse_config_h(f)
+        self.assertTrue(isinstance(result, dict))
 
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(SysconfigTestCase))
+    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(SysconfigTestCase))
     return suite
 
 

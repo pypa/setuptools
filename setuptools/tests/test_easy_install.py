@@ -17,6 +17,8 @@ import time
 import re
 import subprocess
 import pathlib
+import warnings
+from collections import namedtuple
 
 import pytest
 from jaraco import path
@@ -62,7 +64,7 @@ class FakeDist:
 SETUP_PY = DALS("""
     from setuptools import setup
 
-    setup(name='foo')
+    setup()
     """)
 
 
@@ -1058,3 +1060,52 @@ class TestWindowsScriptWriter:
         hdr = hdr.rstrip('\n')
         # header should not start with an escaped quote
         assert not hdr.startswith('\\"')
+
+
+VersionStub = namedtuple("VersionStub", "major, minor, micro, releaselevel, serial")
+
+
+def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
+    # In issue #3001, easy_install wrongly uses the `python3.1` directory
+    # when the interpreter is `python3.10` and the `--user` option is given.
+    # See pypa/setuptools#3001.
+    dist = Distribution()
+    cmd = dist.get_command_obj('easy_install')
+    cmd.args = ['ok']
+    cmd.optimize = 0
+    cmd.user = True
+    cmd.install_userbase = str(tmpdir)
+    cmd.install_usersite = None
+    install_cmd = dist.get_command_obj('install')
+    install_cmd.install_userbase = str(tmpdir)
+    install_cmd.install_usersite = None
+
+    with monkeypatch.context() as patch, warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        version = '3.10.1 (main, Dec 21 2021, 09:17:12) [GCC 10.2.1 20210110]'
+        info = VersionStub(3, 10, 1, "final", 0)
+        patch.setattr('site.ENABLE_USER_SITE', True)
+        patch.setattr('sys.version', version)
+        patch.setattr('sys.version_info', info)
+        patch.setattr(cmd, 'create_home_path', mock.Mock())
+        cmd.finalize_options()
+
+    name = "pypy" if hasattr(sys, 'pypy_version_info') else "python"
+    install_dir = cmd.install_dir.lower()
+
+    # In some platforms (e.g. Windows), install_dir is mostly determined
+    # via `sysconfig`, which define constants eagerly at module creation.
+    # This means that monkeypatching `sys.version` to emulate 3.10 for testing
+    # may have no effect.
+    # The safest test here is to rely on the fact that 3.1 is no longer
+    # supported/tested, and make sure that if 'python3.1' ever appears in the string
+    # it is followed by another digit (e.g. 'python3.10').
+    if re.search(name + r'3\.?1', install_dir):
+        assert re.search(name + r'3\.?1\d', install_dir)
+
+    # The following "variables" are used for interpolation in distutils
+    # installation schemes, so it should be fair to treat them as "semi-public",
+    # or at least public enough so we can have a test to make sure they are correct
+    assert cmd.config_vars['py_version'] == '3.10.1'
+    assert cmd.config_vars['py_version_short'] == '3.10'
+    assert cmd.config_vars['py_version_nodot'] == '310'

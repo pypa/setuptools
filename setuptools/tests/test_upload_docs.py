@@ -18,7 +18,7 @@ def sample_project(tmpdir_cwd):
         'setup.py': DALS("""
             from setuptools import setup
 
-            setup(name='foo')
+            setup()
             """),
         'build': {
             'index.html': 'Hello world.',

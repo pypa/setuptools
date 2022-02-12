@@ -1,5 +1,7 @@
 import sys
 
+import pytest
+
 
 pytest_plugins = 'setuptools.tests.fixtures'
 
@@ -9,6 +11,14 @@ def pytest_addoption(parser):
         "--package_name", action="append", default=[],
         help="list of package_name to pass to test functions",
     )
+    parser.addoption(
+        "--integration", action="store_true", default=False,
+        help="run integration tests (only)"
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "integration: integration tests")
 
 
 collect_ignore = [
@@ -27,3 +37,13 @@ collect_ignore = [
 if sys.version_info < (3, 6):
     collect_ignore.append('docs/conf.py')  # uses f-strings
     collect_ignore.append('pavement.py')
+
+
+@pytest.fixture(autouse=True)
+def _skip_integration(request):
+    running_integration_tests = request.config.getoption("--integration")
+    is_integration_test = request.node.get_closest_marker("integration")
+    if running_integration_tests and not is_integration_test:
+        pytest.skip("running integration tests only")
+    if not running_integration_tests and is_integration_test:
+        pytest.skip("skipping integration tests")

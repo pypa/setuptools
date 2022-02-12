@@ -148,6 +148,7 @@ def _check_wheel_install(filename, install_dir, install_tree_includes,
     if requires_txt is None:
         assert not dist.has_metadata('requires.txt')
     else:
+        # Order must match to ensure reproducibility.
         assert requires_txt == dist.get_metadata('requires.txt').lstrip()
 
 
@@ -415,6 +416,38 @@ WHEEL_INSTALL_TESTS = (
         requires_txt=DALS(
             '''
             [extra]
+            '''
+        ),
+    ),
+
+    dict(
+        id='requires_ensure_order',
+        install_requires='''
+        foo
+        bar
+        baz
+        qux
+        ''',
+        extras_require={
+            'extra': '''
+            foobar>3
+            barbaz>4
+            bazqux>5
+            quxzap>6
+            ''',
+        },
+        requires_txt=DALS(
+            '''
+            foo
+            bar
+            baz
+            qux
+
+            [extra]
+            foobar>3
+            barbaz>4
+            bazqux>5
+            quxzap>6
             '''
         ),
     ),
