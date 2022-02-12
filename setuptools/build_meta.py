@@ -125,7 +125,7 @@ def suppress_known_deprecation():
         yield
 
 
-class _BuildMetaBackend(object):
+class _BuildMetaBackend:
 
     def _fix_config(self, config_settings):
         config_settings = config_settings or {}
