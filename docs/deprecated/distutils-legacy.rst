@@ -5,7 +5,7 @@ Setuptools and the PyPA have a `stated goal <https://github.com/pypa/packaging-p
 
 Since the 49.1.2 release, Setuptools includes a local, vendored copy of distutils (from late copies of CPython) that is disabled by default. To enable the use of this copy of distutils when invoking setuptools, set the enviroment variable:
 
-	SETUPTOOLS_USE_DISTUTILS=local
+    SETUPTOOLS_USE_DISTUTILS=local
 
 This behavior is planned to become the default.
 

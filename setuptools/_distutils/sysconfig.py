@@ -13,6 +13,7 @@ import _imp
 import os
 import re
 import sys
+import sysconfig
 
 from .errors import DistutilsPlatformError
 
@@ -129,6 +130,14 @@ def get_python_inc(plat_specific=0, prefix=None):
             "on platform '%s'" % os.name)
 
 
+# allow this behavior to be monkey-patched. Ref pypa/distutils#2.
+def _posix_lib(standard_lib, libpython, early_prefix, prefix):
+    if standard_lib:
+        return libpython
+    else:
+        return os.path.join(libpython, "site-packages")
+
+
 def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
     """Return the directory containing the Python library (standard or
     site additions).
@@ -152,6 +161,8 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             return os.path.join(prefix, "lib-python", sys.version[0])
         return os.path.join(prefix, 'site-packages')
 
+    early_prefix = prefix
+
     if prefix is None:
         if standard_lib:
             prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
@@ -169,10 +180,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         implementation = 'pypy' if IS_PYPY else 'python'
         libpython = os.path.join(prefix, libdir,
                                  implementation + get_python_version())
-        if standard_lib:
-            return libpython
-        else:
-            return os.path.join(libpython, "site-packages")
+        return _posix_lib(standard_lib, libpython, early_prefix, prefix)
     elif os.name == "nt":
         if standard_lib:
             return os.path.join(prefix, "Lib")
@@ -267,21 +275,15 @@ def get_config_h_filename():
             inc_dir = os.path.join(_sys_home or project_base, "PC")
         else:
             inc_dir = _sys_home or project_base
+        return os.path.join(inc_dir, 'pyconfig.h')
     else:
-        inc_dir = get_python_inc(plat_specific=1)
+        return sysconfig.get_config_h_filename()
 
-    return os.path.join(inc_dir, 'pyconfig.h')
 
 
 def get_makefile_filename():
     """Return full pathname of installed Makefile from the Python build."""
-    if python_build:
-        return os.path.join(_sys_home or project_base, "Makefile")
-    lib_dir = get_python_lib(plat_specific=0, standard_lib=1)
-    config_file = 'config-{}{}'.format(get_python_version(), build_flags)
-    if hasattr(sys.implementation, '_multiarch'):
-        config_file += '-%s' % sys.implementation._multiarch
-    return os.path.join(lib_dir, config_file, 'Makefile')
+    return sysconfig.get_makefile_filename()
 
 
 def parse_config_h(fp, g=None):
@@ -291,26 +293,7 @@ def parse_config_h(fp, g=None):
     optional dictionary is passed in as the second argument, it is
     used instead of a new dictionary.
     """
-    if g is None:
-        g = {}
-    define_rx = re.compile("#define ([A-Z][A-Za-z0-9_]+) (.*)\n")
-    undef_rx = re.compile("/[*] #undef ([A-Z][A-Za-z0-9_]+) [*]/\n")
-    #
-    while True:
-        line = fp.readline()
-        if not line:
-            break
-        m = define_rx.match(line)
-        if m:
-            n, v = m.group(1, 2)
-            try: v = int(v)
-            except ValueError: pass
-            g[n] = v
-        else:
-            m = undef_rx.match(line)
-            if m:
-                g[m.group(1)] = 0
-    return g
+    return sysconfig.parse_config_h(fp, vars=g)
 
 
 # Regexes needed for parsing Makefile (and similar syntaxes,
@@ -452,15 +435,21 @@ def expand_makefile_vars(s, vars):
 
 _config_vars = None
 
+
+_sysconfig_name_tmpl = '_sysconfigdata_{abi}_{platform}_{multiarch}'
+
+
 def _init_posix():
     """Initialize the module as appropriate for POSIX systems."""
     # _sysconfigdata is generated at build time, see the sysconfig module
-    name = os.environ.get('_PYTHON_SYSCONFIGDATA_NAME',
-        '_sysconfigdata_{abi}_{platform}_{multiarch}'.format(
-        abi=sys.abiflags,
-        platform=sys.platform,
-        multiarch=getattr(sys.implementation, '_multiarch', ''),
-    ))
+    name = os.environ.get(
+        '_PYTHON_SYSCONFIGDATA_NAME',
+        _sysconfig_name_tmpl.format(
+            abi=sys.abiflags,
+            platform=sys.platform,
+            multiarch=getattr(sys.implementation, '_multiarch', ''),
+        ),
+    )
     try:
         _temp = __import__(name, globals(), locals(), ['build_time_vars'], 0)
     except ImportError:

@@ -25,7 +25,6 @@ from email import message_from_file
 
 from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.util import rfc822_escape
-from distutils.version import StrictVersion
 
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
@@ -39,6 +38,8 @@ from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
 import pkg_resources
+from setuptools.extern.packaging import version
+from . import _reqs
 
 if TYPE_CHECKING:
     from email.message import Message
@@ -55,7 +56,7 @@ def _get_unpatched(cls):
 def get_metadata_version(self):
     mv = getattr(self, 'metadata_version', None)
     if mv is None:
-        mv = StrictVersion('2.1')
+        mv = version.Version('2.1')
         self.metadata_version = mv
     return mv
 
@@ -103,7 +104,7 @@ def read_pkg_file(self, file):
     """Reads the metadata values from a file object."""
     msg = message_from_file(file)
 
-    self.metadata_version = StrictVersion(msg['metadata-version'])
+    self.metadata_version = version.Version(msg['metadata-version'])
     self.name = _read_field_from_msg(msg, 'name')
     self.version = _read_field_from_msg(msg, 'version')
     self.description = _read_field_from_msg(msg, 'summary')
@@ -113,15 +114,14 @@ def read_pkg_file(self, file):
     self.author_email = _read_field_from_msg(msg, 'author-email')
     self.maintainer_email = None
     self.url = _read_field_from_msg(msg, 'home-page')
+    self.download_url = _read_field_from_msg(msg, 'download-url')
     self.license = _read_field_unescaped_from_msg(msg, 'license')
 
-    if 'download-url' in msg:
-        self.download_url = _read_field_from_msg(msg, 'download-url')
-    else:
-        self.download_url = None
-
     self.long_description = _read_field_unescaped_from_msg(msg, 'description')
-    if self.long_description is None and self.metadata_version >= StrictVersion('2.1'):
+    if (
+        self.long_description is None and
+        self.metadata_version >= version.Version('2.1')
+    ):
         self.long_description = _read_payload_from_msg(msg)
     self.description = _read_field_from_msg(msg, 'summary')
 
@@ -132,7 +132,7 @@ def read_pkg_file(self, file):
     self.classifiers = _read_list_from_msg(msg, 'classifier')
 
     # PEP 314 - these fields only exist in 1.1
-    if self.metadata_version == StrictVersion('1.1'):
+    if self.metadata_version == version.Version('1.1'):
         self.requires = _read_list_from_msg(msg, 'requires')
         self.provides = _read_list_from_msg(msg, 'provides')
         self.obsoletes = _read_list_from_msg(msg, 'obsoletes')
@@ -145,11 +145,14 @@ def read_pkg_file(self, file):
 
 
 def single_line(val):
-    """Validate that the value does not have line breaks."""
-    # Ref: https://github.com/pypa/setuptools/issues/1390
+    """
+    Quick and dirty validation for Summary pypa/setuptools#1390.
+    """
     if '\n' in val:
-        raise ValueError('Newlines are not allowed')
-
+        # TODO: Replace with `raise ValueError("newlines not allowed")`
+        # after reviewing #2893.
+        warnings.warn("newlines not allowed and will break in the future")
+        val = val.strip().split('\n')[0]
     return val
 
 
@@ -165,9 +168,10 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     write_field('Name', self.get_name())
     write_field('Version', self.get_version())
     write_field('Summary', single_line(self.get_description()))
-    write_field('Home-page', self.get_url())
 
     optional_fields = (
+        ('Home-page', 'url'),
+        ('Download-URL', 'download_url'),
         ('Author', 'author'),
         ('Author-email', 'author_email'),
         ('Maintainer', 'maintainer'),
@@ -181,8 +185,6 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
 
     license = rfc822_escape(self.get_license())
     write_field('License', license)
-    if self.download_url:
-        write_field('Download-URL', self.download_url)
     for project_url in self.project_urls.items():
         write_field('Project-URL', '%s, %s' % project_url)
 
@@ -279,7 +281,7 @@ def _check_extra(extra, reqs):
     name, sep, marker = extra.partition(':')
     if marker and pkg_resources.invalid_marker(marker):
         raise DistutilsSetupError("Invalid environment marker: " + marker)
-    list(pkg_resources.parse_requirements(reqs))
+    list(_reqs.parse(reqs))
 
 
 def assert_bool(dist, attr, value):
@@ -299,7 +301,7 @@ def invalid_unless_false(dist, attr, value):
 def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
-        list(pkg_resources.parse_requirements(value))
+        list(_reqs.parse(value))
         if isinstance(value, (dict, set)):
             raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
@@ -466,6 +468,19 @@ class Distribution(_Distribution):
         )
         self._finalize_requires()
 
+    def _validate_metadata(self):
+        required = {"name"}
+        provided = {
+            key
+            for key in vars(self.metadata)
+            if getattr(self.metadata, key, None) is not None
+        }
+        missing = required - provided
+
+        if missing:
+            msg = f"Required package metadata is missing: {missing}"
+            raise DistutilsSetupError(msg)
+
     def _set_metadata_defaults(self, attrs):
         """
         Fill-in missing metadata fields not supported by distutils.
@@ -538,7 +553,7 @@ class Distribution(_Distribution):
         for section, v in spec_ext_reqs.items():
             # Do not strip empty sections.
             self._tmp_extras_require[section]
-            for r in pkg_resources.parse_requirements(v):
+            for r in _reqs.parse(v):
                 suffix = self._suffix_for(r)
                 self._tmp_extras_require[section + suffix].append(r)
 
@@ -564,7 +579,7 @@ class Distribution(_Distribution):
             return not req.marker
 
         spec_inst_reqs = getattr(self, 'install_requires', None) or ()
-        inst_reqs = list(pkg_resources.parse_requirements(spec_inst_reqs))
+        inst_reqs = list(_reqs.parse(spec_inst_reqs))
         simple_reqs = filter(is_simple_req, inst_reqs)
         complex_reqs = itertools.filterfalse(is_simple_req, inst_reqs)
         self.install_requires = list(map(str, simple_reqs))
@@ -804,7 +819,7 @@ class Distribution(_Distribution):
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
         resolved_dists = pkg_resources.working_set.resolve(
-            pkg_resources.parse_requirements(requires),
+            _reqs.parse(requires),
             installer=self.fetch_build_egg,
             replace_conflicting=True,
         )

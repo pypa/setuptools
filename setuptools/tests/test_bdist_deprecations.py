@@ -11,7 +11,7 @@ from setuptools import SetuptoolsDeprecationWarning
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='non-Windows only')
 @mock.patch('distutils.command.bdist_rpm.bdist_rpm')
-def test_bdist_rpm_warning(distutils_cmd):
+def test_bdist_rpm_warning(distutils_cmd, tmpdir_cwd):
     dist = Distribution(
         dict(
             script_name='setup.py',

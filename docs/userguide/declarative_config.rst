@@ -222,10 +222,10 @@ data_files               section                              40.6.0          [#
 
 .. [#opt-1] In the ``package_data`` section, a key named with a single asterisk
    (``*``) refers to all packages, in lieu of the empty string used in ``setup.py``.
- 
+
 .. [#opt-2] In the ``extras_require`` section, values are parsed as ``list-semi``.
    This implies that in order to include markers, they **must** be *dangling*:
- 
+
    .. code-block:: ini
 
       [options.extras_require]

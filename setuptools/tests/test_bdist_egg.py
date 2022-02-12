@@ -13,7 +13,7 @@ from . import contexts
 SETUP_PY = """\
 from setuptools import setup
 
-setup(name='foo', py_modules=['hi'])
+setup(py_modules=['hi'])
 """
 
 
@@ -52,7 +52,6 @@ class Test:
         dist = Distribution(dict(
             script_name='setup.py',
             script_args=['bdist_egg', '--exclude-source-files'],
-            name='foo',
             py_modules=['hi'],
         ))
         with contexts.quiet():
