@@ -38,6 +38,7 @@ class BuildBackend(BuildBackendBase):
             try:
                 return task.result(TIMEOUT)
             except futures.TimeoutError:
+                self.pool.shutdown(wait=False)
                 pytest.xfail(f"Backend did not respond before timeout ({TIMEOUT} s)")
 
         return method
