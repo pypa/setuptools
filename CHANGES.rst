@@ -8,6 +8,7 @@ Changes
 * #2993: Removed workaround in distutils hack for get-pip now that pypa/get-pip#137 is closed.
 * #3085: Setuptools no longer relies on ``pkg_resources`` for entry point handling.
 * #3098: Bump vendored packaging to 21.3.
+* Removed bootstrap script.
 
 
 v60.8.2
