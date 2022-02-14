@@ -1,7 +1,9 @@
 import os
 import shutil
+import signal
 import tarfile
 import importlib
+import contextlib
 from concurrent import futures
 import re
 
@@ -34,14 +36,22 @@ class BuildBackend(BuildBackendBase):
         def method(*args, **kw):
             root = os.path.abspath(self.cwd)
             caller = BuildBackendCaller(root, self.env, self.backend_name)
-            task = self.pool.submit(caller, name, *args, **kw)
+            pid = None
             try:
-                return task.result(TIMEOUT)
+                pid = self.pool.submit(os.getpid).result(TIMEOUT)
+                return self.pool.submit(caller, name, *args, **kw).result(TIMEOUT)
             except futures.TimeoutError:
-                self.pool.shutdown(wait=False)
+                self.pool.shutdown(wait=False)  # doesn't stop already running processes
+                self._kill(pid)
                 pytest.xfail(f"Backend did not respond before timeout ({TIMEOUT} s)")
 
         return method
+
+    def _kill(self, pid):
+        if pid is None:
+            return
+        with contextlib.suppress(ProcessLookupError):
+            os.kill(pid, signal.SIGKILL)
 
 
 class BuildBackendCaller(BuildBackendBase):
