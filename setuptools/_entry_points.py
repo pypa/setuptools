@@ -62,7 +62,7 @@ def _(eps):
     >>> ep.value
     'bar'
     """
-    return validate(metadata.EntryPoints._from_text(eps))
+    return validate(metadata.EntryPoints(metadata.EntryPoints._from_text(eps)))
 
 
 load.register(type(None), lambda x: x)
