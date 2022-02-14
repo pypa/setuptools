@@ -50,8 +50,8 @@ class BuildBackend(BuildBackendBase):
     def _kill(self, pid):
         if pid is None:
             return
-        with contextlib.suppress(ProcessLookupError):
-            os.kill(pid, signal.SIGKILL)
+        with contextlib.suppress(ProcessLookupError, OSError):
+            os.kill(pid, signal.SIGTERM if os.name == "nt" else signal.SIGKILL)
 
 
 class BuildBackendCaller(BuildBackendBase):
