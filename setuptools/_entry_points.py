@@ -53,6 +53,15 @@ def load(eps):
 
 @load.register(str)
 def _(eps):
+    r"""
+    >>> ep, = load('[console_scripts]\nfoo=bar')
+    >>> ep.group
+    'console_scripts'
+    >>> ep.name
+    'foo'
+    >>> ep.value
+    'bar'
+    """
     return validate(metadata.EntryPoints._from_text(eps))
 
 
