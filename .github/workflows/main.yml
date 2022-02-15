@@ -38,6 +38,11 @@ jobs:
       - name: Install tox
         run: |
           python -m pip install tox
+      - name: Disable coverage on PyPy
+        # Coverage seems to slow things down on PyPy (ubuntu is still OK-ish)
+        if: contains(matrix.python, 'pypy') && matrix.platform != 'ubuntu-latest'
+        shell: bash
+        run: echo 'PYTEST_ADDOPTS=-p no:cov' >> $GITHUB_ENV
       - name: Run tests
         run: tox -- --cov-report xml
       - name: Publish coverage
