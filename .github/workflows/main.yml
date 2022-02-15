@@ -29,6 +29,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
@@ -50,6 +51,7 @@ jobs:
 
   test_cygwin:
     runs-on: windows-latest
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v2
       - name: Install Cygwin with Python
@@ -82,6 +84,7 @@ jobs:
     #    "integration")
     # With that in mind, the integration tests can run for a single setup
     runs-on: ubuntu-latest
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v2
       - name: Install OS-level dependencies
@@ -103,7 +106,7 @@ jobs:
     needs: [test, test_cygwin, integration-test]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
