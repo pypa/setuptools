@@ -1,1 +1,0 @@
-Prevent vendored importlib_metadata from loading distributions from older importlib_metadata.

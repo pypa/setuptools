@@ -1,3 +1,14 @@
+v60.9.1
+-------
+
+
+Misc
+^^^^
+* #3102: Prevent vendored importlib_metadata from loading distributions from older importlib_metadata.
+* #3103: Fixed issue where string-based entry points would be omitted.
+* #3107: Bump importlib_metadata to 4.11.1 addressing issue with parsing requirements in egg-info as found in PyPy.
+
+
 v60.9.0
 -------
 

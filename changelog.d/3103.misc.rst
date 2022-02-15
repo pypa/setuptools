@@ -1,1 +1,0 @@
-Fixed issue where string-based entry points would be omitted.
