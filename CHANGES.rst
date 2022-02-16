@@ -1,3 +1,106 @@
+v60.9.1
+-------
+
+
+Misc
+^^^^
+* #3102: Prevent vendored importlib_metadata from loading distributions from older importlib_metadata.
+* #3103: Fixed issue where string-based entry points would be omitted.
+* #3107: Bump importlib_metadata to 4.11.1 addressing issue with parsing requirements in egg-info as found in PyPy.
+
+
+v60.9.0
+-------
+
+
+Changes
+^^^^^^^
+* #2876: In the build backend, allow single config settings to be supplied.
+* #2993: Removed workaround in distutils hack for get-pip now that pypa/get-pip#137 is closed.
+* #3085: Setuptools no longer relies on ``pkg_resources`` for entry point handling.
+* #3098: Bump vendored packaging to 21.3.
+* Removed bootstrap script.
+
+
+v60.8.2
+-------
+
+
+Misc
+^^^^
+* #3091: Make ``concurrent.futures`` import lazy in vendored ``more_itertools``
+  package to a  avoid importing threading as a side effect (which caused
+  `gevent/gevent#1865 <https://github.com/gevent/gevent/issues/1865>`__).
+  -- by :user:`maciejp-ro`
+
+
+v60.8.1
+-------
+
+
+Misc
+^^^^
+* #3084: When vendoring jaraco packages, ensure the namespace package is converted to a simple package to support zip importer.
+
+
+v60.8.0
+-------
+
+
+Changes
+^^^^^^^
+* #3085: Setuptools now vendors importlib_resources and importlib_metadata and jaraco.text. Setuptools no longer relies on pkg_resources for ensure_directory nor parse_requirements.
+
+
+v60.7.1
+-------
+
+
+Misc
+^^^^
+* #3072: Remove lorem_ipsum from jaraco.text when vendored.
+
+
+v60.7.0
+-------
+
+
+Changes
+^^^^^^^
+* #3061: Vendored jaraco.text and use line processing from that library in pkg_resources.
+
+Misc
+^^^^
+* #3070: Avoid AttributeError in easy_install.create_home_path when sysconfig.get_config_vars values are not strings.
+
+
+v60.6.0
+-------
+
+
+Changes
+^^^^^^^
+* #3043: Merge with pypa/distutils@bb018f1ac3 including consolidated behavior in sysconfig.get_platform (pypa/distutils#104).
+* #3057: Don't include optional ``Home-page`` in metadata if no ``url`` is specified. -- by :user:`cdce8p`
+* #3062: Merge with pypa/distutils@b53a824ec3 including improved support for lib directories on non-x64 Windows builds.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #2897: Added documentation about wrapping ``setuptools.build_meta`` in a in-tree
+  custom backend. This is a :pep:`517`-compliant way of dynamically specifying
+  build dependencies (e.g. when platform, OS and other markers are not enough).
+  -- by :user:`abravalheri`
+* #3034: Replaced occurrences of the defunct distutils-sig mailing list with pointers
+  to GitHub Discussions.
+  -- by :user:`ashemedai`
+* #3056: The documentation has stopped suggesting to add ``wheel`` to
+  :pep:`517` requirements -- by :user:`webknjaz`
+
+Misc
+^^^^
+* #3054: Used Py3 syntax ``super().__init__()`` -- by :user:`imba-tjd`
+
+
 v60.5.4
 -------
 

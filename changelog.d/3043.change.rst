@@ -1,1 +1,0 @@
-Merge with pypa/distutils@bb018f1ac3 including consolidated behavior in sysconfig.get_platform (pypa/distutils#104).

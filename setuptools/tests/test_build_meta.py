@@ -1,7 +1,9 @@
 import os
 import shutil
+import signal
 import tarfile
 import importlib
+import contextlib
 from concurrent import futures
 import re
 
@@ -9,6 +11,9 @@ import pytest
 from jaraco import path
 
 from .textwrap import DALS
+
+
+TIMEOUT = int(os.getenv("TIMEOUT_BACKEND_TEST", "180"))  # in seconds
 
 
 class BuildBackendBase:
@@ -31,9 +36,22 @@ class BuildBackend(BuildBackendBase):
         def method(*args, **kw):
             root = os.path.abspath(self.cwd)
             caller = BuildBackendCaller(root, self.env, self.backend_name)
-            return self.pool.submit(caller, name, *args, **kw).result()
+            pid = None
+            try:
+                pid = self.pool.submit(os.getpid).result(TIMEOUT)
+                return self.pool.submit(caller, name, *args, **kw).result(TIMEOUT)
+            except futures.TimeoutError:
+                self.pool.shutdown(wait=False)  # doesn't stop already running processes
+                self._kill(pid)
+                pytest.xfail(f"Backend did not respond before timeout ({TIMEOUT} s)")
 
         return method
+
+    def _kill(self, pid):
+        if pid is None:
+            return
+        with contextlib.suppress(ProcessLookupError, OSError):
+            os.kill(pid, signal.SIGTERM if os.name == "nt" else signal.SIGKILL)
 
 
 class BuildBackendCaller(BuildBackendBase):

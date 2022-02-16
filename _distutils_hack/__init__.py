@@ -139,33 +139,6 @@ class DistutilsMetaFinder:
         clear_distutils()
         self.spec_for_distutils = lambda: None
 
-    def spec_for_setuptools(self):
-        """
-        get-pip imports setuptools solely for the purpose of
-        determining if it's installed. In this case, provide
-        a stubbed spec to represent setuptools being present
-        without invoking any behavior.
-
-        Workaround for pypa/get-pip#137. Ref #2993.
-        """
-        if not self.is_script('get-pip'):
-            return
-
-        import importlib
-
-        class StubbedLoader(importlib.abc.Loader):
-
-            def create_module(self, spec):
-                import types
-                return types.ModuleType('setuptools')
-
-            def exec_module(self, module):
-                pass
-
-        return importlib.util.spec_from_loader(
-            'setuptools', StubbedLoader(),
-        )
-
     @classmethod
     def pip_imported_during_build(cls):
         """
@@ -176,14 +149,6 @@ class DistutilsMetaFinder:
             cls.frame_file_is_setup(frame)
             for frame, line in traceback.walk_stack(None)
         )
-
-    @staticmethod
-    def is_script(name):
-        try:
-            import __main__
-            return os.path.basename(__main__.__file__) == f'{name}.py'
-        except AttributeError:
-            pass
 
     @staticmethod
     def frame_file_is_setup(frame):
