@@ -93,3 +93,66 @@ def test_distutils_has_origin():
     Distutils module spec should have an origin. #2990.
     """
     assert __import__('distutils').__spec__.origin
+
+
+ENSURE_IMPORTS_ARE_NOT_DUPLICATED = r"""
+# Depending on the importlib machinery and _distutils_hack, some imports are
+# duplicated resulting in different module objects being loaded, which prevents
+# patches as shown in #3042.
+# This script provides a way of verifying if this duplication is happening.
+
+from distutils import cmd
+import distutils.command.sdist as sdist
+
+# import last to prevent caching
+from distutils import {imported_module}
+
+for mod in (cmd, sdist):
+    assert mod.{imported_module} == {imported_module}, (
+        f"\n{{mod.dir_util}}\n!=\n{{{imported_module}}}"
+    )
+
+print("success")
+"""
+
+
+@pytest.mark.parametrize(
+    "distutils_version, imported_module",
+    [
+        ("stdlib", "dir_util"),
+        ("stdlib", "file_util"),
+        ("stdlib", "archive_util"),
+        ("local", "dir_util"),
+        ("local", "file_util"),
+        ("local", "archive_util"),
+    ]
+)
+def test_modules_are_not_duplicated_on_import(
+        distutils_version, imported_module, tmpdir_cwd, venv
+):
+    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    script = ENSURE_IMPORTS_ARE_NOT_DUPLICATED.format(imported_module=imported_module)
+    cmd = ['python', '-c', script]
+    output = popen_text(venv.run)(cmd, env=win_sr(env)).strip()
+    assert output == "success"
+
+
+ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED = r"""
+# Similar to ENSURE_IMPORTS_ARE_NOT_DUPLICATED
+import distutils.dist as dist
+from distutils import log
+
+assert dist.log == log, (
+    f"\n{dist.log}\n!=\n{log}"
+)
+
+print("success")
+"""
+
+
+@pytest.mark.parametrize("distutils_version", "local stdlib".split())
+def test_log_module_is_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
+    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    cmd = ['python', '-c', ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED]
+    output = popen_text(venv.run)(cmd, env=win_sr(env)).strip()
+    assert output == "success"
