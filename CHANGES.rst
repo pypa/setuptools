@@ -1,3 +1,12 @@
+v60.9.2
+-------
+
+
+Misc
+^^^^
+* #3035: When loading distutils from the vendored copy, rewrite ``__name__`` to ensure consistent importing from inside and out.
+
+
 v60.9.1
 -------
 
