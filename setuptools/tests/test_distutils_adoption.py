@@ -123,10 +123,7 @@ print("success")
         ("stdlib", "file_util"),
         ("stdlib", "archive_util"),
         ("local", "dir_util"),
-        pytest.param(
-            "local", "file_util",
-            marks=pytest.mark.xfail(reason="duplicated distutils.file_util, #3042")
-        ),
+        ("local", "file_util"),
         ("local", "archive_util"),
     ]
 )
@@ -153,16 +150,7 @@ print("success")
 """
 
 
-@pytest.mark.parametrize(
-    "distutils_version",
-    [
-        pytest.param(
-            "local",
-            marks=pytest.mark.xfail(reason="duplicated distutils.log, #3038 #3042")
-        ),
-        "stdlib"
-    ]
-)
+@pytest.mark.parametrize("distutils_version", "local stdlib".split())
 def test_log_module_is_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
     cmd = ['python', '-c', ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED]
