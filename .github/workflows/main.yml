@@ -103,7 +103,7 @@ jobs:
         run: tox -e integration
 
   release:
-    needs: [integration-test]
+    needs: [test, test_cygwin, integration-test]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 75
