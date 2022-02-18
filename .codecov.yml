@@ -3,4 +3,10 @@ coverage:
   status:
     project:
       default:
+        informational: true  # Treat coverage info as informational only
         threshold: 0.5%
+    patch:
+      default:
+        informational: true  # Treat coverage info as informational only
+github_checks:
+  annotations: false  # Codecov may pollute the "files" diff view
