@@ -1,0 +1,1 @@
+``pytest-xdist`` is no longer used when running tests on PyPy.
