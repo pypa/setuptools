@@ -5,7 +5,8 @@ source =
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
 	*/_vendor/*
-	*/_distutils/*
+	*/_distutils/tests/*
 
 [report]
 show_missing = True
+skip_covered = True
