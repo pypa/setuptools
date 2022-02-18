@@ -1,5 +1,7 @@
 from configparser import ConfigParser
 
+import pytest
+
 from setuptools.config.pyprojecttoml import read_configuration, expand_configuration
 
 EXAMPLE = """
@@ -154,3 +156,12 @@ def test_ignore_unrelated_config(tmp_path):
 
     # Make sure no error is raised due to 3rd party configs in pyproject.toml
     assert read_configuration(pyproject) is not None
+
+
+@pytest.mark.parametrize("config", ("", "[tool.something]\nvalue = 42"))
+def test_empty(tmp_path, config):
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(config)
+
+    # Make sure no error is raised
+    assert read_configuration(pyproject) == {}
