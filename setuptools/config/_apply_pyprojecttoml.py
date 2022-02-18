@@ -15,7 +15,7 @@ from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tup
                     Type, Union)
 
 if TYPE_CHECKING:
-    from pkg_resources import EntryPoint  # noqa
+    from setuptools._importlib import metadata  # noqa
     from setuptools.dist import Distribution  # noqa
 
 EMPTY = MappingProxyType({})  # Immutable dict-like
@@ -181,13 +181,14 @@ def _copy_command_options(pyproject: dict, dist: "Distribution", filename: _Path
 
 
 def _valid_command_options(cmdclass: Mapping = EMPTY) -> Dict[str, Set[str]]:
-    from pkg_resources import iter_entry_points
+    from .._importlib import metadata
     from setuptools.dist import Distribution
 
     valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}
 
-    entry_points = (_load_ep(ep) for ep in iter_entry_points('distutils.commands'))
-    entry_points = (ep for ep in entry_points if ep)
+    unloaded_entry_points = metadata.entry_points(group='distutils.commands')
+    loaded_entry_points = (_load_ep(ep) for ep in unloaded_entry_points)
+    entry_points = (ep for ep in loaded_entry_points if ep)
     for cmd, cmd_class in chain(entry_points, cmdclass.items()):
         opts = valid_options.get(cmd, set())
         opts = opts | _normalise_cmd_options(getattr(cmd_class, "user_options", []))
@@ -196,7 +197,7 @@ def _valid_command_options(cmdclass: Mapping = EMPTY) -> Dict[str, Set[str]]:
     return valid_options
 
 
-def _load_ep(ep: "EntryPoint") -> Optional[Tuple[str, Type]]:
+def _load_ep(ep: "metadata.EntryPoint") -> Optional[Tuple[str, Type]]:
     # Ignore all the errors
     try:
         return (ep.name, ep.load())
