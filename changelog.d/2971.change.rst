@@ -1,0 +1,1 @@
+Deprecated upload_docs command, to be removed in the future.

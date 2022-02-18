@@ -17,8 +17,10 @@ import itertools
 import functools
 import http.client
 import urllib.parse
+import warnings
 
 from .._importlib import metadata
+from .. import SetuptoolsDeprecationWarning
 
 from .upload import upload
 
@@ -89,6 +91,12 @@ class upload_docs(upload):
             zip_file.close()
 
     def run(self):
+        warnings.warn(
+            "upload_docs is deprecated and will be removed in a future "
+            "version. Use tools like httpie or curl instead.",
+            SetuptoolsDeprecationWarning,
+        )
+
         # Run sub commands
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
