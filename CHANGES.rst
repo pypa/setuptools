@@ -1,3 +1,12 @@
+v60.9.3
+-------
+
+
+Misc
+^^^^
+* #3093: Repaired automated release process.
+
+
 v60.9.2
 -------
 
