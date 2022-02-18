@@ -136,3 +136,21 @@ def test_expand_entry_point(tmp_path):
     assert len(expanded_project["entry-points"]) == 3
     assert "scripts" not in expanded_project
     assert "gui-scripts" not in expanded_project
+
+
+EXAMPLE_INVALID_3RD_PARTY_CONFIG = """
+[project]
+name = "myproj"
+version = "1.2"
+
+[my-tool.that-disrespect.pep518]
+value = 42
+"""
+
+
+def test_ignore_unrelated_config(tmp_path):
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(EXAMPLE_INVALID_3RD_PARTY_CONFIG)
+
+    # Make sure no error is raised due to 3rd party configs in pyproject.toml
+    assert read_configuration(pyproject) is not None

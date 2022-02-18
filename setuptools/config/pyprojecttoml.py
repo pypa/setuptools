@@ -73,7 +73,7 @@ def read_configuration(filepath, expand=True, ignore_option_errors=False):
         raise FileError(f"Configuration file {filepath!r} does not exist.")
 
     asdict = load_file(filepath) or {}
-    project_table = asdict.get("project")
+    project_table = asdict.get("project", {})
     tool_table = asdict.get("tool", {}).get("setuptools", {})
     if not asdict or not(project_table or tool_table):
         return {}  # User is not using pyproject to configure setuptools
@@ -85,7 +85,9 @@ def read_configuration(filepath, expand=True, ignore_option_errors=False):
     tool_table.setdefault("include-package-data", True)
 
     with _ignore_errors(ignore_option_errors):
-        validate(asdict, filepath)
+        # Don't complain about unrelated errors (e.g. tools not using the "tool" table)
+        subset = {"project": project_table, "tool": {"setuptools": tool_table}}
+        validate(subset, filepath)
 
     if expand:
         root_dir = os.path.dirname(filepath)
