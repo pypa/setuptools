@@ -1,6 +1,7 @@
 """Load setuptools configuration from ``pyproject.toml`` files"""
 import json
 import os
+import warnings
 from contextlib import contextmanager
 from distutils import log
 from functools import partial
@@ -77,6 +78,13 @@ def read_configuration(filepath, expand=True, ignore_option_errors=False):
     tool_table = asdict.get("tool", {}).get("setuptools", {})
     if not asdict or not(project_table or tool_table):
         return {}  # User is not using pyproject to configure setuptools
+
+    # TODO: Remove once the future stabilizes
+    msg = (
+        "Support for project metadata in `pyproject.toml` is still experimental "
+        "and may be removed (or change) in future releases."
+    )
+    warnings.warn(msg, _ExperimentalProjectMetadata)
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
@@ -218,3 +226,7 @@ def _ignore_errors(ignore_option_errors):
         yield
     except Exception as ex:
         log.debug(f"Ignored error: {ex.__class__.__name__} - {ex}")
+
+
+class _ExperimentalProjectMetadata(UserWarning):
+    """Explicitly inform users that `pyproject.toml` configuration is experimental"""
