@@ -88,9 +88,10 @@ def test_resolve_class():
 @pytest.mark.parametrize(
     'args, pkgs',
     [
-        ({"where": ["."]}, {"pkg", "other"}),
-        ({"where": [".", "dir1"]}, {"pkg", "other", "dir2"}),
+        ({"where": ["."], "namespaces": False}, {"pkg", "other"}),
+        ({"where": [".", "dir1"], "namespaces": False}, {"pkg", "other", "dir2"}),
         ({"namespaces": True}, {"pkg", "other", "dir1", "dir1.dir2"}),
+        ({}, {"pkg", "other", "dir1", "dir1.dir2"}),  # default value for `namespaces`
     ]
 )
 def test_find_packages(tmp_path, monkeypatch, args, pkgs):
