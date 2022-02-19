@@ -543,7 +543,7 @@ Changes
 
 Documentation changes
 ^^^^^^^^^^^^^^^^^^^^^
-* #2792: Document how the legacy and non-legacy versions are compared, and reference to the `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_ scheme.
+* #2792: Document how the legacy and non-legacy versions are compared, and reference to the PEP 440 scheme.
 
 
 v58.1.0
@@ -4758,8 +4758,7 @@ how it parses version numbers.
   Jython.
 * Work around Jython #1980 and Jython #1981.
 * Distribute #334: Provide workaround for packages that reference ``sys.__stdout__``
-  such as numpy does. This change should address
-  `virtualenv #359 <https://github.com/pypa/virtualenv/issues/359>`_ as long
+  such as numpy does. This change should address pypa/virtualenv#359 as long
   as the system encoding is UTF-8 or the IO encoding is specified in the
   environment, i.e.::
 
@@ -4785,7 +4784,7 @@ how it parses version numbers.
 
 * BB Pull Request #14: Honor file permissions in zip files.
 * Distribute #327: Merged pull request #24 to fix a dependency problem with pip.
-* Merged pull request #23 to fix https://github.com/pypa/virtualenv/issues/301.
+* Merged pull request #23 to fix pypa/virtualenv#301.
 * If Sphinx is installed, the ``upload_docs`` command now runs ``build_sphinx``
   to produce uploadable documentation.
 * Distribute #326: ``upload_docs`` provided mangled auth credentials under Python 3.

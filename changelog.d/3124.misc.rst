@@ -1,0 +1,2 @@
+Improved configuration for :pypi:`rst-linker` (extension used to build the
+changelog).

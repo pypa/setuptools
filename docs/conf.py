@@ -10,7 +10,7 @@ link_files = {
         ),
         replace=[
             dict(
-                pattern=r'(Issue )?#(?P<issue>\d+)',
+                pattern=r'(?<!\w)(Issue )?#(?P<issue>\d+)',
                 url='{package_url}/issues/{issue}',
             ),
             dict(
@@ -54,7 +54,7 @@ link_files = {
                 url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
             ),
             dict(
-                pattern=r'PEP[- ](?P<pep_number>\d+)',
+                pattern=r'(?<![`/\w])PEP[- ](?P<pep_number>\d+)',
                 url='https://www.python.org/dev/peps/pep-{pep_number:0>4}/',
             ),
             dict(
@@ -62,12 +62,12 @@ link_files = {
                 url='{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
             ),
             dict(
-                pattern=r'pypa/distutils#(?P<distutils>\d+)',
-                url='{GH}/pypa/distutils/issues/{distutils}',
+                pattern=r'pypa/(?P<issue_repo>[\-\.\w]+)#(?P<issue_number>\d+)',
+                url='{GH}/pypa/{issue_repo}/issues/{issue_number}',
             ),
             dict(
-                pattern=r'pypa/distutils@(?P<distutils_commit>[\da-f]+)',
-                url='{GH}/pypa/distutils/commit/{distutils_commit}',
+                pattern=r'pypa/(?P<commit_repo>[\-\.\w]+)@(?P<commit_number>[\da-f]+)',
+                url='{GH}/pypa/{commit_repo}/commit/{commit_number}',
             ),
             dict(
                 pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
