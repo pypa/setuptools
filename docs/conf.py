@@ -54,7 +54,7 @@ link_files = {
                 url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
             ),
             dict(
-                pattern=r'PEP[- ](?P<pep_number>\d+)',
+                pattern=r'(?<![`/\w])PEP[- ](?P<pep_number>\d+)',
                 url='https://www.python.org/dev/peps/pep-{pep_number:0>4}/',
             ),
             dict(
