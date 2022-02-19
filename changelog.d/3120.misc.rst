@@ -1,0 +1,4 @@
+Added workaround for intermittent failures of backend tests on PyPy.
+These tests now are marked with `XFAIL
+<https://docs.pytest.org/en/stable/how-to/skipping.html>`_, instead of erroring
+out directly.

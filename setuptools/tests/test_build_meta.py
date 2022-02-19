@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 import signal
 import tarfile
@@ -14,6 +15,7 @@ from .textwrap import DALS
 
 
 TIMEOUT = int(os.getenv("TIMEOUT_BACKEND_TEST", "180"))  # in seconds
+IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 
 class BuildBackendBase:
@@ -44,6 +46,10 @@ class BuildBackend(BuildBackendBase):
                 self.pool.shutdown(wait=False)  # doesn't stop already running processes
                 self._kill(pid)
                 pytest.xfail(f"Backend did not respond before timeout ({TIMEOUT} s)")
+            except (futures.process.BrokenProcessPool, MemoryError):
+                if IS_PYPY:
+                    pytest.xfail("PyPy frequently fails tests with ProcessPoolExector")
+                raise
 
         return method
 
