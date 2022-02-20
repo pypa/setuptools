@@ -46,7 +46,7 @@ class BuildBackend(BuildBackendBase):
                 self.pool.shutdown(wait=False)  # doesn't stop already running processes
                 self._kill(pid)
                 pytest.xfail(f"Backend did not respond before timeout ({TIMEOUT} s)")
-            except (futures.process.BrokenProcessPool, MemoryError):
+            except (futures.process.BrokenProcessPool, MemoryError, OSError):
                 if IS_PYPY:
                     pytest.xfail("PyPy frequently fails tests with ProcessPoolExector")
                 raise
