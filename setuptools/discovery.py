@@ -265,7 +265,7 @@ class ConfigDiscovery:
         self._called = True
 
     def _analyse_package_layout(self):
-        if self.dist.packages or self.dist.py_modules:
+        if self.dist.packages is not None or self.dist.py_modules is not None:
             # For backward compatibility, just try to find modules/packages
             # when nothing is given
             return None

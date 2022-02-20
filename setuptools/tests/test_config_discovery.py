@@ -1,14 +1,16 @@
 import os
 import sys
 from configparser import ConfigParser
-
-import pytest
+from itertools import product
 
 from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
 
+import pytest
+
 from .contexts import quiet
 from .integration.helpers import get_sdist_members, get_wheel_members, run
+from .textwrap import DALS
 
 
 class TestDiscoverPackagesAndPyModules:
@@ -104,6 +106,58 @@ class TestDiscoverPackagesAndPyModules:
         for file in wheel_files:
             assert "build" not in files
             assert "dist" not in files
+
+    PURPOSEFULLY_EMPY = {
+        "setup.cfg": DALS(
+            """
+            [metadata]
+            name = myproj
+            version = 0.0.0
+
+            [options]
+            {param} =
+            """
+        ),
+        "setup.py": DALS(
+            """
+            __import__('setuptools').setup(
+                name="myproj",
+                version="0.0.0",
+                {param}=[]
+            )
+            """
+        ),
+        "pyproject.toml": DALS(
+            """
+            [build-system]
+            requires = []
+            build-backend = 'setuptools.build_meta'
+            """
+        )
+    }
+
+    @pytest.mark.parametrize(
+        "config_file, param, circumstance",
+        product(["setup.cfg", "setup.py"], ["packages", "py_modules"], FILES.keys())
+    )
+    def test_purposefully_empty(self, tmp_path, config_file, param, circumstance):
+        files = self.FILES[circumstance]
+        _populate_project_dir(tmp_path, files, {})
+        config = self.PURPOSEFULLY_EMPY[config_file].format(param=param)
+        (tmp_path / config_file).write_text(config)
+
+        # Make sure build works with or without setup.cfg
+        pyproject = self.PURPOSEFULLY_EMPY["pyproject.toml"]
+        (tmp_path / "pyproject.toml").write_text(pyproject)
+
+        _run_build(tmp_path)
+
+        wheel_files = get_wheel_members(next(tmp_path.glob("dist/*.whl")))
+        print("~~~~~ wheel_members ~~~~~")
+        print('\n'.join(wheel_files))
+        for file in files:
+            name = file.replace("src/", "")
+            assert name not in wheel_files
 
 
 class TestNoConfig:
