@@ -78,6 +78,16 @@ class TestDiscoverPackagesAndPyModules:
         files, options = self._get_info(circumstance)
         _populate_project_dir(tmp_path, files, options)
 
+        # Simulate a pre-existing `build` directory
+        (tmp_path / "build").mkdir()
+        (tmp_path / "build/lib").mkdir()
+        (tmp_path / "build/bdist.linux-x86_64").mkdir()
+        (tmp_path / "build/bdist.linux-x86_64/file.py").touch()
+        (tmp_path / "build/lib/__init__.py").touch()
+        (tmp_path / "build/lib/file.py").touch()
+        (tmp_path / "dist").mkdir()
+        (tmp_path / "dist/file.py").touch()
+
         _run_build(tmp_path)
 
         sdist_files = get_sdist_members(next(tmp_path.glob("dist/*.tar.gz")))
@@ -89,6 +99,11 @@ class TestDiscoverPackagesAndPyModules:
         print("~~~~~ wheel_members ~~~~~")
         print('\n'.join(wheel_files))
         assert wheel_files >= {f.replace("src/", "") for f in files}
+
+        # Make sure build files are not included by mistake
+        for file in wheel_files:
+            assert "build" not in files
+            assert "dist" not in files
 
 
 class TestNoConfig:

@@ -186,6 +186,8 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "examples",
         "scripts",
         "tools",
+        "build",
+        "dist",
         # ---- Task runners / Build tools ----
         "tasks",  # invoke
         "fabfile",  # fabric
