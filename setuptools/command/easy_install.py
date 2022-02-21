@@ -1579,50 +1579,73 @@ def get_exe_prefixes(exe_filename):
 class PthDistributions(Environment):
     """A .pth file with Distribution paths in it"""
 
-    dirty = False
-
     def __init__(self, filename, sitedirs=()):
         self.filename = filename
         self.sitedirs = list(map(normalize_path, sitedirs))
         self.basedir = normalize_path(os.path.dirname(self.filename))
-        self._load()
+        self.paths, self.dirty = self._load()
+        self._init_paths = self.paths[:]  # keep a copy if someone manually updates the `self.paths`
         super().__init__([], None, None)
         for path in yield_lines(self.paths):
             list(map(self.add, find_distributions(path, True)))
 
-    def _load(self):
-        self.paths = []
-        saw_import = False
+    def _load_raw(self):
+        paths = []
+        dirty = saw_import = False
         seen = dict.fromkeys(self.sitedirs)
-        if os.path.isfile(self.filename):
-            f = open(self.filename, 'rt')
-            for line in f:
-                if line.startswith('import'):
-                    saw_import = True
-                    continue
-                path = line.rstrip()
-                self.paths.append(path)
-                if not path.strip() or path.strip().startswith('#'):
-                    continue
-                # skip non-existent paths, in case somebody deleted a package
-                # manually, and duplicate paths as well
-                path = self.paths[-1] = normalize_path(
-                    os.path.join(self.basedir, path)
-                )
-                if not os.path.exists(path) or path in seen:
-                    self.paths.pop()  # skip it
-                    self.dirty = True  # we cleaned up, so we're dirty now :)
-                    continue
-                seen[path] = 1
-            f.close()
+        f = open(self.filename, 'rt')
+        for line in f:
+            path = line.rstrip()
+            stripped_path = path.strip()
+            paths.append(path)  # still keep imports and empty/commented lines for formatting
+            if line.startswith(('import ', 'from ')):
+                saw_import = True
+                continue
+            if not stripped_path or stripped_path.startswith('#'):
+                continue
+            # skip non-existent paths, in case somebody deleted a package
+            # manually, and duplicate paths as well
+            normalized_path = normalize_path(os.path.join(self.basedir, path))
+            if not os.path.exists(normalized_path) or normalized_path in seen:
+                log.debug("cleaned up dirty or duplicated %r", path)
+                dirty = True
+                paths.pop()
+                continue
+            seen[normalized_path] = 1
+        f.close()
+        return paths, dirty or (paths and saw_import)
 
-        if self.paths and not saw_import:
-            self.dirty = True  # ensure anything we touch has import wrappers
-        while self.paths and not self.paths[-1].strip():
-            self.paths.pop()
+    def _load(self):
+        if os.path.isfile(self.filename):
+            paths, dirty = self._load_raw()
+            # lights cleaning:
+            while paths and not paths[-1].strip():
+                paths.pop()
+        else:
+            paths = []
+            dirty = False
+        return paths, dirty
 
     def save(self):
         """Write changed .pth file back to disk"""
+        last_paths, last_dirty = self._load()
+        for path in last_paths[:]:
+            if path not in self.paths:
+                self.paths.append(path)
+                log.info("detected new path %r", path)
+                last_dirty = True
+            else:
+                last_paths.remove(path)
+        for path in self.paths[:]:
+            if path not in last_paths \
+                    and not path.startswith(('import ', 'from ', '#')):
+                absolute_path = os.path.join(self.basedir, path)
+                if not os.path.exists(absolute_path):
+                    self.paths.remove(path)
+                    log.info("removing now non-existent path %r", path)
+                    last_dirty = True
+
+        self.dirty |= last_dirty or self.paths != self._init_paths
         if not self.dirty:
             return
 
@@ -1642,6 +1665,7 @@ class PthDistributions(Environment):
             os.unlink(self.filename)
 
         self.dirty = False
+        self._init_paths[:] = self.paths[:]
 
     @staticmethod
     def _wrap_lines(lines):

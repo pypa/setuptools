@@ -317,6 +317,27 @@ class TestPTHFileWriter:
         pth.add(PRDistribution(location))
         assert not pth.dirty
 
+    def test_many_pth_distributions_merge_together(self, tmpdir):
+        """makes sure that if the pth file is modified under the hood then a(ny) PthDistribution
+        will refresh its content before saving. and merging as necessary what needs to be.
+        """
+        pth_path = str(tmpdir.join("file1.pth"))
+        pth1 = PthDistributions(pth_path)
+        pth2 = PthDistributions(pth_path)
+        assert pth1.filename == pth2.filename
+        new_path = tmpdir.join("foo", "bar")
+        tmpdir.join("foo").mkdir()
+        new_path.mkdir()  # must exist
+        new_path_str = str(new_path)
+        pth2.paths.append(new_path_str)
+        pth2.save()
+        assert not pth1.paths
+        pth1.save()
+        assert pth1.paths, \
+            "the new_path should have been added by pth1 with its save() call"
+        pth3 = PthDistributions(pth_path)
+        assert pth3.paths == pth1.paths, "we should have the exact same list at the end"
+
 
 @pytest.fixture
 def setup_context(tmpdir):
