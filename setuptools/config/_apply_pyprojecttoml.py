@@ -74,18 +74,39 @@ def _set_config(dist: "Distribution", field: str, value: Any):
         setattr(dist, field, value)
 
 
+_CONTENT_TYPES = {
+    ".md": "text/markdown",
+    ".rst": "text/x-rst",
+    ".txt": "text/plain",
+}
+
+
+def _guess_content_type(file: str) -> Optional[str]:
+    _, ext = os.path.splitext(file.lower())
+    if not ext:
+        return None
+
+    if ext in _CONTENT_TYPES:
+        return _CONTENT_TYPES[ext]
+
+    valid = ", ".join(f"{k} ({v})" for k, v in _CONTENT_TYPES.items())
+    msg = f"only the following file extensions are recognized: {valid}."
+    raise ValueError(f"Undefined content type for {file}, {msg}")
+
+
 def _long_description(dist: "Distribution", val: _DictOrStr, root_dir: _Path):
     from setuptools.config import expand
 
     if isinstance(val, str):
         text = expand.read_files(val, root_dir)
-        ctype = "text/x-rst"
+        ctype = _guess_content_type(val)
     else:
         text = val.get("text") or expand.read_files(val.get("file", []), root_dir)
         ctype = val["content-type"]
 
     _set_config(dist, "long_description", text)
-    _set_config(dist, "long_description_content_type", ctype)
+    if ctype:
+        _set_config(dist, "long_description_content_type", ctype)
 
 
 def _license(dist: "Distribution", val: Union[str, dict], _root_dir):

@@ -129,16 +129,51 @@ def main_tomatoes(): pass
 """
 
 
-def test_pep621_example(tmp_path):
-    """Make sure the example in PEP 621 works"""
+def _pep621_example_project(tmp_path, readme="README.rst"):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(PEP621_EXAMPLE)
+    text = PEP621_EXAMPLE
+    replacements = {'readme = "README.rst"': f'readme = "{readme}"'}
+    for orig, subst in replacements.items():
+        text = text.replace(orig, subst)
+    pyproject.write_text(text)
+
     (tmp_path / "README.rst").write_text("hello world")
     (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---")
     (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT)
+    return pyproject
 
+
+def test_pep621_example(tmp_path):
+    """Make sure the example in PEP 621 works"""
+    pyproject = _pep621_example_project(tmp_path)
     dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
     assert set(dist.metadata.license_files) == {"LICENSE.txt"}
+
+
+@pytest.mark.parametrize(
+    "readme, ctype",
+    [
+        ("Readme.txt", "text/plain"),
+        ("readme.md", "text/markdown"),
+        ("text.rst", "text/x-rst"),
+    ]
+)
+def test_readme_content_type(tmp_path, readme, ctype):
+    pyproject = _pep621_example_project(tmp_path, readme)
+    dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
+    assert dist.metadata.long_description_content_type == ctype
+
+
+def test_undefined_content_type(tmp_path):
+    pyproject = _pep621_example_project(tmp_path, "README.tex")
+    with pytest.raises(ValueError, match="Undefined content type for README.tex"):
+        pyprojecttoml.apply_configuration(Distribution(), pyproject)
+
+
+def test_no_explicit_content_type_for_missing_extension(tmp_path):
+    pyproject = _pep621_example_project(tmp_path, "README")
+    dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
+    assert dist.metadata.long_description_content_type is None
 
 
 # --- Auxiliary Functions ---
