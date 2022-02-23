@@ -23,6 +23,9 @@ class TestDiscoverPackagesAndPyModules:
             "package_dir": {"": "src"},
             "packages": ["pkg"]
         },
+        "variation-lib": {
+            "package_dir": {"": "lib"},  # variation of the source-layout
+        },
         "explicit-flat": {
             "packages": ["pkg"]
         },
@@ -39,6 +42,7 @@ class TestDiscoverPackagesAndPyModules:
     }
     FILES = {
         "src": ["src/pkg/__init__.py", "src/pkg/main.py"],
+        "lib": ["lib/pkg/__init__.py", "lib/pkg/main.py"],
         "flat": ["pkg/__init__.py", "pkg/main.py"],
         "single_module": ["pkg.py"],
         "namespace": ["ns/pkg/__init__.py"]
@@ -100,7 +104,8 @@ class TestDiscoverPackagesAndPyModules:
         wheel_files = get_wheel_members(next(tmp_path.glob("dist/*.whl")))
         print("~~~~~ wheel_members ~~~~~")
         print('\n'.join(wheel_files))
-        assert wheel_files >= {f.replace("src/", "") for f in files}
+        orig_files = {f.replace("src/", "").replace("lib/", "") for f in files}
+        assert wheel_files >= orig_files
 
         # Make sure build files are not included by mistake
         for file in wheel_files:
