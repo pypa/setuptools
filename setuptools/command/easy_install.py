@@ -1596,11 +1596,11 @@ class PthDistributions(Environment):
         f = open(self.filename, 'rt')
         for line in f:
             path = line.rstrip()
-            stripped_path = path.strip()
             paths.append(path)  # still keep imports and empty/commented lines for formatting
             if line.startswith(('import ', 'from ')):
                 saw_import = True
                 continue
+            stripped_path = path.strip()
             if not stripped_path or stripped_path.startswith('#'):
                 continue
             # skip non-existent paths, in case somebody deleted a package
@@ -1613,22 +1613,23 @@ class PthDistributions(Environment):
                 continue
             seen[normalized_path] = 1
         f.close()
+        # remove any trailing empty/blank line
+        while paths and not paths[-1].strip():
+            paths.pop()
         return paths, dirty or (paths and saw_import)
 
     def _load(self):
         if os.path.isfile(self.filename):
-            paths, dirty = self._load_raw()
-            # lights cleaning:
-            while paths and not paths[-1].strip():
-                paths.pop()
-        else:
-            paths = []
-            dirty = False
-        return paths, dirty
+            return self._load_raw()
+        return [], False
 
     def save(self):
         """Write changed .pth file back to disk"""
+        # first reload the file
         last_paths, last_dirty = self._load()
+        # and check that there are no difference with what we have.
+        # there can be difference if someone else has written to the file since we first loaded it.
+        # we don't want to lose the eventual new paths added since then.
         for path in last_paths[:]:
             if path not in self.paths:
                 self.paths.append(path)
@@ -1636,6 +1637,7 @@ class PthDistributions(Environment):
                 last_dirty = True
             else:
                 last_paths.remove(path)
+        # also, re-check that all paths are still valid
         for path in self.paths[:]:
             if path not in last_paths \
                     and not path.startswith(('import ', 'from ', '#')):
