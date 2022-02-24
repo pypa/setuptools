@@ -1606,7 +1606,7 @@ class PthDistributions(Environment):
             # skip non-existent paths, in case somebody deleted a package
             # manually, and duplicate paths as well
             normalized_path = normalize_path(os.path.join(self.basedir, path))
-            if not os.path.exists(normalized_path) or normalized_path in seen:
+            if normalized_path in seen or not os.path.exists(normalized_path):
                 log.debug("cleaned up dirty or duplicated %r", path)
                 dirty = True
                 paths.pop()
@@ -1616,6 +1616,7 @@ class PthDistributions(Environment):
         # remove any trailing empty/blank line
         while paths and not paths[-1].strip():
             paths.pop()
+            dirty = True
         return paths, dirty or (paths and saw_import)
 
     def _load(self):
@@ -1637,7 +1638,7 @@ class PthDistributions(Environment):
                 last_dirty = True
             else:
                 last_paths.remove(path)
-        # also, re-check that all paths are still valid
+        # also, re-check that all paths are still valid before saving them
         for path in self.paths[:]:
             if path not in last_paths \
                     and not path.startswith(('import ', 'from ', '#')):
@@ -1656,12 +1657,10 @@ class PthDistributions(Environment):
             log.debug("Saving %s", self.filename)
             lines = self._wrap_lines(rel_paths)
             data = '\n'.join(lines) + '\n'
-
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
             with open(self.filename, 'wt') as f:
                 f.write(data)
-
         elif os.path.exists(self.filename):
             log.debug("Deleting empty %s", self.filename)
             os.unlink(self.filename)
