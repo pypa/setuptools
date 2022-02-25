@@ -1584,7 +1584,8 @@ class PthDistributions(Environment):
         self.sitedirs = list(map(normalize_path, sitedirs))
         self.basedir = normalize_path(os.path.dirname(self.filename))
         self.paths, self.dirty = self._load()
-        self._init_paths = self.paths[:]  # keep a copy if someone manually updates the `self.paths`
+        # keep a copy if someone manually updates the paths attribute on the instance
+        self._init_paths = self.paths[:]
         super().__init__([], None, None)
         for path in yield_lines(self.paths):
             list(map(self.add, find_distributions(path, True)))
@@ -1596,7 +1597,8 @@ class PthDistributions(Environment):
         f = open(self.filename, 'rt')
         for line in f:
             path = line.rstrip()
-            paths.append(path)  # still keep imports and empty/commented lines for formatting
+            # still keep imports and empty/commented lines for formatting
+            paths.append(path)
             if line.startswith(('import ', 'from ')):
                 saw_import = True
                 continue
@@ -1629,7 +1631,8 @@ class PthDistributions(Environment):
         # first reload the file
         last_paths, last_dirty = self._load()
         # and check that there are no difference with what we have.
-        # there can be difference if someone else has written to the file since we first loaded it.
+        # there can be difference if someone else has written to the file
+        # since we first loaded it.
         # we don't want to lose the eventual new paths added since then.
         for path in last_paths[:]:
             if path not in self.paths:

@@ -326,18 +326,21 @@ class TestPTHFileWriter:
         pth_path = str(pth_subdir.join("file1.pth"))
         pth1 = PthDistributions(pth_path)
         pth2 = PthDistributions(pth_path)
-        assert pth1.paths == pth2.paths == [], "unless there would be some default added at some point"
+        assert pth1.paths == pth2.paths == [], \
+            "unless there would be some default added at some point"
         new_path = tmpdir.join("src_subdir")
         new_path.mkdir()  # must exist to be accounted
         pth1.paths.append(str(new_path))
         pth1.save()
-        assert pth1.paths, "first, the new_path added must still be present/valid in pth1 after save"
+        assert pth1.paths, \
+            "first, the new_path added must still be present/valid in pth1 after save"
         assert not pth2.paths, "right before we save should still be empty"
         pth2.save()
         assert pth2.paths, \
             "the new_path should have been added by pth2 with its save() call"
         pth3 = PthDistributions(pth_path)
-        assert pth3.paths == pth2.paths, "we should have the exact same list at the end"
+        assert pth3.paths == pth2.paths, \
+            "we should have the exact same list at the end"
 
 
 @pytest.fixture
