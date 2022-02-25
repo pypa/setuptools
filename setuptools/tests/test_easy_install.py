@@ -321,6 +321,7 @@ class TestPTHFileWriter:
         """Make sure that if the pth file is modified under the hood then PthDistribution
         will refresh its content before saving, and merging contents when necessary.
         """
+        # putting the pth file in a dedicated sub-folder,
         pth_subdir = tmpdir.join("pth_subdir")
         pth_subdir.mkdir()
         pth_path = str(pth_subdir.join("file1.pth"))
@@ -328,18 +329,23 @@ class TestPTHFileWriter:
         pth2 = PthDistributions(pth_path)
         assert pth1.paths == pth2.paths == [], \
             "unless there would be some default added at some point"
-        new_path = tmpdir.join("src_subdir")
-        new_path.mkdir()  # must exist to be accounted
-        pth1.paths.append(str(new_path))
+        # and so putting the src_subdir in folder distinct than the pth one,
+        # so to keep it absolute by PthDistributions
+        new_src_path = tmpdir.join("src_subdir")
+        new_src_path.mkdir()  # must exist to be accounted
+        new_src_path_str = str(new_src_path)
+        pth1.paths.append(new_src_path_str)
         pth1.save()
         assert pth1.paths, \
             "first, the new_path added must still be present/valid in pth1 after save"
+        # now,
         assert not pth2.paths, "right before we save should still be empty"
         pth2.save()
         assert pth2.paths, \
-            "the new_path should have been added by pth2 with its save() call"
-        pth3 = PthDistributions(pth_path)
-        assert pth3.paths == pth2.paths, \
+            "the new_path entry should have been added by pth2 with its save() call"
+        assert pth2.paths[-1] == new_src_path, "and it should match exactly on the last entry"
+        # finally,
+        assert PthDistributions(pth_path).paths == pth2.paths, \
             "we should have the exact same list at the end"
 
 
