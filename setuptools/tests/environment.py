@@ -22,7 +22,7 @@ class VirtualEnv(jaraco.envs.VirtualEnv):
         # - tox isn't used to run tests and
         # - PYTHONPATH is set to point to a specific setuptools codebase and
         # - no custom env is explicitly set by a test
-        # that PYTHONPATH leaks to the spawned processes.
+        # PYTHONPATH will leak into the spawned processes.
         # In that case tests look for module in the wrong place (on PYTHONPATH).
         # Unless the test sets its own special env, pass a copy of the existing
         # environment with removed PYTHONPATH to the subprocesses.

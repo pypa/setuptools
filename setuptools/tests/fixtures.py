@@ -100,7 +100,7 @@ def venv(tmp_path, setuptools_wheel):
     env.req = str(setuptools_wheel)
     # In some environments (eg. downstream distro packaging),
     # where tox isn't used to run tests and PYTHONPATH is set to point to
-    # a specific setuptools codebase, that PYTHONPATH leaks to the spawned
+    # a specific setuptools codebase, PYTHONPATH will leak into the spawned
     # processes.
     # env.create() should install the just created setuptools
     # wheel, but it doesn't if it finds another existing matching setuptools
