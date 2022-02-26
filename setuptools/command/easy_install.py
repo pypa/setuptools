@@ -310,21 +310,8 @@ class easy_install(Command):
         # default --record from the install command
         self.set_undefined_options('install', ('record', 'record'))
         self.all_site_dirs = get_site_dirs()
-        if self.site_dirs is not None:
-            normpath = map(normalize_path, sys.path)
-            site_dirs = [
-                os.path.expanduser(s.strip()) for s in
-                self.site_dirs.split(',')
-            ]
-            for d in site_dirs:
-                if not os.path.isdir(d):
-                    log.warn("%s (in --site-dirs) does not exist", d)
-                elif normalize_path(d) not in normpath:
-                    raise DistutilsOptionError(
-                        d + " (in --site-dirs) is not on sys.path"
-                    )
-                else:
-                    self.all_site_dirs.append(normalize_path(d))
+        self.all_site_dirs.extend(self._process_site_dirs(self.site_dirs))
+
         if not self.editable:
             self.check_site_dir()
         self.index_url = self.index_url or "https://pypi.org/simple/"
@@ -364,6 +351,26 @@ class easy_install(Command):
                 "No urls, filenames, or requirements specified (see --help)")
 
         self.outputs = []
+
+    @staticmethod
+    def _process_site_dirs(site_dirs):
+        if site_dirs is None:
+            return
+
+        normpath = map(normalize_path, sys.path)
+        site_dirs = [
+            os.path.expanduser(s.strip()) for s in
+            site_dirs.split(',')
+        ]
+        for d in site_dirs:
+            if not os.path.isdir(d):
+                log.warn("%s (in --site-dirs) does not exist", d)
+            elif normalize_path(d) not in normpath:
+                raise DistutilsOptionError(
+                    d + " (in --site-dirs) is not on sys.path"
+                )
+            else:
+                yield normalize_path(d)
 
     @staticmethod
     def _validate_optimize(value):
