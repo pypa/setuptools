@@ -196,7 +196,12 @@ class UnixCCompiler(CCompiler):
                     else:
                         offset = 0
 
-                    linker[i+offset] = self.compiler_cxx[i]
+                    if len(linker) >= len(self.linker_exe) and \
+                            linker[:len(self.linker_exe)] == self.linker_exe:
+                        linker = linker[:(i + offset)] + self.compiler_cxx + \
+                            linker[len(self.linker_exe):]
+                    else:
+                        linker[i+offset] = self.compiler_cxx[i]
 
                 if sys.platform == 'darwin':
                     linker = _osx_support.compiler_fixup(linker, ld_args)
