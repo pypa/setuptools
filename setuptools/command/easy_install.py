@@ -369,9 +369,6 @@ class easy_install(Command):
 
     @staticmethod
     def _validate_optimize(value):
-        if isinstance(value, int):
-            return value
-
         try:
             value = int(value)
             if value not in range(3):
