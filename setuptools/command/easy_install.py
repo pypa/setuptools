@@ -70,29 +70,13 @@ from ..extern.jaraco.text import yield_lines
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
 
 __all__ = [
-    'samefile', 'easy_install', 'PthDistributions', 'extract_wininst_cfg',
+    'easy_install', 'PthDistributions', 'extract_wininst_cfg',
     'get_exe_prefixes',
 ]
 
 
 def is_64bit():
     return struct.calcsize("P") == 8
-
-
-def samefile(p1, p2):
-    """
-    Determine if two paths reference the same file.
-
-    Augments os.path.samefile to work on Windows and
-    suppresses errors if the path doesn't exist.
-    """
-    both_exist = os.path.exists(p1) and os.path.exists(p2)
-    use_samefile = hasattr(os.path, 'samefile') and both_exist
-    if use_samefile:
-        return os.path.samefile(p1, p2)
-    norm_p1 = os.path.normpath(os.path.normcase(p1))
-    norm_p2 = os.path.normpath(os.path.normcase(p2))
-    return norm_p1 == norm_p2
 
 
 def _to_bytes(s):
@@ -928,7 +912,7 @@ class easy_install(Command):
             ensure_directory(destination)
 
         dist = self.egg_distribution(egg_path)
-        if not samefile(egg_path, destination):
+        if not os.path.samefile(egg_path, destination):
             if os.path.isdir(destination) and not os.path.islink(destination):
                 dir_util.remove_tree(destination, dry_run=self.dry_run)
             elif os.path.exists(destination):
