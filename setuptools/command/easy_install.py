@@ -358,7 +358,7 @@ class easy_install(Command):
         if not isinstance(self.optimize, int):
             try:
                 self.optimize = int(self.optimize)
-                if not (0 <= self.optimize <= 2):
+                if self.optimize not in range(3):
                     raise ValueError
             except ValueError as e:
                 raise DistutilsOptionError(
