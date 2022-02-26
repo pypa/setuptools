@@ -355,15 +355,7 @@ class easy_install(Command):
         if not self.no_find_links:
             self.package_index.add_find_links(self.find_links)
         self.set_undefined_options('install_lib', ('optimize', 'optimize'))
-        if not isinstance(self.optimize, int):
-            try:
-                self.optimize = int(self.optimize)
-                if self.optimize not in range(3):
-                    raise ValueError
-            except ValueError as e:
-                raise DistutilsOptionError(
-                    "--optimize must be 0, 1, or 2"
-                ) from e
+        self.optimize = self._validate_optimize(self.optimize)
 
         if self.editable and not self.build_directory:
             raise DistutilsArgError(
@@ -374,6 +366,22 @@ class easy_install(Command):
                 "No urls, filenames, or requirements specified (see --help)")
 
         self.outputs = []
+
+    @staticmethod
+    def _validate_optimize(value):
+        if isinstance(value, int):
+            return value
+
+        try:
+            value = int(value)
+            if value not in range(3):
+                raise ValueError
+        except ValueError as e:
+            raise DistutilsOptionError(
+                "--optimize must be 0, 1, or 2"
+            ) from e
+
+        return value
 
     def _fix_install_dir_for_user_site(self):
         """
