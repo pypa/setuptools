@@ -680,7 +680,8 @@ class PackageIndex(Environment):
             # Make sure the file has been downloaded to the temp dir.
             if os.path.dirname(filename) != tmpdir:
                 dst = os.path.join(tmpdir, basename)
-                if not os.path.samefile(filename, dst):
+                both_exist = os.path.exists(filename) and os.path.exists(dst)
+                if not (both_exist and os.path.samefile(filename, dst)):
                     shutil.copy2(filename, dst)
                     filename = dst
 

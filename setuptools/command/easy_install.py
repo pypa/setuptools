@@ -922,7 +922,8 @@ class easy_install(Command):
             ensure_directory(destination)
 
         dist = self.egg_distribution(egg_path)
-        if not os.path.samefile(egg_path, destination):
+        both_exist = os.path.exists(egg_path) and os.path.exists(destination)
+        if not (both_exist and os.path.samefile(egg_path, destination)):
             if os.path.isdir(destination) and not os.path.islink(destination):
                 dir_util.remove_tree(destination, dry_run=self.dry_run)
             elif os.path.exists(destination):
