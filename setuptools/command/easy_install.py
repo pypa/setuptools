@@ -1655,14 +1655,14 @@ class PthDistributions(Environment):
         if new_path:
             self.paths.append(dist.location)
             self.dirty = True
-        Environment.add(self, dist)
+        super().add(dist)
 
     def remove(self, dist):
         """Remove `dist` from the distribution map"""
         while dist.location in self.paths:
             self.paths.remove(dist.location)
             self.dirty = True
-        Environment.remove(self, dist)
+        super().remove(dist)
 
     def make_relative(self, path):
         npath, last = os.path.split(normalize_path(path))
