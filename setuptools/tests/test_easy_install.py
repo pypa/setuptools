@@ -337,17 +337,20 @@ class TestPTHFileWriter:
         pth1.paths.append(new_src_path_str)
         pth1.save()
         assert pth1.paths, \
-            "first, the new_path added must still be present/valid in pth1 after save"
+            "first, the new_src_path added must still be present/valid in pth1 after save"
         # now,
-        assert not pth2.paths, "right before we save should still be empty"
+        assert new_src_path_str not in pth2.paths, \
+            "right before we save the entry should still not be present"
         pth2.save()
-        assert pth2.paths, \
-            "the new_path entry should have been added by pth2 with its save() call"
+        assert new_src_path_str in pth2.paths, \
+            "the new_src_path entry should have been added by pth2 with its save() call now"
         assert pth2.paths[-1] == new_src_path, \
-            "and it should match exactly on the last entry"
+            "and it should match exactly on the last entry actually " \
+            "given we append to it in save()"
         # finally,
         assert PthDistributions(pth_path).paths == pth2.paths, \
-            "we should have the exact same list at the end"
+            "and we should have the exact same list at the end " \
+            "with a fresh PthDistributions instance"
 
 
 @pytest.fixture
