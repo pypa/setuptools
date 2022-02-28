@@ -1,0 +1,1 @@
+Enhanced isolation of tests using virtual environments - PYTHONPATH is not leaking to spawned subprocesses  -- by :user:`befeleme`
