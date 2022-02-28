@@ -343,7 +343,8 @@ class TestPTHFileWriter:
         pth2.save()
         assert pth2.paths, \
             "the new_path entry should have been added by pth2 with its save() call"
-        assert pth2.paths[-1] == new_src_path, "and it should match exactly on the last entry"
+        assert pth2.paths[-1] == new_src_path, \
+            "and it should match exactly on the last entry"
         # finally,
         assert PthDistributions(pth_path).paths == pth2.paths, \
             "we should have the exact same list at the end"
