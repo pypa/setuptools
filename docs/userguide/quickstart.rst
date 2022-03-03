@@ -180,7 +180,7 @@ can simply use the ``include_package_data`` keyword:
     include_package_data = True
 
 This tells setuptools to install any data files it finds in your packages.
-The data files must be specified via the distutils' |MANIFEST.in| file
+The data files must be specified via the distutils' |MANIFEST.in|_ file
 or automatically added by a :ref:`Revision Control System plugin
 <Adding Support for Revision Control Systems>`.
 For more details, see :doc:`datafiles`
