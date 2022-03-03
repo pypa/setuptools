@@ -157,7 +157,7 @@ order to find the location of data files.  However, this manipulation isn't
 compatible with PEP 302-based import hooks, including importing from zip files
 and Python Eggs.  It is strongly recommended that, if you are using data files,
 you should use :mod:`importlib.resources` to access them.
-:mod:`importlib.resources` is available since Python 3.7 and the latest version of
+:mod:`importlib.resources` was added to Python 3.7 and the latest version of
 the library is also available via the :pypi:`importlib-resources` backport.
 See :doc:`importlib-resources:using` for detailed instructions [#importlib]_.
 
