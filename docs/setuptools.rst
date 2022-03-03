@@ -21,8 +21,9 @@ Feature Highlights:
   individually in setup.py
 
 * Automatically include all relevant files in your source distributions,
-  without needing to create a ``MANIFEST.in`` file, and without having to force
-  regeneration of the ``MANIFEST`` file when your source tree changes.
+  without needing to create a |MANIFEST.in|_ file, and without having to force
+  regeneration of the ``MANIFEST`` file when your source tree changes
+  [#manifest]_.
 
 * Automatically generate wrapper scripts or Windows (console and GUI) .exe
   files for any number of "main" functions in your project.  (Note: this is not
@@ -211,3 +212,26 @@ set of steps to reproduce.
 
 .. _GitHub Discussions: https://github.com/pypa/setuptools/discussions
 .. _setuptools bug tracker: https://github.com/pypa/setuptools/
+
+
+----
+
+
+.. [#manifest] For the most common use cases, ``setuptools`` will automatically 
+   find out which files are necessary for distributing the package.
+   This includes all pure Python modules in the ``py_modules`` or ``packages``
+   configuration and all C sources listed as part of extensions
+   (it doesn't catch C headers, though).
+
+   More complex packages (e.g. packages that include non-Python files, or that
+   need to use custom C headers), might still need to specify |MANIFEST.in|_ or
+   use a plugin like :pypi:`setuptools-scm` or :pypi:`setuptools-svn`
+   to automatically include files tracked by your Revision Control System.
+
+   Please note that only files **inside the package directory** are included in
+   the final wheel distribution, by default. See :doc:`userguide/datafiles` for
+   more information.
+
+
+.. |MANIFEST.in| replace:: ``MANIFEST.in``
+.. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/

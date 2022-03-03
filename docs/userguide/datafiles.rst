@@ -5,11 +5,11 @@ Data Files Support
 The distutils have traditionally allowed installation of "data files", which
 are placed in a platform-specific location.  However, the most common use case
 for data files distributed with a package is for use *by* the package, usually
-by including the data files in the package directory.
+by including the data files **inside the package directory**.
 
-Setuptools offers three ways to specify data files to be included in your
-packages.  First, you can simply use the ``include_package_data`` keyword,
-e.g.::
+Setuptools offers three ways to specify this most common type of data files to
+be included in your packages [#datafiles]_.
+First, you can simply use the ``include_package_data`` keyword, e.g.::
 
     from setuptools import setup, find_packages
     setup(
@@ -18,9 +18,10 @@ e.g.::
     )
 
 This tells setuptools to install any data files it finds in your packages.
-The data files must be specified via the distutils' ``MANIFEST.in`` file.
+The data files must be specified via the distutils' |MANIFEST.in|_ file.
 (They can also be tracked by a revision control system, using an appropriate
-plugin.  See the section below on :ref:`Adding Support for Revision
+plugin such as :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
+See the section below on :ref:`Adding Support for Revision
 Control Systems` for information on how to write such plugins.)
 
 If you want finer-grained control over what files are included (for example,
@@ -87,12 +88,11 @@ When building an ``sdist``, the datafiles are also drawn from the
 ``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
 the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
 
-(Note: although the ``package_data`` argument was previously only available in
-``setuptools``, it was also added to the Python ``distutils`` package as of
-Python 2.4; there is `some documentation for the feature`__ available on the
-python.org website.  If using the setuptools-specific ``include_package_data``
-argument, files specified by ``package_data`` will *not* be automatically
-added to the manifest unless they are listed in the MANIFEST.in file.)
+.. note::
+   If using the ``include_package_data`` argument, files specified by
+   ``package_data`` will *not* be automatically added to the manifest unless
+   they are listed in the |MANIFEST.in|_ file or by a plugin like
+   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
 
 __ https://docs.python.org/3/distutils/setupscript.html#installing-package-data
 
@@ -125,11 +125,13 @@ included as a result of using ``include_package_data``.
 In summary, the three options allow you to:
 
 ``include_package_data``
-    Accept all data files and directories matched by ``MANIFEST.in``.
+    Accept all data files and directories matched by |MANIFEST.in|_ or added by
+    a :ref:`<plugin> Adding Support for Revision Control Systems`.
 
 ``package_data``
     Specify additional patterns to match files that may or may
-    not be matched by ``MANIFEST.in`` or found in source control.
+    not be matched by ``MANIFEST.in`` or added by
+    a :ref:`<plugin> Adding Support for Revision Control Systems`.
 
 ``exclude_package_data``
     Specify patterns for data files and directories that should *not* be
@@ -175,3 +177,14 @@ no supported facility to reliably retrieve these resources.
 
 Instead, the PyPA recommends that any data files you wish to be accessible at
 run time be included in the package.
+
+
+----
+
+.. [#datafiles] ``setuptools`` consider a *package data file* any non-Python
+   file **inside the package directory** (i.e., that co-exists in the same
+   location as the regular ``.py`` files being distributed).
+
+
+.. |MANIFEST.in| replace:: ``MANIFEST.in``
+.. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/
