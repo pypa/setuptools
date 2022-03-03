@@ -184,7 +184,7 @@ fall back to the platform-specific location for installing data files, there is
 no supported facility to reliably retrieve these resources.
 
 Instead, the PyPA recommends that any data files you wish to be accessible at
-run time be included in the package.
+run time be included **inside the package**.
 
 
 ----
