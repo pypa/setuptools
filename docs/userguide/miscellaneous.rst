@@ -94,3 +94,38 @@ correctly when installed as a zipfile, correct any problems if you can, and
 then make an explicit declaration of ``True`` or ``False`` for the ``zip_safe``
 flag, so that it will not be necessary for ``bdist_egg`` to try to guess
 whether your project can work as a zipfile.
+
+
+.. _Controlling files in the distribution:
+
+Controlling files in the distribution
+-------------------------------------
+
+For the most common use cases, ``setuptools`` will automatically 
+find out which files are necessary for distributing the package.
+This includes all pure Python modules in the ``py_modules`` or ``packages``
+configuration and all C sources listed as part of extensions
+(it doesn't catch C headers, though).
+
+However, when building more complex packages (e.g. packages that include
+non-Python files, or that need to use custom C headers), you might find that
+not all files present in your project folder are included in package
+distribution archive. In these situations you can use a ``setuptools``
+:ref:`plugin <Adding Support for Revision Control Systems>`, such as
+:pypi:`setuptools-scm` or :pypi:`setuptools-svn` to automatically include all
+files tracked by your Revision Control System to the source distribution
+archive (``sdist``).
+
+.. _Using MANIFEST.in:
+
+In the case you need fine control over the included files you can also specify
+a ``MANIFEST.in`` file at the root of your project with precise
+instructions. A comprehensive guide to ``MANIFEST.in`` syntax is available at
+the `PyPA's packaging user guide`_.
+
+Please note that, by default, only files **inside the package directory** are
+included in the final ``wheel`` distribution. See :doc:`/userguide/datafiles` for
+more information.
+
+
+.. _PyPa's packaging user guide: https://packaging.python.org/en/latest/guides/using-manifest-in/

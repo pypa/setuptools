@@ -217,20 +217,11 @@ set of steps to reproduce.
 ----
 
 
-.. [#manifest] For the most common use cases, ``setuptools`` will automatically 
-   find out which files are necessary for distributing the package.
-   This includes all pure Python modules in the ``py_modules`` or ``packages``
-   configuration and all C sources listed as part of extensions
-   (it doesn't catch C headers, though).
-
-   More complex packages (e.g. packages that include non-Python files, or that
-   need to use custom C headers), might still need to specify |MANIFEST.in|_ or
-   use a plugin like :pypi:`setuptools-scm` or :pypi:`setuptools-svn`
-   to automatically include files tracked by your Revision Control System.
-
-   Please note that only files **inside the package directory** are included in
-   the final wheel distribution, by default. See :doc:`userguide/datafiles` for
-   more information.
+.. [#manifest] The default behaviour for ``setuptools`` will work well for pure
+   Python packages, or packages with simple C extensions (that don't require
+   any special C header). See :ref:`Controlling files in the distribution` and
+   :doc:`userguide/datafiles` for more information about complex scenarios, if
+   you want to include other types of files.
 
 
 .. |MANIFEST.in| replace:: ``MANIFEST.in``
