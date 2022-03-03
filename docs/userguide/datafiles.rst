@@ -94,7 +94,7 @@ the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
    they are listed in the |MANIFEST.in|_ file or by a plugin like
    :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
 
-__ https://docs.python.org/3/distutils/setupscript.html#installing-package-data
+.. https://docs.python.org/3/distutils/setupscript.html#installing-package-data
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included.  For
@@ -126,12 +126,12 @@ In summary, the three options allow you to:
 
 ``include_package_data``
     Accept all data files and directories matched by |MANIFEST.in|_ or added by
-    a :ref:`<plugin> Adding Support for Revision Control Systems`.
+    a :ref:`plugin <Adding Support for Revision Control Systems>`.
 
 ``package_data``
     Specify additional patterns to match files that may or may
     not be matched by ``MANIFEST.in`` or added by
-    a :ref:`<plugin> Adding Support for Revision Control Systems`.
+    a :ref:`plugin <Adding Support for Revision Control Systems>`.
 
 ``exclude_package_data``
     Specify patterns for data files and directories that should *not* be
@@ -156,15 +156,10 @@ Typically, existing programs manipulate a package's ``__file__`` attribute in
 order to find the location of data files.  However, this manipulation isn't
 compatible with PEP 302-based import hooks, including importing from zip files
 and Python Eggs.  It is strongly recommended that, if you are using data files,
-you should use the :ref:`ResourceManager API` of ``pkg_resources`` to access
-them.  The ``pkg_resources`` module is distributed as part of setuptools, so if
-you're using setuptools to distribute your package, there is no reason not to
-use its resource management API.  See also `Importlib Resources`_ for
-a quick example of converting code that uses ``__file__`` to use
-``pkg_resources`` instead.
-
-.. _Importlib Resources: https://docs.python.org/3/library/importlib.html#module-importlib.resources
-
+you should use :mod:`importlib.resources` to access them.
+:mod:`importlib.resources` is available since Python 3.7 and the latest version of
+the library is also available via the :pypi:`importlib-resources` backport.
+See :doc:`importlib-resources:using` for detailed instructions [#importlib]_.
 
 .. tip:: Files inside the package directory should be *read-only* to avoid a
    series of common problems (e.g. when multiple users share a common Python
@@ -200,6 +195,11 @@ run time be included in the package.
 
 .. [#system-dirs] These locations can be discovered with the help of
    third-party libraries such as :pypi:`platformdirs`.
+
+.. [#importlib] Recent versions of :mod:`importlib.resources` available in
+   Pythons' standard library should be API compatible with
+   :pypi:`importlib-metadata`. However this might vary depending on which version
+   of Python is installed.
 
 
 .. |MANIFEST.in| replace:: ``MANIFEST.in``
