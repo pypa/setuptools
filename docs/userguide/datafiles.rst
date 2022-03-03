@@ -130,7 +130,7 @@ In summary, the three options allow you to:
 
 ``package_data``
     Specify additional patterns to match files that may or may
-    not be matched by ``MANIFEST.in`` or added by
+    not be matched by |MANIFEST.in|_ or added by
     a :ref:`plugin <Adding Support for Revision Control Systems>`.
 
 ``exclude_package_data``
