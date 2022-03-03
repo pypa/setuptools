@@ -1,0 +1,4 @@
+Removed mention to ``pkg_resources`` as the recommended way of accessing data
+files, in favour of :doc:`importlib.resources`.
+Additionally more emphasis was put on the fact that *package data files* reside
+**inside** the *package directory* (and therefore should be *read-only*).

@@ -1,0 +1,3 @@
+Added clarifications about ``MANIFEST.in``, that include links to PyPUG docs
+and more prominent mentions to using a revision control system plugin as an
+alternative.
