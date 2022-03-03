@@ -166,6 +166,19 @@ a quick example of converting code that uses ``__file__`` to use
 .. _Importlib Resources: https://docs.python.org/3/library/importlib.html#module-importlib.resources
 
 
+.. tip:: Files inside the package directory should be *read-only* to avoid a
+   series of common problems (e.g. when multiple users share a common Python
+   installation, when the package is loaded from a zip file, or when multiple
+   instances of a Python application run in parallel).
+
+   If your Python package needs to write to a file for shared data or configuration,
+   you can use standard platform/OS-specific system directories, such as
+   ``~/.local/config/$appname`` or ``/usr/share/$appname/$version`` (Linux specific) [#system-dirs]_.
+   A common approach is to add a read-only template file to the package
+   directory that is then copied to the correct system directory if no
+   pre-existing file is found.
+
+
 Non-Package Data Files
 ----------------------
 
@@ -184,6 +197,9 @@ run time be included in the package.
 .. [#datafiles] ``setuptools`` consider a *package data file* any non-Python
    file **inside the package directory** (i.e., that co-exists in the same
    location as the regular ``.py`` files being distributed).
+
+.. [#system-dirs] These locations can be discovered with the help of
+   third-party libraries such as :pypi:`platformdirs`.
 
 
 .. |MANIFEST.in| replace:: ``MANIFEST.in``
