@@ -154,6 +154,6 @@ binary extensions during the build process, or included in the final
    development or the build process itself, but not in runtime (e.g. tests,
    docs, examples, etc...).
    The ``wheel``, on the other hand, is a file format that has been optimized
-   and ready to be unpacked into a running installation of Python or
+   and is ready to be unpacked into a running installation of Python or
    :term:`Virtual Environment`.
    Therefore it only contains items that are required during runtime.
