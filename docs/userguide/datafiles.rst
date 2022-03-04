@@ -8,7 +8,7 @@ for data files distributed with a package is for use *by* the package, usually
 by including the data files **inside the package directory**.
 
 Setuptools offers three ways to specify this most common type of data files to
-be included in your packages [#datafiles]_.
+be included in your package's [#datafiles]_.
 First, you can simply use the ``include_package_data`` keyword, e.g.::
 
     from setuptools import setup, find_packages
@@ -18,7 +18,7 @@ First, you can simply use the ``include_package_data`` keyword, e.g.::
     )
 
 This tells setuptools to install any data files it finds in your packages.
-The data files must be specified via the distutils' |MANIFEST.in|_ file.
+The data files must be specified via the |MANIFEST.in|_ file.
 (They can also be tracked by a revision control system, using an appropriate
 plugin such as :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
 See the section below on :ref:`Adding Support for Revision
