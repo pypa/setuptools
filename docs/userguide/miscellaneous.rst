@@ -147,7 +147,7 @@ binary extensions during the build process, or included in the final
 
 .. [#build-process]
    You can think about the build process as two stages: first the ``sdist``
-   will be created and then the ``whell`` will be produced from that ``sdist``.
+   will be created and then the ``wheel`` will be produced from that ``sdist``.
 
 .. [#wheel-vs-sdist]
    This happens because the ``sdist`` can contain files that are useful during
