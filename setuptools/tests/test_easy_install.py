@@ -1146,8 +1146,6 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmpdir):
 
     # == Assert ==
     # Should not install to sys.prefix
-    with pytest.raises(AssertionError):
-        assert sys_prefix.listdir() == []
+    assert sys_prefix.listdir() == []
     # Should install to user site
-    with pytest.raises(AssertionError):
-        assert {f.basename for f in user_site.listdir()} == {'UNKNOWN.egg-link'}
+    assert {f.basename for f in user_site.listdir()} == {'UNKNOWN.egg-link'}

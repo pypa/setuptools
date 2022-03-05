@@ -1,0 +1,1 @@
+Made ``setup.py develop --user`` install to the user site packages directory even if it is disabled in the current interpreter.
