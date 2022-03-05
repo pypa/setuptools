@@ -1,5 +1,4 @@
 """Load setuptools configuration from ``pyproject.toml`` files"""
-import json
 import os
 import warnings
 from contextlib import contextmanager
@@ -27,21 +26,8 @@ def load_file(filepath: _Path) -> dict:
 
 def validate(config: dict, filepath: _Path):
     from setuptools.extern import _validate_pyproject
-    from setuptools.extern._validate_pyproject import fastjsonschema_exceptions
 
-    try:
-        return _validate_pyproject.validate(config)
-    except fastjsonschema_exceptions.JsonSchemaValueException as ex:
-        msg = [f"Schema: {ex}"]
-        if ex.value:
-            msg.append(f"Given value:\n{json.dumps(ex.value, indent=2)}")
-        if ex.rule:
-            msg.append(f"Offending rule: {json.dumps(ex.rule, indent=2)}")
-        if ex.definition:
-            msg.append(f"Definition:\n{json.dumps(ex.definition, indent=2)}")
-
-        log.error("\n\n".join(msg) + "\n")
-        raise
+    return _validate_pyproject.validate(config)
 
 
 def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution":
