@@ -178,7 +178,7 @@ class TestNoConfig:
         ("lib", {"packages": "find:", "packages.find": {"where": "lib"}}),
     ]
 )
-def test_discovered_packagedir_with_attr_directive_in_config(tmp_path, folder, opts):
+def test_discovered_package_dir_with_attr_directive_in_config(tmp_path, folder, opts):
     _populate_project_dir(tmp_path, [f"{folder}/pkg/__init__.py", "setup.cfg"], opts)
     (tmp_path / folder / "pkg/__init__.py").write_text("version = 42")
     (tmp_path / "setup.cfg").write_text(
