@@ -263,9 +263,9 @@ def find_packages(
     """
 
     if namespaces:
-        from setuptools import PEP420PackageFinder as PackageFinder
+        from setuptools.discovery import PEP420PackageFinder as PackageFinder
     else:
-        from setuptools import PackageFinder  # type: ignore
+        from setuptools.discovery import PackageFinder  # type: ignore
 
     root_dir = root_dir or "."
     where = kwargs.pop('where', ['.'])
