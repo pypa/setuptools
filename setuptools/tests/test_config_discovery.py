@@ -7,6 +7,7 @@ from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
 
 import pytest
+from path import Path as _Path
 
 from .contexts import quiet
 from .integration.helpers import get_sdist_members, get_wheel_members, run
@@ -59,21 +60,7 @@ class TestDiscoverPackagesAndPyModules:
         files, options = self._get_info(circumstance)
         _populate_project_dir(tmp_path, files, options)
 
-        here = os.getcwd()
-        root = "/".join(os.path.split(tmp_path))  # POSIX-style
-        dist = Distribution({**options, "src_root": root})
-        dist.script_name = 'setup.py'
-        dist.set_defaults()
-        cmd = sdist(dist)
-        cmd.ensure_finalized()
-        assert cmd.distribution.packages or cmd.distribution.py_modules
-
-        with quiet():
-            try:
-                os.chdir(tmp_path)
-                cmd.run()
-            finally:
-                os.chdir(here)
+        _, cmd = _run_sdist_programatically(tmp_path, options)
 
         manifest = [f.replace(os.sep, "/") for f in cmd.filelist.files]
         for file in files:
@@ -183,6 +170,20 @@ class TestNoConfig:
         assert dist_file.is_file()
 
 
+def test_autodiscovered_packagedir_with_attr_directive_in_config(tmp_path):
+    _populate_project_dir(tmp_path, ["src/pkg/__init__.py"], {})
+    (tmp_path / "src/pkg/__init__.py").write_text("version = 42")
+    (tmp_path / "setup.cfg").write_text("[metadata]\nversion = attr: pkg.version")
+
+    dist, _ = _run_sdist_programatically(tmp_path, {})
+    assert dist.get_name() == "pkg"
+    assert dist.get_version() == "42"
+
+    _run_build(tmp_path, "--sdist")
+    dist_file = tmp_path / "dist/pkg-42.tar.gz"
+    assert dist_file.is_file()
+
+
 def _populate_project_dir(root, files, options):
     # NOTE: Currently pypa/build will refuse to build the project if no
     # `pyproject.toml` or `setup.py` is found. So it is impossible to do
@@ -220,3 +221,22 @@ def _write_setupcfg(root, options):
 def _run_build(path, *flags):
     cmd = [sys.executable, "-m", "build", "--no-isolation", *flags, str(path)]
     return run(cmd, env={'DISTUTILS_DEBUG': '1'})
+
+
+def _run_sdist_programatically(dist_path, options):
+    root = "/".join(os.path.split(dist_path))  # POSIX-style
+    dist = Distribution({**options, "src_root": root})
+    dist.script_name = 'setup.py'
+
+    if (dist_path / "setup.cfg").exists():
+        dist.parse_config_files([dist_path / "setup.cfg"])
+
+    dist.set_defaults()
+    cmd = sdist(dist)
+    cmd.ensure_finalized()
+    assert cmd.distribution.packages or cmd.distribution.py_modules
+
+    with quiet(), _Path(dist_path):
+        cmd.run()
+
+    return dist, cmd
