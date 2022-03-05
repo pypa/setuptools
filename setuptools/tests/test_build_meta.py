@@ -7,11 +7,14 @@ import importlib
 import contextlib
 from concurrent import futures
 import re
+from zipfile import ZipFile
 
 import pytest
 from jaraco import path
 
 from .textwrap import DALS
+
+SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
 
 
 TIMEOUT = int(os.getenv("TIMEOUT_BACKEND_TEST", "180"))  # in seconds
@@ -82,7 +85,7 @@ class BuildBackendCaller(BuildBackendBase):
 
 
 defns = [
-    {
+    {  # simple setup.py script
         'setup.py': DALS("""
             __import__('setuptools').setup(
                 name='foo',
@@ -96,7 +99,7 @@ defns = [
                 print('hello')
             """),
     },
-    {
+    {  # setup.py that relies on __name__
         'setup.py': DALS("""
             assert __name__ == '__main__'
             __import__('setuptools').setup(
@@ -111,7 +114,7 @@ defns = [
                 print('hello')
             """),
     },
-    {
+    {  # setup.py script that runs arbitrary code
         'setup.py': DALS("""
             variable = True
             def function():
@@ -129,7 +132,30 @@ defns = [
                 print('hello')
             """),
     },
-    {
+    {  # setup.py script that constructs temp files to be included in the distribution
+        'setup.py': DALS("""
+            # Some packages construct files on the fly, include them in the package,
+            # and immediately remove them after `setup()` (e.g. pybind11==2.9.1).
+            # Therefore, we cannot use `distutils.core.run_setup(..., stop_after=...)`
+            # to obtain a distribution object first, and then run the distutils
+            # commands later, because these files will be removed in the meantime.
+
+            with open('world.py', 'w') as f:
+                f.write('x = 42')
+
+            try:
+                __import__('setuptools').setup(
+                    name='foo',
+                    version='0.0.0',
+                    py_modules=['world'],
+                    setup_requires=['six'],
+                )
+            finally:
+                # Some packages will clean temporary files
+                __import__('os').unlink('world.py')
+            """),
+    },
+    {  # setup.cfg only
         'setup.cfg': DALS("""
         [metadata]
         name = foo
@@ -139,6 +165,22 @@ defns = [
         py_modules=hello
         setup_requires=six
         """),
+        'hello.py': DALS("""
+        def run():
+            print('hello')
+        """)
+    },
+    {  # setup.cfg and setup.py
+        'setup.cfg': DALS("""
+        [metadata]
+        name = foo
+        version = 0.0.0
+
+        [options]
+        py_modules=hello
+        setup_requires=six
+        """),
+        'setup.py': "__import__('setuptools').setup()",
         'hello.py': DALS("""
         def run():
             print('hello')
@@ -174,7 +216,20 @@ class TestBuildMetaBackend:
         os.makedirs(dist_dir)
         wheel_name = build_backend.build_wheel(dist_dir)
 
-        assert os.path.isfile(os.path.join(dist_dir, wheel_name))
+        wheel_file = os.path.join(dist_dir, wheel_name)
+        assert os.path.isfile(wheel_file)
+
+        # Temporary files should be removed
+        assert not os.path.isfile('world.py')
+
+        with ZipFile(wheel_file) as zipfile:
+            wheel_contents = set(zipfile.namelist())
+
+        # Each one of the examples have a single module
+        # that should be included in the distribution
+        python_scripts = (f for f in wheel_contents if f.endswith('.py'))
+        modules = [f for f in python_scripts if not f.endswith('setup.py')]
+        assert len(modules) == 1
 
     @pytest.mark.parametrize('build_type', ('wheel', 'sdist'))
     def test_build_with_existing_file_present(self, build_type, tmpdir_cwd):
@@ -222,6 +277,190 @@ class TestBuildMetaBackend:
         third_result = build_method(dist_dir)
         assert third_result == second_result
         assert os.path.getsize(os.path.join(dist_dir, third_result)) > 0
+
+    @pytest.mark.parametrize("setup_script", [None, SETUP_SCRIPT_STUB])
+    def test_build_with_pyproject_config(self, tmpdir, setup_script):
+        files = {
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta"
+
+                [project]
+                name = "foo"
+                description = "This is a Python package"
+                dynamic = ["version", "license", "readme"]
+                classifiers = [
+                    "Development Status :: 5 - Production/Stable",
+                    "Intended Audience :: Developers"
+                ]
+                urls = {Homepage = "http://github.com"}
+                dependencies = [
+                    "appdirs",
+                ]
+
+                [project.optional-dependencies]
+                all = [
+                    "tomli>=1",
+                    "pyscaffold>=4,<5",
+                    'importlib; python_version == "2.6"',
+                ]
+
+                [project.scripts]
+                foo = "foo.cli:main"
+
+                [tool.setuptools]
+                zip-safe = false
+                package-dir = {"" = "src"}
+                packages = {find = {where = ["src"]}}
+
+                [tool.setuptools.dynamic]
+                version = {attr = "foo.__version__"}
+                license = "MIT"
+                license_files = ["LICENSE*"]
+                readme = {file = "README.rst"}
+
+                [tool.distutils.sdist]
+                formats = "gztar"
+
+                [tool.distutils.bdist_wheel]
+                universal = true
+                """),
+            "MANIFEST.in": DALS("""
+                global-include *.py *.txt
+                global-exclude *.py[cod]
+                """),
+            "README.rst": "This is a ``README``",
+            "LICENSE.txt": "---- placeholder MIT license ----",
+            "src": {
+                "foo": {
+                    "__init__.py": "__version__ = '0.1'",
+                    "cli.py": "def main(): print('hello world')",
+                    "data.txt": "def main(): print('hello world')",
+                }
+            }
+        }
+        if setup_script:
+            files["setup.py"] = setup_script
+
+        build_backend = self.get_build_backend()
+        with tmpdir.as_cwd():
+            path.build(files)
+            sdist_path = build_backend.build_sdist("temp")
+            wheel_file = build_backend.build_wheel("temp")
+
+        with tarfile.open(os.path.join(tmpdir, "temp", sdist_path)) as tar:
+            sdist_contents = set(tar.getnames())
+
+        with ZipFile(os.path.join(tmpdir, "temp", wheel_file)) as zipfile:
+            wheel_contents = set(zipfile.namelist())
+            metadata = str(zipfile.read("foo-0.1.dist-info/METADATA"), "utf-8")
+            license = str(zipfile.read("foo-0.1.dist-info/LICENSE.txt"), "utf-8")
+            epoints = str(zipfile.read("foo-0.1.dist-info/entry_points.txt"), "utf-8")
+
+        assert sdist_contents - {"foo-0.1/setup.py"} == {
+            'foo-0.1',
+            'foo-0.1/LICENSE.txt',
+            'foo-0.1/MANIFEST.in',
+            'foo-0.1/PKG-INFO',
+            'foo-0.1/README.rst',
+            'foo-0.1/pyproject.toml',
+            'foo-0.1/setup.cfg',
+            'foo-0.1/src',
+            'foo-0.1/src/foo',
+            'foo-0.1/src/foo/__init__.py',
+            'foo-0.1/src/foo/cli.py',
+            'foo-0.1/src/foo/data.txt',
+            'foo-0.1/src/foo.egg-info',
+            'foo-0.1/src/foo.egg-info/PKG-INFO',
+            'foo-0.1/src/foo.egg-info/SOURCES.txt',
+            'foo-0.1/src/foo.egg-info/dependency_links.txt',
+            'foo-0.1/src/foo.egg-info/entry_points.txt',
+            'foo-0.1/src/foo.egg-info/requires.txt',
+            'foo-0.1/src/foo.egg-info/top_level.txt',
+            'foo-0.1/src/foo.egg-info/not-zip-safe',
+        }
+        assert wheel_contents == {
+            "foo/__init__.py",
+            "foo/cli.py",
+            "foo/data.txt",  # include_package_data defaults to True
+            "foo-0.1.dist-info/LICENSE.txt",
+            "foo-0.1.dist-info/METADATA",
+            "foo-0.1.dist-info/WHEEL",
+            "foo-0.1.dist-info/entry_points.txt",
+            "foo-0.1.dist-info/top_level.txt",
+            "foo-0.1.dist-info/RECORD",
+        }
+        assert license == "---- placeholder MIT license ----"
+        for line in (
+            "Summary: This is a Python package",
+            "License: MIT",
+            "Classifier: Intended Audience :: Developers",
+            "Requires-Dist: appdirs",
+            "Requires-Dist: tomli (>=1) ; extra == 'all'",
+            "Requires-Dist: importlib ; (python_version == \"2.6\") and extra == 'all'"
+        ):
+            assert line in metadata
+
+        assert metadata.strip().endswith("This is a ``README``")
+        assert epoints.strip() == "[console_scripts]\nfoo = foo.cli:main"
+
+    def test_static_metadata_in_pyproject_config(self, tmpdir):
+        # Make sure static metadata in pyproject.toml is not overwritten by setup.py
+        # as required by PEP 621
+        files = {
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta"
+
+                [project]
+                name = "foo"
+                description = "This is a Python package"
+                version = "42"
+                dependencies = ["six"]
+                """),
+            'hello.py': DALS("""
+                def run():
+                    print('hello')
+                """),
+            'setup.py': DALS("""
+                __import__('setuptools').setup(
+                    name='bar',
+                    version='13',
+                )
+                """),
+        }
+        build_backend = self.get_build_backend()
+        with tmpdir.as_cwd():
+            path.build(files)
+            sdist_path = build_backend.build_sdist("temp")
+            wheel_file = build_backend.build_wheel("temp")
+
+        assert (tmpdir / "temp/foo-42.tar.gz").exists()
+        assert (tmpdir / "temp/foo-42-py3-none-any.whl").exists()
+        assert not (tmpdir / "temp/bar-13.tar.gz").exists()
+        assert not (tmpdir / "temp/bar-42.tar.gz").exists()
+        assert not (tmpdir / "temp/foo-13.tar.gz").exists()
+        assert not (tmpdir / "temp/bar-13-py3-none-any.whl").exists()
+        assert not (tmpdir / "temp/bar-42-py3-none-any.whl").exists()
+        assert not (tmpdir / "temp/foo-13-py3-none-any.whl").exists()
+
+        with tarfile.open(os.path.join(tmpdir, "temp", sdist_path)) as tar:
+            pkg_info = str(tar.extractfile('foo-42/PKG-INFO').read(), "utf-8")
+            members = tar.getnames()
+            assert "bar-13/PKG-INFO" not in members
+
+        with ZipFile(os.path.join(tmpdir, "temp", wheel_file)) as zipfile:
+            metadata = str(zipfile.read("foo-42.dist-info/METADATA"), "utf-8")
+            members = zipfile.namelist()
+            assert "bar-13.dist-info/METADATA" not in members
+
+        for file in pkg_info, metadata:
+            for line in ("Name: foo", "Version: 42"):
+                assert line in file
+            for line in ("Name: bar", "Version: 13"):
+                assert line not in file
 
     def test_build_sdist(self, build_backend):
         dist_dir = os.path.abspath('pip-sdist')

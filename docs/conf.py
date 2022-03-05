@@ -93,10 +93,16 @@ intersphinx_mapping.update({
 
 # Add support for linking usernames
 github_url = 'https://github.com'
+github_repo_org = 'pypa'
+github_repo_name = 'setuptools'
+github_repo_slug = f'{github_repo_org}/{github_repo_name}'
+github_repo_url = f'{github_url}/{github_repo_slug}'
 github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
+    'issue': (f'{github_repo_url}/issues/%s', 'issue #%s'),  # noqa: WPS323
+    'pr': (f'{github_repo_url}/pull/%s', 'PR #%s'),  # noqa: WPS323
     'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
-    'pypi': ('https://pypi.org/project/%s', '%s'),
+    'pypi': ('https://pypi.org/project/%s', '%s'),  # noqa: WPS323
 }
 extensions += ['sphinx.ext.extlinks']
 

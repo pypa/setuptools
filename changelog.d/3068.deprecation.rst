@@ -1,0 +1,8 @@
+Deprecated ``setuptools.config.read_configuration``,
+``setuptools.config.parse_configuration`` and other functions or classes
+from ``setuptools.config``.
+
+Users that still need to parse and process configuration from ``setup.cfg`` can
+import a direct replacement from ``setuptools.config.setupcfg``, however this
+module is transitional and might be removed in the future
+(the ``setup.cfg`` configuration format itself is likely to be deprecated in the future).

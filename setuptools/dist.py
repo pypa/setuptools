@@ -19,6 +19,7 @@ from glob import iglob
 import itertools
 import textwrap
 from typing import List, Optional, TYPE_CHECKING
+from pathlib import Path
 
 from collections import defaultdict
 from email import message_from_file
@@ -28,7 +29,7 @@ from distutils.util import rfc822_escape
 
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen, always_iterable
+from setuptools.extern.more_itertools import unique_everseen, always_iterable, partition
 
 from ._importlib import metadata
 
@@ -38,7 +39,7 @@ import setuptools
 import setuptools.command
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
-from setuptools.config import parse_configuration
+from setuptools.config import setupcfg, pyprojecttoml
 import pkg_resources
 from setuptools.extern.packaging import version, requirements
 from . import _reqs
@@ -811,13 +812,22 @@ class Distribution(_Distribution):
     def parse_config_files(self, filenames=None, ignore_option_errors=False):
         """Parses configuration files from various levels
         and loads configuration.
-
         """
+        tomlfiles = []
+        if filenames is not None:
+            tomlfiles, other = partition(lambda f: Path(f).suffix == ".toml", filenames)
+            filenames = other
+        elif os.path.exists("pyproject.toml"):
+            tomlfiles = ["pyproject.toml"]
+
         self._parse_config_files(filenames=filenames)
 
-        parse_configuration(
+        setupcfg.parse_configuration(
             self, self.command_options, ignore_option_errors=ignore_option_errors
         )
+        for filename in tomlfiles:
+            pyprojecttoml.apply_configuration(self, filename)
+
         self._finalize_requires()
         self._finalize_license_files()
 

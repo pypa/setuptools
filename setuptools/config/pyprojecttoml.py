@@ -1,8 +1,8 @@
 """Load setuptools configuration from ``pyproject.toml`` files"""
-import json
 import os
+import warnings
+import logging
 from contextlib import contextmanager
-from distutils import log
 from functools import partial
 from typing import TYPE_CHECKING, Union
 
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
 
 _Path = Union[str, os.PathLike]
+_logger = logging.getLogger(__name__)
 
 
 def load_file(filepath: _Path) -> dict:
@@ -25,22 +26,21 @@ def load_file(filepath: _Path) -> dict:
 
 
 def validate(config: dict, filepath: _Path):
-    from setuptools.extern import _validate_pyproject
-    from setuptools.extern._validate_pyproject import fastjsonschema_exceptions
+    from setuptools.extern._validate_pyproject import validate as _validate
 
     try:
-        return _validate_pyproject.validate(config)
-    except fastjsonschema_exceptions.JsonSchemaValueException as ex:
-        msg = [f"Schema: {ex}"]
-        if ex.value:
-            msg.append(f"Given value:\n{json.dumps(ex.value, indent=2)}")
-        if ex.rule:
-            msg.append(f"Offending rule: {json.dumps(ex.rule, indent=2)}")
-        if ex.definition:
-            msg.append(f"Definition:\n{json.dumps(ex.definition, indent=2)}")
+        return _validate(config)
+    except Exception as ex:
+        if ex.__class__.__name__ != "ValidationError":
+            # Workaround for the fact that `extern` can duplicate imports
+            ex_cls = ex.__class__.__name__
+            error = ValueError(f"invalid pyproject.toml config: {ex_cls} - {ex}")
+            raise error from None
 
-        log.error("\n\n".join(msg) + "\n")
-        raise
+        _logger.error(f"configuration error: {ex.summary}")  # type: ignore
+        _logger.debug(ex.details)  # type: ignore
+        error = ValueError(f"invalid pyproject.toml config: {ex.name}")  # type: ignore
+        raise error from None
 
 
 def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution":
@@ -77,6 +77,13 @@ def read_configuration(filepath, expand=True, ignore_option_errors=False):
     tool_table = asdict.get("tool", {}).get("setuptools", {})
     if not asdict or not(project_table or tool_table):
         return {}  # User is not using pyproject to configure setuptools
+
+    # TODO: Remove once the future stabilizes
+    msg = (
+        "Support for project metadata in `pyproject.toml` is still experimental "
+        "and may be removed (or change) in future releases."
+    )
+    warnings.warn(msg, _ExperimentalProjectMetadata)
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
@@ -217,4 +224,8 @@ def _ignore_errors(ignore_option_errors):
     try:
         yield
     except Exception as ex:
-        log.debug(f"Ignored error: {ex.__class__.__name__} - {ex}")
+        _logger.debug(f"ignored error: {ex.__class__.__name__} - {ex}")
+
+
+class _ExperimentalProjectMetadata(UserWarning):
+    """Explicitly inform users that `pyproject.toml` configuration is experimental"""
