@@ -1,10 +1,10 @@
 """Load setuptools configuration from ``pyproject.toml`` files"""
+import logging
 import os
 import warnings
-import logging
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from typing import TYPE_CHECKING, Callable, Optional, Tuple, Union
 
 from setuptools.errors import FileError, OptionError
 
@@ -47,11 +47,16 @@ def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution"
     """Apply the configuration from a ``pyproject.toml`` file into an existing
     distribution object.
     """
-    config = read_configuration(filepath)
+    config = read_configuration(filepath, dist=dist)
     return apply(dist, config, filepath)
 
 
-def read_configuration(filepath: _Path, expand=True, ignore_option_errors=False):
+def read_configuration(
+    filepath: _Path,
+    expand=True,
+    ignore_option_errors=False,
+    dist: Optional["Distribution"] = None,
+):
     """Read given configuration file and returns options from it as a dict.
 
     :param str|unicode filepath: Path to configuration file in the ``pyproject.toml``
@@ -65,6 +70,12 @@ def read_configuration(filepath: _Path, expand=True, ignore_option_errors=False)
         in directives such as file:, attr:, etc.).
         If False exceptions are propagated as expected.
 
+    :param Distribution|None: Distribution object to which the configuration refers.
+        If not given a dummy object will be created and discarded after the
+        configuration is read. This is used for auto-discovery of packages in the case
+        a dynamic configuration (e.g. ``attr`` or ``cmdclass``) is expanded.
+        When ``expand=False`` this object is simply ignored.
+
     :rtype: dict
     """
     filepath = os.path.abspath(filepath)
@@ -75,7 +86,7 @@ def read_configuration(filepath: _Path, expand=True, ignore_option_errors=False)
     asdict = load_file(filepath) or {}
     project_table = asdict.get("project", {})
     tool_table = asdict.get("tool", {}).get("setuptools", {})
-    if not asdict or not(project_table or tool_table):
+    if not asdict or not (project_table or tool_table):
         return {}  # User is not using pyproject to configure setuptools
 
     # TODO: Remove once the future stabilizes
@@ -98,13 +109,16 @@ def read_configuration(filepath: _Path, expand=True, ignore_option_errors=False)
 
     if expand:
         root_dir = os.path.dirname(filepath)
-        return expand_configuration(asdict, root_dir, ignore_option_errors)
+        return expand_configuration(asdict, root_dir, ignore_option_errors, dist)
 
     return asdict
 
 
 def expand_configuration(
-    config: dict, root_dir: Optional[_Path] = None, ignore_option_errors=False
+    config: dict,
+    root_dir: Optional[_Path] = None,
+    ignore_option_errors=False,
+    dist: Optional["Distribution"] = None,
 ) -> dict:
     """Given a configuration with unresolved fields (e.g. dynamic, cmdclass, ...)
     find their final values.
@@ -113,27 +127,86 @@ def expand_configuration(
     :param str root_dir: Top-level directory for the distribution/project
         (the same directory where ``pyproject.toml`` is place)
     :param bool ignore_option_errors: see :func:`read_configuration`
+    :param Distribution|None: Distribution object to which the configuration refers.
+        If not given a dummy object will be created and discarded after the
+        configuration is read. Used in the case a dynamic configuration
+        (e.g. ``attr`` or ``cmdclass``).
 
     :rtype: dict
     """
     root_dir = root_dir or os.getcwd()
     project_cfg = config.get("project", {})
     setuptools_cfg = config.get("tool", {}).get("setuptools", {})
-    package_dir = setuptools_cfg.get("package-dir")
+
+    # A distribution object is required for discovering the correct package_dir
+    dist, setuptools_cfg = _ensure_dist_and_package_dir(
+        dist, project_cfg, setuptools_cfg, root_dir
+    )
 
     _expand_packages(setuptools_cfg, root_dir, ignore_option_errors)
     _canonic_package_data(setuptools_cfg)
     _canonic_package_data(setuptools_cfg, "exclude-package-data")
 
-    process = partial(_process_field, ignore_option_errors=ignore_option_errors)
-    cmdclass = partial(_expand.cmdclass, package_dir=package_dir, root_dir=root_dir)
-    data_files = partial(_expand.canonic_data_files, root_dir=root_dir)
+    with _expand.EnsurePackagesDiscovered(dist) as ensure_discovered:
+        _fill_discovered_attrs(dist, setuptools_cfg, ensure_discovered)
+        package_dir = setuptools_cfg["package-dir"]
 
-    process(setuptools_cfg, "data-files", data_files)
-    process(setuptools_cfg, "cmdclass", cmdclass)
-    _expand_all_dynamic(project_cfg, setuptools_cfg, root_dir, ignore_option_errors)
+        process = partial(_process_field, ignore_option_errors=ignore_option_errors)
+        cmdclass = partial(_expand.cmdclass, package_dir=package_dir, root_dir=root_dir)
+        data_files = partial(_expand.canonic_data_files, root_dir=root_dir)
+
+        process(setuptools_cfg, "data-files", data_files)
+        process(setuptools_cfg, "cmdclass", cmdclass)
+        _expand_all_dynamic(project_cfg, setuptools_cfg, root_dir, ignore_option_errors)
 
     return config
+
+
+def _ensure_dist_and_package_dir(
+    dist: Optional["Distribution"],
+    project_cfg: dict,
+    setuptools_cfg: dict,
+    root_dir: _Path,
+) -> Tuple["Distribution", dict]:
+    from setuptools.dist import Distribution
+
+    attrs = {"src_root": root_dir, "name": project_cfg.get("name", None)}
+    dist = dist or Distribution(attrs)
+
+    # dist and setuptools_cfg should use the same package_dir
+    if dist.package_dir is None:
+        dist.package_dir = setuptools_cfg.get("package-dir", {})
+    if setuptools_cfg.get("package-dir") is None:
+        setuptools_cfg["package-dir"] = dist.package_dir
+
+    return dist, setuptools_cfg
+
+
+def _fill_discovered_attrs(
+    dist: "Distribution",
+    setuptools_cfg: dict,
+    ensure_discovered: _expand.EnsurePackagesDiscovered,
+):
+    """When entering the context, the values of ``packages``, ``py_modules`` and
+    ``package_dir`` that are missing in ``dist`` are copied from ``setuptools_cfg``.
+    When existing the context, if these values are missing in ``setuptools_cfg``, they
+    will be copied from ``dist``.
+    """
+    package_dir = setuptools_cfg["package-dir"]
+    dist.package_dir = package_dir  # need to be the same object
+
+    # Set `py_modules` and `packages` in dist to short-circuit auto-discovery,
+    # but avoid overwriting empty lists purposefully set by users.
+    if isinstance(setuptools_cfg.get("py_modules"), list) and dist.py_modules is None:
+        dist.py_modules = setuptools_cfg["py-modules"]
+    if isinstance(setuptools_cfg.get("packages"), list) and dist.packages is None:
+        dist.packages = setuptools_cfg["packages"]
+
+    package_dir.update(ensure_discovered())
+
+    # If anything was discovered set them back, so they count in the final config.
+    setuptools_cfg.setdefault("packages", dist.packages)
+    setuptools_cfg.setdefault("py-modules", dist.py_modules)
 
 
 def _expand_all_dynamic(
@@ -141,7 +214,7 @@ def _expand_all_dynamic(
 ):
     silent = ignore_option_errors
     dynamic_cfg = setuptools_cfg.get("dynamic", {})
-    package_dir = setuptools_cfg.get("package-dir", None)
+    package_dir = setuptools_cfg["package-dir"]
     special = ("license", "readme", "version", "entry-points", "scripts", "gui-scripts")
     # license-files are handled directly in the metadata, so no expansion
     # readme, version and entry-points need special handling
@@ -166,8 +239,11 @@ def _expand_all_dynamic(
 
 
 def _expand_dynamic(
-    dynamic_cfg: dict, field: str, package_dir: Optional[dict],
-    root_dir: _Path, ignore_option_errors: bool
+    dynamic_cfg: dict,
+    field: str,
+    package_dir: dict,
+    root_dir: _Path,
+    ignore_option_errors: bool,
 ):
     if field in dynamic_cfg:
         directive = dynamic_cfg[field]
@@ -186,7 +262,7 @@ def _expand_readme(dynamic_cfg: dict, root_dir: _Path, ignore_option_errors: boo
     silent = ignore_option_errors
     return {
         "text": _expand_dynamic(dynamic_cfg, "readme", None, root_dir, silent),
-        "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst")
+        "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst"),
     }
 
 
@@ -208,13 +284,13 @@ def _expand_packages(setuptools_cfg: dict, root_dir: _Path, ignore_option_errors
     find = packages.get("find")
     if isinstance(find, dict):
         find["root_dir"] = root_dir
+        find["fill_package_dir"] = setuptools_cfg["package-dir"]
         with _ignore_errors(ignore_option_errors):
             setuptools_cfg["packages"] = _expand.find_packages(**find)
 
 
 def _process_field(
-    container: dict, field: str,
-    fn: Callable, ignore_option_errors=False
+    container: dict, field: str, fn: Callable, ignore_option_errors=False
 ):
     if field in container:
         with _ignore_errors(ignore_option_errors):
