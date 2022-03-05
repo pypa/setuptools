@@ -33,7 +33,7 @@ def validate(config: dict, filepath: _Path):
     except Exception as ex:
         if ex.__class__.__name__ != "ValidationError":
             # Workaround for the fact that `extern` can duplicate imports
-            ex_cls = ex.__class__.__name
+            ex_cls = ex.__class__.__name__
             error = ValueError(f"invalid pyproject.toml config: {ex_cls} - {ex}")
             raise error from None
 
