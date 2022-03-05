@@ -243,7 +243,7 @@ class ConfigDiscovery:
         self._called = False
         self._root_dir = None  # delay so `src_root` can be set in dist
 
-    def __call__(self, force=False):
+    def __call__(self, force=False, name=True):
         """Automatically discover missing configuration fields
         and modifies the given ``distribution`` object in-place.
 
@@ -261,7 +261,8 @@ class ConfigDiscovery:
         self._root_dir = self.dist.src_root or os.curdir
 
         self._analyse_package_layout()
-        self._analyse_name()  # depends on ``packages`` and ``py_modules``
+        if name:
+            self.analyse_name()  # depends on ``packages`` and ``py_modules``
 
         self._called = True
 
@@ -329,7 +330,7 @@ class ConfigDiscovery:
         log.debug(f"`flat-layout` detected -- analysing {self._root_dir}")
         return True
 
-    def _analyse_name(self):
+    def analyse_name(self):
         """The packages/modules are the essential contribution of the author.
         Therefore the name of the distribution can be derived from them.
         """
