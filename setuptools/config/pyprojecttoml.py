@@ -121,7 +121,6 @@ def expand_configuration(
     setuptools_cfg = config.get("tool", {}).get("setuptools", {})
     package_dir = setuptools_cfg.get("package-dir")
 
-    _expand_all_dynamic(project_cfg, setuptools_cfg, root_dir, ignore_option_errors)
     _expand_packages(setuptools_cfg, root_dir, ignore_option_errors)
     _canonic_package_data(setuptools_cfg)
     _canonic_package_data(setuptools_cfg, "exclude-package-data")
@@ -129,8 +128,10 @@ def expand_configuration(
     process = partial(_process_field, ignore_option_errors=ignore_option_errors)
     cmdclass = partial(_expand.cmdclass, package_dir=package_dir, root_dir=root_dir)
     data_files = partial(_expand.canonic_data_files, root_dir=root_dir)
+
     process(setuptools_cfg, "data-files", data_files)
     process(setuptools_cfg, "cmdclass", cmdclass)
+    _expand_all_dynamic(project_cfg, setuptools_cfg, root_dir, ignore_option_errors)
 
     return config
 
