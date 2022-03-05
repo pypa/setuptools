@@ -1,10 +1,10 @@
 """Load setuptools configuration from ``pyproject.toml`` files"""
 import os
 import warnings
+import logging
 from contextlib import contextmanager
-from distutils import log
 from functools import partial
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, cast
 
 from setuptools.errors import FileError, OptionError
 
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
 
 _Path = Union[str, os.PathLike]
+_logger = logging.getLogger(__name__)
 
 
 def load_file(filepath: _Path) -> dict:
@@ -25,9 +26,21 @@ def load_file(filepath: _Path) -> dict:
 
 
 def validate(config: dict, filepath: _Path):
-    from setuptools.extern import _validate_pyproject
+    from setuptools.extern._validate_pyproject import validate as _validate
 
-    return _validate_pyproject.validate(config)
+    try:
+        return _validate(config)
+    except Exception as ex:
+        if ex.__class__.__name__ != "ValidationError":
+            # Workaround for the fact that `extern` can duplicate imports
+            ex_cls = ex.__class__.__name
+            error = ValueError(f"invalid pyproject.toml config: {ex_cls} - {ex}")
+            raise error from None
+
+        _logger.error(f"configuration error: {ex.summary}")  # type: ignore
+        _logger.debug(ex.details)  # type: ignore
+        error = ValueError(f"invalid pyproject.toml config: {ex.name}")  # type: ignore
+        raise error from None
 
 
 def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution":
@@ -211,7 +224,7 @@ def _ignore_errors(ignore_option_errors):
     try:
         yield
     except Exception as ex:
-        log.debug(f"Ignored error: {ex.__class__.__name__} - {ex}")
+        _logger.debug(f"ignored error: {ex.__class__.__name__} - {ex}")
 
 
 class _ExperimentalProjectMetadata(UserWarning):

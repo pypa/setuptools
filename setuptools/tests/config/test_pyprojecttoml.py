@@ -1,4 +1,6 @@
+import logging
 from configparser import ConfigParser
+from inspect import cleandoc
 
 import pytest
 
@@ -140,22 +142,60 @@ def test_expand_entry_point(tmp_path):
     assert "gui-scripts" not in expanded_project
 
 
-EXAMPLE_INVALID_3RD_PARTY_CONFIG = """
-[project]
-name = "myproj"
-version = "1.2"
+@pytest.mark.parametrize(
+    "example",
+    (
+        """
+        [project]
+        name = "myproj"
+        version = "1.2"
 
-[my-tool.that-disrespect.pep518]
-value = 42
-"""
-
-
-def test_ignore_unrelated_config(tmp_path):
+        [my-tool.that-disrespect.pep518]
+        value = 42
+        """,
+    )
+)
+def test_ignore_unrelated_config(tmp_path, example):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(EXAMPLE_INVALID_3RD_PARTY_CONFIG)
+    pyproject.write_text(cleandoc(example))
 
     # Make sure no error is raised due to 3rd party configs in pyproject.toml
     assert read_configuration(pyproject) is not None
+
+
+@pytest.mark.parametrize(
+    "example, error_msg, value_shown_in_debug",
+    [
+        (
+            """
+            [project]
+            name = "myproj"
+            version = "1.2"
+            requires = ['pywin32; platform_system=="Windows"' ]
+            """,
+            "configuration error: `project` must not contain {'requires'} properties",
+            '"requires": ["pywin32; platform_system==\\"Windows\\""]'
+        ),
+    ]
+)
+def test_invalid_example(tmp_path, caplog, example, error_msg, value_shown_in_debug):
+    caplog.set_level(logging.DEBUG)
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(cleandoc(example))
+
+    caplog.clear()
+    with pytest.raises(ValueError, match="invalid pyproject.toml"):
+        read_configuration(pyproject)
+
+    # Make sure the logs give guidance to the user
+    error_log = caplog.record_tuples[0]
+    assert error_log[1] == logging.ERROR
+    assert error_msg in error_log[2]
+
+    debug_log = caplog.record_tuples[1]
+    assert debug_log[1] == logging.DEBUG
+    debug_msg = "".join(line.strip() for line in debug_log[2].splitlines())
+    assert value_shown_in_debug in debug_msg
 
 
 @pytest.mark.parametrize("config", ("", "[tool.something]\nvalue = 42"))
