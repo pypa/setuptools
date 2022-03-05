@@ -5,6 +5,7 @@ import pytest
 from distutils.errors import DistutilsOptionError
 from setuptools.command.sdist import sdist
 from setuptools.config import expand
+from setuptools.discovery import find_package_path
 
 
 def write_files(files, root_dir):
@@ -102,9 +103,13 @@ def test_find_packages(tmp_path, monkeypatch, args, pkgs):
     }
     write_files({k: "" for k in files}, tmp_path)
 
-    with monkeypatch.context() as m:
-        m.chdir(tmp_path)
-        assert set(expand.find_packages(**args)) == pkgs
+    package_dir = {}
+    kwargs = {"root_dir": tmp_path, "fill_package_dir": package_dir, **args}
+    where = kwargs.get("where", ["."])
+    assert set(expand.find_packages(**kwargs)) == pkgs
+    for pkg in pkgs:
+        pkg_path = find_package_path(pkg, package_dir, tmp_path)
+        assert os.path.exists(pkg_path)
 
     # Make sure the same APIs work outside cwd
     where = [

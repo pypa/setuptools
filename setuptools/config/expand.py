@@ -249,7 +249,11 @@ def cmdclass(
 
 
 def find_packages(
-    *, namespaces=True, root_dir: Optional[_Path] = None, **kwargs
+    *,
+    namespaces=True,
+    fill_package_dir: Optional[Dict[str, str]] = None,
+    root_dir: Optional[_Path] = None,
+    **kwargs
 ) -> List[str]:
     """Works similarly to :func:`setuptools.find_packages`, but with all
     arguments given as keyword arguments. Moreover, ``where`` can be given
@@ -259,6 +263,13 @@ def find_packages(
     behave like :func:`setuptools.find_namespace_packages`` (i.e. include
     implicit namespaces as per :pep:`420`).
 
+    The ``where`` argument will be considered relative to ``root_dir`` (or the current
+    working directory when ``root_dir`` is not given).
+
+    If the ``fill_package_dir`` argument is passed, this function will consider it as a
+    similar data structure to the ``package_dir`` configuration parameter add fill-in
+    any missing package location.
+
     :rtype: list
     """
 
@@ -267,12 +278,39 @@ def find_packages(
     else:
         from setuptools.discovery import PackageFinder  # type: ignore
 
-    root_dir = root_dir or "."
+    root_dir = root_dir or os.curdir
     where = kwargs.pop('where', ['.'])
     if isinstance(where, str):
         where = [where]
-    target = [_nest_path(root_dir, path) for path in where]
-    return list(chain_iter(PackageFinder.find(x, **kwargs) for x in target))
+
+    packages = []
+    fill_package_dir = {} if fill_package_dir is None else fill_package_dir
+    for path in where:
+        pkgs = PackageFinder.find(_nest_path(root_dir, path), **kwargs)
+        packages.extend(pkgs)
+        if fill_package_dir.get("") != path:
+            parent_pkgs = _parent_packages(pkgs)
+            parent = {pkg: "/".join([path, *pkg.split(".")]) for pkg in parent_pkgs}
+            fill_package_dir.update(parent)
+
+    return packages
+
+
+def _parent_packages(packages: List[str]) -> List[str]:
+    """Remove children packages from the list
+    >>> _parent_packages(["a", "a.b1", "a.b2", "a.b1.c1"])
+    ['a']
+    >>> _parent_packages(["a", "b", "c.d", "c.d.e.f", "g.h", "a.a1"])
+    ['a', 'b', 'c.d', 'g.h']
+    """
+    pkgs = sorted(packages, key=len)
+    top_level = pkgs[:]
+    size = len(pkgs)
+    for i, name in enumerate(reversed(pkgs)):
+        if any(name.startswith(f"{other}.") for other in top_level):
+            top_level.pop(size - i - 1)
+
+    return top_level
 
 
 def _nest_path(parent: _Path, path: _Path) -> str:
