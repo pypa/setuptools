@@ -24,10 +24,25 @@ from glob import iglob
 from configparser import ConfigParser
 from importlib.machinery import ModuleSpec
 from itertools import chain
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    cast
+)
 from types import ModuleType
 
 from distutils.errors import DistutilsOptionError
+
+if TYPE_CHECKING:
+    from setuptools.dist import Distribution  # noqa
+    from setuptools.discovery import ConfigDiscovery  # noqa
+    from distutils.dist import DistributionMetadata  # noqa
 
 chain_iter = chain.from_iterable
 _Path = Union[str, os.PathLike]
@@ -372,3 +387,32 @@ def entry_points(text: str, text_source="entry-points") -> Dict[str, dict]:
     groups = {k: dict(v.items()) for k, v in parser.items()}
     groups.pop(parser.default_section, None)
     return groups
+
+
+class EnsurePackagesDiscovered:
+    """Some expand functions require all the packages to already be discovered before
+    they run, e.g. :func:`read_attr`, :func:`resolve_class`, :func:`cmdclass`.
+
+    Therefore in some cases we will need to run autodiscovery during the parsing of the
+    configuration. However, it is better to postpone calling package discovery as much
+    as possible.
+
+    We should only run the discovery if absolutely necessary, otherwise we can miss
+    files that define important configuration (like ``package_dir``) are processed.
+    """
+
+    def __init__(self, distribution: "Distribution"):
+        self._dist = distribution
+        self._called = False
+
+    def __call__(self):
+        self._called = True
+        self._dist.set_defaults(name=False)  # Skip name since we are parsing metadata
+        return self._dist.package_dir
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, _exc_type, _exc_value, _traceback):
+        if self._called:
+            self._dist.set_defaults.analyse_name()  # Now we can set a default name

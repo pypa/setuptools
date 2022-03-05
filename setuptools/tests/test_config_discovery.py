@@ -5,6 +5,7 @@ from itertools import product
 
 from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
+from setuptools.discovery import find_package_path
 
 import pytest
 from path import Path as _Path
@@ -170,14 +171,28 @@ class TestNoConfig:
         assert dist_file.is_file()
 
 
-def test_autodiscovered_packagedir_with_attr_directive_in_config(tmp_path):
-    _populate_project_dir(tmp_path, ["src/pkg/__init__.py"], {})
-    (tmp_path / "src/pkg/__init__.py").write_text("version = 42")
-    (tmp_path / "setup.cfg").write_text("[metadata]\nversion = attr: pkg.version")
+@pytest.mark.parametrize(
+    "folder, opts",
+    [
+        ("src", {}),
+        ("lib", {"packages": "find:", "packages.find": {"where": "lib"}}),
+    ]
+)
+def test_discovered_packagedir_with_attr_directive_in_config(tmp_path, folder, opts):
+    _populate_project_dir(tmp_path, [f"{folder}/pkg/__init__.py", "setup.cfg"], opts)
+    (tmp_path / folder / "pkg/__init__.py").write_text("version = 42")
+    (tmp_path / "setup.cfg").write_text(
+        "[metadata]\nversion = attr: pkg.version\n"
+        + (tmp_path / "setup.cfg").read_text()
+    )
 
     dist, _ = _run_sdist_programatically(tmp_path, {})
     assert dist.get_name() == "pkg"
     assert dist.get_version() == "42"
+    assert dist.package_dir
+    package_path = find_package_path("pkg", dist.package_dir, tmp_path)
+    assert os.path.exists(package_path)
+    assert folder in _Path(package_path).parts()
 
     _run_build(tmp_path, "--sdist")
     dist_file = tmp_path / "dist/pkg-42.tar.gz"
@@ -205,7 +220,10 @@ def _write_setupcfg(root, options):
     setupcfg = ConfigParser()
     setupcfg.add_section("options")
     for key, value in options.items():
-        if isinstance(value, list):
+        if key == "packages.find":
+            setupcfg.add_section(f"options.{key}")
+            setupcfg[f"options.{key}"].update(value)
+        elif isinstance(value, list):
             setupcfg["options"][key] = ", ".join(value)
         elif isinstance(value, dict):
             str_value = "\n".join(f"\t{k} = {v}" for k, v in value.items())
@@ -223,9 +241,9 @@ def _run_build(path, *flags):
     return run(cmd, env={'DISTUTILS_DEBUG': '1'})
 
 
-def _run_sdist_programatically(dist_path, options):
+def _run_sdist_programatically(dist_path, attrs):
     root = "/".join(os.path.split(dist_path))  # POSIX-style
-    dist = Distribution({**options, "src_root": root})
+    dist = Distribution({**attrs, "src_root": root})
     dist.script_name = 'setup.py'
 
     if (dist_path / "setup.cfg").exists():

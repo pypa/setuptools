@@ -1,8 +1,8 @@
 import configparser
 import contextlib
-import importlib
-import os
-from unittest.mock import patch
+import inspect
+from pathlib import Path
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -69,7 +69,7 @@ def get_dist(tmpdir, kwargs_initial=None, parse=True):
 def test_parsers_implemented():
 
     with pytest.raises(NotImplementedError):
-        handler = ErrConfigHandler(None, {})
+        handler = ErrConfigHandler(None, {}, False, Mock())
         handler.parsers
 
 
@@ -857,23 +857,26 @@ class TestOptions:
             with get_dist(tmpdir) as dist:
                 dist.parse_config_files()
 
-    def test_cmdclass(self, tmpdir, monkeypatch):
-        module_path = os.path.join(tmpdir, "custom_build.py")
-        with open(module_path, "w") as f:
-            f.write("from distutils.core import Command\n")
-            f.write("class CustomCmd(Command): pass\n")
-
-        fake_env(
-            tmpdir,
-            '[options]\n' 'cmdclass =\n' '    customcmd = custom_build.CustomCmd\n',
+    def test_cmdclass(self, tmpdir):
+        module_path = Path(tmpdir, "src/custom_build.py")  # auto discovery for src
+        module_path.parent.mkdir(parents=True, exist_ok=True)
+        module_path.write_text(
+            "from distutils.core import Command\n"
+            "class CustomCmd(Command): pass\n"
         )
 
-        with monkeypatch.context() as m:
-            m.syspath_prepend(tmpdir)
-            custom_build = importlib.import_module("custom_build")
+        setup_cfg = """
+            [options]
+            cmdclass =
+                customcmd = custom_build.CustomCmd
+        """
+        fake_env(tmpdir, inspect.cleandoc(setup_cfg))
 
         with get_dist(tmpdir) as dist:
-            assert dist.cmdclass == {'customcmd': custom_build.CustomCmd}
+            cmdclass = dist.cmdclass['customcmd']
+            assert cmdclass.__name__ == "CustomCmd"
+            assert cmdclass.__module__ == "custom_build"
+            assert module_path.samefile(inspect.getfile(cmdclass))
 
 
 saved_dist_init = _Distribution.__init__

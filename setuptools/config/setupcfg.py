@@ -144,22 +144,27 @@ def parse_configuration(
         If False exceptions are propagated as expected.
     :rtype: list
     """
-    options = ConfigOptionsHandler(distribution, command_options, ignore_option_errors)
-    options.parse()
+    with expand.EnsurePackagesDiscovered(distribution) as ensure_discovered:
+        options = ConfigOptionsHandler(
+            distribution,
+            command_options,
+            ignore_option_errors,
+            ensure_discovered,
+        )
 
-    # Make sure package_dir is populated correctly, so `attr:` directives can work
-    distribution.set_defaults(name=False)  # Skip name since it is defined in metadata
+        options.parse()
+        if not distribution.package_dir:
+            distribution.package_dir = options.package_dir  # Filled by `find_packages`
 
-    meta = ConfigMetadataHandler(
-        distribution.metadata,
-        command_options,
-        ignore_option_errors,
-        distribution.package_dir,
-        distribution.src_root,
-    )
-    meta.parse()
-
-    distribution.set_defaults.analyse_name()  # Now we can set a default name
+        meta = ConfigMetadataHandler(
+            distribution.metadata,
+            command_options,
+            ignore_option_errors,
+            ensure_discovered,
+            distribution.package_dir,
+            distribution.src_root,
+        )
+        meta.parse()
 
     return meta, options
 
@@ -184,7 +189,8 @@ class ConfigHandler(Generic[Target]):
         self,
         target_obj: Target,
         options: AllCommandOptions,
-        ignore_option_errors=False
+        ignore_option_errors,
+        ensure_discovered: expand.EnsurePackagesDiscovered,
     ):
         sections: AllCommandOptions = {}
 
@@ -200,6 +206,7 @@ class ConfigHandler(Generic[Target]):
         self.target_obj = target_obj
         self.sections = sections
         self.set_options: List[str] = []
+        self.ensure_discovered = ensure_discovered
 
     @property
     def parsers(self):
@@ -344,8 +351,7 @@ class ConfigHandler(Generic[Target]):
         filepaths = (path.strip() for path in spec.split(','))
         return expand.read_files(filepaths, root_dir)
 
-    @classmethod
-    def _parse_attr(cls, value, package_dir, root_dir: _Path):
+    def _parse_attr(self, value, package_dir, root_dir: _Path):
         """Represents value as a module attribute.
 
         Examples:
@@ -360,6 +366,9 @@ class ConfigHandler(Generic[Target]):
             return value
 
         attr_desc = value.replace(attr_directive, '')
+
+        # Make sure package_dir is populated correctly, so `attr:` directives can work
+        package_dir.update(self.ensure_discovered())
         return expand.read_attr(attr_desc, package_dir, root_dir)
 
     @classmethod
@@ -473,11 +482,12 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         self,
         target_obj: "DistributionMetadata",
         options: AllCommandOptions,
-        ignore_option_errors=False,
+        ignore_option_errors: bool,
+        ensure_discovered: expand.EnsurePackagesDiscovered,
         package_dir: Optional[dict] = None,
         root_dir: _Path = os.curdir
     ):
-        super().__init__(target_obj, options, ignore_option_errors)
+        super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.package_dir = package_dir
         self.root_dir = root_dir
 
@@ -550,10 +560,12 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         self,
         target_obj: "Distribution",
         options: AllCommandOptions,
-        ignore_option_errors=False
+        ignore_option_errors: bool,
+        ensure_discovered: expand.EnsurePackagesDiscovered,
     ):
-        super().__init__(target_obj, options, ignore_option_errors)
+        super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.root_dir = target_obj.src_root
+        self.package_dir: Dict[str, str] = {}  # To be filled by `find_packages`
 
     @property
     def parsers(self):
@@ -584,7 +596,8 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         }
 
     def _parse_cmdclass(self, value):
-        return expand.cmdclass(self._parse_dict(value), self.root_dir)
+        package_dir = self.ensure_discovered()
+        return expand.cmdclass(self._parse_dict(value), package_dir, self.root_dir)
 
     def _parse_packages(self, value):
         """Parses `packages` option value.
@@ -603,9 +616,13 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
             self.sections.get('packages.find', {})
         )
 
-        find_kwargs["namespaces"] = (trimmed_value == find_directives[1])
+        find_kwargs.update(
+            namespaces=(trimmed_value == find_directives[1]),
+            root_dir=self.root_dir,
+            fill_package_dir=self.package_dir,
+        )
 
-        return expand.find_packages(**find_kwargs, root_dir=self.root_dir)
+        return expand.find_packages(**find_kwargs)
 
     def parse_section_packages__find(self, section_options):
         """Parses `packages.find` configuration file section.
