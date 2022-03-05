@@ -19,6 +19,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "integration: integration tests")
+    config.addinivalue_line("markers", "uses_network: tests may try to download files")
 
 
 collect_ignore = [
