@@ -249,7 +249,7 @@ def cmdclass(
 
 
 def find_packages(
-    *, namespaces=False, root_dir: Optional[_Path] = None, **kwargs
+    *, namespaces=True, root_dir: Optional[_Path] = None, **kwargs
 ) -> List[str]:
     """Works similarly to :func:`setuptools.find_packages`, but with all
     arguments given as keyword arguments. Moreover, ``where`` can be given

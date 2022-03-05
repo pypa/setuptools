@@ -580,15 +580,12 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         if trimmed_value not in find_directives:
             return self._parse_list(value)
 
-        findns = trimmed_value == find_directives[1]
-
         # Read function arguments from a dedicated section.
         find_kwargs = self.parse_section_packages__find(
             self.sections.get('packages.find', {})
         )
 
-        if findns:
-            find_kwargs["namespaces"] = True
+        find_kwargs["namespaces"] = (trimmed_value == find_directives[1])
 
         return expand.find_packages(**find_kwargs)
 
