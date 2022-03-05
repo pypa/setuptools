@@ -4,7 +4,7 @@ import warnings
 import logging
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Union, cast
+from typing import TYPE_CHECKING, Union
 
 from setuptools.errors import FileError, OptionError
 
