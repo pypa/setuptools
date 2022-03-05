@@ -221,6 +221,42 @@ class easy_install(Command):
         raise SystemExit()
 
     def finalize_options(self):  # noqa: C901  # is too complex (25)  # FIXME
+        print(sysconfig._INSTALL_SCHEMES)
+        print(f'{os.name}_user')
+
+        def global_trace(frame, event, arg):
+            pass
+
+        import sys
+
+        sys.settrace(global_trace)
+
+        XXX = [set()]
+
+        def trace(frame, event, arg):
+            config_vars = getattr(self, 'config_vars', {})
+            o = {
+                ('USER_BASE', site.USER_BASE),
+                ('USER_SITE',  site.USER_SITE),
+                ('install_dir', self.install_dir),
+                ('install_userbase', self.install_userbase),
+                ('install_usersite', self.install_usersite),
+                ('install_purelib', self.install_purelib),
+                ('install_scripts', self.install_scripts),
+                ('userbase', config_vars.get('userbase')),
+                ('usersite', config_vars.get('usersite')),
+            }
+            if XXX[0] - o:
+                print('-', XXX[0] - o)
+            if o - XXX[0]:
+                print('+', o - XXX[0])
+            XXX[0] = o
+            lines, start = inspect.getsourcelines(frame)
+            print(frame.f_lineno, lines[frame.f_lineno - start])
+
+        import inspect
+        inspect.currentframe().f_trace = trace
+
         self.version and self._render_version()
 
         py_version = sys.version.split()[0]
@@ -459,6 +495,7 @@ class easy_install(Command):
         instdir = normalize_path(self.install_dir)
         pth_file = os.path.join(instdir, 'easy-install.pth')
 
+        print('XXX', instdir, os.path.exists(instdir))
         if not os.path.exists(instdir):
             try:
                 os.makedirs(instdir)
