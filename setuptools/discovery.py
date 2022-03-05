@@ -392,7 +392,7 @@ def find_parent_package(
         common_ancestors.append(name)
 
     for name in common_ancestors:
-        pkg_path = _find_package_path(name, package_dir, root_dir)
+        pkg_path = find_package_path(name, package_dir, root_dir)
         init = os.path.join(pkg_path, "__init__.py")
         if os.path.isfile(init):
             return name
@@ -400,7 +400,7 @@ def find_parent_package(
     return None
 
 
-def _find_package_path(name: str, package_dir: Dict[str, str], root_dir: _Path) -> str:
+def find_package_path(name: str, package_dir: Dict[str, str], root_dir: _Path) -> str:
     """Given a package name, return the path where it should be found on
     disk, considering the ``package_dir`` option.
     """
