@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from setuptools._importlib import metadata  # noqa
     from setuptools.dist import Distribution  # noqa
 
-EMPTY = MappingProxyType({})  # Immutable dict-like
+EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
 _Path = Union[os.PathLike, str]
 _DictOrStr = Union[dict, str]
 _CorrespFn = Callable[["Distribution", Any, _Path], None]

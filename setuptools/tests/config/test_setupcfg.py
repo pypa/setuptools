@@ -14,6 +14,7 @@ from ..textwrap import DALS
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
+    section_prefix = "**err**"
 
 
 def make_package_dir(name, base_dir, ns=False):

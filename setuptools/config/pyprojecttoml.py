@@ -4,7 +4,7 @@ import warnings
 import logging
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Callable, Optional, Union
 
 from setuptools.errors import FileError, OptionError
 
@@ -51,7 +51,7 @@ def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution"
     return apply(dist, config, filepath)
 
 
-def read_configuration(filepath, expand=True, ignore_option_errors=False):
+def read_configuration(filepath: _Path, expand=True, ignore_option_errors=False):
     """Read given configuration file and returns options from it as a dict.
 
     :param str|unicode filepath: Path to configuration file in the ``pyproject.toml``
@@ -103,7 +103,9 @@ def read_configuration(filepath, expand=True, ignore_option_errors=False):
     return asdict
 
 
-def expand_configuration(config, root_dir=None, ignore_option_errors=False):
+def expand_configuration(
+    config: dict, root_dir: Optional[_Path] = None, ignore_option_errors=False
+) -> dict:
     """Given a configuration with unresolved fields (e.g. dynamic, cmdclass, ...)
     find their final values.
 
@@ -133,7 +135,9 @@ def expand_configuration(config, root_dir=None, ignore_option_errors=False):
     return config
 
 
-def _expand_all_dynamic(project_cfg, setuptools_cfg, root_dir, ignore_option_errors):
+def _expand_all_dynamic(
+    project_cfg: dict, setuptools_cfg: dict, root_dir: _Path, ignore_option_errors: bool
+):
     silent = ignore_option_errors
     dynamic_cfg = setuptools_cfg.get("dynamic", {})
     package_dir = setuptools_cfg.get("package-dir", None)
@@ -160,7 +164,10 @@ def _expand_all_dynamic(project_cfg, setuptools_cfg, root_dir, ignore_option_err
         project_cfg.update(_expand_entry_points(value, dynamic))
 
 
-def _expand_dynamic(dynamic_cfg, field, package_dir, root_dir, ignore_option_errors):
+def _expand_dynamic(
+    dynamic_cfg: dict, field: str, package_dir: Optional[dict],
+    root_dir: _Path, ignore_option_errors: bool
+):
     if field in dynamic_cfg:
         directive = dynamic_cfg[field]
         if "file" in directive:
@@ -174,7 +181,7 @@ def _expand_dynamic(dynamic_cfg, field, package_dir, root_dir, ignore_option_err
     return None
 
 
-def _expand_readme(dynamic_cfg, root_dir, ignore_option_errors):
+def _expand_readme(dynamic_cfg: dict, root_dir: _Path, ignore_option_errors: bool):
     silent = ignore_option_errors
     return {
         "text": _expand_dynamic(dynamic_cfg, "readme", None, root_dir, silent),
@@ -182,7 +189,7 @@ def _expand_readme(dynamic_cfg, root_dir, ignore_option_errors):
     }
 
 
-def _expand_entry_points(text, dynamic):
+def _expand_entry_points(text: str, dynamic: set):
     groups = _expand.entry_points(text)
     expanded = {"entry-points": groups}
     if "scripts" in dynamic and "console_scripts" in groups:
@@ -192,7 +199,7 @@ def _expand_entry_points(text, dynamic):
     return expanded
 
 
-def _expand_packages(setuptools_cfg, root_dir, ignore_option_errors=False):
+def _expand_packages(setuptools_cfg: dict, root_dir: _Path, ignore_option_errors=False):
     packages = setuptools_cfg.get("packages")
     if packages is None or isinstance(packages, (list, tuple)):
         return
@@ -204,7 +211,10 @@ def _expand_packages(setuptools_cfg, root_dir, ignore_option_errors=False):
             setuptools_cfg["packages"] = _expand.find_packages(**find)
 
 
-def _process_field(container, field, fn, ignore_option_errors=False):
+def _process_field(
+    container: dict, field: str,
+    fn: Callable, ignore_option_errors=False
+):
     if field in container:
         with _ignore_errors(ignore_option_errors):
             container[field] = fn(container[field])
@@ -216,7 +226,7 @@ def _canonic_package_data(setuptools_cfg, field="package-data"):
 
 
 @contextmanager
-def _ignore_errors(ignore_option_errors):
+def _ignore_errors(ignore_option_errors: bool):
     if not ignore_option_errors:
         yield
         return
