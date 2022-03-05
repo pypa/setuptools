@@ -20,7 +20,7 @@ The following files include code from opensource projects
 - `fastjsonschema_exceptions.py`:
     - project: `fastjsonschema` - licensed under BSD-3-Clause
       (https://github.com/horejsek/python-fastjsonschema)
-- `extra_validations.py` and `format.py`:
+- `extra_validations.py` and `format.py`, `error_reporting.py`:
     - project: `validate-pyproject` - licensed under MPL-2.0
       (https://github.com/abravalheri/validate-pyproject)
 

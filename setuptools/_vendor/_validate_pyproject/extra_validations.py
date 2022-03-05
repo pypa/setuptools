@@ -24,7 +24,7 @@ def validate_project_dynamic(pyproject: T) -> T:
 
     for field in dynamic:
         if field in project_table:
-            msg = f"You cannot provided a value for `project.{field}` and "
+            msg = f"You cannot provide a value for `project.{field}` and "
             msg += "list it under `project.dynamic` at the same time"
             name = f"data.project.{field}"
             value = {field: project_table[field], "...": " # ...", "dynamic": dynamic}

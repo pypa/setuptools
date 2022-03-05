@@ -1,8 +1,9 @@
 import logging
+import os
 import re
 import string
-from itertools import chain
-from urllib.parse import urlparse
+import typing
+from itertools import chain as _chain
 
 _logger = logging.getLogger(__name__)
 
@@ -101,12 +102,66 @@ def pep508_versionspec(value: str) -> bool:
 
 def pep517_backend_reference(value: str) -> bool:
     module, _, obj = value.partition(":")
-    identifiers = (i.strip() for i in chain(module.split("."), obj.split(".")))
+    identifiers = (i.strip() for i in _chain(module.split("."), obj.split(".")))
     return all(python_identifier(i) for i in identifiers if i)
 
 
 # -------------------------------------------------------------------------------------
 # Classifiers - PEP 301
+
+
+def _download_classifiers() -> str:
+    import cgi
+    from urllib.request import urlopen
+
+    url = "https://pypi.org/pypi?:action=list_classifiers"
+    with urlopen(url) as response:
+        content_type = response.getheader("content-type", "text/plain")
+        encoding = cgi.parse_header(content_type)[1].get("charset", "utf-8")
+        return response.read().decode(encoding)
+
+
+class _TroveClassifier:
+    """The ``trove_classifiers`` package is the official way of validating classifiers,
+    however this package might not be always available.
+    As a workaround we can still download a list from PyPI.
+    We also don't want to be over strict about it, so simply skipping silently is an
+    option (classifiers will be validated anyway during the upload to PyPI).
+    """
+
+    def __init__(self):
+        self.downloaded: typing.Union[None, False, typing.Set[str]] = None
+        # None => not cached yet
+        # False => cache not available
+        self.__name__ = "trove_classifier"  # Emulate a public function
+
+    def __call__(self, value: str) -> bool:
+        if self.downloaded is False:
+            return True
+
+        if os.getenv("NO_NETWORK"):
+            self.downloaded = False
+            msg = (
+                "Install ``trove-classifiers`` to ensure proper validation. "
+                "Skipping download of classifiers list from PyPI (NO_NETWORK)."
+            )
+            _logger.debug(msg)
+            return True
+
+        if self.downloaded is None:
+            msg = (
+                "Install ``trove-classifiers`` to ensure proper validation. "
+                "Meanwhile a list of classifiers will be downloaded from PyPI."
+            )
+            _logger.debug(msg)
+            try:
+                self.downloaded = set(_download_classifiers().splitlines())
+            except Exception:
+                self.downloaded = False
+                _logger.debug("Problem with download, skipping validation")
+                return True
+
+        return value in self.downloaded
 
 
 try:
@@ -116,18 +171,6 @@ try:
         return value in _trove_classifiers
 
 except ImportError:  # pragma: no cover
-
-    class _TroveClassifier:
-        def __init__(self):
-            self._warned = False
-            self.__name__ = "trove-classifier"
-
-        def __call__(self, value: str) -> bool:
-            if self._warned is False:
-                self._warned = True
-                _logger.warning("Install ``trove-classifiers`` to ensure validation.")
-            return True
-
     trove_classifier = _TroveClassifier()
 
 
@@ -136,10 +179,20 @@ except ImportError:  # pragma: no cover
 
 
 def url(value: str) -> bool:
+    from urllib.parse import urlparse
+
     try:
         parts = urlparse(value)
+        if not parts.scheme:
+            _logger.warning(
+                "For maximum compatibility please make sure to include a "
+                "`scheme` prefix in your URL (e.g. 'http://'). "
+                f"Given value: {value}"
+            )
+            if not (value.startswith("/") or value.startswith("\\") or "@" in value):
+                parts = urlparse(f"http://{value}")
+
         return bool(parts.scheme and parts.netloc)
-        # ^  TODO: should we enforce schema to be http(s)?
     except Exception:
         return False
 
@@ -182,8 +235,6 @@ def python_entrypoint_name(value: str) -> bool:
 
 
 def python_entrypoint_reference(value: str) -> bool:
-    if ":" not in value:
-        return False
     module, _, rest = value.partition(":")
     if "[" in rest:
         obj, _, extras_ = rest.partition("[")
@@ -196,5 +247,6 @@ def python_entrypoint_reference(value: str) -> bool:
     else:
         obj = rest
 
-    identifiers = chain(module.split("."), obj.split("."))
+    module_parts = module.split(".")
+    identifiers = _chain(module_parts, obj.split(".")) if rest else module_parts
     return all(python_identifier(i.strip()) for i in identifiers)
