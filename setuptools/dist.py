@@ -818,11 +818,13 @@ class Distribution(_Distribution):
         and loads configuration.
         """
         tomlfiles = []
+        standard_project_metadata = Path(self.src_root or os.curdir, "pyproject.toml")
         if filenames is not None:
-            tomlfiles, other = partition(lambda f: Path(f).suffix == ".toml", filenames)
-            filenames = other
-        elif os.path.exists("pyproject.toml"):
-            tomlfiles = ["pyproject.toml"]
+            parts = partition(lambda f: Path(f).suffix == ".toml", filenames)
+            filenames = list(parts[0])  # 1st element => predicate is False
+            tomlfiles = list(parts[1])  # 2nd element => predicate is True
+        elif standard_project_metadata.exists():
+            tomlfiles = [standard_project_metadata]
 
         self._parse_config_files(filenames=filenames)
 

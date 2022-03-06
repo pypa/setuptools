@@ -144,16 +144,27 @@ def parse_configuration(
         If False exceptions are propagated as expected.
     :rtype: list
     """
-    options = ConfigOptionsHandler(distribution, command_options, ignore_option_errors)
-    options.parse()
+    with expand.EnsurePackagesDiscovered(distribution) as ensure_discovered:
+        options = ConfigOptionsHandler(
+            distribution,
+            command_options,
+            ignore_option_errors,
+            ensure_discovered,
+        )
 
-    meta = ConfigMetadataHandler(
-        distribution.metadata,
-        command_options,
-        ignore_option_errors,
-        distribution.package_dir,
-    )
-    meta.parse()
+        options.parse()
+        if not distribution.package_dir:
+            distribution.package_dir = options.package_dir  # Filled by `find_packages`
+
+        meta = ConfigMetadataHandler(
+            distribution.metadata,
+            command_options,
+            ignore_option_errors,
+            ensure_discovered,
+            distribution.package_dir,
+            distribution.src_root,
+        )
+        meta.parse()
 
     return meta, options
 
@@ -178,7 +189,8 @@ class ConfigHandler(Generic[Target]):
         self,
         target_obj: Target,
         options: AllCommandOptions,
-        ignore_option_errors=False
+        ignore_option_errors,
+        ensure_discovered: expand.EnsurePackagesDiscovered,
     ):
         sections: AllCommandOptions = {}
 
@@ -194,6 +206,7 @@ class ConfigHandler(Generic[Target]):
         self.target_obj = target_obj
         self.sections = sections
         self.set_options: List[str] = []
+        self.ensure_discovered = ensure_discovered
 
     @property
     def parsers(self):
@@ -313,7 +326,7 @@ class ConfigHandler(Generic[Target]):
         return parser
 
     @classmethod
-    def _parse_file(cls, value):
+    def _parse_file(cls, value, root_dir: _Path):
         """Represents value as a string, allowing including text
         from nearest files using `file:` directive.
 
@@ -336,10 +349,9 @@ class ConfigHandler(Generic[Target]):
 
         spec = value[len(include_directive) :]
         filepaths = (path.strip() for path in spec.split(','))
-        return expand.read_files(filepaths)
+        return expand.read_files(filepaths, root_dir)
 
-    @classmethod
-    def _parse_attr(cls, value, package_dir=None):
+    def _parse_attr(self, value, package_dir, root_dir: _Path):
         """Represents value as a module attribute.
 
         Examples:
@@ -354,7 +366,10 @@ class ConfigHandler(Generic[Target]):
             return value
 
         attr_desc = value.replace(attr_directive, '')
-        return expand.read_attr(attr_desc, package_dir)
+
+        # Make sure package_dir is populated correctly, so `attr:` directives can work
+        package_dir.update(self.ensure_discovered())
+        return expand.read_attr(attr_desc, package_dir, root_dir)
 
     @classmethod
     def _get_parser_compound(cls, *parse_methods):
@@ -467,17 +482,20 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         self,
         target_obj: "DistributionMetadata",
         options: AllCommandOptions,
-        ignore_option_errors=False,
-        package_dir: Optional[dict] = None
+        ignore_option_errors: bool,
+        ensure_discovered: expand.EnsurePackagesDiscovered,
+        package_dir: Optional[dict] = None,
+        root_dir: _Path = os.curdir
     ):
-        super().__init__(target_obj, options, ignore_option_errors)
+        super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.package_dir = package_dir
+        self.root_dir = root_dir
 
     @property
     def parsers(self):
         """Metadata item name to parser function mapping."""
         parse_list = self._parse_list
-        parse_file = self._parse_file
+        parse_file = partial(self._parse_file, root_dir=self.root_dir)
         parse_dict = self._parse_dict
         exclude_files_parser = self._exclude_files_parser
 
@@ -514,7 +532,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         :rtype: str
 
         """
-        version = self._parse_file(value)
+        version = self._parse_file(value, self.root_dir)
 
         if version != value:
             version = version.strip()
@@ -531,12 +549,23 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
 
             return version
 
-        return expand.version(self._parse_attr(value, self.package_dir))
+        return expand.version(self._parse_attr(value, self.package_dir, self.root_dir))
 
 
 class ConfigOptionsHandler(ConfigHandler["Distribution"]):
 
     section_prefix = 'options'
+
+    def __init__(
+        self,
+        target_obj: "Distribution",
+        options: AllCommandOptions,
+        ignore_option_errors: bool,
+        ensure_discovered: expand.EnsurePackagesDiscovered,
+    ):
+        super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
+        self.root_dir = target_obj.src_root
+        self.package_dir: Dict[str, str] = {}  # To be filled by `find_packages`
 
     @property
     def parsers(self):
@@ -546,6 +575,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         parse_bool = self._parse_bool
         parse_dict = self._parse_dict
         parse_cmdclass = self._parse_cmdclass
+        parse_file = partial(self._parse_file, root_dir=self.root_dir)
 
         return {
             'zip_safe': parse_bool,
@@ -559,14 +589,15 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
             'setup_requires': parse_list_semicolon,
             'tests_require': parse_list_semicolon,
             'packages': self._parse_packages,
-            'entry_points': self._parse_file,
+            'entry_points': parse_file,
             'py_modules': parse_list,
             'python_requires': SpecifierSet,
             'cmdclass': parse_cmdclass,
         }
 
     def _parse_cmdclass(self, value):
-        return expand.cmdclass(self._parse_dict(value))
+        package_dir = self.ensure_discovered()
+        return expand.cmdclass(self._parse_dict(value), package_dir, self.root_dir)
 
     def _parse_packages(self, value):
         """Parses `packages` option value.
@@ -585,7 +616,11 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
             self.sections.get('packages.find', {})
         )
 
-        find_kwargs["namespaces"] = (trimmed_value == find_directives[1])
+        find_kwargs.update(
+            namespaces=(trimmed_value == find_directives[1]),
+            root_dir=self.root_dir,
+            fill_package_dir=self.package_dir,
+        )
 
         return expand.find_packages(**find_kwargs)
 
@@ -652,4 +687,4 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         :param dict section_options:
         """
         parsed = self._parse_section_to_dict(section_options, self._parse_list)
-        self['data_files'] = expand.canonic_data_files(parsed)
+        self['data_files'] = expand.canonic_data_files(parsed, self.root_dir)

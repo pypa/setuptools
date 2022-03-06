@@ -46,6 +46,10 @@ the following sections.
 Automatic discovery
 ===================
 
+.. warning:: Automatic discovery is an **experimental** feature and might change
+   (or be completely removed) in the future.
+   See :ref:`custom-discovery` for a stable way of configuring ``setuptools``.
+
 By default setuptools will consider 2 popular project layouts, each one with
 its own set of advantages and disadvantages [#layout1]_ [#layout2]_.
 
@@ -165,6 +169,8 @@ Also note that you can customise your project layout by explicitly setting
    If at least one of them is explicitly set, automatic discovery will not take
    place.
 
+
+.. _custom-discovery:
 
 Custom discovery
 ================
