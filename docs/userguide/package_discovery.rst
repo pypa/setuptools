@@ -46,7 +46,7 @@ the following sections.
 Automatic discovery
 ===================
 
-.. warning:: Automatic discovery is an **experimental** future and might change
+.. warning:: Automatic discovery is an **experimental** feature and might change
    (or be completely removed) in the future.
    See :ref:`custom-discovery` for a stable way of configuring ``setuptools``.
 
@@ -170,7 +170,7 @@ Also note that you can customise your project layout by explicitly setting
    place.
 
 
-.. custom-discovery::
+.. _custom-discovery:
 
 Custom discovery
 ================
