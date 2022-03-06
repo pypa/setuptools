@@ -1,4 +1,4 @@
-Added **experimental** support for ``pyproject.toml`` configuration
+**[EXPERIMENTAL]** Add support for ``pyproject.toml`` configuration
 (as introduced by :pep:`621`). Configuration parameters not covered by
 standards are handled in the ``[tool.setuptools]`` sub-table.
 
