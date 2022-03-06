@@ -1,0 +1,4 @@
+**[EXPERIMENTAL]** Added support for ``attr:`` and ``cmdclass`` configurations
+in ``setup.cfg`` and ``pyproject.toml`` when ``package_dir`` is implicitly
+found via auto-discovery.
+
