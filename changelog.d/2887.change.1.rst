@@ -1,4 +1,4 @@
-Added automatic discovery for ``py_modules`` and ``packages``
+**[EXPERIMENTAL]** Added automatic discovery for ``py_modules`` and ``packages``
 -- by :user:`abravalheri`.
 
 Setuptools will try to find these values assuming that the package uses either
