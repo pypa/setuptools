@@ -1148,4 +1148,7 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmpdir):
     # Should not install to sys.prefix
     assert sys_prefix.listdir() == []
     # Should install to user site
-    assert {f.basename for f in user_site.listdir()} == {'UNKNOWN.egg-link'}
+    installed = {f.basename for f in user_site.listdir()}
+    # sometimes easy-install.pth is created and sometimes not
+    installed = installed - {"easy-install.pth"}
+    assert installed == {'UNKNOWN.egg-link'}
