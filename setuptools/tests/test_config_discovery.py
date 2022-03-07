@@ -73,16 +73,16 @@ class TestDiscoverPackagesAndPyModules:
         (tmp_path / "setup.cfg").write_text("[metadata]\nname = pkg")
         _populate_project_dir(tmp_path, files, {})
         dist, _ = _run_sdist_programatically(tmp_path, {})
-        assert dist.packages == ["pkg"]
-        assert dist.py_modules == []
+        assert set(dist.packages) == {"pkg"}
+        assert set(dist.py_modules) == set()
 
     def test_flat_layout_without_name(self, tmp_path):
         files = ["venv/bin/simulate_venv", "util.py", "utils/__init__.py"]
         files += self.FILES["flat"]
         _populate_project_dir(tmp_path, files, {})
         dist, _ = _run_sdist_programatically(tmp_path, {})
-        assert dist.packages == ["pkg", "utils"]
-        assert dist.py_modules == ["util"]
+        assert set(dist.packages) == {"pkg", "utils"}
+        assert set(dist.py_modules) == {"util"}
 
     @pytest.mark.parametrize("circumstance", OPTIONS.keys())
     def test_project(self, tmp_path, circumstance):
