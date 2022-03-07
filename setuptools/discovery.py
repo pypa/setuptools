@@ -191,6 +191,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "tools",
         "build",
         "dist",
+        "venv",
         # ---- Task runners / Build tools ----
         "tasks",  # invoke
         "fabfile",  # fabric
@@ -283,7 +284,8 @@ class ConfigDiscovery:
             self._analyse_explicit_layout()
             or self._analyse_src_layout()
             # flat-layout is the trickiest for discovery so it should be last
-            or self._analyse_flat_layout()
+            or self._analyse_flat_layout_named()
+            or self._analyse_flat_layout_general()
         )
 
     def _analyse_explicit_layout(self):
@@ -325,19 +327,40 @@ class ConfigDiscovery:
         log.debug(f"`src-layout` detected -- analysing {src_dir}")
         return True
 
-    def _analyse_flat_layout(self):
+    def _analyse_flat_layout_named(self):
+        """Try to find all packages and modules that match the project name"""
+        pkg_name = self._get_name()
+        if pkg_name:
+            from setuptools.extern.packaging import utils
+
+            namespace, _, _ = pkg_name.partition(".")
+            canonical = utils.canonicalize_name(pkg_name)
+            candidates = {namespace, pkg_name, canonical, canonical.replace("-", "_")}
+            inc = list(chain_iter((name, f"{name}.*") for name in candidates if name))
+
+            self.dist.packages = PEP420PackageFinder.find(self._root_dir, include=inc)
+            self.dist.py_modules = ModuleFinder.find(self._root_dir, include=inc)
+            log.debug(f"`flat-layout` detected -- looking for packages/modules: {inc}")
+            return bool(self.dist.packages or self.dist.py_modules)
+
+        return False
+
+    def _analyse_flat_layout_general(self):
         """Try to find all packages and modules under the project root"""
         self.dist.packages = FlatLayoutPackageFinder.find(self._root_dir)
         self.dist.py_modules = FlatLayoutModuleFinder.find(self._root_dir)
         log.debug(f"`flat-layout` detected -- analysing {self._root_dir}")
         return True
 
+    def _get_name(self):
+        # dist.get_name() is not reliable (can return "UNKNOWN")
+        return self.dist.metadata.name or self.dist.name
+
     def analyse_name(self):
         """The packages/modules are the essential contribution of the author.
         Therefore the name of the distribution can be derived from them.
         """
-        if self.dist.metadata.name or self.dist.name:
-            # get_name() is not reliable (can return "UNKNOWN")
+        if self._get_name():
             return None
 
         log.debug("No `name` configuration, performing automatic discovery")

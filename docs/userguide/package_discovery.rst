@@ -109,10 +109,10 @@ Setuptools will automatically scan your project directory looking for these
 layouts and try to guess the correct values for the :ref:`packages <declarative
 config>` and :doc:`py_modules </references/keywords>` configuration.
 
-To avoid confusion, file and folder names that are used by popular tools (or
-that correspond to well-known conventions, such as distributing documentation
-alongside the project code) are automatically filtered out in the case of
-*flat-layouts*:
+In the case of *flat-layouts*, only packages or modules that match your
+project's name metadata will be considered (at first). If no match is found,
+then ``setuptools`` will proceed and evaluate other files and directories,
+except the following:
 
 .. autoattribute:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
 
@@ -176,8 +176,8 @@ Custom discovery
 ================
 
 If the automatic discovery does not work for you
-(e.g., you want to *include* in the distribution top-level packages with
-reserved names such as ``tasks``, ``example`` or ``docs``, or you want to
+(e.g., you want to distribute multiple packages together, your package or
+module name does not match the name you want to display on PyPI, or you want to
 *exclude* nested packages that would be otherwise included), you can use
 the provided tools for package discovery:
 
