@@ -40,6 +40,8 @@ import setuptools.command
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import setupcfg, pyprojecttoml
+from setuptools.discovery import ConfigDiscovery
+
 import pkg_resources
 from setuptools.extern.packaging import version, requirements
 from . import _reqs
@@ -464,6 +466,8 @@ class Distribution(_Distribution):
                 if k not in self._DISTUTILS_UNSUPPORTED_METADATA
             },
         )
+
+        self.set_defaults = ConfigDiscovery(self)
 
         self._set_metadata_defaults(attrs)
 
@@ -1195,6 +1199,13 @@ class Distribution(_Distribution):
             sys.stdout = io.TextIOWrapper(
                 sys.stdout.detach(), encoding, errors, newline, line_buffering
             )
+
+    def run_command(self, command):
+        self.set_defaults()
+        # Postpone defaults until all explicit configuration is considered
+        # (setup() args, config files, command line and plugins)
+
+        super().run_command(command)
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):

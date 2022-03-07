@@ -1,4 +1,4 @@
-"""Tests for setuptools.find_packages()."""
+"""Tests for automatic package discovery"""
 import os
 import sys
 import shutil
@@ -9,6 +9,7 @@ import pytest
 
 from setuptools import find_packages
 from setuptools import find_namespace_packages
+from setuptools.discovery import FlatLayoutPackageFinder
 
 
 # modeled after CPython's test.support.can_symlink
@@ -178,3 +179,67 @@ class TestFindPackages:
         shutil.rmtree(os.path.join(self.dist_dir, 'pkg/subpkg/assets'))
         packages = find_namespace_packages(self.dist_dir)
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
+
+
+class TestFlatLayoutPackageFinder:
+    EXAMPLES = {
+        "hidden-folders": (
+            [".pkg/__init__.py", "pkg/__init__.py", "pkg/nested/file.txt"],
+            ["pkg", "pkg.nested"]
+        ),
+        "private-packages": (
+            ["_pkg/__init__.py", "pkg/_private/__init__.py"],
+            ["pkg", "pkg._private"]
+        ),
+        "invalid-name": (
+            ["invalid-pkg/__init__.py", "other.pkg/__init__.py", "yet,another/file.py"],
+            []
+        ),
+        "docs": (
+            ["pkg/__init__.py", "docs/conf.py", "docs/readme.rst"],
+            ["pkg"]
+        ),
+        "tests": (
+            ["pkg/__init__.py", "tests/test_pkg.py", "tests/__init__.py"],
+            ["pkg"]
+        ),
+        "examples": (
+            [
+                "pkg/__init__.py",
+                "examples/__init__.py",
+                "examples/file.py"
+                "example/other_file.py",
+                # Sub-packages should always be fine
+                "pkg/example/__init__.py",
+                "pkg/examples/__init__.py",
+            ],
+            ["pkg", "pkg.examples", "pkg.example"]
+        ),
+        "tool-specific": (
+            [
+                "pkg/__init__.py",
+                "tasks/__init__.py",
+                "tasks/subpackage/__init__.py",
+                "fabfile/__init__.py",
+                "fabfile/subpackage/__init__.py",
+                # Sub-packages should always be fine
+                "pkg/tasks/__init__.py",
+                "pkg/fabfile/__init__.py",
+            ],
+            ["pkg", "pkg.tasks", "pkg.fabfile"]
+        )
+    }
+
+    @pytest.mark.parametrize("example", EXAMPLES.keys())
+    def test_unwanted_directories_not_included(self, tmp_path, example):
+        files, expected_packages = self.EXAMPLES[example]
+        ensure_files(tmp_path, files)
+        found_packages = FlatLayoutPackageFinder.find(str(tmp_path))
+        assert set(found_packages) == set(expected_packages)
+
+
+def ensure_files(root_path, files):
+    for file in files:
+        path = root_path / file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
