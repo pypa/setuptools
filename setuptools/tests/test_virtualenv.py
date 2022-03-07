@@ -1,7 +1,8 @@
 import os
 import sys
-import itertools
 import subprocess
+from urllib.request import urlopen
+from urllib.error import URLError
 
 import pathlib
 
@@ -31,56 +32,39 @@ def test_clean_env_install(venv_without_setuptools, setuptools_wheel):
     venv_without_setuptools.run(cmd)
 
 
-def _get_pip_versions():
-    # This fixture will attempt to detect if tests are being run without
-    # network connectivity and if so skip some tests
-
-    network = True
+def access_pypi():
+    # Detect if tests are being run without connectivity
     if not os.environ.get('NETWORK_REQUIRED', False):  # pragma: nocover
-        try:
-            from urllib.request import urlopen
-            from urllib.error import URLError
-        except ImportError:
-            from urllib2 import urlopen, URLError  # Python 2.7 compat
-
         try:
             urlopen('https://pypi.org', timeout=1)
         except URLError:
             # No network, disable most of these tests
-            network = False
+            return False
 
-    def mark(param, *marks):
-        if not isinstance(param, type(pytest.param(''))):
-            param = pytest.param(param)
-        return param._replace(marks=param.marks + marks)
-
-    def skip_network(param):
-        return param if network else mark(param, pytest.mark.skip(reason="no network"))
-
-    network_versions = [
-        mark('pip<20', pytest.mark.xfail(reason='pypa/pip#6599')),
-        'pip<20.1',
-        'pip<21',
-        'pip<22',
-        mark(
-            'https://github.com/pypa/pip/archive/main.zip',
-            pytest.mark.xfail(reason='#2975'),
-        ),
-    ]
-
-    versions = itertools.chain(
-        [None],
-        map(skip_network, network_versions)
-    )
-
-    return list(versions)
+    return True
 
 
 @pytest.mark.skipif(
     'platform.python_implementation() == "PyPy"',
     reason="https://github.com/pypa/setuptools/pull/2865#issuecomment-965834995",
 )
-@pytest.mark.parametrize('pip_version', _get_pip_versions())
+@pytest.mark.skipif(not access_pypi(), reason="no network")
+# ^-- Even when it is not necessary to install a different version of `pip`
+#     the build process will still try to download `wheel`, see #3147 and #2986.
+@pytest.mark.parametrize(
+    'pip_version',
+    [
+        None,
+        pytest.param('pip<20', marks=pytest.mark.xfail(reason='pypa/pip#6599')),
+        'pip<20.1',
+        'pip<21',
+        'pip<22',
+        pytest.param(
+            'https://github.com/pypa/pip/archive/main.zip',
+            marks=pytest.mark.xfail(reason='#2975'),
+        ),
+    ]
+)
 def test_pip_upgrade_from_source(pip_version, venv_without_setuptools,
                                  setuptools_wheel, setuptools_sdist):
     """
