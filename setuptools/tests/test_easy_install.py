@@ -19,6 +19,7 @@ import subprocess
 import pathlib
 import warnings
 from collections import namedtuple
+from pathlib import Path
 
 import pytest
 from jaraco import path
@@ -39,8 +40,6 @@ import pkg_resources
 
 from . import contexts
 from .textwrap import DALS
-
-import py
 
 
 @pytest.fixture(autouse=True)
@@ -1113,7 +1112,7 @@ def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
     assert cmd.config_vars['py_version_nodot'] == '310'
 
 
-def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmpdir):
+def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path):
     ''' `setup.py develop` should honor `--user` even under build isolation'''
 
     # == Arrange ==
@@ -1128,27 +1127,28 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmpdir):
     # it will `makedirs("/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")``  # noqa: E501
     # 2. We are going to force `site` to update site.USER_BASE and site.USER_SITE
     #    To point inside our new home
-    monkeypatch.setenv('HOME', str(tmpdir / 'home'))
+    monkeypatch.setenv('HOME', str(tmp_path / 'home'))
     monkeypatch.setattr('site.USER_BASE', None)
     monkeypatch.setattr('site.USER_SITE', None)
-    user_site = py.path.local(site.getusersitepackages())
-    user_site.ensure_dir()
+    user_site = Path(site.getusersitepackages())
+    user_site.mkdir(parents=True, exist_ok=True)
 
-    sys_prefix = (tmpdir / 'sys_prefix').ensure_dir()
+    sys_prefix = (tmp_path / 'sys_prefix')
+    sys_prefix.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr('sys.prefix', str(sys_prefix))
 
     # == Sanity check ==
-    assert sys_prefix.listdir() == []
-    assert user_site.listdir() == []
+    assert list(sys_prefix.glob("*")) == []
+    assert list(user_site.glob("*")) == []
 
     # == Act ==
     run_setup('setup.py', ['develop', '--user'])
 
     # == Assert ==
     # Should not install to sys.prefix
-    assert sys_prefix.listdir() == []
+    assert list(sys_prefix.glob("*")) == []
     # Should install to user site
-    installed = {f.basename for f in user_site.listdir()}
+    installed = {f.name for f in user_site.glob("*")}
     # sometimes easy-install.pth is created and sometimes not
     installed = installed - {"easy-install.pth"}
     assert installed == {'UNKNOWN.egg-link'}
