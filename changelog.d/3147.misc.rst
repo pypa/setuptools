@@ -1,4 +1,4 @@
-Added options to provide a pre-build ``setuptools`` wheel or sdist for being
+Added options to provide a pre-built ``setuptools`` wheel or sdist for being
 used during tests with virtual environments.
 Paths for these pre-built distribution files can now be set via the environment
 variables: ``PRE_BUILT_SETUPTOOLS_SDIST`` and ``PRE_BUILT_SETUPTOOLS_WHEEL``.
