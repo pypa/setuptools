@@ -176,6 +176,30 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
     assert dist.metadata.long_description_content_type is None
 
 
+# TODO: After PEP 639 is accepted, we have to move the license-files
+#       to the `project` table instead of `tool.setuptools`
+def test_license(tmp_path):
+    pyproject = _pep621_example_project(tmp_path, "README")
+    text = pyproject.read_text(encoding="utf-8")
+
+    # Sanity-check
+    assert 'license = {file = "LICENSE.txt"}' in text
+    assert "[tool.setuptools]" not in text
+
+    text += '\n[tool.setuptools]\nlicense-files = ["_FILE*"]\n'
+    pyproject.write_text(text, encoding="utf-8")
+    (tmp_path / "_FILE.txt").touch()
+    (tmp_path / "_FILE.rst").touch()
+
+    # Would normally match the `license_files` glob patterns, but we want to exclude it
+    # by being explicit. On the other hand, its contents should be added to `license`
+    (tmp_path / "LICENSE.txt").write_text("Super License\n", encoding="utf-8")
+
+    dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
+    assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
+    assert dist.metadata.license == "Super License\n"
+
+
 # --- Auxiliary Functions ---
 
 
