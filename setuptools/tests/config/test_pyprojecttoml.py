@@ -3,6 +3,7 @@ from configparser import ConfigParser
 from inspect import cleandoc
 
 import pytest
+import tomli_w
 
 from setuptools.config.pyprojecttoml import read_configuration, expand_configuration
 
@@ -58,7 +59,7 @@ content-type = "text/markdown"
 "*" = ["*.txt"]
 
 [tool.setuptools.data-files]
-"data" = ["files/*.txt"]
+"data" = ["_files/*.txt"]
 
 [tool.distutils.sdist]
 formats = "gztar"
@@ -68,33 +69,34 @@ universal = true
 """
 
 
-def test_read_configuration(tmp_path):
-    pyproject = tmp_path / "pyproject.toml"
+def create_example(path, pkg_root):
+    pyproject = path / "pyproject.toml"
 
     files = [
-        "src/pkg/__init__.py",
-        "src/other/nested/__init__.py",  # ensure namespaces are discovered by default
-        "files/file.txt"
+        f"{pkg_root}/pkg/__init__.py",
+        f"{pkg_root}/other/nested/__init__.py",  # ensure namespaces are discovered
+        "_files/file.txt"
     ]
     for file in files:
-        (tmp_path / file).parent.mkdir(exist_ok=True, parents=True)
-        (tmp_path / file).touch()
+        (path / file).parent.mkdir(exist_ok=True, parents=True)
+        (path / file).touch()
 
     pyproject.write_text(EXAMPLE)
-    (tmp_path / "README.md").write_text("hello world")
-    (tmp_path / "src/pkg/mod.py").write_text("class CustomSdist: pass")
-    (tmp_path / "src/pkg/__version__.py").write_text("VERSION = (3, 10)")
-    (tmp_path / "src/pkg/__main__.py").write_text("def exec(): print('hello')")
+    (path / "README.md").write_text("hello world")
+    (path / f"{pkg_root}/pkg/mod.py").write_text("class CustomSdist: pass")
+    (path / f"{pkg_root}/pkg/__version__.py").write_text("VERSION = (3, 10)")
+    (path / f"{pkg_root}/pkg/__main__.py").write_text("def exec(): print('hello')")
 
-    config = read_configuration(pyproject, expand=False)
-    assert config["project"].get("version") is None
-    assert config["project"].get("readme") is None
 
-    expanded = expand_configuration(config, tmp_path)
+def verify_example(config, path):
+    pyproject = path / "pyproject.toml"
+    pyproject.write_text(tomli_w.dumps(config), encoding="utf-8")
+    expanded = expand_configuration(config, path)
     expanded_project = expanded["project"]
     assert read_configuration(pyproject, expand=True) == expanded
     assert expanded_project["version"] == "3.10"
     assert expanded_project["readme"]["text"] == "hello world"
+    assert "packages" in expanded["tool"]["setuptools"]
     assert set(expanded["tool"]["setuptools"]["packages"]) == {
         "pkg",
         "other",
@@ -103,8 +105,42 @@ def test_read_configuration(tmp_path):
     assert "" in expanded["tool"]["setuptools"]["package-data"]
     assert "*" not in expanded["tool"]["setuptools"]["package-data"]
     assert expanded["tool"]["setuptools"]["data-files"] == [
-        ("data", ["files/file.txt"])
+        ("data", ["_files/file.txt"])
     ]
+
+
+def test_read_configuration(tmp_path):
+    create_example(tmp_path, "src")
+    pyproject = tmp_path / "pyproject.toml"
+
+    config = read_configuration(pyproject, expand=False)
+    assert config["project"].get("version") is None
+    assert config["project"].get("readme") is None
+
+    verify_example(config, tmp_path)
+
+
+@pytest.mark.parametrize(
+    "pkg_root, opts",
+    [
+        (".", {}),
+        ("src", {}),
+        ("lib", {"packages": {"find": {"where": ["lib"]}}}),
+    ]
+)
+def test_discovered_package_dir_with_attr_directive_in_config(tmp_path, pkg_root, opts):
+    create_example(tmp_path, pkg_root)
+
+    pyproject = tmp_path / "pyproject.toml"
+
+    config = read_configuration(pyproject, expand=False)
+    assert config["project"].get("version") is None
+    assert config["project"].get("readme") is None
+    config["tool"]["setuptools"].pop("packages", None)
+    config["tool"]["setuptools"].pop("package-dir", None)
+
+    config["tool"]["setuptools"].update(opts)
+    verify_example(config, tmp_path)
 
 
 ENTRY_POINTS = {

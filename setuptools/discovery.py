@@ -47,6 +47,9 @@ import _distutils_hack.override  # noqa: F401
 from distutils import log
 from distutils.util import convert_path
 
+from typing import Dict, List, Optional, Union
+_Path = Union[str, os.PathLike]
+
 chain_iter = itertools.chain.from_iterable
 
 
@@ -243,7 +246,7 @@ class ConfigDiscovery:
         self._called = False
         self._root_dir = None  # delay so `src_root` can be set in dist
 
-    def __call__(self, force=False):
+    def __call__(self, force=False, name=True):
         """Automatically discover missing configuration fields
         and modifies the given ``distribution`` object in-place.
 
@@ -261,7 +264,8 @@ class ConfigDiscovery:
         self._root_dir = self.dist.src_root or os.curdir
 
         self._analyse_package_layout()
-        self._analyse_name()  # depends on ``packages`` and ``py_modules``
+        if name:
+            self.analyse_name()  # depends on ``packages`` and ``py_modules``
 
         self._called = True
 
@@ -329,7 +333,7 @@ class ConfigDiscovery:
         log.debug(f"`flat-layout` detected -- analysing {self._root_dir}")
         return True
 
-    def _analyse_name(self):
+    def analyse_name(self):
         """The packages/modules are the essential contribution of the author.
         Therefore the name of the distribution can be derived from them.
         """
@@ -363,37 +367,51 @@ class ConfigDiscovery:
             return None
 
         packages = sorted(self.dist.packages, key=len)
-        common_ancestors = []
-        for i, name in enumerate(packages):
-            if not all(n.startswith(name) for n in packages[i+1:]):
-                # Since packages are sorted by length, this condition is able
-                # to find a list of all common ancestors.
-                # When there is divergence (e.g. multiple root packages)
-                # the list will be empty
-                break
-            common_ancestors.append(name)
+        package_dir = self.dist.package_dir or {}
 
-        for name in common_ancestors:
-            init = os.path.join(self._find_package_path(name), "__init__.py")
-            if os.path.isfile(init):
-                log.debug(f"Common parent package detected, name: {name}")
-                return name
+        parent_pkg = find_parent_package(packages, package_dir, self._root_dir)
+        if parent_pkg:
+            log.debug(f"Common parent package detected, name: {parent_pkg}")
+            return parent_pkg
 
         log.warn("No parent package detected, impossible to derive `name`")
         return None
 
-    def _find_package_path(self, name):
-        """Given a package name, return the path where it should be found on
-        disk, considering the ``package_dir`` option.
-        """
-        package_dir = self.dist.package_dir or {}
-        parts = name.split(".")
-        for i in range(len(parts), 0, -1):
-            # Look backwards, the most specific package_dir first
-            partial_name = ".".join(parts[:i])
-            if partial_name in package_dir:
-                parent = package_dir[partial_name]
-                return os.path.join(self._root_dir, parent, *parts[i:])
 
-        parent = (package_dir.get("") or "").split("/")
-        return os.path.join(self._root_dir, *parent, *parts)
+def find_parent_package(
+    packages: List[str], package_dir: Dict[str, str], root_dir: _Path
+) -> Optional[str]:
+    packages = sorted(packages, key=len)
+    common_ancestors = []
+    for i, name in enumerate(packages):
+        if not all(n.startswith(name) for n in packages[i+1:]):
+            # Since packages are sorted by length, this condition is able
+            # to find a list of all common ancestors.
+            # When there is divergence (e.g. multiple root packages)
+            # the list will be empty
+            break
+        common_ancestors.append(name)
+
+    for name in common_ancestors:
+        pkg_path = find_package_path(name, package_dir, root_dir)
+        init = os.path.join(pkg_path, "__init__.py")
+        if os.path.isfile(init):
+            return name
+
+    return None
+
+
+def find_package_path(name: str, package_dir: Dict[str, str], root_dir: _Path) -> str:
+    """Given a package name, return the path where it should be found on
+    disk, considering the ``package_dir`` option.
+    """
+    parts = name.split(".")
+    for i in range(len(parts), 0, -1):
+        # Look backwards, the most specific package_dir first
+        partial_name = ".".join(parts[:i])
+        if partial_name in package_dir:
+            parent = package_dir[partial_name]
+            return os.path.join(root_dir, parent, *parts[i:])
+
+    parent = package_dir.get("") or ""
+    return os.path.join(root_dir, *parent.split("/"), *parts)

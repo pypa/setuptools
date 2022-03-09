@@ -1,4 +1,4 @@
-Added automatic configuration for the ``name`` metadata
+**[EXPERIMENTAL]** Added automatic configuration for the ``name`` metadata
 -- by :user:`abravalheri`.
 
 Setuptools will adopt the name of the top-level package (or module in the case
