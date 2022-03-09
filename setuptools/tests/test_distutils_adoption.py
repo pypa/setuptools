@@ -33,7 +33,7 @@ def win_sr(env):
 
 
 def find_distutils(venv, imports='distutils', env=None, **kwargs):
-    py_cmd = 'import {imports}; print(distutils.__file__)'.format(**locals())
+    py_cmd = f'import {imports}; print(distutils.__file__)'
     cmd = ['python', '-c', py_cmd]
     return popen_text(venv.run)(cmd, env=win_sr(env), **kwargs)
 

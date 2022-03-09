@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 __all__ = ['Distribution']
 
 import io
@@ -165,7 +164,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     version = self.get_metadata_version()
 
     def write_field(key, value):
-        file.write("%s: %s\n" % (key, value))
+        file.write(f"{key}: {value}\n")
 
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
@@ -230,7 +229,7 @@ def check_importable(dist, attr, value):
         assert not ep.extras
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            "%r must be importable 'module:attrs' string (got %r)" % (attr, value)
+            f"{attr!r} must be importable 'module:attrs' string (got {value!r})"
         ) from e
 
 
@@ -244,7 +243,7 @@ def assert_string_list(dist, attr, value):
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            "%r must be a list of strings (got %r)" % (attr, value)
+            f"{attr!r} must be a list of strings (got {value!r})"
         ) from e
 
 
@@ -349,9 +348,9 @@ def check_package_data(dist, attr, value):
     for k, v in value.items():
         if not isinstance(k, str):
             raise DistutilsSetupError(
-                "keys of {!r} dict must be strings (got {!r})".format(attr, k)
+                f"keys of {attr!r} dict must be strings (got {k!r})"
             )
-        assert_string_list(dist, 'values of {!r} dict'.format(attr), v)
+        assert_string_list(dist, f'values of {attr!r} dict', v)
 
 
 def check_packages(dist, attr, value):
@@ -589,10 +588,10 @@ class Distribution(_Distribution):
 
         for r in complex_reqs:
             self._tmp_extras_require[':' + str(r.marker)].append(r)
-        self.extras_require = dict(
-            (k, [str(r) for r in map(self._clean_req, v)])
+        self.extras_require = {
+            k: [str(r) for r in map(self._clean_req, v)]
             for k, v in self._tmp_extras_require.items()
-        )
+        }
 
     def _clean_req(self, req):
         """
@@ -676,9 +675,9 @@ class Distribution(_Distribution):
         parser = ConfigParser()
         parser.optionxform = str
         for filename in filenames:
-            with io.open(filename, encoding='utf-8') as reader:
+            with open(filename, encoding='utf-8') as reader:
                 if DEBUG:
-                    self.announce("  reading {filename}".format(**locals()))
+                    self.announce(f"  reading {filename}")
                 parser.read_file(reader)
             for section in parser.sections():
                 options = parser.options(section)
@@ -782,7 +781,7 @@ class Distribution(_Distribution):
             self.announce("  setting options for '%s' command:" % command_name)
         for (option, (source, value)) in option_dict.items():
             if DEBUG:
-                self.announce("    %s = %s (from %s)" % (option, value, source))
+                self.announce(f"    {option} = {value} (from {source})")
             try:
                 bool_opts = [translate_longopt(o) for o in command_obj.boolean_options]
             except AttributeError:
@@ -1003,7 +1002,7 @@ class Distribution(_Distribution):
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
         if not isinstance(value, sequence):
             raise DistutilsSetupError(
-                "%s: setting must be a list or tuple (%r)" % (name, value)
+                f"{name}: setting must be a list or tuple ({value!r})"
             )
         try:
             old = getattr(self, name)
@@ -1020,7 +1019,7 @@ class Distribution(_Distribution):
         """Handle 'include()' for list/tuple attrs without a special handler"""
 
         if not isinstance(value, sequence):
-            raise DistutilsSetupError("%s: setting must be a list (%r)" % (name, value))
+            raise DistutilsSetupError(f"{name}: setting must be a list ({value!r})")
         try:
             old = getattr(self, name)
         except AttributeError as e:
@@ -1061,7 +1060,7 @@ class Distribution(_Distribution):
     def _exclude_packages(self, packages):
         if not isinstance(packages, sequence):
             raise DistutilsSetupError(
-                "packages: setting must be a list or tuple (%r)" % (packages,)
+                f"packages: setting must be a list or tuple ({packages!r})"
             )
         list(map(self.exclude_package, packages))
 
@@ -1135,11 +1134,9 @@ class Distribution(_Distribution):
     def iter_distribution_names(self):
         """Yield all packages, modules, and extension names in distribution"""
 
-        for pkg in self.packages or ():
-            yield pkg
+        yield from self.packages or ()
 
-        for module in self.py_modules or ():
-            yield module
+        yield from self.py_modules or ()
 
         for ext in self.ext_modules or ():
             if isinstance(ext, tuple):

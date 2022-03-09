@@ -107,7 +107,7 @@ def _check_test_command_install_requirements(venv, tmpdir):
     Check the test command will install all required dependencies.
     """
     def sdist(distname, version):
-        dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
+        dist_path = tmpdir.join(f'{distname}-{version}.tar.gz')
         make_nspkg_sdist(str(dist_path), distname, version)
         return dist_path
     dependency_links = [

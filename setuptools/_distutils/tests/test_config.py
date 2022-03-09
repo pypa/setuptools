@@ -57,7 +57,7 @@ class BasePyPIRCCommandTestCase(support.TempdirManager,
 
     def setUp(self):
         """Patches the environment."""
-        super(BasePyPIRCCommandTestCase, self).setUp()
+        super().setUp()
         self.tmp_dir = self.mkdtemp()
         os.environ['HOME'] = self.tmp_dir
         os.environ['USERPROFILE'] = self.tmp_dir
@@ -77,7 +77,7 @@ class BasePyPIRCCommandTestCase(support.TempdirManager,
     def tearDown(self):
         """Removes the patch."""
         set_threshold(self.old_threshold)
-        super(BasePyPIRCCommandTestCase, self).tearDown()
+        super().tearDown()
 
 
 class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """upload_docs
 
 Implements a Distutils 'upload_docs' subcommand (upload documentation to
@@ -191,13 +190,13 @@ class upload_docs(upload):
             conn.putheader('Authorization', auth)
             conn.endheaders()
             conn.send(body)
-        except socket.error as e:
+        except OSError as e:
             self.announce(str(e), log.ERROR)
             return
 
         r = conn.getresponse()
         if r.status == 200:
-            msg = 'Server response (%s): %s' % (r.status, r.reason)
+            msg = f'Server response ({r.status}): {r.reason}'
             self.announce(msg, log.INFO)
         elif r.status == 301:
             location = r.getheader('Location')
@@ -206,7 +205,7 @@ class upload_docs(upload):
             msg = 'Upload successful. Visit %s' % location
             self.announce(msg, log.INFO)
         else:
-            msg = 'Upload failed (%s): %s' % (r.status, r.reason)
+            msg = f'Upload failed ({r.status}): {r.reason}'
             self.announce(msg, log.ERROR)
         if self.show_response:
             print('-' * 75, r.read(), '-' * 75)

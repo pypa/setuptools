@@ -159,7 +159,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         for script_name in self.distribution.scripts or []:
             script_path = os.path.abspath(convert_path(script_name))
             script_name = os.path.basename(script_path)
-            with io.open(script_path) as strm:
+            with open(script_path) as strm:
                 script_text = strm.read()
             self.install_script(dist, script_name, script_text, script_path)
 

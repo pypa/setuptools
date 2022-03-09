@@ -224,7 +224,7 @@ class BCPPCompiler(CCompiler) :
                 def_file = os.path.join (temp_dir, '%s.def' % modname)
                 contents = ['EXPORTS']
                 for sym in (export_symbols or []):
-                    contents.append('  %s=_%s' % (sym, sym))
+                    contents.append(f'  {sym}=_{sym}')
                 self.execute(write_file, (def_file, contents),
                              "writing %s" % def_file)
 

@@ -56,9 +56,9 @@ def win_launcher_exe(prefix):
     """ A simple routine to select launcher script based on platform."""
     assert prefix in ('cli', 'gui')
     if platform.machine() == "ARM64":
-        return "{}-arm64.exe".format(prefix)
+        return f"{prefix}-arm64.exe"
     else:
-        return "{}-32.exe".format(prefix)
+        return f"{prefix}-32.exe"
 
 
 class TestCLI(WrapperTester):
@@ -108,7 +108,7 @@ class TestCLI(WrapperTester):
         ]
         proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        stdout, stderr = proc.communicate('hello\nworld\n'.encode('ascii'))
+        stdout, stderr = proc.communicate(b'hello\nworld\n')
         actual = stdout.decode('ascii').replace('\r\n', '\n')
         expected = textwrap.dedent(r"""
             \foo-script.py

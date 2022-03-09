@@ -136,7 +136,7 @@ you can try compiling with MingW32, by passing "-c mingw32" to setup.py.""")
             except RegError:
                 continue
             key = RegEnumKey(h, 0)
-            d = read_values(base, r"%s\%s" % (p, key))
+            d = read_values(base, fr"{p}\{key}")
             self.macros["$(FrameworkVersion)"] = d["version"]
 
     def sub(self, s):

@@ -164,7 +164,7 @@ Your selection [default 1]: ''', log.INFO)
             # send the info to the server and report the result
             code, result = self.post_to_server(self.build_post_data('submit'),
                 auth)
-            self.announce('Server response (%s): %s' % (code, result),
+            self.announce(f'Server response ({code}): {result}',
                           log.INFO)
 
             # possibly save the login
@@ -208,8 +208,8 @@ Your selection [default 1]: ''', log.INFO)
                 log.info('Server response (%s): %s', code, result)
             else:
                 log.info('You will receive an email shortly.')
-                log.info(('Follow the instructions in it to '
-                          'complete registration.'))
+                log.info('Follow the instructions in it to '
+                          'complete registration.')
         elif choice == '3':
             data = {':action': 'password_reset'}
             data['email'] = ''
@@ -250,7 +250,7 @@ Your selection [default 1]: ''', log.INFO)
         ''' Post a query to the server, and return a string response.
         '''
         if 'name' in data:
-            self.announce('Registering %s to %s' % (data['name'],
+            self.announce('Registering {} to {}'.format(data['name'],
                                                     self.repository),
                                                     log.INFO)
         # Build up the MIME payload for the urllib2 POST data

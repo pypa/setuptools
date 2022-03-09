@@ -19,14 +19,14 @@ from .py38compat import check_warnings
 
 class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
     def setUp(self):
-        super(SysconfigTestCase, self).setUp()
+        super().setUp()
         self.makefile = None
 
     def tearDown(self):
         if self.makefile is not None:
             os.unlink(self.makefile)
         self.cleanup_testfn()
-        super(SysconfigTestCase, self).tearDown()
+        super().tearDown()
 
     def cleanup_testfn(self):
         if os.path.isfile(TESTFN):

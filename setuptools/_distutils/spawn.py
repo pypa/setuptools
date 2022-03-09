@@ -60,13 +60,13 @@ def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):
         if not DEBUG:
             cmd = cmd[0]
         raise DistutilsExecError(
-            "command %r failed: %s" % (cmd, exc.args[-1])) from exc
+            f"command {cmd!r} failed: {exc.args[-1]}") from exc
 
     if exitcode:
         if not DEBUG:
             cmd = cmd[0]
         raise DistutilsExecError(
-              "command %r failed with exit code %s" % (cmd, exitcode))
+              f"command {cmd!r} failed with exit code {exitcode}")
 
 
 def find_executable(executable, path=None):

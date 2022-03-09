@@ -14,7 +14,7 @@ from distutils.log import DEBUG, INFO, WARN, ERROR, FATAL
 from distutils.core import Distribution
 
 
-class LoggingSilencer(object):
+class LoggingSilencer:
 
     def setUp(self):
         super().setUp()
@@ -47,7 +47,7 @@ class LoggingSilencer(object):
         self.logs = []
 
 
-class TempdirManager(object):
+class TempdirManager:
     """Mix-in class that handles temporary directories for test cases.
 
     This is intended to be used with unittest.TestCase.
@@ -119,10 +119,10 @@ class DummyCommand:
         pass
 
 
-class EnvironGuard(object):
+class EnvironGuard:
 
     def setUp(self):
-        super(EnvironGuard, self).setUp()
+        super().setUp()
         self.old_environ = deepcopy(os.environ)
 
     def tearDown(self):
@@ -134,7 +134,7 @@ class EnvironGuard(object):
             if key not in self.old_environ:
                 del os.environ[key]
 
-        super(EnvironGuard, self).tearDown()
+        super().tearDown()
 
 
 def copy_xxmodule_c(directory):

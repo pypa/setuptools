@@ -1,0 +1,13 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+# Update with: pre-commit autoupdate --freeze
+
+exclude: '_vendor'
+
+repos:
+-   repo: https://github.com/asottile/pyupgrade
+    rev: e695ecd365119ab4e5463f6e49bea5f4b7ca786b  # frozen: v2.31.0
+    hooks:
+    -   id: pyupgrade
+        args: [--py37-plus]

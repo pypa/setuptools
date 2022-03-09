@@ -28,7 +28,7 @@ class BuildExtTestCase(TempdirManager,
                        unittest.TestCase):
     def setUp(self):
         # Create a simple test environment
-        super(BuildExtTestCase, self).setUp()
+        super().setUp()
         self.tmp_dir = self.mkdtemp()
         import site
         self.old_user_base = site.USER_BASE
@@ -48,7 +48,7 @@ class BuildExtTestCase(TempdirManager,
         site.USER_BASE = self.old_user_base
         from distutils.command import build_ext
         build_ext.USER_BASE = self.old_user_base
-        super(BuildExtTestCase, self).tearDown()
+        super().tearDown()
 
     def build_ext(self, *args, **kwargs):
         return build_ext(*args, **kwargs)
@@ -83,7 +83,7 @@ class BuildExtTestCase(TempdirManager,
         else:
             ALREADY_TESTED = type(self).__name__
 
-        code = textwrap.dedent("""
+        code = textwrap.dedent(f"""
             tmp_dir = {self.tmp_dir!r}
 
             import sys
@@ -109,7 +109,7 @@ class BuildExtTestCase(TempdirManager,
 
 
             unittest.main()
-        """.format(**locals()))
+        """)
         assert_python_ok('-c', code)
 
     def test_solaris_enable_shared(self):

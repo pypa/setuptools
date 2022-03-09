@@ -347,7 +347,7 @@ def check_config_h():
             config_h.close()
     except OSError as exc:
         return (CONFIG_H_UNCERTAIN,
-                "couldn't read '%s': %s" % (fn, exc.strerror))
+                f"couldn't read '{fn}': {exc.strerror}")
 
 def is_cygwincc(cc):
     '''Try to determine if the compiler that would be used is from cygwin.'''

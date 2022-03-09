@@ -150,7 +150,7 @@ class test(Command):
             sys.path.insert(0, project_path)
             working_set.__init__()
             add_activation_listener(lambda dist: dist.activate())
-            require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
+            require(f'{ei_cmd.egg_name}=={ei_cmd.egg_version}')
             with self.paths_on_pythonpath([project_path]):
                 yield
         finally:

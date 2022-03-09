@@ -313,7 +313,7 @@ def execute (func, args, msg=None, verbose=0, dry_run=0):
     print.
     """
     if msg is None:
-        msg = "%s%r" % (func.__name__, args)
+        msg = f"{func.__name__}{args!r}"
         if msg[-2:] == ',)':        # correct for singleton tuple
             msg = msg[0:-2] + ')'
 
@@ -335,7 +335,7 @@ def strtobool (val):
     elif val in ('n', 'no', 'f', 'false', 'off', '0'):
         return 0
     else:
-        raise ValueError("invalid truth value %r" % (val,))
+        raise ValueError(f"invalid truth value {val!r}")
 
 
 def byte_compile (py_files,
@@ -431,11 +431,11 @@ files = [
 
                 script.write(",\n".join(map(repr, py_files)) + "]\n")
                 script.write("""
-byte_compile(files, optimize=%r, force=%r,
-             prefix=%r, base_dir=%r,
-             verbose=%r, dry_run=0,
+byte_compile(files, optimize={!r}, force={!r},
+             prefix={!r}, base_dir={!r},
+             verbose={!r}, dry_run=0,
              direct=1)
-""" % (optimize, force, prefix, base_dir, verbose))
+""".format(optimize, force, prefix, base_dir, verbose))
 
         cmd = [sys.executable]
         cmd.extend(_optim_args_from_interpreter_flags())

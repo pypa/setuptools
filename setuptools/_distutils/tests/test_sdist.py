@@ -53,7 +53,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
     def setUp(self):
         # PyPIRCCommandTestCase creates a temp dir already
         # and put it in self.tmp_dir
-        super(SDistTestCase, self).setUp()
+        super().setUp()
         # setting up an environment
         self.old_path = os.getcwd()
         os.mkdir(join(self.tmp_dir, 'somecode'))
@@ -67,7 +67,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
     def tearDown(self):
         # back to normal
         os.chdir(self.old_path)
-        super(SDistTestCase, self).tearDown()
+        super().tearDown()
 
     def get_cmd(self, metadata=None):
         """Returns a cmd"""

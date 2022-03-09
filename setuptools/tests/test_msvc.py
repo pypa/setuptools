@@ -5,7 +5,7 @@ Tests for msvc support module.
 import os
 import contextlib
 import distutils.errors
-import mock
+from unittest import mock
 
 import pytest
 
@@ -44,10 +44,10 @@ def mock_reg(hkcu=None, hklm=None):
     def read_values(cls, base, key):
         """Return dict of registry keys and values."""
         hive = hives.get(base, {})
-        return dict(
-            (k.rpartition('\\')[2], hive[k])
+        return {
+            k.rpartition('\\')[2]: hive[k]
             for k in hive if k.startswith(key.lower())
-        )
+        }
 
     return mock.patch.multiple(
         distutils.msvc9compiler.Reg,

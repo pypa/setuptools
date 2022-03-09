@@ -101,7 +101,7 @@ class build_scripts(Command):
                     else:
                         executable = os.path.join(
                             sysconfig.get_config_var("BINDIR"),
-                           "python%s%s" % (sysconfig.get_config_var("VERSION"),
+                           "python{}{}".format(sysconfig.get_config_var("VERSION"),
                                            sysconfig.get_config_var("EXE")))
                     executable = os.fsencode(executable)
                     shebang = b"#!" + executable + post_interp + b"\n"

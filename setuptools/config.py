@@ -41,7 +41,7 @@ class StaticModule:
             )
         except Exception as e:
             raise AttributeError(
-                "{self.name} has no attribute {attr}".format(**locals())
+                f"{self.name} has no attribute {attr}"
             ) from e
 
 
@@ -108,7 +108,7 @@ def _get_option(target_obj, key):
     the target object, either through a get_{key} method or
     from an attribute directly.
     """
-    getter_name = 'get_{key}'.format(**locals())
+    getter_name = f'get_{key}'
     by_attribute = functools.partial(getattr, target_obj, key)
     getter = getattr(target_obj, getter_name, by_attribute)
     return getter()
@@ -330,7 +330,7 @@ class ConfigHandler:
             exclude_directive = 'file:'
             if value.startswith(exclude_directive):
                 raise ValueError(
-                    'Only strings are accepted for the {0} field, '
+                    'Only strings are accepted for the {} field, '
                     'files are not accepted'.format(key)
                 )
             return value
@@ -374,7 +374,7 @@ class ConfigHandler:
 
     @staticmethod
     def _read_file(filepath):
-        with io.open(filepath, encoding='utf-8') as f:
+        with open(filepath, encoding='utf-8') as f:
             return f.read()
 
     @classmethod
@@ -533,7 +533,7 @@ class ConfigMetadataHandler(ConfigHandler):
     def __init__(
         self, target_obj, options, ignore_option_errors=False, package_dir=None
     ):
-        super(ConfigMetadataHandler, self).__init__(
+        super().__init__(
             target_obj, options, ignore_option_errors
         )
         self.package_dir = package_dir
@@ -690,9 +690,9 @@ class ConfigOptionsHandler(ConfigHandler):
 
         valid_keys = ['where', 'include', 'exclude']
 
-        find_kwargs = dict(
-            [(k, v) for k, v in section_data.items() if k in valid_keys and v]
-        )
+        find_kwargs = {
+            k: v for k, v in section_data.items() if k in valid_keys and v
+        }
 
         where = find_kwargs.get('where')
         if where is not None:

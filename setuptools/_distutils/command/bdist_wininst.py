@@ -153,7 +153,7 @@ class bdist_wininst(Command):
             if not target_version:
                 assert self.skip_build, "Should have already checked this"
                 target_version = '%d.%d' % sys.version_info[:2]
-            plat_specifier = ".%s-%s" % (self.plat_name, target_version)
+            plat_specifier = f".{self.plat_name}-{target_version}"
             build = self.get_finalized_command('build')
             build.build_lib = os.path.join(build.build_base,
                                            'lib' + plat_specifier)
@@ -223,7 +223,7 @@ class bdist_wininst(Command):
             if data:
                 info = info + ("\n    %s: %s" % \
                                (name.capitalize(), escape(data)))
-                lines.append("%s=%s" % (name, escape(data)))
+                lines.append(f"{name}={escape(data)}")
 
         # The [setup] section contains entries controlling
         # the installer runtime.
@@ -279,7 +279,7 @@ class bdist_wininst(Command):
                 # We need to normalize newlines, so we open in text mode and
                 # convert back to bytes. "latin-1" simply avoids any possible
                 # failures.
-                with open(self.pre_install_script, "r",
+                with open(self.pre_install_script,
                           encoding="latin-1") as script:
                     script_data = script.read().encode("latin-1")
                 cfgdata = cfgdata + script_data + b"\n\0"
@@ -312,7 +312,7 @@ class bdist_wininst(Command):
                                            (fullname, self.plat_name, self.target_version))
         else:
             installer_name = os.path.join(self.dist_dir,
-                                          "%s.%s.exe" % (fullname, self.plat_name))
+                                          f"{fullname}.{self.plat_name}.exe")
         return installer_name
 
     def get_exe_bytes(self):
@@ -369,7 +369,7 @@ class bdist_wininst(Command):
         else:
             sfix = ''
 
-        filename = os.path.join(directory, "wininst-%s%s.exe" % (bv, sfix))
+        filename = os.path.join(directory, f"wininst-{bv}{sfix}.exe")
         f = open(filename, "rb")
         try:
             return f.read()

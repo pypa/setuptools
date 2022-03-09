@@ -156,7 +156,7 @@ you can try compiling with MingW32, by passing "-c mingw32" to setup.py.""")
                 except RegError:
                     continue
                 key = RegEnumKey(h, 0)
-                d = Reg.get_value(base, r"%s\%s" % (p, key))
+                d = Reg.get_value(base, fr"{p}\{key}")
                 self.macros["$(FrameworkVersion)"] = d["version"]
 
     def sub(self, s):
@@ -259,7 +259,7 @@ def query_vcvarsall(version, arch="x86"):
     if vcvarsall is None:
         raise DistutilsPlatformError("Unable to find vcvarsall.bat")
     log.debug("Calling 'vcvarsall.bat %s' (version=%s)", arch, version)
-    popen = subprocess.Popen('"%s" %s & set' % (vcvarsall, arch),
+    popen = subprocess.Popen(f'"{vcvarsall}" {arch} & set',
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
     try:
@@ -648,7 +648,7 @@ class MSVCCompiler(CCompiler) :
             mfinfo = self.manifest_get_embed_info(target_desc, ld_args)
             if mfinfo is not None:
                 mffilename, mfid = mfinfo
-                out_arg = '-outputresource:%s;%s' % (output_filename, mfid)
+                out_arg = f'-outputresource:{output_filename};{mfid}'
                 try:
                     self.spawn(['mt.exe', '-nologo', '-manifest',
                                 mffilename, out_arg])

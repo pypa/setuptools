@@ -20,7 +20,6 @@ This may also support compilers shipped with compatible Visual Studio versions.
 """
 
 import json
-from io import open
 from os import listdir, pathsep
 from os.path import join, isfile, isdir, dirname
 import sys
@@ -273,12 +272,12 @@ def _msvc14_get_vc_env(plat_spec):
 
     try:
         out = subprocess.check_output(
-            'cmd /u /c "{}" {} && set'.format(vcvarsall, plat_spec),
+            f'cmd /u /c "{vcvarsall}" {plat_spec} && set',
             stderr=subprocess.STDOUT,
         ).decode('utf-16le', errors='replace')
     except subprocess.CalledProcessError as exc:
         raise distutils.errors.DistutilsPlatformError(
-            "Error executing {}".format(exc.cmd)
+            f"Error executing {exc.cmd}"
         ) from exc
 
     env = {
@@ -652,17 +651,17 @@ class RegistryInfo:
             bkey = None
             try:
                 bkey = openkey(hkey, ms(key), 0, key_read)
-            except (OSError, IOError):
+            except OSError:
                 if not self.pi.current_is_x86():
                     try:
                         bkey = openkey(hkey, ms(key, True), 0, key_read)
-                    except (OSError, IOError):
+                    except OSError:
                         continue
                 else:
                     continue
             try:
                 return winreg.QueryValueEx(bkey, name)[0]
-            except (OSError, IOError):
+            except OSError:
                 pass
             finally:
                 if bkey:
@@ -731,7 +730,7 @@ class SystemInfo:
         for hkey, key in itertools.product(self.ri.HKEYS, vckeys):
             try:
                 bkey = winreg.OpenKey(hkey, ms(key), 0, winreg.KEY_READ)
-            except (OSError, IOError):
+            except OSError:
                 continue
             with bkey:
                 subkeys, values, _ = winreg.QueryInfoKey(bkey)
@@ -764,7 +763,7 @@ class SystemInfo:
         try:
             hashed_names = listdir(instances_dir)
 
-        except (OSError, IOError):
+        except OSError:
             # Directory not exists with all Visual Studio versions
             return vs_versions
 
@@ -772,7 +771,7 @@ class SystemInfo:
             try:
                 # Get VS installation path from "state.json" file
                 state_path = join(instances_dir, name, 'state.json')
-                with open(state_path, 'rt', encoding='utf-8') as state_file:
+                with open(state_path, encoding='utf-8') as state_file:
                     state = json.load(state_file)
                 vs_path = state['installationPath']
 
@@ -783,7 +782,7 @@ class SystemInfo:
                 vs_versions[self._as_float_version(
                     state['installationVersion'])] = vs_path
 
-            except (OSError, IOError, KeyError):
+            except (OSError, KeyError):
                 # Skip if "state.json" file is missing or bad format
                 continue
 
@@ -868,7 +867,7 @@ class SystemInfo:
             vc_ver = listdir(guess_vc)[-1]
             self.vc_ver = self._as_float_version(vc_ver)
             return join(guess_vc, vc_ver)
-        except (OSError, IOError, IndexError):
+        except (OSError, IndexError):
             return ''
 
     def _guess_vc_legacy(self):
@@ -1372,7 +1371,7 @@ class EnvironmentInfo:
             arch_subdir = self.pi.target_dir(x64=True)
             lib = join(self.si.WindowsSdkDir, 'lib')
             libver = self._sdk_subdir
-            return [join(lib, '%sum%s' % (libver, arch_subdir))]
+            return [join(lib, f'{libver}um{arch_subdir}')]
 
     @property
     def OSIncludes(self):
@@ -1476,7 +1475,7 @@ class EnvironmentInfo:
             path = join(self.si.WindowsSdkDir, 'Bin')
             arch_subdir = self.pi.current_dir(x64=True)
             sdkver = self.si.WindowsSdkLastVersion
-            yield join(path, '%s%s' % (sdkver, arch_subdir))
+            yield join(path, f'{sdkver}{arch_subdir}')
 
         if self.si.WindowsSDKExecutablePath:
             yield self.si.WindowsSDKExecutablePath
@@ -1600,7 +1599,7 @@ class EnvironmentInfo:
             base_path = self.si.VSInstallDir
             arch_subdir = ''
 
-        path = r'MSBuild\%0.1f\bin%s' % (self.vs_ver, arch_subdir)
+        path = fr'MSBuild\{self.vs_ver:0.1f}\bin{arch_subdir}'
         build = [join(base_path, path)]
 
         if self.vs_ver >= 15.0:
@@ -1640,7 +1639,7 @@ class EnvironmentInfo:
         arch_subdir = self.pi.target_dir(x64=True)
         lib = join(self.si.UniversalCRTSdkDir, 'lib')
         ucrtver = self._ucrt_subdir
-        return [join(lib, '%sucrt%s' % (ucrtver, arch_subdir))]
+        return [join(lib, f'{ucrtver}ucrt{arch_subdir}')]
 
     @property
     def UCRTIncludes(self):

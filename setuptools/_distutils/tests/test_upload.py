@@ -43,7 +43,7 @@ index-servers =
 username:me
 """
 
-class FakeOpen(object):
+class FakeOpen:
 
     def __init__(self, url, msg=None, code=None):
         self.url = url
@@ -69,7 +69,7 @@ class FakeOpen(object):
 class uploadTestCase(BasePyPIRCCommandTestCase):
 
     def setUp(self):
-        super(uploadTestCase, self).setUp()
+        super().setUp()
         self.old_open = upload_mod.urlopen
         upload_mod.urlopen = self._urlopen
         self.last_open = None
@@ -78,7 +78,7 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
 
     def tearDown(self):
         upload_mod.urlopen = self.old_open
-        super(uploadTestCase, self).tearDown()
+        super().tearDown()
 
     def _urlopen(self, url):
         self.last_open = FakeOpen(url, msg=self.next_msg, code=self.next_code)

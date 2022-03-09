@@ -165,7 +165,7 @@ class build_py(orig.build_py):
         else:
             return init_py
 
-        with io.open(init_py, 'rb') as f:
+        with open(init_py, 'rb') as f:
             contents = f.read()
         if b'declare_namespace' not in contents:
             raise distutils.errors.DistutilsError(

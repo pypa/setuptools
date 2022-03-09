@@ -6,7 +6,7 @@ import urllib.request
 import urllib.error
 import http.client
 
-import mock
+from unittest import mock
 import pytest
 
 import setuptools.package_index
@@ -204,9 +204,9 @@ class TestPackageIndex:
 
         expected_dir = str(tmpdir / 'project@master')
         expected = (
-            'git clone --quiet '
-            'https://github.example/group/project {expected_dir}'
-        ).format(**locals())
+            f'git clone --quiet '
+            f'https://github.example/group/project {expected_dir}'
+        )
         first_call_args = os_system_mock.call_args_list[0][0]
         assert first_call_args == (expected,)
 
@@ -226,9 +226,9 @@ class TestPackageIndex:
 
         expected_dir = str(tmpdir / 'project')
         expected = (
-            'git clone --quiet '
-            'https://github.example/group/project {expected_dir}'
-        ).format(**locals())
+            f'git clone --quiet '
+            f'https://github.example/group/project {expected_dir}'
+        )
         os_system_mock.assert_called_once_with(expected)
 
     def test_download_svn(self, tmpdir):
@@ -243,9 +243,9 @@ class TestPackageIndex:
 
         expected_dir = str(tmpdir / 'project')
         expected = (
-            'svn checkout -q '
-            'svn+https://svn.example/project {expected_dir}'
-        ).format(**locals())
+            f'svn checkout -q '
+            f'svn+https://svn.example/project {expected_dir}'
+        )
         os_system_mock.assert_called_once_with(expected)
 
 
@@ -253,7 +253,7 @@ class TestContentCheckers:
     def test_md5(self):
         checker = setuptools.package_index.HashChecker.from_url(
             'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
-        checker.feed('You should probably not be using MD5'.encode('ascii'))
+        checker.feed(b'You should probably not be using MD5')
         assert checker.hash.hexdigest() == 'f12895fdffbd45007040d2e44df98478'
         assert checker.is_valid()
 
@@ -261,14 +261,14 @@ class TestContentCheckers:
         "Content checks should succeed silently if no hash is present"
         checker = setuptools.package_index.HashChecker.from_url(
             'http://foo/bar#something%20completely%20different')
-        checker.feed('anything'.encode('ascii'))
+        checker.feed(b'anything')
         assert checker.is_valid()
 
     def test_blank_md5(self):
         "Content checks should succeed if a hash is empty"
         checker = setuptools.package_index.HashChecker.from_url(
             'http://foo/bar#md5=')
-        checker.feed('anything'.encode('ascii'))
+        checker.feed(b'anything')
         assert checker.is_valid()
 
     def test_get_hash_name_md5(self):

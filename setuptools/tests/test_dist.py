@@ -32,7 +32,7 @@ def test_dist_fetch_build_egg(tmpdir):
 
     def sdist_with_index(distname, version):
         dist_dir = index.mkdir(distname)
-        dist_sdist = '%s-%s.tar.gz' % (distname, version)
+        dist_sdist = f'{distname}-{version}.tar.gz'
         make_nspkg_sdist(str(dist_dir.join(dist_sdist)), distname, version)
         with dist_dir.join('index.html').open('w') as fp:
             fp.write(DALS(
@@ -248,7 +248,7 @@ def test_maintainer_author(name, attrs, tmpdir):
 
     dist.metadata.write_pkg_info(fn_s)
 
-    with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
+    with open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
         raw_pkg_lines = f.readlines()
 
     # Drop blank lines and strip lines from default description
@@ -265,7 +265,7 @@ def test_maintainer_author(name, attrs, tmpdir):
             for line in pkg_lines:
                 assert not line.startswith(fkey + ':')
         else:
-            line = '%s: %s' % (fkey, val)
+            line = f'{fkey}: {val}'
             assert line in pkg_lines_set
 
 
@@ -304,7 +304,7 @@ CHECK_PACKAGE_DATA_TESTS = (
     )),
     # Invalid value type.
     ({
-        'hello': str('*.msg'),
+        'hello': '*.msg',
     }, (
         "\"values of 'package_data' dict\" "
         "must be a list of strings (got '*.msg')"
@@ -327,7 +327,7 @@ def test_check_package_data(package_data, expected_message):
     else:
         with pytest.raises(
                 DistutilsSetupError, match=re.escape(expected_message)):
-            check_package_data(None, str('package_data'), package_data)
+            check_package_data(None, 'package_data', package_data)
 
 
 def test_check_specifier():

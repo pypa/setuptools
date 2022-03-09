@@ -159,7 +159,7 @@ class Command:
             if option[-1] == "=":
                 option = option[:-1]
             value = getattr(self, option)
-            self.announce(indent + "%s = %s" % (option, value),
+            self.announce(indent + f"{option} = {value}",
                           level=log.INFO)
 
     def run(self):
@@ -391,7 +391,7 @@ class Command:
                   "'infiles' must be a string, or a list or tuple of strings")
 
         if exec_msg is None:
-            exec_msg = "generating %s from %s" % (outfile, ', '.join(infiles))
+            exec_msg = "generating {} from {}".format(outfile, ', '.join(infiles))
 
         # If 'outfile' must be regenerated (either because it doesn't
         # exist, is out-of-date, or the 'force' flag is true) then

@@ -187,7 +187,7 @@ def get_supported_platform():
     m = macosVersionString.match(plat)
     if m is not None and sys.platform == "darwin":
         try:
-            plat = 'macosx-%s-%s' % ('.'.join(_macos_vers()[:2]), m.group(3))
+            plat = 'macosx-{}-{}'.format('.'.join(_macos_vers()[:2]), m.group(3))
         except ValueError:
             # not macOS
             pass
@@ -434,7 +434,7 @@ def compatible_platforms(provided, required):
             provDarwin = darwinVersionString.match(provided)
             if provDarwin:
                 dversion = int(provDarwin.group(1))
-                macosversion = "%s.%s" % (reqMac.group(1), reqMac.group(2))
+                macosversion = f"{reqMac.group(1)}.{reqMac.group(2)}"
                 if dversion == 7 and macosversion >= "10.3" or \
                         dversion == 8 and macosversion >= "10.4":
                     return True
@@ -1088,7 +1088,7 @@ class Environment:
                 for dist in other[project]:
                     self.add(dist)
         else:
-            raise TypeError("Can't add %r to environment" % (other,))
+            raise TypeError(f"Can't add {other!r} to environment")
         return self
 
     def __add__(self, other):
@@ -1231,13 +1231,13 @@ class ResourceManager:
         mode = os.stat(path).st_mode
         if mode & stat.S_IWOTH or mode & stat.S_IWGRP:
             msg = (
-                "Extraction path is writable by group/others "
-                "and vulnerable to attack when "
-                "used with get_resource_filename ({path}). "
-                "Consider a more secure "
-                "location (set with .set_extraction_path or the "
-                "PYTHON_EGG_CACHE environment variable)."
-            ).format(**locals())
+                f"Extraction path is writable by group/others "
+                f"and vulnerable to attack when "
+                f"used with get_resource_filename ({path}). "
+                f"Consider a more secure "
+                f"location (set with .set_extraction_path or the "
+                f"PYTHON_EGG_CACHE environment variable)."
+            )
             warnings.warn(msg, UserWarning)
 
     def postprocess(self, tempname, filename):
@@ -1421,7 +1421,7 @@ class NullProvider:
         except UnicodeDecodeError as exc:
             # Include the path in the error message to simplify
             # troubleshooting, and without changing the exception type.
-            exc.reason += ' in {} file at path: {}'.format(name, path)
+            exc.reason += f' in {name} file at path: {path}'
             raise
 
     def get_metadata_lines(self, name):
@@ -1445,8 +1445,8 @@ class NullProvider:
         script = 'scripts/' + script_name
         if not self.has_metadata(script):
             raise ResolutionError(
-                "Script {script!r} not found in metadata at {self.egg_info!r}"
-                .format(**locals()),
+                f"Script {script!r} not found in metadata at {self.egg_info!r}"
+                ,
             )
         script_text = self.get_metadata(script).replace('\r\n', '\n')
         script_text = script_text.replace('\r', '\n')
@@ -1719,7 +1719,7 @@ class ZipProvider(EggProvider):
         if fspath.startswith(self.zip_pre):
             return fspath[len(self.zip_pre):]
         raise AssertionError(
-            "%s is not a subpath of %s" % (fspath, self.zip_pre)
+            f"{fspath} is not a subpath of {self.zip_pre}"
         )
 
     def _parts(self, zip_path):
@@ -1729,7 +1729,7 @@ class ZipProvider(EggProvider):
         if fspath.startswith(self.egg_root + os.sep):
             return fspath[len(self.egg_root) + 1:].split(os.sep)
         raise AssertionError(
-            "%s is not a subpath of %s" % (fspath, self.egg_root)
+            f"{fspath} is not a subpath of {self.egg_root}"
         )
 
     @property
@@ -1772,7 +1772,7 @@ class ZipProvider(EggProvider):
         timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
 
         if not WRITE_SUPPORT:
-            raise IOError('"os.rename" and "os.unlink" are not supported '
+            raise OSError('"os.rename" and "os.unlink" are not supported '
                           'on this platform')
         try:
 
@@ -1901,7 +1901,7 @@ class FileMetadata(EmptyProvider):
         if name != 'PKG-INFO':
             raise KeyError("No metadata except PKG-INFO is available")
 
-        with io.open(self.path, encoding='utf-8', errors="replace") as f:
+        with open(self.path, encoding='utf-8', errors="replace") as f:
             metadata = f.read()
         self._warn_on_replacement(metadata)
         return metadata
@@ -1995,8 +1995,7 @@ def find_eggs_in_zip(importer, path_item, only=False):
         if _is_egg_path(subitem):
             subpath = os.path.join(path_item, subitem)
             dists = find_eggs_in_zip(zipimport.zipimporter(subpath), subpath)
-            for dist in dists:
-                yield dist
+            yield from dists
         elif subitem.lower().endswith(('.dist-info', '.egg-info')):
             subpath = os.path.join(path_item, subitem)
             submeta = EggMetadata(zipimport.zipimporter(subpath))
@@ -2080,8 +2079,7 @@ def find_on_path(importer, path_item, only=False):
     for entry in path_item_entries:
         fullpath = os.path.join(path_item, entry)
         factory = dist_factory(path_item, entry, only)
-        for dist in factory(fullpath):
-            yield dist
+        yield from factory(fullpath)
 
 
 def dist_factory(path_item, entry, only):
@@ -2432,7 +2430,7 @@ class EntryPoint:
         self.dist = dist
 
     def __str__(self):
-        s = "%s = %s" % (self.name, self.module_name)
+        s = f"{self.name} = {self.module_name}"
         if self.attrs:
             s += ':' + '.'.join(self.attrs)
         if self.extras:
@@ -2747,7 +2745,7 @@ class Distribution:
                 deps.extend(dm[safe_extra(ext)])
             except KeyError as e:
                 raise UnknownExtra(
-                    "%s has no such extra feature %r" % (self, ext)
+                    f"{self} has no such extra feature {ext!r}"
                 ) from e
         return deps
 
@@ -2770,8 +2768,7 @@ class Distribution:
 
     def _get_metadata(self, name):
         if self.has_metadata(name):
-            for line in self.get_metadata_lines(name):
-                yield line
+            yield from self.get_metadata_lines(name)
 
     def _get_version(self):
         lines = self._get_metadata(self.PKG_INFO)
@@ -2792,7 +2789,7 @@ class Distribution:
 
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""
-        filename = "%s-%s-py%s" % (
+        filename = "{}-{}-py{}".format(
             to_filename(self.project_name), to_filename(self.version),
             self.py_version or PY_MAJOR
         )
@@ -2803,7 +2800,7 @@ class Distribution:
 
     def __repr__(self):
         if self.location:
-            return "%s (%s)" % (self, self.location)
+            return f"{self} ({self.location})"
         else:
             return str(self)
 
@@ -2813,7 +2810,7 @@ class Distribution:
         except ValueError:
             version = None
         version = version or "[unknown version]"
-        return "%s %s" % (self.project_name, version)
+        return f"{self.project_name} {version}"
 
     def __getattr__(self, attr):
         """Delegate all unrecognized public attributes to .metadata provider"""
@@ -2823,11 +2820,11 @@ class Distribution:
 
     def __dir__(self):
         return list(
-            set(super(Distribution, self).__dir__())
-            | set(
+            set(super().__dir__())
+            | {
                 attr for attr in self._provider.__dir__()
                 if not attr.startswith('_')
-            )
+            }
         )
 
     @classmethod
@@ -2840,9 +2837,9 @@ class Distribution:
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
         if isinstance(self.parsed_version, packaging.version.Version):
-            spec = "%s==%s" % (self.project_name, self.parsed_version)
+            spec = f"{self.project_name}=={self.parsed_version}"
         else:
-            spec = "%s===%s" % (self.project_name, self.parsed_version)
+            spec = f"{self.project_name}==={self.parsed_version}"
 
         return Requirement.parse(spec)
 
@@ -2850,7 +2847,7 @@ class Distribution:
         """Return the `name` entry point of `group` or raise ImportError"""
         ep = self.get_entry_info(group, name)
         if ep is None:
-            raise ImportError("Entry point %r not found" % ((group, name),))
+            raise ImportError(f"Entry point {(group, name)!r} not found")
         return ep.load()
 
     def get_entry_map(self, group=None):
@@ -3086,7 +3083,7 @@ class RequirementParseError(packaging.requirements.InvalidRequirement):
 class Requirement(packaging.requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
-        super(Requirement, self).__init__(requirement_string)
+        super().__init__(requirement_string)
         self.unsafe_name = self.name
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()
@@ -3162,7 +3159,7 @@ def ensure_directory(path):
 def _bypass_ensure_directory(path):
     """Sandbox-bypassing version of ensure_directory()"""
     if not WRITE_SUPPORT:
-        raise IOError('"os.mkdir" not supported on this platform.')
+        raise OSError('"os.mkdir" not supported on this platform.')
     dirname, filename = split(path)
     if dirname and filename and not isdir(dirname):
         _bypass_ensure_directory(dirname)

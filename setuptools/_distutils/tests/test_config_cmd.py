@@ -19,14 +19,14 @@ class ConfigTestCase(support.LoggingSilencer,
             self._logs.append(line)
 
     def setUp(self):
-        super(ConfigTestCase, self).setUp()
+        super().setUp()
         self._logs = []
         self.old_log = log.info
         log.info = self._info
 
     def tearDown(self):
         log.info = self.old_log
-        super(ConfigTestCase, self).tearDown()
+        super().tearDown()
 
     def test_dump_file(self):
         this_file = os.path.splitext(__file__)[0] + '.py'

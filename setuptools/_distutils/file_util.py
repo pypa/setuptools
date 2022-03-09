@@ -28,27 +28,27 @@ def _copy_file_contents(src, dst, buffer_size=16*1024):
         try:
             fsrc = open(src, 'rb')
         except OSError as e:
-            raise DistutilsFileError("could not open '%s': %s" % (src, e.strerror))
+            raise DistutilsFileError(f"could not open '{src}': {e.strerror}")
 
         if os.path.exists(dst):
             try:
                 os.unlink(dst)
             except OSError as e:
                 raise DistutilsFileError(
-                      "could not delete '%s': %s" % (dst, e.strerror))
+                      f"could not delete '{dst}': {e.strerror}")
 
         try:
             fdst = open(dst, 'wb')
         except OSError as e:
             raise DistutilsFileError(
-                  "could not create '%s': %s" % (dst, e.strerror))
+                  f"could not create '{dst}': {e.strerror}")
 
         while True:
             try:
                 buf = fsrc.read(buffer_size)
             except OSError as e:
                 raise DistutilsFileError(
-                      "could not read from '%s': %s" % (src, e.strerror))
+                      f"could not read from '{src}': {e.strerror}")
 
             if not buf:
                 break
@@ -57,7 +57,7 @@ def _copy_file_contents(src, dst, buffer_size=16*1024):
                 fdst.write(buf)
             except OSError as e:
                 raise DistutilsFileError(
-                      "could not write to '%s': %s" % (dst, e.strerror))
+                      f"could not write to '{dst}': {e.strerror}")
     finally:
         if fdst:
             fdst.close()
@@ -207,7 +207,7 @@ def move_file (src, dst,
             copy_it = True
         else:
             raise DistutilsFileError(
-                  "couldn't move '%s' to '%s': %s" % (src, dst, msg))
+                  f"couldn't move '{src}' to '{dst}': {msg}")
 
     if copy_it:
         copy_file(src, dst, verbose=verbose)

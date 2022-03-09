@@ -13,9 +13,8 @@ from zipfile import ZipFile
 def run(cmd, env=None):
     r = subprocess.run(
         cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
+        capture_output=True,
+        text=True,
         env={**os.environ, **(env or {})}
         # ^-- allow overwriting instead of discarding the current env
     )

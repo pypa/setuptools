@@ -49,7 +49,7 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
     chunks = glob.split(os.path.sep)
 
     sep = re.escape(os.sep)
-    valid_char = '[^%s]' % (sep,)
+    valid_char = f'[^{sep}]'
 
     for c, chunk in enumerate(chunks):
         last_chunk = c == len(chunks) - 1
@@ -61,7 +61,7 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
                 pat += '.*'
             else:
                 # Match '(name/)*'
-                pat += '(?:%s+%s)*' % (valid_char, sep)
+                pat += f'(?:{valid_char}+{sep})*'
             continue  # Break here as the whole path component has been handled
 
         # Find any special characters in the remainder
@@ -103,7 +103,7 @@ def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
                         inner = inner[1:]
 
                     char_class += re.escape(inner)
-                    pat += '[%s]' % (char_class,)
+                    pat += f'[{char_class}]'
 
                     # Skip to the end ]
                     i = inner_i
@@ -731,7 +731,7 @@ def get_pkg_info_revision():
     warnings.warn(
         "get_pkg_info_revision is deprecated.", EggInfoDeprecationWarning)
     if os.path.exists('PKG-INFO'):
-        with io.open('PKG-INFO') as f:
+        with open('PKG-INFO') as f:
             for line in f:
                 match = re.match(r"Version:.*-r(\d+)\s*$", line)
                 if match:

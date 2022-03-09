@@ -48,14 +48,14 @@ class DistributionTestCase(support.LoggingSilencer,
                            unittest.TestCase):
 
     def setUp(self):
-        super(DistributionTestCase, self).setUp()
+        super().setUp()
         self.argv = sys.argv, sys.argv[:]
         del sys.argv[1:]
 
     def tearDown(self):
         sys.argv = self.argv[0]
         sys.argv[:] = self.argv[1]
-        super(DistributionTestCase, self).tearDown()
+        super().tearDown()
 
     def create_distribution(self, configfiles=()):
         d = TestDistribution()
@@ -261,13 +261,13 @@ class MetadataTestCase(support.TempdirManager, support.EnvironGuard,
                        unittest.TestCase):
 
     def setUp(self):
-        super(MetadataTestCase, self).setUp()
+        super().setUp()
         self.argv = sys.argv, sys.argv[:]
 
     def tearDown(self):
         sys.argv = self.argv[0]
         sys.argv[:] = self.argv[1]
-        super(MetadataTestCase, self).tearDown()
+        super().tearDown()
 
     def format_metadata(self, dist):
         sio = io.StringIO()
@@ -471,7 +471,7 @@ class MetadataTestCase(support.TempdirManager, support.EnvironGuard,
                 os.environ['USERPROFILE'] = temp_dir
                 files = dist.find_config_files()
                 self.assertIn(user_filename, files,
-                              '%r not found in %r' % (user_filename, files))
+                              f'{user_filename!r} not found in {files!r}')
         finally:
             os.remove(user_filename)
 

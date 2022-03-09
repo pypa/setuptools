@@ -208,7 +208,7 @@ class bdist_msi(Command):
             if not target_version:
                 assert self.skip_build, "Should have already checked this"
                 target_version = '%d.%d' % sys.version_info[:2]
-            plat_specifier = ".%s-%s" % (self.plat_name, target_version)
+            plat_specifier = f".{self.plat_name}-{target_version}"
             build = self.get_finalized_command('build')
             build.build_lib = os.path.join(build.build_base,
                                            'lib' + plat_specifier)
@@ -245,7 +245,7 @@ class bdist_msi(Command):
         # in Add-Remove-Programs (APR)
         fullname = self.distribution.get_fullname()
         if self.target_version:
-            product_name = "Python %s %s" % (self.target_version, fullname)
+            product_name = f"Python {self.target_version} {fullname}"
         else:
             product_name = "Python %s" % (fullname)
         self.db = msilib.init_database(installer_name, schema,
@@ -307,7 +307,7 @@ class bdist_msi(Command):
                 for file in os.listdir(dir.absolute):
                     afile = os.path.join(dir.absolute, file)
                     if os.path.isdir(afile):
-                        short = "%s|%s" % (dir.make_short(file), file)
+                        short = f"{dir.make_short(file)}|{file}"
                         default = file + version
                         newdir = Directory(db, cab, dir, file, default, short)
                         todo.append(newdir)
@@ -741,9 +741,9 @@ class bdist_msi(Command):
     def get_installer_filename(self, fullname):
         # Factored out to allow overriding in subclasses
         if self.target_version:
-            base_name = "%s.%s-py%s.msi" % (fullname, self.plat_name,
+            base_name = "{}.{}-py{}.msi".format(fullname, self.plat_name,
                                             self.target_version)
         else:
-            base_name = "%s.%s.msi" % (fullname, self.plat_name)
+            base_name = f"{fullname}.{self.plat_name}.msi"
         installer_name = os.path.join(self.dist_dir, base_name)
         return installer_name

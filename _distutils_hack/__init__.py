@@ -85,7 +85,7 @@ class DistutilsMetaFinder:
         if path is not None:
             return
 
-        method_name = 'spec_for_{fullname}'.format(**locals())
+        method_name = f'spec_for_{fullname}'
         method = getattr(self, method_name, lambda: None)
         return method()
 

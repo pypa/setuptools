@@ -57,10 +57,10 @@ class TestEggInfo:
             env = Environment(env_dir)
             os.chmod(env_dir, stat.S_IRWXU)
             subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
-            env.paths = dict(
-                (dirname, os.path.join(env_dir, dirname))
+            env.paths = {
+                dirname: os.path.join(env_dir, dirname)
                 for dirname in subs
-            )
+            }
             list(map(os.mkdir, env.paths.values()))
             path.build({
                 env.paths['home']: {
@@ -84,7 +84,7 @@ class TestEggInfo:
         ei.initialize_options()
         ei.save_version_info(setup_cfg)
 
-        with open(setup_cfg, 'r') as f:
+        with open(setup_cfg) as f:
             content = f.read()
 
         assert '[egg_info]' in content
@@ -124,7 +124,7 @@ class TestEggInfo:
         ei.initialize_options()
         ei.save_version_info(setup_cfg)
 
-        with open(setup_cfg, 'r') as f:
+        with open(setup_cfg) as f:
             content = f.read()
 
         assert '[egg_info]' in content

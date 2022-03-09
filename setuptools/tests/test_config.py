@@ -7,7 +7,7 @@ import configparser
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from mock import patch
+from unittest.mock import patch
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config import ConfigHandler, read_configuration
 from distutils.core import Command
@@ -367,13 +367,11 @@ class TestMetadata:
                 dist.parse_config_files()
 
     def test_classifiers(self, tmpdir):
-        expected = set(
-            [
+        expected = {
                 'Framework :: Django',
                 'Programming Language :: Python :: 3',
                 'Programming Language :: Python :: 3.5',
-            ]
-        )
+        }
 
         # From file.
         _, config = fake_env(tmpdir, '[metadata]\n' 'classifiers = file: classifiers\n')
@@ -627,9 +625,9 @@ class TestOptions:
         dir_sub_two, _ = make_package_dir('sub_two', dir_package)
 
         with get_dist(tmpdir) as dist:
-            assert set(dist.packages) == set(
-                ['fake_package', 'fake_package.sub_two', 'fake_package.sub_one']
-            )
+            assert set(dist.packages) == {
+                'fake_package', 'fake_package.sub_two', 'fake_package.sub_one'
+            }
 
         config.write(
             '[options]\n'
@@ -653,7 +651,7 @@ class TestOptions:
             '    fake_package.sub_one\n'
         )
         with get_dist(tmpdir) as dist:
-            assert set(dist.packages) == set(['fake_package', 'fake_package.sub_two'])
+            assert set(dist.packages) == {'fake_package', 'fake_package.sub_two'}
 
     def test_find_namespace_directive(self, tmpdir):
         dir_package, config = fake_env(
@@ -709,7 +707,7 @@ class TestOptions:
                 'pdf': ['ReportLab>=1.2', 'RXP'],
                 'rest': ['docutils>=0.3', 'pack==1.1,==1.3'],
             }
-            assert dist.metadata.provides_extras == set(['pdf', 'rest'])
+            assert dist.metadata.provides_extras == {'pdf', 'rest'}
 
     def test_dash_preserved_extras_require(self, tmpdir):
         fake_env(tmpdir, '[options.extras_require]\n' 'foo-a = foo\n' 'foo_b = test\n')

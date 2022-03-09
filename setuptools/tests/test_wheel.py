@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """wheel tests
 """
 
@@ -159,7 +157,7 @@ class Record:
         self._fields = kwargs
 
     def __repr__(self):
-        return '%s(**%r)' % (self._id, self._fields)
+        return f'{self._id}(**{self._fields!r})'
 
 
 WHEEL_INSTALL_TESTS = (
@@ -595,7 +593,7 @@ def test_wheel_install_pep_503():
 def test_wheel_no_dist_dir():
     project_name = 'nodistinfo'
     version = '1.0'
-    wheel_name = '{0}-{1}-py2.py3-none-any.whl'.format(project_name, version)
+    wheel_name = f'{project_name}-{version}-py2.py3-none-any.whl'
     with tempdir() as source_dir:
         wheel_path = os.path.join(source_dir, wheel_name)
         # create an empty zip file
@@ -609,8 +607,7 @@ def test_wheel_no_dist_dir():
 
 def test_wheel_is_compatible(monkeypatch):
     def sys_tags():
-        for t in parse_tag('cp36-cp36m-manylinux1_x86_64'):
-            yield t
+        yield from parse_tag('cp36-cp36m-manylinux1_x86_64')
     monkeypatch.setattr('setuptools.wheel.sys_tags', sys_tags)
     assert Wheel(
         'onnxruntime-0.1.2-cp36-cp36m-manylinux1_x86_64.whl').is_compatible()

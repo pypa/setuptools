@@ -177,7 +177,7 @@ class upload(PyPIRCCommand):
         body.write(end_boundary)
         body = body.getvalue()
 
-        msg = "Submitting %s to %s" % (filename, self.repository)
+        msg = f"Submitting {filename} to {self.repository}"
         self.announce(msg, log.INFO)
 
         # build the Request
@@ -202,13 +202,13 @@ class upload(PyPIRCCommand):
             raise
 
         if status == 200:
-            self.announce('Server response (%s): %s' % (status, reason),
+            self.announce(f'Server response ({status}): {reason}',
                           log.INFO)
             if self.show_response:
                 text = self._read_pypi_response(result)
                 msg = '\n'.join(('-' * 75, text, '-' * 75))
                 self.announce(msg, log.INFO)
         else:
-            msg = 'Upload failed (%s): %s' % (status, reason)
+            msg = f'Upload failed ({status}): {reason}'
             self.announce(msg, log.ERROR)
             raise DistutilsError(msg)

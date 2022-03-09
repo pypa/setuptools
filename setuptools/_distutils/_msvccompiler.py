@@ -127,7 +127,7 @@ def _get_vc_env(plat_spec):
 
     try:
         out = subprocess.check_output(
-            'cmd /u /c "{}" {} && set'.format(vcvarsall, plat_spec),
+            f'cmd /u /c "{vcvarsall}" {plat_spec} && set',
             stderr=subprocess.STDOUT,
         ).decode('utf-16le', errors='replace')
     except subprocess.CalledProcessError as exc:
@@ -314,7 +314,7 @@ class MSVCCompiler(CCompiler) :
                 # Better to raise an exception instead of silently continuing
                 # and later complain about sources and targets having
                 # different lengths
-                raise CompileError("Don't know how to compile {}".format(p))
+                raise CompileError(f"Don't know how to compile {p}")
 
         return list(map(make_out_path, source_filenames))
 

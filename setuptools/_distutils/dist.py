@@ -822,7 +822,7 @@ Common commands: (see '--help-commands' for more)
             return klass
 
         for pkgname in self.get_command_packages():
-            module_name = "%s.%s" % (pkgname, command)
+            module_name = f"{pkgname}.{command}"
             klass_name = command
 
             try:
@@ -887,7 +887,7 @@ Common commands: (see '--help-commands' for more)
             self.announce("  setting options for '%s' command:" % command_name)
         for (option, (source, value)) in option_dict.items():
             if DEBUG:
-                self.announce("    %s = %s (from %s)" % (option, value,
+                self.announce("    {} = {} (from {})".format(option, value,
                                                          source))
             try:
                 bool_opts = [translate_longopt(o)
@@ -1153,7 +1153,7 @@ class DistributionMetadata:
 
     def _write_list(self, file, name, values):
         for value in values:
-            file.write('%s: %s\n' % (name, value))
+            file.write(f'{name}: {value}\n')
 
     # -- Metadata query methods ----------------------------------------
 
@@ -1164,7 +1164,7 @@ class DistributionMetadata:
         return self.version or "0.0.0"
 
     def get_fullname(self):
-        return "%s-%s" % (self.get_name(), self.get_version())
+        return f"{self.get_name()}-{self.get_version()}"
 
     def get_author(self):
         return self.author or "UNKNOWN"

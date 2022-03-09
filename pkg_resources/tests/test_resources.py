@@ -384,7 +384,7 @@ class TestWorkingSet:
             ws.resolve(parse_requirements("Foo\nBar\n"))
 
         msg = "Baz 1.0 is installed but Baz==2.0 is required by "
-        msg += repr(set(['Bar']))
+        msg += repr({'Bar'})
         assert vc.value.report() == msg
 
 
@@ -444,7 +444,7 @@ class TestEntryPoints:
         """
         # Create a name with all printable characters; strip the whitespace.
         name = string.printable.strip()
-        spec = "{name} = module:attr".format(**locals())
+        spec = f"{name} = module:attr"
         ep = EntryPoint.parse(spec)
         assert ep.name == name
 
@@ -538,8 +538,8 @@ class TestRequirements:
         r1 = Requirement.parse("Twisted[foo,bar]>=1.2")
         r2 = Requirement.parse("Twisted[bar,FOO]>=1.2")
         assert r1 == r2
-        assert set(r1.extras) == set(("foo", "bar"))
-        assert set(r2.extras) == set(("foo", "bar"))
+        assert set(r1.extras) == {"foo", "bar"}
+        assert set(r2.extras) == {"foo", "bar"}
         assert hash(r1) == hash(r2)
         assert (
             hash(r1)

@@ -211,7 +211,7 @@ class bdist_rpm(Command):
     def finalize_package_data(self):
         self.ensure_string('group', "Development/Libraries")
         self.ensure_string('vendor',
-                           "%s <%s>" % (self.distribution.get_contact(),
+                           "{} <{}>".format(self.distribution.get_contact(),
                                         self.distribution.get_contact_email()))
         self.ensure_string('packager')
         self.ensure_string_list('doc_files')
@@ -334,7 +334,7 @@ class bdist_rpm(Command):
         nvr_string = "%{name}-%{version}-%{release}"
         src_rpm = nvr_string + ".src.rpm"
         non_src_rpm = "%{arch}/" + nvr_string + ".%{arch}.rpm"
-        q_cmd = r"rpm -q --qf '%s %s\n' --specfile '%s'" % (
+        q_cmd = r"rpm -q --qf '{} {}\n' --specfile '{}'".format(
             src_rpm, non_src_rpm, spec_path)
 
         out = os.popen(q_cmd)
@@ -459,9 +459,9 @@ class bdist_rpm(Command):
                       ):
             val = getattr(self, field.lower())
             if isinstance(val, list):
-                spec_file.append('%s: %s' % (field, ' '.join(val)))
+                spec_file.append('{}: {}'.format(field, ' '.join(val)))
             elif val is not None:
-                spec_file.append('%s: %s' % (field, val))
+                spec_file.append(f'{field}: {val}')
 
 
         if self.distribution.get_url() != 'UNKNOWN':
@@ -498,7 +498,7 @@ class bdist_rpm(Command):
 
         # rpm scripts
         # figure out default build script
-        def_setup_call = "%s %s" % (self.python,os.path.basename(sys.argv[0]))
+        def_setup_call = f"{self.python} {os.path.basename(sys.argv[0])}"
         def_build = "%s build" % def_setup_call
         if self.use_rpm_opt_flags:
             def_build = 'env CFLAGS="$RPM_OPT_FLAGS" ' + def_build

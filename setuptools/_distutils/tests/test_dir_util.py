@@ -23,7 +23,7 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
             self._logs.append(msg)
 
     def setUp(self):
-        super(DirUtilTestCase, self).setUp()
+        super().setUp()
         self._logs = []
         tmp_dir = self.mkdtemp()
         self.root_target = os.path.join(tmp_dir, 'deep')
@@ -34,7 +34,7 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
 
     def tearDown(self):
         log.info = self.old_log
-        super(DirUtilTestCase, self).tearDown()
+        super().tearDown()
 
     def test_mkpath_remove_tree_verbosity(self):
 
@@ -92,7 +92,7 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
         with open(a_file, 'w') as f:
             f.write('some content')
 
-        wanted = ['copying %s -> %s' % (a_file, self.target2)]
+        wanted = [f'copying {a_file} -> {self.target2}']
         copy_tree(self.target, self.target2, verbose=1)
         self.assertEqual(self._logs, wanted)
 

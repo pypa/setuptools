@@ -165,10 +165,10 @@ def run_commands (dist):
         raise SystemExit("interrupted")
     except OSError as exc:
         if DEBUG:
-            sys.stderr.write("error: %s\n" % (exc,))
+            sys.stderr.write(f"error: {exc}\n")
             raise
         else:
-            raise SystemExit("error: %s" % (exc,))
+            raise SystemExit(f"error: {exc}")
 
     except (DistutilsError,
             CCompilerError) as msg:
@@ -212,7 +212,7 @@ def run_setup (script_name, script_args=None, stop_after="run"):
     used to drive the Distutils.
     """
     if stop_after not in ('init', 'config', 'commandline', 'run'):
-        raise ValueError("invalid value for 'stop_after': %r" % (stop_after,))
+        raise ValueError(f"invalid value for 'stop_after': {stop_after!r}")
 
     global _setup_stop_after, _setup_distribution
     _setup_stop_after = stop_after

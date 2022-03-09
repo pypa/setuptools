@@ -1,6 +1,6 @@
 """develop tests
 """
-import mock
+from unittest import mock
 import sys
 
 import pytest

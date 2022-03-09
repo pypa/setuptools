@@ -23,7 +23,7 @@ def build_namespace_package(tmpdir, name):
     decl = tmpl.format(**locals())
     pkg_init.write_text(decl, encoding='utf-8')
     pkg_mod = ns_pkg_dir / (rest + '.py')
-    some_functionality = 'name = {rest!r}'.format(**locals())
+    some_functionality = f'name = {rest!r}'
     pkg_mod.write_text(some_functionality, encoding='utf-8')
     return src_dir
 

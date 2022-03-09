@@ -462,7 +462,7 @@ class easy_install(Command):
         if not os.path.exists(instdir):
             try:
                 os.makedirs(instdir)
-            except (OSError, IOError):
+            except OSError:
                 self.cant_write_to_target()
 
         # Is it a configured, PYTHONPATH, implicit, or explicit site dir?
@@ -480,7 +480,7 @@ class easy_install(Command):
                     os.unlink(testfile)
                 open(testfile, 'w').close()
                 os.unlink(testfile)
-            except (OSError, IOError):
+            except OSError:
                 self.cant_write_to_target()
 
         if not is_site_dir and not self.multi_version:
@@ -562,7 +562,7 @@ class easy_install(Command):
             dirname = os.path.dirname(ok_file)
             os.makedirs(dirname, exist_ok=True)
             f = open(pth_file, 'w')
-        except (OSError, IOError):
+        except OSError:
             self.cant_write_to_target()
         else:
             try:
@@ -644,7 +644,7 @@ class easy_install(Command):
 
     @contextlib.contextmanager
     def _tmpdir(self):
-        tmpdir = tempfile.mkdtemp(prefix=u"easy_install-")
+        tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         try:
             # cast to str as workaround for #709 and #710 and #712
             yield str(tmpdir)
@@ -998,7 +998,7 @@ class easy_install(Command):
             f.write('Metadata-Version: 1.0\n')
             for k, v in cfg.items('metadata'):
                 if k != 'target_version':
-                    f.write('%s: %s\n' % (k.replace('_', '-').title(), v))
+                    f.write('{}: {}\n'.format(k.replace('_', '-').title(), v))
             f.close()
         script_dir = os.path.join(_egg_info, 'scripts')
         # delete entry-point scripts to avoid duping
@@ -1162,7 +1162,7 @@ class easy_install(Command):
             run_setup(setup_script, args)
         except SystemExit as v:
             raise DistutilsError(
-                "Setup script exited with %s" % (v.args[0],)
+                f"Setup script exited with {v.args[0]}"
             ) from v
 
     def build_and_install(self, setup_script, setup_base):
@@ -1563,7 +1563,7 @@ def get_exe_prefixes(exe_filename):
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\', '/')
                     if not pth.startswith('import'):
-                        prefixes.append((('%s/%s/' % (parts[0], pth)), ''))
+                        prefixes.append(((f'{parts[0]}/{pth}/'), ''))
     finally:
         z.close()
     prefixes = [(x.lower(), y) for x, y in prefixes]
@@ -1591,7 +1591,7 @@ class PthDistributions(Environment):
         saw_import = False
         seen = dict.fromkeys(self.sitedirs)
         if os.path.isfile(self.filename):
-            f = open(self.filename, 'rt')
+            f = open(self.filename)
             for line in f:
                 if line.startswith('import'):
                     saw_import = True
@@ -1684,8 +1684,7 @@ class RewritePthDistributions(PthDistributions):
     @classmethod
     def _wrap_lines(cls, lines):
         yield cls.prelude
-        for line in lines:
-            yield line
+        yield from lines
         yield cls.postlude
 
     prelude = _one_liner("""
@@ -1724,7 +1723,7 @@ def auto_chmod(func, arg, exc):
         return func(arg)
     et, ev, _ = sys.exc_info()
     # TODO: This code doesn't make sense. What is it trying to do?
-    raise (ev[0], ev[1] + (" %s %s" % (func, arg)))
+    raise (ev[0], ev[1] + (f" {func} {arg}"))
 
 
 def update_dist_caches(dist_path, fix_zipimporter_caches):
@@ -1919,9 +1918,9 @@ def is_python(text, filename='<string>'):
 def is_sh(executable):
     """Determine if the specified executable is a .sh (contains a #! line)"""
     try:
-        with io.open(executable, encoding='latin-1') as fp:
+        with open(executable, encoding='latin-1') as fp:
             magic = fp.read(2)
-    except (OSError, IOError):
+    except OSError:
         return executable
     return magic == '#!'
 
@@ -2127,8 +2126,7 @@ class ScriptWriter:
                 cls._ensure_safe_name(name)
                 script_text = cls.template % locals()
                 args = cls._get_script_args(type_, name, header, script_text)
-                for res in args:
-                    yield res
+                yield from args
 
     @staticmethod
     def _ensure_safe_name(name):
@@ -2196,9 +2194,9 @@ class WindowsScriptWriter(ScriptWriter):
         ext = dict(console='.pya', gui='.pyw')[type_]
         if ext not in os.environ['PATHEXT'].lower().split(';'):
             msg = (
-                "{ext} not listed in PATHEXT; scripts will not be "
-                "recognized as executables."
-            ).format(**locals())
+                f"{ext} not listed in PATHEXT; scripts will not be "
+                f"recognized as executables."
+            )
             warnings.warn(msg, UserWarning)
         old = ['.pya', '.py', '-script.py', '.pyc', '.pyo', '.pyw', '.exe']
         old.remove(ext)
