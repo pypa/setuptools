@@ -215,8 +215,7 @@ def _expand_all_dynamic(
     silent = ignore_option_errors
     dynamic_cfg = setuptools_cfg.get("dynamic", {})
     package_dir = setuptools_cfg["package-dir"]
-    special = ("license", "readme", "version", "entry-points", "scripts", "gui-scripts")
-    # license-files are handled directly in the metadata, so no expansion
+    special = ("readme", "version", "entry-points", "scripts", "gui-scripts")
     # readme, version and entry-points need special handling
     dynamic = project_cfg.get("dynamic", [])
     regular_dynamic = (x for x in dynamic if x not in special)
