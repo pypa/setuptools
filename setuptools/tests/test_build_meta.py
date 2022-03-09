@@ -288,8 +288,9 @@ class TestBuildMetaBackend:
 
                 [project]
                 name = "foo"
+                license = {text = "MIT"}
                 description = "This is a Python package"
-                dynamic = ["version", "license", "readme"]
+                dynamic = ["version", "readme"]
                 classifiers = [
                     "Development Status :: 5 - Production/Stable",
                     "Intended Audience :: Developers"
@@ -313,11 +314,10 @@ class TestBuildMetaBackend:
                 zip-safe = false
                 package-dir = {"" = "src"}
                 packages = {find = {where = ["src"]}}
+                license-files = ["LICENSE*"]
 
                 [tool.setuptools.dynamic]
                 version = {attr = "foo.__version__"}
-                license = "MIT"
-                license_files = ["LICENSE*"]
                 readme = {file = "README.rst"}
 
                 [tool.distutils.sdist]

@@ -27,8 +27,9 @@ EXAMPLE = {
         [project]
         name = "mypkg"
         version = "3.14159"
+        license = {text = "MIT"}
         description = "This is a Python package"
-        dynamic = ["license", "readme"]
+        dynamic = ["readme"]
         classifiers = [
             "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers"
@@ -39,10 +40,9 @@ EXAMPLE = {
         [tool.setuptools]
         package-dir = {"" = "src"}
         packages = {find = {where = ["src"]}}
+        license-files = ["LICENSE*"]
 
         [tool.setuptools.dynamic]
-        license = "MIT"
-        license_files = ["LICENSE*"]
         readme = {file = "README.rst"}
 
         [tool.distutils.egg_info]

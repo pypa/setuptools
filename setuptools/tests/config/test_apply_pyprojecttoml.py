@@ -147,6 +147,7 @@ def test_pep621_example(tmp_path):
     """Make sure the example in PEP 621 works"""
     pyproject = _pep621_example_project(tmp_path)
     dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
+    assert dist.metadata.license == "--- LICENSE stub ---"
     assert set(dist.metadata.license_files) == {"LICENSE.txt"}
 
 
@@ -178,7 +179,7 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
 
 # TODO: After PEP 639 is accepted, we have to move the license-files
 #       to the `project` table instead of `tool.setuptools`
-def test_license(tmp_path):
+def test_license_and_license_files(tmp_path):
     pyproject = _pep621_example_project(tmp_path, "README")
     text = pyproject.read_text(encoding="utf-8")
 
@@ -193,11 +194,11 @@ def test_license(tmp_path):
 
     # Would normally match the `license_files` glob patterns, but we want to exclude it
     # by being explicit. On the other hand, its contents should be added to `license`
-    (tmp_path / "LICENSE.txt").write_text("Super License\n", encoding="utf-8")
+    (tmp_path / "LICENSE.txt").write_text("LicenseRef-Proprietary\n", encoding="utf-8")
 
     dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
     assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
-    assert dist.metadata.license == "Super License\n"
+    assert dist.metadata.license == "LicenseRef-Proprietary\n"
 
 
 # --- Auxiliary Functions ---
