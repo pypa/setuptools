@@ -32,7 +32,6 @@ def apply(dist: "Distribution", config: dict, filename: _Path) -> "Distribution"
     tool_table = config.get("tool", {}).get("setuptools", {})
     project_table = config.get("project", {}).copy()
     _unify_entry_points(project_table)
-    _dynamic_license(project_table, tool_table)
     for field, value in project_table.items():
         norm_key = json_compatible_key(field)
         corresp = PYPROJECT_CORRESPONDENCE.get(norm_key, norm_key)
@@ -109,11 +108,11 @@ def _long_description(dist: "Distribution", val: _DictOrStr, root_dir: _Path):
         _set_config(dist, "long_description_content_type", ctype)
 
 
-def _license(dist: "Distribution", val: Union[str, dict], _root_dir):
-    if isinstance(val, str):
-        _set_config(dist, "license", val)
-    elif "file" in val:
-        _set_config(dist, "license_files", [val["file"]])
+def _license(dist: "Distribution", val: dict, root_dir: _Path):
+    from setuptools.config import expand
+
+    if "file" in val:
+        _set_config(dist, "license", expand.read_files([val["file"]], root_dir))
     else:
         _set_config(dist, "license", val["text"])
 
@@ -148,20 +147,6 @@ def _python_requires(dist: "Distribution", val: dict, _root_dir):
     from setuptools.extern.packaging.specifiers import SpecifierSet
 
     _set_config(dist, "python_requires", SpecifierSet(val))
-
-
-def _dynamic_license(project_table: dict, tool_table: dict):
-    # Dynamic license needs special handling (cannot be expanded in terms of PEP 621)
-    # due to the mutually exclusive `text` and `file`
-    dynamic_license = {"license", "license_files"}
-    dynamic = {json_compatible_key(k) for k in project_table.get("dynamic", [])}
-    dynamic_cfg = tool_table.get("dynamic", {})
-    dynamic_cfg.setdefault("license_files", DEFAULT_LICENSE_FILES)
-    keys = set(dynamic_cfg) & dynamic_license if "license" in dynamic else set()
-
-    for key in keys:
-        norm_key = json_compatible_key(key)
-        project_table[norm_key] = dynamic_cfg[key]
 
 
 def _unify_entry_points(project_table: dict):
@@ -252,7 +237,3 @@ TOOL_TABLE_RENAMES = {"script_files": "scripts"}
 
 SETUPTOOLS_PATCHES = {"long_description_content_type", "project_urls",
                       "provides_extras", "license_file", "license_files"}
-
-
-DEFAULT_LICENSE_FILES = ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
-# defaults from the `wheel` package and historically used by setuptools

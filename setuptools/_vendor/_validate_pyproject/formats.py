@@ -161,14 +161,14 @@ class _TroveClassifier:
                 _logger.debug("Problem with download, skipping validation")
                 return True
 
-        return value in self.downloaded
+        return value in self.downloaded or value.lower().startswith("private ::")
 
 
 try:
     from trove_classifiers import classifiers as _trove_classifiers
 
     def trove_classifier(value: str) -> bool:
-        return value in _trove_classifiers
+        return value in _trove_classifiers or value.lower().startswith("private ::")
 
 except ImportError:  # pragma: no cover
     trove_classifier = _TroveClassifier()
