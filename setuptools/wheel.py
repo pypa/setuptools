@@ -27,6 +27,20 @@ NAMESPACE_PACKAGE_INIT = \
     "__import__('pkg_resources').declare_namespace(__name__)\n"
 
 
+class ZipFilePreserveMode(zipfile.ZipFile):
+    """ Extended ZipFile class to preserve file mode """
+    def _extract_member(self, member, targetpath, pwd):
+        if not isinstance(member, zipfile.ZipInfo):
+            member = self.getinfo(member)
+
+        targetpath = super()._extract_member(member, targetpath, pwd)
+
+        attr = member.external_attr >> 16
+        if attr != 0:
+            os.chmod(targetpath, attr)
+        return targetpath
+
+
 def unpack(src_dir, dst_dir):
     '''Move everything under `src_dir` to `dst_dir`, and delete the former.'''
     for dirpath, dirnames, filenames in os.walk(src_dir):
@@ -91,7 +105,7 @@ class Wheel:
 
     def install_as_egg(self, destination_eggdir):
         '''Install wheel as an egg directory.'''
-        with zipfile.ZipFile(self.filename) as zf:
+        with ZipFilePreserveMode(self.filename) as zf:
             self._install_as_egg(destination_eggdir, zf)
 
     def _install_as_egg(self, destination_eggdir, zf):
