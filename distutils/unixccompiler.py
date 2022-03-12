@@ -205,6 +205,10 @@ class UnixCCompiler(CCompiler):
                 ld_args.extend(extra_postargs)
             self.mkpath(os.path.dirname(output_filename))
             try:
+                # If we are building an executable, use the C compiler
+                # given by linker_exe as the linker command,
+                # else use the C compiler + shared options given by
+                # linker_so.
                 linker = (
                     self.linker_exe
                     if target_desc == CCompiler.EXECUTABLE else
@@ -216,10 +220,28 @@ class UnixCCompiler(CCompiler):
                     _, compiler_cxx_ne = _split_env(self.compiler_cxx)
                     _, linker_exe_ne = _split_env(self.linker_exe)
 
+                    # Linker command given by linker_na usually starts with
+                    # with the C compiler given by linker_exe_ne and then
+                    # some options for shared library building if we are
+                    # building a shared library.
+                    # This may not always be true because the user can use
+                    # LDSHARED env variable to override the linker command.
+                    # When building C++ extensions, we need to replace all of
+                    # the C compiler which can be multiple words with the
+                    # C++ compiler.
+                    # To ensure that we are replacing the C compiler, we first
+                    # check that the linker command starts with the C compiler
+                    # and replace that part with the C++ compiler.
                     if len(linker_na) >= len(linker_exe_ne) and \
                             linker_na[:len(linker_exe_ne)] == linker_exe_ne:
-                        linker_na = self.compiler_cxx + \
+                        linker_na = compiler_cxx_ne + \
                             linker_na[len(linker_exe_ne):]
+                    else:
+                        # This occurs if the user has set LDSHARED env variable
+                        # and we do not know how to plug in the C++ compiler
+                        # in this case. Therefore we fallback to the previous
+                        # potentially buggy functionality.
+                        linker_na[0] = compiler_cxx_ne[0]
 
                     linker = env + aix + linker_na
 
