@@ -22,9 +22,7 @@ from distutils.ccompiler import \
 from distutils.errors import \
      DistutilsExecError, CompileError, LibError, LinkError
 from distutils import log
-
-if sys.platform == 'darwin':
-    import _osx_support
+from ._macos_compat import compiler_fixup
 
 # XXX Things not currently handled:
 #   * optimization/debug/warning flags; we just use whatever's in Python's
@@ -141,10 +139,8 @@ class UnixCCompiler(CCompiler):
                 raise CompileError(msg)
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
-        compiler_so = self.compiler_so
-        if sys.platform == 'darwin':
-            compiler_so = _osx_support.compiler_fixup(compiler_so,
-                                                    cc_args + extra_postargs)
+        compiler_so = compiler_fixup(
+            self.compiler_so, cc_args + extra_postargs)
         try:
             self.spawn(compiler_so + cc_args + [src, '-o', obj] +
                        extra_postargs)
@@ -218,8 +214,7 @@ class UnixCCompiler(CCompiler):
                     linker_na[0] = compiler_cxx_ne[0]
                     linker = env + aix + linker_na
 
-                if sys.platform == 'darwin':
-                    linker = _osx_support.compiler_fixup(linker, ld_args)
+                linker = compiler_fixup(linker, ld_args)
 
                 self.spawn(linker + ld_args)
             except DistutilsExecError as msg:
