@@ -42,6 +42,38 @@ if sys.platform == 'darwin':
 #     options and carry on.
 
 
+def _split_env(cmd):
+    """
+    For macOS, split command into 'env' portion (if any)
+    and the rest of the linker command.
+
+    >>> _split_env(['a', 'b', 'c'])
+    ([], ['a', 'b', 'c'])
+    >>> _split_env(['/usr/bin/env', 'A=3', 'gcc'])
+    (['/usr/bin/env', 'A=3'], ['gcc'])
+    """
+    pivot = 0
+    if os.path.basename(cmd[0]) == "env":
+        pivot = 1
+        while '=' in cmd[pivot]:
+            pivot += 1
+    return cmd[:pivot], cmd[pivot:]
+
+
+def _split_aix(cmd):
+    """
+    AIX platforms prefix the compiler with the ld_so_aix
+    script, so split that from the linker command.
+
+    >>> _split_aix(['a', 'b', 'c'])
+    ([], ['a', 'b', 'c'])
+    >>> _split_aix(['/bin/foo/ld_so_aix', 'gcc'])
+    (['/bin/foo/ld_so_aix'], ['gcc'])
+    """
+    pivot = os.path.basename(cmd[0]) == 'ld_so_aix'
+    return cmd[:pivot], cmd[pivot:]
+
+
 class UnixCCompiler(CCompiler):
 
     compiler_type = 'unix'
@@ -173,35 +205,23 @@ class UnixCCompiler(CCompiler):
                 ld_args.extend(extra_postargs)
             self.mkpath(os.path.dirname(output_filename))
             try:
-                if target_desc == CCompiler.EXECUTABLE:
-                    linker = self.linker_exe[:]
-                else:
-                    linker = self.linker_so[:]
+                linker = (
+                    self.linker_exe
+                    if target_desc == CCompiler.EXECUTABLE else
+                    self.linker_so
+                )[:]
                 if target_lang == "c++" and self.compiler_cxx:
-                    # skip over environment variable settings if /usr/bin/env
-                    # is used to set up the linker's environment.
-                    # This is needed on OSX. Note: this assumes that the
-                    # normal and C++ compiler have the same environment
-                    # settings.
-                    i = 0
-                    if os.path.basename(linker[0]) == "env":
-                        i = 1
-                        while '=' in linker[i]:
-                            i += 1
+                    env, linker_ne = _split_env(linker)
+                    aix, linker_na = _split_aix(linker_ne)
+                    _, compiler_cxx_ne = _split_env(self.compiler_cxx)
+                    _, linker_exe_ne = _split_env(self.linker_exe)
 
-                    if os.path.basename(linker[i]) == 'ld_so_aix':
-                        # AIX platforms prefix the compiler with the ld_so_aix
-                        # script, so we need to adjust our linker index
-                        offset = 1
-                    else:
-                        offset = 0
+                    if len(linker_na) >= len(linker_exe_ne) and \
+                            linker_na[:len(linker_exe_ne)] == linker_exe_ne:
+                        linker_na = self.compiler_cxx + \
+                            linker_na[len(linker_exe_ne):]
 
-                    if len(linker) >= len(self.linker_exe) and \
-                            linker[:len(self.linker_exe)] == self.linker_exe:
-                        linker = linker[:(i + offset)] + self.compiler_cxx + \
-                            linker[len(self.linker_exe):]
-                    else:
-                        linker[i+offset] = self.compiler_cxx[i]
+                    linker = env + aix + linker_na
 
                 if sys.platform == 'darwin':
                     linker = _osx_support.compiler_fixup(linker, ld_args)

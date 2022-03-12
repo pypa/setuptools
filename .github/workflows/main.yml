@@ -2,6 +2,10 @@ name: tests
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 env:
   # pypa/distutils#99
   VIRTUALENV_NO_SETUPTOOLS: 1
@@ -18,7 +22,8 @@ jobs:
         platform:
         - ubuntu-latest
         - macos-latest
-        - windows-latest
+        # disable tests on Windows due to pypa/distutils#118
+        # - windows-latest
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v2
