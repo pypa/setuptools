@@ -41,7 +41,7 @@ from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
 import pkg_resources
-from setuptools.extern.packaging import version, requirements
+from setuptools.extern.packaging import version
 from . import _reqs
 from . import _entry_points
 
