@@ -3,7 +3,7 @@ Porting from Distutils
 
 Setuptools and the PyPA have a `stated goal <https://github.com/pypa/packaging-problems/issues/127>`_ to make Setuptools the reference API for distutils.
 
-Since the 49.1.2 release, Setuptools includes a local, vendored copy of distutils (from late copies of CPython) that is enabled by default. To disable the use of this copy of distutils when invoking setuptools, set the enviroment variable:
+Since the 60.0.0 release, Setuptools includes a local, vendored copy of distutils (from late copies of CPython) that is enabled by default. To disable the use of this copy of distutils when invoking setuptools, set the enviroment variable:
 
     SETUPTOOLS_USE_DISTUTILS=stdlib
 
