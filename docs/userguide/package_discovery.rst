@@ -16,8 +16,9 @@ Package Discovery and Namespace Package
     place to start.
 
 ``Setuptools`` provide powerful tools to handle package discovery, including
-support for namespace package. Normally, you would specify the package to be
-included manually in the following manner:
+support for namespace package.
+
+Normally, you would specify the package to be included manually in the following manner:
 
 .. tab:: setup.cfg
 
@@ -36,6 +37,50 @@ included manually in the following manner:
         setup(
             # ...
             packages=['mypkg1', 'mypkg2']
+        )
+
+If your packages are not in the root of the repository you also need to
+configure ``package_dir``:
+
+.. tab:: setup.cfg
+
+    .. code-block:: ini
+
+        [options]
+        # ...
+        package_dir =
+            = src
+            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+        # OR
+        package_dir =
+            mypkg1 = lib1
+            # mypkg1.mod corresponds to lib1/mod.py
+            # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
+            mypkg2 = lib2
+            # mypkg2.mod corresponds to lib2/mod.py
+            mypkg2.subpkg = lib3
+            # pkg2.subpkg.mod corresponds to lib3/mod.py
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            # ...
+            package_dir = {"": "src"}
+            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+        )
+
+        # OR
+
+        setup(
+            # ...
+            package_dir = {
+                "mypkg1": "lib1",  # mypkg1.mod corresponds to lib1/mod.py
+                                 # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
+                "mypkg2": "lib2",   # mypkg2.mod corresponds to lib2/mod.py
+                "mypkg2.subpkg": "lib3"  # mypkg2.subpkg.mod corresponds to lib3/mod.py
+                # ...
         )
 
 This can get tiresome really quickly. To speed things up, you can rely on
@@ -112,57 +157,11 @@ config>` and :doc:`py_modules </references/keywords>` configuration.
 To avoid confusion, file and folder names that are used by popular tools (or
 that correspond to well-known conventions, such as distributing documentation
 alongside the project code) are automatically filtered out in the case of
-*flat-layouts*:
+*flat-layouts* [#layout3]_:
 
 .. autoattribute:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
 
 .. autoattribute:: setuptools.discovery.FlatLayoutModuleFinder.DEFAULT_EXCLUDE
-
-Also note that you can customise your project layout by explicitly setting
-``package_dir``:
-
-.. tab:: setup.cfg
-
-    .. code-block:: ini
-
-        [options]
-        # ...
-        package_dir =
-            = lib
-            # similar to "src-layout" but using the "lib" folder
-            # pkg.mod corresponds to lib/pkg/mod.py
-        # OR
-        package_dir =
-            pkg1 = lib1
-            # pkg1.mod corresponds to lib1/mod.py
-            # pkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-            pkg2 = lib2
-            # pkg2.mod corresponds to lib2/mod.py
-            pkg2.subpkg = lib3
-            # pkg2.subpkg.mod corresponds to lib3/mod.py
-
-.. tab:: setup.py
-
-    .. code-block:: python
-
-        setup(
-            # ...
-            package_dir = {"": "lib"}
-            # similar to "src-layout" but using the "lib" folder
-            # pkg.mod corresponds to lib/pkg/mod.py
-        )
-
-        # OR
-
-        setup(
-            # ...
-            package_dir = {
-                "pkg1": "lib1",  # pkg1.mod corresponds to lib1/mod.py
-                                 # pkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-                "pkg2": "lib2",   # pkg2.mod corresponds to lib2/mod.py
-                "pkg2.subpkg": "lib3"  # pkg2.subpkg.mod corresponds to lib3/mod.py
-                # ...
-        )
 
 .. important:: Automatic discovery will **only** be enabled if you don't
    provide any configuration for both ``packages`` and ``py_modules``.
@@ -252,8 +251,8 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
 
 .. _Namespace Packages:
 
-Using ``find_namespace:`` or ``find_namespace_packages``
---------------------------------------------------------
+Using ``find_namespace:`` or ``find_namespace_packages:``
+---------------------------------------------------------
 ``setuptools``  provides the ``find_namespace:`` (``find_namespace_packages``)
 which behaves similarly to ``find:`` but works with namespace package. Before
 diving in, it is important to have a good understanding of what namespace
@@ -393,5 +392,10 @@ The project layout remains the same and ``setup.cfg`` remains the same.
 
 .. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
 .. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
+.. [#layout3]
+   If you are using auto-discovery with *flat-layout* and have multiple folders
+   (other than ``tests`` and ``docs``) or Python files in your project root,
+   always check the created :term:`distribution archive <Distribution Package>`
+   to make sure files are not being distributed accidentally.
 
 .. _editable install: https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs
