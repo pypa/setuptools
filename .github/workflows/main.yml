@@ -24,8 +24,7 @@ jobs:
         platform:
         - ubuntu-latest
         - macos-latest
-        # disable tests on Windows due to pypa/distutils#118
-        # - windows-latest
+        - windows-2019
         include:
         - platform: ubuntu-latest
           python: "3.10"
