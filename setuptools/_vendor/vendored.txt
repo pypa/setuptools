@@ -5,6 +5,7 @@ more_itertools==8.8.0
 jaraco.text==3.7.0
 importlib_resources==5.4.0
 importlib_metadata==4.11.1
+nspektr==0.3.0
 # required for importlib_metadata on older Pythons
 typing_extensions==4.0.1
 # required for importlib_resources and _metadata on older Pythons

@@ -28,7 +28,8 @@ from distutils.util import rfc822_escape
 
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen, always_iterable
+from setuptools.extern.more_itertools import unique_everseen
+from setuptools.extern import nspektr
 
 from ._importlib import metadata
 
@@ -40,7 +41,7 @@ from setuptools import windows_support
 from setuptools.monkey import get_unpatched
 from setuptools.config import parse_configuration
 import pkg_resources
-from setuptools.extern.packaging import version, requirements
+from setuptools.extern.packaging import version
 from . import _reqs
 from . import _entry_points
 
@@ -876,24 +877,9 @@ class Distribution(_Distribution):
         Given an entry point, ensure that any declared extras for
         its distribution are installed.
         """
-        reqs = {
-            req
-            for req in map(requirements.Requirement, always_iterable(ep.dist.requires))
-            for extra in ep.extras
-            if extra in req.extras
-        }
-        missing = itertools.filterfalse(self._is_installed, reqs)
-        for req in missing:
+        for req in nspektr.missing(ep):
             # fetch_build_egg expects pkg_resources.Requirement
             self.fetch_build_egg(pkg_resources.Requirement(str(req)))
-
-    def _is_installed(self, req):
-        try:
-            dist = metadata.distribution(req.name)
-        except metadata.PackageNotFoundError:
-            return False
-        found_ver = packaging.version.Version(dist.version())
-        return found_ver in req.specifier
 
     def get_egg_cache_dir(self):
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
