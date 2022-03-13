@@ -26,7 +26,7 @@ As Distutils is deprecated, any usage of functions or objects from distutils is 
 ``distutils.errors.*`` → ``setuptools.errors.*`` [#errors]_
 
 
-Migration is also provided by :pep:`632#migration-advice`.
+Migration is also provided by :pep:`PEP 632 <632#migration-advice>`.
 
 If a project relies on uses of ``distutils`` that do not have a suitable replacement above, please search the `Setuptools issue tracker <https://github.com/pypa/setuptools/issues/>`_ and file a request, describing the use-case so that Setuptools' maintainers can investigate. Please provide enough detail to help the maintainers understand how distutils is used, what value it provides, and why that behavior should be supported.
 
