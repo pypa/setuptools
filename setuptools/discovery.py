@@ -88,7 +88,7 @@ class _Finder:
         exclude = exclude or cls.DEFAULT_EXCLUDE
         return list(
             cls._find_iter(
-                convert_path(where),
+                convert_path(str(where)),
                 cls._build_filter(*cls.ALWAYS_EXCLUDE, *exclude),
                 cls._build_filter(*include),
             )
