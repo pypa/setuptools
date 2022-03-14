@@ -618,6 +618,7 @@ def test_wheel_is_compatible(monkeypatch):
         'onnxruntime-0.1.2-cp36-cp36m-manylinux1_x86_64.whl').is_compatible()
 
 
+@pytest.mark.skipif(sys.platform == 'win32', reason='non-Windows only')
 def test_wheel_mode():
     @contextlib.contextmanager
     def build_wheel(extra_file_defs=None, **kwargs):
