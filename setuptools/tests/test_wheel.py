@@ -618,7 +618,6 @@ def test_wheel_is_compatible(monkeypatch):
         'onnxruntime-0.1.2-cp36-cp36m-manylinux1_x86_64.whl').is_compatible()
 
 
-@pytest.mark.skipif(sys.platform == 'win32', reason='non-Windows only')
 def test_wheel_mode():
     @contextlib.contextmanager
     def build_wheel(extra_file_defs=None, **kwargs):
@@ -699,4 +698,6 @@ def test_wheel_mode():
         base = pathlib.Path(install_dir) / w.egg_name()
         script_sh = base / "EGG-INFO" / "scripts" / "script.sh"
         assert script_sh.exists()
-        assert oct(stat.S_IMODE(script_sh.stat().st_mode)) == "0o777"
+        if sys.platform != 'win32':
+            # Editable file mode has no effect on Windows
+            assert oct(stat.S_IMODE(script_sh.stat().st_mode)) == "0o777"
