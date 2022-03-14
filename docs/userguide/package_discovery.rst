@@ -88,6 +88,8 @@ setuptools automatic discovery, or use the provided tools, as explained in
 the following sections.
 
 
+.. _auto-discovery:
+
 Automatic discovery
 ===================
 
@@ -97,6 +99,8 @@ Automatic discovery
 
 By default setuptools will consider 2 popular project layouts, each one with
 its own set of advantages and disadvantages [#layout1]_ [#layout2]_.
+
+.. _src-layout:
 
 src-layout:
     The project should contain a ``src`` directory under the project root and
@@ -120,6 +124,8 @@ src-layout:
     On the other hand you cannot rely on the implicit ``PYTHONPATH=.`` to fire
     up the Python REPL and play with your package (you will need an
     `editable install`_ to be able to do that).
+
+.. _flat-layout:
 
 flat-layout (also known as "adhoc"):
     The package folder(s) are placed directly under the project root::
