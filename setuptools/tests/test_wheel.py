@@ -695,6 +695,7 @@ def test_wheel_mode():
                              install_tree, project_name,
                              version, None)
         w = Wheel(filename)
-        script_sh = pathlib.Path(install_dir) / w.egg_name() / "EGG-INFO" / "scripts" / "script.sh"
+        base = pathlib.Path(install_dir) / w.egg_name()
+        script_sh = base / "EGG-INFO" / "scripts" / "script.sh"
         assert script_sh.exists()
         assert oct(stat.S_IMODE(script_sh.stat().st_mode)) == "0o777"
