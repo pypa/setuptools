@@ -18,6 +18,13 @@ TIMEOUT = int(os.getenv("TIMEOUT_BACKEND_TEST", "180"))  # in seconds
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32" and IS_PYPY,
+    reason="The combination of PyPy + Windows + pytest-xdist + ProcessPoolExecutor "
+    "is flaky and problematic"
+)
+
+
 class BuildBackendBase:
     def __init__(self, cwd='.', env={}, backend_name='setuptools.build_meta'):
         self.cwd = cwd
