@@ -29,11 +29,6 @@ jobs:
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
-        exclude:
-        # The combination of PyPy+Windows+pytest-xdist+ProcessPoolExecutor is flaky/problematic
-        - platform: windows-2019
-          python: pypy-3.7
-          distutils: local
     runs-on: ${{ matrix.platform }}
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
