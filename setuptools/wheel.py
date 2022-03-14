@@ -15,6 +15,7 @@ from pkg_resources import parse_version
 from setuptools.extern.packaging.tags import sys_tags
 from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.command.egg_info import write_requirements
+from setuptools.archive_util import _unpack_zipfile_obj
 
 
 WHEEL_NAME = re.compile(
@@ -25,20 +26,6 @@ WHEEL_NAME = re.compile(
 
 NAMESPACE_PACKAGE_INIT = \
     "__import__('pkg_resources').declare_namespace(__name__)\n"
-
-
-class ZipFilePreserveMode(zipfile.ZipFile):
-    """ Extended ZipFile class to preserve file mode """
-    def _extract_member(self, member, targetpath, pwd):
-        if not isinstance(member, zipfile.ZipInfo):
-            member = self.getinfo(member)
-
-        targetpath = super()._extract_member(member, targetpath, pwd)
-
-        attr = member.external_attr >> 16
-        if attr != 0:
-            os.chmod(targetpath, attr)
-        return targetpath
 
 
 def unpack(src_dir, dst_dir):
@@ -105,7 +92,7 @@ class Wheel:
 
     def install_as_egg(self, destination_eggdir):
         '''Install wheel as an egg directory.'''
-        with ZipFilePreserveMode(self.filename) as zf:
+        with zipfile.ZipFile(self.filename) as zf:
             self._install_as_egg(destination_eggdir, zf)
 
     def _install_as_egg(self, destination_eggdir, zf):
@@ -135,8 +122,7 @@ class Wheel:
             raise ValueError(
                 'unsupported wheel format version: %s' % wheel_version)
         # Extract to target directory.
-        os.mkdir(destination_eggdir)
-        zf.extractall(destination_eggdir)
+        _unpack_zipfile_obj(zf, destination_eggdir)
         # Convert metadata.
         dist_info = os.path.join(destination_eggdir, dist_info)
         dist = pkg_resources.Distribution.from_location(
