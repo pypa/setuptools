@@ -1,0 +1,1 @@
+Honor unix file mode in ZipFile when installing wheel via ``install_as_egg`` -- by :user:`delijati`
