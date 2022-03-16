@@ -1,3 +1,39 @@
+v60.10.0
+--------
+
+
+Changes
+^^^^^^^
+* #2971: Deprecated upload_docs command, to be removed in the future.
+* #3137: Use samefile from stdlib, supported on Windows since Python 3.2.
+* #3170: Adopt nspektr (vendored) to implement Distribution._install_dependencies.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3144: Added documentation on using console_scripts from setup.py, which was previously only shown in setup.cfg  -- by :user:`xhlulu`
+* #3148: Added clarifications about ``MANIFEST.in``, that include links to PyPUG docs
+  and more prominent mentions to using a revision control system plugin as an
+  alternative.
+* #3148: Removed mention to ``pkg_resources`` as the recommended way of accessing data
+  files, in favour of :doc:`importlib.resources`.
+  Additionally more emphasis was put on the fact that *package data files* reside
+  **inside** the *package directory* (and therefore should be *read-only*).
+
+Misc
+^^^^
+* #3120: Added workaround for intermittent failures of backend tests on PyPy.
+  These tests now are marked with `XFAIL
+  <https://docs.pytest.org/en/stable/how-to/skipping.html>`_, instead of erroring
+  out directly.
+* #3124: Improved configuration for :pypi:`rst-linker` (extension used to build the
+  changelog).
+* #3133: Enhanced isolation of tests using virtual environments - PYTHONPATH is not leaking to spawned subprocesses  -- by :user:`befeleme`
+* #3147: Added options to provide a pre-built ``setuptools`` wheel or sdist for being
+  used during tests with virtual environments.
+  Paths for these pre-built distribution files can now be set via the environment
+  variables: ``PRE_BUILT_SETUPTOOLS_SDIST`` and ``PRE_BUILT_SETUPTOOLS_WHEEL``.
+
+
 v60.9.3
 -------
 

@@ -1,1 +1,0 @@
-Added documentation on using console_scripts from setup.py, which was previously only shown in setup.cfg  -- by :user:`xhlulu`

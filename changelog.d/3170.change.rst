@@ -1,1 +1,0 @@
-Adopt nspektr (vendored) to implement Distribution._install_dependencies.
