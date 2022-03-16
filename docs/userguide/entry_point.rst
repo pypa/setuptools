@@ -54,11 +54,32 @@ above example, to create a command ``hello-world`` that invokes
 ``timmins.hello_world``, add a console script entry point to
 ``setup.cfg``:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options.entry_points]
-    console_scripts =
-        hello-world = timmins:hello_world
+	.. code-block:: ini
+
+		[options.entry_points]
+		console_scripts =
+			hello-world = timmins:hello_world
+
+.. tab:: setup.py
+
+    .. code-block:: python
+	
+        from setuptools import setup
+
+        setup(
+            name='timmins',
+            version='0.0.1',
+            packages=['timmins'],
+			# ...
+            entry_points={
+				'console_scripts': [
+					'hello-world=timmins:hello_world',
+				]
+			}
+        )
+
 
 After installing the package, a user may invoke that function by simply calling
 ``hello-world`` on the command line.

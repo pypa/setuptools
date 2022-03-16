@@ -42,6 +42,7 @@ def update_changelog():
     cmd = [
         sys.executable, '-m',
         'towncrier',
+        'build',
         '--version', get_version(),
         '--yes',
     ]

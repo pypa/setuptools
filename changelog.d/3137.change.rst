@@ -1,1 +1,0 @@
-Use samefile from stdlib, supported on Windows since Python 3.2.
