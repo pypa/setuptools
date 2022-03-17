@@ -35,9 +35,9 @@ package your project:
     requires = ["setuptools"]
     build-backend = "setuptools.build_meta"
 
-Then, you will need a ``setup.cfg`` or ``setup.py`` to specify your package
-information, such as metadata, contents, dependencies, etc. Here we demonstrate
-the minimum
+Then, you will need to specify your package information (either via
+``setup.cfg``, ``setup.py`` or ``pyproject.toml``), such as metadata, contents,
+dependencies, etc. Here we demonstrate the minimum
 
 .. tab:: setup.cfg
 
@@ -51,7 +51,9 @@ the minimum
         packages = mypackage
         install_requires =
             requests
-            importlib; python_version == "2.6"
+            importlib-metadata; python_version < "3.8"
+
+    See :doc:`/userguide/declarative_config` for more information.
 
 .. tab:: setup.py
 
@@ -65,9 +67,27 @@ the minimum
             packages=['mypackage'],
             install_requires=[
                 'requests',
-                'importlib; python_version == "2.6"',
+                'importlib-metadata; python_version == "3.8"',
             ],
         )
+
+    See :doc:`/keywords` for more information.
+
+.. tab:: pyproject.toml
+
+    **EXPERIMENTAL** [#experimental]_
+
+    .. code-block:: toml
+
+       [project]
+       name = "mypackage"
+       version = "0.0.1"
+       dependencies = [
+           "requests",
+           'importlib-metadata; python_version<"3.8"',
+       ]
+
+    See :doc:`/userguide/pyproject_config` for more information.
 
 This is what your project would look like::
 
@@ -220,8 +240,9 @@ Transitioning from ``setup.py`` to ``setup.cfg``
 To avoid executing arbitrary scripts and boilerplate code, we are transitioning
 into a full-fledged ``setup.cfg`` to declare your package information instead
 of running ``setup()``. This inevitably brings challenges due to a different
-syntax. Here we provide a quick guide to understanding how ``setup.cfg`` is
-parsed by ``setuptool`` to ease the pain of transition.
+syntax. :doc:`Here </userguide/declarative_config>` we provide a quick guide to
+understanding how ``setup.cfg`` is parsed by ``setuptool`` to ease the pain of
+transition.
 
 .. _packaging-resources:
 
@@ -234,3 +255,12 @@ up-to-date references that can help you when it is time to distribute your work.
 
 .. |MANIFEST.in| replace:: ``MANIFEST.in``
 .. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/
+
+
+----
+
+
+.. [#experimental]
+   Support for specifying package metadata and build configuration options via
+   ``pyproject.toml`` is experimental and might change (or be completely
+   removed) in the future. See :doc:`/userguide/pyproject_config`.
