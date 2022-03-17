@@ -118,26 +118,71 @@ Automatic package discovery
 For simple projects, it's usually easy enough to manually add packages to
 the ``packages`` keyword in ``setup.cfg``.  However, for very large projects,
 it can be a big burden to keep the package list updated. ``setuptools``
-therefore provides two convenient tools to ease the burden: :literal:`find:\ ` and
-:literal:`find_namespace:\ `. To use it in your project:
+therefore provides a convenient way to automatically list all the packages in
+your project directory:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options]
-    packages = find:
+    .. code-block:: ini
 
-    [options.packages.find] #optional
-    include=pkg1, pkg2
-    exclude=pk3, pk4
+        [options]
+        packages = find: # OR `find_namespaces:` if you want to use namespaces
+
+        [options.packages.find] (always `find` even if `find_namespaces:` was used before)
+        # This section is optional
+        # Each entry in this section is optional, and if not specified, the default values are:
+        # `where=.`, `include=*` and `exclude=` (empty).
+        include=mypackage*
+        exclude=mypackage.tests*
+
+.. tab:: setup.py
+
+    .. code-block:: python
+        from setuptools import find_packages  # or find_namespace_packages
+
+        setup(
+            # ...
+            packages=find_packages(
+                where='.',
+                include=['mypackage*'],  # ["*"] by default
+                exclude=['mypackage.tests'],  # empty by default
+            ),
+            # ...
+        )
+
+.. tab:: pyproject.toml
+
+    **EXPERIMENTAL** [#experimental]_
+
+    .. code-block:: toml
+
+        # ...
+        [tool.setuptools.packages]
+        find = {}  # Scan the project directory with the default parameters
+
+        # OR
+        [tool.setuptools.packages.find]
+        where = ["src"]  # ["."] by default
+        include = ["mypackage*"]  # ["*"] by default
+        exclude = ["mypackage.tests*"]  # empty by default
+        namespaces = false  # true by default
 
 When you pass the above information, alongside other necessary information,
 ``setuptools`` walks through the directory specified in ``where`` (omitted
 here as the package resides in the current directory) and filters the packages
 it can find following the ``include``  (defaults to none), then removes
-those that match the ``exclude`` and returns a list of Python packages. Note
-that each entry in the ``[options.packages.find]`` is optional. The above
+those that match the ``exclude`` and returns a list of Python packages. The above
 setup also allows you to adopt a ``src/`` layout. For more details and advanced
 use, go to :ref:`package_discovery`.
+
+.. tip::
+   Starting with version 60.10.0, setuptools' automatic discovery capabilities
+   have been improved to detect popular project layouts (such as the
+   :ref:`flat-layout` and :ref:`src-layout`) without requiring any
+   special configuration. Check out our :ref:`reference docs <package_discovery>`
+   for more information, but please keep in mind that this functionality is
+   still considered **experimental** and might change (or even be removed) in
+   future releases.
 
 
 Entry points and automatic script creation
