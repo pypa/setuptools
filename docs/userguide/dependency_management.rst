@@ -293,49 +293,9 @@ dependencies for it to work:
         PDF = ["ReportLab>=1.2", "RXP"]
 
 The name ``PDF`` is an arbitrary identifier of such a list of dependencies, to
-which other components can refer and have them installed. There are two common
-use cases.
+which other components can refer and have them installed.
 
-First is the console_scripts entry point:
-
-.. tab:: setup.cfg
-
-    .. code-block:: ini
-
-        [metadata]
-        name = Project A
-        #...
-
-        [options]
-        #...
-        entry_points=
-            [console_scripts]
-            rst2pdf = project_a.tools.pdfgen [PDF]
-            rst2html = project_a.tools.htmlgen
-
-.. tab:: setup.py
-
-    .. code-block:: python
-
-        setup(
-            name="Project-A",
-            ...,
-            entry_points={
-                "console_scripts": [
-                    "rst2pdf = project_a.tools.pdfgen [PDF]",
-                    "rst2html = project_a.tools.htmlgen",
-                ],
-            },
-        )
-
-This syntax indicates that the entry point (in this case a console script)
-is only valid when the PDF extra is installed. It is up to the installer
-to determine how to handle the situation where PDF was not indicated
-(e.g. omit the console script, provide a warning when attempting to load
-the entry point, assume the extras are present and let the implementation
-fail later).
-
-The second use case is that other package can use this "extra" for their
+A use case for this approach is that other package can use this "extra" for their
 own dependencies. For example, if "Project-B" needs "project A" with PDF support
 installed, it might declare the dependency like this:
 
@@ -383,10 +343,55 @@ ReportLab in order to provide PDF support, Project B's setup information does
 not need to change, but the right packages will still be installed if needed.
 
 .. note::
-    Best practice: if a project ends up not needing any other packages to
+    Best practice: if a project ends up no longer needing any other packages to
     support a feature, it should keep an empty requirements list for that feature
     in its ``extras_require`` argument, so that packages depending on that feature
     don't break (due to an invalid feature name).
+
+Historically ``setuptools`` also used to support extra dependencies in console
+scripts, for example:
+
+.. tab:: setup.cfg
+
+    .. code-block:: ini
+
+        [metadata]
+        name = Project A
+        #...
+
+        [options]
+        #...
+        entry_points=
+            [console_scripts]
+            rst2pdf = project_a.tools.pdfgen [PDF]
+            rst2html = project_a.tools.htmlgen
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            name="Project-A",
+            ...,
+            entry_points={
+                "console_scripts": [
+                    "rst2pdf = project_a.tools.pdfgen [PDF]",
+                    "rst2html = project_a.tools.htmlgen",
+                ],
+            },
+        )
+
+This syntax indicates that the entry point (in this case a console script)
+is only valid when the PDF extra is installed. It is up to the installer
+to determine how to handle the situation where PDF was not indicated
+(e.g. omit the console script, provide a warning when attempting to load
+the entry point, assume the extras are present and let the implementation
+fail later).
+
+.. warning::
+   ``pip`` and other tools might not support this use case for extra
+   dependencies, therefore this practice is considered **deprecated**.
+   See :doc:`PyPUG:specifications/entry-points`.
 
 
 Python requirement
@@ -432,7 +437,7 @@ This can be configured as shown in the example bellow.
 
 .. [#experimental]
    While the ``[build-system]`` table should always be specified in the
-   ``pyproject.toml`` file, adding package metadata and build configuration
+   ``pyproject.toml`` file, support for adding package metadata and build configuration
    options via the ``[project]`` and ``[tool.setuptools]`` tables is still
    experimental and might change (or be completely removed) in future releases.
    See :doc:`/userguide/pyproject_config`.
