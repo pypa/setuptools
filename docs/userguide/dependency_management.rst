@@ -69,6 +69,18 @@ finesse to it, let's start with a simple example.
             ],
         )
 
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "docutils",
+            "BazSpam == 1.1",
+        ]
+        # ...
+
 
 When your project is installed (e.g. using pip), all of the dependencies not
 already installed will be located (via PyPI), downloaded, built (if necessary),
@@ -104,6 +116,17 @@ the Python version is older than 3.4. To accomplish this
             ],
         )
 
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "enum34; python_version<'3.4'",
+        ]
+        # ...
+
 Similarly, if you also wish to declare ``pywin32`` with a minimal version of 1.0
 and only install it if the user is using a Windows operating system:
 
@@ -128,6 +151,18 @@ and only install it if the user is using a Windows operating system:
                 "pywin32 >= 1.0;platform_system=='Windows'",
             ],
         )
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "enum34; python_version<'3.4'",
+            "pywin32 >= 1.0; platform_system=='Windows'",
+        ]
+        # ...
 
 The environmental markers that may be used for testing platform types are
 detailed in `PEP 508 <https://www.python.org/dev/peps/pep-0508/>`_.
@@ -249,6 +284,14 @@ dependencies for it to work:
             },
         )
 
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        # ...
+        [project.optional-dependencies]
+        PDF = ["ReportLab>=1.2", "RXP"]
+
 The name ``PDF`` is an arbitrary identifier of such a list of dependencies, to
 which other components can refer and have them installed. There are two common
 use cases.
@@ -319,6 +362,17 @@ installed, it might declare the dependency like this:
             ...,
         )
 
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        name = "Project-B"
+        # ...
+        dependencies = [
+            "Project-A[PDF]"
+        ]
+
 This will cause ReportLab to be installed along with project A, if project B is
 installed -- even if project A was already installed.  In this way, a project
 can encapsulate groups of optional "downstream dependencies" under a feature
@@ -338,9 +392,7 @@ not need to change, but the right packages will still be installed if needed.
 Python requirement
 ==================
 In some cases, you might need to specify the minimum required python version.
-This is handled with the ``python_requires`` keyword supplied to ``setup.cfg``
-or ``setup.py``.
-
+This can be configured as shown in the example bellow.
 
 .. tab:: setup.cfg
 
@@ -363,3 +415,24 @@ or ``setup.py``.
             python_requires=">=3.6",
             ...,
         )
+
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        name = "Project-B"
+        requires-python = ">=3.6"
+        # ...
+
+----
+
+.. rubric:: Notes
+
+.. [#experimental]
+   While the ``[build-system]`` table should always be specified in the
+   ``pyproject.toml`` file, adding package metadata and build configuration
+   options via the ``[project]`` and ``[tool.setuptools]`` tables is still
+   experimental and might change (or be completely removed) in future releases.
+   See :doc:`/userguide/pyproject_config`.
