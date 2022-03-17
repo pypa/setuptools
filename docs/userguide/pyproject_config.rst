@@ -73,14 +73,15 @@ of the metadata used during the packaging process, there are still some
 ``setuptools``-specific configurations that can be set by users that require
 customization.
 These configurations are completely optional (and probably can be skipped when
-creating simple packages). They are equivalent to the :doc:`/references/keywords`
-used by the ``setup.py`` file:
+creating simple packages) and can be set via the ``tool.setuptools`` table.
+They are equivalent to the :doc:`/references/keywords` used by the ``setup.py`` file:
 
 ========================= =========================== =========================
 Key                       Value Type (TOML)           Notes
 ========================= =========================== =========================
 ``platforms``             array
-``zip-safe``              boolean
+``zip-safe``              boolean                     If not specified, ``setuptools`` will try to guess
+                                                      a reasonable default for the package
 ``eager-resources``       array
 ``py-modules``            array                       See tip bellow
 ``packages``              array or ``find`` directive See tip bellow
@@ -98,8 +99,14 @@ Key                       Value Type (TOML)           Notes
 ``obsoletes``             array                       **Ignored by pip**
 ========================= =========================== =========================
 
-The `TOML value types`_ ``array`` and ``table/inline-table`` are roughly
-equivalent to the Python's :obj:`dict` and :obj:`list` data types.
+In the table above, the `TOML value types`_ ``array`` and
+``table/inline-table`` are roughly equivalent to the Python's :obj:`dict` and
+:obj:`list` data types.
+
+Please note that some of these configurations are deprecated or at least
+discouraged, but they are made available to ensure portability.
+New packages should avoid relying on them, and existing packages should
+consider alternatives.
 
 .. tip::
    When both ``py-modules`` and ``packages`` are left unspecified,
@@ -162,9 +169,9 @@ corresponding entry is required in the ``tool.setuptools.dynamic`` table
    version = {attr = "my_package.VERSION"}
    readme = {file = ["README.rst", "USAGE.rst"]}
 
-In this example the ``attr`` attribute will read an attribute from the given
-module [#attr]_, while ``file`` will read all the given files and concatenate
-them in a single string.
+In the ``dynamic`` table, the ``attr`` directive will read an attribute from
+the given module [#attr]_, while ``file`` will read all the given files and
+concatenate them in a single string.
 
 ================= =================== =========================
 Key               Directive           Notes
