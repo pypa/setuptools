@@ -137,7 +137,7 @@ it can find following the ``include``  (defaults to none), then removes
 those that match the ``exclude`` and returns a list of Python packages. Note
 that each entry in the ``[options.packages.find]`` is optional. The above
 setup also allows you to adopt a ``src/`` layout. For more details and advanced
-use, go to :ref:`package_discovery`
+use, go to :ref:`package_discovery`.
 
 
 Entry points and automatic script creation
@@ -182,7 +182,7 @@ additional keywords such as ``setup_requires`` that allows you to install
 dependencies before running the script, and ``extras_require`` that take
 care of those needed by automatically generated scripts. It also provides
 mechanisms to handle dependencies that are not in PyPI. For more advanced use,
-see :doc:`dependency_management`
+see :doc:`dependency_management`.
 
 
 .. _Including Data Files:
@@ -203,7 +203,7 @@ This tells setuptools to install any data files it finds in your packages.
 The data files must be specified via the distutils' |MANIFEST.in|_ file
 or automatically added by a :ref:`Revision Control System plugin
 <Adding Support for Revision Control Systems>`.
-For more details, see :doc:`datafiles`
+For more details, see :doc:`datafiles`.
 
 
 Development mode
@@ -231,8 +231,8 @@ Uploading your package to PyPI
 ==============================
 After generating the distribution files, the next step would be to upload your
 distribution so others can use it. This functionality is provided by
-`twine <https://pypi.org/project/twine/>`_ and we will only demonstrate the
-basic use here.
+:pypi:`twine` and is documented in the :doc:`Python packaging tutorial
+<PyPUG:tutorials/packaging-projects>`.
 
 
 Transitioning from ``setup.py`` to ``setup.cfg``
