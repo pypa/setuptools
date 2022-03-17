@@ -180,7 +180,7 @@ use, go to :ref:`package_discovery`.
 .. tip::
    Starting with version 60.10.0, setuptools' automatic discovery capabilities
    have been improved to detect popular project layouts (such as the
-   :ref:`flat-layout` and :ref:`src-layout` layouts) without requiring any
+   :ref:`flat-layout` and :ref:`src-layout`) without requiring any
    special configuration. Check out our :ref:`reference docs <package_discovery>`
    for more information, but please keep in mind that this functionality is
    still considered **experimental** and might change (or even be removed) in

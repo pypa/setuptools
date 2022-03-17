@@ -72,9 +72,10 @@ While the standard ``project`` table in the ``pyproject.toml`` file covers most
 of the metadata used during the packaging process, there are still some
 ``setuptools``-specific configurations that can be set by users that require
 customization.
-These configurations are completely optional (and probably can be skipped when
-creating simple packages) and can be set via the ``tool.setuptools`` table.
-They are equivalent to the :doc:`/references/keywords` used by the ``setup.py`` file:
+These configurations are completely optional and probably can be skipped when
+creating simple packages.
+They are equivalent to the :doc:`/references/keywords` used by the ``setup.py``
+file, and can be set via the ``tool.setuptools`` table:
 
 ========================= =========================== =========================
 Key                       Value Type (TOML)           Notes
@@ -99,9 +100,9 @@ Key                       Value Type (TOML)           Notes
 ``obsoletes``             array                       **Ignored by pip**
 ========================= =========================== =========================
 
-In the table above, the `TOML value types`_ ``array`` and
-``table/inline-table`` are roughly equivalent to the Python's :obj:`dict` and
-:obj:`list` data types.
+.. note::
+   The `TOML value types`_ ``array`` and ``table/inline-table`` are roughly
+   equivalent to the Python's :obj:`dict` and :obj:`list` data types.
 
 Please note that some of these configurations are deprecated or at least
 discouraged, but they are made available to ensure portability.
@@ -112,7 +113,7 @@ consider alternatives.
    When both ``py-modules`` and ``packages`` are left unspecified,
    ``setuptools`` will attempt to perform :ref:`auto-discovery`, which should
    cover most popular project directory organization techniques, such as the
-   :ref:`src <src-layout>` and :ref:`flat <flat-layout>` layouts.
+   :ref:`src-layout` and the :ref:`flat-layout`.
 
    However if your project does not follow these conventional layouts
    (e.g. you want to use a ``flat-layout`` but at the same time have custom
@@ -146,15 +147,15 @@ Dynamic Metadata
 ================
 
 Note that in the first example of this page we use ``dynamic`` to identify
-which metadata fields are dynamically calculated during the build by either
-``setuptools`` itself or the selected plugins (e.g. ``setuptools-scm`` is
-capable of deriving the current project version directly from the ``git``
-:wiki:`version control` system).
+which metadata fields are dynamically computed during the build by either
+``setuptools`` itself or the plugins installed via ``build-system.requires``
+(e.g. ``setuptools-scm`` is capable of deriving the current project version
+directly from the ``git`` :wiki:`version control` system).
 
-Currently the following fields can be used dynamically: ``version``,
+Currently the following fields can be listed as dynamic: ``version``,
 ``classifiers``, ``description``, ``entry-points``, ``scripts``,
 ``gui-scripts`` and ``readme``.
-When these fields are expected to be directly provided by ``setuptools`` a
+When these fields are expected to be provided by ``setuptools`` a
 corresponding entry is required in the ``tool.setuptools.dynamic`` table
 [#entry-points]_. For example:
 
@@ -170,8 +171,8 @@ corresponding entry is required in the ``tool.setuptools.dynamic`` table
    readme = {file = ["README.rst", "USAGE.rst"]}
 
 In the ``dynamic`` table, the ``attr`` directive will read an attribute from
-the given module [#attr]_, while ``file`` will read all the given files and
-concatenate them in a single string.
+the given module [#attr]_, while ``file`` will read the contents of all given
+files and concatenate them in a single string.
 
 ================= =================== =========================
 Key               Directive           Notes
