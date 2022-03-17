@@ -188,21 +188,47 @@ use, go to :ref:`package_discovery`.
 Entry points and automatic script creation
 ===========================================
 Setuptools supports automatic creation of scripts upon installation, that runs
-code within your package if you specify them with the ``entry_points`` keyword.
+code within your package if you specify them as :doc:`entry points
+<PyPUG:specifications/entry-points>`.
 This is what allows you to run commands like ``pip install`` instead of having
-to type ``python -m pip install``. To accomplish this, add the entry_points
-keyword in your ``setup.cfg``:
+to type ``python -m pip install``.
+The following configuration examples show how to accomplish this:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options.entry_points]
-    console_scripts =
-        main = mypkg:some_func
+    .. code-block:: ini
 
-When this project is installed, a ``main`` script will be installed and will
-invoke the ``some_func`` in the ``__init__.py`` file when called by the user.
-For detailed usage, including managing the additional or optional dependencies,
-go to :doc:`entry_point`.
+        [options.entry_points]
+        console_scripts =
+            cli-name = mypkg:some_func
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            # ...
+            entry_points={
+                'console_scripts': [
+                    'cli-name = mypkg:some_func',
+                ]
+            }
+        )
+
+.. tab:: pyproject.toml
+
+    **EXPERIMENTAL** [#experimental]_
+
+    .. code-block:: toml
+
+       [project.scripts]
+       cli-name = mypkg:some_func
+
+When this project is installed, a ``cli-name`` executable will be installed and will
+invoke the ``some_func`` in the ``mypkg/__init__.py`` file when called by the user.
+Note that you can also use the ``entry-points`` mechanism to advertise
+components between installed packages and implement plugin systems.
+For detailed usage, go to :doc:`entry_point`.
 
 
 Dependency management
