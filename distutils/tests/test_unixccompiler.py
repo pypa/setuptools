@@ -246,7 +246,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             self.cc.link(None, [], 'a.out', target_lang='c++')
             call_args = mock_spawn.call_args[0][0]
             assert len(call_args) >= 4
-            assert(call_args[:4] == ['g++-4.2', '-bundle', '-undefined', 'dynamic_lookup'])
+            assert(call_args[:4] == ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup'])
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_explicit_ldshared(self):
