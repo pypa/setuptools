@@ -233,27 +233,52 @@ For detailed usage, go to :doc:`entry_point`.
 
 Dependency management
 =====================
-``setuptools`` supports automatically installing dependencies when a package is
-installed. The simplest way to include requirement specifiers is to use the
-``install_requires`` argument to ``setup.cfg``.  It takes a string or list of
-strings containing requirement specifiers (A version specifier is one of the
-operators <, >, <=, >=, == or !=, followed by a version identifier):
+Packages built with ``setuptools`` can specify dependencies to be automatically
+installed when the package itself is installed.
+The example bellow show how to configure this kind of dependencies:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options]
-    install_requires =
-        docutils >= 0.3
-        requests <= 0.4
+    .. code-block:: ini
+
+        [options]
+        install_requires =
+            docutils
+            requests <= 0.4
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            # ...
+            install_requires=["docutils", "requests <= 0.4"],
+            # ...
+        )
+
+.. tab:: pyproject.toml
+
+    **EXPERIMENTAL** [#experimental]_
+
+    [project]
+    # ...
+    dependencies = [
+        "docutils",
+        "requires <= 0.4",
+    ]
+    # ...
+
+Each dependency is represented a string that can optionally contain version requirements
+(e.g. one of the operators <, >, <=, >=, == or !=, followed by a version identifier),
+and/or conditional environment markers, e.g. ``os_name = "windows"``
+(see :doc:`PyPUG:specifications/version-specifiers` for more information).
 
 When your project is installed, all of the dependencies not already installed
 will be located (via PyPI), downloaded, built (if necessary), and installed.
-This, of course, is a simplified scenarios. ``setuptools`` also provides
-additional keywords such as ``setup_requires`` that allows you to install
-dependencies before running the script, and ``extras_require`` that take
-care of those needed by automatically generated scripts. It also provides
-mechanisms to handle dependencies that are not in PyPI. For more advanced use,
-see :doc:`dependency_management`.
+This, of course, is a simplified scenarios. You can also specify groups of
+extra dependencies that are not strictly required by your package to work, but
+that will provide additional functionalities.
+For more advanced use, see :doc:`dependency_management`.
 
 
 .. _Including Data Files:
