@@ -118,7 +118,7 @@ consider alternatives.
    However if your project does not follow these conventional layouts
    (e.g. you want to use a ``flat-layout`` but at the same time have custom
    directories at the root of your project), you might need to use the ``find``
-   directive as shown below:
+   directive [#directives]_ as shown below:
 
    .. code-block:: toml
 
@@ -170,9 +170,9 @@ corresponding entry is required in the ``tool.setuptools.dynamic`` table
    version = {attr = "my_package.VERSION"}
    readme = {file = ["README.rst", "USAGE.rst"]}
 
-In the ``dynamic`` table, the ``attr`` directive will read an attribute from
-the given module [#attr]_, while ``file`` will read the contents of all given
-files and concatenate them in a single string.
+In the ``dynamic`` table, the ``attr`` directive [#directives]_ will read an
+attribute from the given module [#attr]_, while ``file`` will read the contents
+of all given files and concatenate them in a single string.
 
 ================= =================== =========================
 Key               Directive           Notes
@@ -194,6 +194,14 @@ Key               Directive           Notes
    ``tool.setuptool.dynamic.entry-points``, and use the values of the
    ``console_scripts`` and ``gui_scripts`` :doc:`entry-point groups
    <PyPUG:specifications/entry-points>`.
+
+.. [#directives] In the context of this document, *directives* are special TOML
+   values that are interpreted differently by ``setuptools`` (usually triggering an
+   associated function). Most of the times they correspond to a special TOML table
+   (or inline-table) with a single top-level key.
+   For example, you can have the ``{find = {where = ["src"], exclude=["tests*"]}}``
+   directive for ``tool.setuptools.packages``, or ``{attr = "mymodule.attr"}``
+   directive for ``tool.setuptools.dynamic.version``.
 
 .. [#attr] ``attr`` is meant to be used when the module attribute is statically
    specified (e.g. as a string, list or tuple). As a rule of thumb, the
