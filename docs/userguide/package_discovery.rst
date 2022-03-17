@@ -39,6 +39,18 @@ Normally, you would specify the package to be included manually in the following
             packages=['mypkg1', 'mypkg2']
         )
 
+.. tab:: pyproject.toml
+
+    **EXPERIMENTAL** [#experimental]_
+
+    .. code-block:: toml
+
+        # ...
+        [tool.setuptools]
+        packages = ["mypkg1", "mypkg2"]
+        # ...
+
+
 If your packages are not in the root of the repository you also need to
 configure ``package_dir``:
 
@@ -59,7 +71,7 @@ configure ``package_dir``:
             mypkg2 = lib2
             # mypkg2.mod corresponds to lib2/mod.py
             mypkg2.subpkg = lib3
-            # pkg2.subpkg.mod corresponds to lib3/mod.py
+            # mypkg2.subpkg.mod corresponds to lib3/mod.py
 
 .. tab:: setup.py
 
@@ -76,12 +88,35 @@ configure ``package_dir``:
         setup(
             # ...
             package_dir = {
-                "mypkg1": "lib1",  # mypkg1.mod corresponds to lib1/mod.py
-                                 # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
+                "mypkg1": "lib1",   # mypkg1.mod corresponds to lib1/mod.py
+                                    # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
                 "mypkg2": "lib2",   # mypkg2.mod corresponds to lib2/mod.py
                 "mypkg2.subpkg": "lib3"  # mypkg2.subpkg.mod corresponds to lib3/mod.py
                 # ...
         )
+
+.. tab:: pyproject.toml
+
+    **EXPERIMENTAL** [#experimental]_
+
+    .. code-block:: toml
+
+        [tool.setuptools]
+        # ...
+        package-dir = {"" = "src"}
+            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+
+        # OR
+
+        [tool.setuptools.package-dir]
+        mypkg1 = "lib1"
+            # mypkg1.mod corresponds to lib1/mod.py
+            # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
+        mypkg2 = "lib2"
+            # mypkg2.mod corresponds to lib2/mod.py
+        "mypkg2.subpkg" = "lib3"
+            # mypkg2.subpkg.mod corresponds to lib3/mod.py
+        # ...
 
 This can get tiresome really quickly. To speed things up, you can rely on
 setuptools automatic discovery, or use the provided tools, as explained in
@@ -200,29 +235,43 @@ the provided tools for package discovery:
     .. code-block:: python
 
         from setuptools import find_packages
-
         # or
         from setuptools import find_namespace_packages
 
+.. tab:: pyproject.toml
 
-Using ``find:`` or ``find_packages``
-------------------------------------
-Let's start with the first tool. ``find:`` (``find_packages``) takes a source
+    **EXPERIMENTAL** [#experimental]_
+
+    .. code-block:: toml
+
+        # ...
+        [tool.setuptools.packages]
+        find = {}  # Scanning implicit namespaces is active by default
+        # OR
+        find = {namespace = false}  # Disable implicit namespaces
+
+
+Finding simple packages
+-----------------------
+Let's start with the first tool. ``find:`` (``find_packages()``) takes a source
 directory and two lists of package name patterns to exclude and include, and
 then return a list of ``str`` representing the packages it could find. To use
-it, consider the following directory
+it, consider the following directory::
 
-.. code-block:: bash
+    mypkg
+    ├── setup.cfg  # and/or setup.py, pyproject.toml
+    └── src
+        ├── pkg1
+        │   └── __init__.py
+        ├── pkg2
+        │   └── __init__.py
+        ├── aditional
+        │   └── __init__.py
+        └── pkg
+            └── namespace
+                └── __init__.py
 
-    mypkg/
-        src/
-            pkg1/__init__.py
-            pkg2/__init__.py
-            additional/__init__.py
-
-        setup.cfg #or setup.py
-
-To have your setup.cfg or setup.py to automatically include packages found
+To have setuptools to automatically include packages found
 in ``src`` that starts with the name ``pkg`` and not ``additional``:
 
 .. tab:: setup.cfg
@@ -238,6 +287,10 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
         where = src
         include = pkg*
         exclude = additional
+
+    .. note::
+        ``pkg`` does not contain an ``__init__.py`` file, therefore
+        ``pkg.namespace`` is ignored by ``find:`` (see ``find_namespace:`` below).
 
 .. tab:: setup.py
 
@@ -255,16 +308,55 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
         )
 
 
+    .. note::
+        ``pkg`` does not contain an ``__init__.py`` file, therefore
+        ``pkg.namespace`` is ignored by ``find_packages()``
+        (see ``find_namespace_packages()`` below).
+
+.. tab:: pyproject.toml
+
+    **EXPERIMENTAL** [#experimental]_
+
+    .. code-block:: toml
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
+        include = ["pkg*"]
+        exclude = ["additional"]
+        namespaces = false
+
+    .. note::
+        When using ``tool.setuptools.packages.find`` in ``pyproject.toml``,
+        setuptools will consider :pep:`implicit namespaces <420>` by default when
+        scanning your project directory.
+        To avoid ``pkg.namespace`` from being added to your package list
+        you can set ``namespaces = false``. This will prevent any folder
+        without an ``__init__.py`` file from being scanned.
+
+.. important::
+   ``include`` and ``exclude`` accept strings representing :mod:`glob` patterns.
+   These patterns should match the **full** name of the Python module (as if it
+   was written in an ``import`` statement).
+
+   For example if you have ``util`` pattern, it will match
+   ``util/__init__.py`` but not ``util/files/__init__.py``.
+
+   The fact that the parent package is matched by the pattern will not dictate
+   if the submodule will be included or excluded from the distribution.
+   You will need to explicitly add a wildcard (e.g. ``util*``)
+   if you want the pattern to also match submodules.
+
 .. _Namespace Packages:
 
-Using ``find_namespace:`` or ``find_namespace_packages:``
----------------------------------------------------------
-``setuptools``  provides the ``find_namespace:`` (``find_namespace_packages``)
-which behaves similarly to ``find:`` but works with namespace package. Before
-diving in, it is important to have a good understanding of what namespace
-packages are. Here is a quick recap:
+Finding namespace packages
+--------------------------
+``setuptools``  provides the ``find_namespace:`` (``find_namespace_packages()``)
+which behaves similarly to ``find:`` but works with namespace package.
 
-Suppose you have two packages named as follows:
+Before diving in, it is important to have a good understanding of what
+:pep:`namespace packages <420>` are. Here is a quick recap.
+
+When you have two packages organized as follows:
 
 .. code-block:: bash
 
@@ -273,7 +365,7 @@ Suppose you have two packages named as follows:
 
 If both ``Desktop`` and ``Library`` are on your ``PYTHONPATH``, then a
 namespace package called ``timmins`` will be created automatically for you when
-you invoke the import mechanism, allowing you to accomplish the following
+you invoke the import mechanism, allowing you to accomplish the following:
 
 .. code-block:: pycon
 
@@ -282,49 +374,110 @@ you invoke the import mechanism, allowing you to accomplish the following
 
 as if there is only one ``timmins`` on your system. The two packages can then
 be distributed separately and installed individually without affecting the
-other one. Suppose you are packaging the ``foo`` part:
+other one.
 
-.. code-block:: bash
+Now, suppose you decide to package the ``foo`` part for distribution and start
+by creating a project directory organized as follows::
 
-    foo/
-        src/
-            timmins/foo/__init__.py
-        setup.cfg # or setup.py
+   foo
+   ├── setup.cfg  # and/or setup.py, pyproject.toml
+   └── src
+       └── timmins
+           └── foo
+               └── __init__.py
 
-and you want the ``foo`` to be automatically included, ``find:`` won't work
-because timmins doesn't contain ``__init__.py`` directly, instead, you have
-to use ``find_namespace:``:
+If you want the ``timmins.foo`` to be automatically included in the
+distribution, then you will need to specify:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options]
-    package_dir =
-        =src
-    packages = find_namespace:
+    .. code-block:: ini
 
-    [options.packages.find]
-    where = src
+        [options]
+        package_dir =
+            =src
+        packages = find_namespace:
 
-When you install the zipped distribution, ``timmins.foo`` would become
+        [options.packages.find]
+        where = src
+
+    ``find:`` won't work because timmins doesn't contain ``__init__.py``
+    directly, instead, you have to use ``find_namespace:``.
+
+    You can think of ``find_namespace:`` as identical to ``find:`` except it
+    would count a directory as a package even if it doesn't contain ``__init__.py``
+    file directly.
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            # ...
+            packages=find_namespace_packages(where='src'),
+            package_dir={"": "src"}
+            # ...
+        )
+
+    When you use ``find_packages()``, all directories without an
+    ``__init__.py`` file will be disconsidered.
+    On the other hand, ``find_namespace_packages()`` will scan all
+    directories.
+
+.. tab:: pyproject.toml
+
+    **EXPERIMENTAL** [#experimental]_
+
+    .. code-block:: toml
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
+
+    When using ``tool.setuptools.packages.find`` in ``pyproject.toml``,
+    setuptools will consider :pep:`implicit namespaces <420>` by default when
+    scanning your project directory.
+
+After installing the package distribution, ``timmins.foo`` would become
 available to your interpreter.
 
-You can think of ``find_namespace:`` as identical to ``find:`` except it
-would count a directory as a package even if it doesn't contain ``__init__.py``
-file directly. As a result, this creates an interesting side effect. If you
-organize your package like this:
+.. warning::
+   Please have in mind that ``find_namespace:`` (setup.cfg),
+   ``find_namespace_packages()`` (setup.py) and ``find`` (pyproject.toml) will
+   scan **all** folders that you have in your project directory if you use a
+   :ref:`flat-layout`.
 
-.. code-block:: bash
+   If used naïvely, this might result in unwanted files being added to your
+   final wheel. For example, with a project directory organized as follows::
 
-    foo/
-        timmins/
-            foo/__init__.py
-        setup.cfg # or setup.py
-        tests/
-            test_foo/__init__.py
+       foo
+       ├── docs
+       │   └── conf.py
+       ├── timmins
+       │   └── foo
+       │       └── __init__.py
+       └── tests
+           └── tests_foo
+               └── __init__.py
 
-a naive ``find_namespace:`` would include tests as part of your package to
-be installed. A simple way to fix it is to adopt the aforementioned
-``src`` layout.
+   final users will end up installing not only ``timmins.foo``, but also
+   ``docs`` and ``tests.tests_foo``.
+
+   A simple way to fix this is to adopt the aforementioned :ref:`src-layout`,
+   or make sure to properly configure the ``include`` and/or ``exclude``
+   accordingly.
+
+.. tip::
+   After :ref:`building your package <building>`, you can have a look if all
+   the files are correct (nothing missing or extra), by running the following
+   commands:
+
+   .. code-block:: bash
+
+      tar tf dist/*.tar.gz
+      unzip -l dist/*.whl
+
+   This requires the ``tar`` and ``unzip`` to be installed in your OS.
+   On Windows you can also use a GUI program such as 7zip_.
 
 
 Legacy Namespace Packages
@@ -373,12 +526,13 @@ And your directory should look like this
 
 .. code-block:: bash
 
-    /foo/
-        src/
-            timmins/
-                __init__.py
-                foo/__init__.py
-        setup.cfg #or setup.py
+   foo
+   ├── setup.cfg  # and/or setup.py, pyproject.toml
+   └── src
+       └── timmins
+           ├── __init__.py
+           └── foo
+               └── __init__.py
 
 Repeat the same for other packages and you can achieve the same result as
 the previous section.
@@ -396,6 +550,13 @@ file contains the following:
 The project layout remains the same and ``setup.cfg`` remains the same.
 
 
+----
+
+
+.. [#experimental]
+   Support for specifying package metadata and build configuration options via
+   ``pyproject.toml`` is experimental and might change (or be completely
+   removed) in the future. See :doc:`/userguide/pyproject_config`.
 .. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
 .. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
 .. [#layout3]
@@ -405,3 +566,4 @@ The project layout remains the same and ``setup.cfg`` remains the same.
    to make sure files are not being distributed accidentally.
 
 .. _editable install: https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs
+.. _7zip: https://www.7-zip.org
