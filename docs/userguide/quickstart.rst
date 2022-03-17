@@ -71,7 +71,7 @@ dependencies, etc. Here we demonstrate the minimum
             ],
         )
 
-    See :doc:`/keywords` for more information.
+    See :doc:`/references/keywords` for more information.
 
 .. tab:: pyproject.toml
 
