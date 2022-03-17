@@ -35,9 +35,14 @@ package your project:
     requires = ["setuptools"]
     build-backend = "setuptools.build_meta"
 
-Then, you will need to specify your package information (either via
-``setup.cfg``, ``setup.py`` or ``pyproject.toml``), such as metadata, contents,
-dependencies, etc. Here we demonstrate the minimum
+Then, you will need to specify your package information such as metadata,
+contents, dependencies, etc.
+
+Setuptools currently support configurations from either ``setup.cfg``,
+``setup.py`` or ``pyproject.toml`` [#experimental]_ files, however, configuring new
+projects via ``setup.py`` is discouraged [#setup.py]_.
+
+The following example demonstrates a minimum configuration:
 
 .. tab:: setup.cfg
 
@@ -55,7 +60,7 @@ dependencies, etc. Here we demonstrate the minimum
 
     See :doc:`/userguide/declarative_config` for more information.
 
-.. tab:: setup.py
+.. tab:: setup.py [#setup.py]_
 
     .. code-block:: python
 
@@ -73,9 +78,7 @@ dependencies, etc. Here we demonstrate the minimum
 
     See :doc:`/references/keywords` for more information.
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -117,9 +120,9 @@ Automatic package discovery
 ===========================
 For simple projects, it's usually easy enough to manually add packages to
 the ``packages`` keyword in ``setup.cfg``.  However, for very large projects,
-it can be a big burden to keep the package list updated. ``setuptools``
-therefore provides a convenient way to automatically list all the packages in
-your project directory:
+it can be a big burden to keep the package list updated.
+Therefore, ``setuptoops`` provides a convenient way to automatically list all
+the packages in your project directory:
 
 .. tab:: setup.cfg
 
@@ -135,9 +138,10 @@ your project directory:
         include=mypackage*
         exclude=mypackage.tests*
 
-.. tab:: setup.py
+.. tab:: setup.py [#setup.py]_
 
     .. code-block:: python
+
         from setuptools import find_packages  # or find_namespace_packages
 
         setup(
@@ -150,9 +154,7 @@ your project directory:
             # ...
         )
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -178,7 +180,7 @@ use, go to :ref:`package_discovery`.
 .. tip::
    Starting with version 60.10.0, setuptools' automatic discovery capabilities
    have been improved to detect popular project layouts (such as the
-   :ref:`flat-layout` and :ref:`src-layout`) without requiring any
+   :ref:`flat-layout` and :ref:`src-layout` layouts) without requiring any
    special configuration. Check out our :ref:`reference docs <package_discovery>`
    for more information, but please keep in mind that this functionality is
    still considered **experimental** and might change (or even be removed) in
@@ -202,7 +204,7 @@ The following configuration examples show how to accomplish this:
         console_scripts =
             cli-name = mypkg:some_func
 
-.. tab:: setup.py
+.. tab:: setup.py [#setup.py]_
 
     .. code-block:: python
 
@@ -215,9 +217,7 @@ The following configuration examples show how to accomplish this:
             }
         )
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -246,7 +246,7 @@ The example bellow show how to configure this kind of dependencies:
             docutils
             requests <= 0.4
 
-.. tab:: setup.py
+.. tab:: setup.py [#setup.py]_
 
     .. code-block:: python
 
@@ -256,17 +256,17 @@ The example bellow show how to configure this kind of dependencies:
             # ...
         )
 
-.. tab:: pyproject.toml
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
-    **EXPERIMENTAL** [#experimental]_
+    .. code-block:: toml
 
-    [project]
-    # ...
-    dependencies = [
-        "docutils",
-        "requires <= 0.4",
-    ]
-    # ...
+        [project]
+        # ...
+        dependencies = [
+            "docutils",
+            "requires <= 0.4",
+        ]
+        # ...
 
 Each dependency is represented a string that can optionally contain version requirements
 (e.g. one of the operators <, >, <=, >=, == or !=, followed by a version identifier),
@@ -297,7 +297,7 @@ can simply use the ``include_package_data`` keyword:
         [options]
         include_package_data = True
 
-.. tab:: setup.py
+.. tab:: setup.py [#setup.py]_
 
     .. code-block:: python
 
@@ -307,9 +307,7 @@ can simply use the ``include_package_data`` keyword:
             # ...
         )
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -361,7 +359,7 @@ associate with your source code. For more information, see :doc:`development_mod
         setup()
 
     You can still keep all the configuration in :doc:`setup.cfg </userguide/declarative_config>`
-    (or :doc:`pyproject.toml </userguide/pyproject_config`).
+    (or :doc:`pyproject.toml </userguide/pyproject_config>`).
 
 
 Uploading your package to PyPI
@@ -396,8 +394,20 @@ up-to-date references that can help you when it is time to distribute your work.
 
 ----
 
+.. rubric:: Notes
+
+.. [#setup.py]
+   The ``setup.py`` file should be used only when absolutely necessary.
+   Examples are kept in this document to help people interested in maintaining or
+   contributing to existing packages that use ``setup.py``.
+   Note that you can still keep most of configuration declarative in
+   :doc:`setup.cfg <declarative_config>` or :doc:`pyproject.toml
+   <pyproject_config>` and use ``setup.py`` only for the parts not
+   supported in those files (e.g. C extensions).
 
 .. [#experimental]
-   Support for specifying package metadata and build configuration options via
-   ``pyproject.toml`` is experimental and might change (or be completely
-   removed) in the future. See :doc:`/userguide/pyproject_config`.
+   While the ``[build-system]`` table should always be specified in the
+   ``pyproject.toml`` file, adding package metadata and build configuration
+   options via the ``[project]`` and ``[tool.setuptools]`` tables is still
+   experimental and might change (or be completely removed) in future releases.
+   See :doc:`/userguide/pyproject_config`.
