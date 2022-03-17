@@ -5,7 +5,11 @@ from inspect import cleandoc
 import pytest
 import tomli_w
 
-from setuptools.config.pyprojecttoml import read_configuration, expand_configuration
+from setuptools.config.pyprojecttoml import (
+    read_configuration,
+    expand_configuration,
+    validate,
+)
 
 EXAMPLE = """
 [project]
@@ -75,7 +79,7 @@ def create_example(path, pkg_root):
     files = [
         f"{pkg_root}/pkg/__init__.py",
         f"{pkg_root}/other/nested/__init__.py",  # ensure namespaces are discovered
-        "_files/file.txt"
+        "_files/file.txt",
     ]
     for file in files:
         (path / file).parent.mkdir(exist_ok=True, parents=True)
@@ -126,7 +130,7 @@ def test_read_configuration(tmp_path):
         (".", {}),
         ("src", {}),
         ("lib", {"packages": {"find": {"where": ["lib"]}}}),
-    ]
+    ],
 )
 def test_discovered_package_dir_with_attr_directive_in_config(tmp_path, pkg_root, opts):
     create_example(tmp_path, pkg_root)
@@ -177,6 +181,34 @@ def test_expand_entry_point(tmp_path):
     assert "gui-scripts" not in expanded_project
 
 
+def test_dynamic_classifiers(tmp_path):
+    # Let's create a project example that has dynamic classifiers
+    # coming from a txt file.
+    create_example(tmp_path, "src")
+    classifiers = """\
+    Framework :: Flask
+    Programming Language :: Haskell
+    """
+    (tmp_path / "classifiers.txt").write_text(cleandoc(classifiers))
+
+    pyproject = tmp_path / "pyproject.toml"
+    config = read_configuration(pyproject, expand=False)
+    dynamic = config["project"]["dynamic"]
+    config["project"]["dynamic"] = list({*dynamic, "classifiers"})
+    dynamic_config = config["tool"]["setuptools"]["dynamic"]
+    dynamic_config["classifiers"] = {"file": "classifiers.txt"}
+
+    # When the configuration is expanded,
+    # each line of the file should be an different classifier.
+    validate(config, pyproject)
+    expanded = expand_configuration(config, tmp_path)
+
+    assert set(expanded["project"]["classifiers"]) == {
+        "Framework :: Flask",
+        "Programming Language :: Haskell",
+    }
+
+
 @pytest.mark.parametrize(
     "example",
     (
@@ -188,7 +220,7 @@ def test_expand_entry_point(tmp_path):
         [my-tool.that-disrespect.pep518]
         value = 42
         """,
-    )
+    ),
 )
 def test_ignore_unrelated_config(tmp_path, example):
     pyproject = tmp_path / "pyproject.toml"
@@ -209,9 +241,9 @@ def test_ignore_unrelated_config(tmp_path, example):
             requires = ['pywin32; platform_system=="Windows"' ]
             """,
             "configuration error: `project` must not contain {'requires'} properties",
-            '"requires": ["pywin32; platform_system==\\"Windows\\""]'
+            '"requires": ["pywin32; platform_system==\\"Windows\\""]',
         ),
-    ]
+    ],
 )
 def test_invalid_example(tmp_path, caplog, example, error_msg, value_shown_in_debug):
     caplog.set_level(logging.DEBUG)
