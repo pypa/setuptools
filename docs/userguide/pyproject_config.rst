@@ -117,7 +117,7 @@ consider alternatives.
    However if your project does not follow these conventional layouts
    (e.g. you want to use a ``flat-layout`` but at the same time have custom
    directories at the root of your project), you might need to use the ``find``
-   directive as shown bellow:
+   directive as shown below:
 
    .. code-block:: toml
 

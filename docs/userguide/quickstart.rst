@@ -38,7 +38,7 @@ package your project:
 Then, you will need to specify your package information such as metadata,
 contents, dependencies, etc.
 
-Setuptools currently support configurations from either ``setup.cfg``,
+Setuptools currently supports configurations from either ``setup.cfg``,
 ``setup.py`` or ``pyproject.toml`` [#experimental]_ files, however, configuring new
 projects via ``setup.py`` is discouraged [#setup.py]_.
 
@@ -275,7 +275,7 @@ and/or conditional environment markers, e.g. ``os_name = "windows"``
 
 When your project is installed, all of the dependencies not already installed
 will be located (via PyPI), downloaded, built (if necessary), and installed.
-This, of course, is a simplified scenarios. You can also specify groups of
+This, of course, is a simplified scenario. You can also specify groups of
 extra dependencies that are not strictly required by your package to work, but
 that will provide additional functionalities.
 For more advanced use, see :doc:`dependency_management`.
@@ -376,7 +376,7 @@ To avoid executing arbitrary scripts and boilerplate code, we are transitioning
 into a full-fledged ``setup.cfg`` to declare your package information instead
 of running ``setup()``. This inevitably brings challenges due to a different
 syntax. :doc:`Here </userguide/declarative_config>` we provide a quick guide to
-understanding how ``setup.cfg`` is parsed by ``setuptool`` to ease the pain of
+understanding how ``setup.cfg`` is parsed by ``setuptools`` to ease the pain of
 transition.
 
 .. _packaging-resources:
