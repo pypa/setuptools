@@ -186,6 +186,8 @@ Key               Directive           Notes
 
 ----
 
+.. rubric:: Notes
+
 .. [#entry-points] Dynamic ``scripts`` and ``gui-scripts`` are a special case.
    When resolving these metadata keys, ``setuptools`` will look for
    ``tool.setuptool.dynamic.entry-points``, and use the values of the
