@@ -290,10 +290,34 @@ are placed in a platform-specific location. Setuptools offers three ways to
 specify data files to be included in your packages. For the simplest use, you
 can simply use the ``include_package_data`` keyword:
 
-.. code-block:: ini
+.. tab:: setup.cfg
 
-    [options]
-    include_package_data = True
+    .. code-block:: ini
+
+        [options]
+        include_package_data = True
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            # ...
+            include_package_data=True,
+            # ...
+        )
+
+.. tab:: pyproject.toml
+
+    **EXPERIMENTAL** [#experimental]_
+
+    .. code-block:: toml
+
+        [tool.setuptools]
+        include-package-data = true
+        # This is already the default behaviour if your are using
+        # pyproject.toml to configure your build.
+        # You can deactivate that with `include-package-data = false`
 
 This tells setuptools to install any data files it finds in your packages.
 The data files must be specified via the distutils' |MANIFEST.in|_ file
