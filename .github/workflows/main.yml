@@ -22,8 +22,7 @@ jobs:
         platform:
         - ubuntu-latest
         - macos-latest
-        # disable tests on Windows due to pypa/distutils#118
-        # - windows-latest
+        - windows-latest
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v2
