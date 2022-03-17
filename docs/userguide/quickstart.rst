@@ -331,7 +331,23 @@ Development mode
 
 .. tip::
 
-    Prior to :ref:`pip v21.1 <pip:v21-1>`, a ``setup.py`` script was
+    For the time being you might need to keep a ``setup.py``
+    file in your repository if you want to use editable installs
+    (depending how the project is configured). A simple script will suffice,
+    for example:
+
+    .. code-block:: python
+
+        from setuptools import setup
+
+        setup()
+
+    You can still keep all the configuration in :doc:`setup.cfg </userguide/declarative_config>`
+    (or :doc:`pyproject.toml </userguide/pyproject_config`).
+
+..
+    TODO: Restore the following note once PEP 660 lands in setuptools.
+    tip: Prior to :ref:`pip v21.1 <pip:v21-1>`, a ``setup.py`` script was
     required to be compatible with development mode. With late
     versions of pip, any project may be installed in this mode.
 
