@@ -137,59 +137,66 @@ its own set of advantages and disadvantages [#layout1]_ [#layout2]_.
 
 .. _src-layout:
 
-src-layout:
-    The project should contain a ``src`` directory under the project root and
-    all modules and packages meant for distribution are placed inside this
-    directory::
+src-layout
+----------
+The project should contain a ``src`` directory under the project root and
+all modules and packages meant for distribution are placed inside this
+directory::
 
-        project_root_directory
-        ├── pyproject.toml
-        ├── setup.cfg  # or setup.py
-        ├── ...
-        └── src/
-            └── mypkg/
-                ├── __init__.py
-                ├── ...
-                └── mymodule.py
-
-    This layout is very handy when you wish to use automatic discovery,
-    since you don't have to worry about other Python files or folders in your
-    project root being distributed by mistake. In some circumstances it can be
-    also less error-prone for testing or when using :pep:`420`-style packages.
-    On the other hand you cannot rely on the implicit ``PYTHONPATH=.`` to fire
-    up the Python REPL and play with your package (you will need an
-    `editable install`_ to be able to do that).
-
-.. _flat-layout:
-
-flat-layout (also known as "adhoc"):
-    The package folder(s) are placed directly under the project root::
-
-        project_root_directory
-        ├── pyproject.toml
-        ├── setup.cfg  # or setup.py
-        ├── ...
+    project_root_directory
+    ├── pyproject.toml
+    ├── setup.cfg  # or setup.py
+    ├── ...
+    └── src/
         └── mypkg/
             ├── __init__.py
             ├── ...
             └── mymodule.py
 
-    This layout is very practical for using the REPL, but in some situations
-    it can be can be more error-prone (e.g. during tests or if you have a bunch
-    of folders or Python files hanging around your project root)
+This layout is very handy when you wish to use automatic discovery,
+since you don't have to worry about other Python files or folders in your
+project root being distributed by mistake. In some circumstances it can be
+also less error-prone for testing or when using :pep:`420`-style packages.
+On the other hand you cannot rely on the implicit ``PYTHONPATH=.`` to fire
+up the Python REPL and play with your package (you will need an
+`editable install`_ to be able to do that).
+
+.. _flat-layout:
+
+flat-layout
+-----------
+*(also known as "adhoc")*
+
+The package folder(s) are placed directly under the project root::
+
+    project_root_directory
+    ├── pyproject.toml
+    ├── setup.cfg  # or setup.py
+    ├── ...
+    └── mypkg/
+        ├── __init__.py
+        ├── ...
+        └── mymodule.py
+
+This layout is very practical for using the REPL, but in some situations
+it can be can be more error-prone (e.g. during tests or if you have a bunch
+of folders or Python files hanging around your project root)
 
 There is also a handy variation of the *flat-layout* for utilities/libraries
 that can be implemented with a single Python file:
 
-single-module approach (or "few top-level modules"):
-    Standalone modules are placed directly under the project root, instead of
-    inside a package folder::
+single-module approach
+----------------------
+*(or "few top-level modules")*
 
-        project_root_directory
-        ├── pyproject.toml
-        ├── setup.cfg  # or setup.py
-        ├── ...
-        └── single_file_lib.py
+Standalone modules are placed directly under the project root, instead of
+inside a package folder::
+
+    project_root_directory
+    ├── pyproject.toml
+    ├── setup.cfg  # or setup.py
+    ├── ...
+    └── single_file_lib.py
 
 Setuptools will automatically scan your project directory looking for these
 layouts and try to guess the correct values for the :ref:`packages <declarative
