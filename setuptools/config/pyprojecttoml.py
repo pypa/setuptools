@@ -214,18 +214,25 @@ def _expand_all_dynamic(
 ):
     silent = ignore_option_errors
     dynamic_cfg = setuptools_cfg.get("dynamic", {})
-    package_dir = setuptools_cfg["package-dir"]
-    special = ("readme", "version", "entry-points", "scripts", "gui-scripts")
+    pkg_dir = setuptools_cfg["package-dir"]
+    special = (
+        "readme",
+        "version",
+        "entry-points",
+        "scripts",
+        "gui-scripts",
+        "classifiers",
+    )
     # readme, version and entry-points need special handling
     dynamic = project_cfg.get("dynamic", [])
     regular_dynamic = (x for x in dynamic if x not in special)
 
     for field in regular_dynamic:
-        value = _expand_dynamic(dynamic_cfg, field, package_dir, root_dir, silent)
+        value = _expand_dynamic(dynamic_cfg, field, pkg_dir, root_dir, silent)
         project_cfg[field] = value
 
     if "version" in dynamic and "version" in dynamic_cfg:
-        version = _expand_dynamic(dynamic_cfg, "version", package_dir, root_dir, silent)
+        version = _expand_dynamic(dynamic_cfg, "version", pkg_dir, root_dir, silent)
         project_cfg["version"] = _expand.version(version)
 
     if "readme" in dynamic:
@@ -233,8 +240,12 @@ def _expand_all_dynamic(
 
     if "entry-points" in dynamic:
         field = "entry-points"
-        value = _expand_dynamic(dynamic_cfg, field, package_dir, root_dir, silent)
+        value = _expand_dynamic(dynamic_cfg, field, pkg_dir, root_dir, silent)
         project_cfg.update(_expand_entry_points(value, dynamic))
+
+    if "classifiers" in dynamic:
+        value = _expand_dynamic(dynamic_cfg, "classifiers", pkg_dir, root_dir, silent)
+        project_cfg["classifiers"] = value.splitlines()
 
 
 def _expand_dynamic(
