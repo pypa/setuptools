@@ -382,7 +382,7 @@ class ConfigDiscovery:
         if not self.dist.packages:
             return None
 
-        packages = sorted(self.dist.packages, key=len)
+        packages = remove_stubs(sorted(self.dist.packages, key=len))
         package_dir = self.dist.package_dir or {}
 
         parent_pkg = find_parent_package(packages, package_dir, self._root_dir)

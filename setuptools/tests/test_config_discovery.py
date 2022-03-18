@@ -215,7 +215,10 @@ class TestNoConfig:
     EXAMPLES = {
         "pkg1": ["src/pkg1.py"],
         "pkg2": ["src/pkg2/__init__.py"],
-        "ns.nested.pkg3": ["src/ns/nested/pkg3/__init__.py"]
+        "pkg3": ["src/pkg3/__init__.py", "src/pkg3-stubs/__init__.py"],
+        "pkg4": ["pkg4/__init__.py", "pkg4-stubs/__init__.py"],
+        "ns.nested.pkg1": ["src/ns/nested/pkg1/__init__.py"],
+        "ns.nested.pkg2": ["ns/nested/pkg2/__init__.py"],
     }
 
     @pytest.mark.parametrize("example", EXAMPLES.keys())
