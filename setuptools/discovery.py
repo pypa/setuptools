@@ -312,12 +312,13 @@ class ConfigDiscovery:
         if not package_dir:
             return False
 
+        log.debug(f"`explicit-layout` detected -- analysing {package_dir}")
         pkgs = chain_iter(
             _find_packages_within(pkg, os.path.join(root_dir, parent_dir))
             for pkg, parent_dir in package_dir.items()
         )
         self.dist.packages = list(pkgs)
-        log.debug(f"`explicit-layout` detected -- analysing {package_dir}")
+        log.debug(f"discovered packages -- {self.dist.packages}")
         return True
 
     def _analyse_src_layout(self):
@@ -345,7 +346,15 @@ class ConfigDiscovery:
         return True
 
     def _analyse_flat_layout(self):
-        """Try to find all packages and modules under the project root"""
+        """Try to find all packages and modules under the project root.
+
+        Since the ``flat-layout`` is more dangerous in terms of accidentally including
+        extra files/directories, this function is more conservative and will raise an
+        error if multiple packages or modules are found.
+
+        This assumes that multi-package dists are uncommon and refuse to support that
+        use case in order to be able to prevent unintended errors.
+        """
         log.debug(f"`flat-layout` detected -- analysing {self._root_dir}")
         return self._analyse_flat_packages() or self._analyse_flat_modules()
 
