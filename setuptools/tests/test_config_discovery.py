@@ -6,6 +6,7 @@ from itertools import product
 from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
 from setuptools.discovery import find_package_path
+from setuptools.errors import PackageDiscoveryError
 
 import pytest
 from path import Path as _Path
@@ -151,6 +152,45 @@ class TestDiscoverPackagesAndPyModules:
         for file in files:
             name = file.replace("src/", "")
             assert name not in wheel_files
+
+    @pytest.mark.parametrize(
+        "extra_files, pkgs",
+        [
+            (["venv/bin/simulate_venv"], {"pkg"}),
+            (["pkg-stubs/__init__.pyi"], {"pkg", "pkg-stubs"}),
+            (["other-stubs/__init__.pyi"], {"pkg", "other-stubs"}),
+            (
+                # Type stubs can also be namespaced
+                ["namespace-stubs/pkg/__init__.pyi"],
+                {"pkg", "namespace-stubs", "namespace-stubs.pkg"},
+            ),
+            (
+                # Just the top-level package can have `-stubs`, ignore nested ones
+                ["namespace-stubs/pkg-stubs/__init__.pyi"],
+                {"pkg", "namespace-stubs"}
+            ),
+            (["_hidden/file.py"], {"pkg"}),
+            (["news/finalize.py"], {"pkg"}),
+        ]
+    )
+    def test_flat_layout_with_extra_dirs(self, tmp_path, extra_files, pkgs):
+        files = self.FILES["flat"] + extra_files
+        _populate_project_dir(tmp_path, files, {})
+        dist, _ = _run_sdist_programatically(tmp_path, {})
+        assert set(dist.packages) == pkgs
+
+    @pytest.mark.parametrize(
+        "extra_files",
+        [
+            ["other/__init__.py"],
+            ["other/finalize.py"],
+        ]
+    )
+    def test_flat_layout_with_dangerous_extra_dirs(self, tmp_path, extra_files):
+        files = self.FILES["flat"] + extra_files
+        _populate_project_dir(tmp_path, files, {})
+        with pytest.raises(PackageDiscoveryError):
+            _run_sdist_programatically(tmp_path, {})
 
 
 class TestNoConfig:
