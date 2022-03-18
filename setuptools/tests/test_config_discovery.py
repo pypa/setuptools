@@ -224,9 +224,15 @@ class TestNoConfig:
     @pytest.mark.parametrize("example", EXAMPLES.keys())
     def test_discover_name(self, tmp_path, example):
         _populate_project_dir(tmp_path, self.EXAMPLES[example], {})
+        dist, _ = _run_sdist_programatically(tmp_path, {})
+        dist.get_name() == example
+
+    def test_build_with_discovered_name(self, tmp_path):
+        files = ["src/ns/nested/pkg/__init__.py"]
+        _populate_project_dir(tmp_path, files, {})
         _run_build(tmp_path, "--sdist")
         # Expected distribution file
-        dist_file = tmp_path / f"dist/{example}-{self.DEFAULT_VERSION}.tar.gz"
+        dist_file = tmp_path / f"dist/ns.nested.pkg-{self.DEFAULT_VERSION}.tar.gz"
         assert dist_file.is_file()
 
 
