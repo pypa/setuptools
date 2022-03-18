@@ -21,6 +21,10 @@ EXAMPLE_URLS = [x for x in EXAMPLES.splitlines() if not x.startswith("#")]
 DOWNLOAD_DIR = Path(__file__).parent / "downloads"
 
 
+def makedist(path):
+    return Distribution({"src_root": path})
+
+
 @pytest.mark.parametrize("url", EXAMPLE_URLS)
 @pytest.mark.filterwarnings("ignore")
 @pytest.mark.uses_network
@@ -31,8 +35,8 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
     toml_config = Translator().translate(setupcfg_example.read_text(), "setup.cfg")
     pyproject_example.write_text(toml_config)
 
-    dist_toml = pyprojecttoml.apply_configuration(Distribution(), pyproject_example)
-    dist_cfg = setupcfg.apply_configuration(Distribution(), setupcfg_example)
+    dist_toml = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject_example)
+    dist_cfg = setupcfg.apply_configuration(makedist(tmp_path), setupcfg_example)
 
     pkg_info_toml = core_metadata(dist_toml)
     pkg_info_cfg = core_metadata(dist_cfg)
@@ -146,7 +150,7 @@ def _pep621_example_project(tmp_path, readme="README.rst"):
 def test_pep621_example(tmp_path):
     """Make sure the example in PEP 621 works"""
     pyproject = _pep621_example_project(tmp_path)
-    dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
+    dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
     assert dist.metadata.license == "--- LICENSE stub ---"
     assert set(dist.metadata.license_files) == {"LICENSE.txt"}
 
@@ -161,19 +165,19 @@ def test_pep621_example(tmp_path):
 )
 def test_readme_content_type(tmp_path, readme, ctype):
     pyproject = _pep621_example_project(tmp_path, readme)
-    dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
+    dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
     assert dist.metadata.long_description_content_type == ctype
 
 
 def test_undefined_content_type(tmp_path):
     pyproject = _pep621_example_project(tmp_path, "README.tex")
     with pytest.raises(ValueError, match="Undefined content type for README.tex"):
-        pyprojecttoml.apply_configuration(Distribution(), pyproject)
+        pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
 
 def test_no_explicit_content_type_for_missing_extension(tmp_path):
     pyproject = _pep621_example_project(tmp_path, "README")
-    dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
+    dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
     assert dist.metadata.long_description_content_type is None
 
 
@@ -196,7 +200,7 @@ def test_license_and_license_files(tmp_path):
     # by being explicit. On the other hand, its contents should be added to `license`
     (tmp_path / "LICENSE.txt").write_text("LicenseRef-Proprietary\n", encoding="utf-8")
 
-    dist = pyprojecttoml.apply_configuration(Distribution(), pyproject)
+    dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
     assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
     assert dist.metadata.license == "LicenseRef-Proprietary\n"
 
