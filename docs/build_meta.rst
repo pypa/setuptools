@@ -72,6 +72,8 @@ specify the package information::
     [options]
     packages = find:
 
+.. _building:
+
 Now generate the distribution. To build the package, use
 `PyPA build <https://pypa-build.readthedocs.io/en/latest/>`_::
 

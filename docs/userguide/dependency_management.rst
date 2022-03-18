@@ -69,6 +69,18 @@ finesse to it, let's start with a simple example.
             ],
         )
 
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "docutils",
+            "BazSpam == 1.1",
+        ]
+        # ...
+
 
 When your project is installed (e.g. using pip), all of the dependencies not
 already installed will be located (via PyPI), downloaded, built (if necessary),
@@ -104,6 +116,17 @@ the Python version is older than 3.4. To accomplish this
             ],
         )
 
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "enum34; python_version<'3.4'",
+        ]
+        # ...
+
 Similarly, if you also wish to declare ``pywin32`` with a minimal version of 1.0
 and only install it if the user is using a Windows operating system:
 
@@ -128,6 +151,18 @@ and only install it if the user is using a Windows operating system:
                 "pywin32 >= 1.0;platform_system=='Windows'",
             ],
         )
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "enum34; python_version<'3.4'",
+            "pywin32 >= 1.0; platform_system=='Windows'",
+        ]
+        # ...
 
 The environmental markers that may be used for testing platform types are
 detailed in `PEP 508 <https://www.python.org/dev/peps/pep-0508/>`_.
@@ -249,11 +284,72 @@ dependencies for it to work:
             },
         )
 
-The name ``PDF`` is an arbitrary identifier of such a list of dependencies, to
-which other components can refer and have them installed. There are two common
-use cases.
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
-First is the console_scripts entry point:
+    .. code-block:: toml
+
+        # ...
+        [project.optional-dependencies]
+        PDF = ["ReportLab>=1.2", "RXP"]
+
+The name ``PDF`` is an arbitrary identifier of such a list of dependencies, to
+which other components can refer and have them installed.
+
+A use case for this approach is that other package can use this "extra" for their
+own dependencies. For example, if "Project-B" needs "project A" with PDF support
+installed, it might declare the dependency like this:
+
+.. tab:: setup.cfg
+
+    .. code-block:: ini
+
+        [metadata]
+        name = Project-B
+        #...
+
+        [options]
+        #...
+        install_requires =
+            Project-A[PDF]
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            name="Project-B",
+            install_requires=["Project-A[PDF]"],
+            ...,
+        )
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        name = "Project-B"
+        # ...
+        dependencies = [
+            "Project-A[PDF]"
+        ]
+
+This will cause ReportLab to be installed along with project A, if project B is
+installed -- even if project A was already installed.  In this way, a project
+can encapsulate groups of optional "downstream dependencies" under a feature
+name, so that packages that depend on it don't have to know what the downstream
+dependencies are.  If a later version of Project A builds in PDF support and
+no longer needs ReportLab, or if it ends up needing other dependencies besides
+ReportLab in order to provide PDF support, Project B's setup information does
+not need to change, but the right packages will still be installed if needed.
+
+.. note::
+    Best practice: if a project ends up no longer needing any other packages to
+    support a feature, it should keep an empty requirements list for that feature
+    in its ``extras_require`` argument, so that packages depending on that feature
+    don't break (due to an invalid feature name).
+
+Historically ``setuptools`` also used to support extra dependencies in console
+scripts, for example:
 
 .. tab:: setup.cfg
 
@@ -292,55 +388,16 @@ to determine how to handle the situation where PDF was not indicated
 the entry point, assume the extras are present and let the implementation
 fail later).
 
-The second use case is that other package can use this "extra" for their
-own dependencies. For example, if "Project-B" needs "project A" with PDF support
-installed, it might declare the dependency like this:
-
-.. tab:: setup.cfg
-
-    .. code-block:: ini
-
-        [metadata]
-        name = Project-B
-        #...
-
-        [options]
-        #...
-        install_requires =
-            Project-A[PDF]
-
-.. tab:: setup.py
-
-    .. code-block:: python
-
-        setup(
-            name="Project-B",
-            install_requires=["Project-A[PDF]"],
-            ...,
-        )
-
-This will cause ReportLab to be installed along with project A, if project B is
-installed -- even if project A was already installed.  In this way, a project
-can encapsulate groups of optional "downstream dependencies" under a feature
-name, so that packages that depend on it don't have to know what the downstream
-dependencies are.  If a later version of Project A builds in PDF support and
-no longer needs ReportLab, or if it ends up needing other dependencies besides
-ReportLab in order to provide PDF support, Project B's setup information does
-not need to change, but the right packages will still be installed if needed.
-
-.. note::
-    Best practice: if a project ends up not needing any other packages to
-    support a feature, it should keep an empty requirements list for that feature
-    in its ``extras_require`` argument, so that packages depending on that feature
-    don't break (due to an invalid feature name).
+.. warning::
+   ``pip`` and other tools might not support this use case for extra
+   dependencies, therefore this practice is considered **deprecated**.
+   See :doc:`PyPUG:specifications/entry-points`.
 
 
 Python requirement
 ==================
 In some cases, you might need to specify the minimum required python version.
-This is handled with the ``python_requires`` keyword supplied to ``setup.cfg``
-or ``setup.py``.
-
+This can be configured as shown in the example bellow.
 
 .. tab:: setup.cfg
 
@@ -363,3 +420,24 @@ or ``setup.py``.
             python_requires=">=3.6",
             ...,
         )
+
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+    .. code-block:: toml
+
+        [project]
+        name = "Project-B"
+        requires-python = ">=3.6"
+        # ...
+
+----
+
+.. rubric:: Notes
+
+.. [#experimental]
+   While the ``[build-system]`` table should always be specified in the
+   ``pyproject.toml`` file, support for adding package metadata and build configuration
+   options via the ``[project]`` and ``[tool.setuptools]`` tables is still
+   experimental and might change (or be completely removed) in future releases.
+   See :doc:`/userguide/pyproject_config`.
