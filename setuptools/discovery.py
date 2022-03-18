@@ -336,18 +336,53 @@ class ConfigDiscovery:
         if not os.path.isdir(src_dir):
             return False
 
+        log.debug(f"`src-layout` detected -- analysing {src_dir}")
         package_dir.setdefault("", os.path.basename(src_dir))
         self.dist.packages = PEP420PackageFinder.find(src_dir)
         self.dist.py_modules = ModuleFinder.find(src_dir)
-        log.debug(f"`src-layout` detected -- analysing {src_dir}")
+        log.debug(f"discovered packages -- {self.dist.packages}")
+        log.debug(f"discovered py_modules -- {self.dist.py_modules}")
         return True
 
     def _analyse_flat_layout(self):
         """Try to find all packages and modules under the project root"""
-        self.dist.packages = FlatLayoutPackageFinder.find(self._root_dir)
-        self.dist.py_modules = FlatLayoutModuleFinder.find(self._root_dir)
         log.debug(f"`flat-layout` detected -- analysing {self._root_dir}")
-        return True
+        return self._analyse_flat_packages() or self._analyse_flat_modules()
+
+    def _analyse_flat_packages(self):
+        self.dist.packages = FlatLayoutPackageFinder.find(self._root_dir)
+        top_level = remove_nested_packages(remove_stubs(self.dist.packages))
+        log.debug(f"discovered packages -- {self.dist.packages}")
+        self._ensure_no_accidental_inclusion(top_level, "packages")
+        return bool(top_level)
+
+    def _analyse_flat_modules(self):
+        self.dist.py_modules = FlatLayoutModuleFinder.find(self._root_dir)
+        log.debug(f"discovered py_modules -- {self.dist.py_modules}")
+        self._ensure_no_accidental_inclusion(self.dist.py_modules, "modules")
+        return bool(self.dist.py_modules)
+
+    def _ensure_no_accidental_inclusion(self, detected: List[str], kind: str):
+        if len(detected) > 1:
+            from inspect import cleandoc
+            from setuptools.errors import PackageDiscoveryError
+
+            msg = f"""Multiple top-level {kind} discovered in a flat-layout: {detected}.
+
+            To avoid accidental inclusion of unwanted files or directories,
+            setuptools will not proceed with this build.
+
+            If you are trying to create a single distribution with multiple {kind}
+            on purpose, you should not rely on automatic discovery.
+            Instead, consider the following options:
+
+            1. set up custom discovery (`find` directive with `include` or `exclude`)
+            2. use a `src-layout`
+            3. explicitly set `py_modules` or `packages` with a list of names
+
+            To find more information, look for "package discovery" on setuptools docs.
+            """
+            raise PackageDiscoveryError(cleandoc(msg))
 
     def analyse_name(self):
         """The packages/modules are the essential contribution of the author.

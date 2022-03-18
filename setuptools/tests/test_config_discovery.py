@@ -17,6 +17,7 @@ from .textwrap import DALS
 
 
 def test_find_parent_package(tmp_path):
+    # find_parent_package should find a non-namespace parent package
     (tmp_path / "src/namespace/pkg/nested").mkdir(exist_ok=True, parents=True)
     (tmp_path / "src/namespace/pkg/nested/__init__.py").touch()
     (tmp_path / "src/namespace/pkg/__init__.py").touch()
@@ -25,6 +26,8 @@ def test_find_parent_package(tmp_path):
 
 
 def test_find_parent_package_multiple_toplevel(tmp_path):
+    # find_parent_package should return null if the given list of packages does not
+    # have a single parent package
     multiple = ["pkg", "pkg1", "pkg2"]
     for name in multiple:
         (tmp_path / f"src/{name}").mkdir(exist_ok=True, parents=True)
@@ -189,7 +192,7 @@ class TestDiscoverPackagesAndPyModules:
             (["news/finalize.py"], {"pkg"}),
         ]
     )
-    def test_flat_layout_with_extra_dirs(self, tmp_path, extra_files, pkgs):
+    def test_flat_layout_with_extra_files(self, tmp_path, extra_files, pkgs):
         files = self.FILES["flat"] + extra_files
         _populate_project_dir(tmp_path, files, {})
         dist, _ = _run_sdist_programatically(tmp_path, {})
@@ -202,10 +205,22 @@ class TestDiscoverPackagesAndPyModules:
             ["other/finalize.py"],
         ]
     )
-    def test_flat_layout_with_dangerous_extra_dirs(self, tmp_path, extra_files):
+    def test_flat_layout_with_dangerous_extra_files(self, tmp_path, extra_files):
         files = self.FILES["flat"] + extra_files
         _populate_project_dir(tmp_path, files, {})
-        with pytest.raises(PackageDiscoveryError):
+        with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
+            _run_sdist_programatically(tmp_path, {})
+
+    def test_flat_layout_with_single_module(self, tmp_path):
+        files = self.FILES["single_module"] + ["invalid-module-name.py"]
+        _populate_project_dir(tmp_path, files, {})
+        dist, _ = _run_sdist_programatically(tmp_path, {})
+        assert set(dist.py_modules) == {"pkg"}
+
+    def test_flat_layout_with_multiple_modules(self, tmp_path):
+        files = self.FILES["single_module"] + ["valid_module_name.py"]
+        _populate_project_dir(tmp_path, files, {})
+        with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
             _run_sdist_programatically(tmp_path, {})
 
 
