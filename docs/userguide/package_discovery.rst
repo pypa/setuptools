@@ -39,9 +39,7 @@ Normally, you would specify the package to be included manually in the following
             packages=['mypkg1', 'mypkg2']
         )
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -95,9 +93,7 @@ configure ``package_dir``:
                 # ...
         )
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -256,9 +252,7 @@ the provided tools for package discovery:
         # or
         from setuptools import find_namespace_packages
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -331,9 +325,7 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
         ``pkg.namespace`` is ignored by ``find_packages()``
         (see ``find_namespace_packages()`` below).
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -442,9 +434,7 @@ distribution, then you will need to specify:
     On the other hand, ``find_namespace_packages()`` will scan all
     directories.
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
