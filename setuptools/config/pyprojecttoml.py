@@ -4,7 +4,7 @@ import os
 import warnings
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Union
 
 from setuptools.errors import FileError, OptionError
 
@@ -268,10 +268,12 @@ def _expand_dynamic(
     return None
 
 
-def _expand_readme(dynamic_cfg: dict, root_dir: _Path, ignore_option_errors: bool):
+def _expand_readme(
+    dynamic_cfg: dict, root_dir: _Path, ignore_option_errors: bool
+) -> Dict[str, str]:
     silent = ignore_option_errors
     return {
-        "text": _expand_dynamic(dynamic_cfg, "readme", None, root_dir, silent),
+        "text": _expand_dynamic(dynamic_cfg, "readme", {}, root_dir, silent),
         "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst"),
     }
 
