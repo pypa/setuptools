@@ -395,7 +395,7 @@ class ConfigDiscovery:
 
 
 def remove_nested_packages(packages: List[str]) -> List[str]:
-    """Remove nested packages from the list of packages.
+    """Remove nested packages from a list of packages.
 
     >>> remove_nested_packages(["a", "a.b1", "a.b2", "a.b1.c1"])
     ['a']
@@ -410,6 +410,15 @@ def remove_nested_packages(packages: List[str]) -> List[str]:
             top_level.pop(size - i - 1)
 
     return top_level
+
+
+def remove_stubs(packages: List[str]) -> List[str]:
+    """Remove type stubs from a list of packages.
+
+    >>> remove_stubs(["a", "a.b", "a-stubs", "a-stubs.b.c", "b", "c-stubs"])
+    ['a', 'a.b', 'b']
+    """
+    return [pkg for pkg in packages if not pkg.split(".")[0].endswith("-stubs")]
 
 
 def find_parent_package(
