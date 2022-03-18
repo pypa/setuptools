@@ -131,7 +131,7 @@ class PackageFinder(_Finder):
                 package = rel_path.replace(os.path.sep, '.')
 
                 # Skip directory trees that are not valid packages
-                if '.' in dir or not cls._looks_like_package(full_path):
+                if '.' in dir or not cls._looks_like_package(full_path, package):
                     continue
 
                 # Should this package be included?
@@ -143,14 +143,14 @@ class PackageFinder(_Finder):
                 dirs.append(dir)
 
     @staticmethod
-    def _looks_like_package(path):
+    def _looks_like_package(path, _package_name):
         """Does a directory look like a package?"""
         return os.path.isfile(os.path.join(path, '__init__.py'))
 
 
 class PEP420PackageFinder(PackageFinder):
     @staticmethod
-    def _looks_like_package(path):
+    def _looks_like_package(path, _package_name):
         return True
 
 
@@ -212,7 +212,14 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
     DEFAULT_EXCLUDE = tuple(chain_iter((p, f"{p}.*") for p in _EXCLUDE))
     """Reserved package names"""
 
-    _looks_like_package = staticmethod(_valid_name)
+    @staticmethod
+    def _looks_like_package(path, package_name):
+        names = package_name.split('.')
+        return names and (
+            # Consider PEP 561
+            (names[0].isidentifier() or names[0].endswith("-stubs"))
+            and all(name.isidentifier() for name in names[1:])
+        )
 
 
 class FlatLayoutModuleFinder(ModuleFinder):
