@@ -394,13 +394,32 @@ class ConfigDiscovery:
         return None
 
 
+def remove_nested_packages(packages: List[str]) -> List[str]:
+    """Remove nested packages from the list of packages.
+
+    >>> remove_nested_packages(["a", "a.b1", "a.b2", "a.b1.c1"])
+    ['a']
+    >>> remove_nested_packages(["a", "b", "c.d", "c.d.e.f", "g.h", "a.a1"])
+    ['a', 'b', 'c.d', 'g.h']
+    """
+    pkgs = sorted(packages, key=len)
+    top_level = pkgs[:]
+    size = len(pkgs)
+    for i, name in enumerate(reversed(pkgs)):
+        if any(name.startswith(f"{other}.") for other in top_level):
+            top_level.pop(size - i - 1)
+
+    return top_level
+
+
 def find_parent_package(
     packages: List[str], package_dir: Dict[str, str], root_dir: _Path
 ) -> Optional[str]:
+    """Find the parent package that is not a namespace."""
     packages = sorted(packages, key=len)
     common_ancestors = []
     for i, name in enumerate(packages):
-        if not all(n.startswith(name) for n in packages[i+1:]):
+        if not all(n.startswith(f"{name}.") for n in packages[i+1:]):
             # Since packages are sorted by length, this condition is able
             # to find a list of all common ancestors.
             # When there is divergence (e.g. multiple root packages)
@@ -420,6 +439,15 @@ def find_parent_package(
 def find_package_path(name: str, package_dir: Dict[str, str], root_dir: _Path) -> str:
     """Given a package name, return the path where it should be found on
     disk, considering the ``package_dir`` option.
+
+    >>> find_package_path("my.pkg", {"": "root/is/nested"}, ".")
+    './root/is/nested/my/pkg'
+    >>> find_package_path("my.pkg", {"my": "root/is/nested"}, ".")
+    './root/is/nested/pkg'
+    >>> find_package_path("my.pkg", {"my.pkg": "root/is/nested"}, ".")
+    './root/is/nested'
+    >>> find_package_path("other.pkg", {"my.pkg": "root/is/nested"}, ".")
+    './other/pkg'
     """
     parts = name.split(".")
     for i in range(len(parts), 0, -1):

@@ -5,7 +5,7 @@ from itertools import product
 
 from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
-from setuptools.discovery import find_package_path
+from setuptools.discovery import find_package_path, find_parent_package
 from setuptools.errors import PackageDiscoveryError
 
 import pytest
@@ -14,6 +14,22 @@ from path import Path as _Path
 from .contexts import quiet
 from .integration.helpers import get_sdist_members, get_wheel_members, run
 from .textwrap import DALS
+
+
+def test_find_parent_package(tmp_path):
+    (tmp_path / "src/namespace/pkg/nested").mkdir(exist_ok=True, parents=True)
+    (tmp_path / "src/namespace/pkg/nested/__init__.py").touch()
+    (tmp_path / "src/namespace/pkg/__init__.py").touch()
+    packages = ["namespace", "namespace.pkg", "namespace.pkg.nested"]
+    assert find_parent_package(packages, {"": "src"}, tmp_path) == "namespace.pkg"
+
+
+def test_find_parent_package_multiple_toplevel(tmp_path):
+    multiple = ["pkg", "pkg1", "pkg2"]
+    for name in multiple:
+        (tmp_path / f"src/{name}").mkdir(exist_ok=True, parents=True)
+        (tmp_path / f"src/{name}/__init__.py").touch()
+    assert find_parent_package(multiple, {"": "src"}, tmp_path) is None
 
 
 class TestDiscoverPackagesAndPyModules:
