@@ -506,13 +506,20 @@ def find_package_path(name: str, package_dir: Dict[str, str], root_dir: _Path) -
     """Given a package name, return the path where it should be found on
     disk, considering the ``package_dir`` option.
 
-    >>> find_package_path("my.pkg", {"": "root/is/nested"}, ".")
+    >>> path = find_package_path("my.pkg", {"": "root/is/nested"}, ".")
+    >>> path.replace(os.sep, "/")
     './root/is/nested/my/pkg'
-    >>> find_package_path("my.pkg", {"my": "root/is/nested"}, ".")
+
+    >>> path = find_package_path("my.pkg", {"my": "root/is/nested"}, ".")
+    >>> path.replace(os.sep, "/")
     './root/is/nested/pkg'
-    >>> find_package_path("my.pkg", {"my.pkg": "root/is/nested"}, ".")
+
+    >>> path = find_package_path("my.pkg", {"my.pkg": "root/is/nested"}, ".")
+    >>> path.replace(os.sep, "/")
     './root/is/nested'
-    >>> find_package_path("other.pkg", {"my.pkg": "root/is/nested"}, ".")
+
+    >>> path = find_package_path("other.pkg", {"my.pkg": "root/is/nested"}, ".")
+    >>> path.replace(os.sep, "/")
     './other/pkg'
     """
     parts = name.split(".")
