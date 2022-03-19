@@ -74,6 +74,34 @@ def _split_aix(cmd):
     return cmd[:pivot], cmd[pivot:]
 
 
+def _linker_params(linker_cmd, compiler_cmd):
+    """
+    The linker command usually begins with the compiler
+    command (possibly multiple elements), followed by zero or more
+    params for shared library building.
+
+    If the LDSHARED env variable overrides the linker command,
+    however, the commands may not match.
+
+    Return the best guess of the linker parameters by stripping
+    the linker command. If the compiler command does not
+    match the linker command, assume the linker command is
+    just the first element.
+
+    >>> _linker_params('gcc foo bar'.split(), ['gcc'])
+    ['foo', 'bar']
+    >>> _linker_params('gcc foo bar'.split(), ['other'])
+    ['foo', 'bar']
+    >>> _linker_params('ccache gcc foo bar'.split(), 'ccache gcc'.split())
+    ['foo', 'bar']
+    >>> _linker_params(['gcc'], ['gcc'])
+    []
+    """
+    c_len = len(compiler_cmd)
+    pivot = c_len if linker_cmd[:c_len] == compiler_cmd else 1
+    return linker_cmd[pivot:]
+
+
 class UnixCCompiler(CCompiler):
 
     compiler_type = 'unix'
@@ -220,30 +248,8 @@ class UnixCCompiler(CCompiler):
                     _, compiler_cxx_ne = _split_env(self.compiler_cxx)
                     _, linker_exe_ne = _split_env(self.linker_exe)
 
-                    # Linker command given by linker_na usually starts with
-                    # with the C compiler given by linker_exe_ne and then
-                    # some options for shared library building if we are
-                    # building a shared library.
-                    # This may not always be true because the user can use
-                    # LDSHARED env variable to override the linker command.
-                    # When building C++ extensions, we need to replace all of
-                    # the C compiler which can be multiple words with the
-                    # C++ compiler.
-                    # To ensure that we are replacing the C compiler, we first
-                    # check that the linker command starts with the C compiler
-                    # and replace that part with the C++ compiler.
-                    if len(linker_na) >= len(linker_exe_ne) and \
-                            linker_na[:len(linker_exe_ne)] == linker_exe_ne:
-                        linker_na = compiler_cxx_ne + \
-                            linker_na[len(linker_exe_ne):]
-                    else:
-                        # This occurs if the user has set LDSHARED env variable
-                        # and we do not know how to plug in the C++ compiler
-                        # in this case. Therefore we fallback to the previous
-                        # potentially buggy functionality.
-                        linker_na[0] = compiler_cxx_ne[0]
-
-                    linker = env + aix + linker_na
+                    params = _linker_params(linker_na, linker_exe_ne)
+                    linker = env + aix + compiler_cxx_ne + params
 
                 if sys.platform == 'darwin':
                     linker = _osx_support.compiler_fixup(linker, ld_args)
