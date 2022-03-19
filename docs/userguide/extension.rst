@@ -194,8 +194,8 @@ Adding Support for Revision Control Systems
 If the files you want to include in the source distribution are tracked using
 Git, Mercurial or SVN, you can use the following packages to achieve that:
 
-- Git and Mercurial: `setuptools_scm <https://pypi.org/project/setuptools_scm/>`_
-- SVN: `setuptools_svn <https://pypi.org/project/setuptools_svn/>`_
+- Git and Mercurial: :pypi:`setuptools_scm`
+- SVN: :pypi:`setuptools_svn`
 
 If you would like to create a plugin for ``setuptools`` to find files tracked
 by another revision control system, you can do so by adding an entry point to

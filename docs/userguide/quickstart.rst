@@ -211,7 +211,7 @@ Uploading your package to PyPI
 ==============================
 After generating the distribution files, the next step would be to upload your
 distribution so others can use it. This functionality is provided by
-`twine <https://pypi.org/project/twine/>`_ and we will only demonstrate the
+:pypi:`twine` and we will only demonstrate the
 basic use here.
 
 

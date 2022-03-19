@@ -120,7 +120,7 @@ and tools like ``pip`` create wrapper scripts that invoke those commands.
 For a project wishing to solicit entry points, Setuptools recommends the
 `importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_
 module (part of stdlib since Python 3.8) or its backport,
-`importlib_metadata <https://pypi.org/project/importlib_metadata>`_.
+:pypi:`importlib_metadata`.
 
 For example, to find the console script entry points from the example above:
 

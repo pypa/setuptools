@@ -34,7 +34,7 @@ Using "Easy Install"
 Installing "Easy Install"
 -------------------------
 
-Please see the `setuptools PyPI page <https://pypi.org/project/setuptools/>`_
+Please see the :pypi:`setuptools` on the package index
 for download links and basic installation instructions for each of the
 supported platforms.
 
@@ -1020,10 +1020,7 @@ of the User installation scheme.  "virtualenv" provides a version of ``easy_inst
 scoped to the cloned python install and is used in the normal way. "virtualenv" does offer various features
 that the User installation scheme alone does not provide, e.g. the ability to hide the main python site-packages.
 
-Please refer to the `virtualenv`_ documentation for more details.
-
-.. _virtualenv: https://pypi.org/project/virtualenv/
-
+Please refer to the :pypi:`virtualenv` documentation for more details.
 
 
 Package Index "API"
