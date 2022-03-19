@@ -13,7 +13,6 @@ objectives.
 .. toctree::
     :maxdepth: 1
 
-    python3
     python_eggs
     easy_install
     distutils/index
