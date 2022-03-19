@@ -53,6 +53,8 @@ def _install_setup_requires(attrs):
             _incl = 'dependency_links', 'setup_requires'
             filtered = {k: attrs[k] for k in set(_incl) & set(attrs)}
             super().__init__(filtered)
+            # Prevent accidentally triggering discovery with incomplete set of attrs
+            self.set_defaults._disable()
 
         def finalize_options(self):
             """

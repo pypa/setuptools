@@ -273,7 +273,12 @@ class ConfigDiscovery:
     def __init__(self, distribution: "Distribution"):
         self.dist = distribution
         self._called = False
+        self._disabled = False
         self._root_dir: _Path  # delay so `src_root` can be set in dist
+
+    def _disable(self):
+        """Internal API to disable automatic discovery"""
+        self._disabled = True
 
     def __call__(self, force=False, name=True):
         """Automatically discover missing configuration fields
@@ -286,7 +291,7 @@ class ConfigDiscovery:
         directory changes), please use ``force=True`` (or create a new
         ``ConfigDiscovery`` instance).
         """
-        if force is False and self._called:
+        if force is False and (self._called or self._disabled):
             # Avoid overhead of multiple calls
             return
 
