@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 from test.support import run_unittest
+from unittest.mock import patch
 
 from .py38compat import EnvironmentVarGuard
 
@@ -213,6 +214,42 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             del env['LDSHARED']
             sysconfig.customize_compiler(self.cc)
         self.assertEqual(self.cc.linker_so[0], 'my_cc')
+
+    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    def test_cc_overrides_ldshared_for_cxx_correctly(self):
+        """
+        Ensure that setting CC env variable also changes default linker
+        correctly when building C++ extensions.
+
+        pypa/distutils#126
+        """
+        def gcv(v):
+            if v == 'LDSHARED':
+                return 'gcc-4.2 -bundle -undefined dynamic_lookup '
+            elif v == 'CXX':
+                return 'g++-4.2'
+            return 'gcc-4.2'
+
+        def gcvs(*args, _orig=sysconfig.get_config_vars):
+            if args:
+                return list(map(sysconfig.get_config_var, args))
+            return _orig()
+
+        sysconfig.get_config_var = gcv
+        sysconfig.get_config_vars = gcvs
+        with patch.object(self.cc, 'spawn', return_value=None) as mock_spawn, \
+                patch.object(self.cc, '_need_link', return_value=True), \
+                patch.object(self.cc, 'mkpath', return_value=None), \
+                EnvironmentVarGuard() as env:
+            env['CC'] = 'ccache my_cc'
+            env['CXX'] = 'my_cxx'
+            del env['LDSHARED']
+            sysconfig.customize_compiler(self.cc)
+            self.assertEqual(self.cc.linker_so[0:2], ['ccache', 'my_cc'])
+            self.cc.link(None, [], 'a.out', target_lang='c++')
+            call_args = mock_spawn.call_args[0][0]
+            expected = ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup']
+            assert call_args[:4] == expected
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_explicit_ldshared(self):

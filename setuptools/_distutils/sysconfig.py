@@ -436,51 +436,6 @@ def expand_makefile_vars(s, vars):
 _config_vars = None
 
 
-_sysconfig_name_tmpl = '_sysconfigdata_{abi}_{platform}_{multiarch}'
-
-
-def _init_posix():
-    """Initialize the module as appropriate for POSIX systems."""
-    # _sysconfigdata is generated at build time, see the sysconfig module
-    name = os.environ.get(
-        '_PYTHON_SYSCONFIGDATA_NAME',
-        _sysconfig_name_tmpl.format(
-            abi=sys.abiflags,
-            platform=sys.platform,
-            multiarch=getattr(sys.implementation, '_multiarch', ''),
-        ),
-    )
-    try:
-        _temp = __import__(name, globals(), locals(), ['build_time_vars'], 0)
-    except ImportError:
-        # Python 3.5 and pypy 7.3.1
-        _temp = __import__(
-            '_sysconfigdata', globals(), locals(), ['build_time_vars'], 0)
-    build_time_vars = _temp.build_time_vars
-    global _config_vars
-    _config_vars = {}
-    _config_vars.update(build_time_vars)
-
-
-def _init_nt():
-    """Initialize the module as appropriate for NT"""
-    g = {}
-    # set basic install directories
-    g['LIBDEST'] = get_python_lib(plat_specific=0, standard_lib=1)
-    g['BINLIBDEST'] = get_python_lib(plat_specific=1, standard_lib=1)
-
-    # XXX hmmm.. a normal install puts include files here
-    g['INCLUDEPY'] = get_python_inc(plat_specific=0)
-
-    g['EXT_SUFFIX'] = _imp.extension_suffixes()[0]
-    g['EXE'] = ".exe"
-    g['VERSION'] = get_python_version().replace(".", "")
-    g['BINDIR'] = os.path.dirname(os.path.abspath(sys.executable))
-
-    global _config_vars
-    _config_vars = g
-
-
 def get_config_vars(*args):
     """With no arguments, return a dictionary of all configuration
     variables relevant for the current platform.  Generally this includes
@@ -493,60 +448,7 @@ def get_config_vars(*args):
     """
     global _config_vars
     if _config_vars is None:
-        func = globals().get("_init_" + os.name)
-        if func:
-            func()
-        else:
-            _config_vars = {}
-
-        # Normalized versions of prefix and exec_prefix are handy to have;
-        # in fact, these are the standard versions used most places in the
-        # Distutils.
-        _config_vars['prefix'] = PREFIX
-        _config_vars['exec_prefix'] = EXEC_PREFIX
-
-        if not IS_PYPY:
-            # For backward compatibility, see issue19555
-            SO = _config_vars.get('EXT_SUFFIX')
-            if SO is not None:
-                _config_vars['SO'] = SO
-
-            # Always convert srcdir to an absolute path
-            srcdir = _config_vars.get('srcdir', project_base)
-            if os.name == 'posix':
-                if python_build:
-                    # If srcdir is a relative path (typically '.' or '..')
-                    # then it should be interpreted relative to the directory
-                    # containing Makefile.
-                    base = os.path.dirname(get_makefile_filename())
-                    srcdir = os.path.join(base, srcdir)
-                else:
-                    # srcdir is not meaningful since the installation is
-                    # spread about the filesystem.  We choose the
-                    # directory containing the Makefile since we know it
-                    # exists.
-                    srcdir = os.path.dirname(get_makefile_filename())
-            _config_vars['srcdir'] = os.path.abspath(os.path.normpath(srcdir))
-
-            # Convert srcdir into an absolute path if it appears necessary.
-            # Normally it is relative to the build directory.  However, during
-            # testing, for example, we might be running a non-installed python
-            # from a different directory.
-            if python_build and os.name == "posix":
-                base = project_base
-                if (not os.path.isabs(_config_vars['srcdir']) and
-                    base != os.getcwd()):
-                    # srcdir is relative and we are not in the same directory
-                    # as the executable. Assume executable is in the build
-                    # directory and make srcdir absolute.
-                    srcdir = os.path.join(base, _config_vars['srcdir'])
-                    _config_vars['srcdir'] = os.path.normpath(srcdir)
-
-        # OS X platforms require special customization to handle
-        # multi-architecture, multi-os-version installers
-        if sys.platform == 'darwin':
-            import _osx_support
-            _osx_support.customize_config_vars(_config_vars)
+        _config_vars = sysconfig.get_config_vars().copy()
 
     if args:
         vals = []
