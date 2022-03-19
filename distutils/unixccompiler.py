@@ -72,6 +72,34 @@ def _split_aix(cmd):
     return cmd[:pivot], cmd[pivot:]
 
 
+def _linker_params(linker_cmd, compiler_cmd):
+    """
+    The linker command usually begins with the compiler
+    command (possibly multiple elements), followed by zero or more
+    params for shared library building.
+
+    If the LDSHARED env variable overrides the linker command,
+    however, the commands may not match.
+
+    Return the best guess of the linker parameters by stripping
+    the linker command. If the compiler command does not
+    match the linker command, assume the linker command is
+    just the first element.
+
+    >>> _linker_params('gcc foo bar'.split(), ['gcc'])
+    ['foo', 'bar']
+    >>> _linker_params('gcc foo bar'.split(), ['other'])
+    ['foo', 'bar']
+    >>> _linker_params('ccache gcc foo bar'.split(), 'ccache gcc'.split())
+    ['foo', 'bar']
+    >>> _linker_params(['gcc'], ['gcc'])
+    []
+    """
+    c_len = len(compiler_cmd)
+    pivot = c_len if linker_cmd[:c_len] == compiler_cmd else 1
+    return linker_cmd[pivot:]
+
+
 class UnixCCompiler(CCompiler):
 
     compiler_type = 'unix'
@@ -201,18 +229,20 @@ class UnixCCompiler(CCompiler):
                 ld_args.extend(extra_postargs)
             self.mkpath(os.path.dirname(output_filename))
             try:
-                linker = (
-                    self.linker_exe
-                    if target_desc == CCompiler.EXECUTABLE else
-                    self.linker_so
-                )[:]
+                # Select a linker based on context: linker_exe when
+                # building an executable or linker_so (with shared options)
+                # when building a shared library.
+                building_exe = target_desc == CCompiler.EXECUTABLE
+                linker = (self.linker_exe if building_exe else self.linker_so)[:]
+
                 if target_lang == "c++" and self.compiler_cxx:
                     env, linker_ne = _split_env(linker)
                     aix, linker_na = _split_aix(linker_ne)
                     _, compiler_cxx_ne = _split_env(self.compiler_cxx)
+                    _, linker_exe_ne = _split_env(self.linker_exe)
 
-                    linker_na[0] = compiler_cxx_ne[0]
-                    linker = env + aix + linker_na
+                    params = _linker_params(linker_na, linker_exe_ne)
+                    linker = env + aix + compiler_cxx_ne + params
 
                 linker = compiler_fixup(linker, ld_args)
 
