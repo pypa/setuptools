@@ -238,18 +238,18 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
         with patch.object(self.cc, 'spawn', return_value=None) as mock_spawn, \
-                patch.object(self.cc, '_need_link', return_value=True) as mock_need, \
-                patch.object(self.cc, 'mkpath', return_value=None) as mock_mkpath, \
+                patch.object(self.cc, '_need_link', return_value=True), \
+                patch.object(self.cc, 'mkpath', return_value=None), \
                 EnvironmentVarGuard() as env:
             env['CC'] = 'ccache my_cc'
             env['CXX'] = 'my_cxx'
             del env['LDSHARED']
             sysconfig.customize_compiler(self.cc)
-            self.assertEqual(self.cc.linker_so[0:2], ['ccache','my_cc'])
+            self.assertEqual(self.cc.linker_so[0:2], ['ccache', 'my_cc'])
             self.cc.link(None, [], 'a.out', target_lang='c++')
             call_args = mock_spawn.call_args[0][0]
-            assert len(call_args) >= 4
-            assert(call_args[:4] == ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup'])
+            expected = ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup']
+            assert call_args[:4] == expected
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_explicit_ldshared(self):
