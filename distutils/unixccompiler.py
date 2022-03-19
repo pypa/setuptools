@@ -233,15 +233,12 @@ class UnixCCompiler(CCompiler):
                 ld_args.extend(extra_postargs)
             self.mkpath(os.path.dirname(output_filename))
             try:
-                # If we are building an executable, use the C compiler
-                # given by linker_exe as the linker command,
-                # else use the C compiler + shared options given by
-                # linker_so.
-                linker = (
-                    self.linker_exe
-                    if target_desc == CCompiler.EXECUTABLE else
-                    self.linker_so
-                )[:]
+                # Select a linker based on context: linker_exe when
+                # building an executable or linker_so (with shared options)
+                # when building a shared library.
+                building_exe = target_desc == CCompiler.EXECUTABLE
+                linker = (self.linker_exe if building_exe else self.linker_so)[:]
+
                 if target_lang == "c++" and self.compiler_cxx:
                     env, linker_ne = _split_env(linker)
                     aix, linker_na = _split_aix(linker_ne)
