@@ -8,6 +8,9 @@ from setuptools.dist import Distribution
 from setuptools.discovery import find_package_path, find_parent_package
 from setuptools.errors import PackageDiscoveryError
 
+import setuptools  # noqa -- force distutils.core to be patched
+import distutils.core
+
 import pytest
 from path import Path as _Path
 
@@ -145,32 +148,53 @@ class TestDiscoverPackagesAndPyModules:
             [build-system]
             requires = []
             build-backend = 'setuptools.build_meta'
+
+            [project]
+            name = "myproj"
+            version = "0.0.0"
+
+            [tool.setuptools]
+            {param} = []
+            """
+        ),
+        "template-pyproject.toml": DALS(
+            """
+            [build-system]
+            requires = []
+            build-backend = 'setuptools.build_meta'
             """
         )
     }
 
     @pytest.mark.parametrize(
         "config_file, param, circumstance",
-        product(["setup.cfg", "setup.py"], ["packages", "py_modules"], FILES.keys())
+        product(
+            ["setup.cfg", "setup.py", "pyproject.toml"],
+            ["packages", "py_modules"],
+            FILES.keys()
+        )
     )
     def test_purposefully_empty(self, tmp_path, config_file, param, circumstance):
-        files = self.FILES[circumstance]
+        files = self.FILES[circumstance] + ["mod.py", "other.py", "src/pkg/__init__.py"]
         _populate_project_dir(tmp_path, files, {})
-        config = self.PURPOSEFULLY_EMPY[config_file].format(param=param)
+
+        if config_file == "pyproject.toml":
+            template_param = param.replace("_", "-")
+        else:
+            # Make sure build works with or without setup.cfg
+            pyproject = self.PURPOSEFULLY_EMPY["template-pyproject.toml"]
+            (tmp_path / "pyproject.toml").write_text(pyproject)
+            template_param = param
+
+        config = self.PURPOSEFULLY_EMPY[config_file].format(param=template_param)
         (tmp_path / config_file).write_text(config)
 
-        # Make sure build works with or without setup.cfg
-        pyproject = self.PURPOSEFULLY_EMPY["pyproject.toml"]
-        (tmp_path / "pyproject.toml").write_text(pyproject)
-
-        _run_build(tmp_path)
-
-        wheel_files = get_wheel_members(next(tmp_path.glob("dist/*.whl")))
-        print("~~~~~ wheel_members ~~~~~")
-        print('\n'.join(wheel_files))
-        for file in files:
-            name = file.replace("src/", "")
-            assert name not in wheel_files
+        dist = _get_dist(tmp_path, {})
+        # When either parameter package or py_modules is an empty list,
+        # then there should be no discovery
+        assert getattr(dist, param) == []
+        other = {"py_modules": "packages", "packages": "py_modules"}[param]
+        assert getattr(dist, other) is None
 
     @pytest.mark.parametrize(
         "extra_files, pkgs",
@@ -195,7 +219,7 @@ class TestDiscoverPackagesAndPyModules:
     def test_flat_layout_with_extra_files(self, tmp_path, extra_files, pkgs):
         files = self.FILES["flat"] + extra_files
         _populate_project_dir(tmp_path, files, {})
-        dist, _ = _run_sdist_programatically(tmp_path, {})
+        dist = _get_dist(tmp_path, {})
         assert set(dist.packages) == pkgs
 
     @pytest.mark.parametrize(
@@ -209,19 +233,19 @@ class TestDiscoverPackagesAndPyModules:
         files = self.FILES["flat"] + extra_files
         _populate_project_dir(tmp_path, files, {})
         with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
-            _run_sdist_programatically(tmp_path, {})
+            _get_dist(tmp_path, {})
 
     def test_flat_layout_with_single_module(self, tmp_path):
         files = self.FILES["single_module"] + ["invalid-module-name.py"]
         _populate_project_dir(tmp_path, files, {})
-        dist, _ = _run_sdist_programatically(tmp_path, {})
+        dist = _get_dist(tmp_path, {})
         assert set(dist.py_modules) == {"pkg"}
 
     def test_flat_layout_with_multiple_modules(self, tmp_path):
         files = self.FILES["single_module"] + ["valid_module_name.py"]
         _populate_project_dir(tmp_path, files, {})
         with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
-            _run_sdist_programatically(tmp_path, {})
+            _get_dist(tmp_path, {})
 
 
 class TestNoConfig:
@@ -239,7 +263,7 @@ class TestNoConfig:
     @pytest.mark.parametrize("example", EXAMPLES.keys())
     def test_discover_name(self, tmp_path, example):
         _populate_project_dir(tmp_path, self.EXAMPLES[example], {})
-        dist, _ = _run_sdist_programatically(tmp_path, {})
+        dist = _get_dist(tmp_path, {})
         dist.get_name() == example
 
     def test_build_with_discovered_name(self, tmp_path):
@@ -266,7 +290,7 @@ def test_discovered_package_dir_with_attr_directive_in_config(tmp_path, folder, 
         + (tmp_path / "setup.cfg").read_text()
     )
 
-    dist, _ = _run_sdist_programatically(tmp_path, {})
+    dist = _get_dist(tmp_path, {})
     assert dist.get_name() == "pkg"
     assert dist.get_version() == "42"
     assert dist.package_dir
@@ -321,15 +345,27 @@ def _run_build(path, *flags):
     return run(cmd, env={'DISTUTILS_DEBUG': '1'})
 
 
-def _run_sdist_programatically(dist_path, attrs):
+def _get_dist(dist_path, attrs):
     root = "/".join(os.path.split(dist_path))  # POSIX-style
-    dist = Distribution({**attrs, "src_root": root})
-    dist.script_name = 'setup.py'
 
-    if (dist_path / "setup.cfg").exists():
-        dist.parse_config_files([dist_path / "setup.cfg"])
+    script = dist_path / 'setup.py'
+    if script.exists():
+        with _Path(dist_path):
+            dist = distutils.core.run_setup("setup.py", {}, stop_after="init")
+    else:
+        dist = Distribution(attrs)
+
+    dist.src_root = root
+    dist.script_name = "setup.py"
+    with _Path(dist_path):
+        dist.parse_config_files()
 
     dist.set_defaults()
+    return dist
+
+
+def _run_sdist_programatically(dist_path, attrs):
+    dist = _get_dist(dist_path, attrs)
     cmd = sdist(dist)
     cmd.ensure_finalized()
     assert cmd.distribution.packages or cmd.distribution.py_modules

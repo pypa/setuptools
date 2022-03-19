@@ -197,7 +197,7 @@ def _fill_discovered_attrs(
 
     # Set `py_modules` and `packages` in dist to short-circuit auto-discovery,
     # but avoid overwriting empty lists purposefully set by users.
-    if isinstance(setuptools_cfg.get("py_modules"), list) and dist.py_modules is None:
+    if isinstance(setuptools_cfg.get("py-modules"), list) and dist.py_modules is None:
         dist.py_modules = setuptools_cfg["py-modules"]
     if isinstance(setuptools_cfg.get("packages"), list) and dist.packages is None:
         dist.packages = setuptools_cfg["packages"]
