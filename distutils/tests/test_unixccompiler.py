@@ -217,9 +217,12 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_cc_overrides_ldshared_for_cxx_correctly(self):
-        # Issur https://github.com/pypa/distutils/issues/126
-        # ensure that setting CC env variable also changes default linker
-        # correctly when C++ extensions are built
+        """
+        Ensure that setting CC env variable also changes default linker
+        correctly when building C++ extensions.
+
+        pypa/distutils#126
+        """
         def gcv(v):
             if v == 'LDSHARED':
                 return 'gcc-4.2 -bundle -undefined dynamic_lookup '
