@@ -15,7 +15,7 @@ Documentation changes
   and more prominent mentions to using a revision control system plugin as an
   alternative.
 * #3148: Removed mention to ``pkg_resources`` as the recommended way of accessing data
-  files, in favour of :doc:`importlib.resources`.
+  files, in favour of importlib.resources.
   Additionally more emphasis was put on the fact that *package data files* reside
   **inside** the *package directory* (and therefore should be *read-only*).
 
@@ -207,7 +207,7 @@ v60.4.0
 
 Changes
 ^^^^^^^
-* #2839: Removed `requires` sorting when installing wheels as an egg dir.
+* #2839: Removed ``requires`` sorting when installing wheels as an egg dir.
 * #2953: Fixed a bug that easy install incorrectly parsed Python 3.10 version string.
 * #3006: Fixed startup performance issue of Python interpreter due to imports of
   costly modules in ``_distutils_hack`` -- by :user:`tiran`
@@ -646,7 +646,7 @@ v57.5.0
 
 Changes
 ^^^^^^^
-* #2712: Added implicit globbing support for `[options.data_files]` values.
+* #2712: Added implicit globbing support for ``[options.data_files]`` values.
 
 Documentation changes
 ^^^^^^^^^^^^^^^^^^^^^
