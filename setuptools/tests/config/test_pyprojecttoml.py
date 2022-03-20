@@ -78,9 +78,12 @@ def create_example(path, pkg_root):
 
     files = [
         f"{pkg_root}/pkg/__init__.py",
-        f"{pkg_root}/other/nested/__init__.py",  # ensure namespaces are discovered
         "_files/file.txt",
     ]
+    if pkg_root != ".":  # flat-layout will raise error for multi-package dist
+        # Ensure namespaces are discovered
+        files.append(f"{pkg_root}/other/nested/__init__.py")
+
     for file in files:
         (path / file).parent.mkdir(exist_ok=True, parents=True)
         (path / file).touch()
@@ -92,7 +95,7 @@ def create_example(path, pkg_root):
     (path / f"{pkg_root}/pkg/__main__.py").write_text("def exec(): print('hello')")
 
 
-def verify_example(config, path):
+def verify_example(config, path, pkg_root):
     pyproject = path / "pyproject.toml"
     pyproject.write_text(tomli_w.dumps(config), encoding="utf-8")
     expanded = expand_configuration(config, path)
@@ -101,11 +104,15 @@ def verify_example(config, path):
     assert expanded_project["version"] == "3.10"
     assert expanded_project["readme"]["text"] == "hello world"
     assert "packages" in expanded["tool"]["setuptools"]
-    assert set(expanded["tool"]["setuptools"]["packages"]) == {
-        "pkg",
-        "other",
-        "other.nested",
-    }
+    if pkg_root == ".":
+        # Auto-discovery will raise error for multi-package dist
+        assert set(expanded["tool"]["setuptools"]["packages"]) == {"pkg"}
+    else:
+        assert set(expanded["tool"]["setuptools"]["packages"]) == {
+            "pkg",
+            "other",
+            "other.nested",
+        }
     assert "" in expanded["tool"]["setuptools"]["package-data"]
     assert "*" not in expanded["tool"]["setuptools"]["package-data"]
     assert expanded["tool"]["setuptools"]["data-files"] == [
@@ -121,7 +128,7 @@ def test_read_configuration(tmp_path):
     assert config["project"].get("version") is None
     assert config["project"].get("readme") is None
 
-    verify_example(config, tmp_path)
+    verify_example(config, tmp_path, "src")
 
 
 @pytest.mark.parametrize(
@@ -144,7 +151,7 @@ def test_discovered_package_dir_with_attr_directive_in_config(tmp_path, pkg_root
     config["tool"]["setuptools"].pop("package-dir", None)
 
     config["tool"]["setuptools"].update(opts)
-    verify_example(config, tmp_path)
+    verify_example(config, tmp_path, pkg_root)
 
 
 ENTRY_POINTS = {

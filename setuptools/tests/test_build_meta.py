@@ -662,6 +662,30 @@ class TestBuildMetaBackend:
 
         assert expected == sorted(actual)
 
+    def test_setup_requires_with_auto_discovery(self, tmpdir_cwd):
+        # Make sure patches introduced to retrieve setup_requires don't accidentally
+        # activate auto-discovery and cause problems due to the incomplete set of
+        # attributes passed to MinimalDistribution
+        files = {
+            'pyproject.toml': DALS("""
+                [project]
+                name = "proj"
+                version = "42"
+            """),
+            "setup.py": DALS("""
+                __import__('setuptools').setup(
+                    setup_requires=["foo"],
+                    py_modules = ["hello", "world"]
+                )
+            """),
+            'hello.py': "'hello'",
+            'world.py': "'world'",
+        }
+        path.build(files)
+        build_backend = self.get_build_backend()
+        setup_requires = build_backend.get_requires_for_build_wheel()
+        assert setup_requires == ["wheel", "foo"]
+
     def test_dont_install_setup_requires(self, tmpdir_cwd):
         files = {
             'setup.py': DALS("""

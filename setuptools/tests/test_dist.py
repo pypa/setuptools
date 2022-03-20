@@ -489,8 +489,7 @@ def test_dist_default_packages(
             ["lib/__init__.py", "lib/nested/__init__.pyt", "lib2/__init__.py"],
         ),
         # Should not try to guess a name from multiple py_modules/packages
-        ("UNKNOWN", None, ["mod1.py", "mod2.py"]),
-        ("UNKNOWN", None, ["pkg1/__ini__.py", "pkg2/__init__.py"]),
+        ("UNKNOWN", None, ["src/mod1.py", "src/mod2.py"]),
         ("UNKNOWN", None, ["src/pkg1/__ini__.py", "src/pkg2/__init__.py"]),
     ]
 )

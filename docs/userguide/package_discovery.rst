@@ -39,9 +39,7 @@ Normally, you would specify the package to be included manually in the following
             packages=['mypkg1', 'mypkg2']
         )
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -95,9 +93,7 @@ configure ``package_dir``:
                 # ...
         )
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -132,8 +128,18 @@ Automatic discovery
    (or be completely removed) in the future.
    See :ref:`custom-discovery` for a stable way of configuring ``setuptools``.
 
-By default setuptools will consider 2 popular project layouts, each one with
-its own set of advantages and disadvantages [#layout1]_ [#layout2]_.
+By default ``setuptools`` will consider 2 popular project layouts, each one with
+its own set of advantages and disadvantages [#layout1]_ [#layout2]_ as
+discussed in the following sections.
+
+Setuptools will automatically scan your project directory looking for these
+layouts and try to guess the correct values for the :ref:`packages <declarative
+config>` and :doc:`py_modules </references/keywords>` configuration.
+
+.. important::
+   Automatic discovery will **only** be enabled if you don't provide any
+   configuration for both ``packages`` and ``py_modules``.
+   If at least one of them is explicitly set, automatic discovery will not take place.
 
 .. _src-layout:
 
@@ -182,14 +188,33 @@ This layout is very practical for using the REPL, but in some situations
 it can be can be more error-prone (e.g. during tests or if you have a bunch
 of folders or Python files hanging around your project root)
 
+To avoid confusion, file and folder names that are used by popular tools (or
+that correspond to well-known conventions, such as distributing documentation
+alongside the project code) are automatically filtered out in the case of
+*flat-layout*:
+
+.. autoattribute:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
+
+.. autoattribute:: setuptools.discovery.FlatLayoutModuleFinder.DEFAULT_EXCLUDE
+
+.. warning::
+   If you are using auto-discovery with *flat-layout*, ``setuptools`` will
+   refuse to create :term:`distribution archives <Distribution Package>` with
+   multiple top-level packages or modules.
+
+   This is done to prevent common errors such as accidentally publishing code
+   not meant for distribution (e.g. maintenance-related scripts).
+
+   Users that purposefully want to create multi-package distributions are
+   advised to use :ref:`custom-discovery` or the ``src-layout``.
+
 There is also a handy variation of the *flat-layout* for utilities/libraries
 that can be implemented with a single Python file:
 
-single-module approach
-----------------------
-*(or "few top-level modules")*
+single-module distribution
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Standalone modules are placed directly under the project root, instead of
+A standalone module is placed directly under the project root, instead of
 inside a package folder::
 
     project_root_directory
@@ -197,24 +222,6 @@ inside a package folder::
     ├── setup.cfg  # or setup.py
     ├── ...
     └── single_file_lib.py
-
-Setuptools will automatically scan your project directory looking for these
-layouts and try to guess the correct values for the :ref:`packages <declarative
-config>` and :doc:`py_modules </references/keywords>` configuration.
-
-To avoid confusion, file and folder names that are used by popular tools (or
-that correspond to well-known conventions, such as distributing documentation
-alongside the project code) are automatically filtered out in the case of
-*flat-layouts* [#layout3]_:
-
-.. autoattribute:: setuptools.discovery.FlatLayoutPackageFinder.DEFAULT_EXCLUDE
-
-.. autoattribute:: setuptools.discovery.FlatLayoutModuleFinder.DEFAULT_EXCLUDE
-
-.. important:: Automatic discovery will **only** be enabled if you don't
-   provide any configuration for both ``packages`` and ``py_modules``.
-   If at least one of them is explicitly set, automatic discovery will not take
-   place.
 
 
 .. _custom-discovery:
@@ -245,9 +252,7 @@ the provided tools for package discovery:
         # or
         from setuptools import find_namespace_packages
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -320,9 +325,7 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
         ``pkg.namespace`` is ignored by ``find_packages()``
         (see ``find_namespace_packages()`` below).
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -431,9 +434,7 @@ distribution, then you will need to specify:
     On the other hand, ``find_namespace_packages()`` will scan all
     directories.
 
-.. tab:: pyproject.toml
-
-    **EXPERIMENTAL** [#experimental]_
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
     .. code-block:: toml
 
@@ -566,11 +567,6 @@ The project layout remains the same and ``setup.cfg`` remains the same.
    removed) in the future. See :doc:`/userguide/pyproject_config`.
 .. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
 .. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
-.. [#layout3]
-   If you are using auto-discovery with *flat-layout* and have multiple folders
-   (other than ``tests`` and ``docs``) or Python files in your project root,
-   always check the created :term:`distribution archive <Distribution Package>`
-   to make sure files are not being distributed accidentally.
 
 .. _editable install: https://pip.pypa.io/en/stable/cli/pip_install/#editable-installs
 .. _7zip: https://www.7-zip.org

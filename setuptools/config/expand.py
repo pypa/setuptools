@@ -288,6 +288,8 @@ def find_packages(
     :rtype: list
     """
 
+    from setuptools.discovery import remove_nested_packages
+
     if namespaces:
         from setuptools.discovery import PEP420PackageFinder as PackageFinder
     else:
@@ -304,28 +306,11 @@ def find_packages(
         pkgs = PackageFinder.find(_nest_path(root_dir, path), **kwargs)
         packages.extend(pkgs)
         if fill_package_dir.get("") != path:
-            parent_pkgs = _parent_packages(pkgs)
+            parent_pkgs = remove_nested_packages(pkgs)
             parent = {pkg: "/".join([path, *pkg.split(".")]) for pkg in parent_pkgs}
             fill_package_dir.update(parent)
 
     return packages
-
-
-def _parent_packages(packages: List[str]) -> List[str]:
-    """Remove children packages from the list
-    >>> _parent_packages(["a", "a.b1", "a.b2", "a.b1.c1"])
-    ['a']
-    >>> _parent_packages(["a", "b", "c.d", "c.d.e.f", "g.h", "a.a1"])
-    ['a', 'b', 'c.d', 'g.h']
-    """
-    pkgs = sorted(packages, key=len)
-    top_level = pkgs[:]
-    size = len(pkgs)
-    for i, name in enumerate(reversed(pkgs)):
-        if any(name.startswith(f"{other}.") for other in top_level):
-            top_level.pop(size - i - 1)
-
-    return top_level
 
 
 def _nest_path(parent: _Path, path: _Path) -> str:
