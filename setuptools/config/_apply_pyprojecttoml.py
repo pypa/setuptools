@@ -149,8 +149,8 @@ def _project_urls(dist: "Distribution", val: dict, _root_dir):
     # Let's add a warning before distutils check to help users understand the problem:
     if not dist.metadata.url:
         msg = (
-            "Missing `Homepage` url. It is advisable to link some kind of reference "
-            "for your project (e.g. source code or documentation)."
+            "Missing `Homepage` url.\nIt is advisable to link some kind of reference "
+            "for your project (e.g. source code or documentation).\n"
         )
         _logger.warning(msg)
     _set_config(dist, "project_urls", val.copy())
