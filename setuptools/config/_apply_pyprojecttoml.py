@@ -5,6 +5,7 @@ The distribution and metadata objects are modeled after (an old version of)
 core metadata, therefore configs in the format specified for ``pyproject.toml``
 need to be processed before being applied.
 """
+import logging
 import os
 from collections.abc import Mapping
 from email.headerregistry import Address
@@ -23,6 +24,8 @@ _Path = Union[os.PathLike, str]
 _DictOrStr = Union[dict, str]
 _CorrespFn = Callable[["Distribution", Any, _Path], None]
 _Correspondence = Union[str, _CorrespFn]
+
+_logger = logging.getLogger(__name__)
 
 
 def apply(dist: "Distribution", config: dict, filename: _Path) -> "Distribution":
@@ -140,6 +143,16 @@ def _project_urls(dist: "Distribution", val: dict, _root_dir):
     for key, url in val.items():
         norm_key = json_compatible_key(key).replace("_", "")
         _set_config(dist, special.get(norm_key, key), url)
+    # If `homepage` is missing, distutils will warn the following message:
+    #     "warning: check: missing required meta-data: url"
+    # In the context of PEP 621, users might ask themselves: "which url?".
+    # Let's add a warning before distutils check to help users understand the problem:
+    if not dist.metadata.url:
+        msg = (
+            "Missing `Homepage` url.\nIt is advisable to link some kind of reference "
+            "for your project (e.g. source code or documentation).\n"
+        )
+        _logger.warning(msg)
     _set_config(dist, "project_urls", val.copy())
 
 
@@ -166,8 +179,6 @@ def _unify_entry_points(project_table: dict):
 
 
 def _copy_command_options(pyproject: dict, dist: "Distribution", filename: _Path):
-    from distutils import log
-
     tool_table = pyproject.get("tool", {})
     cmdclass = tool_table.get("setuptools", {}).get("cmdclass", {})
     valid_options = _valid_command_options(cmdclass)
@@ -183,7 +194,7 @@ def _copy_command_options(pyproject: dict, dist: "Distribution", filename: _Path
             if key not in valid:
                 # To avoid removing options that are specified dynamically we
                 # just log a warn...
-                log.warn(f"Command option {cmd}.{key} is not defined")
+                _logger.warning(f"Command option {cmd}.{key} is not defined")
 
 
 def _valid_command_options(cmdclass: Mapping = EMPTY) -> Dict[str, Set[str]]:
@@ -208,9 +219,8 @@ def _load_ep(ep: "metadata.EntryPoint") -> Optional[Tuple[str, Type]]:
     try:
         return (ep.name, ep.load())
     except Exception as ex:
-        from distutils import log
         msg = f"{ex.__class__.__name__} while trying to load entry-point {ep.name}"
-        log.warn(f"{msg}: {ex}")
+        _logger.warning(f"{msg}: {ex}")
         return None
 
 
