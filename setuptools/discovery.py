@@ -224,15 +224,11 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
     """Reserved package names"""
 
     @staticmethod
-    def _looks_like_package(path: _Path, package_name: str) -> bool:
+    def _looks_like_package(_path: _Path, package_name: str) -> bool:
         names = package_name.split('.')
-        return bool(
-            names and (
-                # Consider PEP 561
-                (names[0].isidentifier() or names[0].endswith("-stubs"))
-                and all(name.isidentifier() for name in names[1:])
-            )
-        )
+        # Consider PEP 561
+        root_pkg_is_valid = names[0].isidentifier() or names[0].endswith("-stubs")
+        return root_pkg_is_valid and all(name.isidentifier() for name in names[1:])
 
 
 class FlatLayoutModuleFinder(ModuleFinder):
@@ -475,7 +471,7 @@ def remove_nested_packages(packages: List[str]) -> List[str]:
 
 
 def remove_stubs(packages: List[str]) -> List[str]:
-    """Remove type stubs from a list of packages.
+    """Remove type stubs (:pep:`561`) from a list of packages.
 
     >>> remove_stubs(["a", "a.b", "a-stubs", "a-stubs.b.c", "b", "c-stubs"])
     ['a', 'a.b', 'b']
