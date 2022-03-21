@@ -303,6 +303,18 @@ def test_discovered_package_dir_with_attr_directive_in_config(tmp_path, folder, 
     assert dist_file.is_file()
 
 
+def test_discovered_package_dir_with_attr_in_pyproject_config(tmp_path):
+    _populate_project_dir(tmp_path, ["src/pkg/__init__.py"], {})
+    (tmp_path / "src/pkg/__init__.py").write_text("version = 42")
+    (tmp_path / "pyproject.toml").write_text(
+        "[project]\nname = 'pkg'\ndynamic = ['version']\n"
+        "[tool.setuptools.dynamic]\nversion = {attr = 'pkg.version'}\n"
+    )
+    dist = _get_dist(tmp_path, {})
+    assert dist.get_version() == "42"
+    assert dist.package_dir == {"": "src"}
+
+
 def _populate_project_dir(root, files, options):
     # NOTE: Currently pypa/build will refuse to build the project if no
     # `pyproject.toml` or `setup.py` is found. So it is impossible to do

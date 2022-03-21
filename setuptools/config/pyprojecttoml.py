@@ -43,11 +43,13 @@ def validate(config: dict, filepath: _Path):
         raise error from None
 
 
-def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution":
+def apply_configuration(
+    dist: "Distribution", filepath: _Path, ignore_option_errors=False,
+) -> "Distribution":
     """Apply the configuration from a ``pyproject.toml`` file into an existing
     distribution object.
     """
-    config = read_configuration(filepath, dist=dist)
+    config = read_configuration(filepath, True, ignore_option_errors, dist)
     return apply(dist, config, filepath)
 
 
@@ -253,10 +255,11 @@ def _expand_dynamic(
 ):
     if field in dynamic_cfg:
         directive = dynamic_cfg[field]
-        if "file" in directive:
-            return _expand.read_files(directive["file"], root_dir)
-        if "attr" in directive:
-            return _expand.read_attr(directive["attr"], package_dir, root_dir)
+        with _ignore_errors(ignore_option_errors):
+            if "file" in directive:
+                return _expand.read_files(directive["file"], root_dir)
+            if "attr" in directive:
+                return _expand.read_attr(directive["attr"], package_dir, root_dir)
     elif not ignore_option_errors:
         msg = f"Impossible to expand dynamic value of {field!r}. "
         msg += f"No configuration found for `tool.setuptools.dynamic.{field}`"
