@@ -264,7 +264,7 @@ class TestNoConfig:
     def test_discover_name(self, tmp_path, example):
         _populate_project_dir(tmp_path, self.EXAMPLES[example], {})
         dist = _get_dist(tmp_path, {})
-        dist.get_name() == example
+        assert dist.get_name() == example
 
     def test_build_with_discovered_name(self, tmp_path):
         files = ["src/ns/nested/pkg/__init__.py"]
