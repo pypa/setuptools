@@ -137,9 +137,9 @@ def expand_configuration(
     root_dir = root_dir or os.getcwd()
     project_cfg = config.get("project", {})
     setuptools_cfg = config.get("tool", {}).get("setuptools", {})
-    silent = ignore_option_errors
+    ignore = ignore_option_errors
 
-    _expand_packages(setuptools_cfg, root_dir, silent)
+    _expand_packages(setuptools_cfg, root_dir, ignore)
     _canonic_package_data(setuptools_cfg)
     _canonic_package_data(setuptools_cfg, "exclude-package-data")
 
@@ -148,13 +148,13 @@ def expand_configuration(
 
     with _EnsurePackagesDiscovered(dist, setuptools_cfg) as ensure_discovered:
         package_dir = ensure_discovered.package_dir
-        process = partial(_process_field, ignore_option_errors=silent)
+        process = partial(_process_field, ignore_option_errors=ignore)
         cmdclass = partial(_expand.cmdclass, package_dir=package_dir, root_dir=root_dir)
         data_files = partial(_expand.canonic_data_files, root_dir=root_dir)
 
         process(setuptools_cfg, "data-files", data_files)
         process(setuptools_cfg, "cmdclass", cmdclass)
-        _expand_all_dynamic(project_cfg, setuptools_cfg, package_dir, root_dir, silent)
+        _expand_all_dynamic(project_cfg, setuptools_cfg, package_dir, root_dir, ignore)
 
     return config
 
@@ -208,7 +208,7 @@ def _expand_all_dynamic(
     root_dir: _Path,
     ignore_option_errors: bool,
 ):
-    silent = ignore_option_errors
+    ignore = ignore_option_errors
     dynamic_cfg = setuptools_cfg.get("dynamic", {})
     pkg_dir = package_dir
     special = (
@@ -224,23 +224,23 @@ def _expand_all_dynamic(
     regular_dynamic = (x for x in dynamic if x not in special)
 
     for field in regular_dynamic:
-        value = _expand_dynamic(dynamic_cfg, field, pkg_dir, root_dir, silent)
+        value = _expand_dynamic(dynamic_cfg, field, pkg_dir, root_dir, ignore)
         project_cfg[field] = value
 
     if "version" in dynamic and "version" in dynamic_cfg:
-        version = _expand_dynamic(dynamic_cfg, "version", pkg_dir, root_dir, silent)
+        version = _expand_dynamic(dynamic_cfg, "version", pkg_dir, root_dir, ignore)
         project_cfg["version"] = _expand.version(version)
 
     if "readme" in dynamic:
-        project_cfg["readme"] = _expand_readme(dynamic_cfg, root_dir, silent)
+        project_cfg["readme"] = _expand_readme(dynamic_cfg, root_dir, ignore)
 
     if "entry-points" in dynamic:
         field = "entry-points"
-        value = _expand_dynamic(dynamic_cfg, field, pkg_dir, root_dir, silent)
+        value = _expand_dynamic(dynamic_cfg, field, pkg_dir, root_dir, ignore)
         project_cfg.update(_expand_entry_points(value, dynamic))
 
     if "classifiers" in dynamic:
-        value = _expand_dynamic(dynamic_cfg, "classifiers", pkg_dir, root_dir, silent)
+        value = _expand_dynamic(dynamic_cfg, "classifiers", pkg_dir, root_dir, ignore)
         project_cfg["classifiers"] = value.splitlines()
 
 
@@ -267,9 +267,9 @@ def _expand_dynamic(
 def _expand_readme(
     dynamic_cfg: dict, root_dir: _Path, ignore_option_errors: bool
 ) -> Dict[str, str]:
-    silent = ignore_option_errors
+    ignore = ignore_option_errors
     return {
-        "text": _expand_dynamic(dynamic_cfg, "readme", {}, root_dir, silent),
+        "text": _expand_dynamic(dynamic_cfg, "readme", {}, root_dir, ignore),
         "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst"),
     }
 
