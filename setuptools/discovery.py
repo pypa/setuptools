@@ -270,11 +270,15 @@ class ConfigDiscovery:
         self.dist = distribution
         self._called = False
         self._disabled = False
-        self._root_dir: _Path  # delay so `src_root` can be set in dist
 
     def _disable(self):
         """Internal API to disable automatic discovery"""
         self._disabled = True
+
+    @property
+    def _root_dir(self) -> _Path:
+        # The best is to wait until `src_root` is set in dist, before using _root_dir.
+        return self.dist.src_root or os.curdir
 
     def __call__(self, force=False, name=True):
         """Automatically discover missing configuration fields
@@ -290,8 +294,6 @@ class ConfigDiscovery:
         if force is False and (self._called or self._disabled):
             # Avoid overhead of multiple calls
             return
-
-        self._root_dir = self.dist.src_root or os.curdir
 
         self._analyse_package_layout()
         if name:
