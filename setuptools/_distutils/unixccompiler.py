@@ -22,9 +22,7 @@ from distutils.ccompiler import \
 from distutils.errors import \
      DistutilsExecError, CompileError, LibError, LinkError
 from distutils import log
-
-if sys.platform == 'darwin':
-    import _osx_support
+from ._macos_compat import compiler_fixup
 
 # XXX Things not currently handled:
 #   * optimization/debug/warning flags; we just use whatever's in Python's
@@ -40,6 +38,66 @@ if sys.platform == 'darwin':
 #     current system, they can be as system-dependent as they like, and we
 #     should just happily stuff them into the preprocessor/compiler/linker
 #     options and carry on.
+
+
+def _split_env(cmd):
+    """
+    For macOS, split command into 'env' portion (if any)
+    and the rest of the linker command.
+
+    >>> _split_env(['a', 'b', 'c'])
+    ([], ['a', 'b', 'c'])
+    >>> _split_env(['/usr/bin/env', 'A=3', 'gcc'])
+    (['/usr/bin/env', 'A=3'], ['gcc'])
+    """
+    pivot = 0
+    if os.path.basename(cmd[0]) == "env":
+        pivot = 1
+        while '=' in cmd[pivot]:
+            pivot += 1
+    return cmd[:pivot], cmd[pivot:]
+
+
+def _split_aix(cmd):
+    """
+    AIX platforms prefix the compiler with the ld_so_aix
+    script, so split that from the linker command.
+
+    >>> _split_aix(['a', 'b', 'c'])
+    ([], ['a', 'b', 'c'])
+    >>> _split_aix(['/bin/foo/ld_so_aix', 'gcc'])
+    (['/bin/foo/ld_so_aix'], ['gcc'])
+    """
+    pivot = os.path.basename(cmd[0]) == 'ld_so_aix'
+    return cmd[:pivot], cmd[pivot:]
+
+
+def _linker_params(linker_cmd, compiler_cmd):
+    """
+    The linker command usually begins with the compiler
+    command (possibly multiple elements), followed by zero or more
+    params for shared library building.
+
+    If the LDSHARED env variable overrides the linker command,
+    however, the commands may not match.
+
+    Return the best guess of the linker parameters by stripping
+    the linker command. If the compiler command does not
+    match the linker command, assume the linker command is
+    just the first element.
+
+    >>> _linker_params('gcc foo bar'.split(), ['gcc'])
+    ['foo', 'bar']
+    >>> _linker_params('gcc foo bar'.split(), ['other'])
+    ['foo', 'bar']
+    >>> _linker_params('ccache gcc foo bar'.split(), 'ccache gcc'.split())
+    ['foo', 'bar']
+    >>> _linker_params(['gcc'], ['gcc'])
+    []
+    """
+    c_len = len(compiler_cmd)
+    pivot = c_len if linker_cmd[:c_len] == compiler_cmd else 1
+    return linker_cmd[pivot:]
 
 
 class UnixCCompiler(CCompiler):
@@ -109,10 +167,8 @@ class UnixCCompiler(CCompiler):
                 raise CompileError(msg)
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
-        compiler_so = self.compiler_so
-        if sys.platform == 'darwin':
-            compiler_so = _osx_support.compiler_fixup(compiler_so,
-                                                    cc_args + extra_postargs)
+        compiler_so = compiler_fixup(
+            self.compiler_so, cc_args + extra_postargs)
         try:
             self.spawn(compiler_so + cc_args + [src, '-o', obj] +
                        extra_postargs)
@@ -173,33 +229,22 @@ class UnixCCompiler(CCompiler):
                 ld_args.extend(extra_postargs)
             self.mkpath(os.path.dirname(output_filename))
             try:
-                if target_desc == CCompiler.EXECUTABLE:
-                    linker = self.linker_exe[:]
-                else:
-                    linker = self.linker_so[:]
+                # Select a linker based on context: linker_exe when
+                # building an executable or linker_so (with shared options)
+                # when building a shared library.
+                building_exe = target_desc == CCompiler.EXECUTABLE
+                linker = (self.linker_exe if building_exe else self.linker_so)[:]
+
                 if target_lang == "c++" and self.compiler_cxx:
-                    # skip over environment variable settings if /usr/bin/env
-                    # is used to set up the linker's environment.
-                    # This is needed on OSX. Note: this assumes that the
-                    # normal and C++ compiler have the same environment
-                    # settings.
-                    i = 0
-                    if os.path.basename(linker[0]) == "env":
-                        i = 1
-                        while '=' in linker[i]:
-                            i += 1
+                    env, linker_ne = _split_env(linker)
+                    aix, linker_na = _split_aix(linker_ne)
+                    _, compiler_cxx_ne = _split_env(self.compiler_cxx)
+                    _, linker_exe_ne = _split_env(self.linker_exe)
 
-                    if os.path.basename(linker[i]) == 'ld_so_aix':
-                        # AIX platforms prefix the compiler with the ld_so_aix
-                        # script, so we need to adjust our linker index
-                        offset = 1
-                    else:
-                        offset = 0
+                    params = _linker_params(linker_na, linker_exe_ne)
+                    linker = env + aix + compiler_cxx_ne + params
 
-                    linker[i+offset] = self.compiler_cxx[i]
-
-                if sys.platform == 'darwin':
-                    linker = _osx_support.compiler_fixup(linker, ld_args)
+                linker = compiler_fixup(linker, ld_args)
 
                 self.spawn(linker + ld_args)
             except DistutilsExecError as msg:

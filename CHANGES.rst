@@ -15,7 +15,7 @@ Documentation changes
   and more prominent mentions to using a revision control system plugin as an
   alternative.
 * #3148: Removed mention to ``pkg_resources`` as the recommended way of accessing data
-  files, in favour of :doc:`importlib.resources`.
+  files, in favour of importlib.resources.
   Additionally more emphasis was put on the fact that *package data files* reside
   **inside** the *package directory* (and therefore should be *read-only*).
 
@@ -207,7 +207,7 @@ v60.4.0
 
 Changes
 ^^^^^^^
-* #2839: Removed `requires` sorting when installing wheels as an egg dir.
+* #2839: Removed ``requires`` sorting when installing wheels as an egg dir.
 * #2953: Fixed a bug that easy install incorrectly parsed Python 3.10 version string.
 * #3006: Fixed startup performance issue of Python interpreter due to imports of
   costly modules in ``_distutils_hack`` -- by :user:`tiran`
@@ -646,7 +646,7 @@ v57.5.0
 
 Changes
 ^^^^^^^
-* #2712: Added implicit globbing support for `[options.data_files]` values.
+* #2712: Added implicit globbing support for ``[options.data_files]`` values.
 
 Documentation changes
 ^^^^^^^^^^^^^^^^^^^^^
@@ -718,7 +718,7 @@ Changes
   ``license_file`` (deprecated) and ``license_files`` options,
   relative to ``.dist-info``. - by :user:`cdce8p`
 * #2678: Moved Setuptools' own entry points into declarative config.
-* #2680: Vendored `more_itertools <https://pypi.org/project/more-itertools>`_ for Setuptools.
+* #2680: Vendored :pypi:`more_itertools` for Setuptools.
 * #2681: Setuptools own setup.py no longer declares setup_requires, but instead expects wheel to be installed as declared by pyproject.toml.
 
 Misc
@@ -1646,7 +1646,7 @@ Breaking Changes
    * eggs are not supported
    * no support for the ``allow_hosts`` easy_install option (``index_url``/``find_links`` are still honored)
    * pip environment variables are honored (and take precedence over easy_install options)
-* #1898: Removed the "upload" and "register" commands in favor of `twine <https://pypi.org/p/twine>`_.
+* #1898: Removed the "upload" and "register" commands in favor of :pypi:`twine`.
 
 Changes
 ^^^^^^^
@@ -1656,7 +1656,7 @@ Changes
   * add support for manylinux2010
   * fix use of removed 'm' ABI flag in Python 3.8 on Windows
 * #1861: Fix empty namespace package installation from wheel.
-* #1877: Setuptools now exposes a new entry point hook "setuptools.finalize_distribution_options", enabling plugins like `setuptools_scm <https://pypi.org/project/setuptools_scm>`_ to configure options on the distribution at finalization time.
+* #1877: Setuptools now exposes a new entry point hook "setuptools.finalize_distribution_options", enabling plugins like :pypi:`setuptools_scm` to configure options on the distribution at finalization time.
 
 
 v41.6.0
@@ -2923,7 +2923,7 @@ v26.1.0
 -------
 
 * #763: ``pkg_resources.get_default_cache`` now defers to the
-  `appdirs project <https://pypi.org/project/appdirs>`_ to
+  :pypi:`appdirs` project to
   resolve the cache directory. Adds a vendored dependency on
   appdirs to pkg_resources.
 
@@ -3915,8 +3915,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 
 * Issue #313: Removed built-in support for subversion. Projects wishing to
   retain support for subversion will need to use a third party library. The
-  extant implementation is being ported to `setuptools_svn
-  <https://pypi.org/project/setuptools_svn/>`_.
+  extant implementation is being ported to :pypi:`setuptools_svn`.
 * Issue #315: Updated setuptools to hide its own loaded modules during
   installation of another package. This change will enable setuptools to
   upgrade (or downgrade) itself even when its own metadata and implementation
@@ -4420,8 +4419,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 
 * Address security vulnerability in SSL match_hostname check as reported in
   Python #17997.
-* Prefer `backports.ssl_match_hostname
-  <https://pypi.org/project/backports.ssl_match_hostname/>`_ for backport
+* Prefer :pypi:`backports.ssl_match_hostname` for backport
   implementation if present.
 * Correct NameError in ``ssl_support`` module (``socket.error``).
 

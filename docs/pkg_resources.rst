@@ -13,8 +13,8 @@ packages.
 Use of ``pkg_resources`` is discouraged in favor of
 `importlib.resources <https://docs.python.org/3/library/importlib.html#module-importlib.resources>`_,
 `importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_,
-and their backports (`resources <https://pypi.org/project/importlib_resources>`_,
-`metadata <https://pypi.org/project/importlib_metadata>`_).
+and their backports (:pypi:`importlib_resources`,
+:pypi:`importlib_metadata`).
 Please consider using those libraries instead of pkg_resources.
 
 
