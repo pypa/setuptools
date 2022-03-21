@@ -29,9 +29,12 @@ from typing import (
     Callable,
     Dict,
     Iterable,
+    Iterator,
     List,
+    Mapping,
     Optional,
     Tuple,
+    TypeVar,
     Union,
     cast
 )
@@ -46,6 +49,8 @@ if TYPE_CHECKING:
 
 chain_iter = chain.from_iterable
 _Path = Union[str, os.PathLike]
+_K = TypeVar("_K")
+_V = TypeVar("_V", covariant=True)
 
 
 class StaticModule:
@@ -146,7 +151,7 @@ def _assert_local(filepath: _Path, root_dir: str):
 
 def read_attr(
     attr_desc: str,
-    package_dir: Optional[dict] = None,
+    package_dir: Optional[Mapping[str, str]] = None,
     root_dir: Optional[_Path] = None
 ):
     """Reads the value of an attribute from a module.
@@ -203,7 +208,7 @@ def _load_spec(spec: ModuleSpec, module_name: str) -> ModuleType:
 
 
 def _find_module(
-    module_name: str, package_dir: Optional[dict], root_dir: _Path
+    module_name: str, package_dir: Optional[Mapping[str, str]], root_dir: _Path
 ) -> Tuple[_Path, Optional[str], str]:
     """Given a module (that could normally be imported by ``module_name``
     after the build is complete), find the path to the parent directory where
@@ -238,7 +243,7 @@ def _find_module(
 
 def resolve_class(
     qualified_class_name: str,
-    package_dir: Optional[dict] = None,
+    package_dir: Optional[Mapping[str, str]] = None,
     root_dir: Optional[_Path] = None
 ) -> Callable:
     """Given a qualified class name, return the associated class object"""
@@ -254,7 +259,7 @@ def resolve_class(
 
 def cmdclass(
     values: Dict[str, str],
-    package_dir: Optional[dict] = None,
+    package_dir: Optional[Mapping[str, str]] = None,
     root_dir: Optional[_Path] = None
 ) -> Dict[str, Callable]:
     """Given a dictionary mapping command names to strings for qualified class
@@ -378,12 +383,10 @@ class EnsurePackagesDiscovered:
     """Some expand functions require all the packages to already be discovered before
     they run, e.g. :func:`read_attr`, :func:`resolve_class`, :func:`cmdclass`.
 
-    Therefore in some cases we will need to run autodiscovery during the parsing of the
-    configuration. However, it is better to postpone calling package discovery as much
-    as possible.
-
-    We should only run the discovery if absolutely necessary, otherwise we can miss
-    files that define important configuration (like ``package_dir``) are processed.
+    Therefore in some cases we will need to run autodiscovery during the evaluation of
+    the configuration. However, it is better to postpone calling package discovery as
+    much as possible, because some parameters can influence it (e.g. ``package_dir``),
+    and those might not have been processed yet.
     """
 
     def __init__(self, distribution: "Distribution"):
@@ -391,9 +394,10 @@ class EnsurePackagesDiscovered:
         self._called = False
 
     def __call__(self):
-        self._called = True
-        self._dist.set_defaults(name=False)  # Skip name since we are parsing metadata
-        return self._dist.package_dir
+        """Trigger the automatic package discovery, if it is still necessary."""
+        if not self._called:
+            self._called = True
+            self._dist.set_defaults(name=False)  # Skip name, we can still be parsing
 
     def __enter__(self):
         return self
@@ -401,3 +405,45 @@ class EnsurePackagesDiscovered:
     def __exit__(self, _exc_type, _exc_value, _traceback):
         if self._called:
             self._dist.set_defaults.analyse_name()  # Now we can set a default name
+
+    def _get_package_dir(self) -> Mapping[str, str]:
+        self()
+        return self._dist.package_dir
+
+    @property
+    def package_dir(self) -> Mapping[str, str]:
+        """Proxy to ``package_dir`` that may trigger auto-discovery when used."""
+        return LazyMappingProxy(self._get_package_dir)
+
+
+class LazyMappingProxy(Mapping[_K, _V]):
+    """Mapping proxy that delays resolving the target object, until really needed.
+
+    >>> def obtain_mapping():
+    ...     print("Running expensive function!")
+    ...     return {"key": "value", "other key": "other value"}
+    >>> mapping = LazyMappingProxy(obtain_mapping)
+    >>> mapping["key"]
+    Running expensive function!
+    'value'
+    >>> mapping["other key"]
+    'other value'
+    """
+
+    def __init__(self, obtain_mapping_value: Callable[[], Mapping[_K, _V]]):
+        self._obtain = obtain_mapping_value
+        self._value: Optional[Mapping[_K, _V]] = None
+
+    def _target(self) -> Mapping[_K, _V]:
+        if self._value is None:
+            self._value = self._obtain()
+        return self._value
+
+    def __getitem__(self, key: _K) -> _V:
+        return self._target()[key]
+
+    def __len__(self) -> int:
+        return len(self._target())
+
+    def __iter__(self) -> Iterator[_K]:
+        return iter(self._target())

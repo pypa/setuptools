@@ -368,7 +368,7 @@ class ConfigHandler(Generic[Target]):
         attr_desc = value.replace(attr_directive, '')
 
         # Make sure package_dir is populated correctly, so `attr:` directives can work
-        package_dir.update(self.ensure_discovered())
+        package_dir.update(self.ensure_discovered.package_dir)
         return expand.read_attr(attr_desc, package_dir, root_dir)
 
     @classmethod
@@ -596,7 +596,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         }
 
     def _parse_cmdclass(self, value):
-        package_dir = self.ensure_discovered()
+        package_dir = self.ensure_discovered.package_dir
         return expand.cmdclass(self._parse_dict(value), package_dir, self.root_dir)
 
     def _parse_packages(self, value):

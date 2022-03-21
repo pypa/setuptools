@@ -4,7 +4,7 @@ import os
 import warnings
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Union
 
 from setuptools.errors import FileError, OptionError
 
@@ -137,84 +137,80 @@ def expand_configuration(
     root_dir = root_dir or os.getcwd()
     project_cfg = config.get("project", {})
     setuptools_cfg = config.get("tool", {}).get("setuptools", {})
+    silent = ignore_option_errors
 
-    # A distribution object is required for discovering the correct package_dir
-    dist, setuptools_cfg = _ensure_dist_and_package_dir(
-        dist, project_cfg, setuptools_cfg, root_dir
-    )
-
-    _expand_packages(setuptools_cfg, root_dir, ignore_option_errors)
+    _expand_packages(setuptools_cfg, root_dir, silent)
     _canonic_package_data(setuptools_cfg)
     _canonic_package_data(setuptools_cfg, "exclude-package-data")
 
-    with _expand.EnsurePackagesDiscovered(dist) as ensure_discovered:
-        _fill_discovered_attrs(dist, setuptools_cfg, ensure_discovered)
-        package_dir = setuptools_cfg["package-dir"]
+    # A distribution object is required for discovering the correct package_dir
+    dist = _ensure_dist(dist, project_cfg, root_dir)
 
-        process = partial(_process_field, ignore_option_errors=ignore_option_errors)
+    with _EnsurePackagesDiscovered(dist, setuptools_cfg) as ensure_discovered:
+        package_dir = ensure_discovered.package_dir
+        process = partial(_process_field, ignore_option_errors=silent)
         cmdclass = partial(_expand.cmdclass, package_dir=package_dir, root_dir=root_dir)
         data_files = partial(_expand.canonic_data_files, root_dir=root_dir)
 
         process(setuptools_cfg, "data-files", data_files)
         process(setuptools_cfg, "cmdclass", cmdclass)
-        _expand_all_dynamic(project_cfg, setuptools_cfg, root_dir, ignore_option_errors)
+        _expand_all_dynamic(project_cfg, setuptools_cfg, package_dir, root_dir, silent)
 
     return config
 
 
-def _ensure_dist_and_package_dir(
-    dist: Optional["Distribution"],
-    project_cfg: dict,
-    setuptools_cfg: dict,
-    root_dir: _Path,
-) -> Tuple["Distribution", dict]:
+def _ensure_dist(
+    dist: Optional["Distribution"], project_cfg: dict, root_dir: _Path
+) -> "Distribution":
     from setuptools.dist import Distribution
 
     attrs = {"src_root": root_dir, "name": project_cfg.get("name", None)}
-    dist = dist or Distribution(attrs)
-
-    # dist and setuptools_cfg should use the same package_dir
-    if dist.package_dir is None:
-        dist.package_dir = setuptools_cfg.get("package-dir", {})
-    if setuptools_cfg.get("package-dir") is None:
-        setuptools_cfg["package-dir"] = dist.package_dir
-
-    return dist, setuptools_cfg
+    return dist or Distribution(attrs)
 
 
-def _fill_discovered_attrs(
-    dist: "Distribution",
-    setuptools_cfg: dict,
-    ensure_discovered: _expand.EnsurePackagesDiscovered,
-):
-    """When entering the context, the values of ``packages``, ``py_modules`` and
-    ``package_dir`` that are missing in ``dist`` are copied from ``setuptools_cfg``.
-    When existing the context, if these values are missing in ``setuptools_cfg``, they
-    will be copied from ``dist``.
-    """
-    package_dir = setuptools_cfg["package-dir"]
-    dist.package_dir = package_dir  # need to be the same object
+class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
+    def __init__(self, distribution: "Distribution", setuptools_cfg: dict):
+        super().__init__(distribution)
+        self._setuptools_cfg = setuptools_cfg
 
-    # Set `py_modules` and `packages` in dist to short-circuit auto-discovery,
-    # but avoid overwriting empty lists purposefully set by users.
-    if isinstance(setuptools_cfg.get("py-modules"), list) and dist.py_modules is None:
-        dist.py_modules = setuptools_cfg["py-modules"]
-    if isinstance(setuptools_cfg.get("packages"), list) and dist.packages is None:
-        dist.packages = setuptools_cfg["packages"]
+    def __enter__(self):
+        """When entering the context, the values of ``packages``, ``py_modules`` and
+        ``package_dir`` that are missing in ``dist`` are copied from ``setuptools_cfg``.
+        """
+        dist, cfg = self._dist, self._setuptools_cfg
+        package_dir: Dict[str, str] = cfg.setdefault("package-dir", {})
+        package_dir.update(dist.package_dir or {})
+        dist.package_dir = package_dir  # needs to be the same object
 
-    package_dir.update(ensure_discovered())
+        # Set `py_modules` and `packages` in dist to short-circuit auto-discovery,
+        # but avoid overwriting empty lists purposefully set by users.
+        if dist.py_modules is None:
+            dist.py_modules = cfg.get("py-modules")
+        if dist.packages is None:
+            dist.packages = cfg.get("packages")
 
-    # If anything was discovered set them back, so they count in the final config.
-    setuptools_cfg.setdefault("packages", dist.packages)
-    setuptools_cfg.setdefault("py-modules", dist.py_modules)
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """When exiting the context, if values of ``packages``, ``py_modules`` and
+        ``package_dir`` are missing in ``setuptools_cfg``, copy from ``dist``.
+        """
+        # If anything was discovered set them back, so they count in the final config.
+        self._setuptools_cfg.setdefault("packages", self._dist.packages)
+        self._setuptools_cfg.setdefault("py-modules", self._dist.py_modules)
+        return super().__exit__(exc_type, exc_value, traceback)
 
 
 def _expand_all_dynamic(
-    project_cfg: dict, setuptools_cfg: dict, root_dir: _Path, ignore_option_errors: bool
+    project_cfg: dict,
+    setuptools_cfg: dict,
+    package_dir: Mapping[str, str],
+    root_dir: _Path,
+    ignore_option_errors: bool,
 ):
     silent = ignore_option_errors
     dynamic_cfg = setuptools_cfg.get("dynamic", {})
-    pkg_dir = setuptools_cfg["package-dir"]
+    pkg_dir = package_dir
     special = (
         "readme",
         "version",
@@ -251,7 +247,7 @@ def _expand_all_dynamic(
 def _expand_dynamic(
     dynamic_cfg: dict,
     field: str,
-    package_dir: dict,
+    package_dir: Mapping[str, str],
     root_dir: _Path,
     ignore_option_errors: bool,
 ):
@@ -296,7 +292,7 @@ def _expand_packages(setuptools_cfg: dict, root_dir: _Path, ignore_option_errors
     find = packages.get("find")
     if isinstance(find, dict):
         find["root_dir"] = root_dir
-        find["fill_package_dir"] = setuptools_cfg["package-dir"]
+        find["fill_package_dir"] = setuptools_cfg.setdefault("package-dir", {})
         with _ignore_errors(ignore_option_errors):
             setuptools_cfg["packages"] = _expand.find_packages(**find)
 
