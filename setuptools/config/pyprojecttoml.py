@@ -87,11 +87,12 @@ def read_configuration(
 
     asdict = load_file(filepath) or {}
     project_table = asdict.get("project", {})
-    tool_table = asdict.get("tool", {}).get("setuptools", {})
-    if not asdict or not (project_table or tool_table):
+    tool_table = asdict.get("tool", {})
+    setuptools_table = tool_table.get("setuptools", {})
+    if not asdict or not (project_table or setuptools_table):
         return {}  # User is not using pyproject to configure setuptools
 
-    # TODO: Remove once the future stabilizes
+    # TODO: Remove once the feature stabilizes
     msg = (
         "Support for project metadata in `pyproject.toml` is still experimental "
         "and may be removed (or change) in future releases."
@@ -102,12 +103,14 @@ def read_configuration(
     # the default would be an improvement.
     # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
     # therefore setting a default here is backwards compatible.
-    tool_table.setdefault("include-package-data", True)
-    asdict.setdefault("tool", {})["setuptools"] = tool_table  # persist changes
+    setuptools_table.setdefault("include-package-data", True)
+    # Persist changes:
+    asdict["tool"] = tool_table
+    tool_table["setuptools"] = setuptools_table
 
     with _ignore_errors(ignore_option_errors):
         # Don't complain about unrelated errors (e.g. tools not using the "tool" table)
-        subset = {"project": project_table, "tool": {"setuptools": tool_table}}
+        subset = {"project": project_table, "tool": {"setuptools": setuptools_table}}
         validate(subset, filepath)
 
     if expand:
