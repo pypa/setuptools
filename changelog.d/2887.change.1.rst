@@ -4,7 +4,7 @@
 Setuptools will try to find these values assuming that the package uses either
 the *src-layout* (a ``src`` directory containing all the packages or modules),
 the *flat-layout* (package directories directly under the project root),
-or the *single-module* approach (isolated Python files, directly under
+or the *single-module* approach (an isolated Python file, directly under
 the project root).
 
 The automatic discovery will also respect layouts that are explicitly
@@ -12,6 +12,8 @@ configured using the ``package_dir`` option.
 
 For backward-compatibility, this behavior will be observed **only if both**
 ``py_modules`` **and** ``packages`` **are not set**.
+(**Note**: specifying ``ext_modules`` might also prevent auto-discover from
+taking place)
 
 If setuptools detects modules or packages that are not supposed to be in the
 distribution, please manually set ``py_modules`` and ``packages`` in your

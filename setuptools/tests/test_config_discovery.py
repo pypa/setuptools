@@ -19,23 +19,23 @@ from .integration.helpers import get_sdist_members, get_wheel_members, run
 from .textwrap import DALS
 
 
-def test_find_parent_package(tmp_path):
-    # find_parent_package should find a non-namespace parent package
-    (tmp_path / "src/namespace/pkg/nested").mkdir(exist_ok=True, parents=True)
-    (tmp_path / "src/namespace/pkg/nested/__init__.py").touch()
-    (tmp_path / "src/namespace/pkg/__init__.py").touch()
-    packages = ["namespace", "namespace.pkg", "namespace.pkg.nested"]
-    assert find_parent_package(packages, {"": "src"}, tmp_path) == "namespace.pkg"
+class TestFindParentPackage:
+    def test_single_package(self, tmp_path):
+        # find_parent_package should find a non-namespace parent package
+        (tmp_path / "src/namespace/pkg/nested").mkdir(exist_ok=True, parents=True)
+        (tmp_path / "src/namespace/pkg/nested/__init__.py").touch()
+        (tmp_path / "src/namespace/pkg/__init__.py").touch()
+        packages = ["namespace", "namespace.pkg", "namespace.pkg.nested"]
+        assert find_parent_package(packages, {"": "src"}, tmp_path) == "namespace.pkg"
 
-
-def test_find_parent_package_multiple_toplevel(tmp_path):
-    # find_parent_package should return null if the given list of packages does not
-    # have a single parent package
-    multiple = ["pkg", "pkg1", "pkg2"]
-    for name in multiple:
-        (tmp_path / f"src/{name}").mkdir(exist_ok=True, parents=True)
-        (tmp_path / f"src/{name}/__init__.py").touch()
-    assert find_parent_package(multiple, {"": "src"}, tmp_path) is None
+    def test_multiple_toplevel(self, tmp_path):
+        # find_parent_package should return null if the given list of packages does not
+        # have a single parent package
+        multiple = ["pkg", "pkg1", "pkg2"]
+        for name in multiple:
+            (tmp_path / f"src/{name}").mkdir(exist_ok=True, parents=True)
+            (tmp_path / f"src/{name}/__init__.py").touch()
+        assert find_parent_package(multiple, {"": "src"}, tmp_path) is None
 
 
 class TestDiscoverPackagesAndPyModules:
@@ -275,44 +275,127 @@ class TestNoConfig:
         assert dist_file.is_file()
 
 
-@pytest.mark.parametrize(
-    "folder, opts",
-    [
-        ("src", {}),
-        ("lib", {"packages": "find:", "packages.find": {"where": "lib"}}),
-    ]
-)
-def test_discovered_package_dir_with_attr_directive_in_config(tmp_path, folder, opts):
-    _populate_project_dir(tmp_path, [f"{folder}/pkg/__init__.py", "setup.cfg"], opts)
-    (tmp_path / folder / "pkg/__init__.py").write_text("version = 42")
-    (tmp_path / "setup.cfg").write_text(
-        "[metadata]\nversion = attr: pkg.version\n"
-        + (tmp_path / "setup.cfg").read_text()
+class TestWithAttrDirective:
+    @pytest.mark.parametrize(
+        "folder, opts",
+        [
+            ("src", {}),
+            ("lib", {"packages": "find:", "packages.find": {"where": "lib"}}),
+        ]
     )
+    def test_setupcfg_metadata(self, tmp_path, folder, opts):
+        files = [f"{folder}/pkg/__init__.py", "setup.cfg"]
+        _populate_project_dir(tmp_path, files, opts)
+        (tmp_path / folder / "pkg/__init__.py").write_text("version = 42")
+        (tmp_path / "setup.cfg").write_text(
+            "[metadata]\nversion = attr: pkg.version\n"
+            + (tmp_path / "setup.cfg").read_text()
+        )
 
-    dist = _get_dist(tmp_path, {})
-    assert dist.get_name() == "pkg"
-    assert dist.get_version() == "42"
-    assert dist.package_dir
-    package_path = find_package_path("pkg", dist.package_dir, tmp_path)
-    assert os.path.exists(package_path)
-    assert folder in _Path(package_path).parts()
+        dist = _get_dist(tmp_path, {})
+        assert dist.get_name() == "pkg"
+        assert dist.get_version() == "42"
+        assert dist.package_dir
+        package_path = find_package_path("pkg", dist.package_dir, tmp_path)
+        assert os.path.exists(package_path)
+        assert folder in _Path(package_path).parts()
 
-    _run_build(tmp_path, "--sdist")
-    dist_file = tmp_path / "dist/pkg-42.tar.gz"
-    assert dist_file.is_file()
+        _run_build(tmp_path, "--sdist")
+        dist_file = tmp_path / "dist/pkg-42.tar.gz"
+        assert dist_file.is_file()
+
+    def test_pyproject_metadata(self, tmp_path):
+        _populate_project_dir(tmp_path, ["src/pkg/__init__.py"], {})
+        (tmp_path / "src/pkg/__init__.py").write_text("version = 42")
+        (tmp_path / "pyproject.toml").write_text(
+            "[project]\nname = 'pkg'\ndynamic = ['version']\n"
+            "[tool.setuptools.dynamic]\nversion = {attr = 'pkg.version'}\n"
+        )
+        dist = _get_dist(tmp_path, {})
+        assert dist.get_version() == "42"
+        assert dist.package_dir == {"": "src"}
 
 
-def test_discovered_package_dir_with_attr_in_pyproject_config(tmp_path):
-    _populate_project_dir(tmp_path, ["src/pkg/__init__.py"], {})
-    (tmp_path / "src/pkg/__init__.py").write_text("version = 42")
-    (tmp_path / "pyproject.toml").write_text(
-        "[project]\nname = 'pkg'\ndynamic = ['version']\n"
-        "[tool.setuptools.dynamic]\nversion = {attr = 'pkg.version'}\n"
-    )
-    dist = _get_dist(tmp_path, {})
-    assert dist.get_version() == "42"
-    assert dist.package_dir == {"": "src"}
+class TestWithCExtension:
+    def _simulate_package_with_extension(self, tmp_path):
+        # This example is based on: https://github.com/nucleic/kiwi/tree/1.4.0
+        files = [
+            "benchmarks/file.py",
+            "docs/Makefile",
+            "docs/requirements.txt",
+            "docs/source/conf.py",
+            "proj/header.h",
+            "proj/file.py",
+            "py/proj.cpp",
+            "py/other.cpp",
+            "py/file.py",
+            "py/py.typed",
+            "py/tests/test_proj.py",
+            "README.rst",
+        ]
+        _populate_project_dir(tmp_path, files, {})
+
+        setup_script = """
+            from setuptools import Extension, setup
+
+            ext_modules = [
+                Extension(
+                    "proj",
+                    ["py/proj.cpp", "py/other.cpp"],
+                    include_dirs=["."],
+                    language="c++",
+                ),
+            ]
+            setup(ext_modules=ext_modules)
+        """
+        (tmp_path / "setup.py").write_text(DALS(setup_script))
+
+    def test_skip_discovery_with_setupcfg_metadata(self, tmp_path):
+        """Ensure that auto-discovery is not triggered when the project is based on
+        C-extensions only, for backward compatibility.
+        """
+        self._simulate_package_with_extension(tmp_path)
+
+        pyproject = """
+            [build-system]
+            requires = []
+            build-backend = 'setuptools.build_meta'
+        """
+        (tmp_path / "pyproject.toml").write_text(DALS(pyproject))
+
+        setupcfg = """
+            [metadata]
+            name = proj
+            version = 42
+        """
+        (tmp_path / "setup.cfg").write_text(DALS(setupcfg))
+
+        dist = _get_dist(tmp_path, {})
+        assert dist.get_name() == "proj"
+        assert dist.get_version() == "42"
+        assert dist.py_modules is None
+        assert dist.packages is None
+        assert len(dist.ext_modules) == 1
+        assert dist.ext_modules[0].name == "proj"
+
+    def test_dont_skip_discovery_with_pyproject_metadata(self, tmp_path):
+        """When opting-in to pyproject.toml metadata, auto-discovery will be active if
+        the package lists C-extensions, but does not configure py-modules or packages.
+
+        This way we ensure users with complex package layouts that would lead to the
+        discovery of multiple top-level modules/packages see errors and are forced to
+        explicitly set ``packages`` or ``py-modules``.
+        """
+        self._simulate_package_with_extension(tmp_path)
+
+        pyproject = """
+            [project]
+            name = 'proj'
+            version = '42'
+        """
+        (tmp_path / "pyproject.toml").write_text(DALS(pyproject))
+        with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
+            _get_dist(tmp_path, {})
 
 
 def _populate_project_dir(root, files, options):

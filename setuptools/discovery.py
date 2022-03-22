@@ -270,10 +270,23 @@ class ConfigDiscovery:
         self.dist = distribution
         self._called = False
         self._disabled = False
+        self._skip_ext_modules = False
 
     def _disable(self):
         """Internal API to disable automatic discovery"""
         self._disabled = True
+
+    def _ignore_ext_modules(self):
+        """Internal API to disregard ext_modules.
+
+        Normally auto-discovery would not be triggered if ``ext_modules`` are set
+        (this is done for backward compatibility with existing packages relying on
+        ``setup.py`` or ``setup.cfg``). However, ``setuptools`` can call this function
+        to ignore given ``ext_modules`` and proceed with the auto-discovery if
+        ``packages`` and ``py_modules`` are not given (e.g. when using pyproject.toml
+        metadata).
+        """
+        self._skip_ext_modules = True
 
     @property
     def _root_dir(self) -> _Path:
@@ -286,7 +299,7 @@ class ConfigDiscovery:
             return {}
         return self.dist.package_dir
 
-    def __call__(self, force=False, name=True):
+    def __call__(self, force=False, name=True, ignore_ext_modules=False):
         """Automatically discover missing configuration fields
         and modifies the given ``distribution`` object in-place.
 
@@ -301,14 +314,24 @@ class ConfigDiscovery:
             # Avoid overhead of multiple calls
             return
 
-        self._analyse_package_layout()
+        self._analyse_package_layout(ignore_ext_modules)
         if name:
             self.analyse_name()  # depends on ``packages`` and ``py_modules``
 
         self._called = True
 
-    def _analyse_package_layout(self) -> bool:
-        if self.dist.packages is not None or self.dist.py_modules is not None:
+    def _explicitly_specified(self, ignore_ext_modules: bool) -> bool:
+        """``True`` if the user has specified some form of package/module listing"""
+        ignore_ext_modules = ignore_ext_modules or self._skip_ext_modules
+        ext_modules = not (self.dist.ext_modules is None or ignore_ext_modules)
+        return (
+            self.dist.packages is not None
+            or self.dist.py_modules is not None
+            or ext_modules
+        )
+
+    def _analyse_package_layout(self, ignore_ext_modules: bool) -> bool:
+        if self._explicitly_specified(ignore_ext_modules):
             # For backward compatibility, just try to find modules/packages
             # when nothing is given
             return True

@@ -184,6 +184,8 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         package_dir.update(dist.package_dir or {})
         dist.package_dir = package_dir  # needs to be the same object
 
+        dist.set_defaults._ignore_ext_modules()  # pyproject.toml-specific behaviour
+
         # Set `py_modules` and `packages` in dist to short-circuit auto-discovery,
         # but avoid overwriting empty lists purposefully set by users.
         if dist.py_modules is None:
