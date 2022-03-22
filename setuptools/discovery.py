@@ -280,6 +280,12 @@ class ConfigDiscovery:
         # The best is to wait until `src_root` is set in dist, before using _root_dir.
         return self.dist.src_root or os.curdir
 
+    @property
+    def _package_dir(self) -> Dict[str, str]:
+        if self.dist.package_dir is None:
+            return {}
+        return self.dist.package_dir
+
     def __call__(self, force=False, name=True):
         """Automatically discover missing configuration fields
         and modifies the given ``distribution`` object in-place.
@@ -321,7 +327,7 @@ class ConfigDiscovery:
 
     def _analyse_explicit_layout(self) -> bool:
         """The user can explicitly give a package layout via ``package_dir``"""
-        package_dir = (self.dist.package_dir or {}).copy()
+        package_dir = self._package_dir.copy()  # don't modify directly
         package_dir.pop("", None)  # This falls under the "src-layout" umbrella
         root_dir = self._root_dir
 
@@ -348,13 +354,14 @@ class ConfigDiscovery:
         If ``package_dir[""]`` is not given, but the ``src`` directory exists,
         this function will set ``package_dir[""] = "src"``.
         """
-        package_dir = self.dist.package_dir = self.dist.package_dir or {}
+        package_dir = self._package_dir
         src_dir = os.path.join(self._root_dir, package_dir.get("", "src"))
         if not os.path.isdir(src_dir):
             return False
 
         log.debug(f"`src-layout` detected -- analysing {src_dir}")
         package_dir.setdefault("", os.path.basename(src_dir))
+        self.dist.package_dir = package_dir  # persist eventual modifications
         self.dist.packages = PEP420PackageFinder.find(src_dir)
         self.dist.py_modules = ModuleFinder.find(src_dir)
         log.debug(f"discovered packages -- {self.dist.packages}")

@@ -833,7 +833,7 @@ class Distribution(_Distribution):
             self, self.command_options, ignore_option_errors=ignore_option_errors
         )
         for filename in tomlfiles:
-            pyprojecttoml.apply_configuration(self, filename)
+            pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)
 
         self._finalize_requires()
         self._finalize_license_files()
