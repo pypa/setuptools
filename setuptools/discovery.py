@@ -307,8 +307,16 @@ class ConfigDiscovery:
 
         self._called = True
 
+    def _explicitly_specified(self) -> bool:
+        """``True`` if the user has specified some form of package/module listing"""
+        return (
+            self.dist.packages is not None
+            or self.dist.py_modules is not None
+            or self.dist.ext_modules is not None
+        )
+
     def _analyse_package_layout(self) -> bool:
-        if self.dist.packages is not None or self.dist.py_modules is not None:
+        if self._explicitly_specified():
             # For backward compatibility, just try to find modules/packages
             # when nothing is given
             return True
