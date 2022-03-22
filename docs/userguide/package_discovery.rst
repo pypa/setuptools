@@ -137,8 +137,8 @@ layouts and try to guess the correct values for the :ref:`packages <declarative
 config>` and :doc:`py_modules </references/keywords>` configuration.
 
 .. important::
-   Automatic discovery will **only** be enabled if you don't provide any
-   configuration for both ``packages`` and ``py_modules``.
+   Automatic discovery will **only** be enabled if you **don't** provide any
+   configuration for ``packages``, ``py_modules`` and ``ext_modules``.
    If at least one of them is explicitly set, automatic discovery will not take place.
 
 .. _src-layout:
