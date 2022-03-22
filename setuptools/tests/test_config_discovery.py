@@ -2,7 +2,6 @@ import os
 import sys
 from configparser import ConfigParser
 from itertools import product
-from inspect import cleandoc
 
 from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
@@ -316,55 +315,86 @@ def test_discovered_package_dir_with_attr_in_pyproject_config(tmp_path):
     assert dist.package_dir == {"": "src"}
 
 
-def test_skip_when_extensions_are_provided(tmp_path):
-    """Ensure that auto-discovery is not triggered when the project is based on
-    C-Extensions only.
-    """
-    # This example is based on: https://github.com/nucleic/kiwi/tree/1.4.0
-    files = [
-        "benchmarks/file.py",
-        "docs/Makefile",
-        "docs/requirements.txt",
-        "docs/source/conf.py",
-        "proj/header.h",
-        "proj/file.py",
-        "py/proj.cpp",
-        "py/other.cpp",
-        "py/file.py",
-        "py/py.typed",
-        "py/tests/test_proj.py",
-        "README.rst",
-    ]
-    _populate_project_dir(tmp_path, files, {})
-
-    pyproject = """
-        [project]
-        name = 'proj'
-        version = '42'
-    """
-    (tmp_path / "pyproject.toml").write_text(cleandoc(pyproject))
-
-    setup_script = """
-        from setuptools import Extension, setup
-
-        ext_modules = [
-            Extension(
-                "proj",
-                ["py/proj.cpp", "py/other.cpp"],
-                include_dirs=["."],
-                language="c++",
-            ),
+class TestWithCExtension:
+    def _simulate_package_with_extension(self, tmp_path):
+        # This example is based on: https://github.com/nucleic/kiwi/tree/1.4.0
+        files = [
+            "benchmarks/file.py",
+            "docs/Makefile",
+            "docs/requirements.txt",
+            "docs/source/conf.py",
+            "proj/header.h",
+            "proj/file.py",
+            "py/proj.cpp",
+            "py/other.cpp",
+            "py/file.py",
+            "py/py.typed",
+            "py/tests/test_proj.py",
+            "README.rst",
         ]
-        setup(ext_modules=ext_modules)
-    """
-    (tmp_path / "setup.py").write_text(cleandoc(setup_script))
-    dist = _get_dist(tmp_path, {})
-    assert dist.get_name() == "proj"
-    assert dist.get_version() == "42"
-    assert dist.py_modules is None
-    assert dist.packages is None
-    assert len(dist.ext_modules) == 1
-    assert dist.ext_modules[0].name == "proj"
+        _populate_project_dir(tmp_path, files, {})
+
+        setup_script = """
+            from setuptools import Extension, setup
+
+            ext_modules = [
+                Extension(
+                    "proj",
+                    ["py/proj.cpp", "py/other.cpp"],
+                    include_dirs=["."],
+                    language="c++",
+                ),
+            ]
+            setup(ext_modules=ext_modules)
+        """
+        (tmp_path / "setup.py").write_text(DALS(setup_script))
+
+    def test_skip_discovery_with_setupcfg_metadata(self, tmp_path):
+        """Ensure that auto-discovery is not triggered when the project is based on
+        C-extensions only, for backward compatibility.
+        """
+        self._simulate_package_with_extension(tmp_path)
+
+        pyproject = """
+            [build-system]
+            requires = []
+            build-backend = 'setuptools.build_meta'
+        """
+        (tmp_path / "pyproject.toml").write_text(DALS(pyproject))
+
+        setupcfg = """
+            [metadata]
+            name = proj
+            version = 42
+        """
+        (tmp_path / "setup.cfg").write_text(DALS(setupcfg))
+
+        dist = _get_dist(tmp_path, {})
+        assert dist.get_name() == "proj"
+        assert dist.get_version() == "42"
+        assert dist.py_modules is None
+        assert dist.packages is None
+        assert len(dist.ext_modules) == 1
+        assert dist.ext_modules[0].name == "proj"
+
+    def test_dont_skip_discovery_with_pyproject_metadata(self, tmp_path):
+        """When opting-in to pyproject.toml metadata, auto-discovery will be active if
+        the package lists C-extensions, but does not configure py-modules or packages.
+
+        This way we ensure users with complex package layouts that would lead to the
+        discovery of multiple top-level modules/packages see errors and are forced to
+        explicitly set ``packages`` or ``py-modules``.
+        """
+        self._simulate_package_with_extension(tmp_path)
+
+        pyproject = """
+            [project]
+            name = 'proj'
+            version = '42'
+        """
+        (tmp_path / "pyproject.toml").write_text(DALS(pyproject))
+        with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
+            _get_dist(tmp_path, {})
 
 
 def _populate_project_dir(root, files, options):
