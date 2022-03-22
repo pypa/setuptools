@@ -113,6 +113,7 @@ def verify_example(config, path, pkg_root):
             "other",
             "other.nested",
         }
+    assert expanded["tool"]["setuptools"]["include-package-data"] is True
     assert "" in expanded["tool"]["setuptools"]["package-data"]
     assert "*" not in expanded["tool"]["setuptools"]["package-data"]
     assert expanded["tool"]["setuptools"]["data-files"] == [
@@ -279,3 +280,15 @@ def test_empty(tmp_path, config):
 
     # Make sure no error is raised
     assert read_configuration(pyproject) == {}
+
+
+@pytest.mark.parametrize("config", ("[project]\nname = 'myproj'\nversion='42'\n",))
+def test_include_package_data_by_default(tmp_path, config):
+    """Builds with ``pyproject.toml`` should consider ``include-package-data=True`` as
+    default.
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(config)
+
+    config = read_configuration(pyproject)
+    assert config["tool"]["setuptools"]["include-package-data"] is True
