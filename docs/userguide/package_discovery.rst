@@ -138,8 +138,12 @@ config>` and :doc:`py_modules </references/keywords>` configuration.
 
 .. important::
    Automatic discovery will **only** be enabled if you **don't** provide any
-   configuration for ``packages``, ``py_modules`` and ``ext_modules``.
+   configuration for ``packages`` and ``py_modules``.
    If at least one of them is explicitly set, automatic discovery will not take place.
+
+   **Note**: specifying ``ext_modules`` might also prevent auto-discover from
+   taking place, unless your opt into :doc:`pyproject_config` (which will
+   disable the backward compatible behaviour).
 
 .. _src-layout:
 
