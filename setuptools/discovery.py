@@ -190,6 +190,7 @@ class ModuleFinder(_Finder):
 
 class FlatLayoutPackageFinder(PEP420PackageFinder):
     _EXCLUDE = (
+        "ci",
         "bin",
         "doc",
         "docs",
@@ -207,6 +208,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "tools",
         "util",
         "utils",
+        "python",
         "build",
         "dist",
         "venv",
@@ -216,6 +218,11 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "tasks",  # invoke
         "fabfile",  # fabric
         "site_scons",  # SCons
+        # ---- Other tools ----
+        "benchmark",
+        "benchmarks",
+        "exercise",
+        "exercises",
         # ---- Hidden directories/Private packages ----
         "[._]*",
     )
@@ -250,6 +257,10 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "[Ss][Cc]onstruct",  # SCons
         "conanfile",  # Connan: C/C++ build tool
         "manage",  # Django
+        "benchmark",
+        "benchmarks",
+        "exercise",
+        "exercises",
         # ---- Hidden files/Private modules ----
         "[._]*",
     )
