@@ -1,0 +1,2 @@
+Postponed importing ``ctypes`` when hidding files on Windows.
+This helps to prevent errors in systems that might not have `libffi` installed.
