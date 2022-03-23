@@ -56,30 +56,50 @@ def test_read_files(tmp_path, monkeypatch):
         expand.read_files(["../a.txt"], tmp_path)
 
 
-def test_read_attr(tmp_path, monkeypatch):
-    files = {
-        "pkg/__init__.py": "",
-        "pkg/sub/__init__.py": "VERSION = '0.1.1'",
-        "pkg/sub/mod.py": (
-            "VALUES = {'a': 0, 'b': {42}, 'c': (0, 1, 1)}\n"
-            "raise SystemExit(1)"
-        ),
-    }
-    write_files(files, tmp_path)
+class TestReadAttr:
+    def test_read_attr(self, tmp_path, monkeypatch):
+        files = {
+            "pkg/__init__.py": "",
+            "pkg/sub/__init__.py": "VERSION = '0.1.1'",
+            "pkg/sub/mod.py": (
+                "VALUES = {'a': 0, 'b': {42}, 'c': (0, 1, 1)}\n"
+                "raise SystemExit(1)"
+            ),
+        }
+        write_files(files, tmp_path)
 
-    with monkeypatch.context() as m:
-        m.chdir(tmp_path)
-        # Make sure it can read the attr statically without evaluating the module
-        assert expand.read_attr('pkg.sub.VERSION') == '0.1.1'
-        values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'})
+        with monkeypatch.context() as m:
+            m.chdir(tmp_path)
+            # Make sure it can read the attr statically without evaluating the module
+            assert expand.read_attr('pkg.sub.VERSION') == '0.1.1'
+            values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'})
 
-    assert values['a'] == 0
-    assert values['b'] == {42}
+        assert values['a'] == 0
+        assert values['b'] == {42}
 
-    # Make sure the same APIs work outside cwd
-    assert expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path) == '0.1.1'
-    values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'}, tmp_path)
-    assert values['c'] == (0, 1, 1)
+        # Make sure the same APIs work outside cwd
+        assert expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path) == '0.1.1'
+        values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'}, tmp_path)
+        assert values['c'] == (0, 1, 1)
+
+    def test_import_order(self, tmp_path):
+        """
+        Sometimes the import machinery will import the parent package of a nested
+        module, which triggers side-effects and might create problems (see issue #3176)
+
+        ``read_attr`` should bypass these limitations by resolving modules statically
+        (via ast.literal_eval).
+        """
+        files = {
+            "src/pkg/__init__.py": "from .main import func\nfrom .about import version",
+            "src/pkg/main.py": "import super_complicated_dep\ndef func(): return 42",
+            "src/pkg/about.py": "version = '42'",
+        }
+        write_files(files, tmp_path)
+        attr_desc = "pkg.about.version"
+        pkg_dir = {"": "src"}
+        # `import super_complicated_dep` should not run, otherwise the build fails
+        assert expand.read_attr(attr_desc, pkg_dir, tmp_path) == "42"
 
 
 def test_resolve_class():
