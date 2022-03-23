@@ -933,7 +933,7 @@ Changes
 * #2481: Define ``create_module()`` and ``exec_module()`` methods in ``VendorImporter``
   to get rid of ``ImportWarning`` -- by :user:`hroncok`
 * #2489: ``pkg_resources`` behavior for zipimport now matches the regular behavior, and finds
-  ``.egg-info`` (previoulsy would only find ``.dist-info``) -- by :user:`thatch`
+  ``.egg-info`` (previously would only find ``.dist-info``) -- by :user:`thatch`
 * #2529: Fixed an issue where version tags may be added multiple times
 
 
@@ -944,7 +944,7 @@ v51.2.0
 Changes
 ^^^^^^^
 * #2493: Use importlib.import_module() rather than the deprecated loader.load_module()
-  in pkg_resources namespace delaration -- by :user:`encukou`
+  in pkg_resources namespace declaration -- by :user:`encukou`
 
 Documentation changes
 ^^^^^^^^^^^^^^^^^^^^^
