@@ -10,3 +10,5 @@ nspektr==0.3.0
 typing_extensions==4.0.1
 # required for importlib_resources and _metadata on older Pythons
 zipp==3.7.0
+tomli==2.0.1
+# validate-pyproject[all]==0.6  # Special handling in tools/vendored, don't uncomment or remove

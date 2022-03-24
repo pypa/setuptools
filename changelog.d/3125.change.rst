@@ -1,0 +1,10 @@
+Implicit namespaces (as introduced in :pep:`420`) are now considered by default
+during :doc:`package discovery </userguide/package_discovery>`, when
+``setuptools`` configuration and project metadata are added to the
+``pyproject.toml`` file.
+
+To disable this behaviour, use ``namespaces = False`` when explicitly setting
+the ``[tool.setuptools.packages.find]`` section in ``pyproject.toml``.
+
+This change is backwards compatible and does not affect the behaviour of
+configuration done in ``setup.cfg`` or ``setup.py``.

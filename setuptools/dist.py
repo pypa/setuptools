@@ -19,6 +19,7 @@ from glob import iglob
 import itertools
 import textwrap
 from typing import List, Optional, TYPE_CHECKING
+from pathlib import Path
 
 from collections import defaultdict
 from email import message_from_file
@@ -28,7 +29,7 @@ from distutils.util import rfc822_escape
 
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen
+from setuptools.extern.more_itertools import unique_everseen, partition
 from setuptools.extern import nspektr
 
 from ._importlib import metadata
@@ -39,7 +40,9 @@ import setuptools
 import setuptools.command
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
-from setuptools.config import parse_configuration
+from setuptools.config import setupcfg, pyprojecttoml
+from setuptools.discovery import ConfigDiscovery
+
 import pkg_resources
 from setuptools.extern.packaging import version
 from . import _reqs
@@ -465,6 +468,8 @@ class Distribution(_Distribution):
             },
         )
 
+        self.set_defaults = ConfigDiscovery(self)
+
         self._set_metadata_defaults(attrs)
 
         self.metadata.version = self._normalize_version(
@@ -812,13 +817,24 @@ class Distribution(_Distribution):
     def parse_config_files(self, filenames=None, ignore_option_errors=False):
         """Parses configuration files from various levels
         and loads configuration.
-
         """
+        tomlfiles = []
+        standard_project_metadata = Path(self.src_root or os.curdir, "pyproject.toml")
+        if filenames is not None:
+            parts = partition(lambda f: Path(f).suffix == ".toml", filenames)
+            filenames = list(parts[0])  # 1st element => predicate is False
+            tomlfiles = list(parts[1])  # 2nd element => predicate is True
+        elif standard_project_metadata.exists():
+            tomlfiles = [standard_project_metadata]
+
         self._parse_config_files(filenames=filenames)
 
-        parse_configuration(
+        setupcfg.parse_configuration(
             self, self.command_options, ignore_option_errors=ignore_option_errors
         )
+        for filename in tomlfiles:
+            pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)
+
         self._finalize_requires()
         self._finalize_license_files()
 
@@ -1171,6 +1187,13 @@ class Distribution(_Distribution):
             sys.stdout = io.TextIOWrapper(
                 sys.stdout.detach(), encoding, errors, newline, line_buffering
             )
+
+    def run_command(self, command):
+        self.set_defaults()
+        # Postpone defaults until all explicit configuration is considered
+        # (setup() args, config files, command line and plugins)
+
+        super().run_command(command)
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):

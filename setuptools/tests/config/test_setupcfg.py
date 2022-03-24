@@ -1,21 +1,20 @@
-import types
-import sys
-
-import contextlib
 import configparser
+import contextlib
+import inspect
+from pathlib import Path
+from unittest.mock import Mock, patch
 
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from mock import patch
 from setuptools.dist import Distribution, _Distribution
-from setuptools.config import ConfigHandler, read_configuration
-from distutils.core import Command
-from .textwrap import DALS
+from setuptools.config.setupcfg import ConfigHandler, read_configuration
+from ..textwrap import DALS
 
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
+    section_prefix = "**err**"
 
 
 def make_package_dir(name, base_dir, ns=False):
@@ -70,7 +69,7 @@ def get_dist(tmpdir, kwargs_initial=None, parse=True):
 def test_parsers_implemented():
 
     with pytest.raises(NotImplementedError):
-        handler = ErrConfigHandler(None, {})
+        handler = ErrConfigHandler(None, {}, False, Mock())
         handler.parsers
 
 
@@ -859,22 +858,25 @@ class TestOptions:
                 dist.parse_config_files()
 
     def test_cmdclass(self, tmpdir):
-        class CustomCmd(Command):
-            pass
-
-        m = types.ModuleType('custom_build', 'test package')
-
-        m.__dict__['CustomCmd'] = CustomCmd
-
-        sys.modules['custom_build'] = m
-
-        fake_env(
-            tmpdir,
-            '[options]\n' 'cmdclass =\n' '    customcmd = custom_build.CustomCmd\n',
+        module_path = Path(tmpdir, "src/custom_build.py")  # auto discovery for src
+        module_path.parent.mkdir(parents=True, exist_ok=True)
+        module_path.write_text(
+            "from distutils.core import Command\n"
+            "class CustomCmd(Command): pass\n"
         )
 
+        setup_cfg = """
+            [options]
+            cmdclass =
+                customcmd = custom_build.CustomCmd
+        """
+        fake_env(tmpdir, inspect.cleandoc(setup_cfg))
+
         with get_dist(tmpdir) as dist:
-            assert dist.cmdclass == {'customcmd': CustomCmd}
+            cmdclass = dist.cmdclass['customcmd']
+            assert cmdclass.__name__ == "CustomCmd"
+            assert cmdclass.__module__ == "custom_build"
+            assert module_path.samefile(inspect.getfile(cmdclass))
 
 
 saved_dist_init = _Distribution.__init__

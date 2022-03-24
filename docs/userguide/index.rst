@@ -31,6 +31,7 @@ quickstart provides an overview of the new workflow.
     distribution
     extension
     declarative_config
+    pyproject_config
     keywords
     commands
     functionalities_rewrite

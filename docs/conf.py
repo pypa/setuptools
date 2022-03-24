@@ -10,6 +10,10 @@ link_files = {
         ),
         replace=[
             dict(
+                pattern=r'(?<!\w)PR #(?P<pull>\d+)',
+                url='{package_url}/pull/{pull}',
+            ),
+            dict(
                 pattern=r'(?<!\w)(Issue )?#(?P<issue>\d+)',
                 url='{package_url}/issues/{issue}',
             ),
@@ -93,10 +97,15 @@ intersphinx_mapping.update({
 
 # Add support for linking usernames
 github_url = 'https://github.com'
+github_repo_org = 'pypa'
+github_repo_name = 'setuptools'
+github_repo_slug = f'{github_repo_org}/{github_repo_name}'
+github_repo_url = f'{github_url}/{github_repo_slug}'
 github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
     'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
-    'pypi': ('https://pypi.org/project/%s', '%s'),
+    'pypi': ('https://pypi.org/project/%s', '%s'),  # noqa: WPS323
+    'wiki': ('https://wikipedia.org/wiki/%s', '%s'),  # noqa: WPS323
 }
 extensions += ['sphinx.ext.extlinks']
 
@@ -163,8 +172,8 @@ nitpick_ignore = [
 
 # Allow linking objects on other Sphinx sites seamlessly:
 intersphinx_mapping.update(
-    python=('https://docs.python.org/3', None),
     python2=('https://docs.python.org/2', None),
+    python=('https://docs.python.org/3', None),
 )
 
 # Add support for the unreleased "next-version" change notes

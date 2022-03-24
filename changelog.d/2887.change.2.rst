@@ -1,0 +1,9 @@
+**[EXPERIMENTAL]** Added automatic configuration for the ``name`` metadata
+-- by :user:`abravalheri`.
+
+Setuptools will adopt the name of the top-level package (or module in the case
+of single-module distributions), **only when** ``name`` **is not explicitly
+provided**.
+
+Please note that it is not possible to automatically derive a single name when
+the distribution consists of multiple top-level packages or modules.

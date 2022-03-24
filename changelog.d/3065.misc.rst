@@ -1,0 +1,4 @@
+Refactored ``setuptools.config`` by separating configuration parsing (specific
+to the configuration file format, e.g. ``setup.cfg``) and post-processing
+(which includes directives such as ``file:`` that can be used across different
+configuration formats).
