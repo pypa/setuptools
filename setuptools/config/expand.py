@@ -408,7 +408,8 @@ class EnsurePackagesDiscovered:
 
     def _get_package_dir(self) -> Mapping[str, str]:
         self()
-        return self._dist.package_dir
+        pkg_dir = self._dist.package_dir
+        return {} if pkg_dir is None else pkg_dir
 
     @property
     def package_dir(self) -> Mapping[str, str]:
