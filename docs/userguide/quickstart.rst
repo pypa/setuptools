@@ -178,7 +178,7 @@ setup also allows you to adopt a ``src/`` layout. For more details and advanced
 use, go to :ref:`package_discovery`.
 
 .. tip::
-   Starting with version 60.10.0, setuptools' automatic discovery capabilities
+   Starting with version 61.0.0, setuptools' automatic discovery capabilities
    have been improved to detect popular project layouts (such as the
    :ref:`flat-layout` and :ref:`src-layout`) without requiring any
    special configuration. Check out our :ref:`reference docs <package_discovery>`
@@ -202,7 +202,7 @@ The following configuration examples show how to accomplish this:
 
         [options.entry_points]
         console_scripts =
-            cli-name = mypkg:some_func
+            cli-name = mypkg.mymodule:some_func
 
 .. tab:: setup.py [#setup.py]_
 
@@ -212,7 +212,7 @@ The following configuration examples show how to accomplish this:
             # ...
             entry_points={
                 'console_scripts': [
-                    'cli-name = mypkg:some_func',
+                    'cli-name = mypkg.mymodule:some_func',
                 ]
             }
         )
@@ -222,10 +222,11 @@ The following configuration examples show how to accomplish this:
     .. code-block:: toml
 
        [project.scripts]
-       cli-name = mypkg:some_func
+       cli-name = mypkg.mymodule:some_func
 
-When this project is installed, a ``cli-name`` executable will be installed and will
-invoke the ``some_func`` in the ``mypkg/__init__.py`` file when called by the user.
+When this project is installed, a ``cli-name`` executable will be created.
+``cli-name`` will invoke the function ``some_func`` in the
+``mypkg/mymodule.py`` file when called by the user.
 Note that you can also use the ``entry-points`` mechanism to advertise
 components between installed packages and implement plugin systems.
 For detailed usage, go to :doc:`entry_point`.
@@ -268,9 +269,9 @@ The example bellow show how to configure this kind of dependencies:
         ]
         # ...
 
-Each dependency is represented a string that can optionally contain version requirements
+Each dependency is represented by a string that can optionally contain version requirements
 (e.g. one of the operators <, >, <=, >=, == or !=, followed by a version identifier),
-and/or conditional environment markers, e.g. ``os_name = "windows"``
+and/or conditional environment markers, e.g. ``sys_platform == "win32"``
 (see :doc:`PyPUG:specifications/version-specifiers` for more information).
 
 When your project is installed, all of the dependencies not already installed
@@ -338,28 +339,11 @@ Here's how to do it::
 This creates a link file in your interpreter site package directory which
 associate with your source code. For more information, see :doc:`development_mode`.
 
-..
-    TODO: Restore the following note once PEP 660 lands in setuptools.
-    tip: Prior to :ref:`pip v21.1 <pip:v21-1>`, a ``setup.py`` script was
+.. tip::
+
+    Prior to :ref:`pip v21.1 <pip:v21-1>`, a ``setup.py`` script was
     required to be compatible with development mode. With late
     versions of pip, any project may be installed in this mode.
-
-.. tip::
-    If you are experimenting with :doc:`configuration using
-    <pyproject_config>`, or have version of ``pip`` older than :ref:`v21.1 <pip:v21-1>`,
-    you might need to keep a ``setup.py`` file in file in your repository if
-    you want to use editable installs (for the time being).
-
-    A simple script will suffice, for example:
-
-    .. code-block:: python
-
-        from setuptools import setup
-
-        setup()
-
-    You can still keep all the configuration in :doc:`setup.cfg </userguide/declarative_config>`
-    (or :doc:`pyproject.toml </userguide/pyproject_config>`).
 
 
 Uploading your package to PyPI
@@ -397,7 +381,8 @@ up-to-date references that can help you when it is time to distribute your work.
 .. rubric:: Notes
 
 .. [#setup.py]
-   The ``setup.py`` file should be used only when absolutely necessary.
+   The ``setup.py`` file should be used only when custom scripting during the
+   build is necessary.
    Examples are kept in this document to help people interested in maintaining or
    contributing to existing packages that use ``setup.py``.
    Note that you can still keep most of configuration declarative in
