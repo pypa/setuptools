@@ -224,8 +224,9 @@ The following configuration examples show how to accomplish this:
        [project.scripts]
        cli-name = mypkg:some_func
 
-When this project is installed, a ``cli-name`` executable will be installed and will
-invoke the ``some_func`` in the ``mypkg/__init__.py`` file when called by the user.
+When this project is installed, a ``cli-name`` executable will be created.
+``cli-name`` will invoke the function ``some_func`` in the
+``mypkg/__init__.py`` file when called by the user.
 Note that you can also use the ``entry-points`` mechanism to advertise
 components between installed packages and implement plugin systems.
 For detailed usage, go to :doc:`entry_point`.
