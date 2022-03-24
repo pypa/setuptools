@@ -270,7 +270,7 @@ The example bellow show how to configure this kind of dependencies:
 
 Each dependency is represented a string that can optionally contain version requirements
 (e.g. one of the operators <, >, <=, >=, == or !=, followed by a version identifier),
-and/or conditional environment markers, e.g. ``os_name = "windows"``
+and/or conditional environment markers, e.g. ``sys_platform == "win32"``
 (see :doc:`PyPUG:specifications/version-specifiers` for more information).
 
 When your project is installed, all of the dependencies not already installed
