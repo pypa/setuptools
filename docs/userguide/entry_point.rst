@@ -84,11 +84,12 @@ above example, to create a command ``hello-world`` that invokes
 After installing the package, a user may invoke that function by simply calling
 ``hello-world`` on the command line.
 
-The syntax for entry points is specified as follows:
+The syntax for entry points provided to `console_scripts` is specified as
+follows:
 
 .. code-block:: ini
 
-    <name> = [<package>.[<subpackage>.]]<module>[:<object>.<object>]
+    <name> = [<package>.[<subpackage>.]]<module>:<object>.<object>
 
 where ``name`` is the name for the script you want to create, the left hand
 side of ``:`` is the module that contains your function and the right hand
