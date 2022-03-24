@@ -178,7 +178,7 @@ setup also allows you to adopt a ``src/`` layout. For more details and advanced
 use, go to :ref:`package_discovery`.
 
 .. tip::
-   Starting with version 60.10.0, setuptools' automatic discovery capabilities
+   Starting with version 61.0.0, setuptools' automatic discovery capabilities
    have been improved to detect popular project layouts (such as the
    :ref:`flat-layout` and :ref:`src-layout`) without requiring any
    special configuration. Check out our :ref:`reference docs <package_discovery>`
