@@ -1,2 +1,0 @@
-Added initial documentation about configuring ``setuptools`` via ``pyproject.toml``
-(using standard project metadata).

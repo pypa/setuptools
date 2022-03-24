@@ -1,3 +1,111 @@
+v61.0.0
+-------
+
+
+Deprecations
+^^^^^^^^^^^^
+* #3068: Deprecated ``setuptools.config.read_configuration``,
+  ``setuptools.config.parse_configuration`` and other functions or classes
+  from ``setuptools.config``.
+
+  Users that still need to parse and process configuration from ``setup.cfg`` can
+  import a direct replacement from ``setuptools.config.setupcfg``, however this
+  module is transitional and might be removed in the future
+  (the ``setup.cfg`` configuration format itself is likely to be deprecated in the future).
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2894: If you purposefully want to create an *"empty distribution"*, please be aware
+  that some Python files (or general folders) might be automatically detected and
+  included.
+
+  Projects that currently don't specify both ``packages`` and ``py_modules`` in their
+  configuration and contain extra folders or Python files (not meant for distribution),
+  might see these files being included in the wheel archive or even experience
+  the build to fail.
+
+  You can check details about the automatic discovery (and how to configure a
+  different behaviour) in :doc:`/userguide/package_discovery`.
+
+Changes
+^^^^^^^
+* #2887: **[EXPERIMENTAL]** Added automatic discovery for ``py_modules`` and ``packages``
+  -- by :user:`abravalheri`.
+
+  Setuptools will try to find these values assuming that the package uses either
+  the *src-layout* (a ``src`` directory containing all the packages or modules),
+  the *flat-layout* (package directories directly under the project root),
+  or the *single-module* approach (an isolated Python file, directly under
+  the project root).
+
+  The automatic discovery will also respect layouts that are explicitly
+  configured using the ``package_dir`` option.
+
+  For backward-compatibility, this behavior will be observed **only if both**
+  ``py_modules`` **and** ``packages`` **are not set**.
+  (**Note**: specifying ``ext_modules`` might also prevent auto-discover from
+  taking place)
+
+  If setuptools detects modules or packages that are not supposed to be in the
+  distribution, please manually set ``py_modules`` and ``packages`` in your
+  ``setup.cfg`` or ``setup.py`` file.
+  If you are using a *flat-layout*, you can also consider switching to
+  *src-layout*.
+* #2887: **[EXPERIMENTAL]** Added automatic configuration for the ``name`` metadata
+  -- by :user:`abravalheri`.
+
+  Setuptools will adopt the name of the top-level package (or module in the case
+  of single-module distributions), **only when** ``name`` **is not explicitly
+  provided**.
+
+  Please note that it is not possible to automatically derive a single name when
+  the distribution consists of multiple top-level packages or modules.
+* #3066: Added vendored dependencies for :pypi:`tomli`, :pypi:`validate-pyproject`.
+
+  These dependencies are used to read ``pyproject.toml`` files and validate them.
+* #3068: **[EXPERIMENTAL]** Add support for ``pyproject.toml`` configuration
+  (as introduced by :pep:`621`). Configuration parameters not covered by
+  standards are handled in the ``[tool.setuptools]`` sub-table.
+
+  In the future, existing ``setup.cfg`` configuration
+  may be automatically converted into the ``pyproject.toml`` equivalent before taking effect
+  (as proposed in #1688). Meanwhile users can use automated tools like
+  :pypi:`ini2toml` to help in the transition.
+
+  Please note that the legacy backend is not guaranteed to work with
+  ``pyproject.toml`` configuration.
+
+  -- by :user:`abravalheri`
+* #3125: Implicit namespaces (as introduced in :pep:`420`) are now considered by default
+  during :doc:`package discovery </userguide/package_discovery>`, when
+  ``setuptools`` configuration and project metadata are added to the
+  ``pyproject.toml`` file.
+
+  To disable this behaviour, use ``namespaces = False`` when explicitly setting
+  the ``[tool.setuptools.packages.find]`` section in ``pyproject.toml``.
+
+  This change is backwards compatible and does not affect the behaviour of
+  configuration done in ``setup.cfg`` or ``setup.py``.
+* #3152: **[EXPERIMENTAL]** Added support for ``attr:`` and ``cmdclass`` configurations
+  in ``setup.cfg`` and ``pyproject.toml`` when ``package_dir`` is implicitly
+  found via auto-discovery.
+* #3178: Postponed importing ``ctypes`` when hiding files on Windows.
+  This helps to prevent errors in systems that might not have `libffi` installed.
+* #3179: Merge with pypa/distutils@267dbd25ac
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3172: Added initial documentation about configuring ``setuptools`` via ``pyproject.toml``
+  (using standard project metadata).
+
+Misc
+^^^^
+* #3065: Refactored ``setuptools.config`` by separating configuration parsing (specific
+  to the configuration file format, e.g. ``setup.cfg``) and post-processing
+  (which includes directives such as ``file:`` that can be used across different
+  configuration formats).
+
+
 v60.10.0
 --------
 
