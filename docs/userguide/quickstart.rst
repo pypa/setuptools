@@ -381,7 +381,8 @@ up-to-date references that can help you when it is time to distribute your work.
 .. rubric:: Notes
 
 .. [#setup.py]
-   The ``setup.py`` file should be used only when absolutely necessary.
+   The ``setup.py`` file should be used only when custom scripting during the
+   build is necessary.
    Examples are kept in this document to help people interested in maintaining or
    contributing to existing packages that use ``setup.py``.
    Note that you can still keep most of configuration declarative in
