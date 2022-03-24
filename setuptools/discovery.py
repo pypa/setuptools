@@ -248,6 +248,7 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "examples",
         "build",
         # ---- Task runners ----
+        "toxfile",
         "noxfile",
         "pavement",
         "dodo",
