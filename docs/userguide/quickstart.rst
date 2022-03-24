@@ -269,7 +269,7 @@ The example bellow show how to configure this kind of dependencies:
         ]
         # ...
 
-Each dependency is represented a string that can optionally contain version requirements
+Each dependency is represented by a string that can optionally contain version requirements
 (e.g. one of the operators <, >, <=, >=, == or !=, followed by a version identifier),
 and/or conditional environment markers, e.g. ``sys_platform == "win32"``
 (see :doc:`PyPUG:specifications/version-specifiers` for more information).
