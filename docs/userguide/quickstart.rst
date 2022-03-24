@@ -343,7 +343,23 @@ associate with your source code. For more information, see :doc:`development_mod
 
     Prior to :ref:`pip v21.1 <pip:v21-1>`, a ``setup.py`` script was
     required to be compatible with development mode. With late
-    versions of pip, any project may be installed in this mode.
+    versions of pip, ``setup.cfg``-only projects may be installed in this mode.
+
+    If you are experimenting with :doc:`configuration using <pyproject_config>`,
+    or have version of ``pip`` older than v21.1, you might need to keep a
+    ``setup.py`` file in file in your repository if you want to use editable
+    installs (for the time being).
+
+    A simple script will suffice, for example:
+
+    .. code-block:: python
+
+        from setuptools import setup
+
+        setup()
+
+    You can still keep all the configuration in :doc:`setup.cfg </userguide/declarative_config>`
+    (or :doc:`pyproject.toml </userguide/pyproject_config>`).
 
 
 Uploading your package to PyPI
