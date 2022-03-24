@@ -397,7 +397,7 @@ fail later).
 Python requirement
 ==================
 In some cases, you might need to specify the minimum required python version.
-This can be configured as shown in the example bellow.
+This can be configured as shown in the example below.
 
 .. tab:: setup.cfg
 
