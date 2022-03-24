@@ -101,8 +101,8 @@ Key                       Value Type (TOML)           Notes
 
 Please note that some of these configurations are deprecated or at least
 discouraged, but they are made available to ensure portability.
-New packages should avoid relying on them, and existing packages should
-consider alternatives.
+New packages should avoid relying on deprecated/discouraged fields, and
+existing packages should consider alternatives.
 
 .. tip::
    When both ``py-modules`` and ``packages`` are left unspecified,
