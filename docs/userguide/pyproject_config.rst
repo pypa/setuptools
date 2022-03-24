@@ -12,11 +12,6 @@ Configuring setuptools using ``pyproject.toml`` files
    ``setuptools`` via ``pyproject.toml`` files is still experimental and might
    change (or be removed) in future releases.
 
-.. important::
-   For the time being, you still might require a ``setup.py`` file containing
-   a *arg-less* ``setup()`` function call to support
-   :doc:`editable installs <pip:cli/pip_install>`.
-
 Starting with :pep:`621`, the Python community selected ``pyproject.toml`` as
 a standard way of specifying *project metadata*.
 ``Setuptools`` has adopted this standard and will use the information contained
