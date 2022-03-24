@@ -3,7 +3,6 @@ import os
 import pytest
 
 from distutils.errors import DistutilsOptionError
-from setuptools.command.sdist import sdist
 from setuptools.config import expand
 from setuptools.discovery import find_package_path
 
@@ -97,13 +96,25 @@ class TestReadAttr:
         }
         write_files(files, tmp_path)
         attr_desc = "pkg.about.version"
-        pkg_dir = {"": "src"}
+        package_dir = {"": "src"}
         # `import super_complicated_dep` should not run, otherwise the build fails
-        assert expand.read_attr(attr_desc, pkg_dir, tmp_path) == "42"
+        assert expand.read_attr(attr_desc, package_dir, tmp_path) == "42"
 
 
-def test_resolve_class():
-    assert expand.resolve_class("setuptools.command.sdist.sdist") == sdist
+@pytest.mark.parametrize(
+    'package_dir, file, module, return_value',
+    [
+        ({"": "src"}, "src/pkg/main.py", "pkg.main", 42),
+        ({"pkg": "lib"}, "lib/main.py", "pkg.main", 13),
+        ({}, "single_module.py", "single_module", 70),
+        ({}, "flat_layout/pkg.py", "flat_layout.pkg", 836),
+    ]
+)
+def test_resolve_class(tmp_path, package_dir, file, module, return_value):
+    files = {file: f"class Custom:\n    def testing(self): return {return_value}"}
+    write_files(files, tmp_path)
+    cls = expand.resolve_class(f"{module}.Custom", package_dir, tmp_path)
+    assert cls().testing() == return_value
 
 
 @pytest.mark.parametrize(
