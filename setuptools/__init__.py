@@ -3,11 +3,13 @@
 import functools
 import os
 import re
+import warnings
 
 import _distutils_hack.override  # noqa: F401
 
 import distutils.core
 from distutils.errors import DistutilsOptionError
+from distutils.util import convert_path as _convert_path
 
 from ._deprecation_warning import SetuptoolsDeprecationWarning
 
@@ -156,6 +158,19 @@ def findall(dir=os.curdir):
         make_rel = functools.partial(os.path.relpath, start=dir)
         files = map(make_rel, files)
     return list(files)
+
+
+@functools.wraps(_convert_path)
+def convert_path(pathname):
+    from inspect import cleandoc
+
+    msg = """
+    The function `convert_path` is considered internal and not part of the public API.
+    Its direct usage by 3rd-party packages is considered deprecated and the function
+    may be removed in the future.
+    """
+    warnings.warn(cleandoc(msg), SetuptoolsDeprecationWarning)
+    return _convert_path(pathname)
 
 
 class sic(str):
