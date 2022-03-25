@@ -1,0 +1,2 @@
+Added a default value for dynamic ``classifiers`` in ``pyproject.toml`` when
+files are missing and errors being ignored.

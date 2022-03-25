@@ -252,7 +252,7 @@ def _expand_all_dynamic(
 
     if "classifiers" in dynamic:
         value = _expand_dynamic(dynamic_cfg, "classifiers", pkg_dir, root_dir, ignore)
-        project_cfg["classifiers"] = value.splitlines()
+        project_cfg["classifiers"] = (value or "").splitlines()
 
 
 def _expand_dynamic(

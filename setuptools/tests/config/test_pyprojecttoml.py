@@ -11,6 +11,8 @@ from setuptools.config.pyprojecttoml import (
     expand_configuration,
     validate,
 )
+from setuptools.errors import OptionError
+
 
 import setuptools  # noqa -- force distutils.core to be patched
 import distutils.core
@@ -193,32 +195,63 @@ def test_expand_entry_point(tmp_path):
     assert "gui-scripts" not in expanded_project
 
 
-def test_dynamic_classifiers(tmp_path):
-    # Let's create a project example that has dynamic classifiers
-    # coming from a txt file.
-    create_example(tmp_path, "src")
-    classifiers = """\
-    Framework :: Flask
-    Programming Language :: Haskell
-    """
-    (tmp_path / "classifiers.txt").write_text(cleandoc(classifiers))
+class TestClassifiers:
+    def test_dynamic(self, tmp_path):
+        # Let's create a project example that has dynamic classifiers
+        # coming from a txt file.
+        create_example(tmp_path, "src")
+        classifiers = """\
+        Framework :: Flask
+        Programming Language :: Haskell
+        """
+        (tmp_path / "classifiers.txt").write_text(cleandoc(classifiers))
 
-    pyproject = tmp_path / "pyproject.toml"
-    config = read_configuration(pyproject, expand=False)
-    dynamic = config["project"]["dynamic"]
-    config["project"]["dynamic"] = list({*dynamic, "classifiers"})
-    dynamic_config = config["tool"]["setuptools"]["dynamic"]
-    dynamic_config["classifiers"] = {"file": "classifiers.txt"}
+        pyproject = tmp_path / "pyproject.toml"
+        config = read_configuration(pyproject, expand=False)
+        dynamic = config["project"]["dynamic"]
+        config["project"]["dynamic"] = list({*dynamic, "classifiers"})
+        dynamic_config = config["tool"]["setuptools"]["dynamic"]
+        dynamic_config["classifiers"] = {"file": "classifiers.txt"}
 
-    # When the configuration is expanded,
-    # each line of the file should be an different classifier.
-    validate(config, pyproject)
-    expanded = expand_configuration(config, tmp_path)
+        # When the configuration is expanded,
+        # each line of the file should be an different classifier.
+        validate(config, pyproject)
+        expanded = expand_configuration(config, tmp_path)
 
-    assert set(expanded["project"]["classifiers"]) == {
-        "Framework :: Flask",
-        "Programming Language :: Haskell",
-    }
+        assert set(expanded["project"]["classifiers"]) == {
+            "Framework :: Flask",
+            "Programming Language :: Haskell",
+        }
+
+    def test_dynamic_without_config(self, tmp_path):
+        config = """
+        [project]
+        name = "myproj"
+        version = '42'
+        dynamic = ["classifiers"]
+        """
+
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(cleandoc(config))
+        with pytest.raises(OptionError, match="No configuration found"):
+            read_configuration(pyproject)
+
+    def test_dynamic_without_file(self, tmp_path):
+        config = """
+        [project]
+        name = "myproj"
+        version = '42'
+        dynamic = ["classifiers"]
+
+        [tool.setuptools.dynamic]
+        classifiers = {file = ["classifiers.txt"]}
+        """
+
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(cleandoc(config))
+        with pytest.warns(UserWarning, match="File .*classifiers.txt. cannot be found"):
+            expanded = read_configuration(pyproject)
+        assert not expanded["project"]["classifiers"]
 
 
 @pytest.mark.parametrize(

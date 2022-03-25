@@ -141,7 +141,7 @@ def _pep621_example_project(tmp_path, readme="README.rst"):
         text = text.replace(orig, subst)
     pyproject.write_text(text)
 
-    (tmp_path / "README.rst").write_text("hello world")
+    (tmp_path / readme).write_text("hello world")
     (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---")
     (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT)
     return pyproject
