@@ -704,6 +704,8 @@ Documentation changes
   :user:`abravalheri`
 
 
+.. _setup_install_deprecation_note:
+
 v58.3.0
 -------
 
