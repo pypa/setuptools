@@ -476,13 +476,11 @@ class TestWithPackageData:
         self._simulate_package_with_data_files(tmp_path, src_root)
 
         expected = {
-            os.path.normpath(f"{src_root}/proj/file1.txt"),
-            os.path.normpath(f"{src_root}/proj/nested/file2.txt"),
+            os.path.normpath(f"{src_root}/proj/file1.txt").replace(os.sep, "/"),
+            os.path.normpath(f"{src_root}/proj/nested/file2.txt").replace(os.sep, "/"),
         }
 
         _run_build(tmp_path)
-        from pprint import pprint
-        pprint(files)
 
         sdist_files = get_sdist_members(next(tmp_path.glob("dist/*.tar.gz")))
         print("~~~~~ sdist_members ~~~~~")
