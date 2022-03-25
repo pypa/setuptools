@@ -103,7 +103,10 @@ def read_configuration(
     # the default would be an improvement.
     # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
     # therefore setting a default here is backwards compatible.
-    setuptools_table.setdefault("include-package-data", True)
+    if dist and getattr(dist, "include_package_data") is not None:
+        setuptools_table.setdefault("include-package-data", dist.include_package_data)
+    else:
+        setuptools_table.setdefault("include-package-data", True)
     # Persist changes:
     asdict["tool"] = tool_table
     tool_table["setuptools"] = setuptools_table

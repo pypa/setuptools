@@ -26,6 +26,15 @@ Breaking Changes
 
   You can check details about the automatic discovery (and how to configure a
   different behaviour) in :doc:`/userguide/package_discovery`.
+* #3067: If the file ``pyproject.toml`` exists and it includes project
+  metadata/config (via ``[project]`` table or ``[tool.setuptools]``),
+  a series of new behaviors that are not backward compatible may take place:
+
+  - The default value of ``include_package_data`` will be considered to be ``True``.
+  - Setuptools will attempt to validate the ``pyproject.toml`` file according
+    to PEP 621 specification.
+  - The values specified in ``pyproject.toml`` will take precedence over those
+    specified in ``setup.cfg`` or ``setup.py``.
 
 Changes
 ^^^^^^^
@@ -63,6 +72,8 @@ Changes
 * #3066: Added vendored dependencies for :pypi:`tomli`, :pypi:`validate-pyproject`.
 
   These dependencies are used to read ``pyproject.toml`` files and validate them.
+* #3067: **[EXPERIMENTAL]** When using ``pyproject.toml`` metadata,
+  the default value of ``include_package_data`` is changed to ``True``.
 * #3068: **[EXPERIMENTAL]** Add support for ``pyproject.toml`` configuration
   (as introduced by :pep:`621`). Configuration parameters not covered by
   standards are handled in the ``[tool.setuptools]`` sub-table.
