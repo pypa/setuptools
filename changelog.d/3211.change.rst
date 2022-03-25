@@ -1,0 +1,12 @@
+Disabled auto-discovery when distribution class has a ``configuration`` field
+(e.g. when the ``setup.py`` script contains ``setup(..., configuration=...)``).
+This is done to ensure extension-only packages created with
+``numpy.distutils.misc_util.Configuration`` are not broken by the safe guard
+behaviour to avoid accidental multiple top-level packages in a flat-layout.
+
+**Note** - Users that don't set ``packages``, ``py_modules``, or
+``configuration`` are still likely to observe the auto-discovery behavior,
+which may interrupt the build if the project contains multiple directories and/or
+multiple Python files directly under the project root.
+For projects that don't use the ``[project]`` table in their ``pyproject.toml``
+setting ``ext_modules`` will also disable auto-discovery.

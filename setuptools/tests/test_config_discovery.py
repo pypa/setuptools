@@ -494,6 +494,20 @@ class TestWithPackageData:
         assert wheel_files >= orig_files
 
 
+def test_compatible_with_numpy_configuration(tmp_path):
+    files = [
+        "dir1/__init__.py",
+        "dir2/__init__.py",
+        "file.py",
+    ]
+    _populate_project_dir(tmp_path, files, {})
+    dist = Distribution({})
+    dist.configuration = object()
+    dist.set_defaults()
+    assert dist.py_modules is None
+    assert dist.packages is None
+
+
 def _populate_project_dir(root, files, options):
     # NOTE: Currently pypa/build will refuse to build the project if no
     # `pyproject.toml` or `setup.py` is found. So it is impossible to do

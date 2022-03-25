@@ -341,6 +341,8 @@ class ConfigDiscovery:
             self.dist.packages is not None
             or self.dist.py_modules is not None
             or ext_modules
+            or hasattr(self.dist, "configuration") and self.dist.configuration
+            # ^ Some projects use numpy.distutils.misc_util.Configuration
         )
 
     def _analyse_package_layout(self, ignore_ext_modules: bool) -> bool:
