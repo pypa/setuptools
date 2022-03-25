@@ -448,6 +448,59 @@ class TestDistutilsPackage:
         run_setup('setup.py', ['bdist_egg'])
 
 
+class TestInstallRequires:
+    def test_setup_install_includes_dependencis(self, tmp_path, mock_index):
+        """
+        When ``python setup.py install`` is called directly, it will use easy_install
+        to fetch dependencies.
+        """
+        # TODO: Remove these tests once `setup.py install` is completely removed
+        # create an sdist that has a install-time dependency.
+        project_root = tmp_path / "project"
+        project_root.mkdir(exist_ok=True)
+        install_root = tmp_path / "project"
+        install_root.mkdir(exist_ok=True)
+
+        self.create_project(project_root)
+        cmd = [
+            sys.executable,
+            '-c', '__import__("setuptools").setup()',
+            'install',
+            '--install-base', str(install_root),
+            '--install-lib', str(install_root),
+            '--install-headers', str(install_root),
+            '--install-scripts', str(install_root),
+            '--install-data', str(install_root),
+            '--install-purelib', str(install_root),
+            '--install-platlib', str(install_root),
+        ]
+        env = {"PYTHONPATH": str(install_root), "__EASYINSTALL_INDEX": mock_index.url}
+        with pytest.raises(subprocess.CalledProcessError) as exc_info:
+            subprocess.check_output(
+                cmd, cwd=str(project_root), env=env, stderr=subprocess.STDOUT, text=True
+            )
+        assert next(
+            line
+            for line in exc_info.value.output.splitlines()
+            if "not find suitable distribution for" in line
+            and "does-not-exist" in line
+        )
+        assert '/does-not-exist/' in {r.path for r in mock_index.requests}
+
+    def create_project(self, root):
+        config = """
+        [metadata]
+        name = project
+        version = 42
+
+        [options]
+        install_requires = does-not-exist
+        py_modules = mod
+        """
+        (root / 'setup.cfg').write_text(DALS(config), encoding="utf-8")
+        (root / 'mod.py').touch()
+
+
 class TestSetupRequires:
 
     def test_setup_requires_honors_fetch_params(self, mock_index, monkeypatch):
@@ -466,7 +519,7 @@ class TestSetupRequires:
                     with contexts.environment(PYTHONPATH=temp_install_dir):
                         cmd = [
                             sys.executable,
-                            '-m', 'setup',
+                            '-c', '__import__("setuptools").setup()',
                             'easy_install',
                             '--index-url', mock_index.url,
                             '--exclude-scripts',
