@@ -1,2 +1,0 @@
-Added a warning for non existing files listed with the ``file`` directive in
-``setup.cfg`` and ``pyproject.toml``.

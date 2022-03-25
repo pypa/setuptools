@@ -1,3 +1,41 @@
+v61.1.0
+-------
+
+
+Deprecations
+^^^^^^^^^^^^
+* #3206: Changed ``setuptools.convert_path`` to an internal function that is not exposed
+  as part of setuptools API.
+  Future releases of ``setuptools`` are likely to remove this function.
+
+Changes
+^^^^^^^
+* #3202: Changed behaviour of auto-discovery to not explicitly expand ``package_dir``
+  for flat-layouts and to not use relative paths starting with ``./``.
+* #3203: Prevented ``pyproject.toml`` parsing from overwriting
+  ``dist.include_package_data`` explicitly set in ``setup.py`` with default
+  value.
+* #3208: Added a warning for non existing files listed with the ``file`` directive in
+  ``setup.cfg`` and ``pyproject.toml``.
+* #3208: Added a default value for dynamic ``classifiers`` in ``pyproject.toml`` when
+  files are missing and errors being ignored.
+* #3211: Disabled auto-discovery when distribution class has a ``configuration``
+  attribute (e.g. when the ``setup.py`` script contains ``setup(...,
+  configuration=...)``).  This is done to ensure extension-only packages created
+  with ``numpy.distutils.misc_util.Configuration`` are not broken by the safe
+  guard
+  behaviour to avoid accidental multiple top-level packages in a flat-layout.
+
+  .. note::
+     Users that don't set ``packages``, ``py_modules``, or ``configuration`` are
+     still likely to observe the auto-discovery behavior, which may halt the
+     build if the project contains multiple directories and/or multiple Python
+     files directly under the project root.
+
+     To disable auto-discovery please explicitly set either ``packages`` or
+     ``py_modules``. Alternatively you can also configure :ref:`custom-discovery`.
+
+
 v61.0.0
 -------
 

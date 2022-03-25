@@ -1,3 +1,0 @@
-Prevented ``pyproject.toml`` parsing from overwriting
-``dist.include_package_data`` explicitly set in ``setup.py`` with default
-value.

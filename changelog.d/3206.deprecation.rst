@@ -1,3 +1,0 @@
-Changed ``setuptools.convert_path`` to an internal function that is not exposed
-as part of setuptools API.
-Future releases of ``setuptools`` are likely to remove this function.
