@@ -1,0 +1,2 @@
+Changed behaviour of auto-discovery to not explicitly expand ``package_dir``
+for flat-layouts and to not use relative paths starting with ``./``.
