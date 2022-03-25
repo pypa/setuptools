@@ -185,9 +185,12 @@ class TestMetadata:
 
     def test_file_sandboxed(self, tmpdir):
 
-        fake_env(tmpdir, '[metadata]\n' 'long_description = file: ../../README\n')
+        tmpdir.ensure("README")
+        project = tmpdir.join('depth1', 'depth2')
+        project.ensure(dir=True)
+        fake_env(project, '[metadata]\n' 'long_description = file: ../../README\n')
 
-        with get_dist(tmpdir, parse=False) as dist:
+        with get_dist(project, parse=False) as dist:
             with pytest.raises(DistutilsOptionError):
                 dist.parse_config_files()  # file: out of sandbox
 

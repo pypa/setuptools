@@ -20,6 +20,7 @@ import importlib
 import io
 import os
 import sys
+import warnings
 from glob import iglob
 from configparser import ConfigParser
 from importlib.machinery import ModuleSpec
@@ -124,16 +125,23 @@ def read_files(filepaths: Union[str, bytes, Iterable[_Path]], root_dir=None) -> 
 
     (By default ``root_dir`` is the current directory).
     """
-    if isinstance(filepaths, (str, bytes)):
-        filepaths = [filepaths]  # type: ignore
+    from setuptools.extern.more_itertools import always_iterable
 
     root_dir = os.path.abspath(root_dir or os.getcwd())
-    _filepaths = (os.path.join(root_dir, path) for path in filepaths)
+    _filepaths = (os.path.join(root_dir, path) for path in always_iterable(filepaths))
     return '\n'.join(
         _read_file(path)
-        for path in _filepaths
-        if _assert_local(path, root_dir) and os.path.isfile(path)
+        for path in _filter_existing_files(_filepaths)
+        if _assert_local(path, root_dir)
     )
+
+
+def _filter_existing_files(filepaths: Iterable[_Path]) -> Iterator[_Path]:
+    for path in filepaths:
+        if os.path.isfile(path):
+            yield path
+        else:
+            warnings.warn(f"File {path!r} cannot be found")
 
 
 def _read_file(filepath: Union[bytes, _Path]) -> str:
