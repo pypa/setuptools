@@ -53,7 +53,7 @@ EXAMPLES = [
     ("brotli", LATEST),  # not in the list but used by urllib3
 
     # When adding packages to this list, make sure they expose a `__version__`
-    # attribute, or modify the tests bellow
+    # attribute, or modify the tests below
 ]
 
 

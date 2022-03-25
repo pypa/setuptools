@@ -236,7 +236,7 @@ Dependency management
 =====================
 Packages built with ``setuptools`` can specify dependencies to be automatically
 installed when the package itself is installed.
-The example bellow show how to configure this kind of dependencies:
+The example below show how to configure this kind of dependencies:
 
 .. tab:: setup.cfg
 

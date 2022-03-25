@@ -29,7 +29,7 @@ a standard way of specifying *project metadata*.
 ``Setuptools`` has adopted this standard and will use the information contained
 in this file as an input in the build process.
 
-The example bellow illustrates how to write a ``pyproject.toml`` file that can
+The example below illustrates how to write a ``pyproject.toml`` file that can
 be used with ``setuptools``. It contains two TOML tables (identified by the
 ``[table-header]`` syntax): ``build-system`` and ``project``.
 The ``build-system`` table is used to tell the build frontend (e.g.
@@ -91,8 +91,8 @@ Key                       Value Type (TOML)           Notes
 ``zip-safe``              boolean                     If not specified, ``setuptools`` will try to guess
                                                       a reasonable default for the package
 ``eager-resources``       array
-``py-modules``            array                       See tip bellow
-``packages``              array or ``find`` directive See tip bellow
+``py-modules``            array                       See tip below
+``packages``              array or ``find`` directive See tip below
 ``package-dir``           table/inline-table          Used when explicitly listing ``packages``
 ``namespace-packages``    array                       Not necessary if you use :pep:`420`
 ``package-data``          table/inline-table          See :doc:`/userguide/datafiles`
