@@ -41,6 +41,7 @@ import itertools
 import os
 from fnmatch import fnmatchcase
 from glob import glob
+from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Callable, Dict, Iterator, Iterable, List, Optional, Tuple, Union
 
@@ -577,3 +578,9 @@ def find_package_path(name: str, package_dir: Dict[str, str], root_dir: _Path) -
 
     parent = package_dir.get("") or ""
     return os.path.join(root_dir, *parent.split("/"), *parts)
+
+
+def construct_package_dir(packages: List[str], package_path: _Path) -> Dict[str, str]:
+    parent_pkgs = remove_nested_packages(packages)
+    prefix = Path(package_path).parts
+    return {pkg: "/".join([*prefix, *pkg.split(".")]) for pkg in parent_pkgs}

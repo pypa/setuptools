@@ -12,6 +12,7 @@ import setuptools  # noqa -- force distutils.core to be patched
 import distutils.core
 
 import pytest
+import jaraco.path
 from path import Path as _Path
 
 from .contexts import quiet
@@ -398,6 +399,103 @@ class TestWithCExtension:
             _get_dist(tmp_path, {})
 
 
+class TestWithPackageData:
+    def _simulate_package_with_data_files(self, tmp_path, src_root):
+        files = [
+            f"{src_root}/proj/__init__.py",
+            f"{src_root}/proj/file1.txt",
+            f"{src_root}/proj/nested/file2.txt",
+        ]
+        _populate_project_dir(tmp_path, files, {})
+
+        manifest = """
+            global-include *.py *.txt
+        """
+        (tmp_path / "MANIFEST.in").write_text(DALS(manifest))
+
+    EXAMPLE_SETUPCFG = """
+    [metadata]
+    name = proj
+    version = 42
+
+    [options]
+    include_package_data = True
+    """
+    EXAMPLE_PYPROJECT = """
+    [project]
+    name = "proj"
+    version = "42"
+    """
+
+    PYPROJECT_PACKAGE_DIR = """
+    [tool.setuptools]
+    package-dir = {"" = "src"}
+    """
+
+    @pytest.mark.parametrize(
+        "src_root, files",
+        [
+            (".", {"setup.cfg": DALS(EXAMPLE_SETUPCFG)}),
+            (".", {"pyproject.toml": DALS(EXAMPLE_PYPROJECT)}),
+            ("src", {"setup.cfg": DALS(EXAMPLE_SETUPCFG)}),
+            ("src", {"pyproject.toml": DALS(EXAMPLE_PYPROJECT)}),
+            (
+                "src",
+                {
+                    "setup.cfg": DALS(EXAMPLE_SETUPCFG) + DALS(
+                        """
+                        packages = find:
+                        package_dir =
+                            =src
+
+                        [options.packages.find]
+                        where = src
+                        """
+                    )
+                }
+            ),
+            (
+                "src",
+                {
+                    "pyproject.toml": DALS(EXAMPLE_PYPROJECT) + DALS(
+                        """
+                        [tool.setuptools]
+                        package-dir = {"" = "src"}
+                        """
+                    )
+                },
+            ),
+        ]
+    )
+    def test_include_package_data(self, tmp_path, src_root, files):
+        """
+        Make sure auto-discovery does not affect package include_package_data.
+        See issue #3196.
+        """
+        jaraco.path.build(files, prefix=str(tmp_path))
+        self._simulate_package_with_data_files(tmp_path, src_root)
+
+        expected = {
+            os.path.normpath(f"{src_root}/proj/file1.txt"),
+            os.path.normpath(f"{src_root}/proj/nested/file2.txt"),
+        }
+
+        _run_build(tmp_path)
+        from pprint import pprint
+        pprint(files)
+
+        sdist_files = get_sdist_members(next(tmp_path.glob("dist/*.tar.gz")))
+        print("~~~~~ sdist_members ~~~~~")
+        print('\n'.join(sdist_files))
+        assert sdist_files >= expected
+
+        wheel_files = get_wheel_members(next(tmp_path.glob("dist/*.whl")))
+        print("~~~~~ wheel_members ~~~~~")
+        print('\n'.join(wheel_files))
+        orig_files = {f.replace("src/", "").replace("lib/", "") for f in expected}
+        assert wheel_files >= orig_files
+
+
 def _populate_project_dir(root, files, options):
     # NOTE: Currently pypa/build will refuse to build the project if no
     # `pyproject.toml` or `setup.py` is found. So it is impossible to do
@@ -437,7 +535,7 @@ def _write_setupcfg(root, options):
 
 def _run_build(path, *flags):
     cmd = [sys.executable, "-m", "build", "--no-isolation", *flags, str(path)]
-    return run(cmd, env={'DISTUTILS_DEBUG': '1'})
+    return run(cmd, env={'DISTUTILS_DEBUG': ''})
 
 
 def _get_dist(dist_path, attrs):
