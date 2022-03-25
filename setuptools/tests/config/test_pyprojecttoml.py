@@ -4,12 +4,16 @@ from inspect import cleandoc
 
 import pytest
 import tomli_w
+from path import Path as _Path
 
 from setuptools.config.pyprojecttoml import (
     read_configuration,
     expand_configuration,
     validate,
 )
+
+import setuptools  # noqa -- force distutils.core to be patched
+import distutils.core
 
 EXAMPLE = """
 [project]
@@ -292,3 +296,22 @@ def test_include_package_data_by_default(tmp_path, config):
 
     config = read_configuration(pyproject)
     assert config["tool"]["setuptools"]["include-package-data"] is True
+
+
+def test_include_package_data_in_setuppy(tmp_path):
+    """Builds with ``pyproject.toml`` should consider ``include_package_data`` set in
+    ``setup.py``.
+
+    See https://github.com/pypa/setuptools/issues/3197#issuecomment-1079023889
+    """
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text("[project]\nname = 'myproj'\nversion='42'\n")
+    setuppy = tmp_path / "setup.py"
+    setuppy.write_text("__import__('setuptools').setup(include_package_data=False)")
+
+    with _Path(tmp_path):
+        dist = distutils.core.run_setup("setup.py", {}, stop_after="config")
+
+    assert dist.get_name() == "myproj"
+    assert dist.get_version() == "42"
+    assert dist.include_package_data is False
