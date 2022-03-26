@@ -377,7 +377,6 @@ class TestSkipBadConfig:
 
         prev_name = dist.get_name()
         prev_deps = dist.install_requires
-        print(f"{dist=}, {prev_name=}, {prev_deps=}")
 
         with pytest.warns(_InvalidFile, match=r"DO NOT include.*\[project\].* table"):
             dist = apply_configuration(dist, pyproject)
