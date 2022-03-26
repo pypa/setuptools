@@ -31,6 +31,9 @@ _logger = logging.getLogger(__name__)
 def apply(dist: "Distribution", config: dict, filename: _Path) -> "Distribution":
     """Apply configuration dict read with :func:`read_configuration`"""
 
+    if not config:
+        return dist  # short-circuit unrelated pyproject.toml file
+
     root_dir = os.path.dirname(filename) or "."
     tool_table = config.get("tool", {}).get("setuptools", {})
     project_table = config.get("project", {}).copy()
