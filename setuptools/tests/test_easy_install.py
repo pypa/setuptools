@@ -449,11 +449,6 @@ class TestDistutilsPackage:
 
 
 class TestInstallRequires:
-    @pytest.mark.xfail(
-        hasattr(sys, "pypy_version_info") and sys.platform == "win32",
-        reason="temporary disable test for pypy and windows "
-        "(seems to present problems in the CI)"
-    )
     def test_setup_install_includes_dependencies(self, tmp_path, mock_index):
         """
         When ``python setup.py install`` is called directly, it will use easy_install
@@ -484,13 +479,19 @@ class TestInstallRequires:
             subprocess.check_output(
                 cmd, cwd=str(project_root), env=env, stderr=subprocess.STDOUT, text=True
             )
-        assert '/does-not-exist/' in {r.path for r in mock_index.requests}
-        assert next(
-            line
-            for line in exc_info.value.output.splitlines()
-            if "not find suitable distribution for" in line
-            and "does-not-exist" in line
-        )
+        try:
+            assert '/does-not-exist/' in {r.path for r in mock_index.requests}
+            assert next(
+                line
+                for line in exc_info.value.output.splitlines()
+                if "not find suitable distribution for" in line
+                and "does-not-exist" in line
+            )
+        except Exception:
+            if sys.platform == "win32":
+                print("Problems in running the test on Windows")
+                print(exc_info.value.output)
+            raise
 
     def create_project(self, root):
         config = """
