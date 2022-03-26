@@ -366,10 +366,7 @@ class TestSkipBadConfig:
         [
             "[project]\nrequires-python = '>=3.7'\n",
             "[project]\nversion = '42'\nrequires-python = '>=3.7'\n",
-            pytest.param(
-                "[project]\nname='othername'\nrequires-python = '>=3.7'\n",
-                marks=pytest.mark.xfail(reason="abravalheri/validate-pyproject#28")
-            ),
+            "[project]\nname='othername'\nrequires-python = '>=3.7'\n",
         ],
     )
     def test_popular_config(self, tmp_path, pyproject_content, setup_attrs):
