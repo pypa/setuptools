@@ -117,12 +117,15 @@ def read_configuration(
         subset = {"project": project_table, "tool": {"setuptools": setuptools_table}}
         validate(subset, filepath)
     except Exception as ex:
-        if ignore_option_errors:
-            _logger.debug(f"ignored error: {ex.__class__.__name__} - {ex}")
-
         # TODO: Remove the following once the feature stabilizes:
         if _skip_bad_config(project_table, orig_setuptools_table, dist):
             return {}
+        # TODO: After the previous statement is removed the try/except can be replaced
+        # by the _ignore_errors context manager.
+        if ignore_option_errors:
+            _logger.debug(f"ignored error: {ex.__class__.__name__} - {ex}")
+        else:
+            raise  # re-raise exception
 
     if expand:
         root_dir = os.path.dirname(filepath)
