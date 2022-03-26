@@ -222,7 +222,7 @@ The following configuration examples show how to accomplish this:
     .. code-block:: toml
 
        [project.scripts]
-       cli-name = mypkg.mymodule:some_func
+       cli-name = "mypkg.mymodule:some_func"
 
 When this project is installed, a ``cli-name`` executable will be created.
 ``cli-name`` will invoke the function ``some_func`` in the
