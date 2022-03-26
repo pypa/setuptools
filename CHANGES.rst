@@ -1,3 +1,15 @@
+v61.1.1
+-------
+
+
+Misc
+^^^^
+* #3212: Fixed missing dependencies when running ``setup.py install``.
+  Note that calling ``setup.py install`` directly is still deprecated and
+  will be removed in future versions of ``setuptools``.
+  Please check the release notes for :ref:`setup_install_deprecation_note`.
+
+
 v61.1.0
 -------
 
