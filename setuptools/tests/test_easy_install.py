@@ -449,7 +449,12 @@ class TestDistutilsPackage:
 
 
 class TestInstallRequires:
-    def test_setup_install_includes_dependencis(self, tmp_path, mock_index):
+    @pytest.mark.xfail(
+        hasattr(sys, "pypy_version_info") and sys.platform == "win32",
+        reason="temporary disable test for pypy and windows "
+        "(seems to present problems in the CI)"
+    )
+    def test_setup_install_includes_dependencies(self, tmp_path, mock_index):
         """
         When ``python setup.py install`` is called directly, it will use easy_install
         to fetch dependencies.
@@ -480,17 +485,12 @@ class TestInstallRequires:
                 cmd, cwd=str(project_root), env=env, stderr=subprocess.STDOUT, text=True
             )
         assert '/does-not-exist/' in {r.path for r in mock_index.requests}
-        try:
-            assert next(
-                line
-                for line in exc_info.value.output.splitlines()
-                if "not find suitable distribution for" in line
-                and "does-not-exist" in line
-            )
-        except StopIteration:
-            if not hasattr(sys, 'pypy_version_info'):
-                # Let's skip PyPy for now in the test
-                raise
+        assert next(
+            line
+            for line in exc_info.value.output.splitlines()
+            if "not find suitable distribution for" in line
+            and "does-not-exist" in line
+        )
 
     def create_project(self, root):
         config = """
