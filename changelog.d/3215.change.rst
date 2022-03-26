@@ -1,0 +1,7 @@
+Ignored a subgroup of invalid ``pyproject.toml`` files that use the ``[project]``
+table to specify only ``requires-python`` (**transitional**).
+
+.. warning::
+   Please note that future releases of setuptools will halt the build process
+   if a ``pyproject.toml`` file that does not match doc:`the PyPA Specification
+   <PyPUG:specifications/declaring-project-metadata>` is given.
