@@ -1,1 +1,1 @@
-Fixed typo in pyproject.toml -- by :user:`pablo-cardenas`.
+Fixed typo in ``pyproject.toml`` example in Quickstart -- by :user:`pablo-cardenas`.
