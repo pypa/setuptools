@@ -455,10 +455,9 @@ class TestInstallRequires:
         to fetch dependencies.
         """
         # TODO: Remove these tests once `setup.py install` is completely removed
-        # create an sdist that has a install-time dependency.
         project_root = tmp_path / "project"
         project_root.mkdir(exist_ok=True)
-        install_root = tmp_path / "project"
+        install_root = tmp_path / "install"
         install_root.mkdir(exist_ok=True)
 
         self.create_project(project_root)
