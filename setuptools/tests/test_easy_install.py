@@ -488,9 +488,8 @@ class TestInstallRequires:
                 and "does-not-exist" in line
             )
         except Exception:
-            if sys.platform == "win32":
-                print("Problems in running the test on Windows")
-                print(exc_info.value.output)
+            if "failed to get random numbers" in exc_info.value.output:
+                pytest.xfail(f"{sys.platform} failure - {exc_info.value.output}")
             raise
 
     def create_project(self, root):
