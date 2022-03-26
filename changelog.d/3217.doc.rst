@@ -1,0 +1,1 @@
+Fixed typo in pyproject.toml -- by :user:`pablo-cardenas`.
