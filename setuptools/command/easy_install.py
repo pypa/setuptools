@@ -298,7 +298,9 @@ class easy_install(Command):
 
         if not self.editable:
             self.check_site_dir()
-        self.index_url = self.index_url or "https://pypi.org/simple/"
+        default_index = os.getenv("__EASYINSTALL_INDEX", "https://pypi.org/simple/")
+        # ^ Private API for testing purposes only
+        self.index_url = self.index_url or default_index
         self.shadow_path = self.all_site_dirs[:]
         for path_item in self.install_dir, normalize_path(self.script_dir):
             if path_item not in self.shadow_path:
