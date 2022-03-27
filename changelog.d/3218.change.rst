@@ -1,8 +1,0 @@
-Prevented builds from erroring if the project specifies metadata via
-``pyproject.toml``, but uses other files (e.g. ``setup.py``) to complement it,
-without setting ``dynamic`` properly.
-
-.. important::
-   This is a **transitional** behaviour.
-   Future releases of ``setuptools`` may simply ignore externally set metadata
-   not backed by ``dynamic`` or even halt the build with an error.

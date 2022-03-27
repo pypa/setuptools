@@ -1,2 +1,0 @@
-Fixed missing requirements with environment markers when
-``optional-dependencies`` is set in ``pyproject.toml``.
