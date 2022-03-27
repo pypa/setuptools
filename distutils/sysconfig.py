@@ -9,7 +9,6 @@ Written by:   Fred L. Drake, Jr.
 Email:        <fdrake@acm.org>
 """
 
-import _imp
 import os
 import re
 import sys
@@ -48,6 +47,7 @@ def _is_python_source_dir(d):
             return True
     return False
 
+
 _sys_home = getattr(sys, '_home', None)
 
 if os.name == 'nt':
@@ -59,10 +59,12 @@ if os.name == 'nt':
     project_base = _fix_pcbuild(project_base)
     _sys_home = _fix_pcbuild(_sys_home)
 
+
 def _python_build():
     if _sys_home:
         return _is_python_source_dir(_sys_home)
     return _is_python_source_dir(project_base)
+
 
 python_build = _python_build()
 
@@ -78,6 +80,7 @@ except AttributeError:
     # It's not a configure-based build, so the sys module doesn't have
     # this attribute, which is fine.
     pass
+
 
 def get_python_version():
     """Return a string containing the major and minor Python version,
@@ -192,7 +195,6 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             "on platform '%s'" % os.name)
 
 
-
 def customize_compiler(compiler):
     """Do any platform-specific customization of a CCompiler instance.
 
@@ -217,8 +219,9 @@ def customize_compiler(compiler):
                 _config_vars['CUSTOMIZED_OSX_COMPILER'] = 'True'
 
         (cc, cxx, cflags, ccshared, ldshared, shlib_suffix, ar, ar_flags) = \
-            get_config_vars('CC', 'CXX', 'CFLAGS',
-                            'CCSHARED', 'LDSHARED', 'SHLIB_SUFFIX', 'AR', 'ARFLAGS')
+            get_config_vars(
+                'CC', 'CXX', 'CFLAGS',
+                'CCSHARED', 'LDSHARED', 'SHLIB_SUFFIX', 'AR', 'ARFLAGS')
 
         if 'CC' in os.environ:
             newcc = os.environ['CC']
@@ -280,7 +283,6 @@ def get_config_h_filename():
         return sysconfig.get_config_h_filename()
 
 
-
 def get_makefile_filename():
     """Return full pathname of installed Makefile from the Python build."""
     return sysconfig.get_makefile_filename()
@@ -302,6 +304,7 @@ _variable_rx = re.compile(r"([a-zA-Z][a-zA-Z0-9_]+)\s*=\s*(.*)")
 _findvar1_rx = re.compile(r"\$\(([A-Za-z][A-Za-z0-9_]*)\)")
 _findvar2_rx = re.compile(r"\${([A-Za-z][A-Za-z0-9_]*)}")
 
+
 def parse_makefile(fn, g=None):
     """Parse a Makefile-style file.
 
@@ -310,7 +313,9 @@ def parse_makefile(fn, g=None):
     used instead of a new dictionary.
     """
     from distutils.text_file import TextFile
-    fp = TextFile(fn, strip_comments=1, skip_blanks=1, join_lines=1, errors="surrogateescape")
+    fp = TextFile(
+        fn, strip_comments=1, skip_blanks=1, join_lines=1,
+        errors="surrogateescape")
 
     if g is None:
         g = {}
@@ -319,7 +324,7 @@ def parse_makefile(fn, g=None):
 
     while True:
         line = fp.readline()
-        if line is None: # eof
+        if line is None:  # eof
             break
         m = _variable_rx.match(line)
         if m:
@@ -363,7 +368,8 @@ def parse_makefile(fn, g=None):
                     item = os.environ[n]
 
                 elif n in renamed_variables:
-                    if name.startswith('PY_') and name[3:] in renamed_variables:
+                    if name.startswith('PY_') and \
+                            name[3:] in renamed_variables:
                         item = ""
 
                     elif 'PY_' + n in notdone:
@@ -379,7 +385,8 @@ def parse_makefile(fn, g=None):
                     if "$" in after:
                         notdone[name] = value
                     else:
-                        try: value = int(value)
+                        try:
+                            value = int(value)
                         except ValueError:
                             done[name] = value.strip()
                         else:
@@ -387,7 +394,7 @@ def parse_makefile(fn, g=None):
                         del notdone[name]
 
                         if name.startswith('PY_') \
-                            and name[3:] in renamed_variables:
+                                and name[3:] in renamed_variables:
 
                             name = name[3:]
                             if name not in done:
@@ -458,6 +465,7 @@ def get_config_vars(*args):
     else:
         return _config_vars
 
+
 def get_config_var(name):
     """Return the value of a single variable using the dictionary
     returned by 'get_config_vars()'.  Equivalent to
@@ -465,5 +473,6 @@ def get_config_var(name):
     """
     if name == 'SO':
         import warnings
-        warnings.warn('SO is deprecated, use EXT_SUFFIX', DeprecationWarning, 2)
+        warnings.warn(
+            'SO is deprecated, use EXT_SUFFIX', DeprecationWarning, 2)
     return get_config_vars().get(name)
