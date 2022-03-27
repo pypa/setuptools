@@ -64,17 +64,7 @@ class build_scripts(Command):
         for script in self.scripts:
             self._copy_script(script, outfiles, updated_files)
 
-        if os.name == 'posix':
-            for file in outfiles:
-                if self.dry_run:
-                    log.info("changing mode of %s", file)
-                else:
-                    oldmode = os.stat(file)[ST_MODE] & 0o7777
-                    newmode = (oldmode | 0o555) & 0o7777
-                    if newmode != oldmode:
-                        log.info("changing mode of %s from %o to %o",
-                                 file, oldmode, newmode)
-                        os.chmod(file, newmode)
+        self._change_modes(outfiles)
 
         return outfiles, updated_files
 
@@ -155,3 +145,22 @@ class build_scripts(Command):
             if f:
                 f.close()
             self.copy_file(script, outfile)
+
+    def _change_modes(self, outfiles):
+        if os.name != 'posix':
+            return
+
+        for file in outfiles:
+            self._change_mode(file)
+
+    def _change_mode(self, file):
+        if self.dry_run:
+            log.info("changing mode of %s", file)
+            return
+
+        oldmode = os.stat(file)[ST_MODE] & 0o7777
+        newmode = (oldmode | 0o555) & 0o7777
+        if newmode != oldmode:
+            log.info("changing mode of %s from %o to %o",
+                     file, oldmode, newmode)
+            os.chmod(file, newmode)
