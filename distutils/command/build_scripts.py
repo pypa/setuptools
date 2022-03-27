@@ -2,7 +2,8 @@
 
 Implements the Distutils 'build_scripts' command."""
 
-import os, re
+import os
+import re
 from stat import ST_MODE
 from distutils import sysconfig
 from distutils.core import Command
@@ -13,6 +14,7 @@ import tokenize
 
 # check if Python is called on the first line with this expression
 first_line_re = re.compile(b'^#!.*python[0-9.]*([ \t].*)?$')
+
 
 class build_scripts(Command):
 
@@ -25,7 +27,6 @@ class build_scripts(Command):
         ]
 
     boolean_options = ['force']
-
 
     def initialize_options(self):
         self.build_dir = None
@@ -48,7 +49,6 @@ class build_scripts(Command):
         if not self.scripts:
             return
         self.copy_scripts()
-
 
     def copy_scripts(self):
         r"""Copy each script listed in 'self.scripts'; if it's marked as a
@@ -101,8 +101,9 @@ class build_scripts(Command):
                     else:
                         executable = os.path.join(
                             sysconfig.get_config_var("BINDIR"),
-                           "python%s%s" % (sysconfig.get_config_var("VERSION"),
-                                           sysconfig.get_config_var("EXE")))
+                            "python%s%s" % (
+                                sysconfig.get_config_var("VERSION"),
+                                sysconfig.get_config_var("EXE")))
                     executable = os.fsencode(executable)
                     shebang = b"#!" + executable + post_interp + b"\n"
                     # Python parser starts to read a script using UTF-8 until
