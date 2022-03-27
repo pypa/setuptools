@@ -194,6 +194,16 @@ def _python_requires(dist: "Distribution", val: dict, _root_dir):
     _set_config(dist, "python_requires", SpecifierSet(val))
 
 
+def _dependencies(dist: "Distribution", val: list, _root_dir):
+    existing = getattr(dist, "install_requires", [])
+    _set_config(dist, "install_requires", existing + val)
+
+
+def _optional_dependencies(dist: "Distribution", val: dict, _root_dir):
+    existing = getattr(dist, "extras_require", {})
+    _set_config(dist, "extras_require", {**existing, **val})
+
+
 def _unify_entry_points(project_table: dict):
     project = project_table
     entry_points = project.pop("entry-points", project.pop("entry_points", {}))
@@ -303,8 +313,8 @@ PYPROJECT_CORRESPONDENCE: Dict[str, _Correspondence] = {
     "authors": partial(_people, kind="author"),
     "maintainers": partial(_people, kind="maintainer"),
     "urls": _project_urls,
-    "dependencies": "install_requires",
-    "optional_dependencies": "extras_require",
+    "dependencies": _dependencies,
+    "optional_dependencies": _optional_dependencies,
     "requires_python": _python_requires,
 }
 
