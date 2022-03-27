@@ -112,27 +112,7 @@ class build_scripts(Command):
                 executable = os.fsencode(executable)
                 post_interp = shebang_match.group(1) or b''
                 shebang = b"#!" + executable + post_interp + b"\n"
-                # Python parser starts to read a script using UTF-8 until
-                # it gets a #coding:xxx cookie. The shebang has to be the
-                # first line of a file, the #coding:xxx cookie cannot be
-                # written before. So the shebang has to be decodable from
-                # UTF-8.
-                try:
-                    shebang.decode('utf-8')
-                except UnicodeDecodeError:
-                    raise ValueError(
-                        "The shebang ({!r}) is not decodable "
-                        "from utf-8".format(shebang))
-                # If the script is encoded to a custom encoding (use a
-                # #coding:xxx cookie), the shebang has to be decodable from
-                # the script encoding too.
-                try:
-                    shebang.decode(encoding)
-                except UnicodeDecodeError:
-                    raise ValueError(
-                        "The shebang ({!r}) is not decodable "
-                        "from the script encoding ({})"
-                        .format(shebang, encoding))
+                self._validate_shebang(shebang, encoding)
                 with open(outfile, "wb") as outf:
                     outf.write(shebang)
                     outf.writelines(f.readlines())
@@ -161,3 +141,28 @@ class build_scripts(Command):
             log.info("changing mode of %s from %o to %o",
                      file, oldmode, newmode)
             os.chmod(file, newmode)
+
+    @staticmethod
+    def _validate_shebang(shebang, encoding):
+        # Python parser starts to read a script using UTF-8 until
+        # it gets a #coding:xxx cookie. The shebang has to be the
+        # first line of a file, the #coding:xxx cookie cannot be
+        # written before. So the shebang has to be decodable from
+        # UTF-8.
+        try:
+            shebang.decode('utf-8')
+        except UnicodeDecodeError:
+            raise ValueError(
+                "The shebang ({!r}) is not decodable "
+                "from utf-8".format(shebang))
+
+        # If the script is encoded to a custom encoding (use a
+        # #coding:xxx cookie), the shebang has to be decodable from
+        # the script encoding too.
+        try:
+            shebang.decode(encoding)
+        except UnicodeDecodeError:
+            raise ValueError(
+                "The shebang ({!r}) is not decodable "
+                "from the script encoding ({})"
+                .format(shebang, encoding))
