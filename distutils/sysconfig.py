@@ -450,7 +450,7 @@ def get_config_vars(*args):
     global _config_vars
     if _config_vars is None:
         _config_vars = sysconfig.get_config_vars().copy()
-        py39compat.ext_suffix(_config_vars)
+        py39compat.add_ext_suffix(_config_vars)
 
     if args:
         vals = []
