@@ -13,7 +13,7 @@ from distutils import log
 import tokenize
 
 # check if Python is called on the first line with this expression
-first_line_re = re.compile(b'^#!.*python[0-9.]*([ \t].*)?$')
+shebang_pattern = re.compile(b'^#!.*python[0-9.]*([ \t].*)?$')
 
 
 class build_scripts(Command):
@@ -54,7 +54,7 @@ class build_scripts(Command):
         Copy each script listed in ``self.scripts``.
 
         If a script is marked as a Python script (first line matches
-        'first_line_re', i.e. starts with ``#!`` and contains
+        'shebang_pattern', i.e. starts with ``#!`` and contains
         "python"), then adjust in the copy the first line to refer to
         the current Python interpreter.
         """
@@ -69,7 +69,7 @@ class build_scripts(Command):
         return outfiles, updated_files
 
     def _copy_script(self, script, outfiles, updated_files):
-        adjust = False
+        shebang_match = None
         script = convert_path(script)
         outfile = os.path.join(self.build_dir, os.path.basename(script))
         outfiles.append(outfile)
@@ -94,13 +94,10 @@ class build_scripts(Command):
                 self.warn("%s is an empty file (skipping)" % script)
                 return
 
-            match = first_line_re.match(first_line)
-            if match:
-                adjust = True
-                post_interp = match.group(1) or b''
+            shebang_match = shebang_pattern.match(first_line)
 
         updated_files.append(outfile)
-        if adjust:
+        if shebang_match:
             log.info("copying and adjusting %s -> %s", script,
                      self.build_dir)
             if not self.dry_run:
@@ -113,6 +110,7 @@ class build_scripts(Command):
                             sysconfig.get_config_var("VERSION"),
                             sysconfig.get_config_var("EXE")))
                 executable = os.fsencode(executable)
+                post_interp = shebang_match.group(1) or b''
                 shebang = b"#!" + executable + post_interp + b"\n"
                 # Python parser starts to read a script using UTF-8 until
                 # it gets a #coding:xxx cookie. The shebang has to be the
