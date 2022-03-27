@@ -1,6 +1,6 @@
-Prevented builds from erroring (**temporarily**) if the project specifies
-metadata via ``pyproject.toml``, but uses other files (e.g. ``setup.py``) to
-complement it, without setting ``dynamic`` properly.
+Prevented builds from erroring if the project specifies metadata via
+``pyproject.toml``, but uses other files (e.g. ``setup.py``) to complement it,
+without setting ``dynamic`` properly.
 
 .. important::
    This is a **transitional** behaviour.
