@@ -299,6 +299,14 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
             result = sysconfig.parse_config_h(f)
         self.assertTrue(isinstance(result, dict))
 
+    @unittest.skipUnless(sys.platform == 'win32',
+                     'Testing windows pyd suffix')
+    @unittest.skipUnless(sys.implementation.name == 'cpython',
+                     'Need cpython for this test')
+    def test_win_ext_suffix(self):
+        self.assertTrue(sysconfig.get_config_var("EXT_SUFFIX").endswith(".pyd"))
+        self.assertNotEqual(sysconfig.get_config_var("EXT_SUFFIX"), ".pyd")
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(SysconfigTestCase))
