@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Union
 from setuptools.errors import FileError, OptionError
 
 from . import expand as _expand
-from ._apply_pyprojecttoml import apply, _PREVIOUSLY_DEFINED, _WouldIgnoreField
+from ._apply_pyprojecttoml import apply as _apply
+from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _WouldIgnoreField
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
@@ -44,13 +45,15 @@ def validate(config: dict, filepath: _Path):
 
 
 def apply_configuration(
-    dist: "Distribution", filepath: _Path, ignore_option_errors=False,
+    dist: "Distribution",
+    filepath: _Path,
+    ignore_option_errors=False,
 ) -> "Distribution":
     """Apply the configuration from a ``pyproject.toml`` file into an existing
     distribution object.
     """
     config = read_configuration(filepath, True, ignore_option_errors, dist)
-    return apply(dist, config, filepath)
+    return _apply(dist, config, filepath)
 
 
 def read_configuration(
