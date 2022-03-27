@@ -12,8 +12,10 @@ from distutils.util import convert_path
 from distutils import log
 import tokenize
 
-# check if Python is called on the first line with this expression
-shebang_pattern = re.compile(b'^#!.*python[0-9.]*([ \t].*)?$')
+shebang_pattern = re.compile('^#!.*python[0-9.]*([ \t].*)?$')
+"""
+Pattern matching a Python interpreter indicated in first line of a script.
+"""
 
 # for Setuptools compatibility
 first_line_re = shebang_pattern
@@ -84,14 +86,12 @@ class build_scripts(Command):
         # Always open the file, but ignore failures in dry-run mode
         # in order to attempt to copy directly.
         try:
-            f = open(script, "rb")
+            f = tokenize.open(script)
         except OSError:
             if not self.dry_run:
                 raise
             f = None
         else:
-            encoding, lines = tokenize.detect_encoding(f.readline)
-            f.seek(0)
             first_line = f.readline()
             if not first_line:
                 self.warn("%s is an empty file (skipping)" % script)
@@ -112,11 +112,10 @@ class build_scripts(Command):
                         "python%s%s" % (
                             sysconfig.get_config_var("VERSION"),
                             sysconfig.get_config_var("EXE")))
-                executable = os.fsencode(executable)
-                post_interp = shebang_match.group(1) or b''
-                shebang = b"#!" + executable + post_interp + b"\n"
-                self._validate_shebang(shebang, encoding)
-                with open(outfile, "wb") as outf:
+                post_interp = shebang_match.group(1) or ''
+                shebang = "#!" + executable + post_interp + "\n"
+                self._validate_shebang(shebang, f.encoding)
+                with open(outfile, "w", encoding=f.encoding) as outf:
                     outf.write(shebang)
                     outf.writelines(f.readlines())
             if f:
@@ -150,22 +149,22 @@ class build_scripts(Command):
         # Python parser starts to read a script using UTF-8 until
         # it gets a #coding:xxx cookie. The shebang has to be the
         # first line of a file, the #coding:xxx cookie cannot be
-        # written before. So the shebang has to be decodable from
+        # written before. So the shebang has to be encodable to
         # UTF-8.
         try:
-            shebang.decode('utf-8')
-        except UnicodeDecodeError:
+            shebang.encode('utf-8')
+        except UnicodeEncodeError:
             raise ValueError(
-                "The shebang ({!r}) is not decodable "
-                "from utf-8".format(shebang))
+                "The shebang ({!r}) is not encodable "
+                "to utf-8".format(shebang))
 
         # If the script is encoded to a custom encoding (use a
-        # #coding:xxx cookie), the shebang has to be decodable from
+        # #coding:xxx cookie), the shebang has to be encodable to
         # the script encoding too.
         try:
-            shebang.decode(encoding)
-        except UnicodeDecodeError:
+            shebang.encode(encoding)
+        except UnicodeEncodeError:
             raise ValueError(
-                "The shebang ({!r}) is not decodable "
-                "from the script encoding ({})"
+                "The shebang ({!r}) is not encodable "
+                "to the script encoding ({})"
                 .format(shebang, encoding))
