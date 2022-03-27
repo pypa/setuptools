@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Union
 from setuptools.errors import FileError, OptionError
 
 from . import expand as _expand
-from ._apply_pyprojecttoml import apply, _PREVIOUSLY_DEFINED, _WouldIgnoreField
+from ._apply_pyprojecttoml import apply as _apply
+from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _WouldIgnoreField
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
@@ -44,13 +45,15 @@ def validate(config: dict, filepath: _Path):
 
 
 def apply_configuration(
-    dist: "Distribution", filepath: _Path, ignore_option_errors=False,
+    dist: "Distribution",
+    filepath: _Path,
+    ignore_option_errors=False,
 ) -> "Distribution":
     """Apply the configuration from a ``pyproject.toml`` file into an existing
     distribution object.
     """
     config = read_configuration(filepath, True, ignore_option_errors, dist)
-    return apply(dist, config, filepath)
+    return _apply(dist, config, filepath)
 
 
 def read_configuration(
@@ -279,11 +282,12 @@ class _ConfigExpander:
         )
         # `None` indicates there is nothing in `tool.setuptools.dynamic` but the value
         # might have already been set by setup.py/extensions, so avoid overwriting.
-        self.project_cfg.update({k: v for k, v in obtained_dynamic.items() if v})
+        updates = {k: v for k, v in obtained_dynamic.items() if v is not None}
+        self.project_cfg.update(updates)
 
     def _ensure_previously_set(self, dist: "Distribution", field: str):
         previous = _PREVIOUSLY_DEFINED[field](dist)
-        if not previous and not self.ignore_option_errors:
+        if previous is None and not self.ignore_option_errors:
             msg = (
                 f"No configuration found for dynamic {field!r}.\n"
                 "Some dynamic fields need to be specified via `tool.setuptools.dynamic`"

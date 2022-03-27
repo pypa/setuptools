@@ -70,7 +70,7 @@ def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution"
 def _apply(
     dist: "Distribution", filepath: _Path,
     other_files: Iterable[_Path] = (),
-    ignore_option_errors: bool = False
+    ignore_option_errors: bool = False,
 ) -> Tuple["ConfigHandler", ...]:
     """Read configuration from ``filepath`` and applies to the ``dist`` object."""
     from setuptools.dist import _Distribution
@@ -677,9 +677,8 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         :param dict section_options:
         """
         parse_list = partial(self._parse_list, separator=';')
-        self['extras_require'] = self._parse_section_to_dict(
-            section_options, parse_list
-        )
+        parsed = self._parse_section_to_dict(section_options, parse_list)
+        self['extras_require'] = parsed
 
     def parse_section_data_files(self, section_options):
         """Parses `data_files` configuration file section.

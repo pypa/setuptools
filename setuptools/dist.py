@@ -468,6 +468,11 @@ class Distribution(_Distribution):
             },
         )
 
+        # Save the original dependencies before they are processed into the egg format
+        self._orig_extras_require = {}
+        self._orig_install_requires = []
+        self._tmp_extras_require = defaultdict(ordered_set.OrderedSet)
+
         self.set_defaults = ConfigDiscovery(self)
 
         self._set_metadata_defaults(attrs)
@@ -540,6 +545,8 @@ class Distribution(_Distribution):
             self.metadata.python_requires = self.python_requires
 
         if getattr(self, 'extras_require', None):
+            # Save original before it is messed by _convert_extras_requirements
+            self._orig_extras_require = self._orig_extras_require or self.extras_require
             for extra in self.extras_require.keys():
                 # Since this gets called multiple times at points where the
                 # keys have become 'converted' extras, ensure that we are only
@@ -547,6 +554,10 @@ class Distribution(_Distribution):
                 extra = extra.split(':')[0]
                 if extra:
                     self.metadata.provides_extras.add(extra)
+
+        if getattr(self, 'install_requires', None) and not self._orig_install_requires:
+            # Save original before it is messed by _move_install_requirements_markers
+            self._orig_install_requires = self.install_requires
 
         self._convert_extras_requirements()
         self._move_install_requirements_markers()
@@ -558,7 +569,8 @@ class Distribution(_Distribution):
         `"extra:{marker}": ["barbazquux"]`.
         """
         spec_ext_reqs = getattr(self, 'extras_require', None) or {}
-        self._tmp_extras_require = defaultdict(list)
+        tmp = defaultdict(ordered_set.OrderedSet)
+        self._tmp_extras_require = getattr(self, '_tmp_extras_require', tmp)
         for section, v in spec_ext_reqs.items():
             # Do not strip empty sections.
             self._tmp_extras_require[section]
@@ -596,7 +608,8 @@ class Distribution(_Distribution):
         for r in complex_reqs:
             self._tmp_extras_require[':' + str(r.marker)].append(r)
         self.extras_require = dict(
-            (k, [str(r) for r in map(self._clean_req, v)])
+            # list(dict.fromkeys(...))  ensures a list of unique strings
+            (k, list(dict.fromkeys(str(r) for r in map(self._clean_req, v))))
             for k, v in self._tmp_extras_require.items()
         )
 
@@ -814,10 +827,8 @@ class Distribution(_Distribution):
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
-    def parse_config_files(self, filenames=None, ignore_option_errors=False):
-        """Parses configuration files from various levels
-        and loads configuration.
-        """
+    def _get_project_config_files(self, filenames):
+        """Add default file and split between INI and TOML"""
         tomlfiles = []
         standard_project_metadata = Path(self.src_root or os.curdir, "pyproject.toml")
         if filenames is not None:
@@ -826,8 +837,15 @@ class Distribution(_Distribution):
             tomlfiles = list(parts[1])  # 2nd element => predicate is True
         elif standard_project_metadata.exists():
             tomlfiles = [standard_project_metadata]
+        return filenames, tomlfiles
 
-        self._parse_config_files(filenames=filenames)
+    def parse_config_files(self, filenames=None, ignore_option_errors=False):
+        """Parses configuration files from various levels
+        and loads configuration.
+        """
+        inifiles, tomlfiles = self._get_project_config_files(filenames)
+
+        self._parse_config_files(filenames=inifiles)
 
         setupcfg.parse_configuration(
             self, self.command_options, ignore_option_errors=ignore_option_errors

@@ -14,7 +14,8 @@ import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
-from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField
+from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField, _some_attrgetter
+from setuptools.command.egg_info import write_requirements
 
 
 EXAMPLES = (Path(__file__).parent / "setupcfg_examples.txt").read_text()
@@ -207,12 +208,12 @@ def test_license_and_license_files(tmp_path):
 
 
 class TestPresetField:
-    def pyproject(self, tmp_path, dynamic):
+    def pyproject(self, tmp_path, dynamic, extra_content=""):
         content = f"[project]\nname = 'proj'\ndynamic = {dynamic!r}\n"
         if "version" not in dynamic:
             content += "version = '42'\n"
         file = tmp_path / "pyproject.toml"
-        file.write_text(content, encoding="utf-8")
+        file.write_text(content + extra_content, encoding="utf-8")
         return file
 
     @pytest.mark.parametrize(
@@ -233,12 +234,14 @@ class TestPresetField:
             dist = pyprojecttoml.apply_configuration(dist, pyproject)
 
         # TODO: Once support for pyproject.toml config stabilizes attr should be None
-        dist_value = getattr(dist, attr, None) or getattr(dist.metadata, attr, object())
+        dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
         assert dist_value == value
 
     @pytest.mark.parametrize(
         "attr, field, value",
         [
+            ("install_requires", "dependencies", []),
+            ("extras_require", "optional-dependencies", {}),
             ("install_requires", "dependencies", ["six"]),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
         ]
@@ -247,8 +250,30 @@ class TestPresetField:
         pyproject = self.pyproject(tmp_path, [field])
         dist = makedist(tmp_path, **{attr: value})
         dist = pyprojecttoml.apply_configuration(dist, pyproject)
-        dist_value = getattr(dist, attr, None) or getattr(dist.metadata, attr, object())
+        dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
         assert dist_value == value
+
+    def test_optional_dependencies_dont_remove_env_markers(self, tmp_path):
+        """
+        Internally setuptools converts dependencies with markers to "extras".
+        If ``install_requires`` is given by ``setup.py``, we have to ensure that
+        applying ``optional-dependencies`` does not overwrite the mandatory
+        dependencies with markers (see #3204).
+        """
+        # If setuptools replace its internal mechanism that uses `requires.txt`
+        # this test has to be rewritten to adapt accordingly
+        extra = "\n[project.optional-dependencies]\nfoo = ['bar>1']\n"
+        pyproject = self.pyproject(tmp_path, ["dependencies"], extra)
+        install_req = ['importlib-resources (>=3.0.0) ; python_version < "3.7"']
+        dist = makedist(tmp_path, install_requires=install_req)
+        dist = pyprojecttoml.apply_configuration(dist, pyproject)
+        assert "foo" in dist.extras_require
+        assert ':python_version < "3.7"' in dist.extras_require
+        egg_info = dist.get_command_obj("egg_info")
+        write_requirements(egg_info, tmp_path, tmp_path / "requires.txt")
+        reqs = (tmp_path / "requires.txt").read_text(encoding="utf-8")
+        assert "importlib-resources" in reqs
+        assert "bar" in reqs
 
 
 # --- Auxiliary Functions ---
