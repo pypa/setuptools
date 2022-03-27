@@ -63,82 +63,7 @@ class build_scripts(Command):
         outfiles = []
         updated_files = []
         for script in self.scripts:
-            adjust = False
-            script = convert_path(script)
-            outfile = os.path.join(self.build_dir, os.path.basename(script))
-            outfiles.append(outfile)
-
-            if not self.force and not newer(script, outfile):
-                log.debug("not copying %s (up-to-date)", script)
-                continue
-
-            # Always open the file, but ignore failures in dry-run mode --
-            # that way, we'll get accurate feedback if we can read the
-            # script.
-            try:
-                f = open(script, "rb")
-            except OSError:
-                if not self.dry_run:
-                    raise
-                f = None
-            else:
-                encoding, lines = tokenize.detect_encoding(f.readline)
-                f.seek(0)
-                first_line = f.readline()
-                if not first_line:
-                    self.warn("%s is an empty file (skipping)" % script)
-                    continue
-
-                match = first_line_re.match(first_line)
-                if match:
-                    adjust = True
-                    post_interp = match.group(1) or b''
-
-            updated_files.append(outfile)
-            if adjust:
-                log.info("copying and adjusting %s -> %s", script,
-                         self.build_dir)
-                if not self.dry_run:
-                    if not sysconfig.python_build:
-                        executable = self.executable
-                    else:
-                        executable = os.path.join(
-                            sysconfig.get_config_var("BINDIR"),
-                            "python%s%s" % (
-                                sysconfig.get_config_var("VERSION"),
-                                sysconfig.get_config_var("EXE")))
-                    executable = os.fsencode(executable)
-                    shebang = b"#!" + executable + post_interp + b"\n"
-                    # Python parser starts to read a script using UTF-8 until
-                    # it gets a #coding:xxx cookie. The shebang has to be the
-                    # first line of a file, the #coding:xxx cookie cannot be
-                    # written before. So the shebang has to be decodable from
-                    # UTF-8.
-                    try:
-                        shebang.decode('utf-8')
-                    except UnicodeDecodeError:
-                        raise ValueError(
-                            "The shebang ({!r}) is not decodable "
-                            "from utf-8".format(shebang))
-                    # If the script is encoded to a custom encoding (use a
-                    # #coding:xxx cookie), the shebang has to be decodable from
-                    # the script encoding too.
-                    try:
-                        shebang.decode(encoding)
-                    except UnicodeDecodeError:
-                        raise ValueError(
-                            "The shebang ({!r}) is not decodable "
-                            "from the script encoding ({})"
-                            .format(shebang, encoding))
-                    with open(outfile, "wb") as outf:
-                        outf.write(shebang)
-                        outf.writelines(f.readlines())
-                if f:
-                    f.close()
-            else:
-                if f:
-                    f.close()
-                self.copy_file(script, outfile)
+            self._copy_script(script, outfiles, updated_files)
 
         if os.name == 'posix':
             for file in outfiles:
@@ -153,3 +78,81 @@ class build_scripts(Command):
                         os.chmod(file, newmode)
         # XXX should we modify self.outfiles?
         return outfiles, updated_files
+
+    def _copy_script(self, script, outfiles, updated_files):
+        adjust = False
+        script = convert_path(script)
+        outfile = os.path.join(self.build_dir, os.path.basename(script))
+        outfiles.append(outfile)
+
+        if not self.force and not newer(script, outfile):
+            log.debug("not copying %s (up-to-date)", script)
+            return
+
+        # Always open the file, but ignore failures in dry-run mode --
+        # that way, we'll get accurate feedback if we can read the
+        # script.
+        try:
+            f = open(script, "rb")
+        except OSError:
+            if not self.dry_run:
+                raise
+            f = None
+        else:
+            encoding, lines = tokenize.detect_encoding(f.readline)
+            f.seek(0)
+            first_line = f.readline()
+            if not first_line:
+                self.warn("%s is an empty file (skipping)" % script)
+                return
+
+            match = first_line_re.match(first_line)
+            if match:
+                adjust = True
+                post_interp = match.group(1) or b''
+
+        updated_files.append(outfile)
+        if adjust:
+            log.info("copying and adjusting %s -> %s", script,
+                     self.build_dir)
+            if not self.dry_run:
+                if not sysconfig.python_build:
+                    executable = self.executable
+                else:
+                    executable = os.path.join(
+                        sysconfig.get_config_var("BINDIR"),
+                        "python%s%s" % (
+                            sysconfig.get_config_var("VERSION"),
+                            sysconfig.get_config_var("EXE")))
+                executable = os.fsencode(executable)
+                shebang = b"#!" + executable + post_interp + b"\n"
+                # Python parser starts to read a script using UTF-8 until
+                # it gets a #coding:xxx cookie. The shebang has to be the
+                # first line of a file, the #coding:xxx cookie cannot be
+                # written before. So the shebang has to be decodable from
+                # UTF-8.
+                try:
+                    shebang.decode('utf-8')
+                except UnicodeDecodeError:
+                    raise ValueError(
+                        "The shebang ({!r}) is not decodable "
+                        "from utf-8".format(shebang))
+                # If the script is encoded to a custom encoding (use a
+                # #coding:xxx cookie), the shebang has to be decodable from
+                # the script encoding too.
+                try:
+                    shebang.decode(encoding)
+                except UnicodeDecodeError:
+                    raise ValueError(
+                        "The shebang ({!r}) is not decodable "
+                        "from the script encoding ({})"
+                        .format(shebang, encoding))
+                with open(outfile, "wb") as outf:
+                    outf.write(shebang)
+                    outf.writelines(f.readlines())
+            if f:
+                f.close()
+        else:
+            if f:
+                f.close()
+            self.copy_file(script, outfile)
