@@ -452,6 +452,11 @@ def get_config_vars(*args):
         if os.name == 'nt':
             # See https://github.com/pypa/distutils/issues/130
             _config_vars['EXT_SUFFIX'] = _imp.extension_suffixes()[0]
+            if not IS_PYPY:
+                # For backward compatibility, see issue19555
+                SO = _config_vars.get('EXT_SUFFIX')
+                if SO is not None:
+                    _config_vars['SO'] = SO
 
     if args:
         vals = []
