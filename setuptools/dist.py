@@ -468,6 +468,10 @@ class Distribution(_Distribution):
             },
         )
 
+        # Save the original dependencies before they are processed into the egg format
+        self._orig_extras_require = {}
+        self._orig_install_requires = []
+
         self.set_defaults = ConfigDiscovery(self)
 
         self._set_metadata_defaults(attrs)
@@ -540,6 +544,8 @@ class Distribution(_Distribution):
             self.metadata.python_requires = self.python_requires
 
         if getattr(self, 'extras_require', None):
+            # Save original before it is messed by _convert_extras_requirements
+            self._orig_extras_require = self._orig_extras_require or self.extras_require
             for extra in self.extras_require.keys():
                 # Since this gets called multiple times at points where the
                 # keys have become 'converted' extras, ensure that we are only
@@ -547,6 +553,10 @@ class Distribution(_Distribution):
                 extra = extra.split(':')[0]
                 if extra:
                     self.metadata.provides_extras.add(extra)
+
+        if getattr(self, 'install_requires', None) and not self._orig_install_requires:
+            # Save original before it is messed by _move_install_requirements_markers
+            self._orig_install_requires = self.install_requires
 
         self._convert_extras_requirements()
         self._move_install_requirements_markers()
