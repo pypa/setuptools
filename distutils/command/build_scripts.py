@@ -33,7 +33,6 @@ class build_scripts(Command):
         self.scripts = None
         self.force = None
         self.executable = None
-        self.outfiles = None
 
     def finalize_options(self):
         self.set_undefined_options('build',
@@ -76,7 +75,7 @@ class build_scripts(Command):
                         log.info("changing mode of %s from %o to %o",
                                  file, oldmode, newmode)
                         os.chmod(file, newmode)
-        # XXX should we modify self.outfiles?
+
         return outfiles, updated_files
 
     def _copy_script(self, script, outfiles, updated_files):
