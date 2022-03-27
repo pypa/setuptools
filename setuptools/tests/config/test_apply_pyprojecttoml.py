@@ -14,7 +14,7 @@ import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
-from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField
+from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField, _some_attrgetter
 from setuptools.command.egg_info import write_requirements
 
 
@@ -234,12 +234,14 @@ class TestPresetField:
             dist = pyprojecttoml.apply_configuration(dist, pyproject)
 
         # TODO: Once support for pyproject.toml config stabilizes attr should be None
-        dist_value = getattr(dist, attr, None) or getattr(dist.metadata, attr, object())
+        dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
         assert dist_value == value
 
     @pytest.mark.parametrize(
         "attr, field, value",
         [
+            ("install_requires", "dependencies", []),
+            ("extras_require", "optional-dependencies", {}),
             ("install_requires", "dependencies", ["six"]),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
         ]
@@ -248,7 +250,7 @@ class TestPresetField:
         pyproject = self.pyproject(tmp_path, [field])
         dist = makedist(tmp_path, **{attr: value})
         dist = pyprojecttoml.apply_configuration(dist, pyproject)
-        dist_value = getattr(dist, attr, None) or getattr(dist.metadata, attr, object())
+        dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
         assert dist_value == value
 
     def test_optional_dependencies_dont_remove_env_markers(self, tmp_path):

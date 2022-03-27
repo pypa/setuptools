@@ -303,7 +303,7 @@ def _some_attrgetter(*items):
     """
     def _acessor(obj):
         values = (_attrgetter(i)(obj) for i in items)
-        return next((i for i in values if i), None)
+        return next((i for i in values if i is not None), None)
     return _acessor
 
 
