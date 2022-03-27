@@ -58,6 +58,14 @@ def _install_setup_requires(attrs):
             # Prevent accidentally triggering discovery with incomplete set of attrs
             self.set_defaults._disable()
 
+        def _get_project_config_files(self, filenames=None):
+            """Ignore ``pyproject.toml``, they are not related to setup_requires"""
+            try:
+                cfg, toml = super()._split_standard_project_metadata(filenames)
+                return cfg, ()
+            except Exception:
+                return filenames, ()
+
         def finalize_options(self):
             """
             Disable finalize_options to avoid building the working set.

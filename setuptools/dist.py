@@ -827,10 +827,8 @@ class Distribution(_Distribution):
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
-    def parse_config_files(self, filenames=None, ignore_option_errors=False):
-        """Parses configuration files from various levels
-        and loads configuration.
-        """
+    def _get_project_config_files(self, filenames):
+        """Add default file and split between INI and TOML"""
         tomlfiles = []
         standard_project_metadata = Path(self.src_root or os.curdir, "pyproject.toml")
         if filenames is not None:
@@ -839,8 +837,15 @@ class Distribution(_Distribution):
             tomlfiles = list(parts[1])  # 2nd element => predicate is True
         elif standard_project_metadata.exists():
             tomlfiles = [standard_project_metadata]
+        return filenames, tomlfiles
 
-        self._parse_config_files(filenames=filenames)
+    def parse_config_files(self, filenames=None, ignore_option_errors=False):
+        """Parses configuration files from various levels
+        and loads configuration.
+        """
+        inifiles, tomlfiles = self._get_project_config_files(filenames)
+
+        self._parse_config_files(filenames=inifiles)
 
         setupcfg.parse_configuration(
             self, self.command_options, ignore_option_errors=ignore_option_errors
