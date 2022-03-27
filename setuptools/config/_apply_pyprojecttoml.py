@@ -250,3 +250,34 @@ TOOL_TABLE_RENAMES = {"script_files": "scripts"}
 
 SETUPTOOLS_PATCHES = {"long_description_content_type", "project_urls",
                       "provides_extras", "license_file", "license_files"}
+
+
+class _WouldIgnoreField(UserWarning):
+    """Inform users that ``pyproject.toml`` would overwrite previously defined metadata.
+    !!\n\n
+    ##############################################
+    # field would be ignored by `pyproject.toml` #
+    ##############################################
+
+    `{field} = {value!r}` seems to be defined outside of `pyproject.toml`.
+    According to the spec (see the link bellow), however, setuptools CANNOT
+    consider this value unless {field!r} is listed as `dynamic`.
+
+    https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+
+    For the time being, `setuptools` will still consider the given value (as a
+    **transitional** measure), but please note that future releases of setuptools will
+    follow strictly the standard.
+
+    To prevent this warning, you can list {field!r} under `dynamic` or alternatively
+    remove the `[project]` table from your file and rely entirely on other means of
+    configuration.
+
+    \n\n!!
+    """
+
+    @classmethod
+    def message(cls, field, value):
+        from inspect import cleandoc
+        msg = "\n".join(cls.__doc__.splitlines()[1:])
+        return cleandoc(msg.format(field=field, value=value))
