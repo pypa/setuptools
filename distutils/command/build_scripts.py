@@ -78,9 +78,8 @@ class build_scripts(Command):
             log.debug("not copying %s (up-to-date)", script)
             return
 
-        # Always open the file, but ignore failures in dry-run mode --
-        # that way, we'll get accurate feedback if we can read the
-        # script.
+        # Always open the file, but ignore failures in dry-run mode
+        # in order to attempt to copy directly.
         try:
             f = open(script, "rb")
         except OSError:
