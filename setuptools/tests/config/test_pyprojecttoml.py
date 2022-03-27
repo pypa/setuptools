@@ -1,4 +1,5 @@
 import logging
+import re
 from configparser import ConfigParser
 from inspect import cleandoc
 
@@ -6,6 +7,7 @@ import pytest
 import tomli_w
 from path import Path as _Path
 
+from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField
 from setuptools.config.pyprojecttoml import (
     read_configuration,
     expand_configuration,
@@ -171,31 +173,43 @@ ENTRY_POINTS = {
 }
 
 
-def test_expand_entry_point(tmp_path):
-    entry_points = ConfigParser()
-    entry_points.read_dict(ENTRY_POINTS)
-    with open(tmp_path / "entry-points.txt", "w") as f:
-        entry_points.write(f)
+class TestEntryPoints:
+    def write_entry_points(self, tmp_path):
+        entry_points = ConfigParser()
+        entry_points.read_dict(ENTRY_POINTS)
+        with open(tmp_path / "entry-points.txt", "w") as f:
+            entry_points.write(f)
 
-    tool = {"setuptools": {"dynamic": {"entry-points": {"file": "entry-points.txt"}}}}
-    project = {"dynamic": ["scripts", "gui-scripts", "entry-points"]}
-    pyproject = {"project": project, "tool": tool}
-    expanded = expand_configuration(pyproject, tmp_path)
-    expanded_project = expanded["project"]
-    assert len(expanded_project["scripts"]) == 1
-    assert expanded_project["scripts"]["a"] == "mod.a:func"
-    assert len(expanded_project["gui-scripts"]) == 1
-    assert expanded_project["gui-scripts"]["b"] == "mod.b:func"
-    assert len(expanded_project["entry-points"]) == 1
-    assert expanded_project["entry-points"]["other"]["c"] == "mod.c:func [extra]"
+    def pyproject(self, dynamic=None):
+        project = {"dynamic": dynamic or ["scripts", "gui-scripts", "entry-points"]}
+        tool = {"dynamic": {"entry-points": {"file": "entry-points.txt"}}}
+        return {"project": project, "tool": {"setuptools": tool}}
 
-    project = {"dynamic": ["entry-points"]}
-    pyproject = {"project": project, "tool": tool}
-    expanded = expand_configuration(pyproject, tmp_path)
-    expanded_project = expanded["project"]
-    assert len(expanded_project["entry-points"]) == 3
-    assert "scripts" not in expanded_project
-    assert "gui-scripts" not in expanded_project
+    def test_all_listed_in_dynamic(self, tmp_path):
+        self.write_entry_points(tmp_path)
+        expanded = expand_configuration(self.pyproject(), tmp_path)
+        expanded_project = expanded["project"]
+        assert len(expanded_project["scripts"]) == 1
+        assert expanded_project["scripts"]["a"] == "mod.a:func"
+        assert len(expanded_project["gui-scripts"]) == 1
+        assert expanded_project["gui-scripts"]["b"] == "mod.b:func"
+        assert len(expanded_project["entry-points"]) == 1
+        assert expanded_project["entry-points"]["other"]["c"] == "mod.c:func [extra]"
+
+    @pytest.mark.parametrize("missing_dynamic", ("scripts", "gui-scripts"))
+    def test_scripts_not_listed_in_dynamic(self, tmp_path, missing_dynamic):
+        self.write_entry_points(tmp_path)
+        dynamic = {"scripts", "gui-scripts", "entry-points"} - {missing_dynamic}
+
+        msg = f"defined outside of `pyproject.toml`:.*{missing_dynamic}"
+        with pytest.warns(_WouldIgnoreField, match=re.compile(msg, re.S)):
+            expanded = expand_configuration(self.pyproject(dynamic), tmp_path)
+
+        expanded_project = expanded["project"]
+        assert dynamic < set(expanded_project)
+        assert len(expanded_project["entry-points"]) == 1
+        # TODO: Test the following when pyproject.toml support stabilizes:
+        # >>> assert missing_dynamic not in expanded_project
 
 
 class TestClassifiers:

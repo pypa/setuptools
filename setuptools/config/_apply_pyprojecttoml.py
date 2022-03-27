@@ -334,9 +334,9 @@ _PREVIOUSLY_DEFINED = {
 class _WouldIgnoreField(UserWarning):
     """Inform users that ``pyproject.toml`` would overwrite previously defined metadata:
     !!\n\n
-    ##############################################
-    # field would be ignored by `pyproject.toml` #
-    ##############################################
+    ##########################################################################
+    # configuration would be ignored/result in error due to `pyproject.toml` #
+    ##########################################################################
 
     The following seems to be defined outside of `pyproject.toml`:
 

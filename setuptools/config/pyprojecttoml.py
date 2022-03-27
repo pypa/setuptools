@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Union
 from setuptools.errors import FileError, OptionError
 
 from . import expand as _expand
-from ._apply_pyprojecttoml import apply, _PREVIOUSLY_DEFINED
+from ._apply_pyprojecttoml import apply, _PREVIOUSLY_DEFINED, _WouldIgnoreField
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
@@ -334,10 +334,20 @@ class _ConfigExpander:
 
         groups = _expand.entry_points(text)
         expanded = {"entry-points": groups}
-        if "scripts" in self.dynamic and "console_scripts" in groups:
-            expanded["scripts"] = groups.pop("console_scripts")
-        if "gui-scripts" in self.dynamic and "gui_scripts" in groups:
-            expanded["gui-scripts"] = groups.pop("gui_scripts")
+
+        def _set_scripts(field: str, group: str):
+            if group in groups:
+                value = groups.pop(group)
+                if field not in self.dynamic:
+                    msg = _WouldIgnoreField.message(field, value)
+                    warnings.warn(msg, _WouldIgnoreField)
+                # TODO: Don't set field when support for pyproject.toml stabilizes
+                #       instead raise an error as specified in PEP 621
+                expanded[field] = value
+
+        _set_scripts("scripts", "console_scripts")
+        _set_scripts("gui-scripts", "gui_scripts")
+
         return expanded
 
     def _obtain_classifiers(self, dist: "Distribution"):
