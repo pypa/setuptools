@@ -16,6 +16,7 @@ import sys
 import sysconfig
 
 from .errors import DistutilsPlatformError
+from . import py39compat
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -448,15 +449,8 @@ def get_config_vars(*args):
     """
     global _config_vars
     if _config_vars is None:
-        _config_vars = sysconfig.get_config_vars().copy()
-        if os.name == 'nt':
-            # See https://github.com/pypa/distutils/issues/130
-            _config_vars['EXT_SUFFIX'] = _imp.extension_suffixes()[0]
-            if not IS_PYPY:
-                # For backward compatibility, see issue19555
-                SO = _config_vars.get('EXT_SUFFIX')
-                if SO is not None:
-                    _config_vars['SO'] = SO
+        _config_vars = py39compat.ext_suffix(
+            sysconfig.get_config_vars().copy())
 
     if args:
         vals = []
