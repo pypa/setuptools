@@ -265,6 +265,7 @@ class _ConfigExpander:
             "gui-scripts",
             "classifiers",
         )
+        # `_obtain` functions are assumed to raise appropriate exceptions/warnings.
         obtained_dynamic = {
             field: self._obtain(dist, field, package_dir)
             for field in self.dynamic
@@ -276,7 +277,8 @@ class _ConfigExpander:
             readme=self._obtain_readme(dist),
             classifiers=self._obtain_classifiers(dist),
         )
-        # Preserve previous value if obtained value is None
+        # `None` indicates there is nothing in `tool.setuptools.dynamic` but the value
+        # might have already been set by setup.py/extensions, so avoid overwriting.
         self.project_cfg.update({k: v for k, v in obtained_dynamic.items() if v})
 
     def _ensure_previously_set(self, dist: "Distribution", field: str):
@@ -298,6 +300,9 @@ class _ConfigExpander:
                     return _expand.read_files(directive["file"], root_dir)
                 if "attr" in directive:
                     return _expand.read_attr(directive["attr"], package_dir, root_dir)
+                msg = f"invalid `tool.setuptools.dynamic.{field}`: {directive!r}"
+                raise ValueError(msg)
+            return None
         self._ensure_previously_set(dist, field)
         return None
 

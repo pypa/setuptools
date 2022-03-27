@@ -351,7 +351,6 @@ class _WouldIgnoreField(UserWarning):
     To prevent this warning, you can list {field!r} under `dynamic` or alternatively
     remove the `[project]` table from your file and rely entirely on other means of
     configuration.
-
     \n\n!!
     """
 
