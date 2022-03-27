@@ -94,10 +94,10 @@ class build_scripts(Command):
                     adjust = True
                     post_interp = match.group(1) or b''
 
+            updated_files.append(outfile)
             if adjust:
                 log.info("copying and adjusting %s -> %s", script,
                          self.build_dir)
-                updated_files.append(outfile)
                 if not self.dry_run:
                     if not sysconfig.python_build:
                         executable = self.executable
@@ -138,7 +138,6 @@ class build_scripts(Command):
             else:
                 if f:
                     f.close()
-                updated_files.append(outfile)
                 self.copy_file(script, outfile)
 
         if os.name == 'posix':
