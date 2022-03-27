@@ -285,9 +285,9 @@ class _ConfigExpander:
         previous = _PREVIOUSLY_DEFINED[field](dist)
         if not previous and not self.ignore_option_errors:
             msg = (
-                f"No configuration found for dynamic {field!r}. "
-                "Some fields need to be specified via `tool.setuptools.dynamic` "
-                "others must be specified via the equivalent attribute in `setup.py`."
+                f"No configuration found for dynamic {field!r}.\n"
+                "Some dynamic fields need to be specified via `tool.setuptools.dynamic`"
+                "\nothers must be specified via the equivalent attribute in `setup.py`."
             )
             raise OptionError(msg)
 
@@ -400,7 +400,7 @@ class _ExperimentalProjectMetadata(UserWarning):
 
 
 class _InvalidFile(UserWarning):
-    """Inform users that the given `pyproject.toml` is experimental.
+    """Inform users that the given `pyproject.toml` is experimental:
     !!\n\n
     ############################
     # Invalid `pyproject.toml` #

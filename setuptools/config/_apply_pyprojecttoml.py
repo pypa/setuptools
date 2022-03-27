@@ -332,13 +332,16 @@ _PREVIOUSLY_DEFINED = {
 
 
 class _WouldIgnoreField(UserWarning):
-    """Inform users that ``pyproject.toml`` would overwrite previously defined metadata.
+    """Inform users that ``pyproject.toml`` would overwrite previously defined metadata:
     !!\n\n
     ##############################################
     # field would be ignored by `pyproject.toml` #
     ##############################################
 
-    `{field} = {value!r}` seems to be defined outside of `pyproject.toml`.
+    The following seems to be defined outside of `pyproject.toml`:
+
+    `{field} = {value!r}`
+
     According to the spec (see the link bellow), however, setuptools CANNOT
     consider this value unless {field!r} is listed as `dynamic`.
 

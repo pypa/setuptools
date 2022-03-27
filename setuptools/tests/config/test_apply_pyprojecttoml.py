@@ -228,7 +228,7 @@ class TestPresetField:
         """
         pyproject = self.pyproject(tmp_path, [])
         dist = makedist(tmp_path, **{attr: value})
-        msg = f"{field}.*seems to be defined outside of .pyproject.toml."
+        msg = re.compile(f"defined outside of `pyproject.toml`:.*{field}", re.S)
         with pytest.warns(_WouldIgnoreField, match=msg):
             dist = pyprojecttoml.apply_configuration(dist, pyproject)
 
