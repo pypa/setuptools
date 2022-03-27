@@ -471,6 +471,7 @@ class Distribution(_Distribution):
         # Save the original dependencies before they are processed into the egg format
         self._orig_extras_require = {}
         self._orig_install_requires = []
+        self._tmp_extras_require = defaultdict(ordered_set.OrderedSet)
 
         self.set_defaults = ConfigDiscovery(self)
 
@@ -568,7 +569,8 @@ class Distribution(_Distribution):
         `"extra:{marker}": ["barbazquux"]`.
         """
         spec_ext_reqs = getattr(self, 'extras_require', None) or {}
-        self._tmp_extras_require = defaultdict(list)
+        tmp = defaultdict(ordered_set.OrderedSet)
+        self._tmp_extras_require = getattr(self, '_tmp_extras_require', tmp)
         for section, v in spec_ext_reqs.items():
             # Do not strip empty sections.
             self._tmp_extras_require[section]
@@ -606,7 +608,8 @@ class Distribution(_Distribution):
         for r in complex_reqs:
             self._tmp_extras_require[':' + str(r.marker)].append(r)
         self.extras_require = dict(
-            (k, [str(r) for r in map(self._clean_req, v)])
+            # list(dict.fromkeys(...))  ensures a list of unique strings
+            (k, list(dict.fromkeys(str(r) for r in map(self._clean_req, v))))
             for k, v in self._tmp_extras_require.items()
         )
 
