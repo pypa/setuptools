@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Union
 from setuptools.errors import FileError, OptionError
 
 from . import expand as _expand
-from ._apply_pyprojecttoml import apply
+from ._apply_pyprojecttoml import apply, _PREVIOUSLY_DEFINED
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
@@ -167,7 +167,7 @@ def _skip_bad_config(
 def expand_configuration(
     config: dict,
     root_dir: Optional[_Path] = None,
-    ignore_option_errors=False,
+    ignore_option_errors: bool = False,
     dist: Optional["Distribution"] = None,
 ) -> dict:
     """Given a configuration with unresolved fields (e.g. dynamic, cmdclass, ...)
@@ -184,38 +184,175 @@ def expand_configuration(
 
     :rtype: dict
     """
-    root_dir = root_dir or os.getcwd()
-    project_cfg = config.get("project", {})
-    setuptools_cfg = config.get("tool", {}).get("setuptools", {})
-    ignore = ignore_option_errors
+    return _ConfigExpander(config, root_dir, ignore_option_errors, dist).expand()
 
-    _expand_packages(setuptools_cfg, root_dir, ignore)
-    _canonic_package_data(setuptools_cfg)
-    _canonic_package_data(setuptools_cfg, "exclude-package-data")
 
-    # A distribution object is required for discovering the correct package_dir
-    dist = _ensure_dist(dist, project_cfg, root_dir)
+class _ConfigExpander:
+    def __init__(
+        self,
+        config: dict,
+        root_dir: Optional[_Path] = None,
+        ignore_option_errors: bool = False,
+        dist: Optional["Distribution"] = None,
+    ):
+        self.config = config
+        self.root_dir = root_dir or os.getcwd()
+        self.project_cfg = config.get("project", {})
+        self.dynamic = self.project_cfg.get("dynamic", [])
+        self.setuptools_cfg = config.get("tool", {}).get("setuptools", {})
+        self.dynamic_cfg = self.setuptools_cfg.get("dynamic", {})
+        self.ignore_option_errors = ignore_option_errors
+        self._dist = dist
 
-    with _EnsurePackagesDiscovered(dist, setuptools_cfg) as ensure_discovered:
-        package_dir = ensure_discovered.package_dir
-        process = partial(_process_field, ignore_option_errors=ignore)
+    def _ensure_dist(self) -> "Distribution":
+        from setuptools.dist import Distribution
+
+        attrs = {"src_root": self.root_dir, "name": self.project_cfg.get("name", None)}
+        return self._dist or Distribution(attrs)
+
+    def _process_field(self, container: dict, field: str, fn: Callable):
+        if field in container:
+            with _ignore_errors(self.ignore_option_errors):
+                container[field] = fn(container[field])
+
+    def _canonic_package_data(self, field="package-data"):
+        package_data = self.setuptools_cfg.get(field, {})
+        return _expand.canonic_package_data(package_data)
+
+    def expand(self):
+        self._expand_packages()
+        self._canonic_package_data()
+        self._canonic_package_data("exclude-package-data")
+
+        # A distribution object is required for discovering the correct package_dir
+        dist = self._ensure_dist()
+
+        with _EnsurePackagesDiscovered(dist, self.setuptools_cfg) as ensure_discovered:
+            package_dir = ensure_discovered.package_dir
+            self._expand_data_files()
+            self._expand_cmdclass(package_dir)
+            self._expand_all_dynamic(dist, package_dir)
+
+        return self.config
+
+    def _expand_packages(self):
+        packages = self.setuptools_cfg.get("packages")
+        if packages is None or isinstance(packages, (list, tuple)):
+            return
+
+        find = packages.get("find")
+        if isinstance(find, dict):
+            find["root_dir"] = self.root_dir
+            find["fill_package_dir"] = self.setuptools_cfg.setdefault("package-dir", {})
+            with _ignore_errors(self.ignore_option_errors):
+                self.setuptools_cfg["packages"] = _expand.find_packages(**find)
+
+    def _expand_data_files(self):
+        data_files = partial(_expand.canonic_data_files, root_dir=self.root_dir)
+        self._process_field(self.setuptools_cfg, "data-files", data_files)
+
+    def _expand_cmdclass(self, package_dir: Mapping[str, str]):
+        root_dir = self.root_dir
         cmdclass = partial(_expand.cmdclass, package_dir=package_dir, root_dir=root_dir)
-        data_files = partial(_expand.canonic_data_files, root_dir=root_dir)
+        self._process_field(self.setuptools_cfg, "cmdclass", cmdclass)
 
-        process(setuptools_cfg, "data-files", data_files)
-        process(setuptools_cfg, "cmdclass", cmdclass)
-        _expand_all_dynamic(project_cfg, setuptools_cfg, package_dir, root_dir, ignore)
+    def _expand_all_dynamic(self, dist: "Distribution", package_dir: Mapping[str, str]):
+        special = (  # need special handling
+            "version",
+            "readme",
+            "entry-points",
+            "scripts",
+            "gui-scripts",
+            "classifiers",
+        )
+        obtained_dynamic = {
+            field: self._obtain(dist, field, package_dir)
+            for field in self.dynamic
+            if field not in special
+        }
+        obtained_dynamic.update(
+            self._obtain_entry_points(dist, package_dir) or {},
+            version=self._obtain_version(dist, package_dir),
+            readme=self._obtain_readme(dist),
+            classifiers=self._obtain_classifiers(dist),
+        )
+        # Preserve previous value if obtained value is None
+        self.project_cfg.update({k: v for k, v in obtained_dynamic.items() if v})
 
-    return config
+    def _ensure_previously_set(self, dist: "Distribution", field: str):
+        previous = _PREVIOUSLY_DEFINED[field](dist)
+        if not previous and not self.ignore_option_errors:
+            msg = (
+                f"No configuration found for dynamic {field!r}. "
+                "Some fields need to be specified via `tool.setuptools.dynamic` "
+                "others must be specified via the equivalent attribute in `setup.py`."
+            )
+            raise OptionError(msg)
+
+    def _obtain(self, dist: "Distribution", field: str, package_dir: Mapping[str, str]):
+        if field in self.dynamic_cfg:
+            directive = self.dynamic_cfg[field]
+            with _ignore_errors(self.ignore_option_errors):
+                root_dir = self.root_dir
+                if "file" in directive:
+                    return _expand.read_files(directive["file"], root_dir)
+                if "attr" in directive:
+                    return _expand.read_attr(directive["attr"], package_dir, root_dir)
+        self._ensure_previously_set(dist, field)
+        return None
+
+    def _obtain_version(self, dist: "Distribution", package_dir: Mapping[str, str]):
+        # Since plugins can set version, let's silently skip if it cannot be obtained
+        if "version" in self.dynamic and "version" in self.dynamic_cfg:
+            return _expand.version(self._obtain(dist, "version", package_dir))
+        return None
+
+    def _obtain_readme(self, dist: "Distribution") -> Optional[Dict[str, str]]:
+        if "readme" in self.dynamic:
+            dynamic_cfg = self.dynamic_cfg
+            return {
+                "text": self._obtain(dist, "readme", {}),
+                "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst"),
+            }
+        return None
+
+    def _obtain_entry_points(
+        self, dist: "Distribution", package_dir: Mapping[str, str]
+    ) -> Optional[Dict[str, dict]]:
+        fields = ("entry-points", "scripts", "gui-scripts")
+        if not any(field in self.dynamic for field in fields):
+            return None
+
+        text = self._obtain(dist, "entry-points", package_dir)
+        if text is None:
+            return None
+
+        groups = _expand.entry_points(text)
+        expanded = {"entry-points": groups}
+        if "scripts" in self.dynamic and "console_scripts" in groups:
+            expanded["scripts"] = groups.pop("console_scripts")
+        if "gui-scripts" in self.dynamic and "gui_scripts" in groups:
+            expanded["gui-scripts"] = groups.pop("gui_scripts")
+        return expanded
+
+    def _obtain_classifiers(self, dist: "Distribution"):
+        if "classifiers" in self.dynamic:
+            value = self._obtain(dist, "classifiers", {})
+            if value:
+                return value.splitlines()
+        return None
 
 
-def _ensure_dist(
-    dist: Optional["Distribution"], project_cfg: dict, root_dir: _Path
-) -> "Distribution":
-    from setuptools.dist import Distribution
+@contextmanager
+def _ignore_errors(ignore_option_errors: bool):
+    if not ignore_option_errors:
+        yield
+        return
 
-    attrs = {"src_root": root_dir, "name": project_cfg.get("name", None)}
-    return dist or Distribution(attrs)
+    try:
+        yield
+    except Exception as ex:
+        _logger.debug(f"ignored error: {ex.__class__.__name__} - {ex}")
 
 
 class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
@@ -251,128 +388,6 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         self._setuptools_cfg.setdefault("packages", self._dist.packages)
         self._setuptools_cfg.setdefault("py-modules", self._dist.py_modules)
         return super().__exit__(exc_type, exc_value, traceback)
-
-
-def _expand_all_dynamic(
-    project_cfg: dict,
-    setuptools_cfg: dict,
-    package_dir: Mapping[str, str],
-    root_dir: _Path,
-    ignore_option_errors: bool,
-):
-    ignore = ignore_option_errors
-    dynamic_cfg = setuptools_cfg.get("dynamic", {})
-    pkg_dir = package_dir
-    special = (
-        "readme",
-        "version",
-        "entry-points",
-        "scripts",
-        "gui-scripts",
-        "classifiers",
-    )
-    # readme, version and entry-points need special handling
-    dynamic = project_cfg.get("dynamic", [])
-    regular_dynamic = (x for x in dynamic if x not in special)
-
-    for field in regular_dynamic:
-        value = _expand_dynamic(dynamic_cfg, field, pkg_dir, root_dir, ignore)
-        project_cfg[field] = value
-
-    if "version" in dynamic and "version" in dynamic_cfg:
-        version = _expand_dynamic(dynamic_cfg, "version", pkg_dir, root_dir, ignore)
-        project_cfg["version"] = _expand.version(version)
-
-    if "readme" in dynamic:
-        project_cfg["readme"] = _expand_readme(dynamic_cfg, root_dir, ignore)
-
-    if "entry-points" in dynamic:
-        field = "entry-points"
-        value = _expand_dynamic(dynamic_cfg, field, pkg_dir, root_dir, ignore)
-        project_cfg.update(_expand_entry_points(value, dynamic))
-
-    if "classifiers" in dynamic:
-        value = _expand_dynamic(dynamic_cfg, "classifiers", pkg_dir, root_dir, ignore)
-        project_cfg["classifiers"] = (value or "").splitlines()
-
-
-def _expand_dynamic(
-    dynamic_cfg: dict,
-    field: str,
-    package_dir: Mapping[str, str],
-    root_dir: _Path,
-    ignore_option_errors: bool,
-):
-    if field in dynamic_cfg:
-        directive = dynamic_cfg[field]
-        with _ignore_errors(ignore_option_errors):
-            if "file" in directive:
-                return _expand.read_files(directive["file"], root_dir)
-            if "attr" in directive:
-                return _expand.read_attr(directive["attr"], package_dir, root_dir)
-    elif not ignore_option_errors:
-        msg = f"Impossible to expand dynamic value of {field!r}. "
-        msg += f"No configuration found for `tool.setuptools.dynamic.{field}`"
-        raise OptionError(msg)
-    return None
-
-
-def _expand_readme(
-    dynamic_cfg: dict, root_dir: _Path, ignore_option_errors: bool
-) -> Dict[str, str]:
-    ignore = ignore_option_errors
-    return {
-        "text": _expand_dynamic(dynamic_cfg, "readme", {}, root_dir, ignore),
-        "content-type": dynamic_cfg["readme"].get("content-type", "text/x-rst"),
-    }
-
-
-def _expand_entry_points(text: str, dynamic: set):
-    groups = _expand.entry_points(text)
-    expanded = {"entry-points": groups}
-    if "scripts" in dynamic and "console_scripts" in groups:
-        expanded["scripts"] = groups.pop("console_scripts")
-    if "gui-scripts" in dynamic and "gui_scripts" in groups:
-        expanded["gui-scripts"] = groups.pop("gui_scripts")
-    return expanded
-
-
-def _expand_packages(setuptools_cfg: dict, root_dir: _Path, ignore_option_errors=False):
-    packages = setuptools_cfg.get("packages")
-    if packages is None or isinstance(packages, (list, tuple)):
-        return
-
-    find = packages.get("find")
-    if isinstance(find, dict):
-        find["root_dir"] = root_dir
-        find["fill_package_dir"] = setuptools_cfg.setdefault("package-dir", {})
-        with _ignore_errors(ignore_option_errors):
-            setuptools_cfg["packages"] = _expand.find_packages(**find)
-
-
-def _process_field(
-    container: dict, field: str, fn: Callable, ignore_option_errors=False
-):
-    if field in container:
-        with _ignore_errors(ignore_option_errors):
-            container[field] = fn(container[field])
-
-
-def _canonic_package_data(setuptools_cfg, field="package-data"):
-    package_data = setuptools_cfg.get(field, {})
-    return _expand.canonic_package_data(package_data)
-
-
-@contextmanager
-def _ignore_errors(ignore_option_errors: bool):
-    if not ignore_option_errors:
-        yield
-        return
-
-    try:
-        yield
-    except Exception as ex:
-        _logger.debug(f"ignored error: {ex.__class__.__name__} - {ex}")
 
 
 class _ExperimentalProjectMetadata(UserWarning):
