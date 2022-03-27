@@ -1,7 +1,12 @@
 [run]
+source =
+	setuptools
+	pkg_resources
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
-	*/.tox/*
+	*/_vendor/*
+	*/_distutils/tests/*
 
 [report]
 show_missing = True
+skip_covered = True
