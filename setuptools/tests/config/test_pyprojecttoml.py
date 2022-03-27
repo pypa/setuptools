@@ -236,7 +236,7 @@ class TestClassifiers:
 
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text(cleandoc(config))
-        with pytest.raises(OptionError, match="No configuration found"):
+        with pytest.raises(OptionError, match="No configuration .* .classifiers."):
             read_configuration(pyproject)
 
     def test_dynamic_without_file(self, tmp_path):
@@ -254,7 +254,7 @@ class TestClassifiers:
         pyproject.write_text(cleandoc(config))
         with pytest.warns(UserWarning, match="File .*classifiers.txt. cannot be found"):
             expanded = read_configuration(pyproject)
-        assert not expanded["project"]["classifiers"]
+        assert "classifiers" not in expanded["project"]
 
 
 @pytest.mark.parametrize(
