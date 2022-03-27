@@ -449,6 +449,9 @@ def get_config_vars(*args):
     global _config_vars
     if _config_vars is None:
         _config_vars = sysconfig.get_config_vars().copy()
+        if os.name == 'nt':
+            # See https://github.com/pypa/distutils/issues/130
+            _config_vars['EXT_SUFFIX'] = _imp.extension_suffixes()[0]
 
     if args:
         vals = []
