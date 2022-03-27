@@ -151,7 +151,7 @@ Changes
   in ``setup.cfg`` and ``pyproject.toml`` when ``package_dir`` is implicitly
   found via auto-discovery.
 * #3178: Postponed importing ``ctypes`` when hiding files on Windows.
-  This helps to prevent errors in systems that might not have `libffi` installed.
+  This helps to prevent errors in systems that might not have ``libffi`` installed.
 * #3179: Merge with pypa/distutils@267dbd25ac
 
 Documentation changes
