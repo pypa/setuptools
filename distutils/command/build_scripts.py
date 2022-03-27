@@ -15,6 +15,9 @@ import tokenize
 # check if Python is called on the first line with this expression
 shebang_pattern = re.compile(b'^#!.*python[0-9.]*([ \t].*)?$')
 
+# for Setuptools compatibility
+first_line_re = shebang_pattern
+
 
 class build_scripts(Command):
 
