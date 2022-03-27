@@ -14,6 +14,7 @@ import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
+from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField
 
 
 EXAMPLES = (Path(__file__).parent / "setupcfg_examples.txt").read_text()
@@ -21,8 +22,8 @@ EXAMPLE_URLS = [x for x in EXAMPLES.splitlines() if not x.startswith("#")]
 DOWNLOAD_DIR = Path(__file__).parent / "downloads"
 
 
-def makedist(path):
-    return Distribution({"src_root": path})
+def makedist(path, **attrs):
+    return Distribution({"src_root": path, **attrs})
 
 
 @pytest.mark.parametrize("url", EXAMPLE_URLS)
@@ -203,6 +204,51 @@ def test_license_and_license_files(tmp_path):
     dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
     assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
     assert dist.metadata.license == "LicenseRef-Proprietary\n"
+
+
+class TestPresetField:
+    def pyproject(self, tmp_path, dynamic):
+        content = f"[project]\nname = 'proj'\ndynamic = {dynamic!r}\n"
+        if "version" not in dynamic:
+            content += "version = '42'\n"
+        file = tmp_path / "pyproject.toml"
+        file.write_text(content, encoding="utf-8")
+        return file
+
+    @pytest.mark.parametrize(
+        "attr, field, value",
+        [
+            ("install_requires", "dependencies", ["six"]),
+            ("classifiers", "classifiers", ["Private :: Classifier"]),
+        ]
+    )
+    def test_not_listed_in_dynamic(self, tmp_path, attr, field, value):
+        """For the time being we just warn if the user pre-set values (e.g. via
+        ``setup.py``) but do not include them in ``dynamic``.
+        """
+        pyproject = self.pyproject(tmp_path, [])
+        dist = makedist(tmp_path, **{attr: value})
+        msg = re.compile(f"defined outside of `pyproject.toml`:.*{field}", re.S)
+        with pytest.warns(_WouldIgnoreField, match=msg):
+            dist = pyprojecttoml.apply_configuration(dist, pyproject)
+
+        # TODO: Once support for pyproject.toml config stabilizes attr should be None
+        dist_value = getattr(dist, attr, None) or getattr(dist.metadata, attr, object())
+        assert dist_value == value
+
+    @pytest.mark.parametrize(
+        "attr, field, value",
+        [
+            ("install_requires", "dependencies", ["six"]),
+            ("classifiers", "classifiers", ["Private :: Classifier"]),
+        ]
+    )
+    def test_listed_in_dynamic(self, tmp_path, attr, field, value):
+        pyproject = self.pyproject(tmp_path, [field])
+        dist = makedist(tmp_path, **{attr: value})
+        dist = pyprojecttoml.apply_configuration(dist, pyproject)
+        dist_value = getattr(dist, attr, None) or getattr(dist.metadata, attr, object())
+        assert dist_value == value
 
 
 # --- Auxiliary Functions ---

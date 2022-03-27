@@ -7,9 +7,10 @@ need to be processed before being applied.
 """
 import logging
 import os
+import warnings
 from collections.abc import Mapping
 from email.headerregistry import Address
-from functools import partial
+from functools import partial, reduce
 from itertools import chain
 from types import MappingProxyType
 from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple,
@@ -35,23 +36,9 @@ def apply(dist: "Distribution", config: dict, filename: _Path) -> "Distribution"
         return dist  # short-circuit unrelated pyproject.toml file
 
     root_dir = os.path.dirname(filename) or "."
-    tool_table = config.get("tool", {}).get("setuptools", {})
-    project_table = config.get("project", {}).copy()
-    _unify_entry_points(project_table)
-    for field, value in project_table.items():
-        norm_key = json_compatible_key(field)
-        corresp = PYPROJECT_CORRESPONDENCE.get(norm_key, norm_key)
-        if callable(corresp):
-            corresp(dist, value, root_dir)
-        else:
-            _set_config(dist, corresp, value)
 
-    for field, value in tool_table.items():
-        norm_key = json_compatible_key(field)
-        norm_key = TOOL_TABLE_RENAMES.get(norm_key, norm_key)
-        _set_config(dist, norm_key, value)
-
-    _copy_command_options(config, dist, filename)
+    _apply_project_table(dist, config, root_dir)
+    _apply_tool_table(dist, config, filename)
 
     current_directory = os.getcwd()
     os.chdir(root_dir)
@@ -62,6 +49,48 @@ def apply(dist: "Distribution", config: dict, filename: _Path) -> "Distribution"
         os.chdir(current_directory)
 
     return dist
+
+
+def _apply_project_table(dist: "Distribution", config: dict, root_dir: _Path):
+    project_table = config.get("project", {}).copy()
+    if not project_table:
+        return  # short-circuit
+
+    _handle_missing_dynamic(dist, project_table)
+    _unify_entry_points(project_table)
+
+    for field, value in project_table.items():
+        norm_key = json_compatible_key(field)
+        corresp = PYPROJECT_CORRESPONDENCE.get(norm_key, norm_key)
+        if callable(corresp):
+            corresp(dist, value, root_dir)
+        else:
+            _set_config(dist, corresp, value)
+
+
+def _apply_tool_table(dist: "Distribution", config: dict, filename: _Path):
+    tool_table = config.get("tool", {}).get("setuptools", {})
+    if not tool_table:
+        return  # short-circuit
+
+    for field, value in tool_table.items():
+        norm_key = json_compatible_key(field)
+        norm_key = TOOL_TABLE_RENAMES.get(norm_key, norm_key)
+        _set_config(dist, norm_key, value)
+
+    _copy_command_options(config, dist, filename)
+
+
+def _handle_missing_dynamic(dist: "Distribution", project_table: dict):
+    """Be temporarily forgiving with ``dynamic`` fields not listed in ``dynamic``"""
+    # TODO: Set fields back to `None` once the feature stabilizes
+    dynamic = set(project_table.get("dynamic", []))
+    for field, getter in _PREVIOUSLY_DEFINED.items():
+        if not (field in project_table or field in dynamic):
+            value = getter(dist)
+            if value:
+                msg = _WouldIgnoreField.message(field, value)
+                warnings.warn(msg, _WouldIgnoreField)
 
 
 def json_compatible_key(key: str) -> str:
@@ -235,6 +264,39 @@ def _normalise_cmd_options(desc: List[Tuple[str, Optional[str], str]]) -> Set[st
     return {_normalise_cmd_option_key(fancy_option[0]) for fancy_option in desc}
 
 
+def _attrgetter(attr):
+    """
+    Similar to ``operator.attrgetter`` but returns None if ``attr`` is not found
+    >>> from types import SimpleNamespace
+    >>> obj = SimpleNamespace(a=42, b=SimpleNamespace(c=13))
+    >>> _attrgetter("a")(obj)
+    42
+    >>> _attrgetter("b.c")(obj)
+    13
+    >>> _attrgetter("d")(obj) is None
+    True
+    """
+    return partial(reduce, lambda acc, x: getattr(acc, x, None), attr.split("."))
+
+
+def _some_attrgetter(*items):
+    """
+    Return the first "truth-y" attribute or None
+    >>> from types import SimpleNamespace
+    >>> obj = SimpleNamespace(a=42, b=SimpleNamespace(c=13))
+    >>> _some_attrgetter("d", "a", "b.c")(obj)
+    42
+    >>> _some_attrgetter("d", "e", "b.c", "a")(obj)
+    13
+    >>> _some_attrgetter("d", "e", "f")(obj) is None
+    True
+    """
+    def _acessor(obj):
+        values = (_attrgetter(i)(obj) for i in items)
+        return next((i for i in values if i), None)
+    return _acessor
+
+
 PYPROJECT_CORRESPONDENCE: Dict[str, _Correspondence] = {
     "readme": _long_description,
     "license": _license,
@@ -250,3 +312,53 @@ TOOL_TABLE_RENAMES = {"script_files": "scripts"}
 
 SETUPTOOLS_PATCHES = {"long_description_content_type", "project_urls",
                       "provides_extras", "license_file", "license_files"}
+
+_PREVIOUSLY_DEFINED = {
+    "name": _attrgetter("metadata.name"),
+    "version": _attrgetter("metadata.version"),
+    "description": _attrgetter("metadata.description"),
+    "readme": _attrgetter("metadata.long_description"),
+    "requires-python": _some_attrgetter("python_requires", "metadata.python_requires"),
+    "license": _attrgetter("metadata.license"),
+    "authors": _some_attrgetter("metadata.author", "metadata.author_email"),
+    "maintainers": _some_attrgetter("metadata.maintainer", "metadata.maintainer_email"),
+    "keywords": _attrgetter("metadata.keywords"),
+    "classifiers": _attrgetter("metadata.classifiers"),
+    "urls": _attrgetter("metadata.project_urls"),
+    "entry-points": _attrgetter("entry_points"),
+    "dependencies": _some_attrgetter("_orig_install_requires", "install_requires"),
+    "optional-dependencies": _some_attrgetter("_orig_extras_require", "extras_require"),
+}
+
+
+class _WouldIgnoreField(UserWarning):
+    """Inform users that ``pyproject.toml`` would overwrite previously defined metadata:
+    !!\n\n
+    ##########################################################################
+    # configuration would be ignored/result in error due to `pyproject.toml` #
+    ##########################################################################
+
+    The following seems to be defined outside of `pyproject.toml`:
+
+    `{field} = {value!r}`
+
+    According to the spec (see the link bellow), however, setuptools CANNOT
+    consider this value unless {field!r} is listed as `dynamic`.
+
+    https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+
+    For the time being, `setuptools` will still consider the given value (as a
+    **transitional** measure), but please note that future releases of setuptools will
+    follow strictly the standard.
+
+    To prevent this warning, you can list {field!r} under `dynamic` or alternatively
+    remove the `[project]` table from your file and rely entirely on other means of
+    configuration.
+    \n\n!!
+    """
+
+    @classmethod
+    def message(cls, field, value):
+        from inspect import cleandoc
+        msg = "\n".join(cls.__doc__.splitlines()[1:])
+        return cleandoc(msg.format(field=field, value=value))
