@@ -50,14 +50,14 @@ class Version:
     """
 
     def __init__ (self, vstring=None):
+        if vstring:
+            self.parse(vstring)
         warnings.warn(
             "distutils Version classes are deprecated. "
             "Use packaging.version instead.",
             DeprecationWarning,
             stacklevel=2,
         )
-        if vstring:
-            self.parse(vstring)
 
     def __repr__ (self):
         return "%s ('%s')" % (self.__class__.__name__, str(self))
