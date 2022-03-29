@@ -94,6 +94,9 @@ class TestDistInfo:
 
 
 class TestWheelCompatibility:
+    """Make sure the .dist-info directory produced with the ``dist_info`` command
+    is the same as the one produced by ``bdist_wheel``.
+    """
     SETUPCFG = DALS("""
     [metadata]
     name = proj
