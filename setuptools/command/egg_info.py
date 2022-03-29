@@ -140,13 +140,18 @@ class InfoCommon:
             else version + self.vtags
         )
 
-    def tags(self):
+    def _safe_tags(self, tags: str) -> str:
+        # To implement this we can rely on `safe_version` pretending to be version 0
+        # followed by tags. Then we simply discard the starting 0 (fake version number)
+        return safe_version(f"0{tags}")[1:]
+
+    def tags(self) -> str:
         version = ''
         if self.tag_build:
             version += self.tag_build
         if self.tag_date:
             version += time.strftime("-%Y%m%d")
-        return version
+        return self._safe_tags(version)
     vtags = property(tags)
 
 
