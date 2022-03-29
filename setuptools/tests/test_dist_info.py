@@ -1,6 +1,7 @@
 """Test .dist-info style distributions.
 """
 import pathlib
+import re
 import subprocess
 import sys
 from functools import partial
@@ -81,6 +82,15 @@ class TestDistInfo:
                 pkg_resources.Requirement.parse('quux>=1.1;extra=="baz"'),
             ]
             assert d.extras == ['baz']
+
+    def test_invalid_version(self, tmp_path):
+        config = "[metadata]\nname=proj\nversion=42\n[egg_info]\ntag_build=invalid!!!\n"
+        (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
+        msg = re.compile("invalid version", re.M | re.I)
+        output = run_command("dist_info", cwd=tmp_path)
+        assert msg.search(output)
+        dist_info = next(tmp_path.glob("*.dist-info"))
+        assert dist_info.name.startswith("proj-42")
 
 
 class TestWheelCompatibility:
