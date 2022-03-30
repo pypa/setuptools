@@ -115,7 +115,7 @@ class TestWheelCompatibility:
     """)
 
     EGG_INFO_OPTS = [
-        # Related: #3077 #2872
+        # Related: #3088 #2872
         ("", ""),
         (".post", "[egg_info]\ntag_build = post\n"),
         (".post", "[egg_info]\ntag_build = .post\n"),
