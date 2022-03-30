@@ -2,7 +2,7 @@
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
 	*/.tox/*
-	*/_validate_pyproject/*  # generated code, tested in _validate_pyproject
+	*/_validate_pyproject/*  # generated code, tested in `validate-pyproject`
 
 [report]
 show_missing = True
