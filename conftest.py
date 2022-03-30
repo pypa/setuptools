@@ -32,6 +32,7 @@ collect_ignore = [
     'pkg_resources/tests/data',
     'setuptools/_vendor',
     'pkg_resources/_vendor',
+    'setuptools/config/_validate_pyproject',
 ]
 
 
