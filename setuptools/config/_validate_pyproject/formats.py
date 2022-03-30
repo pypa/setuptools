@@ -131,12 +131,17 @@ class _TroveClassifier:
 
     def __init__(self):
         self.downloaded: typing.Union[None, False, typing.Set[str]] = None
+        self._skip_download = False
         # None => not cached yet
         # False => cache not available
         self.__name__ = "trove_classifier"  # Emulate a public function
 
+    def _disable_download(self):
+        # This is a private API. Only setuptools has the consent of using it.
+        self._skip_download = True
+
     def __call__(self, value: str) -> bool:
-        if self.downloaded is False:
+        if self.downloaded is False or self._skip_download is True:
             return True
 
         if os.getenv("NO_NETWORK") or os.getenv("VALIDATE_PYPROJECT_NO_NETWORK"):
