@@ -29,6 +29,11 @@ def load_file(filepath: _Path) -> dict:
 def validate(config: dict, filepath: _Path) -> bool:
     from . import _validate_pyproject as validator
 
+    trove_classifier = validator.FORMAT_FUNCTIONS.get("trove-classifier")
+    if hasattr(trove_classifier, "_disable_download"):
+        # Improve reproducibility by default. See issue 31 for validate-pyproject.
+        trove_classifier._disable_download()  # type: ignore
+
     try:
         return validator.validate(config)
     except validator.ValidationError as ex:
