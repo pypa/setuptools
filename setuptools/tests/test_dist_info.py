@@ -5,7 +5,6 @@ import re
 import subprocess
 import sys
 from functools import partial
-from unittest.mock import patch
 
 import pytest
 
@@ -99,8 +98,8 @@ class TestWheelCompatibility:
     """
     SETUPCFG = DALS("""
     [metadata]
-    name = proj
-    version = 42
+    name = {name}
+    version = {version}
 
     [options]
     install_requires = foo>=12; sys_platform != "linux"
@@ -115,23 +114,25 @@ class TestWheelCompatibility:
         myproj = my_package.other_module:function
     """)
 
-    FROZEN_TIME = "20220329"
     EGG_INFO_OPTS = [
         # Related: #3077 #2872
         ("", ""),
         (".post", "[egg_info]\ntag_build = post\n"),
         (".post", "[egg_info]\ntag_build = .post\n"),
-        (f".post{FROZEN_TIME}", "[egg_info]\ntag_build = post\ntag_date = 1\n"),
+        (".post", "[egg_info]\ntag_build = post\ntag_date = 1\n"),
         (".dev", "[egg_info]\ntag_build = .dev\n"),
-        (f".dev{FROZEN_TIME}", "[egg_info]\ntag_build = .dev\ntag_date = 1\n"),
+        (".dev", "[egg_info]\ntag_build = .dev\ntag_date = 1\n"),
         ("a1", "[egg_info]\ntag_build = .a1\n"),
         ("+local", "[egg_info]\ntag_build = +local\n"),
     ]
 
-    @pytest.mark.parametrize("suffix,cfg", EGG_INFO_OPTS)
-    @patch("setuptools.command.egg_info.time.strftime", FROZEN_TIME)
-    def test_dist_info_is_the_same_as_in_wheel(self, tmp_path, suffix, cfg):
-        config = self.SETUPCFG + cfg
+    @pytest.mark.parametrize("name", "my-proj my_proj my.proj My.Proj".split())
+    @pytest.mark.parametrize("version", ["0.42.13"])
+    @pytest.mark.parametrize("suffix, cfg", EGG_INFO_OPTS)
+    def test_dist_info_is_the_same_as_in_wheel(
+        self, name, version, tmp_path, suffix, cfg
+    ):
+        config = self.SETUPCFG.format(name=name, version=version) + cfg
 
         for i in "dir_wheel", "dir_dist":
             (tmp_path / i).mkdir()
@@ -146,7 +147,7 @@ class TestWheelCompatibility:
         dist_info = next(tmp_path.glob("dir_dist/*.dist-info"))
 
         assert dist_info.name == wheel_dist_info.name
-        assert dist_info.name.startswith(f"proj-42{suffix}")
+        assert dist_info.name.startswith(f"{name.replace('-', '_')}-{version}{suffix}")
         for file in "METADATA", "entry_points.txt":
             assert read(dist_info / file) == read(wheel_dist_info / file)
 
