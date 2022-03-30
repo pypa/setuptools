@@ -139,7 +139,7 @@ class _TroveClassifier:
         if self.downloaded is False:
             return True
 
-        if os.getenv("NO_NETWORK"):
+        if os.getenv("NO_NETWORK") or os.getenv("VALIDATE_PYPROJECT_NO_NETWORK"):
             self.downloaded = False
             msg = (
                 "Install ``trove-classifiers`` to ensure proper validation. "

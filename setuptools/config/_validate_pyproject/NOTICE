@@ -1,7 +1,7 @@
 The code contained in this directory was automatically generated using the
 following command:
 
-    python -m validate_pyproject.vendoring --output-dir=setuptools/config/_validate_pyproject --enable-plugins setuptools distutils --very-verbose
+    python -m validate_pyproject.pre_compile --output-dir=setuptools/config/_validate_pyproject --enable-plugins setuptools distutils --very-verbose
 
 Please avoid changing it manually.
 
@@ -31,7 +31,7 @@ by the same projects:
 - `__init__.py`
 - `fastjsonschema_validations.py`
 
-The relevant copyright notes and licenses are included bellow.
+The relevant copyright notes and licenses are included below.
 
 
 ***
