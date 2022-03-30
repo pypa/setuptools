@@ -30,7 +30,7 @@ def validate(config: dict, filepath: _Path) -> bool:
     from . import _validate_pyproject as validator
 
     try:
-        return validator._validate(config)
+        return validator.validate(config)
     except validator.ValidationError as ex:
         _logger.error(f"configuration error: {ex.summary}")  # type: ignore
         _logger.debug(ex.details)  # type: ignore
