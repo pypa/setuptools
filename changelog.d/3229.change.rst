@@ -1,1 +1,0 @@
-Disabled automatic download of ``trove-classifiers`` to facilitate reproducibility.

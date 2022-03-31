@@ -1,3 +1,19 @@
+v61.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #3229: Disabled automatic download of ``trove-classifiers`` to facilitate reproducibility.
+
+Misc
+^^^^
+* #3229: Updated ``pyproject.toml`` validation via ``validate-pyproject`` v0.7.1.
+* #3229: New internal tool made available for updating the code responsible for
+  the validation of ``pyproject.toml``.
+  This tool can be executed via ``tox -e generate-validation-code``.
+
+
 v61.2.0
 -------
 

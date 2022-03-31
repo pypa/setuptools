@@ -1,3 +1,0 @@
-New internal tool made available for updating the code responsible for
-the validation of ``pyproject.toml``.
-This tool can be executed via ``tox -e generate-validation-code``.
