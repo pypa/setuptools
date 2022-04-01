@@ -1,11 +1,14 @@
 """Make sure that applying the configuration from pyproject.toml is equivalent to
 applying a similar configuration from setup.cfg
+
+To run these tests offline, please have a look on ``./downloads/preload.py``
 """
 import io
 import re
+import tarfile
 from pathlib import Path
-from urllib.request import urlopen
 from unittest.mock import Mock
+from zipfile import ZipFile
 
 import pytest
 from ini2toml.api import Translator
@@ -17,22 +20,23 @@ from setuptools.config import expand
 from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField, _some_attrgetter
 from setuptools.command.egg_info import write_requirements
 
+from .downloads import retrieve_file, urls_from_file
 
-EXAMPLES = (Path(__file__).parent / "setupcfg_examples.txt").read_text()
-EXAMPLE_URLS = [x for x in EXAMPLES.splitlines() if not x.startswith("#")]
-DOWNLOAD_DIR = Path(__file__).parent / "downloads"
+
+HERE = Path(__file__).parent
+EXAMPLES_FILE = "setupcfg_examples.txt"
 
 
 def makedist(path, **attrs):
     return Distribution({"src_root": path, **attrs})
 
 
-@pytest.mark.parametrize("url", EXAMPLE_URLS)
+@pytest.mark.parametrize("url", urls_from_file(HERE / EXAMPLES_FILE))
 @pytest.mark.filterwarnings("ignore")
 @pytest.mark.uses_network
 def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
     monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.0.1"))
-    setupcfg_example = retrieve_file(url, DOWNLOAD_DIR)
+    setupcfg_example = retrieve_file(url)
     pyproject_example = Path(tmp_path, "pyproject.toml")
     toml_config = Translator().translate(setupcfg_example.read_text(), "setup.cfg")
     pyproject_example.write_text(toml_config)
@@ -276,32 +280,19 @@ class TestPresetField:
         assert "bar" in reqs
 
 
+class TestMeta:
+    def test_example_file_in_sdist(self, setuptools_sdist):
+        """Meta test to ensure tests can run from sdist"""
+        with tarfile.open(setuptools_sdist) as tar:
+            assert any(name.endswith(EXAMPLES_FILE) for name in tar.getnames())
+
+    def test_example_file_not_in_wheel(self, setuptools_wheel):
+        """Meta test to ensure auxiliary test files are not in wheel"""
+        with ZipFile(setuptools_wheel) as zipfile:
+            assert not any(name.endswith(EXAMPLES_FILE) for name in zipfile.namelist())
+
+
 # --- Auxiliary Functions ---
-
-
-NAME_REMOVE = ("http://", "https://", "github.com/", "/raw/")
-
-
-def retrieve_file(url, download_dir):
-    file_name = url.strip()
-    for part in NAME_REMOVE:
-        file_name = file_name.replace(part, '').strip().strip('/:').strip()
-    file_name = re.sub(r"[^\-_\.\w\d]+", "_", file_name)
-    path = Path(download_dir, file_name)
-    if not path.exists():
-        download_dir.mkdir(exist_ok=True, parents=True)
-        download(url, path)
-    return path
-
-
-def download(url, dest):
-    with urlopen(url) as f:
-        data = f.read()
-
-    with open(dest, "wb") as f:
-        f.write(data)
-
-    assert Path(dest).exists()
 
 
 def core_metadata(dist) -> str:

@@ -1,0 +1,1 @@
+Included missing test file ``setupcfg_examples.txt`` in ``sdist``.
