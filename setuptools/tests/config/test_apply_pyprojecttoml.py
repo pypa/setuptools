@@ -3,9 +3,11 @@ applying a similar configuration from setup.cfg
 """
 import io
 import re
+import tarfile
 from pathlib import Path
 from urllib.request import urlopen
 from unittest.mock import Mock
+from zipfile import ZipFile
 
 import pytest
 from ini2toml.api import Translator
@@ -18,7 +20,8 @@ from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField, _some_attr
 from setuptools.command.egg_info import write_requirements
 
 
-EXAMPLES = (Path(__file__).parent / "setupcfg_examples.txt").read_text()
+EXAMPLES_FILE = "setupcfg_examples.txt"
+EXAMPLES = (Path(__file__).parent / EXAMPLES_FILE).read_text()
 EXAMPLE_URLS = [x for x in EXAMPLES.splitlines() if not x.startswith("#")]
 DOWNLOAD_DIR = Path(__file__).parent / "downloads"
 
@@ -274,6 +277,18 @@ class TestPresetField:
         reqs = (tmp_path / "requires.txt").read_text(encoding="utf-8")
         assert "importlib-resources" in reqs
         assert "bar" in reqs
+
+
+class TestMeta:
+    def test_example_file_in_sdist(self, setuptools_sdist):
+        """Meta test to ensure tests can run from sdist"""
+        with tarfile.open(setuptools_sdist) as tar:
+            assert any(name.endswith(EXAMPLES_FILE) for name in tar.getnames())
+
+    def test_example_file_not_in_wheel(self, setuptools_wheel):
+        """Meta test to ensure auxiliary test files are not in wheel"""
+        with ZipFile(setuptools_wheel) as zipfile:
+            assert not any(name.endswith(EXAMPLES_FILE) for name in zipfile.namelist())
 
 
 # --- Auxiliary Functions ---
