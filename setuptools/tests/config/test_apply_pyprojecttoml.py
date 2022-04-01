@@ -19,23 +19,23 @@ from setuptools.config import expand
 from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField, _some_attrgetter
 from setuptools.command.egg_info import write_requirements
 
+from .downloads import retrieve_file, urls_from_file
 
+
+HERE = Path(__file__).parent
 EXAMPLES_FILE = "setupcfg_examples.txt"
-EXAMPLES = (Path(__file__).parent / EXAMPLES_FILE).read_text()
-EXAMPLE_URLS = [x for x in EXAMPLES.splitlines() if not x.startswith("#")]
-DOWNLOAD_DIR = Path(__file__).parent / "downloads"
 
 
 def makedist(path, **attrs):
     return Distribution({"src_root": path, **attrs})
 
 
-@pytest.mark.parametrize("url", EXAMPLE_URLS)
+@pytest.mark.parametrize("url", urls_from_file(HERE / EXAMPLES_FILE))
 @pytest.mark.filterwarnings("ignore")
 @pytest.mark.uses_network
 def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
     monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.0.1"))
-    setupcfg_example = retrieve_file(url, DOWNLOAD_DIR)
+    setupcfg_example = retrieve_file(url)
     pyproject_example = Path(tmp_path, "pyproject.toml")
     toml_config = Translator().translate(setupcfg_example.read_text(), "setup.cfg")
     pyproject_example.write_text(toml_config)
@@ -292,31 +292,6 @@ class TestMeta:
 
 
 # --- Auxiliary Functions ---
-
-
-NAME_REMOVE = ("http://", "https://", "github.com/", "/raw/")
-
-
-def retrieve_file(url, download_dir):
-    file_name = url.strip()
-    for part in NAME_REMOVE:
-        file_name = file_name.replace(part, '').strip().strip('/:').strip()
-    file_name = re.sub(r"[^\-_\.\w\d]+", "_", file_name)
-    path = Path(download_dir, file_name)
-    if not path.exists():
-        download_dir.mkdir(exist_ok=True, parents=True)
-        download(url, path)
-    return path
-
-
-def download(url, dest):
-    with urlopen(url) as f:
-        data = f.read()
-
-    with open(dest, "wb") as f:
-        f.write(data)
-
-    assert Path(dest).exists()
 
 
 def core_metadata(dist) -> str:
