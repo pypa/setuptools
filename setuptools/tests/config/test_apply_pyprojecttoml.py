@@ -5,7 +5,6 @@ import io
 import re
 import tarfile
 from pathlib import Path
-from urllib.request import urlopen
 from unittest.mock import Mock
 from zipfile import ZipFile
 
