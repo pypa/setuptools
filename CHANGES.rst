@@ -1,3 +1,15 @@
+v61.3.1
+-------
+
+
+Misc
+^^^^
+* #3233: Included missing test file ``setupcfg_examples.txt`` in ``sdist``.
+* #3233: Added script that allows developers to download ``setupcfg_examples.txt`` prior to
+  running tests. By caching these files it should be possible to run the test suite
+  offline.
+
+
 v61.3.0
 -------
 
