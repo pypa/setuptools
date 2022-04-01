@@ -9,6 +9,11 @@ NAME_REMOVE = ("http://", "https://", "github.com/", "/raw/")
 DOWNLOAD_DIR = Path(__file__).parent
 
 
+# ----------------------------------------------------------------------
+# Please update ./preload.py accordingly when modifying this file
+# ----------------------------------------------------------------------
+
+
 def output_file(url: str, download_dir: Path = DOWNLOAD_DIR):
     file_name = url.strip()
     for part in NAME_REMOVE:
