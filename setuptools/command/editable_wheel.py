@@ -6,12 +6,14 @@ Create a wheel that, when installed, will make the source package 'editable'
 
 # TODO doesn't behave when called outside the hook
 
+import base64
 import os
 import time
 from pathlib import Path
 
 from distutils.core import Command
 from distutils.errors import DistutilsError
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 import pkg_resources
 
@@ -68,13 +70,7 @@ class editable_wheel(Command):
         # with the dist-info directory and .pth from 'editables' library
         # ...
 
-        import zipfile
-        import editables    # could we use 'develop' command's .pth file
-
-        project = editables.EditableProject(
-            self.distribution.metadata.name, self.target
-        )
-        project.add_to_path(self.target)
+        mtime = time.gmtime(SOURCE_EPOCH_ZIP)[:6]
 
         dist_dir = Path(self.dist_dir)
         dist_info_dir = self.dist_info_dir
@@ -89,30 +85,18 @@ class editable_wheel(Command):
         if wheel_path.exists():
             wheel_path.unlink()
 
-        with zipfile.ZipFile(
-            wheel_path, "a", compression=zipfile.ZIP_DEFLATED
-        ) as archive:
-
+        with ZipFile(wheel_path, "a", compression=ZIP_DEFLATED) as archive:
             # copy .pth file
-            for f, data in project.files():
-                archive.writestr(
-                    zipfile.ZipInfo(f, time.gmtime(SOURCE_EPOCH_ZIP)[:6]), data
-                )
+            pth = ZipInfo(f"{fullname}_ed.pth", mtime)
+            archive.writestr(pth, f"{self.target}\n")
 
             # copy .dist-info directory
             for f in sorted(os.listdir(dist_dir / dist_info_dir)):
                 with (dist_dir / dist_info_dir / f).open() as metadata:
-                    archive.writestr(
-                        zipfile.ZipInfo(
-                            str(dist_info_dir / f), time.gmtime(SOURCE_EPOCH_ZIP)[:6]
-                        ),
-                        metadata.read(),
-                    )
+                    info = ZipInfo(str(dist_info_dir / f), mtime)
+                    archive.writestr(info, metadata.read())
 
             add_manifest(archive, dist_info_dir)
-
-
-import base64
 
 
 def urlsafe_b64encode(data):
