@@ -19,6 +19,7 @@ import subprocess
 import pathlib
 import warnings
 from collections import namedtuple
+from pathlib import Path
 
 import pytest
 from jaraco import path
@@ -1166,3 +1167,45 @@ def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
     assert cmd.config_vars['py_version'] == '3.10.1'
     assert cmd.config_vars['py_version_short'] == '3.10'
     assert cmd.config_vars['py_version_nodot'] == '310'
+
+
+def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path):
+    ''' `setup.py develop` should honor `--user` even under build isolation'''
+
+    # == Arrange ==
+    # Pretend that build isolation was enabled
+    # e.g pip sets the environment varible PYTHONNOUSERSITE=1
+    monkeypatch.setattr('site.ENABLE_USER_SITE', False)
+
+    # Patching $HOME for 2 reasons:
+    # 1. setuptools/command/easy_install.py:create_home_path
+    #    tries creating directories in $HOME
+    # given `self.config_vars['DESTDIRS'] = "/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload"``  # noqa: E501
+    # it will `makedirs("/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")``  # noqa: E501
+    # 2. We are going to force `site` to update site.USER_BASE and site.USER_SITE
+    #    To point inside our new home
+    monkeypatch.setenv('HOME', str(tmp_path / 'home'))
+    monkeypatch.setattr('site.USER_BASE', None)
+    monkeypatch.setattr('site.USER_SITE', None)
+    user_site = Path(site.getusersitepackages())
+    user_site.mkdir(parents=True, exist_ok=True)
+
+    sys_prefix = (tmp_path / 'sys_prefix')
+    sys_prefix.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr('sys.prefix', str(sys_prefix))
+
+    # == Sanity check ==
+    assert list(sys_prefix.glob("*")) == []
+    assert list(user_site.glob("*")) == []
+
+    # == Act ==
+    run_setup('setup.py', ['develop', '--user'])
+
+    # == Assert ==
+    # Should not install to sys.prefix
+    assert list(sys_prefix.glob("*")) == []
+    # Should install to user site
+    installed = {f.name for f in user_site.glob("*")}
+    # sometimes easy-install.pth is created and sometimes not
+    installed = installed - {"easy-install.pth"}
+    assert installed == {'UNKNOWN.egg-link'}

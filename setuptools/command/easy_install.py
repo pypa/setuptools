@@ -169,12 +169,8 @@ class easy_install(Command):
         self.install_data = None
         self.install_base = None
         self.install_platbase = None
-        if site.ENABLE_USER_SITE:
-            self.install_userbase = site.USER_BASE
-            self.install_usersite = site.USER_SITE
-        else:
-            self.install_userbase = None
-            self.install_usersite = None
+        self.install_userbase = site.USER_BASE
+        self.install_usersite = site.USER_SITE
         self.no_find_links = None
 
         # Options not specifiable via command line
@@ -253,11 +249,9 @@ class easy_install(Command):
             getattr(sys, 'windir', '').replace('.', ''),
         )
 
-        if site.ENABLE_USER_SITE:
-            self.config_vars['userbase'] = self.install_userbase
-            self.config_vars['usersite'] = self.install_usersite
-
-        elif self.user:
+        self.config_vars['userbase'] = self.install_userbase
+        self.config_vars['usersite'] = self.install_usersite
+        if self.user and not site.ENABLE_USER_SITE:
             log.warn("WARNING: The user site-packages directory is disabled.")
 
         self._fix_install_dir_for_user_site()
@@ -375,7 +369,7 @@ class easy_install(Command):
         """
         Fix the install_dir if "--user" was used.
         """
-        if not self.user or not site.ENABLE_USER_SITE:
+        if not self.user:
             return
 
         self.create_home_path()
