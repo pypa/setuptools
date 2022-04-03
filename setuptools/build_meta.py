@@ -251,7 +251,6 @@ class _BuildMetaBackend:
                                          '.tar.gz', sdist_directory,
                                          config_settings)
 
-
     # PEP660 hooks:
     # build_editable
     # get_requires_for_build_editable
@@ -263,7 +262,6 @@ class _BuildMetaBackend:
         return self._build_with_temp_dir(
             ["editable_wheel"], ".whl", wheel_directory, config_settings
         )
-
 
     def get_requires_for_build_editable(self, config_settings=None):
         return ['editables', 'wheel']
