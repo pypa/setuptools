@@ -264,7 +264,13 @@ class _BuildMetaBackend:
         )
 
     def get_requires_for_build_editable(self, config_settings=None):
-        return ['editables', 'wheel']
+        return self.get_requires_for_build_wheel(config_settings)
+
+    def prepare_metadata_for_build_editable(self, metadata_directory,
+                                            config_settings=None):
+        return self.prepare_metadata_for_build_wheel(
+            metadata_directory, config_settings
+        )
 
 
 class _BuildMetaLegacyBackend(_BuildMetaBackend):
@@ -312,8 +318,9 @@ _BACKEND = _BuildMetaBackend()
 
 get_requires_for_build_wheel = _BACKEND.get_requires_for_build_wheel
 get_requires_for_build_sdist = _BACKEND.get_requires_for_build_sdist
-get_requires_for_build_editable =  _BACKEND.get_requires_for_build_editable
+get_requires_for_build_editable = _BACKEND.get_requires_for_build_editable
 prepare_metadata_for_build_wheel = _BACKEND.prepare_metadata_for_build_wheel
+prepare_metadata_for_build_editable = _BACKEND.prepare_metadata_for_build_editable
 build_wheel = _BACKEND.build_wheel
 build_sdist = _BACKEND.build_sdist
 build_editable = _BACKEND.build_editable
