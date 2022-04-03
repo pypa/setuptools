@@ -257,7 +257,7 @@ class _BuildMetaBackend:
     # get_requires_for_build_editable
     # prepare_metadata_for_build_editable
     def build_editable(
-        self, wheel_directory, scheme=None, config_settings=None
+        self, wheel_directory, config_settings=None, metadata_directory=None
     ):
         # XXX can or should we hide our editable_wheel command normally?
         return self._build_with_temp_dir(
