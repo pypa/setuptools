@@ -1184,15 +1184,22 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path)
     # it will `makedirs("/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")``  # noqa: E501
     # 2. We are going to force `site` to update site.USER_BASE and site.USER_SITE
     #    To point inside our new home
-    monkeypatch.setenv('HOME', str(tmp_path / 'home'))
+    monkeypatch.setenv('HOME', str(tmp_path / '.home'))
+    monkeypatch.setenv('USERPROFILE', str(tmp_path / '.home'))
+    monkeypatch.setenv('APPDATA', str(tmp_path / '.home'))
     monkeypatch.setattr('site.USER_BASE', None)
     monkeypatch.setattr('site.USER_SITE', None)
     user_site = Path(site.getusersitepackages())
     user_site.mkdir(parents=True, exist_ok=True)
 
-    sys_prefix = (tmp_path / 'sys_prefix')
+    sys_prefix = (tmp_path / '.sys_prefix')
     sys_prefix.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr('sys.prefix', str(sys_prefix))
+
+    setup_script = (
+        "__import__('setuptools').setup(name='aproj', version=42, packages=[])\n"
+    )
+    (tmp_path / "setup.py").write_text(setup_script, encoding="utf-8")
 
     # == Sanity check ==
     assert list(sys_prefix.glob("*")) == []
@@ -1208,4 +1215,4 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path)
     installed = {f.name for f in user_site.glob("*")}
     # sometimes easy-install.pth is created and sometimes not
     installed = installed - {"easy-install.pth"}
-    assert installed == {'UNKNOWN.egg-link'}
+    assert installed == {'aproj.egg-link'}
