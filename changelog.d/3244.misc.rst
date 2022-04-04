@@ -1,0 +1,2 @@
+Fixed problem preventing ``readme`` specified as dynamic in ``pyproject.toml``
+from being dynamically specified in ``setup.py``.
