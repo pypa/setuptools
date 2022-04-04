@@ -1,3 +1,23 @@
+v62.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #3151: Made ``setup.py develop --user`` install to the user site packages directory even if it is disabled in the current interpreter.
+
+Changes
+^^^^^^^
+* #3153: When resolving requirements use both canonical and normalized names -- by :user:`ldaniluk`
+* #3167: Honor unix file mode in ZipFile when installing wheel via ``install_as_egg`` -- by :user:`delijati`
+
+Misc
+^^^^
+* #3088: Fixed duplicated tag with the ``dist-info`` command.
+* #3247: Fixed problem preventing ``readme`` specified as dynamic in ``pyproject.toml``
+  from being dynamically specified in ``setup.py``.
+
+
 v61.3.1
 -------
 
