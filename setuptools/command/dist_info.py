@@ -7,6 +7,7 @@ import os
 import re
 import warnings
 from inspect import cleandoc
+from pathlib import Path
 
 from distutils.core import Command
 from distutils import log
@@ -40,10 +41,11 @@ class dist_info(Command):
 
         dist = self.distribution
         project_dir = dist.src_root or os.curdir
-        self.output_dir = self.output_dir or project_dir
+        self.output_dir = Path(self.output_dir or project_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
         egg_info = self.reinitialize_command('egg_info')
-        egg_info.egg_base = self.output_dir
+        egg_info.egg_base = str(self.output_dir)
         egg_info.finalize_options()
         self.egg_info = egg_info
 
