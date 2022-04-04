@@ -136,11 +136,21 @@ class InfoCommon:
         in which case the version string already contains all tags.
         """
         return (
-            version if self.vtags and version.endswith(self.vtags)
+            version if self.vtags and self._already_tagged(version)
             else version + self.vtags
         )
 
-    def tags(self):
+    def _already_tagged(self, version: str) -> bool:
+        # Depending on their format, tags may change with version normalization.
+        # So in addition the regular tags, we have to search for the normalized ones.
+        return version.endswith(self.vtags) or version.endswith(self._safe_tags())
+
+    def _safe_tags(self) -> str:
+        # To implement this we can rely on `safe_version` pretending to be version 0
+        # followed by tags. Then we simply discard the starting 0 (fake version number)
+        return safe_version(f"0{self.vtags}")[1:]
+
+    def tags(self) -> str:
         version = ''
         if self.tag_build:
             version += self.tag_build
