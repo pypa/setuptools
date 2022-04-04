@@ -260,7 +260,8 @@ class _BuildMetaBackend:
     ):
         # XXX can or should we hide our editable_wheel command normally?
         return self._build_with_temp_dir(
-            ["editable_wheel"], ".whl", wheel_directory, config_settings
+            ["editable_wheel", "--dist-info-dir", metadata_directory],
+            ".whl", wheel_directory, config_settings
         )
 
     def get_requires_for_build_editable(self, config_settings=None):

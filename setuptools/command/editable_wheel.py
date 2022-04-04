@@ -62,10 +62,11 @@ class editable_wheel(Command):
             self.dist_info_dir = dist_info.dist_info_dir
         else:
             assert str(self.dist_info_dir).endswith(".dist-info")
-            assert list(Path(self.dist_info_dir).glob("*.dist-info/METADATA"))
+            assert Path(self.dist_info_dir, "METADATA").exists()
 
     def _create_wheel_file(self, bdist_wheel):
         from wheel.wheelfile import WheelFile
+
         dist_info = self.get_finalized_command("dist_info")
         tag = "-".join(bdist_wheel.get_tag())
         editable_name = dist_info.name
