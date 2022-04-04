@@ -1185,6 +1185,8 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path)
     # 2. We are going to force `site` to update site.USER_BASE and site.USER_SITE
     #    To point inside our new home
     monkeypatch.setenv('HOME', str(tmp_path / '.home'))
+    monkeypatch.setenv('USERPROFILE', str(tmp_path / '.home'))
+    monkeypatch.setenv('APPDATA', str(tmp_path / '.home'))
     monkeypatch.setattr('site.USER_BASE', None)
     monkeypatch.setattr('site.USER_SITE', None)
     user_site = Path(site.getusersitepackages())
