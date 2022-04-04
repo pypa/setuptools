@@ -1194,7 +1194,9 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path)
     sys_prefix.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr('sys.prefix', str(sys_prefix))
 
-    setup_script = "__import__('setuptools').setup(name='aproj', version=42)\n"
+    setup_script = (
+        "__import__('setuptools').setup(name='aproj', version=42, packages=[])\n"
+    )
     (tmp_path / "setup.py").write_text(setup_script, encoding="utf-8")
 
     # == Sanity check ==
