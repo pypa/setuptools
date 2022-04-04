@@ -253,6 +253,20 @@ class TestClassifiers:
         with pytest.raises(OptionError, match="No configuration .* .classifiers."):
             read_configuration(pyproject)
 
+    def test_dynamic_readme_from_setup_script_args(self, tmp_path):
+        config = """
+        [project]
+        name = "myproj"
+        version = '42'
+        dynamic = ["readme"]
+        """
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(cleandoc(config))
+        dist = Distribution(attrs={"long_description": "42"})
+        # No error should occur because of missing `readme`
+        dist = apply_configuration(dist, pyproject)
+        assert dist.metadata.long_description == "42"
+
     def test_dynamic_without_file(self, tmp_path):
         config = """
         [project]
