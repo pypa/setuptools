@@ -130,7 +130,7 @@ def test_resolve_class(tmp_path, package_dir, file, module, return_value):
         ({}, {"pkg", "other", "dir1", "dir1.dir2"}),  # default value for `namespaces`
     ]
 )
-def test_find_packages(tmp_path, monkeypatch, args, pkgs):
+def test_find_packages(tmp_path, args, pkgs):
     files = {
         "pkg/__init__.py",
         "other/__init__.py",
@@ -153,3 +153,33 @@ def test_find_packages(tmp_path, monkeypatch, args, pkgs):
     ]
 
     assert set(expand.find_packages(where=where, **args)) == pkgs
+
+
+@pytest.mark.parametrize(
+    "files, where, expected_package_dir",
+    [
+        (["pkg1/__init__.py", "pkg1/other.py"], ["."], {}),
+        (["pkg1/__init__.py", "pkg2/__init__.py"], ["."], {}),
+        (["src/pkg1/__init__.py", "src/pkg1/other.py"], ["src"], {"": "src"}),
+        (["src/pkg1/__init__.py", "src/pkg2/__init__.py"], ["src"], {"": "src"}),
+        (
+            ["src1/pkg1/__init__.py", "src2/pkg2/__init__.py"],
+            ["src1", "src2"],
+            {"pkg1": "src1/pkg1", "pkg2": "src2/pkg2"},
+        ),
+        (
+            ["src/pkg1/__init__.py", "pkg2/__init__.py"],
+            ["src", "."],
+            {"pkg1": "src/pkg1"},
+        ),
+    ],
+)
+def test_fill_package_dir(tmp_path, files, where, expected_package_dir):
+    write_files({k: "" for k in files}, tmp_path)
+    pkg_dir = {}
+    kwargs = {"root_dir": tmp_path, "fill_package_dir": pkg_dir, "namespaces": False}
+    pkgs = expand.find_packages(where=where, **kwargs)
+    assert set(pkg_dir.items()) == set(expected_package_dir.items())
+    for pkg in pkgs:
+        pkg_path = find_package_path(pkg, pkg_dir, tmp_path)
+        assert os.path.exists(pkg_path)
