@@ -43,7 +43,7 @@ other two types of dependency keyword, this one is specified in your
 Declaring required dependency
 =============================
 This is where a package declares its core dependencies, without which it won't
-be able to run. ``setuptools`` support automatically download and install
+be able to run. ``setuptools`` supports automatically downloading and installing
 these dependencies when the package is installed. Although there is more
 finesse to it, let's start with a simple example.
 
@@ -90,7 +90,7 @@ that verify the availability of the specified dependencies at runtime.
 
 Platform specific dependencies
 ------------------------------
-Setuptools offer the capability to evaluate certain conditions before blindly
+Setuptools offers the capability to evaluate certain conditions before blindly
 installing everything listed in ``install_requires``. This is great for platform
 specific dependencies. For example, the ``enum`` package was added in Python
 3.4, therefore, package that depends on it can elect to install it only when
@@ -250,9 +250,9 @@ distributions, if the package's dependencies aren't already installed:
 Optional dependencies
 =====================
 Setuptools allows you to declare dependencies that only get installed under
-specific circumstances. These dependencies are specified with ``extras_require``
+specific circumstances. These dependencies are specified with the ``extras_require``
 keyword and are only installed if another package depends on it (either
-directly or indirectly) This makes it convenient to declare dependencies for
+directly or indirectly). This makes it convenient to declare dependencies for
 ancillary functions such as "tests" and "docs".
 
 .. note::
