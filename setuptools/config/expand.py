@@ -312,12 +312,12 @@ def find_packages(
     where = kwargs.pop('where', ['.'])
     packages: List[str] = []
     fill_package_dir = {} if fill_package_dir is None else fill_package_dir
-    find = list(unique_everseen(always_iterable(where)))
+    search = list(unique_everseen(always_iterable(where)))
 
-    if len(find) == 1 and all(not _same_path(find[0], x) for x in (".", root_dir)):
-        fill_package_dir.setdefault("", find[0])
+    if len(search) == 1 and all(not _same_path(search[0], x) for x in (".", root_dir)):
+        fill_package_dir.setdefault("", search[0])
 
-    for path in find:
+    for path in search:
         package_path = _nest_path(root_dir, path)
         pkgs = PackageFinder.find(package_path, **kwargs)
         packages.extend(pkgs)
