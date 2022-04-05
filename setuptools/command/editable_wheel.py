@@ -22,12 +22,13 @@ class editable_wheel(Command):
         ("dist-info-dir=", "I", "path to a pre-build .dist-info directory"),
     ]
 
-    boolean_options = []
+    boolean_options = ["strict"]
 
     def initialize_options(self):
         self.dist_dir = None
         self.dist_info_dir = None
         self.project_dir = None
+        self.strict = False
 
     def finalize_options(self):
         dist = self.distribution
@@ -81,13 +82,33 @@ class editable_wheel(Command):
         with TemporaryDirectory(suffix=archive_name) as tmp:
             tmp_dist_info = Path(tmp, Path(self.dist_info_dir).name)
             shutil.copytree(self.dist_info_dir, tmp_dist_info)
-            pth = Path(tmp, f"_editable.{editable_name}.pth")
-            pth.write_text(f"{_normalize_path(self.target)}\n", encoding="utf-8")
-
+            self._populate_wheel(editable_name, tmp)
             with WheelFile(wheel_path, "w") as wf:
                 wf.write_files(tmp)
 
         return wheel_path
+
+
+    def _best_strategy(self):
+        if self.strict:
+            return self._link_tree
+
+        dist = self.distribution
+        if set(dist.packages) == {""}:
+            # src-layout(ish) package detected. These kind of packages are relatively
+            # safe so we can simply add the src directory to the pth file.
+            return self._top_level_pth
+
+        if self._can_symlink():
+            return self._top_level_symlinks
+
+    # >>> def _targets(self):
+    # >>>     build_py.find_modules()
+    # >>>     self.dist.packages
+
+    def _populate_wheel(self, dist_id, unpacked_wheel_dir):
+        pth = Path(unpacked_wheel_dir, f"_editable.{dist_id}.pth")
+        pth.write_text(f"{_normalize_path(self.target)}\n", encoding="utf-8")
 
 
 def _normalize_path(filename):
