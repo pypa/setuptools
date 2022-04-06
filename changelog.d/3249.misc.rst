@@ -1,0 +1,1 @@
+Simplified ``package_dir`` obtained via auto-discovery.

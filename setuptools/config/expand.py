@@ -312,8 +312,12 @@ def find_packages(
     where = kwargs.pop('where', ['.'])
     packages: List[str] = []
     fill_package_dir = {} if fill_package_dir is None else fill_package_dir
+    search = list(unique_everseen(always_iterable(where)))
 
-    for path in unique_everseen(always_iterable(where)):
+    if len(search) == 1 and all(not _same_path(search[0], x) for x in (".", root_dir)):
+        fill_package_dir.setdefault("", search[0])
+
+    for path in search:
         package_path = _nest_path(root_dir, path)
         pkgs = PackageFinder.find(package_path, **kwargs)
         packages.extend(pkgs)
@@ -326,8 +330,27 @@ def find_packages(
     return packages
 
 
+def _same_path(p1: _Path, p2: _Path) -> bool:
+    """Differs from os.path.samefile because it does not require paths to exist.
+    Purely string based (no comparison between i-nodes).
+    >>> _same_path("a/b", "./a/b")
+    True
+    >>> _same_path("a/b", "a/./b")
+    True
+    >>> _same_path("a/b", "././a/b")
+    True
+    >>> _same_path("a/b", "./a/b/c/..")
+    True
+    >>> _same_path("a/b", "../a/b/c")
+    False
+    >>> _same_path("a", "a/b")
+    False
+    """
+    return os.path.normpath(p1) == os.path.normpath(p2)
+
+
 def _nest_path(parent: _Path, path: _Path) -> str:
-    path = parent if path == "." else os.path.join(parent, path)
+    path = parent if path in {".", ""} else os.path.join(parent, path)
     return os.path.normpath(path)
 
 
