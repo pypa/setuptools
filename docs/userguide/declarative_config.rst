@@ -211,13 +211,13 @@ obsoletes                                          list-comma
 Options
 -------
 
-=======================  ===================================  =============== =========
+=======================  ===================================  =============== ====================
 Key                      Type                                 Minimum Version Notes
-=======================  ===================================  =============== =========
+=======================  ===================================  =============== ====================
 zip_safe                 bool
 setup_requires           list-semi                            36.7.0
-install_requires         list-semi
-extras_require           section                                              [#opt-2]_
+install_requires         file:, list-semi                                     [#opt-6]_
+extras_require           file:, section                                       [#opt-2]_, [#opt-6]_
 python_requires          str                                  34.4.0
 entry_points             file:, section                       51.0.0
 scripts                  list-comma
@@ -232,7 +232,7 @@ exclude_package_data     section
 namespace_packages       list-comma                                           [#opt-5]_
 py_modules               list-comma                            34.4.0
 data_files               section                              40.6.0          [#opt-4]_
-=======================  ===================================  =============== =========
+=======================  ===================================  =============== ====================
 
 **Notes**:
 
@@ -265,6 +265,11 @@ data_files               section                              40.6.0          [#
 .. [#opt-5] ``namespace_packages`` is deprecated in favour of native/implicit
    namespaces (:pep:`420`). Check :doc:`the Python Packaging User Guide
    <PyPUG:guides/packaging-namespace-packages>` for more information.
+
+.. [#opt-6] ``file:`` directives for reading requirements are supported since version 63.0.
+   The format for the file is basically the same as for a ``requirements.txt`` file.
+   Library developers should avoid tightly pinning their dependencies to a specific
+   version (e.g. via a "locked" requirements file).
 
 
 Compatibility with other tools

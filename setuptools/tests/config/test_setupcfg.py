@@ -884,6 +884,24 @@ class TestOptions:
             assert cmdclass.__module__ == "custom_build"
             assert module_path.samefile(inspect.getfile(cmdclass))
 
+    def test_requirements_file(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            install_requires = file:requirements.txt
+            [options.extras_require]
+            colors = file:requirements-extra.txt
+            """)
+        )
+
+        tmpdir.join('requirements.txt').write('\ndocutils>=0.3\n\n')
+        tmpdir.join('requirements-extra.txt').write('colorama')
+
+        with get_dist(tmpdir) as dist:
+            assert dist.install_requires == ['docutils>=0.3']
+            assert dist.extras_require == {'colors': ['colorama']}
+
 
 saved_dist_init = _Distribution.__init__
 
