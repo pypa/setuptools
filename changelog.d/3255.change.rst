@@ -1,0 +1,1 @@
+Enabled using ``file:`` for dependencies and optional-dependencies in pyproject.toml -- by :user:`akx`
