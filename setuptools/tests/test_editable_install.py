@@ -115,6 +115,37 @@ def test_editable_with_pyproject(tmp_path, venv, files):
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
 
 
+def test_editable_with_flat_layout(tmp_path, venv):
+    files = {
+        "mypkg": {
+            "pyproject.toml": dedent("""\
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta"
+
+                [project]
+                name = "mypkg"
+                version = "3.14159"
+
+                [tool.setuptools]
+                packages = ["pkg"]
+                py-modules = ["mod"]
+                """),
+            "pkg": {"__init__.py": "a = 4"},
+            "mod.py": "b = 2",
+        },
+    }
+    jaraco.path.build(files, prefix=tmp_path)
+    project = tmp_path / "mypkg"
+
+    cmd = [venv.exe(), "-m", "pip", "install",
+           "--no-build-isolation",  # required to force current version of setuptools
+           "-e", str(project)]
+    print(str(subprocess.check_output(cmd), "utf-8"))
+    cmd = [venv.exe(), "-c", "import pkg, mod; print(pkg.a, mod.b)"]
+    assert subprocess.check_output(cmd).strip() == b"4 2"
+
+
 class TestLegacyNamespaces:
     """Ported from test_develop"""
 
@@ -256,15 +287,16 @@ class TestFinderTemplate:
         }
         template = _finder_template(mapping, {})
 
-        with contexts.save_paths():
+        with contexts.save_paths(), contexts.remove_added_modules():
             self.install_finder(template)
             mod1 = import_module("pkg1.subpkg.mod1")
             mod2 = import_module("mod2")
             subpkg = import_module("pkg1.subpkg")
 
-        assert mod1.a == 42
-        assert mod2.a == 43
-        assert Path(subpkg.__path__[0]) == tmp_path / "src1/pkg1/subpkg"
+            assert mod1.a == 42
+            assert mod2.a == 43
+            expected = str((tmp_path / "src1/pkg1/subpkg").resolve())
+            assert str(Path(subpkg.__path__[0]).resolve()) == expected
 
     def test_namespace(self, tmp_path):
         files = {"pkg": {"__init__.py": "a = 13", "text.txt": "abc"}}
@@ -274,17 +306,17 @@ class TestFinderTemplate:
         namespaces = {"ns"}
 
         template = _finder_template(mapping, namespaces)
-        with contexts.save_paths():
+        with contexts.save_paths(), contexts.remove_added_modules():
             self.install_finder(template)
             pkg = import_module("ns.othername")
             text = importlib_resources.files(pkg) / "text.txt"
 
-        expected = str((tmp_path / "pkg").resolve())
-        assert str(Path(pkg.__path__[0]).resolve()) == expected
-        assert pkg.a == 13
+            expected = str((tmp_path / "pkg").resolve())
+            assert str(Path(pkg.__path__[0]).resolve()) == expected
+            assert pkg.a == 13
 
-        # Make sure resources can also be found
-        assert text.read_text(encoding="utf-8") == "abc"
+            # Make sure resources can also be found
+            assert text.read_text(encoding="utf-8") == "abc"
 
     def test_combine_namespaces(self, tmp_path, monkeypatch):
         files = {
@@ -299,15 +331,15 @@ class TestFinderTemplate:
         }
         template = _finder_template(mapping, {})
 
-        with contexts.save_paths():
+        with contexts.save_paths(), contexts.remove_added_modules():
             self.install_finder(template)
             pkgA = import_module("ns.pkgA")
             mod2 = import_module("ns.mod2")
 
-        expected = str((tmp_path / "src1/ns/pkg1").resolve())
-        assert str(Path(pkgA.__path__[0]).resolve()) == expected
-        assert pkgA.a == 13
-        assert mod2.b == 37
+            expected = str((tmp_path / "src1/ns/pkg1").resolve())
+            assert str(Path(pkgA.__path__[0]).resolve()) == expected
+            assert pkgA.a == 13
+            assert mod2.b == 37
 
 
 def test_pkg_roots(tmp_path):

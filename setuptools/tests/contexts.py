@@ -134,3 +134,16 @@ def save_paths():
         yield
     finally:
         sys.path, sys.meta_path = prev_paths
+
+
+@contextlib.contextmanager
+def remove_added_modules():
+    """Make sure modules are not stored in sys.modules"""
+    prev_modules = set(sys.modules)
+
+    try:
+        yield
+    finally:
+        extra_modules = set(sys.modules) - prev_modules
+        for mod in extra_modules:
+            sys.modules.pop(mod, None)
