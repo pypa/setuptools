@@ -1,7 +1,13 @@
 """
 Create a wheel that, when installed, will make the source package 'editable'
 (add it to the interpreter's path, including metadata) per PEP 660. Replaces
-'setup.py develop'. Based on the setuptools develop command.
+'setup.py develop'.
+
+.. note::
+   One of the mechanisms briefly mentioned in PEP 660 to implement editable installs is
+   to create a separated directory inside ``build`` and use a .pth file to point to that
+   directory. In the context of this file such directory is referred as
+   *auxiliary build directory* or ``auxiliary_build_dir``.
 """
 
 import os
@@ -9,9 +15,13 @@ import shutil
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Dict, Iterable, Iterator, List, Union
 
-from setuptools import Command
-from setuptools import namespaces
+from setuptools import Command, namespaces
+from setuptools.discovery import find_package_path
+from setuptools.dist import Distribution
+
+_Path = Union[str, Path]
 
 
 class editable_wheel(Command):
@@ -35,13 +45,9 @@ class editable_wheel(Command):
     def finalize_options(self):
         dist = self.distribution
         self.project_dir = dist.src_root or os.curdir
+        self.package_dir = dist.package_dir or {}
         self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
         self.dist_dir.mkdir(exist_ok=True)
-
-    @property
-    def target(self):
-        package_dir = self.distribution.package_dir or {}
-        return _normalize_path(package_dir.get("") or self.project_dir)
 
     def run(self):
         self._ensure_dist_info()
@@ -73,7 +79,8 @@ class editable_wheel(Command):
         if not dist.namespace_packages:
             return
 
-        installer = _NamespaceInstaller(dist, installation_dir, pth_prefix, self.target)
+        target = Path(self.project_dir, self.pakcage_dir.get("", ".")).resolve()
+        installer = _NamespaceInstaller(dist, installation_dir, pth_prefix, target)
         installer.install_namespaces()
 
     def _create_wheel_file(self, bdist_wheel):
@@ -94,15 +101,111 @@ class editable_wheel(Command):
             tmp_dist_info = Path(tmp, Path(self.dist_info_dir).name)
             shutil.copytree(self.dist_info_dir, tmp_dist_info)
             self._install_namespaces(tmp, editable_name)
-            self._populate_wheel(editable_name, tmp)
+            populate = self._populate_strategy(editable_name, tag)
+            populate(tmp)
             with WheelFile(wheel_path, "w") as wf:
                 wf.write_files(tmp)
 
         return wheel_path
 
-    def _populate_wheel(self, dist_id, unpacked_wheel_dir):
-        pth = Path(unpacked_wheel_dir, f"__editable__.{dist_id}.pth")
-        pth.write_text(f"{self.target}\n", encoding="utf-8")
+    def _populate_strategy(self, name, tag):
+        """Decides which strategy to use to implement an editable installation."""
+        dist = self.distribution
+        build_name = f"__editable__.{name}-{tag}"
+        project_dir = Path(self.project_dir)
+        auxiliar_build_dir = Path(self.project_dir, "build", build_name)
+
+        if self.strict:
+            # The LinkTree strategy will only link files, so it can be implemented in
+            # any OS, even if that means using hardlinks instead of symlinks
+            auxiliar_build_dir = _empty_dir(auxiliar_build_dir)
+            # TODO: return _LinkTree(dist, name, auxiliar_build_dir)
+            raise NotImplementedError
+
+        packages = _find_packages(dist)
+        has_simple_layout = _simple_layout(packages, self.package_dir, project_dir)
+        if set(self.package_dir) == {""} and has_simple_layout:
+            # src-layout(ish) package detected. These kind of packages are relatively
+            # safe so we can simply add the src directory to the pth file.
+            return _StaticPth(dist, name, [Path(project_dir, self.package_dir[""])])
+
+        # >>> msg = "TODO: Explain limitations with meta path finder"
+        # >>> warnings.warn(msg)
+        paths = [Path(project_dir, p) for p in (".", self.package_dir.get("")) if p]
+        # TODO: return _TopLevelFinder(dist, name, auxiliar_build_dir)
+        return _StaticPth(dist, name, paths)
+
+
+class _StaticPth:
+    def __init__(self, dist: Distribution, name: str, path_entries: List[Path]):
+        self.dist = dist
+        self.name = name
+        self.path_entries = path_entries
+
+    def __call__(self, unpacked_wheel_dir: Path):
+        pth = Path(unpacked_wheel_dir, f"__editable__.{self.name}.pth")
+        entries = "\n".join((str(p.resolve()) for p in self.path_entries))
+        pth.write_text(f"{entries}\n", encoding="utf-8")
+
+
+def _simple_layout(
+    packages: Iterable[str], package_dir: Dict[str, str], project_dir: Path
+) -> bool:
+    """Make sure all packages are contained by the same parent directory.
+
+    >>> _simple_layout(['a', 'a.a1', 'a.a1.a2', 'b'], {"": "src"}, "/tmp/myproj")
+    True
+    >>> _simple_layout(['a', 'a.a1', 'a.a1.a2', 'b'], {"a": "a", "b": "b"}, ".")
+    True
+    >>> _simple_layout(['a', 'a.a1', 'a.a1.a2', 'b'], {"a": "_a", "b": "_b"}, ".")
+    False
+    >>> _simple_layout(['a', 'a.a1', 'a.a1.a2', 'b'], {"a": "_a"}, "/tmp/myproj")
+    False
+    >>> _simple_layout(
+    ...     ['a', 'a.a1', 'a.a1.a2', 'b'],
+    ...     {"a": "_a", "a.a1.a2": "_a2", "b": "_b"},
+    ...     ".",
+    ... )
+    False
+    """
+    layout = {
+        pkg: find_package_path(pkg, package_dir, project_dir)
+        for pkg in packages
+    }
+    parent = os.path.commonpath(list(layout.values()))
+    return all(
+        _normalize_path(Path(parent, *key.split('.'))) == _normalize_path(value)
+        for key, value in layout.items()
+    )
+
+
+def _find_packages(dist: Distribution) -> Iterator[str]:
+    yield from iter(dist.packages or [])
+
+    py_modules = dist.py_modules or []
+    nested_modules = [mod for mod in py_modules if "." in mod]
+    if dist.ext_package:
+        yield dist.ext_package
+    else:
+        ext_modules = dist.ext_modules or []
+        nested_modules += [x.name for x in ext_modules if "." in x.name]
+
+    for module in nested_modules:
+        package, _, _ = module.rpartition(".")
+        yield package
+
+
+def _normalize_path(filename: _Path) -> str:
+    """Normalize a file/dir name for comparison purposes"""
+    # See pkg_resources.normalize_path
+    file = os.path.abspath(filename) if sys.platform == 'cygwin' else filename
+    return os.path.normcase(os.path.realpath(os.path.normpath(file)))
+
+
+def _empty_dir(dir_: Path) -> Path:
+    shutil.rmtree(dir_, ignore_errors=True)
+    dir_.mkdir()
+    return dir_
 
 
 class _NamespaceInstaller(namespaces.Installer):
@@ -120,10 +223,3 @@ class _NamespaceInstaller(namespaces.Installer):
     def _get_root(self):
         """Where the modules/packages should be loaded from."""
         return repr(str(self.src_root))
-
-
-def _normalize_path(filename):
-    """Normalize a file/dir name for comparison purposes"""
-    # See pkg_resources.normalize_path
-    file = os.path.abspath(filename) if sys.platform == 'cygwin' else filename
-    return os.path.normcase(os.path.realpath(os.path.normpath(file)))
