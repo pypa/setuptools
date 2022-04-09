@@ -119,11 +119,29 @@ class TestLegacyNamespaces:
         pkg_A = namespaces.build_namespace_package(tmp_path, 'myns.pkgA')
         pkg_B = namespaces.build_namespace_package(tmp_path, 'myns.pkgB')
         # use pip to install to the target directory
-        venv.run(["python", "-m", "pip", "install", str(pkg_A)])
-        venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B)])
+        opts = ["--no-build-isolation"]  # force current version of setuptools
+        venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
+        venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", "import myns.pkgA; import myns.pkgB"])
         # additionally ensure that pkg_resources import works
         venv.run(["python", "-c", "import pkg_resources"])
+
+
+class TestPep420Namespaces:
+
+    def test_namespace_package_importable(self, venv, tmp_path):
+        """
+        Installing two packages sharing the same namespace, one installed
+        normally using pip and the other installed in editable mode
+        should allow importing both packages.
+        """
+        pkg_A = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgA')
+        pkg_B = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgB')
+        # use pip to install to the target directory
+        opts = ["--no-build-isolation"]  # force current version of setuptools
+        venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
+        venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
+        venv.run(["python", "-c", "import myns.n.pkgA; import myns.n.pkgB"])
 
 
 # Moved here from test_develop:
