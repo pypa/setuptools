@@ -14,7 +14,9 @@ import os
 import re
 import shutil
 import sys
+import logging
 from itertools import chain
+from inspect import cleandoc
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, Iterable, Iterator, List, Mapping, Set, Union
@@ -24,6 +26,7 @@ from setuptools.discovery import find_package_path
 from setuptools.dist import Distribution
 
 _Path = Union[str, Path]
+_logger = logging.getLogger(__name__)
 
 
 class editable_wheel(Command):
@@ -122,6 +125,11 @@ class editable_wheel(Command):
             # any OS, even if that means using hardlinks instead of symlinks
             auxiliar_build_dir = _empty_dir(auxiliar_build_dir)
             # TODO: return _LinkTree(dist, name, auxiliar_build_dir)
+            msg = """
+            Strict editable install will be performed using a link tree.
+            New files will not be automatically picked up without a new installation.
+            """
+            _logger.info(cleandoc(msg))
             raise NotImplementedError
 
         packages = _find_packages(dist)
@@ -129,10 +137,17 @@ class editable_wheel(Command):
         if set(self.package_dir) == {""} and has_simple_layout:
             # src-layout(ish) package detected. These kind of packages are relatively
             # safe so we can simply add the src directory to the pth file.
-            return _StaticPth(dist, name, [Path(project_dir, self.package_dir[""])])
+            src_dir = self.package_dir[""]
+            msg = f"Editable install will be performed using .pth file to {src_dir}."
+            _logger.info(msg)
+            return _StaticPth(dist, name, [Path(project_dir, src_dir)])
 
-        # >>> msg = "TODO: Explain limitations with meta path finder"
-        # >>> warnings.warn(msg)
+        msg = """
+        Editable install will be performed using a meta path finder.
+        If you add any top-level packages or modules, they might not be automatically
+        picked up without a new installation.
+        """
+        _logger.info(cleandoc(msg))
         return _TopLevelFinder(dist, name)
 
 
