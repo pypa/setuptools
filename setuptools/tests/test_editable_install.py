@@ -1,23 +1,11 @@
 import subprocess
 from textwrap import dedent
 
-import pytest
 import jaraco.envs
 import jaraco.path
-import path
+import pytest
 
-
-@pytest.fixture
-def venv(tmp_path, setuptools_wheel):
-    env = jaraco.envs.VirtualEnv()
-    vars(env).update(
-        root=path.Path(tmp_path),  # workaround for error on windows
-        name=".venv",
-        create_opts=["--no-setuptools"],
-        req=str(setuptools_wheel),
-    )
-    return env.create()
-
+from . import namespaces
 
 EXAMPLE = {
     'pyproject.toml': dedent("""\
@@ -111,3 +99,23 @@ def test_editable_with_pyproject(tmp_path, venv, files):
     (project / "src/mypkg/data.txt").write_text("foobar")
     (project / "src/mypkg/mod.py").write_text("x = 42")
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
+
+
+class TestLegacyNamespaces:
+    """Ported from test_develop"""
+
+    def test_namespace_package_importable(self, venv, tmp_path):
+        """
+        Installing two packages sharing the same namespace, one installed
+        naturally using pip or `--single-version-externally-managed`
+        and the other installed in editable mode should leave the namespace
+        intact and both packages reachable by import.
+        """
+        pkg_A = namespaces.build_namespace_package(tmp_path, 'myns.pkgA')
+        pkg_B = namespaces.build_namespace_package(tmp_path, 'myns.pkgB')
+        # use pip to install to the target directory
+        venv.run(["python", "-m", "pip", "install", str(pkg_A)])
+        venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B)])
+        venv.run(["python", "-c", "import myns.pkgA; import myns.pkgB"])
+        # additionally ensure that pkg_resources import works
+        venv.run(["python", "-c", "import pkg_resources"])
