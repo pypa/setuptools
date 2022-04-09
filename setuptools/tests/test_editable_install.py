@@ -1,8 +1,13 @@
+import os
+import sys
 import subprocess
+import platform
+import pathlib
 from textwrap import dedent
 
 import jaraco.envs
 import jaraco.path
+import pip_run.launch
 import pytest
 
 from . import namespaces
@@ -119,3 +124,47 @@ class TestLegacyNamespaces:
         venv.run(["python", "-c", "import myns.pkgA; import myns.pkgB"])
         # additionally ensure that pkg_resources import works
         venv.run(["python", "-c", "import pkg_resources"])
+
+
+# Moved here from test_develop:
+@pytest.mark.xfail(
+    platform.python_implementation() == 'PyPy',
+    reason="Workaround fails on PyPy (why?)",
+)
+def test_editable_with_prefix(tmp_path, sample_project):
+    """
+    Editable install to a prefix should be discoverable.
+    """
+    prefix = tmp_path / 'prefix'
+
+    # figure out where pip will likely install the package
+    site_packages = prefix / next(
+        pathlib.Path(path).relative_to(sys.prefix)
+        for path in sys.path
+        if 'site-packages' in path and path.startswith(sys.prefix)
+    )
+    site_packages.mkdir(parents=True)
+
+    # install workaround
+    pip_run.launch.inject_sitecustomize(str(site_packages))
+
+    env = dict(os.environ, PYTHONPATH=str(site_packages))
+    cmd = [
+        sys.executable,
+        '-m',
+        'pip',
+        'install',
+        '--editable',
+        str(sample_project),
+        '--prefix',
+        str(prefix),
+        '--no-build-isolation',
+    ]
+    subprocess.check_call(cmd, env=env)
+
+    # now run 'sample' with the prefix on the PYTHONPATH
+    bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
+    exe = prefix / bin / 'sample'
+    if sys.version_info < (3, 8) and platform.system() == 'Windows':
+        exe = str(exe)
+    subprocess.check_call([exe], env=env)
