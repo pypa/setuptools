@@ -11,11 +11,12 @@ Create a wheel that, when installed, will make the source package 'editable'
 """
 
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Dict, Iterable, Iterator, List, Union
+from typing import Dict, Iterable, Iterator, List, Mapping, Set, Union
 
 from setuptools import Command, namespaces
 from setuptools.discovery import find_package_path
@@ -131,9 +132,7 @@ class editable_wheel(Command):
 
         # >>> msg = "TODO: Explain limitations with meta path finder"
         # >>> warnings.warn(msg)
-        paths = [Path(project_dir, p) for p in (".", self.package_dir.get("")) if p]
-        # TODO: return _TopLevelFinder(dist, name, auxiliar_build_dir)
-        return _StaticPth(dist, name, paths)
+        return _TopLevelFinder(dist, name)
 
 
 class _StaticPth:
@@ -148,11 +147,38 @@ class _StaticPth:
         pth.write_text(f"{entries}\n", encoding="utf-8")
 
 
+class _TopLevelFinder:
+    def __init__(self, dist: Distribution, name: str):
+        self.dist = dist
+        self.name = name
+
+    def __call__(self, unpacked_wheel_dir: Path):
+        src_root = self.dist.src_root or os.curdir
+        package_dir = self.dist.package_dir or {}
+        packages = _find_packages(self.dist)
+        pkg_roots = _find_pkg_roots(packages, package_dir, src_root)
+        namespaces_ = set(_find_mapped_namespaces(pkg_roots))
+
+        finder = _make_identifier(f"__editable__.{self.name}.finder")
+        content = _finder_template(pkg_roots, namespaces_)
+        Path(unpacked_wheel_dir, f"{finder}.py").write_text(content, encoding="utf-8")
+
+        pth = f"__editable__.{self.name}.pth"
+        content = f"import {finder}; {finder}.install()"
+        Path(unpacked_wheel_dir, pth).write_text(content, encoding="utf-8")
+
+
 def _simple_layout(
     packages: Iterable[str], package_dir: Dict[str, str], project_dir: Path
 ) -> bool:
     """Make sure all packages are contained by the same parent directory.
 
+    >>> _simple_layout(['a'], {"": "src"}, "/tmp/myproj")
+    True
+    >>> _simple_layout(['a', 'a.b'], {"": "src"}, "/tmp/myproj")
+    True
+    >>> _simple_layout(['a', 'a.b'], {}, "/tmp/myproj")
+    True
     >>> _simple_layout(['a', 'a.a1', 'a.a1.a2', 'b'], {"": "src"}, "/tmp/myproj")
     True
     >>> _simple_layout(['a', 'a.a1', 'a.a1.a2', 'b'], {"a": "a", "b": "b"}, ".")
@@ -172,11 +198,23 @@ def _simple_layout(
         pkg: find_package_path(pkg, package_dir, project_dir)
         for pkg in packages
     }
-    parent = os.path.commonpath(list(layout.values()))
+    parent = os.path.commonpath([_parent_path(k, v) for k, v in layout.items()])
     return all(
         _normalize_path(Path(parent, *key.split('.'))) == _normalize_path(value)
         for key, value in layout.items()
     )
+
+
+def _parent_path(pkg, pkg_path):
+    """Infer the parent path for a package if possible. When the pkg is directly mapped
+    into a directory with a different name, return its own path.
+    >>> _parent_path("a", "src/a")
+    'src'
+    >>> _parent_path("b", "src/c")
+    'src/c'
+    """
+    parent = pkg_path[:-len(pkg)] if pkg_path.endswith(pkg) else pkg_path
+    return parent.rstrip("/" + os.sep)
 
 
 def _find_packages(dist: Distribution) -> Iterator[str]:
@@ -195,6 +233,76 @@ def _find_packages(dist: Distribution) -> Iterator[str]:
         yield package
 
 
+def _find_pkg_roots(
+    packages: Iterable[str],
+    package_dir: Mapping[str, str],
+    src_root: _Path,
+) -> Dict[str, str]:
+    pkg_roots: Dict[str, str] = {
+        pkg: _absolute_root(find_package_path(pkg, package_dir, src_root))
+        for pkg in sorted(packages)
+    }
+
+    return _remove_nested(pkg_roots)
+
+
+def _absolute_root(path: _Path) -> str:
+    """Works for packages and top-level modules"""
+    path_ = Path(path)
+    parent = path_.parent
+
+    if path_.exists():
+        return str(path_.resolve())
+    else:
+        return str(parent.resolve() / path_.name)
+
+
+def _find_mapped_namespaces(pkg_roots: Dict[str, str]) -> Iterator[str]:
+    """By carefully designing ``package_dir``, it is possible to implement
+    PEP 420 compatible namespaces without creating extra folders.
+    This function will try to find this kind of namespaces.
+    """
+    for pkg in pkg_roots:
+        if "." not in pkg:
+            continue
+        parts = pkg.split(".")
+        for i in range(len(parts) - 1, 0, -1):
+            partial_name = ".".join(parts[:i])
+            path = find_package_path(partial_name, pkg_roots, "")
+            if not Path(path, "__init__.py").exists():
+                yield partial_name
+
+
+def _remove_nested(pkg_roots: Dict[str, str]) -> Dict[str, str]:
+    output = dict(pkg_roots.copy())
+
+    for pkg, path in reversed(pkg_roots.items()):
+        if any(
+            pkg != other and _is_nested(pkg, path, other, other_path)
+            for other, other_path in pkg_roots.items()
+        ):
+            output.pop(pkg)
+
+    return output
+
+
+def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
+    """
+    >>> _is_nested("a.b", "path/a/b", "a", "path/a")
+    True
+    >>> _is_nested("a.b", "path/a/b", "a", "otherpath/a")
+    False
+    >>> _is_nested("a.b", "path/a/b", "c", "path/c")
+    False
+    """
+    norm_pkg_path = _normalize_path(pkg_path)
+    rest = pkg.replace(parent, "").strip(".").split(".")
+    return (
+        pkg.startswith(parent)
+        and norm_pkg_path == _normalize_path(Path(parent_path, *rest))
+    )
+
+
 def _normalize_path(filename: _Path) -> str:
     """Normalize a file/dir name for comparison purposes"""
     # See pkg_resources.normalize_path
@@ -206,6 +314,18 @@ def _empty_dir(dir_: Path) -> Path:
     shutil.rmtree(dir_, ignore_errors=True)
     dir_.mkdir()
     return dir_
+
+
+def _make_identifier(name: str) -> str:
+    """Make a string safe to be used as Python identifier.
+    >>> _make_identifier("12abc")
+    '_12abc'
+    >>> _make_identifier("__editable__.myns.pkg-78.9.3_local")
+    '__editable___myns_pkg_78_9_3_local'
+    """
+    safe = re.sub(r'\W|^(?=\d)', '_', name)
+    assert safe.isidentifier()
+    return safe
 
 
 class _NamespaceInstaller(namespaces.Installer):
@@ -225,17 +345,17 @@ class _NamespaceInstaller(namespaces.Installer):
         return repr(str(self.src_root))
 
 
-_FINDER_TEMPLATE = """
+_FINDER_TEMPLATE = """\
+import sys
+from importlib.machinery import all_suffixes as module_suffixes
+from importlib.machinery import ModuleSpec
+from importlib.util import spec_from_file_location
+from itertools import chain
+from pathlib import Path
+
 class __EditableFinder:
     MAPPING = {mapping!r}
     NAMESPACES = {namespaces!r}
-
-    @classmethod
-    def install(cls):
-        import sys
-
-        if not any(finder == cls for finder in sys.meta_path):
-            sys.meta_path.append(cls)
 
     @classmethod
     def find_spec(cls, fullname, path, target=None):
@@ -251,18 +371,12 @@ class __EditableFinder:
     @classmethod
     def _namespace_spec(cls, name):
         # Since `cls` is appended to the path, this will only trigger
-        # when no other package is installed in the same namespace
-        from importlib.machinery import ModuleSpec
-
-        # PEP 451 mentions setting loader to None for namespaces:
+        # when no other package is installed in the same namespace.
         return ModuleSpec(name, None, is_package=True)
+        # ^-- PEP 451 mentions setting loader to None for namespaces.
 
     @classmethod
     def _find_spec(cls, fullname, parent, parent_path):
-        from importlib.machinery import all_suffixes as module_suffixes
-        from importlib.util import spec_from_file_location
-        from itertools import chain
-
         rest = fullname.replace(parent, "").strip(".").split(".")
         candidate_path = Path(parent_path, *rest)
 
@@ -273,8 +387,18 @@ class __EditableFinder:
                 spec = spec_from_file_location(fullname, candidate)
                 return spec
 
+        if candidate_path.exists():
+            return cls._namespace_spec(fullname)
+
         return None
 
 
-__EditableFinder.install()
+def install():
+    if not any(finder == __EditableFinder for finder in sys.meta_path):
+        sys.meta_path.append(__EditableFinder)
 """
+
+
+def _finder_template(mapping: Mapping[str, str], namespaces: Set[str]):
+    mapping = dict(sorted(mapping.items(), key=lambda p: p[0]))
+    return _FINDER_TEMPLATE.format(mapping=mapping, namespaces=namespaces)

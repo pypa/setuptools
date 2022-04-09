@@ -13,8 +13,12 @@ import pytest
 
 from . import contexts, namespaces
 
-from setuptools.command.editable_wheel import _FINDER_TEMPLATE, _find_pkg_roots
 from setuptools._importlib import resources as importlib_resources
+from setuptools.command.editable_wheel import (
+    _finder_template,
+    _find_pkg_roots,
+    _find_mapped_namespaces,
+)
 
 
 EXAMPLE = {
@@ -174,10 +178,9 @@ class TestPep420Namespaces:
 
         # use pip to install to the target directory
         opts = ["--no-build-isolation"]  # force current version of setuptools
-        # TODO: add `-e` to the following installation instructions
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
-        venv.run(["python", "-m", "pip", "install", str(pkg_B), *opts])
-        venv.run(["python", "-m", "pip", "install", str(pkg_C), *opts])
+        venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
+        venv.run(["python", "-m", "pip", "install", "-e", str(pkg_C), *opts])
         venv.run(["python", "-c", "from myns.n import pkgA, pkgB, pkgC"])
 
 
@@ -230,6 +233,11 @@ class TestFinderTemplate:
     If at some point in time the implementation is changed for something different,
     this test can be modified or even excluded.
     """
+    def install_finder(self, finder):
+        loc = {}
+        exec(finder, loc, loc)
+        loc["install"]()
+
     def test_packages(self, tmp_path):
         files = {
             "src1": {
@@ -246,16 +254,17 @@ class TestFinderTemplate:
             "pkg1": str(tmp_path / "src1/pkg1"),
             "mod2": str(tmp_path / "src2/mod2")
         }
-        template = _FINDER_TEMPLATE.format(mapping=mapping, namespaces={})
+        template = _finder_template(mapping, {})
 
         with contexts.save_paths():
-            exec(template)
+            self.install_finder(template)
             mod1 = import_module("pkg1.subpkg.mod1")
-            assert mod1.a == 42
             mod2 = import_module("mod2")
-            assert mod2.a == 43
             subpkg = import_module("pkg1.subpkg")
-            assert Path(subpkg.__path__[0]) == tmp_path / "src1/pkg1/subpkg"
+
+        assert mod1.a == 42
+        assert mod2.a == 43
+        assert Path(subpkg.__path__[0]) == tmp_path / "src1/pkg1/subpkg"
 
     def test_namespace(self, tmp_path):
         files = {"pkg": {"__init__.py": "a = 13", "text.txt": "abc"}}
@@ -264,18 +273,18 @@ class TestFinderTemplate:
         mapping = {"ns.othername": str(tmp_path / "pkg")}
         namespaces = {"ns"}
 
-        template = _FINDER_TEMPLATE.format(mapping=mapping, namespaces=namespaces)
+        template = _finder_template(mapping, namespaces)
         with contexts.save_paths():
-            exec(template)
-
+            self.install_finder(template)
             pkg = import_module("ns.othername")
-            expected = str((tmp_path / "pkg").resolve())
-            assert str(Path(pkg.__path__[0]).resolve()) == expected
-            assert pkg.a == 13
-
-            # Make sure resources can also be found
             text = importlib_resources.files(pkg) / "text.txt"
-            assert text.read_text(encoding="utf-8") == "abc"
+
+        expected = str((tmp_path / "pkg").resolve())
+        assert str(Path(pkg.__path__[0]).resolve()) == expected
+        assert pkg.a == 13
+
+        # Make sure resources can also be found
+        assert text.read_text(encoding="utf-8") == "abc"
 
     def test_combine_namespaces(self, tmp_path, monkeypatch):
         files = {
@@ -284,24 +293,24 @@ class TestFinderTemplate:
         }
         jaraco.path.build(files, prefix=tmp_path)
 
-        mapping = {"ns.pkgA": str(tmp_path / "src1/ns/pkg1")}
-        namespaces = {"ns"}
-        template = _FINDER_TEMPLATE.format(mapping=mapping, namespaces=namespaces)
+        mapping = {
+            "ns.pkgA": str(tmp_path / "src1/ns/pkg1"),
+            "ns": str(tmp_path / "src2/ns"),
+        }
+        template = _finder_template(mapping, {})
 
         with contexts.save_paths():
-            monkeypatch.syspath_prepend(Path(tmp_path / "src2"))
-            exec(template)
-
+            self.install_finder(template)
             pkgA = import_module("ns.pkgA")
-            expected = str((tmp_path / "src1/ns/pkg1").resolve())
-            assert str(Path(pkgA.__path__[0]).resolve()) == expected
-            assert pkgA.a == 13
-
             mod2 = import_module("ns.mod2")
-            assert mod2.b == 37
+
+        expected = str((tmp_path / "src1/ns/pkg1").resolve())
+        assert str(Path(pkgA.__path__[0]).resolve()) == expected
+        assert pkgA.a == 13
+        assert mod2.b == 37
 
 
-def test_find_pkg_roots(tmp_path):
+def test_pkg_roots(tmp_path):
     """This test focus in getting a particular implementation detail right.
     If at some point in time the implementation is changed for something different,
     this test can be modified or even excluded.
@@ -311,15 +320,19 @@ def test_find_pkg_roots(tmp_path):
         "d": {"__init__.py": "d = 1", "e": {"__init__.py": "de = 1"}},
         "f": {"g": {"h": {"__init__.py": "fgh = 1"}}},
         "other": {"__init__.py": "abc = 1"},
-        "another": {"__init__.py": "abcx = 1"},
+        "another": {"__init__.py": "abcxy = 1"},
     }
     jaraco.path.build(files, prefix=tmp_path)
-    package_dir = {"a.b.c": "other", "a.b.c.x": "another"}
-    packages = ["a", "a.b", "a.b.c", "d", "d.e", "f", "f.g", "f.g.h"]
+    package_dir = {"a.b.c": "other", "a.b.c.x.y": "another"}
+    packages = ["a", "a.b", "a.b.c", "a.b.c.x.y", "d", "d.e", "f", "f.g", "f.g.h"]
     roots = _find_pkg_roots(packages, package_dir, tmp_path)
     assert roots == {
         "a": str(tmp_path / "a"),
         "a.b.c": str(tmp_path / "other"),
+        "a.b.c.x.y": str(tmp_path / "another"),
         "d": str(tmp_path / "d"),
         "f": str(tmp_path / "f"),
     }
+
+    namespaces = set(_find_mapped_namespaces(roots))
+    assert namespaces == {"a.b.c.x"}
