@@ -2,7 +2,8 @@ import os
 import sys
 import subprocess
 import platform
-import pathlib
+from importlib import import_module
+from pathlib import Path
 from textwrap import dedent
 
 import jaraco.envs
@@ -10,7 +11,11 @@ import jaraco.path
 import pip_run.launch
 import pytest
 
-from . import namespaces
+from . import contexts, namespaces
+
+from setuptools.command.editable_wheel import _FINDER_TEMPLATE
+from setuptools._importlib import resources as importlib_resources
+
 
 EXAMPLE = {
     'pyproject.toml': dedent("""\
@@ -157,7 +162,7 @@ def test_editable_with_prefix(tmp_path, sample_project):
 
     # figure out where pip will likely install the package
     site_packages = prefix / next(
-        pathlib.Path(path).relative_to(sys.prefix)
+        Path(path).relative_to(sys.prefix)
         for path in sys.path
         if 'site-packages' in path and path.startswith(sys.prefix)
     )
@@ -186,3 +191,75 @@ def test_editable_with_prefix(tmp_path, sample_project):
     if sys.version_info < (3, 8) and platform.system() == 'Windows':
         exe = str(exe)
     subprocess.check_call([exe], env=env)
+
+
+class TestFinderTemplate:
+    def test_packages(self, tmp_path):
+        files = {
+            "src1": {
+                "pkg1": {
+                    "__init__.py": "",
+                    "subpkg": {"mod1.py": "a = 42"},
+                },
+            },
+            "src2": {"mod2.py": "a = 43"},
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {
+            "pkg1": str(tmp_path / "src1/pkg1"),
+            "mod2": str(tmp_path / "src2/mod2")
+        }
+        template = _FINDER_TEMPLATE.format(mapping=mapping, namespaces={})
+
+        with contexts.save_paths():
+            exec(template)
+            mod1 = import_module("pkg1.subpkg.mod1")
+            assert mod1.a == 42
+            mod2 = import_module("mod2")
+            assert mod2.a == 43
+            subpkg = import_module("pkg1.subpkg")
+            assert Path(subpkg.__path__[0]) == tmp_path / "src1/pkg1/subpkg"
+
+    def test_namespace(self, tmp_path):
+        files = {"pkg": {"__init__.py": "a = 13", "text.txt": "abc"}}
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {"ns.othername": str(tmp_path / "pkg")}
+        namespaces = {"ns"}
+
+        template = _FINDER_TEMPLATE.format(mapping=mapping, namespaces=namespaces)
+        with contexts.save_paths():
+            exec(template)
+
+            pkg = import_module("ns.othername")
+            expected = str((tmp_path / "pkg").resolve())
+            assert str(Path(pkg.__path__[0]).resolve()) == expected
+            assert pkg.a == 13
+
+            # Make sure resources can also be found
+            text = importlib_resources.files(pkg) / "text.txt"
+            assert text.read_text(encoding="utf-8") == "abc"
+
+    def test_combine_namespaces(self, tmp_path, monkeypatch):
+        files = {
+            "src1": {"ns": {"pkg1": {"__init__.py": "a = 13"}}},
+            "src2": {"ns": {"mod2.py": "b = 37"}},
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {"ns.pkgA": str(tmp_path / "src1/ns/pkg1")}
+        namespaces = {"ns"}
+        template = _FINDER_TEMPLATE.format(mapping=mapping, namespaces=namespaces)
+
+        with contexts.save_paths():
+            monkeypatch.syspath_prepend(Path(tmp_path / "src2"))
+            exec(template)
+
+            pkgA = import_module("ns.pkgA")
+            expected = str((tmp_path / "src1/ns/pkg1").resolve())
+            assert str(Path(pkgA.__path__[0]).resolve()) == expected
+            assert pkgA.a == 13
+
+            mod2 = import_module("ns.mod2")
+            assert mod2.b == 37

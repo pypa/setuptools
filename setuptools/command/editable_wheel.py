@@ -223,3 +223,58 @@ class _NamespaceInstaller(namespaces.Installer):
     def _get_root(self):
         """Where the modules/packages should be loaded from."""
         return repr(str(self.src_root))
+
+
+_FINDER_TEMPLATE = """
+class __EditableFinder:
+    MAPPING = {mapping!r}
+    NAMESPACES = {namespaces!r}
+
+    @classmethod
+    def install(cls):
+        import sys
+
+        if not any(finder == cls for finder in sys.meta_path):
+            sys.meta_path.append(cls)
+
+    @classmethod
+    def find_spec(cls, fullname, path, target=None):
+        if fullname in cls.NAMESPACES:
+            return cls._namespace_spec(fullname)
+
+        for pkg, pkg_path in reversed(cls.MAPPING.items()):
+            if fullname.startswith(pkg):
+                return cls._find_spec(fullname, pkg, pkg_path)
+
+        return None
+
+    @classmethod
+    def _namespace_spec(cls, name):
+        # Since `cls` is appended to the path, this will only trigger
+        # when no other package is installed in the same namespace
+        from importlib.machinery import ModuleSpec
+
+        # PEP 451 mentions setting loader to None for namespaces:
+        return ModuleSpec(name, None, is_package=True)
+
+    @classmethod
+    def _find_spec(cls, fullname, parent, parent_path):
+        from importlib.machinery import all_suffixes as module_suffixes
+        from importlib.util import spec_from_file_location
+        from itertools import chain
+
+        rest = fullname.replace(parent, "").strip(".").split(".")
+        candidate_path = Path(parent_path, *rest)
+
+        init = candidate_path / "__init__.py"
+        candidates = (candidate_path.with_suffix(x) for x in module_suffixes())
+        for candidate in chain([init], candidates):
+            if candidate.exists():
+                spec = spec_from_file_location(fullname, candidate)
+                return spec
+
+        return None
+
+
+__EditableFinder.install()
+"""
