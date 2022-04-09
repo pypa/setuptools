@@ -13,7 +13,7 @@ import pytest
 
 from . import contexts, namespaces
 
-from setuptools.command.editable_wheel import _FINDER_TEMPLATE
+from setuptools.command.editable_wheel import _FINDER_TEMPLATE, _find_pkg_roots
 from setuptools._importlib import resources as importlib_resources
 
 
@@ -148,6 +148,38 @@ class TestPep420Namespaces:
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", "import myns.n.pkgA; import myns.n.pkgB"])
 
+    def test_namespace_created_via_package_dir(self, venv, tmp_path):
+        """Currently users can create a namespace by tweaking `package_dir`"""
+        files = {
+            "pkgA": {
+                "pyproject.toml": dedent("""\
+                    [build-system]
+                    requires = ["setuptools", "wheel"]
+                    build-backend = "setuptools.build_meta"
+
+                    [project]
+                    name = "pkgA"
+                    version = "3.14159"
+
+                    [tool.setuptools]
+                    package-dir = {"myns.n.pkgA" = "src"}
+                    """),
+                "src": {"__init__.py": "a = 1"},
+            },
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+        pkg_A = tmp_path / "pkgA"
+        pkg_B = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgB')
+        pkg_C = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgC')
+
+        # use pip to install to the target directory
+        opts = ["--no-build-isolation"]  # force current version of setuptools
+        # TODO: add `-e` to the following installation instructions
+        venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
+        venv.run(["python", "-m", "pip", "install", str(pkg_B), *opts])
+        venv.run(["python", "-m", "pip", "install", str(pkg_C), *opts])
+        venv.run(["python", "-c", "from myns.n import pkgA, pkgB, pkgC"])
+
 
 # Moved here from test_develop:
 @pytest.mark.xfail(
@@ -194,6 +226,10 @@ def test_editable_with_prefix(tmp_path, sample_project):
 
 
 class TestFinderTemplate:
+    """This test focus in getting a particular implementation detail right.
+    If at some point in time the implementation is changed for something different,
+    this test can be modified or even excluded.
+    """
     def test_packages(self, tmp_path):
         files = {
             "src1": {
@@ -263,3 +299,27 @@ class TestFinderTemplate:
 
             mod2 = import_module("ns.mod2")
             assert mod2.b == 37
+
+
+def test_find_pkg_roots(tmp_path):
+    """This test focus in getting a particular implementation detail right.
+    If at some point in time the implementation is changed for something different,
+    this test can be modified or even excluded.
+    """
+    files = {
+        "a": {"b": {"__init__.py": "ab = 1"}, "__init__.py": "a = 1"},
+        "d": {"__init__.py": "d = 1", "e": {"__init__.py": "de = 1"}},
+        "f": {"g": {"h": {"__init__.py": "fgh = 1"}}},
+        "other": {"__init__.py": "abc = 1"},
+        "another": {"__init__.py": "abcx = 1"},
+    }
+    jaraco.path.build(files, prefix=tmp_path)
+    package_dir = {"a.b.c": "other", "a.b.c.x": "another"}
+    packages = ["a", "a.b", "a.b.c", "d", "d.e", "f", "f.g", "f.g.h"]
+    roots = _find_pkg_roots(packages, package_dir, tmp_path)
+    assert roots == {
+        "a": str(tmp_path / "a"),
+        "a.b.c": str(tmp_path / "other"),
+        "d": str(tmp_path / "d"),
+        "f": str(tmp_path / "f"),
+    }
