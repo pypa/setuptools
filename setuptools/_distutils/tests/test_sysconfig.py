@@ -40,6 +40,8 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
 
     @unittest.skipIf(sys.platform == 'win32',
                      'Makefile only exists on Unix like systems')
+    @unittest.skipIf(sys.implementation.name != 'cpython',
+                     'Makefile only exists in CPython')
     def test_get_makefile_filename(self):
         makefile = sysconfig.get_makefile_filename()
         self.assertTrue(os.path.isfile(makefile), makefile)
@@ -298,6 +300,14 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         with open(config_h, encoding="utf-8") as f:
             result = sysconfig.parse_config_h(f)
         self.assertTrue(isinstance(result, dict))
+
+    @unittest.skipUnless(sys.platform == 'win32',
+                     'Testing windows pyd suffix')
+    @unittest.skipUnless(sys.implementation.name == 'cpython',
+                     'Need cpython for this test')
+    def test_win_ext_suffix(self):
+        self.assertTrue(sysconfig.get_config_var("EXT_SUFFIX").endswith(".pyd"))
+        self.assertNotEqual(sysconfig.get_config_var("EXT_SUFFIX"), ".pyd")
 
 def test_suite():
     suite = unittest.TestSuite()

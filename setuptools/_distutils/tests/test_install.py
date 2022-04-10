@@ -56,14 +56,15 @@ class InstallTestCase(support.TempdirManager,
             expected = os.path.normpath(expected)
             self.assertEqual(got, expected)
 
-        libdir = os.path.join(destination, "lib", "python")
+        impl_name = sys.implementation.name.replace("cpython", "python")
+        libdir = os.path.join(destination, "lib", impl_name)
         check_path(cmd.install_lib, libdir)
         _platlibdir = getattr(sys, "platlibdir", "lib")
-        platlibdir = os.path.join(destination, _platlibdir, "python")
+        platlibdir = os.path.join(destination, _platlibdir, impl_name)
         check_path(cmd.install_platlib, platlibdir)
         check_path(cmd.install_purelib, libdir)
         check_path(cmd.install_headers,
-                   os.path.join(destination, "include", "python", "foopkg"))
+                   os.path.join(destination, "include", impl_name, "foopkg"))
         check_path(cmd.install_scripts, os.path.join(destination, "bin"))
         check_path(cmd.install_data, destination)
 
