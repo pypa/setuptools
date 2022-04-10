@@ -1,3 +1,16 @@
+v62.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #3258: Merge pypa/distutils@5229dad46b.
+
+Misc
+^^^^
+* #3249: Simplified ``package_dir`` obtained via auto-discovery.
+
+
 v62.0.0
 -------
 
