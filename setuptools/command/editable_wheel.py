@@ -303,7 +303,7 @@ def _find_mapped_namespaces(pkg_roots: Dict[str, str]) -> Iterator[str]:
 def _remove_nested(pkg_roots: Dict[str, str]) -> Dict[str, str]:
     output = dict(pkg_roots.copy())
 
-    for pkg, path in reversed(pkg_roots.items()):
+    for pkg, path in reversed(list(pkg_roots.items())):
         if any(
             pkg != other and _is_nested(pkg, path, other, other_path)
             for other, other_path in pkg_roots.items()
@@ -389,7 +389,7 @@ class __EditableFinder:
         if fullname in cls.NAMESPACES:
             return cls._namespace_spec(fullname)
 
-        for pkg, pkg_path in reversed(cls.MAPPING.items()):
+        for pkg, pkg_path in reversed(list(cls.MAPPING.items())):
             if fullname.startswith(pkg):
                 return cls._find_spec(fullname, pkg, pkg_path)
 
