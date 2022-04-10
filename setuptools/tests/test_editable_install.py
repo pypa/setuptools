@@ -115,7 +115,10 @@ def test_editable_with_pyproject(tmp_path, venv, files):
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
 
 
-def test_editable_with_flat_layout(tmp_path, venv):
+@pytest.mark.parametrize("mode", ("strict", "default"))
+def test_editable_with_flat_layout(tmp_path, venv, monkeypatch, mode):
+    monkeypatch.setenv("SETUPTOOLS_EDITABLE", mode)
+
     files = {
         "mypkg": {
             "pyproject.toml": dedent("""\
@@ -149,13 +152,15 @@ def test_editable_with_flat_layout(tmp_path, venv):
 class TestLegacyNamespaces:
     """Ported from test_develop"""
 
-    def test_namespace_package_importable(self, venv, tmp_path):
+    @pytest.mark.parametrize("mode", ("strict", "default"))
+    def test_namespace_package_importable(self, venv, tmp_path, monkeypatch, mode):
         """
         Installing two packages sharing the same namespace, one installed
         naturally using pip or `--single-version-externally-managed`
         and the other installed in editable mode should leave the namespace
         intact and both packages reachable by import.
         """
+        monkeypatch.setenv("SETUPTOOLS_EDITABLE", mode)
         pkg_A = namespaces.build_namespace_package(tmp_path, 'myns.pkgA')
         pkg_B = namespaces.build_namespace_package(tmp_path, 'myns.pkgB')
         # use pip to install to the target directory
@@ -169,12 +174,14 @@ class TestLegacyNamespaces:
 
 class TestPep420Namespaces:
 
-    def test_namespace_package_importable(self, venv, tmp_path):
+    @pytest.mark.parametrize("mode", ("strict", "default"))
+    def test_namespace_package_importable(self, venv, tmp_path, monkeypatch, mode):
         """
         Installing two packages sharing the same namespace, one installed
         normally using pip and the other installed in editable mode
         should allow importing both packages.
         """
+        monkeypatch.setenv("SETUPTOOLS_EDITABLE", mode)
         pkg_A = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgA')
         pkg_B = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgB')
         # use pip to install to the target directory
@@ -183,8 +190,11 @@ class TestPep420Namespaces:
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", "import myns.n.pkgA; import myns.n.pkgB"])
 
-    def test_namespace_created_via_package_dir(self, venv, tmp_path):
+    @pytest.mark.parametrize("mode", ("strict", "default"))
+    def test_namespace_created_via_package_dir(self, venv, tmp_path, monkeypatch, mode):
         """Currently users can create a namespace by tweaking `package_dir`"""
+        monkeypatch.setenv("SETUPTOOLS_EDITABLE", mode)
+
         files = {
             "pkgA": {
                 "pyproject.toml": dedent("""\
@@ -220,7 +230,8 @@ class TestPep420Namespaces:
     platform.python_implementation() == 'PyPy',
     reason="Workaround fails on PyPy (why?)",
 )
-def test_editable_with_prefix(tmp_path, sample_project):
+@pytest.mark.parametrize("mode", ("strict", "default"))
+def test_editable_with_prefix(tmp_path, sample_project, mode):
     """
     Editable install to a prefix should be discoverable.
     """
@@ -237,7 +248,7 @@ def test_editable_with_prefix(tmp_path, sample_project):
     # install workaround
     pip_run.launch.inject_sitecustomize(str(site_packages))
 
-    env = dict(os.environ, PYTHONPATH=str(site_packages))
+    env = dict(os.environ, PYTHONPATH=str(site_packages), SETUPTOOLS_EDITABLE=mode)
     cmd = [
         sys.executable,
         '-m',

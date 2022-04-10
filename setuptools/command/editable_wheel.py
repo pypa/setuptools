@@ -61,10 +61,6 @@ class editable_wheel(Command):
         bdist_wheel = self.reinitialize_command("bdist_wheel")
         bdist_wheel.write_wheelfile(self.dist_info_dir)
 
-        # Build extensions in-place
-        self.reinitialize_command("build_ext", inplace=1)
-        self.run_command("build_ext")
-
         self._create_wheel_file(bdist_wheel)
 
     def _ensure_dist_info(self):
@@ -92,63 +88,91 @@ class editable_wheel(Command):
         from wheel.wheelfile import WheelFile
 
         dist_info = self.get_finalized_command("dist_info")
+        dist_name = dist_info.name
         tag = "-".join(bdist_wheel.get_tag())
-        editable_name = dist_info.name
         build_tag = "0.editable"  # According to PEP 427 needs to start with digit
-        archive_name = f"{editable_name}-{build_tag}-{tag}.whl"
+        archive_name = f"{dist_name}-{build_tag}-{tag}.whl"
         wheel_path = Path(self.dist_dir, archive_name)
         if wheel_path.exists():
             wheel_path.unlink()
 
         # Currently the wheel API receives a directory and dump all its contents
         # inside of a wheel. So let's use a temporary directory.
-        with TemporaryDirectory(suffix=archive_name) as tmp:
-            tmp_dist_info = Path(tmp, Path(self.dist_info_dir).name)
-            shutil.copytree(self.dist_info_dir, tmp_dist_info)
-            self._install_namespaces(tmp, editable_name)
-            populate = self._populate_strategy(editable_name, tag)
-            populate(tmp)
+        unpacked_tmp = TemporaryDirectory(suffix=archive_name)
+        build_tmp = TemporaryDirectory(suffix=".build-temp")
+
+        with unpacked_tmp as unpacked, build_tmp as tmp:
+            unpacked_dist_info = Path(unpacked, Path(self.dist_info_dir).name)
+            shutil.copytree(self.dist_info_dir, unpacked_dist_info)
+            self._install_namespaces(unpacked, dist_info.name)
+
+            # Add non-editable files to the wheel
+            _configure_build(dist_name, self.distribution, Path(unpacked), tmp)
+            self._run_install("headers")
+            self._run_install("scripts")
+            self._run_install("data")
+
+            self._populate_wheel(dist_info.name, tag, unpacked, tmp)
             with WheelFile(wheel_path, "w") as wf:
-                wf.write_files(tmp)
+                wf.write_files(unpacked)
 
         return wheel_path
 
-    def _populate_strategy(self, name, tag):
+    def _run_install(self, category: str):
+        has_category = getattr(self.distribution, f"has_{category}", None)
+        if has_category and has_category():
+            _logger.info(f"Installing {category} as non editable")
+            self.run_command(f"install_{category}")
+
+    def _populate_wheel(self, name: str, tag: str, unpacked_dir: Path, tmp: Path):
         """Decides which strategy to use to implement an editable installation."""
-        dist = self.distribution
         build_name = f"__editable__.{name}-{tag}"
         project_dir = Path(self.project_dir)
-        auxiliar_build_dir = Path(self.project_dir, "build", build_name)
 
-        if self.strict:
-            # The LinkTree strategy will only link files, so it can be implemented in
-            # any OS, even if that means using hardlinks instead of symlinks
-            auxiliar_build_dir = _empty_dir(auxiliar_build_dir)
-            # TODO: return _LinkTree(dist, name, auxiliar_build_dir)
-            msg = """
-            Strict editable install will be performed using a link tree.
-            New files will not be automatically picked up without a new installation.
-            """
-            _logger.info(cleandoc(msg))
-            raise NotImplementedError
+        if self.strict or os.getenv("SETUPTOOLS_EDITABLE", None) == "strict":
+            return self._populate_link_tree(name, build_name, unpacked_dir, tmp)
 
-        packages = _find_packages(dist)
+        # Build extensions in-place
+        self.reinitialize_command("build_ext", inplace=1)
+        self.run_command("build_ext")
+
+        packages = _find_packages(self.distribution)
         has_simple_layout = _simple_layout(packages, self.package_dir, project_dir)
         if set(self.package_dir) == {""} and has_simple_layout:
-            # src-layout(ish) package detected. These kind of packages are relatively
-            # safe so we can simply add the src directory to the pth file.
-            src_dir = self.package_dir[""]
-            msg = f"Editable install will be performed using .pth file to {src_dir}."
-            _logger.info(msg)
-            return _StaticPth(dist, name, [Path(project_dir, src_dir)])
+            # src-layout(ish) is relatively safe for a simple pth file
+            return self._populate_static_pth(name, project_dir, unpacked_dir)
 
+        # Use a MetaPathFinder to avoid adding accidental top-level packages/modules
+        self._populate_finder(name, unpacked_dir)
+
+    def _populate_link_tree(
+        self, name: str, build_name: str, unpacked_dir: Path, tmp: str
+    ):
+        auxiliary_build_dir = _empty_dir(Path(self.project_dir, "build", build_name))
+        msg = """
+        Strict editable install will be performed using a link tree.
+        New files will not be automatically picked up without a new installation.
+        """
+        _logger.info(cleandoc(msg))
+        populate = _LinkTree(self.distribution, name, auxiliary_build_dir, tmp)
+        populate(unpacked_dir)
+
+    def _populate_static_pth(self, name: str, project_dir: Path, unpacked_dir: Path):
+        src_dir = self.package_dir[""]
+        msg = f"Editable install will be performed using .pth file to {src_dir}."
+        _logger.info(msg)
+        populate = _StaticPth(self.distribution, name, [Path(project_dir, src_dir)])
+        populate(unpacked_dir)
+
+    def _populate_finder(self, name: str, unpacked_dir: Path):
         msg = """
         Editable install will be performed using a meta path finder.
         If you add any top-level packages or modules, they might not be automatically
         picked up without a new installation.
         """
         _logger.info(cleandoc(msg))
-        return _TopLevelFinder(dist, name)
+        populate = _TopLevelFinder(self.distribution, name)
+        populate(unpacked_dir)
 
 
 class _StaticPth:
@@ -161,6 +185,36 @@ class _StaticPth:
         pth = Path(unpacked_wheel_dir, f"__editable__.{self.name}.pth")
         entries = "\n".join((str(p.resolve()) for p in self.path_entries))
         pth.write_text(f"{entries}\n", encoding="utf-8")
+
+
+class _LinkTree(_StaticPth):
+    # The LinkTree strategy will only link files (not dirs), so it can be implemented in
+    # any OS, even if that means using hardlinks instead of symlinks
+    def __init__(
+        self, dist: Distribution, name: str, auxiliary_build_dir: Path, tmp: str
+    ):
+        super().__init__(dist, name, [auxiliary_build_dir])
+        self.auxiliary_build_dir = auxiliary_build_dir
+        self.tmp = tmp
+
+    def _build_py(self):
+        build_py = self.dist.get_command_obj("build_py")
+        build_py.ensure_finalized()
+        # Force build_py to use links instead of copying files
+        build_py.use_links = "sym" if _can_symlink_files() else "hard"
+        build_py.run()
+
+    def _build_ext(self):
+        build_ext = self.dist.get_command_obj("build_ext")
+        build_ext.ensure_finalized()
+        # Extensions are not editable, so we just have to build them in the right dir
+        build_ext.run()
+
+    def __call__(self, unpacked_wheel_dir: Path):
+        _configure_build(self.name, self.dist, self.auxiliary_build_dir, self.tmp)
+        self._build_py()
+        self._build_ext()
+        super().__call__(unpacked_wheel_dir)
 
 
 class _TopLevelFinder:
@@ -182,6 +236,41 @@ class _TopLevelFinder:
         pth = f"__editable__.{self.name}.pth"
         content = f"import {finder}; {finder}.install()"
         Path(unpacked_wheel_dir, pth).write_text(content, encoding="utf-8")
+
+
+def _configure_build(name: str, dist: Distribution, target_dir: Path, tmp: str):
+    target = str(target_dir)
+    data = str(target_dir / f"{name}.data/data")
+    headers = str(target_dir / f"{name}.data/include")
+    scripts = str(target_dir / f"{name}.data/scripts")
+
+    build = dist.reinitialize_command("build", reinit_subcommands=True)
+    install = dist.reinitialize_command("install", reinit_subcommands=True)
+
+    build.build_platlib = build.build_purelib = build.build_lib = target
+    install.install_purelib = install.install_platlib = install.install_lib = target
+    install.install_scripts = build.build_scripts = scripts
+    install.install_headers = headers
+    install.install_data = data
+
+    build.build_temp = tmp
+
+    build_py = dist.get_command_obj("build_py")
+    build_py.compile = False
+
+    build.ensure_finalized()
+    install.ensure_finalized()
+
+
+def _can_symlink_files():
+    try:
+        with TemporaryDirectory() as tmp:
+            path1, path2 = Path(tmp, "file1.txt"), Path(tmp, "file2.txt")
+            path1.write_text("file1", encoding="utf-8")
+            os.symlink(path1, path2)
+            return path2.is_symlink() and path2.read_text(encoding="utf-8") == "file1"
+    except (AttributeError, NotImplementedError, OSError):
+        return False
 
 
 def _simple_layout(
@@ -339,7 +428,7 @@ def _normalize_path(filename: _Path) -> str:
 
 def _empty_dir(dir_: Path) -> Path:
     shutil.rmtree(dir_, ignore_errors=True)
-    dir_.mkdir()
+    dir_.mkdir(parents=True)
     return dir_
 
 
