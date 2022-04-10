@@ -56,9 +56,7 @@ class InstallTestCase(support.TempdirManager,
             expected = os.path.normpath(expected)
             self.assertEqual(got, expected)
 
-        impl_name = sys.implementation.name
-        if impl_name == "cpython":
-            impl_name = "python"
+        impl_name = sys.implementation.name.replace("cpython", "python")
         libdir = os.path.join(destination, "lib", impl_name)
         check_path(cmd.install_lib, libdir)
         _platlibdir = getattr(sys, "platlibdir", "lib")
