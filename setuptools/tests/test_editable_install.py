@@ -65,6 +65,8 @@ EXAMPLE = {
     "MANIFEST.in": dedent("""\
         global-include *.py *.txt
         global-exclude *.py[cod]
+        prune dist
+        prune build
         """).strip(),
     "README.rst": "This is a ``README``",
     "LICENSE.txt": "---- placeholder MIT license ----",
@@ -413,14 +415,9 @@ class TestOverallBehaviour:
         version = "3.14159"
         """
 
-    MANIFEST = """\
-    global-include *.py *.txt
-    global-exclude *.py[cod]
-    """
-
     FLAT_LAYOUT = {
         "pyproject.toml": dedent(PYPROJECT),
-        "MANIFEST.in": dedent(MANIFEST),
+        "MANIFEST.in": EXAMPLE["MANIFEST.in"],
         "otherfile.py": "",
         "mypkg": {
             "__init__.py": "",
@@ -437,7 +434,7 @@ class TestOverallBehaviour:
         "flat-layout": FLAT_LAYOUT,
         "src-layout": {
             "pyproject.toml": dedent(PYPROJECT),
-            "MANIFEST.in": dedent(MANIFEST),
+            "MANIFEST.in": EXAMPLE["MANIFEST.in"],
             "otherfile.py": "",
             "src": {"mypkg": FLAT_LAYOUT["mypkg"]},
         },
@@ -449,7 +446,7 @@ class TestOverallBehaviour:
                 [tool.setuptools.package-dir]
                 "mypkg.subpackage" = "other"
                 """),
-            "MANIFEST.in": dedent(MANIFEST),
+            "MANIFEST.in": EXAMPLE["MANIFEST.in"],
             "otherfile.py": "",
             "mypkg": {
                 "__init__.py": "",
@@ -459,7 +456,7 @@ class TestOverallBehaviour:
         },
         "namespace": {
             "pyproject.toml": dedent(PYPROJECT),
-            "MANIFEST.in": dedent(MANIFEST),
+            "MANIFEST.in": EXAMPLE["MANIFEST.in"],
             "otherfile.py": "",
             "src": {
                 "mypkg": {
@@ -525,7 +522,7 @@ class TestLinkTree:
     FILES["pyproject.toml"] += dedent("""\
         [tool.setuptools.packages.find]
         where = ["src"]
-        exclude = ["*.subpackage.*"]
+        exclude = ["*.subpackage*"]
         """)
     FILES["src"]["mypkg"]["resource.not_in_manifest"] = "abc"
 
@@ -538,19 +535,24 @@ class TestLinkTree:
             dist.parse_config_files()
 
             build = tmp_path / ".build"
+            tmp = tmp_path / ".tmp"
+            tmp.mkdir()
             unpacked = tmp_path / ".unpacked"
             unpacked.mkdir()
 
-            make_tree = _LinkTree(dist, name, build, tmp_path / ".tmp")
+            make_tree = _LinkTree(dist, name, build, tmp)
             make_tree(unpacked)
 
             mod1 = next(build.glob("**/mod1.py"))
-            assert str(mod1.resolve()) == str((tmp_path / "mypkg/mod1.py").resolve())
+            expected = tmp_path / "src/mypkg/mod1.py"
+            assert str(mod1.resolve()) == str(expected.resolve())
 
             with pytest.raises(AssertionError):  # ignore problems caused by #3260
+                # Ensure excluded packages don't show up
                 assert next(build.glob("**/subpackage"), None) is None
                 assert next(build.glob("**/mod2.py"), None) is None
                 assert next(build.glob("**/resource_file.txt"), None) is None
+
             assert next(build.glob("**/resource.not_in_manifest"), None) is None
 
     def test_strict_install(self, tmp_path, venv, monkeypatch):
@@ -569,7 +571,7 @@ class TestLinkTree:
         """
         out = venv.run(["python", "-c", dedent(cmd_import_error)])
         with pytest.raises(AssertionError):  # ignore problems caused by #3260
-            assert b"No module named 'mypkg.subpackage'" in out
+            assert b"cannot import name 'subpackage'" in out
 
         # Ensure resource files excluded from distribution are not reachable
         cmd_get_resource = """\
