@@ -1,0 +1,3 @@
+Added a deprecation warning when `setuptools.find_packages()` includes
+a package in the reserved top-level package name list (e.g. ``tests``)
+-- by :user:`mgorny`.

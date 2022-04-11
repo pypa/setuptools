@@ -44,11 +44,14 @@ from glob import glob
 from pathlib import Path
 from typing import TYPE_CHECKING
 from typing import Callable, Dict, Iterator, Iterable, List, Optional, Tuple, Union
+import warnings
 
 import _distutils_hack.override  # noqa: F401
 
 from distutils import log
 from distutils.util import convert_path
+
+import setuptools
 
 _Path = Union[str, os.PathLike]
 _Filter = Callable[[str], bool]
@@ -148,6 +151,13 @@ class PackageFinder(_Finder):
 
                 # Should this package be included?
                 if include(package) and not exclude(package):
+                    top_package = package.split(".")[0]
+                    if top_package in FlatLayoutPackageFinder._EXCLUDE:
+                        warnings.warn(
+                            f"{top_package!r} is a reserved package name. "
+                            "Please add it to find_package(exclude=...)",
+                            setuptools.SetuptoolsDeprecationWarning,
+                        )
                     yield package
 
                 # Keep searching subdirectories, as there may be more packages

@@ -7,6 +7,7 @@ import platform
 
 import pytest
 
+import setuptools
 from setuptools import find_packages
 from setuptools import find_namespace_packages
 from setuptools.discovery import FlatLayoutPackageFinder
@@ -157,13 +158,17 @@ class TestFindPackages:
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     def test_pep420_ns_package_no_includes(self):
-        packages = find_namespace_packages(
-            self.dist_dir, exclude=['pkg.subpkg.assets'])
+        with pytest.warns(setuptools.SetuptoolsDeprecationWarning,
+                          match="'docs' is a reserved package name"):
+            packages = find_namespace_packages(
+                self.dist_dir, exclude=['pkg.subpkg.assets'])
         self._assert_packages(
             packages, ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     def test_pep420_ns_package_no_includes_or_excludes(self):
-        packages = find_namespace_packages(self.dist_dir)
+        with pytest.warns(setuptools.SetuptoolsDeprecationWarning,
+                          match="'docs' is a reserved package name"):
+            packages = find_namespace_packages(self.dist_dir)
         expected = [
             'docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg', 'pkg.subpkg.assets']
         self._assert_packages(packages, expected)
