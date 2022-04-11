@@ -1,0 +1,2 @@
+Fixed bug (#3260) that prevented configuration for ``packages.find.exclude`` to take effect
+when ``include_package_data = True``.

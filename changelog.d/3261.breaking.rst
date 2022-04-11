@@ -1,0 +1,8 @@
+Projects that were abusing ``include_package_data=True`` to automatically add
+sub-packages and sub-modules will find the built wheel distribution no longer
+including some files.
+
+These projects are encouraged to properly configure ``packages`` to include all
+sub-packages. More information can be found in :doc:`userguide/package_discovery`.
+
+The previous behaviour was unintentional and caused a bug (#3260).
