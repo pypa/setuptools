@@ -16,7 +16,7 @@ from . import contexts, namespaces
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
     _finder_template,
-    _find_pkg_roots,
+    _find_package_roots,
     _find_mapped_namespaces,
 )
 
@@ -383,7 +383,7 @@ def test_pkg_roots(tmp_path):
     jaraco.path.build(files, prefix=tmp_path)
     package_dir = {"a.b.c": "other", "a.b.c.x.y": "another"}
     packages = ["a", "a.b", "a.b.c", "a.b.c.x.y", "d", "d.e", "f", "f.g", "f.g.h"]
-    roots = _find_pkg_roots(packages, package_dir, tmp_path)
+    roots = _find_package_roots(packages, package_dir, tmp_path)
     assert roots == {
         "a": str(tmp_path / "a"),
         "a.b.c": str(tmp_path / "other"),
