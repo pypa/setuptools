@@ -353,6 +353,11 @@ extensions).
 .. _keyword/namespace_packages:
 
 ``namespace_packages``
+    .. warning::
+        ``namespace_packages`` is deprecated in favor of native/implicit
+        namespaces (:pep:`420`). Check :doc:`the Python Packaging User Guide
+        <PyPUG:guides/packaging-namespace-packages>` for more information.
+
     A list of strings naming the project's "namespace packages".  A namespace
     package is a package that may be split across multiple project
     distributions.  For example, Zope 3's ``zope`` package is a namespace
