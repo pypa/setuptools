@@ -6,6 +6,7 @@ To run these tests offline, please have a look on ``./downloads/preload.py``
 import io
 import re
 import tarfile
+from inspect import cleandoc
 from pathlib import Path
 from unittest.mock import Mock
 from zipfile import ZipFile
@@ -14,6 +15,7 @@ import pytest
 from ini2toml.api import Translator
 
 import setuptools  # noqa ensure monkey patch to metadata
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
@@ -209,6 +211,21 @@ def test_license_and_license_files(tmp_path):
     dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
     assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
     assert dist.metadata.license == "LicenseRef-Proprietary\n"
+
+
+class TestDeprecatedFields:
+    def test_namespace_packages(self, tmp_path):
+        pyproject = tmp_path / "pyproject.toml"
+        config = """
+        [project]
+        name = "myproj"
+        version = "42"
+        [tool.setuptools]
+        namespace-packages = ["myproj.pkg"]
+        """
+        pyproject.write_text(cleandoc(config), encoding="utf-8")
+        with pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages"):
+            pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
 
 class TestPresetField:

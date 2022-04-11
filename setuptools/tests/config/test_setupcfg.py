@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
 from ..textwrap import DALS
@@ -409,7 +410,7 @@ class TestMetadata:
             'requires = some, requirement\n',
         )
 
-        with pytest.deprecated_call():
+        with pytest.warns(SetuptoolsDeprecationWarning, match="requires"):
             with get_dist(tmpdir) as dist:
                 metadata = dist.metadata
 
@@ -518,7 +519,8 @@ class TestOptions:
             'python_requires = >=1.0, !=2.8\n'
             'py_modules = module1, module2\n',
         )
-        with get_dist(tmpdir) as dist:
+        deprec = pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages")
+        with deprec, get_dist(tmpdir) as dist:
             assert dist.zip_safe
             assert dist.include_package_data
             assert dist.package_dir == {'': 'src', 'b': 'c'}
@@ -572,7 +574,8 @@ class TestOptions:
             '  http://some.com/here/1\n'
             '  http://some.com/there/2\n',
         )
-        with get_dist(tmpdir) as dist:
+        deprec = pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages")
+        with deprec, get_dist(tmpdir) as dist:
             assert dist.package_dir == {'': 'src', 'b': 'c'}
             assert dist.packages == ['pack_a', 'pack_b.subpack']
             assert dist.namespace_packages == ['pack1', 'pack2']

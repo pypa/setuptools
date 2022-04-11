@@ -280,6 +280,11 @@ def check_nsp(dist, attr, value):
                 nsp,
                 parent,
             )
+        msg = (
+            "The namespace_packages parameter is deprecated, "
+            "consider using implicit namespaces instead (PEP 420).",
+        )
+        warnings.warn(msg, SetuptoolsDeprecationWarning)
 
 
 def check_extras(dist, attr, value):
