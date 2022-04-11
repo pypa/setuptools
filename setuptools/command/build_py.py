@@ -8,6 +8,7 @@ import io
 import distutils.errors
 import itertools
 import stat
+from pathlib import Path
 from setuptools.extern.more_itertools import unique_everseen
 
 
@@ -134,10 +135,20 @@ class build_py(orig.build_py):
             d, f = os.path.split(assert_relative(path))
             prev = None
             oldf = f
+
+            # Climb the hierarchy to find a parent package included in the distribution
             while d and d != prev and d not in src_dirs:
+                if has_valid_modules(d):
+                    # The given directory contains Python modules, and therefore can be
+                    # considered a package (or namespace) itself, not a simple container
+                    # for data files.
+                    # If the intention is to include it in the distribution, then it
+                    # should be added to `packages`, and therefore appear in `src_dirs`.
+                    break
                 prev = d
                 d, df = os.path.split(d)
                 f = os.path.join(df, f)
+
             if d in src_dirs:
                 if path.endswith('.py') and f == oldf:
                     continue  # it's a module, not data
@@ -240,3 +251,13 @@ def assert_relative(path):
         % path
     )
     raise DistutilsSetupError(msg)
+
+
+def has_valid_modules(directory):
+    return any(
+        all(
+            part.isidentifier()
+            for part in potential_module.relative_to(directory).with_suffix("").parts
+        )
+        for potential_module in Path(directory).glob("**/*.py")
+    )
