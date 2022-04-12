@@ -127,7 +127,7 @@ def session_locked_tmp_dir(request, tmp_path_factory, name):
 
 @contextlib.contextmanager
 def save_paths():
-    """Make sure initial `sys.path` and `sys.meta_path` are preserved"""
+    """Make sure initial ``sys.path`` and ``sys.meta_path`` are preserved"""
     prev_paths = sys.path[:], sys.meta_path[:]
 
     try:
@@ -137,13 +137,12 @@ def save_paths():
 
 
 @contextlib.contextmanager
-def remove_added_modules():
-    """Make sure modules are not stored in sys.modules"""
-    prev_modules = set(sys.modules)
+def save_sys_modules():
+    """Make sure initial ``sys.modules`` is preserved"""
+    prev_modules = sys.modules
 
     try:
+        sys.modules = sys.modules.copy()
         yield
     finally:
-        extra_modules = set(sys.modules) - prev_modules
-        for mod in extra_modules:
-            sys.modules.pop(mod, None)
+        sys.modules = prev_modules

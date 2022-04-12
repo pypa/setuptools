@@ -287,7 +287,10 @@ class TestFinderTemplate:
         }
         template = _finder_template(mapping, {})
 
-        with contexts.save_paths(), contexts.remove_added_modules():
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in ("pkg1", "pkg1.subpkg", "pkg1.subpkg.mod1", "mod2"):
+                sys.modules.pop(mod, None)
+
             self.install_finder(template)
             mod1 = import_module("pkg1.subpkg.mod1")
             mod2 = import_module("mod2")
@@ -306,7 +309,10 @@ class TestFinderTemplate:
         namespaces = {"ns"}
 
         template = _finder_template(mapping, namespaces)
-        with contexts.save_paths(), contexts.remove_added_modules():
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in ("ns", "ns.othername"):
+                sys.modules.pop(mod, None)
+
             self.install_finder(template)
             pkg = import_module("ns.othername")
             text = importlib_resources.files(pkg) / "text.txt"
@@ -331,7 +337,10 @@ class TestFinderTemplate:
         }
         template = _finder_template(mapping, {})
 
-        with contexts.save_paths(), contexts.remove_added_modules():
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in ("ns", "ns.pkgA", "ns.mod2"):
+                sys.modules.pop(mod, None)
+
             self.install_finder(template)
             pkgA = import_module("ns.pkgA")
             mod2 = import_module("ns.mod2")
