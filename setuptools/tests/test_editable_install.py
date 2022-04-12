@@ -1,4 +1,5 @@
 import os
+import stat
 import sys
 import subprocess
 import platform
@@ -318,7 +319,7 @@ class TestFinderTemplate:
             assert mod1.a == 42
             assert mod2.a == 43
             expected = str((tmp_path / "src1/pkg1/subpkg").resolve())
-            self.assert_path(subpkg, expected)
+            assert_path(subpkg, expected)
 
     def test_namespace(self, tmp_path):
         files = {"pkg": {"__init__.py": "a = 13", "text.txt": "abc"}}
@@ -337,7 +338,7 @@ class TestFinderTemplate:
             text = importlib_resources.files(pkg) / "text.txt"
 
             expected = str((tmp_path / "pkg").resolve())
-            self.assert_path(pkg, expected)
+            assert_path(pkg, expected)
             assert pkg.a == 13
 
             # Make sure resources can also be found
@@ -365,15 +366,9 @@ class TestFinderTemplate:
             mod2 = import_module("ns.mod2")
 
             expected = str((tmp_path / "src1/ns/pkg1").resolve())
-            self.assert_path(pkgA, expected)
+            assert_path(pkgA, expected)
             assert pkgA.a == 13
             assert mod2.b == 37
-
-    def assert_path(self, pkg, expected):
-        if pkg.__path__:
-            path = next(iter(pkg.__path__), None)
-            if path:
-                assert str(Path(path).resolve()) == expected
 
 
 def test_pkg_roots(tmp_path):
@@ -545,7 +540,7 @@ class TestLinkTree:
 
             mod1 = next(build.glob("**/mod1.py"))
             expected = tmp_path / "src/mypkg/mod1.py"
-            assert str(mod1.resolve()) == str(expected.resolve())
+            assert_link_to(mod1, expected)
 
             with pytest.raises(AssertionError):  # ignore problems caused by #3260
                 # Ensure excluded packages don't show up
@@ -595,3 +590,24 @@ def install_project(name, venv, tmp_path, files):
     opts = ["--no-build-isolation"]  # force current version of setuptools
     venv.run(["python", "-m", "pip", "install", "-e", str(project), *opts])
     return project
+
+
+# ---- Assertion Helpers ----
+
+
+def assert_path(pkg, expected):
+    # __path__ is not guaranteed to exist, so we have to account for that
+    if pkg.__path__:
+        path = next(iter(pkg.__path__), None)
+        if path:
+            assert str(Path(path).resolve()) == expected
+
+
+def assert_link_to(file: Path, other: Path):
+    if file.is_symlink():
+        assert str(file.resolve()) == str(other.resolve())
+    else:
+        file_stat = file.stat()
+        other_stat = other.stat()
+        assert file_stat[stat.ST_INO] == other_stat[stat.ST_INO]
+        assert file_stat[stat.ST_DEV] == other_stat[stat.ST_DEV]
