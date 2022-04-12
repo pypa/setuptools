@@ -296,7 +296,7 @@ class TestFinderTemplate:
             assert mod1.a == 42
             assert mod2.a == 43
             expected = str((tmp_path / "src1/pkg1/subpkg").resolve())
-            assert str(Path(subpkg.__path__[0]).resolve()) == expected
+            self.assert_path(subpkg, expected)
 
     def test_namespace(self, tmp_path):
         files = {"pkg": {"__init__.py": "a = 13", "text.txt": "abc"}}
@@ -312,7 +312,7 @@ class TestFinderTemplate:
             text = importlib_resources.files(pkg) / "text.txt"
 
             expected = str((tmp_path / "pkg").resolve())
-            assert str(Path(pkg.__path__[0]).resolve()) == expected
+            self.assert_path(pkg, expected)
             assert pkg.a == 13
 
             # Make sure resources can also be found
@@ -337,9 +337,15 @@ class TestFinderTemplate:
             mod2 = import_module("ns.mod2")
 
             expected = str((tmp_path / "src1/ns/pkg1").resolve())
-            assert str(Path(pkgA.__path__[0]).resolve()) == expected
+            self.assert_path(pkgA, expected)
             assert pkgA.a == 13
             assert mod2.b == 37
+
+    def assert_path(self, pkg, expected):
+        if pkg.__path__:
+            path = next(iter(pkg.__path__), None)
+            if path:
+                assert str(Path(path).resolve()) == expected
 
 
 def test_pkg_roots(tmp_path):
