@@ -100,23 +100,6 @@ class editable_wheel(Command):
 
         return wheel_path
 
-    def _best_strategy(self):
-        if self.strict:
-            return self._link_tree
-
-        dist = self.distribution
-        if set(dist.packages) == {""}:
-            # src-layout(ish) package detected. These kind of packages are relatively
-            # safe so we can simply add the src directory to the pth file.
-            return self._top_level_pth
-
-        if self._can_symlink():
-            return self._top_level_symlinks
-
-    # >>> def _targets(self):
-    # >>>     build_py.find_modules()
-    # >>>     self.dist.packages
-
     def _populate_wheel(self, dist_id, unpacked_wheel_dir):
         pth = Path(unpacked_wheel_dir, f"__editable__.{dist_id}.pth")
         pth.write_text(f"{self.target}\n", encoding="utf-8")
