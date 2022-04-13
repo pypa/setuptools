@@ -24,23 +24,24 @@ class dist_info(Command):
 
     def initialize_options(self):
         self.egg_base = None
+        self.dist_info_dir = None
 
     def finalize_options(self):
-        pass
-
-    def run(self):
         egg_info = self.get_finalized_command('egg_info')
         egg_info.egg_base = self.egg_base
         egg_info.finalize_options()
-        egg_info.run()
         name = _safe(self.distribution.get_name())
-        version = _version(self.distribution.get_version())
         base = self.egg_base or os.curdir
-        dist_info_dir = os.path.join(base, f"{name}-{version}.dist-info")
-        log.info("creating '{}'".format(os.path.abspath(dist_info_dir)))
+        version = _version(self.distribution.get_version())
+        self.dist_info_dir = os.path.join(base, f"{name}-{version}.dist-info")
+        self.egg_info = egg_info
+        self.egg_base = egg_info.egg_base
 
+    def run(self):
+        self.egg_info.run()
+        log.info("creating '{}'".format(os.path.abspath(self.dist_info_dir)))
         bdist_wheel = self.get_finalized_command('bdist_wheel')
-        bdist_wheel.egg2dist(egg_info.egg_info, dist_info_dir)
+        bdist_wheel.egg2dist(self.egg_info.egg_info, self.dist_info_dir)
 
 
 def _safe(component: str) -> str:
