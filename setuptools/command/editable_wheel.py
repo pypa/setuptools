@@ -12,12 +12,20 @@ import time
 from pathlib import Path
 
 from distutils.core import Command
-from distutils.errors import DistutilsError
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 import pkg_resources
+from setuptools import __version__
 
 SOURCE_EPOCH_ZIP = 499162860
+
+WHEEL_FILE = f"""\
+Wheel-Version: 1.0
+Generator: setuptools ({__version__})
+Root-Is-Purelib: false
+Tag: py3-none-any
+Tag: ed-none-any
+"""
 
 
 class editable_wheel(Command):
@@ -38,20 +46,10 @@ class editable_wheel(Command):
         self.dist_dir = None
 
     def finalize_options(self):
-        # is this part of the 'develop' command needed?
-        ei = self.get_finalized_command("egg_info")
-        if ei.broken_egg_info:
-            template = "Please rename %r to %r before using 'develop'"
-            args = ei.egg_info, ei.broken_egg_info
-            raise DistutilsError(template % args)
-        self.args = [ei.egg_name]
-
-        # the .pth file should point to target
-        self.egg_base = ei.egg_base
+        self.dist_info = self.get_finalized_command("dist_info")
+        self.egg_base = self.dist_info.egg_base
+        self.dist_info_dir = Path(self.dist_info.dist_info_dir)
         self.target = pkg_resources.normalize_path(self.egg_base)
-        self.dist_info_dir = Path(
-            (ei.egg_info[: -len(".egg-info")] + ".dist-info").rpartition("/")[-1]
-        )
 
     def build_editable_wheel(self):
         if getattr(self.distribution, "use_2to3", False):
@@ -66,10 +64,6 @@ class editable_wheel(Command):
         self.reinitialize_command("build_ext", inplace=1)
         self.run_command("build_ext")
 
-        # now build the wheel
-        # with the dist-info directory and .pth from 'editables' library
-        # ...
-
         mtime = time.gmtime(SOURCE_EPOCH_ZIP)[:6]
 
         dist_dir = Path(self.dist_dir)
@@ -79,8 +73,6 @@ class editable_wheel(Command):
         # and guarantees we can't overwrite the normal wheel
         wheel_name = f"{fullname}-ed.py3-none-any.whl"
         wheel_path = dist_dir / wheel_name
-
-        wheelmeta_builder(dist_dir / dist_info_dir / "WHEEL")
 
         if wheel_path.exists():
             wheel_path.unlink()
@@ -95,6 +87,10 @@ class editable_wheel(Command):
                 with (dist_dir / dist_info_dir / f).open() as metadata:
                     info = ZipInfo(str(dist_info_dir / f), mtime)
                     archive.writestr(info, metadata.read())
+
+            # Add WHEEL file
+            info = ZipInfo(str(dist_info_dir / "WHEEL"), mtime)
+            archive.writestr(info, WHEEL_FILE)
 
             add_manifest(archive, dist_info_dir)
 
@@ -127,15 +123,3 @@ def add_manifest(archive, dist_info_dir):
         zipfile.ZipInfo(str(record_path), time.gmtime(SOURCE_EPOCH_ZIP)[:6]), RECORD
     )
     archive.close()
-
-
-def wheelmeta_builder(target):
-    with open(target, "w+") as f:
-        f.write(
-            """Wheel-Version: 1.0
-Generator: setuptools_pep660 (0.1)
-Root-Is-Purelib: false
-Tag: py3-none-any
-Tag: ed-none-any
-"""
-        )
