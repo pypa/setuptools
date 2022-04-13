@@ -42,7 +42,6 @@ class dist_info(Command):
         dist = self.distribution
         project_dir = dist.src_root or os.curdir
         self.output_dir = Path(self.output_dir or project_dir)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
 
         egg_info = self.reinitialize_command('egg_info')
         egg_info.egg_base = str(self.output_dir)
@@ -55,6 +54,7 @@ class dist_info(Command):
         self.dist_info_dir = os.path.join(self.output_dir, f"{self.name}.dist-info")
 
     def run(self):
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         self.egg_info.run()
         egg_info_dir = self.egg_info.egg_info
         log.info("creating '{}'".format(os.path.abspath(self.dist_info_dir)))
