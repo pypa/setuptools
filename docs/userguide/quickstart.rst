@@ -121,7 +121,7 @@ Automatic package discovery
 For simple projects, it's usually easy enough to manually add packages to
 the ``packages`` keyword in ``setup.cfg``.  However, for very large projects,
 it can be a big burden to keep the package list updated.
-Therefore, ``setuptoops`` provides a convenient way to automatically list all
+Therefore, ``setuptools`` provides a convenient way to automatically list all
 the packages in your project directory:
 
 .. tab:: setup.cfg
