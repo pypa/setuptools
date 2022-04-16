@@ -127,13 +127,13 @@ def session_locked_tmp_dir(request, tmp_path_factory, name):
 
 @contextlib.contextmanager
 def save_paths():
-    """Make sure initial ``sys.path`` and ``sys.meta_path`` are preserved"""
-    prev_paths = sys.path[:], sys.meta_path[:]
+    """Make sure ``sys.path``, ``sys.meta_path`` and ``sys.path_hooks`` are preserved"""
+    prev = sys.path[:], sys.meta_path[:], sys.path_hooks[:]
 
     try:
         yield
     finally:
-        sys.path, sys.meta_path = prev_paths
+        sys.path, sys.meta_path, sys.path_hooks = prev
 
 
 @contextlib.contextmanager
