@@ -543,14 +543,20 @@ class _EditableNamespaceFinder:  # PathEntryFinder
         raise ImportError
 
     @classmethod
+    def _paths(cls, fullname):
+        # Ensure __path__ is not empty for the spec to be considered a namespace.
+        return NAMESPACES[fullname] or MAPPING.get(fullname) or [PATH_PLACEHOLDER]
+
+    @classmethod
     def find_spec(cls, fullname, target=None):
         if fullname in NAMESPACES:
             spec = ModuleSpec(fullname, None, is_package=True)
-            paths = NAMESPACES[fullname] or MAPPING.get(fullname) or [PATH_PLACEHOLDER]
-            # ^ We have to ensure submodule_search_locations to not be empty for the
-            #   spec to be considered a namespace
-            spec.submodule_search_locations = paths
+            spec.submodule_search_locations = cls._paths(fullname)
             return spec
+        return None
+
+    @classmethod
+    def find_module(cls, fullname):
         return None
 
 
