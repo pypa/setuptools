@@ -376,8 +376,8 @@ class TestFinderTemplate:
         }
         jaraco.path.build(files, prefix=tmp_path)
         mapping = {}
-        namespaces_ = {"parent"}
-        template = _finder_template(mapping, namespaces_)
+        namespaces_ = {"parent": [str(tmp_path / "project1/parent")]}
+        template = _finder_template(str(uuid4()), mapping, namespaces_)
 
         mods = (f"parent.child.{name}" for name in ("one", "two", "three"))
         with contexts.save_paths(), contexts.save_sys_modules():
