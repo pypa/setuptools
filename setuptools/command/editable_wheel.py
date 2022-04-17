@@ -563,6 +563,10 @@ class _EditableNamespaceFinder:  # PathEntryFinder
 def install():
     if not any(finder == _EditableFinder for finder in sys.meta_path):
         sys.meta_path.append(_EditableFinder)
+
+    if not NAMESPACES:
+        return
+
     if not any(hook == _EditableNamespaceFinder._path_hook for hook in sys.path_hooks):
         # PathEntryFinder is needed to create NamespaceSpec without private APIS
         sys.path_hooks.append(_EditableNamespaceFinder._path_hook)
