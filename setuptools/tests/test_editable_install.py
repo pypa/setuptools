@@ -364,6 +364,42 @@ class TestFinderTemplate:
             assert pkgA.a == 13
             assert mod2.b == 37
 
+    def test_dynamic_path_computation(self, tmp_path):
+        # Follows the example in PEP 420
+        files = {
+            "project1": {"parent": {"child": {"one.py": "x = 1"}}},
+            "project2": {"parent": {"child": {"two.py": "x = 2"}}},
+            "project3": {"parent": {"child": {"three.py": "x = 3"}}},
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+        mapping = {}
+        namespaces_ = {"parent"}
+        template = _finder_template(mapping, namespaces_)
+
+        mods = (f"parent.child.{name}" for name in ("one", "two", "three"))
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in ("parent", "parent.child", "parent.child", *mods):
+                sys.modules.pop(mod, None)
+
+            self.install_finder(template)
+
+            one = import_module("parent.child.one")
+            assert one.x == 1
+
+            with pytest.raises(ImportError):
+                import_module("parent.child.two")
+
+            sys.path.append(str(tmp_path / "project2"))
+            two = import_module("parent.child.two")
+            assert two.x == 2
+
+            with pytest.raises(ImportError):
+                import_module("parent.child.three")
+
+            sys.path.append(str(tmp_path / "project3"))
+            three = import_module("parent.child.three")
+            assert three.x == 3
+
 
 def test_pkg_roots(tmp_path):
     """This test focus in getting a particular implementation detail right.
