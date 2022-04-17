@@ -129,7 +129,7 @@ def test_editable_with_pyproject(tmp_path, venv, files, editable_mode):
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
 
 
-def test_editable_with_flat_layout(tmp_path, venv, monkeypatch, editable_mode):
+def test_editable_with_flat_layout(tmp_path, venv, editable_mode):
     files = {
         "mypkg": {
             "pyproject.toml": dedent("""\
@@ -163,9 +163,7 @@ def test_editable_with_flat_layout(tmp_path, venv, monkeypatch, editable_mode):
 class TestLegacyNamespaces:
     """Ported from test_develop"""
 
-    def test_namespace_package_importable(
-        self, venv, tmp_path, monkeypatch, editable_mode
-    ):
+    def test_namespace_package_importable(self, venv, tmp_path, editable_mode):
         """
         Installing two packages sharing the same namespace, one installed
         naturally using pip or `--single-version-externally-managed`
@@ -184,9 +182,7 @@ class TestLegacyNamespaces:
 
 
 class TestPep420Namespaces:
-    def test_namespace_package_importable(
-        self, venv, tmp_path, monkeypatch, editable_mode
-    ):
+    def test_namespace_package_importable(self, venv, tmp_path, editable_mode):
         """
         Installing two packages sharing the same namespace, one installed
         normally using pip and the other installed in editable mode
@@ -200,9 +196,7 @@ class TestPep420Namespaces:
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", "import myns.n.pkgA; import myns.n.pkgB"])
 
-    def test_namespace_created_via_package_dir(
-        self, venv, tmp_path, monkeypatch, editable_mode
-    ):
+    def test_namespace_created_via_package_dir(self, venv, tmp_path, editable_mode):
         """Currently users can create a namespace by tweaking `package_dir`"""
         files = {
             "pkgA": {
@@ -344,7 +338,7 @@ class TestFinderTemplate:
             # Make sure resources can also be found
             assert text.read_text(encoding="utf-8") == "abc"
 
-    def test_combine_namespaces(self, tmp_path, monkeypatch):
+    def test_combine_namespaces(self, tmp_path):
         files = {
             "src1": {"ns": {"pkg1": {"__init__.py": "a = 13"}}},
             "src2": {"ns": {"mod2.py": "b = 37"}},
