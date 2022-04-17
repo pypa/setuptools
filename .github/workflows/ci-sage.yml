@@ -59,6 +59,9 @@ env:
   SAGE_TICKET:    33288
   REMOVE_PATCHES: "*"
 
+permissions:
+  contents: read
+
 jobs:
 
   dist:
