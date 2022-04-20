@@ -85,7 +85,7 @@ def test_executable_data(tmpdir_cwd):
         "Script is not executable"
 
 
-def test_excluded_subpacakges(tmp_path):
+def test_excluded_subpackages(tmp_path):
     files = {
         "setup.cfg": DALS("""
             [metadata]
