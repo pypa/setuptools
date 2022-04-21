@@ -43,12 +43,9 @@ jobs:
         id: cache
         with:
           path: setuptools/tests/config/downloads/*.cfg
-          key: ${{
-            hashFiles(
-              'setuptools/tests/config/setupcfg_examples.txt',
-              'setuptools/tests/config/downloads/*.py'
-            )
-          }}
+          key: >-
+            ${{ hashFiles('setuptools/tests/config/setupcfg_examples.txt') }}-
+            ${{ hashFiles('setuptools/tests/config/downloads/*.py') }}
       - name: Populate download cache
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: setuptools/tests/config
