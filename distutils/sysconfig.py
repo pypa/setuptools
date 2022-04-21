@@ -56,6 +56,11 @@ if os.name == 'nt':
         if d and os.path.normcase(d).startswith(
                 os.path.normcase(os.path.join(PREFIX, "PCbuild"))):
             return PREFIX
+        # In a venv, we may be passed sys._home which will be inside
+        # BASE_PREFIX rather than PREFIX.
+        if d and os.path.normcase(d).startswith(
+                os.path.normcase(os.path.join(BASE_PREFIX, "PCbuild"))):
+            return BASE_PREFIX
         return d
     project_base = _fix_pcbuild(project_base)
     _sys_home = _fix_pcbuild(_sys_home)

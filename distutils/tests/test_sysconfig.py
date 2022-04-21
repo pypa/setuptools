@@ -309,6 +309,33 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         self.assertTrue(sysconfig.get_config_var("EXT_SUFFIX").endswith(".pyd"))
         self.assertNotEqual(sysconfig.get_config_var("EXT_SUFFIX"), ".pyd")
 
+    @unittest.skipUnless(sys.platform == 'win32',
+                     'Testing Windows build layout')
+    @unittest.skipUnless(sys.implementation.name == 'cpython',
+                     'Need cpython for this test')
+    @unittest.skipUnless('\\PCbuild\\'.casefold() in sys.executable.casefold(),
+                     'Need sys.executable to be in a source tree')
+    def test_win_build_venv_from_source_tree(self):
+        '''Ensure distutils.sysconfig detects venvs from source tree builds.'''
+        subprocess.check_output([
+            str(sys.executable), "-m", "venv",
+            rf".\{TESTFN}", "--without-pip"
+        ])
+        try:
+            distutils_path = os.path.dirname(os.path.dirname(sysconfig.__file__))
+            subprocess.check_output([
+                rf".\{TESTFN}\Scripts\python.exe",
+                "-c",
+                "import distutils.sysconfig as s, sys; sys.exit(0 if s.python_build else 3456)"
+            ], env={**os.environ, "PYTHONPATH": distutils_path})
+        except subprocess.CalledProcessError as ex:
+            # Return code doesn't matter, provided it's unlikely to be confused with
+            # a different kind of error
+            if ex.returncode != 3456:
+                raise
+            self.fail("expected distutils.sysconfig.python_build == True; got False")
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(SysconfigTestCase))
