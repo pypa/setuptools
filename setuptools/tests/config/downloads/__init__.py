@@ -1,5 +1,7 @@
 import re
+import time
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import urlopen
 
 __all__ = ["DOWNLOAD_DIR", "retrieve_file", "output_file", "urls_from_file"]
@@ -21,14 +23,18 @@ def output_file(url: str, download_dir: Path = DOWNLOAD_DIR):
     return Path(download_dir, re.sub(r"[^\-_\.\w\d]+", "_", file_name))
 
 
-def retrieve_file(url: str, download_dir: Path = DOWNLOAD_DIR):
+def retrieve_file(url: str, download_dir: Path = DOWNLOAD_DIR, wait: float = 5):
     path = output_file(url, download_dir)
     if path.exists():
         print(f"Skipping {url} (already exists: {path})")
     else:
         download_dir.mkdir(exist_ok=True, parents=True)
         print(f"Downloading {url} to {path}")
-        download(url, path)
+        try:
+            download(url, path)
+        except HTTPError:
+            time.sleep(wait)  # wait a few seconds and try again.
+            download(url, path)
     return path
 
 
