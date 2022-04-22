@@ -114,7 +114,7 @@ specified by :pep:`517`, is to "tweak" ``setuptools.build_meta`` by using a
    with **environment markers** are enough to differentiate operating systems
    and platforms.
 
-If you add the following configuration to your ``pyprojec.toml``:
+If you add the following configuration to your ``pyproject.toml``:
 
 
 .. code-block:: toml
