@@ -27,8 +27,23 @@ jobs:
       - name: Run tests
         run: tox
 
+  check:  # This job does nothing and is only used for the branch protection
+    if: always()
+
+    needs:
+    - test
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Decide whether the needed jobs succeeded or failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        jobs: ${{ toJSON(needs) }}
+
   release:
-    needs: test
+    needs:
+    - check
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
