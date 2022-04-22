@@ -189,7 +189,7 @@ The package folder(s) are placed directly under the project root::
         └── mymodule.py
 
 This layout is very practical for using the REPL, but in some situations
-it can be can be more error-prone (e.g. during tests or if you have a bunch
+it can be more error-prone (e.g. during tests or if you have a bunch
 of folders or Python files hanging around your project root)
 
 To avoid confusion, file and folder names that are used by popular tools (or
