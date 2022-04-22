@@ -39,6 +39,17 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: setuptools/tests/config/downloads/*.cfg
+          key: >-
+            ${{ hashFiles('setuptools/tests/config/setupcfg_examples.txt') }}-
+            ${{ hashFiles('setuptools/tests/config/downloads/*.py') }}
+      - name: Populate download cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: setuptools/tests/config
+        run: python -m downloads.preload setupcfg_examples.txt
       - name: Install tox
         run: |
           python -m pip install tox
