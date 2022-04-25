@@ -109,8 +109,7 @@ the subdirectory like this:
     # the rest of the file as described above.
 
     [options]
-    package_dir=
-        =src
+    package_dir=src
     packages=find:
 
     [options.packages.find]
