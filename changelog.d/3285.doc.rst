@@ -1,0 +1,1 @@
+Fixed a typo in docs/userguide/declarative_config.rst -- by user :user:`harrysalmon`
