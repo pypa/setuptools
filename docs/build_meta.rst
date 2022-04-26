@@ -12,16 +12,16 @@ uses a ``setup()`` function within the ``setup.py`` script. Commands such as
 ``python setup.py bdist`` or ``python setup.py bdist_wheel`` generate a
 distribution bundle and ``python setup.py install`` installs the distribution.
 This interface makes it difficult to choose other packaging tools without an
-overhaul. Because ``setup.py`` scripts allowed for arbitrary execution, it
-proved difficult to provide a reliable user experience across environments
+overhaul. Because ``setup.py`` scripts allow for arbitrary execution, it
+is difficult to provide a reliable user experience across environments
 and history.
 
 `PEP 517 <https://www.python.org/dev/peps/pep-0517/>`_ therefore came to
-rescue and specified a new standard to
-package and distribute Python modules. Under PEP 517:
+the rescue and specified a new standard to package and distribute Python
+modules. Under PEP 517:
 
-    a ``pyproject.toml`` file is used to specify what program to use
-    for generating distribution.
+    A ``pyproject.toml`` file is used to specify what program to use
+    for generating the distribution.
 
     Then, two functions provided by the program, ``build_wheel(directory: str)``
     and ``build_sdist(directory: str)`` create the distribution bundle at the
@@ -32,21 +32,23 @@ package and distribute Python modules. Under PEP 517:
     installation. If ``*.whl`` is available, ``pip`` will go ahead and copy
     the files into ``site-packages`` directory. If not, ``pip`` will look at
     ``pyproject.toml`` and decide what program to use to 'build from source'
-    (the default is ``setuptools``)
+    (the default is ``setuptools``).
 
-With this standard, switching between packaging tools becomes a lot easier. ``build_meta``
-implements ``setuptools``' build system support.
+With this standard, switching between packaging tools is a lot easier. ``build_meta``
+implements ``setuptools``'s build system support.
 
 How to use it?
 --------------
 
-Starting with a package that you want to distribute. You will need your source
-scripts, a ``pyproject.toml`` file and a ``setup.cfg`` file::
+Start with a package that you want to distribute. You will need your source
+files, a ``pyproject.toml`` file and a ``setup.cfg`` file::
 
     ~/meowpkg/
         pyproject.toml
         setup.cfg
-        meowpkg/__init__.py
+        meowpkg/
+		    __init__.py
+			meowpkg.py
 
 The pyproject.toml file is required to specify the build system (i.e. what is
 being used to package your scripts and install from source). To use it with
@@ -115,7 +117,6 @@ specified by :pep:`517`, is to "tweak" ``setuptools.build_meta`` by using a
    and platforms.
 
 If you add the following configuration to your ``pyproject.toml``:
-
 
 .. code-block:: toml
 
