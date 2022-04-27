@@ -251,7 +251,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         cmd.run()
         warnings = [msg for msg in self.get_logs(WARN) if
                     msg.startswith('warning: check:')]
-        self.assertEqual(len(warnings), 2)
+        self.assertEqual(len(warnings), 1)
 
         # trying with a complete set of metadata
         self.clear_logs()

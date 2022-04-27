@@ -187,7 +187,9 @@ class InstallTestCase(support.TempdirManager,
 
     def test_record(self):
         install_dir = self.mkdtemp()
-        project_dir, dist = self.create_dist(py_modules=['hello'],
+        project_dir, dist = self.create_dist(name="testdist",
+                                             version="0.1",
+                                             py_modules=['hello'],
                                              scripts=['sayhi'])
         os.chdir(project_dir)
         self.write_file('hello.py', "def main(): print('o hai')")
@@ -209,7 +211,7 @@ class InstallTestCase(support.TempdirManager,
         found = [os.path.basename(line) for line in content.splitlines()]
         expected = ['hello.py', 'hello.%s.pyc' % sys.implementation.cache_tag,
                     'sayhi',
-                    'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2]]
+                    'testdist-0.1-py%s.%s.egg-info' % sys.version_info[:2]]
         self.assertEqual(found, expected)
 
     def test_record_extensions(self):
@@ -217,8 +219,11 @@ class InstallTestCase(support.TempdirManager,
         if cmd is not None:
             self.skipTest('The %r command is not found' % cmd)
         install_dir = self.mkdtemp()
-        project_dir, dist = self.create_dist(ext_modules=[
-            Extension('xx', ['xxmodule.c'])])
+        project_dir, dist = self.create_dist(
+            name="testdist",
+            version="0.1",
+            ext_modules=[Extension('xx', ['xxmodule.c'])],
+        )
         os.chdir(project_dir)
         support.copy_xxmodule_c(project_dir)
 
@@ -242,7 +247,7 @@ class InstallTestCase(support.TempdirManager,
 
         found = [os.path.basename(line) for line in content.splitlines()]
         expected = [_make_ext_name('xx'),
-                    'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2]]
+                    'testdist-0.1-py%s.%s.egg-info' % sys.version_info[:2]]
         self.assertEqual(found, expected)
 
     def test_debug_mode(self):
