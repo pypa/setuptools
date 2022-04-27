@@ -82,54 +82,19 @@ class check(Command):
         """Ensures that all required elements of meta-data are supplied.
 
         Required fields:
-            name, version, URL
-
-        Recommended fields:
-            (author and author_email) or (maintainer and maintainer_email))
+            name, version
 
         Warns if any are missing.
         """
         metadata = self.distribution.metadata
 
         missing = []
-        for attr in ('name', 'version', 'url'):
-            if not (hasattr(metadata, attr) and getattr(metadata, attr)):
+        for attr in 'name', 'version':
+            if not getattr(metadata, attr, None):
                 missing.append(attr)
 
         if missing:
-            self.warn("missing required meta-data: %s"  % ', '.join(missing))
-        if not (
-            self._check_contact("author", metadata) or
-            self._check_contact("maintainer", metadata)
-        ):
-            self.warn("missing meta-data: either (author and author_email) " +
-                      "or (maintainer and maintainer_email) " +
-                      "should be supplied")
-
-    def _check_contact(self, kind, metadata):
-        """
-        Returns True if the contact's name is specified and False otherwise.
-        This function will warn if the contact's email is not specified.
-        """
-        name = getattr(metadata, kind) or ''
-        email = getattr(metadata, kind + '_email') or ''
-
-        msg = ("missing meta-data: if '{}' supplied, " +
-               "'{}' should be supplied too")
-
-        if name and email:
-            return True
-
-        if name:
-            self.warn(msg.format(kind, kind + '_email'))
-            return True
-
-        addresses = [(alias, addr) for alias, addr in getaddresses([email])]
-        if any(alias and addr for alias, addr in addresses):
-            # The contact's name can be encoded in the email: `Name <email>`
-            return True
-
-        return False
+            self.warn("missing required meta-data: %s" % ', '.join(missing))
 
     def check_restructuredtext(self):
         """Checks if the long string fields are reST-compliant."""
