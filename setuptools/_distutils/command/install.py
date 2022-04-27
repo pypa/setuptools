@@ -397,20 +397,20 @@ class install(Command):
             abiflags = ''
         local_vars = {
             'dist_name': self.distribution.get_name(),
-                            'dist_version': self.distribution.get_version(),
-                            'dist_fullname': self.distribution.get_fullname(),
-                            'py_version': py_version,
-                            'py_version_short': '%d.%d' % sys.version_info[:2],
-                            'py_version_nodot': '%d%d' % sys.version_info[:2],
-                            'sys_prefix': prefix,
-                            'prefix': prefix,
-                            'sys_exec_prefix': exec_prefix,
-                            'exec_prefix': exec_prefix,
-                            'abiflags': abiflags,
-                            'platlibdir': getattr(sys, 'platlibdir', 'lib'),
-                            'implementation_lower': _get_implementation().lower(),
-                            'implementation': _get_implementation(),
-                           }
+            'dist_version': self.distribution.get_version(),
+            'dist_fullname': self.distribution.get_fullname(),
+            'py_version': py_version,
+            'py_version_short': '%d.%d' % sys.version_info[:2],
+            'py_version_nodot': '%d%d' % sys.version_info[:2],
+            'sys_prefix': prefix,
+            'prefix': prefix,
+            'sys_exec_prefix': exec_prefix,
+            'exec_prefix': exec_prefix,
+            'abiflags': abiflags,
+            'platlibdir': getattr(sys, 'platlibdir', 'lib'),
+            'implementation_lower': _get_implementation().lower(),
+            'implementation': _get_implementation(),
+        }
 
         # vars for compatibility on older Pythons
         compat_vars = dict(
