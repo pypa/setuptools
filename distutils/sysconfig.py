@@ -53,12 +53,13 @@ _sys_home = getattr(sys, '_home', None)
 
 if os.name == 'nt':
     def _fix_pcbuild(d):
-        if d and os.path.normcase(d).startswith(
+        if d is None:
+            return
+        if os.path.normcase(d).startswith(
                 os.path.normcase(os.path.join(PREFIX, "PCbuild"))):
             return PREFIX
-        # In a venv, we may be passed sys._home which will be inside
-        # BASE_PREFIX rather than PREFIX.
-        if d and os.path.normcase(d).startswith(
+        # In a venv, sys._home will be inside BASE_PREFIX rather than PREFIX.
+        if os.path.normcase(d).startswith(
                 os.path.normcase(os.path.join(BASE_PREFIX, "PCbuild"))):
             return BASE_PREFIX
         return d
