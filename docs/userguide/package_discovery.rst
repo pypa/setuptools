@@ -567,8 +567,8 @@ The project layout remains the same and ``setup.cfg`` remains the same.
 
 .. [#experimental]
    Support for specifying package metadata and build configuration options via
-   ``pyproject.toml`` is experimental and might change (or be completely
-   removed) in the future. See :doc:`/userguide/pyproject_config`.
+   ``pyproject.toml`` is experimental and might change
+   in the future. See :doc:`/userguide/pyproject_config`.
 .. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
 .. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
 

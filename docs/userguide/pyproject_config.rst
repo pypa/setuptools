@@ -10,7 +10,7 @@ Configuring setuptools using ``pyproject.toml`` files
    Support for declaring :doc:`project metadata
    <PyPUG:specifications/declaring-project-metadata>` or configuring
    ``setuptools`` via ``pyproject.toml`` files is still experimental and might
-   change (or be removed) in future releases.
+   change in future releases.
 
 .. important::
    For the time being, ``pip`` still might require a ``setup.py`` file
