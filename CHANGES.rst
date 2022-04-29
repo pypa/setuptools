@@ -339,6 +339,17 @@ Changes
 * #3098: Bump vendored packaging to 21.3.
 * Removed bootstrap script.
 
+.. warning:: Users trying to install the unmaintained :pypi:`pathlib` backport
+   from PyPI/``sdist``/source code may find problems when using ``setuptools >= 60.9.0``.
+   This happens because during the installation, the unmaintained
+   implementation of ``pathlib`` is loaded and may cause compatibility problems
+   (it does not expose the same public API defined in the Python standard library).
+
+   Whenever possible users should avoid declaring ``pathlib`` as a dependency.
+   An alternative is to pre-build a wheel for ``pathlib`` using a separated
+   virtual environment with an older version of setuptools and install the
+   library directly from the pre-built wheel.
+
 
 v60.8.2
 -------
