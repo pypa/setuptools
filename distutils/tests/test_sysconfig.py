@@ -325,20 +325,14 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
             rf".\{TESTFN}", "--without-pip",
         ]
         subprocess.check_output(cmd)
-        try:
-            distutils_path = os.path.dirname(os.path.dirname(sysconfig.__file__))
-            cmd = [
-                rf".\{TESTFN}\Scripts\python.exe",
-                "-c",
-                "import distutils.sysconfig as s, sys; sys.exit(0 if s.python_build else 3456)"
-            ]
-            subprocess.check_output(cmd, env={**os.environ, "PYTHONPATH": distutils_path})
-        except subprocess.CalledProcessError as ex:
-            # Return code doesn't matter, provided it's unlikely to be confused with
-            # a different kind of error
-            if ex.returncode != 3456:
-                raise
-            self.fail("expected distutils.sysconfig.python_build == True; got False")
+        distutils_path = os.path.dirname(os.path.dirname(sysconfig.__file__))
+        cmd = [
+            rf".\{TESTFN}\Scripts\python.exe",
+            "-c",
+            "import distutils.sysconfig; print(distutils.sysconfig.python_build)"
+        ]
+        out = subprocess.check_output(cmd, env={**os.environ, "PYTHONPATH": distutils_path})
+        assert out == "True"
 
 
 def test_suite():
