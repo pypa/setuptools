@@ -21,7 +21,7 @@ def disable_importlib_metadata_finder(metadata):
             "`importlib-metadata`."
         )
         warnings.warn(msg)  # Ensure a descriptive message is shown.
-        raise  # This exception is sometimes suppressed by the import machinery.
+        raise  # This exception can be suppressed by _distutils_hack
 
     if importlib_metadata is metadata:
         return
