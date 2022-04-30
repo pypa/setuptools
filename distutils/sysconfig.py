@@ -16,6 +16,7 @@ import sysconfig
 
 from .errors import DistutilsPlatformError
 from . import py39compat
+from ._functools import pass_none
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -60,9 +61,8 @@ def _is_parent(dir_a, dir_b):
 
 
 if os.name == 'nt':
+    @pass_none
     def _fix_pcbuild(d):
-        if d is None:
-            return
         # In a venv, sys._home will be inside BASE_PREFIX rather than PREFIX.
         prefixes = PREFIX, BASE_PREFIX
         matched = (
