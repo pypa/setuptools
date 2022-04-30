@@ -7,6 +7,9 @@ import sys
 import textwrap
 import unittest
 
+import jaraco.envs
+
+import distutils
 from distutils import sysconfig
 from distutils.ccompiler import get_default_compiler
 from distutils.unixccompiler import UnixCCompiler
@@ -320,17 +323,16 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
         'Need sys.executable to be in a source tree')
     def test_win_build_venv_from_source_tree(self):
         """Ensure distutils.sysconfig detects venvs from source tree builds."""
+        env = jaraco.envs.VEnv()
+        env.create_opts = env.clean_opts
+        env.root = TESTFN
+        env.ensure_env()
         cmd = [
-            str(sys.executable), "-m", "venv",
-            rf".\{TESTFN}", "--without-pip",
-        ]
-        subprocess.check_output(cmd)
-        distutils_path = os.path.dirname(os.path.dirname(sysconfig.__file__))
-        cmd = [
-            rf".\{TESTFN}\Scripts\python.exe",
+            env.exe(),
             "-c",
             "import distutils.sysconfig; print(distutils.sysconfig.python_build)"
         ]
+        distutils_path = os.path.dirname(os.path.dirname(distutils.__file__))
         out = subprocess.check_output(cmd, env={**os.environ, "PYTHONPATH": distutils_path})
         assert out == "True"
 
