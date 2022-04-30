@@ -171,21 +171,7 @@ def _people(dist: "Distribution", val: List[dict], _root_dir: _Path, kind: str):
 
 
 def _project_urls(dist: "Distribution", val: dict, _root_dir):
-    special = {"downloadurl": "download_url", "homepage": "url"}
-    for key, url in val.items():
-        norm_key = json_compatible_key(key).replace("_", "")
-        _set_config(dist, special.get(norm_key, key), url)
-    # If `homepage` is missing, distutils will warn the following message:
-    #     "warning: check: missing required meta-data: url"
-    # In the context of PEP 621, users might ask themselves: "which url?".
-    # Let's add a warning before distutils check to help users understand the problem:
-    if not dist.metadata.url:
-        msg = (
-            "Missing `Homepage` url.\nIt is advisable to link some kind of reference "
-            "for your project (e.g. source code or documentation).\n"
-        )
-        _logger.warning(msg)
-    _set_config(dist, "project_urls", val.copy())
+    _set_config(dist, "project_urls", val)
 
 
 def _python_requires(dist: "Distribution", val: dict, _root_dir):
