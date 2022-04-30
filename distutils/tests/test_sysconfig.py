@@ -7,6 +7,9 @@ import sys
 import textwrap
 import unittest
 
+import jaraco.envs
+
+import distutils
 from distutils import sysconfig
 from distutils.ccompiler import get_default_compiler
 from distutils.unixccompiler import UnixCCompiler
@@ -308,6 +311,31 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
     def test_win_ext_suffix(self):
         self.assertTrue(sysconfig.get_config_var("EXT_SUFFIX").endswith(".pyd"))
         self.assertNotEqual(sysconfig.get_config_var("EXT_SUFFIX"), ".pyd")
+
+    @unittest.skipUnless(
+        sys.platform == 'win32',
+        'Testing Windows build layout')
+    @unittest.skipUnless(
+        sys.implementation.name == 'cpython',
+        'Need cpython for this test')
+    @unittest.skipUnless(
+        '\\PCbuild\\'.casefold() in sys.executable.casefold(),
+        'Need sys.executable to be in a source tree')
+    def test_win_build_venv_from_source_tree(self):
+        """Ensure distutils.sysconfig detects venvs from source tree builds."""
+        env = jaraco.envs.VEnv()
+        env.create_opts = env.clean_opts
+        env.root = TESTFN
+        env.ensure_env()
+        cmd = [
+            env.exe(),
+            "-c",
+            "import distutils.sysconfig; print(distutils.sysconfig.python_build)"
+        ]
+        distutils_path = os.path.dirname(os.path.dirname(distutils.__file__))
+        out = subprocess.check_output(cmd, env={**os.environ, "PYTHONPATH": distutils_path})
+        assert out == "True"
+
 
 def test_suite():
     suite = unittest.TestSuite()
