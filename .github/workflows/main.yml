@@ -50,13 +50,13 @@ jobs:
             python${{ matrix.python }},
             python${{ matrix.python }}-devel,
             python${{ matrix.python }}-pytest,
+            python${{ matrix.python }}-tox,
             gcc-core,
             gcc-g++,
             ncompress
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
-        run: |
-          pytest -rs
+        run: tox
 
   ci_setuptools:
     # Integration testing with setuptools
