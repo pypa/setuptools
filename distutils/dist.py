@@ -1064,7 +1064,7 @@ class DistributionMetadata:
 
         def _read_field(name):
             value = msg[name]
-            if value:
+            if value and value != "UNKNOWN":
                 return value
 
         def _read_list(name):
@@ -1129,30 +1129,19 @@ class DistributionMetadata:
         file.write('Name: %s\n' % self.get_name())
         file.write('Version: %s\n' % self.get_version())
 
+        def maybe_write(header, val):
+            if val:
+                file.write("{}: {}\n".format(header, val))
+
         # optional fields
-        summary = self.get_description()
-        if summary:
-            file.write('Summary: %s\n' % summary)
-        home_page = self.get_url()
-        if home_page:
-            file.write('Home-page: %s\n' % home_page)
-        author = self.get_contact()
-        if author:
-            file.write('Author: %s\n' % author)
-        author_email = self.get_contact_email()
-        if author_email:
-            file.write('Author-email: %s\n' % author_email)
-        license = self.get_license()
-        if license:
-            file.write('License: %s\n' % license)
-        if self.download_url:
-            file.write('Download-URL: %s\n' % self.download_url)
-        long_desc = self.get_long_description()
-        if long_desc:
-            file.write('Description: %s\n' % rfc822_escape(long_desc))
-        keywords = ','.join(self.get_keywords())
-        if keywords:
-            file.write('Keywords: %s\n' % keywords)
+        maybe_write("Summary", self.get_description())
+        maybe_write("Home-page", self.get_url())
+        maybe_write("Author", self.get_contact())
+        maybe_write("Author-email", self.get_contact_email())
+        maybe_write("License", self.get_license())
+        maybe_write("Download-URL", self.download_url)
+        maybe_write("Description", rfc822_escape(self.get_long_description() or ""))
+        maybe_write("Keywords", ",".join(self.get_keywords()))
 
         self._write_list(file, 'Platform', self.get_platforms())
         self._write_list(file, 'Classifier', self.get_classifiers())
