@@ -53,6 +53,15 @@ class CygwinCCompilerTestCase(support.TempdirManager,
         # and CONFIG_H_OK if __GNUC__ is found
         self.write_file(self.python_h, 'xxx __GNUC__ xxx')
         self.assertEqual(check_config_h()[0], CONFIG_H_OK)
+        
+    @unittest.skipIf(not os.path.exists("/usr/lib/libbash.dll.a"), "Don't know a linkable library")
+    def test_find_library_file(self):
+        from distutils.cygwinccompiler import CygwinCCompiler
+        compiler = CygwinCCompiler()
+        link_name = "bash"
+        linkable_file = compiler.find_library_file(["/usr/lib"], link_name)
+        self.assertIsNotNone(linkable_file)
+        self.assertTrue(os.path.exists(linkable_file))
 
     def test_get_msvcr(self):
 
