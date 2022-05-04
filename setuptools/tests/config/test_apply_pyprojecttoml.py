@@ -257,6 +257,15 @@ class TestPresetField:
         dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
         assert dist_value == value
 
+    def test_warning_overwritten_dependencies(self, tmp_path):
+        src = "[project]\nname='pkg'\nversion='0.1'\ndependencies=['click']\n"
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(src, encoding="utf-8")
+        dist = makedist(tmp_path, install_requires=["wheel"])
+        with pytest.warns(match="`install_requires` overwritten"):
+            dist = pyprojecttoml.apply_configuration(dist, pyproject)
+        assert "wheel" not in dist.install_requires
+
     def test_optional_dependencies_dont_remove_env_markers(self, tmp_path):
         """
         Internally setuptools converts dependencies with markers to "extras".
