@@ -195,8 +195,10 @@ def _python_requires(dist: "Distribution", val: dict, _root_dir):
 
 
 def _dependencies(dist: "Distribution", val: list, _root_dir):
-    existing = getattr(dist, "install_requires", [])
-    _set_config(dist, "install_requires", existing + val)
+    if getattr(dist, "install_requires", []):
+        msg = "`install_requires` overwritten in `pyproject.toml` (dependencies)"
+        warnings.warn(msg)
+    _set_config(dist, "install_requires", val)
 
 
 def _optional_dependencies(dist: "Distribution", val: dict, _root_dir):
