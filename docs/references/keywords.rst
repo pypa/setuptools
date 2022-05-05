@@ -223,11 +223,11 @@ Keywords
 
     A string or list of strings specifying what other distributions need to
     be present in order for the *setup script* to run.  ``setuptools`` will
-    attempt to obtain these (even going so far as to download them using
-    ``EasyInstall``) before processing the rest of the setup script or commands.
-    This argument is needed if you are using distutils extensions as part of
-    your build process; for example, extensions that process setup() arguments
-    and turn them into EGG-INFO metadata files.
+    attempt to obtain these (using pip if available) before processing the
+    rest of the setup script or commands.  This argument is needed if you
+    are using distutils extensions as part of your build process; for
+    example, extensions that process setup() arguments and turn them into
+    EGG-INFO metadata files.
 
     (Note: projects listed in ``setup_requires`` will NOT be automatically
     installed on the system where the setup script is being run.  They are
@@ -246,8 +246,7 @@ Keywords
     A list of strings naming URLs to be searched when satisfying dependencies.
     These links will be used if needed to install packages specified by
     ``setup_requires`` or ``tests_require``.  They will also be written into
-    the egg's metadata for use by tools like EasyInstall to use when installing
-    an ``.egg`` file.
+    the egg's metadata for use during install by tools that support them.
 
 ``namespace_packages``
     A list of strings naming the project's "namespace packages".  A namespace
@@ -270,9 +269,9 @@ Keywords
     added to the tests to be run.  If the named suite is a package, any
     submodules and subpackages are recursively added to the overall test suite.
 
-    Specifying this argument enables use of the :ref:`test` command to run the
+    Specifying this argument enables use of the :ref:`test <test>` command to run the
     specified test suite, e.g. via ``setup.py test``.  See the section on the
-    :ref:`test` command below for more details.
+    :ref:`test <test>` command below for more details.
 
     New in 41.5.0: Deprecated the test command.
 
@@ -281,11 +280,10 @@ Keywords
     needed to install it, you can use this option to specify them.  It should
     be a string or list of strings specifying what other distributions need to
     be present for the package's tests to run.  When you run the ``test``
-    command, ``setuptools`` will  attempt to obtain these (even going
-    so far as to download them using ``EasyInstall``).  Note that these
-    required projects will *not* be installed on the system where the tests
-    are run, but only downloaded to the project's setup directory if they're
-    not already installed locally.
+    command, ``setuptools`` will  attempt to obtain these (using pip if
+    available).  Note that these required projects will *not* be installed on
+    the system where the tests are run, but only downloaded to the project's setup
+    directory if they're not already installed locally.
 
     New in 41.5.0: Deprecated the test command.
 
