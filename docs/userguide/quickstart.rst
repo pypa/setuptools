@@ -131,7 +131,7 @@ the packages in your project directory:
         [options]
         packages = find: # OR `find_namespaces:` if you want to use namespaces
 
-        [options.packages.find] (always `find` even if `find_namespaces:` was used before)
+        [options.packages.find] # (always `find` even if `find_namespaces:` was used before)
         # This section is optional
         # Each entry in this section is optional, and if not specified, the default values are:
         # `where=.`, `include=*` and `exclude=` (empty).
