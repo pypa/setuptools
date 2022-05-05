@@ -1,0 +1,8 @@
+Relying on ``include_package_data`` to ensure sub-packages are automatically
+added to the build wheel distribution (as "data") is now considered a
+deprecated practice.
+
+This behaviour was controversial and caused inconsistencies (#3260).
+
+Instead, projects are encouraged to properly configure ``packages`` or use
+discovery tools. General information can be found in :doc:`userguide/package_discovery`.
