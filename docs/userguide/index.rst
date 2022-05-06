@@ -32,7 +32,6 @@ quickstart provides an overview of the new workflow.
     extension
     declarative_config
     pyproject_config
-    keywords
     commands
     functionalities_rewrite
     miscellaneous
