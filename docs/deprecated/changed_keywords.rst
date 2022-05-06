@@ -9,7 +9,7 @@ Python 3.12, and ``setuptools`` started its adoption, these differences became l
 relevant.
 Please check :doc:`/references/keywords` for a complete list of keyword
 arguments that can be passed to the ``setuptools.setup()`` function and
-a their complete description.
+a their full description.
 
 .. tab:: Supported by both ``distutils`` and ``setuptoools``
 
