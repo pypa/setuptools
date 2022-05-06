@@ -1,103 +1,112 @@
-``setup()`` Keywords
+New and Changed ``setup()`` Keywords
 ====================================
 
-The following are keywords ``setup()`` accepts.  All of them are optional; you
-do not have to supply them unless you need the associated ``setuptools``
-feature. For a complete description of what each argument does see the
-:doc:`full keywords reference </references/keywords>`.
+This document tracks historical differences between ``setuptools`` and
+``distutils``.
 
-``name`` string
+Since ``distutils`` was scheduled for removal from the standard library in
+Python 3.12, and ``setuptools`` started its adoption, these differences became less
+relevant.
+Please check :doc:`/references/keywords` for a complete list of keyword
+arguments that can be passed to the ``setuptools.setup()`` function and
+a their complete description.
 
-``version`` string
+.. tab:: Supported by both ``distutils`` and ``setuptoools``
 
-``description`` string
+    ``name`` string
 
-``long_description`` string
+    ``version`` string
 
-``long_description_content_type`` string
+    ``description`` string
 
-``author`` string
+    ``long_description`` string
 
-``author_email`` string
+    ``long_description_content_type`` string
 
-``maintainer`` string
+    ``author`` string
 
-``maintainer_email`` string
+    ``author_email`` string
 
-``url`` string
+    ``maintainer`` string
 
-``download_url`` string
+    ``maintainer_email`` string
 
-``packages`` list
+    ``url`` string
 
-``py_modules`` list
+    ``download_url`` string
 
-``scripts`` list
+    ``packages`` list
 
-``ext_package`` string
+    ``py_modules`` list
 
-``ext_modules`` list
+    ``scripts`` list
 
-``classifiers`` list
+    ``ext_package`` string
 
-``distclass`` Distribution subclass
+    ``ext_modules`` list
 
-``script_name`` string
+    ``classifiers`` list
 
-``script_args`` list
+    ``distclass`` Distribution subclass
 
-``options`` dictionary
+    ``script_name`` string
 
-``license`` string
+    ``script_args`` list
 
-``license_file`` string **deprecated**
+    ``options`` dictionary
 
-``license_files`` list
+    ``license`` string
 
-``keywords`` string or list
+    ``license_file`` string **deprecated**
 
-``platforms`` list
+    ``license_files`` list
 
-``cmdclass`` dictionary
+    ``keywords`` string or list
 
-``data_files`` list **deprecated**
+    ``platforms`` list
 
-``package_dir`` dictionary
+    ``cmdclass`` dictionary
 
-``requires`` string or list **deprecated**
+    ``data_files`` list **deprecated**
 
-``obsoletes`` list **deprecated**
+    ``package_dir`` dictionary
 
-``provides`` list
+    ``requires`` string or list **deprecated**
 
-``include_package_data`` bool
+    ``obsoletes`` list **deprecated**
 
-``exclude_package_data`` dictionary
+    ``provides`` list
 
-``package_data`` dictionary
+.. tab:: Added or changed by ``setuptoools``
 
-``zip_safe`` bool
+    ``include_package_data`` bool
 
-``install_requires`` string or list
+    ``exclude_package_data`` dictionary
 
-``entry_points`` dictionary
+    ``package_data`` dictionary
 
-``extras_require`` dictionary
+    ``zip_safe`` bool
 
-``python_requires`` string
+    ``install_requires`` string or list
 
-``setup_requires`` string or list **deprecated**
+    ``entry_points`` dictionary
 
-``dependency_links`` list **deprecated**
+    ``extras_require`` dictionary
 
-``namespace_packages`` list
+    ``python_requires`` string
 
-``test_suite`` string or function **deprecated**
+    ``setup_requires`` string or list **deprecated**
 
-``tests_require`` string or list **deprecated**
+    ``dependency_links`` list **deprecated**
 
-``test_loader`` class **deprecated**
+    ``namespace_packages`` list
 
-``eager_resources`` list
+    ``test_suite`` string or function **deprecated**
 
-``project_urls`` dictionary
+    ``tests_require`` string or list **deprecated**
+
+    ``test_loader`` class **deprecated**
+
+    ``eager_resources`` list
+
+    ``project_urls`` dictionary
