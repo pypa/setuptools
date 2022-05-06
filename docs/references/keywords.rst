@@ -223,7 +223,7 @@ Keywords
 
     A string or list of strings specifying what other distributions need to
     be present in order for the *setup script* to run.  ``setuptools`` will
-    attempt to obtain these (using pip if available) before processing the
+    attempt to obtain these before processing the
     rest of the setup script or commands.  This argument is needed if you
     are using distutils extensions as part of your build process; for
     example, extensions that process setup() arguments and turn them into
@@ -280,8 +280,8 @@ Keywords
     needed to install it, you can use this option to specify them.  It should
     be a string or list of strings specifying what other distributions need to
     be present for the package's tests to run.  When you run the ``test``
-    command, ``setuptools`` will  attempt to obtain these (using pip if
-    available).  Note that these required projects will *not* be installed on
+    command, ``setuptools`` will  attempt to obtain these.
+    Note that these required projects will *not* be installed on
     the system where the tests are run, but only downloaded to the project's setup
     directory if they're not already installed locally.
 
