@@ -2,6 +2,36 @@
 Keywords
 ========
 
+The following are keywords ``setuptools.setup()`` accepts.
+They allow configuring the build process for a Python distribution or adding
+metadata via a ``setup.py`` script placed at the root of your project.
+All of them are optional; you do not have to supply them unless you need the
+associated ``setuptools`` feature.
+
+Metadata and configuration supplied via ``setup()`` is complementary to (and
+may be overwritten by) the information present in ``setup.cfg`` and ``pyproject.toml``.
+Some important metadata, such as ``name`` and ``version``, may assume
+a default *degenerate* value if not specified.
+
+Users are strongly encouraged to use a declarative config either via
+:doc:`setup.cfg </userguide/declarative_config>` or :doc:`pyproject.toml
+</userguide/pyproject_config>` and only rely on ``setup.py`` if they need to
+tap into special behaviour that requires scripting (such as building C
+extensions).
+
+.. note::
+   When using declarative configs via ``pyproject.toml`` users can still keep a
+   very simple ``setup.py`` just to ensure editable installs are supported, for
+   example::
+
+       from setuptools import setup
+
+       setup()
+
+   Future versions of ``setuptools`` may support editable installs even
+   without ``setup.py``.
+
+
 ``name``
     A string specifying the name of the package.
 
