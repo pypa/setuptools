@@ -77,12 +77,10 @@ Keywords
     A string specifying the license of the package.
 
 ``license_file``
-
     .. warning::
         ``license_file`` is deprecated. Use ``license_files`` instead.
 
 ``license_files``
-
     A list of glob patterns for license related files that should be included.
     If neither ``license_file`` nor ``license_files`` is specified, this option
     defaults to ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, and ``AUTHORS*``.
@@ -101,7 +99,6 @@ Keywords
     subclasses.
 
 ``data_files``
-
     .. warning::
         ``data_files`` is deprecated. It does not work with wheels, so it
         should be avoided.
@@ -112,13 +109,11 @@ Keywords
     A dictionary providing a mapping of package to directory names.
 
 ``requires``
-
    .. warning::
       ``requires`` is superseded by ``install_requires`` and should not be used
       anymore.
 
 ``obsoletes``
-
    .. warning::
       ``obsoletes`` is currently ignored by ``pip``.
 
@@ -136,7 +131,6 @@ Keywords
    Torqued Python, the Gorgon distribution should be removed.
 
 ``provides``
-
    .. warning::
       ``provides`` is currently ignored by ``pip``.
 
@@ -217,7 +211,6 @@ Keywords
     the Python version, used to specify the Requires-Python defined in PEP 345.
 
 ``setup_requires``
-
     .. warning::
         Using ``setup_requires`` is discouraged in favor of `PEP-518`_
 
@@ -239,7 +232,6 @@ Keywords
 .. _PEP-518: http://www.python.org/dev/peps/pep-0518/
 
 ``dependency_links``
-
     .. warning::
         ``dependency_links`` is deprecated. It is not supported anymore by pip.
 
