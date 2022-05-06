@@ -252,8 +252,6 @@ extensions).
    Each package may be followed by an environment marker after a semicolon
    (e.g. ``foo; os_name == "posix"``).
 
-.. Below are setuptools keywords, above are distutils
-
 .. _keyword/include_package_data:
 
 ``include_package_data``
