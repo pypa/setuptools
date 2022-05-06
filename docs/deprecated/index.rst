@@ -13,6 +13,7 @@ objectives.
 .. toctree::
     :maxdepth: 1
 
+    changed_keywords
     python_eggs
     easy_install
     distutils/index

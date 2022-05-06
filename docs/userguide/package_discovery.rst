@@ -6,7 +6,7 @@ Package Discovery and Namespace Package
 
 .. note::
     a full specification for the keyword supplied to ``setup.cfg`` or
-    ``setup.py`` can be found at :doc:`keywords reference <keywords>`
+    ``setup.py`` can be found at :doc:`keywords reference </references/keywords>`
 
 .. note::
     the examples provided here are only to demonstrate the functionality

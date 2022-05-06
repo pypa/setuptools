@@ -129,6 +129,12 @@ html_theme_options = {
     },
 }
 
+# Redirect old docs so links and references in the ecosystem don't break
+extensions += ['sphinx_reredirects']
+redirects = {
+    "userguide/keywords": "/deprecated/changed_keywords.html",
+}
+
 # Add support for inline tabs
 extensions += ['sphinx_inline_tabs']
 
