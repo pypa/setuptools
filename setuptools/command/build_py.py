@@ -132,7 +132,7 @@ class build_py(orig.build_py):
             src_dirs[assert_relative(self.get_package_dir(package))] = package
 
         self.run_command('egg_info')
-        checker = _IncludePackageDataAbuse()
+        check = _IncludePackageDataAbuse()
         ei_cmd = self.get_finalized_command('egg_info')
         for path in ei_cmd.filelist.files:
             d, f = os.path.split(assert_relative(path))
@@ -144,12 +144,12 @@ class build_py(orig.build_py):
                 f = os.path.join(df, f)
             if d in src_dirs:
                 if f == oldf:
-                    if checker.is_module(f):
+                    if check.is_module(f):
                         continue  # it's a module, not data
                 else:
-                    importable = checker.importable_item(src_dirs[d], f)
+                    importable = check.importable_subpackage(src_dirs[d], f)
                     if importable:
-                        checker.warn(importable)
+                        check.warn(importable)
                 mf.setdefault(src_dirs[d], []).append(path)
 
     def get_data_files(self):
@@ -256,19 +256,19 @@ class _IncludePackageDataAbuse:
 
     MESSAGE = """\
     !!\n\n
-    ###################################
-    # Package/module would be ignored #
-    ###################################
-    Python recognizes {importable!r} as an importable package or module, however
-    it is included in the distribution as "data".
+    ############################
+    # Package would be ignored #
+    ############################
+    Python recognizes {importable!r} as an importable package, however it is
+    included in the distribution as "data".
     This behavior is likely to change in future versions of setuptools (and
     therefore is considered deprecated).
 
-    Please make sure that {importable!r} is recognized as a package/module by using
-    setuptools' `packages` configuration field or the proper package discovery methods.
+    Please make sure that {importable!r} is included as a package by using
+    setuptools' `packages` configuration field or the proper discovery methods.
 
-    To find more information, look for "package discovery" and "data files" on
-    setuptools documentation page.
+    You can read more about "package discovery" and "data files" on setuptools
+    documentation page.
     \n\n!!
     """
 
@@ -278,13 +278,11 @@ class _IncludePackageDataAbuse:
     def is_module(self, file):
         return file.endswith(".py") and file[:-len(".py")].isidentifier()
 
-    def importable_item(self, pkg, file):
-        path = Path(file)
-        parents = path.parent.parts
-        module = [path.stem] if tuple(path.suffixes) == (".py",) else []
-        parts = list(itertools.takewhile(str.isidentifier, [*parents, *module]))
+    def importable_subpackage(self, parent, file):
+        pkg = Path(file).parent
+        parts = list(itertools.takewhile(str.isidentifier, pkg.parts))
         if parts:
-            return ".".join([pkg, *parts])
+            return ".".join([parent, *parts])
         return None
 
     def warn(self, importable):
