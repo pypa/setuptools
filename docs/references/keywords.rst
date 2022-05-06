@@ -32,88 +32,138 @@ extensions).
    without ``setup.py``.
 
 
+.. _keyword/name:
+
 ``name``
     A string specifying the name of the package.
+
+.. _keyword/version:
 
 ``version``
     A string specifying the version number of the package.
 
+.. _keyword/description:
+
 ``description``
     A string describing the package in a single line.
 
+.. _keyword/long_description:
+
 ``long_description``
     A string providing a longer description of the package.
+
+.. _keyword/long_description_content_type:
 
 ``long_description_content_type``
     A string specifying the content type is used for the ``long_description``
     (e.g. ``text/markdown``)
 
+.. _keyword/author:
+
 ``author``
     A string specifying the author of the package.
 
+.. _keyword/author_email:
+
 ``author_email``
     A string specifying the email address of the package author.
+
+.. _keyword/maintainer:
 
 ``maintainer``
     A string specifying the name of the current maintainer, if different from
     the author. Note that if the maintainer is provided, setuptools will use it
     as the author in ``PKG-INFO``.
 
+.. _keyword/maintainer_email:
+
 ``maintainer_email``
     A string specifying the email address of the current maintainer, if
     different from the author.
 
+.. _keyword/url:
+
 ``url``
     A string specifying the URL for the package homepage.
+
+.. _keyword/download_url:
 
 ``download_url``
     A string specifying the URL to download the package.
 
+.. _keyword/packages:
+
 ``packages``
     A list of strings specifying the packages that setuptools will manipulate.
 
+.. _keyword/py_modules:
+
 ``py_modules``
     A list of strings specifying the modules that setuptools will manipulate.
+
+.. _keyword/scripts:
 
 ``scripts``
     A list of strings specifying the standalone script files to be built and
     installed.
 
+.. _keyword/ext_package:
+
 ``ext_package``
     A string specifying the base package name for the extensions provided by
     this package.
+
+.. _keyword/ext_modules:
 
 ``ext_modules``
     A list of instances of ``setuptools.Extension`` providing the list of
     Python extensions to be built.
 
+.. _keyword/classifiers:
+
 ``classifiers``
     A list of strings describing the categories for the package.
 
+.. _keyword/distclass:
+
 ``distclass``
     A subclass of ``Distribution`` to use.
+
+.. _keyword/script_name:
 
 ``script_name``
     A string specifying the name of the setup.py script -- defaults to
     ``sys.argv[0]``
 
+.. _keyword/script_args:
+
 ``script_args``
     A list of strings defining the arguments to supply to the setup script.
+
+.. _keyword/options:
 
 ``options``
     A dictionary providing the default options for the setup script.
 
+.. _keyword/license:
+
 ``license``
     A string specifying the license of the package.
+
+.. _keyword/license_file:
 
 ``license_file``
     .. warning::
         ``license_file`` is deprecated. Use ``license_files`` instead.
 
+.. _keyword/license_files:
+
 ``license_files``
     A list of glob patterns for license related files that should be included.
     If neither ``license_file`` nor ``license_files`` is specified, this option
     defaults to ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, and ``AUTHORS*``.
+
+.. _keyword/keywords:
 
 ``keywords``
     A list of strings or a comma-separated string providing descriptive
@@ -121,12 +171,18 @@ extensions).
 
 .. _PEP 0314: https://www.python.org/dev/peps/pep-0314/
 
+.. _keyword/platforms:
+
 ``platforms``
     A list of strings or comma-separated string.
+
+.. _keyword/cmdclass:
 
 ``cmdclass``
     A dictionary providing a mapping of command names to ``Command``
     subclasses.
+
+.. _keyword/data_files:
 
 ``data_files``
     .. warning::
@@ -135,13 +191,19 @@ extensions).
 
     A list of strings specifying the data files to install.
 
+.. _keyword/package_dir:
+
 ``package_dir``
     A dictionary providing a mapping of package to directory names.
+
+.. _keyword/requires:
 
 ``requires``
    .. warning::
       ``requires`` is superseded by ``install_requires`` and should not be used
       anymore.
+
+.. _keyword/obsoletes:
 
 ``obsoletes``
    .. warning::
@@ -159,6 +221,8 @@ extensions).
    The most common use of this field will be in case a project name changes,
    e.g. Gorgon 2.3 gets subsumed into Torqued Python 1.0. When you install
    Torqued Python, the Gorgon distribution should be removed.
+
+.. _keyword/provides:
 
 ``provides``
    .. warning::
@@ -190,17 +254,23 @@ extensions).
 
 .. Below are setuptools keywords, above are distutils
 
+.. _keyword/include_package_data:
+
 ``include_package_data``
     If set to ``True``, this tells ``setuptools`` to automatically include any
     data files it finds inside your package directories that are specified by
     your ``MANIFEST.in`` file.  For more information, see the section on
     :ref:`Including Data Files`.
 
+.. _keyword/exclude_package_data:
+
 ``exclude_package_data``
     A dictionary mapping package names to lists of glob patterns that should
     be *excluded* from your package directories.  You can use this to trim back
     any excess files included by ``include_package_data``.  For a complete
     description and examples, see the section on :ref:`Including Data Files`.
+
+.. _keyword/package_data:
 
 ``package_data``
     A dictionary mapping package names to lists of glob patterns.  For a
@@ -211,16 +281,22 @@ extensions).
     in source control or are files that you don't want to include in your
     source distribution.)
 
+.. _keyword/zip_safe:
+
 ``zip_safe``
     A boolean (True or False) flag specifying whether the project can be
     safely installed and run from a zip file.  If this argument is not
     supplied, the ``bdist_egg`` command will have to analyze all of your
     project's contents for possible problems each time it builds an egg.
 
+.. _keyword/install_requires:
+
 ``install_requires``
     A string or list of strings specifying what other distributions need to
     be installed when this one is.  See the section on :ref:`Declaring
     Dependencies` for details and examples of the format of this argument.
+
+.. _keyword/entry_points:
 
 ``entry_points``
     A dictionary mapping entry point group names to strings or lists of strings
@@ -230,19 +306,25 @@ extensions).
     of this argument.  In addition, this keyword is used to support
     :ref:`Automatic Script Creation <entry_points>`.
 
+.. _keyword/extras_require:
+
 ``extras_require``
     A dictionary mapping names of "extras" (optional features of your project)
     to strings or lists of strings specifying what other distributions must be
     installed to support those features.  See the section on :ref:`Declaring
     Dependencies` for details and examples of the format of this argument.
 
+.. _keyword/python_requires:
+
 ``python_requires``
     A string corresponding to a version specifier (as defined in PEP 440) for
     the Python version, used to specify the Requires-Python defined in PEP 345.
 
+.. _keyword/setup_requires:
+
 ``setup_requires``
     .. warning::
-        Using ``setup_requires`` is discouraged in favor of `PEP-518`_
+        Using ``setup_requires`` is discouraged in favor of :pep:`518`.
 
     A string or list of strings specifying what other distributions need to
     be present in order for the *setup script* to run.  ``setuptools`` will
@@ -259,7 +341,7 @@ extensions).
     when the setup script is run, you should add them to ``install_requires``
     **and** ``setup_requires``.)
 
-.. _PEP-518: http://www.python.org/dev/peps/pep-0518/
+.. _keyword/dependency_links:
 
 ``dependency_links``
     .. warning::
@@ -269,6 +351,8 @@ extensions).
     These links will be used if needed to install packages specified by
     ``setup_requires`` or ``tests_require``.  They will also be written into
     the egg's metadata for use during install by tools that support them.
+
+.. _keyword/namespace_packages:
 
 ``namespace_packages``
     A list of strings naming the project's "namespace packages".  A namespace
@@ -281,6 +365,8 @@ extensions).
     namespace package, and as long as the namespace package's ``__init__.py``
     does not contain any code other than a namespace declaration.  See the
     section on :ref:`Namespace Packages` for more information.
+
+.. _keyword/test_suite:
 
 ``test_suite``
     A string naming a ``unittest.TestCase`` subclass (or a package or module
@@ -300,6 +386,8 @@ extensions).
           The test command will be removed in a future version of ``setuptools``,
           alongside any test configuration parameter.
 
+.. _keyword/tests_require:
+
 ``tests_require``
     If your project's tests need one or more additional packages besides those
     needed to install it, you can use this option to specify them.  It should
@@ -316,6 +404,8 @@ extensions).
           alongside any test configuration parameter.
 
 .. _test_loader:
+
+.. _keyword/test_loader:
 
 ``test_loader``
     If you would like to use a different way of finding tests to run than what
@@ -343,6 +433,8 @@ extensions).
           The test command will be removed in a future version of ``setuptools``,
           alongside any test configuration parameter.
 
+.. _keyword/eager_resources:
+
 ``eager_resources``
     A list of strings naming resources that should be extracted together, if
     any of them is needed, or if any C extensions included in the project are
@@ -358,6 +450,8 @@ extensions).
     shared libraries), you probably do NOT need this argument and shouldn't
     mess with it.  For more details on how this argument works, see the section
     below on :ref:`Automatic Resource Extraction`.
+
+.. _keyword/project_urls:
 
 ``project_urls``
     An arbitrary map of URL names to hyperlinks, allowing more extensible
