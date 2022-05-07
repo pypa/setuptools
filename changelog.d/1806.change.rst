@@ -1,0 +1,1 @@
+Allowed recursive globs (`**`) in `package_data`. -- by :user:`nullableVoidPtr`

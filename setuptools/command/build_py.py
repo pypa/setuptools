@@ -1,3 +1,4 @@
+from functools import partial
 from glob import glob
 from distutils.util import convert_path
 import distutils.command.build_py as orig
@@ -98,7 +99,7 @@ class build_py(orig.build_py):
             package,
             src_dir,
         )
-        globs_expanded = map(glob, patterns)
+        globs_expanded = map(partial(glob, recursive=True), patterns)
         # flatten the expanded globs into an iterable of matches
         globs_matches = itertools.chain.from_iterable(globs_expanded)
         glob_files = filter(os.path.isfile, globs_matches)
