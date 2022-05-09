@@ -298,19 +298,26 @@ class TestMeta:
 def core_metadata(dist) -> str:
     with io.StringIO() as buffer:
         dist.metadata.write_pkg_file(buffer)
-        value = "\n".join(buffer.getvalue().strip().splitlines())
+        pkg_file_txt = buffer.getvalue()
 
+    skip_prefixes = ()
+    skip_lines = set()
     # ---- DIFF NORMALISATION ----
     # PEP 621 is very particular about author/maintainer metadata conversion, so skip
-    value = re.sub(r"^(Author|Maintainer)(-email)?:.*$", "", value, flags=re.M)
+    skip_prefixes += ("Author:", "Author-email:", "Maintainer:", "Maintainer-email:")
     # May be redundant with Home-page
-    value = re.sub(r"^Project-URL: Homepage,.*$", "", value, flags=re.M)
+    skip_prefixes += ("Project-URL: Homepage,", "Home-page:")
     # May be missing in original (relying on default) but backfilled in the TOML
-    value = re.sub(r"^Description-Content-Type:.*$", "", value, flags=re.M)
+    skip_prefixes += ("Description-Content-Type:",)
     # ini2toml can automatically convert `tests_require` to `testing` extra
-    value = value.replace("Provides-Extra: testing\n", "")
+    skip_lines.add("Provides-Extra: testing")
     # Remove empty lines
-    value = re.sub(r"^\s*$", "", value, flags=re.M)
-    value = re.sub(r"^\n", "", value, flags=re.M)
+    skip_lines.add("")
 
-    return value
+    result = []
+    for line in pkg_file_txt.splitlines():
+        if line.startswith(skip_prefixes) or line in skip_lines:
+            continue
+        result.append(line + "\n")
+
+    return "".join(result)
