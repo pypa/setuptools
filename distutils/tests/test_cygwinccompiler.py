@@ -31,6 +31,17 @@ class CygwinCCompilerTestCase(support.TempdirManager,
     def _get_config_h_filename(self):
         return self.python_h
 
+    @unittest.skipIf(sys.platform != "cygwin", "Not running on Cygwin")
+    @unittest.skipIf(not os.path.exists("/usr/lib/libbash.dll.a"), "Don't know a linkable library")
+    def test_find_library_file(self):
+        from distutils.cygwinccompiler import CygwinCCompiler
+        compiler = CygwinCCompiler()
+        link_name = "bash"
+        linkable_file = compiler.find_library_file(["/usr/lib"], link_name)
+        self.assertIsNotNone(linkable_file)
+        self.assertTrue(os.path.exists(linkable_file))
+        self.assertEquals(linkable_file, "/usr/lib/lib{:s}.dll.a".format(link_name))
+
     def test_check_config_h(self):
 
         # check_config_h looks for "GCC" in sys.version first
