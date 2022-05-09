@@ -154,8 +154,8 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         req1 = dict(self.conn.reqs[0].headers)
         req2 = dict(self.conn.reqs[1].headers)
 
-        self.assertEqual(req1['Content-length'], '1374')
-        self.assertEqual(req2['Content-length'], '1374')
+        self.assertEqual(req1['Content-length'], '1359')
+        self.assertEqual(req2['Content-length'], '1359')
         self.assertIn(b'xxx', self.conn.reqs[1].data)
 
     def test_password_not_in_file(self):

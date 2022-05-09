@@ -43,7 +43,7 @@ class CheckTestCase(support.LoggingSilencer,
         # by default, check is checking the metadata
         # should have some warnings
         cmd = self._run()
-        self.assertEqual(cmd._warnings, 2)
+        self.assertEqual(cmd._warnings, 1)
 
         # now let's add the required fields
         # and run it again, to make sure we don't get
@@ -81,17 +81,16 @@ class CheckTestCase(support.LoggingSilencer,
             cmd = self._run(metadata)
             self.assertEqual(cmd._warnings, 0)
 
-            # the check should warn if only email is given and it does not
-            # contain the name
+            # the check should not warn if only email is given
             metadata[kind + '_email'] = 'name@email.com'
             cmd = self._run(metadata)
-            self.assertEqual(cmd._warnings, 1)
+            self.assertEqual(cmd._warnings, 0)
 
-            # the check should warn if only the name is given
+            # the check should not warn if only the name is given
             metadata[kind] = "Name"
             del metadata[kind + '_email']
             cmd = self._run(metadata)
-            self.assertEqual(cmd._warnings, 1)
+            self.assertEqual(cmd._warnings, 0)
 
     @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_document(self):

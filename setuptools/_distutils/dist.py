@@ -1064,9 +1064,8 @@ class DistributionMetadata:
 
         def _read_field(name):
             value = msg[name]
-            if value == 'UNKNOWN':
-                return None
-            return value
+            if value and value != "UNKNOWN":
+                return value
 
         def _read_list(name):
             values = msg.get_all(name, None)
@@ -1125,23 +1124,24 @@ class DistributionMetadata:
                 self.classifiers or self.download_url):
             version = '1.1'
 
+        # required fields
         file.write('Metadata-Version: %s\n' % version)
         file.write('Name: %s\n' % self.get_name())
         file.write('Version: %s\n' % self.get_version())
-        file.write('Summary: %s\n' % self.get_description())
-        file.write('Home-page: %s\n' % self.get_url())
-        file.write('Author: %s\n' % self.get_contact())
-        file.write('Author-email: %s\n' % self.get_contact_email())
-        file.write('License: %s\n' % self.get_license())
-        if self.download_url:
-            file.write('Download-URL: %s\n' % self.download_url)
 
-        long_desc = rfc822_escape(self.get_long_description())
-        file.write('Description: %s\n' % long_desc)
+        def maybe_write(header, val):
+            if val:
+                file.write("{}: {}\n".format(header, val))
 
-        keywords = ','.join(self.get_keywords())
-        if keywords:
-            file.write('Keywords: %s\n' % keywords)
+        # optional fields
+        maybe_write("Summary", self.get_description())
+        maybe_write("Home-page", self.get_url())
+        maybe_write("Author", self.get_contact())
+        maybe_write("Author-email", self.get_contact_email())
+        maybe_write("License", self.get_license())
+        maybe_write("Download-URL", self.download_url)
+        maybe_write("Description", rfc822_escape(self.get_long_description() or ""))
+        maybe_write("Keywords", ",".join(self.get_keywords()))
 
         self._write_list(file, 'Platform', self.get_platforms())
         self._write_list(file, 'Classifier', self.get_classifiers())
@@ -1152,6 +1152,7 @@ class DistributionMetadata:
         self._write_list(file, 'Obsoletes', self.get_obsoletes())
 
     def _write_list(self, file, name, values):
+        values = values or []
         for value in values:
             file.write('%s: %s\n' % (name, value))
 
@@ -1167,35 +1168,35 @@ class DistributionMetadata:
         return "%s-%s" % (self.get_name(), self.get_version())
 
     def get_author(self):
-        return self.author or "UNKNOWN"
+        return self.author
 
     def get_author_email(self):
-        return self.author_email or "UNKNOWN"
+        return self.author_email
 
     def get_maintainer(self):
-        return self.maintainer or "UNKNOWN"
+        return self.maintainer
 
     def get_maintainer_email(self):
-        return self.maintainer_email or "UNKNOWN"
+        return self.maintainer_email
 
     def get_contact(self):
-        return self.maintainer or self.author or "UNKNOWN"
+        return self.maintainer or self.author
 
     def get_contact_email(self):
-        return self.maintainer_email or self.author_email or "UNKNOWN"
+        return self.maintainer_email or self.author_email
 
     def get_url(self):
-        return self.url or "UNKNOWN"
+        return self.url
 
     def get_license(self):
-        return self.license or "UNKNOWN"
+        return self.license
     get_licence = get_license
 
     def get_description(self):
-        return self.description or "UNKNOWN"
+        return self.description
 
     def get_long_description(self):
-        return self.long_description or "UNKNOWN"
+        return self.long_description
 
     def get_keywords(self):
         return self.keywords or []
@@ -1204,7 +1205,7 @@ class DistributionMetadata:
         self.keywords = _ensure_list(value, 'keywords')
 
     def get_platforms(self):
-        return self.platforms or ["UNKNOWN"]
+        return self.platforms
 
     def set_platforms(self, value):
         self.platforms = _ensure_list(value, 'platforms')
@@ -1216,7 +1217,7 @@ class DistributionMetadata:
         self.classifiers = _ensure_list(value, 'classifiers')
 
     def get_download_url(self):
-        return self.download_url or "UNKNOWN"
+        return self.download_url
 
     # PEP 314
     def get_requires(self):

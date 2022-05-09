@@ -582,7 +582,7 @@ This information includes:
 | ``maintainer_email`` | email address of the      | email address   | \(3)   |
 |                      | package maintainer        |                 |        |
 +----------------------+---------------------------+-----------------+--------+
-| ``url``              | home page for the package | URL             | \(1)   |
+| ``url``              | home page for the package | URL             |        |
 +----------------------+---------------------------+-----------------+--------+
 | ``description``      | short, summary            | short string    |        |
 |                      | description of the        |                 |        |
@@ -612,8 +612,8 @@ Notes:
     It is recommended that versions take the form *major.minor[.patch[.sub]]*.
 
 (3)
-    Either the author or the maintainer must be identified. If maintainer is
-    provided, distutils lists it as the author in :file:`PKG-INFO`.
+    If maintainer is provided and author is not, distutils lists maintainer as
+    the author in :file:`PKG-INFO`.
 
 (4)
     The ``long_description`` field is used by PyPI when you publish a package,
