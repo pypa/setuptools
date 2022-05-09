@@ -399,7 +399,7 @@ class bdist_rpm(Command):
             '%define unmangled_version ' + self.distribution.get_version(),
             '%define release ' + self.release.replace('-','_'),
             '',
-            'Summary: ' + self.distribution.get_description(),
+            'Summary: ' + (self.distribution.get_description() or "UNKNOWN"),
             ]
 
         # Workaround for #14443 which affects some RPM based systems such as
@@ -438,7 +438,7 @@ class bdist_rpm(Command):
             spec_file.append('Source0: %{name}-%{unmangled_version}.tar.gz')
 
         spec_file.extend([
-            'License: ' + self.distribution.get_license(),
+            'License: ' + (self.distribution.get_license() or "UNKNOWN"),
             'Group: ' + self.group,
             'BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot',
             'Prefix: %{_prefix}', ])
@@ -464,7 +464,7 @@ class bdist_rpm(Command):
                 spec_file.append('%s: %s' % (field, val))
 
 
-        if self.distribution.get_url() != 'UNKNOWN':
+        if self.distribution.get_url():
             spec_file.append('Url: ' + self.distribution.get_url())
 
         if self.distribution_name:
@@ -483,7 +483,7 @@ class bdist_rpm(Command):
         spec_file.extend([
             '',
             '%description',
-            self.distribution.get_long_description()
+            self.distribution.get_long_description() or "",
             ])
 
         # put locale descriptions into spec file

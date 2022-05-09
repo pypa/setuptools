@@ -231,11 +231,7 @@ class bdist_msi(Command):
         if os.path.exists(installer_name): os.unlink(installer_name)
 
         metadata = self.distribution.metadata
-        author = metadata.author
-        if not author:
-            author = metadata.maintainer
-        if not author:
-            author = "UNKNOWN"
+        author = metadata.author or metadata.maintainer
         version = metadata.get_version()
         # ProductVersion must be strictly numeric
         # XXX need to deal with prerelease versions
