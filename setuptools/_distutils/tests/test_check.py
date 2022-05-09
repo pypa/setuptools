@@ -71,6 +71,28 @@ class CheckTestCase(support.LoggingSilencer,
         cmd = self._run(metadata)
         self.assertEqual(cmd._warnings, 0)
 
+    def test_check_author_maintainer(self):
+        for kind in ("author", "maintainer"):
+            # ensure no warning when author_email or maintainer_email is given
+            # (the spec allows these fields to take the form "Name <email>")
+            metadata = {'url': 'xxx',
+                        kind + '_email': 'Name <name@email.com>',
+                        'name': 'xxx', 'version': 'xxx'}
+            cmd = self._run(metadata)
+            self.assertEqual(cmd._warnings, 0)
+
+            # the check should warn if only email is given and it does not
+            # contain the name
+            metadata[kind + '_email'] = 'name@email.com'
+            cmd = self._run(metadata)
+            self.assertEqual(cmd._warnings, 1)
+
+            # the check should warn if only the name is given
+            metadata[kind] = "Name"
+            del metadata[kind + '_email']
+            cmd = self._run(metadata)
+            self.assertEqual(cmd._warnings, 1)
+
     @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_document(self):
         pkg_info, dist = self.create_dist()
@@ -157,7 +179,7 @@ class CheckTestCase(support.LoggingSilencer,
                                  'restructuredtext': 1})
 
 def test_suite():
-    return unittest.makeSuite(CheckTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(CheckTestCase)
 
 if __name__ == "__main__":
     run_unittest(test_suite())

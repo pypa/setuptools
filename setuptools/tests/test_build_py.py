@@ -18,7 +18,6 @@ def test_directories_in_package_data_glob(tmpdir_cwd):
         script_name='setup.py',
         script_args=['build_py'],
         packages=[''],
-        name='foo',
         package_data={'': ['path/*']},
     ))
     os.makedirs('path/subpath')
@@ -40,7 +39,6 @@ def test_read_only(tmpdir_cwd):
         script_args=['build_py'],
         packages=['pkg'],
         package_data={'pkg': ['data.dat']},
-        name='pkg',
     ))
     os.makedirs('pkg')
     open('pkg/__init__.py', 'w').close()
@@ -70,7 +68,6 @@ def test_executable_data(tmpdir_cwd):
         script_args=['build_py'],
         packages=['pkg'],
         package_data={'pkg': ['run-me']},
-        name='pkg',
     ))
     os.makedirs('pkg')
     open('pkg/__init__.py', 'w').close()

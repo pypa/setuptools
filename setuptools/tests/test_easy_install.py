@@ -14,6 +14,10 @@ import zipfile
 import mock
 import time
 import re
+import subprocess
+import pathlib
+import warnings
+import collections
 
 import pytest
 
@@ -55,7 +59,7 @@ class FakeDist:
 SETUP_PY = DALS("""
     from setuptools import setup
 
-    setup(name='foo')
+    setup()
     """)
 
 
@@ -365,6 +369,63 @@ def mock_index():
     return p_index
 
 
+class TestInstallRequires:
+    def test_setup_install_includes_dependencies(self, tmp_path, mock_index):
+        """
+        When ``python setup.py install`` is called directly, it will use easy_install
+        to fetch dependencies.
+        """
+        # TODO: Remove these tests once `setup.py install` is completely removed
+        project_root = tmp_path / "project"
+        project_root.mkdir(exist_ok=True)
+        install_root = tmp_path / "install"
+        install_root.mkdir(exist_ok=True)
+
+        self.create_project(project_root)
+        cmd = [
+            sys.executable,
+            '-c', '__import__("setuptools").setup()',
+            'install',
+            '--install-base', str(install_root),
+            '--install-lib', str(install_root),
+            '--install-headers', str(install_root),
+            '--install-scripts', str(install_root),
+            '--install-data', str(install_root),
+            '--install-purelib', str(install_root),
+            '--install-platlib', str(install_root),
+        ]
+        env = {"PYTHONPATH": str(install_root), "__EASYINSTALL_INDEX": mock_index.url}
+        with pytest.raises(subprocess.CalledProcessError) as exc_info:
+            subprocess.check_output(
+                cmd, cwd=str(project_root), env=env, stderr=subprocess.STDOUT, text=True
+            )
+        try:
+            assert '/does-not-exist/' in {r.path for r in mock_index.requests}
+            assert next(
+                line
+                for line in exc_info.value.output.splitlines()
+                if "not find suitable distribution for" in line
+                and "does-not-exist" in line
+            )
+        except Exception:
+            if "failed to get random numbers" in exc_info.value.output:
+                pytest.xfail(f"{sys.platform} failure - {exc_info.value.output}")
+            raise
+
+    def create_project(self, root):
+        config = """
+        [metadata]
+        name = project
+        version = 42
+
+        [options]
+        install_requires = does-not-exist
+        py_modules = mod
+        """
+        (root / 'setup.cfg').write_text(DALS(config), encoding="utf-8")
+        (root / 'mod.py').touch()
+
+
 def make_trivial_sdist(dist_path, distname, version):
     """
     Create a simple sdist tarball at dist_path, containing just a simple
@@ -597,3 +658,102 @@ class TestWindowsScriptWriter:
         hdr = hdr.rstrip('\n')
         # header should not start with an escaped quote
         assert not hdr.startswith('\\"')
+
+
+VersionStub = collections.namedtuple(
+    "VersionStub", "major, minor, micro, releaselevel, serial")
+
+
+def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
+    # In issue #3001, easy_install wrongly uses the `python3.1` directory
+    # when the interpreter is `python3.10` and the `--user` option is given.
+    # See pypa/setuptools#3001.
+    dist = Distribution()
+    cmd = dist.get_command_obj('easy_install')
+    cmd.args = ['ok']
+    cmd.optimize = 0
+    cmd.user = True
+    cmd.install_userbase = str(tmpdir)
+    cmd.install_usersite = None
+    install_cmd = dist.get_command_obj('install')
+    install_cmd.install_userbase = str(tmpdir)
+    install_cmd.install_usersite = None
+
+    with monkeypatch.context() as patch, warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        version = '3.10.1 (main, Dec 21 2021, 09:17:12) [GCC 10.2.1 20210110]'
+        info = VersionStub(3, 10, 1, "final", 0)
+        patch.setattr('site.ENABLE_USER_SITE', True)
+        patch.setattr('sys.version', version)
+        patch.setattr('sys.version_info', info)
+        patch.setattr(cmd, 'create_home_path', mock.Mock())
+        cmd.finalize_options()
+
+    name = "pypy" if hasattr(sys, 'pypy_version_info') else "python"
+    install_dir = cmd.install_dir.lower()
+
+    # In some platforms (e.g. Windows), install_dir is mostly determined
+    # via `sysconfig`, which define constants eagerly at module creation.
+    # This means that monkeypatching `sys.version` to emulate 3.10 for testing
+    # may have no effect.
+    # The safest test here is to rely on the fact that 3.1 is no longer
+    # supported/tested, and make sure that if 'python3.1' ever appears in the string
+    # it is followed by another digit (e.g. 'python3.10').
+    if re.search(name + r'3\.?1', install_dir):
+        assert re.search(name + r'3\.?1\d', install_dir)
+
+    # The following "variables" are used for interpolation in distutils
+    # installation schemes, so it should be fair to treat them as "semi-public",
+    # or at least public enough so we can have a test to make sure they are correct
+    assert cmd.config_vars['py_version'] == '3.10.1'
+    assert cmd.config_vars['py_version_short'] == '3.10'
+    assert cmd.config_vars['py_version_nodot'] == '310'
+
+
+def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path):
+    ''' `setup.py develop` should honor `--user` even under build isolation'''
+
+    # == Arrange ==
+    # Pretend that build isolation was enabled
+    # e.g pip sets the environment varible PYTHONNOUSERSITE=1
+    monkeypatch.setattr('site.ENABLE_USER_SITE', False)
+
+    # Patching $HOME for 2 reasons:
+    # 1. setuptools/command/easy_install.py:create_home_path
+    #    tries creating directories in $HOME
+    # given `self.config_vars['DESTDIRS'] = "/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload"``  # noqa: E501
+    # it will `makedirs("/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")``  # noqa: E501
+    # 2. We are going to force `site` to update site.USER_BASE and site.USER_SITE
+    #    To point inside our new home
+    monkeypatch.setenv('HOME', str(tmp_path / '.home'))
+    monkeypatch.setenv('USERPROFILE', str(tmp_path / '.home'))
+    monkeypatch.setenv('APPDATA', str(tmp_path / '.home'))
+    monkeypatch.setattr('site.USER_BASE', None)
+    monkeypatch.setattr('site.USER_SITE', None)
+    user_site = pathlib.Path(site.getusersitepackages())
+    user_site.mkdir(parents=True, exist_ok=True)
+
+    sys_prefix = (tmp_path / '.sys_prefix')
+    sys_prefix.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr('sys.prefix', str(sys_prefix))
+
+    setup_script = (
+        "__import__('setuptools').setup(name='aproj', version=42, packages=[])\n"
+    )
+    (tmp_path / "setup.py").write_text(setup_script, encoding="utf-8")
+
+    # == Sanity check ==
+    assert list(sys_prefix.glob("*")) == []
+    assert list(user_site.glob("*")) == []
+
+    # == Act ==
+    run_setup('setup.py', ['develop', '--user'])
+
+    # == Assert ==
+    # Should not install to sys.prefix
+    assert list(sys_prefix.glob("*")) == []
+    # Should install to user site
+    installed = {f.name for f in user_site.glob("*")}
+    # sometimes easy-install.pth is created and sometimes not
+    installed = installed - {"easy-install.pth"}
+    assert installed == {'aproj.egg-link'}

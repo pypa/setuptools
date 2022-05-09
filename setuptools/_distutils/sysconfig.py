@@ -9,12 +9,13 @@ Written by:   Fred L. Drake, Jr.
 Email:        <fdrake@acm.org>
 """
 
-import _imp
 import os
 import re
 import sys
+import sysconfig
 
 from .errors import DistutilsPlatformError
+from . import py39compat
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -47,6 +48,7 @@ def _is_python_source_dir(d):
             return True
     return False
 
+
 _sys_home = getattr(sys, '_home', None)
 
 if os.name == 'nt':
@@ -58,10 +60,12 @@ if os.name == 'nt':
     project_base = _fix_pcbuild(project_base)
     _sys_home = _fix_pcbuild(_sys_home)
 
+
 def _python_build():
     if _sys_home:
         return _is_python_source_dir(_sys_home)
     return _is_python_source_dir(project_base)
+
 
 python_build = _python_build()
 
@@ -77,6 +81,7 @@ except AttributeError:
     # It's not a configure-based build, so the sys module doesn't have
     # this attribute, which is fine.
     pass
+
 
 def get_python_version():
     """Return a string containing the major and minor Python version,
@@ -191,7 +196,6 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             "on platform '%s'" % os.name)
 
 
-
 def customize_compiler(compiler):
     """Do any platform-specific customization of a CCompiler instance.
 
@@ -216,8 +220,9 @@ def customize_compiler(compiler):
                 _config_vars['CUSTOMIZED_OSX_COMPILER'] = 'True'
 
         (cc, cxx, cflags, ccshared, ldshared, shlib_suffix, ar, ar_flags) = \
-            get_config_vars('CC', 'CXX', 'CFLAGS',
-                            'CCSHARED', 'LDSHARED', 'SHLIB_SUFFIX', 'AR', 'ARFLAGS')
+            get_config_vars(
+                'CC', 'CXX', 'CFLAGS',
+                'CCSHARED', 'LDSHARED', 'SHLIB_SUFFIX', 'AR', 'ARFLAGS')
 
         if 'CC' in os.environ:
             newcc = os.environ['CC']
@@ -274,31 +279,14 @@ def get_config_h_filename():
             inc_dir = os.path.join(_sys_home or project_base, "PC")
         else:
             inc_dir = _sys_home or project_base
+        return os.path.join(inc_dir, 'pyconfig.h')
     else:
-        inc_dir = get_python_inc(plat_specific=1)
-
-    return os.path.join(inc_dir, 'pyconfig.h')
-
-
-# Allow this value to be patched by pkgsrc. Ref pypa/distutils#16.
-_makefile_tmpl = 'config-{python_ver}{build_flags}{multiarch}'
+        return sysconfig.get_config_h_filename()
 
 
 def get_makefile_filename():
     """Return full pathname of installed Makefile from the Python build."""
-    if python_build:
-        return os.path.join(_sys_home or project_base, "Makefile")
-    lib_dir = get_python_lib(plat_specific=0, standard_lib=1)
-    multiarch = (
-        '-%s' % sys.implementation._multiarch
-        if hasattr(sys.implementation, '_multiarch') else ''
-    )
-    config_file = _makefile_tmpl.format(
-        python_ver=get_python_version(),
-        build_flags=build_flags,
-        multiarch=multiarch,
-    )
-    return os.path.join(lib_dir, config_file, 'Makefile')
+    return sysconfig.get_makefile_filename()
 
 
 def parse_config_h(fp, g=None):
@@ -308,26 +296,7 @@ def parse_config_h(fp, g=None):
     optional dictionary is passed in as the second argument, it is
     used instead of a new dictionary.
     """
-    if g is None:
-        g = {}
-    define_rx = re.compile("#define ([A-Z][A-Za-z0-9_]+) (.*)\n")
-    undef_rx = re.compile("/[*] #undef ([A-Z][A-Za-z0-9_]+) [*]/\n")
-    #
-    while True:
-        line = fp.readline()
-        if not line:
-            break
-        m = define_rx.match(line)
-        if m:
-            n, v = m.group(1, 2)
-            try: v = int(v)
-            except ValueError: pass
-            g[n] = v
-        else:
-            m = undef_rx.match(line)
-            if m:
-                g[m.group(1)] = 0
-    return g
+    return sysconfig.parse_config_h(fp, vars=g)
 
 
 # Regexes needed for parsing Makefile (and similar syntaxes,
@@ -335,6 +304,7 @@ def parse_config_h(fp, g=None):
 _variable_rx = re.compile(r"([a-zA-Z][a-zA-Z0-9_]+)\s*=\s*(.*)")
 _findvar1_rx = re.compile(r"\$\(([A-Za-z][A-Za-z0-9_]*)\)")
 _findvar2_rx = re.compile(r"\${([A-Za-z][A-Za-z0-9_]*)}")
+
 
 def parse_makefile(fn, g=None):
     """Parse a Makefile-style file.
@@ -344,7 +314,9 @@ def parse_makefile(fn, g=None):
     used instead of a new dictionary.
     """
     from distutils.text_file import TextFile
-    fp = TextFile(fn, strip_comments=1, skip_blanks=1, join_lines=1, errors="surrogateescape")
+    fp = TextFile(
+        fn, strip_comments=1, skip_blanks=1, join_lines=1,
+        errors="surrogateescape")
 
     if g is None:
         g = {}
@@ -353,7 +325,7 @@ def parse_makefile(fn, g=None):
 
     while True:
         line = fp.readline()
-        if line is None: # eof
+        if line is None:  # eof
             break
         m = _variable_rx.match(line)
         if m:
@@ -397,7 +369,8 @@ def parse_makefile(fn, g=None):
                     item = os.environ[n]
 
                 elif n in renamed_variables:
-                    if name.startswith('PY_') and name[3:] in renamed_variables:
+                    if name.startswith('PY_') and \
+                            name[3:] in renamed_variables:
                         item = ""
 
                     elif 'PY_' + n in notdone:
@@ -413,7 +386,8 @@ def parse_makefile(fn, g=None):
                     if "$" in after:
                         notdone[name] = value
                     else:
-                        try: value = int(value)
+                        try:
+                            value = int(value)
                         except ValueError:
                             done[name] = value.strip()
                         else:
@@ -421,7 +395,7 @@ def parse_makefile(fn, g=None):
                         del notdone[name]
 
                         if name.startswith('PY_') \
-                            and name[3:] in renamed_variables:
+                                and name[3:] in renamed_variables:
 
                             name = name[3:]
                             if name not in done:
@@ -470,51 +444,6 @@ def expand_makefile_vars(s, vars):
 _config_vars = None
 
 
-_sysconfig_name_tmpl = '_sysconfigdata_{abi}_{platform}_{multiarch}'
-
-
-def _init_posix():
-    """Initialize the module as appropriate for POSIX systems."""
-    # _sysconfigdata is generated at build time, see the sysconfig module
-    name = os.environ.get(
-        '_PYTHON_SYSCONFIGDATA_NAME',
-        _sysconfig_name_tmpl.format(
-            abi=sys.abiflags,
-            platform=sys.platform,
-            multiarch=getattr(sys.implementation, '_multiarch', ''),
-        ),
-    )
-    try:
-        _temp = __import__(name, globals(), locals(), ['build_time_vars'], 0)
-    except ImportError:
-        # Python 3.5 and pypy 7.3.1
-        _temp = __import__(
-            '_sysconfigdata', globals(), locals(), ['build_time_vars'], 0)
-    build_time_vars = _temp.build_time_vars
-    global _config_vars
-    _config_vars = {}
-    _config_vars.update(build_time_vars)
-
-
-def _init_nt():
-    """Initialize the module as appropriate for NT"""
-    g = {}
-    # set basic install directories
-    g['LIBDEST'] = get_python_lib(plat_specific=0, standard_lib=1)
-    g['BINLIBDEST'] = get_python_lib(plat_specific=1, standard_lib=1)
-
-    # XXX hmmm.. a normal install puts include files here
-    g['INCLUDEPY'] = get_python_inc(plat_specific=0)
-
-    g['EXT_SUFFIX'] = _imp.extension_suffixes()[0]
-    g['EXE'] = ".exe"
-    g['VERSION'] = get_python_version().replace(".", "")
-    g['BINDIR'] = os.path.dirname(os.path.abspath(sys.executable))
-
-    global _config_vars
-    _config_vars = g
-
-
 def get_config_vars(*args):
     """With no arguments, return a dictionary of all configuration
     variables relevant for the current platform.  Generally this includes
@@ -527,60 +456,8 @@ def get_config_vars(*args):
     """
     global _config_vars
     if _config_vars is None:
-        func = globals().get("_init_" + os.name)
-        if func:
-            func()
-        else:
-            _config_vars = {}
-
-        # Normalized versions of prefix and exec_prefix are handy to have;
-        # in fact, these are the standard versions used most places in the
-        # Distutils.
-        _config_vars['prefix'] = PREFIX
-        _config_vars['exec_prefix'] = EXEC_PREFIX
-
-        if not IS_PYPY:
-            # For backward compatibility, see issue19555
-            SO = _config_vars.get('EXT_SUFFIX')
-            if SO is not None:
-                _config_vars['SO'] = SO
-
-            # Always convert srcdir to an absolute path
-            srcdir = _config_vars.get('srcdir', project_base)
-            if os.name == 'posix':
-                if python_build:
-                    # If srcdir is a relative path (typically '.' or '..')
-                    # then it should be interpreted relative to the directory
-                    # containing Makefile.
-                    base = os.path.dirname(get_makefile_filename())
-                    srcdir = os.path.join(base, srcdir)
-                else:
-                    # srcdir is not meaningful since the installation is
-                    # spread about the filesystem.  We choose the
-                    # directory containing the Makefile since we know it
-                    # exists.
-                    srcdir = os.path.dirname(get_makefile_filename())
-            _config_vars['srcdir'] = os.path.abspath(os.path.normpath(srcdir))
-
-            # Convert srcdir into an absolute path if it appears necessary.
-            # Normally it is relative to the build directory.  However, during
-            # testing, for example, we might be running a non-installed python
-            # from a different directory.
-            if python_build and os.name == "posix":
-                base = project_base
-                if (not os.path.isabs(_config_vars['srcdir']) and
-                    base != os.getcwd()):
-                    # srcdir is relative and we are not in the same directory
-                    # as the executable. Assume executable is in the build
-                    # directory and make srcdir absolute.
-                    srcdir = os.path.join(base, _config_vars['srcdir'])
-                    _config_vars['srcdir'] = os.path.normpath(srcdir)
-
-        # OS X platforms require special customization to handle
-        # multi-architecture, multi-os-version installers
-        if sys.platform == 'darwin':
-            import _osx_support
-            _osx_support.customize_config_vars(_config_vars)
+        _config_vars = sysconfig.get_config_vars().copy()
+        py39compat.add_ext_suffix(_config_vars)
 
     if args:
         vals = []
@@ -590,6 +467,7 @@ def get_config_vars(*args):
     else:
         return _config_vars
 
+
 def get_config_var(name):
     """Return the value of a single variable using the dictionary
     returned by 'get_config_vars()'.  Equivalent to
@@ -597,5 +475,6 @@ def get_config_var(name):
     """
     if name == 'SO':
         import warnings
-        warnings.warn('SO is deprecated, use EXT_SUFFIX', DeprecationWarning, 2)
+        warnings.warn(
+            'SO is deprecated, use EXT_SUFFIX', DeprecationWarning, 2)
     return get_config_vars().get(name)

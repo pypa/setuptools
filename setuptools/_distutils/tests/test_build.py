@@ -24,10 +24,10 @@ class BuildTestCase(support.TempdirManager,
         wanted = os.path.join(cmd.build_base, 'lib')
         self.assertEqual(cmd.build_purelib, wanted)
 
-        # build_platlib is 'build/lib.platform-x.x[-pydebug]'
+        # build_platlib is 'build/lib.platform-cache_tag[-pydebug]'
         # examples:
-        #   build/lib.macosx-10.3-i386-2.7
-        plat_spec = '.%s-%d.%d' % (cmd.plat_name, *sys.version_info[:2])
+        #   build/lib.macosx-10.3-i386-cpython39
+        plat_spec = '.%s-%s' % (cmd.plat_name, sys.implementation.cache_tag)
         if hasattr(sys, 'gettotalrefcount'):
             self.assertTrue(cmd.build_platlib.endswith('-pydebug'))
             plat_spec += '-pydebug'
@@ -50,7 +50,7 @@ class BuildTestCase(support.TempdirManager,
         self.assertEqual(cmd.executable, os.path.normpath(sys.executable))
 
 def test_suite():
-    return unittest.makeSuite(BuildTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(BuildTestCase)
 
 if __name__ == "__main__":
     run_unittest(test_suite())

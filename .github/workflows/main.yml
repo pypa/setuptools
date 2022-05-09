@@ -1,50 +1,129 @@
 name: tests
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-
+    ${{ github.ref_type }}-
+    ${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   test:
     strategy:
       matrix:
         distutils:
-        - stdlib
         - local
         python:
-        - pypy3
-        - 3.6
+        - pypy-3.7
+        - 3.7
+        - 3.8
         - 3.9
         - "3.10"
         platform:
         - ubuntu-latest
         - macos-latest
         - windows-latest
+        include:
+        - platform: ubuntu-latest
+          python: "3.10"
+          distutils: stdlib
     runs-on: ${{ matrix.platform }}
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: setuptools/tests/config/downloads/*.cfg
+          key: >-
+            ${{ hashFiles('setuptools/tests/config/setupcfg_examples.txt') }}-
+            ${{ hashFiles('setuptools/tests/config/downloads/*.py') }}
+      - name: Populate download cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: setuptools/tests/config
+        run: python -m downloads.preload setupcfg_examples.txt
       - name: Install tox
         run: |
           python -m pip install tox
       - name: Run tests
-        run: tox -- --cov-report xml
+        run: tox
+      - name: Create coverage report
+        if: hashFiles('.coverage') != ''  # Rudimentary `file.exists()`
+        run: pipx run coverage xml --ignore-errors
       - name: Publish coverage
-        if: false  # disabled for #2727
+        if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
         uses: codecov/codecov-action@v1
         with:
           flags: >-  # Mark which lines are covered by which envs
             ${{ runner.os }},
             ${{ matrix.python }}
 
-  release:
+  test_cygwin:
+    runs-on: windows-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Cygwin with Python
+        uses: cygwin/cygwin-install-action@v1
+        with:
+          platform: x86_64
+          packages: >-
+            git,
+            gcc-core,
+            python38,
+            python38-devel,
+            python38-pip
+      - name: Install tox
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+        run: |
+          python3.8 -m pip install tox
+      - name: Run tests
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+        run: |
+          tox -- --cov-report xml
+
+  integration-test:
     needs: test
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.ref, 'refs/tags/'))
+    # To avoid long times and high resource usage, we assume that:
+    # 1. The setuptools APIs used by packages don't vary too much with OS or
+    #    Python implementation
+    # 2. Any circumstance for which the previous assumption is not valid is
+    #    already tested via unit tests (or other tests not classified here as
+    #    "integration")
+    # With that in mind, the integration tests can run for a single setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install OS-level dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential gfortran libopenblas-dev
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          # Use a release that is not very new but still have a long life:
+          python-version: "3.8"
+      - name: Install tox
+        run: |
+          python -m pip install tox
+      - name: Run integration tests
+        run: tox -e integration
+
+  release:
+    needs: [test, test_cygwin, integration-test]
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
-
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python

@@ -10,7 +10,6 @@ from .textwrap import DALS
 @pytest.mark.usefixtures('tmpdir_cwd')
 def test_tests_are_run_once(capfd):
     params = dict(
-        name='foo',
         packages=['dummy'],
     )
     files = {

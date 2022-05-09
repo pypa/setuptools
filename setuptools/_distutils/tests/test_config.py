@@ -66,7 +66,7 @@ class BasePyPIRCCommandTestCase(support.TempdirManager,
 
         class command(PyPIRCCommand):
             def __init__(self, dist):
-                PyPIRCCommand.__init__(self, dist)
+                super().__init__(dist)
             def initialize_options(self):
                 pass
             finalize_options = initialize_options
@@ -135,7 +135,7 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
 
 
 def test_suite():
-    return unittest.makeSuite(PyPIRCCommandTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(PyPIRCCommandTestCase)
 
 if __name__ == "__main__":
     run_unittest(test_suite())

@@ -2,6 +2,7 @@ import io
 import collections
 import re
 import functools
+import os
 import urllib.request
 import urllib.parse
 from distutils.errors import DistutilsSetupError
@@ -18,6 +19,7 @@ from setuptools import Distribution
 
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
+from .test_find_packages import ensure_files
 
 import pytest
 
@@ -69,16 +71,19 @@ def test_dist__get_unpatched_deprecated():
     pytest.warns(DistDeprecationWarning, _get_unpatched, [""])
 
 
+EXAMPLE_BASE_INFO = dict(
+    name="package",
+    version="0.0.1",
+    author="Foo Bar",
+    author_email="foo@bar.net",
+    long_description="Long\ndescription",
+    description="Short description",
+    keywords=["one", "two"],
+)
+
+
 def __read_test_cases():
-    base = dict(
-        name="package",
-        version="0.0.1",
-        author="Foo Bar",
-        author_email="foo@bar.net",
-        long_description="Long\ndescription",
-        description="Short description",
-        keywords=["one", "two"],
-    )
+    base = EXAMPLE_BASE_INFO
 
     params = functools.partial(dict, base)
 
@@ -374,3 +379,131 @@ def test_check_specifier():
 )
 def test_rfc822_unescape(content, result):
     assert (result or content) == rfc822_unescape(rfc822_escape(content))
+
+
+def test_metadata_name():
+    with pytest.raises(DistutilsSetupError, match='missing.*name'):
+        Distribution()._validate_metadata()
+
+
+@pytest.mark.parametrize(
+    "dist_name, py_module",
+    [
+        ("my.pkg", "my_pkg"),
+        ("my-pkg", "my_pkg"),
+        ("my_pkg", "my_pkg"),
+        ("pkg", "pkg"),
+    ]
+)
+def test_dist_default_py_modules(tmp_path, dist_name, py_module):
+    (tmp_path / f"{py_module}.py").touch()
+
+    (tmp_path / "setup.py").touch()
+    (tmp_path / "noxfile.py").touch()
+    # ^-- make sure common tool files are ignored
+
+    attrs = {
+        **EXAMPLE_BASE_INFO,
+        "name": dist_name,
+        "src_root": str(tmp_path)
+    }
+    # Find `py_modules` corresponding to dist_name if not given
+    dist = Distribution(attrs)
+    dist.set_defaults()
+    assert dist.py_modules == [py_module]
+    # When `py_modules` is given, don't do anything
+    dist = Distribution({**attrs, "py_modules": ["explicity_py_module"]})
+    dist.set_defaults()
+    assert dist.py_modules == ["explicity_py_module"]
+    # When `packages` is given, don't do anything
+    dist = Distribution({**attrs, "packages": ["explicity_package"]})
+    dist.set_defaults()
+    assert not dist.py_modules
+
+
+@pytest.mark.parametrize(
+    "dist_name, package_dir, package_files, packages",
+    [
+        ("my.pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
+        ("my-pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
+        ("my_pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
+        ("my.pkg", None, ["my/pkg/__init__.py"], ["my", "my.pkg"]),
+        (
+            "my_pkg",
+            None,
+            ["src/my_pkg/__init__.py", "src/my_pkg2/__init__.py"],
+            ["my_pkg", "my_pkg2"]
+        ),
+        (
+            "my_pkg",
+            {"pkg": "lib", "pkg2": "lib2"},
+            ["lib/__init__.py", "lib/nested/__init__.pyt", "lib2/__init__.py"],
+            ["pkg", "pkg.nested", "pkg2"]
+        ),
+    ]
+)
+def test_dist_default_packages(
+    tmp_path, dist_name, package_dir, package_files, packages
+):
+    ensure_files(tmp_path, package_files)
+
+    (tmp_path / "setup.py").touch()
+    (tmp_path / "noxfile.py").touch()
+    # ^-- should not be included by default
+
+    attrs = {
+        **EXAMPLE_BASE_INFO,
+        "name": dist_name,
+        "src_root": str(tmp_path),
+        "package_dir": package_dir
+    }
+    # Find `packages` either corresponding to dist_name or inside src
+    dist = Distribution(attrs)
+    dist.set_defaults()
+    assert not dist.py_modules
+    assert not dist.py_modules
+    assert set(dist.packages) == set(packages)
+    # When `py_modules` is given, don't do anything
+    dist = Distribution({**attrs, "py_modules": ["explicit_py_module"]})
+    dist.set_defaults()
+    assert not dist.packages
+    assert set(dist.py_modules) == {"explicit_py_module"}
+    # When `packages` is given, don't do anything
+    dist = Distribution({**attrs, "packages": ["explicit_package"]})
+    dist.set_defaults()
+    assert not dist.py_modules
+    assert set(dist.packages) == {"explicit_package"}
+
+
+@pytest.mark.parametrize(
+    "dist_name, package_dir, package_files",
+    [
+        ("my.pkg.nested", None, ["my/pkg/nested/__init__.py"]),
+        ("my.pkg", None, ["my/pkg/__init__.py", "my/pkg/file.py"]),
+        ("my_pkg", None, ["my_pkg.py"]),
+        ("my_pkg", None, ["my_pkg/__init__.py", "my_pkg/nested/__init__.py"]),
+        ("my_pkg", None, ["src/my_pkg/__init__.py", "src/my_pkg/nested/__init__.py"]),
+        (
+            "my_pkg",
+            {"my_pkg": "lib", "my_pkg.lib2": "lib2"},
+            ["lib/__init__.py", "lib/nested/__init__.pyt", "lib2/__init__.py"],
+        ),
+        # Should not try to guess a name from multiple py_modules/packages
+        ("UNKNOWN", None, ["src/mod1.py", "src/mod2.py"]),
+        ("UNKNOWN", None, ["src/pkg1/__ini__.py", "src/pkg2/__init__.py"]),
+    ]
+)
+def test_dist_default_name(tmp_path, dist_name, package_dir, package_files):
+    """Make sure dist.name is discovered from packages/py_modules"""
+    ensure_files(tmp_path, package_files)
+    attrs = {
+        **EXAMPLE_BASE_INFO,
+        "src_root": "/".join(os.path.split(tmp_path)),  # POSIX-style
+        "package_dir": package_dir
+    }
+    del attrs["name"]
+
+    dist = Distribution(attrs)
+    dist.set_defaults()
+    assert dist.py_modules or dist.packages
+    assert dist.get_name() == dist_name

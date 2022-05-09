@@ -56,14 +56,15 @@ class InstallTestCase(support.TempdirManager,
             expected = os.path.normpath(expected)
             self.assertEqual(got, expected)
 
-        libdir = os.path.join(destination, "lib", "python")
+        impl_name = sys.implementation.name.replace("cpython", "python")
+        libdir = os.path.join(destination, "lib", impl_name)
         check_path(cmd.install_lib, libdir)
         _platlibdir = getattr(sys, "platlibdir", "lib")
-        platlibdir = os.path.join(destination, _platlibdir, "python")
+        platlibdir = os.path.join(destination, _platlibdir, impl_name)
         check_path(cmd.install_platlib, platlibdir)
         check_path(cmd.install_purelib, libdir)
         check_path(cmd.install_headers,
-                   os.path.join(destination, "include", "python", "foopkg"))
+                   os.path.join(destination, "include", impl_name, "foopkg"))
         check_path(cmd.install_scripts, os.path.join(destination, "bin"))
         check_path(cmd.install_data, destination)
 
@@ -81,7 +82,9 @@ class InstallTestCase(support.TempdirManager,
         install_module.USER_SITE = self.user_site
 
         def _expanduser(path):
-            return self.tmpdir
+            if path.startswith('~'):
+                return os.path.normpath(self.tmpdir + path[1:])
+            return path
         self.old_expand = os.path.expanduser
         os.path.expanduser = _expanduser
 
@@ -121,6 +124,17 @@ class InstallTestCase(support.TempdirManager,
 
         self.assertIn('userbase', cmd.config_vars)
         self.assertIn('usersite', cmd.config_vars)
+
+        actual_headers = os.path.relpath(cmd.install_headers, self.user_base)
+        if os.name == 'nt':
+            site_path = os.path.relpath(
+                os.path.dirname(self.old_user_site), self.old_user_base)
+            include = os.path.join(site_path, 'Include')
+        else:
+            include = sysconfig.get_python_inc(0, '')
+        expect_headers = os.path.join(include, 'xx')
+
+        self.assertEqual(os.path.normcase(actual_headers), os.path.normcase(expect_headers))
 
     def test_handle_extra_path(self):
         dist = Distribution({'name': 'xx', 'extra_path': 'path,dirs'})
@@ -244,7 +258,7 @@ class InstallTestCase(support.TempdirManager,
 
 
 def test_suite():
-    return unittest.makeSuite(InstallTestCase)
+    return unittest.TestLoader().loadTestsFromTestCase(InstallTestCase)
 
 if __name__ == "__main__":
     run_unittest(test_suite())

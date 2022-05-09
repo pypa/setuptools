@@ -1,6 +1,3 @@
-import os
-import sys
-
 extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
 
 master_doc = "index"
@@ -13,7 +10,11 @@ link_files = {
         ),
         replace=[
             dict(
-                pattern=r'(Issue )?#(?P<issue>\d+)',
+                pattern=r'(?<!\w)PR #(?P<pull>\d+)',
+                url='{package_url}/pull/{pull}',
+            ),
+            dict(
+                pattern=r'(?<!\w)(Issue )?#(?P<issue>\d+)',
                 url='{package_url}/issues/{issue}',
             ),
             dict(
@@ -57,7 +58,7 @@ link_files = {
                 url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
             ),
             dict(
-                pattern=r'PEP[- ](?P<pep_number>\d+)',
+                pattern=r'(?<![`/\w])PEP[- ](?P<pep_number>\d+)',
                 url='https://www.python.org/dev/peps/pep-{pep_number:0>4}/',
             ),
             dict(
@@ -65,8 +66,12 @@ link_files = {
                 url='{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
             ),
             dict(
-                pattern=r'pypa/distutils#(?P<distutils>\d+)',
-                url='{GH}/pypa/distutils/issues/{distutils}',
+                pattern=r'pypa/(?P<issue_repo>[\-\.\w]+)#(?P<issue_number>\d+)',
+                url='{GH}/pypa/{issue_repo}/issues/{issue_number}',
+            ),
+            dict(
+                pattern=r'pypa/(?P<commit_repo>[\-\.\w]+)@(?P<commit_number>[\da-f]+)',
+                url='{GH}/pypa/{commit_repo}/commit/{commit_number}',
             ),
             dict(
                 pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
@@ -92,9 +97,15 @@ intersphinx_mapping.update({
 
 # Add support for linking usernames
 github_url = 'https://github.com'
+github_repo_org = 'pypa'
+github_repo_name = 'setuptools'
+github_repo_slug = f'{github_repo_org}/{github_repo_name}'
+github_repo_url = f'{github_url}/{github_repo_slug}'
 github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
     'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
+    'pypi': ('https://pypi.org/project/%s', '%s'),  # noqa: WPS323
+    'wiki': ('https://wikipedia.org/wiki/%s', '%s'),  # noqa: WPS323
 }
 extensions += ['sphinx.ext.extlinks']
 
@@ -161,8 +172,8 @@ nitpick_ignore = [
 
 # Allow linking objects on other Sphinx sites seamlessly:
 intersphinx_mapping.update(
-    python=('https://docs.python.org/3', None),
     python2=('https://docs.python.org/2', None),
+    python=('https://docs.python.org/3', None),
 )
 
 # Add support for the unreleased "next-version" change notes
@@ -175,26 +186,30 @@ towncrier_draft_include_empty = False
 extensions += ['jaraco.tidelift']
 
 # Add icons (aka "favicons") to documentation
-sys.path.append(os.path.join(os.path.dirname(__file__), '_ext'))
-extensions += ['_custom_icons']
+extensions += ['sphinx-favicon']
+html_static_path = ['images']  # should contain the folder with icons
 
 # List of dicts with <link> HTML attributes
-# as defined in https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link
-# except that ``file`` gets replaced with the correct ``href``
-icons = [
+# static-file points to files in the html_static_path (href is computed)
+favicons = [
     {  # "Catch-all" goes first, otherwise some browsers will overwrite
         "rel": "icon",
         "type": "image/svg+xml",
-        "file": "images/logo-symbol-only.svg",
+        "static-file": "logo-symbol-only.svg",
         "sizes": "any"
     },
     {  # Version with thicker strokes for better visibility at smaller sizes
         "rel": "icon",
         "type": "image/svg+xml",
-        "file": "images/favicon.svg",
+        "static-file": "favicon.svg",
         "sizes": "16x16 24x24 32x32 48x48"
     },
     # rel="apple-touch-icon" does not support SVG yet
 ]
 
 intersphinx_mapping['pip'] = 'https://pip.pypa.io/en/latest', None
+intersphinx_mapping['PyPUG'] = ('https://packaging.python.org/en/latest/', None)
+intersphinx_mapping['packaging'] = ('https://packaging.pypa.io/en/latest/', None)
+intersphinx_mapping['importlib-resources'] = (
+    'https://importlib-resources.readthedocs.io/en/latest', None
+)

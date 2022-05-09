@@ -25,12 +25,12 @@ Setuptools is maintained primarily in GitHub at `this home
 Python Packaging Authority (PyPA) with several core contributors. All bugs
 for Setuptools are filed and the canonical source is maintained in GitHub.
 
-User support and discussions are done through the issue tracker (for specific)
-issues, through the `distutils-sig mailing list <https://mail.python.org/mailman3/lists/distutils-sig.python.org/>`_, or on IRC (Freenode) at
-#pypa.
+User support and discussions are done through
+`GitHub Discussions <https://github.com/pypa/setuptools/discussions>`_,
+or the issue tracker (for specific issues).
 
-Discussions about development happen on the distutils-sig mailing list or on
-`Gitter <https://gitter.im/pypa/setuptools>`_.
+Discussions about development happen on GitHub Discussions or
+the ``setuptools`` channel on `PyPA Discord <https://discord.com/invite/pypa>`_.
 
 -----------------
 Authoring Tickets
@@ -125,12 +125,9 @@ cannot declare dependencies other than through
 ``setuptools/_vendor/vendored.txt`` and
 ``pkg_resources/_vendor/vendored.txt``.
 
-All the dependencies specified in these files are "vendorized" using Paver_, a
-simple Python-based project scripting and task running tool.
+All the dependencies specified in these files are "vendorized" using a
+simple Python script ``tools/vendor.py``.
 
-To refresh the dependencies, you can run the following command (defined in
-``pavement.py``)::
+To refresh the dependencies, run the following command::
 
-    $ paver update_vendored
-
-.. _Paver: https://pythonhosted.org/Paver/
+    $ tox -e vendor

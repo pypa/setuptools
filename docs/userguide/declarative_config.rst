@@ -1,8 +1,8 @@
 .. _declarative config:
 
------------------------------------------
-Configuring setup() using setup.cfg files
------------------------------------------
+------------------------------------------------
+Configuring setuptools using ``setup.cfg`` files
+------------------------------------------------
 
 .. note:: New in 30.3.0 (8 Dec 2016).
 
@@ -24,27 +24,22 @@ boilerplate code in some cases.
 
     [metadata]
     name = my_package
-    version = attr: src.VERSION
+    version = attr: my_package.VERSION
     description = My package description
     long_description = file: README.rst, CHANGELOG.rst, LICENSE.rst
     keywords = one, two
     license = BSD 3-Clause License
     classifiers =
         Framework :: Django
-        License :: OSI Approved :: BSD License
         Programming Language :: Python :: 3
-        Programming Language :: Python :: 3.5
 
     [options]
     zip_safe = False
     include_package_data = True
     packages = find:
-    scripts =
-        bin/first.py
-        bin/second.py
     install_requires =
         requests
-        importlib; python_version == "2.6"
+        importlib-metadata; python_version<"3.8"
 
     [options.package_data]
     * = *.txt, *.rst
@@ -52,7 +47,7 @@ boilerplate code in some cases.
 
     [options.entry_points]
     console_scripts =
-        executable-name = package.module:function
+        executable-name = my_package.module:function
 
     [options.extras_require]
     pdf = ReportLab>=1.2; RXP
@@ -60,8 +55,10 @@ boilerplate code in some cases.
 
     [options.packages.find]
     exclude =
-        src.subpackage1
-        src.subpackage2
+        examples*
+        tools*
+        docs*
+        my_package.tests*
 
 Metadata and options are set in the config sections of the same name.
 
@@ -222,10 +219,10 @@ data_files               section                              40.6.0          [#
 
 .. [#opt-1] In the ``package_data`` section, a key named with a single asterisk
    (``*``) refers to all packages, in lieu of the empty string used in ``setup.py``.
- 
+
 .. [#opt-2] In the ``extras_require`` section, values are parsed as ``list-semi``.
    This implies that in order to include markers, they **must** be *dangling*:
- 
+
    .. code-block:: ini
 
       [options.extras_require]

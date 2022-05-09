@@ -2,6 +2,8 @@
 
 Implements the Distutils 'check' command.
 """
+from email.utils import getaddresses
+
 from distutils.core import Command
 from distutils.errors import DistutilsSetupError
 
@@ -17,7 +19,7 @@ try:
         def __init__(self, source, report_level, halt_level, stream=None,
                      debug=0, encoding='ascii', error_handler='replace'):
             self.messages = []
-            Reporter.__init__(self, source, report_level, halt_level, stream,
+            super().__init__(source, report_level, halt_level, stream,
                               debug, encoding, error_handler)
 
         def system_message(self, level, message, *children, **kwargs):
@@ -96,18 +98,38 @@ class check(Command):
 
         if missing:
             self.warn("missing required meta-data: %s"  % ', '.join(missing))
-        if metadata.author:
-            if not metadata.author_email:
-                self.warn("missing meta-data: if 'author' supplied, " +
-                          "'author_email' should be supplied too")
-        elif metadata.maintainer:
-            if not metadata.maintainer_email:
-                self.warn("missing meta-data: if 'maintainer' supplied, " +
-                          "'maintainer_email' should be supplied too")
-        else:
+        if not (
+            self._check_contact("author", metadata) or
+            self._check_contact("maintainer", metadata)
+        ):
             self.warn("missing meta-data: either (author and author_email) " +
                       "or (maintainer and maintainer_email) " +
                       "should be supplied")
+
+    def _check_contact(self, kind, metadata):
+        """
+        Returns True if the contact's name is specified and False otherwise.
+        This function will warn if the contact's email is not specified.
+        """
+        name = getattr(metadata, kind) or ''
+        email = getattr(metadata, kind + '_email') or ''
+
+        msg = ("missing meta-data: if '{}' supplied, " +
+               "'{}' should be supplied too")
+
+        if name and email:
+            return True
+
+        if name:
+            self.warn(msg.format(kind, kind + '_email'))
+            return True
+
+        addresses = [(alias, addr) for alias, addr in getaddresses([email])]
+        if any(alias and addr for alias, addr in addresses):
+            # The contact's name can be encoded in the email: `Name <email>`
+            return True
+
+        return False
 
     def check_restructuredtext(self):
         """Checks if the long string fields are reST-compliant."""

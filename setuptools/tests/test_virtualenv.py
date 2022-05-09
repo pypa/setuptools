@@ -1,139 +1,95 @@
-import glob
 import os
 import sys
-import itertools
+import subprocess
+from urllib.request import urlopen
+from urllib.error import URLError
 
 import pathlib
 
 import pytest
-from pytest_fixture_config import yield_requires_config
 
-import pytest_virtualenv
-
+from . import contexts
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
 
 
 @pytest.fixture(autouse=True)
-def pytest_virtualenv_works(virtualenv):
+def pytest_virtualenv_works(venv):
     """
     pytest_virtualenv may not work. if it doesn't, skip these
     tests. See #1284.
     """
-    venv_prefix = virtualenv.run(
-        'python -c "import sys; print(sys.prefix)"',
-        capture=True,
-    ).strip()
+    venv_prefix = venv.run(["python" , "-c", "import sys; print(sys.prefix)"]).strip()
     if venv_prefix == sys.prefix:
         pytest.skip("virtualenv is broken (see pypa/setuptools#1284)")
 
 
-@yield_requires_config(pytest_virtualenv.CONFIG, ['virtualenv_executable'])
-@pytest.fixture(scope='function')
-def bare_virtualenv():
-    """ Bare virtualenv (no pip/setuptools/wheel).
-    """
-    with pytest_virtualenv.VirtualEnv(args=(
-        '--no-wheel',
-        '--no-pip',
-        '--no-setuptools',
-    )) as venv:
-        yield venv
-
-
-def test_clean_env_install(bare_virtualenv, tmp_src):
+def test_clean_env_install(venv_without_setuptools, setuptools_wheel):
     """
     Check setuptools can be installed in a clean environment.
     """
-    cmd = [bare_virtualenv.python, 'setup.py', 'install']
-    bare_virtualenv.run(cmd, cd=tmp_src)
+    cmd = ["python", "-m", "pip", "install", str(setuptools_wheel)]
+    venv_without_setuptools.run(cmd)
 
 
-def _get_pip_versions():
-    # This fixture will attempt to detect if tests are being run without
-    # network connectivity and if so skip some tests
-
-    network = True
+def access_pypi():
+    # Detect if tests are being run without connectivity
     if not os.environ.get('NETWORK_REQUIRED', False):  # pragma: nocover
-        try:
-            from urllib.request import urlopen
-            from urllib.error import URLError
-        except ImportError:
-            from urllib2 import urlopen, URLError  # Python 2.7 compat
-
         try:
             urlopen('https://pypi.org', timeout=1)
         except URLError:
             # No network, disable most of these tests
-            network = False
+            return False
 
-    def mark(param, *marks):
-        if not isinstance(param, type(pytest.param(''))):
-            param = pytest.param(param)
-        return param._replace(marks=param.marks + marks)
-
-    def skip_network(param):
-        return param if network else mark(param, pytest.mark.skip(reason="no network"))
-
-    network_versions = [
-        mark('pip<20', pytest.mark.xfail(reason='pypa/pip#6599')),
-        'pip<20.1',
-        'pip<21',
-        'pip<22',
-        mark(
-            'https://github.com/pypa/pip/archive/main.zip',
-            pytest.mark.skipif('sys.version_info < (3, 7)'),
-        ),
-    ]
-
-    versions = itertools.chain(
-        [None],
-        map(skip_network, network_versions)
-    )
-
-    return list(versions)
+    return True
 
 
 @pytest.mark.skipif(
     'platform.python_implementation() == "PyPy"',
     reason="https://github.com/pypa/setuptools/pull/2865#issuecomment-965834995",
 )
-@pytest.mark.parametrize('pip_version', _get_pip_versions())
-def test_pip_upgrade_from_source(pip_version, tmp_src, virtualenv):
+@pytest.mark.skipif(not access_pypi(), reason="no network")
+# ^-- Even when it is not necessary to install a different version of `pip`
+#     the build process will still try to download `wheel`, see #3147 and #2986.
+@pytest.mark.parametrize(
+    'pip_version',
+    [
+        None,
+        pytest.param('pip<20', marks=pytest.mark.xfail(reason='pypa/pip#6599')),
+        'pip<20.1',
+        'pip<21',
+        'pip<22',
+        pytest.param(
+            'https://github.com/pypa/pip/archive/main.zip',
+            marks=pytest.mark.xfail(reason='#2975'),
+        ),
+    ]
+)
+def test_pip_upgrade_from_source(pip_version, venv_without_setuptools,
+                                 setuptools_wheel, setuptools_sdist):
     """
     Check pip can upgrade setuptools from source.
     """
-    # Install pip/wheel, and remove setuptools (as it
+    # Install pip/wheel, in a venv without setuptools (as it
     # should not be needed for bootstraping from source)
-    if pip_version is None:
-        upgrade_pip = ()
-    else:
-        upgrade_pip = ('python -m pip install -U "{pip_version}" --retries=1',)
-    virtualenv.run(' && '.join((
-        'pip uninstall -y setuptools',
-        'pip install -U wheel',
-    ) + upgrade_pip).format(pip_version=pip_version))
-    dist_dir = virtualenv.workspace
-    # Generate source distribution / wheel.
-    virtualenv.run(' && '.join((
-        'python setup.py -q sdist -d {dist}',
-        'python setup.py -q bdist_wheel -d {dist}',
-    )).format(dist=dist_dir), cd=tmp_src)
-    sdist = glob.glob(os.path.join(dist_dir, '*.zip'))[0]
-    wheel = glob.glob(os.path.join(dist_dir, '*.whl'))[0]
-    # Then update from wheel.
-    virtualenv.run('pip install ' + wheel)
+    venv = venv_without_setuptools
+    venv.run(["pip", "install", "-U", "wheel"])
+    if pip_version is not None:
+        venv.run(["python", "-m", "pip", "install", "-U", pip_version, "--retries=1"])
+    with pytest.raises(subprocess.CalledProcessError):
+        # Meta-test to make sure setuptools is not installed
+        venv.run(["python", "-c", "import setuptools"])
+
+    # Then install from wheel.
+    venv.run(["pip", "install", str(setuptools_wheel)])
     # And finally try to upgrade from source.
-    virtualenv.run('pip install --no-cache-dir --upgrade ' + sdist)
+    venv.run(["pip", "install", "--no-cache-dir", "--upgrade", str(setuptools_sdist)])
 
 
-def _check_test_command_install_requirements(virtualenv, tmpdir, cwd):
+def _check_test_command_install_requirements(venv, tmpdir):
     """
     Check the test command will install all required dependencies.
     """
-    # Install setuptools.
-    virtualenv.run('python setup.py develop', cd=cwd)
-
     def sdist(distname, version):
         dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
         make_nspkg_sdist(str(dist_path), distname, version)
@@ -182,28 +138,24 @@ def _check_test_command_install_requirements(virtualenv, tmpdir, cwd):
 
             open('success', 'w').close()
             '''))
-    # Run test command for test package.
-    # use 'virtualenv.python' as workaround for man-group/pytest-plugins#166
-    cmd = [virtualenv.python, 'setup.py', 'test', '-s', 'test']
-    virtualenv.run(cmd, cd=str(tmpdir))
+
+    cmd = ["python", 'setup.py', 'test', '-s', 'test']
+    venv.run(cmd, cwd=str(tmpdir))
     assert tmpdir.join('success').check()
 
 
-def test_test_command_install_requirements(virtualenv, tmpdir, request):
+def test_test_command_install_requirements(venv, tmpdir, tmpdir_cwd):
     # Ensure pip/wheel packages are installed.
-    virtualenv.run(
-        "python -c \"__import__('pkg_resources').require(['pip', 'wheel'])\"")
-    # uninstall setuptools so that 'setup.py develop' works
-    virtualenv.run("python -m pip uninstall -y setuptools")
+    venv.run(["python", "-c", "__import__('pkg_resources').require(['pip', 'wheel'])"])
     # disable index URL so bits and bobs aren't requested from PyPI
-    virtualenv.env['PIP_NO_INDEX'] = '1'
-    _check_test_command_install_requirements(virtualenv, tmpdir, request.config.rootdir)
+    with contexts.environment(PYTHONPATH=None, PIP_NO_INDEX="1"):
+        _check_test_command_install_requirements(venv, tmpdir)
 
 
-def test_no_missing_dependencies(bare_virtualenv, request):
+def test_no_missing_dependencies(bare_venv, request):
     """
     Quick and dirty test to ensure all external dependencies are vendored.
     """
+    setuptools_dir = request.config.rootdir
     for command in ('upload',):  # sorted(distutils.command.__all__):
-        cmd = [bare_virtualenv.python, 'setup.py', command, '-h']
-        bare_virtualenv.run(cmd, cd=request.config.rootdir)
+        bare_venv.run(['python', 'setup.py', command, '-h'], cwd=setuptools_dir)

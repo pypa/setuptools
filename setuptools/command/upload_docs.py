@@ -17,8 +17,11 @@ import itertools
 import functools
 import http.client
 import urllib.parse
+import warnings
 
-from pkg_resources import iter_entry_points
+from .._importlib import metadata
+from .. import SetuptoolsDeprecationWarning
+
 from .upload import upload
 
 
@@ -43,9 +46,10 @@ class upload_docs(upload):
     boolean_options = upload.boolean_options
 
     def has_sphinx(self):
-        if self.upload_dir is None:
-            for ep in iter_entry_points('distutils.commands', 'build_sphinx'):
-                return True
+        return bool(
+            self.upload_dir is None
+            and metadata.entry_points(group='distutils.commands', name='build_sphinx')
+        )
 
     sub_commands = [('build_sphinx', has_sphinx)]
 
@@ -87,6 +91,12 @@ class upload_docs(upload):
             zip_file.close()
 
     def run(self):
+        warnings.warn(
+            "upload_docs is deprecated and will be removed in a future "
+            "version. Use tools like httpie or curl instead.",
+            SetuptoolsDeprecationWarning,
+        )
+
         # Run sub commands
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)

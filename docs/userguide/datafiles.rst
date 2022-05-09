@@ -5,11 +5,11 @@ Data Files Support
 The distutils have traditionally allowed installation of "data files", which
 are placed in a platform-specific location.  However, the most common use case
 for data files distributed with a package is for use *by* the package, usually
-by including the data files in the package directory.
+by including the data files **inside the package directory**.
 
-Setuptools offers three ways to specify data files to be included in your
-packages.  First, you can simply use the ``include_package_data`` keyword,
-e.g.::
+Setuptools offers three ways to specify this most common type of data files to
+be included in your package's [#datafiles]_.
+First, you can simply use the ``include_package_data`` keyword, e.g.::
 
     from setuptools import setup, find_packages
     setup(
@@ -18,9 +18,10 @@ e.g.::
     )
 
 This tells setuptools to install any data files it finds in your packages.
-The data files must be specified via the distutils' ``MANIFEST.in`` file.
+The data files must be specified via the |MANIFEST.in|_ file.
 (They can also be tracked by a revision control system, using an appropriate
-plugin.  See the section below on :ref:`Adding Support for Revision
+plugin such as :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
+See the section below on :ref:`Adding Support for Revision
 Control Systems` for information on how to write such plugins.)
 
 If you want finer-grained control over what files are included (for example,
@@ -87,14 +88,13 @@ When building an ``sdist``, the datafiles are also drawn from the
 ``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
 the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
 
-(Note: although the ``package_data`` argument was previously only available in
-``setuptools``, it was also added to the Python ``distutils`` package as of
-Python 2.4; there is `some documentation for the feature`__ available on the
-python.org website.  If using the setuptools-specific ``include_package_data``
-argument, files specified by ``package_data`` will *not* be automatically
-added to the manifest unless they are listed in the MANIFEST.in file.)
+.. note::
+   If using the ``include_package_data`` argument, files specified by
+   ``package_data`` will *not* be automatically added to the manifest unless
+   they are listed in the |MANIFEST.in|_ file or by a plugin like
+   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
 
-__ https://docs.python.org/3/distutils/setupscript.html#installing-package-data
+.. https://docs.python.org/3/distutils/setupscript.html#installing-package-data
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included.  For
@@ -125,11 +125,13 @@ included as a result of using ``include_package_data``.
 In summary, the three options allow you to:
 
 ``include_package_data``
-    Accept all data files and directories matched by ``MANIFEST.in``.
+    Accept all data files and directories matched by |MANIFEST.in|_ or added by
+    a :ref:`plugin <Adding Support for Revision Control Systems>`.
 
 ``package_data``
     Specify additional patterns to match files that may or may
-    not be matched by ``MANIFEST.in`` or found in source control.
+    not be matched by |MANIFEST.in|_ or added by
+    a :ref:`plugin <Adding Support for Revision Control Systems>`.
 
 ``exclude_package_data``
     Specify patterns for data files and directories that should *not* be
@@ -154,14 +156,22 @@ Typically, existing programs manipulate a package's ``__file__`` attribute in
 order to find the location of data files.  However, this manipulation isn't
 compatible with PEP 302-based import hooks, including importing from zip files
 and Python Eggs.  It is strongly recommended that, if you are using data files,
-you should use the :ref:`ResourceManager API` of ``pkg_resources`` to access
-them.  The ``pkg_resources`` module is distributed as part of setuptools, so if
-you're using setuptools to distribute your package, there is no reason not to
-use its resource management API.  See also `Importlib Resources`_ for
-a quick example of converting code that uses ``__file__`` to use
-``pkg_resources`` instead.
+you should use :mod:`importlib.resources` to access them.
+:mod:`importlib.resources` was added to Python 3.7 and the latest version of
+the library is also available via the :pypi:`importlib-resources` backport.
+See :doc:`importlib-resources:using` for detailed instructions [#importlib]_.
 
-.. _Importlib Resources: https://docs.python.org/3/library/importlib.html#module-importlib.resources
+.. tip:: Files inside the package directory should be *read-only* to avoid a
+   series of common problems (e.g. when multiple users share a common Python
+   installation, when the package is loaded from a zip file, or when multiple
+   instances of a Python application run in parallel).
+
+   If your Python package needs to write to a file for shared data or configuration,
+   you can use standard platform/OS-specific system directories, such as
+   ``~/.local/config/$appname`` or ``/usr/share/$appname/$version`` (Linux specific) [#system-dirs]_.
+   A common approach is to add a read-only template file to the package
+   directory that is then copied to the correct system directory if no
+   pre-existing file is found.
 
 
 Non-Package Data Files
@@ -174,4 +184,23 @@ fall back to the platform-specific location for installing data files, there is
 no supported facility to reliably retrieve these resources.
 
 Instead, the PyPA recommends that any data files you wish to be accessible at
-run time be included in the package.
+run time be included **inside the package**.
+
+
+----
+
+.. [#datafiles] ``setuptools`` consider a *package data file* any non-Python
+   file **inside the package directory** (i.e., that co-exists in the same
+   location as the regular ``.py`` files being distributed).
+
+.. [#system-dirs] These locations can be discovered with the help of
+   third-party libraries such as :pypi:`platformdirs`.
+
+.. [#importlib] Recent versions of :mod:`importlib.resources` available in
+   Pythons' standard library should be API compatible with
+   :pypi:`importlib-metadata`. However this might vary depending on which version
+   of Python is installed.
+
+
+.. |MANIFEST.in| replace:: ``MANIFEST.in``
+.. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/
