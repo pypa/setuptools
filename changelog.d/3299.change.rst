@@ -1,1 +1,0 @@
-Optional metadata fields are now truly optional. Includes merge with pypa/distutils@a7cfb56 per pypa/distutils#138.

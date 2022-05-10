@@ -1,3 +1,16 @@
+v62.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #3299: Optional metadata fields are now truly optional. Includes merge with pypa/distutils@a7cfb56 per pypa/distutils#138.
+
+Misc
+^^^^
+* #3282: Added CI cache for ``setup.cfg`` examples used when testing ``setuptools.config``.
+
+
 v62.1.0
 -------
 
