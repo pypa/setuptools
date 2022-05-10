@@ -519,7 +519,7 @@ class MetadataTestCase(support.TempdirManager, support.EnvironGuard,
         self.assertEqual(metadata.description, "xxx")
         self.assertEqual(metadata.download_url, 'http://example.com')
         self.assertEqual(metadata.keywords, ['one', 'two'])
-        self.assertEqual(metadata.platforms, ['UNKNOWN'])
+        self.assertEqual(metadata.platforms, None)
         self.assertEqual(metadata.obsoletes, None)
         self.assertEqual(metadata.requires, ['foo'])
 

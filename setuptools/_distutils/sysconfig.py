@@ -16,6 +16,7 @@ import sysconfig
 
 from .errors import DistutilsPlatformError
 from . import py39compat
+from ._functools import pass_none
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -51,12 +52,25 @@ def _is_python_source_dir(d):
 
 _sys_home = getattr(sys, '_home', None)
 
+
+def _is_parent(dir_a, dir_b):
+    """
+    Return True if a is a parent of b.
+    """
+    return os.path.normcase(dir_a).startswith(os.path.normcase(dir_b))
+
+
 if os.name == 'nt':
+    @pass_none
     def _fix_pcbuild(d):
-        if d and os.path.normcase(d).startswith(
-                os.path.normcase(os.path.join(PREFIX, "PCbuild"))):
-            return PREFIX
-        return d
+        # In a venv, sys._home will be inside BASE_PREFIX rather than PREFIX.
+        prefixes = PREFIX, BASE_PREFIX
+        matched = (
+            prefix
+            for prefix in prefixes
+            if _is_parent(d, os.path.join(prefix, "PCbuild"))
+        )
+        return next(matched, d)
     project_base = _fix_pcbuild(project_base)
     _sys_home = _fix_pcbuild(_sys_home)
 

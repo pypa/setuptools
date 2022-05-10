@@ -67,7 +67,13 @@ jobs:
             ${{ matrix.python }}
 
   test_cygwin:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        python:
+        - 39
+        platform:
+        - windows-latest
+    runs-on: ${{ matrix.platform }}
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v2
@@ -76,19 +82,14 @@ jobs:
         with:
           platform: x86_64
           packages: >-
-            git,
+            python${{ matrix.python }},
+            python${{ matrix.python }}-devel,
+            python${{ matrix.python }}-tox,
             gcc-core,
-            python38,
-            python38-devel,
-            python38-pip
-      - name: Install tox
-        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
-        run: |
-          python3.8 -m pip install tox
+            git,
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
-        run: |
-          tox -- --cov-report xml
+        run: tox
 
   integration-test:
     needs: test
