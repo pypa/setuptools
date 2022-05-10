@@ -44,7 +44,7 @@ def test_recursive_in_package_data_glob(tmpdir_cwd):
     dist.parse_command_line()
     dist.run_commands()
 
-    assert stat.S_IREG(os.stat('build/lib/path/subpath/subsubpath/data').st_mode), \
+    assert stat.S_ISREG(os.stat('build/lib/path/subpath/subsubpath/data').st_mode), \
         "File is not included"
 
 
