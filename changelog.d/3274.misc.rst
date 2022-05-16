@@ -1,2 +1,0 @@
-Updated version of vendored ``pyparsing`` to 3.0.8 to avoid problems with
-upcoming deprecation in Python 3.11.

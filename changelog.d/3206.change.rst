@@ -1,4 +1,0 @@
-Fixed behaviour when both ``install_requires`` (in ``setup.py``) and
-``dependencies`` (in ``pyproject.toml``) are specified.
-The configuration in ``pyproject.toml`` will take precedence over ``setup.py``
-(in accordance with PEP 621). A warning was added to inform users.

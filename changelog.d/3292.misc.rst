@@ -1,2 +1,0 @@
-Added warning about incompatibility with old versions of
-``importlib-metadata``.

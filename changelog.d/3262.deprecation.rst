@@ -1,8 +1,0 @@
-Formally added deprecation messages for ``namespace_packages``.
-The methodology that uses ``pkg_resources`` and ``namespace_packages`` for
-creating namespaces was already discouraged by the :doc:`setuptools docs
-</userguide/package_discovery>` and the
-:doc:`Python Packaging User Guide <PyPUG:guides/packaging-namespace-packages>`,
-therefore this change just make the deprecation more official.
-Users can consider migrating to native/implicit namespaces (as introduced in
-:pep:`420`).
