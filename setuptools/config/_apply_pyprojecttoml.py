@@ -16,6 +16,8 @@ from types import MappingProxyType
 from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple,
                     Type, Union)
 
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+
 if TYPE_CHECKING:
     from setuptools._importlib import metadata  # noqa
     from setuptools.dist import Distribution  # noqa
@@ -75,6 +77,12 @@ def _apply_tool_table(dist: "Distribution", config: dict, filename: _Path):
 
     for field, value in tool_table.items():
         norm_key = json_compatible_key(field)
+
+        if norm_key in TOOL_TABLE_DEPRECATIONS:
+            suggestion = TOOL_TABLE_DEPRECATIONS[norm_key]
+            msg = f"The parameter `{norm_key}` is deprecated, {suggestion}"
+            warnings.warn(msg, SetuptoolsDeprecationWarning)
+
         norm_key = TOOL_TABLE_RENAMES.get(norm_key, norm_key)
         _set_config(dist, norm_key, value)
 
@@ -307,6 +315,9 @@ PYPROJECT_CORRESPONDENCE: Dict[str, _Correspondence] = {
 }
 
 TOOL_TABLE_RENAMES = {"script_files": "scripts"}
+TOOL_TABLE_DEPRECATIONS = {
+    "namespace_packages": "consider using implicit namespaces instead (PEP 420)."
+}
 
 SETUPTOOLS_PATCHES = {"long_description_content_type", "project_urls",
                       "provides_extras", "license_file", "license_files"}

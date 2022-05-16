@@ -12,6 +12,7 @@ from typing import (TYPE_CHECKING, Callable, Any, Dict, Generic, Iterable, List,
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.version import Version, InvalidVersion
 from setuptools.extern.packaging.specifiers import SpecifierSet
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 
 from . import expand
 
@@ -507,7 +508,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
                 parse_list,
                 "The requires parameter is deprecated, please use "
                 "install_requires for runtime dependencies.",
-                DeprecationWarning,
+                SetuptoolsDeprecationWarning,
             ),
             'obsoletes': parse_list,
             'classifiers': self._get_parser_compound(parse_file, parse_list),
@@ -516,7 +517,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
                 exclude_files_parser('license_file'),
                 "The license_file parameter is deprecated, "
                 "use license_files instead.",
-                DeprecationWarning,
+                SetuptoolsDeprecationWarning,
             ),
             'license_files': parse_list,
             'description': parse_file,
@@ -584,7 +585,12 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
             'scripts': parse_list,
             'eager_resources': parse_list,
             'dependency_links': parse_list,
-            'namespace_packages': parse_list,
+            'namespace_packages': self._deprecated_config_handler(
+                parse_list,
+                "The namespace_packages parameter is deprecated, "
+                "consider using implicit namespaces instead (PEP 420).",
+                SetuptoolsDeprecationWarning,
+            ),
             'install_requires': parse_list_semicolon,
             'setup_requires': parse_list_semicolon,
             'tests_require': parse_list_semicolon,
