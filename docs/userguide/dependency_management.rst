@@ -439,5 +439,5 @@ This can be configured as shown in the example below.
    While the ``[build-system]`` table should always be specified in the
    ``pyproject.toml`` file, support for adding package metadata and build configuration
    options via the ``[project]`` and ``[tool.setuptools]`` tables is still
-   experimental and might change (or be completely removed) in future releases.
+   experimental and might change in future releases.
    See :doc:`/userguide/pyproject_config`.
