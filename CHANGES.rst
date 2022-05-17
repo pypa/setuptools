@@ -1,3 +1,13 @@
+v62.3.1
+-------
+
+
+Misc
+^^^^
+* #3320: Fixed typo which causes ``namespace_packages`` to raise an error instead of
+  warning.
+
+
 v62.3.0
 -------
 
