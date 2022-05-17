@@ -1,0 +1,2 @@
+Fixed typo which causes ``namespace_packages`` to raise an error instead of
+warning.
