@@ -1,0 +1,1 @@
+Fixed ``_is_gcc()`` to handle machine triplet prefix and handle ``clang`` and ``clang++`` -- by :user:`zboszor`
