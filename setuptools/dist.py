@@ -676,8 +676,6 @@ class Distribution(_Distribution):
         this method provides the same functionality in subtly-improved
         ways.
         """
-        from configparser import ConfigParser
-
         # Ignore install directory options if we have a venv
         ignore_options = (
             []
