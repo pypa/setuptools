@@ -707,8 +707,7 @@ class Distribution(_Distribution):
         if DEBUG:
             self.announce("Distribution.parse_config_files():")
 
-        parser = ConfigParser()
-        parser.optionxform = str
+        parser = setupcfg._get_parser()
         for filename in filenames:
             with io.open(filename, encoding='utf-8') as reader:
                 if DEBUG:
@@ -729,7 +728,7 @@ class Distribution(_Distribution):
 
             # Make the ConfigParser forget everything (so we retain
             # the original filenames that options come from)
-            parser.__init__()
+            setupcfg._reset_parser(parser)
 
         if 'global' not in self.command_options:
             return

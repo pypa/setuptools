@@ -4,6 +4,7 @@ import os
 import warnings
 import functools
 from collections import defaultdict
+from configparser import ConfigParser
 from functools import partial
 from functools import wraps
 from typing import (TYPE_CHECKING, Callable, Any, Dict, Generic, Iterable, List,
@@ -29,6 +30,28 @@ while the second element of the tuple is the option value itself
 """
 AllCommandOptions = Dict["str", SingleCommandOptions]  # cmd name => its options
 Target = TypeVar("Target", bound=Union["Distribution", "DistributionMetadata"])
+
+
+_CONFIGPARSER_OPTS = {
+    "inline_comment_prefixes": (" #", "\t#")
+    # ^-- Avoid "#" because URLs can contain fragments (and still be valid).
+}
+
+
+def _get_parser() -> ConfigParser:
+    """Instantiate a ConfigParser object for reading the configuration.
+    Private API for internal setuptools use.
+    """
+    parser = ConfigParser(**_CONFIGPARSER_OPTS)
+    parser.optionxform = str
+    return parser
+
+
+def _reset_parser(parser: ConfigParser):
+    """Make the ConfigParser forget everything (so we retain the original filenames
+    that options come from). Private API for internal setuptools use.
+    """
+    parser.__init__(**_CONFIGPARSER_OPTS)
 
 
 def read_configuration(
