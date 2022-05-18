@@ -256,7 +256,7 @@ class _IncludePackageDataAbuse:
     """Inform users that package or module is included as 'data file'"""
 
     MESSAGE = """\
-    Installing {importable!r} as data is deprecated, please list it as `package`.
+    Installing {importable!r} as data is deprecated, please list it in `packages`.
     !!\n\n
     ############################
     # Package would be ignored #
