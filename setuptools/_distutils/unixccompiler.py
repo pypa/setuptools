@@ -260,7 +260,8 @@ class UnixCCompiler(CCompiler):
         return "-L" + dir
 
     def _is_gcc(self, compiler_name):
-        return "gcc" in compiler_name or "g++" in compiler_name
+        cnpat = re.compile('.*(gcc|g\+\+|clang|clang\+\+)$')
+        return not (cnpat.match(compiler_name) is None)
 
     def runtime_library_dir_option(self, dir):
         # XXX Hackish, at the very least.  See Python bug #445902:
