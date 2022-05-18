@@ -1,0 +1,4 @@
+Changed ``ConfigParser`` instantiation to strip inline comments during the parsing
+of ``setup.cfg`` files.
+To prevent problems with URL values, users are expected to use at least one
+space character to separate the option value from the comment marker ``#``.
