@@ -276,7 +276,6 @@ class UnixCCompiler(CCompiler):
         # this time, there's no way to determine this information from
         # the configuration data stored in the Python installation, so
         # we use this hack.
-        compiler = os.path.basename(shlex.split(sysconfig.get_config_var("CC"))[0])
         if sys.platform[:6] == "darwin":
             from distutils.util import get_macosx_target_ver, split_version
             macosx_target_ver = get_macosx_target_ver()
@@ -287,8 +286,12 @@ class UnixCCompiler(CCompiler):
         elif sys.platform[:7] == "freebsd":
             return "-Wl,-rpath=" + dir
         elif sys.platform[:5] == "hp-ux":
-            if self._is_gcc(compiler):
-                return ["-Wl,+s", "-L" + dir]
+            cc_var = sysconfig.get_config_var("CC")
+            if cc_var is not None:
+                compiler = os.path.basename(shlex.split(cc_var)[0])
+                if self._is_gcc(compiler):
+                    return ["-Wl,+s", "-L" + dir]
+
             return ["+s", "-L" + dir]
 
         # For all compilers, `-Wl` is the presumed way to
