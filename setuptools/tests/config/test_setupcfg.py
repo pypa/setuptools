@@ -116,15 +116,15 @@ class TestMetadata:
         fake_env(
             tmpdir,
             '[metadata]\n'
-            'version = 10.1.1\n'
+            'version = 10.1.1  # comment\n'
             'description = Some description\n'
             'long_description_content_type = text/something\n'
             'long_description = file: README\n'
             'name = fake_name\n'
-            'keywords = one, two\n'
+            'keywords = one, two  # comment\n'
             'provides = package, package.sub\n'
             'license = otherlic\n'
-            'download_url = http://test.test.com/test/\n'
+            'download_url = http://test.test.com/test/#url-fragment\n'
             'maintainer_email = test@test.com\n',
         )
 
@@ -146,7 +146,7 @@ class TestMetadata:
             assert metadata.license == 'BSD 3-Clause License'
             assert metadata.name == 'fake_name'
             assert metadata.keywords == ['one', 'two']
-            assert metadata.download_url == 'http://test.test.com/test/'
+            assert metadata.download_url == 'http://test.test.com/test/#url-fragment'
             assert metadata.maintainer_email == 'test@test.com'
 
     def test_license_cfg(self, tmpdir):
