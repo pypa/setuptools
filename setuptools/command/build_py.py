@@ -256,6 +256,7 @@ class _IncludePackageDataAbuse:
     """Inform users that package or module is included as 'data file'"""
 
     MESSAGE = """\
+    Installing {importable!r} as data is deprecated, please list it in `packages`.
     !!\n\n
     ############################
     # Package would be ignored #
@@ -266,7 +267,9 @@ class _IncludePackageDataAbuse:
     therefore is considered deprecated).
 
     Please make sure that {importable!r} is included as a package by using
-    setuptools' `packages` configuration field or the proper discovery methods.
+    setuptools' `packages` configuration field or the proper discovery methods
+    (for example by using `find_namespace_packages(...)`/`find_namespace:`
+    instead of `find_packages(...)`/`find:`).
 
     You can read more about "package discovery" and "data files" on setuptools
     documentation page.

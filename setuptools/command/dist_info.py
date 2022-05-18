@@ -54,7 +54,8 @@ def _version(version: str) -> str:
     try:
         return str(packaging.version.Version(v)).replace("-", "_")
     except packaging.version.InvalidVersion:
-        msg = f"""!!\n\n
+        msg = f"""Invalid version: {version!r}.
+        !!\n\n
         ###################
         # Invalid version #
         ###################

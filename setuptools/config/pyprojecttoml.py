@@ -418,7 +418,7 @@ class _ExperimentalProjectMetadata(UserWarning):
 
 
 class _InvalidFile(UserWarning):
-    """Inform users that the given `pyproject.toml` is experimental:
+    """The given `pyproject.toml` file is invalid and would be ignored.
     !!\n\n
     ############################
     # Invalid `pyproject.toml` #
@@ -436,5 +436,4 @@ class _InvalidFile(UserWarning):
     @classmethod
     def message(cls):
         from inspect import cleandoc
-        msg = "\n".join(cls.__doc__.splitlines()[1:])
-        return cleandoc(msg)
+        return cleandoc(cls.__doc__)

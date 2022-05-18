@@ -341,7 +341,10 @@ _PREVIOUSLY_DEFINED = {
 
 
 class _WouldIgnoreField(UserWarning):
-    """Inform users that ``pyproject.toml`` would overwrite previously defined metadata:
+    """Inform users that ``pyproject.toml`` would overwrite previous metadata."""
+
+    MESSAGE = """\
+    {field!r} defined outside of `pyproject.toml` would be ignored.
     !!\n\n
     ##########################################################################
     # configuration would be ignored/result in error due to `pyproject.toml` #
@@ -369,5 +372,4 @@ class _WouldIgnoreField(UserWarning):
     @classmethod
     def message(cls, field, value):
         from inspect import cleandoc
-        msg = "\n".join(cls.__doc__.splitlines()[1:])
-        return cleandoc(msg.format(field=field, value=value))
+        return cleandoc(cls.MESSAGE.format(field=field, value=value))
