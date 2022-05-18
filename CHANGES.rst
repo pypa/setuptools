@@ -1,3 +1,12 @@
+v62.3.2
+-------
+
+
+Misc
+^^^^
+* #3328: Include a first line summary to some of the existing multi-line warnings.
+
+
 v62.3.1
 -------
 
