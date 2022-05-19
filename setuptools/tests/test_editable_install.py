@@ -16,7 +16,6 @@ from path import Path as _Path
 
 from . import contexts, namespaces
 
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
     _LinkTree,
@@ -516,6 +515,12 @@ class TestOverallBehaviour:
 class TestLinkTree:
     FILES = deepcopy(TestOverallBehaviour.EXAMPLES["src-layout"])
     FILES["pyproject.toml"] += dedent("""\
+        [tool.setuptools]
+        # Temporary workaround: both `include-package-data` and `package-data` configs
+        # can be removed after #3260 is fixed.
+        include-package-data = false
+        package-data = {"*" = ["*.txt"]}
+
         [tool.setuptools.packages.find]
         where = ["src"]
         exclude = ["*.subpackage*"]
@@ -537,19 +542,15 @@ class TestLinkTree:
             unpacked.mkdir()
 
             make_tree = _LinkTree(dist, name, build, tmp)
-            with pytest.warns(SetuptoolsDeprecationWarning, match="would be ignored"):
-                # Transitional warning related to #3260, can be removed after is fixed
-                make_tree(unpacked)
+            make_tree(unpacked)
 
             mod1 = next(build.glob("**/mod1.py"))
             expected = tmp_path / "src/mypkg/mod1.py"
             assert_link_to(mod1, expected)
 
-            with pytest.raises(AssertionError):  # ignore problems caused by #3260
-                # Ensure excluded packages don't show up
-                assert next(build.glob("**/subpackage"), None) is None
-                assert next(build.glob("**/mod2.py"), None) is None
-                assert next(build.glob("**/resource_file.txt"), None) is None
+            assert next(build.glob("**/subpackage"), None) is None
+            assert next(build.glob("**/mod2.py"), None) is None
+            assert next(build.glob("**/resource_file.txt"), None) is None
 
             assert next(build.glob("**/resource.not_in_manifest"), None) is None
 
@@ -568,8 +569,7 @@ class TestLinkTree:
             print(ex)
         """
         out = venv.run(["python", "-c", dedent(cmd_import_error)])
-        with pytest.raises(AssertionError):  # ignore problems caused by #3260
-            assert b"cannot import name 'subpackage'" in out
+        assert b"cannot import name 'subpackage'" in out
 
         # Ensure resource files excluded from distribution are not reachable
         cmd_get_resource = """\
