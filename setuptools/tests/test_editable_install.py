@@ -16,6 +16,7 @@ from path import Path as _Path
 
 from . import contexts, namespaces
 
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
     _LinkTree,
@@ -536,7 +537,9 @@ class TestLinkTree:
             unpacked.mkdir()
 
             make_tree = _LinkTree(dist, name, build, tmp)
-            make_tree(unpacked)
+            with pytest.warns(SetuptoolsDeprecationWarning, match="would be ignored"):
+                # Transitional warning related to #3260, can be removed after is fixed
+                make_tree(unpacked)
 
             mod1 = next(build.glob("**/mod1.py"))
             expected = tmp_path / "src/mypkg/mod1.py"
