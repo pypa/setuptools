@@ -41,8 +41,10 @@ username:tarek
 password:password
 """
 
+
 class Inputs(object):
     """Fakes user inputs."""
+
     def __init__(self, *answers):
         self.answers = answers
         self.index = 0
@@ -53,8 +55,10 @@ class Inputs(object):
         finally:
             self.index += 1
 
+
 class FakeOpener(object):
     """Fakes a PyPI server"""
+
     def __init__(self):
         self.reqs = []
 
@@ -71,17 +75,18 @@ class FakeOpener(object):
     def getheader(self, name, default=None):
         return {
             'content-type': 'text/plain; charset=utf-8',
-            }.get(name.lower(), default)
+        }.get(name.lower(), default)
 
 
 class RegisterTestCase(BasePyPIRCCommandTestCase):
-
     def setUp(self):
         super(RegisterTestCase, self).setUp()
         # patching the password prompt
         self._old_getpass = getpass.getpass
+
         def _getpass(prompt):
             return 'password'
+
         getpass.getpass = _getpass
         urllib.request._opener = None
         self.old_opener = urllib.request.build_opener
@@ -95,9 +100,13 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
 
     def _get_cmd(self, metadata=None):
         if metadata is None:
-            metadata = {'url': 'xxx', 'author': 'xxx',
-                        'author_email': 'xxx',
-                        'name': 'xxx', 'version': 'xxx'}
+            metadata = {
+                'url': 'xxx',
+                'author': 'xxx',
+                'author_email': 'xxx',
+                'name': 'xxx',
+                'version': 'xxx',
+            }
         pkg_info, dist = self.create_dist(**metadata)
         return register(dist)
 
@@ -143,6 +152,7 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         # if we run the command again
         def _no_way(prompt=''):
             raise AssertionError(prompt)
+
         register_module.input = _no_way
 
         cmd.show_response = 1
@@ -154,8 +164,8 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         req1 = dict(self.conn.reqs[0].headers)
         req2 = dict(self.conn.reqs[1].headers)
 
-        self.assertEqual(req1['Content-length'], '1374')
-        self.assertEqual(req2['Content-length'], '1374')
+        self.assertEqual(req1['Content-length'], '1359')
+        self.assertEqual(req2['Content-length'], '1359')
         self.assertIn(b'xxx', self.conn.reqs[1].data)
 
     def test_password_not_in_file(self):
@@ -220,10 +230,14 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         self.assertRaises(DistutilsSetupError, cmd.run)
 
         # metadata are OK but long_description is broken
-        metadata = {'url': 'xxx', 'author': 'xxx',
-                    'author_email': 'éxéxé',
-                    'name': 'xxx', 'version': 'xxx',
-                    'long_description': 'title\n==\n\ntext'}
+        metadata = {
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'éxéxé',
+            'name': 'xxx',
+            'version': 'xxx',
+            'long_description': 'title\n==\n\ntext',
+        }
 
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
@@ -255,11 +269,15 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
             del register_module.input
 
         # and finally a Unicode test (bug #12114)
-        metadata = {'url': 'xxx', 'author': '\u00c9ric',
-                    'author_email': 'xxx', 'name': 'xxx',
-                    'version': 'xxx',
-                    'description': 'Something about esszet \u00df',
-                    'long_description': 'More things about esszet \u00df'}
+        metadata = {
+            'url': 'xxx',
+            'author': '\u00c9ric',
+            'author_email': 'xxx',
+            'name': 'xxx',
+            'version': 'xxx',
+            'description': 'Something about esszet \u00df',
+            'long_description': 'More things about esszet \u00df',
+        }
 
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
@@ -275,10 +293,14 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
     @unittest.skipUnless(docutils is not None, 'needs docutils')
     def test_register_invalid_long_description(self):
         description = ':funkie:`str`'  # mimic Sphinx-specific markup
-        metadata = {'url': 'xxx', 'author': 'xxx',
-                    'author_email': 'xxx',
-                    'name': 'xxx', 'version': 'xxx',
-                    'long_description': description}
+        metadata = {
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'xxx',
+            'name': 'xxx',
+            'version': 'xxx',
+            'long_description': description,
+        }
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
         cmd.strict = True
@@ -320,6 +342,7 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(RegisterTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

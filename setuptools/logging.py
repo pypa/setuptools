@@ -12,7 +12,7 @@ def configure():
     """
     Configure logging to emit warning and above to stderr
     and everything else to stdout. This behavior is provided
-    for compatibilty with distutils.log but may change in
+    for compatibility with distutils.log but may change in
     the future.
     """
     err_handler = logging.StreamHandler()

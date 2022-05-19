@@ -17,10 +17,7 @@ except ImportError:
 HERE = os.path.dirname(__file__)
 
 
-class CheckTestCase(support.LoggingSilencer,
-                    support.TempdirManager,
-                    unittest.TestCase):
-
+class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.TestCase):
     def _run(self, metadata=None, cwd=None, **options):
         if metadata is None:
             metadata = {}
@@ -43,14 +40,18 @@ class CheckTestCase(support.LoggingSilencer,
         # by default, check is checking the metadata
         # should have some warnings
         cmd = self._run()
-        self.assertEqual(cmd._warnings, 2)
+        self.assertEqual(cmd._warnings, 1)
 
         # now let's add the required fields
         # and run it again, to make sure we don't get
         # any warning anymore
-        metadata = {'url': 'xxx', 'author': 'xxx',
-                    'author_email': 'xxx',
-                    'name': 'xxx', 'version': 'xxx'}
+        metadata = {
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'xxx',
+            'name': 'xxx',
+            'version': 'xxx',
+        }
         cmd = self._run(metadata)
         self.assertEqual(cmd._warnings, 0)
 
@@ -63,11 +64,15 @@ class CheckTestCase(support.LoggingSilencer,
         self.assertEqual(cmd._warnings, 0)
 
         # now a test with non-ASCII characters
-        metadata = {'url': 'xxx', 'author': '\u00c9ric',
-                    'author_email': 'xxx', 'name': 'xxx',
-                    'version': 'xxx',
-                    'description': 'Something about esszet \u00df',
-                    'long_description': 'More things about esszet \u00df'}
+        metadata = {
+            'url': 'xxx',
+            'author': '\u00c9ric',
+            'author_email': 'xxx',
+            'name': 'xxx',
+            'version': 'xxx',
+            'description': 'Something about esszet \u00df',
+            'long_description': 'More things about esszet \u00df',
+        }
         cmd = self._run(metadata)
         self.assertEqual(cmd._warnings, 0)
 
@@ -75,23 +80,25 @@ class CheckTestCase(support.LoggingSilencer,
         for kind in ("author", "maintainer"):
             # ensure no warning when author_email or maintainer_email is given
             # (the spec allows these fields to take the form "Name <email>")
-            metadata = {'url': 'xxx',
-                        kind + '_email': 'Name <name@email.com>',
-                        'name': 'xxx', 'version': 'xxx'}
+            metadata = {
+                'url': 'xxx',
+                kind + '_email': 'Name <name@email.com>',
+                'name': 'xxx',
+                'version': 'xxx',
+            }
             cmd = self._run(metadata)
             self.assertEqual(cmd._warnings, 0)
 
-            # the check should warn if only email is given and it does not
-            # contain the name
+            # the check should not warn if only email is given
             metadata[kind + '_email'] = 'name@email.com'
             cmd = self._run(metadata)
-            self.assertEqual(cmd._warnings, 1)
+            self.assertEqual(cmd._warnings, 0)
 
-            # the check should warn if only the name is given
+            # the check should not warn if only the name is given
             metadata[kind] = "Name"
             del metadata[kind + '_email']
             cmd = self._run(metadata)
-            self.assertEqual(cmd._warnings, 1)
+            self.assertEqual(cmd._warnings, 0)
 
     @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_document(self):
@@ -118,12 +125,20 @@ class CheckTestCase(support.LoggingSilencer,
         self.assertEqual(cmd._warnings, 1)
 
         # let's see if we have an error with strict=1
-        metadata = {'url': 'xxx', 'author': 'xxx',
-                    'author_email': 'xxx',
-                    'name': 'xxx', 'version': 'xxx',
-                    'long_description': broken_rest}
-        self.assertRaises(DistutilsSetupError, self._run, metadata,
-                          **{'strict': 1, 'restructuredtext': 1})
+        metadata = {
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'xxx',
+            'name': 'xxx',
+            'version': 'xxx',
+            'long_description': broken_rest,
+        }
+        self.assertRaises(
+            DistutilsSetupError,
+            self._run,
+            metadata,
+            **{'strict': 1, 'restructuredtext': 1}
+        )
 
         # and non-broken rest, including a non-ASCII character to test #12114
         metadata['long_description'] = 'title\n=====\n\ntest \u00df'
@@ -140,22 +155,30 @@ class CheckTestCase(support.LoggingSilencer,
         # Don't fail if there is a `code` or `code-block` directive
 
         example_rst_docs = []
-        example_rst_docs.append(textwrap.dedent("""\
+        example_rst_docs.append(
+            textwrap.dedent(
+                """\
             Here's some code:
 
             .. code:: python
 
                 def foo():
                     pass
-            """))
-        example_rst_docs.append(textwrap.dedent("""\
+            """
+            )
+        )
+        example_rst_docs.append(
+            textwrap.dedent(
+                """\
             Here's some code:
 
             .. code-block:: python
 
                 def foo():
                     pass
-            """))
+            """
+            )
+        )
 
         for rest_with_code in example_rst_docs:
             pkg_info, dist = self.create_dist(long_description=rest_with_code)
@@ -167,19 +190,20 @@ class CheckTestCase(support.LoggingSilencer,
             else:
                 self.assertEqual(len(msgs), 1)
                 self.assertEqual(
-                    str(msgs[0][1]),
-                    'Cannot analyze code. Pygments package not found.'
+                    str(msgs[0][1]), 'Cannot analyze code. Pygments package not found.'
                 )
 
     def test_check_all(self):
 
         metadata = {'url': 'xxx', 'author': 'xxx'}
-        self.assertRaises(DistutilsSetupError, self._run,
-                          {}, **{'strict': 1,
-                                 'restructuredtext': 1})
+        self.assertRaises(
+            DistutilsSetupError, self._run, {}, **{'strict': 1, 'restructuredtext': 1}
+        )
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(CheckTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

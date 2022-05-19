@@ -16,6 +16,8 @@ from types import MappingProxyType
 from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple,
                     Type, Union)
 
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+
 if TYPE_CHECKING:
     from setuptools._importlib import metadata  # noqa
     from setuptools.dist import Distribution  # noqa
@@ -75,6 +77,12 @@ def _apply_tool_table(dist: "Distribution", config: dict, filename: _Path):
 
     for field, value in tool_table.items():
         norm_key = json_compatible_key(field)
+
+        if norm_key in TOOL_TABLE_DEPRECATIONS:
+            suggestion = TOOL_TABLE_DEPRECATIONS[norm_key]
+            msg = f"The parameter `{norm_key}` is deprecated, {suggestion}"
+            warnings.warn(msg, SetuptoolsDeprecationWarning)
+
         norm_key = TOOL_TABLE_RENAMES.get(norm_key, norm_key)
         _set_config(dist, norm_key, value)
 
@@ -171,21 +179,7 @@ def _people(dist: "Distribution", val: List[dict], _root_dir: _Path, kind: str):
 
 
 def _project_urls(dist: "Distribution", val: dict, _root_dir):
-    special = {"downloadurl": "download_url", "homepage": "url"}
-    for key, url in val.items():
-        norm_key = json_compatible_key(key).replace("_", "")
-        _set_config(dist, special.get(norm_key, key), url)
-    # If `homepage` is missing, distutils will warn the following message:
-    #     "warning: check: missing required meta-data: url"
-    # In the context of PEP 621, users might ask themselves: "which url?".
-    # Let's add a warning before distutils check to help users understand the problem:
-    if not dist.metadata.url:
-        msg = (
-            "Missing `Homepage` url.\nIt is advisable to link some kind of reference "
-            "for your project (e.g. source code or documentation).\n"
-        )
-        _logger.warning(msg)
-    _set_config(dist, "project_urls", val.copy())
+    _set_config(dist, "project_urls", val)
 
 
 def _python_requires(dist: "Distribution", val: dict, _root_dir):
@@ -195,8 +189,10 @@ def _python_requires(dist: "Distribution", val: dict, _root_dir):
 
 
 def _dependencies(dist: "Distribution", val: list, _root_dir):
-    existing = getattr(dist, "install_requires", [])
-    _set_config(dist, "install_requires", existing + val)
+    if getattr(dist, "install_requires", []):
+        msg = "`install_requires` overwritten in `pyproject.toml` (dependencies)"
+        warnings.warn(msg)
+    _set_config(dist, "install_requires", val)
 
 
 def _optional_dependencies(dist: "Distribution", val: dict, _root_dir):
@@ -319,6 +315,9 @@ PYPROJECT_CORRESPONDENCE: Dict[str, _Correspondence] = {
 }
 
 TOOL_TABLE_RENAMES = {"script_files": "scripts"}
+TOOL_TABLE_DEPRECATIONS = {
+    "namespace_packages": "consider using implicit namespaces instead (PEP 420)."
+}
 
 SETUPTOOLS_PATCHES = {"long_description_content_type", "project_urls",
                       "provides_extras", "license_file", "license_files"}
@@ -342,7 +341,10 @@ _PREVIOUSLY_DEFINED = {
 
 
 class _WouldIgnoreField(UserWarning):
-    """Inform users that ``pyproject.toml`` would overwrite previously defined metadata:
+    """Inform users that ``pyproject.toml`` would overwrite previous metadata."""
+
+    MESSAGE = """\
+    {field!r} defined outside of `pyproject.toml` would be ignored.
     !!\n\n
     ##########################################################################
     # configuration would be ignored/result in error due to `pyproject.toml` #
@@ -352,7 +354,7 @@ class _WouldIgnoreField(UserWarning):
 
     `{field} = {value!r}`
 
-    According to the spec (see the link bellow), however, setuptools CANNOT
+    According to the spec (see the link below), however, setuptools CANNOT
     consider this value unless {field!r} is listed as `dynamic`.
 
     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
@@ -370,5 +372,4 @@ class _WouldIgnoreField(UserWarning):
     @classmethod
     def message(cls, field, value):
         from inspect import cleandoc
-        msg = "\n".join(cls.__doc__.splitlines()[1:])
-        return cleandoc(msg.format(field=field, value=value))
+        return cleandoc(cls.MESSAGE.format(field=field, value=value))

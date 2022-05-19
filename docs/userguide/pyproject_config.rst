@@ -10,7 +10,7 @@ Configuring setuptools using ``pyproject.toml`` files
    Support for declaring :doc:`project metadata
    <PyPUG:specifications/declaring-project-metadata>` or configuring
    ``setuptools`` via ``pyproject.toml`` files is still experimental and might
-   change (or be removed) in future releases.
+   change in future releases.
 
 .. important::
    For the time being, ``pip`` still might require a ``setup.py`` file
@@ -94,7 +94,7 @@ Key                       Value Type (TOML)           Notes
 ``py-modules``            array                       See tip below
 ``packages``              array or ``find`` directive See tip below
 ``package-dir``           table/inline-table          Used when explicitly listing ``packages``
-``namespace-packages``    array                       Not necessary if you use :pep:`420`
+``namespace-packages``    array                       **Deprecated** - Use implicit namespaces instead (:pep:`420`)
 ``package-data``          table/inline-table          See :doc:`/userguide/datafiles`
 ``include-package-data``  boolean                     ``True`` by default
 ``exclude-package-data``  table/inline-table

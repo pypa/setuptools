@@ -12,6 +12,17 @@ def disable_importlib_metadata_finder(metadata):
         import importlib_metadata
     except ImportError:
         return
+    except AttributeError:
+        import warnings
+
+        msg = (
+            "`importlib-metadata` version is incompatible with `setuptools`.\n"
+            "This problem is likely to be solved by installing an updated version of "
+            "`importlib-metadata`."
+        )
+        warnings.warn(msg)  # Ensure a descriptive message is shown.
+        raise  # This exception can be suppressed by _distutils_hack
+
     if importlib_metadata is metadata:
         return
     to_remove = [

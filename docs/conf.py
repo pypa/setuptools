@@ -10,12 +10,20 @@ link_files = {
         ),
         replace=[
             dict(
-                pattern=r'(?<!\w)PR #(?P<pull>\d+)',
-                url='{package_url}/pull/{pull}',
+                pattern=r'(Issue #|\B#)(?P<issue>\d+)',
+                url='{package_url}/issues/{issue}',
             ),
             dict(
-                pattern=r'(?<!\w)(Issue )?#(?P<issue>\d+)',
-                url='{package_url}/issues/{issue}',
+                pattern=r'(?m:^((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n)',
+                with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
+            ),
+            dict(
+                pattern=r'PEP[- ](?P<pep_number>\d+)',
+                url='https://peps.python.org/pep-{pep_number:0>4}/',
+            ),
+            dict(
+                pattern=r'(?<!\w)PR #(?P<pull>\d+)',
+                url='{package_url}/pull/{pull}',
             ),
             dict(
                 pattern=r'BB Pull Request ?#(?P<bb_pull_request>\d+)',
@@ -58,10 +66,6 @@ link_files = {
                 url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
             ),
             dict(
-                pattern=r'(?<![`/\w])PEP[- ](?P<pep_number>\d+)',
-                url='https://www.python.org/dev/peps/pep-{pep_number:0>4}/',
-            ),
-            dict(
                 pattern=r'setuptools_svn #(?P<setuptools_svn>\d+)',
                 url='{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
             ),
@@ -72,10 +76,6 @@ link_files = {
             dict(
                 pattern=r'pypa/(?P<commit_repo>[\-\.\w]+)@(?P<commit_number>[\da-f]+)',
                 url='{GH}/pypa/{commit_repo}/commit/{commit_number}',
-            ),
-            dict(
-                pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
-                with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
             ),
         ],
     ),
@@ -103,7 +103,7 @@ github_repo_slug = f'{github_repo_org}/{github_repo_name}'
 github_repo_url = f'{github_url}/{github_repo_slug}'
 github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
-    'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
+    'user': (f'{github_sponsors_url}/%s', '@%s'),  # noqa: WPS323
     'pypi': ('https://pypi.org/project/%s', '%s'),  # noqa: WPS323
     'wiki': ('https://wikipedia.org/wiki/%s', '%s'),  # noqa: WPS323
 }
@@ -127,6 +127,13 @@ html_theme_options = {
         "color-brand-primary": "#E5B62F",  # "yellow"
         "color-brand-content": "#E5B62F",
     },
+}
+
+# Redirect old docs so links and references in the ecosystem don't break
+extensions += ['sphinx_reredirects']
+redirects = {
+    "userguide/keywords": "/deprecated/changed_keywords.html",
+    "userguide/commands": "/deprecated/commands.html",
 }
 
 # Add support for inline tabs
@@ -172,7 +179,6 @@ nitpick_ignore = [
 
 # Allow linking objects on other Sphinx sites seamlessly:
 intersphinx_mapping.update(
-    python2=('https://docs.python.org/2', None),
     python=('https://docs.python.org/3', None),
 )
 

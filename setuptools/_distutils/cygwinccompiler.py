@@ -56,9 +56,14 @@ from subprocess import check_output
 
 from distutils.unixccompiler import UnixCCompiler
 from distutils.file_util import write_file
-from distutils.errors import (DistutilsExecError, CCompilerError,
-        CompileError, UnknownFileError)
+from distutils.errors import (
+    DistutilsExecError,
+    CCompilerError,
+    CompileError,
+    UnknownFileError,
+)
 from distutils.version import LooseVersion, suppress_known_deprecation
+
 
 def get_msvcr():
     """Include the appropriate MSVC runtime library if Python was built
@@ -66,7 +71,7 @@ def get_msvcr():
     """
     msc_pos = sys.version.find('MSC v.')
     if msc_pos != -1:
-        msc_ver = sys.version[msc_pos+6:msc_pos+10]
+        msc_ver = sys.version[msc_pos + 6 : msc_pos + 10]
         if msc_ver == '1300':
             # MSVC 7.0
             return ['msvcr70']
@@ -90,20 +95,22 @@ def get_msvcr():
             return ['msvcr120']
         elif 1900 <= int(msc_ver) < 2000:
             # VS2015 / MSVC 14.0
-           return ['ucrt', 'vcruntime140'] 
+            return ['ucrt', 'vcruntime140']
         else:
             raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 
 
 class CygwinCCompiler(UnixCCompiler):
-    """ Handles the Cygwin port of the GNU C compiler to Windows.
-    """
+    """Handles the Cygwin port of the GNU C compiler to Windows."""
+
     compiler_type = 'cygwin'
     obj_extension = ".o"
     static_lib_extension = ".a"
-    shared_lib_extension = ".dll"
+    shared_lib_extension = ".dll.a"
+    dylib_lib_extension = ".dll"
     static_lib_format = "lib%s%s"
-    shared_lib_format = "%s%s"
+    shared_lib_format = "lib%s%s"
+    dylib_lib_format = "cyg%s%s"
     exe_extension = ".exe"
 
     def __init__(self, verbose=0, dry_run=0, force=0):
@@ -111,14 +118,13 @@ class CygwinCCompiler(UnixCCompiler):
         super().__init__(verbose, dry_run, force)
 
         status, details = check_config_h()
-        self.debug_print("Python's GCC status: %s (details: %s)" %
-                         (status, details))
+        self.debug_print("Python's GCC status: %s (details: %s)" % (status, details))
         if status is not CONFIG_H_OK:
             self.warn(
                 "Python's pyconfig.h doesn't seem to support your compiler. "
                 "Reason: %s. "
-                "Compiling may fail because of undefined preprocessor macros."
-                % details)
+                "Compiling may fail because of undefined preprocessor macros." % details
+            )
 
         self.cc = os.environ.get('CC', 'gcc')
         self.cxx = os.environ.get('CXX', 'g++')
@@ -126,12 +132,13 @@ class CygwinCCompiler(UnixCCompiler):
         self.linker_dll = self.cc
         shared_option = "-shared"
 
-        self.set_executables(compiler='%s -mcygwin -O -Wall' % self.cc,
-                             compiler_so='%s -mcygwin -mdll -O -Wall' % self.cc,
-                             compiler_cxx='%s -mcygwin -O -Wall' % self.cxx,
-                             linker_exe='%s -mcygwin' % self.cc,
-                             linker_so=('%s -mcygwin %s' %
-                                        (self.linker_dll, shared_option)))
+        self.set_executables(
+            compiler='%s -mcygwin -O -Wall' % self.cc,
+            compiler_so='%s -mcygwin -mdll -O -Wall' % self.cc,
+            compiler_cxx='%s -mcygwin -O -Wall' % self.cxx,
+            linker_exe='%s -mcygwin' % self.cc,
+            linker_so=('%s -mcygwin %s' % (self.linker_dll, shared_option)),
+        )
 
         # Include the appropriate MSVC runtime library if Python was built
         # with MSVC 7.0 or later.
@@ -160,17 +167,30 @@ class CygwinCCompiler(UnixCCompiler):
                 self.spawn(["windres", "-i", src, "-o", obj])
             except DistutilsExecError as msg:
                 raise CompileError(msg)
-        else: # for other files use the C-compiler
+        else:  # for other files use the C-compiler
             try:
-                self.spawn(self.compiler_so + cc_args + [src, '-o', obj] +
-                           extra_postargs)
+                self.spawn(
+                    self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs
+                )
             except DistutilsExecError as msg:
                 raise CompileError(msg)
 
-    def link(self, target_desc, objects, output_filename, output_dir=None,
-             libraries=None, library_dirs=None, runtime_library_dirs=None,
-             export_symbols=None, debug=0, extra_preargs=None,
-             extra_postargs=None, build_temp=None, target_lang=None):
+    def link(
+        self,
+        target_desc,
+        objects,
+        output_filename,
+        output_dir=None,
+        libraries=None,
+        library_dirs=None,
+        runtime_library_dirs=None,
+        export_symbols=None,
+        debug=0,
+        extra_preargs=None,
+        extra_postargs=None,
+        build_temp=None,
+        target_lang=None,
+    ):
         """Link the objects."""
         # use separate copies, so we can modify the lists
         extra_preargs = copy.copy(extra_preargs or [])
@@ -182,8 +202,9 @@ class CygwinCCompiler(UnixCCompiler):
 
         # handle export symbols by creating a def-file
         # with executables this only works with gcc/ld as linker
-        if ((export_symbols is not None) and
-            (target_desc != self.EXECUTABLE or self.linker_dll == "gcc")):
+        if (export_symbols is not None) and (
+            target_desc != self.EXECUTABLE or self.linker_dll == "gcc"
+        ):
             # (The linker doesn't do anything if output is up-to-date.
             # So it would probably better to check if we really need this,
             # but for this we had to insert some unchanged parts of
@@ -195,29 +216,27 @@ class CygwinCCompiler(UnixCCompiler):
             temp_dir = os.path.dirname(objects[0])
             # name of dll to give the helper files the same base name
             (dll_name, dll_extension) = os.path.splitext(
-                os.path.basename(output_filename))
+                os.path.basename(output_filename)
+            )
 
             # generate the filenames for these files
             def_file = os.path.join(temp_dir, dll_name + ".def")
             lib_file = os.path.join(temp_dir, 'lib' + dll_name + ".a")
 
             # Generate .def file
-            contents = [
-                "LIBRARY %s" % os.path.basename(output_filename),
-                "EXPORTS"]
+            contents = ["LIBRARY %s" % os.path.basename(output_filename), "EXPORTS"]
             for sym in export_symbols:
                 contents.append(sym)
-            self.execute(write_file, (def_file, contents),
-                         "writing %s" % def_file)
+            self.execute(write_file, (def_file, contents), "writing %s" % def_file)
 
             # next add options for def-file and to creating import libraries
 
             # doesn't work: bfd_close build\...\libfoo.a: Invalid operation
-            #extra_preargs.extend(["-Wl,--out-implib,%s" % lib_file])
+            # extra_preargs.extend(["-Wl,--out-implib,%s" % lib_file])
             # for gcc/ld the def-file is specified as any object files
             objects.append(def_file)
 
-        #end: if ((export_symbols is not None) and
+        # end: if ((export_symbols is not None) and
         #        (target_desc != self.EXECUTABLE or self.linker_dll == "gcc")):
 
         # who wants symbols and a many times larger output file
@@ -229,12 +248,22 @@ class CygwinCCompiler(UnixCCompiler):
         if not debug:
             extra_preargs.append("-s")
 
-        UnixCCompiler.link(self, target_desc, objects, output_filename,
-                           output_dir, libraries, library_dirs,
-                           runtime_library_dirs,
-                           None, # export_symbols, we do this in our def-file
-                           debug, extra_preargs, extra_postargs, build_temp,
-                           target_lang)
+        UnixCCompiler.link(
+            self,
+            target_desc,
+            objects,
+            output_filename,
+            output_dir,
+            libraries,
+            library_dirs,
+            runtime_library_dirs,
+            None,  # export_symbols, we do this in our def-file
+            debug,
+            extra_preargs,
+            extra_postargs,
+            build_temp,
+            target_lang,
+        )
 
     # -- Miscellaneous methods -----------------------------------------
 
@@ -246,53 +275,56 @@ class CygwinCCompiler(UnixCCompiler):
         for src_name in source_filenames:
             # use normcase to make sure '.rc' is really '.rc' and not '.RC'
             base, ext = os.path.splitext(os.path.normcase(src_name))
-            if ext not in (self.src_extensions + ['.rc','.res']):
-                raise UnknownFileError("unknown file type '%s' (from '%s')" % \
-                      (ext, src_name))
+            if ext not in (self.src_extensions + ['.rc', '.res']):
+                raise UnknownFileError(
+                    "unknown file type '%s' (from '%s')" % (ext, src_name)
+                )
             if strip_dir:
-                base = os.path.basename (base)
+                base = os.path.basename(base)
             if ext in ('.res', '.rc'):
                 # these need to be compiled to object files
-                obj_names.append (os.path.join(output_dir,
-                                              base + ext + self.obj_extension))
+                obj_names.append(
+                    os.path.join(output_dir, base + ext + self.obj_extension)
+                )
             else:
-                obj_names.append (os.path.join(output_dir,
-                                               base + self.obj_extension))
+                obj_names.append(os.path.join(output_dir, base + self.obj_extension))
         return obj_names
+
 
 # the same as cygwin plus some additional parameters
 class Mingw32CCompiler(CygwinCCompiler):
-    """ Handles the Mingw32 port of the GNU C compiler to Windows.
-    """
+    """Handles the Mingw32 port of the GNU C compiler to Windows."""
+
     compiler_type = 'mingw32'
 
     def __init__(self, verbose=0, dry_run=0, force=0):
 
-        super().__init__ (verbose, dry_run, force)
+        super().__init__(verbose, dry_run, force)
 
         shared_option = "-shared"
 
         if is_cygwincc(self.cc):
-            raise CCompilerError(
-                'Cygwin gcc cannot be used with --compiler=mingw32')
+            raise CCompilerError('Cygwin gcc cannot be used with --compiler=mingw32')
 
-        self.set_executables(compiler='%s -O -Wall' % self.cc,
-                             compiler_so='%s -mdll -O -Wall' % self.cc,
-                             compiler_cxx='%s -O -Wall' % self.cxx,
-                             linker_exe='%s' % self.cc,
-                             linker_so='%s %s'
-                                        % (self.linker_dll, shared_option))
+        self.set_executables(
+            compiler='%s -O -Wall' % self.cc,
+            compiler_so='%s -mdll -O -Wall' % self.cc,
+            compiler_cxx='%s -O -Wall' % self.cxx,
+            linker_exe='%s' % self.cc,
+            linker_so='%s %s' % (self.linker_dll, shared_option),
+        )
 
         # Maybe we should also append -mthreads, but then the finished
         # dlls need another dll (mingwm10.dll see Mingw32 docs)
         # (-mthreads: Support thread-safe exception handling on `Mingw32')
 
         # no additional libraries needed
-        self.dll_libraries=[]
+        self.dll_libraries = []
 
         # Include the appropriate MSVC runtime library if Python was built
         # with MSVC 7.0 or later.
         self.dll_libraries = get_msvcr()
+
 
 # Because these compilers aren't configured in Python's pyconfig.h file by
 # default, we should at least warn the user if he is using an unmodified
@@ -301,6 +333,7 @@ class Mingw32CCompiler(CygwinCCompiler):
 CONFIG_H_OK = "ok"
 CONFIG_H_NOTOK = "not ok"
 CONFIG_H_UNCERTAIN = "uncertain"
+
 
 def check_config_h():
     """Check if the current Python installation appears amenable to building
@@ -346,8 +379,8 @@ def check_config_h():
         finally:
             config_h.close()
     except OSError as exc:
-        return (CONFIG_H_UNCERTAIN,
-                "couldn't read '%s': %s" % (fn, exc.strerror))
+        return (CONFIG_H_UNCERTAIN, "couldn't read '%s': %s" % (fn, exc.strerror))
+
 
 def is_cygwincc(cc):
     '''Try to determine if the compiler that would be used is from cygwin.'''

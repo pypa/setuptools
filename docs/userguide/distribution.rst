@@ -1,169 +1,10 @@
-Tagging and "Daily Build" or "Snapshot" Releases
-------------------------------------------------
-
-When a set of related projects are under development, it may be important to
-track finer-grained version increments than you would normally use for e.g.
-"stable" releases.  While stable releases might be measured in dotted numbers
-with alpha/beta/etc. status codes, development versions of a project often
-need to be tracked by revision or build number or even build date.  This is
-especially true when projects in development need to refer to one another, and
-therefore may literally need an up-to-the-minute version of something!
-
-To support these scenarios, ``setuptools`` allows you to "tag" your source and
-egg distributions by adding one or more of the following to the project's
-"official" version identifier:
-
-* A manually-specified pre-release tag, such as "build" or "dev", or a
-  manually-specified post-release tag, such as a build or revision number
-  (``--tag-build=STRING, -bSTRING``)
-
-* An 8-character representation of the build date (``--tag-date, -d``), as
-  a postrelease tag
-
-You can add these tags by adding ``egg_info`` and the desired options to
-the command line ahead of the ``sdist`` or ``bdist`` commands that you want
-to generate a daily build or snapshot for.  See the section below on the
-:ref:`egg_info <egg_info>` command for more details.
-
-(Also, before you release your project, be sure to see the section on
-:ref:`Specifying Your Project's Version` for more information about how pre- and
-post-release tags affect how version numbers are interpreted.  This is
-important in order to make sure that dependency processing tools will know
-which versions of your project are newer than others.)
-
-Finally, if you are creating builds frequently, and either building them in a
-downloadable location or are copying them to a distribution server, you should
-probably also check out the :ref:`rotate <rotate>` command, which lets you automatically
-delete all but the N most-recently-modified distributions matching a glob
-pattern.  So, you can use a command line like::
-
-    setup.py egg_info -rbDEV bdist_egg rotate -m.egg -k3
-
-to build an egg whose version info includes "DEV-rNNNN" (where NNNN is the
-most recent Subversion revision that affected the source tree), and then
-delete any egg files from the distribution directory except for the three
-that were built most recently.
-
-If you have to manage automated builds for multiple packages, each with
-different tagging and rotation policies, you may also want to check out the
-:ref:`alias <alias>` command, which would let each package define an alias like ``daily``
-that would perform the necessary tag, build, and rotate commands.  Then, a
-simpler script or cron job could just run ``setup.py daily`` in each project
-directory.  (And, you could also define sitewide or per-user default versions
-of the ``daily`` alias, so that projects that didn't define their own would
-use the appropriate defaults.)
-
-Generating Source Distributions
--------------------------------
-
-``setuptools`` enhances the distutils' default algorithm for source file
-selection with pluggable endpoints for looking up files to include. If you are
-using a revision control system, and your source distributions only need to
-include files that you're tracking in revision control, use a corresponding
-plugin instead of writing a ``MANIFEST.in`` file. See the section below on
-:ref:`Adding Support for Revision Control Systems` for information on plugins.
-
-If you need to include automatically generated files, or files that are kept in
-an unsupported revision control system, you'll need to create a ``MANIFEST.in``
-file to specify any files that the default file location algorithm doesn't
-catch.  See the distutils documentation for more information on the format of
-the ``MANIFEST.in`` file.
-
-But, be sure to ignore any part of the distutils documentation that deals with
-``MANIFEST`` or how it's generated from ``MANIFEST.in``; setuptools shields you
-from these issues and doesn't work the same way in any case.  Unlike the
-distutils, setuptools regenerates the source distribution manifest file
-every time you build a source distribution, and it builds it inside the
-project's ``.egg-info`` directory, out of the way of your main project
-directory.  You therefore need not worry about whether it is up-to-date or not.
-
-Indeed, because setuptools' approach to determining the contents of a source
-distribution is so much simpler, its ``sdist`` command omits nearly all of
-the options that the distutils' more complex ``sdist`` process requires.  For
-all practical purposes, you'll probably use only the ``--formats`` option, if
-you use any option at all.
-
-
-Making "Official" (Non-Snapshot) Releases
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-When you make an official release, creating source or binary distributions,
-you will need to override the tag settings from ``setup.cfg``, so that you
-don't end up registering versions like ``foobar-0.7a1.dev-r34832``.  This is
-easy to do if you are developing on the trunk and using tags or branches for
-your releases - just make the change to ``setup.cfg`` after branching or
-tagging the release, so the trunk will still produce development snapshots.
-
-Alternately, if you are not branching for releases, you can override the
-default version options on the command line, using something like::
-
-    setup.py egg_info -Db "" sdist bdist_egg
-
-The first part of this command (``egg_info -Db ""``) will override the
-configured tag information, before creating source and binary eggs. Thus, these
-commands will use the plain version from your ``setup.py``, without adding the
-build designation string.
-
-Of course, if you will be doing this a lot, you may wish to create a personal
-alias for this operation, e.g.::
-
-    setup.py alias -u release egg_info -Db ""
-
-You can then use it like this::
-
-    setup.py release sdist bdist_egg
-
-Or of course you can create more elaborate aliases that do all of the above.
-See the sections below on the :ref:`egg_info <egg_info>` and
-:ref:`alias <alias>` commands for more ideas.
-
-Distributing Extensions compiled with Cython
---------------------------------------------
-
-``setuptools`` will detect at build time whether Cython is installed or not.
-If Cython is not found ``setuptools`` will ignore pyx files.
-
-To ensure Cython is available, include Cython in the build-requires section
-of your pyproject.toml::
-
-    [build-system]
-    requires=[..., "cython"]
-
-Built with pip 10 or later, that declaration is sufficient to include Cython
-in the build. For broader compatibility, declare the dependency in your
-setup-requires of setup.cfg::
-
-    [options]
-    setup_requires =
-        ...
-        cython
-
-As long as Cython is present in the build environment, ``setuptools`` includes
-transparent support for building Cython extensions, as
-long as extensions are defined using ``setuptools.Extension``.
-
-If you follow these rules, you can safely list ``.pyx`` files as the source
-of your ``Extension`` objects in the setup script.  If it is, then ``setuptools``
-will use it.
-
-Of course, for this to work, your source distributions must include the C
-code generated by Cython, as well as your original ``.pyx`` files.  This means
-that you will probably want to include current ``.c`` files in your revision
-control system, rebuilding them whenever you check changes in for the ``.pyx``
-source files.  This will ensure that people tracking your project in a revision
-control system will be able to build it even if they don't have Cython
-installed, and that your source releases will be similarly usable with or
-without Cython.
-
-
 .. _Specifying Your Project's Version:
 
 Specifying Your Project's Version
----------------------------------
+=================================
 
 Setuptools can work well with most versioning schemes. Over the years,
-setuptools has tried to closely follow the
-`PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_ scheme, but it
+setuptools has tried to closely follow the :pep:`440` scheme, but it
 also supports legacy versions. There are, however, a
 few special things to watch out for, in order to ensure that setuptools and
 other tools can always tell what version of your package is newer than another
@@ -245,7 +86,106 @@ but here are a few tips that will keep you out of trouble in the corner cases:
 
 Once you've decided on a version numbering scheme for your project, you can
 have setuptools automatically tag your in-development releases with various
-pre- or post-release tags.  See the following sections for more details:
+pre- or post-release tags. See the following section for more details.
 
-* `Tagging and "Daily Build" or "Snapshot" Releases`_
-* The :ref:`egg_info <egg_info>` command
+
+Tagging and "Daily Build" or "Snapshot" Releases
+------------------------------------------------
+
+.. warning::
+   Please note that running ``python setup.py ...`` directly is no longer
+   considered a good practice and that in the future the commands ``egg_info``
+   and ``rotate`` will be deprecated.
+
+   As a result, the instructions and information presented in this section
+   should be considered **transitional** while setuptools don't provide a
+   mechanism for tagging releases.
+
+   Meanwhile, if you can also consider using :pypi:`setuptools-scm` to achieve
+   similar objectives.
+
+
+When a set of related projects are under development, it may be important to
+track finer-grained version increments than you would normally use for e.g.
+"stable" releases.  While stable releases might be measured in dotted numbers
+with alpha/beta/etc. status codes, development versions of a project often
+need to be tracked by revision or build number or even build date.  This is
+especially true when projects in development need to refer to one another, and
+therefore may literally need an up-to-the-minute version of something!
+
+To support these scenarios, ``setuptools`` allows you to "tag" your source and
+egg distributions by adding one or more of the following to the project's
+"official" version identifier:
+
+* A manually-specified pre-release tag, such as "build" or "dev", or a
+  manually-specified post-release tag, such as a build or revision number
+  (``--tag-build=STRING, -bSTRING``)
+
+* An 8-character representation of the build date (``--tag-date, -d``), as
+  a postrelease tag
+
+You can add these tags by adding ``egg_info`` and the desired options to
+the command line ahead of the ``sdist`` or ``bdist`` commands that you want
+to generate a daily build or snapshot for.  See the section below on the
+:ref:`egg_info <egg_info>` command for more details.
+
+(Also, before you release your project, be sure to see the section on
+:ref:`Specifying Your Project's Version` for more information about how pre- and
+post-release tags affect how version numbers are interpreted.  This is
+important in order to make sure that dependency processing tools will know
+which versions of your project are newer than others).
+
+Finally, if you are creating builds frequently, and either building them in a
+downloadable location or are copying them to a distribution server, you should
+probably also check out the :ref:`rotate <rotate>` command, which lets you automatically
+delete all but the N most-recently-modified distributions matching a glob
+pattern.  So, you can use a command line like::
+
+    setup.py egg_info -rbDEV bdist_egg rotate -m.egg -k3
+
+to build an egg whose version info includes "DEV-rNNNN" (where NNNN is the
+most recent Subversion revision that affected the source tree), and then
+delete any egg files from the distribution directory except for the three
+that were built most recently.
+
+If you have to manage automated builds for multiple packages, each with
+different tagging and rotation policies, you may also want to check out the
+:ref:`alias <alias>` command, which would let each package define an alias like ``daily``
+that would perform the necessary tag, build, and rotate commands.  Then, a
+simpler script or cron job could just run ``setup.py daily`` in each project
+directory.  (And, you could also define sitewide or per-user default versions
+of the ``daily`` alias, so that projects that didn't define their own would
+use the appropriate defaults.)
+
+Making "Official" (Non-Snapshot) Releases
+-----------------------------------------
+
+When you make an official release, creating source or binary distributions,
+you will need to override the tag settings from ``setup.cfg``, so that you
+don't end up registering versions like ``foobar-0.7a1.dev-r34832``.  This is
+easy to do if you are developing on the trunk and using tags or branches for
+your releases - just make the change to ``setup.cfg`` after branching or
+tagging the release, so the trunk will still produce development snapshots.
+
+Alternately, if you are not branching for releases, you can override the
+default version options on the command line, using something like::
+
+    setup.py egg_info -Db "" sdist bdist_egg
+
+The first part of this command (``egg_info -Db ""``) will override the
+configured tag information, before creating source and binary eggs. Thus, these
+commands will use the plain version from your ``setup.py``, without adding the
+build designation string.
+
+Of course, if you will be doing this a lot, you may wish to create a personal
+alias for this operation, e.g.::
+
+    setup.py alias -u release egg_info -Db ""
+
+You can then use it like this::
+
+    setup.py release sdist bdist_egg
+
+Or of course you can create more elaborate aliases that do all of the above.
+See the sections below on the :ref:`egg_info <egg_info>` and
+:ref:`alias <alias>` commands for more ideas.

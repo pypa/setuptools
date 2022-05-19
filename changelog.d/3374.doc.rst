@@ -1,0 +1,5 @@
+Added clarification that using ``python setup.py egg_info`` commands to
+manage project versions is only supported in a *transitional* basis, and
+that eventually ``egg_info`` will be deprecated.
+
+Reorganized sections with tips for managing versions.

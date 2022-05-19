@@ -102,7 +102,7 @@ def _read_list_from_msg(msg: "Message", field: str) -> Optional[List[str]]:
 
 def _read_payload_from_msg(msg: "Message") -> Optional[str]:
     value = msg.get_payload().strip()
-    if value == 'UNKNOWN':
+    if value == 'UNKNOWN' or not value:
         return None
     return value
 
@@ -174,7 +174,10 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
     write_field('Version', self.get_version())
-    write_field('Summary', single_line(self.get_description()))
+
+    summary = self.get_description()
+    if summary:
+        write_field('Summary', single_line(summary))
 
     optional_fields = (
         ('Home-page', 'url'),
@@ -190,8 +193,10 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
         if attr_val is not None:
             write_field(field, attr_val)
 
-    license = rfc822_escape(self.get_license())
-    write_field('License', license)
+    license = self.get_license()
+    if license:
+        write_field('License', rfc822_escape(license))
+
     for project_url in self.project_urls.items():
         write_field('Project-URL', '%s, %s' % project_url)
 
@@ -199,7 +204,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if keywords:
         write_field('Keywords', keywords)
 
-    for platform in self.get_platforms():
+    platforms = self.get_platforms() or []
+    for platform in platforms:
         write_field('Platform', platform)
 
     self._write_list(file, 'Classifier', self.get_classifiers())
@@ -222,7 +228,11 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
 
     self._write_list(file, 'License-File', self.license_files or [])
 
-    file.write("\n%s\n\n" % self.get_long_description())
+    long_description = self.get_long_description()
+    if long_description:
+        file.write("\n%s" % long_description)
+        if not long_description.endswith("\n"):
+            file.write("\n")
 
 
 sequence = tuple, list
@@ -270,6 +280,11 @@ def check_nsp(dist, attr, value):
                 nsp,
                 parent,
             )
+        msg = (
+            "The namespace_packages parameter is deprecated, "
+            "consider using implicit namespaces instead (PEP 420)."
+        )
+        warnings.warn(msg, SetuptoolsDeprecationWarning)
 
 
 def check_extras(dist, attr, value):

@@ -1,3 +1,147 @@
+v62.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #3256: Added setuptools.command.build command to match distutils.command.build -- by :user:`isuruf`
+* #3366: Merge with pypa/distutils@75ed79d including reformat using black, fix for Cygwin support (pypa/distutils#139), and improved support for cross compiling (pypa/distutils#144 and pypa/distutils#145).
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3355: Changes to the User Guide's Entry Points page -- by :user:`codeandfire`
+* #3361: Further minor corrections to the Entry Points page -- by :user:`codeandfire`
+* #3363: Rework some documentation pages to de-emphasize ``distutils`` and the history
+  of packaging in the Python ecosystem. The focus of these changes is to make the
+  documentation easier to read for new users.
+* #3364: Update documentation about dependency management, removing mention to
+  the deprecated ``dependency_links`` and adding some small improvements.
+* #3367: Extracted text about automatic resource extraction and the zip-safe flag
+  from ``userguide/miscellaneous`` to ``deprecated/resource_extraction`` and
+  ``deprecated/zip_safe``.
+
+  Extracted text about additional metadata files from
+  ``userguide/miscellaneous`` into the existing ``userguide/extension``
+  document.
+
+  Updated ``userguide/extension`` to better reflect the status of the
+  setuptools project.
+
+  Removed ``userguide/functionalities_rewrite`` (a virtually empty part of the
+  docs).
+
+
+v62.3.4
+-------
+
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3349: Fixed two small issues preventing docs from building locally -- by :user:`codeandfire`
+* #3350: Added note explaining ``package_data`` glob pattern matching for dotfiles -- by :user:`comabrewer`
+* #3358: Clarify the role of the ``package_dir`` configuration.
+
+Misc
+^^^^
+* #3354: Improve clarity in warning about unlisted namespace packages.
+
+
+v62.3.3
+-------
+
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3331: Replaced single backticks with double ones in ``CHANGES.rst`` -- by :user:`codeandfire`
+* #3332: Fixed grammar/typos, modified example directory trees for src-layout and flat-layout -- by :user:`codeandfire`
+* #3335: Changes to code snippets and other examples in the Data Files page of the User Guide -- by :user:`codeandfire`
+
+Misc
+^^^^
+* #3336: Modified ``test_setup_install_includes_dependencies`` to work with custom ``PYTHONPATH`` –- by :user:`hroncok`
+
+
+v62.3.2
+-------
+
+
+Misc
+^^^^
+* #3328: Include a first line summary to some of the existing multi-line warnings.
+
+
+v62.3.1
+-------
+
+
+Misc
+^^^^
+* #3320: Fixed typo which causes ``namespace_packages`` to raise an error instead of
+  warning.
+
+
+v62.3.0
+-------
+
+
+Deprecations
+^^^^^^^^^^^^
+* #3262: Formally added deprecation messages for ``namespace_packages``.
+  The methodology that uses ``pkg_resources`` and ``namespace_packages`` for
+  creating namespaces was already discouraged by the :doc:`setuptools docs
+  </userguide/package_discovery>` and the
+  :doc:`Python Packaging User Guide <PyPUG:guides/packaging-namespace-packages>`,
+  therefore this change just make the deprecation more official.
+  Users can consider migrating to native/implicit namespaces (as introduced in
+  :pep:`420`).
+* #3308: Relying on ``include_package_data`` to ensure sub-packages are automatically
+  added to the build wheel distribution (as "data") is now considered a
+  deprecated practice.
+
+  This behaviour was controversial and caused inconsistencies (#3260).
+
+  Instead, projects are encouraged to properly configure ``packages`` or use
+  discovery tools. General information can be found in :doc:`userguide/package_discovery`.
+
+Changes
+^^^^^^^
+* #1806: Allowed recursive globs (``**``) in ``package_data``. -- by :user:`nullableVoidPtr`
+* #3206: Fixed behaviour when both ``install_requires`` (in ``setup.py``) and
+  ``dependencies`` (in ``pyproject.toml``) are specified.
+  The configuration in ``pyproject.toml`` will take precedence over ``setup.py``
+  (in accordance with PEP 621). A warning was added to inform users.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3307: Added introduction to references/keywords.
+
+  Added deprecation tags to test kwargs.
+
+  Moved userguide/keywords to deprecated section.
+
+  Clarified in deprecated doc what keywords came from distutils and which were added or changed by setuptools.
+
+Misc
+^^^^
+* #3274: Updated version of vendored ``pyparsing`` to 3.0.8 to avoid problems with
+  upcoming deprecation in Python 3.11.
+* #3292: Added warning about incompatibility with old versions of
+  ``importlib-metadata``.
+
+
+v62.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #3299: Optional metadata fields are now truly optional. Includes merge with pypa/distutils@a7cfb56 per pypa/distutils#138.
+
+Misc
+^^^^
+* #3282: Added CI cache for ``setup.cfg`` examples used when testing ``setuptools.config``.
+
+
 v62.1.0
 -------
 
@@ -338,6 +482,17 @@ Changes
 * #3085: Setuptools no longer relies on ``pkg_resources`` for entry point handling.
 * #3098: Bump vendored packaging to 21.3.
 * Removed bootstrap script.
+
+.. warning:: Users trying to install the unmaintained :pypi:`pathlib` backport
+   from PyPI/``sdist``/source code may find problems when using ``setuptools >= 60.9.0``.
+   This happens because during the installation, the unmaintained
+   implementation of ``pathlib`` is loaded and may cause compatibility problems
+   (it does not expose the same public API defined in the Python standard library).
+
+   Whenever possible users should avoid declaring ``pathlib`` as a dependency.
+   An alternative is to pre-build a wheel for ``pathlib`` using a separated
+   virtual environment with an older version of setuptools and install the
+   library directly from the pre-built wheel.
 
 
 v60.8.2

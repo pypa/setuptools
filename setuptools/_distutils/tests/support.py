@@ -15,7 +15,6 @@ from distutils.core import Distribution
 
 
 class LoggingSilencer(object):
-
     def setUp(self):
         super().setUp()
         self.threshold = log.set_threshold(log.FATAL)
@@ -35,13 +34,11 @@ class LoggingSilencer(object):
         if level not in (DEBUG, INFO, WARN, ERROR, FATAL):
             raise ValueError('%s wrong log level' % str(level))
         if not isinstance(msg, str):
-            raise TypeError("msg should be str, not '%.200s'"
-                            % (type(msg).__name__))
+            raise TypeError("msg should be str, not '%.200s'" % (type(msg).__name__))
         self.logs.append((level, msg, args))
 
     def get_logs(self, *levels):
-        return [msg % args for level, msg, args
-                in self.logs if level in levels]
+        return [msg % args for level, msg, args in self.logs if level in levels]
 
     def clear_logs(self):
         self.logs = []
@@ -120,7 +117,6 @@ class DummyCommand:
 
 
 class EnvironGuard(object):
-
     def setUp(self):
         super(EnvironGuard, self).setUp()
         self.old_environ = deepcopy(os.environ)
@@ -151,8 +147,9 @@ def copy_xxmodule_c(directory):
     """
     filename = _get_xxmodule_path()
     if filename is None:
-        raise unittest.SkipTest('cannot find xxmodule.c (test must run in '
-                                'the python build dir)')
+        raise unittest.SkipTest(
+            'cannot find xxmodule.c (test must run in ' 'the python build dir)'
+        )
     shutil.copy(filename, directory)
 
 

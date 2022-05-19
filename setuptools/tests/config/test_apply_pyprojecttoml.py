@@ -6,6 +6,7 @@ To run these tests offline, please have a look on ``./downloads/preload.py``
 import io
 import re
 import tarfile
+from inspect import cleandoc
 from pathlib import Path
 from unittest.mock import Mock
 from zipfile import ZipFile
@@ -14,6 +15,7 @@ import pytest
 from ini2toml.api import Translator
 
 import setuptools  # noqa ensure monkey patch to metadata
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
@@ -211,6 +213,21 @@ def test_license_and_license_files(tmp_path):
     assert dist.metadata.license == "LicenseRef-Proprietary\n"
 
 
+class TestDeprecatedFields:
+    def test_namespace_packages(self, tmp_path):
+        pyproject = tmp_path / "pyproject.toml"
+        config = """
+        [project]
+        name = "myproj"
+        version = "42"
+        [tool.setuptools]
+        namespace-packages = ["myproj.pkg"]
+        """
+        pyproject.write_text(cleandoc(config), encoding="utf-8")
+        with pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages"):
+            pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+
+
 class TestPresetField:
     def pyproject(self, tmp_path, dynamic, extra_content=""):
         content = f"[project]\nname = 'proj'\ndynamic = {dynamic!r}\n"
@@ -257,6 +274,15 @@ class TestPresetField:
         dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
         assert dist_value == value
 
+    def test_warning_overwritten_dependencies(self, tmp_path):
+        src = "[project]\nname='pkg'\nversion='0.1'\ndependencies=['click']\n"
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(src, encoding="utf-8")
+        dist = makedist(tmp_path, install_requires=["wheel"])
+        with pytest.warns(match="`install_requires` overwritten"):
+            dist = pyprojecttoml.apply_configuration(dist, pyproject)
+        assert "wheel" not in dist.install_requires
+
     def test_optional_dependencies_dont_remove_env_markers(self, tmp_path):
         """
         Internally setuptools converts dependencies with markers to "extras".
@@ -298,19 +324,26 @@ class TestMeta:
 def core_metadata(dist) -> str:
     with io.StringIO() as buffer:
         dist.metadata.write_pkg_file(buffer)
-        value = "\n".join(buffer.getvalue().strip().splitlines())
+        pkg_file_txt = buffer.getvalue()
 
+    skip_prefixes = ()
+    skip_lines = set()
     # ---- DIFF NORMALISATION ----
     # PEP 621 is very particular about author/maintainer metadata conversion, so skip
-    value = re.sub(r"^(Author|Maintainer)(-email)?:.*$", "", value, flags=re.M)
+    skip_prefixes += ("Author:", "Author-email:", "Maintainer:", "Maintainer-email:")
     # May be redundant with Home-page
-    value = re.sub(r"^Project-URL: Homepage,.*$", "", value, flags=re.M)
+    skip_prefixes += ("Project-URL: Homepage,", "Home-page:")
     # May be missing in original (relying on default) but backfilled in the TOML
-    value = re.sub(r"^Description-Content-Type:.*$", "", value, flags=re.M)
+    skip_prefixes += ("Description-Content-Type:",)
     # ini2toml can automatically convert `tests_require` to `testing` extra
-    value = value.replace("Provides-Extra: testing\n", "")
+    skip_lines.add("Provides-Extra: testing")
     # Remove empty lines
-    value = re.sub(r"^\s*$", "", value, flags=re.M)
-    value = re.sub(r"^\n", "", value, flags=re.M)
+    skip_lines.add("")
 
-    return value
+    result = []
+    for line in pkg_file_txt.splitlines():
+        if line.startswith(skip_prefixes) or line in skip_lines:
+            continue
+        result.append(line + "\n")
+
+    return "".join(result)

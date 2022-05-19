@@ -62,8 +62,8 @@ boilerplate code in some cases.
 
 Metadata and options are set in the config sections of the same name.
 
-* Keys are the same as the keyword arguments one provides to the ``setup()``
-  function.
+* Keys are the same as the :doc:`keyword arguments </references/keywords>` one
+  provides to the ``setup()`` function.
 
 * Complex values can be written comma-separated or placed one per line
   in *dangling* config values. The following are equivalent:
@@ -90,7 +90,7 @@ Metadata and options are set in the config sections of the same name.
 Using a ``src/`` layout
 =======================
 
-One commonly used package configuration has all the module source code in a
+One commonly used configuration has all the Python source code in a
 subdirectory (often called the ``src/`` layout), like this::
 
     ├── src
@@ -101,7 +101,7 @@ subdirectory (often called the ``src/`` layout), like this::
     └── setup.cfg
 
 You can set up your ``setup.cfg`` to automatically find all your packages in
-the subdirectory like this:
+the subdirectory, using :ref:`package_dir <keyword/package_dir>`, like this:
 
 .. code-block:: ini
 
@@ -116,6 +116,22 @@ the subdirectory like this:
     [options.packages.find]
     where=src
 
+In this example, the value for the :ref:`package_dir <keyword/package_dir>`
+configuration (i.e. ``=src``) is parsed as ``{"": "src"}``.
+The ``""`` key has a special meaning in this context, and indicates that all the
+packages are contained inside the given directory.
+Also note that the value for ``[options.packages.find] where`` matches the
+value associated with ``""`` in the ``package_dir`` dictionary.
+
+..
+   TODO: Add the following tip once the auto-discovery is no longer experimental:
+
+   Starting in version 61, ``setuptools`` can automatically infer the
+   configurations for both ``packages`` and ``package_dir`` for projects using
+   a ``src/`` layout (as long as no value is specified for ``py_modules``).
+   Please see :doc:`package discovery </userguide/package_discovery>` for more
+   details.
+
 Specifying values
 =================
 
@@ -127,7 +143,10 @@ Type names used below:
 * ``list-comma`` - dangling list or string of comma-separated values
 * ``list-semi`` - dangling list or string of semicolon-separated values
 * ``bool`` - ``True`` is 1, yes, true
-* ``dict`` - list-comma where keys are separated from values by ``=``
+* ``dict`` - list-comma where each entry corresponds to a key/value pair,
+  with keys separated from values by ``=``.
+  If an entry starts with ``=``, the key is assumed to be an empty string
+  (e.g. ``=src`` is parsed as ``{"": "src"}``).
 * ``section`` - values are read from a dedicated (sub)section
 
 
@@ -143,15 +162,15 @@ Special directives:
 
 * ``file:`` - Value is read from a list of files and then concatenated
 
-  .. note::
-      The ``file:`` directive is sandboxed and won't reach anything outside
-      the directory containing ``setup.py``.
+  .. important::
+      The ``file:`` directive is sandboxed and won't reach anything outside the
+      project directory (i.e. the directory containing ``setup.cfg``/``pyproject.toml``).
 
 
 Metadata
 --------
 
-.. note::
+.. attention::
     The aliases given below are supported for compatibility reasons,
     but their use is not advised.
 
@@ -210,7 +229,7 @@ packages                 find:, find_namespace:, list-comma                   [#
 package_dir              dict
 package_data             section                                              [#opt-1]_
 exclude_package_data     section
-namespace_packages       list-comma
+namespace_packages       list-comma                                           [#opt-5]_
 py_modules               list-comma                            34.4.0
 data_files               section                              40.6.0          [#opt-4]_
 =======================  ===================================  =============== =========
@@ -242,6 +261,10 @@ data_files               section                              40.6.0          [#
 
 .. [#opt-4] ``data_files`` is deprecated and should be avoided.
    Please check :doc:`/userguide/datafiles` for more information.
+
+.. [#opt-5] ``namespace_packages`` is deprecated in favour of native/implicit
+   namespaces (:pep:`420`). Check :doc:`the Python Packaging User Guide
+   <PyPUG:guides/packaging-namespace-packages>` for more information.
 
 
 Compatibility with other tools

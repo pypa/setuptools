@@ -8,8 +8,8 @@ from distutils.extension import read_setup_file, Extension
 
 from .py38compat import check_warnings
 
-class ExtensionTestCase(unittest.TestCase):
 
+class ExtensionTestCase(unittest.TestCase):
     def test_read_setup_file(self):
         # trying to read a Setup file
         # (sample extracted from the PyGame project)
@@ -21,14 +21,42 @@ class ExtensionTestCase(unittest.TestCase):
 
         # here are the extensions read_setup_file should have created
         # out of the file
-        wanted = ['_arraysurfarray', '_camera', '_numericsndarray',
-                  '_numericsurfarray', 'base', 'bufferproxy', 'cdrom',
-                  'color', 'constants', 'display', 'draw', 'event',
-                  'fastevent', 'font', 'gfxdraw', 'image', 'imageext',
-                  'joystick', 'key', 'mask', 'mixer', 'mixer_music',
-                  'mouse', 'movie', 'overlay', 'pixelarray', 'pypm',
-                  'rect', 'rwobject', 'scrap', 'surface', 'surflock',
-                  'time', 'transform']
+        wanted = [
+            '_arraysurfarray',
+            '_camera',
+            '_numericsndarray',
+            '_numericsurfarray',
+            'base',
+            'bufferproxy',
+            'cdrom',
+            'color',
+            'constants',
+            'display',
+            'draw',
+            'event',
+            'fastevent',
+            'font',
+            'gfxdraw',
+            'image',
+            'imageext',
+            'joystick',
+            'key',
+            'mask',
+            'mixer',
+            'mixer_music',
+            'mouse',
+            'movie',
+            'overlay',
+            'pixelarray',
+            'pypm',
+            'rect',
+            'rwobject',
+            'scrap',
+            'surface',
+            'surflock',
+            'time',
+            'transform',
+        ]
 
         self.assertEqual(names, wanted)
 
@@ -46,10 +74,20 @@ class ExtensionTestCase(unittest.TestCase):
         self.assertEqual(ext.sources, ['file1', 'file2'])
 
         # others arguments have defaults
-        for attr in ('include_dirs', 'define_macros', 'undef_macros',
-                     'library_dirs', 'libraries', 'runtime_library_dirs',
-                     'extra_objects', 'extra_compile_args', 'extra_link_args',
-                     'export_symbols', 'swig_opts', 'depends'):
+        for attr in (
+            'include_dirs',
+            'define_macros',
+            'undef_macros',
+            'library_dirs',
+            'libraries',
+            'runtime_library_dirs',
+            'extra_objects',
+            'extra_compile_args',
+            'extra_link_args',
+            'export_symbols',
+            'swig_opts',
+            'depends',
+        ):
             self.assertEqual(getattr(ext, attr), [])
 
         self.assertEqual(ext.language, None)
@@ -61,11 +99,14 @@ class ExtensionTestCase(unittest.TestCase):
             ext = Extension('name', ['file1', 'file2'], chic=True)
 
         self.assertEqual(len(w.warnings), 1)
-        self.assertEqual(str(w.warnings[0].message),
-                          "Unknown Extension options: 'chic'")
+        self.assertEqual(
+            str(w.warnings[0].message), "Unknown Extension options: 'chic'"
+        )
+
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(ExtensionTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

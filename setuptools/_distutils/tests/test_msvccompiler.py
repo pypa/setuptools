@@ -9,15 +9,14 @@ from distutils.tests import support
 from test.support import run_unittest
 
 
-SKIP_MESSAGE = (None if sys.platform == "win32" else
-                "These tests are only for win32")
+SKIP_MESSAGE = None if sys.platform == "win32" else "These tests are only for win32"
+
 
 @unittest.skipUnless(SKIP_MESSAGE is None, SKIP_MESSAGE)
-class msvccompilerTestCase(support.TempdirManager,
-                            unittest.TestCase):
-
+class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
     def test_no_compiler(self):
         import distutils._msvccompiler as _msvccompiler
+
         # makes sure query_vcvarsall raises
         # a DistutilsPlatformError if the compiler
         # is not found
@@ -27,9 +26,11 @@ class msvccompilerTestCase(support.TempdirManager,
         old_find_vcvarsall = _msvccompiler._find_vcvarsall
         _msvccompiler._find_vcvarsall = _find_vcvarsall
         try:
-            self.assertRaises(DistutilsPlatformError,
-                              _msvccompiler._get_vc_env,
-                             'wont find this version')
+            self.assertRaises(
+                DistutilsPlatformError,
+                _msvccompiler._get_vc_env,
+                'wont find this version',
+            )
         finally:
             _msvccompiler._find_vcvarsall = old_find_vcvarsall
 
@@ -95,14 +96,14 @@ class TestSpawn(unittest.TestCase):
         Concurrent calls to spawn should have consistent results.
         """
         import distutils._msvccompiler as _msvccompiler
+
         compiler = _msvccompiler.MSVCCompiler()
         compiler._paths = "expected"
         inner_cmd = 'import os; assert os.environ["PATH"] == "expected"'
         command = [sys.executable, '-c', inner_cmd]
 
         threads = [
-            CheckThread(target=compiler.spawn, args=[command])
-            for n in range(100)
+            CheckThread(target=compiler.spawn, args=[command]) for n in range(100)
         ]
         for thread in threads:
             thread.start()
@@ -117,6 +118,7 @@ class TestSpawn(unittest.TestCase):
         """
         import distutils._msvccompiler as _msvccompiler
         from distutils import ccompiler
+
         compiler = _msvccompiler.MSVCCompiler()
         compiler._paths = "expected"
 
@@ -124,8 +126,7 @@ class TestSpawn(unittest.TestCase):
             "A spawn without an env argument."
             assert os.environ["PATH"] == "expected"
 
-        with unittest.mock.patch.object(
-                ccompiler.CCompiler, 'spawn', CCompiler_spawn):
+        with unittest.mock.patch.object(ccompiler.CCompiler, 'spawn', CCompiler_spawn):
             compiler.spawn(["n/a"])
 
         assert os.environ.get("PATH") != "expected"
@@ -133,6 +134,7 @@ class TestSpawn(unittest.TestCase):
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(msvccompilerTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())
