@@ -42,7 +42,7 @@ Deprecations
 
 Changes
 ^^^^^^^
-* #1806: Allowed recursive globs (`**`) in `package_data`. -- by :user:`nullableVoidPtr`
+* #1806: Allowed recursive globs (``**``) in ``package_data``. -- by :user:`nullableVoidPtr`
 * #3206: Fixed behaviour when both ``install_requires`` (in ``setup.py``) and
   ``dependencies`` (in ``pyproject.toml``) are specified.
   The configuration in ``pyproject.toml`` will take precedence over ``setup.py``
