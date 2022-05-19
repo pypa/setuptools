@@ -1,0 +1,1 @@
+Replaced single backticks with double ones in ``CHANGES.rst`` -- by :user:`codeandfire`
