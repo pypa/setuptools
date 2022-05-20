@@ -289,7 +289,7 @@ it, consider the following directory::
         │   └── __init__.py
         ├── pkg2
         │   └── __init__.py
-        ├── aditional
+        ├── additional
         │   └── __init__.py
         └── pkg
             └── namespace
