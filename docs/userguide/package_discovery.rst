@@ -158,10 +158,14 @@ directory::
     ├── setup.cfg  # or setup.py
     ├── ...
     └── src/
-        └── mypkg/
+        ├── mypkg1/
+        │   ├── __init__.py
+        │   ├── ...
+        │   └── mymodule1.py
+        └── mypkg2/
             ├── __init__.py
             ├── ...
-            └── mymodule.py
+            └── mymodule2.py
 
 This layout is very handy when you wish to use automatic discovery,
 since you don't have to worry about other Python files or folders in your
@@ -183,10 +187,14 @@ The package folder(s) are placed directly under the project root::
     ├── pyproject.toml
     ├── setup.cfg  # or setup.py
     ├── ...
-    └── mypkg/
+    ├── mypkg1/
+    │   ├── __init__.py
+    │   ├── ...
+    │   └── mymodule1.py
+    └── mypkg2/
         ├── __init__.py
         ├── ...
-        └── mymodule.py
+        └── mymodule2.py
 
 This layout is very practical for using the REPL, but in some situations
 it can be more error-prone (e.g. during tests or if you have a bunch
