@@ -1,11 +1,11 @@
 .. _`package_discovery`:
 
 ========================================
-Package Discovery and Namespace Package
+Package Discovery and Namespace Packages
 ========================================
 
 .. note::
-    a full specification for the keyword supplied to ``setup.cfg`` or
+    a full specification for the keywords supplied to ``setup.cfg`` or
     ``setup.py`` can be found at :doc:`keywords reference </references/keywords>`
 
 .. note::
@@ -15,10 +15,10 @@ Package Discovery and Namespace Package
     new to setuptools, the :doc:`quickstart section <quickstart>` is a good
     place to start.
 
-``Setuptools`` provide powerful tools to handle package discovery, including
-support for namespace package.
+``Setuptools`` provides powerful tools to handle package discovery, including
+support for namespace packages.
 
-Normally, you would specify the package to be included manually in the following manner:
+Normally, you would specify the packages to be included manually in the following manner:
 
 .. tab:: setup.cfg
 
@@ -27,8 +27,9 @@ Normally, you would specify the package to be included manually in the following
         [options]
         #...
         packages =
-            mypkg1
-            mypkg2
+            mypkg
+            mypkg.subpkg1
+            mypkg.subpkg2
 
 .. tab:: setup.py
 
@@ -36,7 +37,7 @@ Normally, you would specify the package to be included manually in the following
 
         setup(
             # ...
-            packages=['mypkg1', 'mypkg2']
+            packages=['mypkg', 'mypkg.subpkg1', 'mypkg.subpkg2']
         )
 
 .. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
@@ -45,12 +46,12 @@ Normally, you would specify the package to be included manually in the following
 
         # ...
         [tool.setuptools]
-        packages = ["mypkg1", "mypkg2"]
+        packages = ["mypkg", "mypkg.subpkg1", "mypkg.subpkg2"]
         # ...
 
 
-If your packages are not in the root of the repository you also need to
-configure ``package_dir``:
+If your packages are not in the root of the repository or do not correspond
+exactly to the directory structure, you also need to configure ``package_dir``:
 
 .. tab:: setup.cfg
 
@@ -60,16 +61,16 @@ configure ``package_dir``:
         # ...
         package_dir =
             = src
-            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+            # directory containing all the packages (e.g.  src/mypkg, src/mypkg/subpkg1, ...)
         # OR
         package_dir =
-            mypkg1 = lib1
-            # mypkg1.mod corresponds to lib1/mod.py
-            # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-            mypkg2 = lib2
-            # mypkg2.mod corresponds to lib2/mod.py
-            mypkg2.subpkg = lib3
-            # mypkg2.subpkg.mod corresponds to lib3/mod.py
+            mypkg = lib
+            # mypkg.module corresponds to lib/module.py
+            mypkg.subpkg1 = lib1
+            # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+            mypkg.subpkg2 = lib2
+            # mypkg.subpkg2.module2 corresponds to lib2/module2.py
+        # ...
 
 .. tab:: setup.py
 
@@ -78,7 +79,7 @@ configure ``package_dir``:
         setup(
             # ...
             package_dir = {"": "src"}
-            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+            # directory containing all the packages (e.g.  src/mypkg, src/mypkg/subpkg1, ...)
         )
 
         # OR
@@ -86,10 +87,9 @@ configure ``package_dir``:
         setup(
             # ...
             package_dir = {
-                "mypkg1": "lib1",   # mypkg1.mod corresponds to lib1/mod.py
-                                    # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-                "mypkg2": "lib2",   # mypkg2.mod corresponds to lib2/mod.py
-                "mypkg2.subpkg": "lib3"  # mypkg2.subpkg.mod corresponds to lib3/mod.py
+                "mypkg": "lib",  # mypkg.module corresponds to lib/mod.py
+                "mypkg.subpkg1": "lib1",  # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+                "mypkg.subpkg2": "lib2"   # mypkg.subpkg2.module2 corresponds to lib2/module2.py
                 # ...
         )
 
@@ -105,19 +105,23 @@ configure ``package_dir``:
         # OR
 
         [tool.setuptools.package-dir]
-        mypkg1 = "lib1"
-            # mypkg1.mod corresponds to lib1/mod.py
-            # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-        mypkg2 = "lib2"
-            # mypkg2.mod corresponds to lib2/mod.py
-        "mypkg2.subpkg" = "lib3"
-            # mypkg2.subpkg.mod corresponds to lib3/mod.py
+        mypkg = "lib"
+        # mypkg.module corresponds to lib/module.py
+        "mypkg.subpkg1" = "lib1"
+        # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+        "mypkg.subpkg2" = "lib2"
+        # mypkg.subpkg2.module2 corresponds to lib2/module2.py
         # ...
 
 This can get tiresome really quickly. To speed things up, you can rely on
 setuptools automatic discovery, or use the provided tools, as explained in
 the following sections.
 
+.. important::
+   Although ``setuptools`` allows developers to create a very complex mapping
+   between directory names and package names, it is better to *keep it simple*
+   and reflect the desired package hierarchy in the directory structure,
+   preserving the same names.
 
 .. _auto-discovery:
 
@@ -161,7 +165,15 @@ directory::
         └── mypkg/
             ├── __init__.py
             ├── ...
-            └── mymodule.py
+            ├── module.py
+            ├── subpkg1/
+            │   ├── __init__.py
+            │   ├── ...
+            │   └── module1.py
+            └── subpkg2/
+                ├── __init__.py
+                ├── ...
+                └── module2.py
 
 This layout is very handy when you wish to use automatic discovery,
 since you don't have to worry about other Python files or folders in your
@@ -186,11 +198,19 @@ The package folder(s) are placed directly under the project root::
     └── mypkg/
         ├── __init__.py
         ├── ...
-        └── mymodule.py
+        ├── module.py
+        ├── subpkg1/
+        │   ├── __init__.py
+        │   ├── ...
+        │   └── module1.py
+        └── subpkg2/
+            ├── __init__.py
+            ├── ...
+            └── module2.py
 
 This layout is very practical for using the REPL, but in some situations
 it can be more error-prone (e.g. during tests or if you have a bunch
-of folders or Python files hanging around your project root)
+of folders or Python files hanging around your project root).
 
 To avoid confusion, file and folder names that are used by popular tools (or
 that correspond to well-known conventions, such as distributing documentation
@@ -271,7 +291,7 @@ Finding simple packages
 -----------------------
 Let's start with the first tool. ``find:`` (``find_packages()``) takes a source
 directory and two lists of package name patterns to exclude and include, and
-then return a list of ``str`` representing the packages it could find. To use
+then returns a list of ``str`` representing the packages it could find. To use
 it, consider the following directory::
 
     mypkg
@@ -281,14 +301,14 @@ it, consider the following directory::
         │   └── __init__.py
         ├── pkg2
         │   └── __init__.py
-        ├── aditional
+        ├── additional
         │   └── __init__.py
         └── pkg
             └── namespace
                 └── __init__.py
 
 To have setuptools to automatically include packages found
-in ``src`` that starts with the name ``pkg`` and not ``additional``:
+in ``src`` that start with the name ``pkg`` and not ``additional``:
 
 .. tab:: setup.cfg
 
@@ -364,8 +384,8 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
 
 Finding namespace packages
 --------------------------
-``setuptools``  provides the ``find_namespace:`` (``find_namespace_packages()``)
-which behaves similarly to ``find:`` but works with namespace package.
+``setuptools``  provides ``find_namespace:`` (``find_namespace_packages()``)
+which behaves similarly to ``find:`` but works with namespace packages.
 
 Before diving in, it is important to have a good understanding of what
 :pep:`namespace packages <420>` are. Here is a quick recap.
@@ -415,7 +435,7 @@ distribution, then you will need to specify:
         [options.packages.find]
         where = src
 
-    ``find:`` won't work because timmins doesn't contain ``__init__.py``
+    ``find:`` won't work because ``timmins`` doesn't contain ``__init__.py``
     directly, instead, you have to use ``find_namespace:``.
 
     You can think of ``find_namespace:`` as identical to ``find:`` except it
@@ -494,15 +514,15 @@ available to your interpreter.
 
 Legacy Namespace Packages
 =========================
-The fact you can create namespace package so effortlessly above is credited
-to `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_. It use to be more
+The fact you can create namespace packages so effortlessly above is credited
+to `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_. It used to be more
 cumbersome to accomplish the same result. Historically, there were two methods
 to create namespace packages. One is the ``pkg_resources`` style supported by
 ``setuptools`` and the other one being ``pkgutils`` style offered by
 ``pkgutils`` module in Python. Both are now considered deprecated despite the
 fact they still linger in many existing packages. These two differ in many
 subtle yet significant aspects and you can find out more on `Python packaging
-user guide <https://packaging.python.org/guides/packaging-namespace-packages/>`_
+user guide <https://packaging.python.org/guides/packaging-namespace-packages/>`_.
 
 
 ``pkg_resource`` style namespace package
