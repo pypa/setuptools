@@ -27,8 +27,9 @@ Normally, you would specify the packages to be included manually in the followin
         [options]
         #...
         packages =
-            mypkg1
-            mypkg2
+            mypkg
+            mypkg.subpkg1
+            mypkg.subpkg2
 
 .. tab:: setup.py
 
@@ -36,7 +37,7 @@ Normally, you would specify the packages to be included manually in the followin
 
         setup(
             # ...
-            packages=['mypkg1', 'mypkg2']
+            packages=['mypkg', 'mypkg.subpkg1', 'mypkg.subpkg2']
         )
 
 .. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
@@ -45,12 +46,12 @@ Normally, you would specify the packages to be included manually in the followin
 
         # ...
         [tool.setuptools]
-        packages = ["mypkg1", "mypkg2"]
+        packages = ["mypkg", "mypkg.subpkg1", "mypkg.subpkg2"]
         # ...
 
 
-If your packages are not in the root of the repository you also need to
-configure ``package_dir``:
+If your packages are not in the root of the repository or do not correspond
+exactly to the directory structure, you also need to configure ``package_dir``:
 
 .. tab:: setup.cfg
 
@@ -60,16 +61,16 @@ configure ``package_dir``:
         # ...
         package_dir =
             = src
-            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+            # directory containing all the packages (e.g.  src/mypkg, src/mypkg/subpkg1, ...)
         # OR
         package_dir =
-            mypkg1 = lib1
-            # mypkg1.mod corresponds to lib1/mod.py
-            # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-            mypkg2 = lib2
-            # mypkg2.mod corresponds to lib2/mod.py
-            mypkg2.subpkg = lib3
-            # mypkg2.subpkg.mod corresponds to lib3/mod.py
+            mypkg = lib
+            # mypkg.module corresponds to lib/module.py
+            mypkg.subpkg1 = lib1
+            # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+            mypkg.subpkg2 = lib2
+            # mypkg.subpkg2.module2 corresponds to lib2/module2.py
+        # ...
 
 .. tab:: setup.py
 
@@ -78,7 +79,7 @@ configure ``package_dir``:
         setup(
             # ...
             package_dir = {"": "src"}
-            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+            # directory containing all the packages (e.g.  src/mypkg, src/mypkg/subpkg1, ...)
         )
 
         # OR
@@ -86,10 +87,9 @@ configure ``package_dir``:
         setup(
             # ...
             package_dir = {
-                "mypkg1": "lib1",   # mypkg1.mod corresponds to lib1/mod.py
-                                    # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-                "mypkg2": "lib2",   # mypkg2.mod corresponds to lib2/mod.py
-                "mypkg2.subpkg": "lib3"  # mypkg2.subpkg.mod corresponds to lib3/mod.py
+                "mypkg": "lib",  # mypkg.module corresponds to lib/mod.py
+                "mypkg.subpkg1": "lib1",  # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+                "mypkg.subpkg2": "lib2"   # mypkg.subpkg2.module2 corresponds to lib2/module2.py
                 # ...
         )
 
@@ -105,19 +105,23 @@ configure ``package_dir``:
         # OR
 
         [tool.setuptools.package-dir]
-        mypkg1 = "lib1"
-            # mypkg1.mod corresponds to lib1/mod.py
-            # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-        mypkg2 = "lib2"
-            # mypkg2.mod corresponds to lib2/mod.py
-        "mypkg2.subpkg" = "lib3"
-            # mypkg2.subpkg.mod corresponds to lib3/mod.py
+        mypkg = "lib"
+        # mypkg.module corresponds to lib/module.py
+        "mypkg.subpkg1" = "lib1"
+        # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+        "mypkg.subpkg2" = "lib2"
+        # mypkg.subpkg2.module2 corresponds to lib2/module2.py
         # ...
 
 This can get tiresome really quickly. To speed things up, you can rely on
 setuptools automatic discovery, or use the provided tools, as explained in
 the following sections.
 
+.. important::
+   Although ``setuptools`` allows developers to create a very complex mapping
+   between directory names and package names, it is better to *keep it simple*
+   and reflect the desired package hierarchy in the directory structure,
+   preserving the same names.
 
 .. _auto-discovery:
 
@@ -158,14 +162,18 @@ directory::
     ├── setup.cfg  # or setup.py
     ├── ...
     └── src/
-        ├── mypkg1/
-        │   ├── __init__.py
-        │   ├── ...
-        │   └── mymodule1.py
-        └── mypkg2/
+        └── mypkg/
             ├── __init__.py
             ├── ...
-            └── mymodule2.py
+            ├── module.py
+            ├── subpkg1/
+            │   ├── __init__.py
+            │   ├── ...
+            │   └── module1.py
+            └── subpkg2/
+                ├── __init__.py
+                ├── ...
+                └── module2.py
 
 This layout is very handy when you wish to use automatic discovery,
 since you don't have to worry about other Python files or folders in your
@@ -187,14 +195,18 @@ The package folder(s) are placed directly under the project root::
     ├── pyproject.toml
     ├── setup.cfg  # or setup.py
     ├── ...
-    ├── mypkg1/
-    │   ├── __init__.py
-    │   ├── ...
-    │   └── mymodule1.py
-    └── mypkg2/
+    └── mypkg/
         ├── __init__.py
         ├── ...
-        └── mymodule2.py
+        ├── module.py
+        ├── subpkg1/
+        │   ├── __init__.py
+        │   ├── ...
+        │   └── module1.py
+        └── subpkg2/
+            ├── __init__.py
+            ├── ...
+            └── module2.py
 
 This layout is very practical for using the REPL, but in some situations
 it can be more error-prone (e.g. during tests or if you have a bunch
