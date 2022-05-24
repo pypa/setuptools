@@ -475,21 +475,26 @@ class TestInstallRequires:
             '--install-platlib', str(install_root),
         ]
         env = {"PYTHONPATH": str(install_root), "__EASYINSTALL_INDEX": mock_index.url}
-        with pytest.raises(subprocess.CalledProcessError) as exc_info:
-            subprocess.check_output(
-                cmd, cwd=str(project_root), env=env, stderr=subprocess.STDOUT, text=True
-            )
+        cp = subprocess.run(
+            cmd,
+            cwd=str(project_root),
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        assert cp.returncode != 0
         try:
             assert '/does-not-exist/' in {r.path for r in mock_index.requests}
             assert next(
                 line
-                for line in exc_info.value.output.splitlines()
+                for line in cp.stdout.splitlines()
                 if "not find suitable distribution for" in line
                 and "does-not-exist" in line
             )
         except Exception:
-            if "failed to get random numbers" in exc_info.value.output:
-                pytest.xfail(f"{sys.platform} failure - {exc_info.value.output}")
+            if "failed to get random numbers" in cp.stdout:
+                pytest.xfail(f"{sys.platform} failure - {cp.stdout}")
             raise
 
     def create_project(self, root):
