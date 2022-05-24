@@ -345,7 +345,7 @@ associate with your source code. For more information, see :doc:`development_mod
     required to be compatible with development mode. With late
     versions of pip, ``setup.cfg``-only projects may be installed in this mode.
 
-    If you are experimenting with :doc:`configuration using <pyproject_config>`,
+    If you are experimenting with :doc:`configuration using pyproject.toml <pyproject_config>`,
     or have version of ``pip`` older than v21.1, you might need to keep a
     ``setup.py`` file in file in your repository if you want to use editable
     installs (for the time being).
