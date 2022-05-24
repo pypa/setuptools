@@ -475,10 +475,6 @@ class TestInstallRequires:
             '--install-platlib', str(install_root),
         ]
         env = {**os.environ, "__EASYINSTALL_INDEX": mock_index.url}
-        if "PYTHONPATH" in env:
-            env["PYTHONPATH"] = str(install_root) + os.pathsep + env["PYTHONPATH"]
-        else:
-            env["PYTHONPATH"] = str(install_root)
         cp = subprocess.run(
             cmd,
             cwd=str(project_root),
