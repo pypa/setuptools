@@ -9,7 +9,20 @@ by including the data files **inside the package directory**.
 
 Setuptools offers three ways to specify this most common type of data files to
 be included in your package's [#datafiles]_.
-First, you can simply use the ``include_package_data`` keyword, e.g.:
+First, you can simply use the ``include_package_data`` keyword.
+For example, if the package tree looks like this::
+
+    project_root_directory
+    ├── setup.py        # and/or setup.cfg, pyproject.toml
+    └── src
+        └── mypkg
+            ├── __init__.py
+            ├── data1.rst
+            ├── data2.rst
+            ├── data1.txt
+            └── data2.txt
+
+and you supply this configuration:
 
 .. tab:: setup.cfg
 
@@ -39,12 +52,19 @@ First, you can simply use the ``include_package_data`` keyword, e.g.:
         # NOT have to specify this line.
         include-package-data = true
 
-This tells setuptools to install any data files it finds in your packages.
-The data files must be specified via the |MANIFEST.in|_ file.
-(They can also be tracked by a revision control system, using an appropriate
-plugin such as :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
-See the section below on :ref:`Adding Support for Revision
-Control Systems` for information on how to write such plugins.)
+then all the ``.txt`` and ``.rst`` files will be automatically installed with
+your package, provided:
+
+1. These files are included via the |MANIFEST.in|_ file, like so::
+
+        include src/mypkg/*.txt
+        include src/mypkg/*.rst
+
+2. OR, they are being tracked by a revision control system such as Git, Mercurial
+   or SVN, and you have configured an appropriate plugin such as
+   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
+   (See the section below on :ref:`Adding Support for Revision
+   Control Systems` for information on how to write such plugins.)
 
 If you want finer-grained control over what files are included (for example,
 if you have documentation files in your package directories and want to exclude
