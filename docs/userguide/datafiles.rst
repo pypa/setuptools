@@ -188,7 +188,8 @@ which enables the ``data`` directory to be identified, and then, we separately s
 files for the root package ``mypkg``, and the namespace package ``data`` under the package
 ``mypkg``.
 
-If you have multiple top-level packages and a common pattern of data files for both packages, for example::
+If you have multiple top-level packages and a common pattern of data files for all these
+packages, for example::
 
     project_root_directory
     ├── setup.py        # and/or setup.cfg, pyproject.toml
@@ -201,20 +202,21 @@ If you have multiple top-level packages and a common pattern of data files for b
             ├── data2.txt
             └── __init__.py
 
-then you can supply a configuration like this to capture both ``mypkg1/data1.txt`` and
-``mypkg2/data2.txt``, as well as ``mypkg1/data1.rst``.
+Here, both packages ``mypkg1`` and ``mypkg2`` share a common pattern of having ``.txt``
+data files. However, only ``mypkg1`` has ``.rst`` data files. In such a case, the following
+configuration will work:
 
 .. tab:: setup.cfg
 
    .. code-block:: ini
 
         [options]
-        packages = 
-            mypkg1
-            mypkg2
+        packages = find:
         package_dir =
-            mypkg1 = src
-            mypkg2 = src
+            = src
+
+        [options.packages.find]
+        where = src
 
         [options.package_data]
         * =
@@ -226,11 +228,11 @@ then you can supply a configuration like this to capture both ``mypkg1/data1.txt
 
    .. code-block:: python
 
-        from setuptools import setup
+        from setuptools import setup, find_packages
         setup(
             # ...,
-            packages=["mypkg1", "mypkg2"],
-            package_dir={"mypkg1": "src", "mypkg2": "src"},
+            packages=find_packages(where="src"),
+            package_dir={"": "src"},
             package_data={"": ["*.txt"], "mypkg1": ["data1.rst"]},
         )
 
@@ -238,21 +240,19 @@ then you can supply a configuration like this to capture both ``mypkg1/data1.txt
 
    .. code-block:: toml
 
-        [tool.setuptools]
-        # ...
-        packages = ["mypkg1", "mypkg2"]
-        package-dir = { mypkg1 = "src", mypkg2 = "src" }
-        
+        [tool.setuptools.packages.find]
+        where = ["src"]
+
         [tool.setuptools.package-data]
         "*" = ["*.txt"]
         mypkg1 = ["data1.rst"]
 
 Notice that if you list patterns in ``package_data`` under the empty string ``""`` in
 ``setup.py``, and the asterisk ``*`` in ``setup.cfg`` and ``pyproject.toml``, these
-patterns are used to find files in every package. For example, both files
-``mypkg1/data1.txt`` and ``mypkg2/data2.txt`` are captured as data files. Also note
-how other patterns specified for individual packages continue to work, i.e.
-``mypkg1/data1.rst`` is captured as well.
+patterns are used to find files in every package. For example, we use ``""`` or ``*``
+to indicate that the ``.txt`` files from all packages should be captured as data files.
+Also note how we can continue to specify patterns for individual packages, i.e.
+we specify that ``data1.rst`` from ``mypkg1`` alone should be captured as well.
 
 Also notice that if you use paths, you *must* use a forward slash (``/``) as
 the path separator, even if you are on Windows.  Setuptools automatically
