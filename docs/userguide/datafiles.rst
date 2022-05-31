@@ -272,11 +272,12 @@ converts slashes to appropriate platform-specific separators at build time.
 .. https://docs.python.org/3/distutils/setupscript.html#installing-package-data
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
-aren't sufficient to precisely define what files you want included.  For
-example, you may want to include package README files in your revision control
-system and source distributions, but exclude them from being installed.  So,
-setuptools offers an ``exclude_package_data`` option as well, that allows you
-to do things like this:
+aren't sufficient to precisely define what files you want included. For example,
+consider a scenario where you have ``include_package_data=True``, and you are using
+a revision control system with an appropriate plugin. Your README is probably being
+tracked by the revision control system, and therefore by default it will be included
+when your package is installed. Supposing you want to prevent this README from being
+included in the installation, then you could use the ``exclude_package_data`` option:
 
 .. tab:: setup.cfg
 
