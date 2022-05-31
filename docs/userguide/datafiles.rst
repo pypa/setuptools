@@ -112,9 +112,10 @@ data files:
         mypkg = ["*.txt", "*.rst"]
 
 The ``package_data`` argument is a dictionary that maps from package names to
-lists of glob patterns.  The globs may include subdirectory names, if the data
-files are contained in a subdirectory of the package.  For example, if the
-package tree looks like this::
+lists of glob patterns.
+
+Another common pattern is where some (or all) of the data files are placed under
+a separate subdirectory. For example::
 
     project_root_directory
     ├── setup.py        # and/or setup.cfg, pyproject.toml
@@ -127,7 +128,12 @@ package tree looks like this::
             ├── data1.txt
             └── data2.txt
 
-The configuration might look like this:
+Here, the ``.rst`` files are placed under a ``data`` subdirectory inside ``mypkg``.
+The ``.txt`` files are directly under ``mypkg`` as before.
+
+In this case, the recommended approach is to treat ``data`` as a namespace package
+(refer `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_). The configuration
+might look like this:
 
 .. tab:: setup.cfg
 
@@ -135,44 +141,52 @@ The configuration might look like this:
 
         [options]
         # ...
-        packages =
-            mypkg
+        packages = find_namespace:
         package_dir =
-            mypkg = src
+            = src
+
+        [options.packages.find]
+        where = src
 
         [options.package_data]
         mypkg =
             *.txt
-            data/*.rst
+        mypkg.data =
+            *.rst
 
 .. tab:: setup.py
 
    .. code-block:: python
 
-        from setuptools import setup
+        from setuptools import setup, find_namespace_packages
         setup(
             # ...,
-            packages=["mypkg"],
-            package_dir={"mypkg": "src"},
-            package_data={"mypkg": ["*.txt", "data/*.rst"]}
+            packages=find_namespace_packages(where="src"),
+            package_dir={"": "src"},
+            package_data={
+                "mypkg": ["*.txt"],
+                "mypkg.data": ["*.rst"],
+            }
         )
 
 .. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
 
    .. code-block:: toml
 
-        [tool.setuptools]
-        # ...
-        packages = ["mypkg"]
-        package-dir = { mypkg = "src" }
+        [tool.setuptools.packages.find]
+        # scanning for namespace packages is true by default in pyproject.toml, so
+        # you need NOT include the following line.
+        namespaces = true
+        where = ["src"]
 
         [tool.setuptools.package-data]
-        mypkg = ["*.txt", "data/*.rst"]
+        mypkg = ["*.txt"]
+        "mypkg.data" = ["*.rst"]
 
-In other words, if datafiles are contained in a subdirectory of a package that isn't a
-package itself (no ``__init__.py``), then the subdirectory names (or ``*`` to include
-all subdirectories) are required in the ``package_data`` argument (as shown above with
-``"data/*.rst"``).
+In other words, we allow Setuptools to scan for namespace packages in the ``src`` directory,
+which enables the ``data`` directory to be identified, and then, we separately specify data
+files for the root package ``mypkg``, and the namespace package ``data`` under the package
+``mypkg``.
 
 If you have multiple top-level packages and a common pattern of data files for both packages, for example::
 
