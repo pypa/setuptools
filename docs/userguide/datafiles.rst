@@ -30,15 +30,23 @@ and you supply this configuration:
 
         [options]
         # ...
+        packages = find:
+        package_dir =
+            = src
         include_package_data = True
+
+        [options.packages.find]
+        where = src
 
 .. tab:: setup.py
 
    .. code-block:: python
 
-    from setuptools import setup
+    from setuptools import setup, find_packages
     setup(
         # ...,
+        packages=find_packages(where="src"),
+        package_dir={"": "src"},
         include_package_data=True
     )
 
@@ -51,6 +59,9 @@ and you supply this configuration:
         # By default, include-package-data is true in pyproject.toml, so you do
         # NOT have to specify this line.
         include-package-data = true
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
 
 then all the ``.txt`` and ``.rst`` files will be automatically installed with
 your package, provided:
@@ -87,7 +98,15 @@ data files:
 
    .. code-block:: ini
 
+        [options]
         # ...
+        packages = find:
+        package_dir =
+            = src
+
+        [options.packages.find]
+        where = src
+
         [options.package_data]
         mypkg =
             *.txt
@@ -97,9 +116,11 @@ data files:
 
     .. code-block:: python
 
-        from setuptools import setup
+        from setuptools import setup, find_packages
         setup(
             # ...,
+            packages=find_packages(where="src"),
+            package_dir={"": "src"},
             package_data={"mypkg": ["*.txt", "*.rst"]}
         )
 
@@ -107,7 +128,9 @@ data files:
 
    .. code-block:: toml
 
-        # ...
+        [tool.setuptools.packages.find]
+        where = ["src"]
+
         [tool.setuptools.package_data]
         mypkg = ["*.txt", "*.rst"]
 
@@ -291,6 +314,9 @@ included in the installation, then you could use the ``exclude_package_data`` op
         package_dir =
             = src
         include_package_data = True
+
+        [options.packages.find]
+        where = src
 
         [options.exclude_package_data]
         mypkg =
