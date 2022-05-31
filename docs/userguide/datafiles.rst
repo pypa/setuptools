@@ -285,10 +285,9 @@ included in the installation, then you could use the ``exclude_package_data`` op
 
         [options]
         # ...
-        packages =
-            mypkg
+        packages = find:
         package_dir =
-            mypkg = src
+            = src
         include_package_data = True
 
         [options.exclude_package_data]
@@ -299,11 +298,11 @@ included in the installation, then you could use the ``exclude_package_data`` op
 
     .. code-block:: python
 
-        from setuptools import setup
+        from setuptools import setup, find_packages
         setup(
             # ...,
-            packages=["mypkg"],
-            package_dir={"mypkg": "src"},
+            packages=find_packages(where="src"),
+            package_dir={"": "src"},
             include_package_data=True,
             exclude_package_data={"mypkg": ["README.txt"]},
         )
@@ -312,10 +311,8 @@ included in the installation, then you could use the ``exclude_package_data`` op
 
    .. code-block:: toml
 
-        [tool.setuptools]
-        # ...
-        packages = ["mypkg"]
-        package-dir = { mypkg = "src" }
+        [tool.setuptools.packages.find]
+        where = ["src"]
 
         [tool.setuptools.exclude-package-data]
         mypkg = ["README.txt"]
