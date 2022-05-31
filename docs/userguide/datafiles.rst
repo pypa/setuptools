@@ -66,9 +66,8 @@ your package, provided:
    (See the section below on :ref:`Adding Support for Revision
    Control Systems` for information on how to write such plugins.)
 
-If you want finer-grained control over what files are included (for example,
-if you have documentation files in your package directories and want to exclude
-them from installation), then you can also use the ``package_data`` keyword.
+If you want finer-grained control over what files are included, then you can also use
+the ``package_data`` keyword.
 For example, if the package tree looks like this::
 
     project_root_directory
