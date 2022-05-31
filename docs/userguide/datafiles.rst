@@ -7,6 +7,9 @@ are placed in a platform-specific location.  However, the most common use case
 for data files distributed with a package is for use *by* the package, usually
 by including the data files **inside the package directory**.
 
+include_package_data
+====================
+
 Setuptools offers three ways to specify this most common type of data files to
 be included in your packages.
 First, you can simply use the ``include_package_data`` keyword.
@@ -77,6 +80,9 @@ your package, provided:
    (See the section below on :ref:`Adding Support for Revision
    Control Systems` for information on how to write such plugins.)
 
+package_data
+============
+
 By default, ``include_package_data`` considers **all** non ``.py`` files found inside
 the package directory (``src/mypkg`` in this case) as data files, and includes those that
 satisfy (at least) one of the above two conditions into the source distribution, and
@@ -95,7 +101,7 @@ For example, if the package tree looks like this::
             ├── data1.txt
             └── data2.txt
 
-You can use the following configuration to capture the ``.txt`` and ``.rst`` files as
+then you can use the following configuration to capture the ``.txt`` and ``.rst`` files as
 data files:
 
 .. tab:: setup.cfg
@@ -143,79 +149,10 @@ lists of glob patterns. Note that the data files specified using the ``package_d
 option neither require to be included within a |MANIFEST.in|_ file, nor
 require to be added by a revision control system plugin.
 
-Another common pattern is where some (or all) of the data files are placed under
-a separate subdirectory. For example::
-
-    project_root_directory
-    ├── setup.py        # and/or setup.cfg, pyproject.toml
-    └── src
-        └── mypkg
-            ├── data
-            │   ├── data1.rst
-            │   └── data2.rst
-            ├── __init__.py
-            ├── data1.txt
-            └── data2.txt
-
-Here, the ``.rst`` files are placed under a ``data`` subdirectory inside ``mypkg``.
-The ``.txt`` files are directly under ``mypkg`` as before.
-
-In this case, the recommended approach is to treat ``data`` as a namespace package
-(refer `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_). The configuration
-might look like this:
-
-.. tab:: setup.cfg
-
-   .. code-block:: ini
-
-        [options]
-        # ...
-        packages = find_namespace:
-        package_dir =
-            = src
-
-        [options.packages.find]
-        where = src
-
-        [options.package_data]
-        mypkg =
-            *.txt
-        mypkg.data =
-            *.rst
-
-.. tab:: setup.py
-
-   .. code-block:: python
-
-        from setuptools import setup, find_namespace_packages
-        setup(
-            # ...,
-            packages=find_namespace_packages(where="src"),
-            package_dir={"": "src"},
-            package_data={
-                "mypkg": ["*.txt"],
-                "mypkg.data": ["*.rst"],
-            }
-        )
-
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-   .. code-block:: toml
-
-        [tool.setuptools.packages.find]
-        # scanning for namespace packages is true by default in pyproject.toml, so
-        # you need NOT include the following line.
-        namespaces = true
-        where = ["src"]
-
-        [tool.setuptools.package-data]
-        mypkg = ["*.txt"]
-        "mypkg.data" = ["*.rst"]
-
-In other words, we allow Setuptools to scan for namespace packages in the ``src`` directory,
-which enables the ``data`` directory to be identified, and then, we separately specify data
-files for the root package ``mypkg``, and the namespace package ``data`` under the package
-``mypkg``.
+.. note::
+        If your glob patterns use paths, you *must* use a forward slash (``/``) as
+        the path separator, even if you are on Windows.  Setuptools automatically
+        converts slashes to appropriate platform-specific separators at build time.
 
 If you have multiple top-level packages and a common pattern of data files for all these
 packages, for example::
@@ -232,8 +169,8 @@ packages, for example::
             └── __init__.py
 
 Here, both packages ``mypkg1`` and ``mypkg2`` share a common pattern of having ``.txt``
-data files. However, only ``mypkg1`` has ``.rst`` data files. In such a case, the following
-configuration will work:
+data files. However, only ``mypkg1`` has ``.rst`` data files. In such a case, if you want to
+use the ``package_data`` option, the following configuration will work:
 
 .. tab:: setup.cfg
 
@@ -283,10 +220,6 @@ to indicate that the ``.txt`` files from all packages should be captured as data
 Also note how we can continue to specify patterns for individual packages, i.e.
 we specify that ``data1.rst`` from ``mypkg1`` alone should be captured as well.
 
-Also notice that if you use paths, you *must* use a forward slash (``/``) as
-the path separator, even if you are on Windows.  Setuptools automatically
-converts slashes to appropriate platform-specific separators at build time.
-
 .. note::
     When building an ``sdist``, the datafiles are also drawn from the
     ``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
@@ -299,6 +232,9 @@ converts slashes to appropriate platform-specific separators at build time.
    :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
 
 .. https://docs.python.org/3/distutils/setupscript.html#installing-package-data
+
+exclude_package_data
+====================
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included. For example,
@@ -357,6 +293,86 @@ However, any files that match these patterns will be *excluded* from installatio
 even if they were listed in ``package_data`` or were included as a result of using
 ``include_package_data``.
 
+Subdirectory for Data Files
+===========================
+
+A common pattern is where some (or all) of the data files are placed under
+a separate subdirectory. For example::
+
+    project_root_directory
+    ├── setup.py        # and/or setup.cfg, pyproject.toml
+    └── src
+        └── mypkg
+            ├── data
+            │   ├── data1.rst
+            │   └── data2.rst
+            ├── __init__.py
+            ├── data1.txt
+            └── data2.txt
+
+Here, the ``.rst`` files are placed under a ``data`` subdirectory inside ``mypkg``,
+while the ``.txt`` files are directly under ``mypkg``.
+
+In this case, the recommended approach is to treat ``data`` as a namespace package
+(refer `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_). The configuration
+might look like this:
+
+.. tab:: setup.cfg
+
+   .. code-block:: ini
+
+        [options]
+        # ...
+        packages = find_namespace:
+        package_dir =
+            = src
+
+        [options.packages.find]
+        where = src
+
+        [options.package_data]
+        mypkg =
+            *.txt
+        mypkg.data =
+            *.rst
+
+.. tab:: setup.py
+
+   .. code-block:: python
+
+        from setuptools import setup, find_namespace_packages
+        setup(
+            # ...,
+            packages=find_namespace_packages(where="src"),
+            package_dir={"": "src"},
+            package_data={
+                "mypkg": ["*.txt"],
+                "mypkg.data": ["*.rst"],
+            }
+        )
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+   .. code-block:: toml
+
+        [tool.setuptools.packages.find]
+        # scanning for namespace packages is true by default in pyproject.toml, so
+        # you need NOT include the following line.
+        namespaces = true
+        where = ["src"]
+
+        [tool.setuptools.package-data]
+        mypkg = ["*.txt"]
+        "mypkg.data" = ["*.rst"]
+
+In other words, we allow Setuptools to scan for namespace packages in the ``src`` directory,
+which enables the ``data`` directory to be identified, and then, we separately specify data
+files for the root package ``mypkg``, and the namespace package ``data`` under the package
+``mypkg``.
+
+Summary
+=======
+
 In summary, the three options allow you to:
 
 ``include_package_data``
@@ -386,7 +402,7 @@ In summary, the three options allow you to:
 .. _Accessing Data Files at Runtime:
 
 Accessing Data Files at Runtime
--------------------------------
+===============================
 
 Typically, existing programs manipulate a package's ``__file__`` attribute in
 order to find the location of data files. For example, if you have a structure
@@ -451,7 +467,7 @@ See :doc:`importlib-resources:using` for detailed instructions.
 
 
 Non-Package Data Files
-----------------------
+======================
 
 Historically, ``setuptools`` by way of ``easy_install`` would encapsulate data
 files from the distribution into the egg (see `the old docs
