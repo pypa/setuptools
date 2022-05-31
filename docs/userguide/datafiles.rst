@@ -405,7 +405,7 @@ has to be made to the above code is to replace ``importlib.resources`` with ``im
    from importlib_resources import files
    ...
 
-See :doc:`importlib-resources:using` for detailed instructions [#importlib]_.
+See :doc:`importlib-resources:using` for detailed instructions.
 
 .. tip:: Files inside the package directory should be *read-only* to avoid a
    series of common problems (e.g. when multiple users share a common Python
@@ -446,11 +446,6 @@ run time be included **inside the package**.
 
 .. [#system-dirs] These locations can be discovered with the help of
    third-party libraries such as :pypi:`platformdirs`.
-
-.. [#importlib] Recent versions of :mod:`importlib.resources` available in
-   Pythons' standard library should be API compatible with
-   :pypi:`importlib-metadata`. However this might vary depending on which version
-   of Python is installed.
 
 .. [#files_api] Reference: https://importlib-resources.readthedocs.io/en/latest/using.html#migrating-from-legacy
 
