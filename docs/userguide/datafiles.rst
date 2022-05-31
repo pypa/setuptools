@@ -112,7 +112,9 @@ data files:
         mypkg = ["*.txt", "*.rst"]
 
 The ``package_data`` argument is a dictionary that maps from package names to
-lists of glob patterns.
+lists of glob patterns. Note that the data files specified using the ``package_data``
+option neither require to be included within a |MANIFEST.in|_ file, nor
+require to be added by a revision control system plugin.
 
 Another common pattern is where some (or all) of the data files are placed under
 a separate subdirectory. For example::
