@@ -359,12 +359,52 @@ Accessing Data Files at Runtime
 -------------------------------
 
 Typically, existing programs manipulate a package's ``__file__`` attribute in
-order to find the location of data files.  However, this manipulation isn't
-compatible with PEP 302-based import hooks, including importing from zip files
-and Python Eggs.  It is strongly recommended that, if you are using data files,
-you should use :mod:`importlib.resources` to access them.
-:mod:`importlib.resources` was added to Python 3.7 and the latest version of
-the library is also available via the :pypi:`importlib-resources` backport.
+order to find the location of data files. For example, if you have a structure
+like this::
+
+    project_root_directory
+    ├── setup.py        # and/or setup.cfg, pyproject.toml
+    └── src
+        └── mypkg
+            ├── data
+            │   └── data1.txt
+            ├── __init__.py
+            └── foo.py
+
+Then, in ``mypkg/foo.py``, you may try something like this in order to access
+``mypkg/data/data1.txt``:
+
+.. code-block:: python
+
+   import os
+   data_path = os.path.join(os.path.dirname(__file__), 'data', 'data1.txt')
+   with open(data_path, 'r') as data_file:
+        ...
+
+However, this manipulation isn't compatible with PEP 302-based import hooks,
+including importing from zip files and Python Eggs.  It is strongly recommended that,
+if you are using data files, you should use :mod:`importlib.resources` to access them.
+In this case, you would do something like this:
+
+.. code-block:: python
+
+   from importlib.resources import files
+   data_text = files('mypkg.data').joinpath('data1.txt').read_text()
+
+:mod:`importlib.resources` was added to Python 3.7. However, the API illustrated in
+this code (using ``files()``) was added only in Python 3.9, [#files_api]_ and support
+for accessing data files via namespace packages was added only in Python 3.10 [#namespace_support]_
+(the ``data`` subdirectory is a namespace package under the root package ``mypkg``).
+Therefore, you may find this code to work only in Python 3.10 (and above). For other
+versions of Python, you are recommended to use the :pypi:`importlib-resources` backport
+which provides the latest version of this library. In this case, the only change that
+has to be made to the above code is to replace ``importlib.resources`` with ``importlib_resources``, i.e.
+
+.. code-block:: python
+
+   from importlib_resources import files
+   ...
+
 See :doc:`importlib-resources:using` for detailed instructions [#importlib]_.
 
 .. tip:: Files inside the package directory should be *read-only* to avoid a
@@ -411,6 +451,10 @@ run time be included **inside the package**.
    Pythons' standard library should be API compatible with
    :pypi:`importlib-metadata`. However this might vary depending on which version
    of Python is installed.
+
+.. [#files_api] Reference: https://importlib-resources.readthedocs.io/en/latest/using.html#migrating-from-legacy
+
+.. [#namespace_support] Reference: https://github.com/python/importlib_resources/pull/196#issuecomment-734520374
 
 
 .. |MANIFEST.in| replace:: ``MANIFEST.in``
