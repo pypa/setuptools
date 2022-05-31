@@ -8,7 +8,7 @@ for data files distributed with a package is for use *by* the package, usually
 by including the data files **inside the package directory**.
 
 Setuptools offers three ways to specify this most common type of data files to
-be included in your package's [#datafiles]_.
+be included in your packages.
 First, you can simply use the ``include_package_data`` keyword.
 For example, if the package tree looks like this::
 
@@ -77,6 +77,10 @@ your package, provided:
    (See the section below on :ref:`Adding Support for Revision
    Control Systems` for information on how to write such plugins.)
 
+By default, ``include_package_data`` considers **all** non ``.py`` files found inside
+the package directory (``src/mypkg`` in this case) as data files, and includes those that
+satisfy (at least) one of the above two conditions into the source distribution, and
+consequently in the installation of your package.
 If you want finer-grained control over what files are included, then you can also use
 the ``package_data`` keyword.
 For example, if the package tree looks like this::
@@ -465,10 +469,6 @@ run time be included **inside the package**.
    Support for specifying package metadata and build configuration options via
    ``pyproject.toml`` is experimental and might change
    in the future. See :doc:`/userguide/pyproject_config`.
-
-.. [#datafiles] ``setuptools`` consider a *package data file* any non-Python
-   file **inside the package directory** (i.e., that co-exists in the same
-   location as the regular ``.py`` files being distributed).
 
 .. [#system-dirs] These locations can be discovered with the help of
    third-party libraries such as :pypi:`platformdirs`.
