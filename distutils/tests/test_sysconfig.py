@@ -17,7 +17,6 @@ from distutils.tests import support
 from test.support import run_unittest, swap_item
 
 from .py38compat import TESTFN
-from .py38compat import check_warnings
 
 
 class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
@@ -260,20 +259,6 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
     def test_SO_deprecation(self):
         self.assertWarns(DeprecationWarning,
                          sysconfig.get_config_var, 'SO')
-
-    @unittest.skipIf(sysconfig.get_config_var('EXT_SUFFIX') is None,
-                     'EXT_SUFFIX required for this test')
-    def test_SO_value(self):
-        with check_warnings(('', DeprecationWarning)):
-            self.assertEqual(sysconfig.get_config_var('SO'),
-                             sysconfig.get_config_var('EXT_SUFFIX'))
-
-    @unittest.skipIf(sysconfig.get_config_var('EXT_SUFFIX') is None,
-                     'EXT_SUFFIX required for this test')
-    def test_SO_in_vars(self):
-        vars = sysconfig.get_config_vars()
-        self.assertIsNotNone(vars['SO'])
-        self.assertEqual(vars['SO'], vars['EXT_SUFFIX'])
 
     def test_customize_compiler_before_get_config_vars(self):
         # Issue #21923: test that a Distribution compiler
