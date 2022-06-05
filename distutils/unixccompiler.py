@@ -261,9 +261,6 @@ class UnixCCompiler(CCompiler):
 
     def _is_gcc(self):
         cc_var = sysconfig.get_config_var("CC")
-        if not cc_var:
-            return
-
         compiler = os.path.basename(shlex.split(cc_var)[0])
         return "gcc" in compiler or "g++" in compiler
 
