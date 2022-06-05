@@ -259,8 +259,13 @@ class UnixCCompiler(CCompiler):
     def library_dir_option(self, dir):
         return "-L" + dir
 
-    def _is_gcc(self, compiler_name):
-        return "gcc" in compiler_name or "g++" in compiler_name
+    def _is_gcc(self):
+        cc_var = sysconfig.get_config_var("CC")
+        if not cc_var:
+            return
+
+        compiler = os.path.basename(shlex.split(cc_var)[0])
+        return "gcc" in compiler or "g++" in compiler
 
     def runtime_library_dir_option(self, dir):
         # XXX Hackish, at the very least.  See Python bug #445902:
@@ -286,13 +291,8 @@ class UnixCCompiler(CCompiler):
         elif sys.platform[:7] == "freebsd":
             return "-Wl,-rpath=" + dir
         elif sys.platform[:5] == "hp-ux":
-            cc_var = sysconfig.get_config_var("CC")
-            if cc_var is not None:
-                compiler = os.path.basename(shlex.split(cc_var)[0])
-                if self._is_gcc(compiler):
-                    return ["-Wl,+s", "-L" + dir]
-
-            return ["+s", "-L" + dir]
+            first_option = "-Wl,+s" if self._is_gcc() else "+s"
+            return [first_option, "-L" + dir]
 
         # For all compilers, `-Wl` is the presumed way to
         # pass a compiler option to the linker and `-R` is
