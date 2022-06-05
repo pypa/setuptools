@@ -288,8 +288,10 @@ class UnixCCompiler(CCompiler):
         elif sys.platform[:7] == "freebsd":
             return "-Wl,-rpath=" + dir
         elif sys.platform[:5] == "hp-ux":
-            first_option = "-Wl,+s" if self._is_gcc() else "+s"
-            return [first_option, "-L" + dir]
+            return [
+                "-Wl,+s" if self._is_gcc() else "+s",
+                "-L" + dir,
+            ]
 
         # For all compilers, `-Wl` is the presumed way to
         # pass a compiler option to the linker and `-R` is
