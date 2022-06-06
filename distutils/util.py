@@ -4,10 +4,11 @@ Miscellaneous utility functions -- anything that doesn't fit into
 one of the other *util.py modules.
 """
 
+import importlib.util
 import os
 import re
-import importlib.util
 import string
+import subprocess
 import sys
 import sysconfig
 from distutils.errors import DistutilsPlatformError
@@ -15,7 +16,6 @@ from distutils.dep_util import newer
 from distutils.spawn import spawn
 from distutils import log
 from distutils.errors import DistutilsByteCompileError
-from .py35compat import _optim_args_from_interpreter_flags
 
 
 def get_host_platform():
@@ -464,7 +464,7 @@ byte_compile(files, optimize=%r, force=%r,
                 )
 
         cmd = [sys.executable]
-        cmd.extend(_optim_args_from_interpreter_flags())
+        cmd.extend(subprocess._optim_args_from_interpreter_flags())
         cmd.append(script_name)
         spawn(cmd, dry_run=dry_run)
         execute(os.remove, (script_name,), "removing %s" % script_name, dry_run=dry_run)
