@@ -19,15 +19,15 @@ from .py35compat import _optim_args_from_interpreter_flags
 
 
 def get_host_platform():
-    """Return a string that identifies the current platform.  This is used mainly to
-    distinguish platform-specific build directories and platform-specific built
-    distributions.
+    """
+    Return a string that identifies the current platform. Use this
+    function to distinguish platform-specific build directories and
+    platform-specific built distributions.
     """
 
-    # We initially exposed platforms as defined in Python 3.9
+    # This function initially exposed platforms as defined in Python 3.9
     # even with older Python versions when distutils was split out.
-    # Now that we delegate to stdlib sysconfig we need to restore this
-    # in case anyone has started to depend on it.
+    # Now it delegates to stdlib sysconfig, but maintains compatibility.
 
     if sys.version_info < (3, 8):
         if os.name == 'nt':
@@ -45,27 +45,30 @@ def get_host_platform():
 
     return sysconfig.get_platform()
 
+
 def get_platform():
     if os.name == 'nt':
         TARGET_TO_PLAT = {
-            'x86' : 'win32',
-            'x64' : 'win-amd64',
-            'arm' : 'win-arm32',
+            'x86': 'win32',
+            'x64': 'win-amd64',
+            'arm': 'win-arm32',
             'arm64': 'win-arm64',
         }
-        return TARGET_TO_PLAT.get(os.environ.get('VSCMD_ARG_TGT_ARCH')) or get_host_platform()
-    else:
-        return get_host_platform()
+        target = os.environ.get('VSCMD_ARG_TGT_ARCH')
+        return TARGET_TO_PLAT.get(target) or get_host_platform()
+    return get_host_platform()
 
 
 if sys.platform == 'darwin':
-    _syscfg_macosx_ver = None # cache the version pulled from sysconfig
+    _syscfg_macosx_ver = None  # cache the version pulled from sysconfig
 MACOSX_VERSION_VAR = 'MACOSX_DEPLOYMENT_TARGET'
+
 
 def _clear_cached_macosx_ver():
     """For testing only. Do not call."""
     global _syscfg_macosx_ver
     _syscfg_macosx_ver = None
+
 
 def get_macosx_target_ver_from_syscfg():
     """Get the version of macOS latched in the Python interpreter configuration.
@@ -77,6 +80,7 @@ def get_macosx_target_ver_from_syscfg():
         if ver:
             _syscfg_macosx_ver = ver
     return _syscfg_macosx_ver
+
 
 def get_macosx_target_ver():
     """Return the version of macOS for which we are building.
@@ -96,7 +100,7 @@ def get_macosx_target_ver():
         # values, specifically LDSHARED which can use
         # '-undefined dynamic_lookup' which only works on >= 10.3.
         if syscfg_ver and split_version(syscfg_ver) >= [10, 3] and \
-            split_version(env_ver) < [10, 3]:
+                split_version(env_ver) < [10, 3]:
             my_msg = ('$' + MACOSX_VERSION_VAR + ' mismatch: '
                       'now "%s" but "%s" during configure; '
                       'must use 10.3 or later'
@@ -111,7 +115,7 @@ def split_version(s):
     return [int(n) for n in s.split('.')]
 
 
-def convert_path (pathname):
+def convert_path(pathname):
     """Return 'pathname' as a name that will work on the native filesystem,
     i.e. split it on '/' and put it back together again using the current
     directory separator.  Needed because filenames in the setup script are
@@ -139,7 +143,7 @@ def convert_path (pathname):
 # convert_path ()
 
 
-def change_root (new_root, pathname):
+def change_root(new_root, pathname):
     """Return 'pathname' with 'new_root' prepended.  If 'pathname' is
     relative, this is equivalent to "os.path.join(new_root,pathname)".
     Otherwise, it requires making 'pathname' relative and then joining the
@@ -157,12 +161,14 @@ def change_root (new_root, pathname):
             path = path[1:]
         return os.path.join(new_root, path)
 
-    else:
-        raise DistutilsPlatformError("nothing known about platform '%s'" % os.name)
+    raise DistutilsPlatformError(
+        f"nothing known about platform '{os.name}'")
 
 
 _environ_checked = 0
-def check_environ ():
+
+
+def check_environ():
     """Ensure that 'os.environ' has all the environment variables we
     guarantee that users can use in config files, command-line options,
     etc.  Currently this includes:
@@ -189,7 +195,7 @@ def check_environ ():
     _environ_checked = 1
 
 
-def subst_vars (s, local_vars):
+def subst_vars(s, local_vars):
     """
     Perform variable substitution on 'string'.
     Variables are indicated by format-style braces ("{var}").
@@ -206,8 +212,6 @@ def subst_vars (s, local_vars):
         return _subst_compat(s).format_map(lookup)
     except KeyError as var:
         raise ValueError(f"invalid variable {var}")
-
-# subst_vars ()
 
 
 def _subst_compat(s):
@@ -236,13 +240,16 @@ def grok_environment_error (exc, prefix="error: "):
 
 # Needed by 'split_quoted()'
 _wordchars_re = _squote_re = _dquote_re = None
+
+
 def _init_regex():
     global _wordchars_re, _squote_re, _dquote_re
     _wordchars_re = re.compile(r'[^\\\'\"%s ]*' % string.whitespace)
     _squote_re = re.compile(r"'(?:[^'\\]|\\.)*'")
     _dquote_re = re.compile(r'"(?:[^"\\]|\\.)*"')
 
-def split_quoted (s):
+
+def split_quoted(s):
     """Split a string up according to Unix shell-like rules for quotes and
     backslashes.  In short: words are delimited by spaces, as long as those
     spaces are not escaped by a backslash, or inside a quoted string.
@@ -256,7 +263,8 @@ def split_quoted (s):
     # This is a nice algorithm for splitting up a single string, since it
     # doesn't require character-by-character examination.  It was a little
     # bit of a brain-bender to get it working right, though...
-    if _wordchars_re is None: _init_regex()
+    if _wordchars_re is None:
+        _init_regex()
 
     s = s.strip()
     words = []
@@ -269,13 +277,16 @@ def split_quoted (s):
             words.append(s[:end])
             break
 
-        if s[end] in string.whitespace: # unescaped, unquoted whitespace: now
-            words.append(s[:end])       # we definitely have a word delimiter
+        if s[end] in string.whitespace:
+            # unescaped, unquoted whitespace: now
+            # we definitely have a word delimiter
+            words.append(s[:end])
             s = s[end:].lstrip()
             pos = 0
 
-        elif s[end] == '\\':            # preserve whatever is being escaped;
-                                        # will become part of the current word
+        elif s[end] == '\\':
+            # preserve whatever is being escaped;
+            # will become part of the current word
             s = s[:end] + s[end+1:]
             pos = end+1
 
@@ -285,7 +296,8 @@ def split_quoted (s):
             elif s[end] == '"':         # slurp doubly-quoted string
                 m = _dquote_re.match(s, end)
             else:
-                raise RuntimeError("this can't happen (bad char '%c')" % s[end])
+                raise RuntimeError(
+                    "this can't happen (bad char '%c')" % s[end])
 
             if m is None:
                 raise ValueError("bad string (mismatched %s quotes?)" % s[end])
@@ -303,7 +315,7 @@ def split_quoted (s):
 # split_quoted ()
 
 
-def execute (func, args, msg=None, verbose=0, dry_run=0):
+def execute(func, args, msg=None, verbose=0, dry_run=0):
     """Perform some action that affects the outside world (eg.  by
     writing to the filesystem).  Such actions are special because they
     are disabled by the 'dry_run' flag.  This method takes care of all
@@ -322,7 +334,7 @@ def execute (func, args, msg=None, verbose=0, dry_run=0):
         func(*args)
 
 
-def strtobool (val):
+def strtobool(val):
     """Convert a string representation of truth to true (1) or false (0).
 
     True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
@@ -338,11 +350,12 @@ def strtobool (val):
         raise ValueError("invalid truth value %r" % (val,))
 
 
-def byte_compile (py_files,
-                  optimize=0, force=0,
-                  prefix=None, base_dir=None,
-                  verbose=1, dry_run=0,
-                  direct=None):
+def byte_compile(
+    py_files,
+    optimize=0, force=0,
+    prefix=None, base_dir=None,
+    verbose=1, dry_run=0,
+        direct=None):
     """Byte-compile a collection of Python source files to .pyc
     files in a __pycache__ subdirectory.  'py_files' is a list
     of files to compile; any files that don't end in ".py" are silently
@@ -371,10 +384,6 @@ def byte_compile (py_files,
     generated in indirect mode; unless you know what you're doing, leave
     it set to None.
     """
-
-    # Late import to fix a bootstrap issue: _posixsubprocess is built by
-    # setup.py, but setup.py uses distutils.
-    import subprocess
 
     # nothing is done if sys.dont_write_bytecode is True
     if sys.dont_write_bytecode:
@@ -425,10 +434,6 @@ files = [
                 # problem is that it's really a directory, but I'm treating it
                 # as a dumb string, so trailing slashes and so forth matter.
 
-                #py_files = map(os.path.abspath, py_files)
-                #if prefix:
-                #    prefix = os.path.abspath(prefix)
-
                 script.write(",\n".join(map(repr, py_files)) + "]\n")
                 script.write("""
 byte_compile(files, optimize=%r, force=%r,
@@ -469,8 +474,9 @@ byte_compile(files, optimize=%r, force=%r,
             dfile = file
             if prefix:
                 if file[:len(prefix)] != prefix:
-                    raise ValueError("invalid prefix: filename %r doesn't start with %r"
-                           % (file, prefix))
+                    raise ValueError(
+                        "invalid prefix: filename %r doesn't start with %r"
+                        % (file, prefix))
                 dfile = dfile[len(prefix):]
             if base_dir:
                 dfile = os.path.join(base_dir, dfile)
@@ -485,9 +491,8 @@ byte_compile(files, optimize=%r, force=%r,
                     log.debug("skipping byte-compilation of %s to %s",
                               file, cfile_base)
 
-# byte_compile ()
 
-def rfc822_escape (header):
+def rfc822_escape(header):
     """Return a version of the string escaped for inclusion in an
     RFC-822 header, by ensuring there are 8 spaces space after each newline.
     """

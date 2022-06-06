@@ -11,6 +11,7 @@ from distutils.command.build_clib import build_clib
 from distutils.errors import DistutilsSetupError
 from distutils.tests import support
 
+
 class BuildCLibTestCase(support.TempdirManager,
                         support.LoggingSilencer,
                         unittest.TestCase):
@@ -71,6 +72,7 @@ class BuildCLibTestCase(support.TempdirManager,
 
         pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
+
         class FakeCompiler:
             def compile(*args, **kw):
                 pass
@@ -129,8 +131,10 @@ class BuildCLibTestCase(support.TempdirManager,
         # let's check the result
         self.assertIn('libfoo.a', os.listdir(build_temp))
 
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(BuildCLibTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())
