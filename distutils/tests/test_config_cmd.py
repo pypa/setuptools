@@ -2,9 +2,7 @@
 import unittest
 import os
 import sys
-from test.support import run_unittest
-
-from .py35compat import missing_compiler_executable
+from test.support import run_unittest, missing_compiler_executable
 
 from distutils.command.config import dump_file, config
 from distutils.tests import support

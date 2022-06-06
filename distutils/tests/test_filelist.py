@@ -11,7 +11,6 @@ from distutils import filelist
 from test.support import captured_stdout, run_unittest
 from distutils.tests import support
 
-from .py35compat import adapt_glob
 from . import py38compat as os_helper
 
 
@@ -62,7 +61,7 @@ class FileListTestCase(support.LoggingSilencer, unittest.TestCase):
             (r'foo\\??', r'(?s:foo\\\\[^%(sep)s][^%(sep)s])\Z'),
         ):
             regex = regex % {'sep': sep}
-            self.assertEqual(glob_to_re(glob), adapt_glob(regex))
+            self.assertEqual(glob_to_re(glob), regex)
 
     def test_process_template_line(self):
         # testing  all MANIFEST.in template patterns
