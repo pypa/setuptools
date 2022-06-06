@@ -19,6 +19,8 @@ from distutils.extension import Extension
 from distutils.tests import support
 from test import support as test_support
 
+import pytest
+
 
 def _make_ext_name(modname):
     return modname + sysconfig.get_config_var('EXT_SUFFIX')
@@ -29,6 +31,9 @@ class InstallTestCase(support.TempdirManager,
                       support.LoggingSilencer,
                       unittest.TestCase):
 
+    @pytest.mark.xfail(
+        'platform.system() == "Windows" and sys.version_info > (3, 11)',
+        reason="pypa/distutils#148")
     def test_home_installation_scheme(self):
         # This ensure two things:
         # - that --home generates the desired set of directory names
