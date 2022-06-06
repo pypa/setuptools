@@ -13,6 +13,7 @@ from .py38compat import check_warnings
 
 try:
     import zlib
+
     ZLIB_SUPPORT = True
 except ImportError:
     ZLIB_SUPPORT = False
@@ -48,8 +49,8 @@ somecode%(sep)sdoc.dat
 somecode%(sep)sdoc.txt
 """
 
-class SDistTestCase(BasePyPIRCCommandTestCase):
 
+class SDistTestCase(BasePyPIRCCommandTestCase):
     def setUp(self):
         # PyPIRCCommandTestCase creates a temp dir already
         # and put it in self.tmp_dir
@@ -72,9 +73,13 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
     def get_cmd(self, metadata=None):
         """Returns a cmd"""
         if metadata is None:
-            metadata = {'name': 'fake', 'version': '1.0',
-                        'url': 'xxx', 'author': 'xxx',
-                        'author_email': 'xxx'}
+            metadata = {
+                'name': 'fake',
+                'version': '1.0',
+                'url': 'xxx',
+                'author': 'xxx',
+                'author_email': 'xxx',
+            }
         dist = Distribution(metadata)
         dist.script_name = 'setup.py'
         dist.packages = ['somecode']
@@ -93,12 +98,10 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         self.write_file((self.tmp_dir, 'somecode', '.svn', 'ok.py'), 'xxx')
 
         os.mkdir(join(self.tmp_dir, 'somecode', '.hg'))
-        self.write_file((self.tmp_dir, 'somecode', '.hg',
-                         'ok'), 'xxx')
+        self.write_file((self.tmp_dir, 'somecode', '.hg', 'ok'), 'xxx')
 
         os.mkdir(join(self.tmp_dir, 'somecode', '.git'))
-        self.write_file((self.tmp_dir, 'somecode', '.git',
-                         'ok'), 'xxx')
+        self.write_file((self.tmp_dir, 'somecode', '.git', 'ok'), 'xxx')
 
         self.write_file((self.tmp_dir, 'somecode', '.nfs0001'), 'xxx')
 
@@ -124,15 +127,19 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             zip_file.close()
 
         # making sure everything has been pruned correctly
-        expected = ['', 'PKG-INFO', 'README', 'setup.py',
-                    'somecode/', 'somecode/__init__.py']
+        expected = [
+            '',
+            'PKG-INFO',
+            'README',
+            'setup.py',
+            'somecode/',
+            'somecode/__init__.py',
+        ]
         self.assertEqual(sorted(content), ['fake-1.0/' + x for x in expected])
 
     @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
-    @unittest.skipIf(find_executable('tar') is None,
-                     "The tar command is not found")
-    @unittest.skipIf(find_executable('gzip') is None,
-                     "The gzip command is not found")
+    @unittest.skipIf(find_executable('tar') is None, "The tar command is not found")
+    @unittest.skipIf(find_executable('gzip') is None, "The gzip command is not found")
     def test_make_distribution(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
@@ -172,8 +179,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
         # filling data_files by pointing files
         # in package_data
-        dist.package_data = {'': ['*.cfg', '*.dat'],
-                             'somecode': ['*.txt']}
+        dist.package_data = {'': ['*.cfg', '*.dat'], 'somecode': ['*.txt']}
         self.write_file((self.tmp_dir, 'somecode', 'doc.txt'), '#')
         self.write_file((self.tmp_dir, 'somecode', 'doc.dat'), '#')
 
@@ -193,12 +199,11 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         self.write_file((some_dir, 'file.txt'), '#')
         self.write_file((some_dir, 'other_file.txt'), '#')
 
-        dist.data_files = [('data', ['data/data.dt',
-                                     'buildout.cfg',
-                                     'inroot.txt',
-                                     'notexisting']),
-                           'some/file.txt',
-                           'some/other_file.txt']
+        dist.data_files = [
+            ('data', ['data/data.dt', 'buildout.cfg', 'inroot.txt', 'notexisting']),
+            'some/file.txt',
+            'some/other_file.txt',
+        ]
 
         # adding a script
         script_dir = join(self.tmp_dir, 'scripts')
@@ -224,12 +229,25 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             zip_file.close()
 
         # making sure everything was added
-        expected = ['', 'PKG-INFO', 'README', 'buildout.cfg',
-                    'data/', 'data/data.dt', 'inroot.txt',
-                    'scripts/', 'scripts/script.py', 'setup.py',
-                    'some/', 'some/file.txt', 'some/other_file.txt',
-                    'somecode/', 'somecode/__init__.py', 'somecode/doc.dat',
-                    'somecode/doc.txt']
+        expected = [
+            '',
+            'PKG-INFO',
+            'README',
+            'buildout.cfg',
+            'data/',
+            'data/data.dt',
+            'inroot.txt',
+            'scripts/',
+            'scripts/script.py',
+            'setup.py',
+            'some/',
+            'some/file.txt',
+            'some/other_file.txt',
+            'somecode/',
+            'somecode/__init__.py',
+            'somecode/doc.dat',
+            'somecode/doc.txt',
+        ]
         self.assertEqual(sorted(content), ['fake-1.0/' + x for x in expected])
 
         # checking the MANIFEST
@@ -249,8 +267,9 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         # with the `check` subcommand
         cmd.ensure_finalized()
         cmd.run()
-        warnings = [msg for msg in self.get_logs(WARN) if
-                    msg.startswith('warning: check:')]
+        warnings = [
+            msg for msg in self.get_logs(WARN) if msg.startswith('warning: check:')
+        ]
         self.assertEqual(len(warnings), 1)
 
         # trying with a complete set of metadata
@@ -259,8 +278,9 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         cmd.ensure_finalized()
         cmd.metadata_check = 0
         cmd.run()
-        warnings = [msg for msg in self.get_logs(WARN) if
-                    msg.startswith('warning: check:')]
+        warnings = [
+            msg for msg in self.get_logs(WARN) if msg.startswith('warning: check:')
+        ]
         self.assertEqual(len(warnings), 0)
 
     def test_check_metadata_deprecated(self):
@@ -277,8 +297,11 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
         # the output should be a header line + one line per format
         num_formats = len(ARCHIVE_FORMATS.keys())
-        output = [line for line in stdout.getvalue().split('\n')
-                  if line.strip().startswith('--formats=')]
+        output = [
+            line
+            for line in stdout.getvalue().split('\n')
+            if line.strip().startswith('--formats=')
+        ]
         self.assertEqual(len(output), num_formats)
 
     def test_finalize_options(self):
@@ -341,8 +364,9 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
         f = open(cmd.manifest)
         try:
-            manifest = [line.strip() for line in f.read().split('\n')
-                        if line.strip() != '']
+            manifest = [
+                line.strip() for line in f.read().split('\n') if line.strip() != ''
+            ]
         finally:
             f.close()
 
@@ -360,8 +384,9 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
         f = open(cmd.manifest)
         try:
-            manifest2 = [line.strip() for line in f.read().split('\n')
-                         if line.strip() != '']
+            manifest2 = [
+                line.strip() for line in f.read().split('\n') if line.strip() != ''
+            ]
         finally:
             f.close()
 
@@ -378,22 +403,24 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
         f = open(cmd.manifest)
         try:
-            manifest = [line.strip() for line in f.read().split('\n')
-                        if line.strip() != '']
+            manifest = [
+                line.strip() for line in f.read().split('\n') if line.strip() != ''
+            ]
         finally:
             f.close()
 
-        self.assertEqual(manifest[0],
-                         '# file GENERATED by distutils, do NOT edit')
+        self.assertEqual(manifest[0], '# file GENERATED by distutils, do NOT edit')
 
     @unittest.skipUnless(ZLIB_SUPPORT, "Need zlib support to run")
     def test_manifest_comments(self):
         # make sure comments don't cause exceptions or wrong includes
-        contents = dedent("""\
+        contents = dedent(
+            """\
             # bad.py
             #bad.py
             good.py
-            """)
+            """
+        )
         dist, cmd = self.get_cmd()
         cmd.ensure_finalized()
         self.write_file((self.tmp_dir, cmd.manifest), contents)
@@ -410,15 +437,18 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         cmd.formats = ['gztar']
         cmd.ensure_finalized()
         self.write_file((self.tmp_dir, cmd.manifest), 'README.manual')
-        self.write_file((self.tmp_dir, 'README.manual'),
-                         'This project maintains its MANIFEST file itself.')
+        self.write_file(
+            (self.tmp_dir, 'README.manual'),
+            'This project maintains its MANIFEST file itself.',
+        )
         cmd.run()
         self.assertEqual(cmd.filelist.files, ['README.manual'])
 
         f = open(cmd.manifest)
         try:
-            manifest = [line.strip() for line in f.read().split('\n')
-                        if line.strip() != '']
+            manifest = [
+                line.strip() for line in f.read().split('\n') if line.strip() != ''
+            ]
         finally:
             f.close()
 
@@ -430,16 +460,16 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             filenames = [tarinfo.name for tarinfo in archive]
         finally:
             archive.close()
-        self.assertEqual(sorted(filenames), ['fake-1.0', 'fake-1.0/PKG-INFO',
-                                             'fake-1.0/README.manual'])
+        self.assertEqual(
+            sorted(filenames),
+            ['fake-1.0', 'fake-1.0/PKG-INFO', 'fake-1.0/README.manual'],
+        )
 
     @unittest.skipUnless(ZLIB_SUPPORT, "requires zlib")
     @require_unix_id
     @require_uid_0
-    @unittest.skipIf(find_executable('tar') is None,
-                     "The tar command is not found")
-    @unittest.skipIf(find_executable('gzip') is None,
-                     "The gzip command is not found")
+    @unittest.skipIf(find_executable('tar') is None, "The tar command is not found")
+    @unittest.skipIf(find_executable('gzip') is None, "The gzip command is not found")
     def test_make_distribution_owner_group(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
@@ -482,8 +512,10 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         finally:
             archive.close()
 
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(SDistTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

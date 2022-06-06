@@ -18,6 +18,7 @@ def _missing_compiler_executable(cmd_names=[]):
 
     """
     from distutils import ccompiler, sysconfig, spawn
+
     compiler = ccompiler.new_compiler()
     sysconfig.customize_compiler(compiler)
     for name in compiler.executables:
@@ -25,8 +26,7 @@ def _missing_compiler_executable(cmd_names=[]):
             continue
         cmd = getattr(compiler, name)
         if cmd_names:
-            assert cmd is not None, \
-                    "the '%s' executable is not configured" % name
+            assert cmd is not None, "the '%s' executable is not configured" % name
         elif not cmd:
             continue
         if spawn.find_executable(cmd[0]) is None:
@@ -45,9 +45,11 @@ except ImportError:
     # Adapted from Python 3.9 test.support module
     is_android = hasattr(sys, 'getandroidapilevel')
     unix_shell = (
-        None if sys.platform == 'win32' else
-        '/system/bin/sh' if is_android else
-        '/bin/sh'
+        None
+        if sys.platform == 'win32'
+        else '/system/bin/sh'
+        if is_android
+        else '/bin/sh'
     )
 
 

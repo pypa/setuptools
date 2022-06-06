@@ -43,8 +43,8 @@ index-servers =
 username:me
 """
 
-class FakeOpen(object):
 
+class FakeOpen(object):
     def __init__(self, url, msg=None, code=None):
         self.url = url
         if not isinstance(url, str):
@@ -57,7 +57,7 @@ class FakeOpen(object):
     def getheader(self, name, default=None):
         return {
             'content-type': 'text/plain; charset=utf-8',
-            }.get(name.lower(), default)
+        }.get(name.lower(), default)
 
     def read(self):
         return b'xyzzy'
@@ -67,7 +67,6 @@ class FakeOpen(object):
 
 
 class uploadTestCase(BasePyPIRCCommandTestCase):
-
     def setUp(self):
         super(uploadTestCase, self).setUp()
         self.old_open = upload_mod.urlopen
@@ -91,9 +90,12 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         dist = Distribution()
         cmd = upload(dist)
         cmd.finalize_options()
-        for attr, waited in (('username', 'me'), ('password', 'secret'),
-                             ('realm', 'pypi'),
-                             ('repository', 'https://upload.pypi.org/legacy/')):
+        for attr, waited in (
+            ('username', 'me'),
+            ('password', 'secret'),
+            ('realm', 'pypi'),
+            ('repository', 'https://upload.pypi.org/legacy/'),
+        ):
             self.assertEqual(getattr(cmd, attr), waited)
 
     def test_saved_password(self):
@@ -137,13 +139,12 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         expected_url = 'https://upload.pypi.org/legacy/'
         self.assertEqual(self.last_open.req.get_full_url(), expected_url)
         data = self.last_open.req.data
-        self.assertIn(b'xxx',data)
+        self.assertIn(b'xxx', data)
         self.assertIn(b'protocol_version', data)
         self.assertIn(b'sha256_digest', data)
         self.assertIn(
-            b'cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf'
-            b'6860',
-            data
+            b'cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf' b'6860',
+            data,
         )
         if b'md5_digest' in data:
             self.assertIn(b'f561aaf6ef0bf14d4208bb46a4ccb3ad', data)
@@ -152,7 +153,7 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
                 b'b6f289a27d4fe90da63c503bfe0a9b761a8f76bb86148565065f040be'
                 b'6d1c3044cf7ded78ef800509bccb4b648e507d88dc6383d67642aadcc'
                 b'ce443f1534330a',
-                data
+                data,
             )
 
         # The PyPI response body was echoed
@@ -173,8 +174,7 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         # other fields that ended with \r used to be modified, now are
         # preserved.
         pkg_dir, dist = self.create_dist(
-            dist_files=dist_files,
-            description='long description\r'
+            dist_files=dist_files, description='long description\r'
         )
         cmd = upload(dist)
         cmd.show_response = 1
@@ -200,13 +200,18 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         pkg_dir, dist = self.create_dist(dist_files=dist_files)
         tests = [
             (OSError('oserror'), 'oserror', OSError),
-            (HTTPError('url', 400, 'httperror', {}, None),
-             'Upload failed (400): httperror', DistutilsError),
+            (
+                HTTPError('url', 400, 'httperror', {}, None),
+                'Upload failed (400): httperror',
+                DistutilsError,
+            ),
         ]
         for exception, expected, raised_exception in tests:
             with self.subTest(exception=type(exception).__name__):
-                with mock.patch('distutils.command.upload.urlopen',
-                                new=mock.Mock(side_effect=exception)):
+                with mock.patch(
+                    'distutils.command.upload.urlopen',
+                    new=mock.Mock(side_effect=exception),
+                ):
                     with self.assertRaises(raised_exception):
                         cmd = upload(dist)
                         cmd.ensure_finalized()
@@ -218,6 +223,7 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(uploadTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

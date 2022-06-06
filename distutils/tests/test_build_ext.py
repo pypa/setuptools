@@ -6,12 +6,19 @@ import textwrap
 from distutils.core import Distribution
 from distutils.command.build_ext import build_ext
 from distutils import sysconfig
-from distutils.tests.support import (TempdirManager, LoggingSilencer,
-                                     copy_xxmodule_c, fixup_build_ext)
+from distutils.tests.support import (
+    TempdirManager,
+    LoggingSilencer,
+    copy_xxmodule_c,
+    fixup_build_ext,
+)
 from distutils.extension import Extension
 from distutils.errors import (
-    CompileError, DistutilsPlatformError, DistutilsSetupError,
-    UnknownFileError)
+    CompileError,
+    DistutilsPlatformError,
+    DistutilsSetupError,
+    UnknownFileError,
+)
 
 import unittest
 from test import support
@@ -23,17 +30,17 @@ from test.support.script_helper import assert_python_ok
 ALREADY_TESTED = False
 
 
-class BuildExtTestCase(TempdirManager,
-                       LoggingSilencer,
-                       unittest.TestCase):
+class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
     def setUp(self):
         # Create a simple test environment
         super(BuildExtTestCase, self).setUp()
         self.tmp_dir = self.mkdtemp()
         import site
+
         self.old_user_base = site.USER_BASE
         site.USER_BASE = self.mkdtemp()
         from distutils.command import build_ext
+
         build_ext.USER_BASE = site.USER_BASE
 
         # bpo-30132: On Windows, a .pdb file may be created in the current
@@ -45,8 +52,10 @@ class BuildExtTestCase(TempdirManager,
 
     def tearDown(self):
         import site
+
         site.USER_BASE = self.old_user_base
         from distutils.command import build_ext
+
         build_ext.USER_BASE = self.old_user_base
         super(BuildExtTestCase, self).tearDown()
 
@@ -83,7 +92,8 @@ class BuildExtTestCase(TempdirManager,
         else:
             ALREADY_TESTED = type(self).__name__
 
-        code = textwrap.dedent("""
+        code = textwrap.dedent(
+            """
             tmp_dir = {self.tmp_dir!r}
 
             import sys
@@ -109,7 +119,10 @@ class BuildExtTestCase(TempdirManager,
 
 
             unittest.main()
-        """.format(**locals()))
+        """.format(
+                **locals()
+            )
+        )
         assert_python_ok('-c', code)
 
     def test_solaris_enable_shared(self):
@@ -117,8 +130,9 @@ class BuildExtTestCase(TempdirManager,
         cmd = self.build_ext(dist)
         old = sys.platform
 
-        sys.platform = 'sunos' # fooling finalize_options
-        from distutils.sysconfig import  _config_vars
+        sys.platform = 'sunos'  # fooling finalize_options
+        from distutils.sysconfig import _config_vars
+
         old_var = _config_vars.get('Py_ENABLE_SHARED')
         _config_vars['Py_ENABLE_SHARED'] = 1
         try:
@@ -135,12 +149,12 @@ class BuildExtTestCase(TempdirManager,
 
     def test_user_site(self):
         import site
+
         dist = Distribution({'name': 'xx'})
         cmd = self.build_ext(dist)
 
         # making sure the user option is there
-        options = [name for name, short, lable in
-                   cmd.user_options]
+        options = [name for name, short, lable in cmd.user_options]
         self.assertIn('user', options)
 
         # setting a value
@@ -169,8 +183,9 @@ class BuildExtTestCase(TempdirManager,
         dist = Distribution({'name': 'xx', 'ext_modules': modules})
         cmd = self.build_ext(dist)
         cmd.ensure_finalized()
-        self.assertRaises((UnknownFileError, CompileError),
-                          cmd.run)  # should raise an error
+        self.assertRaises(
+            (UnknownFileError, CompileError), cmd.run
+        )  # should raise an error
 
         modules = [Extension('foo', ['xxx'], optional=True)]
         dist = Distribution({'name': 'xx', 'ext_modules': modules})
@@ -256,8 +271,7 @@ class BuildExtTestCase(TempdirManager,
         cmd.finalize_options()
 
         #'extensions' option must be a list of Extension instances
-        self.assertRaises(DistutilsSetupError,
-                          cmd.check_extensions_list, 'foo')
+        self.assertRaises(DistutilsSetupError, cmd.check_extensions_list, 'foo')
 
         # each element of 'ext_modules' option must be an
         # Extension instance or 2-tuple
@@ -276,8 +290,7 @@ class BuildExtTestCase(TempdirManager,
         self.assertRaises(DistutilsSetupError, cmd.check_extensions_list, exts)
 
         # ok this one should pass
-        exts = [('foo.bar', {'sources': [''], 'libraries': 'foo',
-                             'some': 'bar'})]
+        exts = [('foo.bar', {'sources': [''], 'libraries': 'foo', 'some': 'bar'})]
         cmd.check_extensions_list(exts)
         ext = exts[0]
         self.assertIsInstance(ext, Extension)
@@ -289,8 +302,17 @@ class BuildExtTestCase(TempdirManager,
         self.assertFalse(hasattr(ext, 'some'))
 
         # 'macros' element of build info dict must be 1- or 2-tuple
-        exts = [('foo.bar', {'sources': [''], 'libraries': 'foo',
-                'some': 'bar', 'macros': [('1', '2', '3'), 'foo']})]
+        exts = [
+            (
+                'foo.bar',
+                {
+                    'sources': [''],
+                    'libraries': 'foo',
+                    'some': 'bar',
+                    'macros': [('1', '2', '3'), 'foo'],
+                },
+            )
+        ]
         self.assertRaises(DistutilsSetupError, cmd.check_extensions_list, exts)
 
         exts[0][1]['macros'] = [('1', '2'), ('3',)]
@@ -337,8 +359,7 @@ class BuildExtTestCase(TempdirManager,
         c_file = os.path.join(tmp_dir, 'foo.c')
         self.write_file(c_file, 'void PyInit_foo(void) {}\n')
         ext = Extension('foo', [c_file], optional=False)
-        dist = Distribution({'name': 'xx',
-                             'ext_modules': [ext]})
+        dist = Distribution({'name': 'xx', 'ext_modules': [ext]})
         cmd = self.build_ext(dist)
         fixup_build_ext(cmd)
         cmd.ensure_finalized()
@@ -398,9 +419,9 @@ class BuildExtTestCase(TempdirManager,
     def test_ext_fullpath(self):
         ext = sysconfig.get_config_var('EXT_SUFFIX')
         # building lxml.etree inplace
-        #etree_c = os.path.join(self.tmp_dir, 'lxml.etree.c')
-        #etree_ext = Extension('lxml.etree', [etree_c])
-        #dist = Distribution({'name': 'lxml', 'ext_modules': [etree_ext]})
+        # etree_c = os.path.join(self.tmp_dir, 'lxml.etree.c')
+        # etree_ext = Extension('lxml.etree', [etree_c])
+        # dist = Distribution({'name': 'lxml', 'ext_modules': [etree_ext]})
         dist = Distribution()
         cmd = self.build_ext(dist)
         cmd.inplace = 1
@@ -423,8 +444,7 @@ class BuildExtTestCase(TempdirManager,
         build_py.package_dir = {}
         cmd.distribution.packages = ['twisted', 'twisted.runner.portmap']
         path = cmd.get_ext_fullpath('twisted.runner.portmap')
-        wanted = os.path.join(curdir, 'tmpdir', 'twisted', 'runner',
-                              'portmap' + ext)
+        wanted = os.path.join(curdir, 'tmpdir', 'twisted', 'runner', 'portmap' + ext)
         self.assertEqual(wanted, path)
 
         # building twisted.runner.portmap inplace
@@ -432,7 +452,6 @@ class BuildExtTestCase(TempdirManager,
         path = cmd.get_ext_fullpath('twisted.runner.portmap')
         wanted = os.path.join(curdir, 'twisted', 'runner', 'portmap' + ext)
         self.assertEqual(wanted, path)
-
 
     @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
     def test_deployment_target_default(self):
@@ -445,8 +464,9 @@ class BuildExtTestCase(TempdirManager,
     def test_deployment_target_too_low(self):
         # Issue 9516: Test that an extension module is not allowed to be
         # compiled with a deployment target less than that of the interpreter.
-        self.assertRaises(DistutilsPlatformError,
-            self._try_compile_deployment_target, '>', '10.1')
+        self.assertRaises(
+            DistutilsPlatformError, self._try_compile_deployment_target, '>', '10.1'
+        )
 
     @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
     def test_deployment_target_higher_ok(self):
@@ -475,7 +495,9 @@ class BuildExtTestCase(TempdirManager,
         deptarget_c = os.path.join(self.tmp_dir, 'deptargetmodule.c')
 
         with open(deptarget_c, 'w') as fp:
-            fp.write(textwrap.dedent('''\
+            fp.write(
+                textwrap.dedent(
+                    '''\
                 #include <AvailabilityMacros.h>
 
                 int dummy;
@@ -485,7 +507,10 @@ class BuildExtTestCase(TempdirManager,
                 #error "Unexpected target"
                 #endif
 
-            ''' % operator))
+            '''
+                    % operator
+                )
+            )
 
         # get the deployment target that the interpreter was built with
         target = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET')
@@ -506,12 +531,9 @@ class BuildExtTestCase(TempdirManager,
         deptarget_ext = Extension(
             'deptarget',
             [deptarget_c],
-            extra_compile_args=['-DTARGET=%s'%(target,)],
+            extra_compile_args=['-DTARGET=%s' % (target,)],
         )
-        dist = Distribution({
-            'name': 'deptarget',
-            'ext_modules': [deptarget_ext]
-        })
+        dist = Distribution({'name': 'deptarget', 'ext_modules': [deptarget_ext]})
         dist.package_dir = self.tmp_dir
         cmd = self.build_ext(dist)
         cmd.build_lib = self.tmp_dir
@@ -533,7 +555,6 @@ class BuildExtTestCase(TempdirManager,
 
 
 class ParallelBuildExtTestCase(BuildExtTestCase):
-
     def build_ext(self, *args, **kwargs):
         build_ext = super().build_ext(*args, **kwargs)
         build_ext.parallel = True
@@ -545,6 +566,7 @@ def test_suite():
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(BuildExtTestCase))
     suite.addTest(unittest.TestLoader().loadTestsFromTestCase(ParallelBuildExtTestCase))
     return suite
+
 
 if __name__ == '__main__':
     support.run_unittest(__name__)

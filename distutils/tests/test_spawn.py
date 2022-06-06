@@ -13,12 +13,9 @@ from distutils.spawn import spawn
 from distutils.errors import DistutilsExecError
 from distutils.tests import support
 
-class SpawnTestCase(support.TempdirManager,
-                    support.LoggingSilencer,
-                    unittest.TestCase):
 
-    @unittest.skipUnless(os.name in ('nt', 'posix'),
-                         'Runs only under posix or nt')
+class SpawnTestCase(support.TempdirManager, support.LoggingSilencer, unittest.TestCase):
+    @unittest.skipUnless(os.name in ('nt', 'posix'), 'Runs only under posix or nt')
     def test_spawn(self):
         tmpdir = self.mkdtemp()
 
@@ -74,16 +71,15 @@ class SpawnTestCase(support.TempdirManager,
 
             # test non-existent program
             dont_exist_program = "dontexist_" + program
-            rv = find_executable(dont_exist_program , path=tmp_dir)
+            rv = find_executable(dont_exist_program, path=tmp_dir)
             self.assertIsNone(rv)
 
             # PATH='': no match, except in the current directory
             with os_helper.EnvironmentVarGuard() as env:
                 env['PATH'] = ''
-                with unittest.mock.patch('distutils.spawn.os.confstr',
-                                         return_value=tmp_dir, create=True), \
-                     unittest.mock.patch('distutils.spawn.os.defpath',
-                                         tmp_dir):
+                with unittest.mock.patch(
+                    'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
+                ), unittest.mock.patch('distutils.spawn.os.defpath', tmp_dir):
                     rv = find_executable(program)
                     self.assertIsNone(rv)
 
@@ -95,9 +91,9 @@ class SpawnTestCase(support.TempdirManager,
             # PATH=':': explicitly looks in the current directory
             with os_helper.EnvironmentVarGuard() as env:
                 env['PATH'] = os.pathsep
-                with unittest.mock.patch('distutils.spawn.os.confstr',
-                                         return_value='', create=True), \
-                     unittest.mock.patch('distutils.spawn.os.defpath', ''):
+                with unittest.mock.patch(
+                    'distutils.spawn.os.confstr', return_value='', create=True
+                ), unittest.mock.patch('distutils.spawn.os.defpath', ''):
                     rv = find_executable(program)
                     self.assertIsNone(rv)
 
@@ -111,18 +107,16 @@ class SpawnTestCase(support.TempdirManager,
                 env.pop('PATH', None)
 
                 # without confstr
-                with unittest.mock.patch('distutils.spawn.os.confstr',
-                                         side_effect=ValueError,
-                                         create=True), \
-                     unittest.mock.patch('distutils.spawn.os.defpath',
-                                         tmp_dir):
+                with unittest.mock.patch(
+                    'distutils.spawn.os.confstr', side_effect=ValueError, create=True
+                ), unittest.mock.patch('distutils.spawn.os.defpath', tmp_dir):
                     rv = find_executable(program)
                     self.assertEqual(rv, filename)
 
                 # with confstr
-                with unittest.mock.patch('distutils.spawn.os.confstr',
-                                         return_value=tmp_dir, create=True), \
-                     unittest.mock.patch('distutils.spawn.os.defpath', ''):
+                with unittest.mock.patch(
+                    'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
+                ), unittest.mock.patch('distutils.spawn.os.defpath', ''):
                     rv = find_executable(program)
                     self.assertEqual(rv, filename)
 
@@ -134,6 +128,7 @@ class SpawnTestCase(support.TempdirManager,
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(SpawnTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

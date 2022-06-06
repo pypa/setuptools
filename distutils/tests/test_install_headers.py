@@ -6,11 +6,13 @@ from distutils.command.install_headers import install_headers
 from distutils.tests import support
 from test.support import run_unittest
 
-class InstallHeadersTestCase(support.TempdirManager,
-                             support.LoggingSilencer,
-                             support.EnvironGuard,
-                             unittest.TestCase):
 
+class InstallHeadersTestCase(
+    support.TempdirManager,
+    support.LoggingSilencer,
+    support.EnvironGuard,
+    unittest.TestCase,
+):
     def test_simple_run(self):
         # we have two headers
         header_list = self.mkdtemp()
@@ -32,8 +34,10 @@ class InstallHeadersTestCase(support.TempdirManager,
         # let's check the results
         self.assertEqual(len(cmd.get_outputs()), 2)
 
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(InstallHeadersTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())
