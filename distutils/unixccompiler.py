@@ -17,10 +17,8 @@ import os, sys, re, shlex
 
 from distutils import sysconfig
 from distutils.dep_util import newer
-from distutils.ccompiler import \
-     CCompiler, gen_preprocess_options, gen_lib_options
-from distutils.errors import \
-     DistutilsExecError, CompileError, LibError, LinkError
+from distutils.ccompiler import CCompiler, gen_preprocess_options, gen_lib_options
+from distutils.errors import DistutilsExecError, CompileError, LibError, LinkError
 from distutils import log
 from ._macos_compat import compiler_fixup
 
@@ -110,15 +108,16 @@ class UnixCCompiler(CCompiler):
     # are pretty generic; they will probably have to be set by an outsider
     # (eg. using information discovered by the sysconfig about building
     # Python extensions).
-    executables = {'preprocessor' : None,
-                   'compiler'     : ["cc"],
-                   'compiler_so'  : ["cc"],
-                   'compiler_cxx' : ["cc"],
-                   'linker_so'    : ["cc", "-shared"],
-                   'linker_exe'   : ["cc"],
-                   'archiver'     : ["ar", "-cr"],
-                   'ranlib'       : None,
-                  }
+    executables = {
+        'preprocessor': None,
+        'compiler': ["cc"],
+        'compiler_so': ["cc"],
+        'compiler_cxx': ["cc"],
+        'linker_so': ["cc", "-shared"],
+        'linker_exe': ["cc"],
+        'archiver': ["ar", "-cr"],
+        'ranlib': None,
+    }
 
     if sys.platform[:6] == "darwin":
         executables['ranlib'] = ["ranlib"]
@@ -129,7 +128,7 @@ class UnixCCompiler(CCompiler):
     # reasonable common default here, but it's not necessarily used on all
     # Unices!
 
-    src_extensions = [".c",".C",".cc",".cxx",".cpp",".m"]
+    src_extensions = [".c", ".C", ".cc", ".cxx", ".cpp", ".m"]
     obj_extension = ".o"
     static_lib_extension = ".a"
     shared_lib_extension = ".so"
@@ -140,8 +139,15 @@ class UnixCCompiler(CCompiler):
     if sys.platform == "cygwin":
         exe_extension = ".exe"
 
-    def preprocess(self, source, output_file=None, macros=None,
-                   include_dirs=None, extra_preargs=None, extra_postargs=None):
+    def preprocess(
+        self,
+        source,
+        output_file=None,
+        macros=None,
+        include_dirs=None,
+        extra_preargs=None,
+        extra_postargs=None,
+    ):
         fixed_args = self._fix_compile_args(None, macros, include_dirs)
         ignore, macros, include_dirs = fixed_args
         pp_opts = gen_preprocess_options(macros, include_dirs)
@@ -167,26 +173,22 @@ class UnixCCompiler(CCompiler):
                 raise CompileError(msg)
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
-        compiler_so = compiler_fixup(
-            self.compiler_so, cc_args + extra_postargs)
+        compiler_so = compiler_fixup(self.compiler_so, cc_args + extra_postargs)
         try:
-            self.spawn(compiler_so + cc_args + [src, '-o', obj] +
-                       extra_postargs)
+            self.spawn(compiler_so + cc_args + [src, '-o', obj] + extra_postargs)
         except DistutilsExecError as msg:
             raise CompileError(msg)
 
-    def create_static_lib(self, objects, output_libname,
-                          output_dir=None, debug=0, target_lang=None):
+    def create_static_lib(
+        self, objects, output_libname, output_dir=None, debug=0, target_lang=None
+    ):
         objects, output_dir = self._fix_object_args(objects, output_dir)
 
-        output_filename = \
-            self.library_filename(output_libname, output_dir=output_dir)
+        output_filename = self.library_filename(output_libname, output_dir=output_dir)
 
         if self._need_link(objects, output_filename):
             self.mkpath(os.path.dirname(output_filename))
-            self.spawn(self.archiver +
-                       [output_filename] +
-                       objects + self.objects)
+            self.spawn(self.archiver + [output_filename] + objects + self.objects)
 
             # Not many Unices required ranlib anymore -- SunOS 4.x is, I
             # think the only major Unix that does.  Maybe we need some
@@ -201,26 +203,34 @@ class UnixCCompiler(CCompiler):
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
 
-    def link(self, target_desc, objects,
-             output_filename, output_dir=None, libraries=None,
-             library_dirs=None, runtime_library_dirs=None,
-             export_symbols=None, debug=0, extra_preargs=None,
-             extra_postargs=None, build_temp=None, target_lang=None):
+    def link(
+        self,
+        target_desc,
+        objects,
+        output_filename,
+        output_dir=None,
+        libraries=None,
+        library_dirs=None,
+        runtime_library_dirs=None,
+        export_symbols=None,
+        debug=0,
+        extra_preargs=None,
+        extra_postargs=None,
+        build_temp=None,
+        target_lang=None,
+    ):
         objects, output_dir = self._fix_object_args(objects, output_dir)
-        fixed_args = self._fix_lib_args(libraries, library_dirs,
-                                        runtime_library_dirs)
+        fixed_args = self._fix_lib_args(libraries, library_dirs, runtime_library_dirs)
         libraries, library_dirs, runtime_library_dirs = fixed_args
 
-        lib_opts = gen_lib_options(self, library_dirs, runtime_library_dirs,
-                                   libraries)
+        lib_opts = gen_lib_options(self, library_dirs, runtime_library_dirs, libraries)
         if not isinstance(output_dir, (str, type(None))):
             raise TypeError("'output_dir' must be a string or None")
         if output_dir is not None:
             output_filename = os.path.join(output_dir, output_filename)
 
         if self._need_link(objects, output_filename):
-            ld_args = (objects + self.objects +
-                       lib_opts + ['-o', output_filename])
+            ld_args = objects + self.objects + lib_opts + ['-o', output_filename]
             if debug:
                 ld_args[:0] = ['-g']
             if extra_preargs:
@@ -280,10 +290,11 @@ class UnixCCompiler(CCompiler):
         # we use this hack.
         if sys.platform[:6] == "darwin":
             from distutils.util import get_macosx_target_ver, split_version
+
             macosx_target_ver = get_macosx_target_ver()
             if macosx_target_ver and split_version(macosx_target_ver) >= [10, 5]:
                 return "-Wl,-rpath," + dir
-            else: # no support for -rpath on earlier macOS versions
+            else:  # no support for -rpath on earlier macOS versions
                 return "-L" + dir
         elif sys.platform[:7] == "freebsd":
             return "-Wl,-rpath=" + dir
@@ -338,8 +349,6 @@ class UnixCCompiler(CCompiler):
             else:
                 sysroot = m.group(1)
 
-
-
         for dir in dirs:
             shared = os.path.join(dir, shared_f)
             dylib = os.path.join(dir, dylib_f)
@@ -347,8 +356,9 @@ class UnixCCompiler(CCompiler):
             xcode_stub = os.path.join(dir, xcode_stub_f)
 
             if sys.platform == 'darwin' and (
-                dir.startswith('/System/') or (
-                dir.startswith('/usr/') and not dir.startswith('/usr/local/'))):
+                dir.startswith('/System/')
+                or (dir.startswith('/usr/') and not dir.startswith('/usr/local/'))
+            ):
 
                 shared = os.path.join(sysroot, dir[1:], shared_f)
                 dylib = os.path.join(sysroot, dir[1:], dylib_f)

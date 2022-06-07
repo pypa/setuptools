@@ -26,11 +26,12 @@ def _make_ext_name(modname):
     return modname + sysconfig.get_config_var('EXT_SUFFIX')
 
 
-class InstallTestCase(support.TempdirManager,
-                      support.EnvironGuard,
-                      support.LoggingSilencer,
-                      unittest.TestCase):
-
+class InstallTestCase(
+    support.TempdirManager,
+    support.EnvironGuard,
+    support.LoggingSilencer,
+    unittest.TestCase,
+):
     @pytest.mark.xfail(
         'platform.system() == "Windows" and sys.version_info > (3, 11)',
         reason="pypa/distutils#148")
@@ -47,7 +48,7 @@ class InstallTestCase(support.TempdirManager,
         dist.command_obj["build"] = support.DummyCommand(
             build_base=builddir,
             build_lib=os.path.join(builddir, "lib"),
-            )
+        )
 
         cmd = install(dist)
         cmd.home = destination
@@ -68,8 +69,10 @@ class InstallTestCase(support.TempdirManager,
         platlibdir = os.path.join(destination, _platlibdir, impl_name)
         check_path(cmd.install_platlib, platlibdir)
         check_path(cmd.install_purelib, libdir)
-        check_path(cmd.install_headers,
-                   os.path.join(destination, "include", impl_name, "foopkg"))
+        check_path(
+            cmd.install_headers,
+            os.path.join(destination, "include", impl_name, "foopkg"),
+        )
         check_path(cmd.install_scripts, os.path.join(destination, "bin"))
         check_path(cmd.install_data, destination)
 
@@ -90,6 +93,7 @@ class InstallTestCase(support.TempdirManager,
             if path.startswith('~'):
                 return os.path.normpath(self.tmpdir + path[1:])
             return path
+
         self.old_expand = os.path.expanduser
         os.path.expanduser = _expanduser
 
@@ -109,8 +113,7 @@ class InstallTestCase(support.TempdirManager,
         cmd = install(dist)
 
         # making sure the user option is there
-        options = [name for name, short, lable in
-                   cmd.user_options]
+        options = [name for name, short, lable in cmd.user_options]
         self.assertIn('user', options)
 
         # setting a value
@@ -133,13 +136,16 @@ class InstallTestCase(support.TempdirManager,
         actual_headers = os.path.relpath(cmd.install_headers, self.user_base)
         if os.name == 'nt':
             site_path = os.path.relpath(
-                os.path.dirname(self.old_user_site), self.old_user_base)
+                os.path.dirname(self.old_user_site), self.old_user_base
+            )
             include = os.path.join(site_path, 'Include')
         else:
             include = sysconfig.get_python_inc(0, '')
         expect_headers = os.path.join(include, 'xx')
 
-        self.assertEqual(os.path.normcase(actual_headers), os.path.normcase(expect_headers))
+        self.assertEqual(
+            os.path.normcase(actual_headers), os.path.normcase(expect_headers)
+        )
 
     def test_handle_extra_path(self):
         dist = Distribution({'name': 'xx', 'extra_path': 'path,dirs'})
@@ -192,8 +198,7 @@ class InstallTestCase(support.TempdirManager,
 
     def test_record(self):
         install_dir = self.mkdtemp()
-        project_dir, dist = self.create_dist(py_modules=['hello'],
-                                             scripts=['sayhi'])
+        project_dir, dist = self.create_dist(py_modules=['hello'], scripts=['sayhi'])
         os.chdir(project_dir)
         self.write_file('hello.py', "def main(): print('o hai')")
         self.write_file('sayhi', 'from hello import main; main()')
@@ -212,9 +217,12 @@ class InstallTestCase(support.TempdirManager,
             f.close()
 
         found = [os.path.basename(line) for line in content.splitlines()]
-        expected = ['hello.py', 'hello.%s.pyc' % sys.implementation.cache_tag,
-                    'sayhi',
-                    'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2]]
+        expected = [
+            'hello.py',
+            'hello.%s.pyc' % sys.implementation.cache_tag,
+            'sayhi',
+            'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2],
+        ]
         self.assertEqual(found, expected)
 
     def test_record_extensions(self):
@@ -222,8 +230,9 @@ class InstallTestCase(support.TempdirManager,
         if cmd is not None:
             self.skipTest('The %r command is not found' % cmd)
         install_dir = self.mkdtemp()
-        project_dir, dist = self.create_dist(ext_modules=[
-            Extension('xx', ['xxmodule.c'])])
+        project_dir, dist = self.create_dist(
+            ext_modules=[Extension('xx', ['xxmodule.c'])]
+        )
         os.chdir(project_dir)
         support.copy_xxmodule_c(project_dir)
 
@@ -246,8 +255,10 @@ class InstallTestCase(support.TempdirManager,
             f.close()
 
         found = [os.path.basename(line) for line in content.splitlines()]
-        expected = [_make_ext_name('xx'),
-                    'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2]]
+        expected = [
+            _make_ext_name('xx'),
+            'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2],
+        ]
         self.assertEqual(found, expected)
 
     def test_debug_mode(self):
@@ -264,6 +275,7 @@ class InstallTestCase(support.TempdirManager,
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(InstallTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

@@ -56,8 +56,8 @@ if __name__ == "__main__":
     main()
 """
 
-class CoreTestCase(support.EnvironGuard, unittest.TestCase):
 
+class CoreTestCase(support.EnvironGuard, unittest.TestCase):
     def setUp(self):
         super(CoreTestCase, self).setUp()
         self.old_stdout = sys.stdout
@@ -90,21 +90,18 @@ class CoreTestCase(support.EnvironGuard, unittest.TestCase):
     def test_run_setup_provides_file(self):
         # Make sure the script can use __file__; if that's missing, the test
         # setup.py script will raise NameError.
-        distutils.core.run_setup(
-            self.write_setup(setup_using___file__))
+        distutils.core.run_setup(self.write_setup(setup_using___file__))
 
     def test_run_setup_preserves_sys_argv(self):
         # Make sure run_setup does not clobber sys.argv
         argv_copy = sys.argv.copy()
-        distutils.core.run_setup(
-            self.write_setup(setup_does_nothing))
+        distutils.core.run_setup(self.write_setup(setup_does_nothing))
         self.assertEqual(sys.argv, argv_copy)
 
     def test_run_setup_defines_subclass(self):
         # Make sure the script can use __file__; if that's missing, the test
         # setup.py script will raise NameError.
-        dist = distutils.core.run_setup(
-            self.write_setup(setup_defines_subclass))
+        dist = distutils.core.run_setup(self.write_setup(setup_defines_subclass))
         install = dist.get_command_obj('install')
         self.assertIn('cmd', install.sub_commands)
 
@@ -118,8 +115,7 @@ class CoreTestCase(support.EnvironGuard, unittest.TestCase):
         # Create a directory and write the setup.py file there:
         os.mkdir(os_helper.TESTFN)
         setup_py = os.path.join(os_helper.TESTFN, "setup.py")
-        distutils.core.run_setup(
-            self.write_setup(setup_prints_cwd, path=setup_py))
+        distutils.core.run_setup(self.write_setup(setup_prints_cwd, path=setup_py))
 
         output = sys.stdout.getvalue()
         if output.endswith("\n"):
@@ -128,14 +124,16 @@ class CoreTestCase(support.EnvironGuard, unittest.TestCase):
 
     def test_run_setup_within_if_main(self):
         dist = distutils.core.run_setup(
-            self.write_setup(setup_within_if_main), stop_after="config")
+            self.write_setup(setup_within_if_main), stop_after="config"
+        )
         self.assertIsInstance(dist, Distribution)
         self.assertEqual(dist.get_name(), "setup_within_if_main")
 
     def test_run_commands(self):
         sys.argv = ['setup.py', 'build']
         dist = distutils.core.run_setup(
-            self.write_setup(setup_within_if_main), stop_after="commandline")
+            self.write_setup(setup_within_if_main), stop_after="commandline"
+        )
         self.assertNotIn('build', dist.have_run)
         distutils.core.run_commands(dist)
         self.assertIn('build', dist.have_run)
@@ -158,8 +156,10 @@ class CoreTestCase(support.EnvironGuard, unittest.TestCase):
         wanted = "options (after parsing config files):\n"
         self.assertEqual(stdout.readlines()[0], wanted)
 
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(CoreTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

@@ -8,13 +8,13 @@ from .py38compat import check_warnings
 
 
 @unittest.skipUnless(sys.platform == 'win32', 'these tests require Windows')
-class BDistMSITestCase(support.TempdirManager,
-                       support.LoggingSilencer,
-                       unittest.TestCase):
-
+class BDistMSITestCase(
+    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
+):
     def test_minimal(self):
         # minimal test XXX need more tests
         from distutils.command.bdist_msi import bdist_msi
+
         project_dir, dist = self.create_dist()
         with check_warnings(("", DeprecationWarning)):
             cmd = bdist_msi(dist)
@@ -23,6 +23,7 @@ class BDistMSITestCase(support.TempdirManager,
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(BDistMSITestCase)
+
 
 if __name__ == '__main__':
     run_unittest(test_suite())

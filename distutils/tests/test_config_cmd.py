@@ -2,18 +2,16 @@
 import unittest
 import os
 import sys
-from test.support import run_unittest
-
-from .py35compat import missing_compiler_executable
+from test.support import run_unittest, missing_compiler_executable
 
 from distutils.command.config import dump_file, config
 from distutils.tests import support
 from distutils import log
 
-class ConfigTestCase(support.LoggingSilencer,
-                     support.TempdirManager,
-                     unittest.TestCase):
 
+class ConfigTestCase(
+    support.LoggingSilencer, support.TempdirManager, unittest.TestCase
+):
     def _info(self, msg, *args):
         for line in msg.splitlines():
             self._logs.append(line)
@@ -37,7 +35,7 @@ class ConfigTestCase(support.LoggingSilencer,
             f.close()
 
         dump_file(this_file, 'I am the header')
-        self.assertEqual(len(self._logs), numlines+1)
+        self.assertEqual(len(self._logs), numlines + 1)
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_search_cpp(self):
@@ -49,7 +47,9 @@ class ConfigTestCase(support.LoggingSilencer,
         cmd._check_compiler()
         compiler = cmd.compiler
         if sys.platform[:3] == "aix" and "xlc" in compiler.preprocessor[0].lower():
-            self.skipTest('xlc: The -E option overrides the -P, -o, and -qsyntaxonly options')
+            self.skipTest(
+                'xlc: The -E option overrides the -P, -o, and -qsyntaxonly options'
+            )
 
         # simple pattern searches
         match = cmd.search_cpp(pattern='xxx', body='/* xxx */')
@@ -91,8 +91,10 @@ class ConfigTestCase(support.LoggingSilencer,
         for f in (f1, f2):
             self.assertFalse(os.path.exists(f))
 
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(ConfigTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())
