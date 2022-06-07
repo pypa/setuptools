@@ -141,18 +141,27 @@ def _get_python_inc_posix(prefix, spec_prefix, plat_specific):
         else:
             incdir = os.path.join(get_config_var('srcdir'), 'Include')
             return os.path.normpath(incdir)
-    if spec_prefix:
-        # If no prefix was explicitly specified, use the include
-        # directory from the config vars. This is useful when
-        # cross-compiling, since the config vars may come the host
-        # platform Python installation, while the current Python
-        # executable is from the build platform installation.
-        if plat_specific:
-            include_py = get_config_var('CONFINCLUDEPY')
-        else:
-            include_py = get_config_var('INCLUDEPY')
-        if include_py is not None:
-            return include_py
+    return (
+        _get_python_inc_from_config(plat_specific, spec_prefix) or
+        _get_python_inc_posix_prefix(prefix)
+    )
+
+
+def _get_python_inc_from_config(plat_specific, spec_prefix):
+    """
+    If no prefix was explicitly specified, provide the include
+    directory from the config vars. Useful when
+    cross-compiling, since the config vars may come from
+    the host
+    platform Python installation, while the current Python
+    executable is from the build platform installation.
+    """
+    if not spec_prefix:
+        return
+    return get_config_var('CONF' * plat_specific + 'INCLUDEPY')
+
+
+def _get_python_inc_posix_prefix(prefix):
     implementation = 'pypy' if IS_PYPY else 'python'
     python_dir = implementation + get_python_version() + build_flags
     return os.path.join(prefix, "include", python_dir)
