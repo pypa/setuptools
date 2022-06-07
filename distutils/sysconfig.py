@@ -125,7 +125,8 @@ def get_python_inc(plat_specific=0, prefix=None):
     except KeyError:
         raise DistutilsPlatformError(
             "I don't know where Python installs its C header files "
-            "on platform '%s'" % os.name)
+            "on platform '%s'" % os.name
+        )
     return getter(resolved_prefix, prefix, plat_specific)
 
 
@@ -143,10 +144,9 @@ def _get_python_inc_posix(prefix, spec_prefix, plat_specific):
         else:
             incdir = os.path.join(get_config_var('srcdir'), 'Include')
             return os.path.normpath(incdir)
-    return (
-        _get_python_inc_from_config(plat_specific, spec_prefix) or
-        _get_python_inc_posix_prefix(prefix)
-    )
+    return _get_python_inc_from_config(
+        plat_specific, spec_prefix
+    ) or _get_python_inc_posix_prefix(prefix)
 
 
 def _get_python_inc_from_config(plat_specific, spec_prefix):
@@ -173,8 +173,11 @@ def _get_python_inc_nt(prefix, spec_prefix, plat_specific):
     if python_build:
         # Include both the include and PC dir to ensure we can find
         # pyconfig.h
-        return (os.path.join(prefix, "include") + os.path.pathsep +
-                os.path.join(prefix, "PC"))
+        return (
+            os.path.join(prefix, "include")
+            + os.path.pathsep
+            + os.path.join(prefix, "PC")
+        )
     return os.path.join(prefix, "include")
 
 
