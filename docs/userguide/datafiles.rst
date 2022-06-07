@@ -2,16 +2,19 @@
 Data Files Support
 ====================
 
-The distutils have traditionally allowed installation of "data files", which
+Old packaging installation methods in the Python ecosystem
+have traditionally allowed installation of "data files", which
 are placed in a platform-specific location.  However, the most common use case
 for data files distributed with a package is for use *by* the package, usually
 by including the data files **inside the package directory**.
 
+Setuptools focuses on this most common type of data files and offers three ways
+of specifying which files should be included in your packages, as described in
+the following sections.
+
 include_package_data
 ====================
 
-Setuptools offers three ways to specify this most common type of data files to
-be included in your packages.
 First, you can simply use the ``include_package_data`` keyword.
 For example, if the package tree looks like this::
 
@@ -244,6 +247,7 @@ Sometimes developers add directory-specific marker files (such as `.gitignore`,
 `.gitkeep`, `.gitattributes`, or `.hgignore`), these files are probably being
 tracked by the revision control system, and therefore by default they will be
 included when the package is installed.
+
 Supposing you want to prevent these files from being included in the
 installation (they are not relevant to Python or the package), then you could
 use the ``exclude_package_data`` option:
@@ -439,7 +443,7 @@ In summary, the three options allow you to:
     been included due to the use of the preceding options.
 
 .. note::
-    Due to the way the distutils build process works, a data file that you
+    Due to the way the build process works, a data file that you
     include in your project and then stop including may be "orphaned" in your
     project's build directories, requiring you to run ``setup.py clean --all`` to
     fully remove them.  This may also be important for your users and contributors
