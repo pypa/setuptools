@@ -1,1 +1,0 @@
-Changes to code snippets and other examples in the Data Files page of the User Guide -- by :user:`codeandfire`

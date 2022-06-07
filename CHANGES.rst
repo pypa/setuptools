@@ -1,3 +1,18 @@
+v62.3.3
+-------
+
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3331: Replaced single backticks with double ones in ``CHANGES.rst`` -- by :user:`codeandfire`
+* #3332: Fixed grammar/typos, modified example directory trees for src-layout and flat-layout -- by :user:`codeandfire`
+* #3335: Changes to code snippets and other examples in the Data Files page of the User Guide -- by :user:`codeandfire`
+
+Misc
+^^^^
+* #3336: Modified ``test_setup_install_includes_dependencies`` to work with custom ``PYTHONPATH`` –- by :user:`hroncok`
+
+
 v62.3.2
 -------
 

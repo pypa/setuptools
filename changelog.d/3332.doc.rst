@@ -1,1 +1,0 @@
-Fixed grammar/typos, modified example directory trees for src-layout and flat-layout -- by :user:`codeandfire`
