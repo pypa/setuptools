@@ -141,7 +141,7 @@ data files:
         [tool.setuptools.packages.find]
         where = ["src"]
 
-        [tool.setuptools.package_data]
+        [tool.setuptools.package-data]
         mypkg = ["*.txt", "*.rst"]
 
 The ``package_data`` argument is a dictionary that maps from package names to
@@ -314,7 +314,7 @@ Here, the ``.rst`` files are placed under a ``data`` subdirectory inside ``mypkg
 while the ``.txt`` files are directly under ``mypkg``.
 
 In this case, the recommended approach is to treat ``data`` as a namespace package
-(refer `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_). With ``package_data``,
+(refer :pep:`420`). With ``package_data``,
 the configuration might look like this:
 
 .. tab:: setup.cfg
@@ -357,7 +357,7 @@ the configuration might look like this:
 
         [tool.setuptools.packages.find]
         # scanning for namespace packages is true by default in pyproject.toml, so
-        # you need NOT include the following line.
+        # you do NOT need to include the following line.
         namespaces = true
         where = ["src"]
 
@@ -471,7 +471,7 @@ Then, in ``mypkg/foo.py``, you may try something like this in order to access
    with open(data_path, 'r') as data_file:
         ...
 
-However, this manipulation isn't compatible with PEP 302-based import hooks,
+However, this manipulation isn't compatible with :pep:`302`-based import hooks,
 including importing from zip files and Python Eggs.  It is strongly recommended that,
 if you are using data files, you should use :mod:`importlib.resources` to access them.
 In this case, you would do something like this:
