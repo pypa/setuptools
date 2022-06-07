@@ -34,7 +34,8 @@ class InstallTestCase(
 ):
     @pytest.mark.xfail(
         'platform.system() == "Windows" and sys.version_info > (3, 11)',
-        reason="pypa/distutils#148")
+        reason="pypa/distutils#148",
+    )
     def test_home_installation_scheme(self):
         # This ensure two things:
         # - that --home generates the desired set of directory names
