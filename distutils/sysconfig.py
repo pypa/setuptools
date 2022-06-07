@@ -116,12 +116,11 @@ def get_python_inc(plat_specific=0, prefix=None):
     If 'prefix' is supplied, use it instead of sys.base_prefix or
     sys.base_exec_prefix -- i.e., ignore 'plat_specific'.
     """
-    default_prefix = prefix is None
-    if default_prefix:
-        prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
+    default_prefix = BASE_EXEC_PREFIX if plat_specific else BASE_PREFIX
+    resolved_prefix = prefix if prefix is not None else default_prefix
     if os.name == "posix":
         if IS_PYPY and sys.version_info < (3, 8):
-            return os.path.join(prefix, 'include')
+            return os.path.join(resolved_prefix, 'include')
         if python_build:
             # Assume the executable is in the build directory.  The
             # pyconfig.h file should be in the same directory.  Since
@@ -133,7 +132,7 @@ def get_python_inc(plat_specific=0, prefix=None):
             else:
                 incdir = os.path.join(get_config_var('srcdir'), 'Include')
                 return os.path.normpath(incdir)
-        if default_prefix:
+        if prefix:
             # If no prefix was explicitly specified, use the include
             # directory from the config vars. This is useful when
             # cross-compiling, since the config vars may come the host
@@ -144,17 +143,17 @@ def get_python_inc(plat_specific=0, prefix=None):
             else:
                 include_py = get_config_var('INCLUDEPY')
             if include_py is not None:
-              return include_py
+                return include_py
         implementation = 'pypy' if IS_PYPY else 'python'
         python_dir = implementation + get_python_version() + build_flags
-        return os.path.join(prefix, "include", python_dir)
+        return os.path.join(resolved_prefix, "include", python_dir)
     elif os.name == "nt":
         if python_build:
             # Include both the include and PC dir to ensure we can find
             # pyconfig.h
-            return (os.path.join(prefix, "include") + os.path.pathsep +
-                    os.path.join(prefix, "PC"))
-        return os.path.join(prefix, "include")
+            return (os.path.join(resolved_prefix, "include") + os.path.pathsep +
+                    os.path.join(resolved_prefix, "PC"))
+        return os.path.join(resolved_prefix, "include")
     else:
         raise DistutilsPlatformError(
             "I don't know where Python installs its C header files "
