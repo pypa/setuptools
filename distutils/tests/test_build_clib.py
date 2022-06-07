@@ -3,18 +3,16 @@ import unittest
 import os
 import sys
 
-from test.support import run_unittest
-
-from .py35compat import missing_compiler_executable
+from test.support import run_unittest, missing_compiler_executable
 
 from distutils.command.build_clib import build_clib
 from distutils.errors import DistutilsSetupError
 from distutils.tests import support
 
-class BuildCLibTestCase(support.TempdirManager,
-                        support.LoggingSilencer,
-                        unittest.TestCase):
 
+class BuildCLibTestCase(
+    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
+):
     def test_check_library_dist(self):
         pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
@@ -23,23 +21,27 @@ class BuildCLibTestCase(support.TempdirManager,
         self.assertRaises(DistutilsSetupError, cmd.check_library_list, 'foo')
 
         # each element of 'libraries' must a 2-tuple
-        self.assertRaises(DistutilsSetupError, cmd.check_library_list,
-                          ['foo1', 'foo2'])
+        self.assertRaises(DistutilsSetupError, cmd.check_library_list, ['foo1', 'foo2'])
 
         # first element of each tuple in 'libraries'
         # must be a string (the library name)
-        self.assertRaises(DistutilsSetupError, cmd.check_library_list,
-                          [(1, 'foo1'), ('name', 'foo2')])
+        self.assertRaises(
+            DistutilsSetupError, cmd.check_library_list, [(1, 'foo1'), ('name', 'foo2')]
+        )
 
         # library name may not contain directory separators
-        self.assertRaises(DistutilsSetupError, cmd.check_library_list,
-                          [('name', 'foo1'),
-                           ('another/name', 'foo2')])
+        self.assertRaises(
+            DistutilsSetupError,
+            cmd.check_library_list,
+            [('name', 'foo1'), ('another/name', 'foo2')],
+        )
 
         # second element of each tuple must be a dictionary (build info)
-        self.assertRaises(DistutilsSetupError, cmd.check_library_list,
-                          [('name', {}),
-                           ('another', 'foo2')])
+        self.assertRaises(
+            DistutilsSetupError,
+            cmd.check_library_list,
+            [('name', {}), ('another', 'foo2')],
+        )
 
         # those work
         libs = [('name', {}), ('name', {'ok': 'good'})]
@@ -63,17 +65,21 @@ class BuildCLibTestCase(support.TempdirManager,
         cmd.libraries = [('name', {'sources': ('a', 'b')})]
         self.assertEqual(cmd.get_source_files(), ['a', 'b'])
 
-        cmd.libraries = [('name', {'sources': ('a', 'b')}),
-                         ('name2', {'sources': ['c', 'd']})]
+        cmd.libraries = [
+            ('name', {'sources': ('a', 'b')}),
+            ('name2', {'sources': ['c', 'd']}),
+        ]
         self.assertEqual(cmd.get_source_files(), ['a', 'b', 'c', 'd'])
 
     def test_build_libraries(self):
 
         pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
+
         class FakeCompiler:
             def compile(*args, **kw):
                 pass
+
             create_static_lib = compile
 
         cmd.compiler = FakeCompiler()
@@ -129,8 +135,10 @@ class BuildCLibTestCase(support.TempdirManager,
         # let's check the result
         self.assertIn('libfoo.a', os.listdir(build_temp))
 
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(BuildCLibTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

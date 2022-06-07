@@ -11,10 +11,11 @@ jobs:
     strategy:
       matrix:
         python:
-        - 3.7
-        - 3.8
-        - 3.9
-        - "3.10"
+        # Build on pre-releases until stable, then stable releases.
+        # actions/setup-python#213
+        - ~3.7.0-0
+        - ~3.10.0-0
+        - ~3.11.0-0
         platform:
         - ubuntu-latest
         - macos-latest

@@ -29,7 +29,7 @@ class build_scripts(Command):
         ('build-dir=', 'd', "directory to \"build\" (copy) to"),
         ('force', 'f', "forcibly build everything (ignore file timestamps"),
         ('executable=', 'e', "specify final destination interpreter path"),
-        ]
+    ]
 
     boolean_options = ['force']
 
@@ -40,10 +40,12 @@ class build_scripts(Command):
         self.executable = None
 
     def finalize_options(self):
-        self.set_undefined_options('build',
-                                   ('build_scripts', 'build_dir'),
-                                   ('force', 'force'),
-                                   ('executable', 'executable'))
+        self.set_undefined_options(
+            'build',
+            ('build_scripts', 'build_dir'),
+            ('force', 'force'),
+            ('executable', 'executable'),
+        )
         self.scripts = self.distribution.scripts
 
     def get_source_files(self):
@@ -101,17 +103,19 @@ class build_scripts(Command):
 
         updated_files.append(outfile)
         if shebang_match:
-            log.info("copying and adjusting %s -> %s", script,
-                     self.build_dir)
+            log.info("copying and adjusting %s -> %s", script, self.build_dir)
             if not self.dry_run:
                 if not sysconfig.python_build:
                     executable = self.executable
                 else:
                     executable = os.path.join(
                         sysconfig.get_config_var("BINDIR"),
-                        "python%s%s" % (
+                        "python%s%s"
+                        % (
                             sysconfig.get_config_var("VERSION"),
-                            sysconfig.get_config_var("EXE")))
+                            sysconfig.get_config_var("EXE"),
+                        ),
+                    )
                 post_interp = shebang_match.group(1) or ''
                 shebang = "#!" + executable + post_interp + "\n"
                 self._validate_shebang(shebang, f.encoding)
@@ -140,8 +144,7 @@ class build_scripts(Command):
         oldmode = os.stat(file)[ST_MODE] & 0o7777
         newmode = (oldmode | 0o555) & 0o7777
         if newmode != oldmode:
-            log.info("changing mode of %s from %o to %o",
-                     file, oldmode, newmode)
+            log.info("changing mode of %s from %o to %o", file, oldmode, newmode)
             os.chmod(file, newmode)
 
     @staticmethod
@@ -155,8 +158,8 @@ class build_scripts(Command):
             shebang.encode('utf-8')
         except UnicodeEncodeError:
             raise ValueError(
-                "The shebang ({!r}) is not encodable "
-                "to utf-8".format(shebang))
+                "The shebang ({!r}) is not encodable " "to utf-8".format(shebang)
+            )
 
         # If the script is encoded to a custom encoding (use a
         # #coding:xxx cookie), the shebang has to be encodable to
@@ -166,5 +169,5 @@ class build_scripts(Command):
         except UnicodeEncodeError:
             raise ValueError(
                 "The shebang ({!r}) is not encodable "
-                "to the script encoding ({})"
-                .format(shebang, encoding))
+                "to the script encoding ({})".format(shebang, encoding)
+            )

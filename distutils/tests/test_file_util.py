@@ -13,7 +13,6 @@ from .py38compat import unlink
 
 
 class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
-
     def _log(self, msg, *args):
         if len(args) > 0:
             self._logs.append(msg % args)
@@ -64,17 +63,18 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
 
     def test_move_file_exception_unpacking_rename(self):
         # see issue 22182
-        with patch("os.rename", side_effect=OSError("wrong", 1)), \
-             self.assertRaises(DistutilsFileError):
+        with patch("os.rename", side_effect=OSError("wrong", 1)), self.assertRaises(
+            DistutilsFileError
+        ):
             with open(self.source, 'w') as fobj:
                 fobj.write('spam eggs')
             move_file(self.source, self.target, verbose=0)
 
     def test_move_file_exception_unpacking_unlink(self):
         # see issue 22182
-        with patch("os.rename", side_effect=OSError(errno.EXDEV, "wrong")), \
-             patch("os.unlink", side_effect=OSError("wrong", 1)), \
-             self.assertRaises(DistutilsFileError):
+        with patch("os.rename", side_effect=OSError(errno.EXDEV, "wrong")), patch(
+            "os.unlink", side_effect=OSError("wrong", 1)
+        ), self.assertRaises(DistutilsFileError):
             with open(self.source, 'w') as fobj:
                 fobj.write('spam eggs')
             move_file(self.source, self.target, verbose=0)
@@ -119,6 +119,7 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(FileUtilTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

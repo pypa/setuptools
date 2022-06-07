@@ -11,10 +11,9 @@ from distutils.tests import support
 from test.support import run_unittest
 
 
-class BuildScriptsTestCase(support.TempdirManager,
-                           support.LoggingSilencer,
-                           unittest.TestCase):
-
+class BuildScriptsTestCase(
+    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
+):
     def test_default_settings(self):
         cmd = self.get_build_scripts_cmd("/foo/bar", [])
         self.assertFalse(cmd.force)
@@ -30,9 +29,9 @@ class BuildScriptsTestCase(support.TempdirManager,
         target = self.mkdtemp()
         expected = self.write_sample_scripts(source)
 
-        cmd = self.get_build_scripts_cmd(target,
-                                         [os.path.join(source, fn)
-                                          for fn in expected])
+        cmd = self.get_build_scripts_cmd(
+            target, [os.path.join(source, fn) for fn in expected]
+        )
         cmd.finalize_options()
         cmd.run()
 
@@ -42,32 +41,38 @@ class BuildScriptsTestCase(support.TempdirManager,
 
     def get_build_scripts_cmd(self, target, scripts):
         import sys
+
         dist = Distribution()
         dist.scripts = scripts
         dist.command_obj["build"] = support.DummyCommand(
-            build_scripts=target,
-            force=1,
-            executable=sys.executable
-            )
+            build_scripts=target, force=1, executable=sys.executable
+        )
         return build_scripts(dist)
 
     def write_sample_scripts(self, dir):
         expected = []
         expected.append("script1.py")
-        self.write_script(dir, "script1.py",
-                          ("#! /usr/bin/env python2.3\n"
-                           "# bogus script w/ Python sh-bang\n"
-                           "pass\n"))
+        self.write_script(
+            dir,
+            "script1.py",
+            (
+                "#! /usr/bin/env python2.3\n"
+                "# bogus script w/ Python sh-bang\n"
+                "pass\n"
+            ),
+        )
         expected.append("script2.py")
-        self.write_script(dir, "script2.py",
-                          ("#!/usr/bin/python\n"
-                           "# bogus script w/ Python sh-bang\n"
-                           "pass\n"))
+        self.write_script(
+            dir,
+            "script2.py",
+            ("#!/usr/bin/python\n" "# bogus script w/ Python sh-bang\n" "pass\n"),
+        )
         expected.append("shell.sh")
-        self.write_script(dir, "shell.sh",
-                          ("#!/bin/sh\n"
-                           "# bogus shell script w/ sh-bang\n"
-                           "exit 0\n"))
+        self.write_script(
+            dir,
+            "shell.sh",
+            ("#!/bin/sh\n" "# bogus shell script w/ sh-bang\n" "exit 0\n"),
+        )
         return expected
 
     def write_script(self, dir, name, text):
@@ -82,10 +87,9 @@ class BuildScriptsTestCase(support.TempdirManager,
         target = self.mkdtemp()
         expected = self.write_sample_scripts(source)
 
-
-        cmd = self.get_build_scripts_cmd(target,
-                                         [os.path.join(source, fn)
-                                          for fn in expected])
+        cmd = self.get_build_scripts_cmd(
+            target, [os.path.join(source, fn) for fn in expected]
+        )
         cmd.finalize_options()
 
         # http://bugs.python.org/issue4524
@@ -105,8 +109,10 @@ class BuildScriptsTestCase(support.TempdirManager,
         for name in expected:
             self.assertIn(name, built)
 
+
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(BuildScriptsTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())
