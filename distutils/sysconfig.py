@@ -133,20 +133,27 @@ def get_python_inc(plat_specific=0, prefix=None):
 def _get_python_inc_posix(prefix, spec_prefix, plat_specific):
     if IS_PYPY and sys.version_info < (3, 8):
         return os.path.join(prefix, 'include')
-    if python_build:
-        # Assume the executable is in the build directory.  The
-        # pyconfig.h file should be in the same directory.  Since
-        # the build directory may not be the source directory, we
-        # must use "srcdir" from the makefile to find the "Include"
-        # directory.
-        if plat_specific:
-            return _sys_home or project_base
-        else:
-            incdir = os.path.join(get_config_var('srcdir'), 'Include')
-            return os.path.normpath(incdir)
-    return _get_python_inc_from_config(
-        plat_specific, spec_prefix
-    ) or _get_python_inc_posix_prefix(prefix)
+    return (
+        _get_python_inc_posix_python(plat_specific)
+        or _get_python_inc_from_config(plat_specific, spec_prefix)
+        or _get_python_inc_posix_prefix(prefix)
+    )
+
+
+def _get_python_inc_posix_python(plat_specific):
+    """
+    Assume the executable is in the build directory. The
+    pyconfig.h file should be in the same directory. Since
+    the build directory may not be the source directory,
+    use "srcdir" from the makefile to find the "Include"
+    directory.
+    """
+    if not python_build:
+        return
+    if plat_specific:
+        return _sys_home or project_base
+    incdir = os.path.join(get_config_var('srcdir'), 'Include')
+    return os.path.normpath(incdir)
 
 
 def _get_python_inc_from_config(plat_specific, spec_prefix):
