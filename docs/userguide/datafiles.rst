@@ -239,10 +239,14 @@ exclude_package_data
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included. For example,
 consider a scenario where you have ``include_package_data=True``, and you are using
-a revision control system with an appropriate plugin. Your README is probably being
-tracked by the revision control system, and therefore by default it will be included
-when your package is installed. Supposing you want to prevent this README from being
-included in the installation, then you could use the ``exclude_package_data`` option:
+a revision control system with an appropriate plugin.
+Sometimes developers add directory-specific marker files (such as `.gitignore`,
+`.gitkeep`, `.gitattributes`, or `.hgignore`), these files are probably being
+tracked by the revision control system, and therefore by default they will be
+included when the package is installed.
+Supposing you want to prevent these files from being included in the
+installation (they are not relevant to Python or the package), then you could
+use the ``exclude_package_data`` option:
 
 .. tab:: setup.cfg
 
@@ -260,7 +264,7 @@ included in the installation, then you could use the ``exclude_package_data`` op
 
         [options.exclude_package_data]
         mypkg =
-            README.txt
+            .gitattributes
 
 .. tab:: setup.py
 
@@ -272,7 +276,7 @@ included in the installation, then you could use the ``exclude_package_data`` op
             packages=find_packages(where="src"),
             package_dir={"": "src"},
             include_package_data=True,
-            exclude_package_data={"mypkg": ["README.txt"]},
+            exclude_package_data={"mypkg": [".gitattributes"]},
         )
 
 .. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
@@ -283,13 +287,14 @@ included in the installation, then you could use the ``exclude_package_data`` op
         where = ["src"]
 
         [tool.setuptools.exclude-package-data]
-        mypkg = ["README.txt"]
+        mypkg = [".gitattributes"]
 
 The ``exclude_package_data`` option is a dictionary mapping package names to
 lists of wildcard patterns, just like the ``package_data`` option.  And, just
 as with that option, you can use the empty string key ``""`` in ``setup.py`` and the
 asterisk ``*`` in ``setup.cfg`` and ``pyproject.toml`` to match all top-level packages.
-However, any files that match these patterns will be *excluded* from installation,
+
+Any files that match these patterns will be *excluded* from installation,
 even if they were listed in ``package_data`` or were included as a result of using
 ``include_package_data``.
 
