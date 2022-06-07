@@ -75,7 +75,7 @@ finesse to it, let's start with a simple example.
             ],
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -124,7 +124,7 @@ the Python version is older than 3.4. To accomplish this
             ],
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -160,7 +160,7 @@ and only install it if the user is using a Windows operating system:
             ],
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -215,7 +215,7 @@ optional PDF support and requires two other dependencies for it to work:
             },
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -261,7 +261,7 @@ installed, it might declare the dependency like this:
             ...,
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -361,7 +361,7 @@ This can be configured as shown in the example below.
         )
 
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -369,17 +369,6 @@ This can be configured as shown in the example below.
         name = "Package-B"
         requires-python = ">=3.6"
         # ...
-
-----
-
-.. rubric:: Notes
-
-.. [#experimental]
-   While the ``[build-system]`` table should always be specified in the
-   ``pyproject.toml`` file, support for adding package metadata and build configuration
-   options via the ``[project]`` and ``[tool.setuptools]`` tables is still
-   experimental and might change in future releases.
-   See :doc:`/userguide/pyproject_config`.
 
 
 .. _PyPI: https://pypi.org

@@ -4,13 +4,7 @@
 Configuring setuptools using ``pyproject.toml`` files
 -----------------------------------------------------
 
-.. note:: New in 61.0.0 (**experimental**)
-
-.. warning::
-   Support for declaring :doc:`project metadata
-   <PyPUG:specifications/declaring-project-metadata>` or configuring
-   ``setuptools`` via ``pyproject.toml`` files is still experimental and might
-   change in future releases.
+.. note:: New in 61.0.0
 
 .. important::
    For the time being, ``pip`` still might require a ``setup.py`` file
@@ -74,6 +68,11 @@ The ``project`` table contains metadata fields as described by
 
 Setuptools-specific configuration
 =================================
+
+.. warning::
+   Support for declaring configurations not standardized by :pep:`621`
+   (i.e.  the ``[tool.setuptools]`` table),
+   is still **experimental** and might change in future releases.
 
 While the standard ``project`` table in the ``pyproject.toml`` file covers most
 of the metadata used during the packaging process, there are still some

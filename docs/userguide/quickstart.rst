@@ -98,7 +98,7 @@ The following example demonstrates a minimum configuration
 
     See :doc:`/references/keywords` for more information.
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -260,7 +260,7 @@ The following configuration examples show how to accomplish this:
             }
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -300,7 +300,7 @@ The example below show how to configure this kind of dependencies:
             # ...
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -448,10 +448,8 @@ up-to-date references that can help you when it is time to distribute your work.
    supported in those files (e.g. C extensions).
 
 .. [#experimental]
-   While the ``[build-system]`` table should always be specified in the
-   ``pyproject.toml`` file, support for adding package metadata and build configuration
-   options via the ``[project]`` and ``[tool.setuptools]`` tables is still
-   experimental and might change in future releases.
-   See :doc:`/userguide/pyproject_config`.
+   Support for adding build configuration options via the ``[tool.setuptools]``
+   in the ``pyproject.toml`` file table is still experimental and might change
+   in future releases. See :doc:`/userguide/pyproject_config`.
 
 .. _PyPI: https://pypi.org
