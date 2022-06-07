@@ -1,0 +1,2 @@
+Changed warnings and documentation notes about *experimental* aspect of ``pyproject.toml`` configuration:
+now only the ``[tool.setuptools]`` table (and sub-tables) are considered experimental.
