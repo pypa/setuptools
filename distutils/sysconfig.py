@@ -118,46 +118,53 @@ def get_python_inc(plat_specific=0, prefix=None):
     """
     default_prefix = BASE_EXEC_PREFIX if plat_specific else BASE_PREFIX
     resolved_prefix = prefix if prefix is not None else default_prefix
-    if os.name == "posix":
-        if IS_PYPY and sys.version_info < (3, 8):
-            return os.path.join(resolved_prefix, 'include')
-        if python_build:
-            # Assume the executable is in the build directory.  The
-            # pyconfig.h file should be in the same directory.  Since
-            # the build directory may not be the source directory, we
-            # must use "srcdir" from the makefile to find the "Include"
-            # directory.
-            if plat_specific:
-                return _sys_home or project_base
-            else:
-                incdir = os.path.join(get_config_var('srcdir'), 'Include')
-                return os.path.normpath(incdir)
-        if prefix:
-            # If no prefix was explicitly specified, use the include
-            # directory from the config vars. This is useful when
-            # cross-compiling, since the config vars may come the host
-            # platform Python installation, while the current Python
-            # executable is from the build platform installation.
-            if plat_specific:
-                include_py = get_config_var('CONFINCLUDEPY')
-            else:
-                include_py = get_config_var('INCLUDEPY')
-            if include_py is not None:
-                return include_py
-        implementation = 'pypy' if IS_PYPY else 'python'
-        python_dir = implementation + get_python_version() + build_flags
-        return os.path.join(resolved_prefix, "include", python_dir)
-    elif os.name == "nt":
-        if python_build:
-            # Include both the include and PC dir to ensure we can find
-            # pyconfig.h
-            return (os.path.join(resolved_prefix, "include") + os.path.pathsep +
-                    os.path.join(resolved_prefix, "PC"))
-        return os.path.join(resolved_prefix, "include")
-    else:
+    try:
+        getter = globals()[f'_get_python_inc_{os.name}']
+    except KeyError:
         raise DistutilsPlatformError(
             "I don't know where Python installs its C header files "
             "on platform '%s'" % os.name)
+    return getter(resolved_prefix, prefix, plat_specific)
+
+
+def _get_python_inc_posix(prefix, spec_prefix, plat_specific):
+    if IS_PYPY and sys.version_info < (3, 8):
+        return os.path.join(prefix, 'include')
+    if python_build:
+        # Assume the executable is in the build directory.  The
+        # pyconfig.h file should be in the same directory.  Since
+        # the build directory may not be the source directory, we
+        # must use "srcdir" from the makefile to find the "Include"
+        # directory.
+        if plat_specific:
+            return _sys_home or project_base
+        else:
+            incdir = os.path.join(get_config_var('srcdir'), 'Include')
+            return os.path.normpath(incdir)
+    if spec_prefix:
+        # If no prefix was explicitly specified, use the include
+        # directory from the config vars. This is useful when
+        # cross-compiling, since the config vars may come the host
+        # platform Python installation, while the current Python
+        # executable is from the build platform installation.
+        if plat_specific:
+            include_py = get_config_var('CONFINCLUDEPY')
+        else:
+            include_py = get_config_var('INCLUDEPY')
+        if include_py is not None:
+            return include_py
+    implementation = 'pypy' if IS_PYPY else 'python'
+    python_dir = implementation + get_python_version() + build_flags
+    return os.path.join(prefix, "include", python_dir)
+
+
+def _get_python_inc_nt(prefix, spec_prefix, plat_specific):
+    if python_build:
+        # Include both the include and PC dir to ensure we can find
+        # pyconfig.h
+        return (os.path.join(prefix, "include") + os.path.pathsep +
+                os.path.join(prefix, "PC"))
+    return os.path.join(prefix, "include")
 
 
 # allow this behavior to be monkey-patched. Ref pypa/distutils#2.
