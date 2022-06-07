@@ -94,12 +94,13 @@ def read_configuration(
     if not asdict or not (project_table or setuptools_table):
         return {}  # User is not using pyproject to configure setuptools
 
-    # TODO: Remove the following once the feature stabilizes:
-    msg = (
-        "Support for project metadata in `pyproject.toml` is still experimental "
-        "and may be removed (or change) in future releases."
-    )
-    warnings.warn(msg, _ExperimentalProjectMetadata)
+    if setuptools_table:
+        # TODO: Remove the following once the feature stabilizes:
+        msg = (
+            "Support for configuring `[tool.setuptools]` in `pyproject.toml` is still "
+            "experimental and may change in future releases."
+        )
+        warnings.warn(msg, _ExperimentalConfiguration)
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
@@ -413,7 +414,7 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         return super().__exit__(exc_type, exc_value, traceback)
 
 
-class _ExperimentalProjectMetadata(UserWarning):
+class _ExperimentalConfiguration(UserWarning):
     """Explicitly inform users that `pyproject.toml` configuration is experimental"""
 
 
