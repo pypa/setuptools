@@ -52,7 +52,7 @@ user-friendly name for installers of the package to execute. Installers
 like pip will create wrapper scripts to execute a function. In the
 above example, to create a command ``hello-world`` that invokes
 ``timmins.hello_world``, add a console script entry point to
-``setup.cfg``:
+your configuration:
 
 .. tab:: setup.cfg
 
@@ -79,6 +79,13 @@ above example, to create a command ``hello-world`` that invokes
 				]
 			}
         )
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+   .. code-block:: toml
+
+        [project.scripts]
+        hello-world = "timmins:hello_world"
 
 
 After installing the package, a user may invoke that function by simply calling
@@ -179,3 +186,10 @@ In this case, the ``hello-world`` script is only viable if the ``pretty-printer`
 extra is indicated, and so a plugin host might exclude that entry point
 (i.e. not install a console script) if the relevant extra dependencies are not
 installed.
+
+----
+
+.. [#experimental]
+   Support for specifying package metadata and build configuration options via
+   ``pyproject.toml`` is experimental and might change
+   in the future. See :doc:`/userguide/pyproject_config`.
