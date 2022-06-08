@@ -160,6 +160,16 @@ Now, running:
 
 will open a small application window with the title 'Hello world'.
 
+.. note::
+
+    The difference between ``console_scripts`` and ``gui_scripts`` only affects
+    Windows systems. [#packaging_guide]_ ``console_scripts`` are wrapped in a console
+    executable, so they are attached to a console and can use ``sys.stdin``,
+    ``sys.stdout`` and ``sys.stderr`` for input and output. ``gui_scripts`` are
+    wrapped in a GUI executable, so they can be started without a console, but
+    cannot use standard streams unless application code redirects them. Other
+    platforms do not have the same distinction.
+
 .. _dynamic discovery of services and plugins:
 
 Advertising Behavior
@@ -248,3 +258,6 @@ installed.
    Support for specifying package metadata and build configuration options via
    ``pyproject.toml`` is experimental and might change
    in the future. See :doc:`/userguide/pyproject_config`.
+
+.. [#packaging_guide]
+   Reference: https://packaging.python.org/en/latest/specifications/entry-points/#use-for-scripts
