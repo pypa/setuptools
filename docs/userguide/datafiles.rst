@@ -243,8 +243,8 @@ Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included. For example,
 consider a scenario where you have ``include_package_data=True``, and you are using
 a revision control system with an appropriate plugin.
-Sometimes developers add directory-specific marker files (such as `.gitignore`,
-`.gitkeep`, `.gitattributes`, or `.hgignore`), these files are probably being
+Sometimes developers add directory-specific marker files (such as ``.gitignore``,
+``.gitkeep``, ``.gitattributes``, or ``.hgignore``), these files are probably being
 tracked by the revision control system, and therefore by default they will be
 included when the package is installed.
 
