@@ -49,11 +49,10 @@ After installing the package, the function may be invoked through the
     Hello world
 
 Adding a console script entry point allows the package to define a
-user-friendly name for installers of the package to execute. Installers
-like pip will create wrapper scripts to execute a function. In the
-above example, to create a command ``hello-world`` that invokes
-``timmins.hello_world``, add a console script entry point to
-your configuration:
+user-friendly name for installers of the package to execute.
+In the above example, to create a command ``hello-world`` that invokes
+``timmins.hello_world``, add a console script entry point to your
+configuration:
 
 .. tab:: setup.cfg
 
@@ -169,6 +168,19 @@ will open a small application window with the title 'Hello world'.
     wrapped in a GUI executable, so they can be started without a console, but
     cannot use standard streams unless application code redirects them. Other
     platforms do not have the same distinction.
+
+.. note::
+
+    Console and GUI scripts work because behind the scenes, installers like Pip
+    create wrapper scripts around the function(s) being invoked. For example,
+    the ``hello-world`` entry point in the above two examples would create a
+    command ``hello-world`` launching a script like this: [#packaging_guide]_
+
+    .. code-block:: python
+
+        import sys
+        from timmins import hello_world
+        sys.exit(hello_world())
 
 .. _dynamic discovery of services and plugins:
 
