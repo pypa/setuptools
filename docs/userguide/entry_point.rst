@@ -104,9 +104,61 @@ where ``name`` is the name for the script you want to create, the left hand
 side of ``:`` is the module that contains your function and the right hand
 side is the object you want to invoke (e.g. a function).
 
+GUI Scripts
+===========
+
 In addition to ``console_scripts``, Setuptools supports ``gui_scripts``, which
 will launch a GUI application without running in a terminal window.
 
+For example, if we have a project with the same directory structure as before,
+with an ``__init__.py`` file containing the following:
+
+.. code-block:: python
+
+    import PySimpleGUI as sg
+
+    def hello_world():
+        sg.Window(title="Hello world", layout=[[]], margins=(100, 50)).read()
+
+Then, we can add a GUI script entry point:
+
+.. tab:: setup.cfg
+
+    .. code-block:: ini
+
+        [options.entry_points]
+        gui_scripts =
+            hello-world = timmins:hello_world
+
+.. tab:: setup.py
+
+    .. code-block:: python
+	
+        from setuptools import setup
+
+        setup(
+            # ...,
+            entry_points={
+                'gui_scripts': [
+                    'hello-world=timmins:hello_world',
+                ]
+            }
+        )
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+   .. code-block:: toml
+
+        [project.gui-scripts]
+        hello-world = "timmins:hello_world"
+
+Now, running:
+
+.. code-block:: bash
+
+   $ hello-world
+
+will open a small application window with the title 'Hello world'.
 
 .. _dynamic discovery of services and plugins:
 
