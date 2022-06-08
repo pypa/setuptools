@@ -69,15 +69,12 @@ your configuration:
         from setuptools import setup
 
         setup(
-            name='timmins',
-            version='0.0.1',
-            packages=['timmins'],
-			# ...
+            # ...,
             entry_points={
-				'console_scripts': [
-					'hello-world=timmins:hello_world',
-				]
-			}
+                'console_scripts': [
+                    'hello-world=timmins:hello_world',
+                ]
+            }
         )
 
 .. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
