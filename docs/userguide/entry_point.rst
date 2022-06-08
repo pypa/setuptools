@@ -45,7 +45,8 @@ After installing the package, the function may be invoked through the
 
 .. code-block:: bash
 
-    python -m timmins
+    $ python -m timmins
+    Hello world
 
 Adding a console script entry point allows the package to define a
 user-friendly name for installers of the package to execute. Installers
@@ -86,7 +87,12 @@ your configuration:
 
 
 After installing the package, a user may invoke that function by simply calling
-``hello-world`` on the command line.
+``hello-world`` on the command line:
+
+.. code-block:: bash
+
+   $ hello-world
+   Hello world
 
 The syntax for entry points is specified as follows:
 
