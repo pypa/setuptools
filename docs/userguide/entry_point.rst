@@ -14,15 +14,15 @@ Console Scripts
 ===============
 
 First consider an example without entry points. Imagine a package
-defined thus:
+defined thus::
 
-.. code-block:: bash
-
-    timmins/
-        timmins/__init__.py
-        timmins/__main__.py
-        setup.cfg # or setup.py
-        #other necessary files
+    project_root_directory
+    ├── setup.py        # and/or setup.cfg, pyproject.toml
+    └── src
+        └── timmins
+            ├── __init__.py
+            ├── __main__.py
+            └── ...
 
 with ``__init__.py`` as:
 
