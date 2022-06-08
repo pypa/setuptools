@@ -93,6 +93,12 @@ After installing the package, a user may invoke that function by simply calling
    $ hello-world
    Hello world
 
+Note that any function configured as a console script, i.e. ``hello_world()`` in
+this example, should not accept any arguments. If your function requires any input
+from the user, you can use regular command-line argument parsing utilities like
+`argparse <https://docs.python.org/3/library/argparse.html>`_ within the body of
+the function to parse user input.
+
 The syntax for entry points is specified as follows:
 
 .. code-block:: ini
@@ -158,6 +164,10 @@ Now, running:
    $ hello-world
 
 will open a small application window with the title 'Hello world'.
+
+Note that just as with console scripts, any function configured as a GUI script
+should not accept any arguments, and any user input can be parsed within the
+body of the function.
 
 .. note::
 
