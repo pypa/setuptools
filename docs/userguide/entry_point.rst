@@ -160,6 +160,9 @@ Then, we can add a GUI script entry point:
         [project.gui-scripts]
         hello-world = "timmins:hello_world"
 
+.. note::
+   To be able to import `PySimpleGUI`, you need to add `pysimplegui` to your package dependencies.
+   See :doc:`/userguide/dependency_management` for more information.
 Now, running:
 
 .. code-block:: bash
