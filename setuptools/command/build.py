@@ -19,6 +19,6 @@ class build(_build):
             new subcommands. Using `distutils` directly is considered deprecated,
             please use `setuptools.command.build`.
             """
-            warnings.warns(msg, SetuptoolsDeprecationWarning)
+            warnings.warn(msg, SetuptoolsDeprecationWarning)
             self.sub_commands = _build.sub_commands
         super().run()
