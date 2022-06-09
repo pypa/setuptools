@@ -21,7 +21,6 @@ defined thus::
     └── src
         └── timmins
             ├── __init__.py
-            ├── __main__.py
             └── ...
 
 with ``__init__.py`` as:
@@ -31,7 +30,10 @@ with ``__init__.py`` as:
     def hello_world():
         print("Hello world")
 
-and ``__main__.py`` providing a hook:
+Now, suppose that we would like to provide some way of executing the
+function ``hello_world()`` from the command-line. One way to do this
+is to create a file ``src/timmins/__main__.py`` providing a hook as
+follows:
 
 .. code-block:: python
 
@@ -40,15 +42,17 @@ and ``__main__.py`` providing a hook:
     if __name__ == '__main__':
         hello_world()
 
-After installing the package, the function may be invoked through the
-`runpy <https://docs.python.org/3/library/runpy.html>`_ module:
+Then, after installing the package ``timmins``, we may invoke the ``hello_world()``
+function as follows, through the `runpy <https://docs.python.org/3/library/runpy.html>`_
+module:
 
 .. code-block:: bash
 
     $ python -m timmins
     Hello world
 
-Adding a console script entry point allows the package to define a
+Instead of this approach using ``__main__.py``, a better way is to add
+a console script entry point, which allows the package to define a
 user-friendly name for installers of the package to execute.
 In the above example, to create a command ``hello-world`` that invokes
 ``timmins.hello_world``, add a console script entry point to your
