@@ -263,9 +263,10 @@ class _IncludePackageDataAbuse:
     ############################
     Python recognizes {importable!r} as an importable package,
     but it is not listed in the `packages` configuration of setuptools.
-    Currently {importable!r} is only added to the distribution because it may
-    contain data files, but this behavior is likely to change in future
-    versions of setuptools (and therefore is considered deprecated).
+
+    {importable!r} has been automatically added to the distribution only
+    because it may contain data files, but this behavior is likely to change
+    in future versions of setuptools (and therefore is considered deprecated).
 
     Please make sure that {importable!r} is included as a package by using
     the `packages` configuration field or the proper discovery methods
