@@ -157,6 +157,11 @@ require to be added by a revision control system plugin.
         the path separator, even if you are on Windows.  Setuptools automatically
         converts slashes to appropriate platform-specific separators at build time.
 
+.. note::
+        Glob patterns do not automatically match dotfiles (directory or file names
+        starting with a dot (``.``)). To include such files, you must explicitly start
+        the pattern with a dot, e.g. ``.*`` to match ``.gitignore``.
+
 If you have multiple top-level packages and a common pattern of data files for all these
 packages, for example::
 
