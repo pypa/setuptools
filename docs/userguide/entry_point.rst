@@ -51,9 +51,8 @@ module:
     $ python -m timmins
     Hello world
 
-Instead of this approach using ``__main__.py``, a better way is to add
-a console script entry point, which allows the package to define a
-user-friendly name for installers of the package to execute.
+Instead of this approach using ``__main__.py``, you can also create a
+user-friendly CLI executable that can be called directly without ``python -m``.
 In the above example, to create a command ``hello-world`` that invokes
 ``timmins.hello_world``, add a console script entry point to your
 configuration:
@@ -101,7 +100,7 @@ Note that any function configured as a console script, i.e. ``hello_world()`` in
 this example, should not accept any arguments. If your function requires any input
 from the user, you can use regular command-line argument parsing utilities like
 `argparse <https://docs.python.org/3/library/argparse.html>`_ within the body of
-the function to parse user input.
+the function to parse user input given via :obj:`sys.argv`.
 
 The syntax for entry points is specified as follows:
 
@@ -185,7 +184,7 @@ body of the function.
 
 .. note::
 
-    Console and GUI scripts work because behind the scenes, installers like Pip
+    Console and GUI scripts work because behind the scenes, installers like :pypi:`pip`
     create wrapper scripts around the function(s) being invoked. For example,
     the ``hello-world`` entry point in the above two examples would create a
     command ``hello-world`` launching a script like this: [#packaging_guide]_
