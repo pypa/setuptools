@@ -179,7 +179,7 @@ body of the function.
 .. note::
 
     The difference between ``console_scripts`` and ``gui_scripts`` only affects
-    Windows systems. [#packaging_guide]_ ``console_scripts`` are wrapped in a console
+    Windows systems. [#use_for_scripts]_ ``console_scripts`` are wrapped in a console
     executable, so they are attached to a console and can use ``sys.stdin``,
     ``sys.stdout`` and ``sys.stderr`` for input and output. ``gui_scripts`` are
     wrapped in a GUI executable, so they can be started without a console, but
@@ -191,7 +191,7 @@ body of the function.
     Console and GUI scripts work because behind the scenes, installers like :pypi:`pip`
     create wrapper scripts around the function(s) being invoked. For example,
     the ``hello-world`` entry point in the above two examples would create a
-    command ``hello-world`` launching a script like this: [#packaging_guide]_
+    command ``hello-world`` launching a script like this: [#use_for_scripts]_
 
     .. code-block:: python
 
@@ -276,7 +276,15 @@ as follows:
 
 .. note::
    Each ``importlib.metadata.EntryPoint`` object is an object containing a ``name``, a
-   ``group``, and a ``value``.
+   ``group``, and a ``value``. For example, after setting up the plugin package as
+   described below, ``display_eps`` in the above code will look like this: [#package_metadata]_
+
+    .. code-block:: python
+
+        (
+            EntryPoint(name='excl', value='timmins_plugin_fancy:excl_display', group='timmins.display'),
+            ...,
+        )
 
 ``display_eps`` will now be a list of ``EntryPoint`` objects, each referring to ``display()``-like
 functions defined by one or more installed plugin packages. Then, to import a specific
@@ -450,5 +458,8 @@ installed.
    ``pyproject.toml`` is experimental and might change
    in the future. See :doc:`/userguide/pyproject_config`.
 
-.. [#packaging_guide]
+.. [#use_for_scripts]
    Reference: https://packaging.python.org/en/latest/specifications/entry-points/#use-for-scripts
+
+.. [#package_metadata]
+   Reference: https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/#using-package-metadata
