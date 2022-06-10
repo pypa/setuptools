@@ -196,7 +196,7 @@ extensions).
 ``package_dir``
     A dictionary that maps package names (as the developer wishes they would be
     imported by the end-users) into directory paths (that actually exist in the
-    project's source tree). This configuration can be used with 2 main objectives:
+    project's source tree). This configuration can be used with 2 main purposes:
 
     1. To effectively "rename" paths when building your package.
        For example, ``package_dir={"mypkg": "dir1/dir2/code_for_mypkg"}``
@@ -206,11 +206,11 @@ extensions).
        .. attention::
           While it is *possible* to specify arbitrary mappings, developers are
           **STRONGLY ADVISED AGAINST** that. They should try as much as possible
-          to keep the directory names and structure identical to as they would
+          to keep the directory names and hierarchy identical to as they would
           appear in the final wheel, only deviating when absolutely necessary.
 
-    2. To indicate that the code corresponding to a package implementation is
-       entirely contained inside a specific directory.
+    2. To indicate that the relevant code is entirely contained inside
+       a specific directory (instead of directly placed under the project's root).
        In this case, a special key is required (the empty string, ``""``),
        for example: ``package_dir={"": "<name of the container directory>"}``.
        All the directories inside the container directory will be copied
