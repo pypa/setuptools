@@ -204,7 +204,7 @@ body of the function.
 Advertising Behavior
 ====================
 
-Console scripts are one use of the more general concept of entry points. Entry
+Console/GUI scripts are one use of the more general concept of entry points. Entry
 points more generally allow a packager to advertise behavior for discovery by
 other libraries and applications. This feature enables "plug-in"-like
 functionality, where one library solicits entry points and any number of other
@@ -215,7 +215,7 @@ A good example of this plug-in behavior can be seen in
 where pytest is a test framework that allows other libraries to extend
 or modify its functionality through the ``pytest11`` entry point.
 
-The console scripts work similarly, where libraries advertise their commands
+The console/GUI scripts work similarly, where libraries advertise their commands
 and tools like ``pip`` create wrapper scripts that invoke those commands.
 
 Entry Points for Plugins
