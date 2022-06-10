@@ -389,9 +389,22 @@ get the following:
 
 Therefore, our plugin works.
 
-For a project wishing to solicit entry points, Setuptools recommends the
-module (part of stdlib since Python 3.8) or its backport,
-:pypi:`importlib_metadata`.
+Let us discuss a few points in this example in more detail.
+
+importlib.metadata
+------------------
+
+The recommended approach for loading and importing entry points is the
+`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_ module,
+which is a part of the standard library since Python 3.8. For older versions of
+Python, its backport :pypi:`importlib_metadata` should be used. While using the
+backport, the only change that has to be made is to replace ``importlib.metadata``
+with ``importlib_metadata``, i.e.
+
+.. code-block:: python
+
+   from importlib_metadata import entry_points
+   ...
 
 For example, to find the console script entry points from the example above:
 
