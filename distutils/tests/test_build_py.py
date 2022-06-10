@@ -7,6 +7,7 @@ import unittest
 from distutils.command.build_py import build_py
 from distutils.core import Distribution
 from distutils.errors import DistutilsFileError
+from unittest.mock import patch
 
 from distutils.tests import support
 from test.support import run_unittest
@@ -166,6 +167,47 @@ class BuildPyTestCase(
             sys.dont_write_bytecode = old_dont_write_bytecode
 
         self.assertIn('byte-compiling is disabled', self.logs[0][1] % self.logs[0][2])
+
+    @patch("distutils.command.build_py.log.warn")
+    def test_namespace_package_does_not_warn(self, log_warn):
+        """
+        Originally distutils implementation did not account for PEP 420
+        and included warns for package directories that did not contain
+        ``__init__.py`` files.
+        After the acceptance of PEP 420, these warnings don't make more sense
+        so we want to ensure there are not displayed to not confuse the users.
+        """
+        # Create a fake project structure with a package namespace:
+        tmp = self.mkdtemp()
+        os.chdir(tmp)
+        os.makedirs("ns/pkg")
+        open("ns/pkg/module.py", "w").close()
+
+        # Set up a trap if the undesirable effect is observed:
+        def _trap(msg, *args):
+            if "package init file" in msg and "not found" in msg:
+                raise AssertionError(f"Undesired warning: {msg!r} {args!r}")
+
+        log_warn.side_effect = _trap
+
+        # Configure the package:
+        attrs = {
+            "name": "ns.pkg",
+            "packages": ["ns", "ns.pkg"],
+            "script_name": "setup.py",
+        }
+        dist = Distribution(attrs)
+
+        # Run code paths that would trigger the trap:
+        cmd = dist.get_command_obj("build_py")
+        cmd.finalize_options()
+        modules = cmd.find_all_modules()
+        assert len(modules) == 1
+        module_path = modules[0][-1]
+        assert module_path.replace(os.sep, "/") == "ns/pkg/module.py"
+
+        cmd.run()
+        # Test should complete successfully with no exception
 
 
 def test_suite():
