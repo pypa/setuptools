@@ -218,8 +218,170 @@ or modify its functionality through the ``pytest11`` entry point.
 The console scripts work similarly, where libraries advertise their commands
 and tools like ``pip`` create wrapper scripts that invoke those commands.
 
+Entry Points for Plugins
+========================
+
+Let us consider a simple example to understand how we can implement entry points
+corresponding to plugins. Say we have a package ``timmins`` with the following
+directory structure::
+
+    timmins
+    ├── setup.py        # and/or setup.cfg, pyproject.toml
+    └── src
+        └── timmins
+            └── __init__.py
+
+and in ``src/timmins/__init__.py`` we have the following code:
+
+.. code-block:: python
+
+   def hello_world():
+       print('Hello world')
+
+Basically, we have defined a ``hello_world()`` function which will print the text
+'Hello world'. Now, let us say we want to print the text 'Hello world' in different
+ways. The current function just prints the text as it is - let us say we want another
+style in which the text is enclosed within exclamation marks::
+
+    !!! Hello world !!!
+
+Let us see how this can be done using plugins. First, let us separate the style of
+printing the text from the text itself. In other words, we can change the code in
+``src/timmins/__init__.py`` to something like this:
+
+.. code-block:: python
+
+   def display(text):
+       print(text)
+
+   def hello_world():
+       display('Hello world')
+
+Here, the ``display()`` function controls the style of printing the text, and the
+``hello_world()`` function calls the ``display()`` function to print the text 'Hello
+world`.
+
+Right now the ``display()`` function just prints the text as it is. In order to be able
+to customize it, we can do the following. Let us introduce a new *group* of entry points
+named ``timmins.display``, and expect plugin packages implementing this entry point
+to supply a ``display()``-like function. Next, to be able to automatically discover plugin
+packages that implement this entry point, we can use the
+`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_ module,
+as follows:
+
+.. code-block:: python
+
+   from importlib.metadata import entry_points
+   display_eps = entry_points(group='timmins.display')
+
+.. note::
+   Each ``importlib.metadata.EntryPoint`` object is an object containing a ``name``, a
+   ``group``, and a ``value``.
+
+``display_eps`` will now be a list of ``EntryPoint`` objects, each referring to ``display()``-like
+functions defined by one or more installed plugin packages. Then, to import a specific
+``display()``-like function - let us choose the one corresponding to the first discovered
+entry point - we can use the ``load()`` method as follows:
+
+.. code-block:: python
+
+   display = display_eps[0].load()
+
+Finally, a sensible behaviour would be that if we cannot find any plugin packages customizing
+the ``display()`` function, we should fall back to our default implementation which prints
+the text as it is. With this behaviour included, the code in ``src/timmins/__init__.py``
+finally becomes:
+
+.. code-block:: python
+
+   from importlib.metadata import entry_points
+   display_eps = entry_points(group='timmins.display')
+   try:
+       display = display_eps[0].load()
+   except IndexError:
+       def display(text):
+           print(text)
+
+   def hello_world():
+       display('Hello world')
+
+That finishes the setup on ``timmins``'s side. Next, we need to implement a plugin
+which implements the entry point ``timmins.display``. Let us name this plugin
+``timmins-plugin-fancy``, and set it up with the following directory structure::
+
+    timmins-plugin-fancy
+    ├── setup.py        # and/or setup.cfg, pyproject.toml
+    └── src
+        └── timmins_plugin_fancy
+            └── __init__.py
+
+And then, inside ``src/timmins_plugin_fancy/__init__.py``, we can put a function
+named ``excl_display()`` that prints the given text surrounded by exclamation marks:
+
+.. code-block:: python
+
+   def excl_display(text):
+       print('!!!', text, '!!!')
+
+This is the ``display()``-like function that we are looking to supply to the
+``timmins`` package. We can do that by adding the following in the configuration
+of ``timmins-plugin-fancy``:
+
+.. tab:: setup.cfg
+
+   .. code-block:: ini
+
+        [options.entry_points]
+        timmins.display =
+                excl = timmins_plugin_fancy:excl_display
+
+.. tab:: setup.py
+
+   .. code-block:: python
+
+        from setuptools import setup
+
+        setup(
+            # ...,
+            entry_points = {
+                'timmins.display' = [
+                    'excl=timmins_plugin_fancy:excl_display'
+                ]
+            }
+        )
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+   .. code-block:: toml
+
+        [project.entry-points."timmins.display"]
+        excl = "timmins_plugin_fancy:excl_display"
+
+Basically, this configuration states that we are a supplying an entry point
+under the group ``timmins.display``. The entry point is named ``excl`` and it
+refers to the function ``excl_display`` defined by the package ``timmins_plugin_fancy``.
+
+Now, if we install both ``timmins`` and ``timmins_plugin_fancy``, we should get
+the following:
+
+.. code-block:: pycon
+
+   >>> from timmins import hello_world
+   >>> hello_world()
+   !!! Hello world !!!
+
+whereas if we only install ``timmins`` and not ``timmins_plugin_fancy``, we should
+get the following:
+
+.. code-block:: pycon
+
+   >>> from timmins import hello_world
+   >>> hello_world()
+   Hello world
+
+Therefore, our plugin works.
+
 For a project wishing to solicit entry points, Setuptools recommends the
-`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_
 module (part of stdlib since Python 3.8) or its backport,
 :pypi:`importlib_metadata`.
 
@@ -231,8 +393,8 @@ For example, to find the console script entry points from the example above:
     >>> eps = metadata.entry_points()['console_scripts']
 
 ``eps`` is now a list of ``EntryPoint`` objects, one of which corresponds
-to the ``hello-world = timmins:hello_world`` defined above. Each ``EntryPoint``
-contains the ``name``, ``group``, and ``value``. It also supplies a ``.load()``
+to the ``hello-world = timmins:hello_world`` defined above.
+It also supplies a ``.load()``
 method to import and load that entry point (module or object).
 
 .. code-block:: ini
