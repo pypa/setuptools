@@ -120,7 +120,7 @@ In this example, the value for the :ref:`package_dir <keyword/package_dir>`
 configuration (i.e. ``=src``) is parsed as ``{"": "src"}``.
 The ``""`` key has a special meaning in this context, and indicates that all the
 packages are contained inside the given directory.
-Also note that the value for ``[options.packages.find] where`` matches to the
+Also note that the value for ``[options.packages.find] where`` matches the
 value associated with ``""`` in the ``package_dir`` dictionary.
 
 ..
