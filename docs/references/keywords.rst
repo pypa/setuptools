@@ -219,8 +219,8 @@ extensions).
 
        This practice is very common in the community to help separate the
        package implementation from auxiliary files (e.g. CI configuration files),
-       and is referred to as :ref:`src-layout`, because traditionally the
-       container directory is named ``src``.
+       and is referred to as :ref:`src-layout`, because the container
+       directory is commonly named ``src``.
 
     All paths in ``package_dir`` must be relative to the project root directory
     and use a forward slash (``/``) as path separator regardless of the
