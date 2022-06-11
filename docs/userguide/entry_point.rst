@@ -113,16 +113,6 @@ from the user, you can use regular command-line argument parsing utilities like
 `argparse <https://docs.python.org/3/library/argparse.html>`_ within the body of
 the function to parse user input given via :obj:`sys.argv`.
 
-The syntax for entry points is specified as follows:
-
-.. code-block:: ini
-
-    <name> = [<package>.[<subpackage>.]]<module>[:<object>.<object>]
-
-where ``name`` is the name for the script you want to create, the left hand
-side of ``:`` is the module that contains your function and the right hand
-side is the object you want to invoke (e.g. a function).
-
 GUI Scripts
 ===========
 
@@ -498,6 +488,61 @@ The package soliciting the entry points need not have any dependency
 or prior knowledge about the plugins implementing the entry points, and
 downstream users are able to compose functionality by pulling together
 plugins implementing the entry points.
+
+Entry Points Syntax
+===================
+
+The syntax for entry points is specified as follows::
+
+    <name> = <package_or_module>[:<object>[.<attr>[.<nested-attr>]*]]
+
+Here, the square brackets ``[]`` denote optionality and the asterisk ``*``
+denotes repetition.
+``name`` is the name of the script/entry point you want to create, the left hand
+side of ``:`` is the package or module that contains the object you want to invoke
+(think about it as something you would write in an import statement), and the right
+hand side is the object you want to invoke (e.g. a function).
+
+To make this syntax more clear, consider the following examples:
+
+Package or module
+    If you supply::
+
+       <name> = <package_or_module>
+
+    as the entry point, where ``<package_or_module>`` can contain ``.`` in the case
+    of sub-modules or sub-packages, then, tools in the Python ecosystem will roughly
+    interpret this value as:
+
+    .. code-block:: python
+
+        import <package_or_module>
+        parsed_value = <package_or_module>
+
+Module-level object
+   If you supply::
+
+        <name> = <package_or_module>:<object>
+
+   where ``<object>`` does not contain any ``.``, this will be roughly interpreted
+   as:
+
+   .. code-block:: python
+
+       from <package_or_module> import <object>
+       parsed_value = <object>
+
+Nested object
+   If you supply::
+
+        <name> = <package_or_module>:<object>.<attr>.<nested_attr>
+
+   this will be roughly interpreted as:
+
+   .. code-block:: python
+
+       from <package_or_module> import <object>
+       parsed_value = <object>.<attr>.<nested_attr>
 
 ----
 
