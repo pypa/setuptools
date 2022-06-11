@@ -4,15 +4,26 @@
 Entry Points
 ============
 
-Packages may provide commands to be run at the console (console scripts),
-such as the ``pip`` command. These commands are defined for a package
-as a specific kind of entry point in the ``setup.cfg`` or
-``setup.py``.
+Entry points are a very useful feature of Python packages.
+They come in use in two scenarios:
+
+1. The package would like to provide commands to be run at the terminal.
+This functionality is known as *console* scripts. The command may also
+open up a GUI, in which case it is known as a *GUI* script. An example
+of a console script is the one provided by the :pypi:`pip` package, which
+allows you to run commands like ``pip install`` in the terminal.
+
+2. A package would like to enable customization of its functionalities
+via *plugins*. For example, the test framework :pypi:`pytest` allows
+customization via the ``pytest11`` entry point, and the syntax
+highlighting tool :pypi:`pygments` allows specifying additional styles
+using the entry point ``pygments.styles``.
 
 
 Console Scripts
 ===============
 
+Let us start with console scripts.
 First consider an example without entry points. Imagine a package
 defined thus::
 
