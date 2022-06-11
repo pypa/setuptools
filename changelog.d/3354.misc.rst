@@ -1,1 +1,0 @@
-Improve clarity in warning about unlisted namespace packages.

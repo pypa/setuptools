@@ -1,1 +1,0 @@
-Fixed two small issues preventing docs from building locally -- by :user:`codeandfire`

@@ -1,3 +1,18 @@
+v62.3.4
+-------
+
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3349: Fixed two small issues preventing docs from building locally -- by :user:`codeandfire`
+* #3350: Added note explaining ``package_data`` glob pattern matching for dotfiles -- by :user:`comabrewer`
+* #3358: Clarify the role of the ``package_dir`` configuration.
+
+Misc
+^^^^
+* #3354: Improve clarity in warning about unlisted namespace packages.
+
+
 v62.3.3
 -------
 

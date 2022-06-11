@@ -1,1 +1,0 @@
-Added note explaining ``package_data`` glob pattern matching for dotfiles -- by :user:`comabrewer`
