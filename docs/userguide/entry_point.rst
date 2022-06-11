@@ -477,10 +477,15 @@ with ``importlib_metadata``, i.e.
    from importlib_metadata import entry_points
    ...
 
-The project soliciting the entry points needs not to have any dependency
-or prior knowledge about the libraries implementing the entry points, and
+Summary
+-------
+
+In summary, entry points allow a package to open its functionalities for
+customization via plugins.
+The package soliciting the entry points need not have any dependency
+or prior knowledge about the plugins implementing the entry points, and
 downstream users are able to compose functionality by pulling together
-libraries implementing the entry points.
+plugins implementing the entry points.
 
 
 Dependency Management
