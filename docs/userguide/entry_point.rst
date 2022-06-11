@@ -373,6 +373,7 @@ of ``timmins-plugin-fancy``:
 
    .. code-block:: toml
 
+        # Note the quotes around timmins.display in order to escape the dot .
         [project.entry-points."timmins.display"]
         excl = "timmins_plugin_fancy:excl_display"
 
