@@ -477,36 +477,6 @@ with ``importlib_metadata``, i.e.
    from importlib_metadata import entry_points
    ...
 
-For example, to find the console script entry points from the example above:
-
-.. code-block:: pycon
-
-    >>> from importlib import metadata
-    >>> eps = metadata.entry_points()['console_scripts']
-
-``eps`` is now a list of ``EntryPoint`` objects, one of which corresponds
-to the ``hello-world = timmins:hello_world`` defined above.
-It also supplies a ``.load()``
-method to import and load that entry point (module or object).
-
-.. code-block:: ini
-
-    [options.entry_points]
-    my.plugins =
-        hello-world = timmins:hello_world
-
-Then, a different project wishing to load 'my.plugins' plugins could run
-the following routine to load (and invoke) such plugins:
-
-.. code-block:: pycon
-
-    >>> from importlib import metadata
-    >>> eps = metadata.entry_points()['my.plugins']
-    >>> for ep in eps:
-    ...     plugin = ep.load()
-    ...     plugin()
-    ...
-
 The project soliciting the entry points needs not to have any dependency
 or prior knowledge about the libraries implementing the entry points, and
 downstream users are able to compose functionality by pulling together
