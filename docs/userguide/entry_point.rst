@@ -499,29 +499,6 @@ or prior knowledge about the plugins implementing the entry points, and
 downstream users are able to compose functionality by pulling together
 plugins implementing the entry points.
 
-
-Dependency Management
-=====================
-
-Some entry points may require additional dependencies to properly function.
-For such an entry point, declare in square brackets any number of dependency
-``extras`` following the entry point definition. Such entry points will only
-be viable if their extras were declared and installed. See the
-:doc:`guide on dependencies management <dependency_management>` for
-more information on defining extra requirements. Consider from the
-above example:
-
-.. code-block:: ini
-
-    [options.entry_points]
-    console_scripts =
-        hello-world = timmins:hello_world [pretty-printer]
-
-In this case, the ``hello-world`` script is only viable if the ``pretty-printer``
-extra is indicated, and so a plugin host might exclude that entry point
-(i.e. not install a console script) if the relevant extra dependencies are not
-installed.
-
 ----
 
 .. [#experimental]
