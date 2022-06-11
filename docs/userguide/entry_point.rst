@@ -70,16 +70,16 @@ configuration:
 
 .. tab:: setup.cfg
 
-	.. code-block:: ini
+    .. code-block:: ini
 
-		[options.entry_points]
-		console_scripts =
-			hello-world = timmins:hello_world
+        [options.entry_points]
+        console_scripts =
+            hello-world = timmins:hello_world
 
 .. tab:: setup.py
 
     .. code-block:: python
-	
+    
         from setuptools import setup
 
         setup(
@@ -152,7 +152,7 @@ Then, we can add a GUI script entry point:
 .. tab:: setup.py
 
     .. code-block:: python
-	
+    
         from setuptools import setup
 
         setup(
@@ -352,7 +352,7 @@ of ``timmins-plugin-fancy``:
 
         [options.entry_points]
         timmins.display =
-                excl = timmins_plugin_fancy:excl_display
+            excl = timmins_plugin_fancy:excl_display
 
 .. tab:: setup.py
 
@@ -422,8 +422,8 @@ The configuration of ``timmins-plugin-fancy`` would then change to:
 
         [options.entry_points]
         timmins.display =
-                excl = timmins_plugin_fancy:excl_display
-                lined = timmins_plugin_fancy:lined_display
+            excl = timmins_plugin_fancy:excl_display
+            lined = timmins_plugin_fancy:lined_display
 
 .. tab:: setup.py
 
