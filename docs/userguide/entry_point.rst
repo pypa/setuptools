@@ -266,7 +266,7 @@ to customize it, we can do the following. Let us introduce a new *group* of entr
 named ``timmins.display``, and expect plugin packages implementing this entry point
 to supply a ``display()``-like function. Next, to be able to automatically discover plugin
 packages that implement this entry point, we can use the
-`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_ module,
+:mod:`importlib.metadata` module,
 as follows:
 
 .. code-block:: python
@@ -466,7 +466,7 @@ importlib.metadata
 ------------------
 
 The recommended approach for loading and importing entry points is the
-`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_ module,
+:mod:`importlib.metadata` module,
 which is a part of the standard library since Python 3.8. For older versions of
 Python, its backport :pypi:`importlib_metadata` should be used. While using the
 backport, the only change that has to be made is to replace ``importlib.metadata``
