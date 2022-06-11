@@ -389,6 +389,79 @@ get the following:
 
 Therefore, our plugin works.
 
+Our plugin could have also defined multiple entry points under the group ``timmins.display``.
+For example, in ``src/timmins_plugin_fancy/__init__.py`` we could have two ``display()``-like
+functions, as follows:
+
+.. code-block:: python
+
+   def excl_display(text):
+       print('!!!', text, '!!!')
+
+   def lined_display(text):
+       print(''.join(['-' for _ in text]))
+       print(text)
+       print(''.join(['-' for _ in text]))
+
+The configuration of ``timmins-plugin-fancy`` would then change to:
+
+.. tab:: setup.cfg
+
+   .. code-block:: ini
+
+        [options.entry_points]
+        timmins.display =
+                excl = timmins_plugin_fancy:excl_display
+                lined = timmins_plugin_fancy:lined_display
+
+.. tab:: setup.py
+
+   .. code-block:: python
+
+        from setuptools import setup
+
+        setup(
+            # ...,
+            entry_points = {
+                'timmins.display' = [
+                    'excl=timmins_plugin_fancy:excl_display',
+                    'lined=timmins_plugin_fancy:lined_display',
+                ]
+            }
+        )
+
+.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+
+   .. code-block:: toml
+
+        [project.entry-points."timmins.display"]
+        excl = "timmins_plugin_fancy:excl_display"
+        lined = "timmins_plugin_fancy:lined_display"
+
+On the ``timmins`` side, we can also use a different strategy of loading entry
+points. For example, we can search for a specific display style:
+
+.. code-block:: python
+
+   display_eps = entry_points(group='timmins.display')
+   try:
+       display = display_eps['lined'].load()
+   except KeyError:
+       # if the 'lined' display is not available, use something else
+       ...
+
+Or we can also load all plugins under the given group. Though this might not
+be of much use in our current example, there are several scenarios in which this
+is useful:
+
+.. code-block:: python
+
+   display_eps = entry_points(group='timmins.display')
+   for ep in display_eps:
+       display = ep.load()
+       # do something with display
+       ...
+
 importlib.metadata
 ------------------
 
