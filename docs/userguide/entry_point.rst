@@ -352,7 +352,7 @@ of ``timmins-plugin-fancy``:
         setup(
             # ...,
             entry_points = {
-                'timmins.display' = [
+                'timmins.display': [
                     'excl=timmins_plugin_fancy:excl_display'
                 ]
             }
@@ -423,7 +423,7 @@ The configuration of ``timmins-plugin-fancy`` would then change to:
         setup(
             # ...,
             entry_points = {
-                'timmins.display' = [
+                'timmins.display': [
                     'excl=timmins_plugin_fancy:excl_display',
                     'lined=timmins_plugin_fancy:lined_display',
                 ]
