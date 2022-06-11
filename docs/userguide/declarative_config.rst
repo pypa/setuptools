@@ -146,7 +146,7 @@ Type names used below:
 * ``dict`` - list-comma where each entry corresponds to a key/value pair,
   with keys separated from values by ``=``.
   If an entry starts with ``=``, the key is assumed to be an empty string
-  (e.g. ``=src`` is parsed into ``{"": "src"}``).
+  (e.g. ``=src`` is parsed as ``{"": "src"}``).
 * ``section`` - values are read from a dedicated (sub)section
 
 
