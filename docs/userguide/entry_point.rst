@@ -389,8 +389,6 @@ get the following:
 
 Therefore, our plugin works.
 
-Let us discuss a few points in this example in more detail.
-
 importlib.metadata
 ------------------
 
