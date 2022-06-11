@@ -367,9 +367,9 @@ of ``timmins-plugin-fancy``:
 
 Basically, this configuration states that we are a supplying an entry point
 under the group ``timmins.display``. The entry point is named ``excl`` and it
-refers to the function ``excl_display`` defined by the package ``timmins_plugin_fancy``.
+refers to the function ``excl_display`` defined by the package ``timmins-plugin-fancy``.
 
-Now, if we install both ``timmins`` and ``timmins_plugin_fancy``, we should get
+Now, if we install both ``timmins`` and ``timmins-plugin-fancy``, we should get
 the following:
 
 .. code-block:: pycon
@@ -378,7 +378,7 @@ the following:
    >>> hello_world()
    !!! Hello world !!!
 
-whereas if we only install ``timmins`` and not ``timmins_plugin_fancy``, we should
+whereas if we only install ``timmins`` and not ``timmins-plugin-fancy``, we should
 get the following:
 
 .. code-block:: pycon
