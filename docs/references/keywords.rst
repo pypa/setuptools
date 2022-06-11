@@ -194,7 +194,46 @@ extensions).
 .. _keyword/package_dir:
 
 ``package_dir``
-    A dictionary providing a mapping of package to directory names.
+    A dictionary that maps package names (as they will be
+    imported by the end-users) into directory paths (that actually exist in the
+    project's source tree). This configuration has two main purposes:
+
+    1. To effectively "rename" paths when building your package.
+       For example, ``package_dir={"mypkg": "dir1/dir2/code_for_mypkg"}``
+       will instruct setuptools to copy the ``dir1/dir2/code_for_mypkg/...`` files
+       as ``mypkg/...`` when building the final :term:`wheel distribution <Wheel>`.
+
+       .. attention::
+          While it is *possible* to specify arbitrary mappings, developers are
+          **STRONGLY ADVISED AGAINST** that. They should try as much as possible
+          to keep the directory names and hierarchy identical to the way they will
+          appear in the final wheel, only deviating when absolutely necessary.
+
+    2. To indicate that the relevant code is entirely contained inside
+       a specific directory (instead of directly placed under the project's root).
+       In this case, a special key is required (the empty string, ``""``),
+       for example: ``package_dir={"": "<name of the container directory>"}``.
+       All the directories inside the container directory will be copied
+       directly into the final :term:`wheel distribution <Wheel>`, but the
+       container directory itself will not.
+
+       This practice is very common in the community to help separate the
+       package implementation from auxiliary files (e.g. CI configuration files),
+       and is referred to as :ref:`src-layout`, because the container
+       directory is commonly named ``src``.
+
+    All paths in ``package_dir`` must be relative to the project root directory
+    and use a forward slash (``/``) as path separator regardless of the
+    operating system.
+
+    .. tip::
+       When using :doc:`package discovery </userguide/package_discovery>`
+       together with :doc:`setup.cfg </userguide/declarative_config>` or
+       :doc:`pyproject.toml </userguide/pyproject_config>`, it is very likely
+       that you don't need to specify a value for ``package_dir``.  Please have
+       a look at the definitions of :ref:`src-layout` and :ref:`flat-layout` to
+       learn common practices on how to design a project's directory structure
+       and minimise the amount of configuration that is needed.
 
 .. _keyword/requires:
 
