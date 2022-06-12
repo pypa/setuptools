@@ -481,23 +481,18 @@ where entry points can only refer to functions. The syntax used for specifying t
 entry points remains the same as for console/GUI scripts, and is discussed in the
 `last section <#entry-points-syntax>`_.
 
-importlib.metadata
-------------------
+.. tip::
+    The recommended approach for loading and importing entry points is the
+    :mod:`importlib.metadata` module,
+    which is a part of the standard library since Python 3.8. For older versions of
+    Python, its backport :pypi:`importlib_metadata` should be used. While using the
+    backport, the only change that has to be made is to replace ``importlib.metadata``
+    with ``importlib_metadata``, i.e.
 
-The recommended approach for loading and importing entry points is the
-:mod:`importlib.metadata` module,
-which is a part of the standard library since Python 3.8. For older versions of
-Python, its backport :pypi:`importlib_metadata` should be used. While using the
-backport, the only change that has to be made is to replace ``importlib.metadata``
-with ``importlib_metadata``, i.e.
+    .. code-block:: python
 
-.. code-block:: python
-
-   from importlib_metadata import entry_points
-   ...
-
-Summary
--------
+       from importlib_metadata import entry_points
+       ...
 
 In summary, entry points allow a package to open its functionalities for
 customization via plugins.
