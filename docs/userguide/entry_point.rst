@@ -4,8 +4,9 @@
 Entry Points
 ============
 
-Entry points are a very useful feature of Python packages.
-They come in use in two scenarios:
+Entry points are a type of metadata that can be exposed by packages on installation.
+They are a very useful feature of the Python ecosystem,
+and come specially handy in two scenarios:
 
 1. The package would like to provide commands to be run at the terminal.
 This functionality is known as *console* scripts. The command may also
@@ -110,7 +111,7 @@ After installing the package, a user may invoke that function by simply calling
 Note that any function configured as a console script, i.e. ``hello_world()`` in
 this example, should not accept any arguments. If your function requires any input
 from the user, you can use regular command-line argument parsing utilities like
-`argparse <https://docs.python.org/3/library/argparse.html>`_ within the body of
+:mod:`argparse` within the body of
 the function to parse user input given via :obj:`sys.argv`.
 
 You may have noticed that we have used a special syntax to specify the function
