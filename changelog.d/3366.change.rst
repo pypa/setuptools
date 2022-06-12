@@ -1,0 +1,1 @@
+Merge with pypa/distutils@75ed79d including reformat using black, fix for Cygwin support (pypa/distutils#139), and improved support for cross compiling (pypa/distutils#144 and pypa/distutils#145).
