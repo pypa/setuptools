@@ -10,19 +10,17 @@ from distutils.tests import support
 from test.support import run_unittest
 
 
-class InstallScriptsTestCase(support.TempdirManager,
-                             support.LoggingSilencer,
-                             unittest.TestCase):
-
+class InstallScriptsTestCase(
+    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
+):
     def test_default_settings(self):
         dist = Distribution()
-        dist.command_obj["build"] = support.DummyCommand(
-            build_scripts="/foo/bar")
+        dist.command_obj["build"] = support.DummyCommand(build_scripts="/foo/bar")
         dist.command_obj["install"] = support.DummyCommand(
             install_scripts="/splat/funk",
             force=1,
             skip_build=1,
-            )
+        )
         cmd = install_scripts(dist)
         self.assertFalse(cmd.force)
         self.assertFalse(cmd.skip_build)
@@ -48,15 +46,21 @@ class InstallScriptsTestCase(support.TempdirManager,
             finally:
                 f.close()
 
-        write_script("script1.py", ("#! /usr/bin/env python2.3\n"
-                                    "# bogus script w/ Python sh-bang\n"
-                                    "pass\n"))
-        write_script("script2.py", ("#!/usr/bin/python\n"
-                                    "# bogus script w/ Python sh-bang\n"
-                                    "pass\n"))
-        write_script("shell.sh", ("#!/bin/sh\n"
-                                  "# bogus shell script w/ sh-bang\n"
-                                  "exit 0\n"))
+        write_script(
+            "script1.py",
+            (
+                "#! /usr/bin/env python2.3\n"
+                "# bogus script w/ Python sh-bang\n"
+                "pass\n"
+            ),
+        )
+        write_script(
+            "script2.py",
+            ("#!/usr/bin/python\n" "# bogus script w/ Python sh-bang\n" "pass\n"),
+        )
+        write_script(
+            "shell.sh", ("#!/bin/sh\n" "# bogus shell script w/ sh-bang\n" "exit 0\n")
+        )
 
         target = self.mkdtemp()
         dist = Distribution()
@@ -65,7 +69,7 @@ class InstallScriptsTestCase(support.TempdirManager,
             install_scripts=target,
             force=1,
             skip_build=1,
-            )
+        )
         cmd = install_scripts(dist)
         cmd.finalize_options()
         cmd.run()
@@ -77,6 +81,7 @@ class InstallScriptsTestCase(support.TempdirManager,
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(InstallScriptsTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())
