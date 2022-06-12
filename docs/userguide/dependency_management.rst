@@ -6,24 +6,23 @@ There are three types of dependency styles offered by setuptools:
 1) build system requirement, 2) required dependency and 3) optional
 dependency.
 
-.. Note::
-    Packages that are added to dependency can be optionally specified with the
-    version by following `PEP 440 <https://www.python.org/dev/peps/pep-0440/>`_
+.. attention::
+   Each dependency, regardless of type, needs to be specified according to :pep:`508`.
+   This allows adding version :pep:`range restrictions <440#version-specifiers>`
+   and :ref:`environment markers <environment-markers>`.
+   Please note however that public package indexes, such as `PyPI`_
+   might not accept packages that declare dependencies using
+   :pep:`direct URLs <440#direct-references>`.
 
 
 Build system requirement
 ========================
 
-Package requirement
--------------------
 After organizing all the scripts and files and getting ready for packaging,
-there needs to be a way to tell Python what programs it needs to actually
-do the packaging (in our case, ``setuptools`` of course). Usually,
-you also need the ``wheel`` package as well since it is recommended that you
-upload a ``.whl`` file to PyPI alongside your ``.tar.gz`` file. Unlike the
-other two types of dependency keyword, this one is specified in your
-``pyproject.toml`` file (if you have forgot what this is, go to
-:doc:`quickstart` or (WIP)):
+there needs to be a way to specify what programs and libraries are actually needed
+do the packaging (in our case, ``setuptools`` of course).
+This needs to be specified in your ``pyproject.toml`` file
+(if you have forgot what this is, go to :doc:`/userguide/quickstart` or :doc:`/build_meta`):
 
 .. code-block:: ini
 
@@ -31,11 +30,16 @@ other two types of dependency keyword, this one is specified in your
     requires = ["setuptools"]
     #...
 
+Please note that you should also include here any other ``setuptools`` plugin
+(e.g. :pypi:`setuptools-scm`, :pypi:`setuptools-golang`, :pypi:`setuptools-rust`)
+or build-time dependency (e.g. :pypi:`Cython`, :pypi:`cppy`, :pypi:`pybind11`).
+
 .. note::
-    This used to be accomplished with the ``setup_requires`` keyword but is
-    now considered deprecated in favor of the PEP 517 style described above.
+    In previous versions of ``setuptools``,
+    this used to be accomplished with the ``setup_requires`` keyword but is
+    now considered deprecated in favor of the :pep:`517` style described above.
     To peek into how this legacy keyword is used, consult our :doc:`guide on
-    deprecated practice (WIP) <../deprecated/index>`
+    deprecated practice (WIP) </deprecated/index>`.
 
 
 .. _Declaring Dependencies:
@@ -82,11 +86,13 @@ finesse to it, let's start with a simple example.
         # ...
 
 
-When your project is installed (e.g. using pip), all of the dependencies not
-already installed will be located (via PyPI), downloaded, built (if necessary),
+When your project is installed (e.g. using :pypi:`pip`), all of the dependencies not
+already installed will be located (via `PyPI`_), downloaded, built (if necessary),
 and installed and 2) Any scripts in your project will be installed with wrappers
 that verify the availability of the specified dependencies at runtime.
 
+
+.. _environment-markers:
 
 Platform specific dependencies
 ------------------------------
@@ -165,101 +171,22 @@ and only install it if the user is using a Windows operating system:
         # ...
 
 The environmental markers that may be used for testing platform types are
-detailed in `PEP 508 <https://www.python.org/dev/peps/pep-0508/>`_.
+detailed in :pep:`508`.
 
-
-Dependencies that aren't in PyPI
---------------------------------
-.. warning::
-    Dependency links support has been dropped by pip starting with version
-    19.0 (released 2019-01-22).
-
-If your project depends on packages that don't exist on PyPI, you may still be
-able to depend on them, as long as they are available for download as:
-
-- an egg, in the standard distutils ``sdist`` format,
-- a single ``.py`` file, or
-- a VCS repository (Subversion, Mercurial, or Git).
-
-You just need to add some URLs to the ``dependency_links`` argument to
-``setup()``.
-
-The URLs must be either:
-
-1. direct download URLs,
-2. the URLs of web pages that contain direct download links, or
-3. the repository's URL
-
-In general, it's better to link to web pages, because it is usually less
-complex to update a web page than to release a new version of your project.
-You can also use a SourceForge ``showfiles.php`` link in the case where a
-package you depend on is distributed via SourceForge.
-
-If you depend on a package that's distributed as a single ``.py`` file, you
-must include an ``"#egg=project-version"`` suffix to the URL, to give a project
-name and version number.  (Be sure to escape any dashes in the name or version
-by replacing them with underscores.)  EasyInstall will recognize this suffix
-and automatically create a trivial ``setup.py`` to wrap the single ``.py`` file
-as an egg.
-
-In the case of a VCS checkout, you should also append ``#egg=project-version``
-in order to identify for what package that checkout should be used. You can
-append ``@REV`` to the URL's path (before the fragment) to specify a revision.
-Additionally, you can also force the VCS being used by prepending the URL with
-a certain prefix. Currently available are:
-
--  ``svn+URL`` for Subversion,
--  ``git+URL`` for Git, and
--  ``hg+URL`` for Mercurial
-
-A more complete example would be:
-
-    ``vcs+proto://host/path@revision#egg=project-version``
-
-Be careful with the version. It should match the one inside the project files.
-If you want to disregard the version, you have to omit it both in the
-``requires`` and in the URL's fragment.
-
-This will do a checkout (or a clone, in Git and Mercurial parlance) to a
-temporary folder and run ``setup.py bdist_egg``.
-
-The ``dependency_links`` option takes the form of a list of URL strings.  For
-example, this will cause a search of the specified page for eggs or source
-distributions, if the package's dependencies aren't already installed:
-
-.. tab:: setup.cfg
-
-    .. code-block:: ini
-
-        [options]
-        #...
-        dependency_links = http://peak.telecommunity.com/snapshots/
-
-.. tab:: setup.py
-
-    .. code-block:: python
-
-        setup(
-            ...,
-            dependency_links=[
-                "http://peak.telecommunity.com/snapshots/",
-            ],
-        )
+.. seealso::
+   If  environment markers are not enough an specific use case,
+   you can also consider creating a :ref:`backend wrapper <backend-wrapper>`
+   to implement custom detection logic.
 
 
 Optional dependencies
 =====================
-Setuptools allows you to declare dependencies that only get installed under
-specific circumstances. These dependencies are specified with the ``extras_require``
-keyword and are only installed if another package depends on it (either
-directly or indirectly). This makes it convenient to declare dependencies for
-ancillary functions such as "tests" and "docs".
+Setuptools allows you to declare dependencies that are not installed by default.
+This effectively means that you can create a "variant" of your package with a
+set of extra functionalities.
 
-.. note::
-    ``tests_require`` is now deprecated
-
-For example, Package-A offers optional PDF support and requires two other
-dependencies for it to work:
+For example, let's consider a ``Package-A`` that offers
+optional PDF support and requires two other dependencies for it to work:
 
 .. tab:: setup.cfg
 
@@ -269,7 +196,9 @@ dependencies for it to work:
         name = Package-A
 
         [options.extras_require]
-        PDF = ReportLab>=1.2; RXP
+        PDF =
+            ReportLab>=1.2
+            RXP
 
 
 .. tab:: setup.py
@@ -277,7 +206,7 @@ dependencies for it to work:
     .. code-block:: python
 
         setup(
-            name="Project-A",
+            name="Package-A",
             ...,
             extras_require={
                 "PDF": ["ReportLab>=1.2", "RXP"],
@@ -288,15 +217,23 @@ dependencies for it to work:
 
     .. code-block:: toml
 
+        [project]
+        name = "Package-A"
         # ...
         [project.optional-dependencies]
         PDF = ["ReportLab>=1.2", "RXP"]
 
-The name ``PDF`` is an arbitrary identifier of such a list of dependencies, to
+.. sidebar::
+
+   .. tip::
+      It is also convenient to declare optional requirements for
+      ancillary tasks such as running tests and or building docs.
+
+The name ``PDF`` is an arbitrary :pep:`identifier <685>` of such a list of dependencies, to
 which other components can refer and have them installed.
 
 A use case for this approach is that other package can use this "extra" for their
-own dependencies. For example, if "Project-B" needs "project A" with PDF support
+own dependencies. For example, if ``Package-B`` needs ``Package-B`` with PDF support
 installed, it might declare the dependency like this:
 
 .. tab:: setup.cfg
@@ -304,21 +241,21 @@ installed, it might declare the dependency like this:
     .. code-block:: ini
 
         [metadata]
-        name = Project-B
+        name = Package-B
         #...
 
         [options]
         #...
         install_requires =
-            Project-A[PDF]
+            Package-A[PDF]
 
 .. tab:: setup.py
 
     .. code-block:: python
 
         setup(
-            name="Project-B",
-            install_requires=["Project-A[PDF]"],
+            name="Package-B",
+            install_requires=["Package-A[PDF]"],
             ...,
         )
 
@@ -327,71 +264,71 @@ installed, it might declare the dependency like this:
     .. code-block:: toml
 
         [project]
-        name = "Project-B"
+        name = "Package-B"
         # ...
         dependencies = [
-            "Project-A[PDF]"
+            "Package-A[PDF]"
         ]
 
-This will cause ReportLab to be installed along with project A, if project B is
-installed -- even if project A was already installed.  In this way, a project
+This will cause ``ReportLab`` to be installed along with ``Package-A``, if ``Package-B`` is
+installed -- even if ``Package-A`` was already installed.  In this way, a project
 can encapsulate groups of optional "downstream dependencies" under a feature
 name, so that packages that depend on it don't have to know what the downstream
-dependencies are.  If a later version of Project A builds in PDF support and
-no longer needs ReportLab, or if it ends up needing other dependencies besides
-ReportLab in order to provide PDF support, Project B's setup information does
+dependencies are.  If a later version of ``Package-A`` builds in PDF support and
+no longer needs ``ReportLab``, or if it ends up needing other dependencies besides
+``ReportLab`` in order to provide PDF support, ``Package-B``'s setup information does
 not need to change, but the right packages will still be installed if needed.
 
-.. note::
+.. tip::
     Best practice: if a project ends up no longer needing any other packages to
     support a feature, it should keep an empty requirements list for that feature
     in its ``extras_require`` argument, so that packages depending on that feature
     don't break (due to an invalid feature name).
 
-Historically ``setuptools`` also used to support extra dependencies in console
-scripts, for example:
-
-.. tab:: setup.cfg
-
-    .. code-block:: ini
-
-        [metadata]
-        name = Project A
-        #...
-
-        [options]
-        #...
-        entry_points=
-            [console_scripts]
-            rst2pdf = project_a.tools.pdfgen [PDF]
-            rst2html = project_a.tools.htmlgen
-
-.. tab:: setup.py
-
-    .. code-block:: python
-
-        setup(
-            name="Project-A",
-            ...,
-            entry_points={
-                "console_scripts": [
-                    "rst2pdf = project_a.tools.pdfgen [PDF]",
-                    "rst2html = project_a.tools.htmlgen",
-                ],
-            },
-        )
-
-This syntax indicates that the entry point (in this case a console script)
-is only valid when the PDF extra is installed. It is up to the installer
-to determine how to handle the situation where PDF was not indicated
-(e.g. omit the console script, provide a warning when attempting to load
-the entry point, assume the extras are present and let the implementation
-fail later).
-
 .. warning::
-   ``pip`` and other tools might not support this use case for extra
-   dependencies, therefore this practice is considered **deprecated**.
-   See :doc:`PyPUG:specifications/entry-points`.
+    Historically ``setuptools`` also used to support extra dependencies in console
+    scripts, for example:
+
+    .. tab:: setup.cfg
+
+        .. code-block:: ini
+
+            [metadata]
+            name = Package-A
+            #...
+
+            [options]
+            #...
+            entry_points=
+                [console_scripts]
+                rst2pdf = project_a.tools.pdfgen [PDF]
+                rst2html = project_a.tools.htmlgen
+
+    .. tab:: setup.py
+
+        .. code-block:: python
+
+            setup(
+                name="Package-A",
+                ...,
+                entry_points={
+                    "console_scripts": [
+                        "rst2pdf = project_a.tools.pdfgen [PDF]",
+                        "rst2html = project_a.tools.htmlgen",
+                    ],
+                },
+            )
+
+    This syntax indicates that the entry point (in this case a console script)
+    is only valid when the PDF extra is installed. It is up to the installer
+    to determine how to handle the situation where PDF was not indicated
+    (e.g. omit the console script, provide a warning when attempting to load
+    the entry point, assume the extras are present and let the implementation
+    fail later).
+
+    **However**, ``pip`` and other tools might not support this use case for extra
+    dependencies, therefore this practice is considered **deprecated**.
+    See :doc:`PyPUG:specifications/entry-points`.
 
 
 Python requirement
@@ -404,7 +341,7 @@ This can be configured as shown in the example below.
     .. code-block:: ini
 
         [metadata]
-        name = Project-B
+        name = Package-B
         #...
 
         [options]
@@ -416,7 +353,7 @@ This can be configured as shown in the example below.
     .. code-block:: python
 
         setup(
-            name="Project-B",
+            name="Package-B",
             python_requires=">=3.6",
             ...,
         )
@@ -427,7 +364,7 @@ This can be configured as shown in the example below.
     .. code-block:: toml
 
         [project]
-        name = "Project-B"
+        name = "Package-B"
         requires-python = ">=3.6"
         # ...
 
@@ -441,3 +378,6 @@ This can be configured as shown in the example below.
    options via the ``[project]`` and ``[tool.setuptools]`` tables is still
    experimental and might change in future releases.
    See :doc:`/userguide/pyproject_config`.
+
+
+.. _PyPI: https://pypi.org

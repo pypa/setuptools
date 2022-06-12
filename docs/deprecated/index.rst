@@ -14,6 +14,7 @@ objectives.
     :maxdepth: 1
 
     changed_keywords
+    dependency_links
     python_eggs
     easy_install
     distutils/index
