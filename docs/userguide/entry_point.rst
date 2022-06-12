@@ -288,12 +288,12 @@ as follows:
    ``group``, and a ``value``. For example, after setting up the plugin package as
    described below, ``display_eps`` in the above code will look like this: [#package_metadata]_
 
-    .. code-block:: python
+   .. code-block:: python
 
-        (
-            EntryPoint(name='excl', value='timmins_plugin_fancy:excl_display', group='timmins.display'),
-            ...,
-        )
+       (
+           EntryPoint(name='excl', value='timmins_plugin_fancy:excl_display', group='timmins.display'),
+           ...,
+       )
 
 ``display_eps`` will now be a list of ``EntryPoint`` objects, each referring to ``display()``-like
 functions defined by one or more installed plugin packages. Then, to import a specific
