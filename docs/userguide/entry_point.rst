@@ -4,15 +4,27 @@
 Entry Points
 ============
 
-Packages may provide commands to be run at the console (console scripts),
-such as the ``pip`` command. These commands are defined for a package
-as a specific kind of entry point in the ``setup.cfg`` or
-``setup.py``.
+Entry points are a type of metadata that can be exposed by packages on installation.
+They are a very useful feature of the Python ecosystem,
+and come specially handy in two scenarios:
+
+1. The package would like to provide commands to be run at the terminal.
+This functionality is known as *console* scripts. The command may also
+open up a GUI, in which case it is known as a *GUI* script. An example
+of a console script is the one provided by the :pypi:`pip` package, which
+allows you to run commands like ``pip install`` in the terminal.
+
+2. A package would like to enable customization of its functionalities
+via *plugins*. For example, the test framework :pypi:`pytest` allows
+customization via the ``pytest11`` entry point, and the syntax
+highlighting tool :pypi:`pygments` allows specifying additional styles
+using the entry point ``pygments.styles``.
 
 
 Console Scripts
 ===============
 
+Let us start with console scripts.
 First consider an example without entry points. Imagine a package
 defined thus::
 
@@ -59,23 +71,23 @@ configuration:
 
 .. tab:: setup.cfg
 
-	.. code-block:: ini
+    .. code-block:: ini
 
-		[options.entry_points]
-		console_scripts =
-			hello-world = timmins:hello_world
+        [options.entry_points]
+        console_scripts =
+            hello-world = timmins:hello_world
 
 .. tab:: setup.py
 
     .. code-block:: python
-	
+    
         from setuptools import setup
 
         setup(
             # ...,
             entry_points={
                 'console_scripts': [
-                    'hello-world=timmins:hello_world',
+                    'hello-world = timmins:hello_world',
                 ]
             }
         )
@@ -99,18 +111,15 @@ After installing the package, a user may invoke that function by simply calling
 Note that any function configured as a console script, i.e. ``hello_world()`` in
 this example, should not accept any arguments. If your function requires any input
 from the user, you can use regular command-line argument parsing utilities like
-`argparse <https://docs.python.org/3/library/argparse.html>`_ within the body of
+:mod:`argparse` within the body of
 the function to parse user input given via :obj:`sys.argv`.
 
-The syntax for entry points is specified as follows:
-
-.. code-block:: ini
-
-    <name> = [<package>.[<subpackage>.]]<module>[:<object>.<object>]
-
-where ``name`` is the name for the script you want to create, the left hand
-side of ``:`` is the module that contains your function and the right hand
-side is the object you want to invoke (e.g. a function).
+You may have noticed that we have used a special syntax to specify the function
+that must be invoked by the console script, i.e. we have written ``timmins:hello_world``
+with a colon ``:`` separating the package name and the function name. The full
+specification of this syntax is discussed in the `last section <#entry-points-syntax>`_
+of this document, and this can be used to specify a function located anywhere in
+your package, not just in ``__init__.py``.
 
 GUI Scripts
 ===========
@@ -141,14 +150,14 @@ Then, we can add a GUI script entry point:
 .. tab:: setup.py
 
     .. code-block:: python
-	
+    
         from setuptools import setup
 
         setup(
             # ...,
             entry_points={
                 'gui_scripts': [
-                    'hello-world=timmins:hello_world',
+                    'hello-world = timmins:hello_world',
                 ]
             }
         )
@@ -174,7 +183,8 @@ will open a small application window with the title 'Hello world'.
 
 Note that just as with console scripts, any function configured as a GUI script
 should not accept any arguments, and any user input can be parsed within the
-body of the function.
+body of the function. GUI scripts also use the same syntax (discussed in the
+`last section <#entry-points-syntax>`_) for specifying the function to be invoked.
 
 .. note::
 
@@ -279,12 +289,12 @@ as follows:
    ``group``, and a ``value``. For example, after setting up the plugin package as
    described below, ``display_eps`` in the above code will look like this: [#package_metadata]_
 
-    .. code-block:: python
+   .. code-block:: python
 
-        (
-            EntryPoint(name='excl', value='timmins_plugin_fancy:excl_display', group='timmins.display'),
-            ...,
-        )
+       (
+           EntryPoint(name='excl', value='timmins_plugin_fancy:excl_display', group='timmins.display'),
+           ...,
+       )
 
 ``display_eps`` will now be a list of ``EntryPoint`` objects, each referring to ``display()``-like
 functions defined by one or more installed plugin packages. Then, to import a specific
@@ -341,7 +351,7 @@ of ``timmins-plugin-fancy``:
 
         [options.entry_points]
         timmins.display =
-                excl = timmins_plugin_fancy:excl_display
+            excl = timmins_plugin_fancy:excl_display
 
 .. tab:: setup.py
 
@@ -352,8 +362,8 @@ of ``timmins-plugin-fancy``:
         setup(
             # ...,
             entry_points = {
-                'timmins.display' = [
-                    'excl=timmins_plugin_fancy:excl_display'
+                'timmins.display': [
+                    'excl = timmins_plugin_fancy:excl_display'
                 ]
             }
         )
@@ -362,14 +372,15 @@ of ``timmins-plugin-fancy``:
 
    .. code-block:: toml
 
+        # Note the quotes around timmins.display in order to escape the dot .
         [project.entry-points."timmins.display"]
         excl = "timmins_plugin_fancy:excl_display"
 
 Basically, this configuration states that we are a supplying an entry point
 under the group ``timmins.display``. The entry point is named ``excl`` and it
-refers to the function ``excl_display`` defined by the package ``timmins_plugin_fancy``.
+refers to the function ``excl_display`` defined by the package ``timmins-plugin-fancy``.
 
-Now, if we install both ``timmins`` and ``timmins_plugin_fancy``, we should get
+Now, if we install both ``timmins`` and ``timmins-plugin-fancy``, we should get
 the following:
 
 .. code-block:: pycon
@@ -378,7 +389,7 @@ the following:
    >>> hello_world()
    !!! Hello world !!!
 
-whereas if we only install ``timmins`` and not ``timmins_plugin_fancy``, we should
+whereas if we only install ``timmins`` and not ``timmins-plugin-fancy``, we should
 get the following:
 
 .. code-block:: pycon
@@ -411,8 +422,8 @@ The configuration of ``timmins-plugin-fancy`` would then change to:
 
         [options.entry_points]
         timmins.display =
-                excl = timmins_plugin_fancy:excl_display
-                lined = timmins_plugin_fancy:lined_display
+            excl = timmins_plugin_fancy:excl_display
+            lined = timmins_plugin_fancy:lined_display
 
 .. tab:: setup.py
 
@@ -423,9 +434,9 @@ The configuration of ``timmins-plugin-fancy`` would then change to:
         setup(
             # ...,
             entry_points = {
-                'timmins.display' = [
-                    'excl=timmins_plugin_fancy:excl_display',
-                    'lined=timmins_plugin_fancy:lined_display',
+                'timmins.display': [
+                    'excl = timmins_plugin_fancy:excl_display',
+                    'lined = timmins_plugin_fancy:lined_display',
                 ]
             }
         )
@@ -462,23 +473,26 @@ is useful:
        # do something with display
        ...
 
-importlib.metadata
-------------------
+Another point is that in this particular example, we have used plugins to
+customize the behaviour of a function (``display()``). In general, we can use entry
+points to enable plugins to not only customize the behaviour of functions, but also
+of entire classes and modules. This is unlike the case of console/GUI scripts,
+where entry points can only refer to functions. The syntax used for specifying the
+entry points remains the same as for console/GUI scripts, and is discussed in the
+`last section <#entry-points-syntax>`_.
 
-The recommended approach for loading and importing entry points is the
-:mod:`importlib.metadata` module,
-which is a part of the standard library since Python 3.8. For older versions of
-Python, its backport :pypi:`importlib_metadata` should be used. While using the
-backport, the only change that has to be made is to replace ``importlib.metadata``
-with ``importlib_metadata``, i.e.
+.. tip::
+    The recommended approach for loading and importing entry points is the
+    :mod:`importlib.metadata` module,
+    which is a part of the standard library since Python 3.8. For older versions of
+    Python, its backport :pypi:`importlib_metadata` should be used. While using the
+    backport, the only change that has to be made is to replace ``importlib.metadata``
+    with ``importlib_metadata``, i.e.
 
-.. code-block:: python
+    .. code-block:: python
 
-   from importlib_metadata import entry_points
-   ...
-
-Summary
--------
+       from importlib_metadata import entry_points
+       ...
 
 In summary, entry points allow a package to open its functionalities for
 customization via plugins.
@@ -487,28 +501,64 @@ or prior knowledge about the plugins implementing the entry points, and
 downstream users are able to compose functionality by pulling together
 plugins implementing the entry points.
 
+Entry Points Syntax
+===================
 
-Dependency Management
-=====================
+The syntax for entry points is specified as follows::
 
-Some entry points may require additional dependencies to properly function.
-For such an entry point, declare in square brackets any number of dependency
-``extras`` following the entry point definition. Such entry points will only
-be viable if their extras were declared and installed. See the
-:doc:`guide on dependencies management <dependency_management>` for
-more information on defining extra requirements. Consider from the
-above example:
+    <name> = <package_or_module>[:<object>[.<attr>[.<nested-attr>]*]]
 
-.. code-block:: ini
+Here, the square brackets ``[]`` denote optionality and the asterisk ``*``
+denotes repetition.
+``name`` is the name of the script/entry point you want to create, the left hand
+side of ``:`` is the package or module that contains the object you want to invoke
+(think about it as something you would write in an import statement), and the right
+hand side is the object you want to invoke (e.g. a function).
 
-    [options.entry_points]
-    console_scripts =
-        hello-world = timmins:hello_world [pretty-printer]
+To make this syntax more clear, consider the following examples:
 
-In this case, the ``hello-world`` script is only viable if the ``pretty-printer``
-extra is indicated, and so a plugin host might exclude that entry point
-(i.e. not install a console script) if the relevant extra dependencies are not
-installed.
+Package or module
+    If you supply::
+
+       <name> = <package_or_module>
+
+    as the entry point, where ``<package_or_module>`` can contain ``.`` in the case
+    of sub-modules or sub-packages, then, tools in the Python ecosystem will roughly
+    interpret this value as:
+
+    .. code-block:: python
+
+        import <package_or_module>
+        parsed_value = <package_or_module>
+
+Module-level object
+   If you supply::
+
+        <name> = <package_or_module>:<object>
+
+   where ``<object>`` does not contain any ``.``, this will be roughly interpreted
+   as:
+
+   .. code-block:: python
+
+       from <package_or_module> import <object>
+       parsed_value = <object>
+
+Nested object
+   If you supply::
+
+        <name> = <package_or_module>:<object>.<attr>.<nested_attr>
+
+   this will be roughly interpreted as:
+
+   .. code-block:: python
+
+       from <package_or_module> import <object>
+       parsed_value = <object>.<attr>.<nested_attr>
+
+In the case of console/GUI scripts, this syntax can be used to specify a function, while
+in the general case of entry points as used for plugins, it can be used to specify a function,
+class or module.
 
 ----
 
