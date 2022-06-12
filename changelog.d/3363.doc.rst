@@ -1,0 +1,3 @@
+Rework some documentation pages to de-emphasize ``distutils`` and the history
+of packaging in the Python ecosystem. The focus of these changes is to make the
+documentation easier to read for new users.
