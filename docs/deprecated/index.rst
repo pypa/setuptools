@@ -19,3 +19,4 @@ objectives.
     distutils/index
     distutils-legacy
     functionalities
+    running_commands

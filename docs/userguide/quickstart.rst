@@ -1,6 +1,6 @@
-==========================
-``setuptools`` Quickstart
-==========================
+==========
+Quickstart
+==========
 
 Installation
 ============
@@ -286,10 +286,8 @@ For more advanced use, see :doc:`dependency_management`.
 
 Including Data Files
 ====================
-The distutils have traditionally allowed installation of "data files", which
-are placed in a platform-specific location. Setuptools offers three ways to
-specify data files to be included in your packages. For the simplest use, you
-can simply use the ``include_package_data`` keyword:
+Setuptools offers three ways to specify data files to be included in your packages.
+For the simplest use, you can simply use the ``include_package_data`` keyword:
 
 .. tab:: setup.cfg
 
@@ -319,7 +317,7 @@ can simply use the ``include_package_data`` keyword:
         # You can deactivate that with `include-package-data = false`
 
 This tells setuptools to install any data files it finds in your packages.
-The data files must be specified via the distutils' |MANIFEST.in|_ file
+The data files must be specified via the |MANIFEST.in|_ file
 or automatically added by a :ref:`Revision Control System plugin
 <Adding Support for Revision Control Systems>`.
 For more details, see :doc:`datafiles`.

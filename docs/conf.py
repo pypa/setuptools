@@ -178,7 +178,6 @@ nitpick_ignore = [
 
 # Allow linking objects on other Sphinx sites seamlessly:
 intersphinx_mapping.update(
-    python2=('https://docs.python.org/2', None),
     python=('https://docs.python.org/3', None),
 )
 
