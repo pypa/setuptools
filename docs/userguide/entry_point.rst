@@ -86,7 +86,7 @@ configuration:
             # ...,
             entry_points={
                 'console_scripts': [
-                    'hello-world=timmins:hello_world',
+                    'hello-world = timmins:hello_world',
                 ]
             }
         )
@@ -156,7 +156,7 @@ Then, we can add a GUI script entry point:
             # ...,
             entry_points={
                 'gui_scripts': [
-                    'hello-world=timmins:hello_world',
+                    'hello-world = timmins:hello_world',
                 ]
             }
         )
@@ -362,7 +362,7 @@ of ``timmins-plugin-fancy``:
             # ...,
             entry_points = {
                 'timmins.display': [
-                    'excl=timmins_plugin_fancy:excl_display'
+                    'excl = timmins_plugin_fancy:excl_display'
                 ]
             }
         )
@@ -434,8 +434,8 @@ The configuration of ``timmins-plugin-fancy`` would then change to:
             # ...,
             entry_points = {
                 'timmins.display': [
-                    'excl=timmins_plugin_fancy:excl_display',
-                    'lined=timmins_plugin_fancy:lined_display',
+                    'excl = timmins_plugin_fancy:excl_display',
+                    'lined = timmins_plugin_fancy:lined_display',
                 ]
             }
         )
