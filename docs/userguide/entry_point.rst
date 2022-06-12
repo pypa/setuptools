@@ -113,6 +113,13 @@ from the user, you can use regular command-line argument parsing utilities like
 `argparse <https://docs.python.org/3/library/argparse.html>`_ within the body of
 the function to parse user input given via :obj:`sys.argv`.
 
+You may have noticed that we have used a special syntax to specify the function
+that must be invoked by the console script, i.e. we have written ``timmins:hello_world``
+with a colon ``:`` separating the package name and the function name. The full
+specification of this syntax is discussed in the `last section <#entry-points-syntax>`_
+of this document, and this can be used to specify a function located anywhere in
+your package, not just in ``__init__.py``.
+
 GUI Scripts
 ===========
 
@@ -175,7 +182,8 @@ will open a small application window with the title 'Hello world'.
 
 Note that just as with console scripts, any function configured as a GUI script
 should not accept any arguments, and any user input can be parsed within the
-body of the function.
+body of the function. GUI scripts also use the same syntax (discussed in the
+`last section <#entry-points-syntax>`_) for specifying the function to be invoked.
 
 .. note::
 
@@ -464,6 +472,14 @@ is useful:
        # do something with display
        ...
 
+Another point is that in this particular example, we have used plugins to
+customize the behaviour of a function (``display()``). In general, we can use entry
+points to enable plugins to not only customize the behaviour of functions, but also
+of entire classes and modules. This is unlike the case of console/GUI scripts,
+where entry points can only refer to functions. The syntax used for specifying the
+entry points remains the same as for console/GUI scripts, and is discussed in the
+`last section <#entry-points-syntax>`_.
+
 importlib.metadata
 ------------------
 
@@ -543,6 +559,10 @@ Nested object
 
        from <package_or_module> import <object>
        parsed_value = <object>.<attr>.<nested_attr>
+
+In the case of console/GUI scripts, this syntax can be used to specify a function, while
+in the general case of entry points as used for plugins, it can be used to specify a function,
+class or module.
 
 ----
 
