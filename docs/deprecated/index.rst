@@ -16,6 +16,8 @@ objectives.
     changed_keywords
     python_eggs
     easy_install
+    zip_safe
+    resource_extraction
     distutils/index
     distutils-legacy
     functionalities
