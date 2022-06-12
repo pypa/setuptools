@@ -50,11 +50,12 @@ password:xxx
 """
 
 
-class BasePyPIRCCommandTestCase(support.TempdirManager,
-                            support.LoggingSilencer,
-                            support.EnvironGuard,
-                            unittest.TestCase):
-
+class BasePyPIRCCommandTestCase(
+    support.TempdirManager,
+    support.LoggingSilencer,
+    support.EnvironGuard,
+    unittest.TestCase,
+):
     def setUp(self):
         """Patches the environment."""
         super(BasePyPIRCCommandTestCase, self).setUp()
@@ -67,8 +68,10 @@ class BasePyPIRCCommandTestCase(support.TempdirManager,
         class command(PyPIRCCommand):
             def __init__(self, dist):
                 super().__init__(dist)
+
             def initialize_options(self):
                 pass
+
             finalize_options = initialize_options
 
         self._cmd = command
@@ -81,7 +84,6 @@ class BasePyPIRCCommandTestCase(support.TempdirManager,
 
 
 class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
-
     def test_server_registration(self):
         # This test makes sure PyPIRCCommand knows how to:
         # 1. handle several sections in .pypirc
@@ -93,18 +95,26 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
         config = cmd._read_pypirc()
 
         config = list(sorted(config.items()))
-        waited = [('password', 'secret'), ('realm', 'pypi'),
-                  ('repository', 'https://upload.pypi.org/legacy/'),
-                  ('server', 'server1'), ('username', 'me')]
+        waited = [
+            ('password', 'secret'),
+            ('realm', 'pypi'),
+            ('repository', 'https://upload.pypi.org/legacy/'),
+            ('server', 'server1'),
+            ('username', 'me'),
+        ]
         self.assertEqual(config, waited)
 
         # old format
         self.write_file(self.rc, PYPIRC_OLD)
         config = cmd._read_pypirc()
         config = list(sorted(config.items()))
-        waited = [('password', 'secret'), ('realm', 'pypi'),
-                  ('repository', 'https://upload.pypi.org/legacy/'),
-                  ('server', 'server-login'), ('username', 'tarek')]
+        waited = [
+            ('password', 'secret'),
+            ('realm', 'pypi'),
+            ('repository', 'https://upload.pypi.org/legacy/'),
+            ('server', 'server-login'),
+            ('username', 'tarek'),
+        ]
         self.assertEqual(config, waited)
 
     def test_server_empty_registration(self):
@@ -128,14 +138,19 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
         config = cmd._read_pypirc()
 
         config = list(sorted(config.items()))
-        waited = [('password', 'yh^%#rest-of-my-password'), ('realm', 'pypi'),
-                  ('repository', 'https://upload.pypi.org/legacy/'),
-                  ('server', 'server3'), ('username', 'cbiggles')]
+        waited = [
+            ('password', 'yh^%#rest-of-my-password'),
+            ('realm', 'pypi'),
+            ('repository', 'https://upload.pypi.org/legacy/'),
+            ('server', 'server3'),
+            ('username', 'cbiggles'),
+        ]
         self.assertEqual(config, waited)
 
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(PyPIRCCommandTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

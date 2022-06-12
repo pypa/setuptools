@@ -90,38 +90,42 @@ _CLEANED_MANIFEST = """\
   </dependency>
 </assembly>"""
 
-if sys.platform=="win32":
+if sys.platform == "win32":
     from distutils.msvccompiler import get_build_version
-    if get_build_version()>=8.0:
+
+    if get_build_version() >= 8.0:
         SKIP_MESSAGE = None
     else:
         SKIP_MESSAGE = "These tests are only for MSVC8.0 or above"
 else:
     SKIP_MESSAGE = "These tests are only for win32"
 
-@unittest.skipUnless(SKIP_MESSAGE is None, SKIP_MESSAGE)
-class msvc9compilerTestCase(support.TempdirManager,
-                            unittest.TestCase):
 
+@unittest.skipUnless(SKIP_MESSAGE is None, SKIP_MESSAGE)
+class msvc9compilerTestCase(support.TempdirManager, unittest.TestCase):
     def test_no_compiler(self):
         # makes sure query_vcvarsall raises
         # a DistutilsPlatformError if the compiler
         # is not found
         from distutils.msvc9compiler import query_vcvarsall
+
         def _find_vcvarsall(version):
             return None
 
         from distutils import msvc9compiler
+
         old_find_vcvarsall = msvc9compiler.find_vcvarsall
         msvc9compiler.find_vcvarsall = _find_vcvarsall
         try:
-            self.assertRaises(DistutilsPlatformError, query_vcvarsall,
-                             'wont find this version')
+            self.assertRaises(
+                DistutilsPlatformError, query_vcvarsall, 'wont find this version'
+            )
         finally:
             msvc9compiler.find_vcvarsall = old_find_vcvarsall
 
     def test_reg_class(self):
         from distutils.msvc9compiler import Reg
+
         self.assertRaises(KeyError, Reg.get_value, 'xxx', 'xxx')
 
         # looking for values that should exist on all
@@ -131,6 +135,7 @@ class msvc9compilerTestCase(support.TempdirManager,
         self.assertIn(v, ('0', '1', '2'))
 
         import winreg
+
         HKCU = winreg.HKEY_CURRENT_USER
         keys = Reg.read_keys(HKCU, 'xxxx')
         self.assertEqual(keys, None)
@@ -140,6 +145,7 @@ class msvc9compilerTestCase(support.TempdirManager,
 
     def test_remove_visual_c_ref(self):
         from distutils.msvc9compiler import MSVCCompiler
+
         tempdir = self.mkdtemp()
         manifest = os.path.join(tempdir, 'manifest')
         f = open(manifest, 'w')
@@ -164,6 +170,7 @@ class msvc9compilerTestCase(support.TempdirManager,
 
     def test_remove_entire_manifest(self):
         from distutils.msvc9compiler import MSVCCompiler
+
         tempdir = self.mkdtemp()
         manifest = os.path.join(tempdir, 'manifest')
         f = open(manifest, 'w')
@@ -179,6 +186,7 @@ class msvc9compilerTestCase(support.TempdirManager,
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(msvc9compilerTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

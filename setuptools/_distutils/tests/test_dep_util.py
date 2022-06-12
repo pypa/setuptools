@@ -7,8 +7,8 @@ from distutils.errors import DistutilsFileError
 from distutils.tests import support
 from test.support import run_unittest
 
-class DepUtilTestCase(support.TempdirManager, unittest.TestCase):
 
+class DepUtilTestCase(support.TempdirManager, unittest.TestCase):
     def test_newer(self):
 
         tmpdir = self.mkdtemp()
@@ -36,14 +36,13 @@ class DepUtilTestCase(support.TempdirManager, unittest.TestCase):
         os.mkdir(targets)
         one = os.path.join(sources, 'one')
         two = os.path.join(sources, 'two')
-        three = os.path.abspath(__file__)    # I am the old file
+        three = os.path.abspath(__file__)  # I am the old file
         four = os.path.join(targets, 'four')
         self.write_file(one)
         self.write_file(two)
         self.write_file(four)
 
-        self.assertEqual(newer_pairwise([one, two], [three, four]),
-                         ([one],[three]))
+        self.assertEqual(newer_pairwise([one, two], [three, four]), ([one], [three]))
 
     def test_newer_group(self):
         tmpdir = self.mkdtemp()
@@ -66,15 +65,14 @@ class DepUtilTestCase(support.TempdirManager, unittest.TestCase):
         os.remove(one)
         self.assertRaises(OSError, newer_group, [one, two, old_file], three)
 
-        self.assertFalse(newer_group([one, two, old_file], three,
-                                     missing='ignore'))
+        self.assertFalse(newer_group([one, two, old_file], three, missing='ignore'))
 
-        self.assertTrue(newer_group([one, two, old_file], three,
-                                    missing='newer'))
+        self.assertTrue(newer_group([one, two, old_file], three, missing='newer'))
 
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(DepUtilTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

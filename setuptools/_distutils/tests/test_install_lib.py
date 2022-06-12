@@ -11,11 +11,12 @@ from distutils.errors import DistutilsOptionError
 from test.support import run_unittest
 
 
-class InstallLibTestCase(support.TempdirManager,
-                         support.LoggingSilencer,
-                         support.EnvironGuard,
-                         unittest.TestCase):
-
+class InstallLibTestCase(
+    support.TempdirManager,
+    support.LoggingSilencer,
+    support.EnvironGuard,
+    unittest.TestCase,
+):
     def test_finalize_options(self):
         dist = self.create_dist()[1]
         cmd = install_lib(dist)
@@ -45,8 +46,9 @@ class InstallLibTestCase(support.TempdirManager,
         self.write_file(f, '# python file')
         cmd.byte_compile([f])
         pyc_file = importlib.util.cache_from_source('foo.py', optimization='')
-        pyc_opt_file = importlib.util.cache_from_source('foo.py',
-                                                    optimization=cmd.optimize)
+        pyc_opt_file = importlib.util.cache_from_source(
+            'foo.py', optimization=cmd.optimize
+        )
         self.assertTrue(os.path.exists(pyc_file))
         self.assertTrue(os.path.exists(pyc_opt_file))
 
@@ -104,12 +106,12 @@ class InstallLibTestCase(support.TempdirManager,
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        self.assertIn('byte-compiling is disabled',
-                      self.logs[0][1] % self.logs[0][2])
+        self.assertIn('byte-compiling is disabled', self.logs[0][1] % self.logs[0][2])
 
 
 def test_suite():
     return unittest.TestLoader().loadTestsFromTestCase(InstallLibTestCase)
+
 
 if __name__ == "__main__":
     run_unittest(test_suite())

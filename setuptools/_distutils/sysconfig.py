@@ -61,6 +61,7 @@ def _is_parent(dir_a, dir_b):
 
 
 if os.name == 'nt':
+
     @pass_none
     def _fix_pcbuild(d):
         # In a venv, sys._home will be inside BASE_PREFIX rather than PREFIX.
@@ -71,6 +72,7 @@ if os.name == 'nt':
             if _is_parent(d, os.path.join(prefix, "PCbuild"))
         )
         return next(matched, d)
+
     project_base = _fix_pcbuild(project_base)
     _sys_home = _fix_pcbuild(_sys_home)
 
@@ -116,36 +118,74 @@ def get_python_inc(plat_specific=0, prefix=None):
     If 'prefix' is supplied, use it instead of sys.base_prefix or
     sys.base_exec_prefix -- i.e., ignore 'plat_specific'.
     """
-    if prefix is None:
-        prefix = plat_specific and BASE_EXEC_PREFIX or BASE_PREFIX
-    if os.name == "posix":
-        if IS_PYPY and sys.version_info < (3, 8):
-            return os.path.join(prefix, 'include')
-        if python_build:
-            # Assume the executable is in the build directory.  The
-            # pyconfig.h file should be in the same directory.  Since
-            # the build directory may not be the source directory, we
-            # must use "srcdir" from the makefile to find the "Include"
-            # directory.
-            if plat_specific:
-                return _sys_home or project_base
-            else:
-                incdir = os.path.join(get_config_var('srcdir'), 'Include')
-                return os.path.normpath(incdir)
-        implementation = 'pypy' if IS_PYPY else 'python'
-        python_dir = implementation + get_python_version() + build_flags
-        return os.path.join(prefix, "include", python_dir)
-    elif os.name == "nt":
-        if python_build:
-            # Include both the include and PC dir to ensure we can find
-            # pyconfig.h
-            return (os.path.join(prefix, "include") + os.path.pathsep +
-                    os.path.join(prefix, "PC"))
-        return os.path.join(prefix, "include")
-    else:
+    default_prefix = BASE_EXEC_PREFIX if plat_specific else BASE_PREFIX
+    resolved_prefix = prefix if prefix is not None else default_prefix
+    try:
+        getter = globals()[f'_get_python_inc_{os.name}']
+    except KeyError:
         raise DistutilsPlatformError(
             "I don't know where Python installs its C header files "
-            "on platform '%s'" % os.name)
+            "on platform '%s'" % os.name
+        )
+    return getter(resolved_prefix, prefix, plat_specific)
+
+
+def _get_python_inc_posix(prefix, spec_prefix, plat_specific):
+    if IS_PYPY and sys.version_info < (3, 8):
+        return os.path.join(prefix, 'include')
+    return (
+        _get_python_inc_posix_python(plat_specific)
+        or _get_python_inc_from_config(plat_specific, spec_prefix)
+        or _get_python_inc_posix_prefix(prefix)
+    )
+
+
+def _get_python_inc_posix_python(plat_specific):
+    """
+    Assume the executable is in the build directory. The
+    pyconfig.h file should be in the same directory. Since
+    the build directory may not be the source directory,
+    use "srcdir" from the makefile to find the "Include"
+    directory.
+    """
+    if not python_build:
+        return
+    if plat_specific:
+        return _sys_home or project_base
+    incdir = os.path.join(get_config_var('srcdir'), 'Include')
+    return os.path.normpath(incdir)
+
+
+def _get_python_inc_from_config(plat_specific, spec_prefix):
+    """
+    If no prefix was explicitly specified, provide the include
+    directory from the config vars. Useful when
+    cross-compiling, since the config vars may come from
+    the host
+    platform Python installation, while the current Python
+    executable is from the build platform installation.
+    """
+    if not spec_prefix:
+        return
+    return get_config_var('CONF' * plat_specific + 'INCLUDEPY')
+
+
+def _get_python_inc_posix_prefix(prefix):
+    implementation = 'pypy' if IS_PYPY else 'python'
+    python_dir = implementation + get_python_version() + build_flags
+    return os.path.join(prefix, "include", python_dir)
+
+
+def _get_python_inc_nt(prefix, spec_prefix, plat_specific):
+    if python_build:
+        # Include both the include and PC dir to ensure we can find
+        # pyconfig.h
+        return (
+            os.path.join(prefix, "include")
+            + os.path.pathsep
+            + os.path.join(prefix, "PC")
+        )
+    return os.path.join(prefix, "include")
 
 
 # allow this behavior to be monkey-patched. Ref pypa/distutils#2.
@@ -196,8 +236,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             # Pure Python
             libdir = "lib"
         implementation = 'pypy' if IS_PYPY else 'python'
-        libpython = os.path.join(prefix, libdir,
-                                 implementation + get_python_version())
+        libpython = os.path.join(prefix, libdir, implementation + get_python_version())
         return _posix_lib(standard_lib, libpython, early_prefix, prefix)
     elif os.name == "nt":
         if standard_lib:
@@ -207,7 +246,8 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
     else:
         raise DistutilsPlatformError(
             "I don't know where Python installs its library "
-            "on platform '%s'" % os.name)
+            "on platform '%s'" % os.name
+        )
 
 
 def customize_compiler(compiler):
@@ -230,21 +270,36 @@ def customize_compiler(compiler):
             # Use get_config_var() to ensure _config_vars is initialized.
             if not get_config_var('CUSTOMIZED_OSX_COMPILER'):
                 import _osx_support
+
                 _osx_support.customize_compiler(_config_vars)
                 _config_vars['CUSTOMIZED_OSX_COMPILER'] = 'True'
 
-        (cc, cxx, cflags, ccshared, ldshared, shlib_suffix, ar, ar_flags) = \
-            get_config_vars(
-                'CC', 'CXX', 'CFLAGS',
-                'CCSHARED', 'LDSHARED', 'SHLIB_SUFFIX', 'AR', 'ARFLAGS')
+        (
+            cc,
+            cxx,
+            cflags,
+            ccshared,
+            ldshared,
+            shlib_suffix,
+            ar,
+            ar_flags,
+        ) = get_config_vars(
+            'CC',
+            'CXX',
+            'CFLAGS',
+            'CCSHARED',
+            'LDSHARED',
+            'SHLIB_SUFFIX',
+            'AR',
+            'ARFLAGS',
+        )
 
         if 'CC' in os.environ:
             newcc = os.environ['CC']
-            if('LDSHARED' not in os.environ
-                    and ldshared.startswith(cc)):
+            if 'LDSHARED' not in os.environ and ldshared.startswith(cc):
                 # If CC is overridden, use that as the default
                 #       command for LDSHARED as well
-                ldshared = newcc + ldshared[len(cc):]
+                ldshared = newcc + ldshared[len(cc) :]
             cc = newcc
         if 'CXX' in os.environ:
             cxx = os.environ['CXX']
@@ -253,7 +308,7 @@ def customize_compiler(compiler):
         if 'CPP' in os.environ:
             cpp = os.environ['CPP']
         else:
-            cpp = cc + " -E"           # not always
+            cpp = cc + " -E"  # not always
         if 'LDFLAGS' in os.environ:
             ldshared = ldshared + ' ' + os.environ['LDFLAGS']
         if 'CFLAGS' in os.environ:
@@ -278,7 +333,8 @@ def customize_compiler(compiler):
             compiler_cxx=cxx,
             linker_so=ldshared,
             linker_exe=cc,
-            archiver=archiver)
+            archiver=archiver,
+        )
 
         if 'RANLIB' in os.environ and compiler.executables.get('ranlib', None):
             compiler.set_executables(ranlib=os.environ['RANLIB'])
@@ -328,9 +384,10 @@ def parse_makefile(fn, g=None):
     used instead of a new dictionary.
     """
     from distutils.text_file import TextFile
+
     fp = TextFile(
-        fn, strip_comments=1, skip_blanks=1, join_lines=1,
-        errors="surrogateescape")
+        fn, strip_comments=1, skip_blanks=1, join_lines=1, errors="surrogateescape"
+    )
 
     if g is None:
         g = {}
@@ -383,8 +440,7 @@ def parse_makefile(fn, g=None):
                     item = os.environ[n]
 
                 elif n in renamed_variables:
-                    if name.startswith('PY_') and \
-                            name[3:] in renamed_variables:
+                    if name.startswith('PY_') and name[3:] in renamed_variables:
                         item = ""
 
                     elif 'PY_' + n in notdone:
@@ -395,8 +451,8 @@ def parse_makefile(fn, g=None):
                 else:
                     done[n] = item = ""
                 if found:
-                    after = value[m.end():]
-                    value = value[:m.start()] + item + after
+                    after = value[m.end() :]
+                    value = value[: m.start()] + item + after
                     if "$" in after:
                         notdone[name] = value
                     else:
@@ -408,8 +464,7 @@ def parse_makefile(fn, g=None):
                             done[name] = value
                         del notdone[name]
 
-                        if name.startswith('PY_') \
-                                and name[3:] in renamed_variables:
+                        if name.startswith('PY_') and name[3:] in renamed_variables:
 
                             name = name[3:]
                             if name not in done:
@@ -489,6 +544,6 @@ def get_config_var(name):
     """
     if name == 'SO':
         import warnings
-        warnings.warn(
-            'SO is deprecated, use EXT_SUFFIX', DeprecationWarning, 2)
+
+        warnings.warn('SO is deprecated, use EXT_SUFFIX', DeprecationWarning, 2)
     return get_config_vars().get(name)
