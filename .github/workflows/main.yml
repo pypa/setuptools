@@ -20,7 +20,8 @@ jobs:
         # actions/setup-python#213
         - ~3.7.0-0
         - ~3.10.0-0
-        - ~3.11.0-0
+        # disabled due to #3365
+        # - ~3.11.0-0
         - pypy-3.7
         platform:
         - ubuntu-latest
