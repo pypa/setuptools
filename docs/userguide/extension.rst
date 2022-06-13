@@ -15,10 +15,20 @@ A simple way of doing that is to hook in new or existing
 commands and ``setup()`` arguments just by defining "entry points".  These
 are mappings from command or argument names to a specification of where to
 import a handler from.  (See the section on :ref:`Dynamic Discovery of
-Services and Plugins` for some more background on entry points.)
+Services and Plugins` for some more background on entry points).
 
 The following sections describe the most common procedures for extending
 the ``distutils`` functionality used by ``setuptools``.
+
+.. important::
+   Any entry-point defined in your ``setup.cfg``, ``setup.py`` or
+   ``pyproject.toml`` files are not immediately available for use.  Your
+   package needs to be installed first, then ``setuptools`` will be able to
+   access these entry points.  For example consider a ``Project-A`` that
+   defines entry points. When building ``Project-A``, these will not be
+   available.  If ``Project-B`` declares a :doc:`build system requirement
+   </userguide/dependency_management>` on ``Project-A``, then ``setuptools``
+   will be able to use ``Project-A``' customizations.
 
 Customizing Commands
 --------------------
