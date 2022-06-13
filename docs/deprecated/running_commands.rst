@@ -12,7 +12,7 @@ at the root of a Python project, as indicated in the examples below::
 
 You could also run commands in other circumstances:
 
-* ``setuptools`` projects without ``setup.py`` (e.g. ``setup.cfg``-only)::
+* ``setuptools`` projects without ``setup.py`` (e.g., ``setup.cfg``-only)::
 
    python -c "import setuptools; setup()" --help
 

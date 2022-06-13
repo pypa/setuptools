@@ -18,7 +18,7 @@ code in its checkout directory, and only need to run build commands when you
 change files that need to be compiled or the provided metadata and setuptools configuration.
 
 You can perform a ``pip`` installation passing the ``-e/--editable``
-flag (e.g. ``pip install -e .``). It works very similarly to
+flag (e.g., ``pip install -e .``). It works very similarly to
 ``pip install .``, except that it doesn't actually install anything.
 Instead, it creates a special ``.egg-link`` file in the target directory
 (usually ``site-packages``) that links to your project's source code.
@@ -26,7 +26,7 @@ It may also update an existing ``easy-install.pth`` file
 to include your project's source code, thereby making
 it available on ``sys.path`` for all programs using that Python installation.
 
-You can deploy the same project to multiple staging areas, e.g. if you have
+You can deploy the same project to multiple staging areas, e.g., if you have
 multiple projects on the same machine that are sharing the same project you're
 doing development work.
 
