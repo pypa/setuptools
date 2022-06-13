@@ -31,8 +31,8 @@ This needs to be specified in your ``pyproject.toml`` file
     #...
 
 Please note that you should also include here any other ``setuptools`` plugin
-(e.g. :pypi:`setuptools-scm`, :pypi:`setuptools-golang`, :pypi:`setuptools-rust`)
-or build-time dependency (e.g. :pypi:`Cython`, :pypi:`cppy`, :pypi:`pybind11`).
+(e.g., :pypi:`setuptools-scm`, :pypi:`setuptools-golang`, :pypi:`setuptools-rust`)
+or build-time dependency (e.g., :pypi:`Cython`, :pypi:`cppy`, :pypi:`pybind11`).
 
 .. note::
     In previous versions of ``setuptools``,
@@ -86,7 +86,7 @@ finesse to it, let's start with a simple example.
         # ...
 
 
-When your project is installed (e.g. using :pypi:`pip`), all of the dependencies not
+When your project is installed (e.g., using :pypi:`pip`), all of the dependencies not
 already installed will be located (via `PyPI`_), downloaded, built (if necessary),
 and installed and 2) Any scripts in your project will be installed with wrappers
 that verify the availability of the specified dependencies at runtime.
@@ -322,7 +322,7 @@ not need to change, but the right packages will still be installed if needed.
     This syntax indicates that the entry point (in this case a console script)
     is only valid when the PDF extra is installed. It is up to the installer
     to determine how to handle the situation where PDF was not indicated
-    (e.g. omit the console script, provide a warning when attempting to load
+    (e.g., omit the console script, provide a warning when attempting to load
     the entry point, assume the extras are present and let the implementation
     fail later).
 
