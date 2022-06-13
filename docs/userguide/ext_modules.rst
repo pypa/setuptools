@@ -2,6 +2,12 @@
 Building Extension Modules
 ==========================
 
+Setuptools can build C/C++ extension modules.  The keyword argument
+``ext_modules`` of :func:`setup` should be a list of instances of the
+`Extension class
+<https://github.com/pypa/setuptools/blob/main/setuptools/_distutils/extension.py>`_.
+
+
 Compiler and linker options
 ===========================
 
@@ -15,7 +21,9 @@ compiler and linker options from various sources, as specified by
  * the environment variables :envvar:`CC`, :envvar:`CPP`,
    :envvar:`CXX`, :envvar:`LDSHARED` and :envvar:`LDFLAGS`,
    :envvar:`CFLAGS`, :envvar:`CPPFLAGS`, :envvar:`LDFLAGS`,
- * the :class:`Extension` options.
+ * the :class:`Extension` attributes ``include_dirs``,
+   ``library_dirs``, ``extra_compile_args``, ``extra_link_args``,
+   ``runtime_library_dirs``.
 
 .. Ignoring AR, ARFLAGS, RANLIB here because they are used by the (obsolete?) build_clib, not build_ext.
 
