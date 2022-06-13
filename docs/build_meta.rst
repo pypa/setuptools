@@ -95,6 +95,9 @@ or::
 
     $ pip install dist/meowpkg-0.0.1.tar.gz
 
+
+.. _backend-wrapper:
+
 Dynamic build dependencies and other ``build_meta`` tweaks
 ----------------------------------------------------------
 

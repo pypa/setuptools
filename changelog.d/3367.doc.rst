@@ -1,0 +1,13 @@
+Extracted text about automatic resource extraction and the zip-safe flag
+from ``userguide/miscellaneous`` to ``deprecated/resource_extraction`` and
+``deprecated/zip_safe``.
+
+Extracted text about additional metadata files from
+``userguide/miscellaneous`` into the existing ``userguide/extension``
+document.
+
+Updated ``userguide/extension`` to better reflect the status of the
+setuptools project.
+
+Removed ``userguide/functionalities_rewrite`` (a virtually empty part of the
+docs).
