@@ -24,7 +24,7 @@ Not all packages, however, are capable of running in compressed form, because
 they may expect to be able to access either source code or data files as
 normal operating system files.
 
-In the past, ``setuptools`` would install an project distributed
+In the past, ``setuptools`` would install a project distributed
 as a zipfile or a directory (via the ``easy_install`` command or
 ``python setup.py install``),
 the default choice being determined by the project's ``zip_safe`` flag.

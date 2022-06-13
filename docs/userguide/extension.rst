@@ -55,9 +55,9 @@ Once a project containing such entry points has been activated on ``sys.path``,
 how setuptools' own commands are installed: the setuptools project's setup
 script defines entry points for them!
 
-The commands ``sdist``, ``build_py`` and ``build_ext`` are specially useful
+The commands ``sdist``, ``build_py`` and ``build_ext`` are especially useful
 to customize ``setuptools`` builds. Note however that when overwriting existing
-commands you should be very careful to maintain API compatibility.
+commands, you should be very careful to maintain API compatibility.
 Custom commands should try to replicate the same overall behaviour as the
 original classes, and when possible, even inherit from them.
 

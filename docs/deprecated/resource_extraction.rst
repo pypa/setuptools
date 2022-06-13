@@ -8,7 +8,7 @@ and all the files can be found on deterministic locations on the disk.
 This means that most of the tools expect package resources to be "real" files.
 
 There are a few occasions however that packages are loaded in a different way
-(e.g. from a zip file), which is incompatible with the assumptions mentioned above.
+(e.g., from a zip file), which is incompatible with the assumptions mentioned above.
 Moreover, a package developer may also include non-extension native libraries or other files that
 C extensions may expect to be able to access.
 
