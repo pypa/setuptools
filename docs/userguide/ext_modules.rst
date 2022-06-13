@@ -17,7 +17,8 @@ compiler and linker options from various sources, as specified by
 `test_customize_compiler
 <https://github.com/pypa/setuptools/blob/main/setuptools/_distutils/tests/test_sysconfig.py>`_:
 
- * the ``sysconfig`` variables ``CFLAGS`` and ``LDFLAGS``,
+ * the ``sysconfig`` variables ``CC``, ``CXX``, ``CCSHARED``,
+   ``LDSHARED``, and ``CFLAGS``,
  * the environment variables :envvar:`CC`, :envvar:`CPP`,
    :envvar:`CXX`, :envvar:`LDSHARED` and :envvar:`LDFLAGS`,
    :envvar:`CFLAGS`, :envvar:`CPPFLAGS`, :envvar:`LDFLAGS`,
