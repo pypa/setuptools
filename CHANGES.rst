@@ -80,10 +80,13 @@ Changes
 
 Documentation changes
 ^^^^^^^^^^^^^^^^^^^^^
-* #3307: Added introduction to references/keywords
-  Added deprecation tags to test kwargs
-  Moved userguide/keywords to deprecated section
-  Clarified in deprecated doc what keywords came from distutils and which were added or changed by setuptools
+* #3307: Added introduction to references/keywords.
+
+  Added deprecation tags to test kwargs.
+
+  Moved userguide/keywords to deprecated section.
+
+  Clarified in deprecated doc what keywords came from distutils and which were added or changed by setuptools.
 
 Misc
 ^^^^
