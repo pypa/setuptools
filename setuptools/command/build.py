@@ -15,7 +15,7 @@ class build(_build):
         subcommands = {cmd[0] for cmd in _build.sub_commands}
         if subcommands - _ORIGINAL_SUBCOMMANDS:
             msg = """
-            It seems that you are using `distutils.command.build.build` to add
+            It seems that you are using `distutils.command.build` to add
             new subcommands. Using `distutils` directly is considered deprecated,
             please use `setuptools.command.build`.
             """
