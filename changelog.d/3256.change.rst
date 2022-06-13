@@ -1,1 +1,0 @@
-Added setuptools.command.build command to match distutils.command.build -- by :user:`isuruf`

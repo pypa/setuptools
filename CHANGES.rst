@@ -1,3 +1,36 @@
+v62.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #3256: Added setuptools.command.build command to match distutils.command.build -- by :user:`isuruf`
+* #3366: Merge with pypa/distutils@75ed79d including reformat using black, fix for Cygwin support (pypa/distutils#139), and improved support for cross compiling (pypa/distutils#144 and pypa/distutils#145).
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3355: Changes to the User Guide's Entry Points page -- by :user:`codeandfire`
+* #3361: Further minor corrections to the Entry Points page -- by :user:`codeandfire`
+* #3363: Rework some documentation pages to de-emphasize ``distutils`` and the history
+  of packaging in the Python ecosystem. The focus of these changes is to make the
+  documentation easier to read for new users.
+* #3364: Update documentation about dependency management, removing mention to
+  the deprecated ``dependency_links`` and adding some small improvements.
+* #3367: Extracted text about automatic resource extraction and the zip-safe flag
+  from ``userguide/miscellaneous`` to ``deprecated/resource_extraction`` and
+  ``deprecated/zip_safe``.
+
+  Extracted text about additional metadata files from
+  ``userguide/miscellaneous`` into the existing ``userguide/extension``
+  document.
+
+  Updated ``userguide/extension`` to better reflect the status of the
+  setuptools project.
+
+  Removed ``userguide/functionalities_rewrite`` (a virtually empty part of the
+  docs).
+
+
 v62.3.4
 -------
 

@@ -1,2 +1,0 @@
-Update documentation about dependency management, removing mention to
-the deprecated ``dependency_links`` and adding some small improvements.
