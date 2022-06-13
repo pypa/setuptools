@@ -7,15 +7,15 @@ Setuptools design is based on the distutils_ package originally distributed
 as part of Python's standard library, effectively serving as its successor
 (as established in :pep:`632`).
 
-This means that ``setuptools`` strives to honour the extension mechanisms
+This means that ``setuptools`` strives to honor the extension mechanisms
 provided by ``distutils``, and allows developers to create third party packages
-that modify or augment the build process behaviour.
+that modify or augment the build process behavior.
 
 A simple way of doing that is to hook in new or existing
 commands and ``setup()`` arguments just by defining "entry points".  These
 are mappings from command or argument names to a specification of where to
 import a handler from.  (See the section on :ref:`Dynamic Discovery of
-Services and Plugins` above for some more background on entry points.)
+Services and Plugins` for some more background on entry points.)
 
 The following sections describe the most common procedures for extending
 the ``distutils`` functionality used by ``setuptools``.
@@ -58,7 +58,7 @@ script defines entry points for them!
 The commands ``sdist``, ``build_py`` and ``build_ext`` are especially useful
 to customize ``setuptools`` builds. Note however that when overwriting existing
 commands, you should be very careful to maintain API compatibility.
-Custom commands should try to replicate the same overall behaviour as the
+Custom commands should try to replicate the same overall behavior as the
 original classes, and when possible, even inherit from them.
 
 You should also consider handling exceptions such as ``CompileError``,
