@@ -33,5 +33,4 @@ quickstart provides an overview of the new workflow.
     declarative_config
     pyproject_config
     commands
-    functionalities_rewrite
     miscellaneous

@@ -166,19 +166,7 @@ The ``egg_info`` command looks for extension points in an ``egg_info.writers``
 group, and calls them to write the files.  Here's a simple example of an
 extension defining a setup argument ``foo_bar``, which is a list of
 lines that will be written to ``foo_bar.txt`` in the EGG-INFO directory of any
-project that uses the argument::
-
-    setup(
-        # ...
-        entry_points={
-            "distutils.setup_keywords": [
-                "foo_bar = setuptools.dist:assert_string_list",
-            ],
-            "egg_info.writers": [
-                "foo_bar.txt = setuptools.command.egg_info:write_arg",
-            ],
-        },
-    )
+project that uses the argument:
 
 .. code-block:: ini
 
