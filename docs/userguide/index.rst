@@ -35,7 +35,6 @@ Contents
     extension
     declarative_config
     pyproject_config
-    commands
     miscellaneous
 
 ---
