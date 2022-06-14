@@ -133,6 +133,7 @@ html_theme_options = {
 extensions += ['sphinx_reredirects']
 redirects = {
     "userguide/keywords": "/deprecated/changed_keywords.html",
+    "userguide/commands": "/deprecated/commands.html",
 }
 
 # Add support for inline tabs
