@@ -267,7 +267,9 @@ data_files               section                              40.6.0          [#
    <PyPUG:guides/packaging-namespace-packages>` for more information.
 
 .. [#opt-6] ``file:`` directives for reading requirements are supported since version 63.0.
-   The format for the file is basically the same as for a ``requirements.txt`` file.
+   The format for the file resembles a ``requirements.txt`` file,
+   however please keep in mind that all non-comment lines must conform with :pep:`508`
+   (``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
    Library developers should avoid tightly pinning their dependencies to a specific
    version (e.g. via a "locked" requirements file).
 
