@@ -33,6 +33,38 @@ should be part of the ``sdist`` (or not).
 A comprehensive guide to ``MANIFEST.in`` syntax is available at the
 :doc:`PyPA's Packaging User Guide <PyPUG:guides/using-manifest-in>`.
 
+.. attention::
+   Please note that ``setuptools`` supports the ``MANIFEST.in``,
+   and not ``MANIFEST`` (no extension). Any documentation, tutorial or example
+   that recommends using ``MANIFEST`` (no extension) is likely outdated.
+
+.. tip::
+   The ``MANIFEST.in`` file contains commands that allow you to discover and
+   manipulate lists of files. There are many commands that can be used with
+   different objectives, but you should try to not make your ``MANIFEST.in``
+   file too fine grained.
+
+   A good idea is to start with a ``graft`` command (to add all
+   files inside a set of directories) and then fine tune the file selection
+   by removing the excess or adding isolated files.
+
+An example of ``MANIFEST.in`` for a simple project that organized according to a
+:ref:`src-layout` is:
+
+.. code-block:: bash
+
+   # MANIFEST.in -- just for illustration
+   graft src
+   graft tests
+   graft docs
+   # `-> adds all files inside a directory
+
+   include tox.ini
+   # `-> matches file paths relative to the root of the project
+
+   global-exclude *~ *.py[cod] *.so
+   # `-> matches file names (regardless of directory)
+
 Once the correct files are present in the ``sdist``, they can then be used by
 binary extensions during the build process, or included in the final
 :term:`wheel <Wheel>` [#build-process]_ if you configure ``setuptools`` with
