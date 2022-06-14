@@ -287,7 +287,7 @@ Version History
     * countable (thanks to krzysieq)
 
 * Changes to existing functions
-    * split_before was updated to handle empy collections (thanks to TiunovNN)
+    * split_before was updated to handle empty collections (thanks to TiunovNN)
     * unique_everseen got a performance boost (thanks to Numerlor)
     * The type hint for value_chain was corrected (thanks to vr2262)
 
@@ -374,7 +374,7 @@ Version History
     * zip_equal (thanks to frankier and alexmojaki)
 
 * Changes to existing itertools:
-    * split_at, split_before, split_after, and split_when all got a ``maxsplit`` paramter (thanks to jferard and ilai-deutel)
+    * split_at, split_before, split_after, and split_when all got a ``maxsplit`` parameter (thanks to jferard and ilai-deutel)
     * split_at now accepts a ``keep_separator`` parameter (thanks to jferard)
     * distinct_permutations can now generate ``r``-length permutations (thanks to SergBobrovsky and ilai-deutel)
     * The windowed implementation was improved  (thanks to SergBobrovsky)

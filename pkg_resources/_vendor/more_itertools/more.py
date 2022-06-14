@@ -4203,7 +4203,7 @@ def duplicates_everseen(iterable, key=None):
     >>> list(duplicates_everseen('AaaBbbCccAaa', str.lower))
     ['a', 'a', 'b', 'b', 'c', 'c', 'A', 'a', 'a']
 
-    This function is analagous to :func:`unique_everseen` and is subject to
+    This function is analogous to :func:`unique_everseen` and is subject to
     the same performance considerations.
 
     """
@@ -4233,7 +4233,7 @@ def duplicates_justseen(iterable, key=None):
     >>> list(duplicates_justseen('AaaBbbCccAaa', str.lower))
     ['a', 'a', 'b', 'b', 'c', 'c', 'a', 'a']
 
-    This function is analagous to :func:`unique_justseen`.
+    This function is analogous to :func:`unique_justseen`.
 
     """
     return flatten(

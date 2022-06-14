@@ -1179,7 +1179,7 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path)
 
     # == Arrange ==
     # Pretend that build isolation was enabled
-    # e.g pip sets the environment varible PYTHONNOUSERSITE=1
+    # e.g pip sets the environment variable PYTHONNOUSERSITE=1
     monkeypatch.setattr('site.ENABLE_USER_SITE', False)
 
     # Patching $HOME for 2 reasons:

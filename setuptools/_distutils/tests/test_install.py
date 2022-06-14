@@ -114,7 +114,7 @@ class InstallTestCase(
         cmd = install(dist)
 
         # making sure the user option is there
-        options = [name for name, short, lable in cmd.user_options]
+        options = [name for name, short, label in cmd.user_options]
         self.assertIn('user', options)
 
         # setting a value
