@@ -15,6 +15,8 @@ dependency.
    :pep:`direct URLs <440#direct-references>`.
 
 
+.. _build-requires:
+
 Build system requirement
 ========================
 
@@ -24,7 +26,7 @@ do the packaging (in our case, ``setuptools`` of course).
 This needs to be specified in your ``pyproject.toml`` file
 (if you have forgot what this is, go to :doc:`/userguide/quickstart` or :doc:`/build_meta`):
 
-.. code-block:: ini
+.. code-block:: toml
 
     [build-system]
     requires = ["setuptools"]
