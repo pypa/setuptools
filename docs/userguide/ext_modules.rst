@@ -91,8 +91,9 @@ The linker searches for libraries in the following order:
 
 .. important::
    All files used to compile your extension need to be available on the system
-   in the moment setuptools builds your project, so please make sure to include some
-   documentation on how users can obtain operating system level dependencies
+   when building the package, so please make sure to include some documentation
+   on how developers interested in building your package from source
+   can obtain operating system level dependencies
    (e.g. compilers and external binary libraries/artifacts).
 
    You will also need to make sure that all auxiliary files that are contained
