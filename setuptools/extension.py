@@ -43,6 +43,7 @@ class Extension(_Extension):
     :arg str name:
       the full name of the extension, including any packages -- ie.
       *not* a filename or pathname, but Python dotted name
+
     :arg list[str] sources:
       list of source filenames, relative to the distribution root
       (where the setup script lives), in Unix form (slash-separated)
@@ -53,49 +54,62 @@ class Extension(_Extension):
     :keyword list[str] include_dirs:
       list of directories to search for C/C++ header files (in Unix
       form for portability)
+
     :keyword list[tuple[str, str|None]] define_macros:
       list of macros to define; each macro is defined using a 2-tuple:
       the first item corresponding to the name of the macro and the second
       item either a string with its value or None to
       define it without a particular value (equivalent of "#define
       FOO" in source or -DFOO on Unix C compiler command line)
+
     :keyword list[str] undef_macros:
       list of macros to undefine explicitly
+
     :keyword list[str] library_dirs:
       list of directories to search for C/C++ libraries at link time
+
     :keyword list[str] libraries:
       list of library names (not filenames or paths) to link against
+
     :keyword list[str] runtime_library_dirs:
       list of directories to search for C/C++ libraries at run time
       (for shared extensions, this is when the extension is loaded)
+
     :keyword list[str] extra_objects:
       list of extra files to link with (eg. object files not implied
       by 'sources', static library that must be explicitly specified,
       binary resource files, etc.)
+
     :keyword list[str] extra_compile_args:
       any extra platform- and compiler-specific information to use
       when compiling the source files in 'sources'.  For platforms and
       compilers where "command line" makes sense, this is typically a
       list of command-line arguments, but for other platforms it could
       be anything.
+
     :keyword list[str] extra_link_args:
       any extra platform- and compiler-specific information to use
       when linking object files together to create the extension (or
       to create a new static Python interpreter).  Similar
       interpretation as for 'extra_compile_args'.
+
     :keyword list[str] export_symbols:
       list of symbols to be exported from a shared extension.  Not
       used on all platforms, and not generally necessary for Python
       extensions, which typically export exactly one symbol: "init" +
       extension_name.
+
     :keyword list[str] swig_opts:
       any extra options to pass to SWIG if a source file has the .i
       extension.
+
     :keyword list[str] depends:
       list of files that the extension depends on
+
     :keyword str language:
       extension language (i.e. "c", "c++", "objc"). Will be detected
       from the source extensions if not provided.
+
     :keyword bool optional:
       specifies that a build failure in the extension should not abort the
       build process, but simply not install the failing extension.
