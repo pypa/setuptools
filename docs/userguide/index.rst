@@ -28,6 +28,7 @@ Contents
     package_discovery
     entry_point
     dependency_management
+    ext_modules
     datafiles
     development_mode
     distribution
