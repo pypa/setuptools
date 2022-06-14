@@ -158,7 +158,7 @@ of the ``daily`` alias, so that projects that didn't define their own would
 use the appropriate defaults.)
 
 Making "Official" (Non-Snapshot) Releases
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------
 
 When you make an official release, creating source or binary distributions,
 you will need to override the tag settings from ``setup.cfg``, so that you
