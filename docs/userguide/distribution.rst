@@ -1,6 +1,19 @@
 Tagging and "Daily Build" or "Snapshot" Releases
 ------------------------------------------------
 
+.. warning::
+   Please note that running ``python setup.py ...`` directly is no longer
+   considered a good practice and that in the future the commands ``egg_info``
+   and ``rotate`` will be deprecated.
+
+   As a result, the instructions and information presented in this section
+   should be considered **transitional** while setuptools don't provide a
+   mechanism for tagging releases.
+
+   Meanwhile, if you can also consider using :pypi:`setuptools-scm` to achieve
+   similar objectives.
+
+
 When a set of related projects are under development, it may be important to
 track finer-grained version increments than you would normally use for e.g.
 "stable" releases.  While stable releases might be measured in dotted numbers
