@@ -3,7 +3,7 @@ Building Extension Modules
 ==========================
 
 Setuptools can build C/C++ extension modules.  The keyword argument
-``ext_modules`` of ``setup`` should be a list of instances of the
+``ext_modules`` of ``setup()`` should be a list of instances of the
 :class:`setuptools.Extension` class.
 
 
@@ -48,6 +48,9 @@ To instruct setuptools to compile the ``foo.c`` file into the extension module
     You can find more information on the `Python docs about C/C++ extensions`_.
     Alternatively, you might also be interested in learn about `Cython`_.
 
+    If you plan to distribute a package that uses extensions across multiple
+    platforms, :pypi:`cibuildwheel` can also be helpful.
+
 
 Compiler and linker options
 ===========================
@@ -85,6 +88,17 @@ The linker searches for libraries in the following order:
 
 * first, in directories given by ``-L`` options (in left-to-right order),
 * then, in directories given by the environment variable ``LIBRARY_PATH`` (in left-to-right order).
+
+.. important::
+   All files used to compile your extension need to be available on the system
+   in the moment setuptools builds your project, so please make sure to include some
+   documentation on how users can obtain operating system level dependencies
+   (e.g. compilers and external binary libraries/artifacts).
+
+   You will also need to make sure that all auxiliary files that are contained
+   inside your :term:`project` (e.g. C headers authored by you or your team)
+   are configured to be included in your :term:`sdist <Source Distribution (or "sdist")>`.
+   Please have a look on our section on :ref:`Controlling files in the distribution`.
 
 
 ----
