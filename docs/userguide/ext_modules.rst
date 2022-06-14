@@ -7,6 +7,48 @@ Setuptools can build C/C++ extension modules.  The keyword argument
 :class:`setuptools.Extension` class.
 
 
+For example, let's consider a simple project with only one extension module::
+
+    <project_folder>
+    ├── pyproject.toml
+    └── foo.c
+
+and all project metadata configuration in the ``pyproject.toml`` file:
+
+.. code-block:: toml
+
+   # pyproject.toml
+   [build-system]
+   requires = ["setuptools"]
+   build-backend = "setuptools.build_meta"
+
+   [project]
+   name = "mylib-foo"  # as it would appear on PyPI
+   version = "0.42"
+
+To instruct setuptools to compile the ``foo.c`` file into the extension module
+``mylib.foo``, we need to add a ``setup.py`` file similar to the following:
+
+.. code-block:: python
+
+   from setuptools import Extension, setup
+
+   setup(
+       ext_modules=[
+           Extension(
+               name="mylib.foo",  # as it would be imported
+                                  # may include packages/namespaces separated by `.`
+
+               sources=["foo.c"], # all sources are compiled into a single binary file
+           ),
+       ]
+   )
+
+.. seealso::
+    You can find more information on the `Python docs about C/C++ extensions`_.
+    Alternatively, you might also be interested in learn about `Cython`_.
+
+
 Compiler and linker options
 ===========================
 
