@@ -4,7 +4,7 @@ Specifying Your Project's Version
 =================================
 
 Setuptools can work well with most versioning schemes. Over the years,
-setuptools has tried to closely follow the :pep`PEP 440` scheme, but it
+setuptools has tried to closely follow the :pep:`440` scheme, but it
 also supports legacy versions. There are, however, a
 few special things to watch out for, in order to ensure that setuptools and
 other tools can always tell what version of your package is newer than another
@@ -189,5 +189,3 @@ You can then use it like this::
 Or of course you can create more elaborate aliases that do all of the above.
 See the sections below on the :ref:`egg_info <egg_info>` and
 :ref:`alias <alias>` commands for more ideas.
-
-
