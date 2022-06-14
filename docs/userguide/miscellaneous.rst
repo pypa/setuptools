@@ -5,25 +5,29 @@ Controlling files in the distribution
 
 For the most common use cases, ``setuptools`` will automatically find out which
 files are necessary for distributing the package.
-This includes all :term:`pure Python modules <Pure Module>` in the
+These include all :term:`pure Python modules <Pure Module>` in the
 ``py_modules`` or ``packages`` configuration, and the C sources (but not C
-headers) listed as part of extensions when creating a :term:`Source
-Distribution (or "sdist")`.
+headers) listed as part of extensions when creating a :term:`source
+distribution (or "sdist")`.
 
 However, when building more complex packages (e.g. packages that include
 non-Python files, or that need to use custom C headers), you might find that
 not all files present in your project folder are included in package
 :term:`distribution archive <Distribution Package>`.
 
-In these situations you can use a ``setuptools``
-:ref:`plugin <Adding Support for Revision Control Systems>`,
-such as :pypi:`setuptools-scm` or :pypi:`setuptools-svn` to automatically
-include all files tracked by your Revision Control System into the ``sdist``.
+If you are using a :wiki:`Revision Control System`, such as git_ or mercurial_,
+and your source distributions only need to include files that you're
+tracking in revision control, you can use a ``setuptools`` :ref:`plugin <Adding
+Support for Revision Control Systems>`, such as :pypi:`setuptools-scm` or
+:pypi:`setuptools-svn` to automatically include all tracked files into the ``sdist``.
 
 .. _Using MANIFEST.in:
 
-Alternatively, if you need finer control, you can add a ``MANIFEST.in`` file at
-the root of your project.
+Alternatively, if you need finer control over the files (e.g. you don't want to
+distribute :wiki:`CI/CD`-related files) or you need automatically generated files,
+you can add a ``MANIFEST.in`` file at the root of your project,
+to specify any files that the default file location algorithm doesn't catch.
+
 This file contains instructions that tell ``setuptools`` which files exactly
 should be part of the ``sdist`` (or not).
 A comprehensive guide to ``MANIFEST.in`` syntax is available at the
@@ -59,3 +63,6 @@ binary extensions during the build process, or included in the final
    and is ready to be unpacked into a running installation of Python or
    :term:`Virtual Environment`.
    Therefore it only contains items that are required during runtime.
+
+.. _git: https://git-scm.com
+.. _mercurial: https://www.mercurial-scm.org
