@@ -24,8 +24,11 @@ You could also run commands in other circumstances:
 That is, you can simply list the normal setup commands and options following the quoted part.
 
 .. warning::
-   On recent versions of ``setuptools`` running commands via ``python setup.py``
-   is considered **deprecated** (and should be avoided).
+   While it is perfectly fine that users write ``setup.py`` files to configure
+   a package build (e.g. to specify binary extensions or customize commands),
+   on recent versions of ``setuptools``, running ``python setup.py`` directly
+   as a script is considered **deprecated**. This also means that users should
+   avoid running commands directly via ``python setup.py <command>``.
 
    If you want to create :term:`sdist <Source Distribution (or "sdist")>` or :term:`wheel`
    distributions the recommendation is to use the command line tool provided by :pypi:`build`::
@@ -40,6 +43,16 @@ That is, you can simply list the normal setup commands and options following the
    isolated environment. You can also specify specific versions of
    ``setuptools``, by setting the :doc:`build requirements in pyproject.toml
    </build_meta>`.
+
+   If you want to install a package, you can use :pypi:`pip` or :pypi:`installer`::
+
+      pip install /path/to/wheel/file.whl
+      pip install /path/to/sdist/file.tar.gz
+      pip install .  # replacement for python setup.py install
+      pip install --editable .  # replacement for python setup.py develop
+
+      pip install installer  # nees to be installed first
+      python -m installer /path/to/wheel/file.whl
 
 -----------------
 Command Reference
