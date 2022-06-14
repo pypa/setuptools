@@ -51,7 +51,7 @@ That is, you can simply list the normal setup commands and options following the
       pip install .  # replacement for python setup.py install
       pip install --editable .  # replacement for python setup.py develop
 
-      pip install installer  # nees to be installed first
+      pip install installer  # needs to be installed first
       python -m installer /path/to/wheel/file.whl
 
 -----------------

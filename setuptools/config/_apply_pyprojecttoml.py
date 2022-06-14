@@ -354,7 +354,7 @@ class _WouldIgnoreField(UserWarning):
 
     `{field} = {value!r}`
 
-    According to the spec (see the link bellow), however, setuptools CANNOT
+    According to the spec (see the link below), however, setuptools CANNOT
     consider this value unless {field!r} is listed as `dynamic`.
 
     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
