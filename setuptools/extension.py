@@ -34,7 +34,7 @@ class Extension(_Extension):
     This means that all source files will be compiled into a single binary file
     ``<module path>.<suffix>`` (with ``<module path>`` derived from ``name`` and
     ``<suffix>`` defined by one of the values in
-    :mod:`importlib.machinery.EXTENSION_SUFFIXES`).
+    ``importlib.machinery.EXTENSION_SUFFIXES``).
 
     In the case ``.pyx`` files are passed as ``sources and`` ``Cython`` is **not**
     installed in the build environment, ``setuptools`` may also try to look for the
