@@ -53,37 +53,6 @@ directory.  (And, you could also define sitewide or per-user default versions
 of the ``daily`` alias, so that projects that didn't define their own would
 use the appropriate defaults.)
 
-Generating Source Distributions
--------------------------------
-
-``setuptools`` enhances the distutils' default algorithm for source file
-selection with pluggable endpoints for looking up files to include. If you are
-using a revision control system, and your source distributions only need to
-include files that you're tracking in revision control, use a corresponding
-plugin instead of writing a ``MANIFEST.in`` file. See the section below on
-:ref:`Adding Support for Revision Control Systems` for information on plugins.
-
-If you need to include automatically generated files, or files that are kept in
-an unsupported revision control system, you'll need to create a ``MANIFEST.in``
-file to specify any files that the default file location algorithm doesn't
-catch.  See the distutils documentation for more information on the format of
-the ``MANIFEST.in`` file.
-
-But, be sure to ignore any part of the distutils documentation that deals with
-``MANIFEST`` or how it's generated from ``MANIFEST.in``; setuptools shields you
-from these issues and doesn't work the same way in any case.  Unlike the
-distutils, setuptools regenerates the source distribution manifest file
-every time you build a source distribution, and it builds it inside the
-project's ``.egg-info`` directory, out of the way of your main project
-directory.  You therefore need not worry about whether it is up-to-date or not.
-
-Indeed, because setuptools' approach to determining the contents of a source
-distribution is so much simpler, its ``sdist`` command omits nearly all of
-the options that the distutils' more complex ``sdist`` process requires.  For
-all practical purposes, you'll probably use only the ``--formats`` option, if
-you use any option at all.
-
-
 Making "Official" (Non-Snapshot) Releases
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
