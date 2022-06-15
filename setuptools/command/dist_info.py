@@ -25,13 +25,21 @@ class dist_info(Command):
                            " DEPRECATED: use --output-dir."),
         ('output-dir=', 'o', "directory inside of which the .dist-info will be"
                              "created (default: top of the source tree)"),
+        ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
+        ('tag-build=', 'b', "Specify explicit tag to add to version number"),
+        ('no-date', 'D', "Don't include date stamp [default]"),
     ]
+
+    boolean_options = ['tag-date']
+    negative_opt = {'no-date': 'tag-date'}
 
     def initialize_options(self):
         self.egg_base = None
         self.output_dir = None
         self.name = None
         self.dist_info_dir = None
+        self.tag_date = None
+        self.tag_build = None
 
     def finalize_options(self):
         if self.egg_base:
@@ -43,8 +51,14 @@ class dist_info(Command):
         project_dir = dist.src_root or os.curdir
         self.output_dir = Path(self.output_dir or project_dir)
 
-        egg_info = self.reinitialize_command('egg_info')
+        self.set_undefined_options(
+            "egg_info", ("tag_date", "tag_date"), ("tag_build", "tag_build")
+        )
+
+        egg_info = self.reinitialize_command("egg_info")
         egg_info.egg_base = str(self.output_dir)
+        egg_info.tag_date = self.tag_date
+        egg_info.tag_build = self.tag_build
         egg_info.finalize_options()
         self.egg_info = egg_info
 

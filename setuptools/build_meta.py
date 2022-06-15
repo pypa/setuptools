@@ -28,17 +28,19 @@ Again, this is not a formal definition! Just a "taste" of the module.
 
 import io
 import os
+import shlex
 import sys
 import tokenize
 import shutil
 import contextlib
 import tempfile
 import warnings
+from typing import Dict, List, Optional, Union
 
 import setuptools
 import distutils
 from ._reqs import parse_strings
-from .extern.more_itertools import always_iterable
+from distutils.util import strtobool
 
 
 __all__ = ['get_requires_for_build_sdist',
@@ -129,33 +131,128 @@ def suppress_known_deprecation():
         yield
 
 
-class _BuildMetaBackend:
+_ConfigSettings = Optional[Dict[str, Union[str, List[str], None]]]
+"""
+Currently the user can run::
 
-    @staticmethod
-    def _fix_config(config_settings):
+    pip install -e . --config-settings key=value
+    python -m build -C--key=value -C key=value
+
+- pip will pass both key and value as strings and overwriting repeated keys
+  (pypa/pip#11059).
+- build will accumulate values associated with repeated keys in a list.
+  It will also accept keys with no associated value.
+  This means that an option passed by build can be ``str | list[str] | None``.
+- PEP 517 specifies that ``config_settings`` is an optional dict.
+"""
+
+
+class _ConfigSettingsTranslator:
+    """Translate ``config_settings`` into distutils-style command arguments.
+    Only a limited number of options is currently supported.
+    """
+
+    def _global_args(self, config_settings: _ConfigSettings) -> List[str]:
         """
-        Ensure config settings meet certain expectations.
+        If the user specify ``log-level``, it should be applied to all commands.
 
-        >>> fc = _BuildMetaBackend._fix_config
-        >>> fc(None)
-        {'--global-option': []}
-        >>> fc({})
-        {'--global-option': []}
-        >>> fc({'--global-option': 'foo'})
-        {'--global-option': ['foo']}
-        >>> fc({'--global-option': ['foo']})
-        {'--global-option': ['foo']}
+        >>> fn = _ConfigSettingsTranslator()._global_args
+        >>> fn(None)
+        []
+        >>> fn({"log-level": "WARNING"})
+        ['-q']
+        >>> fn({"log-level": "DEBUG"})
+        ['-vv']
+        >>> fn({"log-level": None})
+        Traceback (most recent call last):
+           ...
+        ValueError: Invalid value for log-level: None.
+        Try one of: ['WARNING', 'INFO', 'DEBUG'].
         """
-        config_settings = config_settings or {}
-        config_settings['--global-option'] = list(always_iterable(
-            config_settings.get('--global-option')))
-        return config_settings
+        log_levels = {"WARNING": "-q", "INFO": "-v", "DEBUG": "-vv"}
+        cfg = config_settings or {}
+        if "log-level" in cfg:
+            level = cfg["log-level"]
+            if level not in log_levels:
+                msg = f"Invalid value for log-level: {level!r}."
+                raise ValueError(msg + f"\nTry one of: {list(log_levels.keys())}.")
+            assert isinstance(level, str)
+            return [log_levels[level]]
+        return []
 
+    def _dist_info_args(self, config_settings: _ConfigSettings) -> List[str]:
+        """
+        The ``dist_info`` command accepts ``tag-date`` and ``tag-build``.
+
+        >>> fn = _ConfigSettingsTranslator()._dist_info_args
+        >>> fn(None)
+        []
+        >>> fn({"tag-date": "False"})
+        ['--no-date']
+        >>> fn({"tag-date": None})
+        ['--no-date']
+        >>> fn({"tag-date": "true", "tag-build": ".a"})
+        ['--tag-date', '--tag-build', '.a']
+        """
+        cfg = config_settings or {}
+        args: List[str] = []
+        if "tag-date" in cfg:
+            val = strtobool(str(cfg["tag-date"] or "false"))
+            args.append("--tag-date" if val else "--no-date")
+        if "tag-build" in cfg:
+            args.extend(["--tag-build", str(cfg["tag-build"])])
+        return args
+
+    def _editable_args(self, config_settings: _ConfigSettings) -> List[str]:
+        """
+        The ``editable_wheel`` command accepts ``editable-mode=strict``.
+
+        >>> fn = _ConfigSettingsTranslator()._editable_args
+        >>> fn(None)
+        []
+        >>> fn({"editable-mode": "strict"})
+        ['--strict']
+        >>> fn({"editable-mode": "other"})
+        Traceback (most recent call last):
+           ...
+        ValueError: Invalid value for editable-mode: 'other'. Try: 'strict'.
+        """
+        cfg = config_settings or {}
+        if "editable-mode" not in cfg:
+            return []
+        mode = cfg["editable-mode"]
+        if mode != "strict":
+            msg = f"Invalid value for editable-mode: {mode!r}. Try: 'strict'."
+            raise ValueError(msg)
+        return ["--strict"]
+
+    def _arbitrary_args(self, config_settings: _ConfigSettings) -> List[str]:
+        """
+        Users may expect to pass arbitrary lists of arguments to a command
+        via "--global-option" (example provided in PEP 517 of a "escape hatch").
+
+        >>> fn = _ConfigSettingsTranslator()._arbitrary_args
+        >>> fn(None)
+        []
+        >>> fn({})
+        []
+        >>> fn({'--global-option': 'foo'})
+        ['foo']
+        >>> fn({'--global-option': ['foo']})
+        ['foo']
+        >>> fn({'--global-option': 'foo'})
+        ['foo']
+        >>> fn({'--global-option': 'foo bar'})
+        ['foo', 'bar']
+        """
+        cfg = config_settings or {}
+        opts = cfg.get("--global-option") or []
+        return shlex.split(opts) if isinstance(opts, str) else opts
+
+
+class _BuildMetaBackend(_ConfigSettingsTranslator):
     def _get_build_requires(self, config_settings, requirements):
-        config_settings = self._fix_config(config_settings)
-
-        sys.argv = sys.argv[:1] + ['egg_info'] + \
-            config_settings["--global-option"]
+        sys.argv = [*sys.argv[:1], "egg_info", *self._arbitrary_args(config_settings)]
         try:
             with Distribution.patch():
                 self.run_setup()
@@ -176,16 +273,14 @@ class _BuildMetaBackend:
         exec(compile(code, __file__, 'exec'), locals())
 
     def get_requires_for_build_wheel(self, config_settings=None):
-        return self._get_build_requires(
-            config_settings, requirements=['wheel'])
+        return self._get_build_requires(config_settings, requirements=['wheel'])
 
     def get_requires_for_build_sdist(self, config_settings=None):
         return self._get_build_requires(config_settings, requirements=[])
 
     def prepare_metadata_for_build_wheel(self, metadata_directory,
                                          config_settings=None):
-        sys.argv = sys.argv[:1] + [
-            'dist_info', '--output-dir', metadata_directory]
+        sys.argv = [*sys.argv[:1], 'dist_info', '--output-dir', metadata_directory]
         with no_install_setup_requires():
             self.run_setup()
 
@@ -218,15 +313,15 @@ class _BuildMetaBackend:
 
     def _build_with_temp_dir(self, setup_command, result_extension,
                              result_directory, config_settings):
-        config_settings = self._fix_config(config_settings)
+        args = self._arbitrary_args(config_settings)
         result_directory = os.path.abspath(result_directory)
 
         # Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
-            sys.argv = (sys.argv[:1] + setup_command +
-                        ['--dist-dir', tmp_dist_dir] +
-                        config_settings["--global-option"])
+            sys.argv = [
+                *sys.argv[:1], *setup_command, "--dist-dir", tmp_dist_dir, *args
+            ]
             with no_install_setup_requires():
                 self.run_setup()
 
