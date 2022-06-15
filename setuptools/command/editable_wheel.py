@@ -7,9 +7,11 @@ Create a wheel that, when installed, will make the source package 'editable'
 import os
 import shutil
 import sys
-from distutils.core import Command
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+from setuptools import Command
+from setuptools import namespaces
 
 
 class editable_wheel(Command):
@@ -22,12 +24,13 @@ class editable_wheel(Command):
         ("dist-info-dir=", "I", "path to a pre-build .dist-info directory"),
     ]
 
-    boolean_options = []
+    boolean_options = ["strict"]
 
     def initialize_options(self):
         self.dist_dir = None
         self.dist_info_dir = None
         self.project_dir = None
+        self.strict = False
 
     def finalize_options(self):
         dist = self.distribution
@@ -38,7 +41,7 @@ class editable_wheel(Command):
     @property
     def target(self):
         package_dir = self.distribution.package_dir or {}
-        return package_dir.get("") or self.project_dir
+        return _normalize_path(package_dir.get("") or self.project_dir)
 
     def run(self):
         self._ensure_dist_info()
@@ -64,6 +67,15 @@ class editable_wheel(Command):
             assert str(self.dist_info_dir).endswith(".dist-info")
             assert Path(self.dist_info_dir, "METADATA").exists()
 
+    def _install_namespaces(self, installation_dir, pth_prefix):
+        # XXX: Only required to support the deprecated namespace practice
+        dist = self.distribution
+        if not dist.namespace_packages:
+            return
+
+        installer = _NamespaceInstaller(dist, installation_dir, pth_prefix, self.target)
+        installer.install_namespaces()
+
     def _create_wheel_file(self, bdist_wheel):
         from wheel.wheelfile import WheelFile
 
@@ -81,13 +93,33 @@ class editable_wheel(Command):
         with TemporaryDirectory(suffix=archive_name) as tmp:
             tmp_dist_info = Path(tmp, Path(self.dist_info_dir).name)
             shutil.copytree(self.dist_info_dir, tmp_dist_info)
-            pth = Path(tmp, f"_editable.{editable_name}.pth")
-            pth.write_text(f"{_normalize_path(self.target)}\n", encoding="utf-8")
-
+            self._install_namespaces(tmp, editable_name)
+            self._populate_wheel(editable_name, tmp)
             with WheelFile(wheel_path, "w") as wf:
                 wf.write_files(tmp)
 
         return wheel_path
+
+    def _populate_wheel(self, dist_id, unpacked_wheel_dir):
+        pth = Path(unpacked_wheel_dir, f"__editable__.{dist_id}.pth")
+        pth.write_text(f"{self.target}\n", encoding="utf-8")
+
+
+class _NamespaceInstaller(namespaces.Installer):
+    def __init__(self, distribution, installation_dir, editable_name, src_root):
+        self.distribution = distribution
+        self.src_root = src_root
+        self.installation_dir = installation_dir
+        self.editable_name = editable_name
+        self.outputs = []
+
+    def _get_target(self):
+        """Installation target."""
+        return os.path.join(self.installation_dir, self.editable_name)
+
+    def _get_root(self):
+        """Where the modules/packages should be loaded from."""
+        return repr(str(self.src_root))
 
 
 def _normalize_path(filename):
