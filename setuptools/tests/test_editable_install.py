@@ -7,6 +7,7 @@ from copy import deepcopy
 from importlib import import_module
 from pathlib import Path
 from textwrap import dedent
+from uuid import uuid4
 
 import jaraco.envs
 import jaraco.path
@@ -19,7 +20,8 @@ from . import contexts, namespaces
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
     _LinkTree,
-    _find_mapped_namespaces,
+    _find_virtual_namespaces,
+    _find_namespaces,
     _find_package_roots,
     _finder_template,
 )
@@ -129,7 +131,7 @@ def test_editable_with_pyproject(tmp_path, venv, files, editable_mode):
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
 
 
-def test_editable_with_flat_layout(tmp_path, venv, monkeypatch, editable_mode):
+def test_editable_with_flat_layout(tmp_path, venv, editable_mode):
     files = {
         "mypkg": {
             "pyproject.toml": dedent("""\
@@ -163,9 +165,7 @@ def test_editable_with_flat_layout(tmp_path, venv, monkeypatch, editable_mode):
 class TestLegacyNamespaces:
     """Ported from test_develop"""
 
-    def test_namespace_package_importable(
-        self, venv, tmp_path, monkeypatch, editable_mode
-    ):
+    def test_namespace_package_importable(self, venv, tmp_path, editable_mode):
         """
         Installing two packages sharing the same namespace, one installed
         naturally using pip or `--single-version-externally-managed`
@@ -184,9 +184,7 @@ class TestLegacyNamespaces:
 
 
 class TestPep420Namespaces:
-    def test_namespace_package_importable(
-        self, venv, tmp_path, monkeypatch, editable_mode
-    ):
+    def test_namespace_package_importable(self, venv, tmp_path, editable_mode):
         """
         Installing two packages sharing the same namespace, one installed
         normally using pip and the other installed in editable mode
@@ -200,9 +198,7 @@ class TestPep420Namespaces:
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", "import myns.n.pkgA; import myns.n.pkgB"])
 
-    def test_namespace_created_via_package_dir(
-        self, venv, tmp_path, monkeypatch, editable_mode
-    ):
+    def test_namespace_created_via_package_dir(self, venv, tmp_path, editable_mode):
         """Currently users can create a namespace by tweaking `package_dir`"""
         files = {
             "pkgA": {
@@ -305,7 +301,7 @@ class TestFinderTemplate:
             "pkg1": str(tmp_path / "src1/pkg1"),
             "mod2": str(tmp_path / "src2/mod2")
         }
-        template = _finder_template(mapping, {})
+        template = _finder_template(str(uuid4()), mapping, {})
 
         with contexts.save_paths(), contexts.save_sys_modules():
             for mod in ("pkg1", "pkg1.subpkg", "pkg1.subpkg.mod1", "mod2"):
@@ -326,9 +322,9 @@ class TestFinderTemplate:
         jaraco.path.build(files, prefix=tmp_path)
 
         mapping = {"ns.othername": str(tmp_path / "pkg")}
-        namespaces = {"ns"}
+        namespaces = {"ns": []}
 
-        template = _finder_template(mapping, namespaces)
+        template = _finder_template(str(uuid4()), mapping, namespaces)
         with contexts.save_paths(), contexts.save_sys_modules():
             for mod in ("ns", "ns.othername"):
                 sys.modules.pop(mod, None)
@@ -344,7 +340,7 @@ class TestFinderTemplate:
             # Make sure resources can also be found
             assert text.read_text(encoding="utf-8") == "abc"
 
-    def test_combine_namespaces(self, tmp_path, monkeypatch):
+    def test_combine_namespaces(self, tmp_path):
         files = {
             "src1": {"ns": {"pkg1": {"__init__.py": "a = 13"}}},
             "src2": {"ns": {"mod2.py": "b = 37"}},
@@ -355,7 +351,8 @@ class TestFinderTemplate:
             "ns.pkgA": str(tmp_path / "src1/ns/pkg1"),
             "ns": str(tmp_path / "src2/ns"),
         }
-        template = _finder_template(mapping, {})
+        namespaces_ = {"ns": [str(tmp_path / "src1"), str(tmp_path / "src2")]}
+        template = _finder_template(str(uuid4()), mapping, namespaces_)
 
         with contexts.save_paths(), contexts.save_sys_modules():
             for mod in ("ns", "ns.pkgA", "ns.mod2"):
@@ -370,6 +367,42 @@ class TestFinderTemplate:
             assert pkgA.a == 13
             assert mod2.b == 37
 
+    def test_dynamic_path_computation(self, tmp_path):
+        # Follows the example in PEP 420
+        files = {
+            "project1": {"parent": {"child": {"one.py": "x = 1"}}},
+            "project2": {"parent": {"child": {"two.py": "x = 2"}}},
+            "project3": {"parent": {"child": {"three.py": "x = 3"}}},
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+        mapping = {}
+        namespaces_ = {"parent": [str(tmp_path / "project1/parent")]}
+        template = _finder_template(str(uuid4()), mapping, namespaces_)
+
+        mods = (f"parent.child.{name}" for name in ("one", "two", "three"))
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in ("parent", "parent.child", "parent.child", *mods):
+                sys.modules.pop(mod, None)
+
+            self.install_finder(template)
+
+            one = import_module("parent.child.one")
+            assert one.x == 1
+
+            with pytest.raises(ImportError):
+                import_module("parent.child.two")
+
+            sys.path.append(str(tmp_path / "project2"))
+            two = import_module("parent.child.two")
+            assert two.x == 2
+
+            with pytest.raises(ImportError):
+                import_module("parent.child.three")
+
+            sys.path.append(str(tmp_path / "project3"))
+            three = import_module("parent.child.three")
+            assert three.x == 3
+
 
 def test_pkg_roots(tmp_path):
     """This test focus in getting a particular implementation detail right.
@@ -381,22 +414,43 @@ def test_pkg_roots(tmp_path):
         "d": {"__init__.py": "d = 1", "e": {"__init__.py": "de = 1"}},
         "f": {"g": {"h": {"__init__.py": "fgh = 1"}}},
         "other": {"__init__.py": "abc = 1"},
-        "another": {"__init__.py": "abcxy = 1"},
+        "another": {"__init__.py": "abcxyz = 1"},
+        "yet_another": {"__init__.py": "mnopq = 1"},
     }
     jaraco.path.build(files, prefix=tmp_path)
-    package_dir = {"a.b.c": "other", "a.b.c.x.y": "another"}
-    packages = ["a", "a.b", "a.b.c", "a.b.c.x.y", "d", "d.e", "f", "f.g", "f.g.h"]
+    package_dir = {
+        "a.b.c": "other",
+        "a.b.c.x.y.z": "another",
+        "m.n.o.p.q": "yet_another"
+    }
+    packages = [
+        "a",
+        "a.b",
+        "a.b.c",
+        "a.b.c.x.y",
+        "a.b.c.x.y.z",
+        "d",
+        "d.e",
+        "f",
+        "f.g",
+        "f.g.h",
+        "m.n.o.p.q",
+    ]
     roots = _find_package_roots(packages, package_dir, tmp_path)
     assert roots == {
         "a": str(tmp_path / "a"),
         "a.b.c": str(tmp_path / "other"),
-        "a.b.c.x.y": str(tmp_path / "another"),
+        "a.b.c.x.y.z": str(tmp_path / "another"),
         "d": str(tmp_path / "d"),
         "f": str(tmp_path / "f"),
+        "m.n.o.p.q": str(tmp_path / "yet_another"),
     }
 
-    namespaces = set(_find_mapped_namespaces(roots))
-    assert namespaces == {"a.b.c.x"}
+    ns = set(dict(_find_namespaces(packages, roots)))
+    assert ns == {"f", "f.g"}
+
+    ns = set(_find_virtual_namespaces(roots))
+    assert ns == {"a.b.c.x", "a.b.c.x.y", "m", "m.n", "m.n.o", "m.n.o.p"}
 
 
 class TestOverallBehaviour:

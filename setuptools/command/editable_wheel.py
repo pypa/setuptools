@@ -18,7 +18,7 @@ import logging
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Dict, Iterable, Iterator, List, Mapping, Set, Union, TypeVar
+from typing import Dict, Iterable, Iterator, List, Mapping, Union, Tuple, TypeVar
 
 from setuptools import Command, namespaces
 from setuptools.discovery import find_package_path
@@ -247,10 +247,15 @@ class _TopLevelFinder:
         top_level = chain(_find_packages(self.dist), _find_top_level_modules(self.dist))
         package_dir = self.dist.package_dir or {}
         roots = _find_package_roots(top_level, package_dir, src_root)
-        namespaces_ = set(_find_mapped_namespaces(roots))
 
-        finder = _make_identifier(f"__editable__.{self.name}.finder")
-        content = _finder_template(roots, namespaces_)
+        namespaces_: Dict[str, List[str]] = dict(chain(
+            _find_namespaces(self.dist.packages, roots),
+            ((ns, []) for ns in _find_virtual_namespaces(roots)),
+        ))
+
+        name = f"__editable__.{self.name}.finder"
+        finder = _make_identifier(name)
+        content = _finder_template(name, roots, namespaces_)
         Path(unpacked_wheel_dir, f"{finder}.py").write_text(content, encoding="utf-8")
 
         pth = f"__editable__.{self.name}.pth"
@@ -398,9 +403,9 @@ def _absolute_root(path: _Path) -> str:
         return str(parent.resolve() / path_.name)
 
 
-def _find_mapped_namespaces(pkg_roots: Dict[str, str]) -> Iterator[str]:
-    """By carefully designing ``package_dir``, it is possible to implement
-    PEP 420 compatible namespaces without creating extra folders.
+def _find_virtual_namespaces(pkg_roots: Dict[str, str]) -> Iterator[str]:
+    """By carefully designing ``package_dir``, it is possible to implement the logical
+    structure of PEP 420 in a package without the corresponding directories.
     This function will try to find this kind of namespaces.
     """
     for pkg in pkg_roots:
@@ -409,9 +414,18 @@ def _find_mapped_namespaces(pkg_roots: Dict[str, str]) -> Iterator[str]:
         parts = pkg.split(".")
         for i in range(len(parts) - 1, 0, -1):
             partial_name = ".".join(parts[:i])
-            path = find_package_path(partial_name, pkg_roots, "")
-            if not Path(path, "__init__.py").exists():
+            path = Path(find_package_path(partial_name, pkg_roots, ""))
+            if not path.exists():
                 yield partial_name
+
+
+def _find_namespaces(
+    packages: List[str], pkg_roots: Dict[str, str]
+) -> Iterator[Tuple[str, List[str]]]:
+    for pkg in packages:
+        path = find_package_path(pkg, pkg_roots, "")
+        if Path(path).exists() and not Path(path, "__init__.py").exists():
+            yield (pkg, [path])
 
 
 def _remove_nested(pkg_roots: Dict[str, str]) -> Dict[str, str]:
@@ -491,59 +505,81 @@ class _NamespaceInstaller(namespaces.Installer):
 
 _FINDER_TEMPLATE = """\
 import sys
-from importlib.machinery import all_suffixes as module_suffixes
 from importlib.machinery import ModuleSpec
+from importlib.machinery import all_suffixes as module_suffixes
 from importlib.util import spec_from_file_location
 from itertools import chain
 from pathlib import Path
 
-class __EditableFinder:
-    MAPPING = {mapping!r}
-    NAMESPACES = {namespaces!r}
+MAPPING = {mapping!r}
+NAMESPACES = {namespaces!r}
+PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 
+
+class _EditableFinder:  # MetaPathFinder
     @classmethod
-    def find_spec(cls, fullname, path, target=None):
-        if fullname in cls.NAMESPACES:
-            return cls._namespace_spec(fullname)
-
-        for pkg, pkg_path in reversed(list(cls.MAPPING.items())):
+    def find_spec(cls, fullname, path=None, target=None):
+        for pkg, pkg_path in reversed(list(MAPPING.items())):
             if fullname.startswith(pkg):
-                return cls._find_spec(fullname, pkg, pkg_path)
+                rest = fullname.replace(pkg, "").strip(".").split(".")
+                return cls._find_spec(fullname, Path(pkg_path, *rest))
 
         return None
 
     @classmethod
-    def _namespace_spec(cls, name):
-        # Since `cls` is appended to the path, this will only trigger
-        # when no other package is installed in the same namespace.
-        return ModuleSpec(name, None, is_package=True)
-        # ^-- PEP 451 mentions setting loader to None for namespaces.
-
-    @classmethod
-    def _find_spec(cls, fullname, parent, parent_path):
-        rest = fullname.replace(parent, "").strip(".").split(".")
-        candidate_path = Path(parent_path, *rest)
-
+    def _find_spec(cls, fullname, candidate_path):
         init = candidate_path / "__init__.py"
         candidates = (candidate_path.with_suffix(x) for x in module_suffixes())
         for candidate in chain([init], candidates):
             if candidate.exists():
-                spec = spec_from_file_location(fullname, candidate)
-                return spec
+                return spec_from_file_location(fullname, candidate)
 
-        if candidate_path.exists():
-            return cls._namespace_spec(fullname)
 
+class _EditableNamespaceFinder:  # PathEntryFinder
+    @classmethod
+    def _path_hook(cls, path):
+        if path == PATH_PLACEHOLDER:
+            return cls
+        raise ImportError
+
+    @classmethod
+    def _paths(cls, fullname):
+        # Ensure __path__ is not empty for the spec to be considered a namespace.
+        return NAMESPACES[fullname] or MAPPING.get(fullname) or [PATH_PLACEHOLDER]
+
+    @classmethod
+    def find_spec(cls, fullname, target=None):
+        if fullname in NAMESPACES:
+            spec = ModuleSpec(fullname, None, is_package=True)
+            spec.submodule_search_locations = cls._paths(fullname)
+            return spec
+        return None
+
+    @classmethod
+    def find_module(cls, fullname):
         return None
 
 
 def install():
-    if not any(finder == __EditableFinder for finder in sys.meta_path):
-        sys.meta_path.append(__EditableFinder)
+    if not any(finder == _EditableFinder for finder in sys.meta_path):
+        sys.meta_path.append(_EditableFinder)
+
+    if not NAMESPACES:
+        return
+
+    if not any(hook == _EditableNamespaceFinder._path_hook for hook in sys.path_hooks):
+        # PathEntryFinder is needed to create NamespaceSpec without private APIS
+        sys.path_hooks.append(_EditableNamespaceFinder._path_hook)
+    if PATH_PLACEHOLDER not in sys.path:
+        sys.path.append(PATH_PLACEHOLDER)  # Used just to trigger the path hook
 """
 
 
-def _finder_template(mapping: Mapping[str, str], namespaces: Set[str]):
-    """Create a string containing the code for a ``MetaPathFinder``."""
+def _finder_template(
+    name: str, mapping: Mapping[str, str], namespaces: Dict[str, List[str]]
+) -> str:
+    """Create a string containing the code for the``MetaPathFinder`` and
+    ``PathEntryFinder``.
+    """
     mapping = dict(sorted(mapping.items(), key=lambda p: p[0]))
-    return _FINDER_TEMPLATE.format(mapping=mapping, namespaces=namespaces)
+    return _FINDER_TEMPLATE.format(name=name, mapping=mapping, namespaces=namespaces)
