@@ -214,6 +214,7 @@ favicons = [
 ]
 
 intersphinx_mapping['pip'] = 'https://pip.pypa.io/en/latest', None
+intersphinx_mapping['build'] = 'https://pypa-build.readthedocs.io/en/latest', None
 intersphinx_mapping['PyPUG'] = ('https://packaging.python.org/en/latest/', None)
 intersphinx_mapping['packaging'] = ('https://packaging.pypa.io/en/latest/', None)
 intersphinx_mapping['importlib-resources'] = (
