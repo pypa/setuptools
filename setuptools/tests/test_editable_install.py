@@ -3,6 +3,7 @@ from textwrap import dedent
 
 import pytest
 import jaraco.envs
+import jaraco.path
 import path
 
 
@@ -85,18 +86,17 @@ EXAMPLE = {
 
 
 SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
-MISSING_SETUP_SCRIPT = pytest.param(
-    None,
-    marks=pytest.mark.xfail(
-        reason="Editable install is currently only supported with `setup.py`"
-    )
+
+
+@pytest.mark.parametrize(
+    "files",
+    [
+        {**EXAMPLE, "setup.py": SETUP_SCRIPT_STUB},
+        EXAMPLE,  # No setup.py script
+    ]
 )
-
-
-@pytest.mark.parametrize("setup_script", [SETUP_SCRIPT_STUB, MISSING_SETUP_SCRIPT])
-def test_editable_with_pyproject(tmp_path, venv, setup_script):
+def test_editable_with_pyproject(tmp_path, venv, files):
     project = tmp_path / "mypkg"
-    files = {**EXAMPLE, "setup.py": setup_script}
     project.mkdir()
     jaraco.path.build(files, prefix=project)
 

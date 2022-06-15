@@ -251,22 +251,27 @@ class _BuildMetaBackend:
                                          '.tar.gz', sdist_directory,
                                          config_settings)
 
-
     # PEP660 hooks:
     # build_editable
     # get_requires_for_build_editable
     # prepare_metadata_for_build_editable
     def build_editable(
-        self, wheel_directory, scheme=None, config_settings=None
+        self, wheel_directory, config_settings=None, metadata_directory=None
     ):
         # XXX can or should we hide our editable_wheel command normally?
         return self._build_with_temp_dir(
-            ["editable_wheel"], ".whl", wheel_directory, config_settings
+            ["editable_wheel", "--dist-info-dir", metadata_directory],
+            ".whl", wheel_directory, config_settings
         )
 
-
     def get_requires_for_build_editable(self, config_settings=None):
-        return ['editables', 'wheel']
+        return self.get_requires_for_build_wheel(config_settings)
+
+    def prepare_metadata_for_build_editable(self, metadata_directory,
+                                            config_settings=None):
+        return self.prepare_metadata_for_build_wheel(
+            metadata_directory, config_settings
+        )
 
 
 class _BuildMetaLegacyBackend(_BuildMetaBackend):
@@ -314,8 +319,9 @@ _BACKEND = _BuildMetaBackend()
 
 get_requires_for_build_wheel = _BACKEND.get_requires_for_build_wheel
 get_requires_for_build_sdist = _BACKEND.get_requires_for_build_sdist
-get_requires_for_build_editable =  _BACKEND.get_requires_for_build_editable
+get_requires_for_build_editable = _BACKEND.get_requires_for_build_editable
 prepare_metadata_for_build_wheel = _BACKEND.prepare_metadata_for_build_wheel
+prepare_metadata_for_build_editable = _BACKEND.prepare_metadata_for_build_editable
 build_wheel = _BACKEND.build_wheel
 build_sdist = _BACKEND.build_sdist
 build_editable = _BACKEND.build_editable

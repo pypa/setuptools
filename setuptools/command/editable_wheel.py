@@ -4,18 +4,12 @@ Create a wheel that, when installed, will make the source package 'editable'
 'setup.py develop'. Based on the setuptools develop command.
 """
 
-# TODO doesn't behave when called outside the hook
-
 import os
-import time
-from pathlib import Path
-
+import shutil
+import sys
 from distutils.core import Command
-from distutils.errors import DistutilsError
-
-import pkg_resources
-
-SOURCE_EPOCH_ZIP = 499162860
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 
 class editable_wheel(Command):
@@ -25,133 +19,79 @@ class editable_wheel(Command):
 
     user_options = [
         ("dist-dir=", "d", "directory to put final built distributions in"),
+        ("dist-info-dir=", "I", "path to a pre-build .dist-info directory"),
     ]
 
     boolean_options = []
 
-    def run(self):
-        self.build_editable_wheel()
-
     def initialize_options(self):
         self.dist_dir = None
+        self.dist_info_dir = None
+        self.project_dir = None
 
     def finalize_options(self):
-        # is this part of the 'develop' command needed?
-        ei = self.get_finalized_command("egg_info")
-        if ei.broken_egg_info:
-            template = "Please rename %r to %r before using 'develop'"
-            args = ei.egg_info, ei.broken_egg_info
-            raise DistutilsError(template % args)
-        self.args = [ei.egg_name]
+        dist = self.distribution
+        self.project_dir = dist.src_root or os.curdir
+        self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
+        self.dist_dir.mkdir(exist_ok=True)
 
-        # the .pth file should point to target
-        self.egg_base = ei.egg_base
-        self.target = pkg_resources.normalize_path(self.egg_base)
-        self.dist_info_dir = Path(
-            (ei.egg_info[: -len(".egg-info")] + ".dist-info").rpartition("/")[-1]
-        )
+    @property
+    def target(self):
+        package_dir = self.distribution.package_dir or {}
+        return package_dir.get("") or self.project_dir
 
-    def build_editable_wheel(self):
-        if getattr(self.distribution, "use_2to3", False):
-            raise NotImplementedError("2to3 not supported")
+    def run(self):
+        self._ensure_dist_info()
 
-        di = self.get_finalized_command("dist_info")
-        di.egg_base = self.dist_dir
-        di.finalize_options()
-        self.run_command("dist_info")
+        # Add missing dist_info files
+        bdist_wheel = self.reinitialize_command("bdist_wheel")
+        bdist_wheel.write_wheelfile(self.dist_info_dir)
 
         # Build extensions in-place
         self.reinitialize_command("build_ext", inplace=1)
         self.run_command("build_ext")
 
-        # now build the wheel
-        # with the dist-info directory and .pth from 'editables' library
-        # ...
+        self._create_wheel_file(bdist_wheel)
 
-        import zipfile
-        import editables    # could we use 'develop' command's .pth file
+    def _ensure_dist_info(self):
+        if self.dist_info_dir is None:
+            dist_info = self.reinitialize_command("dist_info")
+            dist_info.output_dir = self.dist_dir
+            dist_info.finalize_options()
+            dist_info.run()
+            self.dist_info_dir = dist_info.dist_info_dir
+        else:
+            assert str(self.dist_info_dir).endswith(".dist-info")
+            assert Path(self.dist_info_dir, "METADATA").exists()
 
-        project = editables.EditableProject(
-            self.distribution.metadata.name, self.target
-        )
-        project.add_to_path(self.target)
+    def _create_wheel_file(self, bdist_wheel):
+        from wheel.wheelfile import WheelFile
 
-        dist_dir = Path(self.dist_dir)
-        dist_info_dir = self.dist_info_dir
-        fullname = self.distribution.metadata.get_fullname()
-        # superfluous 'ed' tag is only a hint to the user,
-        # and guarantees we can't overwrite the normal wheel
-        wheel_name = f"{fullname}-ed.py3-none-any.whl"
-        wheel_path = dist_dir / wheel_name
-
-        wheelmeta_builder(dist_dir / dist_info_dir / "WHEEL")
-
+        dist_info = self.get_finalized_command("dist_info")
+        tag = "-".join(bdist_wheel.get_tag())
+        editable_name = dist_info.name
+        build_tag = "0.editable"  # According to PEP 427 needs to start with digit
+        archive_name = f"{editable_name}-{build_tag}-{tag}.whl"
+        wheel_path = Path(self.dist_dir, archive_name)
         if wheel_path.exists():
             wheel_path.unlink()
 
-        with zipfile.ZipFile(
-            wheel_path, "a", compression=zipfile.ZIP_DEFLATED
-        ) as archive:
+        # Currently the wheel API receives a directory and dump all its contents
+        # inside of a wheel. So let's use a temporary directory.
+        with TemporaryDirectory(suffix=archive_name) as tmp:
+            tmp_dist_info = Path(tmp, Path(self.dist_info_dir).name)
+            shutil.copytree(self.dist_info_dir, tmp_dist_info)
+            pth = Path(tmp, f"_editable.{editable_name}.pth")
+            pth.write_text(f"{_normalize_path(self.target)}\n", encoding="utf-8")
 
-            # copy .pth file
-            for f, data in project.files():
-                archive.writestr(
-                    zipfile.ZipInfo(f, time.gmtime(SOURCE_EPOCH_ZIP)[:6]), data
-                )
+            with WheelFile(wheel_path, "w") as wf:
+                wf.write_files(tmp)
 
-            # copy .dist-info directory
-            for f in sorted(os.listdir(dist_dir / dist_info_dir)):
-                with (dist_dir / dist_info_dir / f).open() as metadata:
-                    archive.writestr(
-                        zipfile.ZipInfo(
-                            str(dist_info_dir / f), time.gmtime(SOURCE_EPOCH_ZIP)[:6]
-                        ),
-                        metadata.read(),
-                    )
-
-            add_manifest(archive, dist_info_dir)
+        return wheel_path
 
 
-import base64
-
-
-def urlsafe_b64encode(data):
-    """urlsafe_b64encode without padding"""
-    return base64.urlsafe_b64encode(data).rstrip(b"=")
-
-
-# standalone wheel helpers based on enscons
-def add_manifest(archive, dist_info_dir):
-    """
-    Add the wheel manifest.
-    """
-    import hashlib
-    import zipfile
-
-    lines = []
-    for f in archive.namelist():
-        data = archive.read(f)
-        size = len(data)
-        digest = hashlib.sha256(data).digest()
-        digest = "sha256=" + (urlsafe_b64encode(digest).decode("ascii"))
-        lines.append("%s,%s,%s" % (f.replace(",", ",,"), digest, size))
-
-    record_path = dist_info_dir / "RECORD"
-    lines.append(str(record_path) + ",,")
-    RECORD = "\n".join(lines)
-    archive.writestr(
-        zipfile.ZipInfo(str(record_path), time.gmtime(SOURCE_EPOCH_ZIP)[:6]), RECORD
-    )
-    archive.close()
-
-
-def wheelmeta_builder(target):
-    with open(target, "w+") as f:
-        f.write(
-            """Wheel-Version: 1.0
-Generator: setuptools_pep660 (0.1)
-Root-Is-Purelib: false
-Tag: py3-none-any
-Tag: ed-none-any
-"""
-        )
+def _normalize_path(filename):
+    """Normalize a file/dir name for comparison purposes"""
+    # See pkg_resources.normalize_path
+    file = os.path.abspath(filename) if sys.platform == 'cygwin' else filename
+    return os.path.normcase(os.path.realpath(os.path.normpath(file)))
