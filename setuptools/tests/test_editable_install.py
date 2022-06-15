@@ -1,23 +1,16 @@
+import os
+import sys
 import subprocess
+import platform
+import pathlib
 from textwrap import dedent
 
-import pytest
 import jaraco.envs
 import jaraco.path
-import path
+import pip_run.launch
+import pytest
 
-
-@pytest.fixture
-def venv(tmp_path, setuptools_wheel):
-    env = jaraco.envs.VirtualEnv()
-    vars(env).update(
-        root=path.Path(tmp_path),  # workaround for error on windows
-        name=".venv",
-        create_opts=["--no-setuptools"],
-        req=str(setuptools_wheel),
-    )
-    return env.create()
-
+from . import namespaces
 
 EXAMPLE = {
     'pyproject.toml': dedent("""\
@@ -111,3 +104,85 @@ def test_editable_with_pyproject(tmp_path, venv, files):
     (project / "src/mypkg/data.txt").write_text("foobar")
     (project / "src/mypkg/mod.py").write_text("x = 42")
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
+
+
+class TestLegacyNamespaces:
+    """Ported from test_develop"""
+
+    def test_namespace_package_importable(self, venv, tmp_path):
+        """
+        Installing two packages sharing the same namespace, one installed
+        naturally using pip or `--single-version-externally-managed`
+        and the other installed in editable mode should leave the namespace
+        intact and both packages reachable by import.
+        """
+        pkg_A = namespaces.build_namespace_package(tmp_path, 'myns.pkgA')
+        pkg_B = namespaces.build_namespace_package(tmp_path, 'myns.pkgB')
+        # use pip to install to the target directory
+        opts = ["--no-build-isolation"]  # force current version of setuptools
+        venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
+        venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
+        venv.run(["python", "-c", "import myns.pkgA; import myns.pkgB"])
+        # additionally ensure that pkg_resources import works
+        venv.run(["python", "-c", "import pkg_resources"])
+
+
+class TestPep420Namespaces:
+
+    def test_namespace_package_importable(self, venv, tmp_path):
+        """
+        Installing two packages sharing the same namespace, one installed
+        normally using pip and the other installed in editable mode
+        should allow importing both packages.
+        """
+        pkg_A = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgA')
+        pkg_B = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgB')
+        # use pip to install to the target directory
+        opts = ["--no-build-isolation"]  # force current version of setuptools
+        venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
+        venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
+        venv.run(["python", "-c", "import myns.n.pkgA; import myns.n.pkgB"])
+
+
+# Moved here from test_develop:
+@pytest.mark.xfail(
+    platform.python_implementation() == 'PyPy',
+    reason="Workaround fails on PyPy (why?)",
+)
+def test_editable_with_prefix(tmp_path, sample_project):
+    """
+    Editable install to a prefix should be discoverable.
+    """
+    prefix = tmp_path / 'prefix'
+
+    # figure out where pip will likely install the package
+    site_packages = prefix / next(
+        pathlib.Path(path).relative_to(sys.prefix)
+        for path in sys.path
+        if 'site-packages' in path and path.startswith(sys.prefix)
+    )
+    site_packages.mkdir(parents=True)
+
+    # install workaround
+    pip_run.launch.inject_sitecustomize(str(site_packages))
+
+    env = dict(os.environ, PYTHONPATH=str(site_packages))
+    cmd = [
+        sys.executable,
+        '-m',
+        'pip',
+        'install',
+        '--editable',
+        str(sample_project),
+        '--prefix',
+        str(prefix),
+        '--no-build-isolation',
+    ]
+    subprocess.check_call(cmd, env=env)
+
+    # now run 'sample' with the prefix on the PYTHONPATH
+    bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
+    exe = prefix / bin / 'sample'
+    if sys.version_info < (3, 8) and platform.system() == 'Windows':
+        exe = str(exe)
+    subprocess.check_call([exe], env=env)
