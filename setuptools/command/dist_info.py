@@ -7,10 +7,12 @@ import os
 import re
 import warnings
 from inspect import cleandoc
+from pathlib import Path
 
 from distutils.core import Command
 from distutils import log
 from setuptools.extern import packaging
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 
 
 class dist_info(Command):
@@ -19,28 +21,46 @@ class dist_info(Command):
 
     user_options = [
         ('egg-base=', 'e', "directory containing .egg-info directories"
-                           " (default: top of the source tree)"),
+                           " (default: top of the source tree)"
+                           " DEPRECATED: use --output-dir."),
+        ('output-dir=', 'o', "directory inside of which the .dist-info will be"
+                             "created (default: top of the source tree)"),
     ]
 
     def initialize_options(self):
         self.egg_base = None
+        self.output_dir = None
+        self.name = None
+        self.dist_info_dir = None
 
     def finalize_options(self):
-        pass
+        if self.egg_base:
+            msg = "--egg-base is deprecated for dist_info command. Use --output-dir."
+            warnings.warn(msg, SetuptoolsDeprecationWarning)
+            self.output_dir = self.egg_base or self.output_dir
+
+        dist = self.distribution
+        project_dir = dist.src_root or os.curdir
+        self.output_dir = Path(self.output_dir or project_dir)
+
+        egg_info = self.reinitialize_command('egg_info')
+        egg_info.egg_base = str(self.output_dir)
+        egg_info.finalize_options()
+        self.egg_info = egg_info
+
+        name = _safe(dist.get_name())
+        version = _version(dist.get_version())
+        self.name = f"{name}-{version}"
+        self.dist_info_dir = os.path.join(self.output_dir, f"{self.name}.dist-info")
 
     def run(self):
-        egg_info = self.get_finalized_command('egg_info')
-        egg_info.egg_base = self.egg_base
-        egg_info.finalize_options()
-        egg_info.run()
-        name = _safe(self.distribution.get_name())
-        version = _version(self.distribution.get_version())
-        base = self.egg_base or os.curdir
-        dist_info_dir = os.path.join(base, f"{name}-{version}.dist-info")
-        log.info("creating '{}'".format(os.path.abspath(dist_info_dir)))
-
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.egg_info.run()
+        egg_info_dir = self.egg_info.egg_info
+        log.info("creating '{}'".format(os.path.abspath(self.dist_info_dir)))
         bdist_wheel = self.get_finalized_command('bdist_wheel')
-        bdist_wheel.egg2dist(egg_info.egg_info, dist_info_dir)
+        bdist_wheel.egg2dist(egg_info_dir, self.dist_info_dir)
+        assert os.path.exists(egg_info_dir) is False
 
 
 def _safe(component: str) -> str:

@@ -185,7 +185,7 @@ class _BuildMetaBackend:
     def prepare_metadata_for_build_wheel(self, metadata_directory,
                                          config_settings=None):
         sys.argv = sys.argv[:1] + [
-            'dist_info', '--egg-base', metadata_directory]
+            'dist_info', '--output-dir', metadata_directory]
         with no_install_setup_requires():
             self.run_setup()
 

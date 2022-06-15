@@ -91,6 +91,15 @@ class TestDistInfo:
         dist_info = next(tmp_path.glob("*.dist-info"))
         assert dist_info.name.startswith("proj-42")
 
+    def test_output_dir(self, tmp_path):
+        config = "[metadata]\nname=proj\nversion=42\n"
+        (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
+        out = (tmp_path / "__out")
+        out.mkdir()
+        run_command("dist_info", "--output-dir", str(out), cwd=tmp_path)
+        assert len(list(out.glob("*.dist-info"))) == 1
+        assert len(list(tmp_path.glob("*.dist-info"))) == 0
+
 
 class TestWheelCompatibility:
     """Make sure the .dist-info directory produced with the ``dist_info`` command
