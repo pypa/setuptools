@@ -36,6 +36,17 @@ class build_py(orig.build_py):
         if 'data_files' in self.__dict__:
             del self.__dict__['data_files']
         self.__updated_files = []
+        self.use_links = None
+
+    def copy_file(self, infile, outfile, preserve_mode=1, preserve_times=1,
+                  link=None, level=1):
+        # Overwrite base class to allow using links
+        link = getattr(self, "use_links", None) if link is None else link
+        if link:
+            infile = str(Path(infile).resolve())
+            outfile = str(Path(outfile).resolve())
+        return super().copy_file(infile, outfile, preserve_mode,
+                                 preserve_times, link, level)
 
     def run(self):
         """Build modules, packages, and copy data files to build directory"""

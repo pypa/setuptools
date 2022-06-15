@@ -3,7 +3,6 @@ import sys
 import itertools
 from importlib.machinery import EXTENSION_SUFFIXES
 from distutils.command.build_ext import build_ext as _du_build_ext
-from distutils.file_util import copy_file
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
 from distutils.errors import DistutilsError
@@ -96,10 +95,7 @@ class build_ext(_build_ext):
             # Always copy, even if source is older than destination, to ensure
             # that the right extensions for the current Python/platform are
             # used.
-            copy_file(
-                src_filename, dest_filename, verbose=self.verbose,
-                dry_run=self.dry_run
-            )
+            build_py.copy_file(src_filename, dest_filename)
             if ext._needs_stub:
                 self.write_stub(package_dir or os.curdir, ext, True)
 
