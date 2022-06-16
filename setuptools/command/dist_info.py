@@ -51,14 +51,19 @@ class dist_info(Command):
         project_dir = dist.src_root or os.curdir
         self.output_dir = Path(self.output_dir or project_dir)
 
-        self.set_undefined_options(
-            "egg_info", ("tag_date", "tag_date"), ("tag_build", "tag_build")
-        )
-
         egg_info = self.reinitialize_command("egg_info")
         egg_info.egg_base = str(self.output_dir)
-        egg_info.tag_date = self.tag_date
-        egg_info.tag_build = self.tag_build
+
+        if self.tag_date:
+            egg_info.tag_date = self.tag_date
+        else:
+            self.tag_date = egg_info.tag_date
+
+        if self.tag_build:
+            egg_info.tag_build = self.tag_build
+        else:
+            self.tag_build = egg_info.tag_build
+
         egg_info.finalize_options()
         self.egg_info = egg_info
 
