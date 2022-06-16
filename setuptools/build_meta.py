@@ -255,9 +255,9 @@ class _ConfigSettingsTranslator:
         ValueError: Invalid value for `editable-mode`: 'other'. Try: 'strict'.
         """
         cfg = config_settings or {}
-        if "editable-mode" not in cfg:
+        if "editable-mode" not in cfg and "editable_mode" not in cfg:
             return
-        mode = cfg["editable-mode"]
+        mode = cfg.get("editable-mode") or cfg.get("editable_mode")
         if mode != "strict":
             msg = f"Invalid value for `editable-mode`: {mode!r}. Try: 'strict'."
             raise ValueError(msg)
@@ -420,10 +420,14 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         self, wheel_directory, config_settings=None, metadata_directory=None
     ):
         # XXX can or should we hide our editable_wheel command normally?
-        return self._build_with_temp_dir(
-            ["editable_wheel", "--dist-info-dir", metadata_directory],
-            ".whl", wheel_directory, config_settings
-        )
+        print(f"{self._editable_args(config_settings)=}")
+        cmd = [
+            "editable_wheel",
+            "--dist-info-dir",
+            metadata_directory,
+            *self._editable_args(config_settings),
+        ]
+        return self._build_with_temp_dir(cmd, ".whl", wheel_directory, config_settings)
 
     def get_requires_for_build_editable(self, config_settings=None):
         return self.get_requires_for_build_wheel(config_settings)
