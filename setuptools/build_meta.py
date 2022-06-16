@@ -35,11 +35,13 @@ import shutil
 import contextlib
 import tempfile
 import warnings
+from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Union
 
 import setuptools
 import distutils
 from ._reqs import parse_strings
+from ._deprecation_warning import SetuptoolsDeprecationWarning
 from distutils.util import strtobool
 
 
@@ -281,6 +283,10 @@ class _ConfigSettingsTranslator:
         ['foo']
         >>> list(fn({'--build-option': 'foo bar'}))
         ['foo', 'bar']
+        >>> warnings.simplefilter('error', SetuptoolsDeprecationWarning)
+        >>> list(fn({'--global-option': 'foo'}))  # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        SetuptoolsDeprecationWarning: ...arguments given via `--global-option`...
         """
         args = self._get_config("--global-option", config_settings)
         global_opts = self._valid_global_options()
@@ -299,7 +305,7 @@ class _ConfigSettingsTranslator:
             Please use `--build-option` instead,
             `--global-option` is reserved to flags like `--verbose` or `--quiet`.
             """
-            warnings.warn(msg, setuptools.SetuptoolsDeprecationWarning)
+            warnings.warn(msg, SetuptoolsDeprecationWarning)
 
 
 class _BuildMetaBackend(_ConfigSettingsTranslator):
@@ -342,7 +348,6 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             *self._global_args(config_settings),
             "dist_info",
             "--output-dir", metadata_directory,
-            *self._arbitrary_args(config_settings),
         ]
         with no_install_setup_requires():
             self.run_setup()
@@ -412,6 +417,13 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
                                          '.tar.gz', sdist_directory,
                                          config_settings)
 
+    def _get_dist_info_dir(self, metadata_directory: Optional[str]) -> Optional[str]:
+        if not metadata_directory:
+            return None
+        dist_info_candidates = list(Path(metadata_directory).glob("*.dist-info"))
+        assert len(dist_info_candidates) <= 1
+        return str(dist_info_candidates[0]) if dist_info_candidates else None
+
     # PEP660 hooks:
     # build_editable
     # get_requires_for_build_editable
@@ -420,13 +432,9 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         self, wheel_directory, config_settings=None, metadata_directory=None
     ):
         # XXX can or should we hide our editable_wheel command normally?
-        print(f"{self._editable_args(config_settings)=}")
-        cmd = [
-            "editable_wheel",
-            "--dist-info-dir",
-            metadata_directory,
-            *self._editable_args(config_settings),
-        ]
+        info_dir = self._get_dist_info_dir(metadata_directory)
+        opts = ["--dist-info-dir", info_dir] if info_dir else []
+        cmd = ["editable_wheel", *opts, *self._editable_args(config_settings)]
         return self._build_with_temp_dir(cmd, ".whl", wheel_directory, config_settings)
 
     def get_requires_for_build_editable(self, config_settings=None):

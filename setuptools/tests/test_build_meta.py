@@ -8,9 +8,11 @@ import contextlib
 from concurrent import futures
 import re
 from zipfile import ZipFile
+from pathlib import Path
 
 import pytest
 from jaraco import path
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 
 from .textwrap import DALS
 
@@ -610,6 +612,62 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         with pytest.raises(ImportError, match="^No module named 'hello'$"):
             build_backend.build_sdist("temp")
+
+    _simple_pyproject_example = {
+        "pyproject.toml": DALS("""
+            [project]
+            name = "proj"
+            version = "42"
+            """),
+        "src": {
+            "proj": {"__init__.py": ""}
+        }
+    }
+
+    @pytest.mark.filterwarnings("error::setuptools.SetuptoolsDeprecationWarning")
+    # For some reason `pytest.warns` does no seem to work here
+    # but `pytest.raises` does works, together with an error filter.
+    def test_editable_with_config_settings_warning(self, tmpdir_cwd):
+        path.build({**self._simple_pyproject_example, '_meta': {}})
+        build_backend = self.get_build_backend()
+
+        msg = "The arguments .'--strict'. were given via .--global-option."
+        with pytest.raises(SetuptoolsDeprecationWarning, match=msg):
+            cfg = {"--global-option": "--strict"}
+            build_backend.prepare_metadata_for_build_editable("_meta", cfg)
+            build_backend.build_editable("temp", cfg, "_meta")
+
+    def test_editable_without_config_settings(self, tmpdir_cwd):
+        """
+        Sanity check to ensure tests with --strict are different from the ones
+        without --strict.
+
+        --strict should create a local directory with a package tree.
+        The directory should not get created otherwise.
+        """
+        path.build(self._simple_pyproject_example)
+        build_backend = self.get_build_backend()
+        assert not Path("build").exists()
+        build_backend.build_editable("temp")
+        assert not Path("build").exists()
+
+    @pytest.mark.parametrize(
+        "config_settings", [
+            {"--build-option": "--strict"},
+            {"editable-mode": "strict"},
+        ]
+    )
+    def test_editable_with_config_settings(self, tmpdir_cwd, config_settings):
+        path.build({**self._simple_pyproject_example, '_meta': {}})
+        assert not Path("build").exists()
+        build_backend = self.get_build_backend()
+        build_backend.prepare_metadata_for_build_editable("_meta", config_settings)
+        build_backend.build_editable("temp", config_settings, "_meta")
+        files = list(Path("build").glob("__editable__.*/**/*"))
+        assert files
+        for file in files:
+            # All files should either links or hard links
+            assert file.is_symlink() or os.stat(file).st_nlink > 0
 
     @pytest.mark.parametrize('setup_literal, requirements', [
         ("'foo'", ['foo']),
