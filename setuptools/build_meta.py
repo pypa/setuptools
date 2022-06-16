@@ -151,7 +151,7 @@ class _ConfigSettingsTranslator:
     """Translate ``config_settings`` into distutils-style command arguments.
     Only a limited number of options is currently supported.
     """
-    # See pypa/setuptools#1928
+    # See pypa/setuptools#1928 pypa/setuptools#2491
 
     def _get_config(self, key: str, config_settings: _ConfigSettings) -> List[str]:
         """
@@ -303,8 +303,10 @@ class _ConfigSettingsTranslator:
 class _BuildMetaBackend(_ConfigSettingsTranslator):
     def _get_build_requires(self, config_settings, requirements):
         sys.argv = [
-            *sys.argv[:1], *self._global_args(config_settings),
-            "egg_info", *self._arbitrary_args(config_settings)
+            *sys.argv[:1],
+            *self._global_args(config_settings),
+            "egg_info",
+            *self._arbitrary_args(config_settings),
         ]
         try:
             with Distribution.patch():
@@ -333,7 +335,13 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
     def prepare_metadata_for_build_wheel(self, metadata_directory,
                                          config_settings=None):
-        sys.argv = [*sys.argv[:1], 'dist_info', '--output-dir', metadata_directory]
+        sys.argv = [
+            *sys.argv[:1],
+            *self._global_args(config_settings),
+            "dist_info",
+            "--output-dir", metadata_directory,
+            *self._arbitrary_args(config_settings),
+        ]
         with no_install_setup_requires():
             self.run_setup()
 
@@ -366,14 +374,17 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
     def _build_with_temp_dir(self, setup_command, result_extension,
                              result_directory, config_settings):
-        args = self._arbitrary_args(config_settings)
         result_directory = os.path.abspath(result_directory)
 
         # Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=result_directory) as tmp_dist_dir:
             sys.argv = [
-                *sys.argv[:1], *setup_command, "--dist-dir", tmp_dist_dir, *args
+                *sys.argv[:1],
+                *self._global_args(config_settings),
+                *setup_command,
+                "--dist-dir", tmp_dist_dir,
+                *self._arbitrary_args(config_settings),
             ]
             with no_install_setup_requires():
                 self.run_setup()
