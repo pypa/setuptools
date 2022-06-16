@@ -35,7 +35,7 @@ import shutil
 import contextlib
 import tempfile
 import warnings
-from typing import Dict, List, Optional, Union
+from typing import Dict, Iterator, List, Optional, Union
 
 import setuptools
 import distutils
@@ -151,23 +151,52 @@ class _ConfigSettingsTranslator:
     """Translate ``config_settings`` into distutils-style command arguments.
     Only a limited number of options is currently supported.
     """
+    # See pypa/setuptools#1928
 
-    def _global_args(self, config_settings: _ConfigSettings) -> List[str]:
+    def _get_config(self, key: str, config_settings: _ConfigSettings) -> List[str]:
+        """
+        Get the value of a specific key in ``config_settings`` as a list of strings.
+
+        >>> fn = _ConfigSettingsTranslator()._get_config
+        >>> fn("--global-option", None)
+        []
+        >>> fn("--global-option", {})
+        []
+        >>> fn("--global-option", {'--global-option': 'foo'})
+        ['foo']
+        >>> fn("--global-option", {'--global-option': ['foo']})
+        ['foo']
+        >>> fn("--global-option", {'--global-option': 'foo'})
+        ['foo']
+        >>> fn("--global-option", {'--global-option': 'foo bar'})
+        ['foo', 'bar']
+        """
+        cfg = config_settings or {}
+        opts = cfg.get(key) or []
+        return shlex.split(opts) if isinstance(opts, str) else opts
+
+    def _valid_global_options(self):
+        options = (opt[:2] for opt in setuptools.dist.Distribution.global_options)
+        return {flag for long_and_short in options for flag in long_and_short if flag}
+
+    def _global_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
         If the user specify ``log-level``, it should be applied to all commands.
 
         >>> fn = _ConfigSettingsTranslator()._global_args
-        >>> fn(None)
+        >>> list(fn(None))
         []
-        >>> fn({"log-level": "WARNING"})
+        >>> list(fn({"log-level": "WARNING"}))
         ['-q']
-        >>> fn({"log-level": "DEBUG"})
+        >>> list(fn({"log-level": "DEBUG"}))
         ['-vv']
-        >>> fn({"log-level": None})
+        >>> list(fn({"log-level": None}))
         Traceback (most recent call last):
            ...
         ValueError: Invalid value for log-level: None.
         Try one of: ['WARNING', 'INFO', 'DEBUG'].
+        >>> list(fn({"log-level": "DEBUG", "--global-option": "-q --no-user-cfg"}))
+        ['-vv', '-q', '--no-user-cfg']
         """
         log_levels = {"WARNING": "-q", "INFO": "-v", "DEBUG": "-vv"}
         cfg = config_settings or {}
@@ -177,10 +206,13 @@ class _ConfigSettingsTranslator:
                 msg = f"Invalid value for log-level: {level!r}."
                 raise ValueError(msg + f"\nTry one of: {list(log_levels.keys())}.")
             assert isinstance(level, str)
-            return [log_levels[level]]
-        return []
+            yield log_levels[level]
 
-    def __dist_info_args(self, config_settings: _ConfigSettings) -> List[str]:
+        valid = self._valid_global_options()
+        args = self._get_config("--global-option", config_settings)
+        yield from (arg for arg in args if arg.strip("-") in valid)
+
+    def __dist_info_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
         The ``dist_info`` command accepts ``tag-date`` and ``tag-build``.
 
@@ -190,74 +222,90 @@ class _ConfigSettingsTranslator:
            directory created in ``prepare_metadata_for_build_wheel``.
 
         >>> fn = _ConfigSettingsTranslator()._ConfigSettingsTranslator__dist_info_args
-        >>> fn(None)
+        >>> list(fn(None))
         []
-        >>> fn({"tag-date": "False"})
+        >>> list(fn({"tag-date": "False"}))
         ['--no-date']
-        >>> fn({"tag-date": None})
+        >>> list(fn({"tag-date": None}))
         ['--no-date']
-        >>> fn({"tag-date": "true", "tag-build": ".a"})
+        >>> list(fn({"tag-date": "true", "tag-build": ".a"}))
         ['--tag-date', '--tag-build', '.a']
         """
         cfg = config_settings or {}
-        args: List[str] = []
         if "tag-date" in cfg:
             val = strtobool(str(cfg["tag-date"] or "false"))
-            args.append("--tag-date" if val else "--no-date")
+            yield ("--tag-date" if val else "--no-date")
         if "tag-build" in cfg:
-            args.extend(["--tag-build", str(cfg["tag-build"])])
-        return args
+            yield from ["--tag-build", str(cfg["tag-build"])]
 
-    def _editable_args(self, config_settings: _ConfigSettings) -> List[str]:
+    def _editable_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
         The ``editable_wheel`` command accepts ``editable-mode=strict``.
 
         >>> fn = _ConfigSettingsTranslator()._editable_args
-        >>> fn(None)
+        >>> list(fn(None))
         []
-        >>> fn({"editable-mode": "strict"})
+        >>> list(fn({"editable-mode": "strict"}))
         ['--strict']
-        >>> fn({"editable-mode": "other"})
+        >>> list(fn({"editable-mode": "other"}))
         Traceback (most recent call last):
            ...
         ValueError: Invalid value for editable-mode: 'other'. Try: 'strict'.
         """
         cfg = config_settings or {}
         if "editable-mode" not in cfg:
-            return []
+            return
         mode = cfg["editable-mode"]
         if mode != "strict":
             msg = f"Invalid value for editable-mode: {mode!r}. Try: 'strict'."
             raise ValueError(msg)
-        return ["--strict"]
+        yield "--strict"
 
-    def _arbitrary_args(self, config_settings: _ConfigSettings) -> List[str]:
+    def _arbitrary_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
         Users may expect to pass arbitrary lists of arguments to a command
         via "--global-option" (example provided in PEP 517 of a "escape hatch").
 
         >>> fn = _ConfigSettingsTranslator()._arbitrary_args
-        >>> fn(None)
+        >>> list(fn(None))
         []
-        >>> fn({})
+        >>> list(fn({}))
         []
-        >>> fn({'--global-option': 'foo'})
+        >>> list(fn({'--build-option': 'foo'}))
         ['foo']
-        >>> fn({'--global-option': ['foo']})
+        >>> list(fn({'--build-option': ['foo']}))
         ['foo']
-        >>> fn({'--global-option': 'foo'})
+        >>> list(fn({'--build-option': 'foo'}))
         ['foo']
-        >>> fn({'--global-option': 'foo bar'})
+        >>> list(fn({'--build-option': 'foo bar'}))
         ['foo', 'bar']
         """
-        cfg = config_settings or {}
-        opts = cfg.get("--global-option") or []
-        return shlex.split(opts) if isinstance(opts, str) else opts
+        args = self._get_config("--global-option", config_settings)
+        global_opts = self._valid_global_options()
+        warn = []
+
+        for arg in args:
+            if arg.strip("-") not in global_opts:
+                warn.append(arg)
+                yield arg
+
+        yield from self._get_config("--build-option", config_settings)
+
+        if warn:
+            msg = f"""
+            The arguments {warn!r} were given via `--global-option`.
+            Please use `--build-option` instead,
+            `--global-option` is reserved to flags like `--verbose` or `--quiet`.
+            """
+            warnings.warn(msg, setuptools.SetuptoolsDeprecationWarning)
 
 
 class _BuildMetaBackend(_ConfigSettingsTranslator):
     def _get_build_requires(self, config_settings, requirements):
-        sys.argv = [*sys.argv[:1], "egg_info", *self._arbitrary_args(config_settings)]
+        sys.argv = [
+            *sys.argv[:1], *self._global_args(config_settings),
+            "egg_info", *self._arbitrary_args(config_settings)
+        ]
         try:
             with Distribution.patch():
                 self.run_setup()
