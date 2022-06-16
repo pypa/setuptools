@@ -92,7 +92,14 @@ intersphinx_mapping = {
 }
 
 intersphinx_mapping.update({
-    'pypa-build': ('https://pypa-build.readthedocs.io/en/latest/', None)
+    'pip': ('https://pip.pypa.io/en/latest', None),
+    'build': ('https://pypa-build.readthedocs.io/en/latest', None),
+    'PyPUG': ('https://packaging.python.org/en/latest/', None),
+    'packaging': ('https://packaging.pypa.io/en/latest/', None),
+    'twine': ('https://twine.readthedocs.io/en/stable/', None),
+    'importlib-resources': (
+        'https://importlib-resources.readthedocs.io/en/latest', None
+    ),
 })
 
 # Add support for linking usernames
@@ -212,11 +219,3 @@ favicons = [
     },
     # rel="apple-touch-icon" does not support SVG yet
 ]
-
-intersphinx_mapping['pip'] = 'https://pip.pypa.io/en/latest', None
-intersphinx_mapping['build'] = 'https://pypa-build.readthedocs.io/en/latest', None
-intersphinx_mapping['PyPUG'] = ('https://packaging.python.org/en/latest/', None)
-intersphinx_mapping['packaging'] = ('https://packaging.pypa.io/en/latest/', None)
-intersphinx_mapping['importlib-resources'] = (
-    'https://importlib-resources.readthedocs.io/en/latest', None
-)
