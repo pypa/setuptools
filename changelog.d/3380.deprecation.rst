@@ -1,0 +1,7 @@
+Passing some types of parameters via ``--global-option`` to setuptools PEP 517/PEP 660 backend
+is now considered deprecated. The user can pass the same arbitrary parameter
+via ``--build-option`` (``--global-option`` is now reserved for flags like
+``--verbose`` or ``--quiet``).
+
+Both ``--build-option`` and ``--global-option`` are supported as a **transitional** effort (a.k.a. "escape hatch").
+In the future a proper list of allowed ``config_settings`` may be created.
