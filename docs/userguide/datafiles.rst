@@ -56,7 +56,7 @@ and you supply this configuration:
         include_package_data=True
     )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
    .. code-block:: toml
 
@@ -137,7 +137,7 @@ data files:
             package_data={"mypkg": ["*.txt", "*.rst"]}
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
    .. code-block:: toml
 
@@ -210,7 +210,7 @@ use the ``package_data`` option, the following configuration will work:
             package_data={"": ["*.txt"], "mypkg1": ["data1.rst"]},
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
    .. code-block:: toml
 
@@ -288,7 +288,7 @@ use the ``exclude_package_data`` option:
             exclude_package_data={"mypkg": [".gitattributes"]},
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
    .. code-block:: toml
 
@@ -365,7 +365,7 @@ the configuration might look like this:
             }
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
    .. code-block:: toml
 
@@ -412,7 +412,7 @@ scanning of namespace packages in the ``src`` directory and the rest is handled 
             include_package_data=True,
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
    .. code-block:: toml
 
@@ -539,10 +539,10 @@ run time be included **inside the package**.
 
 ----
 
-.. [#experimental]
-   Support for specifying package metadata and build configuration options via
-   ``pyproject.toml`` is experimental and might change
-   in the future. See :doc:`/userguide/pyproject_config`.
+.. [#beta]
+   Support for adding build configuration options via the ``[tool.setuptools]``
+   in the ``pyproject.toml`` file table is still in **beta** stage.
+   See :doc:`/userguide/pyproject_config`.
 
 .. [#system-dirs] These locations can be discovered with the help of
    third-party libraries such as :pypi:`platformdirs`.

@@ -72,7 +72,7 @@ Setuptools-specific configuration
 .. warning::
    Support for declaring configurations not standardized by :pep:`621`
    (i.e.  the ``[tool.setuptools]`` table),
-   is still **experimental** and might change in future releases.
+   is still in **beta** stage and might change in future releases.
 
 While the standard ``project`` table in the ``pyproject.toml`` file covers most
 of the metadata used during the packaging process, there are still some
@@ -99,7 +99,7 @@ Key                       Value Type (TOML)           Notes
 ``exclude-package-data``  table/inline-table
 ``license-files``         array of glob patterns      **Provisional** - likely to change with :pep:`639`
                                                       (by default: ``['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']``)
-``data-files``            table/inline-table          **Deprecated** - check :doc:`/userguide/datafiles`
+``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`
 ``script-files``          array                       **Deprecated** - equivalent to the ``script`` keyword in ``setup.py``
                                                       (should be avoided in favour of ``project.scripts``)
 ``provides``              array                       **Ignored by pip**

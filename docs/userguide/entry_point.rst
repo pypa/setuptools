@@ -92,7 +92,7 @@ configuration:
             }
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -162,7 +162,7 @@ Then, we can add a GUI script entry point:
             }
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -368,7 +368,7 @@ of ``timmins-plugin-fancy``:
             }
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -441,7 +441,7 @@ The configuration of ``timmins-plugin-fancy`` would then change to:
             }
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -561,11 +561,6 @@ in the general case of entry points as used for plugins, it can be used to speci
 class or module.
 
 ----
-
-.. [#experimental]
-   Support for specifying package metadata and build configuration options via
-   ``pyproject.toml`` is experimental and might change
-   in the future. See :doc:`/userguide/pyproject_config`.
 
 .. [#use_for_scripts]
    Reference: https://packaging.python.org/en/latest/specifications/entry-points/#use-for-scripts

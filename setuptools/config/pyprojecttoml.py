@@ -96,11 +96,8 @@ def read_configuration(
 
     if setuptools_table:
         # TODO: Remove the following once the feature stabilizes:
-        msg = (
-            "Support for configuring `[tool.setuptools]` in `pyproject.toml` is still "
-            "experimental and may change in future releases."
-        )
-        warnings.warn(msg, _ExperimentalConfiguration)
+        msg = "Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*."
+        warnings.warn(msg, _BetaConfiguration)
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
@@ -414,8 +411,8 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         return super().__exit__(exc_type, exc_value, traceback)
 
 
-class _ExperimentalConfiguration(UserWarning):
-    """Explicitly inform users that `pyproject.toml` configuration is experimental"""
+class _BetaConfiguration(UserWarning):
+    """Explicitly inform users that some `pyproject.toml` configuration is *beta*"""
 
 
 class _InvalidFile(UserWarning):

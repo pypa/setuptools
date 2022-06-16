@@ -1,2 +1,3 @@
 Changed warnings and documentation notes about *experimental* aspect of ``pyproject.toml`` configuration:
-now only the ``[tool.setuptools]`` table (and sub-tables) are considered experimental.
+now ``[pyproject]`` is a fully supported configuration interface, but the ``[tool.setuptools]`` table
+and sub-tables are still considered to be in **beta** stage.

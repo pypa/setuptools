@@ -40,7 +40,7 @@ Normally, you would specify the packages to be included manually in the followin
             packages=['mypkg', 'mypkg.subpkg1', 'mypkg.subpkg2']
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -93,7 +93,7 @@ exactly to the directory structure, you also need to configure ``package_dir``:
                 # ...
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -128,7 +128,7 @@ the following sections.
 Automatic discovery
 ===================
 
-.. warning:: Automatic discovery is an **experimental** feature and might change
+.. warning:: Automatic discovery is an **beta** feature and might change
    (or be completely removed) in the future.
    See :ref:`custom-discovery` for a stable way of configuring ``setuptools``.
 
@@ -276,7 +276,7 @@ the provided tools for package discovery:
         # or
         from setuptools import find_namespace_packages
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -349,7 +349,7 @@ in ``src`` that start with the name ``pkg`` and not ``additional``:
         ``pkg.namespace`` is ignored by ``find_packages()``
         (see ``find_namespace_packages()`` below).
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -458,7 +458,7 @@ distribution, then you will need to specify:
     On the other hand, ``find_namespace_packages()`` will scan all
     directories.
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -585,10 +585,10 @@ The project layout remains the same and ``setup.cfg`` remains the same.
 ----
 
 
-.. [#experimental]
-   Support for specifying package metadata and build configuration options via
-   ``pyproject.toml`` is experimental and might change
-   in the future. See :doc:`/userguide/pyproject_config`.
+.. [#beta]
+   Support for adding build configuration options via the ``[tool.setuptools]``
+   in the ``pyproject.toml`` file table is still in **beta** stage.
+   See :doc:`/userguide/pyproject_config`.
 .. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
 .. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
 

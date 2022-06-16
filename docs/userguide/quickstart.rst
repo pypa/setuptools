@@ -58,7 +58,7 @@ library will be used to actually do the packaging.
 
 In addition to specifying a build system, you also will need to add
 some package information such as metadata, contents, dependencies, etc.
-This can be done in the same ``pyproject.toml`` [#experimental]_ file,
+This can be done in the same ``pyproject.toml`` [#beta]_ file,
 or in a separated one: ``setup.cfg`` or ``setup.py`` (please note however
 that configuring new projects via ``setup.py`` is discouraged [#setup.py]_).
 
@@ -196,7 +196,7 @@ found, as shown in the example below:
             # ...
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -225,7 +225,7 @@ For more details and advanced use, go to :ref:`package_discovery`.
    :ref:`flat-layout` and :ref:`src-layout`) without requiring any
    special configuration. Check out our :ref:`reference docs <package_discovery>`
    for more information, but please keep in mind that this functionality is
-   still considered **experimental** and might change in future releases.
+   still considered **beta** and might change in future releases.
 
 
 Entry points and automatic script creation
@@ -349,7 +349,7 @@ For the simplest use, you can simply use the ``include_package_data`` keyword:
             # ...
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -447,9 +447,9 @@ up-to-date references that can help you when it is time to distribute your work.
    <pyproject_config>` and use ``setup.py`` only for the parts not
    supported in those files (e.g. C extensions).
 
-.. [#experimental]
+.. [#beta]
    Support for adding build configuration options via the ``[tool.setuptools]``
-   in the ``pyproject.toml`` file table is still experimental and might change
-   in future releases. See :doc:`/userguide/pyproject_config`.
+   in the ``pyproject.toml`` file table is still in **beta** stage.
+   See :doc:`/userguide/pyproject_config`.
 
 .. _PyPI: https://pypi.org
