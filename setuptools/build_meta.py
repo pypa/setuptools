@@ -180,11 +180,16 @@ class _ConfigSettingsTranslator:
             return [log_levels[level]]
         return []
 
-    def _dist_info_args(self, config_settings: _ConfigSettings) -> List[str]:
+    def __dist_info_args(self, config_settings: _ConfigSettings) -> List[str]:
         """
         The ``dist_info`` command accepts ``tag-date`` and ``tag-build``.
 
-        >>> fn = _ConfigSettingsTranslator()._dist_info_args
+        .. warning::
+           We cannot use this yet as it requires the ``sdist`` and ``bdist_wheel``
+           commands run in ``build_sdist`` and ``build_wheel`` to re-use the egg-info
+           directory created in ``prepare_metadata_for_build_wheel``.
+
+        >>> fn = _ConfigSettingsTranslator()._ConfigSettingsTranslator__dist_info_args
         >>> fn(None)
         []
         >>> fn({"tag-date": "False"})
