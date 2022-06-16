@@ -29,7 +29,7 @@ First consider an example without entry points. Imagine a package
 defined thus::
 
     project_root_directory
-    ├── setup.py        # and/or setup.cfg, pyproject.toml
+    ├── pyproject.toml        # and/or setup.cfg, setup.py
     └── src
         └── timmins
             ├── __init__.py
@@ -69,6 +69,13 @@ In the above example, to create a command ``hello-world`` that invokes
 ``timmins.hello_world``, add a console script entry point to your
 configuration:
 
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        [project.scripts]
+        hello-world = "timmins:hello_world"
+
 .. tab:: setup.cfg
 
     .. code-block:: ini
@@ -91,13 +98,6 @@ configuration:
                 ]
             }
         )
-
-.. tab:: pyproject.toml
-
-   .. code-block:: toml
-
-        [project.scripts]
-        hello-world = "timmins:hello_world"
 
 
 After installing the package, a user may invoke that function by simply calling
@@ -139,6 +139,13 @@ with an ``__init__.py`` file containing the following:
 
 Then, we can add a GUI script entry point:
 
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        [project.gui-scripts]
+        hello-world = "timmins:hello_world"
+
 .. tab:: setup.cfg
 
     .. code-block:: ini
@@ -150,7 +157,7 @@ Then, we can add a GUI script entry point:
 .. tab:: setup.py
 
     .. code-block:: python
-    
+
         from setuptools import setup
 
         setup(
@@ -161,13 +168,6 @@ Then, we can add a GUI script entry point:
                 ]
             }
         )
-
-.. tab:: pyproject.toml
-
-   .. code-block:: toml
-
-        [project.gui-scripts]
-        hello-world = "timmins:hello_world"
 
 .. note::
    To be able to import ``PySimpleGUI``, you need to add ``pysimplegui`` to your package dependencies.
@@ -236,7 +236,7 @@ corresponding to plugins. Say we have a package ``timmins`` with the following
 directory structure::
 
     timmins
-    ├── setup.py        # and/or setup.cfg, pyproject.toml
+    ├── pyproject.toml        # and/or setup.cfg, setup.py
     └── src
         └── timmins
             └── __init__.py
@@ -328,7 +328,7 @@ which implements the entry point ``timmins.display``. Let us name this plugin
 ``timmins-plugin-fancy``, and set it up with the following directory structure::
 
     timmins-plugin-fancy
-    ├── setup.py        # and/or setup.cfg, pyproject.toml
+    ├── pyproject.toml        # and/or setup.cfg, setup.py
     └── src
         └── timmins_plugin_fancy
             └── __init__.py
@@ -344,6 +344,14 @@ named ``excl_display()`` that prints the given text surrounded by exclamation ma
 This is the ``display()``-like function that we are looking to supply to the
 ``timmins`` package. We can do that by adding the following in the configuration
 of ``timmins-plugin-fancy``:
+
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        # Note the quotes around timmins.display in order to escape the dot .
+        [project.entry-points."timmins.display"]
+        excl = "timmins_plugin_fancy:excl_display"
 
 .. tab:: setup.cfg
 
@@ -367,14 +375,6 @@ of ``timmins-plugin-fancy``:
                 ]
             }
         )
-
-.. tab:: pyproject.toml
-
-   .. code-block:: toml
-
-        # Note the quotes around timmins.display in order to escape the dot .
-        [project.entry-points."timmins.display"]
-        excl = "timmins_plugin_fancy:excl_display"
 
 Basically, this configuration states that we are a supplying an entry point
 under the group ``timmins.display``. The entry point is named ``excl`` and it
@@ -416,6 +416,14 @@ functions, as follows:
 
 The configuration of ``timmins-plugin-fancy`` would then change to:
 
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        [project.entry-points."timmins.display"]
+        excl = "timmins_plugin_fancy:excl_display"
+        lined = "timmins_plugin_fancy:lined_display"
+
 .. tab:: setup.cfg
 
    .. code-block:: ini
@@ -440,14 +448,6 @@ The configuration of ``timmins-plugin-fancy`` would then change to:
                 ]
             }
         )
-
-.. tab:: pyproject.toml
-
-   .. code-block:: toml
-
-        [project.entry-points."timmins.display"]
-        excl = "timmins_plugin_fancy:excl_display"
-        lined = "timmins_plugin_fancy:lined_display"
 
 On the ``timmins`` side, we can also use a different strategy of loading entry
 points. For example, we can search for a specific display style:
