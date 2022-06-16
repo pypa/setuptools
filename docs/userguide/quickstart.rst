@@ -138,6 +138,17 @@ we will walk through the additional but essential information you need
 to specify to properly package your project.
 
 
+..
+   TODO: A previous generation of this document included a section called
+   "Python packaging at a glance". This is a nice title, but the content
+   removed because it assumed the reader had familiarity with the history of
+   setuptools and PEP 517. We should take advantage of this nice title and add
+   this section back, but use it to explain important concepts of the
+   ecosystem, such as "sdist", "wheel", "index". It would also be nice if we
+   could have a diagram for that (explaining for example that "wheels" are
+   built from "sdists" not the source tree).
+
+
 Overview
 ========
 
