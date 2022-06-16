@@ -15,6 +15,7 @@ import re
 import shutil
 import sys
 import logging
+import warnings
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -165,6 +166,15 @@ class editable_wheel(Command):
         auxiliary_build_dir = _empty_dir(Path(self.project_dir, "build", build_name))
         populate = _LinkTree(self.distribution, name, auxiliary_build_dir, tmp)
         populate(unpacked_dir)
+
+        msg = f"""\n
+        Strict editable installation performed using the auxiliary directory:
+            {auxiliary_build_dir}
+
+        Please be careful to not remove this directory, otherwise you might not be able
+        to import/use your package.
+        """
+        warnings.warn(msg, InformationOnly)
 
     def _populate_static_pth(self, name: str, project_dir: Path, unpacked_dir: Path):
         """Populate wheel using the "lax" ``.pth`` file strategy, for ``src-layout``."""
@@ -583,3 +593,11 @@ def _finder_template(
     """
     mapping = dict(sorted(mapping.items(), key=lambda p: p[0]))
     return _FINDER_TEMPLATE.format(name=name, mapping=mapping, namespaces=namespaces)
+
+
+class InformationOnly(UserWarning):
+    """Currently there is no clear way of displaying messages to the users
+    that use the setuptools backend directly via ``pip``.
+    The only thing that might work is a warning, although it is not the
+    most appropriate tool for the job...
+    """
