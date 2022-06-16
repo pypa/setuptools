@@ -15,7 +15,7 @@ Instead, when creating new Python packages, it is recommended to use
 a command line tool called :pypi:`build`. This tool will automatically download
 ``setuptools`` and any other build-time dependencies that your project might
 have. You just need to specify them in a ``pyproject.toml`` file at the root of
-your package, as indicated in the following section.
+your package, as indicated in the :ref:`following section <basic-use>`.
 
 .. _install-build:
 
@@ -38,6 +38,8 @@ the backend (build system) it wants to use. The distribution can then
 be generated with whatever tool that provides a ``build sdist``-like
 functionality.
 
+
+.. _basic-use:
 
 Basic Use
 =========
@@ -127,8 +129,8 @@ With :ref:`build installed in you system <install-build>`, you can then run::
 
     python -m build
 
-You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl``
-file in the ``dist`` directory), which you can upload to PyPI_!
+You now have your distribution ready (e.g. a ``tar.gz`` file and a ``.whl`` file
+in the ``dist`` directory), which you can :doc:`upload <twine:index>` to PyPI_!
 
 Of course, before you release your project to PyPI_, you'll want to add a bit
 more information to help people find or learn about your project.
