@@ -176,37 +176,39 @@ class _ConfigSettingsTranslator:
         return shlex.split(opts) if isinstance(opts, str) else opts
 
     def _valid_global_options(self):
+        """Global options accepted by setuptools (e.g. quiet or verbose)."""
         options = (opt[:2] for opt in setuptools.dist.Distribution.global_options)
         return {flag for long_and_short in options for flag in long_and_short if flag}
 
     def _global_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
-        If the user specify ``log-level``, it should be applied to all commands.
+        Let the user specify ``verbose`` or ``quiet`` + escape hatch via
+        ``--global-option``.
+        Note: ``-v``, ``-vv``, ``-vvv`` have similar effects in setuptools,
+        so we just have to cover the basic scenario ``-v``.
 
         >>> fn = _ConfigSettingsTranslator()._global_args
         >>> list(fn(None))
         []
-        >>> list(fn({"log-level": "WARNING"}))
+        >>> list(fn({"verbose": "False"}))
         ['-q']
-        >>> list(fn({"log-level": "DEBUG"}))
-        ['-vv']
-        >>> list(fn({"log-level": None}))
-        Traceback (most recent call last):
-           ...
-        ValueError: Invalid value for log-level: None.
-        Try one of: ['WARNING', 'INFO', 'DEBUG'].
-        >>> list(fn({"log-level": "DEBUG", "--global-option": "-q --no-user-cfg"}))
-        ['-vv', '-q', '--no-user-cfg']
+        >>> list(fn({"verbose": "1"}))
+        ['-v']
+        >>> list(fn({"--verbose": None}))
+        ['-v']
+        >>> list(fn({"verbose": "true", "--global-option": "-q --no-user-cfg"}))
+        ['-v', '-q', '--no-user-cfg']
+        >>> list(fn({"--quiet": None}))
+        ['-q']
         """
-        log_levels = {"WARNING": "-q", "INFO": "-v", "DEBUG": "-vv"}
         cfg = config_settings or {}
-        if "log-level" in cfg:
-            level = cfg["log-level"]
-            if level not in log_levels:
-                msg = f"Invalid value for log-level: {level!r}."
-                raise ValueError(msg + f"\nTry one of: {list(log_levels.keys())}.")
-            assert isinstance(level, str)
-            yield log_levels[level]
+        falsey = {"false", "no", "0", "off"}
+        if "verbose" in cfg or "--verbose" in cfg:
+            level = str(cfg.get("verbose") or cfg.get("--verbose") or "1")
+            yield ("-q" if level.lower() in falsey else "-v")
+        if "quiet" in cfg or "--quiet" in cfg:
+            level = str(cfg.get("quiet") or cfg.get("--quiet") or "1")
+            yield ("-v" if level.lower() in falsey else "-q")
 
         valid = self._valid_global_options()
         args = self._get_config("--global-option", config_settings)
@@ -250,14 +252,14 @@ class _ConfigSettingsTranslator:
         >>> list(fn({"editable-mode": "other"}))
         Traceback (most recent call last):
            ...
-        ValueError: Invalid value for editable-mode: 'other'. Try: 'strict'.
+        ValueError: Invalid value for `editable-mode`: 'other'. Try: 'strict'.
         """
         cfg = config_settings or {}
         if "editable-mode" not in cfg:
             return
         mode = cfg["editable-mode"]
         if mode != "strict":
-            msg = f"Invalid value for editable-mode: {mode!r}. Try: 'strict'."
+            msg = f"Invalid value for `editable-mode`: {mode!r}. Try: 'strict'."
             raise ValueError(msg)
         yield "--strict"
 
