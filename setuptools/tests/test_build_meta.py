@@ -624,9 +624,14 @@ class TestBuildMetaBackend:
         }
     }
 
-    @pytest.mark.filterwarnings("error::setuptools.SetuptoolsDeprecationWarning")
     # For some reason `pytest.warns` does no seem to work here
-    # but `pytest.raises` does works, together with an error filter.
+    # but `pytest.raises` does works (in systems other then macOS),
+    # together with an error filter.
+    @pytest.mark.xfail(
+        sys.platform == "darwin",
+        reason="inconsistent behaviour in macOS"
+    )
+    @pytest.mark.filterwarnings("error::setuptools.SetuptoolsDeprecationWarning")
     def test_editable_with_config_settings_warning(self, tmpdir_cwd):
         path.build({**self._simple_pyproject_example, '_meta': {}})
         build_backend = self.get_build_backend()
