@@ -69,24 +69,21 @@ class StaticModule:
     def __getattr__(self, attr):
         """Attempt to load an attribute "statically", via :func:`ast.literal_eval`."""
         try:
-            assignment_expressions = (
-                statement
-                for statement in self.module.body
-                if isinstance(statement, ast.Assign)
-            )
-            expressions_with_target = (
-                (statement, target)
-                for statement in assignment_expressions
-                for target in statement.targets
-            )
-            matching_values = (
-                statement.value
-                for statement, target in expressions_with_target
-                if isinstance(target, ast.Name) and target.id == attr
-            )
-            return next(ast.literal_eval(value) for value in matching_values)
+            for statement in self.module.body:
+                if isinstance(statement, ast.Assign):
+                    targets = statement.targets
+                    value = statement.value
+                elif isinstance(statement, ast.AnnAssign):
+                    targets = [statement.target]
+                    value = statement.value
+                else:
+                    continue
+                for target in targets:
+                    if isinstance(target, ast.Name) and target.id == attr:
+                        return ast.literal_eval(value)
         except Exception as e:
             raise AttributeError(f"{self.name} has no attribute {attr}") from e
+        raise AttributeError(f"{self.name} has no attribute {attr}")
 
 
 def glob_relative(
