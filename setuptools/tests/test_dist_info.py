@@ -2,6 +2,7 @@
 """
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 from functools import partial
@@ -90,6 +91,26 @@ class TestDistInfo:
         assert msg.search(output)
         dist_info = next(tmp_path.glob("*.dist-info"))
         assert dist_info.name.startswith("proj-42")
+
+    def test_tag_arguments(self, tmp_path):
+        config = """
+        [metadata]
+        name=proj
+        version=42
+        [egg_info]
+        tag_date=1
+        tag_build=.post
+        """
+        (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
+
+        print(run_command("dist_info", "--no-date", cwd=tmp_path))
+        dist_info = next(tmp_path.glob("*.dist-info"))
+        assert dist_info.name.startswith("proj-42")
+        shutil.rmtree(dist_info)
+
+        print(run_command("dist_info", "--tag-build", ".a", cwd=tmp_path))
+        dist_info = next(tmp_path.glob("*.dist-info"))
+        assert dist_info.name.startswith("proj-42a")
 
     def test_output_dir(self, tmp_path):
         config = "[metadata]\nname=proj\nversion=42\n"

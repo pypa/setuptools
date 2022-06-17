@@ -8,6 +8,7 @@ import contextlib
 from concurrent import futures
 import re
 from zipfile import ZipFile
+from pathlib import Path
 
 import pytest
 from jaraco import path
@@ -610,6 +611,71 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         with pytest.raises(ImportError, match="^No module named 'hello'$"):
             build_backend.build_sdist("temp")
+
+    _simple_pyproject_example = {
+        "pyproject.toml": DALS("""
+            [project]
+            name = "proj"
+            version = "42"
+            """),
+        "src": {
+            "proj": {"__init__.py": ""}
+        }
+    }
+
+    def _assert_link_tree(self, parent_dir):
+        """All files in the directory should be either links or hard links"""
+        files = list(Path(parent_dir).glob("**/*"))
+        assert files  # Should not be empty
+        for file in files:
+            assert file.is_symlink() or os.stat(file).st_nlink > 0
+
+    @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
+    # Since the backend is running via a process pool, in some operating systems
+    # we may have problems to make assertions based on warnings/stdout/stderr...
+    # So the best is to ignore them for the time being.
+    def test_editable_with_global_option_still_works(self, tmpdir_cwd):
+        """The usage of --global-option is now discouraged in favour of --build-option.
+        This is required to make more sense of the provided scape hatch and align with
+        previous pip behaviour. See pypa/setuptools#1928.
+        """
+        path.build({**self._simple_pyproject_example, '_meta': {}})
+        build_backend = self.get_build_backend()
+        assert not Path("build").exists()
+
+        cfg = {"--global-option": "--strict"}
+        build_backend.prepare_metadata_for_build_editable("_meta", cfg)
+        build_backend.build_editable("temp", cfg, "_meta")
+
+        self._assert_link_tree(next(Path("build").glob("__editable__.*")))
+
+    def test_editable_without_config_settings(self, tmpdir_cwd):
+        """
+        Sanity check to ensure tests with --strict are different from the ones
+        without --strict.
+
+        --strict should create a local directory with a package tree.
+        The directory should not get created otherwise.
+        """
+        path.build(self._simple_pyproject_example)
+        build_backend = self.get_build_backend()
+        assert not Path("build").exists()
+        build_backend.build_editable("temp")
+        assert not Path("build").exists()
+
+    @pytest.mark.parametrize(
+        "config_settings", [
+            {"--build-option": "--strict"},
+            {"editable-mode": "strict"},
+        ]
+    )
+    def test_editable_with_config_settings(self, tmpdir_cwd, config_settings):
+        path.build({**self._simple_pyproject_example, '_meta': {}})
+        assert not Path("build").exists()
+        build_backend = self.get_build_backend()
+        build_backend.prepare_metadata_for_build_editable("_meta", config_settings)
+        build_backend.build_editable("temp", config_settings, "_meta")
+        self._assert_link_tree(next(Path("build").glob("__editable__.*")))
 
     @pytest.mark.parametrize('setup_literal, requirements', [
         ("'foo'", ['foo']),
