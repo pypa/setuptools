@@ -1,0 +1,1 @@
+In _distutils_hack, suppress/undo the use of local distutils when select tests are imported in CPython.
