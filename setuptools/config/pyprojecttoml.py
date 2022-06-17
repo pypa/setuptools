@@ -1,4 +1,8 @@
-"""Load setuptools configuration from ``pyproject.toml`` files"""
+"""
+Load setuptools configuration from ``pyproject.toml`` files.
+
+**PRIVATE MODULE**: API reserved for setuptools internal usage only.
+"""
 import logging
 import os
 import warnings
