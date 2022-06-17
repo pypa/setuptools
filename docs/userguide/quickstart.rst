@@ -450,7 +450,7 @@ up-to-date references that can help you when it is time to distribute your work.
 
 .. [#beta]
    Support for adding build configuration options via the ``[tool.setuptools]``
-   in the ``pyproject.toml`` file table is still in **beta** stage.
+   table in the ``pyproject.toml`` file is still in **beta** stage.
    See :doc:`/userguide/pyproject_config`.
 
 .. _PyPI: https://pypi.org

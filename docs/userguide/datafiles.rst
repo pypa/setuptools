@@ -541,7 +541,7 @@ run time be included **inside the package**.
 
 .. [#beta]
    Support for adding build configuration options via the ``[tool.setuptools]``
-   in the ``pyproject.toml`` file table is still in **beta** stage.
+   table in the ``pyproject.toml`` file is still in **beta** stage.
    See :doc:`/userguide/pyproject_config`.
 
 .. [#system-dirs] These locations can be discovered with the help of
