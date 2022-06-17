@@ -1,0 +1,2 @@
+Modules used to parse and evaluate configuration from ``pyproject.toml`` files are
+intended for internal use only and that not part of the public API.
