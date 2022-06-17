@@ -53,6 +53,18 @@ be able to run. ``setuptools`` supports automatically downloading and installing
 these dependencies when the package is installed. Although there is more
 finesse to it, let's start with a simple example.
 
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "docutils",
+            "BazSpam == 1.1",
+        ]
+        # ...
+
 .. tab:: setup.cfg
 
     .. code-block:: ini
@@ -75,18 +87,6 @@ finesse to it, let's start with a simple example.
             ],
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-        [project]
-        # ...
-        dependencies = [
-            "docutils",
-            "BazSpam == 1.1",
-        ]
-        # ...
-
 
 When your project is installed (e.g., using :pypi:`pip`), all of the dependencies not
 already installed will be located (via `PyPI`_), downloaded, built (if necessary),
@@ -103,6 +103,17 @@ installing everything listed in ``install_requires``. This is great for platform
 specific dependencies. For example, the ``enum`` package was added in Python
 3.4, therefore, package that depends on it can elect to install it only when
 the Python version is older than 3.4. To accomplish this
+
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "enum34; python_version<'3.4'",
+        ]
+        # ...
 
 .. tab:: setup.cfg
 
@@ -124,7 +135,10 @@ the Python version is older than 3.4. To accomplish this
             ],
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+Similarly, if you also wish to declare ``pywin32`` with a minimal version of 1.0
+and only install it if the user is using a Windows operating system:
+
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -132,11 +146,9 @@ the Python version is older than 3.4. To accomplish this
         # ...
         dependencies = [
             "enum34; python_version<'3.4'",
+            "pywin32 >= 1.0; platform_system=='Windows'",
         ]
         # ...
-
-Similarly, if you also wish to declare ``pywin32`` with a minimal version of 1.0
-and only install it if the user is using a Windows operating system:
 
 .. tab:: setup.cfg
 
@@ -160,18 +172,6 @@ and only install it if the user is using a Windows operating system:
             ],
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-        [project]
-        # ...
-        dependencies = [
-            "enum34; python_version<'3.4'",
-            "pywin32 >= 1.0; platform_system=='Windows'",
-        ]
-        # ...
-
 The environmental markers that may be used for testing platform types are
 detailed in :pep:`508`.
 
@@ -189,6 +189,16 @@ set of extra functionalities.
 
 For example, let's consider a ``Package-A`` that offers
 optional PDF support and requires two other dependencies for it to work:
+
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        [project]
+        name = "Package-A"
+        # ...
+        [project.optional-dependencies]
+        PDF = ["ReportLab>=1.2", "RXP"]
 
 .. tab:: setup.cfg
 
@@ -215,16 +225,6 @@ optional PDF support and requires two other dependencies for it to work:
             },
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-        [project]
-        name = "Package-A"
-        # ...
-        [project.optional-dependencies]
-        PDF = ["ReportLab>=1.2", "RXP"]
-
 .. sidebar::
 
    .. tip::
@@ -237,6 +237,17 @@ which other components can refer and have them installed.
 A use case for this approach is that other package can use this "extra" for their
 own dependencies. For example, if ``Package-B`` needs ``Package-B`` with PDF support
 installed, it might declare the dependency like this:
+
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        [project]
+        name = "Package-B"
+        # ...
+        dependencies = [
+            "Package-A[PDF]"
+        ]
 
 .. tab:: setup.cfg
 
@@ -260,17 +271,6 @@ installed, it might declare the dependency like this:
             install_requires=["Package-A[PDF]"],
             ...,
         )
-
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-        [project]
-        name = "Package-B"
-        # ...
-        dependencies = [
-            "Package-A[PDF]"
-        ]
 
 This will cause ``ReportLab`` to be installed along with ``Package-A``, if ``Package-B`` is
 installed -- even if ``Package-A`` was already installed.  In this way, a project
@@ -338,6 +338,15 @@ Python requirement
 In some cases, you might need to specify the minimum required python version.
 This can be configured as shown in the example below.
 
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        [project]
+        name = "Package-B"
+        requires-python = ">=3.6"
+        # ...
+
 .. tab:: setup.cfg
 
     .. code-block:: ini
@@ -359,27 +368,6 @@ This can be configured as shown in the example below.
             python_requires=">=3.6",
             ...,
         )
-
-
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-        [project]
-        name = "Package-B"
-        requires-python = ">=3.6"
-        # ...
-
-----
-
-.. rubric:: Notes
-
-.. [#experimental]
-   While the ``[build-system]`` table should always be specified in the
-   ``pyproject.toml`` file, support for adding package metadata and build configuration
-   options via the ``[project]`` and ``[tool.setuptools]`` tables is still
-   experimental and might change in future releases.
-   See :doc:`/userguide/pyproject_config`.
 
 
 .. _PyPI: https://pypi.org

@@ -58,13 +58,27 @@ library will be used to actually do the packaging.
 
 In addition to specifying a build system, you also will need to add
 some package information such as metadata, contents, dependencies, etc.
-This can be done in the same ``pyproject.toml`` [#experimental]_ file,
+This can be done in the same ``pyproject.toml`` [#beta]_ file,
 or in a separated one: ``setup.cfg`` or ``setup.py`` (please note however
 that configuring new projects via ``setup.py`` is discouraged [#setup.py]_).
 
 The following example demonstrates a minimum configuration
 (which assumes the project depends on :pypi:`requests` and
 :pypi:`importlib-metadata` to be able to run):
+
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+       [project]
+       name = "mypackage"
+       version = "0.0.1"
+       dependencies = [
+           "requests",
+           'importlib-metadata; python_version<"3.8"',
+       ]
+
+    See :doc:`/userguide/pyproject_config` for more information.
 
 .. tab:: setup.cfg
 
@@ -97,20 +111,6 @@ The following example demonstrates a minimum configuration
         )
 
     See :doc:`/references/keywords` for more information.
-
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-       [project]
-       name = "mypackage"
-       version = "0.0.1"
-       dependencies = [
-           "requests",
-           'importlib-metadata; python_version<"3.8"',
-       ]
-
-    See :doc:`/userguide/pyproject_config` for more information.
 
 Finally, you will need to organize your Python code to make it ready for
 distributing into something that looks like the following
@@ -166,6 +166,21 @@ Therefore, ``setuptools`` provides a convenient way to customize
 which packages should be distributed and in which directory they should be
 found, as shown in the example below:
 
+.. tab:: pyproject.toml (**BETA**) [#beta]_
+
+    .. code-block:: toml
+
+        # ...
+        [tool.setuptools.packages]
+        find = {}  # Scan the project directory with the default parameters
+
+        # OR
+        [tool.setuptools.packages.find]
+        where = ["src"]  # ["."] by default
+        include = ["mypackage*"]  # ["*"] by default
+        exclude = ["mypackage.tests*"]  # empty by default
+        namespaces = false  # true by default
+
 .. tab:: setup.cfg
 
     .. code-block:: ini
@@ -196,21 +211,6 @@ found, as shown in the example below:
             # ...
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-        # ...
-        [tool.setuptools.packages]
-        find = {}  # Scan the project directory with the default parameters
-
-        # OR
-        [tool.setuptools.packages.find]
-        where = ["src"]  # ["."] by default
-        include = ["mypackage*"]  # ["*"] by default
-        exclude = ["mypackage.tests*"]  # empty by default
-        namespaces = false  # true by default
-
 When you pass the above information, alongside other necessary information,
 ``setuptools`` walks through the directory specified in ``where`` (omitted
 here as the package resides in the current directory) and filters the packages
@@ -225,7 +225,7 @@ For more details and advanced use, go to :ref:`package_discovery`.
    :ref:`flat-layout` and :ref:`src-layout`) without requiring any
    special configuration. Check out our :ref:`reference docs <package_discovery>`
    for more information, but please keep in mind that this functionality is
-   still considered **experimental** and might change in future releases.
+   still considered **beta** and might change in future releases.
 
 
 Entry points and automatic script creation
@@ -238,6 +238,14 @@ it allows you to run commands like ``pip install`` instead of having
 to type ``python -m pip install``.
 
 The following configuration examples show how to accomplish this:
+
+
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+       [project.scripts]
+       cli-name = "mypkg.mymodule:some_func"
 
 .. tab:: setup.cfg
 
@@ -260,13 +268,6 @@ The following configuration examples show how to accomplish this:
             }
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-       [project.scripts]
-       cli-name = "mypkg.mymodule:some_func"
-
 When this project is installed, a ``cli-name`` executable will be created.
 ``cli-name`` will invoke the function ``some_func`` in the
 ``mypkg/mymodule.py`` file when called by the user.
@@ -280,6 +281,18 @@ Dependency management
 Packages built with ``setuptools`` can specify dependencies to be automatically
 installed when the package itself is installed.
 The example below show how to configure this kind of dependencies:
+
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "docutils",
+            "requires <= 0.4",
+        ]
+        # ...
 
 .. tab:: setup.cfg
 
@@ -299,18 +312,6 @@ The example below show how to configure this kind of dependencies:
             install_requires=["docutils", "requests <= 0.4"],
             # ...
         )
-
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-        [project]
-        # ...
-        dependencies = [
-            "docutils",
-            "requires <= 0.4",
-        ]
-        # ...
 
 Each dependency is represented by a string that can optionally contain version requirements
 (e.g. one of the operators <, >, <=, >=, == or !=, followed by a version identifier),
@@ -332,6 +333,16 @@ Including Data Files
 Setuptools offers three ways to specify data files to be included in your packages.
 For the simplest use, you can simply use the ``include_package_data`` keyword:
 
+.. tab:: pyproject.toml (**BETA**) [#beta]_
+
+    .. code-block:: toml
+
+        [tool.setuptools]
+        include-package-data = true
+        # This is already the default behaviour if your are using
+        # pyproject.toml to configure your build.
+        # You can deactivate that with `include-package-data = false`
+
 .. tab:: setup.cfg
 
     .. code-block:: ini
@@ -348,16 +359,6 @@ For the simplest use, you can simply use the ``include_package_data`` keyword:
             include_package_data=True,
             # ...
         )
-
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
-
-    .. code-block:: toml
-
-        [tool.setuptools]
-        include-package-data = true
-        # This is already the default behaviour if your are using
-        # pyproject.toml to configure your build.
-        # You can deactivate that with `include-package-data = false`
 
 This tells setuptools to install any data files it finds in your packages.
 The data files must be specified via the |MANIFEST.in|_ file
@@ -447,11 +448,9 @@ up-to-date references that can help you when it is time to distribute your work.
    <pyproject_config>` and use ``setup.py`` only for the parts not
    supported in those files (e.g. C extensions).
 
-.. [#experimental]
-   While the ``[build-system]`` table should always be specified in the
-   ``pyproject.toml`` file, support for adding package metadata and build configuration
-   options via the ``[project]`` and ``[tool.setuptools]`` tables is still
-   experimental and might change in future releases.
+.. [#beta]
+   Support for adding build configuration options via the ``[tool.setuptools]``
+   table in the ``pyproject.toml`` file is still in **beta** stage.
    See :doc:`/userguide/pyproject_config`.
 
 .. _PyPI: https://pypi.org
