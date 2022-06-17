@@ -261,7 +261,7 @@ class MSVCCompiler(CCompiler):
 
         self.__library_dirs = [
             dir.rstrip(os.sep)
-            for dir in vc_env.get('lib', '').split(os.pathsep):
+            for dir in vc_env.get('lib', '').split(os.pathsep)
             if dir
         ]
 
