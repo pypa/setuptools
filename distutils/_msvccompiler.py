@@ -563,7 +563,7 @@ class MSVCCompiler(CCompiler):
 
     def _fix_compile_args(self, output_dir, macros, include_dirs):
         """Corrects arguments to the compile() method and add compiler-specific dirs"""
-        fixed_args = super()._fix_lib_args(output_dir, macros, include_dirs)
+        fixed_args = super()._fix_compile_args(output_dir, macros, include_dirs)
         return (
             fixed_args[0],  # output_dir
             fixed_args[1],  # macros
