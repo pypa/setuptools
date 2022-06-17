@@ -1,2 +1,0 @@
-Moved remarks about using :pypi:`Cython` to the newly created page for
-extension modules.

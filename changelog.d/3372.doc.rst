@@ -1,3 +1,0 @@
-Consolidated sections about ``sdist`` contents and ``MANIFEST.in`` into a single page.
-
-Added a simple ``MANIFEST.in`` example.
