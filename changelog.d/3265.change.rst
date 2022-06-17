@@ -1,0 +1,17 @@
+Added implementation for *editable install* hooks (PEP 660) - **beta** stage.
+
+- The user will be able select between two distinct behaviors:
+
+  - *lax*, which prioritises the ability of the users of changing the
+    distributed packages (e.g. adding new files or removing old ones)
+
+  - *strict*, which will try to replicate as much as possible the behavior of
+    the package as if it would be normally installed by end users.
+    The *strict* editable installation is not able to detect if files are
+    added or removed from the project (a new installation is required).
+
+.. important::
+   The *editable* aspect of the *editable install* supported this implementation
+   is restricted to the Python modules contained in the distributed package.
+   Changes in binary extensions (e.g. C/C++), entry-point definitions,
+   dependencies, metadata, datafiles, etc require a new installation.
