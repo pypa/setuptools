@@ -1,4 +1,8 @@
-"""Load setuptools configuration from ``setup.cfg`` files"""
+"""
+Load setuptools configuration from ``setup.cfg`` files.
+
+**API will be made private in the future**
+"""
 import os
 
 import warnings

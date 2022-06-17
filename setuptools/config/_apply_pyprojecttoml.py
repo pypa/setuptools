@@ -4,6 +4,8 @@ metadata objects.
 The distribution and metadata objects are modeled after (an old version of)
 core metadata, therefore configs in the format specified for ``pyproject.toml``
 need to be processed before being applied.
+
+**PRIVATE MODULE**: API reserved for setuptools internal usage only.
 """
 import logging
 import os

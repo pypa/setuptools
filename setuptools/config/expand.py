@@ -14,6 +14,8 @@ We can split the process of interpreting configuration files into 2 steps:
 
 This module focus on the second step, and therefore allow sharing the expansion
 functions among several configuration file formats.
+
+**PRIVATE MODULE**: API reserved for setuptools internal usage only.
 """
 import ast
 import importlib
