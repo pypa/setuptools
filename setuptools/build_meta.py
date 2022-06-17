@@ -290,18 +290,18 @@ class _ConfigSettingsTranslator:
         """
         args = self._get_config("--global-option", config_settings)
         global_opts = self._valid_global_options()
-        warn = []
+        bad_args = []
 
         for arg in args:
             if arg.strip("-") not in global_opts:
-                warn.append(arg)
+                bad_args.append(arg)
                 yield arg
 
         yield from self._get_config("--build-option", config_settings)
 
-        if warn:
+        if bad_args:
             msg = f"""
-            The arguments {warn!r} were given via `--global-option`.
+            The arguments {bad_args!r} were given via `--global-option`.
             Please use `--build-option` instead,
             `--global-option` is reserved to flags like `--verbose` or `--quiet`.
             """
