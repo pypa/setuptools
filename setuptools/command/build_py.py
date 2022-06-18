@@ -29,6 +29,8 @@ class build_py(orig.build_py):
     'py_modules' and 'packages' in the same setup operation.
     """
 
+    existing_egg_info_dir = None  #: Private API, setuptools internal use only.
+
     def finalize_options(self):
         orig.build_py.finalize_options(self)
         self.package_data = self.distribution.package_data
@@ -143,10 +145,19 @@ class build_py(orig.build_py):
             # Locate package source directory
             src_dirs[assert_relative(self.get_package_dir(package))] = package
 
-        self.run_command('egg_info')
+        if (
+            getattr(self, 'existing_egg_info_dir', None)
+            and Path(self.existing_egg_info_dir, "SOURCES.txt").exists()
+        ):
+            manifest = Path(self.existing_egg_info_dir, "SOURCES.txt")
+            files = manifest.read_text(encoding="utf-8").splitlines()
+        else:
+            self.run_command('egg_info')
+            ei_cmd = self.get_finalized_command('egg_info')
+            files = ei_cmd.filelist.files
+
         check = _IncludePackageDataAbuse()
-        ei_cmd = self.get_finalized_command('egg_info')
-        for path in ei_cmd.filelist.files:
+        for path in files:
             d, f = os.path.split(assert_relative(path))
             prev = None
             oldf = f
