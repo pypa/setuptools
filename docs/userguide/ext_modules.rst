@@ -94,7 +94,8 @@ The compiler options appear in the command line in the following order:
 * first, the options provided by the ``sysconfig`` variable ``CFLAGS``,
 * then, the options provided by the environment variables ``CFLAGS`` and ``CPPFLAGS``,
 * then, the options provided by the ``sysconfig`` variable ``CCSHARED``,
-* finally, a ``-I`` option for each element of ``Extension.include_dirs``.
+* then, a ``-I`` option for each element of ``Extension.include_dirs``,
+* finally, the options provided by ``Extension.extra_compile_args``.
 
 The linker options appear in the command line in the following order:
 
@@ -102,7 +103,8 @@ The linker options appear in the command line in the following order:
 
 * first, the options provided by environment variables and ``sysconfig`` variables,
 * then, a ``-L`` option for each element of ``Extension.library_dirs``,
-* finally, a linker-specific option like ``-Wl,-rpath`` for each element of ``Extension.runtime_library_dirs``.
+* then, a linker-specific option like ``-Wl,-rpath`` for each element of ``Extension.runtime_library_dirs``,
+* finally, the options provided by ``Extension.extra_link_args``.
 
 The resulting command line is then processed by the compiler and linker.
 According to the GCC manual sections on `directory options`_ and
