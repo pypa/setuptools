@@ -165,9 +165,9 @@ requirements.
    On POSIX systems, this can be done with ``tar -tf dist/*.tar.gz``
    and ``unzip -l dist/*.whl``.
    On Windows systems, you can rename the ``.whl`` to ``.zip`` to be able to
-   inspect it from File Explorer, or you can use the aoove ``tar`` command in a
-   command prompt. Alternatively, there are GUI programs like `7-zip`_ that
-   handle ``.tar.gz`` and ``.whl`` files.
+   inspect it from File Explorer. You can also use the above ``tar`` command in a
+   command prompt to inspect the `.tar.gz` file. Alternatively, there are GUI programs
+   like `7-zip`_ that handle ``.tar.gz`` and ``.whl`` files.
 
    In general, the backend script should be present in the ``.tar.gz`` (so the
    project can be built from the source) but not in the ``.whl`` (otherwise the
