@@ -84,6 +84,28 @@ compiler and linker options from various sources:
 
 .. Ignoring AR, ARFLAGS, RANLIB here because they are used by the (obsolete?) build_clib, not build_ext.
 
+Specifically, if the environment variables ``CC``, ``CPP``, ``CXX``, and ``LDSHARED``
+are set, they will be used instead of the ``sysconfig`` variables of the same names.
+
+The compiler options appear in the command line in the following order:
+
+.. Reference: "compiler_so" and distutils.ccompiler.gen_preprocess_options, CCompiler.compile, UnixCCompiler._compile
+
+* first, the options provided by the ``sysconfig`` variable ``CFLAGS``,
+* then, the options provided by the environment variables ``CFLAGS`` and ``CPPFLAGS``,
+* then, the options provided by the ``sysconfig`` variable ``CCSHARED``,
+* then, a ``-I`` option for each element of ``Extension.include_dirs``,
+* finally, the options provided by ``Extension.extra_compile_args``.
+
+The linker options appear in the command line in the following order:
+
+.. Reference: "linker_so" and CCompiler.link
+
+* first, the options provided by environment variables and ``sysconfig`` variables,
+* then, a ``-L`` option for each element of ``Extension.library_dirs``,
+* then, a linker-specific option like ``-Wl,-rpath`` for each element of ``Extension.runtime_library_dirs``,
+* finally, the options provided by ``Extension.extra_link_args``.
+
 The resulting command line is then processed by the compiler and linker.
 According to the GCC manual sections on `directory options`_ and
 `environment variables`_, the C/C++ compiler searches for files named in
