@@ -25,18 +25,18 @@ modules. Under PEP 517:
 
     Two functions provided by the program, ``build_wheel(directory: str)``
     and ``build_sdist(directory: str)``, create the distribution bundle in the
-    specified ``directory``. 
+    specified ``directory``.
 
-	The program is free to use its own configuration file or extend the ``.toml`` file.
+    The program may use its own configuration file or extend the ``.toml`` file.
 
     The actual installation is done with ``pip install *.whl`` or
-	``pip install *.tar.gz``. If ``*.whl`` is available, ``pip`` will go ahead and copy
+    ``pip install *.tar.gz``. If ``*.whl`` is available, ``pip`` will go ahead and copy
     its files into the ``site-packages`` directory. If not, ``pip`` will look at
-    ``pyproject.toml`` and decide which program to use to 'build from source'
-    (the default is ``setuptools``).
+    ``pyproject.toml`` and decide which program to use to 'build from source'.
+    (Note that if there is no ``pyproject.toml`` file or the ``build-backend``
+    parameter is not defined, then the fall-back behaviour is to use ``setuptools``.)
 
-With this standard, switching between packaging tools is a lot easier. ``build_meta``
-implements ``setuptools``'s build system support.
+With this standard, switching between packaging tools is a lot easier.
 
 How to use it?
 --------------
@@ -51,21 +51,22 @@ files, a ``pyproject.toml`` file and a ``setup.cfg`` file::
 		    __init__.py
 			module.py
 
-The pyproject.toml file specifies the build system (i.e. what is
+The ``pyproject.toml`` file specifies the build system (i.e. what is
 being used to package your scripts and install from source). To use it with
-setuptools the content would be::
+``setuptools`` the content would be::
 
     [build-system]
     requires = ["setuptools"]
     build-backend = "setuptools.build_meta"
 
+``build_meta`` implements ``setuptools``' build system support.
 The ``setuptools`` package implements the ``build_sdist``
 command and the ``wheel`` package implements the ``build_wheel``
 command; the latter is a dependency of the former
 exposed via :pep:`517` hooks.
 
 Use ``setuptools``' :ref:`declarative config <declarative config>` to
-specify the package information::
+specify the package information in ``setup.cfg``::
 
     [metadata]
     name = meowpkg
