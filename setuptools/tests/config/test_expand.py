@@ -85,13 +85,17 @@ class TestReadAttr:
         values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'}, tmp_path)
         assert values['c'] == (0, 1, 1)
 
-    def test_read_annotated_attr(self, tmp_path):
+    @pytest.mark.parametrize(
+        "example",
+        [
+            "VERSION: str\nVERSION = '0.1.1'\nraise SystemExit(1)\n",
+            "VERSION: str = '0.1.1'\nraise SystemExit(1)\n",
+        ]
+    )
+    def test_read_annotated_attr(self, tmp_path, example):
         files = {
             "pkg/__init__.py": "",
-            "pkg/sub/__init__.py": (
-                "VERSION: str = '0.1.1'\n"
-                "raise SystemExit(1)\n"
-            ),
+            "pkg/sub/__init__.py": example,
         }
         write_files(files, tmp_path)
         # Make sure this attribute can be read statically
