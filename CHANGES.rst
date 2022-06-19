@@ -1,3 +1,16 @@
+v62.6.0
+-------
+
+
+Changes
+^^^^^^^
+* #3253: Enabled using ``file:`` for requirements in setup.cfg -- by :user:`akx`
+  (this feature is currently considered to be in **beta** stage).
+* #3255: Enabled using ``file:`` for dependencies and optional-dependencies in pyproject.toml -- by :user:`akx`
+  (this feature is currently considered to be in **beta** stage).
+* #3391: Updated ``attr:`` to also extract simple constants with type annotations -- by :user:`karlotness`
+
+
 v62.5.0
 -------
 
