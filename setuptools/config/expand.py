@@ -66,11 +66,11 @@ class StaticModule:
         vars(self).update(locals())
         del self.self
 
-    def _find_assignments(self) -> Iterator[Tuple[ast.AST, Optional[ast.AST]]]:
+    def _find_assignments(self) -> Iterator[Tuple[ast.AST, ast.AST]]:
         for statement in self.module.body:
             if isinstance(statement, ast.Assign):
                 yield from ((target, statement.value) for target in statement.targets)
-            elif isinstance(statement, ast.AnnAssign):
+            elif isinstance(statement, ast.AnnAssign) and statement.value:
                 yield (statement.target, statement.value)
 
     def __getattr__(self, attr):
