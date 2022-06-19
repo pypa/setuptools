@@ -66,25 +66,21 @@ class StaticModule:
         vars(self).update(locals())
         del self.self
 
+    def _find_assignments(self) -> Iterator[Tuple[ast.AST, ast.AST]]:
+        for statement in self.module.body:
+            if isinstance(statement, ast.Assign):
+                yield from ((target, statement.value) for target in statement.targets)
+            elif isinstance(statement, ast.AnnAssign) and statement.value:
+                yield (statement.target, statement.value)
+
     def __getattr__(self, attr):
         """Attempt to load an attribute "statically", via :func:`ast.literal_eval`."""
         try:
-            assignment_expressions = (
-                statement
-                for statement in self.module.body
-                if isinstance(statement, ast.Assign)
-            )
-            expressions_with_target = (
-                (statement, target)
-                for statement in assignment_expressions
-                for target in statement.targets
-            )
-            matching_values = (
-                statement.value
-                for statement, target in expressions_with_target
+            return next(
+                ast.literal_eval(value)
+                for target, value in self._find_assignments()
                 if isinstance(target, ast.Name) and target.id == attr
             )
-            return next(ast.literal_eval(value) for value in matching_values)
         except Exception as e:
             raise AttributeError(f"{self.name} has no attribute {attr}") from e
 

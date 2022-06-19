@@ -85,6 +85,22 @@ class TestReadAttr:
         values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'}, tmp_path)
         assert values['c'] == (0, 1, 1)
 
+    @pytest.mark.parametrize(
+        "example",
+        [
+            "VERSION: str\nVERSION = '0.1.1'\nraise SystemExit(1)\n",
+            "VERSION: str = '0.1.1'\nraise SystemExit(1)\n",
+        ]
+    )
+    def test_read_annotated_attr(self, tmp_path, example):
+        files = {
+            "pkg/__init__.py": "",
+            "pkg/sub/__init__.py": example,
+        }
+        write_files(files, tmp_path)
+        # Make sure this attribute can be read statically
+        assert expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path) == '0.1.1'
+
     def test_import_order(self, tmp_path):
         """
         Sometimes the import machinery will import the parent package of a nested
