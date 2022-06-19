@@ -229,3 +229,75 @@ def test_existing_egg_info(tmpdir_cwd, monkeypatch):
     assert outputs
     example = str(Path(build_py.build_lib, "mypkg/__init__.py")).replace(os.sep, "/")
     assert example in outputs
+
+
+EXAMPLE_ARBITRARY_MAPPING = {
+    "pyproject.toml": DALS("""
+        [project]
+        name = "mypkg"
+        version = "42"
+
+        [tool.setuptools]
+        packages = ["mypkg", "mypkg.sub1", "mypkg.sub2", "mypkg.sub2.nested"]
+
+        [tool.setuptools.package-dir]
+        "" = "src"
+        "mypkg.sub2" = "src/mypkg/_sub2"
+        "mypkg.sub2.nested" = "other"
+        """),
+    "src": {
+        "mypkg": {
+            "__init__.py": "",
+            "resource_file.txt": "",
+            "sub1": {
+                "__init__.py": "",
+                "mod1.py": "",
+            },
+            "_sub2": {
+                "mod2.py": "",
+            },
+        },
+    },
+    "other": {
+        "__init__.py": "",
+        "mod3.py": "",
+    },
+    "MANIFEST.in": DALS("""
+        global-include *.py *.txt
+        global-exclude *.py[cod]
+        """)
+}
+
+
+def test_get_outputs(tmpdir_cwd):
+    jaraco.path.build(EXAMPLE_ARBITRARY_MAPPING)
+    dist = Distribution({"script_name": "%test%"})
+    dist.parse_config_files()
+
+    build_py = dist.get_command_obj("build_py")
+    build_py.editable_mode = True
+    build_py.finalize_options()
+    build_lib = build_py.build_lib.replace(os.sep, "/")
+    outputs = [x.replace(os.sep, "/") for x in build_py.get_outputs()]
+    assert outputs == [
+        f"{build_lib}/mypkg/__init__.py",
+        f"{build_lib}/mypkg/resource_file.txt",
+        f"{build_lib}/mypkg/sub1/__init__.py",
+        f"{build_lib}/mypkg/sub1/mod1.py",
+        f"{build_lib}/mypkg/sub2/mod2.py",
+        f"{build_lib}/mypkg/sub2/nested/__init__.py",
+        f"{build_lib}/mypkg/sub2/nested/mod3.py",
+    ]
+    mapping = {
+        k.replace(os.sep, "/"): v.replace(os.sep, "/")
+        for k, v in build_py.get_output_mapping().items()
+    }
+    assert mapping == {
+        f"{build_lib}/mypkg/__init__.py": "src/mypkg/__init__.py",
+        f"{build_lib}/mypkg/resource_file.txt": "src/mypkg/resource_file.txt",
+        f"{build_lib}/mypkg/sub1/__init__.py": "src/mypkg/sub1/__init__.py",
+        f"{build_lib}/mypkg/sub1/mod1.py": "src/mypkg/sub1/mod1.py",
+        f"{build_lib}/mypkg/sub2/mod2.py": "src/mypkg/_sub2/mod2.py",
+        f"{build_lib}/mypkg/sub2/nested/__init__.py": "other/__init__.py",
+        f"{build_lib}/mypkg/sub2/nested/mod3.py": "other/mod3.py",
+    }
