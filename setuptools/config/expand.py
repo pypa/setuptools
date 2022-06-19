@@ -66,24 +66,23 @@ class StaticModule:
         vars(self).update(locals())
         del self.self
 
+    def _find_assignments(self) -> Iterator[Tuple[ast.AST, Optional[ast.AST]]]:
+        for statement in self.module.body:
+            if isinstance(statement, ast.Assign):
+                yield from ((target, statement.value) for target in statement.targets)
+            elif isinstance(statement, ast.AnnAssign):
+                yield (statement.target, statement.value)
+
     def __getattr__(self, attr):
         """Attempt to load an attribute "statically", via :func:`ast.literal_eval`."""
         try:
-            for statement in self.module.body:
-                if isinstance(statement, ast.Assign):
-                    targets = statement.targets
-                    value = statement.value
-                elif isinstance(statement, ast.AnnAssign):
-                    targets = [statement.target]
-                    value = statement.value
-                else:
-                    continue
-                for target in targets:
-                    if isinstance(target, ast.Name) and target.id == attr:
-                        return ast.literal_eval(value)
+            return next(
+                ast.literal_eval(value)
+                for target, value in self._find_assignments()
+                if isinstance(target, ast.Name) and target.id == attr
+            )
         except Exception as e:
             raise AttributeError(f"{self.name} has no attribute {attr}") from e
-        raise AttributeError(f"{self.name} has no attribute {attr}")
 
 
 def glob_relative(
