@@ -167,7 +167,7 @@ requirements.
    and ``unzip -l dist/*.whl``.
    On Windows systems, you can rename the ``.whl`` to ``.zip`` to be able to
    inspect it from File Explorer. You can also use the above ``tar`` command in a
-   command prompt to inspect the `.tar.gz` file. Alternatively, there are GUI programs
+   command prompt to inspect the ``.tar.gz`` file. Alternatively, there are GUI programs
    like `7-zip`_ that handle ``.tar.gz`` and ``.whl`` files.
 
    In general, the backend script should be present in the ``.tar.gz`` (so the

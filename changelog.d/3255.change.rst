@@ -1,1 +1,2 @@
 Enabled using ``file:`` for dependencies and optional-dependencies in pyproject.toml -- by :user:`akx`
+(this feature is currently considered to be in **beta** stage).

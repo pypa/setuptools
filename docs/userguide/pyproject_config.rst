@@ -180,18 +180,18 @@ In the ``dynamic`` table, the ``attr`` directive [#directives]_ will read an
 attribute from the given module [#attr]_, while ``file`` will read the contents
 of all given files and concatenate them in a single string.
 
-=================          =================== =========================
+========================== =================== =================================================================================================
 Key                        Directive           Notes
-=================          =================== =========================
+========================== =================== =================================================================================================
 ``version``                ``attr``, ``file``
 ``readme``                 ``file``
 ``description``            ``file``            One-line text
 ``classifiers``            ``file``            Multi-line text with one classifier per line
 ``entry-points``           ``file``            INI format following :doc:`PyPUG:specifications/entry-points`
                                                (``console_scripts`` and ``gui_scripts`` can be included)
-``dependencies``           ``file``            ``requirements.txt`` format (``#`` comments and blank lines excluded)
-``optional-dependencies``  ``file``            ``requirements.txt`` format per group (``#`` comments and blank lines excluded)
-========================== =================== =========================
+``dependencies``           ``file``            ``requirements.txt`` format (``#`` comments and blank lines excluded) **BETA**
+``optional-dependencies``  ``file``            ``requirements.txt`` format per group (``#`` comments and blank lines excluded) **BETA**
+========================== =================== =================================================================================================
 
 Supporting ``file`` for dependencies is meant for a convenience for packaging
 applications with possibly strictly versioned dependencies.
@@ -202,6 +202,10 @@ dependency versions in their ``dependencies`` and ``optional-dependencies``.
 Currently, when specifying ``optional-dependencies`` dynamically, all of the groups
 must be specified dynamically; one can not specify some of them statically and
 some of them dynamically.
+
+Also note that the file format for specifying dependencies resembles a ``requirements.txt`` file,
+however please keep in mind that all non-comment lines must conform with :pep:`508`
+(``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
 
 ----
 

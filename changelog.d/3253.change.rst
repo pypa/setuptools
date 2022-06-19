@@ -1,1 +1,2 @@
 Enabled using ``file:`` for requirements in setup.cfg -- by :user:`akx`
+(this feature is currently considered to be in **beta** stage).
