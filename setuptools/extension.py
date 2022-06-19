@@ -113,6 +113,9 @@ class Extension(_Extension):
     :keyword bool optional:
       specifies that a build failure in the extension should not abort the
       build process, but simply not install the failing extension.
+
+    :keyword bool py_limited_api:
+      opt-in flag for the usage of :doc:`Python's limited API <python:c-api/stable>`.
     """
 
     def __init__(self, name, sources, *args, **kw):

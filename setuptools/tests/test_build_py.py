@@ -276,7 +276,7 @@ def test_get_outputs(tmpdir_cwd):
 
     build_py = dist.get_command_obj("build_py")
     build_py.editable_mode = True
-    build_py.finalize_options()
+    build_py.ensure_finalized()
     build_lib = build_py.build_lib.replace(os.sep, "/")
     outputs = [x.replace(os.sep, "/") for x in build_py.get_outputs()]
     assert outputs == [
