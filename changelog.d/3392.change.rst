@@ -1,0 +1,5 @@
+Exposed ``get_output_mapping()`` from ``build_py`` and ``build_ext``
+subcommands. This interface is reserved for the use of ``setuptools``
+Extensions and third part packages are explicitly disallowed to calling it.
+However, any implementation overwriting ``build_py`` or ``build_ext`` are
+required to honour this interface.
