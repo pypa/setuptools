@@ -113,7 +113,6 @@ class TestBuildExt:
         build_ext.ensure_finalized()
         build_lib = build_ext.build_lib.replace(os.sep, "/")
         outputs = [x.replace(os.sep, "/") for x in build_ext.get_outputs()]
-        print(f"{build_lib=} {build_ext.inplace=}")
         assert outputs == [
             f"{build_lib}/ext3.mp3",
             f"{build_lib}/mypkg/ext1.mp3",
