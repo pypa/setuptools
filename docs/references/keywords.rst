@@ -167,9 +167,7 @@ extensions).
 
 ``keywords``
     A list of strings or a comma-separated string providing descriptive
-    meta-data. See: `PEP 0314`_.
-
-.. _PEP 0314: https://www.python.org/dev/peps/pep-0314/
+    meta-data. See: :ref:`Core Metadata Specifications<core-metadata-keywords>`.
 
 .. _keyword/platforms:
 

@@ -1,0 +1,3 @@
+Fix reference for ``keywords`` to point to the Core Metadata Specification
+instead of PEP 314 (the live standard is kept always up-to-date and
+consolidates several PEPs together in a single document).
