@@ -33,11 +33,6 @@ class build_py(orig.build_py):
     editable_mode: bool = False
     existing_egg_info_dir: Optional[str] = None  #: Private API, internal use only.
 
-    def initialize_options(self):
-        super().initialize_options()
-        self.editable_mode = False
-        self.existing_egg_info_dir = None
-
     def finalize_options(self):
         orig.build_py.finalize_options(self)
         self.package_data = self.distribution.package_data
@@ -244,6 +239,8 @@ class build_py(orig.build_py):
     def initialize_options(self):
         self.packages_checked = {}
         orig.build_py.initialize_options(self)
+        self.editable_mode = False
+        self.existing_egg_info_dir = None
 
     def get_package_dir(self, package):
         res = orig.build_py.get_package_dir(self, package)

@@ -3,8 +3,7 @@ import sys
 import itertools
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
-from pathlib import Path
-from typing import Dict, Iterator, List, Tuple, Union
+from typing import Dict, Iterator, List, Tuple
 
 from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.ccompiler import new_compiler
@@ -259,7 +258,7 @@ class build_ext(_build_ext):
         pkg = '.'.join(ext._full_name.split('.')[:-1] + [''])
         return any(pkg + libname in libnames for libname in ext.libraries)
 
-    def get_outputs(self):
+    def get_outputs(self) -> List[str]:
         if self.inplace:
             return list(self.get_output_mapping().keys())
         return sorted(_build_ext.get_outputs(self) + self.__get_stubs_outputs())
@@ -340,9 +339,6 @@ class build_ext(_build_ext):
         if os.path.exists(stub_file) and not self.dry_run:
             os.unlink(stub_file)
 
-
-def _file_with_suffix(directory: str, name: str, suffix: str) -> str:
-    return f"{os.path.join(directory, name)}.{suffix}"
 
 if use_stubs or os.name == 'nt':
     # Build shared libraries
