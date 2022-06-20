@@ -18,7 +18,7 @@ v62.5.0
 Changes
 ^^^^^^^
 * #3347: Changed warnings and documentation notes about *experimental* aspect of ``pyproject.toml`` configuration:
-  now ``[pyproject]`` is a fully supported configuration interface, but the ``[tool.setuptools]`` table
+  now ``[project]`` is a fully supported configuration interface, but the ``[tool.setuptools]`` table
   and sub-tables are still considered to be in **beta** stage.
 * #3383: In _distutils_hack, suppress/undo the use of local distutils when select tests are imported in CPython.
 
