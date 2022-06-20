@@ -8,12 +8,11 @@ Package Discovery and Namespace Packages
     a full specification for the keywords supplied to ``setup.cfg`` or
     ``setup.py`` can be found at :doc:`keywords reference </references/keywords>`
 
-.. note::
-    the examples provided here are only to demonstrate the functionality
+.. important::
+    The examples provided here are only to demonstrate the functionality
     introduced. More metadata and options arguments need to be supplied
     if you want to replicate them on your system. If you are completely
-    new to setuptools, the :doc:`quickstart section <quickstart>` is a good
-    place to start.
+    new to setuptools, the :doc:`quickstart` section is a good place to start.
 
 ``Setuptools`` provides powerful tools to handle package discovery, including
 support for namespace packages.
@@ -128,9 +127,8 @@ the following sections.
 Automatic discovery
 ===================
 
-.. warning:: Automatic discovery is an **beta** feature and might change
-   (or be completely removed) in the future.
-   See :ref:`custom-discovery` for a stable way of configuring ``setuptools``.
+.. warning:: Automatic discovery is a **beta** feature and might change in the future.
+   See :ref:`custom-discovery` for other methods of discovery.
 
 By default ``setuptools`` will consider 2 popular project layouts, each one with
 its own set of advantages and disadvantages [#layout1]_ [#layout2]_ as
