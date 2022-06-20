@@ -276,7 +276,7 @@ A few important points for writing revision control file finders:
 
 * Your finder function SHOULD NOT raise any errors, and SHOULD deal gracefully
   with the absence of needed programs (i.e., ones belonging to the revision
-  control system itself.  It *may*, however, use ``distutils.log.warn()`` to
+  control system itself.  It *may*, however, use ``logging.warning()`` to
   inform the user of the missing program(s).
 
 

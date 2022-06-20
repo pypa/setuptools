@@ -1,0 +1,3 @@
+This updates the documentation for the ``file_finders`` hook so that
+the logging recommendation aligns with the suggestion to not use
+``distutils`` directly.
