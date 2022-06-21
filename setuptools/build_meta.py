@@ -40,6 +40,7 @@ from typing import Dict, Iterator, List, Optional, Union
 
 import setuptools
 import distutils
+from ._path import same_path
 from ._reqs import parse_strings
 from ._deprecation_warning import SetuptoolsDeprecationWarning
 from distutils.util import strtobool
@@ -341,6 +342,23 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
     def get_requires_for_build_sdist(self, config_settings=None):
         return self._get_build_requires(config_settings, requirements=[])
 
+    def _bubble_up_info_directory(self, metadata_directory: str, suffix: str) -> str:
+        """
+        PEP 517 requires that the .dist-info directory be placed in the
+        metadata_directory. To comply, we MUST copy the directory to the root.
+
+        Returns the basename of the info directory, e.g. `proj-0.0.0.dist-info`.
+        """
+        candidates = list(Path(metadata_directory).glob(f"**/*{suffix}/"))
+        assert len(candidates) == 1, f"Exactly one {suffix} should have been produced"
+        info_dir = candidates[0]
+
+        if not same_path(info_dir.parent, metadata_directory):
+            shutil.move(str(info_dir), metadata_directory)
+            # PEP 517 allow other files and dirs to exist in metadata_directory
+
+        return info_dir.name
+
     def prepare_metadata_for_build_wheel(self, metadata_directory,
                                          config_settings=None):
         sys.argv = [
@@ -348,36 +366,13 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             *self._global_args(config_settings),
             "dist_info",
             "--output-dir", metadata_directory,
+            "--keep-egg-info",
         ]
         with no_install_setup_requires():
             self.run_setup()
 
-        dist_info_directory = metadata_directory
-        while True:
-            dist_infos = [f for f in os.listdir(dist_info_directory)
-                          if f.endswith('.dist-info')]
-
-            if (
-                len(dist_infos) == 0 and
-                len(_get_immediate_subdirectories(dist_info_directory)) == 1
-            ):
-
-                dist_info_directory = os.path.join(
-                    dist_info_directory, os.listdir(dist_info_directory)[0])
-                continue
-
-            assert len(dist_infos) == 1
-            break
-
-        # PEP 517 requires that the .dist-info directory be placed in the
-        # metadata_directory. To comply, we MUST copy the directory to the root
-        if dist_info_directory != metadata_directory:
-            shutil.move(
-                os.path.join(dist_info_directory, dist_infos[0]),
-                metadata_directory)
-            shutil.rmtree(dist_info_directory, ignore_errors=True)
-
-        return dist_infos[0]
+        self._bubble_up_info_directory(metadata_directory, ".egg-info")
+        return self._bubble_up_info_directory(metadata_directory, ".dist-info")
 
     def _build_with_temp_dir(self, setup_command, result_extension,
                              result_directory, config_settings):
