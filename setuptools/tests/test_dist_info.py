@@ -112,14 +112,21 @@ class TestDistInfo:
         dist_info = next(tmp_path.glob("*.dist-info"))
         assert dist_info.name.startswith("proj-42a")
 
-    def test_output_dir(self, tmp_path):
+    @pytest.mark.parametrize("keep_egg_info", (False, True))
+    def test_output_dir(self, tmp_path, keep_egg_info):
         config = "[metadata]\nname=proj\nversion=42\n"
         (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
         out = (tmp_path / "__out")
         out.mkdir()
-        run_command("dist_info", "--output-dir", str(out), cwd=tmp_path)
+        opts = ["--keep-egg-info"] if keep_egg_info else []
+        run_command("dist_info", "--output-dir", out, *opts, cwd=tmp_path)
         assert len(list(out.glob("*.dist-info"))) == 1
         assert len(list(tmp_path.glob("*.dist-info"))) == 0
+        expected_egg_info = 1 if keep_egg_info else 0
+        assert len(list(out.glob("*.egg-info"))) == expected_egg_info
+        assert len(list(tmp_path.glob("*.egg-info"))) == 0
+        assert len(list(out.glob("__bkp__.*.__bkp__"))) == 0
+        assert len(list(tmp_path.glob("__bkp__.*.__bkp__"))) == 0
 
 
 class TestWheelCompatibility:
@@ -184,5 +191,5 @@ class TestWheelCompatibility:
 
 def run_command(*cmd, **kwargs):
     opts = {"stderr": subprocess.STDOUT, "text": True, **kwargs}
-    cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *cmd]
+    cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *map(str, cmd)]
     return subprocess.check_output(cmd, **opts)
