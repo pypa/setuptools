@@ -125,8 +125,8 @@ class TestDistInfo:
         expected_egg_info = 1 if keep_egg_info else 0
         assert len(list(out.glob("*.egg-info"))) == expected_egg_info
         assert len(list(tmp_path.glob("*.egg-info"))) == 0
-        assert len(list(out.glob("__bkp__.*.__bkp__"))) == 0
-        assert len(list(tmp_path.glob("__bkp__.*.__bkp__"))) == 0
+        assert len(list(out.glob("*.__bkp__"))) == 0
+        assert len(list(tmp_path.glob("*.__bkp__"))) == 0
 
 
 class TestWheelCompatibility:

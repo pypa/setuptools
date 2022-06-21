@@ -80,7 +80,7 @@ class dist_info(Command):
     @contextmanager
     def _maybe_bkp_dir(self, dir_path: str, requires_bkp: bool):
         if requires_bkp:
-            bkp_name = f"__bkp__.{dir_path}.__bkp__"
+            bkp_name = f"{dir_path}.__bkp__"
             _rm(bkp_name, ignore_errors=True)
             _copy(dir_path, bkp_name, dirs_exist_ok=True, symlinks=True)
             try:
