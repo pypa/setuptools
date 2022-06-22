@@ -7,14 +7,14 @@ skip-string-normalization = true
 
 [tool.setuptools_scm]
 
-[pytest.enabler.black]
+[tool.pytest-enabler.black]
 addopts = "--black"
 
-[pytest.enabler.mypy]
+[tool.pytest-enabler.mypy]
 addopts = "--mypy"
 
-[pytest.enabler.flake8]
+[tool.pytest-enabler.flake8]
 addopts = "--flake8"
 
-[pytest.enabler.cov]
+[tool.pytest-enabler.cov]
 addopts = "--cov"
