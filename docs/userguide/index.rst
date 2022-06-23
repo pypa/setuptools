@@ -26,16 +26,16 @@ Contents
 
     quickstart
     package_discovery
-    entry_point
     dependency_management
-    ext_modules
-    datafiles
     development_mode
+    entry_point
+    datafiles
+    ext_modules
     distribution
+    miscellaneous
     extension
     declarative_config
     pyproject_config
-    miscellaneous
 
 ---
 
