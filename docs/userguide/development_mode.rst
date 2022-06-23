@@ -1,5 +1,5 @@
-"Development Mode"
-==================
+Development Mode
+================
 
 Under normal circumstances, the ``setuptools`` assume that you are going to
 build a distribution of your project, not use it in its "raw" or "unbuilt"
