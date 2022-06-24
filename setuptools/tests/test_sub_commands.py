@@ -3,9 +3,9 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import Mock
 
-import pkg_resources
 from setuptools import Command
 from setuptools.dist import Distribution
+from setuptools._importlib import metadata
 
 
 BASE_DIST_EXAMPLE = {
@@ -86,7 +86,7 @@ def test_custom_build_sub_commands(monkeypatch, tmp_path):
 
 @contextmanager
 def replace_entry_points(monkeypatch, replaced_group, values):
-    """Replace an specific entry-point group in pkg_resources"""
+    """Replace an specific entry-point group in importlib.metadata"""
     eps = []
     for name, cls in values.items():
         ep = Mock()
@@ -94,13 +94,14 @@ def replace_entry_points(monkeypatch, replaced_group, values):
         ep.load = Mock(return_value=cls)
         eps.append(ep)
 
-    orig = pkg_resources.iter_entry_points
+    orig = metadata.entry_points
 
-    def replacement(group, name=None):
+    def replacement(*args, **kwargs):
+        group = kwargs.get("group", None)
         if group == replaced_group:
             return iter(eps)
-        return orig(group, name)
+        return orig(*args, **kwargs)
 
     with monkeypatch.context() as m:
-        m.setattr(pkg_resources, "iter_entry_points", replacement)
+        m.setattr(metadata, "entry_points", replacement)
         yield
