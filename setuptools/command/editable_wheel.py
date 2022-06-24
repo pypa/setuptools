@@ -212,8 +212,6 @@ class editable_wheel(Command):
         if wheel_path.exists():
             wheel_path.unlink()
 
-        # Currently the wheel API receives a directory and dump all its contents
-        # inside of a wheel. So let's use a temporary directory.
         unpacked_wheel = TemporaryDirectory(suffix=archive_name)
         build_lib = TemporaryDirectory(suffix=".build-lib")
         build_tmp = TemporaryDirectory(suffix=".build-temp")
@@ -223,10 +221,9 @@ class editable_wheel(Command):
             shutil.copytree(self.dist_info_dir, unpacked_dist_info)
             self._install_namespaces(unpacked, dist_info.name)
             files, mapping = self._run_build_commands(dist_name, unpacked, lib, tmp)
-            with WheelFile(wheel_path, "w") as wf:
-                self._populate_wheel(
-                    wf, dist_info.name, tag, unpacked, lib, tmp, files, mapping
-                )
+            strategy = self._select_strategy(dist_name, tag, lib, files, mapping)
+            with strategy, WheelFile(wheel_path, "w") as wf:
+                strategy(wf)
                 wf.write_files(unpacked)
 
         return wheel_path
@@ -237,14 +234,11 @@ class editable_wheel(Command):
             _logger.info(f"Installing {category} as non editable")
             self.run_command(f"install_{category}")
 
-    def _populate_wheel(
+    def _select_strategy(
         self,
-        wheel: "WheelFile",
         name: str,
         tag: str,
-        unpacked_dir: Path,
         build_lib: _Path,
-        tmp: _Path,
         outputs: List[str],
         output_mapping: Dict[str, str],
     ):
@@ -253,57 +247,25 @@ class editable_wheel(Command):
         project_dir = Path(self.project_dir)
 
         if self.strict or os.getenv("SETUPTOOLS_EDITABLE", None) == "strict":
-            return self._populate_link_tree(
-                name, build_name, wheel, build_lib, outputs, output_mapping
+            auxiliary_dir = _empty_dir(Path(self.project_dir, "build", build_name))
+            return _LinkTree(
+                self.distribution,
+                name,
+                auxiliary_dir,
+                build_lib,
+                outputs,
+                output_mapping,
             )
-
-        # Build extensions in-place
-        self.reinitialize_command("build_ext", inplace=1)
-        self.run_command("build_ext")
 
         packages = _find_packages(self.distribution)
         has_simple_layout = _simple_layout(packages, self.package_dir, project_dir)
         if set(self.package_dir) == {""} and has_simple_layout:
             # src-layout(ish) is relatively safe for a simple pth file
-            return self._populate_static_pth(name, project_dir, wheel)
+            src_dir = self.package_dir[""]
+            return _StaticPth(self.distribution, name, [Path(project_dir, src_dir)])
 
         # Use a MetaPathFinder to avoid adding accidental top-level packages/modules
-        self._populate_finder(name, wheel)
-
-    def _populate_link_tree(
-        self,
-        name: str,
-        build_name: str,
-        wheel: "WheelFile",
-        build_lib: _Path,
-        outputs: List[str],
-        output_mapping: Dict[str, str],
-    ):
-        """Populate wheel using the "strict" ``link tree`` strategy."""
-        auxiliary_dir = _empty_dir(Path(self.project_dir, "build", build_name))
-        populate = _LinkTree(
-            self.distribution,
-            name,
-            auxiliary_dir,
-            build_lib,
-            outputs,
-            output_mapping,
-        )
-        with populate:
-            populate(wheel)
-
-    def _populate_static_pth(self, name: str, project_dir: Path, wheel: "WheelFile"):
-        """Populate wheel using the "lax" ``.pth`` file strategy, for ``src-layout``."""
-        src_dir = self.package_dir[""]
-        populate = _StaticPth(self.distribution, name, [Path(project_dir, src_dir)])
-        with populate:
-            populate(wheel)
-
-    def _populate_finder(self, name: str, wheel: "WheelFile"):
-        """Populate wheel using the "lax" MetaPathFinder strategy."""
-        populate = _TopLevelFinder(self.distribution, name)
-        with populate:
-            populate(wheel)
+        return _TopLevelFinder(self.distribution, name)
 
 
 class _StaticPth:
