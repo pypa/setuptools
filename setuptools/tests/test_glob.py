@@ -1,8 +1,7 @@
 import pytest
+from jaraco import path
 
 from setuptools.glob import glob
-
-from .files import build_files
 
 
 @pytest.mark.parametrize('tree, pattern, matches', (
@@ -31,5 +30,5 @@ from .files import build_files
 ))
 def test_glob(monkeypatch, tmpdir, tree, pattern, matches):
     monkeypatch.chdir(tmpdir)
-    build_files({name: '' for name in tree.split()})
+    path.build({name: '' for name in tree.split()})
     assert list(sorted(glob(pattern))) == list(sorted(matches))

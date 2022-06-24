@@ -13,7 +13,7 @@ from . import contexts
 SETUP_PY = """\
 from setuptools import setup
 
-setup(name='foo', py_modules=['hi'])
+setup(py_modules=['hi'])
 """
 
 
@@ -42,7 +42,7 @@ class Test:
 
         # let's see if we got our egg link at the right place
         [content] = os.listdir('dist')
-        assert re.match(r'foo-0.0.0-py[23].\d.egg$', content)
+        assert re.match(r'foo-0.0.0-py[23].\d+.egg$', content)
 
     @pytest.mark.xfail(
         os.environ.get('PYTHONDONTWRITEBYTECODE'),
@@ -52,7 +52,6 @@ class Test:
         dist = Distribution(dict(
             script_name='setup.py',
             script_args=['bdist_egg', '--exclude-source-files'],
-            name='foo',
             py_modules=['hi'],
         ))
         with contexts.quiet():

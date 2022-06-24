@@ -1,0 +1,12 @@
+contact_links:
+- name: 🤔 Have questions or need support?
+  url: https://github.com/pypa/setuptools/discussions
+  about: This is a place for the community to exchange ideas and recipes
+- name: 💬 Discourse
+  url: https://discuss.python.org/c/packaging
+  about: |
+    Please ask typical Q&A here: general ideas for Python packaging,
+    questions about structuring projects and so on
+- name: 💬 Discord (chat)
+  url: https://discord.com/invite/pypa
+  about: Chat with devs

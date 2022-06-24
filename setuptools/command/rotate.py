@@ -4,8 +4,6 @@ from distutils.errors import DistutilsOptionError
 import os
 import shutil
 
-from setuptools.extern import six
-
 from setuptools import Command
 
 
@@ -36,9 +34,9 @@ class rotate(Command):
             raise DistutilsOptionError("Must specify number of files to keep")
         try:
             self.keep = int(self.keep)
-        except ValueError:
-            raise DistutilsOptionError("--keep must be an integer")
-        if isinstance(self.match, six.string_types):
+        except ValueError as e:
+            raise DistutilsOptionError("--keep must be an integer") from e
+        if isinstance(self.match, str):
             self.match = [
                 convert_path(p.strip()) for p in self.match.split(',')
             ]

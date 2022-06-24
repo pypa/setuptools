@@ -1,8 +1,37 @@
 import os
 import sys
+import subprocess
 import unicodedata
-
 from subprocess import Popen as _Popen, PIPE as _PIPE
+
+import jaraco.envs
+
+
+class VirtualEnv(jaraco.envs.VirtualEnv):
+    name = '.env'
+    # Some version of PyPy will import distutils on startup, implicitly
+    # importing setuptools, and thus leading to BackendInvalid errors
+    # when upgrading Setuptools. Bypass this behavior by avoiding the
+    # early availability and need to upgrade.
+    create_opts = ['--no-setuptools']
+
+    def run(self, cmd, *args, **kwargs):
+        cmd = [self.exe(cmd[0])] + cmd[1:]
+        kwargs = {"cwd": self.root, **kwargs}  # Allow overriding
+        # In some environments (eg. downstream distro packaging), where:
+        # - tox isn't used to run tests and
+        # - PYTHONPATH is set to point to a specific setuptools codebase and
+        # - no custom env is explicitly set by a test
+        # PYTHONPATH will leak into the spawned processes.
+        # In that case tests look for module in the wrong place (on PYTHONPATH).
+        # Unless the test sets its own special env, pass a copy of the existing
+        # environment with removed PYTHONPATH to the subprocesses.
+        if "env" not in kwargs:
+            env = dict(os.environ)
+            if "PYTHONPATH" in env:
+                del env["PYTHONPATH"]
+            kwargs["env"] = env
+        return subprocess.check_output(cmd, *args, **kwargs)
 
 
 def _which_dirs(cmd):
@@ -29,7 +58,7 @@ def run_setup_py(cmd, pypath=None, path=None,
     if pypath is not None:
         env["PYTHONPATH"] = pypath
 
-    # overide the execution path if needed
+    # override the execution path if needed
     if path is not None:
         env["PATH"] = path
     if not env.get("PATH", ""):
@@ -46,6 +75,8 @@ def run_setup_py(cmd, pypath=None, path=None,
             cmd, stdout=_PIPE, stderr=_PIPE, shell=shell, env=env,
         )
 
+        if isinstance(data_stream, tuple):
+            data_stream = slice(*data_stream)
         data = proc.communicate()[data_stream]
     except OSError:
         return 1, ''

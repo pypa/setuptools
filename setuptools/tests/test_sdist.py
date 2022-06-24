@@ -1,26 +1,22 @@
-# -*- coding: utf-8 -*-
 """sdist tests"""
 
 import os
-import shutil
 import sys
 import tempfile
 import unicodedata
 import contextlib
 import io
-
-from setuptools.extern import six
-from setuptools.extern.six.moves import map
+from unittest import mock
 
 import pytest
 
-import pkg_resources
+from setuptools._importlib import metadata
+from setuptools import SetuptoolsDeprecationWarning
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.tests import fail_on_ascii
 from .text import Filenames
-from . import py3_only
 
 
 SETUP_ATTRS = {
@@ -41,7 +37,7 @@ setup(**%r)
 @contextlib.contextmanager
 def quiet():
     old_stdout, old_stderr = sys.stdout, sys.stderr
-    sys.stdout, sys.stderr = six.StringIO(), six.StringIO()
+    sys.stdout, sys.stderr = io.StringIO(), io.StringIO()
     try:
         yield
     finally:
@@ -50,7 +46,7 @@ def quiet():
 
 # Convert to POSIX path
 def posix(path):
-    if six.PY3 and not isinstance(path, str):
+    if not isinstance(path, str):
         return path.replace(os.sep.encode('ascii'), b'/')
     else:
         return path.replace(os.sep, '/')
@@ -58,7 +54,7 @@ def posix(path):
 
 # HFS Plus uses decomposed UTF-8
 def decompose(path):
-    if isinstance(path, six.text_type):
+    if isinstance(path, str):
         return unicodedata.normalize('NFD', path)
     try:
         path = path.decode('utf-8')
@@ -89,30 +85,35 @@ fail_on_latin1_encoded_filenames = pytest.mark.xfail(
 )
 
 
+def touch(path):
+    path.write_text('', encoding='utf-8')
+
+
 class TestSdistTest:
-    def setup_method(self, method):
-        self.temp_dir = tempfile.mkdtemp()
-        with open(os.path.join(self.temp_dir, 'setup.py'), 'w') as f:
-            f.write(SETUP_PY)
+    @pytest.fixture(autouse=True)
+    def source_dir(self, tmpdir):
+        (tmpdir / 'setup.py').write_text(SETUP_PY, encoding='utf-8')
 
         # Set up the rest of the test package
-        test_pkg = os.path.join(self.temp_dir, 'sdist_test')
-        os.mkdir(test_pkg)
-        data_folder = os.path.join(self.temp_dir, "d")
-        os.mkdir(data_folder)
+        test_pkg = tmpdir / 'sdist_test'
+        test_pkg.mkdir()
+        data_folder = tmpdir / 'd'
+        data_folder.mkdir()
         # *.rst was not included in package_data, so c.rst should not be
         # automatically added to the manifest when not under version control
-        for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst',
-                      os.path.join(data_folder, "e.dat")]:
-            # Just touch the files; their contents are irrelevant
-            open(os.path.join(test_pkg, fname), 'w').close()
+        for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst']:
+            touch(test_pkg / fname)
+        touch(data_folder / 'e.dat')
 
-        self.old_cwd = os.getcwd()
-        os.chdir(self.temp_dir)
+        with tmpdir.as_cwd():
+            yield
 
-    def teardown_method(self, method):
-        os.chdir(self.old_cwd)
-        shutil.rmtree(self.temp_dir)
+    def assert_package_data_in_manifest(self, cmd):
+        manifest = cmd.filelist.files
+        assert os.path.join('sdist_test', 'a.txt') in manifest
+        assert os.path.join('sdist_test', 'b.txt') in manifest
+        assert os.path.join('sdist_test', 'c.rst') not in manifest
+        assert os.path.join('d', 'e.dat') in manifest
 
     def test_package_data_in_sdist(self):
         """Regression test for pull request #4: ensures that files listed in
@@ -128,11 +129,63 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        manifest = cmd.filelist.files
-        assert os.path.join('sdist_test', 'a.txt') in manifest
-        assert os.path.join('sdist_test', 'b.txt') in manifest
-        assert os.path.join('sdist_test', 'c.rst') not in manifest
-        assert os.path.join('d', 'e.dat') in manifest
+        self.assert_package_data_in_manifest(cmd)
+
+    def test_package_data_and_include_package_data_in_sdist(self):
+        """
+        Ensure package_data and include_package_data work
+        together.
+        """
+        setup_attrs = {**SETUP_ATTRS, 'include_package_data': True}
+        assert setup_attrs['package_data']
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        self.assert_package_data_in_manifest(cmd)
+
+    def test_custom_build_py(self):
+        """
+        Ensure projects defining custom build_py don't break
+        when creating sdists (issue #2849)
+        """
+        from distutils.command.build_py import build_py as OrigBuildPy
+
+        using_custom_command_guard = mock.Mock()
+
+        class CustomBuildPy(OrigBuildPy):
+            """
+            Some projects have custom commands inheriting from `distutils`
+            """
+
+            def get_data_files(self):
+                using_custom_command_guard()
+                return super().get_data_files()
+
+        setup_attrs = {**SETUP_ATTRS, 'include_package_data': True}
+        assert setup_attrs['package_data']
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        # Make sure we use the custom command
+        cmd.cmdclass = {'build_py': CustomBuildPy}
+        cmd.distribution.cmdclass = {'build_py': CustomBuildPy}
+        assert cmd.distribution.get_command_class('build_py') == CustomBuildPy
+
+        msg = "setuptools instead of distutils"
+        with quiet(), pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+            cmd.run()
+
+        using_custom_command_guard.assert_called()
+        self.assert_package_data_in_manifest(cmd)
 
     def test_setup_py_exists(self):
         dist = Distribution(SETUP_ATTRS)
@@ -175,14 +228,14 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert 'setup.py' not in manifest
 
-    def test_defaults_case_sensitivity(self):
+    def test_defaults_case_sensitivity(self, tmpdir):
         """
         Make sure default files (README.*, etc.) are added in a case-sensitive
         way to avoid problems with packages built on Windows.
         """
 
-        open(os.path.join(self.temp_dir, 'readme.rst'), 'w').close()
-        open(os.path.join(self.temp_dir, 'SETUP.cfg'), 'w').close()
+        touch(tmpdir / 'readme.rst')
+        touch(tmpdir / 'SETUP.cfg')
 
         dist = Distribution(SETUP_ATTRS)
         # the extension deliberately capitalized for this test
@@ -230,13 +283,8 @@ class TestSdistTest:
         u_contents = contents.decode('UTF-8')
 
         # The manifest should contain the UTF-8 filename
-        if six.PY2:
-            fs_enc = sys.getfilesystemencoding()
-            filename = filename.decode(fs_enc)
-
         assert posix(filename) in u_contents
 
-    @py3_only
     @fail_on_ascii
     def test_write_manifest_allows_utf8_filenames(self):
         # Test for #303.
@@ -270,7 +318,6 @@ class TestSdistTest:
         # The filelist should have been updated as well
         assert u_filename in mm.filelist.files
 
-    @py3_only
     def test_write_manifest_skips_non_utf8_filenames(self):
         """
         Files that cannot be encoded to UTF-8 (specifically, those that
@@ -334,11 +381,9 @@ class TestSdistTest:
             cmd.read_manifest()
 
         # The filelist should contain the UTF-8 filename
-        if six.PY3:
-            filename = filename.decode('utf-8')
+        filename = filename.decode('utf-8')
         assert filename in cmd.filelist.files
 
-    @py3_only
     @fail_on_latin1_encoded_filenames
     def test_read_manifest_skips_non_utf8_filenames(self):
         # Test for #303.
@@ -374,7 +419,7 @@ class TestSdistTest:
     @fail_on_latin1_encoded_filenames
     def test_sdist_with_utf8_encoded_filename(self):
         # Test for #303.
-        dist = Distribution(SETUP_ATTRS)
+        dist = Distribution(self.make_strings(SETUP_ATTRS))
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
@@ -388,27 +433,33 @@ class TestSdistTest:
         if sys.platform == 'darwin':
             filename = decompose(filename)
 
-        if six.PY3:
-            fs_enc = sys.getfilesystemencoding()
+        fs_enc = sys.getfilesystemencoding()
 
-            if sys.platform == 'win32':
-                if fs_enc == 'cp1252':
-                    # Python 3 mangles the UTF-8 filename
-                    filename = filename.decode('cp1252')
-                    assert filename in cmd.filelist.files
-                else:
-                    filename = filename.decode('mbcs')
-                    assert filename in cmd.filelist.files
+        if sys.platform == 'win32':
+            if fs_enc == 'cp1252':
+                # Python mangles the UTF-8 filename
+                filename = filename.decode('cp1252')
+                assert filename in cmd.filelist.files
             else:
-                filename = filename.decode('utf-8')
+                filename = filename.decode('mbcs')
                 assert filename in cmd.filelist.files
         else:
+            filename = filename.decode('utf-8')
             assert filename in cmd.filelist.files
+
+    @classmethod
+    def make_strings(cls, item):
+        if isinstance(item, dict):
+            return {
+                key: cls.make_strings(value) for key, value in item.items()}
+        if isinstance(item, list):
+            return list(map(cls.make_strings, item))
+        return str(item)
 
     @fail_on_latin1_encoded_filenames
     def test_sdist_with_latin1_encoded_filename(self):
         # Test for #303.
-        dist = Distribution(SETUP_ATTRS)
+        dist = Distribution(self.make_strings(SETUP_ATTRS))
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
         cmd.ensure_finalized()
@@ -421,33 +472,50 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        if six.PY3:
-            # not all windows systems have a default FS encoding of cp1252
-            if sys.platform == 'win32':
-                # Latin-1 is similar to Windows-1252 however
-                # on mbcs filesys it is not in latin-1 encoding
-                fs_enc = sys.getfilesystemencoding()
-                if fs_enc != 'mbcs':
-                    fs_enc = 'latin-1'
-                filename = filename.decode(fs_enc)
+        # not all windows systems have a default FS encoding of cp1252
+        if sys.platform == 'win32':
+            # Latin-1 is similar to Windows-1252 however
+            # on mbcs filesys it is not in latin-1 encoding
+            fs_enc = sys.getfilesystemencoding()
+            if fs_enc != 'mbcs':
+                fs_enc = 'latin-1'
+            filename = filename.decode(fs_enc)
 
-                assert filename in cmd.filelist.files
-            else:
-                # The Latin-1 filename should have been skipped
-                filename = filename.decode('latin-1')
-                filename not in cmd.filelist.files
+            assert filename in cmd.filelist.files
         else:
-            # Under Python 2 there seems to be no decoded string in the
-            # filelist.  However, due to decode and encoding of the
-            # file name to get utf-8 Manifest the latin1 maybe excluded
-            try:
-                # fs_enc should match how one is expect the decoding to
-                # be proformed for the manifest output.
-                fs_enc = sys.getfilesystemencoding()
-                filename.decode(fs_enc)
-                assert filename in cmd.filelist.files
-            except UnicodeDecodeError:
-                filename not in cmd.filelist.files
+            # The Latin-1 filename should have been skipped
+            filename = filename.decode('latin-1')
+            filename not in cmd.filelist.files
+
+    def test_pyproject_toml_in_sdist(self, tmpdir):
+        """
+        Check if pyproject.toml is included in source distribution if present
+        """
+        touch(tmpdir / 'pyproject.toml')
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+        manifest = cmd.filelist.files
+        assert 'pyproject.toml' in manifest
+
+    def test_pyproject_toml_excluded(self, tmpdir):
+        """
+        Check that pyproject.toml can excluded even if present
+        """
+        touch(tmpdir / 'pyproject.toml')
+        with open('MANIFEST.in', 'w') as mts:
+            print('exclude pyproject.toml', file=mts)
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+        manifest = cmd.filelist.files
+        assert 'pyproject.toml' not in manifest
 
 
 def test_default_revctrl():
@@ -461,7 +529,9 @@ def test_default_revctrl():
     This interface must be maintained until Ubuntu 12.04 is no longer
     supported (by Setuptools).
     """
-    ep_def = 'svn_cvs = setuptools.command.sdist:_default_revctrl'
-    ep = pkg_resources.EntryPoint.parse(ep_def)
-    res = ep.resolve()
+    ep, = metadata.EntryPoints._from_text("""
+        [setuptools.file_finders]
+        svn_cvs = setuptools.command.sdist:_default_revctrl
+        """)
+    res = ep.load()
     assert hasattr(res, '__iter__')

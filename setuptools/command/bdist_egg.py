@@ -2,7 +2,6 @@
 
 Build .egg distributions"""
 
-from distutils.errors import DistutilsSetupError
 from distutils.dir_util import remove_tree, mkpath
 from distutils import log
 from types import CodeType
@@ -12,24 +11,16 @@ import re
 import textwrap
 import marshal
 
-from setuptools.extern import six
-
-from pkg_resources import get_build_platform, Distribution, ensure_directory
-from pkg_resources import EntryPoint
+from pkg_resources import get_build_platform, Distribution
 from setuptools.extension import Library
 from setuptools import Command
+from .._path import ensure_directory
 
-try:
-    # Python 2.7 or >=3.2
-    from sysconfig import get_path, get_python_version
+from sysconfig import get_path, get_python_version
 
-    def _get_purelib():
-        return get_path("purelib")
-except ImportError:
-    from distutils.sysconfig import get_python_lib, get_python_version
 
-    def _get_purelib():
-        return get_python_lib(False)
+def _get_purelib():
+    return get_path("purelib")
 
 
 def strip_module(filename):
@@ -54,10 +45,12 @@ def write_stub(resource, pyfile):
     _stub_template = textwrap.dedent("""
         def __bootstrap__():
             global __bootstrap__, __loader__, __file__
-            import sys, pkg_resources, imp
+            import sys, pkg_resources, importlib.util
             __file__ = pkg_resources.resource_filename(__name__, %r)
             __loader__ = None; del __bootstrap__, __loader__
-            imp.load_dynamic(__name__,__file__)
+            spec = importlib.util.spec_from_file_location(__name__,__file__)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
         __bootstrap__()
         """).lstrip()
     with open(pyfile, 'w') as f:
@@ -158,7 +151,7 @@ class bdist_egg(Command):
         self.run_command(cmdname)
         return cmd
 
-    def run(self):
+    def run(self):  # noqa: C901  # is too complex (14)  # FIXME
         # Generate metadata first
         self.run_command("egg_info")
         # We run install_lib before install_data, because some data hacks
@@ -273,43 +266,7 @@ class bdist_egg(Command):
         return analyze_egg(self.bdist_dir, self.stubs)
 
     def gen_header(self):
-        epm = EntryPoint.parse_map(self.distribution.entry_points or '')
-        ep = epm.get('setuptools.installation', {}).get('eggsecutable')
-        if ep is None:
-            return 'w'  # not an eggsecutable, do it the usual way.
-
-        if not ep.attrs or ep.extras:
-            raise DistutilsSetupError(
-                "eggsecutable entry point (%r) cannot have 'extras' "
-                "or refer to a module" % (ep,)
-            )
-
-        pyver = sys.version[:3]
-        pkg = ep.module_name
-        full = '.'.join(ep.attrs)
-        base = ep.attrs[0]
-        basename = os.path.basename(self.egg_output)
-
-        header = (
-            "#!/bin/sh\n"
-            'if [ `basename $0` = "%(basename)s" ]\n'
-            'then exec python%(pyver)s -c "'
-            "import sys, os; sys.path.insert(0, os.path.abspath('$0')); "
-            "from %(pkg)s import %(base)s; sys.exit(%(full)s())"
-            '" "$@"\n'
-            'else\n'
-            '  echo $0 is not the correct name for this egg file.\n'
-            '  echo Please rename it back to %(basename)s and try again.\n'
-            '  exec false\n'
-            'fi\n'
-        ) % locals()
-
-        if not self.dry_run:
-            mkpath(os.path.dirname(self.egg_output), dry_run=self.dry_run)
-            f = open(self.egg_output, 'w')
-            f.write(header)
-            f.close()
-        return 'a'
+        return 'w'
 
     def copy_metadata_to(self, target_dir):
         "Copy metadata (egg info) to the target_dir"
@@ -411,9 +368,7 @@ def scan_module(egg_dir, base, name, stubs):
         return True  # Extension module
     pkg = base[len(egg_dir) + 1:].replace(os.sep, '.')
     module = pkg + (pkg and '.' or '') + os.path.splitext(name)[0]
-    if six.PY2:
-        skip = 8  # skip magic & date
-    elif sys.version_info < (3, 7):
+    if sys.version_info < (3, 7):
         skip = 12  # skip magic & date & file size
     else:
         skip = 16  # skip magic & reserved? & date & file size
@@ -444,7 +399,7 @@ def iter_symbols(code):
     for name in code.co_names:
         yield name
     for const in code.co_consts:
-        if isinstance(const, six.string_types):
+        if isinstance(const, str):
             yield const
         elif isinstance(const, CodeType):
             for name in iter_symbols(const):

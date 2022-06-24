@@ -49,7 +49,8 @@ def mock_reg(hkcu=None, hklm=None):
             for k in hive if k.startswith(key.lower())
         )
 
-    return mock.patch.multiple(distutils.msvc9compiler.Reg,
+    return mock.patch.multiple(
+        distutils.msvc9compiler.Reg,
         read_keys=read_keys, read_values=read_values)
 
 
@@ -61,7 +62,7 @@ class TestModulePatch:
     """
 
     key_32 = r'software\microsoft\devdiv\vcforpython\9.0\installdir'
-    key_64 = r'software\wow6432node\microsoft\devdiv\vcforpython\9.0\installdir'
+    key_64 = key_32.replace(r'\microsoft', r'\wow6432node\microsoft')
 
     def test_patched(self):
         "Test the module is actually patched"
@@ -87,7 +88,7 @@ class TestModulePatch:
                     assert isinstance(exc, expected)
                     assert 'aka.ms/vcpython27' in str(exc)
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def user_preferred_setting(self):
         """
         Set up environment with different install dirs for user vs. system
@@ -115,7 +116,7 @@ class TestModulePatch:
         expected = os.path.join(user_preferred_setting, 'vcvarsall.bat')
         assert expected == result
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def local_machine_setting(self):
         """
         Set up environment with only the system environment configured.
@@ -137,7 +138,7 @@ class TestModulePatch:
         expected = os.path.join(local_machine_setting, 'vcvarsall.bat')
         assert expected == result
 
-    @pytest.yield_fixture
+    @pytest.fixture
     def x64_preferred_setting(self):
         """
         Set up environment with 64-bit and 32-bit system settings configured

@@ -1,10 +1,12 @@
 import sys
-import imp
 import marshal
-from distutils.version import StrictVersion
-from imp import PKG_DIRECTORY, PY_COMPILED, PY_SOURCE, PY_FROZEN
+import contextlib
+import dis
 
-from .py33compat import Bytecode
+from setuptools.extern.packaging import version
+
+from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
+from . import _imp
 
 
 __all__ = [
@@ -15,11 +17,12 @@ __all__ = [
 class Require:
     """A prerequisite to building or installing a distribution"""
 
-    def __init__(self, name, requested_version, module, homepage='',
+    def __init__(
+            self, name, requested_version, module, homepage='',
             attribute=None, format=None):
 
         if format is None and requested_version is not None:
-            format = StrictVersion
+            format = version.Version
 
         if format is not None:
             requested_version = format(requested_version)
@@ -38,7 +41,7 @@ class Require:
     def version_ok(self, version):
         """Is 'version' sufficiently up-to-date?"""
         return self.attribute is None or self.format is None or \
-            str(version) != "unknown" and version >= self.requested_version
+            str(version) != "unknown" and self.format(version) >= self.requested_version
 
     def get_version(self, paths=None, default="unknown"):
         """Get version number of installed module, 'None', or 'default'
@@ -76,26 +79,18 @@ class Require:
         version = self.get_version(paths)
         if version is None:
             return False
-        return self.version_ok(version)
+        return self.version_ok(str(version))
 
 
-def find_module(module, paths=None):
-    """Just like 'imp.find_module()', but with package support"""
+def maybe_close(f):
+    @contextlib.contextmanager
+    def empty():
+        yield
+        return
+    if not f:
+        return empty()
 
-    parts = module.split('.')
-
-    while parts:
-        part = parts.pop(0)
-        f, path, (suffix, mode, kind) = info = imp.find_module(part, paths)
-
-        if kind == PKG_DIRECTORY:
-            parts = parts or ['__init__']
-            paths = [path]
-
-        elif parts:
-            raise ImportError("Can't find %r in %s" % (parts, module))
-
-    return info
+    return contextlib.closing(f)
 
 
 def get_module_constant(module, symbol, default=-1, paths=None):
@@ -106,28 +101,23 @@ def get_module_constant(module, symbol, default=-1, paths=None):
     constant.  Otherwise, return 'default'."""
 
     try:
-        f, path, (suffix, mode, kind) = find_module(module, paths)
+        f, path, (suffix, mode, kind) = info = find_module(module, paths)
     except ImportError:
         # Module doesn't exist
         return None
 
-    try:
+    with maybe_close(f):
         if kind == PY_COMPILED:
             f.read(8)  # skip magic & date
             code = marshal.load(f)
         elif kind == PY_FROZEN:
-            code = imp.get_frozen_object(module)
+            code = _imp.get_frozen_object(module, paths)
         elif kind == PY_SOURCE:
             code = compile(f.read(), path, 'exec')
         else:
             # Not something we can parse; we'll have to import it.  :(
-            if module not in sys.modules:
-                imp.load_module(module, f, path, (suffix, mode, kind))
-            return getattr(sys.modules[module], symbol, None)
-
-    finally:
-        if f:
-            f.close()
+            imported = _imp.get_module(module, paths, info)
+            return getattr(imported, symbol, None)
 
     return extract_constant(code, symbol, default)
 
@@ -156,7 +146,7 @@ def extract_constant(code, symbol, default=-1):
 
     const = default
 
-    for byte_code in Bytecode(code):
+    for byte_code in dis.Bytecode(code):
         op = byte_code.opcode
         arg = byte_code.arg
 

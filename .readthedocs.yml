@@ -1,4 +1,6 @@
+version: 2
 python:
-  version: 3
-  requirements_file: docs/requirements.txt
-  pip_install: false
+  install:
+  - path: .
+    extra_requirements:
+      - docs

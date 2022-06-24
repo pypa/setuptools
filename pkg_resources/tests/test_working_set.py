@@ -9,13 +9,11 @@ import pkg_resources
 
 from .test_resources import Metadata
 
-__metaclass__ = type
-
 
 def strip_comments(s):
     return '\n'.join(
-        l for l in s.split('\n')
-        if l.strip() and not l.strip().startswith('#')
+        line for line in s.split('\n')
+        if line.strip() and not line.strip().startswith('#')
     )
 
 
@@ -44,7 +42,7 @@ def parse_distributions(s):
             continue
         fields = spec.split('\n', 1)
         assert 1 <= len(fields) <= 2
-        name, version = fields.pop(0).split('-')
+        name, version = fields.pop(0).rsplit('-', 1)
         if fields:
             requires = textwrap.dedent(fields.pop(0))
             metadata = Metadata(('requires.txt', requires))
@@ -466,6 +464,25 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     VersionConflict
+    ''',
+
+    '''
+    # id
+    wanted_normalized_name_installed_canonical
+
+    # installed
+    foo.bar-3.6
+
+    # installable
+
+    # wanted
+    foo-bar==3.6
+
+    # resolved
+    foo.bar-3.6
+
+    # resolved [replace conflicting]
+    foo.bar-3.6
     ''',
 )
 def test_working_set_resolve(installed_dists, installable_dists, requirements,

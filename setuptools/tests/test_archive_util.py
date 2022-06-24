@@ -3,8 +3,6 @@
 import tarfile
 import io
 
-from setuptools.extern import six
-
 import pytest
 
 from setuptools import archive_util
@@ -22,8 +20,6 @@ def tarfile_with_unicode(tmpdir):
         data = b""
 
         filename = "testimäge.png"
-        if six.PY2:
-            filename = filename.decode('utf-8')
 
         t = tarfile.TarInfo(filename)
         t.size = len(data)
@@ -39,4 +35,4 @@ def tarfile_with_unicode(tmpdir):
 @pytest.mark.xfail(reason="#710 and #712")
 def test_unicode_files(tarfile_with_unicode, tmpdir):
     target = tmpdir / 'out'
-    archive_util.unpack_archive(tarfile_with_unicode, six.text_type(target))
+    archive_util.unpack_archive(tarfile_with_unicode, str(target))

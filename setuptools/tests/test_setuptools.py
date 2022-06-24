@@ -4,19 +4,24 @@ import sys
 import os
 import distutils.core
 import distutils.cmd
-from distutils.errors import DistutilsOptionError, DistutilsPlatformError
+from distutils.errors import DistutilsOptionError
 from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
-from distutils.version import LooseVersion
+from zipfile import ZipFile
 
 import pytest
+
+from setuptools.extern.packaging import version
 
 import setuptools
 import setuptools.dist
 import setuptools.depends as dep
-from setuptools import Feature
 from setuptools.depends import Require
-from setuptools.extern import six
+
+
+@pytest.fixture(autouse=True)
+def isolated_dir(tmpdir_cwd):
+    yield
 
 
 def makeSetup(**args):
@@ -50,7 +55,7 @@ class TestDepends:
             x = "test"
             y = z
 
-        fc = six.get_function_code(f1)
+        fc = f1.__code__
 
         # unrecognized name
         assert dep.extract_constant(fc, 'q', -1) is None
@@ -77,7 +82,8 @@ class TestDepends:
         from json import __version__
         assert dep.get_module_constant('json', '__version__') == __version__
         assert dep.get_module_constant('sys', 'version') == sys.version
-        assert dep.get_module_constant('setuptools.tests.test_setuptools', '__doc__') == __doc__
+        assert dep.get_module_constant(
+            'setuptools.tests.test_setuptools', '__doc__') == __doc__
 
     @needs_bytecode
     def testRequire(self):
@@ -85,12 +91,12 @@ class TestDepends:
 
         assert req.name == 'Json'
         assert req.module == 'json'
-        assert req.requested_version == '1.0.3'
+        assert req.requested_version == version.Version('1.0.3')
         assert req.attribute == '__version__'
         assert req.full_name() == 'Json-1.0.3'
 
         from json import __version__
-        assert req.get_version() == __version__
+        assert str(req.get_version()) == __version__
         assert req.version_ok('1.0.9')
         assert not req.version_ok('0.9.1')
         assert not req.version_ok('unknown')
@@ -98,15 +104,15 @@ class TestDepends:
         assert req.is_present()
         assert req.is_current()
 
-        req = Require('Json 3000', '03000', 'json', format=LooseVersion)
-        assert req.is_present()
-        assert not req.is_current()
-        assert not req.version_ok('unknown')
-
         req = Require('Do-what-I-mean', '1.0', 'd-w-i-m')
         assert not req.is_present()
         assert not req.is_current()
 
+    @needs_bytecode
+    def test_require_present(self):
+        # In #1896, this test was failing for months with the only
+        # complaint coming from test runners (not end users).
+        # TODO: Evaluate if this code is needed at all.
         req = Require('Tests', None, 'tests', homepage="http://example.com")
         assert req.format is None
         assert req.attribute is None
@@ -210,84 +216,6 @@ class TestDistro:
             self.dist.exclude(package_dir=['q'])
 
 
-@pytest.mark.filterwarnings('ignore:Features are deprecated')
-class TestFeatures:
-    def setup_method(self, method):
-        self.req = Require('Distutils', '1.0.3', 'distutils')
-        self.dist = makeSetup(
-            features={
-                'foo': Feature("foo", standard=True, require_features=['baz', self.req]),
-                'bar': Feature("bar", standard=True, packages=['pkg.bar'],
-                               py_modules=['bar_et'], remove=['bar.ext'],
-                               ),
-                'baz': Feature(
-                        "baz", optional=False, packages=['pkg.baz'],
-                        scripts=['scripts/baz_it'],
-                        libraries=[('libfoo', 'foo/foofoo.c')]
-                       ),
-                'dwim': Feature("DWIM", available=False, remove='bazish'),
-            },
-            script_args=['--without-bar', 'install'],
-            packages=['pkg.bar', 'pkg.foo'],
-            py_modules=['bar_et', 'bazish'],
-            ext_modules=[Extension('bar.ext', ['bar.c'])]
-        )
-
-    def testDefaults(self):
-        assert not Feature(
-            "test", standard=True, remove='x', available=False
-        ).include_by_default()
-        assert Feature("test", standard=True, remove='x').include_by_default()
-        # Feature must have either kwargs, removes, or require_features
-        with pytest.raises(DistutilsSetupError):
-            Feature("test")
-
-    def testAvailability(self):
-        with pytest.raises(DistutilsPlatformError):
-            self.dist.features['dwim'].include_in(self.dist)
-
-    def testFeatureOptions(self):
-        dist = self.dist
-        assert (
-            ('with-dwim', None, 'include DWIM') in dist.feature_options
-        )
-        assert (
-            ('without-dwim', None, 'exclude DWIM (default)') in dist.feature_options
-        )
-        assert (
-            ('with-bar', None, 'include bar (default)') in dist.feature_options
-        )
-        assert (
-            ('without-bar', None, 'exclude bar') in dist.feature_options
-        )
-        assert dist.feature_negopt['without-foo'] == 'with-foo'
-        assert dist.feature_negopt['without-bar'] == 'with-bar'
-        assert dist.feature_negopt['without-dwim'] == 'with-dwim'
-        assert ('without-baz' not in dist.feature_negopt)
-
-    def testUseFeatures(self):
-        dist = self.dist
-        assert dist.with_foo == 1
-        assert dist.with_bar == 0
-        assert dist.with_baz == 1
-        assert ('bar_et' not in dist.py_modules)
-        assert ('pkg.bar' not in dist.packages)
-        assert ('pkg.baz' in dist.packages)
-        assert ('scripts/baz_it' in dist.scripts)
-        assert (('libfoo', 'foo/foofoo.c') in dist.libraries)
-        assert dist.ext_modules == []
-        assert dist.require_features == [self.req]
-
-        # If we ask for bar, it should fail because we explicitly disabled
-        # it on the command line
-        with pytest.raises(DistutilsOptionError):
-            dist.include_feature('bar')
-
-    def testFeatureWithInvalidRemove(self):
-        with pytest.raises(SystemExit):
-            makeSetup(features={'x': Feature('x', remove='y')})
-
-
 class TestCommandTests:
     def testTestIsCommand(self):
         test_cmd = makeSetup().get_command_obj('test')
@@ -367,3 +295,16 @@ def test_findall_missing_symlink(tmpdir, can_symlink):
         os.symlink('foo', 'bar')
         found = list(setuptools.findall())
         assert found == []
+
+
+def test_its_own_wheel_does_not_contain_tests(setuptools_wheel):
+    with ZipFile(setuptools_wheel) as zipfile:
+        contents = [f.replace(os.sep, '/') for f in zipfile.namelist()]
+
+    for member in contents:
+        assert '/tests/' not in member
+
+
+def test_convert_path_deprecated():
+    with pytest.warns(setuptools.SetuptoolsDeprecationWarning):
+        setuptools.convert_path('setuptools/tests')

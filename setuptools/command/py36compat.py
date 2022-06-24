@@ -3,8 +3,6 @@ from glob import glob
 from distutils.util import convert_path
 from distutils.command import sdist
 
-from setuptools.extern.six.moves import filter
-
 
 class sdist_add_defaults:
     """
@@ -132,5 +130,5 @@ class sdist_add_defaults:
 
 if hasattr(sdist.sdist, '_add_defaults_standards'):
     # disable the functionality already available upstream
-    class sdist_add_defaults:
+    class sdist_add_defaults:  # noqa
         pass

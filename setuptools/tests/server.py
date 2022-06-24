@@ -1,13 +1,15 @@
 """Basic http server for tests to simulate PyPI or custom indexes
 """
 
+import os
 import time
 import threading
+import http.server
+import urllib.parse
+import urllib.request
 
-from setuptools.extern.six.moves import BaseHTTPServer, SimpleHTTPServer
 
-
-class IndexServer(BaseHTTPServer.HTTPServer):
+class IndexServer(http.server.HTTPServer):
     """Basic single-threaded http server simulating a package index
 
     You can use this server in unittest like this::
@@ -19,10 +21,11 @@ class IndexServer(BaseHTTPServer.HTTPServer):
         s.stop()
     """
 
-    def __init__(self, server_address=('', 0),
-            RequestHandlerClass=SimpleHTTPServer.SimpleHTTPRequestHandler):
-        BaseHTTPServer.HTTPServer.__init__(self, server_address,
-            RequestHandlerClass)
+    def __init__(
+            self, server_address=('', 0),
+            RequestHandlerClass=http.server.SimpleHTTPRequestHandler):
+        http.server.HTTPServer.__init__(
+            self, server_address, RequestHandlerClass)
         self._run = True
 
     def start(self):
@@ -44,29 +47,44 @@ class IndexServer(BaseHTTPServer.HTTPServer):
         return 'http://127.0.0.1:%s/setuptools/tests/indexes/' % port
 
 
-class RequestRecorder(BaseHTTPServer.BaseHTTPRequestHandler):
+class RequestRecorder(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         requests = vars(self.server).setdefault('requests', [])
         requests.append(self)
         self.send_response(200, 'OK')
 
 
-class MockServer(BaseHTTPServer.HTTPServer, threading.Thread):
+class MockServer(http.server.HTTPServer, threading.Thread):
     """
     A simple HTTP Server that records the requests made to it.
     """
 
-    def __init__(self, server_address=('', 0),
+    def __init__(
+            self, server_address=('', 0),
             RequestHandlerClass=RequestRecorder):
-        BaseHTTPServer.HTTPServer.__init__(self, server_address,
-            RequestHandlerClass)
+        http.server.HTTPServer.__init__(
+            self, server_address, RequestHandlerClass)
         threading.Thread.__init__(self)
-        self.setDaemon(True)
+        self.daemon = True
         self.requests = []
 
     def run(self):
         self.serve_forever()
 
     @property
+    def netloc(self):
+        return 'localhost:%s' % self.server_port
+
+    @property
     def url(self):
-        return 'http://localhost:%(server_port)s/' % vars(self)
+        return 'http://%s/' % self.netloc
+
+
+def path_to_url(path, authority=None):
+    """ Convert a path to a file: URL. """
+    path = os.path.normpath(os.path.abspath(path))
+    base = 'file:'
+    if authority is not None:
+        base += '//' + authority
+    url = urllib.parse.urljoin(base, urllib.request.pathname2url(path))
+    return url

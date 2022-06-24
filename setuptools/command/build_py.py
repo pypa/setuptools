@@ -1,3 +1,4 @@
+from functools import partial
 from glob import glob
 from distutils.util import convert_path
 import distutils.command.build_py as orig
@@ -7,20 +8,18 @@ import textwrap
 import io
 import distutils.errors
 import itertools
-
-from setuptools.extern import six
-from setuptools.extern.six.moves import map, filter, filterfalse
-
-try:
-    from setuptools.lib2to3_ex import Mixin2to3
-except ImportError:
-
-    class Mixin2to3:
-        def run_2to3(self, files, doctests=True):
-            "do nothing"
+import stat
+import warnings
+from pathlib import Path
+from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+from setuptools.extern.more_itertools import unique_everseen
 
 
-class build_py(orig.build_py, Mixin2to3):
+def make_writable(target):
+    os.chmod(target, os.stat(target).st_mode | stat.S_IWRITE)
+
+
+class build_py(orig.build_py):
     """Enhanced 'build_py' command that includes data files with packages
 
     The data files are specified via a 'package_data' argument to 'setup()'.
@@ -33,12 +32,10 @@ class build_py(orig.build_py, Mixin2to3):
     def finalize_options(self):
         orig.build_py.finalize_options(self)
         self.package_data = self.distribution.package_data
-        self.exclude_package_data = (self.distribution.exclude_package_data or
-                                     {})
+        self.exclude_package_data = self.distribution.exclude_package_data or {}
         if 'data_files' in self.__dict__:
             del self.__dict__['data_files']
         self.__updated_files = []
-        self.__doctests_2to3 = []
 
     def run(self):
         """Build modules, packages, and copy data files to build directory"""
@@ -52,10 +49,6 @@ class build_py(orig.build_py, Mixin2to3):
             self.build_packages()
             self.build_package_data()
 
-        self.run_2to3(self.__updated_files, False)
-        self.run_2to3(self.__updated_files, True)
-        self.run_2to3(self.__doctests_2to3, True)
-
         # Only compile actual .py files, using our base class' idea of what our
         # output files are.
         self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=0))
@@ -68,11 +61,7 @@ class build_py(orig.build_py, Mixin2to3):
         return orig.build_py.__getattr__(self, attr)
 
     def build_module(self, module, module_file, package):
-        if six.PY2 and isinstance(package, six.string_types):
-            # avoid errors on Python 2 when unicode is passed (#190)
-            package = package.split('.')
-        outfile, copied = orig.build_py.build_module(self, module, module_file,
-                                                     package)
+        outfile, copied = orig.build_py.build_module(self, module, module_file, package)
         if copied:
             self.__updated_files.append(outfile)
         return outfile, copied
@@ -80,6 +69,16 @@ class build_py(orig.build_py, Mixin2to3):
     def _get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
         self.analyze_manifest()
+        return list(map(self._get_pkg_data_files, self.packages or ()))
+
+    def get_data_files_without_manifest(self):
+        """
+        Generate list of ``(package,src_dir,build_dir,filenames)`` tuples,
+        but without triggering any attempt to analyze or build the manifest.
+        """
+        # Prevent eventual errors from unset `manifest_files`
+        # (that would otherwise be set by `analyze_manifest`)
+        self.__dict__.setdefault('manifest_files', {})
         return list(map(self._get_pkg_data_files, self.packages or ()))
 
     def _get_pkg_data_files(self, package):
@@ -103,7 +102,7 @@ class build_py(orig.build_py, Mixin2to3):
             package,
             src_dir,
         )
-        globs_expanded = map(glob, patterns)
+        globs_expanded = map(partial(glob, recursive=True), patterns)
         # flatten the expanded globs into an iterable of matches
         globs_matches = itertools.chain.from_iterable(globs_expanded)
         glob_files = filter(os.path.isfile, globs_matches)
@@ -121,10 +120,8 @@ class build_py(orig.build_py, Mixin2to3):
                 self.mkpath(os.path.dirname(target))
                 srcfile = os.path.join(src_dir, filename)
                 outf, copied = self.copy_file(srcfile, target)
+                make_writable(target)
                 srcfile = os.path.abspath(srcfile)
-                if (copied and
-                        srcfile in self.distribution.convert_2to3_doctests):
-                    self.__doctests_2to3.append(outf)
 
     def analyze_manifest(self):
         self.manifest_files = mf = {}
@@ -136,6 +133,7 @@ class build_py(orig.build_py, Mixin2to3):
             src_dirs[assert_relative(self.get_package_dir(package))] = package
 
         self.run_command('egg_info')
+        check = _IncludePackageDataAbuse()
         ei_cmd = self.get_finalized_command('egg_info')
         for path in ei_cmd.filelist.files:
             d, f = os.path.split(assert_relative(path))
@@ -146,8 +144,13 @@ class build_py(orig.build_py, Mixin2to3):
                 d, df = os.path.split(d)
                 f = os.path.join(df, f)
             if d in src_dirs:
-                if path.endswith('.py') and f == oldf:
-                    continue  # it's a module, not data
+                if f == oldf:
+                    if check.is_module(f):
+                        continue  # it's a module, not data
+                else:
+                    importable = check.importable_subpackage(src_dirs[d], f)
+                    if importable:
+                        check.warn(importable)
                 mf.setdefault(src_dirs[d], []).append(path)
 
     def get_data_files(self):
@@ -201,20 +204,13 @@ class build_py(orig.build_py, Mixin2to3):
             package,
             src_dir,
         )
-        match_groups = (
-            fnmatch.filter(files, pattern)
-            for pattern in patterns
-        )
+        match_groups = (fnmatch.filter(files, pattern) for pattern in patterns)
         # flatten the groups of matches into an iterable of matches
         matches = itertools.chain.from_iterable(match_groups)
         bad = set(matches)
-        keepers = (
-            fn
-            for fn in files
-            if fn not in bad
-        )
+        keepers = (fn for fn in files if fn not in bad)
         # ditch dupes
-        return list(_unique_everseen(keepers))
+        return list(unique_everseen(keepers))
 
     @staticmethod
     def _get_platform_patterns(spec, package, src_dir):
@@ -235,36 +231,68 @@ class build_py(orig.build_py, Mixin2to3):
         )
 
 
-# from Python docs
-def _unique_everseen(iterable, key=None):
-    "List unique elements, preserving order. Remember all elements ever seen."
-    # unique_everseen('AAAABBBCCDAABBB') --> A B C D
-    # unique_everseen('ABBCcAD', str.lower) --> A B C D
-    seen = set()
-    seen_add = seen.add
-    if key is None:
-        for element in filterfalse(seen.__contains__, iterable):
-            seen_add(element)
-            yield element
-    else:
-        for element in iterable:
-            k = key(element)
-            if k not in seen:
-                seen_add(k)
-                yield element
-
-
 def assert_relative(path):
     if not os.path.isabs(path):
         return path
     from distutils.errors import DistutilsSetupError
 
-    msg = textwrap.dedent("""
+    msg = (
+        textwrap.dedent(
+            """
         Error: setup script specifies an absolute path:
 
             %s
 
         setup() arguments must *always* be /-separated paths relative to the
         setup.py directory, *never* absolute paths.
-        """).lstrip() % path
+        """
+        ).lstrip()
+        % path
+    )
     raise DistutilsSetupError(msg)
+
+
+class _IncludePackageDataAbuse:
+    """Inform users that package or module is included as 'data file'"""
+
+    MESSAGE = """\
+    Installing {importable!r} as data is deprecated, please list it in `packages`.
+    !!\n\n
+    ############################
+    # Package would be ignored #
+    ############################
+    Python recognizes {importable!r} as an importable package,
+    but it is not listed in the `packages` configuration of setuptools.
+
+    {importable!r} has been automatically added to the distribution only
+    because it may contain data files, but this behavior is likely to change
+    in future versions of setuptools (and therefore is considered deprecated).
+
+    Please make sure that {importable!r} is included as a package by using
+    the `packages` configuration field or the proper discovery methods
+    (for example by using `find_namespace_packages(...)`/`find_namespace:`
+    instead of `find_packages(...)`/`find:`).
+
+    You can read more about "package discovery" and "data files" on setuptools
+    documentation page.
+    \n\n!!
+    """
+
+    def __init__(self):
+        self._already_warned = set()
+
+    def is_module(self, file):
+        return file.endswith(".py") and file[:-len(".py")].isidentifier()
+
+    def importable_subpackage(self, parent, file):
+        pkg = Path(file).parent
+        parts = list(itertools.takewhile(str.isidentifier, pkg.parts))
+        if parts:
+            return ".".join([parent, *parts])
+        return None
+
+    def warn(self, importable):
+        if importable not in self._already_warned:
+            msg = textwrap.dedent(self.MESSAGE).format(importable=importable)
+            warnings.warn(msg, SetuptoolsDeprecationWarning, stacklevel=2)
+            self._already_warned.add(importable)

@@ -64,7 +64,8 @@ class TestInstallScripts:
     @pytest.mark.skipif(sys.platform == 'win32', reason='non-Windows only')
     def test_executable_with_spaces_escaping_unix(self, tmpdir):
         """
-        Ensure that shebang on Unix is not quoted, even when a value with spaces
+        Ensure that shebang on Unix is not quoted, even when
+        a value with spaces
         is specified using --executable.
         """
         expected = '#!%s\n' % self.unix_spaces_exe
@@ -77,7 +78,8 @@ class TestInstallScripts:
     @pytest.mark.skipif(sys.platform != 'win32', reason='Windows only')
     def test_executable_arg_escaping_win32(self, tmpdir):
         """
-        Ensure that shebang on Windows is quoted when getting a path with spaces
+        Ensure that shebang on Windows is quoted when
+        getting a path with spaces
         from --executable, that is itself properly quoted.
         """
         expected = '#!"%s"\n' % self.win32_exe

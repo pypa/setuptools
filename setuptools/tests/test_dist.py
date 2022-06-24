@@ -1,25 +1,36 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
-
 import io
-from setuptools.dist import DistDeprecationWarning, _get_unpatched
+import collections
+import re
+import functools
+import os
+import urllib.request
+import urllib.parse
+from distutils.errors import DistutilsSetupError
+from setuptools.dist import (
+    _get_unpatched,
+    check_package_data,
+    DistDeprecationWarning,
+    check_specifier,
+    rfc822_escape,
+    rfc822_unescape,
+)
+from setuptools import sic
 from setuptools import Distribution
-from setuptools.extern.six.moves.urllib.request import pathname2url
-from setuptools.extern.six.moves.urllib_parse import urljoin
-from setuptools.extern import six
 
 from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
+from .test_find_packages import ensure_files
 
 import pytest
+
 
 def test_dist_fetch_build_egg(tmpdir):
     """
     Check multiple calls to `Distribution.fetch_build_egg` work as expected.
     """
     index = tmpdir.mkdir('index')
-    index_url = urljoin('file://', pathname2url(str(index)))
+    index_url = urllib.parse.urljoin(
+        'file://', urllib.request.pathname2url(str(index)))
 
     def sdist_with_index(distname, version):
         dist_dir = index.mkdir(distname)
@@ -60,74 +71,77 @@ def test_dist__get_unpatched_deprecated():
     pytest.warns(DistDeprecationWarning, _get_unpatched, [""])
 
 
+EXAMPLE_BASE_INFO = dict(
+    name="package",
+    version="0.0.1",
+    author="Foo Bar",
+    author_email="foo@bar.net",
+    long_description="Long\ndescription",
+    description="Short description",
+    keywords=["one", "two"],
+)
+
+
 def __read_test_cases():
-    # Metadata version 1.0
-    base_attrs = {
-        "name": "package",
-        "version": "0.0.1",
-        "author": "Foo Bar",
-        "author_email": "foo@bar.net",
-        "long_description": "Long\ndescription",
-        "description": "Short description",
-        "keywords": ["one", "two"]
-    }
+    base = EXAMPLE_BASE_INFO
 
-    def merge_dicts(d1, d2):
-        d1 = d1.copy()
-        d1.update(d2)
-
-        return d1
+    params = functools.partial(dict, base)
 
     test_cases = [
-        ('Metadata version 1.0', base_attrs.copy()),
-        ('Metadata version 1.1: Provides', merge_dicts(base_attrs, {
-            'provides': ['package']
-        })),
-        ('Metadata version 1.1: Obsoletes', merge_dicts(base_attrs, {
-            'obsoletes': ['foo']
-        })),
-        ('Metadata version 1.1: Classifiers', merge_dicts(base_attrs, {
-            'classifiers': [
+        ('Metadata version 1.0', params()),
+        ('Metadata Version 1.0: Short long description', params(
+            long_description='Short long description',
+        )),
+        ('Metadata version 1.1: Classifiers', params(
+            classifiers=[
                 'Programming Language :: Python :: 3',
                 'Programming Language :: Python :: 3.7',
-                'License :: OSI Approved :: MIT License'
-        ]})),
-        ('Metadata version 1.1: Download URL', merge_dicts(base_attrs, {
-            'download_url': 'https://example.com'
-        })),
-        ('Metadata Version 1.2: Requires-Python', merge_dicts(base_attrs, {
-            'python_requires': '>=3.7'
-        })),
-        pytest.param('Metadata Version 1.2: Project-Url',
-            merge_dicts(base_attrs, {
-                'project_urls': {
-                    'Foo': 'https://example.bar'
-                }
-            }), marks=pytest.mark.xfail(
-                reason="Issue #1578: project_urls not read"
+                'License :: OSI Approved :: MIT License',
+            ],
         )),
-        ('Metadata Version 2.1: Long Description Content Type',
-         merge_dicts(base_attrs, {
-             'long_description_content_type': 'text/x-rst; charset=UTF-8'
-         })),
-        pytest.param('Metadata Version 2.1: Provides Extra',
-            merge_dicts(base_attrs, {
-                'provides_extras': ['foo', 'bar']
-        }), marks=pytest.mark.xfail(reason="provides_extras not read")),
-        ('Missing author, missing author e-mail',
-         {'name': 'foo', 'version': '1.0.0'}),
-        ('Missing author',
-         {'name': 'foo',
-          'version': '1.0.0',
-          'author_email': 'snorri@sturluson.name'}),
-        ('Missing author e-mail',
-         {'name': 'foo',
-          'version': '1.0.0',
-          'author': 'Snorri Sturluson'}),
-        ('Missing author',
-         {'name': 'foo',
-          'version': '1.0.0',
-          'author': 'Snorri Sturluson'}),
+        ('Metadata version 1.1: Download URL', params(
+            download_url='https://example.com',
+        )),
+        ('Metadata Version 1.2: Requires-Python', params(
+            python_requires='>=3.7',
+        )),
+        pytest.param(
+            'Metadata Version 1.2: Project-Url',
+            params(project_urls=dict(Foo='https://example.bar')),
+            marks=pytest.mark.xfail(
+                reason="Issue #1578: project_urls not read",
+            ),
+        ),
+        ('Metadata Version 2.1: Long Description Content Type', params(
+            long_description_content_type='text/x-rst; charset=UTF-8',
+        )),
+        ('License', params(license='MIT', )),
+        ('License multiline', params(
+            license='This is a long license \nover multiple lines',
+        )),
+        pytest.param(
+            'Metadata Version 2.1: Provides Extra',
+            params(provides_extras=['foo', 'bar']),
+            marks=pytest.mark.xfail(reason="provides_extras not read"),
+        ),
+        ('Missing author', dict(
+            name='foo',
+            version='1.0.0',
+            author_email='snorri@sturluson.name',
+        )),
+        ('Missing author e-mail', dict(
+            name='foo',
+            version='1.0.0',
+            author='Snorri Sturluson',
+        )),
+        ('Missing author and e-mail', dict(
+            name='foo',
+            version='1.0.0',
+        )),
+        ('Bypass normalized version', dict(
+            name='foo',
+            version=sic('1.0.0a'),
+        )),
     ]
 
     return test_cases
@@ -140,10 +154,7 @@ def test_read_metadata(name, attrs):
     dist_class = metadata_out.__class__
 
     # Write to PKG_INFO and then load into a new metadata object
-    if six.PY2:
-        PKG_INFO = io.BytesIO()
-    else:
-        PKG_INFO = io.StringIO()
+    PKG_INFO = io.StringIO()
 
     metadata_out.write_pkg_file(PKG_INFO)
 
@@ -159,6 +170,7 @@ def test_read_metadata(name, attrs):
         ('metadata_version', dist_class.get_metadata_version),
         ('provides', dist_class.get_provides),
         ('description', dist_class.get_description),
+        ('long_description', dist_class.get_long_description),
         ('download_url', dist_class.get_download_url),
         ('keywords', dist_class.get_keywords),
         ('platforms', dist_class.get_platforms),
@@ -244,8 +256,8 @@ def test_maintainer_author(name, attrs, tmpdir):
     with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
         raw_pkg_lines = f.readlines()
 
-    # Drop blank lines
-    pkg_lines = list(filter(None, raw_pkg_lines))
+    # Drop blank lines and strip lines from default description
+    pkg_lines = list(filter(None, raw_pkg_lines[:-2]))
 
     pkg_lines_set = set(pkg_lines)
 
@@ -260,3 +272,238 @@ def test_maintainer_author(name, attrs, tmpdir):
         else:
             line = '%s: %s' % (fkey, val)
             assert line in pkg_lines_set
+
+
+def test_provides_extras_deterministic_order():
+    extras = collections.OrderedDict()
+    extras['a'] = ['foo']
+    extras['b'] = ['bar']
+    attrs = dict(extras_require=extras)
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['a', 'b']
+    attrs['extras_require'] = collections.OrderedDict(
+        reversed(list(attrs['extras_require'].items())))
+    dist = Distribution(attrs)
+    assert dist.metadata.provides_extras == ['b', 'a']
+
+
+CHECK_PACKAGE_DATA_TESTS = (
+    # Valid.
+    ({
+        '': ['*.txt', '*.rst'],
+        'hello': ['*.msg'],
+    }, None),
+    # Not a dictionary.
+    ((
+        ('', ['*.txt', '*.rst']),
+        ('hello', ['*.msg']),
+    ), (
+        "'package_data' must be a dictionary mapping package"
+        " names to lists of string wildcard patterns"
+    )),
+    # Invalid key type.
+    ({
+        400: ['*.txt', '*.rst'],
+    }, (
+        "keys of 'package_data' dict must be strings (got 400)"
+    )),
+    # Invalid value type.
+    ({
+        'hello': str('*.msg'),
+    }, (
+        "\"values of 'package_data' dict\" "
+        "must be a list of strings (got '*.msg')"
+    )),
+    # Invalid value type (generators are single use)
+    ({
+        'hello': (x for x in "generator"),
+    }, (
+        "\"values of 'package_data' dict\" must be a list of strings "
+        "(got <generator object"
+    )),
+)
+
+
+@pytest.mark.parametrize(
+    'package_data, expected_message', CHECK_PACKAGE_DATA_TESTS)
+def test_check_package_data(package_data, expected_message):
+    if expected_message is None:
+        assert check_package_data(None, 'package_data', package_data) is None
+    else:
+        with pytest.raises(
+                DistutilsSetupError, match=re.escape(expected_message)):
+            check_package_data(None, str('package_data'), package_data)
+
+
+def test_check_specifier():
+    # valid specifier value
+    attrs = {'name': 'foo', 'python_requires': '>=3.0, !=3.1'}
+    dist = Distribution(attrs)
+    check_specifier(dist, attrs, attrs['python_requires'])
+
+    # invalid specifier value
+    attrs = {'name': 'foo', 'python_requires': ['>=3.0', '!=3.1']}
+    with pytest.raises(DistutilsSetupError):
+        dist = Distribution(attrs)
+
+
+@pytest.mark.parametrize(
+    'content, result',
+    (
+        pytest.param(
+            "Just a single line",
+            None,
+            id="single_line",
+        ),
+        pytest.param(
+            "Multiline\nText\nwithout\nextra indents\n",
+            None,
+            id="multiline",
+        ),
+        pytest.param(
+            "Multiline\n    With\n\nadditional\n  indentation",
+            None,
+            id="multiline_with_indentation",
+        ),
+        pytest.param(
+            "  Leading whitespace",
+            "Leading whitespace",
+            id="remove_leading_whitespace",
+        ),
+        pytest.param(
+            "  Leading whitespace\nIn\n    Multiline comment",
+            "Leading whitespace\nIn\n    Multiline comment",
+            id="remove_leading_whitespace_multiline",
+        ),
+    )
+)
+def test_rfc822_unescape(content, result):
+    assert (result or content) == rfc822_unescape(rfc822_escape(content))
+
+
+def test_metadata_name():
+    with pytest.raises(DistutilsSetupError, match='missing.*name'):
+        Distribution()._validate_metadata()
+
+
+@pytest.mark.parametrize(
+    "dist_name, py_module",
+    [
+        ("my.pkg", "my_pkg"),
+        ("my-pkg", "my_pkg"),
+        ("my_pkg", "my_pkg"),
+        ("pkg", "pkg"),
+    ]
+)
+def test_dist_default_py_modules(tmp_path, dist_name, py_module):
+    (tmp_path / f"{py_module}.py").touch()
+
+    (tmp_path / "setup.py").touch()
+    (tmp_path / "noxfile.py").touch()
+    # ^-- make sure common tool files are ignored
+
+    attrs = {
+        **EXAMPLE_BASE_INFO,
+        "name": dist_name,
+        "src_root": str(tmp_path)
+    }
+    # Find `py_modules` corresponding to dist_name if not given
+    dist = Distribution(attrs)
+    dist.set_defaults()
+    assert dist.py_modules == [py_module]
+    # When `py_modules` is given, don't do anything
+    dist = Distribution({**attrs, "py_modules": ["explicity_py_module"]})
+    dist.set_defaults()
+    assert dist.py_modules == ["explicity_py_module"]
+    # When `packages` is given, don't do anything
+    dist = Distribution({**attrs, "packages": ["explicity_package"]})
+    dist.set_defaults()
+    assert not dist.py_modules
+
+
+@pytest.mark.parametrize(
+    "dist_name, package_dir, package_files, packages",
+    [
+        ("my.pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
+        ("my-pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
+        ("my_pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
+        ("my.pkg", None, ["my/pkg/__init__.py"], ["my", "my.pkg"]),
+        (
+            "my_pkg",
+            None,
+            ["src/my_pkg/__init__.py", "src/my_pkg2/__init__.py"],
+            ["my_pkg", "my_pkg2"]
+        ),
+        (
+            "my_pkg",
+            {"pkg": "lib", "pkg2": "lib2"},
+            ["lib/__init__.py", "lib/nested/__init__.pyt", "lib2/__init__.py"],
+            ["pkg", "pkg.nested", "pkg2"]
+        ),
+    ]
+)
+def test_dist_default_packages(
+    tmp_path, dist_name, package_dir, package_files, packages
+):
+    ensure_files(tmp_path, package_files)
+
+    (tmp_path / "setup.py").touch()
+    (tmp_path / "noxfile.py").touch()
+    # ^-- should not be included by default
+
+    attrs = {
+        **EXAMPLE_BASE_INFO,
+        "name": dist_name,
+        "src_root": str(tmp_path),
+        "package_dir": package_dir
+    }
+    # Find `packages` either corresponding to dist_name or inside src
+    dist = Distribution(attrs)
+    dist.set_defaults()
+    assert not dist.py_modules
+    assert not dist.py_modules
+    assert set(dist.packages) == set(packages)
+    # When `py_modules` is given, don't do anything
+    dist = Distribution({**attrs, "py_modules": ["explicit_py_module"]})
+    dist.set_defaults()
+    assert not dist.packages
+    assert set(dist.py_modules) == {"explicit_py_module"}
+    # When `packages` is given, don't do anything
+    dist = Distribution({**attrs, "packages": ["explicit_package"]})
+    dist.set_defaults()
+    assert not dist.py_modules
+    assert set(dist.packages) == {"explicit_package"}
+
+
+@pytest.mark.parametrize(
+    "dist_name, package_dir, package_files",
+    [
+        ("my.pkg.nested", None, ["my/pkg/nested/__init__.py"]),
+        ("my.pkg", None, ["my/pkg/__init__.py", "my/pkg/file.py"]),
+        ("my_pkg", None, ["my_pkg.py"]),
+        ("my_pkg", None, ["my_pkg/__init__.py", "my_pkg/nested/__init__.py"]),
+        ("my_pkg", None, ["src/my_pkg/__init__.py", "src/my_pkg/nested/__init__.py"]),
+        (
+            "my_pkg",
+            {"my_pkg": "lib", "my_pkg.lib2": "lib2"},
+            ["lib/__init__.py", "lib/nested/__init__.pyt", "lib2/__init__.py"],
+        ),
+        # Should not try to guess a name from multiple py_modules/packages
+        ("UNKNOWN", None, ["src/mod1.py", "src/mod2.py"]),
+        ("UNKNOWN", None, ["src/pkg1/__ini__.py", "src/pkg2/__init__.py"]),
+    ]
+)
+def test_dist_default_name(tmp_path, dist_name, package_dir, package_files):
+    """Make sure dist.name is discovered from packages/py_modules"""
+    ensure_files(tmp_path, package_files)
+    attrs = {
+        **EXAMPLE_BASE_INFO,
+        "src_root": "/".join(os.path.split(tmp_path)),  # POSIX-style
+        "package_dir": package_dir
+    }
+    del attrs["name"]
+
+    dist = Distribution(attrs)
+    dist.set_defaults()
+    assert dist.py_modules or dist.packages
+    assert dist.get_name() == dist_name

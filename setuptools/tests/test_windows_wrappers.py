@@ -12,9 +12,8 @@ the script they are to wrap and with the same name as the script they
 are to wrap.
 """
 
-from __future__ import absolute_import
-
 import sys
+import platform
 import textwrap
 import subprocess
 
@@ -53,10 +52,20 @@ class WrapperTester:
             f.write(w)
 
 
+def win_launcher_exe(prefix):
+    """ A simple routine to select launcher script based on platform."""
+    assert prefix in ('cli', 'gui')
+    if platform.machine() == "ARM64":
+        return "{}-arm64.exe".format(prefix)
+    else:
+        return "{}-32.exe".format(prefix)
+
+
 class TestCLI(WrapperTester):
     script_name = 'foo-script.py'
-    wrapper_source = 'cli-32.exe'
     wrapper_name = 'foo.exe'
+    wrapper_source = win_launcher_exe('cli')
+
     script_tmpl = textwrap.dedent("""
         #!%(python_exe)s
         import sys
@@ -97,7 +106,8 @@ class TestCLI(WrapperTester):
             'arg 4\\',
             'arg5 a\\\\b',
         ]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
         stdout, stderr = proc.communicate('hello\nworld\n'.encode('ascii'))
         actual = stdout.decode('ascii').replace('\r\n', '\n')
         expected = textwrap.dedent(r"""
@@ -134,7 +144,11 @@ class TestCLI(WrapperTester):
         with (tmpdir / 'foo-script.py').open('w') as f:
             f.write(self.prep_script(tmpl))
         cmd = [str(tmpdir / 'foo.exe')]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.STDOUT)
         stdout, stderr = proc.communicate()
         actual = stdout.decode('ascii').replace('\r\n', '\n')
         expected = textwrap.dedent(r"""
@@ -152,7 +166,7 @@ class TestGUI(WrapperTester):
     -----------------------
     """
     script_name = 'bar-script.pyw'
-    wrapper_source = 'gui-32.exe'
+    wrapper_source = win_launcher_exe('gui')
     wrapper_name = 'bar.exe'
 
     script_tmpl = textwrap.dedent("""
@@ -164,7 +178,7 @@ class TestGUI(WrapperTester):
         """).strip()
 
     def test_basic(self, tmpdir):
-        """Test the GUI version with the simple scipt, bar-script.py"""
+        """Test the GUI version with the simple script, bar-script.py"""
         self.create_script(tmpdir)
 
         cmd = [
@@ -172,7 +186,9 @@ class TestGUI(WrapperTester):
             str(tmpdir / 'test_output.txt'),
             'Test Argument',
         ]
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
+            stderr=subprocess.STDOUT)
         stdout, stderr = proc.communicate()
         assert not stdout
         assert not stderr

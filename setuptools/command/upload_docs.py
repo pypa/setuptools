@@ -2,7 +2,7 @@
 """upload_docs
 
 Implements a Distutils 'upload_docs' subcommand (upload documentation to
-PyPI's pythonhosted.org).
+sites other than PyPi such as devpi).
 """
 
 from base64 import standard_b64encode
@@ -15,17 +15,18 @@ import tempfile
 import shutil
 import itertools
 import functools
+import http.client
+import urllib.parse
+import warnings
 
-from setuptools.extern import six
-from setuptools.extern.six.moves import http_client, urllib
+from .._importlib import metadata
+from .. import SetuptoolsDeprecationWarning
 
-from pkg_resources import iter_entry_points
 from .upload import upload
 
 
 def _encode(s):
-    errors = 'surrogateescape' if six.PY3 else 'strict'
-    return s.encode('utf-8', errors)
+    return s.encode('utf-8', 'surrogateescape')
 
 
 class upload_docs(upload):
@@ -33,7 +34,7 @@ class upload_docs(upload):
     # supported by Warehouse (and won't be).
     DEFAULT_REPOSITORY = 'https://pypi.python.org/pypi/'
 
-    description = 'Upload documentation to PyPI'
+    description = 'Upload documentation to sites other than PyPi such as devpi'
 
     user_options = [
         ('repository=', 'r',
@@ -45,9 +46,10 @@ class upload_docs(upload):
     boolean_options = upload.boolean_options
 
     def has_sphinx(self):
-        if self.upload_dir is None:
-            for ep in iter_entry_points('distutils.commands', 'build_sphinx'):
-                return True
+        return bool(
+            self.upload_dir is None
+            and metadata.entry_points(group='distutils.commands', name='build_sphinx')
+        )
 
     sub_commands = [('build_sphinx', has_sphinx)]
 
@@ -61,7 +63,7 @@ class upload_docs(upload):
         if self.upload_dir is None:
             if self.has_sphinx():
                 build_sphinx = self.get_finalized_command('build_sphinx')
-                self.target_dir = build_sphinx.builder_target_dir
+                self.target_dir = dict(build_sphinx.builder_target_dirs)['html']
             else:
                 build = self.get_finalized_command('build')
                 self.target_dir = os.path.join(build.build_base, 'docs')
@@ -69,7 +71,7 @@ class upload_docs(upload):
             self.ensure_dirname('upload_dir')
             self.target_dir = self.upload_dir
         if 'pypi.python.org' in self.repository:
-            log.warn("Upload_docs command is deprecated. Use RTD instead.")
+            log.warn("Upload_docs command is deprecated for PyPi. Use RTD instead.")
         self.announce('Using upload directory %s' % self.target_dir)
 
     def create_zipfile(self, filename):
@@ -89,6 +91,12 @@ class upload_docs(upload):
             zip_file.close()
 
     def run(self):
+        warnings.warn(
+            "upload_docs is deprecated and will be removed in a future "
+            "version. Use tools like httpie or curl instead.",
+            SetuptoolsDeprecationWarning,
+        )
+
         # Run sub commands
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
@@ -127,8 +135,8 @@ class upload_docs(upload):
         """
         Build up the MIME payload for the POST data
         """
-        boundary = b'--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
-        sep_boundary = b'\n--' + boundary
+        boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
+        sep_boundary = b'\n--' + boundary.encode('ascii')
         end_boundary = sep_boundary + b'--'
         end_items = end_boundary, b"\n",
         builder = functools.partial(
@@ -138,7 +146,7 @@ class upload_docs(upload):
         part_groups = map(builder, data.items())
         parts = itertools.chain.from_iterable(part_groups)
         body_items = itertools.chain(parts, end_items)
-        content_type = 'multipart/form-data; boundary=%s' % boundary.decode('ascii')
+        content_type = 'multipart/form-data; boundary=%s' % boundary
         return b''.join(body_items), content_type
 
     def upload_file(self, filename):
@@ -152,9 +160,7 @@ class upload_docs(upload):
         }
         # set up the authentication
         credentials = _encode(self.username + ':' + self.password)
-        credentials = standard_b64encode(credentials)
-        if six.PY3:
-            credentials = credentials.decode('ascii')
+        credentials = standard_b64encode(credentials).decode('ascii')
         auth = "Basic " + credentials
 
         body, ct = self._build_multipart(data)
@@ -169,9 +175,9 @@ class upload_docs(upload):
             urllib.parse.urlparse(self.repository)
         assert not params and not query and not fragments
         if schema == 'http':
-            conn = http_client.HTTPConnection(netloc)
+            conn = http.client.HTTPConnection(netloc)
         elif schema == 'https':
-            conn = http_client.HTTPSConnection(netloc)
+            conn = http.client.HTTPSConnection(netloc)
         else:
             raise AssertionError("unsupported schema " + schema)
 

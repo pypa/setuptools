@@ -30,6 +30,13 @@ class install(orig.install):
     _nc = dict(new_commands)
 
     def initialize_options(self):
+
+        warnings.warn(
+            "setup.py install is deprecated. "
+            "Use build and pip and other standards-based tools.",
+            setuptools.SetuptoolsDeprecationWarning,
+        )
+
         orig.install.initialize_options(self)
         self.old_and_unmanageable = None
         self.single_version_externally_managed = None
@@ -84,14 +91,21 @@ class install(orig.install):
                 msg = "For best results, pass -X:Frames to enable call stack."
                 warnings.warn(msg)
             return True
-        res = inspect.getouterframes(run_frame)[2]
-        caller, = res[:1]
-        info = inspect.getframeinfo(caller)
-        caller_module = caller.f_globals.get('__name__', '')
-        return (
-            caller_module == 'distutils.dist'
-            and info.function == 'run_commands'
-        )
+
+        frames = inspect.getouterframes(run_frame)
+        for frame in frames[2:4]:
+            caller, = frame[:1]
+            info = inspect.getframeinfo(caller)
+            caller_module = caller.f_globals.get('__name__', '')
+
+            if caller_module == "setuptools.dist" and info.function == "run_command":
+                # Starting from v61.0.0 setuptools overwrites dist.run_command
+                continue
+
+            return (
+                caller_module == 'distutils.dist'
+                and info.function == 'run_commands'
+            )
 
     def do_egg_install(self):
 
@@ -114,7 +128,7 @@ class install(orig.install):
             args.insert(0, setuptools.bootstrap_install_from)
 
         cmd.args = args
-        cmd.run()
+        cmd.run(show_deprecation=False)
         setuptools.bootstrap_install_from = None
 
 

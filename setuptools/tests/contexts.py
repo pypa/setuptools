@@ -4,9 +4,10 @@ import shutil
 import sys
 import contextlib
 import site
+import io
 
-from setuptools.extern import six
 import pkg_resources
+from filelock import FileLock
 
 
 @contextlib.contextmanager
@@ -58,8 +59,8 @@ def quiet():
 
     old_stdout = sys.stdout
     old_stderr = sys.stderr
-    new_stdout = sys.stdout = six.StringIO()
-    new_stderr = sys.stderr = six.StringIO()
+    new_stdout = sys.stdout = io.StringIO()
+    new_stderr = sys.stderr = io.StringIO()
     try:
         yield new_stdout, new_stderr
     finally:
@@ -96,3 +97,29 @@ def suppress_exceptions(*excs):
         yield
     except excs:
         pass
+
+
+def multiproc(request):
+    """
+    Return True if running under xdist and multiple
+    workers are used.
+    """
+    try:
+        worker_id = request.getfixturevalue('worker_id')
+    except Exception:
+        return False
+    return worker_id != 'master'
+
+
+@contextlib.contextmanager
+def session_locked_tmp_dir(request, tmp_path_factory, name):
+    """Uses a file lock to guarantee only one worker can access a temp dir"""
+    # get the temp directory shared by all workers
+    base = tmp_path_factory.getbasetemp()
+    shared_dir = base.parent if multiproc(request) else base
+
+    locked_dir = shared_dir / name
+    with FileLock(locked_dir.with_suffix(".lock")):
+        # ^-- prevent multiple workers to access the directory at once
+        locked_dir.mkdir(exist_ok=True, parents=True)
+        yield locked_dir
