@@ -339,7 +339,8 @@ class _LinkTree(_StaticPth):
         self._file(src_file, dest, link=link)
 
     def _create_links(self, outputs, output_mapping):
-        link_type = "sym" if _can_symlink_files() else "hard"
+        self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
+        link_type = "sym" if _can_symlink_files(self.auxiliary_dir) else "hard"
         mappings = {
             self._normalize_output(k): v
             for k, v in output_mapping.items()
@@ -403,8 +404,8 @@ class _TopLevelFinder:
         ...
 
 
-def _can_symlink_files() -> bool:
-    with TemporaryDirectory() as tmp:
+def _can_symlink_files(base_dir: Path) -> bool:
+    with TemporaryDirectory(dir=str(base_dir.resolve())) as tmp:
         path1, path2 = Path(tmp, "file1.txt"), Path(tmp, "file2.txt")
         path1.write_text("file1", encoding="utf-8")
         with suppress(AttributeError, NotImplementedError, OSError):
