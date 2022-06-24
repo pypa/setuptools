@@ -7,23 +7,38 @@ Create a wheel that, when installed, will make the source package 'editable'
    One of the mechanisms briefly mentioned in PEP 660 to implement editable installs is
    to create a separated directory inside ``build`` and use a .pth file to point to that
    directory. In the context of this file such directory is referred as
-   *auxiliary build directory* or ``auxiliary_build_dir``.
+   *auxiliary build directory* or ``auxiliary_dir``.
 """
 
+import logging
 import os
 import re
 import shutil
 import sys
-import logging
 import warnings
+from contextlib import suppress
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Dict, Iterable, Iterator, List, Mapping, Union, Tuple, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union
+)
 
-from setuptools import Command, namespaces
+from setuptools import Command, errors, namespaces
 from setuptools.discovery import find_package_path
 from setuptools.dist import Distribution
+
+if TYPE_CHECKING:
+    from wheel.wheelfile import WheelFile  # noqa
 
 _Path = Union[str, Path]
 _P = TypeVar("_P", bound=_Path)
@@ -64,9 +79,9 @@ class editable_wheel(Command):
         self.project_dir = dist.src_root or os.curdir
         self.package_dir = dist.package_dir or {}
         self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
-        self.dist_dir.mkdir(exist_ok=True)
 
     def run(self):
+        self.dist_dir.mkdir(exist_ok=True)
         self._ensure_dist_info()
 
         # Add missing dist_info files
@@ -96,6 +111,140 @@ class editable_wheel(Command):
         installer = _NamespaceInstaller(dist, installation_dir, pth_prefix, src_root)
         installer.install_namespaces()
 
+    def _find_egg_info_dir(self) -> Optional[str]:
+        parent_dir = Path(self.dist_info_dir).parent if self.dist_info_dir else Path()
+        candidates = map(str, parent_dir.glob("*.egg-info"))
+        return next(candidates, None)
+
+    def _configure_build(
+        self, name: str, unpacked_wheel: _Path, build_lib: _Path, tmp_dir: _Path
+    ):
+        """Configure commands to behave in the following ways:
+
+        - Build commands can write to ``build_lib`` if they really want to...
+          (but this folder is expected to be ignored and modules are expected to live
+          in the project directory...)
+        - Binary extensions should be built in-place (editable_mode = True)
+        - Data/header/script files are not part of the "editable" specification
+          so they are written directly to the unpacked_wheel directory.
+        """
+        # Non-editable files (data, headers, scripts) are written directly to the
+        # unpacked_wheel
+
+        dist = self.distribution
+        wheel = str(unpacked_wheel)
+        build_lib = str(build_lib)
+        data = str(Path(unpacked_wheel, f"{name}.data", "data"))
+        headers = str(Path(unpacked_wheel, f"{name}.data", "include"))
+        scripts = str(Path(unpacked_wheel, f"{name}.data", "scripts"))
+
+        # egg-info may be generated again to create a manifest (used for package data)
+        egg_info = dist.reinitialize_command("egg_info", reinit_subcommands=True)
+        egg_info.egg_base = str(tmp_dir)
+        egg_info.ignore_egg_info_in_manifest = True
+
+        build = dist.reinitialize_command("build", reinit_subcommands=True)
+        install = dist.reinitialize_command("install", reinit_subcommands=True)
+
+        build.build_platlib = build.build_purelib = build.build_lib = build_lib
+        install.install_purelib = install.install_platlib = install.install_lib = wheel
+        install.install_scripts = build.build_scripts = scripts
+        install.install_headers = headers
+        install.install_data = data
+
+        install_scripts = dist.get_command_obj("install_scripts")
+        install_scripts.no_ep = True
+
+        build.build_temp = str(tmp_dir)
+
+        build_py = dist.get_command_obj("build_py")
+        build_py.compile = False
+        build_py.existing_egg_info_dir = self._find_egg_info_dir()
+
+        self._set_editable_mode()
+
+        build.ensure_finalized()
+        install.ensure_finalized()
+
+    def _set_editable_mode(self):
+        """Set the ``editable_mode`` flag in the build sub-commands"""
+        dist = self.distribution
+        build = dist.get_command_obj("build")
+        for cmd_name in build.get_sub_commands():
+            cmd = dist.get_command_obj(cmd_name)
+            if hasattr(cmd, "editable_mode"):
+                cmd.editable_mode = True
+
+    def _find_existing_source(self, file: Path) -> Optional[Path]:
+        """Given a file path relative to ``build_lib`` try to guess
+        what would be its original source file.
+        """
+        dist = self.distribution
+        package = str(file.parent).replace(os.sep, ".")
+        package_path = find_package_path(package, dist.package_dir, self.project_dir)
+        candidate = Path(package_path, file.name)
+        return candidate if candidate.exists() else None
+
+    def _collect_reminiscent_outputs(
+        self, build_lib: _Path
+    ) -> Tuple[List[str], Dict[str, str]]:
+        """People have been overwriting setuptools for a long time, and not everyone
+        might be respecting the new ``get_output_mapping`` APIs, so we have to do our
+        best to handle this scenario.
+        """
+        files: List[str] = []
+        mapping: Dict[str, str] = {}
+
+        for dirpath, _dirnames, filenames in os.walk(build_lib):
+            for name in filenames:
+                file = Path(dirpath, name)
+                source = self._find_existing_source(file.relative_to(build_lib))
+                if source:
+                    mapping[str(file)] = str(source)
+                else:
+                    files.append(str(file))
+
+        return files, mapping
+
+    def _combine_outputs(self, *outputs: List[str]) -> List[str]:
+        return sorted({os.path.normpath(f) for f in chain.from_iterable(outputs)})
+
+    def _combine_output_mapping(self, *mappings: Dict[str, str]) -> Dict[str, str]:
+        mapping = (
+            (os.path.normpath(k), os.path.normpath(v))
+            for k, v in chain.from_iterable(m.items() for m in mappings)
+        )
+        return dict(sorted(mapping))
+
+    def _collect_build_outputs(self) -> Tuple[List[str], Dict[str, str]]:
+        files: List[str] = []
+        mapping: Dict[str, str] = {}
+        build = self.get_finalized_command("build")
+
+        for cmd_name in build.get_sub_commands():
+            cmd = self.get_finalized_command(cmd_name)
+            if hasattr(cmd, "get_outputs"):
+                files.extend(cmd.get_outputs() or [])
+            if hasattr(cmd, "get_output_mapping"):
+                mapping.update(cmd.get_output_mapping() or {})
+        rfiles, rmapping = self._collect_reminiscent_outputs(build.build_lib)
+
+        return (
+            self._combine_outputs(files, rfiles),
+            self._combine_output_mapping(mapping, rmapping),
+        )
+
+    def _run_build_commands(
+        self, dist_name: str, unpacked_wheel: _Path, build_lib: _Path, tmp_dir: _Path
+    ) -> Tuple[List[str], Dict[str, str]]:
+        self._configure_build(dist_name, unpacked_wheel, build_lib, tmp_dir)
+        self.run_command("build")
+        files, mapping = self._collect_build_outputs()
+        self._run_install("headers")
+        self._run_install("scripts")
+        self._run_install("data")
+        return files, mapping
+
     def _create_wheel_file(self, bdist_wheel):
         from wheel.wheelfile import WheelFile
 
@@ -110,22 +259,19 @@ class editable_wheel(Command):
 
         # Currently the wheel API receives a directory and dump all its contents
         # inside of a wheel. So let's use a temporary directory.
-        unpacked_tmp = TemporaryDirectory(suffix=archive_name)
+        unpacked_wheel = TemporaryDirectory(suffix=archive_name)
+        build_lib = TemporaryDirectory(suffix=".build-lib")
         build_tmp = TemporaryDirectory(suffix=".build-temp")
 
-        with unpacked_tmp as unpacked, build_tmp as tmp:
+        with unpacked_wheel as unpacked, build_lib as lib, build_tmp as tmp:
             unpacked_dist_info = Path(unpacked, Path(self.dist_info_dir).name)
             shutil.copytree(self.dist_info_dir, unpacked_dist_info)
             self._install_namespaces(unpacked, dist_info.name)
-
-            # Add non-editable files to the wheel
-            _configure_build(dist_name, self.distribution, unpacked, tmp)
-            self._run_install("headers")
-            self._run_install("scripts")
-            self._run_install("data")
-
-            self._populate_wheel(dist_info.name, tag, unpacked, tmp)
+            files, mapping = self._run_build_commands(dist_name, unpacked, lib, tmp)
             with WheelFile(wheel_path, "w") as wf:
+                self._populate_wheel(
+                    wf, dist_info.name, tag, unpacked, lib, tmp, files, mapping
+                )
                 wf.write_files(unpacked)
 
         return wheel_path
@@ -136,13 +282,25 @@ class editable_wheel(Command):
             _logger.info(f"Installing {category} as non editable")
             self.run_command(f"install_{category}")
 
-    def _populate_wheel(self, name: str, tag: str, unpacked_dir: Path, tmp: _Path):
+    def _populate_wheel(
+        self,
+        wheel: "WheelFile",
+        name: str,
+        tag: str,
+        unpacked_dir: Path,
+        build_lib: _Path,
+        tmp: _Path,
+        outputs: List[str],
+        output_mapping: Dict[str, str],
+    ):
         """Decides which strategy to use to implement an editable installation."""
         build_name = f"__editable__.{name}-{tag}"
         project_dir = Path(self.project_dir)
 
         if self.strict or os.getenv("SETUPTOOLS_EDITABLE", None) == "strict":
-            return self._populate_link_tree(name, build_name, unpacked_dir, tmp)
+            return self._populate_link_tree(
+                name, build_name, wheel, build_lib, outputs, output_mapping
+            )
 
         # Build extensions in-place
         self.reinitialize_command("build_ext", inplace=1)
@@ -152,44 +310,57 @@ class editable_wheel(Command):
         has_simple_layout = _simple_layout(packages, self.package_dir, project_dir)
         if set(self.package_dir) == {""} and has_simple_layout:
             # src-layout(ish) is relatively safe for a simple pth file
-            return self._populate_static_pth(name, project_dir, unpacked_dir)
+            return self._populate_static_pth(name, project_dir, wheel)
 
         # Use a MetaPathFinder to avoid adding accidental top-level packages/modules
-        self._populate_finder(name, unpacked_dir)
+        self._populate_finder(name, wheel)
 
     def _populate_link_tree(
-        self, name: str, build_name: str, unpacked_dir: Path, tmp: _Path
+        self,
+        name: str,
+        build_name: str,
+        wheel: "WheelFile",
+        build_lib: _Path,
+        outputs: List[str],
+        output_mapping: Dict[str, str],
     ):
         """Populate wheel using the "strict" ``link tree`` strategy."""
         msg = "Strict editable install will be performed using a link tree.\n"
         _logger.warning(msg + _STRICT_WARNING)
-        auxiliary_build_dir = _empty_dir(Path(self.project_dir, "build", build_name))
-        populate = _LinkTree(self.distribution, name, auxiliary_build_dir, tmp)
-        populate(unpacked_dir)
+        auxiliary_dir = _empty_dir(Path(self.project_dir, "build", build_name))
+        populate = _LinkTree(
+            self.distribution,
+            name,
+            auxiliary_dir,
+            build_lib,
+            outputs,
+            output_mapping,
+        )
+        populate(wheel)
 
         msg = f"""\n
         Strict editable installation performed using the auxiliary directory:
-            {auxiliary_build_dir}
+            {auxiliary_dir}
 
         Please be careful to not remove this directory, otherwise you might not be able
         to import/use your package.
         """
         warnings.warn(msg, InformationOnly)
 
-    def _populate_static_pth(self, name: str, project_dir: Path, unpacked_dir: Path):
+    def _populate_static_pth(self, name: str, project_dir: Path, wheel: "WheelFile"):
         """Populate wheel using the "lax" ``.pth`` file strategy, for ``src-layout``."""
         src_dir = self.package_dir[""]
         msg = f"Editable install will be performed using .pth file to {src_dir}.\n"
         _logger.warning(msg + _LAX_WARNING)
         populate = _StaticPth(self.distribution, name, [Path(project_dir, src_dir)])
-        populate(unpacked_dir)
+        populate(wheel)
 
-    def _populate_finder(self, name: str, unpacked_dir: Path):
+    def _populate_finder(self, name: str, wheel: "WheelFile"):
         """Populate wheel using the "lax" MetaPathFinder strategy."""
         msg = "Editable install will be performed using a meta path finder.\n"
         _logger.warning(msg + _LAX_WARNING)
         populate = _TopLevelFinder(self.distribution, name)
-        populate(unpacked_dir)
+        populate(wheel)
 
 
 class _StaticPth:
@@ -198,53 +369,69 @@ class _StaticPth:
         self.name = name
         self.path_entries = path_entries
 
-    def __call__(self, unpacked_wheel_dir: Path):
-        pth = Path(unpacked_wheel_dir, f"__editable__.{self.name}.pth")
+    def __call__(self, wheel: "WheelFile"):
         entries = "\n".join((str(p.resolve()) for p in self.path_entries))
-        pth.write_text(f"{entries}\n", encoding="utf-8")
+        contents = bytes(f"{entries}\n", "utf-8")
+        wheel.writestr(f"__editable__.{self.name}.pth", contents)
 
 
 class _LinkTree(_StaticPth):
     """
-    Creates a ``.pth`` file that points to a link tree in the ``auxiliary_build_dir``.
+    Creates a ``.pth`` file that points to a link tree in the ``auxiliary_dir``.
 
     This strategy will only link files (not dirs), so it can be implemented in
     any OS, even if that means using hardlinks instead of symlinks.
 
-    By collocating ``auxiliary_build_dir`` and the original source code, limitations
+    By collocating ``auxiliary_dir`` and the original source code, limitations
     with hardlinks should be avoided.
     """
     def __init__(
-        self, dist: Distribution, name: str, auxiliary_build_dir: Path, tmp: _Path
+        self, dist: Distribution,
+        name: str,
+        auxiliary_dir: _Path,
+        build_lib: _Path,
+        outputs: List[str],
+        output_mapping: Dict[str, str],
     ):
-        super().__init__(dist, name, [auxiliary_build_dir])
-        self.auxiliary_build_dir = auxiliary_build_dir
-        self.tmp = tmp
+        self.auxiliary_dir = Path(auxiliary_dir)
+        self.build_lib = Path(build_lib).resolve()
+        self.outputs = outputs
+        self.output_mapping = output_mapping
+        self._file = dist.get_command_obj("build_py").copy_file
+        super().__init__(dist, name, [self.auxiliary_dir])
 
-    def _build_py(self):
-        if not self.dist.has_pure_modules():
-            return
+    def __call__(self, wheel: "WheelFile"):
+        self._create_links()
+        super().__call__(wheel)
 
-        build_py = self.dist.get_command_obj("build_py")
-        build_py.ensure_finalized()
-        # Force build_py to use links instead of copying files
-        build_py.use_links = "sym" if _can_symlink_files() else "hard"
-        build_py.run()
+    def _normalize_output(self, file: str) -> Optional[str]:
+        # Files relative to build_lib will be normalized to None
+        with suppress(ValueError):
+            path = Path(file).resolve().relative_to(self.build_lib)
+            return str(path).replace(os.sep, '/')
+        return None
 
-    def _build_ext(self):
-        if not self.dist.has_ext_modules():
-            return
+    def _create_file(self, relative_output: str, src_file: str, link=None):
+        dest = self.auxiliary_dir / relative_output
+        if not dest.parent.is_dir():
+            dest.parent.mkdir(parents=True)
+        self._file(src_file, dest, link=link)
 
-        build_ext = self.dist.get_command_obj("build_ext")
-        build_ext.ensure_finalized()
-        # Extensions are not editable, so we just have to build them in the right dir
-        build_ext.run()
+    def _create_links(self):
+        link_type = "sym" if _can_symlink_files() else "hard"
+        mappings = {
+            self._normalize_output(k): v
+            for k, v in self.output_mapping.items()
+        }
+        mappings.pop(None, None)  # remove files that are not relative to build_lib
 
-    def __call__(self, unpacked_wheel_dir: Path):
-        _configure_build(self.name, self.dist, self.auxiliary_build_dir, self.tmp)
-        self._build_py()
-        self._build_ext()
-        super().__call__(unpacked_wheel_dir)
+        for output in self.outputs:
+            relative = self._normalize_output(output)
+            if relative and relative not in mappings:
+                self._create_file(relative, output)
+
+        for relative, src in mappings.items():
+            self._create_file(relative, src, link=link_type)
 
 
 class _TopLevelFinder:
@@ -252,7 +439,7 @@ class _TopLevelFinder:
         self.dist = dist
         self.name = name
 
-    def __call__(self, unpacked_wheel_dir: Path):
+    def __call__(self, wheel: "WheelFile"):
         src_root = self.dist.src_root or os.curdir
         top_level = chain(_find_packages(self.dist), _find_top_level_modules(self.dist))
         package_dir = self.dist.package_dir or {}
@@ -265,51 +452,30 @@ class _TopLevelFinder:
 
         name = f"__editable__.{self.name}.finder"
         finder = _make_identifier(name)
-        content = _finder_template(name, roots, namespaces_)
-        Path(unpacked_wheel_dir, f"{finder}.py").write_text(content, encoding="utf-8")
+        content = bytes(_finder_template(name, roots, namespaces_), "utf-8")
+        wheel.writestr(f"{finder}.py", content)
 
-        pth = f"__editable__.{self.name}.pth"
-        content = f"import {finder}; {finder}.install()"
-        Path(unpacked_wheel_dir, pth).write_text(content, encoding="utf-8")
-
-
-def _configure_build(name: str, dist: Distribution, target_dir: _Path, tmp_dir: _Path):
-    target = str(target_dir)
-    data = str(Path(target_dir, f"{name}.data", "data"))
-    headers = str(Path(target_dir, f"{name}.data", "include"))
-    scripts = str(Path(target_dir, f"{name}.data", "scripts"))
-
-    # egg-info will be generated again to create a manifest (used for package data)
-    egg_info = dist.reinitialize_command("egg_info", reinit_subcommands=True)
-    egg_info.egg_base = str(tmp_dir)
-    egg_info.ignore_egg_info_in_manifest = True
-
-    build = dist.reinitialize_command("build", reinit_subcommands=True)
-    install = dist.reinitialize_command("install", reinit_subcommands=True)
-
-    build.build_platlib = build.build_purelib = build.build_lib = target
-    install.install_purelib = install.install_platlib = install.install_lib = target
-    install.install_scripts = build.build_scripts = scripts
-    install.install_headers = headers
-    install.install_data = data
-
-    build.build_temp = str(tmp_dir)
-
-    build_py = dist.get_command_obj("build_py")
-    build_py.compile = False
-
-    build.ensure_finalized()
-    install.ensure_finalized()
+        content = bytes(f"import {finder}; {finder}.install()", "utf-8")
+        wheel.writestr(f"__editable__.{self.name}.pth", content)
 
 
-def _can_symlink_files():
-    try:
-        with TemporaryDirectory() as tmp:
-            path1, path2 = Path(tmp, "file1.txt"), Path(tmp, "file2.txt")
-            path1.write_text("file1", encoding="utf-8")
+def _can_symlink_files() -> bool:
+    with TemporaryDirectory() as tmp:
+        path1, path2 = Path(tmp, "file1.txt"), Path(tmp, "file2.txt")
+        path1.write_text("file1", encoding="utf-8")
+        with suppress(AttributeError, NotImplementedError, OSError):
             os.symlink(path1, path2)
-            return path2.is_symlink() and path2.read_text(encoding="utf-8") == "file1"
-    except (AttributeError, NotImplementedError, OSError):
+            if path2.is_symlink() and path2.read_text(encoding="utf-8") == "file1":
+                return True
+
+        try:
+            os.link(path1, path2)  # Ensure hard links can be created
+        except Exception as ex:
+            msg = (
+                "File system does not seem to support either symlinks or hard links. "
+                "Strict editable installs require one of them to be supported."
+            )
+            raise LinksNotSupported(msg) from ex
         return False
 
 
@@ -335,6 +501,8 @@ def _simple_layout(
     >>> _simple_layout(['a', 'a.a1', 'a.a1.a2', 'b'], {"a": "_a"}, "/tmp/myproj")
     False
     >>> _simple_layout(['a', 'a.a1', 'a.a1.a2', 'b'], {"a.a1.a2": "_a2"}, ".")
+    False
+    >>> _simple_layout(['a', 'a.b'], {"": "src", "a.b": "_ab"}, "/tmp/myproj")
     False
     """
     layout = {
@@ -601,3 +769,7 @@ class InformationOnly(UserWarning):
     The only thing that might work is a warning, although it is not the
     most appropriate tool for the job...
     """
+
+
+class LinksNotSupported(errors.FileError):
+    """File system does not seem to support either symlinks or hard links."""
