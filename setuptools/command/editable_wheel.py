@@ -175,47 +175,6 @@ class editable_wheel(Command):
             if hasattr(cmd, "editable_mode"):
                 cmd.editable_mode = True
 
-    def _find_existing_source(self, file: Path) -> Optional[Path]:
-        """Given a file path relative to ``build_lib`` try to guess
-        what would be its original source file.
-        """
-        dist = self.distribution
-        package = str(file.parent).replace(os.sep, ".")
-        package_path = find_package_path(package, dist.package_dir, self.project_dir)
-        candidate = Path(package_path, file.name)
-        return candidate if candidate.exists() else None
-
-    def _collect_reminiscent_outputs(
-        self, build_lib: _Path
-    ) -> Tuple[List[str], Dict[str, str]]:
-        """People have been overwriting setuptools for a long time, and not everyone
-        might be respecting the new ``get_output_mapping`` APIs, so we have to do our
-        best to handle this scenario.
-        """
-        files: List[str] = []
-        mapping: Dict[str, str] = {}
-
-        for dirpath, _dirnames, filenames in os.walk(build_lib):
-            for name in filenames:
-                file = Path(dirpath, name)
-                source = self._find_existing_source(file.relative_to(build_lib))
-                if source:
-                    mapping[str(file)] = str(source)
-                else:
-                    files.append(str(file))
-
-        return files, mapping
-
-    def _combine_outputs(self, *outputs: List[str]) -> List[str]:
-        return sorted({os.path.normpath(f) for f in chain.from_iterable(outputs)})
-
-    def _combine_output_mapping(self, *mappings: Dict[str, str]) -> Dict[str, str]:
-        mapping = (
-            (os.path.normpath(k), os.path.normpath(v))
-            for k, v in chain.from_iterable(m.items() for m in mappings)
-        )
-        return dict(sorted(mapping))
-
     def _collect_build_outputs(self) -> Tuple[List[str], Dict[str, str]]:
         files: List[str] = []
         mapping: Dict[str, str] = {}
@@ -227,12 +186,8 @@ class editable_wheel(Command):
                 files.extend(cmd.get_outputs() or [])
             if hasattr(cmd, "get_output_mapping"):
                 mapping.update(cmd.get_output_mapping() or {})
-        rfiles, rmapping = self._collect_reminiscent_outputs(build.build_lib)
 
-        return (
-            self._combine_outputs(files, rfiles),
-            self._combine_output_mapping(mapping, rmapping),
-        )
+        return files, mapping
 
     def _run_build_commands(
         self, dist_name: str, unpacked_wheel: _Path, build_lib: _Path, tmp_dir: _Path
