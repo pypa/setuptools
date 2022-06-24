@@ -102,21 +102,36 @@ you can create new ``build`` sub commands, by defining
         after = "build_ext"
 
         def initialize_options(self):
-            """Not needed for simple tasks"""
+            self.build_lib = None
+            self.build_temp = None
+            self.force = None
+            self.editable_mode = False
 
         def finalize_options(self):
             # Copy attributes from the ``build`` parent command
             options = ('build_lib', 'build_temp', 'force')
             self.set_undefined_options('build', *zip(options, options))
             # Now the object has access to the ``self.build_lib``,
-            # ``self.build_temp`` and ``self.force``.
+            # ``self.build_temp`` and ``self.force`` attibutes,
+            # inherited from the ``build`` command.
             #
             # ``build_lib`` is effectively the "root build directory"
             # i.e. where the distribution files are going to be placed
+            #
+            #``editable_mode`` will be automatically set to ``True`` if the
+            # build is being invoked during an editable install.
 
         def run(self):
             code_dir = self.distribution.src_root or os.getcwd()
             # ... do some JavaScript bundling/transpiling magic
+
+        def get_source_files(self) -> List[str]:
+            return [...]
+            # ... list the paths for the JavaScript files before bundling/transpilling
+
+        def get_outputs(self) -> List[str]:
+            return [...]
+            # ... list the paths produced after bundling/transpilling
 
 If defined by sub command class, the following (optional) attributes will be
 considered:
