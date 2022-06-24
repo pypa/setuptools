@@ -40,6 +40,13 @@ from setuptools.dist import Distribution
 if TYPE_CHECKING:
     from wheel.wheelfile import WheelFile  # noqa
 
+if sys.version_info >= (3, 8):
+    from typing import Protocol
+elif TYPE_CHECKING:
+    from typing_extensions import Protocol
+else:
+    from abc import ABC as Protocol
+
 _Path = Union[str, Path]
 _P = TypeVar("_P", bound=_Path)
 _logger = logging.getLogger(__name__)
@@ -221,10 +228,10 @@ class editable_wheel(Command):
             shutil.copytree(self.dist_info_dir, unpacked_dist_info)
             self._install_namespaces(unpacked, dist_info.name)
             files, mapping = self._run_build_commands(dist_name, unpacked, lib, tmp)
-            strategy = self._select_strategy(dist_name, tag, lib, files, mapping)
-            with strategy, WheelFile(wheel_path, "w") as wf:
-                strategy(wf)
-                wf.write_files(unpacked)
+            strategy = self._select_strategy(dist_name, tag, lib)
+            with strategy, WheelFile(wheel_path, "w") as wheel_obj:
+                strategy(wheel_obj, files, mapping)
+                wheel_obj.write_files(unpacked)
 
         return wheel_path
 
@@ -239,23 +246,14 @@ class editable_wheel(Command):
         name: str,
         tag: str,
         build_lib: _Path,
-        outputs: List[str],
-        output_mapping: Dict[str, str],
-    ):
+    ) -> "EditableStrategy":
         """Decides which strategy to use to implement an editable installation."""
         build_name = f"__editable__.{name}-{tag}"
         project_dir = Path(self.project_dir)
 
         if self.strict or os.getenv("SETUPTOOLS_EDITABLE", None) == "strict":
             auxiliary_dir = _empty_dir(Path(self.project_dir, "build", build_name))
-            return _LinkTree(
-                self.distribution,
-                name,
-                auxiliary_dir,
-                build_lib,
-                outputs,
-                output_mapping,
-            )
+            return _LinkTree(self.distribution, name, auxiliary_dir, build_lib)
 
         packages = _find_packages(self.distribution)
         has_simple_layout = _simple_layout(packages, self.package_dir, project_dir)
@@ -268,13 +266,24 @@ class editable_wheel(Command):
         return _TopLevelFinder(self.distribution, name)
 
 
+class EditableStrategy(Protocol):
+    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+        ...
+
+    def __enter__(self):
+        ...
+
+    def __exit__(self, _exc_type, _exc_value, _traceback):
+        ...
+
+
 class _StaticPth:
     def __init__(self, dist: Distribution, name: str, path_entries: List[Path]):
         self.dist = dist
         self.name = name
         self.path_entries = path_entries
 
-    def __call__(self, wheel: "WheelFile"):
+    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
         entries = "\n".join((str(p.resolve()) for p in self.path_entries))
         contents = bytes(f"{entries}\n", "utf-8")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
@@ -306,19 +315,15 @@ class _LinkTree(_StaticPth):
         name: str,
         auxiliary_dir: _Path,
         build_lib: _Path,
-        outputs: List[str],
-        output_mapping: Dict[str, str],
     ):
         self.auxiliary_dir = Path(auxiliary_dir)
         self.build_lib = Path(build_lib).resolve()
-        self.outputs = outputs
-        self.output_mapping = output_mapping
         self._file = dist.get_command_obj("build_py").copy_file
         super().__init__(dist, name, [self.auxiliary_dir])
 
-    def __call__(self, wheel: "WheelFile"):
-        self._create_links()
-        super().__call__(wheel)
+    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+        self._create_links(files, mapping)
+        super().__call__(wheel, files, mapping)
 
     def _normalize_output(self, file: str) -> Optional[str]:
         # Files relative to build_lib will be normalized to None
@@ -333,15 +338,15 @@ class _LinkTree(_StaticPth):
             dest.parent.mkdir(parents=True)
         self._file(src_file, dest, link=link)
 
-    def _create_links(self):
+    def _create_links(self, outputs, output_mapping):
         link_type = "sym" if _can_symlink_files() else "hard"
         mappings = {
             self._normalize_output(k): v
-            for k, v in self.output_mapping.items()
+            for k, v in output_mapping.items()
         }
         mappings.pop(None, None)  # remove files that are not relative to build_lib
 
-        for output in self.outputs:
+        for output in outputs:
             relative = self._normalize_output(output)
             if relative and relative not in mappings:
                 self._create_file(relative, output)
@@ -370,7 +375,7 @@ class _TopLevelFinder:
         self.dist = dist
         self.name = name
 
-    def __call__(self, wheel: "WheelFile"):
+    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
         src_root = self.dist.src_root or os.curdir
         top_level = chain(_find_packages(self.dist), _find_top_level_modules(self.dist))
         package_dir = self.dist.package_dir or {}

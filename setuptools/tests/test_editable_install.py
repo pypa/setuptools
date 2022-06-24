@@ -603,8 +603,8 @@ class TestLinkTree:
             outputs = build_py.get_outputs()
             output_mapping = build_py.get_output_mapping()
 
-            make_tree = _LinkTree(dist, name, aux, build, outputs, output_mapping)
-            make_tree(wheel)
+            make_tree = _LinkTree(dist, name, aux, build)
+            make_tree(wheel, outputs, output_mapping)
 
             mod1 = next(aux.glob("**/mod1.py"))
             expected = tmp_path / "src/mypkg/mod1.py"
