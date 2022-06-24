@@ -104,7 +104,7 @@ class build_ext(_build_ext):
             # Always copy, even if source is older than destination, to ensure
             # that the right extensions for the current Python/platform are
             # used.
-            build_py.copy_file(regular_file, inplace_file)
+            self.copy_file(regular_file, inplace_file, level=self.verbose)
 
             if ext._needs_stub:
                 inplace_stub = self._get_equivalent_stub(ext, inplace_file)
