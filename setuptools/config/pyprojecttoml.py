@@ -1,4 +1,8 @@
-"""Load setuptools configuration from ``pyproject.toml`` files"""
+"""
+Load setuptools configuration from ``pyproject.toml`` files.
+
+**PRIVATE MODULE**: API reserved for setuptools internal usage only.
+"""
 import logging
 import os
 import warnings
@@ -94,12 +98,10 @@ def read_configuration(
     if not asdict or not (project_table or setuptools_table):
         return {}  # User is not using pyproject to configure setuptools
 
-    # TODO: Remove the following once the feature stabilizes:
-    msg = (
-        "Support for project metadata in `pyproject.toml` is still experimental "
-        "and may be removed (or change) in future releases."
-    )
-    warnings.warn(msg, _ExperimentalProjectMetadata)
+    if setuptools_table:
+        # TODO: Remove the following once the feature stabilizes:
+        msg = "Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*."
+        warnings.warn(msg, _BetaConfiguration)
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
@@ -266,6 +268,8 @@ class _ConfigExpander:
             "scripts",
             "gui-scripts",
             "classifiers",
+            "dependencies",
+            "optional-dependencies",
         )
         # `_obtain` functions are assumed to raise appropriate exceptions/warnings.
         obtained_dynamic = {
@@ -278,6 +282,8 @@ class _ConfigExpander:
             version=self._obtain_version(dist, package_dir),
             readme=self._obtain_readme(dist),
             classifiers=self._obtain_classifiers(dist),
+            dependencies=self._obtain_dependencies(dist),
+            optional_dependencies=self._obtain_optional_dependencies(dist),
         )
         # `None` indicates there is nothing in `tool.setuptools.dynamic` but the value
         # might have already been set by setup.py/extensions, so avoid overwriting.
@@ -294,18 +300,25 @@ class _ConfigExpander:
             )
             raise OptionError(msg)
 
+    def _expand_directive(
+        self, specifier: str, directive, package_dir: Mapping[str, str]
+    ):
+        with _ignore_errors(self.ignore_option_errors):
+            root_dir = self.root_dir
+            if "file" in directive:
+                return _expand.read_files(directive["file"], root_dir)
+            if "attr" in directive:
+                return _expand.read_attr(directive["attr"], package_dir, root_dir)
+            raise ValueError(f"invalid `{specifier}`: {directive!r}")
+        return None
+
     def _obtain(self, dist: "Distribution", field: str, package_dir: Mapping[str, str]):
         if field in self.dynamic_cfg:
-            directive = self.dynamic_cfg[field]
-            with _ignore_errors(self.ignore_option_errors):
-                root_dir = self.root_dir
-                if "file" in directive:
-                    return _expand.read_files(directive["file"], root_dir)
-                if "attr" in directive:
-                    return _expand.read_attr(directive["attr"], package_dir, root_dir)
-                msg = f"invalid `tool.setuptools.dynamic.{field}`: {directive!r}"
-                raise ValueError(msg)
-            return None
+            return self._expand_directive(
+                f"tool.setuptools.dynamic.{field}",
+                self.dynamic_cfg[field],
+                package_dir,
+            )
         self._ensure_previously_set(dist, field)
         return None
 
@@ -365,6 +378,38 @@ class _ConfigExpander:
                 return value.splitlines()
         return None
 
+    def _obtain_dependencies(self, dist: "Distribution"):
+        if "dependencies" in self.dynamic:
+            value = self._obtain(dist, "dependencies", {})
+            if value:
+                return _parse_requirements_list(value)
+        return None
+
+    def _obtain_optional_dependencies(self, dist: "Distribution"):
+        if "optional-dependencies" not in self.dynamic:
+            return None
+        if "optional-dependencies" in self.dynamic_cfg:
+            optional_dependencies_map = self.dynamic_cfg["optional-dependencies"]
+            assert isinstance(optional_dependencies_map, dict)
+            return {
+                group: _parse_requirements_list(self._expand_directive(
+                    f"tool.setuptools.dynamic.optional-dependencies.{group}",
+                    directive,
+                    {},
+                ))
+                for group, directive in optional_dependencies_map.items()
+            }
+        self._ensure_previously_set(dist, "optional-dependencies")
+        return None
+
+
+def _parse_requirements_list(value):
+    return [
+        line
+        for line in value.splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+
 
 @contextmanager
 def _ignore_errors(ignore_option_errors: bool):
@@ -413,8 +458,8 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         return super().__exit__(exc_type, exc_value, traceback)
 
 
-class _ExperimentalProjectMetadata(UserWarning):
-    """Explicitly inform users that `pyproject.toml` configuration is experimental"""
+class _BetaConfiguration(UserWarning):
+    """Explicitly inform users that some `pyproject.toml` configuration is *beta*"""
 
 
 class _InvalidFile(UserWarning):

@@ -1,0 +1,1 @@
+Reordered the User Guide's Table of Contents -- by :user:`codeandfire`

@@ -1,3 +1,0 @@
-Moved documentation from ``/userguide/commands`` to ``/depracted/commands``.
-This change was motived by the fact that running ``python setup.py`` directly is
-considered a deprecated practice.

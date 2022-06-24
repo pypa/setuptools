@@ -1,4 +1,8 @@
-"""Load setuptools configuration from ``setup.cfg`` files"""
+"""
+Load setuptools configuration from ``setup.cfg`` files.
+
+**API will be made private in the future**
+"""
 import os
 
 import warnings
@@ -568,15 +572,27 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         self.root_dir = target_obj.src_root
         self.package_dir: Dict[str, str] = {}  # To be filled by `find_packages`
 
+    @classmethod
+    def _parse_list_semicolon(cls, value):
+        return cls._parse_list(value, separator=';')
+
+    def _parse_file_in_root(self, value):
+        return self._parse_file(value, root_dir=self.root_dir)
+
+    def _parse_requirements_list(self, value):
+        # Parse a requirements list, either by reading in a `file:`, or a list.
+        parsed = self._parse_list_semicolon(self._parse_file_in_root(value))
+        # Filter it to only include lines that are not comments. `parse_list`
+        # will have stripped each line and filtered out empties.
+        return [line for line in parsed if not line.startswith("#")]
+
     @property
     def parsers(self):
         """Metadata item name to parser function mapping."""
         parse_list = self._parse_list
-        parse_list_semicolon = partial(self._parse_list, separator=';')
         parse_bool = self._parse_bool
         parse_dict = self._parse_dict
         parse_cmdclass = self._parse_cmdclass
-        parse_file = partial(self._parse_file, root_dir=self.root_dir)
 
         return {
             'zip_safe': parse_bool,
@@ -591,11 +607,11 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
                 "consider using implicit namespaces instead (PEP 420).",
                 SetuptoolsDeprecationWarning,
             ),
-            'install_requires': parse_list_semicolon,
-            'setup_requires': parse_list_semicolon,
-            'tests_require': parse_list_semicolon,
+            'install_requires': self._parse_requirements_list,
+            'setup_requires': self._parse_list_semicolon,
+            'tests_require': self._parse_list_semicolon,
             'packages': self._parse_packages,
-            'entry_points': parse_file,
+            'entry_points': self._parse_file_in_root,
             'py_modules': parse_list,
             'python_requires': SpecifierSet,
             'cmdclass': parse_cmdclass,
@@ -682,8 +698,10 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
 
         :param dict section_options:
         """
-        parse_list = partial(self._parse_list, separator=';')
-        parsed = self._parse_section_to_dict(section_options, parse_list)
+        parsed = self._parse_section_to_dict(
+            section_options,
+            self._parse_requirements_list,
+        )
         self['extras_require'] = parsed
 
     def parse_section_data_files(self, section_options):

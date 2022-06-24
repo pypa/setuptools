@@ -4,13 +4,7 @@
 Configuring setuptools using ``pyproject.toml`` files
 -----------------------------------------------------
 
-.. note:: New in 61.0.0 (**experimental**)
-
-.. warning::
-   Support for declaring :doc:`project metadata
-   <PyPUG:specifications/declaring-project-metadata>` or configuring
-   ``setuptools`` via ``pyproject.toml`` files is still experimental and might
-   change in future releases.
+.. note:: New in 61.0.0
 
 .. important::
    For the time being, ``pip`` still might require a ``setup.py`` file
@@ -75,6 +69,11 @@ The ``project`` table contains metadata fields as described by
 Setuptools-specific configuration
 =================================
 
+.. warning::
+   Support for declaring configurations not standardized by :pep:`621`
+   (i.e.  the ``[tool.setuptools]`` table),
+   is still in **beta** stage and might change in future releases.
+
 While the standard ``project`` table in the ``pyproject.toml`` file covers most
 of the metadata used during the packaging process, there are still some
 ``setuptools``-specific configurations that can be set by users that require
@@ -100,7 +99,7 @@ Key                       Value Type (TOML)           Notes
 ``exclude-package-data``  table/inline-table
 ``license-files``         array of glob patterns      **Provisional** - likely to change with :pep:`639`
                                                       (by default: ``['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']``)
-``data-files``            table/inline-table          **Deprecated** - check :doc:`/userguide/datafiles`
+``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`
 ``script-files``          array                       **Deprecated** - equivalent to the ``script`` keyword in ``setup.py``
                                                       (should be avoided in favour of ``project.scripts``)
 ``provides``              array                       **Ignored by pip**
@@ -181,16 +180,32 @@ In the ``dynamic`` table, the ``attr`` directive [#directives]_ will read an
 attribute from the given module [#attr]_, while ``file`` will read the contents
 of all given files and concatenate them in a single string.
 
-================= =================== =========================
-Key               Directive           Notes
-================= =================== =========================
-``version``       ``attr``, ``file``
-``readme``        ``file``
-``description``   ``file``            One-line text
-``classifiers``   ``file``            Multi-line text with one classifier per line
-``entry-points``  ``file``            INI format following :doc:`PyPUG:specifications/entry-points`
-                                      (``console_scripts`` and ``gui_scripts`` can be included)
-================= =================== =========================
+========================== =================== =================================================================================================
+Key                        Directive           Notes
+========================== =================== =================================================================================================
+``version``                ``attr``, ``file``
+``readme``                 ``file``
+``description``            ``file``            One-line text
+``classifiers``            ``file``            Multi-line text with one classifier per line
+``entry-points``           ``file``            INI format following :doc:`PyPUG:specifications/entry-points`
+                                               (``console_scripts`` and ``gui_scripts`` can be included)
+``dependencies``           ``file``            ``requirements.txt`` format (``#`` comments and blank lines excluded) **BETA**
+``optional-dependencies``  ``file``            ``requirements.txt`` format per group (``#`` comments and blank lines excluded) **BETA**
+========================== =================== =================================================================================================
+
+Supporting ``file`` for dependencies is meant for a convenience for packaging
+applications with possibly strictly versioned dependencies.
+
+Library packagers are discouraged from using overly strict (or "locked")
+dependency versions in their ``dependencies`` and ``optional-dependencies``.
+
+Currently, when specifying ``optional-dependencies`` dynamically, all of the groups
+must be specified dynamically; one can not specify some of them statically and
+some of them dynamically.
+
+Also note that the file format for specifying dependencies resembles a ``requirements.txt`` file,
+however please keep in mind that all non-comment lines must conform with :pep:`508`
+(``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
 
 ----
 

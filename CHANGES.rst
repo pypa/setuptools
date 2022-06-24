@@ -1,3 +1,51 @@
+v62.6.0
+-------
+
+
+Changes
+^^^^^^^
+* #3253: Enabled using ``file:`` for requirements in setup.cfg -- by :user:`akx`
+  (this feature is currently considered to be in **beta** stage).
+* #3255: Enabled using ``file:`` for dependencies and optional-dependencies in pyproject.toml -- by :user:`akx`
+  (this feature is currently considered to be in **beta** stage).
+* #3391: Updated ``attr:`` to also extract simple constants with type annotations -- by :user:`karlotness`
+
+
+v62.5.0
+-------
+
+
+Changes
+^^^^^^^
+* #3347: Changed warnings and documentation notes about *experimental* aspect of ``pyproject.toml`` configuration:
+  now ``[project]`` is a fully supported configuration interface, but the ``[tool.setuptools]`` table
+  and sub-tables are still considered to be in **beta** stage.
+* #3383: In _distutils_hack, suppress/undo the use of local distutils when select tests are imported in CPython.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3368: Added documentation page about extension modules -- by :user:`mkoeppe`
+* #3371: Moved documentation from ``/userguide/commands`` to ``/depracted/commands``.
+  This change was motived by the fact that running ``python setup.py`` directly is
+  considered a deprecated practice.
+* #3372: Consolidated sections about ``sdist`` contents and ``MANIFEST.in`` into a single page.
+
+  Added a simple ``MANIFEST.in`` example.
+* #3373: Moved remarks about using :pypi:`Cython` to the newly created page for
+  extension modules.
+* #3374: Added clarification that using ``python setup.py egg_info`` commands to
+  manage project versions is only supported in a *transitional* basis, and
+  that eventually ``egg_info`` will be deprecated.
+
+  Reorganized sections with tips for managing versions.
+* #3378: Updated ``Quickstart`` docs to make it easier to follow for beginners.
+
+Misc
+^^^^
+* #3385: Modules used to parse and evaluate configuration from ``pyproject.toml`` files are
+  intended for internal use only and that not part of the public API.
+
+
 v62.4.0
 -------
 
