@@ -1,5 +1,5 @@
 "Eggsecutable" Scripts
-----------------------
+=================
 
 .. deprecated:: 45.3.0
 
@@ -31,3 +31,30 @@ order to ensure that, once running, ``pkg_resources`` will know what project
 and version is in use.  The header script will check this and exit with an
 error if the ``.egg`` file has been renamed or is invoked via a symlink that
 changes its base name.
+
+
+
+Configuration API
+=================
+
+.. deprecated:: ????
+
+Some automation tools may wish to access data from a configuration file.
+``Setuptools`` exposes a ``read_configuration()`` function for
+parsing ``metadata`` and ``options`` sections into a dictionary::
+
+.. code-block::	python
+
+	from setuptools.config import read_configuration
+	conf_dict = read_configuration("/home/user/dev/package/setup.cfg")
+
+
+By default, ``read_configuration()`` will read only the file provided
+in the first argument. To include values from other configuration files
+which could be in various places, set the ``find_others`` keyword argument
+to ``True``.
+If you have only a configuration file but not the whole package, you can still
+try to get data out of it with the help of the ``ignore_option_errors`` keyword
+argument. When it is set to ``True``, all options with errors possibly produced
+by directives, such as ``attr:`` and others, will be silently ignored.
+As a consequence, the resulting dictionary will include no such options.

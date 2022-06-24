@@ -4,19 +4,36 @@
 Configuring setuptools using ``setup.cfg`` files
 ------------------------------------------------
 
-.. note:: New in 30.3.0 (8 Dec 2016).
+.. versionadded:: 30.3.0 (8 Dec 2016).
 
-.. important::
-    If compatibility with legacy builds (i.e. those not using the :pep:`517`
-    build API) is desired, a ``setup.py`` file containing a ``setup()`` function
-    call is still required even if your configuration resides in ``setup.cfg``.
+Originally ``setuptools`` required all configuration options to be supplied
+as code to the ``setup()`` function in ``setup.py``.
 
-``Setuptools`` allows using configuration files (usually :file:`setup.cfg`)
-to define a package’s metadata and other options that are normally supplied
-to the ``setup()`` function (declarative config).
+``Setup.cfg`` was introduced as a declarative alternative method to define
+a package's metadata and other options. After :pep:`621`, the Python
+community selected ``pyproject.toml`` as a standard declarative way of
+specifying *project metadata*., and these **replaced** setup.cfg files.
 
-This approach not only allows automation scenarios but also reduces
-boilerplate code in some cases.
+This means that you can have a Python project with all build configuration
+specified in ``setup.cfg``/ ``pyproject.toml``, without a ``setup.py`` file,
+if you **can rely on** your project always being built by a :pep:`517`/:pep:`518`
+compatible frontend. This approach not only allows automation scenarios but
+also reduces boilerplate code in some cases.
+
+If compatibility with legacy builds (i.e. those not using the :pep:`517`
+build API) is desired, a ``setup.py`` file containing a ``setup()`` function
+call is still required even if your configuration resides in ``setup.cfg``/``pyproject.toml``.
+
+
+.. note:: TODO: inserted from "Building and Distributing Packages": is this still true?
+
+	versionadded:: 40.9.0
+
+	If ``setup.py`` is missing from the project directory when a :pep:`517`
+	build is invoked, ``setuptools`` emulates a dummy ``setup.py`` file containing
+	only a ``setuptools.setup()`` call.
+
+	Caveat: except for editable installs? see pyproject.toml page
 
 .. _example-setup-config:
 

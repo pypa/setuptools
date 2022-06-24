@@ -141,6 +141,7 @@ extensions += ['sphinx_reredirects']
 redirects = {
     "userguide/keywords": "/deprecated/changed_keywords.html",
     "userguide/commands": "/deprecated/commands.html",
+    "setuptools": "index"
 }
 
 # Add support for inline tabs

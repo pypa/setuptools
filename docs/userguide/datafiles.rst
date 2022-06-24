@@ -12,6 +12,10 @@ Setuptools focuses on this most common type of data files and offers three ways
 of specifying which files should be included in your packages, as described in
 the following sections.
 
+The default behaviour for ``setuptools`` will work well for pure Python packages, or packages with simple C extensions (that don't require
+any special C header). This page and :ref:`Controlling files in the distribution`
+are about more complex scenarios when you want to include other types of files.
+
 include_package_data
 ====================
 
@@ -549,7 +553,6 @@ run time be included **inside the package**.
 .. [#files_api] Reference: https://importlib-resources.readthedocs.io/en/latest/using.html#migrating-from-legacy
 
 .. [#namespace_support] Reference: https://github.com/python/importlib_resources/pull/196#issuecomment-734520374
-
 
 .. |MANIFEST.in| replace:: ``MANIFEST.in``
 .. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/
