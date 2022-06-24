@@ -5,7 +5,10 @@ As defined in the wheel specification
 
 import os
 import re
+import shutil
+import sys
 import warnings
+from contextlib import contextmanager
 from inspect import cleandoc
 from pathlib import Path
 
@@ -28,9 +31,10 @@ class dist_info(Command):
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
         ('no-date', 'D', "Don't include date stamp [default]"),
+        ('keep-egg-info', None, "*TRANSITIONAL* will be removed in the future"),
     ]
 
-    boolean_options = ['tag-date']
+    boolean_options = ['tag-date', 'keep-egg-info']
     negative_opt = {'no-date': 'tag-date'}
 
     def initialize_options(self):
@@ -40,6 +44,7 @@ class dist_info(Command):
         self.dist_info_dir = None
         self.tag_date = None
         self.tag_build = None
+        self.keep_egg_info = False
 
     def finalize_options(self):
         if self.egg_base:
@@ -72,14 +77,32 @@ class dist_info(Command):
         self.name = f"{name}-{version}"
         self.dist_info_dir = os.path.join(self.output_dir, f"{self.name}.dist-info")
 
+    @contextmanager
+    def _maybe_bkp_dir(self, dir_path: str, requires_bkp: bool):
+        if requires_bkp:
+            bkp_name = f"{dir_path}.__bkp__"
+            _rm(bkp_name, ignore_errors=True)
+            _copy(dir_path, bkp_name, dirs_exist_ok=True, symlinks=True)
+            try:
+                yield
+            finally:
+                _rm(dir_path, ignore_errors=True)
+                shutil.move(bkp_name, dir_path)
+        else:
+            yield
+
     def run(self):
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.egg_info.run()
         egg_info_dir = self.egg_info.egg_info
+        assert os.path.isdir(egg_info_dir), ".egg-info dir should have been created"
+
         log.info("creating '{}'".format(os.path.abspath(self.dist_info_dir)))
         bdist_wheel = self.get_finalized_command('bdist_wheel')
-        bdist_wheel.egg2dist(egg_info_dir, self.dist_info_dir)
-        assert os.path.exists(egg_info_dir) is False
+
+        # TODO: if bdist_wheel if merged into setuptools, just add "keep_egg_info" there
+        with self._maybe_bkp_dir(egg_info_dir, self.keep_egg_info):
+            bdist_wheel.egg2dist(egg_info_dir, self.dist_info_dir)
 
 
 def _safe(component: str) -> str:
@@ -106,3 +129,14 @@ def _version(version: str) -> str:
         """
         warnings.warn(cleandoc(msg))
         return _safe(v).strip("_")
+
+
+def _rm(dir_name, **opts):
+    if os.path.isdir(dir_name):
+        shutil.rmtree(dir_name, **opts)
+
+
+def _copy(src, dst, **opts):
+    if sys.version_info < (3, 8):
+        opts.pop("dirs_exist_ok", None)
+    shutil.copytree(src, dst, **opts)
