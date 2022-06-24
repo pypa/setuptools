@@ -280,8 +280,6 @@ class editable_wheel(Command):
         output_mapping: Dict[str, str],
     ):
         """Populate wheel using the "strict" ``link tree`` strategy."""
-        msg = "Strict editable install will be performed using a link tree.\n"
-        _logger.warning(msg + _STRICT_WARNING)
         auxiliary_dir = _empty_dir(Path(self.project_dir, "build", build_name))
         populate = _LinkTree(
             self.distribution,
@@ -291,31 +289,21 @@ class editable_wheel(Command):
             outputs,
             output_mapping,
         )
-        populate(wheel)
-
-        msg = f"""\n
-        Strict editable installation performed using the auxiliary directory:
-            {auxiliary_dir}
-
-        Please be careful to not remove this directory, otherwise you might not be able
-        to import/use your package.
-        """
-        warnings.warn(msg, InformationOnly)
+        with populate:
+            populate(wheel)
 
     def _populate_static_pth(self, name: str, project_dir: Path, wheel: "WheelFile"):
         """Populate wheel using the "lax" ``.pth`` file strategy, for ``src-layout``."""
         src_dir = self.package_dir[""]
-        msg = f"Editable install will be performed using .pth file to {src_dir}.\n"
-        _logger.warning(msg + _LAX_WARNING)
         populate = _StaticPth(self.distribution, name, [Path(project_dir, src_dir)])
-        populate(wheel)
+        with populate:
+            populate(wheel)
 
     def _populate_finder(self, name: str, wheel: "WheelFile"):
         """Populate wheel using the "lax" MetaPathFinder strategy."""
-        msg = "Editable install will be performed using a meta path finder.\n"
-        _logger.warning(msg + _LAX_WARNING)
         populate = _TopLevelFinder(self.distribution, name)
-        populate(wheel)
+        with populate:
+            populate(wheel)
 
 
 class _StaticPth:
@@ -328,6 +316,17 @@ class _StaticPth:
         entries = "\n".join((str(p.resolve()) for p in self.path_entries))
         contents = bytes(f"{entries}\n", "utf-8")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
+
+    def __enter__(self):
+        msg = f"""
+        Editable install will be performed using .pth file to extend `sys.path` with:
+        {self.path_entries!r}
+        """
+        _logger.warning(msg + _LAX_WARNING)
+        return self
+
+    def __exit__(self, _exc_type, _exc_value, _traceback):
+        ...
 
 
 class _LinkTree(_StaticPth):
@@ -388,6 +387,21 @@ class _LinkTree(_StaticPth):
         for relative, src in mappings.items():
             self._create_file(relative, src, link=link_type)
 
+    def __enter__(self):
+        msg = "Strict editable install will be performed using a link tree.\n"
+        _logger.warning(msg + _STRICT_WARNING)
+        return self
+
+    def __exit__(self, _exc_type, _exc_value, _traceback):
+        msg = f"""\n
+        Strict editable installation performed using the auxiliary directory:
+            {self.auxiliary_dir}
+
+        Please be careful to not remove this directory, otherwise you might not be able
+        to import/use your package.
+        """
+        warnings.warn(msg, InformationOnly)
+
 
 class _TopLevelFinder:
     def __init__(self, dist: Distribution, name: str):
@@ -412,6 +426,14 @@ class _TopLevelFinder:
 
         content = bytes(f"import {finder}; {finder}.install()", "utf-8")
         wheel.writestr(f"__editable__.{self.name}.pth", content)
+
+    def __enter__(self):
+        msg = "Editable install will be performed using a meta path finder.\n"
+        _logger.warning(msg + _LAX_WARNING)
+        return self
+
+    def __exit__(self, _exc_type, _exc_value, _traceback):
+        ...
 
 
 def _can_symlink_files() -> bool:
