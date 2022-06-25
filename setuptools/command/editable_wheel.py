@@ -15,8 +15,10 @@ import os
 import re
 import shutil
 import sys
+import traceback
 import warnings
 from contextlib import suppress
+from inspect import cleandoc
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -88,14 +90,29 @@ class editable_wheel(Command):
         self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
 
     def run(self):
-        self.dist_dir.mkdir(exist_ok=True)
-        self._ensure_dist_info()
+        try:
+            self.dist_dir.mkdir(exist_ok=True)
+            self._ensure_dist_info()
 
-        # Add missing dist_info files
-        bdist_wheel = self.reinitialize_command("bdist_wheel")
-        bdist_wheel.write_wheelfile(self.dist_info_dir)
+            # Add missing dist_info files
+            bdist_wheel = self.reinitialize_command("bdist_wheel")
+            bdist_wheel.write_wheelfile(self.dist_info_dir)
 
-        self._create_wheel_file(bdist_wheel)
+            self._create_wheel_file(bdist_wheel)
+        except Exception as ex:
+            traceback.print_exc()
+            msg = """
+            Support for editable installs via PEP 660 was recently introduced
+            in `setuptools`. If you are seeing this error, please report to:
+
+            https://github.com/pypa/setuptools/issues
+
+            Meanwhile you can try the legacy behavior by setting an
+            environment variable and trying to install again:
+
+            SETUPTOOLS_ENABLE_FEATURES="legacy-editable"
+            """
+            raise errors.InternalError(cleandoc(msg)) from ex
 
     def _ensure_dist_info(self):
         if self.dist_info_dir is None:
