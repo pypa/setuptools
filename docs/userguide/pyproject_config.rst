@@ -44,6 +44,7 @@ The ``project`` table contains metadata fields as described by
    name = "my_package"
    description = "My package description"
    readme = "README.rst"
+   requires-python = ">=3.7"
    keywords = ["one", "two"]
    license = {text = "BSD 3-Clause License"}
    classifiers = [
@@ -63,6 +64,8 @@ The ``project`` table contains metadata fields as described by
    [project.scripts]
    my-script = "my_package.module:function"
 
+   # ... other project metadata fields as specified in:
+   #     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 
 .. _setuptools-table:
 
