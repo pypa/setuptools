@@ -131,6 +131,12 @@ Limitations
   <PyPUG:guides/packaging-namespace-packages>`.
   Please use :pep:`420`-style implicit namespaces.
 
+.. attention::
+   Editable installs are **not a perfect replacement for regular installs**
+   in a test environment. When in doubt, please test your projects as
+   installed via a regular wheel. There are tools in the Python ecosystem,
+   like :pypi:`tox` or :pypi:`nox`, that can help you with that.
+
 
 Legacy Behavior
 ---------------
