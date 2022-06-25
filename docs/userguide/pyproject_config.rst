@@ -64,7 +64,8 @@ The ``project`` table contains metadata fields as described by
    [project.scripts]
    my-script = "my_package.module:function"
 
-   # ... other project metadata fields as specified in PEP 621
+   # ... other project metadata fields as specified in:
+   #     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 
 .. _setuptools-table:
 
