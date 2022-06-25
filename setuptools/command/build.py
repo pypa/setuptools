@@ -65,6 +65,11 @@ class SubCommand(Protocol):
        of ``get_output_mapping()``. Alternatively, ``setuptools`` **MAY** attempt to use
        :doc:`import hooks <python:reference/import>` to redirect any attempt to import
        to the directory with the original source code and other files built in place.
+
+    Please note that custom sub-commands **SHOULD NOT** rely on ``run()`` being
+    executed (or not) to provide correct return values for ``get_outputs()``,
+    ``get_output_mapping()`` or ``get_source_files()``. The ``get_*`` methods should
+    work independently of ``run()``.
     """
 
     editable_mode: bool = False
@@ -105,6 +110,17 @@ class SubCommand(Protocol):
 
     def run(self):
         """(Required by the original :class:`setuptools.Command` interface)"""
+
+    def get_source_files(self) -> List[str]:
+        """
+        Return a list of all files that are used by the command to create the expected
+        outputs.
+        For example, if your build command transpiles Java files into Python, you should
+        list here all the Java files.
+        The primary purpose of this function is to help populating the ``sdist``
+        with all the files necessary to build the distribution.
+        All files should be strings relative to the project root directory.
+        """
 
     def get_outputs(self) -> List[str]:
         """
