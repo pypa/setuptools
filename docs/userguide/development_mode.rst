@@ -130,3 +130,15 @@ Limitations
   :doc:`namespaces created with pkgutil or pkg_resouces
   <PyPUG:guides/packaging-namespace-packages>`.
   Please use :pep:`420`-style implicit namespaces.
+
+
+Legacy Behavior
+---------------
+
+If your project is not compatible with the new "editable installs" or you wish
+to use the legacy behavior (that mimics the old and deprecated
+``python setup.py develop`` command), you can set an environment variable:
+
+.. code-block::
+
+   SETUPTOOLS_USE_FEATURE="legacy-editable"
