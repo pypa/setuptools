@@ -7,6 +7,7 @@ from copy import deepcopy
 from importlib import import_module
 from pathlib import Path
 from textwrap import dedent
+from unittest.mock import Mock
 from uuid import uuid4
 
 import jaraco.envs
@@ -589,24 +590,31 @@ class TestLinkTree:
             dist = Distribution({"script_name": "%PEP 517%"})
             dist.parse_config_files()
 
+            wheel = Mock()
+            aux = tmp_path / ".aux"
             build = tmp_path / ".build"
-            tmp = tmp_path / ".tmp"
-            tmp.mkdir()
-            unpacked = tmp_path / ".unpacked"
-            unpacked.mkdir()
+            aux.mkdir()
+            build.mkdir()
 
-            make_tree = _LinkTree(dist, name, build, tmp)
-            make_tree(unpacked)
+            build_py = dist.get_command_obj("build_py")
+            build_py.editable_mode = True
+            build_py.build_lib = str(build)
+            build_py.ensure_finalized()
+            outputs = build_py.get_outputs()
+            output_mapping = build_py.get_output_mapping()
 
-            mod1 = next(build.glob("**/mod1.py"))
+            make_tree = _LinkTree(dist, name, aux, build)
+            make_tree(wheel, outputs, output_mapping)
+
+            mod1 = next(aux.glob("**/mod1.py"))
             expected = tmp_path / "src/mypkg/mod1.py"
             assert_link_to(mod1, expected)
 
-            assert next(build.glob("**/subpackage"), None) is None
-            assert next(build.glob("**/mod2.py"), None) is None
-            assert next(build.glob("**/resource_file.txt"), None) is None
+            assert next(aux.glob("**/subpackage"), None) is None
+            assert next(aux.glob("**/mod2.py"), None) is None
+            assert next(aux.glob("**/resource_file.txt"), None) is None
 
-            assert next(build.glob("**/resource.not_in_manifest"), None) is None
+            assert next(aux.glob("**/resource.not_in_manifest"), None) is None
 
     def test_strict_install(self, tmp_path, venv, monkeypatch):
         monkeypatch.setenv("SETUPTOOLS_EDITABLE", "strict")
