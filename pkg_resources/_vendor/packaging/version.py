@@ -261,7 +261,7 @@ class Version(_BaseVersion):
     def __init__(self, version: str) -> None:
 
         # Validate the version and parse it into pieces
-        match = self._regex.search(version)
+        match = self._regex.search(str(version))
         if not match:
             raise InvalidVersion(f"Invalid version: '{version}'")
 
