@@ -15,8 +15,10 @@ import os
 import re
 import shutil
 import sys
+import traceback
 import warnings
 from contextlib import suppress
+from inspect import cleandoc
 from itertools import chain
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -88,14 +90,29 @@ class editable_wheel(Command):
         self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
 
     def run(self):
-        self.dist_dir.mkdir(exist_ok=True)
-        self._ensure_dist_info()
+        try:
+            self.dist_dir.mkdir(exist_ok=True)
+            self._ensure_dist_info()
 
-        # Add missing dist_info files
-        bdist_wheel = self.reinitialize_command("bdist_wheel")
-        bdist_wheel.write_wheelfile(self.dist_info_dir)
+            # Add missing dist_info files
+            bdist_wheel = self.reinitialize_command("bdist_wheel")
+            bdist_wheel.write_wheelfile(self.dist_info_dir)
 
-        self._create_wheel_file(bdist_wheel)
+            self._create_wheel_file(bdist_wheel)
+        except Exception as ex:
+            traceback.print_exc()
+            msg = """
+            Support for editable installs via PEP 660 was recently introduced
+            in `setuptools`. If you are seeing this error, please report to:
+
+            https://github.com/pypa/setuptools/issues
+
+            Meanwhile you can try the legacy behavior by setting an
+            environment variable and trying to install again:
+
+            SETUPTOOLS_ENABLE_FEATURES="legacy-editable"
+            """
+            raise errors.InternalError(cleandoc(msg)) from ex
 
     def _ensure_dist_info(self):
         if self.dist_info_dir is None:
@@ -339,7 +356,8 @@ class _LinkTree(_StaticPth):
         self._file(src_file, dest, link=link)
 
     def _create_links(self, outputs, output_mapping):
-        link_type = "sym" if _can_symlink_files() else "hard"
+        self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
+        link_type = "sym" if _can_symlink_files(self.auxiliary_dir) else "hard"
         mappings = {
             self._normalize_output(k): v
             for k, v in output_mapping.items()
@@ -403,8 +421,8 @@ class _TopLevelFinder:
         ...
 
 
-def _can_symlink_files() -> bool:
-    with TemporaryDirectory() as tmp:
+def _can_symlink_files(base_dir: Path) -> bool:
+    with TemporaryDirectory(dir=str(base_dir.resolve())) as tmp:
         path1, path2 = Path(tmp, "file1.txt"), Path(tmp, "file2.txt")
         path1.write_text("file1", encoding="utf-8")
         with suppress(AttributeError, NotImplementedError, OSError):

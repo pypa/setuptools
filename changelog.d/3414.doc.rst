@@ -1,0 +1,2 @@
+Updated :doc:`Development Mode </userguide/development_mode>` to reflect on the
+implementation of :pep:`660`.

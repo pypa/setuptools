@@ -21,6 +21,8 @@ highlighting tool :pypi:`pygments` allows specifying additional styles
 using the entry point ``pygments.styles``.
 
 
+.. _console-scripts:
+
 Console Scripts
 ===============
 

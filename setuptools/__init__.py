@@ -119,7 +119,7 @@ class Command(_Command):
         Most of the time, each option/attribute/cache should only be set if it does not
         have any value yet (e.g. ``if self.attr is None: self.attr = val``).
 
-    .. method: run(self)
+    .. method:: run(self)
 
         Execute the actions intended by the command.
         (Side effects **SHOULD** only take place when ``run`` is executed,

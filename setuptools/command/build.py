@@ -44,20 +44,20 @@ class SubCommand(Protocol):
     1. ``setuptools`` will set the ``editable_mode`` flag will be set to ``True``
     2. ``setuptools`` will execute the ``run()`` command.
 
-         .. important::
-            Subcommands **SHOULD** take advantage of ``editable_mode=True`` to adequate
-            its behaviour or perform optimisations.
+       .. important::
+          Subcommands **SHOULD** take advantage of ``editable_mode=True`` to adequate
+          its behaviour or perform optimisations.
 
-            For example, if a subcommand don't need to generate any extra file and
-            everything it does is to copy a source file into the build directory,
-            ``run()`` **SHOULD** simply "early return".
+          For example, if a subcommand don't need to generate any extra file and
+          everything it does is to copy a source file into the build directory,
+          ``run()`` **SHOULD** simply "early return".
 
-            Similarly, if the subcommand creates files that would be placed alongside
-            Python files in the final distribution, during an editable install
-            the command **SHOULD** generate these files "in place" (i.e. write them to
-            the original source directory, instead of using the build directory).
-            Note that ``get_output_mapping()`` should reflect that and include mappings
-            for "in place" builds accordingly.
+          Similarly, if the subcommand creates files that would be placed alongside
+          Python files in the final distribution, during an editable install
+          the command **SHOULD** generate these files "in place" (i.e. write them to
+          the original source directory, instead of using the build directory).
+          Note that ``get_output_mapping()`` should reflect that and include mappings
+          for "in place" builds accordingly.
 
     3. ``setuptools`` use any knowledge it can derive from the return values of
        ``get_outputs()`` and ``get_output_mapping()`` to create an editable wheel.
