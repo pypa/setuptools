@@ -159,7 +159,7 @@ class editable_wheel(Command):
         wheel = str(unpacked_wheel)
         build_lib = str(build_lib)
         data = str(Path(unpacked_wheel, f"{name}.data", "data"))
-        headers = str(Path(unpacked_wheel, f"{name}.data", "include"))
+        headers = str(Path(unpacked_wheel, f"{name}.data", "headers"))
         scripts = str(Path(unpacked_wheel, f"{name}.data", "scripts"))
 
         # egg-info may be generated again to create a manifest (used for package data)
