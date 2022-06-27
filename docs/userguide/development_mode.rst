@@ -48,7 +48,7 @@ Please note that, by default an editable install will expose at least all the
 files that would be available in a regular installation. However, depending on
 the file and directory organization in your project, it might also expose
 as a side effect files that would not be normally available.
-This is allowed so you can create iteratively create new Python modules.
+This is allowed so you can iteratively create new Python modules.
 Please have a look on the following section if you are looking for a different behaviour.
 
 .. admonition:: Virtual Environments
@@ -85,8 +85,8 @@ Please have a look on the following section if you are looking for a different b
 When thinking about editable installations, users might have the following
 expectations:
 
-1. It should allow developers to create add new files and have them
-   automatically exposed.
+1. It should allow developers to add new files (or split/rename existing ones)
+   and have them automatically exposed.
 2. It should behave as close as possible to a regular installation and help
    users to detect problems (e.g. new files not being included in the distribution).
 
@@ -120,22 +120,27 @@ Limitations
   executable script files, binary extensions, headers and metadata may be
   exposed as a *snapshot* of the version they were at the moment of the
   installation.
-- Adding new dependencies or entry-points to your project require
-  a fresh "editable" re-installation.
-- Console scripts and GUI scripts **MUST** be specified via entry-points
-  to work properly.
+- Adding new dependencies, entry-points or changing your project's metadata
+  require a fresh "editable" re-installation.
+- Console scripts and GUI scripts **MUST** be specified via :doc:`entry-points
+  </userguide/entry_point>` to work properly.
 - *Strict* editable installs require the file system to support
   either :wiki:`symbolic <symbolic link>` or :wiki:`hard links <hard link>`.
 - Editable installations may not work with
   :doc:`namespaces created with pkgutil or pkg_resouces
   <PyPUG:guides/packaging-namespace-packages>`.
   Please use :pep:`420`-style implicit namespaces.
+- Support for :pep:`420`-style implicit namespace packages for
+  projects structured using :ref:`flat-layout` is still **experimental**.
+  If you experience problems, you can try converting your package structure
+  to the :ref:`src-layout`.
 
 .. attention::
    Editable installs are **not a perfect replacement for regular installs**
    in a test environment. When in doubt, please test your projects as
    installed via a regular wheel. There are tools in the Python ecosystem,
-   like :pypi:`tox` or :pypi:`nox`, that can help you with that.
+   like :pypi:`tox` or :pypi:`nox`, that can help you with that
+   (when used with appropriate configuration).
 
 
 Legacy Behavior
