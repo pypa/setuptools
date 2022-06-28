@@ -156,8 +156,7 @@ all modules and packages meant for distribution are placed inside this
 directory::
 
     project_root_directory
-    ├── pyproject.toml
-    ├── setup.cfg  # or setup.py
+    ├── pyproject.toml  # AND/OR setup.cfg, setup.py
     ├── ...
     └── src/
         └── mypkg/
@@ -190,8 +189,7 @@ flat-layout
 The package folder(s) are placed directly under the project root::
 
     project_root_directory
-    ├── pyproject.toml
-    ├── setup.cfg  # or setup.py
+    ├── pyproject.toml  # AND/OR setup.cfg, setup.py
     ├── ...
     └── mypkg/
         ├── __init__.py
@@ -240,8 +238,7 @@ A standalone module is placed directly under the project root, instead of
 inside a package folder::
 
     project_root_directory
-    ├── pyproject.toml
-    ├── setup.cfg  # or setup.py
+    ├── pyproject.toml  # AND/OR setup.cfg, setup.py
     ├── ...
     └── single_file_lib.py
 
@@ -293,7 +290,7 @@ then returns a list of ``str`` representing the packages it could find. To use
 it, consider the following directory::
 
     mypkg
-    ├── setup.cfg  # and/or setup.py, pyproject.toml
+    ├── pyproject.toml  # AND/OR setup.cfg, setup.py
     └── src
         ├── pkg1
         │   └── __init__.py
@@ -410,7 +407,7 @@ Now, suppose you decide to package the ``foo`` part for distribution and start
 by creating a project directory organized as follows::
 
    foo
-   ├── setup.cfg  # and/or setup.py, pyproject.toml
+   ├── pyproject.toml  # AND/OR setup.cfg, setup.py
    └── src
        └── timmins
            └── foo
@@ -515,7 +512,7 @@ to `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_. It used to be more
 cumbersome to accomplish the same result. Historically, there were two methods
 to create namespace packages. One is the ``pkg_resources`` style supported by
 ``setuptools`` and the other one being ``pkgutils`` style offered by
-``pkgutils`` module in Python. Both are now considered deprecated despite the
+``pkgutils`` module in Python. Both are now considered *deprecated* despite the
 fact they still linger in many existing packages. These two differ in many
 subtle yet significant aspects and you can find out more on `Python packaging
 user guide <https://packaging.python.org/guides/packaging-namespace-packages/>`_.
@@ -555,7 +552,7 @@ And your directory should look like this
 .. code-block:: bash
 
    foo
-   ├── setup.cfg  # and/or setup.py, pyproject.toml
+   ├── pyproject.toml  # AND/OR setup.cfg, setup.py
    └── src
        └── timmins
            ├── __init__.py
@@ -575,7 +572,7 @@ file contains the following:
 
     __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
-The project layout remains the same and ``setup.cfg`` remains the same.
+The project layout remains the same and ``pyproject.toml/setup.cfg`` remains the same.
 
 
 ----
