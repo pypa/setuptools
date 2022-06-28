@@ -319,7 +319,8 @@ in ``src`` that start with the name ``pkg`` and not ``additional``:
 
         [options.packages.find]
         where = src
-        include = pkg*  # alternatively: `exclude = additional*`
+        include = pkg*
+        # alternatively: `exclude = additional*`
 
     .. note::
         ``pkg`` does not contain an ``__init__.py`` file, therefore
