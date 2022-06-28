@@ -890,6 +890,75 @@ class TestSetupRequires:
                 monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
                 run_setup(test_setup_py, [str('--version')])
 
+    def test_setup_requires_with_distutils_command_dep(self, monkeypatch):
+        '''
+        Use case: ensure build requirements' extras
+        are properly installed and activated.
+        '''
+        with contexts.save_pkg_resources_state():
+            with contexts.tempdir() as temp_dir:
+                # Create source distribution for `extra_dep`.
+                make_sdist(os.path.join(temp_dir, 'extra_dep-1.0.tar.gz'), [
+                    ('setup.py',
+                     DALS("""
+                          import setuptools
+                          setuptools.setup(
+                              name='extra_dep',
+                              version='1.0',
+                              py_modules=['extra_dep'],
+                          )
+                          """)),
+                    ('setup.cfg', ''),
+                    ('extra_dep.py', ''),
+                ])
+                # Create source tree for `epdep`.
+                dep_pkg = os.path.join(temp_dir, 'epdep')
+                os.mkdir(dep_pkg)
+                path.build({
+                    'setup.py':
+                    DALS("""
+                          import setuptools
+                          setuptools.setup(
+                              name='dep', version='2.0',
+                              py_modules=['epcmd'],
+                              extras_require={'extra': ['extra_dep']},
+                              entry_points='''
+                                           [distutils.commands]
+                                           epcmd = epcmd:epcmd [extra]
+                                           ''',
+                          )
+                         """),
+                    'setup.cfg': '',
+                    'epcmd.py': DALS("""
+                                     from distutils.command.build_py import build_py
+
+                                     import extra_dep
+
+                                     class epcmd(build_py):
+                                         pass
+                                     """),
+                }, prefix=dep_pkg)
+                # "Install" dep.
+                run_setup(
+                    os.path.join(dep_pkg, 'setup.py'), [str('dist_info')])
+                working_set.add_entry(dep_pkg)
+                # Create source tree for test package.
+                test_pkg = os.path.join(temp_dir, 'test_pkg')
+                test_setup_py = os.path.join(test_pkg, 'setup.py')
+                os.mkdir(test_pkg)
+                with open(test_setup_py, 'w') as fp:
+                    fp.write(DALS(
+                        '''
+                        from setuptools import installer, setup
+                        setup(setup_requires='dep[extra]')
+                        '''))
+                # Check...
+                monkeypatch.setenv(str('PIP_FIND_LINKS'), str(temp_dir))
+                monkeypatch.setenv(str('PIP_NO_INDEX'), str('1'))
+                monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
+                monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
+                run_setup(test_setup_py, ['epcmd'])
+
 
 def make_trivial_sdist(dist_path, distname, version):
     """
