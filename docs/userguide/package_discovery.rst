@@ -319,8 +319,7 @@ in ``src`` that start with the name ``pkg`` and not ``additional``:
 
         [options.packages.find]
         where = src
-        include = pkg*
-        exclude = additional
+        include = pkg*  # alternatively: `exclude = additional*`
 
     .. note::
         ``pkg`` does not contain an ``__init__.py`` file, therefore
@@ -334,8 +333,7 @@ in ``src`` that start with the name ``pkg`` and not ``additional``:
             # ...
             packages=find_packages(
                 where='src',
-                include=['pkg*'],
-                exclude=['additional'],
+                include=['pkg*'],  # alternatively: `exclude=['additional*']`
             ),
             package_dir={"": "src"}
             # ...
@@ -353,8 +351,7 @@ in ``src`` that start with the name ``pkg`` and not ``additional``:
 
         [tool.setuptools.packages.find]
         where = ["src"]
-        include = ["pkg*"]
-        exclude = ["additional"]
+        include = ["pkg*"]  # alternatively: `exclude = ["additional*"]`
         namespaces = false
 
     .. note::
