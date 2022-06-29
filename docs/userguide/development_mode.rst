@@ -106,6 +106,15 @@ directory (``$your_project_dir/build``) and add it to ``PYTHONPATH`` via a
 :mod:`.pth file <site>`. (Please be careful to not delete this repository
 by mistake otherwise your files may stop being accessible).
 
+.. warning::
+   Strict editable installs require auxiliary files to be placed in a
+   ``build/__editable__.*`` directory (relative to your project root).
+
+   Please be careful to not remove this directory while testing your project,
+   otherwise your editable installation may be compromised.
+
+   You can remove the ``build/__editable__.*`` directory after uninstalling.
+
 
 .. note::
     .. versionadded:: v63.0.0
