@@ -12,7 +12,7 @@ This document contains information to help Python developers through this
 process. Please check the :doc:`/userguide/quickstart` for an overview of
 the workflow.
 
-Also note that ``setuptools`` is what is know in the community as :pep:`build
+Also note that ``setuptools`` is what is known in the community as :pep:`build
 backend <517#terminology-and-goals>`, user facing interfaces are provided by tools
 such as :pypi:`pip` and :pypi:`build`. To use ``setuptools``, one must
 explicitly create a ``pyproject.toml`` file as described :doc:`/build_meta`.
