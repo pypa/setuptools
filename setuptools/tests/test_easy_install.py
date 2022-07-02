@@ -846,9 +846,11 @@ class TestSetupRequires:
 
     def test_setup_requires_with_transitive_extra_dependency(
             self, monkeypatch):
-        # Use case: installing a package with a build dependency on
-        # an already installed `dep[extra]`, which in turn depends
-        # on `extra_dep` (whose is not already installed).
+        '''
+        Use case: installing a package with a build dependency on
+        an already installed `dep[extra]`, which in turn depends
+        on `extra_dep` (whose is not already installed).
+        '''
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
                 # Create source distribution for `extra_dep`.
