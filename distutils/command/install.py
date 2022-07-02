@@ -17,6 +17,7 @@ from distutils.file_util import write_file
 from distutils.util import convert_path, subst_vars, change_root
 from distutils.util import get_platform
 from distutils.errors import DistutilsOptionError
+from . import _framework_compat as fw
 from .. import _collections
 
 from site import USER_BASE
@@ -82,6 +83,10 @@ if HAS_USER_SITE:
         'data': '{userbase}',
     }
 
+
+INSTALL_SCHEMES.update(fw.schemes)
+
+
 # The keys to an installation scheme; if any new types of files are to be
 # installed, be sure to add an entry to every installation scheme above,
 # and to SCHEME_KEYS here.
@@ -136,7 +141,7 @@ def _resolve_scheme(name):
     try:
         resolved = sysconfig.get_preferred_scheme(key)
     except Exception:
-        resolved = _pypy_hack(name)
+        resolved = fw.scheme(_pypy_hack(name))
     return resolved
 
 
@@ -426,7 +431,7 @@ class install(Command):
             local_vars['usersite'] = self.install_usersite
 
         self.config_vars = _collections.DictStack(
-            [compat_vars, sysconfig.get_config_vars(), local_vars]
+            [fw.vars(), compat_vars, sysconfig.get_config_vars(), local_vars]
         )
 
         self.expand_basedirs()
