@@ -86,6 +86,7 @@ Supporting sdists and editable installs in ``build`` sub-commands
 are encouraged to implement the following protocol:
 
 .. autoclass:: setuptools.command.build.SubCommand
+   :members:
 
 
 Adding Arguments
