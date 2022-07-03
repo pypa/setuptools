@@ -1,4 +1,0 @@
-Drop setuptools' support for installing an entrypoint extra requirements at load time:
-- the functionality has been broken since v60.8.0.
-- the mechanism to do so is deprecated (`fetch_build_eggs`).
-- that use case (e.g. a custom command class entrypoint) is covered by making sure the necessary build requirements are declared.
