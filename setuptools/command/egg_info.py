@@ -296,7 +296,6 @@ class egg_info(InfoCommon, Command):
         self.mkpath(self.egg_info)
         os.utime(self.egg_info, None)
         for ep in metadata.entry_points(group='egg_info.writers'):
-            self.distribution._install_dependencies(ep)
             writer = ep.load()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 

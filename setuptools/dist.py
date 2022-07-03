@@ -30,7 +30,6 @@ from distutils.util import rfc822_escape
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
 from setuptools.extern.more_itertools import unique_everseen, partition
-from setuptools.extern import nspektr
 
 from ._importlib import metadata
 
@@ -918,17 +917,7 @@ class Distribution(_Distribution):
         for ep in metadata.entry_points(group='distutils.setup_keywords'):
             value = getattr(self, ep.name, None)
             if value is not None:
-                self._install_dependencies(ep)
                 ep.load()(self, ep.name, value)
-
-    def _install_dependencies(self, ep):
-        """
-        Given an entry point, ensure that any declared extras for
-        its distribution are installed.
-        """
-        for req in nspektr.missing(ep):
-            # fetch_build_egg expects pkg_resources.Requirement
-            self.fetch_build_egg(pkg_resources.Requirement(str(req)))
 
     def get_egg_cache_dir(self):
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
@@ -962,7 +951,6 @@ class Distribution(_Distribution):
 
         eps = metadata.entry_points(group='distutils.commands', name=command)
         for ep in eps:
-            self._install_dependencies(ep)
             self.cmdclass[command] = cmdclass = ep.load()
             return cmdclass
         else:
