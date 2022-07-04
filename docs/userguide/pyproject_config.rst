@@ -212,8 +212,7 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
 .. rubric:: Notes
 
 .. [#pep660-status] Editable install without ``setup.py`` will be supported from
-   ``setuptools >= 63.0.0``, but this feature will remain experimental for a while.
-   Check https://github.com/pypa/setuptools/issues/2816 for detail.
+   ``setuptools >= 64.0.0``. Check https://github.com/pypa/setuptools/issues/2816 for detail.
 
 .. [#setupcfg-caveats] ``pip`` may allow editable install only with ``pyproject.toml``
    and ``setup.cfg``. However, this behavior may not be consistent over various build
