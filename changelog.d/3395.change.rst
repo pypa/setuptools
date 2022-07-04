@@ -1,7 +1,2 @@
-Included two performance optimizations:
-
-- ``setuptools.build_meta`` no longer tries to :func:`compile` the setup script code
-  before :func:`exec`-ing it.
-
-- ``setuptools.dist`` no longer tries to install missing dependencies for entry-points
-  that do not have any ``extras``.
+Included a performance optimization: ``setuptools.build_meta`` no longer tries
+to :func:`compile` the setup script code before :func:`exec`-ing it.
