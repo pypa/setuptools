@@ -107,9 +107,9 @@ class TestCLI(WrapperTester):
             'arg5 a\\\\b',
         ]
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-        stdout, stderr = proc.communicate('hello\nworld\n'.encode('ascii'))
-        actual = stdout.decode('ascii').replace('\r\n', '\n')
+            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
+        stdout, stderr = proc.communicate('hello\nworld\n')
+        actual = stdout.replace('\r\n', '\n')
         expected = textwrap.dedent(r"""
             \foo-script.py
             ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
@@ -148,9 +148,11 @@ class TestCLI(WrapperTester):
             cmd,
             stdout=subprocess.PIPE,
             stdin=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
         stdout, stderr = proc.communicate()
-        actual = stdout.decode('ascii').replace('\r\n', '\n')
+        actual = stdout.replace('\r\n', '\n')
         expected = textwrap.dedent(r"""
             \foo-script.py
             []
@@ -188,7 +190,7 @@ class TestGUI(WrapperTester):
         ]
         proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
-            stderr=subprocess.STDOUT)
+            stderr=subprocess.STDOUT, text=True)
         stdout, stderr = proc.communicate()
         assert not stdout
         assert not stderr
