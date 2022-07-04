@@ -41,7 +41,7 @@ class SubCommand(Protocol):
     When creating an :pep:`editable wheel <660>`, ``setuptools`` will try to evaluate
     custom ``build`` subcommands using the following procedure:
 
-    1. ``setuptools`` will set the ``editable_mode`` flag will be set to ``True``
+    1. ``setuptools`` will set the ``editable_mode`` attribute to ``True``
     2. ``setuptools`` will execute the ``run()`` command.
 
        .. important::
