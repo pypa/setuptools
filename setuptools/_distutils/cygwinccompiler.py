@@ -58,6 +58,7 @@ from distutils.unixccompiler import UnixCCompiler
 from distutils.file_util import write_file
 from distutils.errors import (
     DistutilsExecError,
+    DistutilsPlatformError,
     CCompilerError,
     CompileError,
     UnknownFileError,
@@ -197,6 +198,12 @@ class CygwinCCompiler(UnixCCompiler):
         libraries = copy.copy(libraries or [])
         objects = copy.copy(objects or [])
 
+        if runtime_library_dirs:
+            self.warn(
+                "I don't know what to do with 'runtime_library_dirs': "
+                + str(runtime_library_dirs)
+            )
+
         # Additional libraries
         libraries.extend(self.dll_libraries)
 
@@ -265,6 +272,13 @@ class CygwinCCompiler(UnixCCompiler):
             target_lang,
         )
 
+    def runtime_library_dir_option(self, dir):
+        # cygwin doesn't support rpath. While in theory we could error
+        # out like MSVC does, code might expect it to work like on Unix, so
+        # just warn and hope for the best.
+        self.warn("don't know how to set runtime library search path on Windows")
+        return []
+
     # -- Miscellaneous methods -----------------------------------------
 
     def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
@@ -324,6 +338,11 @@ class Mingw32CCompiler(CygwinCCompiler):
         # Include the appropriate MSVC runtime library if Python was built
         # with MSVC 7.0 or later.
         self.dll_libraries = get_msvcr()
+
+    def runtime_library_dir_option(self, dir):
+        raise DistutilsPlatformError(
+            "don't know how to set runtime library search path on Windows"
+        )
 
 
 # Because these compilers aren't configured in Python's pyconfig.h file by

@@ -48,6 +48,12 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         self.assertTrue(os.path.exists(linkable_file))
         self.assertEquals(linkable_file, "/usr/lib/lib{:s}.dll.a".format(link_name))
 
+    @unittest.skipIf(sys.platform != "cygwin", "Not running on Cygwin")
+    def test_runtime_library_dir_option(self):
+        from distutils.cygwinccompiler import CygwinCCompiler
+        compiler = CygwinCCompiler()
+        self.assertEqual(compiler.runtime_library_dir_option('/foo'), [])
+
     def test_check_config_h(self):
 
         # check_config_h looks for "GCC" in sys.version first

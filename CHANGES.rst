@@ -1,3 +1,35 @@
+v63.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #3430: Merge with pypa/distutils@152c13d including pypa/distutils#155 (improved compatibility for editable installs on homebrew Python 3.9), pypa/distutils#150 (better handling of runtime_library_dirs on cygwin), and pypa/distutils#151 (remove warnings for namespace packages).
+
+
+v63.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #3421: Drop setuptools' support for installing an entrypoint extra requirements at load time:
+  - the functionality has been broken since v60.8.0.
+  - the mechanism to do so is deprecated (`fetch_build_eggs`).
+  - that use case (e.g. a custom command class entrypoint) is covered by making sure the necessary build requirements are declared.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3305: Updated the example pyproject.toml -- by :user:`jacalata`
+* #3394: This updates the documentation for the ``file_finders`` hook so that
+  the logging recommendation aligns with the suggestion to not use
+  ``distutils`` directly.
+* #3397: Fix reference for ``keywords`` to point to the Core Metadata Specification
+  instead of PEP 314 (the live standard is kept always up-to-date and
+  consolidates several PEPs together in a single document).
+* #3402: Reordered the User Guide's Table of Contents -- by :user:`codeandfire`
+
+
 v62.6.0
 -------
 
