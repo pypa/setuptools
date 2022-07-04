@@ -201,16 +201,11 @@ class build_py(Command):
                     "but is not a directory" % package_dir
                 )
 
-        # Require __init__.py for all but the "root package"
+        # Directories without __init__.py are namespace packages (PEP 420).
         if package:
             init_py = os.path.join(package_dir, "__init__.py")
             if os.path.isfile(init_py):
                 return init_py
-            else:
-                log.warn(
-                    ("package init file '%s' not found " + "(or not a regular file)"),
-                    init_py,
-                )
 
         # Either not in a package at all (__init__.py not expected), or
         # __init__.py doesn't exist -- so don't return the filename.
