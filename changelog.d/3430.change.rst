@@ -1,0 +1,1 @@
+Merge with pypa/distutils@152c13d including pypa/distutils#155 (improved compatibility for editable installs on homebrew Python 3.9), pypa/distutils#150 (better handling of runtime_library_dirs on cygwin), and pypa/distutils#151 (remove warnings for namespace packages).
