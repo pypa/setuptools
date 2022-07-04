@@ -74,7 +74,7 @@ Please have a look on the following section if you are looking for a different b
    :doc:`PyPUG:guides/installing-using-pip-and-virtual-environments`.
 
 .. note::
-    .. versionchanged:: v63.0.0
+    .. versionchanged:: v64.0.0
        Editable installation hooks implemented according to :pep:`660`.
        Support for :pep:`namespace packages <420>` is still **EXPERIMENTAL**.
 
@@ -117,7 +117,7 @@ by mistake otherwise your files may stop being accessible).
 
 
 .. note::
-    .. versionadded:: v63.0.0
+    .. versionadded:: v64.0.0
        *Strict* mode implemented as **EXPERIMENTAL**.
 
 
