@@ -830,10 +830,12 @@ class TestNamespaces:
             pkg2.ensure_dir()
             (pkg1 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
             (pkg2 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
-        import pkg1
+        with pytest.warns(DeprecationWarning, match="pkg_resources.declare_namespace"):
+            import pkg1
         assert "pkg1" in pkg_resources._namespace_packages
         # attempt to import pkg2 from site-pkgs2
-        import pkg1.pkg2
+        with pytest.warns(DeprecationWarning, match="pkg_resources.declare_namespace"):
+            import pkg1.pkg2
         # check the _namespace_packages dict
         assert "pkg1.pkg2" in pkg_resources._namespace_packages
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
@@ -874,8 +876,9 @@ class TestNamespaces:
             (subpkg / '__init__.py').write_text(
                 vers_str % number, encoding='utf-8')
 
-        import nspkg.subpkg
-        import nspkg
+        with pytest.warns(DeprecationWarning, match="pkg_resources.declare_namespace"):
+            import nspkg.subpkg
+            import nspkg
         expected = [
             str(site.realpath() / 'nspkg')
             for site in site_dirs

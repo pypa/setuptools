@@ -2288,6 +2288,12 @@ def _rebuild_mod_path(orig_path, package_name, module):
 def declare_namespace(packageName):
     """Declare that package 'packageName' is a namespace package"""
 
+    msg = (
+        "Implementing implicit namespace packages (as specified in PEP 420) "
+        "is preferred to `pkg_resources.declare_namespace`."
+    )
+    warnings.warn(msg, DeprecationWarning, stacklevel=2)
+
     _imp.acquire_lock()
     try:
         if packageName in _namespace_packages:
