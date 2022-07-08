@@ -151,7 +151,6 @@ To use this feature:
       [build-system]
       requires = [
         "setuptools >= 40.9.0",
-        "wheel",
       ]
       build-backend = "setuptools.build_meta"
 
