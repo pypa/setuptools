@@ -126,7 +126,7 @@ If you put the following configuration in your ``pyproject.toml``:
 .. code-block:: toml
 
     [build-system]
-    requires = ["setuptools", "wheel"]
+    requires = ["setuptools"]
     build-backend = "backend"
     backend-path = ["_custom_build"]
 
