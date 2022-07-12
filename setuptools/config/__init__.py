@@ -25,7 +25,7 @@ def _deprecation_notice(fn: Fn) -> Fn:
         to access a backward compatible API, but this module is provisional
         and might be removed in the future.
         """
-        warnings.warn(dedent(msg), SetuptoolsDeprecationWarning)
+        warnings.warn(dedent(msg), SetuptoolsDeprecationWarning, stacklevel=2)
         return fn(*args, **kwargs)
 
     return cast(Fn, _wrapper)
