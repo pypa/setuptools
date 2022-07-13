@@ -1,1 +1,0 @@
-Corrected issue in macOS framework builds on Python 3.9 not installed by homebrew (pypa/distutils#158).

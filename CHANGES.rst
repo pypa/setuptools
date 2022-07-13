@@ -1,3 +1,17 @@
+v63.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #3395: Included a performance optimization: ``setuptools.build_meta`` no longer tries
+  to :func:`compile` the setup script code before :func:`exec`-ing it.
+
+Misc
+^^^^
+* #3435: Corrected issue in macOS framework builds on Python 3.9 not installed by homebrew (pypa/distutils#158).
+
+
 v63.1.0
 -------
 
