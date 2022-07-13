@@ -19,6 +19,12 @@ As Distutils is deprecated, any usage of functions or objects from distutils is 
 
 ``distutils.command.{build_clib,build_ext,build_py,sdist}`` → ``setuptools.command.*``
 
+``distutils.ccompiler.CCompiler`` → ``setuptools.ccompiler.CCompiler``
+
+``distutils.ccompiler.new_compiler`` → ``setuptools.ccompiler.new_compiler``
+
+``distutils.sysconfig.customize_compiler`` → ``setuptools.ccompiler.customize_compiler``
+
 ``distutils.log`` → :mod:`logging` (standard library)
 
 ``distutils.version.*`` → :doc:`packaging.version.* <packaging:version>`
