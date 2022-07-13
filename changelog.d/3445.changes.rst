@@ -1,0 +1,2 @@
+Re-exposed a subset of ``distutils.ccompiler`` and ``distutils.sysconfig``
+modules as ``setuptools.ccompiler``.
