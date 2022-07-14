@@ -6,7 +6,7 @@ def disable_importlib_metadata_finder(metadata):
     Ensure importlib_metadata doesn't provide older, incompatible
     Distributions.
 
-    Workaround for #3102.
+    Workaround for #3102 and #3452.
     """
     try:
         import importlib_metadata
@@ -36,9 +36,11 @@ def disable_importlib_metadata_finder(metadata):
 
 if sys.version_info < (3, 10):
     from setuptools.extern import importlib_metadata as metadata
-    disable_importlib_metadata_finder(metadata)
 else:
     import importlib.metadata as metadata  # noqa: F401
+
+
+disable_importlib_metadata_finder(metadata)
 
 
 if sys.version_info < (3, 9):
