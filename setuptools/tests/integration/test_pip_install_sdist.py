@@ -166,16 +166,8 @@ def retrieve_pypi_sdist_metadata(package, version):
 
     version = metadata["info"]["version"]
     release = metadata["releases"][version] if version is LATEST else metadata["urls"]
-    dists = [d for d in release if d["packagetype"] == "sdist"]
-    if len(dists) == 0:
-        raise ValueError(f"No sdist found for {package} {version}")
-
-    for dist in dists:
-        if dist["filename"].endswith(".tar.gz"):
-            return dist
-
-    # Not all packages are publishing tar.gz
-    return dist
+    sdist, = filter(lambda d: d["packagetype"] == "sdist", release)
+    return sdist
 
 
 def download(url, dest, md5_digest):
