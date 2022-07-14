@@ -27,7 +27,7 @@ from .helpers import Archive, run
 
 pytestmark = pytest.mark.integration
 
-LATEST, = list(Enum("v", "LATEST"))
+LATEST, = Enum("v", "LATEST")
 """Default version to be checked"""
 # There are positive and negative aspects of checking the latest version of the
 # packages.
@@ -72,11 +72,11 @@ VIRTUALENV = (sys.executable, "-m", "virtualenv")
 # means it will download the previous stable version of setuptools.
 # `pip` flags can avoid that (the version of setuptools under test
 # should be the one to be used)
-SDIST_OPTIONS = (
+INSTALL_OPTIONS = (
     "--ignore-installed",
     "--no-build-isolation",
-    # We don't need "--no-binary :all:" since we specify the path to the sdist.
-    # It also helps with performance, since dependencies can come from wheels.
+    # Omit "--no-binary :all:" the sdist is supplied directly.
+    # Allows dependencies as wheels.
 )
 # The downside of `--no-build-isolation` is that pip will not download build
 # dependencies. The test script will have to also handle that.
@@ -125,7 +125,7 @@ def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel
     # Use a virtualenv to simulate PEP 517 isolation
     # but install fresh setuptools wheel to ensure the version under development
     run([*venv_pip, "install", "-I", setuptools_wheel])
-    run([*venv_pip, "install", *SDIST_OPTIONS, sdist])
+    run([*venv_pip, "install", *INSTALL_OPTIONS, sdist])
 
     # Execute a simple script to make sure the package was installed correctly
     script = f"import {package}; print(getattr({package}, '__version__', 0))"
@@ -185,7 +185,7 @@ def download(url, dest, md5_digest):
 def build_deps(package, sdist_file):
     """Find out what are the build dependencies for a package.
 
-    We need to "manually" install them, since pip will not install build
+    "Manually" install them, since pip will not install build
     deps with `--no-build-isolation`.
     """
     import tomli as toml
@@ -194,9 +194,7 @@ def build_deps(package, sdist_file):
     # testenv without tomli
 
     archive = Archive(sdist_file)
-    pyproject = _read_pyproject(archive)
-
-    info = toml.loads(pyproject)
+    info = toml.loads(_read_pyproject(archive))
     deps = info.get("build-system", {}).get("requires", [])
     deps += EXTRA_BUILD_DEPS.get(package, [])
     # Remove setuptools from requirements (and deduplicate)
@@ -205,7 +203,9 @@ def build_deps(package, sdist_file):
 
 
 def _read_pyproject(archive):
-    for member in archive:
-        if os.path.basename(archive.get_name(member)) == "pyproject.toml":
-            return archive.get_content(member)
-    return ""
+    contents = (
+        archive.get_content(member)
+        for member in archive
+        if os.path.basename(archive.get_name(member)) == "pyproject.toml"
+    )
+    return next(contents, "")
