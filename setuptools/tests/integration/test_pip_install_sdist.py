@@ -165,7 +165,7 @@ def retrieve_pypi_sdist_metadata(package, version):
         raise ValueError(f"Release for {package} {version} was yanked")
 
     version = metadata["info"]["version"]
-    release = metadata["releases"][version]
+    release = metadata["releases"][version] if version is LATEST else metadata["urls"]
     dists = [d for d in release if d["packagetype"] == "sdist"]
     if len(dists) == 0:
         raise ValueError(f"No sdist found for {package} {version}")
