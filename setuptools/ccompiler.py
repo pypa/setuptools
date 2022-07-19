@@ -5,6 +5,13 @@ from distutils.ccompiler import CCompiler
 from distutils.ccompiler import new_compiler
 
 
+__all__ = [
+    "CCompiler",
+    "new_compiler",
+    "customize_compiler",
+]
+
+
 def customize_compiler(compiler: CCompiler):
     """Do any platform-specific customization of a CCompiler instance.
 

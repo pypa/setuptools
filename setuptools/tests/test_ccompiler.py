@@ -9,6 +9,7 @@ def test_ccompiler_namespace(_avoid_permanent_changes_in_sysconfig):
     ccompiler = new_compiler()
     customize_compiler(ccompiler)
     assert hasattr(ccompiler, "compile")
+    assert CCompiler.compiler_type is None
 
 
 @pytest.fixture
