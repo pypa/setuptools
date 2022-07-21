@@ -337,7 +337,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         with _open_setup_script(__file__) as f:
             code = f.read().replace(r'\r\n', r'\n')
 
-        exec(compile(code, __file__, 'exec'), locals())
+        exec(code, locals())
 
     def get_requires_for_build_wheel(self, config_settings=None):
         return self._get_build_requires(config_settings, requirements=['wheel'])
