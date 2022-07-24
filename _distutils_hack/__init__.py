@@ -137,41 +137,6 @@ class DistutilsMetaFinder:
         """
         return os.path.isfile('pybuilddir.txt')
 
-    def spec_for_pip(self):
-        """
-        Ensure stdlib distutils when running under pip.
-        See pypa/pip#8761 for rationale.
-
-        In pypa/pip#11298, pip added its own workaround, obviating
-        the need for this one. After 2023-02-01, remove this workaround.
-        """
-        # late versions of pip no longer have this issue on Python 3.10+
-        if sys.version_info > (3, 10):
-            return
-        if self.pip_imported_during_build():
-            return
-        clear_distutils()
-        self.spec_for_distutils = lambda: None
-
-    @classmethod
-    def pip_imported_during_build(cls):
-        """
-        Detect if pip is being imported in a build script. Ref #2355.
-        """
-        import traceback
-
-        return any(
-            cls.frame_file_is_setup(frame) for frame, line in traceback.walk_stack(None)
-        )
-
-    @staticmethod
-    def frame_file_is_setup(frame):
-        """
-        Return True if the indicated frame suggests a setup.py file.
-        """
-        # some frames may not have __file__ (#2940)
-        return frame.f_globals.get('__file__', '').endswith('setup.py')
-
     def spec_for_sensitive_tests(self):
         """
         Ensure stdlib distutils when running select tests under CPython.
