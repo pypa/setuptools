@@ -1,0 +1,1 @@
+Limit the scope of the _distutils_hack workaround for pip.

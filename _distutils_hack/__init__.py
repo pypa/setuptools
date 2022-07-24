@@ -141,7 +141,13 @@ class DistutilsMetaFinder:
         """
         Ensure stdlib distutils when running under pip.
         See pypa/pip#8761 for rationale.
+
+        In pypa/pip#11298, pip added its own workaround, obviating
+        the need for this one. After 2023-02-01, remove this workaround.
         """
+        # late versions of pip no longer have this issue on Python 3.10+
+        if sys.version_info > (3, 10):
+            return
         if self.pip_imported_during_build():
             return
         clear_distutils()
