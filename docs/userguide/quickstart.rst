@@ -186,14 +186,12 @@ found, as shown in the example below:
     .. code-block:: ini
 
         [options]
-        packages = find: # OR `find_namespaces:` if you want to use namespaces
+        packages = find:  # OR `find_namespaces:` if you want to use namespaces
 
-        [options.packages.find] # (always `find` even if `find_namespaces:` was used before)
-        # This section is optional
-        # Each entry in this section is optional, and if not specified, the default values are:
-        # `where=.`, `include=*` and `exclude=` (empty).
-        include=mypackage*
-        exclude=mypackage.tests*
+        [options.packages.find]  # (always `find` even if `find_namespaces:` was used before)
+        where=src  # . by default
+        include=mypackage*  # * by default
+        exclude=mypackage.tests*  # empty by default
 
 .. tab:: setup.py [#setup.py]_
 
@@ -204,18 +202,17 @@ found, as shown in the example below:
         setup(
             # ...
             packages=find_packages(
-                where='.',
-                include=['mypackage*'],  # ["*"] by default
+                where='src',  # '.' by default
+                include=['mypackage*'],  # ['*'] by default
                 exclude=['mypackage.tests'],  # empty by default
             ),
             # ...
         )
 
 When you pass the above information, alongside other necessary information,
-``setuptools`` walks through the directory specified in ``where`` (omitted
-here as the package resides in the current directory) and filters the packages
+``setuptools`` walks through the directory specified in ``where`` (defaults to ``.``) and filters the packages
 it can find following the ``include`` patterns (defaults to ``*``), then it removes
-those that match the ``exclude`` patterns and returns a list of Python packages.
+those that match the ``exclude`` patterns (defaults to empty) and returns a list of Python packages.
 
 For more details and advanced use, go to :ref:`package_discovery`.
 
