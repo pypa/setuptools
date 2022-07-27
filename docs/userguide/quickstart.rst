@@ -186,9 +186,9 @@ found, as shown in the example below:
     .. code-block:: ini
 
         [options]
-        packages = find: # OR `find_namespaces:` if you want to use namespaces
+        packages = find: # OR `find_namespace:` if you want to use namespaces
 
-        [options.packages.find] # (always `find` even if `find_namespaces:` was used before)
+        [options.packages.find] # (always `find` even if `find_namespace:` was used before)
         # This section is optional
         # Each entry in this section is optional, and if not specified, the default values are:
         # `where=.`, `include=*` and `exclude=` (empty).
