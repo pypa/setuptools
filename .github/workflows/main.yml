@@ -7,11 +7,9 @@ jobs:
     strategy:
       matrix:
         python:
-        # Build on pre-releases until stable, then stable releases.
-        # actions/setup-python#213
-        - ~3.7.0-0
-        - ~3.10.0-0
-        - ~3.11.0-0
+        - 3.7
+        - '3.10'
+        - '3.11'
         platform:
         - ubuntu-latest
         - macos-latest
@@ -22,7 +20,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python }}
+          python-version: ${{ matrix.python }}-dev
       - name: Install tox
         run: |
           python -m pip install tox
