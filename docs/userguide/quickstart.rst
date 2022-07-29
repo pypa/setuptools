@@ -118,7 +118,7 @@ distributing into something that looks like the following
 
     mypackage
     ├── pyproject.toml
-    |   # setup.cfg or setup.py (depending on the confuguration method)
+    |   # setup.cfg or setup.py (depending on the configuration method)
     |   # README.rst or README.md (a nice description of your package)
     |   # LICENCE (properly chosen license information, e.g. MIT, BSD-3, GPL-3, MPL-2, etc...)
     └── mypackage
