@@ -129,12 +129,12 @@ what values of that argument are valid.
 Customizing Distribution Options
 --------------------------------
 
-Plugins may wish to extend or alter the options on a Distribution object to
+Plugins may wish to extend or alter the options on a ``Distribution`` object to
 suit the purposes of that project. For example, a tool that infers the
 ``Distribution.version`` from SCM-metadata may need to hook into the
 option finalization. To enable this feature, Setuptools offers an entry
-point "setuptools.finalize_distribution_options". That entry point must
-be a callable taking one argument (the Distribution instance).
+point ``setuptools.finalize_distribution_options``. That entry point must
+be a callable taking one argument (the ``Distribution`` instance).
 
 If the callable has an ``.order`` property, that value will be used to
 determine the order in which the hook is called. Lower numbers are called
