@@ -5,7 +5,6 @@ import getpass
 import urllib
 import warnings
 
-from test.support import run_unittest
 
 from .py38compat import check_warnings
 
@@ -338,11 +337,3 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
 
         results = self.get_logs(INFO)
         self.assertEqual(results[3], 75 * '-' + '\nxxx\n' + 75 * '-')
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(RegisterTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

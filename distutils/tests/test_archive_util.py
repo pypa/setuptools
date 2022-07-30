@@ -17,7 +17,7 @@ from distutils.archive_util import (
 )
 from distutils.spawn import find_executable, spawn
 from distutils.tests import support
-from test.support import run_unittest, patch
+from test.support import patch
 from .unix_compat import require_unix_id, require_uid_0, grp, pwd, UID_0_SUPPORT
 
 from .py38compat import change_cwd
@@ -411,11 +411,3 @@ class ArchiveUtilTestCase(
                 self.assertEqual(member.gid, 0)
         finally:
             archive.close()
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(ArchiveUtilTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

@@ -4,7 +4,6 @@ import sys
 import unittest
 import sysconfig as stdlib_sysconfig
 from copy import copy
-from test.support import run_unittest
 from unittest import mock
 
 from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
@@ -237,11 +236,3 @@ class UtilTestCase(support.EnvironGuard, unittest.TestCase):
         exc = IOError("Unable to find batch file")
         msg = grok_environment_error(exc)
         self.assertEqual(msg, "error: Unable to find batch file")
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(UtilTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

@@ -2,7 +2,6 @@
 import unittest
 import sys
 import os
-from test.support import run_unittest
 
 from distutils.cygwinccompiler import (
     check_config_h,
@@ -120,11 +119,3 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.2000 32 bits (Intel)]'
         )
         self.assertRaises(ValueError, get_msvcr)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(CygwinCCompilerTestCase)
-
-
-if __name__ == '__main__':
-    run_unittest(test_suite())

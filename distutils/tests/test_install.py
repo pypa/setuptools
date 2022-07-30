@@ -5,7 +5,7 @@ import sys
 import unittest
 import site
 
-from test.support import captured_stdout, run_unittest
+from test.support import captured_stdout
 
 from distutils import sysconfig
 from distutils.command.install import install
@@ -272,11 +272,3 @@ class InstallTestCase(
         finally:
             install_module.DEBUG = False
         self.assertGreater(len(self.logs), old_logs_len)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(InstallTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

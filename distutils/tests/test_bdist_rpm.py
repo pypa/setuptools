@@ -3,7 +3,6 @@
 import unittest
 import sys
 import os
-from test.support import run_unittest
 
 from distutils.core import Distribution
 from distutils.command.bdist_rpm import bdist_rpm
@@ -150,11 +149,3 @@ class BuildRpmTestCase(
         )
 
         os.remove(os.path.join(pkg_dir, 'dist', 'foo-0.1-1.noarch.rpm'))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BuildRpmTestCase)
-
-
-if __name__ == '__main__':
-    run_unittest(test_suite())

@@ -14,7 +14,7 @@ from distutils import sysconfig
 from distutils.ccompiler import get_default_compiler
 from distutils.unixccompiler import UnixCCompiler
 from distutils.tests import support
-from test.support import run_unittest, swap_item
+from test.support import swap_item
 
 from .py38compat import TESTFN
 
@@ -331,13 +331,3 @@ class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
             cmd, env={**os.environ, "PYTHONPATH": distutils_path}
         )
         assert out == "True"
-
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(SysconfigTestCase))
-    return suite
-
-
-if __name__ == '__main__':
-    run_unittest(test_suite())

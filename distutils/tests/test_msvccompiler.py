@@ -3,7 +3,6 @@ import sys
 import unittest
 import os
 import threading
-from test.support import run_unittest
 
 import pytest
 
@@ -124,11 +123,3 @@ class TestSpawn(unittest.TestCase):
             compiler.spawn(["n/a"])
 
         assert os.environ.get("PATH") != "expected"
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(msvccompilerTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

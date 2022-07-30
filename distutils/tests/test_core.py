@@ -5,7 +5,7 @@ import distutils.core
 import os
 import shutil
 import sys
-from test.support import captured_stdout, run_unittest
+from test.support import captured_stdout
 from . import py38compat as os_helper
 import unittest
 from distutils.tests import support
@@ -155,11 +155,3 @@ class CoreTestCase(support.EnvironGuard, unittest.TestCase):
         stdout.seek(0)
         wanted = "options (after parsing config files):\n"
         self.assertEqual(stdout.readlines()[0], wanted)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(CoreTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

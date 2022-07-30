@@ -559,14 +559,3 @@ class ParallelBuildExtTestCase(BuildExtTestCase):
         build_ext = super().build_ext(*args, **kwargs)
         build_ext.parallel = True
         return build_ext
-
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(BuildExtTestCase))
-    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(ParallelBuildExtTestCase))
-    return suite
-
-
-if __name__ == '__main__':
-    support.run_unittest(__name__)
