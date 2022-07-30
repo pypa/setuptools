@@ -16,10 +16,10 @@ jobs:
         distutils:
         - local
         python:
-        - 3.7
-        - '3.10'
+        - 3.7-dev
+        - 3.10-dev
         # disabled due to #3365
-        # - '3.11'
+        # - 3.11-dev
         - pypy-3.7
         platform:
         - ubuntu-latest
@@ -38,7 +38,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python }}-dev
+          python-version: ${{ matrix.python }}
       - uses: actions/cache@v3
         id: cache
         with:
