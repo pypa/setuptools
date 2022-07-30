@@ -108,7 +108,7 @@ a non-None value.  Here's an example validation function::
     def assert_bool(dist, attr, value):
         """Verify that value is True, False, 0, or 1"""
         if bool(value) != value:
-            raise DistutilsSetupError(
+            raise SetupError(
                 "%r must be a boolean value (got %r)" % (attr,value)
             )
 
