@@ -103,7 +103,7 @@ The idea here is that the entry point defines a function that will be called
 to validate the ``setup()`` argument, if it's supplied.  The ``Distribution``
 object will have the initial value of the attribute set to ``None``, and the
 validation function will only be called if the ``setup()`` call sets it to
-a non-None value.  Here's an example validation function::
+a non-``None`` value.  Here's an example validation function::
 
     def assert_bool(dist, attr, value):
         """Verify that value is True, False, 0, or 1"""
@@ -115,8 +115,8 @@ a non-None value.  Here's an example validation function::
 Your function should accept three arguments: the ``Distribution`` object,
 the attribute name, and the attribute value.  It should raise a
 ``SetupError`` (from the ``setuptools.errors`` module) if the argument
-is invalid.  Remember, your function will only be called with non-None values,
-and the default value of arguments defined this way is always None.  So, your
+is invalid.  Remember, your function will only be called with non-``None`` values,
+and the default value of arguments defined this way is always ``None``.  So, your
 commands should always be prepared for the possibility that the attribute will
 be ``None`` when they access it later.
 
