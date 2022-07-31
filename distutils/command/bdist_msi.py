@@ -231,7 +231,7 @@ class bdist_msi(Command):
                 )
         self.install_script_key = None
 
-    def run(self):
+    def run(self):  # noqa: C901
         if not self.skip_build:
             self.run_command('build')
 
@@ -318,7 +318,7 @@ class bdist_msi(Command):
         if not self.keep_temp:
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
 
-    def add_files(self):
+    def add_files(self):  # noqa: C901
         db = self.db
         cab = msilib.CAB("distfiles")
         rootdir = os.path.abspath(self.bdist_dir)

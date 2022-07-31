@@ -357,7 +357,7 @@ class bdist_wininst(Command):
             )
         return installer_name
 
-    def get_exe_bytes(self):
+    def get_exe_bytes(self):  # noqa: C901
         # If a target-version other than the current version has been
         # specified, then using the MSVC version from *this* build is no good.
         # Without actually finding and executing the target version and parsing

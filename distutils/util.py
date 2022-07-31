@@ -359,7 +359,7 @@ def strtobool(val):
         raise ValueError("invalid truth value %r" % (val,))
 
 
-def byte_compile(
+def byte_compile(  # noqa: C901
     py_files,
     optimize=0,
     force=0,

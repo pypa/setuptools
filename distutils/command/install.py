@@ -326,7 +326,7 @@ class install(Command):
     # party Python modules on various platforms given a wide
     # array of user input is decided.  Yes, it's quite complex!)
 
-    def finalize_options(self):
+    def finalize_options(self):  # noqa: C901
         """Finalizes options."""
         # This method (and its helpers, like 'finalize_unix()',
         # 'finalize_other()', and 'select_scheme()') is where the default

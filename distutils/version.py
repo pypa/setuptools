@@ -180,7 +180,7 @@ class StrictVersion(Version):
 
         return vstring
 
-    def _cmp(self, other):
+    def _cmp(self, other):  # noqa: C901
         if isinstance(other, str):
             with suppress_known_deprecation():
                 other = StrictVersion(other)

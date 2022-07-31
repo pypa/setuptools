@@ -34,7 +34,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         sysconfig.get_config_vars = self._backup_get_config_vars
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
-    def test_runtime_libdir_option(self):
+    def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
         #
         # Ensure RUNPATH is added to extension modules with RPATH if

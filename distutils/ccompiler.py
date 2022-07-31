@@ -816,7 +816,7 @@ class CCompiler:
         """
         raise NotImplementedError
 
-    def has_function(
+    def has_function(  # noqa: C901
         self,
         funcname,
         includes=None,

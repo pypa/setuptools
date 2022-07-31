@@ -2,7 +2,8 @@
 
 Implements the Distutils 'build' command."""
 
-import sys, os
+import sys
+import os
 from distutils.core import Command
 from distutils.errors import DistutilsOptionError
 from distutils.util import get_platform
@@ -65,7 +66,7 @@ class build(Command):
         self.executable = None
         self.parallel = None
 
-    def finalize_options(self):
+    def finalize_options(self):  # noqa: C901
         if self.plat_name is None:
             self.plat_name = get_platform()
         else:

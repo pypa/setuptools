@@ -90,7 +90,7 @@ extension_keywords = (
 )
 
 
-def setup(**attrs):
+def setup(**attrs):  # noqa: C901
     """The gateway to the Distutils: do everything your setup script needs
     to do, in a highly flexible and user-driven way.  Briefly: create a
     Distribution instance; find and parse config files; parse the command
