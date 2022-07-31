@@ -11,11 +11,10 @@ import string
 import subprocess
 import sys
 import sysconfig
-from distutils.errors import DistutilsPlatformError
+from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
 from distutils.dep_util import newer
 from distutils.spawn import spawn
 from distutils import log
-from distutils.errors import DistutilsByteCompileError
 
 
 def get_host_platform():

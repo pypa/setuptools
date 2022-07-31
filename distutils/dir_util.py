@@ -4,7 +4,7 @@ Utility functions for manipulating directories and directory trees."""
 
 import os
 import errno
-from distutils.errors import DistutilsFileError, DistutilsInternalError
+from distutils.errors import DistutilsInternalError, DistutilsFileError
 from distutils import log
 
 # cache for by mkpath() -- in addition to cheapening redundant calls,

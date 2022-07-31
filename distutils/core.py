@@ -11,7 +11,8 @@ import sys
 import tokenize
 
 from distutils.debug import DEBUG
-from distutils.errors import *
+from distutils.errors import (
+    DistutilsSetupError, DistutilsError, CCompilerError, DistutilsArgError)
 
 # Mainly import these so setup scripts can "from distutils.core import" them.
 from distutils.dist import Distribution

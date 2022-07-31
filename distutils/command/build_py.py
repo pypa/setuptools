@@ -8,7 +8,7 @@ import sys
 import glob
 
 from distutils.core import Command
-from distutils.errors import *
+from distutils.errors import DistutilsOptionError, DistutilsFileError
 from distutils.util import convert_path
 from distutils import log
 

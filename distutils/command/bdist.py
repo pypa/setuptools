@@ -5,7 +5,7 @@ distribution)."""
 
 import os
 from distutils.core import Command
-from distutils.errors import *
+from distutils.errors import DistutilsPlatformError, DistutilsOptionError
 from distutils.util import get_platform
 
 

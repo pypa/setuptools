@@ -7,7 +7,7 @@ import subprocess, sys, os
 from distutils.core import Command
 from distutils.debug import DEBUG
 from distutils.file_util import write_file
-from distutils.errors import *
+from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.sysconfig import get_python_version
 from distutils import log
 

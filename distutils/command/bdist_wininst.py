@@ -9,7 +9,7 @@ import warnings
 from distutils.core import Command
 from distutils.util import get_platform
 from distutils.dir_util import remove_tree
-from distutils.errors import *
+from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.sysconfig import get_python_version
 from distutils import log
 

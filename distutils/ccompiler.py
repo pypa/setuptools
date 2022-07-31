@@ -3,8 +3,12 @@
 Contains CCompiler, an abstract base class that defines the interface
 for the Distutils compiler abstraction model."""
 
-import sys, os, re
-from distutils.errors import *
+import sys
+import os
+import re
+from distutils.errors import (
+    CompileError, LinkError, UnknownFileError, DistutilsPlatformError,
+    DistutilsModuleError)
 from distutils.spawn import spawn
 from distutils.file_util import move_file
 from distutils.dir_util import mkpath
