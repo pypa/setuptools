@@ -324,53 +324,54 @@ class UnixCCompiler(CCompiler):
     def library_option(self, lib):
         return "-l" + lib
 
+    @staticmethod
+    def _library_root(dir):
+        """
+        macOS users can specify an alternate SDK using'-isysroot'.
+        Calculate the SDK root if it is specified.
+
+        Note that, as of Xcode 7, Apple SDKs may contain textual stub
+        libraries with .tbd extensions rather than the normal .dylib
+        shared libraries installed in /.  The Apple compiler tool
+        chain handles this transparently but it can cause problems
+        for programs that are being built with an SDK and searching
+        for specific libraries.  Callers of find_library_file need to
+        keep in mind that the base filename of the returned SDK library
+        file might have a different extension from that of the library
+        file installed on the running system, for example:
+          /Applications/Xcode.app/Contents/Developer/Platforms/
+              MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/
+              usr/lib/libedit.tbd
+        vs
+          /usr/lib/libedit.dylib
+        """
+        if sys.platform != 'darwin' or not (
+            dir.startswith('/System/')
+            or (dir.startswith('/usr/') and not dir.startswith('/usr/local/'))
+        ):
+            return dir
+
+        cflags = sysconfig.get_config_var('CFLAGS')
+        m = re.search(r'-isysroot\s*(\S+)', cflags)
+        if m is None:
+            sysroot = '/'
+        else:
+            sysroot = m.group(1)
+
+        return os.path.join(sysroot, dir[1:])
+
     def find_library_file(self, dirs, lib, debug=0):
         shared_f = self.library_filename(lib, lib_type='shared')
         dylib_f = self.library_filename(lib, lib_type='dylib')
         xcode_stub_f = self.library_filename(lib, lib_type='xcode_stub')
         static_f = self.library_filename(lib, lib_type='static')
 
-        if sys.platform == 'darwin':
-            # On OSX users can specify an alternate SDK using
-            # '-isysroot', calculate the SDK root if it is specified
-            # (and use it further on)
-            #
-            # Note that, as of Xcode 7, Apple SDKs may contain textual stub
-            # libraries with .tbd extensions rather than the normal .dylib
-            # shared libraries installed in /.  The Apple compiler tool
-            # chain handles this transparently but it can cause problems
-            # for programs that are being built with an SDK and searching
-            # for specific libraries.  Callers of find_library_file need to
-            # keep in mind that the base filename of the returned SDK library
-            # file might have a different extension from that of the library
-            # file installed on the running system, for example:
-            #   /Applications/Xcode.app/Contents/Developer/Platforms/
-            #       MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/
-            #       usr/lib/libedit.tbd
-            # vs
-            #   /usr/lib/libedit.dylib
-            cflags = sysconfig.get_config_var('CFLAGS')
-            m = re.search(r'-isysroot\s*(\S+)', cflags)
-            if m is None:
-                sysroot = '/'
-            else:
-                sysroot = m.group(1)
-
         for dir in dirs:
-            shared = os.path.join(dir, shared_f)
-            dylib = os.path.join(dir, dylib_f)
-            static = os.path.join(dir, static_f)
-            xcode_stub = os.path.join(dir, xcode_stub_f)
-
-            if sys.platform == 'darwin' and (
-                dir.startswith('/System/')
-                or (dir.startswith('/usr/') and not dir.startswith('/usr/local/'))
-            ):
-
-                shared = os.path.join(sysroot, dir[1:], shared_f)
-                dylib = os.path.join(sysroot, dir[1:], dylib_f)
-                static = os.path.join(sysroot, dir[1:], static_f)
-                xcode_stub = os.path.join(sysroot, dir[1:], xcode_stub_f)
+            root = self._library_root(dir)
+            shared = os.path.join(root, shared_f)
+            dylib = os.path.join(root, dylib_f)
+            static = os.path.join(root, static_f)
+            xcode_stub = os.path.join(root, xcode_stub_f)
 
             # We're second-guessing the linker here, with not much hard
             # data to go on: GCC seems to prefer the shared library, so I'm
