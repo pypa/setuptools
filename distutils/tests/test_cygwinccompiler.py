@@ -50,6 +50,7 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
     @unittest.skipIf(sys.platform != "cygwin", "Not running on Cygwin")
     def test_runtime_library_dir_option(self):
         from distutils.cygwinccompiler import CygwinCCompiler
+
         compiler = CygwinCCompiler()
         self.assertEqual(compiler.runtime_library_dir_option('/foo'), [])
 

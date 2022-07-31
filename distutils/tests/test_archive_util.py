@@ -244,9 +244,7 @@ class ArchiveUtilTestCase(
         self.assertEqual(len(w.warnings), 1)
 
     @pytest.mark.usefixtures('needs_zlib')
-    @unittest.skipUnless(
-        ZIP_SUPPORT, 'Need zip support to run'
-    )
+    @unittest.skipUnless(ZIP_SUPPORT, 'Need zip support to run')
     def test_make_zipfile(self):
         # creating something to tar
         tmpdir = self._create_files()

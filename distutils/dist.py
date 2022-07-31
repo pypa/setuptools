@@ -15,7 +15,11 @@ except ImportError:
     warnings = None
 
 from distutils.errors import (
-    DistutilsOptionError, DistutilsModuleError, DistutilsArgError, DistutilsClassError)
+    DistutilsOptionError,
+    DistutilsModuleError,
+    DistutilsArgError,
+    DistutilsClassError,
+)
 from distutils.fancy_getopt import FancyGetopt, translate_longopt
 from distutils.util import check_environ, strtobool, rfc822_escape
 from distutils import log
