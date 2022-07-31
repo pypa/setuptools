@@ -373,10 +373,10 @@ class UnixCCompiler(CCompiler):
             static = os.path.join(root, static_f)
             xcode_stub = os.path.join(root, xcode_stub_f)
 
-            # We're second-guessing the linker here, with not much hard
-            # data to go on: GCC seems to prefer the shared library, so I'm
-            # assuming that *all* Unix C compilers do.  And of course I'm
-            # ignoring even GCC's "-static" option.  So sue me.
+            # Second-guess the linker with not much hard
+            # data to go on: GCC seems to prefer the shared library, so
+            # assume that *all* Unix C compilers do,
+            # ignoring even GCC's "-static" option.
             if os.path.exists(dylib):
                 return dylib
             elif os.path.exists(xcode_stub):
