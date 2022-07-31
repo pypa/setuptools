@@ -15,7 +15,7 @@ You could also run commands in other circumstances:
 
 * ``setuptools`` projects without ``setup.py`` (e.g., ``setup.cfg``-only)::
 
-   python -c "import setuptools; setup()" --help
+   python -c "from setuptools import setup; setup()" --help
 
 * ``distutils`` projects (with a ``setup.py`` importing ``distutils``)::
 
