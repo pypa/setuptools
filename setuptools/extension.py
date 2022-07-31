@@ -115,6 +115,7 @@ class Extension(_Extension):
     :keyword bool optional:
       specifies that a build failure in the extension should not abort the
       build process, but simply not install the failing extension.
+
     :raises DistutilsPlatformError: if 'runtime_library_dirs' is specified
       on Windows. (since v63)
     """
