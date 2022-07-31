@@ -7,6 +7,7 @@ import sys
 import textwrap
 import unittest
 
+import pytest
 import jaraco.envs
 
 import distutils
@@ -19,7 +20,8 @@ from test.support import swap_item
 from .py38compat import TESTFN
 
 
-class SysconfigTestCase(support.EnvironGuard, unittest.TestCase):
+@pytest.mark.usefixtures('save_env')
+class SysconfigTestCase(unittest.TestCase):
     def setUp(self):
         super(SysconfigTestCase, self).setUp()
         self.makefile = None

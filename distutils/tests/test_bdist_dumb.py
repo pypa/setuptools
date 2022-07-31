@@ -5,6 +5,8 @@ import sys
 import zipfile
 import unittest
 
+import pytest
+
 from distutils.core import Distribution
 from distutils.command.bdist_dumb import bdist_dumb
 from distutils.tests import support
@@ -26,10 +28,10 @@ except ImportError:
     ZLIB_SUPPORT = False
 
 
+@pytest.mark.usefixtures('save_env')
 class BuildDumbTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def setUp(self):

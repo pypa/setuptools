@@ -8,6 +8,8 @@ import textwrap
 
 from unittest import mock
 
+import pytest
+
 from distutils.dist import Distribution, fix_help_options
 from distutils.cmd import Command
 
@@ -40,10 +42,10 @@ class TestDistribution(Distribution):
         return self._config_files
 
 
+@pytest.mark.usefixtures('save_env')
 class DistributionTestCase(
     support.LoggingSilencer,
     support.TempdirManager,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def setUp(self):
@@ -270,7 +272,8 @@ class DistributionTestCase(
         self.assertEqual(len(all_files) - 1, len(files))
 
 
-class MetadataTestCase(support.TempdirManager, support.EnvironGuard, unittest.TestCase):
+@pytest.mark.usefixtures('save_env')
+class MetadataTestCase(support.TempdirManager, unittest.TestCase):
     def setUp(self):
         super(MetadataTestCase, self).setUp()
         self.argv = sys.argv, sys.argv[:]

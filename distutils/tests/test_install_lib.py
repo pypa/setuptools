@@ -4,16 +4,18 @@ import os
 import importlib.util
 import unittest
 
+import pytest
+
 from distutils.command.install_lib import install_lib
 from distutils.extension import Extension
 from distutils.tests import support
 from distutils.errors import DistutilsOptionError
 
 
+@pytest.mark.usefixtures('save_env')
 class InstallLibTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def test_finalize_options(self):

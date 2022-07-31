@@ -6,6 +6,8 @@ import sysconfig as stdlib_sysconfig
 from copy import copy
 from unittest import mock
 
+import pytest
+
 from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
 from distutils.util import (
     get_platform,
@@ -24,7 +26,8 @@ from distutils import sysconfig
 from distutils.tests import support
 
 
-class UtilTestCase(support.EnvironGuard, unittest.TestCase):
+@pytest.mark.usefixtures('save_env')
+class UtilTestCase(unittest.TestCase):
     def setUp(self):
         super(UtilTestCase, self).setUp()
         # saving the environment

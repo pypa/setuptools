@@ -6,6 +6,9 @@ import os
 import shutil
 import sys
 from test.support import captured_stdout
+
+import pytest
+
 from . import py38compat as os_helper
 import unittest
 from distutils.tests import support
@@ -57,7 +60,8 @@ if __name__ == "__main__":
 """
 
 
-class CoreTestCase(support.EnvironGuard, unittest.TestCase):
+@pytest.mark.usefixtures('save_env')
+class CoreTestCase(unittest.TestCase):
     def setUp(self):
         super(CoreTestCase, self).setUp()
         self.old_stdout = sys.stdout

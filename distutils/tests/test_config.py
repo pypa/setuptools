@@ -2,6 +2,8 @@
 import os
 import unittest
 
+import pytest
+
 from distutils.core import PyPIRCCommand
 from distutils.core import Distribution
 from distutils.log import set_threshold
@@ -49,10 +51,10 @@ password:xxx
 """
 
 
+@pytest.mark.usefixtures('save_env')
 class BasePyPIRCCommandTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def setUp(self):

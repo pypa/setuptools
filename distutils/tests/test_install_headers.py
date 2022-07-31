@@ -2,14 +2,16 @@
 import os
 import unittest
 
+import pytest
+
 from distutils.command.install_headers import install_headers
 from distutils.tests import support
 
 
+@pytest.mark.usefixtures('save_env')
 class InstallHeadersTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def test_simple_run(self):

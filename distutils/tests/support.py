@@ -7,6 +7,8 @@ import unittest
 import sysconfig
 from copy import deepcopy
 
+import pytest
+
 from . import py38compat as os_helper
 
 from distutils import log
@@ -114,23 +116,6 @@ class DummyCommand:
 
     def ensure_finalized(self):
         pass
-
-
-class EnvironGuard(object):
-    def setUp(self):
-        super(EnvironGuard, self).setUp()
-        self.old_environ = deepcopy(os.environ)
-
-    def tearDown(self):
-        for key, value in self.old_environ.items():
-            if os.environ.get(key) != value:
-                os.environ[key] = value
-
-        for key in tuple(os.environ.keys()):
-            if key not in self.old_environ:
-                del os.environ[key]
-
-        super(EnvironGuard, self).tearDown()
 
 
 def copy_xxmodule_c(directory):

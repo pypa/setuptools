@@ -4,6 +4,8 @@ import unittest
 import sys
 import os
 
+import pytest
+
 from distutils.core import Distribution
 from distutils.command.bdist_rpm import bdist_rpm
 from distutils.tests import support
@@ -22,9 +24,9 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 """
 
 
+@pytest.mark.usefixtures('save_env')
 class BuildRpmTestCase(
     support.TempdirManager,
-    support.EnvironGuard,
     support.LoggingSilencer,
     unittest.TestCase,
 ):
