@@ -1,3 +1,17 @@
+v63.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #3460: <<<<<<< HEAD
+  Limit the scope of the _distutils_hack workaround for pip.
+  =======
+  Remove the pip workaround in _distutils_hack.
+  >>>>>>> 46344cf0 (Remove pip workaround in _distutils_hack.)
+* #3475: Merge with pypa/distutils@129480b, including substantial delinting and cleanup, some refactoring around compiler logic, better messaging in cygwincompiler (pypa/distutils#161).
+
+
 v63.2.0
 -------
 
