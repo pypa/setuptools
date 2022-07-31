@@ -341,7 +341,9 @@ class Mingw32CCompiler(CygwinCCompiler):
 
     def runtime_library_dir_option(self, dir):
         raise DistutilsPlatformError(
-            "don't know how to set runtime library search path on Windows"
+            "don't know how to set runtime library search path on Windows\n"
+            "Most likely some Extension specifies 'runtime_library_dirs'\n"
+            "There isn't a way to implement that on Windows platforms"
         )
 
 
