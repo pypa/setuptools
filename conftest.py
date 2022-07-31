@@ -27,3 +27,8 @@ def save_env():
         for key, value in orig.items():
             if os.environ.get(key) != value:
                 os.environ[key] = value
+
+
+@pytest.fixture
+def needs_zlib():
+    pytest.importorskip('zlib')

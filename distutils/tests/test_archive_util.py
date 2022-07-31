@@ -7,6 +7,8 @@ import tarfile
 from os.path import splitdrive
 import warnings
 
+import pytest
+
 from distutils import archive_util
 from distutils.archive_util import (
     check_archive_formats,
@@ -30,13 +32,6 @@ try:
     ZIP_SUPPORT = True
 except ImportError:
     ZIP_SUPPORT = find_executable('zip')
-
-try:
-    import zlib
-
-    ZLIB_SUPPORT = True
-except ImportError:
-    ZLIB_SUPPORT = False
 
 try:
     import bz2
@@ -65,7 +60,7 @@ def can_fs_encode(filename):
 class ArchiveUtilTestCase(
     support.TempdirManager, support.LoggingSilencer, unittest.TestCase
 ):
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_make_tarball(self, name='archive'):
         # creating something to tar
         tmpdir = self._create_files()
@@ -73,7 +68,7 @@ class ArchiveUtilTestCase(
         # trying an uncompressed one
         self._make_tarball(tmpdir, name, '.tar', compress=None)
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_make_tarball_gzip(self):
         tmpdir = self._create_files()
         self._make_tarball(tmpdir, 'archive', '.tar.gz', compress='gzip')
@@ -156,9 +151,10 @@ class ArchiveUtilTestCase(
         os.mkdir(os.path.join(dist, 'sub2'))
         return tmpdir
 
+    @pytest.mark.usefixtures('needs_zlib')
     @unittest.skipUnless(
-        find_executable('tar') and find_executable('gzip') and ZLIB_SUPPORT,
-        'Need the tar, gzip and zlib command to run',
+        find_executable('tar') and find_executable('gzip'),
+        'Need the tar and gzip commands to run',
     )
     def test_tarfile_vs_tar(self):
         tmpdir = self._create_files()
@@ -247,8 +243,9 @@ class ArchiveUtilTestCase(
         self.assertFalse(os.path.exists(tarball))
         self.assertEqual(len(w.warnings), 1)
 
+    @pytest.mark.usefixtures('needs_zlib')
     @unittest.skipUnless(
-        ZIP_SUPPORT and ZLIB_SUPPORT, 'Need zip and zlib support to run'
+        ZIP_SUPPORT, 'Need zip support to run'
     )
     def test_make_zipfile(self):
         # creating something to tar
@@ -326,7 +323,7 @@ class ArchiveUtilTestCase(
         self.assertEqual(os.path.basename(res), 'archive.tar')
         self.assertEqual(self._tarinfo(res), self._created_files)
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_make_archive_gztar(self):
         base_dir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
@@ -383,7 +380,7 @@ class ArchiveUtilTestCase(
         )
         self.assertTrue(os.path.exists(res))
 
-    @unittest.skipUnless(ZLIB_SUPPORT, "Requires zlib")
+    @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id
     @require_uid_0
     def test_tarfile_root_owner(self):

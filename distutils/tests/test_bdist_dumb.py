@@ -20,13 +20,6 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 
 """
 
-try:
-    import zlib
-
-    ZLIB_SUPPORT = True
-except ImportError:
-    ZLIB_SUPPORT = False
-
 
 @pytest.mark.usefixtures('save_env')
 class BuildDumbTestCase(
@@ -45,7 +38,7 @@ class BuildDumbTestCase(
         sys.argv[:] = self.old_sys_argv[1]
         super(BuildDumbTestCase, self).tearDown()
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_simple_built(self):
 
         # let's create a simple package
