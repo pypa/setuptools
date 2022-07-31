@@ -348,13 +348,15 @@ class UnixCCompiler(CCompiler):
         cflags = sysconfig.get_config_var('CFLAGS')
         match = re.search(r'-isysroot\s*(\S+)', cflags)
 
-        if sys.platform != 'darwin' or not match or not (
-            dir.startswith('/System/')
-            or (dir.startswith('/usr/') and not dir.startswith('/usr/local/'))
-        ):
-            return dir
+        apply_root = (
+            sys.platform == 'darwin'
+            and match and (
+                dir.startswith('/System/')
+                or (dir.startswith('/usr/') and not dir.startswith('/usr/local/'))
+            )
+        )
 
-        return os.path.join(match.group(1), dir[1:])
+        return os.path.join(match.group(1), dir[1:]) if apply_root else dir
 
     def find_library_file(self, dirs, lib, debug=0):
         """
