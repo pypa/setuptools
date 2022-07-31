@@ -104,7 +104,7 @@ def get_msvcr():
 _runtime_library_dirs_msg = (
     "Unable to set runtime library search path on Windows, "
     "usually indicated by `runtime_library_dirs` parameter to Extension"
-    )
+)
 
 
 class CygwinCCompiler(UnixCCompiler):

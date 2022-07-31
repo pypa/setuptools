@@ -350,7 +350,8 @@ class UnixCCompiler(CCompiler):
 
         apply_root = (
             sys.platform == 'darwin'
-            and match and (
+            and match
+            and (
                 dir.startswith('/System/')
                 or (dir.startswith('/usr/') and not dir.startswith('/usr/local/'))
             )
