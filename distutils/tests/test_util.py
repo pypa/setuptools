@@ -23,7 +23,6 @@ from distutils.util import (
 from distutils import util  # used to patch _environ_checked
 from distutils import sysconfig
 from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
-from distutils.tests import support
 
 
 @pytest.mark.usefixtures('save_env')

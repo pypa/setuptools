@@ -14,7 +14,6 @@ import distutils
 from distutils import sysconfig
 from distutils.ccompiler import get_default_compiler
 from distutils.unixccompiler import UnixCCompiler
-from distutils.tests import support
 from test.support import swap_item
 
 from .py38compat import TESTFN

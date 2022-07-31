@@ -11,7 +11,6 @@ import pytest
 
 from . import py38compat as os_helper
 import unittest
-from distutils.tests import support
 from distutils import log
 from distutils.dist import Distribution
 

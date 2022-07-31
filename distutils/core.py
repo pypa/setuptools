@@ -24,6 +24,9 @@ from distutils.cmd import Command
 from distutils.config import PyPIRCCommand
 from distutils.extension import Extension
 
+
+__all__ = ['Distribution', 'Command', 'PyPIRCCommand', 'Extension', 'setup']
+
 # This is a barebones help message generated displayed when the user
 # runs the setup script with no arguments at all.  More useful help
 # is generated with various --help options: global help, list commands,

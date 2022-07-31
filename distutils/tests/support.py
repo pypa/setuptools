@@ -5,9 +5,6 @@ import shutil
 import tempfile
 import unittest
 import sysconfig
-from copy import deepcopy
-
-import pytest
 
 from . import py38compat as os_helper
 
