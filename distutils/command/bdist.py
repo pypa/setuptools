@@ -74,7 +74,6 @@ class bdist(Command):
         'tar',
         'wininst',
         'zip',
-        'msi',
     ]
 
     # And the real information.
@@ -87,7 +86,6 @@ class bdist(Command):
         'tar': ('bdist_dumb', "tar file"),
         'wininst': ('bdist_wininst', "Windows executable installer"),
         'zip': ('bdist_dumb', "ZIP file"),
-        'msi': ('bdist_msi', "Microsoft Installer"),
     }
 
     def initialize_options(self):

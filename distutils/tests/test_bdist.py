@@ -21,7 +21,6 @@ class BuildTestCase(support.TempdirManager, unittest.TestCase):
         formats = [
             'bztar',
             'gztar',
-            'msi',
             'rpm',
             'tar',
             'wininst',
@@ -44,8 +43,6 @@ class BuildTestCase(support.TempdirManager, unittest.TestCase):
             'bdist_dumb',
             'bdist_wininst',
         ]  # bdist_rpm does not support --skip-build
-        if os.name == 'nt':
-            names.append('bdist_msi')
 
         for name in names:
             with warnings.catch_warnings():
