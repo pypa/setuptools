@@ -112,7 +112,10 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         )
         self.assertEqual(get_msvcr(), ['msvcr90'])
 
-        sys.version = '3.10.0 (tags/v3.10.0:b494f59, Oct  4 2021, 18:46:30) [MSC v.1929 32 bit (Intel)]'
+        sys.version = (
+            '3.10.0 (tags/v3.10.0:b494f59, Oct  4 2021, 18:46:30) '
+            '[MSC v.1929 32 bit (Intel)]'
+        )
         self.assertEqual(get_msvcr(), ['ucrt', 'vcruntime140'])
 
         # unknown

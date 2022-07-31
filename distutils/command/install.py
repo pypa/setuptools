@@ -35,8 +35,10 @@ WINDOWS_SCHEME = {
 INSTALL_SCHEMES = {
     'posix_prefix': {
         'purelib': '{base}/lib/{implementation_lower}{py_version_short}/site-packages',
-        'platlib': '{platbase}/{platlibdir}/{implementation_lower}{py_version_short}/site-packages',
-        'headers': '{base}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
+        'platlib': '{platbase}/{platlibdir}/{implementation_lower}'
+        '{py_version_short}/site-packages',
+        'headers': '{base}/include/{implementation_lower}'
+        '{py_version_short}{abiflags}/{dist_name}',
         'scripts': '{base}/bin',
         'data': '{base}',
     },
@@ -69,7 +71,8 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['nt_user'] = {
         'purelib': '{usersite}',
         'platlib': '{usersite}',
-        'headers': '{userbase}/{implementation}{py_version_nodot_plat}/Include/{dist_name}',
+        'headers': '{userbase}/{implementation}{py_version_nodot_plat}'
+        '/Include/{dist_name}',
         'scripts': '{userbase}/{implementation}{py_version_nodot_plat}/Scripts',
         'data': '{userbase}',
     }
@@ -77,7 +80,8 @@ if HAS_USER_SITE:
     INSTALL_SCHEMES['posix_user'] = {
         'purelib': '{usersite}',
         'platlib': '{usersite}',
-        'headers': '{userbase}/include/{implementation_lower}{py_version_short}{abiflags}/{dist_name}',
+        'headers': '{userbase}/include/{implementation_lower}'
+        '{py_version_short}{abiflags}/{dist_name}',
         'scripts': '{userbase}/bin',
         'data': '{userbase}',
     }

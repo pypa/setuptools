@@ -586,7 +586,9 @@ class bdist_msi(Command):
             320,
             80,
             0x30003,
-            "[ProductName] setup ended prematurely because of an error.  Your system has not been modified.  To install this program at a later time, please run the installation again.",
+            "[ProductName] setup ended prematurely because of an error. "
+            "Your system has not been modified.  To install this program "
+            "at a later time, please run the installation again.",
         )
         fatal.text(
             "Description2",
@@ -614,7 +616,8 @@ class bdist_msi(Command):
             80,
             0x30003,
             "[ProductName] setup was interrupted.  Your system has not been modified.  "
-            "To install this program at a later time, please run the installation again.",
+            "To install this program at a later time, please run the installation "
+            "again.",
         )
         user_exit.text(
             "Description2",
@@ -679,7 +682,10 @@ class bdist_msi(Command):
             330,
             50,
             3,
-            "The following applications are using files that need to be updated by this setup. Close these applications and then click Retry to continue the installation or Cancel to exit it.",
+            "The following applications are using files that need to be updated by "
+            "this "
+            "setup. Close these applications and then click Retry to continue the "
+            "installation or Cancel to exit it.",
         )
         inuse.control(
             "List",
@@ -716,7 +722,6 @@ class bdist_msi(Command):
             None,
         )
         error.text("ErrorText", 50, 9, 280, 48, 3, "")
-        # error.control("ErrorIcon", "Icon", 15, 9, 24, 24, 5242881, None, "py.ico", None, None)
         error.pushbutton("N", 120, 72, 81, 21, 3, "No", None).event(
             "EndDialog", "ErrorNo"
         )
@@ -781,7 +786,8 @@ class bdist_msi(Command):
             194,
             30,
             3,
-            "Please wait while the installer finishes determining your disk space requirements.",
+            "Please wait while the installer finishes determining your disk space "
+            "requirements.",
         )
         c = costing.pushbutton("Return", 102, 57, 56, 17, 3, "Return", None)
         c.event("EndDialog", "Exit")
@@ -798,7 +804,8 @@ class bdist_msi(Command):
             320,
             40,
             0x30003,
-            "Please wait while the Installer prepares to guide you through the installation.",
+            "Please wait while the Installer prepares to guide you through the "
+            "installation.",
         )
         prep.title("Welcome to the [ProductName] Installer")
         c = prep.text("ActionText", 15, 110, 320, 20, 0x30003, "Pondering...")
@@ -1092,7 +1099,6 @@ class bdist_msi(Command):
 
         # Close dialog when maintenance action scheduled
         c.event("EndDialog", "Return", 'MaintenanceForm_Action<>"Change"', 20)
-        # c.event("NewDialog", "SelectFeaturesDlg", 'MaintenanceForm_Action="Change"', 21)
 
         maint.cancel("Cancel", "RepairRadioGroup").event("SpawnDialog", "CancelDlg")
 
