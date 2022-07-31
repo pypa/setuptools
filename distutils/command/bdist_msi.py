@@ -404,7 +404,7 @@ class bdist_msi(Command):
             target_dir_prop = "TARGETDIR" + ver
             exe_prop = "PYTHON" + ver
             if msilib.Win64:
-                # type: msidbLocatorTypeRawValue + msidbLocatorType64bit
+                # Type: msidbLocatorTypeRawValue + msidbLocatorType64bit
                 Type = 2 + 16
             else:
                 Type = 2

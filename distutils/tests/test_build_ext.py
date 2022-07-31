@@ -270,7 +270,7 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
         cmd = self.build_ext(dist)
         cmd.finalize_options()
 
-        #'extensions' option must be a list of Extension instances
+        # 'extensions' option must be a list of Extension instances
         self.assertRaises(DistutilsSetupError, cmd.check_extensions_list, 'foo')
 
         # each element of 'ext_modules' option must be an

@@ -307,7 +307,7 @@ class ArchiveUtilTestCase(
         try:
             try:
                 make_archive('xxx', 'xxx', root_dir=self.mkdtemp())
-            except:
+            except Exception:
                 pass
             self.assertEqual(os.getcwd(), current_dir)
         finally:
