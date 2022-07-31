@@ -29,7 +29,7 @@ class BuildTestCase(support.TempdirManager, unittest.TestCase):
             'zip',
             'ztar',
         ]
-        found = sorted(cmd.format_command)
+        found = sorted(cmd.format_commands)
         self.assertEqual(found, formats)
 
     def test_skip_build(self):

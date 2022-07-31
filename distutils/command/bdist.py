@@ -15,7 +15,7 @@ def show_formats():
 
     formats = []
     for format in bdist.format_commands:
-        formats.append(("formats=" + format, None, bdist.format_command[format][1]))
+        formats.append(("formats=" + format, None, bdist.format_commands[format][1]))
     pretty_printer = FancyGetopt(formats)
     pretty_printer.print_help("List of available distribution formats:")
 
@@ -64,21 +64,8 @@ class bdist(Command):
     # Debian-ish Linux, Solaris, FreeBSD, ..., Windows, Mac OS.
     default_format = {'posix': 'gztar', 'nt': 'zip'}
 
-    # Establish the preferred order (for the --help-formats option).
-    format_commands = [
-        'rpm',
-        'gztar',
-        'bztar',
-        'xztar',
-        'ztar',
-        'tar',
-        'wininst',
-        'zip',
-        'msi',
-    ]
-
-    # And the real information.
-    format_command = {
+    # Define commands in preferred order for the --help-formats option
+    format_commands = {
         'rpm': ('bdist_rpm', "RPM distribution"),
         'gztar': ('bdist_dumb', "gzip'ed tar file"),
         'bztar': ('bdist_dumb', "bzip2'ed tar file"),
@@ -132,7 +119,7 @@ class bdist(Command):
         commands = []
         for format in self.formats:
             try:
-                commands.append(self.format_command[format][0])
+                commands.append(self.format_commands[format][0])
             except KeyError:
                 raise DistutilsOptionError("invalid format '%s'" % format)
 
