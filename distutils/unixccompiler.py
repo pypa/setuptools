@@ -345,20 +345,16 @@ class UnixCCompiler(CCompiler):
         vs
           /usr/lib/libedit.dylib
         """
-        if sys.platform != 'darwin' or not (
+        cflags = sysconfig.get_config_var('CFLAGS')
+        match = re.search(r'-isysroot\s*(\S+)', cflags)
+
+        if sys.platform != 'darwin' or not match or not (
             dir.startswith('/System/')
             or (dir.startswith('/usr/') and not dir.startswith('/usr/local/'))
         ):
             return dir
 
-        cflags = sysconfig.get_config_var('CFLAGS')
-        m = re.search(r'-isysroot\s*(\S+)', cflags)
-        if m is None:
-            sysroot = '/'
-        else:
-            sysroot = m.group(1)
-
-        return os.path.join(sysroot, dir[1:])
+        return os.path.join(match.group(1), dir[1:])
 
     def find_library_file(self, dirs, lib, debug=0):
         """
