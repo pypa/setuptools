@@ -13,7 +13,10 @@ the "typical" Unix-style command-line C compiler:
   * link shared library handled by 'cc -shared'
 """
 
-import os, sys, re, shlex
+import os
+import sys
+import re
+import shlex
 
 from distutils import sysconfig
 from distutils.dep_util import newer
