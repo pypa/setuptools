@@ -163,17 +163,21 @@ class UnixCCompiler(CCompiler):
             pp_args.extend(extra_postargs)
         pp_args.append(source)
 
-        # We need to preprocess: either we're being forced to, or we're
-        # generating output to stdout, or there's a target output file and
-        # the source file is newer than the target (or the target doesn't
-        # exist).
-        if self.force or output_file is None or newer(source, output_file):
-            if output_file:
-                self.mkpath(os.path.dirname(output_file))
-            try:
-                self.spawn(pp_args)
-            except DistutilsExecError as msg:
-                raise CompileError(msg)
+        # reasons to preprocess:
+        # - force is indicated
+        # - output is directed to stdout
+        # - source file is newer than the target
+        preprocess = self.force or output_file is None or newer(source, output_file)
+        if not preprocess:
+            return
+
+        if output_file:
+            self.mkpath(os.path.dirname(output_file))
+
+        try:
+            self.spawn(pp_args)
+        except DistutilsExecError as msg:
+            raise CompileError(msg)
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         compiler_so = compiler_fixup(self.compiler_so, cc_args + extra_postargs)
