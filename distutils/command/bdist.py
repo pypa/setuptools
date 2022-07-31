@@ -20,6 +20,12 @@ def show_formats():
     pretty_printer.print_help("List of available distribution formats:")
 
 
+class ListCompat(dict):
+    # adapter to allow for Setuptools compatibility in format_commands
+    def append(self, item):
+        return
+
+
 class bdist(Command):
 
     description = "create a built (binary) distribution"
@@ -65,7 +71,7 @@ class bdist(Command):
     default_format = {'posix': 'gztar', 'nt': 'zip'}
 
     # Define commands in preferred order for the --help-formats option
-    format_commands = {
+    format_commands = ListCompat({
         'rpm': ('bdist_rpm', "RPM distribution"),
         'gztar': ('bdist_dumb', "gzip'ed tar file"),
         'bztar': ('bdist_dumb', "bzip2'ed tar file"),
@@ -75,7 +81,10 @@ class bdist(Command):
         'wininst': ('bdist_wininst', "Windows executable installer"),
         'zip': ('bdist_dumb', "ZIP file"),
         'msi': ('bdist_msi', "Microsoft Installer"),
-    }
+    })
+
+    # for compatibility until Setuptools references only format_commands
+    format_command = format_commands
 
     def initialize_options(self):
         self.bdist_base = None
