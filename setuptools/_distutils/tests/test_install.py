@@ -5,7 +5,9 @@ import sys
 import unittest
 import site
 
-from test.support import captured_stdout, run_unittest
+from test.support import captured_stdout
+
+import pytest
 
 from distutils import sysconfig
 from distutils.command.install import install
@@ -19,16 +21,14 @@ from distutils.extension import Extension
 from distutils.tests import support
 from test import support as test_support
 
-import pytest
-
 
 def _make_ext_name(modname):
     return modname + sysconfig.get_config_var('EXT_SUFFIX')
 
 
+@pytest.mark.usefixtures('save_env')
 class InstallTestCase(
     support.TempdirManager,
-    support.EnvironGuard,
     support.LoggingSilencer,
     unittest.TestCase,
 ):
@@ -272,11 +272,3 @@ class InstallTestCase(
         finally:
             install_module.DEBUG = False
         self.assertGreater(len(self.logs), old_logs_len)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(InstallTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

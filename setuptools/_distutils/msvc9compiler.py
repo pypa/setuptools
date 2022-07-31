@@ -350,7 +350,7 @@ class MSVCCompiler(CCompiler):
         self.__arch = None  # deprecated name
         self.initialized = False
 
-    def initialize(self, plat_name=None):
+    def initialize(self, plat_name=None):  # noqa: C901
         # multi-init means we would need to check platform same each time...
         assert not self.initialized, "don't init multiple times"
         if self.__version < 8.0:
@@ -478,7 +478,7 @@ class MSVCCompiler(CCompiler):
                 obj_names.append(os.path.join(output_dir, base + self.obj_extension))
         return obj_names
 
-    def compile(
+    def compile(  # noqa: C901
         self,
         sources,
         output_dir=None,
@@ -591,7 +591,7 @@ class MSVCCompiler(CCompiler):
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
 
-    def link(
+    def link(  # noqa: C901
         self,
         target_desc,
         objects,

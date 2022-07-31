@@ -8,7 +8,8 @@ for the Microsoft Visual Studio.
 # hacked by Robin Becker and Thomas Heller to do a better job of
 #   finding DevStudio (through the registry)
 
-import sys, os
+import sys
+import os
 from distutils.errors import (
     DistutilsExecError,
     DistutilsPlatformError,
@@ -134,7 +135,7 @@ class MacroExpander:
                 self.set_macro("FrameworkSDKDir", net, "sdkinstallrootv1.1")
             else:
                 self.set_macro("FrameworkSDKDir", net, "sdkinstallroot")
-        except KeyError as exc:  #
+        except KeyError:
             raise DistutilsPlatformError(
                 """Python was built with Visual Studio 2003;
 extensions must be built with a compiler than can generate compatible binaries.
@@ -368,7 +369,7 @@ class MSVCCompiler(CCompiler):
                 obj_names.append(os.path.join(output_dir, base + self.obj_extension))
         return obj_names
 
-    def compile(
+    def compile(  # noqa: C901
         self,
         sources,
         output_dir=None,
@@ -481,7 +482,7 @@ class MSVCCompiler(CCompiler):
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
 
-    def link(
+    def link(  # noqa: C901
         self,
         target_desc,
         objects,
@@ -680,4 +681,4 @@ if get_build_version() >= 8.0:
     from distutils.msvc9compiler import MSVCCompiler
 
     # get_build_architecture not really relevant now we support cross-compile
-    from distutils.msvc9compiler import MacroExpander
+    from distutils.msvc9compiler import MacroExpander  # noqa: F811

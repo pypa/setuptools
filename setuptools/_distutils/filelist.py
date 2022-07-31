@@ -105,7 +105,7 @@ class FileList:
 
         return (action, patterns, dir, dir_pattern)
 
-    def process_template_line(self, line):
+    def process_template_line(self, line):  # noqa: C901
         # Parse the line: split it up, make sure the right number of words
         # is there, and return the relevant words.  'action' is always
         # defined: it's the first word of the line.  Which of the other

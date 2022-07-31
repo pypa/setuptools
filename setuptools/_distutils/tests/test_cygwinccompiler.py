@@ -2,7 +2,6 @@
 import unittest
 import sys
 import os
-from test.support import run_unittest
 
 from distutils.cygwinccompiler import (
     check_config_h,
@@ -51,6 +50,7 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
     @unittest.skipIf(sys.platform != "cygwin", "Not running on Cygwin")
     def test_runtime_library_dir_option(self):
         from distutils.cygwinccompiler import CygwinCCompiler
+
         compiler = CygwinCCompiler()
         self.assertEqual(compiler.runtime_library_dir_option('/foo'), [])
 
@@ -112,7 +112,10 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         )
         self.assertEqual(get_msvcr(), ['msvcr90'])
 
-        sys.version = '3.10.0 (tags/v3.10.0:b494f59, Oct  4 2021, 18:46:30) [MSC v.1929 32 bit (Intel)]'
+        sys.version = (
+            '3.10.0 (tags/v3.10.0:b494f59, Oct  4 2021, 18:46:30) '
+            '[MSC v.1929 32 bit (Intel)]'
+        )
         self.assertEqual(get_msvcr(), ['ucrt', 'vcruntime140'])
 
         # unknown
@@ -120,11 +123,3 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.2000 32 bits (Intel)]'
         )
         self.assertRaises(ValueError, get_msvcr)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(CygwinCCompilerTestCase)
-
-
-if __name__ == '__main__':
-    run_unittest(test_suite())

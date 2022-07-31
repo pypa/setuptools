@@ -7,11 +7,11 @@ Implements the Distutils 'register' command (register with the repository).
 
 import getpass
 import io
-import urllib.parse, urllib.request
+import urllib.parse
+import urllib.request
 from warnings import warn
 
 from distutils.core import PyPIRCCommand
-from distutils.errors import *
 from distutils import log
 
 
@@ -104,7 +104,7 @@ class register(PyPIRCCommand):
         (code, result) = self.post_to_server(self.build_post_data('verify'))
         log.info('Server response (%s): %s', code, result)
 
-    def send_metadata(self):
+    def send_metadata(self):  # noqa: C901
         '''Send the metadata to the package index server.
 
         Well, do the following:
@@ -261,7 +261,7 @@ Your selection [default 1]: ''',
             data['metadata_version'] = '1.1'
         return data
 
-    def post_to_server(self, data, auth=None):
+    def post_to_server(self, data, auth=None):  # noqa: C901
         '''Post a query to the server, and return a string response.'''
         if 'name' in data:
             self.announce(

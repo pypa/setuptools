@@ -1,7 +1,6 @@
 """Tests for distutils.command.bdist."""
 import os
 import unittest
-from test.support import run_unittest
 import warnings
 
 from distutils.command.bdist import bdist
@@ -30,7 +29,7 @@ class BuildTestCase(support.TempdirManager, unittest.TestCase):
             'zip',
             'ztar',
         ]
-        found = sorted(cmd.format_command)
+        found = sorted(cmd.format_commands)
         self.assertEqual(found, formats)
 
     def test_skip_build(self):
@@ -60,11 +59,3 @@ class BuildTestCase(support.TempdirManager, unittest.TestCase):
             self.assertTrue(
                 subcmd.skip_build, '%s should take --skip-build from bdist' % name
             )
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BuildTestCase)
-
-
-if __name__ == '__main__':
-    run_unittest(test_suite())

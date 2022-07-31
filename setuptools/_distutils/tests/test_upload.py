@@ -1,10 +1,8 @@
 """Tests for distutils.command.upload."""
 import os
-import unittest
 import unittest.mock as mock
 from urllib.request import HTTPError
 
-from test.support import run_unittest
 
 from distutils.command import upload as upload_mod
 from distutils.command.upload import upload
@@ -219,11 +217,3 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
                     results = self.get_logs(ERROR)
                     self.assertIn(expected, results[-1])
                     self.clear_logs()
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(uploadTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

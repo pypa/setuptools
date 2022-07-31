@@ -2,13 +2,14 @@
 import os
 import unittest
 
+import pytest
+
 from distutils.core import PyPIRCCommand
 from distutils.core import Distribution
 from distutils.log import set_threshold
 from distutils.log import WARN
 
 from distutils.tests import support
-from test.support import run_unittest
 
 PYPIRC = """\
 [distutils]
@@ -50,10 +51,10 @@ password:xxx
 """
 
 
+@pytest.mark.usefixtures('save_env')
 class BasePyPIRCCommandTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def setUp(self):
@@ -146,11 +147,3 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
             ('username', 'cbiggles'),
         ]
         self.assertEqual(config, waited)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(PyPIRCCommandTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

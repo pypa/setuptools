@@ -15,7 +15,7 @@ from distutils.text_file import TextFile
 from distutils.filelist import FileList
 from distutils import log
 from distutils.util import convert_path
-from distutils.errors import DistutilsTemplateError, DistutilsOptionError
+from distutils.errors import DistutilsOptionError, DistutilsTemplateError
 
 
 def show_formats():

@@ -11,7 +11,7 @@ from distutils import log
 _copy_action = {None: 'copying', 'hard': 'hard linking', 'sym': 'symbolically linking'}
 
 
-def _copy_file_contents(src, dst, buffer_size=16 * 1024):
+def _copy_file_contents(src, dst, buffer_size=16 * 1024):  # noqa: C901
     """Copy the file 'src' to 'dst'; both must be filenames.  Any error
     opening either file, reading from 'src', or writing to 'dst', raises
     DistutilsFileError.  Data is read/written in chunks of 'buffer_size'
@@ -65,7 +65,7 @@ def _copy_file_contents(src, dst, buffer_size=16 * 1024):
             fsrc.close()
 
 
-def copy_file(
+def copy_file(  # noqa: C901
     src,
     dst,
     preserve_mode=1,
@@ -173,7 +173,7 @@ def copy_file(
 
 
 # XXX I suspect this is Unix-specific -- need porting help!
-def move_file(src, dst, verbose=1, dry_run=0):
+def move_file(src, dst, verbose=1, dry_run=0):  # noqa: C901
 
     """Move a file 'src' to 'dst'.  If 'dst' is a directory, the file will
     be moved into it with the same name; otherwise, 'src' is just renamed
