@@ -56,7 +56,6 @@ class InstallDataTestCase(
 
         # now using root and empty dir
         cmd.root = os.path.join(pkg_dir, 'root')
-        inst3 = os.path.join(cmd.install_dir, 'inst3')
         inst4 = os.path.join(pkg_dir, 'inst4')
         three = os.path.join(cmd.install_dir, 'three')
         self.write_file(three, 'xx')

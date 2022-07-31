@@ -123,7 +123,7 @@ class DistributionTestCase(
             )
 
         # Base case: Not in a Virtual Environment
-        with mock.patch.multiple(sys, prefix='/a', base_prefix='/a') as values:
+        with mock.patch.multiple(sys, prefix='/a', base_prefix='/a'):
             d = self.create_distribution([TESTFN])
 
         option_tuple = (TESTFN, fakepath)
@@ -152,7 +152,7 @@ class DistributionTestCase(
             self.assertEqual(value, result_dict[key])
 
         # Test case: In a Virtual Environment
-        with mock.patch.multiple(sys, prefix='/a', base_prefix='/b') as values:
+        with mock.patch.multiple(sys, prefix='/a', base_prefix='/b'):
             d = self.create_distribution([TESTFN])
 
         for key in result_dict.keys():

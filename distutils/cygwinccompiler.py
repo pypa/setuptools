@@ -228,7 +228,6 @@ class CygwinCCompiler(UnixCCompiler):
 
             # generate the filenames for these files
             def_file = os.path.join(temp_dir, dll_name + ".def")
-            lib_file = os.path.join(temp_dir, 'lib' + dll_name + ".a")
 
             # Generate .def file
             contents = ["LIBRARY %s" % os.path.basename(output_filename), "EXPORTS"]
@@ -236,10 +235,8 @@ class CygwinCCompiler(UnixCCompiler):
                 contents.append(sym)
             self.execute(write_file, (def_file, contents), "writing %s" % def_file)
 
-            # next add options for def-file and to creating import libraries
+            # next add options for def-file
 
-            # doesn't work: bfd_close build\...\libfoo.a: Invalid operation
-            # extra_preargs.extend(["-Wl,--out-implib,%s" % lib_file])
             # for gcc/ld the def-file is specified as any object files
             objects.append(def_file)
 

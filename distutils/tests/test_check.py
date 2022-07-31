@@ -193,8 +193,6 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
                 )
 
     def test_check_all(self):
-
-        metadata = {'url': 'xxx', 'author': 'xxx'}
         self.assertRaises(
             DistutilsSetupError, self._run, {}, **{'strict': 1, 'restructuredtext': 1}
         )
