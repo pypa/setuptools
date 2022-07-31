@@ -8,10 +8,12 @@ import textwrap
 
 from unittest import mock
 
+import pytest
+
 from distutils.dist import Distribution, fix_help_options
 from distutils.cmd import Command
 
-from test.support import captured_stdout, captured_stderr, run_unittest
+from test.support import captured_stdout, captured_stderr
 from .py38compat import TESTFN
 from distutils.tests import support
 from distutils import log
@@ -40,10 +42,10 @@ class TestDistribution(Distribution):
         return self._config_files
 
 
+@pytest.mark.usefixtures('save_env')
 class DistributionTestCase(
     support.LoggingSilencer,
     support.TempdirManager,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def setUp(self):
@@ -121,7 +123,7 @@ class DistributionTestCase(
             )
 
         # Base case: Not in a Virtual Environment
-        with mock.patch.multiple(sys, prefix='/a', base_prefix='/a') as values:
+        with mock.patch.multiple(sys, prefix='/a', base_prefix='/a'):
             d = self.create_distribution([TESTFN])
 
         option_tuple = (TESTFN, fakepath)
@@ -150,7 +152,7 @@ class DistributionTestCase(
             self.assertEqual(value, result_dict[key])
 
         # Test case: In a Virtual Environment
-        with mock.patch.multiple(sys, prefix='/a', base_prefix='/b') as values:
+        with mock.patch.multiple(sys, prefix='/a', base_prefix='/b'):
             d = self.create_distribution([TESTFN])
 
         for key in result_dict.keys():
@@ -270,7 +272,8 @@ class DistributionTestCase(
         self.assertEqual(len(all_files) - 1, len(files))
 
 
-class MetadataTestCase(support.TempdirManager, support.EnvironGuard, unittest.TestCase):
+@pytest.mark.usefixtures('save_env')
+class MetadataTestCase(support.TempdirManager, unittest.TestCase):
     def setUp(self):
         super(MetadataTestCase, self).setUp()
         self.argv = sys.argv, sys.argv[:]
@@ -552,14 +555,3 @@ class MetadataTestCase(support.TempdirManager, support.EnvironGuard, unittest.Te
         self.assertEqual(metadata.platforms, None)
         self.assertEqual(metadata.obsoletes, None)
         self.assertEqual(metadata.requires, ['foo'])
-
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(DistributionTestCase))
-    suite.addTest(unittest.TestLoader().loadTestsFromTestCase(MetadataTestCase))
-    return suite
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

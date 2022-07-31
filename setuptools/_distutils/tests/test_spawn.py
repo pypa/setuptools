@@ -3,7 +3,7 @@ import os
 import stat
 import sys
 import unittest.mock
-from test.support import run_unittest, unix_shell
+from test.support import unix_shell
 
 from . import py38compat as os_helper
 
@@ -123,11 +123,3 @@ class SpawnTestCase(support.TempdirManager, support.LoggingSilencer, unittest.Te
         with self.assertRaises(DistutilsExecError) as ctx:
             spawn(['does-not-exist'])
         self.assertIn("command 'does-not-exist' failed", str(ctx.exception))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(SpawnTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

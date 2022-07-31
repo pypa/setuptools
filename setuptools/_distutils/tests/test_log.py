@@ -3,7 +3,7 @@
 import io
 import sys
 import unittest
-from test.support import swap_attr, run_unittest
+from test.support import swap_attr
 
 from distutils import log
 
@@ -51,11 +51,3 @@ class TestLog(unittest.TestCase):
                     if errors == 'ignore'
                     else 'Fαtal\t\\xc8rr\\u014dr',
                 )
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(TestLog)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

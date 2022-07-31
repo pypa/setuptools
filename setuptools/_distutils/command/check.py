@@ -2,8 +2,6 @@
 
 Implements the Distutils 'check' command.
 """
-from email.utils import getaddresses
-
 from distutils.core import Command
 from distutils.errors import DistutilsSetupError
 

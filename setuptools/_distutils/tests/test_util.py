@@ -4,10 +4,10 @@ import sys
 import unittest
 import sysconfig as stdlib_sysconfig
 from copy import copy
-from test.support import run_unittest
 from unittest import mock
 
-from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
+import pytest
+
 from distutils.util import (
     get_platform,
     convert_path,
@@ -22,10 +22,11 @@ from distutils.util import (
 )
 from distutils import util  # used to patch _environ_checked
 from distutils import sysconfig
-from distutils.tests import support
+from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
 
 
-class UtilTestCase(support.EnvironGuard, unittest.TestCase):
+@pytest.mark.usefixtures('save_env')
+class UtilTestCase(unittest.TestCase):
     def setUp(self):
         super(UtilTestCase, self).setUp()
         # saving the environment
@@ -237,11 +238,3 @@ class UtilTestCase(support.EnvironGuard, unittest.TestCase):
         exc = IOError("Unable to find batch file")
         msg = grok_environment_error(exc)
         self.assertEqual(msg, "error: Unable to find batch file")
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(UtilTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

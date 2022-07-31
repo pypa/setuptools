@@ -4,7 +4,9 @@ Provides the Command class, the base class for the command classes
 in the distutils.command package.
 """
 
-import sys, os, re
+import sys
+import os
+import re
 from distutils.errors import DistutilsOptionError
 from distutils import util, dir_util, file_util, archive_util, dep_util
 from distutils import log

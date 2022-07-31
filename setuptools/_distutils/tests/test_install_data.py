@@ -2,15 +2,16 @@
 import os
 import unittest
 
+import pytest
+
 from distutils.command.install_data import install_data
 from distutils.tests import support
-from test.support import run_unittest
 
 
+@pytest.mark.usefixtures('save_env')
 class InstallDataTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def test_simple_run(self):
@@ -55,7 +56,6 @@ class InstallDataTestCase(
 
         # now using root and empty dir
         cmd.root = os.path.join(pkg_dir, 'root')
-        inst3 = os.path.join(cmd.install_dir, 'inst3')
         inst4 = os.path.join(pkg_dir, 'inst4')
         three = os.path.join(cmd.install_dir, 'three')
         self.write_file(three, 'xx')
@@ -67,11 +67,3 @@ class InstallDataTestCase(
         self.assertEqual(len(cmd.get_outputs()), 4)
         self.assertTrue(os.path.exists(os.path.join(inst2, rtwo)))
         self.assertTrue(os.path.exists(os.path.join(inst, rone)))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(InstallDataTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

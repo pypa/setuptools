@@ -4,17 +4,18 @@ import os
 import importlib.util
 import unittest
 
+import pytest
+
 from distutils.command.install_lib import install_lib
 from distutils.extension import Extension
 from distutils.tests import support
 from distutils.errors import DistutilsOptionError
-from test.support import run_unittest
 
 
+@pytest.mark.usefixtures('save_env')
 class InstallLibTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def test_finalize_options(self):
@@ -107,11 +108,3 @@ class InstallLibTestCase(
             sys.dont_write_bytecode = old_dont_write_bytecode
 
         self.assertIn('byte-compiling is disabled', self.logs[0][1] % self.logs[0][2])
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(InstallLibTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

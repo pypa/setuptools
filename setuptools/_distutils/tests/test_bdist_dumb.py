@@ -4,7 +4,8 @@ import os
 import sys
 import zipfile
 import unittest
-from test.support import run_unittest
+
+import pytest
 
 from distutils.core import Distribution
 from distutils.command.bdist_dumb import bdist_dumb
@@ -19,18 +20,11 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 
 """
 
-try:
-    import zlib
 
-    ZLIB_SUPPORT = True
-except ImportError:
-    ZLIB_SUPPORT = False
-
-
+@pytest.mark.usefixtures('save_env')
 class BuildDumbTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    support.EnvironGuard,
     unittest.TestCase,
 ):
     def setUp(self):
@@ -44,7 +38,7 @@ class BuildDumbTestCase(
         sys.argv[:] = self.old_sys_argv[1]
         super(BuildDumbTestCase, self).tearDown()
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_simple_built(self):
 
         # let's create a simple package
@@ -97,11 +91,3 @@ class BuildDumbTestCase(
         if not sys.dont_write_bytecode:
             wanted.append('foo.%s.pyc' % sys.implementation.cache_tag)
         self.assertEqual(contents, sorted(wanted))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BuildDumbTestCase)
-
-
-if __name__ == '__main__':
-    run_unittest(test_suite())

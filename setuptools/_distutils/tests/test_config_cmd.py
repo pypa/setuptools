@@ -2,7 +2,7 @@
 import unittest
 import os
 import sys
-from test.support import run_unittest, missing_compiler_executable
+from test.support import missing_compiler_executable
 
 from distutils.command.config import dump_file, config
 from distutils.tests import support
@@ -90,11 +90,3 @@ class ConfigTestCase(
 
         for f in (f1, f2):
             self.assertFalse(os.path.exists(f))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(ConfigTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

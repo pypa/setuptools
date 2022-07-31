@@ -2,7 +2,6 @@
 import os
 import sys
 import unittest
-from test.support import run_unittest
 from unittest.mock import patch
 
 from .py38compat import EnvironmentVarGuard
@@ -35,7 +34,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         sysconfig.get_config_vars = self._backup_get_config_vars
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
-    def test_runtime_libdir_option(self):
+    def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
         #
         # Ensure RUNPATH is added to extension modules with RPATH if
@@ -307,11 +306,3 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         self.cc.output_dir = 'scratch'
         os.chdir(self.mkdtemp())
         self.cc.has_function('abort', includes=['stdlib.h'])
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(UnixCCompilerTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

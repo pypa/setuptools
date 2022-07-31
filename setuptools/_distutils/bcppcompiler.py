@@ -77,7 +77,7 @@ class BCPPCompiler(CCompiler):
 
     # -- Worker methods ------------------------------------------------
 
-    def compile(
+    def compile(  # noqa: C901
         self,
         sources,
         output_dir=None,
@@ -174,7 +174,7 @@ class BCPPCompiler(CCompiler):
 
     # create_static_lib ()
 
-    def link(
+    def link(  # noqa: C901
         self,
         target_desc,
         objects,
@@ -250,8 +250,8 @@ class BCPPCompiler(CCompiler):
                 else:
                     objects.append(file)
 
-            for l in library_dirs:
-                ld_args.append("/L%s" % os.path.normpath(l))
+            for ell in library_dirs:
+                ld_args.append("/L%s" % os.path.normpath(ell))
             ld_args.append("/L.")  # we sometimes use relative paths
 
             # list of object files
