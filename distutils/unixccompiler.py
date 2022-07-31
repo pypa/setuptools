@@ -361,30 +361,24 @@ class UnixCCompiler(CCompiler):
         return os.path.join(sysroot, dir[1:])
 
     def find_library_file(self, dirs, lib, debug=0):
-        shared_f = self.library_filename(lib, lib_type='shared')
-        dylib_f = self.library_filename(lib, lib_type='dylib')
-        xcode_stub_f = self.library_filename(lib, lib_type='xcode_stub')
-        static_f = self.library_filename(lib, lib_type='static')
+        """
+        Second-guess the linker with not much hard
+        data to go on: GCC seems to prefer the shared library, so
+        assume that *all* Unix C compilers do,
+        ignoring even GCC's "-static" option.
+        """
+        lib_names = (
+            self.library_filename(lib, lib_type=type)
+            for type in 'dylib xcode_stub shared static'.split()
+        )
 
-        for dir in dirs:
-            root = self._library_root(dir)
-            shared = os.path.join(root, shared_f)
-            dylib = os.path.join(root, dylib_f)
-            static = os.path.join(root, static_f)
-            xcode_stub = os.path.join(root, xcode_stub_f)
+        searched = (
+            os.path.join(root, lib_name)
+            for root in map(self._library_root, dirs)
+            for lib_name in lib_names
+        )
 
-            # Second-guess the linker with not much hard
-            # data to go on: GCC seems to prefer the shared library, so
-            # assume that *all* Unix C compilers do,
-            # ignoring even GCC's "-static" option.
-            if os.path.exists(dylib):
-                return dylib
-            elif os.path.exists(xcode_stub):
-                return xcode_stub
-            elif os.path.exists(shared):
-                return shared
-            elif os.path.exists(static):
-                return static
+        found = filter(os.path.exists, searched)
 
-        # Oops, didn't find it in *any* of 'dirs'
-        return None
+        # Return None if it could not be found in any dir.
+        return next(found, None)
