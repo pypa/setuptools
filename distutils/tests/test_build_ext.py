@@ -33,7 +33,7 @@ ALREADY_TESTED = False
 class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
     def setUp(self):
         # Create a simple test environment
-        super(BuildExtTestCase, self).setUp()
+        super().setUp()
         self.tmp_dir = self.mkdtemp()
         import site
 
@@ -57,7 +57,7 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
         from distutils.command import build_ext
 
         build_ext.USER_BASE = self.old_user_base
-        super(BuildExtTestCase, self).tearDown()
+        super().tearDown()
 
     def build_ext(self, *args, **kwargs):
         return build_ext(*args, **kwargs)
@@ -93,7 +93,7 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
             ALREADY_TESTED = type(self).__name__
 
         code = textwrap.dedent(
-            """
+            f"""
             tmp_dir = {self.tmp_dir!r}
 
             import sys
@@ -119,9 +119,7 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
 
 
             unittest.main()
-        """.format(
-                **locals()
-            )
+        """
         )
         assert_python_ok('-c', code)
 
@@ -531,7 +529,7 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
         deptarget_ext = Extension(
             'deptarget',
             [deptarget_c],
-            extra_compile_args=['-DTARGET=%s' % (target,)],
+            extra_compile_args=['-DTARGET={}'.format(target)],
         )
         dist = Distribution({'name': 'deptarget', 'ext_modules': [deptarget_ext]})
         dist.package_dir = self.tmp_dir

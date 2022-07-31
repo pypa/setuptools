@@ -117,7 +117,7 @@ class check(Command):
             if line is None:
                 warning = warning[1]
             else:
-                warning = '%s (line %s)' % (warning[1], line)
+                warning = '{} (line {})'.format(warning[1], line)
             self.warn(warning)
 
     def _check_rst_data(self, data):

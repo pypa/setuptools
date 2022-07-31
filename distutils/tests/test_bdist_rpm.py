@@ -36,7 +36,7 @@ class BuildRpmTestCase(
         except UnicodeEncodeError:
             raise unittest.SkipTest("sys.executable is not encodable to UTF-8")
 
-        super(BuildRpmTestCase, self).setUp()
+        super().setUp()
         self.old_location = os.getcwd()
         self.old_sys_argv = sys.argv, sys.argv[:]
 
@@ -44,7 +44,7 @@ class BuildRpmTestCase(
         os.chdir(self.old_location)
         sys.argv = self.old_sys_argv[0]
         sys.argv[:] = self.old_sys_argv[1]
-        super(BuildRpmTestCase, self).tearDown()
+        super().tearDown()
 
     # XXX I am unable yet to make this test work without
     # spurious sdtout/stderr output under Mac OS X

@@ -13,7 +13,7 @@ from distutils.log import DEBUG, INFO, WARN, ERROR, FATAL
 from distutils.core import Distribution
 
 
-class LoggingSilencer(object):
+class LoggingSilencer:
     def setUp(self):
         super().setUp()
         self.threshold = log.set_threshold(log.FATAL)
@@ -43,7 +43,7 @@ class LoggingSilencer(object):
         self.logs = []
 
 
-class TempdirManager(object):
+class TempdirManager:
     """Mix-in class that handles temporary directories for test cases.
 
     This is intended to be used with unittest.TestCase.

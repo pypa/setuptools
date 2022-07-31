@@ -118,7 +118,7 @@ class BuildPyTestCase(
         found = os.listdir(cmd.build_lib)
         self.assertEqual(sorted(found), ['__pycache__', 'boiledeggs.py'])
         found = os.listdir(os.path.join(cmd.build_lib, '__pycache__'))
-        expect = 'boiledeggs.{}.opt-1.pyc'.format(sys.implementation.cache_tag)
+        expect = f'boiledeggs.{sys.implementation.cache_tag}.opt-1.pyc'
         self.assertEqual(sorted(found), [expect])
 
     def test_dir_in_package_data(self):

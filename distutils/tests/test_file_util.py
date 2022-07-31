@@ -19,7 +19,7 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
             self._logs.append(msg)
 
     def setUp(self):
-        super(FileUtilTestCase, self).setUp()
+        super().setUp()
         self._logs = []
         self.old_log = log.info
         log.info = self._log
@@ -30,7 +30,7 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
 
     def tearDown(self):
         log.info = self.old_log
-        super(FileUtilTestCase, self).tearDown()
+        super().tearDown()
 
     def test_move_file_verbosity(self):
         f = open(self.source, 'w')
@@ -47,7 +47,7 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
         move_file(self.target, self.source, verbose=0)
 
         move_file(self.source, self.target, verbose=1)
-        wanted = ['moving %s -> %s' % (self.source, self.target)]
+        wanted = ['moving {} -> {}'.format(self.source, self.target)]
         self.assertEqual(self._logs, wanted)
 
         # back to original state
@@ -57,7 +57,7 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
         # now the target is a dir
         os.mkdir(self.target_dir)
         move_file(self.source, self.target_dir, verbose=1)
-        wanted = ['moving %s -> %s' % (self.source, self.target_dir)]
+        wanted = ['moving {} -> {}'.format(self.source, self.target_dir)]
         self.assertEqual(self._logs, wanted)
 
     def test_move_file_exception_unpacking_rename(self):
@@ -95,7 +95,7 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
         st3 = os.stat(self.target)
         self.assertTrue(os.path.samestat(st, st2), (st, st2))
         self.assertTrue(os.path.samestat(st2, st3), (st2, st3))
-        with open(self.source, 'r') as f:
+        with open(self.source) as f:
             self.assertEqual(f.read(), 'some content')
 
     def test_copy_file_hard_link_failure(self):
@@ -112,5 +112,5 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
         self.assertTrue(os.path.samestat(st, st2), (st, st2))
         self.assertFalse(os.path.samestat(st2, st3), (st2, st3))
         for fn in (self.source, self.target):
-            with open(fn, 'r') as f:
+            with open(fn) as f:
                 self.assertEqual(f.read(), 'some content')

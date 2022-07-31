@@ -41,7 +41,7 @@ password:password
 """
 
 
-class Inputs(object):
+class Inputs:
     """Fakes user inputs."""
 
     def __init__(self, *answers):
@@ -55,7 +55,7 @@ class Inputs(object):
             self.index += 1
 
 
-class FakeOpener(object):
+class FakeOpener:
     """Fakes a PyPI server"""
 
     def __init__(self):
@@ -79,7 +79,7 @@ class FakeOpener(object):
 
 class RegisterTestCase(BasePyPIRCCommandTestCase):
     def setUp(self):
-        super(RegisterTestCase, self).setUp()
+        super().setUp()
         # patching the password prompt
         self._old_getpass = getpass.getpass
 
@@ -95,7 +95,7 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         getpass.getpass = self._old_getpass
         urllib.request._opener = None
         urllib.request.build_opener = self.old_opener
-        super(RegisterTestCase, self).tearDown()
+        super().tearDown()
 
     def _get_cmd(self, metadata=None):
         if metadata is None:

@@ -74,7 +74,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
         def do_darwin_test(syscfg_macosx_ver, env_macosx_ver, expected_flag):
             env = os.environ
-            msg = "macOS version = (sysconfig=%r, env=%r)" % (
+            msg = "macOS version = (sysconfig={!r}, env={!r})".format(
                 syscfg_macosx_ver,
                 env_macosx_ver,
             )

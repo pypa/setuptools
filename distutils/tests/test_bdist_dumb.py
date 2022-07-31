@@ -28,7 +28,7 @@ class BuildDumbTestCase(
     unittest.TestCase,
 ):
     def setUp(self):
-        super(BuildDumbTestCase, self).setUp()
+        super().setUp()
         self.old_location = os.getcwd()
         self.old_sys_argv = sys.argv, sys.argv[:]
 
@@ -36,7 +36,7 @@ class BuildDumbTestCase(
         os.chdir(self.old_location)
         sys.argv = self.old_sys_argv[0]
         sys.argv[:] = self.old_sys_argv[1]
-        super(BuildDumbTestCase, self).tearDown()
+        super().tearDown()
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_simple_built(self):
@@ -75,7 +75,7 @@ class BuildDumbTestCase(
 
         # see what we have
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
-        base = "%s.%s.zip" % (dist.get_fullname(), cmd.plat_name)
+        base = "{}.{}.zip".format(dist.get_fullname(), cmd.plat_name)
 
         self.assertEqual(dist_created, [base])
 

@@ -49,14 +49,14 @@ class DistributionTestCase(
     unittest.TestCase,
 ):
     def setUp(self):
-        super(DistributionTestCase, self).setUp()
+        super().setUp()
         self.argv = sys.argv, sys.argv[:]
         del sys.argv[1:]
 
     def tearDown(self):
         sys.argv = self.argv[0]
         sys.argv[:] = self.argv[1]
-        super(DistributionTestCase, self).tearDown()
+        super().tearDown()
 
     def create_distribution(self, configfiles=()):
         d = TestDistribution()
@@ -275,13 +275,13 @@ class DistributionTestCase(
 @pytest.mark.usefixtures('save_env')
 class MetadataTestCase(support.TempdirManager, unittest.TestCase):
     def setUp(self):
-        super(MetadataTestCase, self).setUp()
+        super().setUp()
         self.argv = sys.argv, sys.argv[:]
 
     def tearDown(self):
         sys.argv = self.argv[0]
         sys.argv[:] = self.argv[1]
-        super(MetadataTestCase, self).tearDown()
+        super().tearDown()
 
     def format_metadata(self, dist):
         sio = io.StringIO()
@@ -503,7 +503,7 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
                 os.environ['USERPROFILE'] = temp_dir
                 files = dist.find_config_files()
                 self.assertIn(
-                    user_filename, files, '%r not found in %r' % (user_filename, files)
+                    user_filename, files, '{!r} not found in {!r}'.format(user_filename, files)
                 )
         finally:
             os.remove(user_filename)

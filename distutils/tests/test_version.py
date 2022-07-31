@@ -52,17 +52,17 @@ class VersionTestCase(unittest.TestCase):
                         ("cmp(%s, %s) " "shouldn't raise ValueError") % (v1, v2)
                     )
             self.assertEqual(
-                res, wanted, 'cmp(%s, %s) should be %s, got %s' % (v1, v2, wanted, res)
+                res, wanted, 'cmp({}, {}) should be {}, got {}'.format(v1, v2, wanted, res)
             )
             res = StrictVersion(v1)._cmp(v2)
             self.assertEqual(
-                res, wanted, 'cmp(%s, %s) should be %s, got %s' % (v1, v2, wanted, res)
+                res, wanted, 'cmp({}, {}) should be {}, got {}'.format(v1, v2, wanted, res)
             )
             res = StrictVersion(v1)._cmp(object())
             self.assertIs(
                 res,
                 NotImplemented,
-                'cmp(%s, %s) should be NotImplemented, got %s' % (v1, v2, res),
+                'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res),
             )
 
     def test_cmp(self):
@@ -80,15 +80,15 @@ class VersionTestCase(unittest.TestCase):
         for v1, v2, wanted in versions:
             res = LooseVersion(v1)._cmp(LooseVersion(v2))
             self.assertEqual(
-                res, wanted, 'cmp(%s, %s) should be %s, got %s' % (v1, v2, wanted, res)
+                res, wanted, 'cmp({}, {}) should be {}, got {}'.format(v1, v2, wanted, res)
             )
             res = LooseVersion(v1)._cmp(v2)
             self.assertEqual(
-                res, wanted, 'cmp(%s, %s) should be %s, got %s' % (v1, v2, wanted, res)
+                res, wanted, 'cmp({}, {}) should be {}, got {}'.format(v1, v2, wanted, res)
             )
             res = LooseVersion(v1)._cmp(object())
             self.assertIs(
                 res,
                 NotImplemented,
-                'cmp(%s, %s) should be NotImplemented, got %s' % (v1, v2, res),
+                'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res),
             )

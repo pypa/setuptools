@@ -116,7 +116,7 @@ class TextFile:
         """Open a new file named 'filename'.  This overrides both the
         'filename' and 'file' arguments to the constructor."""
         self.filename = filename
-        self.file = io.open(self.filename, 'r', errors=self.errors)
+        self.file = open(self.filename, errors=self.errors)
         self.current_line = 0
 
     def close(self):

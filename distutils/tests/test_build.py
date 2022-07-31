@@ -24,7 +24,7 @@ class BuildTestCase(support.TempdirManager, support.LoggingSilencer, unittest.Te
         # build_platlib is 'build/lib.platform-cache_tag[-pydebug]'
         # examples:
         #   build/lib.macosx-10.3-i386-cpython39
-        plat_spec = '.%s-%s' % (cmd.plat_name, sys.implementation.cache_tag)
+        plat_spec = '.{}-{}'.format(cmd.plat_name, sys.implementation.cache_tag)
         if hasattr(sys, 'gettotalrefcount'):
             self.assertTrue(cmd.build_platlib.endswith('-pydebug'))
             plat_spec += '-pydebug'

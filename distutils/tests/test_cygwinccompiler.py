@@ -15,7 +15,7 @@ from distutils.tests import support
 
 class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
     def setUp(self):
-        super(CygwinCCompilerTestCase, self).setUp()
+        super().setUp()
         self.version = sys.version
         self.python_h = os.path.join(self.mkdtemp(), 'python.h')
         from distutils import sysconfig
@@ -28,7 +28,7 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         from distutils import sysconfig
 
         sysconfig.get_config_h_filename = self.old_get_config_h_filename
-        super(CygwinCCompilerTestCase, self).tearDown()
+        super().tearDown()
 
     def _get_config_h_filename(self):
         return self.python_h
@@ -45,7 +45,7 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         linkable_file = compiler.find_library_file(["/usr/lib"], link_name)
         self.assertIsNotNone(linkable_file)
         self.assertTrue(os.path.exists(linkable_file))
-        self.assertEquals(linkable_file, "/usr/lib/lib{:s}.dll.a".format(link_name))
+        self.assertEqual(linkable_file, f"/usr/lib/lib{link_name:s}.dll.a")
 
     @unittest.skipIf(sys.platform != "cygwin", "Not running on Cygwin")
     def test_runtime_library_dir_option(self):

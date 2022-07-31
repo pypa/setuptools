@@ -28,7 +28,7 @@ from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
 @pytest.mark.usefixtures('save_env')
 class UtilTestCase(unittest.TestCase):
     def setUp(self):
-        super(UtilTestCase, self).setUp()
+        super().setUp()
         # saving the environment
         self.name = os.name
         self.platform = sys.platform
@@ -63,7 +63,7 @@ class UtilTestCase(unittest.TestCase):
         else:
             del os.uname
         sysconfig._config_vars = copy(self._config_vars)
-        super(UtilTestCase, self).tearDown()
+        super().tearDown()
 
     def _set_uname(self, uname):
         self._uname = uname

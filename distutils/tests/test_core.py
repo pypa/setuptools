@@ -62,7 +62,7 @@ if __name__ == "__main__":
 @pytest.mark.usefixtures('save_env')
 class CoreTestCase(unittest.TestCase):
     def setUp(self):
-        super(CoreTestCase, self).setUp()
+        super().setUp()
         self.old_stdout = sys.stdout
         self.cleanup_testfn()
         self.old_argv = sys.argv, sys.argv[:]
@@ -73,7 +73,7 @@ class CoreTestCase(unittest.TestCase):
         self.cleanup_testfn()
         sys.argv = self.old_argv[0]
         sys.argv[:] = self.old_argv[1]
-        super(CoreTestCase, self).tearDown()
+        super().tearDown()
 
     def cleanup_testfn(self):
         path = os_helper.TESTFN
