@@ -373,8 +373,8 @@ class UnixCCompiler(CCompiler):
 
         searched = (
             os.path.join(root, lib_name)
-            for root in map(self._library_root, dirs)
             for lib_name in lib_names
+            for root in map(self._library_root, dirs)
         )
 
         found = filter(os.path.exists, searched)
