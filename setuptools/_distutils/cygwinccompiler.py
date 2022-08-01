@@ -101,6 +101,12 @@ def get_msvcr():
             raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 
 
+_runtime_library_dirs_msg = (
+    "Unable to set runtime library search path on Windows, "
+    "usually indicated by `runtime_library_dirs` parameter to Extension"
+)
+
+
 class CygwinCCompiler(UnixCCompiler):
     """Handles the Cygwin port of the GNU C compiler to Windows."""
 
@@ -199,10 +205,7 @@ class CygwinCCompiler(UnixCCompiler):
         objects = copy.copy(objects or [])
 
         if runtime_library_dirs:
-            self.warn(
-                "I don't know what to do with 'runtime_library_dirs': "
-                + str(runtime_library_dirs)
-            )
+            self.warn(_runtime_library_dirs_msg)
 
         # Additional libraries
         libraries.extend(self.dll_libraries)
@@ -228,7 +231,6 @@ class CygwinCCompiler(UnixCCompiler):
 
             # generate the filenames for these files
             def_file = os.path.join(temp_dir, dll_name + ".def")
-            lib_file = os.path.join(temp_dir, 'lib' + dll_name + ".a")
 
             # Generate .def file
             contents = ["LIBRARY %s" % os.path.basename(output_filename), "EXPORTS"]
@@ -236,10 +238,8 @@ class CygwinCCompiler(UnixCCompiler):
                 contents.append(sym)
             self.execute(write_file, (def_file, contents), "writing %s" % def_file)
 
-            # next add options for def-file and to creating import libraries
+            # next add options for def-file
 
-            # doesn't work: bfd_close build\...\libfoo.a: Invalid operation
-            # extra_preargs.extend(["-Wl,--out-implib,%s" % lib_file])
             # for gcc/ld the def-file is specified as any object files
             objects.append(def_file)
 
@@ -276,7 +276,7 @@ class CygwinCCompiler(UnixCCompiler):
         # cygwin doesn't support rpath. While in theory we could error
         # out like MSVC does, code might expect it to work like on Unix, so
         # just warn and hope for the best.
-        self.warn("don't know how to set runtime library search path on Windows")
+        self.warn(_runtime_library_dirs_msg)
         return []
 
     # -- Miscellaneous methods -----------------------------------------
@@ -340,9 +340,7 @@ class Mingw32CCompiler(CygwinCCompiler):
         self.dll_libraries = get_msvcr()
 
     def runtime_library_dir_option(self, dir):
-        raise DistutilsPlatformError(
-            "don't know how to set runtime library search path on Windows"
-        )
+        raise DistutilsPlatformError(_runtime_library_dirs_msg)
 
 
 # Because these compilers aren't configured in Python's pyconfig.h file by

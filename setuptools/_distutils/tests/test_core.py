@@ -5,10 +5,12 @@ import distutils.core
 import os
 import shutil
 import sys
-from test.support import captured_stdout, run_unittest
+from test.support import captured_stdout
+
+import pytest
+
 from . import py38compat as os_helper
 import unittest
-from distutils.tests import support
 from distutils import log
 from distutils.dist import Distribution
 
@@ -57,7 +59,8 @@ if __name__ == "__main__":
 """
 
 
-class CoreTestCase(support.EnvironGuard, unittest.TestCase):
+@pytest.mark.usefixtures('save_env')
+class CoreTestCase(unittest.TestCase):
     def setUp(self):
         super(CoreTestCase, self).setUp()
         self.old_stdout = sys.stdout
@@ -155,11 +158,3 @@ class CoreTestCase(support.EnvironGuard, unittest.TestCase):
         stdout.seek(0)
         wanted = "options (after parsing config files):\n"
         self.assertEqual(stdout.readlines()[0], wanted)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(CoreTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

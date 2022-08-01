@@ -15,7 +15,7 @@ from distutils.debug import DEBUG
 from distutils import log
 
 
-def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):
+def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):  # noqa: C901
     """Run another program, specified as a command list 'cmd', in a new process.
 
     'cmd' is just the argument list for the new process, ie.

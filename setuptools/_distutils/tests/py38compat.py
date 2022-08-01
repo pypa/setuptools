@@ -42,21 +42,5 @@ except (ModuleNotFoundError, ImportError):
     )
 
 
-# From Python 3.9
-@contextlib.contextmanager
-def _save_restore_warnings_filters():
-    old_filters = warnings.filters[:]
-    try:
-        yield
-    finally:
-        warnings.filters[:] = old_filters
-
-
-try:
-    from test.support.warnings_helper import save_restore_warnings_filters
-except (ModuleNotFoundError, ImportError):
-    save_restore_warnings_filters = _save_restore_warnings_filters
-
-
 if sys.version_info < (3, 9):
     requires_zlib = lambda: test.support.requires_zlib

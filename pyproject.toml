@@ -20,7 +20,7 @@ addopts = "--flake8"
 [tool.pytest-enabler.cov]
 addopts = "--cov"
 
-[pytest.enabler.xdist]
+[tool.pytest-enabler.xdist]
 addopts = "-n auto"
 
 [tool.towncrier]

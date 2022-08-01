@@ -14,7 +14,12 @@ try:
 except ImportError:
     warnings = None
 
-from distutils.errors import *
+from distutils.errors import (
+    DistutilsOptionError,
+    DistutilsModuleError,
+    DistutilsArgError,
+    DistutilsClassError,
+)
 from distutils.fancy_getopt import FancyGetopt, translate_longopt
 from distutils.util import check_environ, strtobool, rfc822_escape
 from distutils import log
@@ -116,7 +121,7 @@ Common commands: (see '--help-commands' for more)
 
     # -- Creation/initialization methods -------------------------------
 
-    def __init__(self, attrs=None):
+    def __init__(self, attrs=None):  # noqa: C901
         """Construct a new Distribution instance: initialize all the
         attributes of a Distribution, and then use 'attrs' (a dictionary
         mapping attribute names to values) to assign some of those
@@ -359,7 +364,7 @@ Common commands: (see '--help-commands' for more)
 
         return files
 
-    def parse_config_files(self, filenames=None):
+    def parse_config_files(self, filenames=None):  # noqa: C901
         from configparser import ConfigParser
 
         # Ignore install directory options if we have a venv
@@ -508,7 +513,7 @@ Common commands: (see '--help-commands' for more)
             ),
         ]
 
-    def _parse_command_opts(self, parser, args):
+    def _parse_command_opts(self, parser, args):  # noqa: C901
         """Parse the command-line options for a single command.
         'parser' must be a FancyGetopt instance; 'args' must be the list
         of arguments, starting with the current command (whose options
@@ -871,7 +876,7 @@ Common commands: (see '--help-commands' for more)
 
         return cmd_obj
 
-    def _set_command_options(self, command_obj, option_dict=None):
+    def _set_command_options(self, command_obj, option_dict=None):  # noqa: C901
         """Set the options for 'command_obj' from 'option_dict'.  Basically
         this means copying elements of a dictionary ('option_dict') to
         attributes of an instance ('command').

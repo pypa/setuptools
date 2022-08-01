@@ -71,7 +71,7 @@ class upload(PyPIRCCommand):
         for command, pyversion, filename in self.distribution.dist_files:
             self.upload_file(command, pyversion, filename)
 
-    def upload_file(self, command, pyversion, filename):
+    def upload_file(self, command, pyversion, filename):  # noqa: C901
         # Makes sure the repository URL is compliant
         schema, netloc, url, params, query, fragments = urlparse(self.repository)
         if params or query or fragments:

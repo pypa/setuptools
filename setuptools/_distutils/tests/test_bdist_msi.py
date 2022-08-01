@@ -1,7 +1,6 @@
 """Tests for distutils.command.bdist_msi."""
 import sys
 import unittest
-from test.support import run_unittest
 from distutils.tests import support
 
 from .py38compat import check_warnings
@@ -19,11 +18,3 @@ class BDistMSITestCase(
         with check_warnings(("", DeprecationWarning)):
             cmd = bdist_msi(dist)
         cmd.ensure_finalized()
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BDistMSITestCase)
-
-
-if __name__ == '__main__':
-    run_unittest(test_suite())

@@ -7,7 +7,6 @@ from distutils.command.install_scripts import install_scripts
 from distutils.core import Distribution
 
 from distutils.tests import support
-from test.support import run_unittest
 
 
 class InstallScriptsTestCase(
@@ -77,11 +76,3 @@ class InstallScriptsTestCase(
         installed = os.listdir(target)
         for name in expected:
             self.assertIn(name, installed)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(InstallScriptsTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())
