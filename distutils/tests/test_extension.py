@@ -1,5 +1,4 @@
 """Tests for distutils.extension."""
-import unittest
 import os
 import warnings
 
@@ -9,7 +8,7 @@ from .py38compat import check_warnings
 import pytest
 
 
-class ExtensionTestCase(unittest.TestCase):
+class TestExtension:
     def test_read_setup_file(self):
         # trying to read a Setup file
         # (sample extracted from the PyGame project)

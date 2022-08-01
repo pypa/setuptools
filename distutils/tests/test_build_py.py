@@ -13,9 +13,7 @@ from distutils.tests import support
 
 
 @support.combine_markers
-class BuildPyTestCase(
-    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
-):
+class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
     def test_package_data(self):
         sources = self.mkdtemp()
         f = open(os.path.join(sources, "__init__.py"), "w")

@@ -14,7 +14,7 @@ from distutils import _msvccompiler
 needs_winreg = pytest.mark.skipif('not hasattr(_msvccompiler, "winreg")')
 
 
-class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
+class Testmsvccompiler(support.TempdirManager):
     def test_no_compiler(self):
         # makes sure query_vcvarsall raises
         # a DistutilsPlatformError if the compiler
@@ -85,7 +85,7 @@ class CheckThread(threading.Thread):
         return not self.exc_info
 
 
-class TestSpawn(unittest.TestCase):
+class TestSpawn:
     def test_concurrent_safe(self):
         """
         Concurrent calls to spawn should have consistent results.

@@ -3,7 +3,6 @@
 import os
 import sys
 import zipfile
-import unittest
 
 import pytest
 
@@ -22,10 +21,9 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 
 
 @pytest.mark.usefixtures('save_env')
-class BuildDumbTestCase(
+class TestBuildDumb(
     support.TempdirManager,
     support.LoggingSilencer,
-    unittest.TestCase,
 ):
     def setUp(self):
         super().setUp()

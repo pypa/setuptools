@@ -25,10 +25,9 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 
 
 @pytest.mark.usefixtures('save_env')
-class BuildRpmTestCase(
+class TestBuildRpm(
     support.TempdirManager,
     support.LoggingSilencer,
-    unittest.TestCase,
 ):
     def setUp(self):
         try:

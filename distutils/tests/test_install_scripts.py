@@ -1,7 +1,6 @@
 """Tests for distutils.command.install_scripts."""
 
 import os
-import unittest
 
 from distutils.command.install_scripts import install_scripts
 from distutils.core import Distribution
@@ -9,9 +8,7 @@ from distutils.core import Distribution
 from distutils.tests import support
 
 
-class InstallScriptsTestCase(
-    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
-):
+class TestInstallScripts(support.TempdirManager, support.LoggingSilencer):
     def test_default_settings(self):
         dist = Distribution()
         dist.command_obj["build"] = support.DummyCommand(build_scripts="/foo/bar")

@@ -56,9 +56,7 @@ def can_fs_encode(filename):
     return True
 
 
-class ArchiveUtilTestCase(
-    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
-):
+class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
     @pytest.mark.usefixtures('needs_zlib')
     def test_make_tarball(self, name='archive'):
         # creating something to tar

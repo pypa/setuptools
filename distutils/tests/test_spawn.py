@@ -14,7 +14,7 @@ from distutils.tests import support
 import pytest
 
 
-class SpawnTestCase(support.TempdirManager, support.LoggingSilencer, unittest.TestCase):
+class TestSpawn(support.TempdirManager, support.LoggingSilencer):
     @unittest.skipUnless(os.name in ('nt', 'posix'), 'Runs only under posix or nt')
     def test_spawn(self):
         tmpdir = self.mkdtemp()

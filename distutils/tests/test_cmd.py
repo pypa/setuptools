@@ -15,7 +15,7 @@ class MyCmd(Command):
         pass
 
 
-class CommandTestCase(unittest.TestCase):
+class TestCommand(unittest.TestCase):
     def setUp(self):
         dist = Distribution()
         self.cmd = MyCmd(dist)

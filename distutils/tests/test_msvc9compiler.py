@@ -1,6 +1,5 @@
 """Tests for distutils.msvc9compiler."""
 import sys
-import unittest
 import os
 
 from distutils.errors import DistutilsPlatformError
@@ -101,8 +100,8 @@ else:
     SKIP_MESSAGE = "These tests are only for win32"
 
 
-@unittest.skipUnless(SKIP_MESSAGE is None, SKIP_MESSAGE)
-class msvc9compilerTestCase(support.TempdirManager, unittest.TestCase):
+@pytest.mark.skipif('SKIP_MESSAGE', reason=SKIP_MESSAGE)
+class Testmsvc9compiler(support.TempdirManager):
     def test_no_compiler(self):
         # makes sure query_vcvarsall raises
         # a DistutilsPlatformError if the compiler

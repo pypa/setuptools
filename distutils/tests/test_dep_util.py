@@ -1,5 +1,4 @@
 """Tests for distutils.dep_util."""
-import unittest
 import os
 
 from distutils.dep_util import newer, newer_pairwise, newer_group
@@ -8,7 +7,7 @@ from distutils.tests import support
 import pytest
 
 
-class DepUtilTestCase(support.TempdirManager, unittest.TestCase):
+class TestDepUtil(support.TempdirManager):
     def test_newer(self):
 
         tmpdir = self.mkdtemp()

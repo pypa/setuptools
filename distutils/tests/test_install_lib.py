@@ -14,10 +14,9 @@ from distutils.errors import DistutilsOptionError
 
 @support.combine_markers
 @pytest.mark.usefixtures('save_env')
-class InstallLibTestCase(
+class TestInstallLib(
     support.TempdirManager,
     support.LoggingSilencer,
-    unittest.TestCase,
 ):
     def test_finalize_options(self):
         dist = self.create_dist()[1]

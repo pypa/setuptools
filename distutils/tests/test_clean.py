@@ -1,12 +1,11 @@
 """Tests for distutils.command.clean."""
 import os
-import unittest
 
 from distutils.command.clean import clean
 from distutils.tests import support
 
 
-class cleanTestCase(support.TempdirManager, support.LoggingSilencer, unittest.TestCase):
+class TestClean(support.TempdirManager, support.LoggingSilencer):
     def test_simple_run(self):
         pkg_dir, dist = self.create_dist()
         cmd = clean(dist)

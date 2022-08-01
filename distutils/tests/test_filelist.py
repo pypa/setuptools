@@ -1,7 +1,6 @@
 """Tests for distutils.filelist."""
 import os
 import re
-import unittest
 from distutils import debug
 from distutils.log import WARN
 from distutils.errors import DistutilsTemplateError
@@ -36,7 +35,7 @@ def make_local_path(s):
     return s.replace('/', os.sep)
 
 
-class FileListTestCase(support.LoggingSilencer, unittest.TestCase):
+class TestFileList(support.LoggingSilencer):
     def assertNoWarnings(self):
         assert self.get_logs(WARN) == []
         self.clear_logs()
@@ -302,7 +301,7 @@ class FileListTestCase(support.LoggingSilencer, unittest.TestCase):
         self.assertWarnings()
 
 
-class FindAllTestCase(unittest.TestCase):
+class TestFindAll:
     @os_helper.skip_unless_symlink
     def test_missing_symlink(self):
         with os_helper.temp_cwd():

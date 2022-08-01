@@ -11,9 +11,7 @@ from distutils.tests import support
 import pytest
 
 
-class BuildCLibTestCase(
-    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
-):
+class TestBuildCLib(support.TempdirManager, support.LoggingSilencer):
     def test_check_library_dist(self):
         pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)

@@ -1,6 +1,5 @@
 """Tests for distutils.text_file."""
 import os
-import unittest
 from distutils.text_file import TextFile
 from distutils.tests import support
 
@@ -12,7 +11,7 @@ line 3 \\
 """
 
 
-class TextFileTestCase(support.TempdirManager, unittest.TestCase):
+class TestTextFile(support.TempdirManager):
     def test_class(self):
         # old tests moved from text_file.__main__
         # so they are really called by the buildbots

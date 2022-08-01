@@ -1,13 +1,12 @@
 """Tests for distutils.command.bdist."""
 import os
-import unittest
 import warnings
 
 from distutils.command.bdist import bdist
 from distutils.tests import support
 
 
-class BuildTestCase(support.TempdirManager, unittest.TestCase):
+class TestBuild(support.TempdirManager):
     def test_formats(self):
         # let's create a command and make sure
         # we can set the format

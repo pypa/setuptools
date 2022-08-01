@@ -1,6 +1,5 @@
 """Tests for distutils.command.install_data."""
 import os
-import unittest
 
 import pytest
 
@@ -9,10 +8,9 @@ from distutils.tests import support
 
 
 @pytest.mark.usefixtures('save_env')
-class InstallDataTestCase(
+class TestInstallData(
     support.TempdirManager,
     support.LoggingSilencer,
-    unittest.TestCase,
 ):
     def test_simple_run(self):
         pkg_dir, dist = self.create_dist()
