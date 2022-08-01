@@ -324,24 +324,7 @@ class CCompiler:
 
     def _setup_compile(self, outdir, macros, incdirs, sources, depends, extra):
         """Process arguments and decide which source files to compile."""
-        if outdir is None:
-            outdir = self.output_dir
-        elif not isinstance(outdir, str):
-            raise TypeError("'output_dir' must be a string or None")
-
-        if macros is None:
-            macros = self.macros
-        elif isinstance(macros, list):
-            macros = macros + (self.macros or [])
-        else:
-            raise TypeError("'macros' (if supplied) must be a list of tuples")
-
-        if incdirs is None:
-            incdirs = self.include_dirs
-        elif isinstance(incdirs, (list, tuple)):
-            incdirs = list(incdirs) + (self.include_dirs or [])
-        else:
-            raise TypeError("'include_dirs' (if supplied) must be a list of strings")
+        outdir, macros, incdirs = self._fix_compile_args(outdir, macros, incdirs)
 
         if extra is None:
             extra = []
