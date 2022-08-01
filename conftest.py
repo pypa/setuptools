@@ -32,3 +32,20 @@ def save_env():
 @pytest.fixture
 def needs_zlib():
     pytest.importorskip('zlib')
+
+
+@pytest.fixture
+def distutils_managed_tempdir(request):
+    from distutils.tests import py38compat as os_helper
+    self = request.instance
+    self.old_cwd = os.getcwd()
+    self.tempdirs = []
+    try:
+        yield
+    finally:
+        # Restore working dir, for Solaris and derivatives, where rmdir()
+        # on the current directory fails.
+        os.chdir(self.old_cwd)
+        while self.tempdirs:
+            tmpdir = self.tempdirs.pop()
+            os_helper.rmtree(tmpdir)

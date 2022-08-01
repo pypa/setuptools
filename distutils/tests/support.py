@@ -6,7 +6,7 @@ import tempfile
 import unittest
 import sysconfig
 
-from . import py38compat as os_helper
+import pytest
 
 from distutils import log
 from distutils.log import DEBUG, INFO, WARN, ERROR, FATAL
@@ -43,25 +43,12 @@ class LoggingSilencer:
         self.logs = []
 
 
+@pytest.mark.usefixtures('distutils_managed_tempdir')
 class TempdirManager:
     """Mix-in class that handles temporary directories for test cases.
 
     This is intended to be used with unittest.TestCase.
     """
-
-    def setUp(self):
-        super().setUp()
-        self.old_cwd = os.getcwd()
-        self.tempdirs = []
-
-    def tearDown(self):
-        # Restore working dir, for Solaris and derivatives, where rmdir()
-        # on the current directory fails.
-        os.chdir(self.old_cwd)
-        super().tearDown()
-        while self.tempdirs:
-            tmpdir = self.tempdirs.pop()
-            os_helper.rmtree(tmpdir)
 
     def mkdtemp(self):
         """Create a temporary directory that will be cleaned up.
