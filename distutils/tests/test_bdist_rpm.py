@@ -90,13 +90,11 @@ class BuildRpmTestCase(
         cmd.run()
 
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
-        self.assertIn('foo-0.1-1.noarch.rpm', dist_created)
+        assert 'foo-0.1-1.noarch.rpm' in dist_created
 
         # bug #2945: upload ignores bdist_rpm files
-        self.assertIn(('bdist_rpm', 'any', 'dist/foo-0.1-1.src.rpm'), dist.dist_files)
-        self.assertIn(
-            ('bdist_rpm', 'any', 'dist/foo-0.1-1.noarch.rpm'), dist.dist_files
-        )
+        assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.src.rpm') in dist.dist_files
+        assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.noarch.rpm') in dist.dist_files
 
     # XXX I am unable yet to make this test work without
     # spurious sdtout/stderr output under Mac OS X
@@ -142,12 +140,10 @@ class BuildRpmTestCase(
         cmd.run()
 
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
-        self.assertIn('foo-0.1-1.noarch.rpm', dist_created)
+        assert 'foo-0.1-1.noarch.rpm' in dist_created
 
         # bug #2945: upload ignores bdist_rpm files
-        self.assertIn(('bdist_rpm', 'any', 'dist/foo-0.1-1.src.rpm'), dist.dist_files)
-        self.assertIn(
-            ('bdist_rpm', 'any', 'dist/foo-0.1-1.noarch.rpm'), dist.dist_files
-        )
+        assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.src.rpm') in dist.dist_files
+        assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.noarch.rpm') in dist.dist_files
 
         os.remove(os.path.join(pkg_dir, 'dist', 'foo-0.1-1.noarch.rpm'))

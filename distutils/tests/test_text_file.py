@@ -51,7 +51,7 @@ class TextFileTestCase(support.TempdirManager, unittest.TestCase):
 
         def test_input(count, description, file, expected_result):
             result = file.readlines()
-            self.assertEqual(result, expected_result)
+            assert result == expected_result
 
         tmpdir = self.mkdtemp()
         filename = os.path.join(tmpdir, "test.txt")

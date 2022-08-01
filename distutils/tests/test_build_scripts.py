@@ -15,13 +15,13 @@ class BuildScriptsTestCase(
 ):
     def test_default_settings(self):
         cmd = self.get_build_scripts_cmd("/foo/bar", [])
-        self.assertFalse(cmd.force)
-        self.assertIsNone(cmd.build_dir)
+        assert not cmd.force
+        assert cmd.build_dir is None
 
         cmd.finalize_options()
 
-        self.assertTrue(cmd.force)
-        self.assertEqual(cmd.build_dir, "/foo/bar")
+        assert cmd.force
+        assert cmd.build_dir == "/foo/bar"
 
     def test_build(self):
         source = self.mkdtemp()
@@ -36,7 +36,7 @@ class BuildScriptsTestCase(
 
         built = os.listdir(target)
         for name in expected:
-            self.assertIn(name, built)
+            assert name in built
 
     def get_build_scripts_cmd(self, target, scripts):
         import sys
@@ -106,4 +106,4 @@ class BuildScriptsTestCase(
 
         built = os.listdir(target)
         for name in expected:
-            self.assertIn(name, built)
+            assert name in built

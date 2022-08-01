@@ -15,7 +15,7 @@ class BuildTestCase(support.TempdirManager, unittest.TestCase):
         cmd = bdist(dist)
         cmd.formats = ['msi']
         cmd.ensure_finalized()
-        self.assertEqual(cmd.formats, ['msi'])
+        assert cmd.formats == ['msi']
 
         # what formats does bdist offer?
         formats = [
@@ -30,7 +30,7 @@ class BuildTestCase(support.TempdirManager, unittest.TestCase):
             'ztar',
         ]
         found = sorted(cmd.format_commands)
-        self.assertEqual(found, formats)
+        assert found == formats
 
     def test_skip_build(self):
         # bug #10946: bdist --skip-build should trickle down to subcommands
@@ -56,6 +56,4 @@ class BuildTestCase(support.TempdirManager, unittest.TestCase):
             if getattr(subcmd, '_unsupported', False):
                 # command is not supported on this build
                 continue
-            self.assertTrue(
-                subcmd.skip_build, '%s should take --skip-build from bdist' % name
-            )
+            assert subcmd.skip_build, '%s should take --skip-build from bdist' % name

@@ -113,7 +113,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         # now let's check what we have
         dist_folder = join(self.tmp_dir, 'dist')
         files = os.listdir(dist_folder)
-        self.assertEqual(files, ['fake-1.0.zip'])
+        assert files == ['fake-1.0.zip']
 
         zip_file = zipfile.ZipFile(join(dist_folder, 'fake-1.0.zip'))
         try:
@@ -130,7 +130,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             'somecode/',
             'somecode/__init__.py',
         ]
-        self.assertEqual(sorted(content), ['fake-1.0/' + x for x in expected])
+        assert sorted(content) == ['fake-1.0/' + x for x in expected]
 
     @pytest.mark.usefixtures('needs_zlib')
     @unittest.skipIf(find_executable('tar') is None, "The tar command is not found")
@@ -148,7 +148,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         dist_folder = join(self.tmp_dir, 'dist')
         result = os.listdir(dist_folder)
         result.sort()
-        self.assertEqual(result, ['fake-1.0.tar', 'fake-1.0.tar.gz'])
+        assert result == ['fake-1.0.tar', 'fake-1.0.tar.gz']
 
         os.remove(join(dist_folder, 'fake-1.0.tar'))
         os.remove(join(dist_folder, 'fake-1.0.tar.gz'))
@@ -161,7 +161,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
         result = os.listdir(dist_folder)
         result.sort()
-        self.assertEqual(result, ['fake-1.0.tar', 'fake-1.0.tar.gz'])
+        assert result == ['fake-1.0.tar', 'fake-1.0.tar.gz']
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_add_defaults(self):
@@ -215,7 +215,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         # now let's check what we have
         dist_folder = join(self.tmp_dir, 'dist')
         files = os.listdir(dist_folder)
-        self.assertEqual(files, ['fake-1.0.zip'])
+        assert files == ['fake-1.0.zip']
 
         zip_file = zipfile.ZipFile(join(dist_folder, 'fake-1.0.zip'))
         try:
@@ -243,7 +243,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             'somecode/doc.dat',
             'somecode/doc.txt',
         ]
-        self.assertEqual(sorted(content), ['fake-1.0/' + x for x in expected])
+        assert sorted(content) == ['fake-1.0/' + x for x in expected]
 
         # checking the MANIFEST
         f = open(join(self.tmp_dir, 'MANIFEST'))
@@ -251,7 +251,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             manifest = f.read()
         finally:
             f.close()
-        self.assertEqual(manifest, MANIFEST % {'sep': os.sep})
+        assert manifest == MANIFEST % {'sep': os.sep}
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_metadata_check_option(self):
@@ -265,7 +265,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         warnings = [
             msg for msg in self.get_logs(WARN) if msg.startswith('warning: check:')
         ]
-        self.assertEqual(len(warnings), 1)
+        assert len(warnings) == 1
 
         # trying with a complete set of metadata
         self.clear_logs()
@@ -276,7 +276,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         warnings = [
             msg for msg in self.get_logs(WARN) if msg.startswith('warning: check:')
         ]
-        self.assertEqual(len(warnings), 0)
+        assert len(warnings) == 0
 
     def test_check_metadata_deprecated(self):
         # makes sure make_metadata is deprecated
@@ -284,7 +284,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         with check_warnings() as w:
             warnings.simplefilter("always")
             cmd.check_metadata()
-            self.assertEqual(len(w.warnings), 1)
+            assert len(w.warnings) == 1
 
     def test_show_formats(self):
         with captured_stdout() as stdout:
@@ -297,27 +297,29 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             for line in stdout.getvalue().split('\n')
             if line.strip().startswith('--formats=')
         ]
-        self.assertEqual(len(output), num_formats)
+        assert len(output) == num_formats
 
     def test_finalize_options(self):
         dist, cmd = self.get_cmd()
         cmd.finalize_options()
 
         # default options set by finalize
-        self.assertEqual(cmd.manifest, 'MANIFEST')
-        self.assertEqual(cmd.template, 'MANIFEST.in')
-        self.assertEqual(cmd.dist_dir, 'dist')
+        assert cmd.manifest == 'MANIFEST'
+        assert cmd.template == 'MANIFEST.in'
+        assert cmd.dist_dir == 'dist'
 
         # formats has to be a string splitable on (' ', ',') or
         # a stringlist
         cmd.formats = 1
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
         cmd.formats = ['zip']
         cmd.finalize_options()
 
         # formats has to be known
         cmd.formats = 'supazipa'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
 
     # the following tests make sure there is a nice error message instead
     # of a traceback when parsing an invalid manifest template
@@ -330,7 +332,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         cmd.filelist = FileList()
         cmd.read_template()
         warnings = self.get_logs(WARN)
-        self.assertEqual(len(warnings), 1)
+        assert len(warnings) == 1
 
     def test_invalid_template_unknown_command(self):
         self._check_template('taunt knights *')
@@ -365,7 +367,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         finally:
             f.close()
 
-        self.assertEqual(len(manifest), 5)
+        assert len(manifest) == 5
 
         # adding a file
         self.write_file((self.tmp_dir, 'somecode', 'doc2.txt'), '#')
@@ -386,8 +388,8 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             f.close()
 
         # do we have the new file in MANIFEST ?
-        self.assertEqual(len(manifest2), 6)
-        self.assertIn('doc2.txt', manifest2[-1])
+        assert len(manifest2) == 6
+        assert 'doc2.txt' in manifest2[-1]
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_manifest_marker(self):
@@ -404,7 +406,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         finally:
             f.close()
 
-        self.assertEqual(manifest[0], '# file GENERATED by distutils, do NOT edit')
+        assert manifest[0] == '# file GENERATED by distutils, do NOT edit'
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_manifest_comments(self):
@@ -423,7 +425,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         self.write_file((self.tmp_dir, 'bad.py'), "# don't pick me!")
         self.write_file((self.tmp_dir, '#bad.py'), "# don't pick me!")
         cmd.run()
-        self.assertEqual(cmd.filelist.files, ['good.py'])
+        assert cmd.filelist.files == ['good.py']
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_manual_manifest(self):
@@ -437,7 +439,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             'This project maintains its MANIFEST file itself.',
         )
         cmd.run()
-        self.assertEqual(cmd.filelist.files, ['README.manual'])
+        assert cmd.filelist.files == ['README.manual']
 
         f = open(cmd.manifest)
         try:
@@ -447,7 +449,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         finally:
             f.close()
 
-        self.assertEqual(manifest, ['README.manual'])
+        assert manifest == ['README.manual']
 
         archive_name = join(self.tmp_dir, 'dist', 'fake-1.0.tar.gz')
         archive = tarfile.open(archive_name)
@@ -455,10 +457,8 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             filenames = [tarinfo.name for tarinfo in archive]
         finally:
             archive.close()
-        self.assertEqual(
-            sorted(filenames),
-            ['fake-1.0', 'fake-1.0/PKG-INFO', 'fake-1.0/README.manual'],
-        )
+        assert sorted(filenames) == \
+            ['fake-1.0', 'fake-1.0/PKG-INFO', 'fake-1.0/README.manual']
 
     @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id
@@ -481,8 +481,8 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         archive = tarfile.open(archive_name)
         try:
             for member in archive.getmembers():
-                self.assertEqual(member.uid, 0)
-                self.assertEqual(member.gid, 0)
+                assert member.uid == 0
+                assert member.gid == 0
         finally:
             archive.close()
 
@@ -503,6 +503,6 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         # rights (see #7408)
         try:
             for member in archive.getmembers():
-                self.assertEqual(member.uid, os.getuid())
+                assert member.uid == os.getuid()
         finally:
             archive.close()

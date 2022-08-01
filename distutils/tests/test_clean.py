@@ -38,7 +38,7 @@ class cleanTestCase(support.TempdirManager, support.LoggingSilencer, unittest.Te
 
         # make sure the files where removed
         for name, path in dirs:
-            self.assertFalse(os.path.exists(path), '%s was not removed' % path)
+            assert not os.path.exists(path), '%s was not removed' % path
 
         # let's run the command again (should spit warnings but succeed)
         cmd.all = 1

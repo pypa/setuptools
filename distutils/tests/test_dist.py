@@ -69,7 +69,7 @@ class DistributionTestCase(
     def test_command_packages_unspecified(self):
         sys.argv.append("build")
         d = self.create_distribution()
-        self.assertEqual(d.get_command_packages(), ["distutils.command"])
+        assert d.get_command_packages() == ["distutils.command"]
 
     def test_command_packages_cmdline(self):
         from distutils.tests.test_dist import test_dist
@@ -84,13 +84,11 @@ class DistributionTestCase(
         )
         d = self.create_distribution()
         # let's actually try to load our test command:
-        self.assertEqual(
-            d.get_command_packages(),
-            ["distutils.command", "foo.bar", "distutils.tests"],
-        )
+        assert d.get_command_packages() == \
+            ["distutils.command", "foo.bar", "distutils.tests"]
         cmd = d.get_command_obj("test_dist")
-        self.assertIsInstance(cmd, test_dist)
-        self.assertEqual(cmd.sample_option, "sometext")
+        assert isinstance(cmd, test_dist)
+        assert cmd.sample_option == "sometext"
 
     @unittest.skipIf(
         'distutils' not in Distribution.parse_config_files.__module__,
@@ -145,19 +143,17 @@ class DistributionTestCase(
             'root': option_tuple,
         }
 
-        self.assertEqual(
-            sorted(d.command_options.get('install').keys()), sorted(result_dict.keys())
-        )
+        assert sorted(d.command_options.get('install').keys()) == sorted(result_dict.keys())
 
         for (key, value) in d.command_options.get('install').items():
-            self.assertEqual(value, result_dict[key])
+            assert value == result_dict[key]
 
         # Test case: In a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/b'):
             d = self.create_distribution([TESTFN])
 
         for key in result_dict.keys():
-            self.assertNotIn(key, d.command_options.get('install', {}))
+            assert key not in d.command_options.get('install', {})
 
     def test_command_packages_configfile(self):
         sys.argv.append("build")
@@ -170,20 +166,18 @@ class DistributionTestCase(
             f.close()
 
         d = self.create_distribution([TESTFN])
-        self.assertEqual(
-            d.get_command_packages(), ["distutils.command", "foo.bar", "splat"]
-        )
+        assert d.get_command_packages() == ["distutils.command", "foo.bar", "splat"]
 
         # ensure command line overrides config:
         sys.argv[1:] = ["--command-packages", "spork", "build"]
         d = self.create_distribution([TESTFN])
-        self.assertEqual(d.get_command_packages(), ["distutils.command", "spork"])
+        assert d.get_command_packages() == ["distutils.command", "spork"]
 
         # Setting --command-packages to '' should cause the default to
         # be used even if a config file specified something else:
         sys.argv[1:] = ["--command-packages", "", "build"]
         d = self.create_distribution([TESTFN])
-        self.assertEqual(d.get_command_packages(), ["distutils.command"])
+        assert d.get_command_packages() == ["distutils.command"]
 
     def test_empty_options(self):
         # an empty options dictionary should not stay in the
@@ -207,8 +201,8 @@ class DistributionTestCase(
             }
         )
 
-        self.assertEqual(len(warns), 0)
-        self.assertNotIn('options', dir(dist))
+        assert len(warns) == 0
+        assert 'options' not in dir(dist)
 
     def test_finalize_options(self):
         attrs = {'keywords': 'one,two', 'platforms': 'one,two'}
@@ -217,32 +211,33 @@ class DistributionTestCase(
         dist.finalize_options()
 
         # finalize_option splits platforms and keywords
-        self.assertEqual(dist.metadata.platforms, ['one', 'two'])
-        self.assertEqual(dist.metadata.keywords, ['one', 'two'])
+        assert dist.metadata.platforms == ['one', 'two']
+        assert dist.metadata.keywords == ['one', 'two']
 
         attrs = {'keywords': 'foo bar', 'platforms': 'foo bar'}
         dist = Distribution(attrs=attrs)
         dist.finalize_options()
-        self.assertEqual(dist.metadata.platforms, ['foo bar'])
-        self.assertEqual(dist.metadata.keywords, ['foo bar'])
+        assert dist.metadata.platforms == ['foo bar']
+        assert dist.metadata.keywords == ['foo bar']
 
     def test_get_command_packages(self):
         dist = Distribution()
-        self.assertEqual(dist.command_packages, None)
+        assert dist.command_packages == None
         cmds = dist.get_command_packages()
-        self.assertEqual(cmds, ['distutils.command'])
-        self.assertEqual(dist.command_packages, ['distutils.command'])
+        assert cmds == ['distutils.command']
+        assert dist.command_packages == ['distutils.command']
 
         dist.command_packages = 'one,two'
         cmds = dist.get_command_packages()
-        self.assertEqual(cmds, ['distutils.command', 'one', 'two'])
+        assert cmds == ['distutils.command', 'one', 'two']
 
     def test_announce(self):
         # make sure the level is known
         dist = Distribution()
         args = ('ok',)
         kwargs = {'level': 'ok2'}
-        self.assertRaises(ValueError, dist.announce, args, kwargs)
+        with pytest.raises(ValueError):
+            dist.announce(args, kwargs)
 
     def test_find_config_files_disable(self):
         # Ticket #1180: Allow user to disable their home config file.
@@ -270,7 +265,7 @@ class DistributionTestCase(
             os.path.expanduser = old_expander
 
         # make sure --no-user-cfg disables the user cfg file
-        self.assertEqual(len(all_files) - 1, len(files))
+        assert len(all_files) - 1 == len(files)
 
 
 @pytest.mark.usefixtures('save_env')
@@ -293,10 +288,10 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
         attrs = {"name": "package", "version": "1.0"}
         dist = Distribution(attrs)
         meta = self.format_metadata(dist)
-        self.assertIn("Metadata-Version: 1.0", meta)
-        self.assertNotIn("provides:", meta.lower())
-        self.assertNotIn("requires:", meta.lower())
-        self.assertNotIn("obsoletes:", meta.lower())
+        assert "Metadata-Version: 1.0" in meta
+        assert "provides:" not in meta.lower()
+        assert "requires:" not in meta.lower()
+        assert "obsoletes:" not in meta.lower()
 
     def test_provides(self):
         attrs = {
@@ -305,19 +300,16 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
             "provides": ["package", "package.sub"],
         }
         dist = Distribution(attrs)
-        self.assertEqual(dist.metadata.get_provides(), ["package", "package.sub"])
-        self.assertEqual(dist.get_provides(), ["package", "package.sub"])
+        assert dist.metadata.get_provides() == ["package", "package.sub"]
+        assert dist.get_provides() == ["package", "package.sub"]
         meta = self.format_metadata(dist)
-        self.assertIn("Metadata-Version: 1.1", meta)
-        self.assertNotIn("requires:", meta.lower())
-        self.assertNotIn("obsoletes:", meta.lower())
+        assert "Metadata-Version: 1.1" in meta
+        assert "requires:" not in meta.lower()
+        assert "obsoletes:" not in meta.lower()
 
     def test_provides_illegal(self):
-        self.assertRaises(
-            ValueError,
-            Distribution,
-            {"name": "package", "version": "1.0", "provides": ["my.pkg (splat)"]},
-        )
+        with pytest.raises(ValueError):
+            Distribution({"name": "package", "version": "1.0", "provides": ["my.pkg (splat)"]},)
 
     def test_requires(self):
         attrs = {
@@ -326,26 +318,23 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
             "requires": ["other", "another (==1.0)"],
         }
         dist = Distribution(attrs)
-        self.assertEqual(dist.metadata.get_requires(), ["other", "another (==1.0)"])
-        self.assertEqual(dist.get_requires(), ["other", "another (==1.0)"])
+        assert dist.metadata.get_requires() == ["other", "another (==1.0)"]
+        assert dist.get_requires() == ["other", "another (==1.0)"]
         meta = self.format_metadata(dist)
-        self.assertIn("Metadata-Version: 1.1", meta)
-        self.assertNotIn("provides:", meta.lower())
-        self.assertIn("Requires: other", meta)
-        self.assertIn("Requires: another (==1.0)", meta)
-        self.assertNotIn("obsoletes:", meta.lower())
+        assert "Metadata-Version: 1.1" in meta
+        assert "provides:" not in meta.lower()
+        assert "Requires: other" in meta
+        assert "Requires: another (==1.0)" in meta
+        assert "obsoletes:" not in meta.lower()
 
     def test_requires_illegal(self):
-        self.assertRaises(
-            ValueError,
-            Distribution,
-            {"name": "package", "version": "1.0", "requires": ["my.pkg (splat)"]},
-        )
+        with pytest.raises(ValueError):
+            Distribution({"name": "package", "version": "1.0", "requires": ["my.pkg (splat)"]},)
 
     def test_requires_to_list(self):
         attrs = {"name": "package", "requires": iter(["other"])}
         dist = Distribution(attrs)
-        self.assertIsInstance(dist.metadata.requires, list)
+        assert isinstance(dist.metadata.requires, list)
 
     def test_obsoletes(self):
         attrs = {
@@ -354,26 +343,23 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
             "obsoletes": ["other", "another (<1.0)"],
         }
         dist = Distribution(attrs)
-        self.assertEqual(dist.metadata.get_obsoletes(), ["other", "another (<1.0)"])
-        self.assertEqual(dist.get_obsoletes(), ["other", "another (<1.0)"])
+        assert dist.metadata.get_obsoletes() == ["other", "another (<1.0)"]
+        assert dist.get_obsoletes() == ["other", "another (<1.0)"]
         meta = self.format_metadata(dist)
-        self.assertIn("Metadata-Version: 1.1", meta)
-        self.assertNotIn("provides:", meta.lower())
-        self.assertNotIn("requires:", meta.lower())
-        self.assertIn("Obsoletes: other", meta)
-        self.assertIn("Obsoletes: another (<1.0)", meta)
+        assert "Metadata-Version: 1.1" in meta
+        assert "provides:" not in meta.lower()
+        assert "requires:" not in meta.lower()
+        assert "Obsoletes: other" in meta
+        assert "Obsoletes: another (<1.0)" in meta
 
     def test_obsoletes_illegal(self):
-        self.assertRaises(
-            ValueError,
-            Distribution,
-            {"name": "package", "version": "1.0", "obsoletes": ["my.pkg (splat)"]},
-        )
+        with pytest.raises(ValueError):
+            Distribution({"name": "package", "version": "1.0", "obsoletes": ["my.pkg (splat)"]},)
 
     def test_obsoletes_to_list(self):
         attrs = {"name": "package", "obsoletes": iter(["other"])}
         dist = Distribution(attrs)
-        self.assertIsInstance(dist.metadata.obsoletes, list)
+        assert isinstance(dist.metadata.obsoletes, list)
 
     def test_classifier(self):
         attrs = {
@@ -382,11 +368,9 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
             'classifiers': ['Programming Language :: Python :: 3'],
         }
         dist = Distribution(attrs)
-        self.assertEqual(
-            dist.get_classifiers(), ['Programming Language :: Python :: 3']
-        )
+        assert dist.get_classifiers() == ['Programming Language :: Python :: 3']
         meta = self.format_metadata(dist)
-        self.assertIn('Metadata-Version: 1.1', meta)
+        assert 'Metadata-Version: 1.1' in meta
 
     def test_classifier_invalid_type(self):
         attrs = {
@@ -397,10 +381,10 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
         with captured_stderr() as error:
             d = Distribution(attrs)
         # should have warning about passing a non-list
-        self.assertIn('should be a list', error.getvalue())
+        assert 'should be a list' in error.getvalue()
         # should be converted to a list
-        self.assertIsInstance(d.metadata.classifiers, list)
-        self.assertEqual(d.metadata.classifiers, list(attrs['classifiers']))
+        assert isinstance(d.metadata.classifiers, list)
+        assert d.metadata.classifiers == list(attrs['classifiers'])
 
     def test_keywords(self):
         attrs = {
@@ -409,7 +393,7 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
             'keywords': ['spam', 'eggs', 'life of brian'],
         }
         dist = Distribution(attrs)
-        self.assertEqual(dist.get_keywords(), ['spam', 'eggs', 'life of brian'])
+        assert dist.get_keywords() == ['spam', 'eggs', 'life of brian']
 
     def test_keywords_invalid_type(self):
         attrs = {
@@ -420,10 +404,10 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
         with captured_stderr() as error:
             d = Distribution(attrs)
         # should have warning about passing a non-list
-        self.assertIn('should be a list', error.getvalue())
+        assert 'should be a list' in error.getvalue()
         # should be converted to a list
-        self.assertIsInstance(d.metadata.keywords, list)
-        self.assertEqual(d.metadata.keywords, list(attrs['keywords']))
+        assert isinstance(d.metadata.keywords, list)
+        assert d.metadata.keywords == list(attrs['keywords'])
 
     def test_platforms(self):
         attrs = {
@@ -432,7 +416,7 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
             'platforms': ['GNU/Linux', 'Some Evil Platform'],
         }
         dist = Distribution(attrs)
-        self.assertEqual(dist.get_platforms(), ['GNU/Linux', 'Some Evil Platform'])
+        assert dist.get_platforms() == ['GNU/Linux', 'Some Evil Platform']
 
     def test_platforms_invalid_types(self):
         attrs = {
@@ -443,10 +427,10 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
         with captured_stderr() as error:
             d = Distribution(attrs)
         # should have warning about passing a non-list
-        self.assertIn('should be a list', error.getvalue())
+        assert 'should be a list' in error.getvalue()
         # should be converted to a list
-        self.assertIsInstance(d.metadata.platforms, list)
-        self.assertEqual(d.metadata.platforms, list(attrs['platforms']))
+        assert isinstance(d.metadata.platforms, list)
+        assert d.metadata.platforms == list(attrs['platforms'])
 
     def test_download_url(self):
         attrs = {
@@ -456,7 +440,7 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
         }
         dist = Distribution(attrs)
         meta = self.format_metadata(dist)
-        self.assertIn('Metadata-Version: 1.1', meta)
+        assert 'Metadata-Version: 1.1' in meta
 
     def test_long_description(self):
         long_desc = textwrap.dedent(
@@ -471,7 +455,7 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
         dist = Distribution(attrs)
         meta = self.format_metadata(dist)
         meta = meta.replace('\n' + 8 * ' ', '\n')
-        self.assertIn(long_desc, meta)
+        assert long_desc in meta
 
     def test_custom_pydistutils(self):
         # fixes #2166
@@ -496,24 +480,22 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
             if sys.platform in ('linux', 'darwin'):
                 os.environ['HOME'] = temp_dir
                 files = dist.find_config_files()
-                self.assertIn(user_filename, files)
+                assert user_filename in files
 
             # win32-style
             if sys.platform == 'win32':
                 # home drive should be found
                 os.environ['USERPROFILE'] = temp_dir
                 files = dist.find_config_files()
-                self.assertIn(
-                    user_filename, files, '{!r} not found in {!r}'.format(user_filename, files)
-                )
+                assert user_filename in files, '{!r} not found in {!r}'.format(user_filename, files)
         finally:
             os.remove(user_filename)
 
     def test_fix_help_options(self):
         help_tuples = [('a', 'b', 'c', 'd'), (1, 2, 3, 4)]
         fancy_options = fix_help_options(help_tuples)
-        self.assertEqual(fancy_options[0], ('a', 'b', 'c'))
-        self.assertEqual(fancy_options[1], (1, 2, 3))
+        assert fancy_options[0] == ('a', 'b', 'c')
+        assert fancy_options[1] == (1, 2, 3)
 
     def test_show_help(self):
         # smoke test, just makes sure some help is displayed
@@ -526,7 +508,7 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
             dist.parse_command_line()
 
         output = [line for line in s.getvalue().split('\n') if line.strip() != '']
-        self.assertTrue(output)
+        assert output
 
     def test_read_metadata(self):
         attrs = {
@@ -548,11 +530,11 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
         PKG_INFO.seek(0)
         metadata.read_pkg_file(PKG_INFO)
 
-        self.assertEqual(metadata.name, "package")
-        self.assertEqual(metadata.version, "1.0")
-        self.assertEqual(metadata.description, "xxx")
-        self.assertEqual(metadata.download_url, 'http://example.com')
-        self.assertEqual(metadata.keywords, ['one', 'two'])
-        self.assertEqual(metadata.platforms, None)
-        self.assertEqual(metadata.obsoletes, None)
-        self.assertEqual(metadata.requires, ['foo'])
+        assert metadata.name == "package"
+        assert metadata.version == "1.0"
+        assert metadata.description == "xxx"
+        assert metadata.download_url == 'http://example.com'
+        assert metadata.keywords == ['one', 'two']
+        assert metadata.platforms == None
+        assert metadata.obsoletes == None
+        assert metadata.requires == ['foo']

@@ -77,7 +77,7 @@ class BuildDumbTestCase(
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
         base = "{}.{}.zip".format(dist.get_fullname(), cmd.plat_name)
 
-        self.assertEqual(dist_created, [base])
+        assert dist_created == [base]
 
         # now let's check what we have in the zip file
         fp = zipfile.ZipFile(os.path.join('dist', base))
@@ -90,4 +90,4 @@ class BuildDumbTestCase(
         wanted = ['foo-0.1-py%s.%s.egg-info' % sys.version_info[:2], 'foo.py']
         if not sys.dont_write_bytecode:
             wanted.append('foo.%s.pyc' % sys.implementation.cache_tag)
-        self.assertEqual(contents, sorted(wanted))
+        assert contents == sorted(wanted)

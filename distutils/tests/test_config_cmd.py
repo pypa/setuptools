@@ -36,7 +36,7 @@ class ConfigTestCase(
             f.close()
 
         dump_file(this_file, 'I am the header')
-        self.assertEqual(len(self._logs), numlines + 1)
+        assert len(self._logs) == numlines + 1
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_search_cpp(self):
@@ -54,10 +54,10 @@ class ConfigTestCase(
 
         # simple pattern searches
         match = cmd.search_cpp(pattern='xxx', body='/* xxx */')
-        self.assertEqual(match, 0)
+        assert match == 0
 
         match = cmd.search_cpp(pattern='_configtest', body='/* xxx */')
-        self.assertEqual(match, 1)
+        assert match == 1
 
     def test_finalize_options(self):
         # finalize_options does a bit of transformation
@@ -69,9 +69,9 @@ class ConfigTestCase(
         cmd.library_dirs = 'three%sfour' % os.pathsep
         cmd.ensure_finalized()
 
-        self.assertEqual(cmd.include_dirs, ['one', 'two'])
-        self.assertEqual(cmd.libraries, ['one'])
-        self.assertEqual(cmd.library_dirs, ['three', 'four'])
+        assert cmd.include_dirs == ['one', 'two']
+        assert cmd.libraries == ['one']
+        assert cmd.library_dirs == ['three', 'four']
 
     def test_clean(self):
         # _clean removes files
@@ -83,11 +83,11 @@ class ConfigTestCase(
         self.write_file(f2, 'xxx')
 
         for f in (f1, f2):
-            self.assertTrue(os.path.exists(f))
+            assert os.path.exists(f)
 
         pkg_dir, dist = self.create_dist()
         cmd = config(dist)
         cmd._clean(f1, f2)
 
         for f in (f1, f2):
-            self.assertFalse(os.path.exists(f))
+            assert not os.path.exists(f)

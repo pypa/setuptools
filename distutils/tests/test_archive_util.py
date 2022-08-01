@@ -116,8 +116,8 @@ class ArchiveUtilTestCase(
 
         # check if the compressed tarball was created
         tarball = base_name + suffix
-        self.assertTrue(os.path.exists(tarball))
-        self.assertEqual(self._tarinfo(tarball), self._created_files)
+        assert os.path.exists(tarball)
+        assert self._tarinfo(tarball) == self._created_files
 
     def _tarinfo(self, path):
         tar = tarfile.open(path)
@@ -168,7 +168,7 @@ class ArchiveUtilTestCase(
 
         # check if the compressed tarball was created
         tarball = base_name + '.tar.gz'
-        self.assertTrue(os.path.exists(tarball))
+        assert os.path.exists(tarball)
 
         # now create another tarball using `tar`
         tarball2 = os.path.join(tmpdir, 'archive2.tar.gz')
@@ -182,10 +182,10 @@ class ArchiveUtilTestCase(
         finally:
             os.chdir(old_dir)
 
-        self.assertTrue(os.path.exists(tarball2))
+        assert os.path.exists(tarball2)
         # let's compare both tarballs
-        self.assertEqual(self._tarinfo(tarball), self._created_files)
-        self.assertEqual(self._tarinfo(tarball2), self._created_files)
+        assert self._tarinfo(tarball) == self._created_files
+        assert self._tarinfo(tarball2) == self._created_files
 
         # trying an uncompressed one
         base_name = os.path.join(tmpdir2, 'archive')
@@ -196,7 +196,7 @@ class ArchiveUtilTestCase(
         finally:
             os.chdir(old_dir)
         tarball = base_name + '.tar'
-        self.assertTrue(os.path.exists(tarball))
+        assert os.path.exists(tarball)
 
         # now for a dry_run
         base_name = os.path.join(tmpdir2, 'archive')
@@ -207,7 +207,7 @@ class ArchiveUtilTestCase(
         finally:
             os.chdir(old_dir)
         tarball = base_name + '.tar'
-        self.assertTrue(os.path.exists(tarball))
+        assert os.path.exists(tarball)
 
     @unittest.skipUnless(
         find_executable('compress'), 'The compress program is required'
@@ -226,8 +226,8 @@ class ArchiveUtilTestCase(
         finally:
             os.chdir(old_dir)
         tarball = base_name + '.tar.Z'
-        self.assertTrue(os.path.exists(tarball))
-        self.assertEqual(len(w.warnings), 1)
+        assert os.path.exists(tarball)
+        assert len(w.warnings) == 1
 
         # same test with dry_run
         os.remove(tarball)
@@ -239,8 +239,8 @@ class ArchiveUtilTestCase(
                 make_tarball(base_name, 'dist', compress='compress', dry_run=True)
         finally:
             os.chdir(old_dir)
-        self.assertFalse(os.path.exists(tarball))
-        self.assertEqual(len(w.warnings), 1)
+        assert not os.path.exists(tarball)
+        assert len(w.warnings) == 1
 
     @pytest.mark.usefixtures('needs_zlib')
     @unittest.skipUnless(ZIP_SUPPORT, 'Need zip support to run')
@@ -253,9 +253,9 @@ class ArchiveUtilTestCase(
 
         # check if the compressed tarball was created
         tarball = base_name + '.zip'
-        self.assertTrue(os.path.exists(tarball))
+        assert os.path.exists(tarball)
         with zipfile.ZipFile(tarball) as zf:
-            self.assertEqual(sorted(zf.namelist()), self._zip_created_files)
+            assert sorted(zf.namelist()) == self._zip_created_files
 
     @unittest.skipUnless(ZIP_SUPPORT, 'Need zip support to run')
     def test_make_zipfile_no_zlib(self):
@@ -278,23 +278,20 @@ class ArchiveUtilTestCase(
             make_zipfile(base_name, 'dist')
 
         tarball = base_name + '.zip'
-        self.assertEqual(
-            called, [((tarball, "w"), {'compression': zipfile.ZIP_STORED})]
-        )
-        self.assertTrue(os.path.exists(tarball))
+        assert called == [((tarball, "w"), {'compression': zipfile.ZIP_STORED})]
+        assert os.path.exists(tarball)
         with zipfile.ZipFile(tarball) as zf:
-            self.assertEqual(sorted(zf.namelist()), self._zip_created_files)
+            assert sorted(zf.namelist()) == self._zip_created_files
 
     def test_check_archive_formats(self):
-        self.assertEqual(check_archive_formats(['gztar', 'xxx', 'zip']), 'xxx')
-        self.assertIsNone(
-            check_archive_formats(['gztar', 'bztar', 'xztar', 'ztar', 'tar', 'zip'])
-        )
+        assert check_archive_formats(['gztar', 'xxx', 'zip']) == 'xxx'
+        assert check_archive_formats(['gztar', 'bztar', 'xztar', 'ztar', 'tar', 'zip']) is None
 
     def test_make_archive(self):
         tmpdir = self.mkdtemp()
         base_name = os.path.join(tmpdir, 'archive')
-        self.assertRaises(ValueError, make_archive, base_name, 'xxx')
+        with pytest.raises(ValueError):
+            make_archive(base_name, 'xxx')
 
     def test_make_archive_cwd(self):
         current_dir = os.getcwd()
@@ -308,7 +305,7 @@ class ArchiveUtilTestCase(
                 make_archive('xxx', 'xxx', root_dir=self.mkdtemp())
             except Exception:
                 pass
-            self.assertEqual(os.getcwd(), current_dir)
+            assert os.getcwd() == current_dir
         finally:
             del ARCHIVE_FORMATS['xxx']
 
@@ -316,36 +313,36 @@ class ArchiveUtilTestCase(
         base_dir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
         res = make_archive(base_name, 'tar', base_dir, 'dist')
-        self.assertTrue(os.path.exists(res))
-        self.assertEqual(os.path.basename(res), 'archive.tar')
-        self.assertEqual(self._tarinfo(res), self._created_files)
+        assert os.path.exists(res)
+        assert os.path.basename(res) == 'archive.tar'
+        assert self._tarinfo(res) == self._created_files
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_make_archive_gztar(self):
         base_dir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
         res = make_archive(base_name, 'gztar', base_dir, 'dist')
-        self.assertTrue(os.path.exists(res))
-        self.assertEqual(os.path.basename(res), 'archive.tar.gz')
-        self.assertEqual(self._tarinfo(res), self._created_files)
+        assert os.path.exists(res)
+        assert os.path.basename(res) == 'archive.tar.gz'
+        assert self._tarinfo(res) == self._created_files
 
     @unittest.skipUnless(bz2, 'Need bz2 support to run')
     def test_make_archive_bztar(self):
         base_dir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
         res = make_archive(base_name, 'bztar', base_dir, 'dist')
-        self.assertTrue(os.path.exists(res))
-        self.assertEqual(os.path.basename(res), 'archive.tar.bz2')
-        self.assertEqual(self._tarinfo(res), self._created_files)
+        assert os.path.exists(res)
+        assert os.path.basename(res) == 'archive.tar.bz2'
+        assert self._tarinfo(res) == self._created_files
 
     @unittest.skipUnless(lzma, 'Need xz support to run')
     def test_make_archive_xztar(self):
         base_dir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
         res = make_archive(base_name, 'xztar', base_dir, 'dist')
-        self.assertTrue(os.path.exists(res))
-        self.assertEqual(os.path.basename(res), 'archive.tar.xz')
-        self.assertEqual(self._tarinfo(res), self._created_files)
+        assert os.path.exists(res)
+        assert os.path.basename(res) == 'archive.tar.xz'
+        assert self._tarinfo(res) == self._created_files
 
     def test_make_archive_owner_group(self):
         # testing make_archive with owner and group, with various combinations
@@ -362,20 +359,20 @@ class ArchiveUtilTestCase(
         res = make_archive(
             base_name, 'zip', root_dir, base_dir, owner=owner, group=group
         )
-        self.assertTrue(os.path.exists(res))
+        assert os.path.exists(res)
 
         res = make_archive(base_name, 'zip', root_dir, base_dir)
-        self.assertTrue(os.path.exists(res))
+        assert os.path.exists(res)
 
         res = make_archive(
             base_name, 'tar', root_dir, base_dir, owner=owner, group=group
         )
-        self.assertTrue(os.path.exists(res))
+        assert os.path.exists(res)
 
         res = make_archive(
             base_name, 'tar', root_dir, base_dir, owner='kjhkjhkjg', group='oihohoh'
         )
-        self.assertTrue(os.path.exists(res))
+        assert os.path.exists(res)
 
     @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id
@@ -395,13 +392,13 @@ class ArchiveUtilTestCase(
             os.chdir(old_dir)
 
         # check if the compressed tarball was created
-        self.assertTrue(os.path.exists(archive_name))
+        assert os.path.exists(archive_name)
 
         # now checks the rights
         archive = tarfile.open(archive_name)
         try:
             for member in archive.getmembers():
-                self.assertEqual(member.uid, 0)
-                self.assertEqual(member.gid, 0)
+                assert member.uid == 0
+                assert member.gid == 0
         finally:
             archive.close()

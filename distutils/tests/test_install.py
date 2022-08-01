@@ -56,13 +56,13 @@ class InstallTestCase(
         cmd.home = destination
         cmd.ensure_finalized()
 
-        self.assertEqual(cmd.install_base, destination)
-        self.assertEqual(cmd.install_platbase, destination)
+        assert cmd.install_base == destination
+        assert cmd.install_platbase == destination
 
         def check_path(got, expected):
             got = os.path.normpath(got)
             expected = os.path.normpath(expected)
-            self.assertEqual(got, expected)
+            assert got == expected
 
         impl_name = sys.implementation.name.replace("cpython", "python")
         libdir = os.path.join(destination, "lib", impl_name)
@@ -109,31 +109,31 @@ class InstallTestCase(
         self.addCleanup(cleanup)
 
         for key in ('nt_user', 'posix_user'):
-            self.assertIn(key, INSTALL_SCHEMES)
+            assert key in INSTALL_SCHEMES
 
         dist = Distribution({'name': 'xx'})
         cmd = install(dist)
 
         # making sure the user option is there
         options = [name for name, short, lable in cmd.user_options]
-        self.assertIn('user', options)
+        assert 'user' in options
 
         # setting a value
         cmd.user = 1
 
         # user base and site shouldn't be created yet
-        self.assertFalse(os.path.exists(self.user_base))
-        self.assertFalse(os.path.exists(self.user_site))
+        assert not os.path.exists(self.user_base)
+        assert not os.path.exists(self.user_site)
 
         # let's run finalize
         cmd.ensure_finalized()
 
         # now they should
-        self.assertTrue(os.path.exists(self.user_base))
-        self.assertTrue(os.path.exists(self.user_site))
+        assert os.path.exists(self.user_base)
+        assert os.path.exists(self.user_site)
 
-        self.assertIn('userbase', cmd.config_vars)
-        self.assertIn('usersite', cmd.config_vars)
+        assert 'userbase' in cmd.config_vars
+        assert 'usersite' in cmd.config_vars
 
         actual_headers = os.path.relpath(cmd.install_headers, self.user_base)
         if os.name == 'nt':
@@ -145,9 +145,7 @@ class InstallTestCase(
             include = sysconfig.get_python_inc(0, '')
         expect_headers = os.path.join(include, 'xx')
 
-        self.assertEqual(
-            os.path.normcase(actual_headers), os.path.normcase(expect_headers)
-        )
+        assert os.path.normcase(actual_headers) == os.path.normcase(expect_headers)
 
     def test_handle_extra_path(self):
         dist = Distribution({'name': 'xx', 'extra_path': 'path,dirs'})
@@ -155,27 +153,28 @@ class InstallTestCase(
 
         # two elements
         cmd.handle_extra_path()
-        self.assertEqual(cmd.extra_path, ['path', 'dirs'])
-        self.assertEqual(cmd.extra_dirs, 'dirs')
-        self.assertEqual(cmd.path_file, 'path')
+        assert cmd.extra_path == ['path', 'dirs']
+        assert cmd.extra_dirs == 'dirs'
+        assert cmd.path_file == 'path'
 
         # one element
         cmd.extra_path = ['path']
         cmd.handle_extra_path()
-        self.assertEqual(cmd.extra_path, ['path'])
-        self.assertEqual(cmd.extra_dirs, 'path')
-        self.assertEqual(cmd.path_file, 'path')
+        assert cmd.extra_path == ['path']
+        assert cmd.extra_dirs == 'path'
+        assert cmd.path_file == 'path'
 
         # none
         dist.extra_path = cmd.extra_path = None
         cmd.handle_extra_path()
-        self.assertEqual(cmd.extra_path, None)
-        self.assertEqual(cmd.extra_dirs, '')
-        self.assertEqual(cmd.path_file, None)
+        assert cmd.extra_path == None
+        assert cmd.extra_dirs == ''
+        assert cmd.path_file == None
 
         # three elements (no way !)
         cmd.extra_path = 'path,dirs,again'
-        self.assertRaises(DistutilsOptionError, cmd.handle_extra_path)
+        with pytest.raises(DistutilsOptionError):
+            cmd.handle_extra_path()
 
     def test_finalize_options(self):
         dist = Distribution({'name': 'xx'})
@@ -185,18 +184,21 @@ class InstallTestCase(
         # install-base/install-platbase -- not both
         cmd.prefix = 'prefix'
         cmd.install_base = 'base'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
 
         # must supply either home or prefix/exec-prefix -- not both
         cmd.install_base = None
         cmd.home = 'home'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
 
         # can't combine user with prefix/exec_prefix/home or
         # install_(plat)base
         cmd.prefix = None
         cmd.user = 'user'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
 
     def test_record(self):
         install_dir = self.mkdtemp()
@@ -225,7 +227,7 @@ class InstallTestCase(
             'sayhi',
             'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2],
         ]
-        self.assertEqual(found, expected)
+        assert found == expected
 
     def test_record_extensions(self):
         cmd = test_support.missing_compiler_executable()
@@ -261,7 +263,7 @@ class InstallTestCase(
             _make_ext_name('xx'),
             'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2],
         ]
-        self.assertEqual(found, expected)
+        assert found == expected
 
     def test_debug_mode(self):
         # this covers the code called when DEBUG is set
@@ -272,4 +274,4 @@ class InstallTestCase(
                 self.test_record()
         finally:
             install_module.DEBUG = False
-        self.assertGreater(len(self.logs), old_logs_len)
+        assert len(self.logs) > old_logs_len

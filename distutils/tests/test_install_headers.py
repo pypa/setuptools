@@ -25,7 +25,7 @@ class InstallHeadersTestCase(
 
         pkg_dir, dist = self.create_dist(headers=headers)
         cmd = install_headers(dist)
-        self.assertEqual(cmd.get_inputs(), headers)
+        assert cmd.get_inputs() == headers
 
         # let's run the command
         cmd.install_dir = os.path.join(pkg_dir, 'inst')
@@ -33,4 +33,4 @@ class InstallHeadersTestCase(
         cmd.run()
 
         # let's check the results
-        self.assertEqual(len(cmd.get_outputs()), 2)
+        assert len(cmd.get_outputs()) == 2

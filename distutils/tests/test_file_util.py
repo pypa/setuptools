@@ -9,6 +9,7 @@ from distutils import log
 from distutils.tests import support
 from distutils.errors import DistutilsFileError
 from .py38compat import unlink
+import pytest
 
 
 class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
@@ -41,14 +42,14 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
 
         move_file(self.source, self.target, verbose=0)
         wanted = []
-        self.assertEqual(self._logs, wanted)
+        assert self._logs == wanted
 
         # back to original state
         move_file(self.target, self.source, verbose=0)
 
         move_file(self.source, self.target, verbose=1)
         wanted = ['moving {} -> {}'.format(self.source, self.target)]
-        self.assertEqual(self._logs, wanted)
+        assert self._logs == wanted
 
         # back to original state
         move_file(self.target, self.source, verbose=0)
@@ -58,13 +59,11 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
         os.mkdir(self.target_dir)
         move_file(self.source, self.target_dir, verbose=1)
         wanted = ['moving {} -> {}'.format(self.source, self.target_dir)]
-        self.assertEqual(self._logs, wanted)
+        assert self._logs == wanted
 
     def test_move_file_exception_unpacking_rename(self):
         # see issue 22182
-        with patch("os.rename", side_effect=OSError("wrong", 1)), self.assertRaises(
-            DistutilsFileError
-        ):
+        with patch("os.rename", side_effect=OSError("wrong", 1)), pytest.raises(DistutilsFileError):
             with open(self.source, 'w') as fobj:
                 fobj.write('spam eggs')
             move_file(self.source, self.target, verbose=0)
@@ -73,7 +72,7 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
         # see issue 22182
         with patch("os.rename", side_effect=OSError(errno.EXDEV, "wrong")), patch(
             "os.unlink", side_effect=OSError("wrong", 1)
-        ), self.assertRaises(DistutilsFileError):
+        ), pytest.raises(DistutilsFileError):
             with open(self.source, 'w') as fobj:
                 fobj.write('spam eggs')
             move_file(self.source, self.target, verbose=0)
@@ -93,10 +92,10 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
         copy_file(self.source, self.target, link='hard')
         st2 = os.stat(self.source)
         st3 = os.stat(self.target)
-        self.assertTrue(os.path.samestat(st, st2), (st, st2))
-        self.assertTrue(os.path.samestat(st2, st3), (st2, st3))
+        assert os.path.samestat(st, st2), (st, st2)
+        assert os.path.samestat(st2, st3), (st2, st3)
         with open(self.source) as f:
-            self.assertEqual(f.read(), 'some content')
+            assert f.read() == 'some content'
 
     def test_copy_file_hard_link_failure(self):
         # If hard linking fails, copy_file() falls back on copying file
@@ -109,8 +108,8 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
             copy_file(self.source, self.target, link='hard')
         st2 = os.stat(self.source)
         st3 = os.stat(self.target)
-        self.assertTrue(os.path.samestat(st, st2), (st, st2))
-        self.assertFalse(os.path.samestat(st2, st3), (st2, st3))
+        assert os.path.samestat(st, st2), (st, st2)
+        assert not os.path.samestat(st2, st3), (st2, st3)
         for fn in (self.source, self.target):
             with open(fn) as f:
-                self.assertEqual(f.read(), 'some content')
+                assert f.read() == 'some content'

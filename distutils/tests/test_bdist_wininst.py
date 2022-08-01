@@ -34,4 +34,4 @@ class BuildWinInstTestCase(
         # and make sure it finds it and returns its content
         # no matter what platform we have
         exe_file = cmd.get_exe_bytes()
-        self.assertGreater(len(exe_file), 10)
+        assert len(exe_file) > 10
