@@ -158,7 +158,9 @@ class UtilTestCase(unittest.TestCase):
 
         os.path.join = _join
 
-        assert change_root('c:\\root', 'c:\\old\\its\\here') == 'c:\\root\\old\\its\\here'
+        assert (
+            change_root('c:\\root', 'c:\\old\\its\\here') == 'c:\\root\\old\\its\\here'
+        )
         assert change_root('c:\\root', 'its\\here') == 'c:\\root\\its\\here'
 
         # BugsBunny os (it's a great os)
@@ -201,8 +203,12 @@ class UtilTestCase(unittest.TestCase):
             assert 'HOME' not in os.environ
 
     def test_split_quoted(self):
-        assert split_quoted('""one"" "two" \'three\' \\four') == \
-            ['one', 'two', 'three', 'four']
+        assert split_quoted('""one"" "two" \'three\' \\four') == [
+            'one',
+            'two',
+            'three',
+            'four',
+        ]
 
     def test_strtobool(self):
         yes = ('y', 'Y', 'yes', 'True', 't', 'true', 'True', 'On', 'on', '1')

@@ -147,12 +147,14 @@ class SysconfigTestCase(unittest.TestCase):
         assert comp.exes['archiver'] == 'env_ar --env-arflags'
         assert comp.exes['preprocessor'] == 'env_cpp --env-cppflags'
         assert comp.exes['compiler'] == 'env_cc --sc-cflags --env-cflags --env-cppflags'
-        assert comp.exes['compiler_so'] == \
-            ('env_cc --sc-cflags ' '--env-cflags ' '--env-cppflags --sc-ccshared')
+        assert comp.exes['compiler_so'] == (
+            'env_cc --sc-cflags ' '--env-cflags ' '--env-cppflags --sc-ccshared'
+        )
         assert comp.exes['compiler_cxx'] == 'env_cxx --env-cxx-flags'
         assert comp.exes['linker_exe'] == 'env_cc'
-        assert comp.exes['linker_so'] == \
-            ('env_ldshared --env-ldflags --env-cflags' ' --env-cppflags')
+        assert comp.exes['linker_so'] == (
+            'env_ldshared --env-ldflags --env-cflags' ' --env-cppflags'
+        )
         assert comp.shared_lib_extension == 'sc_shutil_suffix'
 
         if sys.platform == "darwin":
@@ -207,10 +209,12 @@ class SysconfigTestCase(unittest.TestCase):
     def test_sysconfig_module(self):
         import sysconfig as global_sysconfig
 
-        assert global_sysconfig.get_config_var('CFLAGS') == \
-            sysconfig.get_config_var('CFLAGS')
-        assert global_sysconfig.get_config_var('LDFLAGS') == \
-            sysconfig.get_config_var('LDFLAGS')
+        assert global_sysconfig.get_config_var('CFLAGS') == sysconfig.get_config_var(
+            'CFLAGS'
+        )
+        assert global_sysconfig.get_config_var('LDFLAGS') == sysconfig.get_config_var(
+            'LDFLAGS'
+        )
 
     @unittest.skipIf(
         sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER'), 'compiler flags customized'
@@ -234,8 +238,9 @@ class SysconfigTestCase(unittest.TestCase):
 
         if sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER'):
             self.skipTest('compiler flags customized')
-        assert global_sysconfig.get_config_var('LDSHARED') == \
-            sysconfig.get_config_var('LDSHARED')
+        assert global_sysconfig.get_config_var('LDSHARED') == sysconfig.get_config_var(
+            'LDSHARED'
+        )
         assert global_sysconfig.get_config_var('CC') == sysconfig.get_config_var('CC')
 
     @unittest.skipIf(

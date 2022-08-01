@@ -136,8 +136,7 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
             'long_description': broken_rest,
         }
         with pytest.raises(DistutilsSetupError):
-            self._run(metadata,
-            **{'strict': 1, 'restructuredtext': 1})
+            self._run(metadata, **{'strict': 1, 'restructuredtext': 1})
 
         # and non-broken rest, including a non-ASCII character to test #12114
         metadata['long_description'] = 'title\n=====\n\ntest \u00df'
@@ -188,7 +187,10 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
                 assert len(msgs) == 0
             else:
                 assert len(msgs) == 1
-                assert str(msgs[0][1]) == 'Cannot analyze code. Pygments package not found.'
+                assert (
+                    str(msgs[0][1])
+                    == 'Cannot analyze code. Pygments package not found.'
+                )
 
     def test_check_all(self):
         with pytest.raises(DistutilsSetupError):

@@ -63,7 +63,9 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
 
     def test_move_file_exception_unpacking_rename(self):
         # see issue 22182
-        with patch("os.rename", side_effect=OSError("wrong", 1)), pytest.raises(DistutilsFileError):
+        with patch("os.rename", side_effect=OSError("wrong", 1)), pytest.raises(
+            DistutilsFileError
+        ):
             with open(self.source, 'w') as fobj:
                 fobj.write('spam eggs')
             move_file(self.source, self.target, verbose=0)

@@ -39,7 +39,9 @@ def _copy_file_contents(src, dst, buffer_size=16 * 1024):  # noqa: C901
         try:
             fdst = open(dst, 'wb')
         except OSError as e:
-            raise DistutilsFileError("could not create '{}': {}".format(dst, e.strerror))
+            raise DistutilsFileError(
+                "could not create '{}': {}".format(dst, e.strerror)
+            )
 
         while True:
             try:
@@ -214,7 +216,9 @@ def move_file(src, dst, verbose=1, dry_run=0):  # noqa: C901
         if num == errno.EXDEV:
             copy_it = True
         else:
-            raise DistutilsFileError("couldn't move '{}' to '{}': {}".format(src, dst, msg))
+            raise DistutilsFileError(
+                "couldn't move '{}' to '{}': {}".format(src, dst, msg)
+            )
 
     if copy_it:
         copy_file(src, dst, verbose=verbose)

@@ -96,7 +96,9 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             if expected_flag is not None:
                 assert self.cc.rpath_foo() == expected_flag, msg
             else:
-                with pytest.raises(DistutilsPlatformError, match=darwin_ver_var + r' mismatch'):
+                with pytest.raises(
+                    DistutilsPlatformError, match=darwin_ver_var + r' mismatch'
+                ):
                     self.cc.rpath_foo()
 
             # Restore

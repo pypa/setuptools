@@ -141,15 +141,18 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         assert b'xxx' in data
         assert b'protocol_version' in data
         assert b'sha256_digest' in data
-        assert b'cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf' b'6860' in \
-            data
+        assert (
+            b'cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf'
+            b'6860' in data
+        )
         if b'md5_digest' in data:
             assert b'f561aaf6ef0bf14d4208bb46a4ccb3ad' in data
         if b'blake2_256_digest' in data:
-            assert b'b6f289a27d4fe90da63c503bfe0a9b761a8f76bb86148565065f040be' \
-                b'6d1c3044cf7ded78ef800509bccb4b648e507d88dc6383d67642aadcc' \
-                b'ce443f1534330a' in \
-                data
+            assert (
+                b'b6f289a27d4fe90da63c503bfe0a9b761a8f76bb86148565065f040be'
+                b'6d1c3044cf7ded78ef800509bccb4b648e507d88dc6383d67642aadcc'
+                b'ce443f1534330a' in data
+            )
 
         # The PyPI response body was echoed
         results = self.get_logs(INFO)

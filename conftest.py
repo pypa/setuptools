@@ -37,6 +37,7 @@ def needs_zlib():
 @pytest.fixture
 def distutils_logging_silencer(request):
     from distutils import log
+
     self = request.instance
     self.threshold = log.set_threshold(log.FATAL)
     # catching warnings
@@ -56,6 +57,7 @@ def distutils_logging_silencer(request):
 @pytest.fixture
 def distutils_managed_tempdir(request):
     from distutils.tests import py38compat as os_helper
+
     self = request.instance
     self.old_cwd = os.getcwd()
     self.tempdirs = []

@@ -60,7 +60,9 @@ def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):  # noqa: C901
     except OSError as exc:
         if not DEBUG:
             cmd = cmd[0]
-        raise DistutilsExecError("command {!r} failed: {}".format(cmd, exc.args[-1])) from exc
+        raise DistutilsExecError(
+            "command {!r} failed: {}".format(cmd, exc.args[-1])
+        ) from exc
 
     if exitcode:
         if not DEBUG:

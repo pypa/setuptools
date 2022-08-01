@@ -285,7 +285,10 @@ class ArchiveUtilTestCase(
 
     def test_check_archive_formats(self):
         assert check_archive_formats(['gztar', 'xxx', 'zip']) == 'xxx'
-        assert check_archive_formats(['gztar', 'bztar', 'xztar', 'ztar', 'tar', 'zip']) is None
+        assert (
+            check_archive_formats(['gztar', 'bztar', 'xztar', 'ztar', 'tar', 'zip'])
+            is None
+        )
 
     def test_make_archive(self):
         tmpdir = self.mkdtemp()

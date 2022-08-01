@@ -125,7 +125,9 @@ class CygwinCCompiler(UnixCCompiler):
         super().__init__(verbose, dry_run, force)
 
         status, details = check_config_h()
-        self.debug_print("Python's GCC status: {} (details: {})".format(status, details))
+        self.debug_print(
+            "Python's GCC status: {} (details: {})".format(status, details)
+        )
         if status is not CONFIG_H_OK:
             self.warn(
                 "Python's pyconfig.h doesn't seem to support your compiler. "

@@ -446,7 +446,9 @@ class MSVCCompiler(CCompiler):
                 continue
             else:
                 # how to handle this file?
-                raise CompileError("Don't know how to compile {} to {}".format(src, obj))
+                raise CompileError(
+                    "Don't know how to compile {} to {}".format(src, obj)
+                )
 
             output_opt = "/Fo" + obj
             try:

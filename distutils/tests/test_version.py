@@ -51,13 +51,17 @@ class VersionTestCase(unittest.TestCase):
                     raise AssertionError(
                         ("cmp(%s, %s) " "shouldn't raise ValueError") % (v1, v2)
                     )
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(v1, v2, wanted, res)
+            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
+                v1, v2, wanted, res
+            )
             res = StrictVersion(v1)._cmp(v2)
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(v1, v2, wanted, res)
+            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
+                v1, v2, wanted, res
+            )
             res = StrictVersion(v1)._cmp(object())
-            assert res is \
-                NotImplemented, \
-                'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)
+            assert (
+                res is NotImplemented
+            ), 'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)
 
     def test_cmp(self):
         versions = (
@@ -73,10 +77,14 @@ class VersionTestCase(unittest.TestCase):
 
         for v1, v2, wanted in versions:
             res = LooseVersion(v1)._cmp(LooseVersion(v2))
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(v1, v2, wanted, res)
+            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
+                v1, v2, wanted, res
+            )
             res = LooseVersion(v1)._cmp(v2)
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(v1, v2, wanted, res)
+            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
+                v1, v2, wanted, res
+            )
             res = LooseVersion(v1)._cmp(object())
-            assert res is \
-                NotImplemented, \
-                'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)
+            assert (
+                res is NotImplemented
+            ), 'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)

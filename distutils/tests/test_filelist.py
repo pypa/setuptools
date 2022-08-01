@@ -149,7 +149,9 @@ class FileListTestCase(support.LoggingSilencer, unittest.TestCase):
         assert hasattr(translate_pattern('a', anchor=True, is_regex=True), 'search')
 
         # glob support
-        assert translate_pattern('*.py', anchor=True, is_regex=False).search('filelist.py')
+        assert translate_pattern('*.py', anchor=True, is_regex=False).search(
+            'filelist.py'
+        )
 
     def test_exclude_pattern(self):
         # return False if no match

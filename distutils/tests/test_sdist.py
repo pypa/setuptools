@@ -457,8 +457,11 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
             filenames = [tarinfo.name for tarinfo in archive]
         finally:
             archive.close()
-        assert sorted(filenames) == \
-            ['fake-1.0', 'fake-1.0/PKG-INFO', 'fake-1.0/README.manual']
+        assert sorted(filenames) == [
+            'fake-1.0',
+            'fake-1.0/PKG-INFO',
+            'fake-1.0/README.manual',
+        ]
 
     @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id

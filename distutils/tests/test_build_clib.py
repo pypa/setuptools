@@ -33,11 +33,15 @@ class BuildCLibTestCase(
 
         # library name may not contain directory separators
         with pytest.raises(DistutilsSetupError):
-            cmd.check_library_list([('name', 'foo1'), ('another/name', 'foo2')],)
+            cmd.check_library_list(
+                [('name', 'foo1'), ('another/name', 'foo2')],
+            )
 
         # second element of each tuple must be a dictionary (build info)
         with pytest.raises(DistutilsSetupError):
-            cmd.check_library_list([('name', {}), ('another', 'foo2')],)
+            cmd.check_library_list(
+                [('name', {}), ('another', 'foo2')],
+            )
 
         # those work
         libs = [('name', {}), ('name', {'ok': 'good'})]

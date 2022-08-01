@@ -129,6 +129,8 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
         """
         An exception in listdir should raise a DistutilsFileError
         """
-        with patch("os.listdir", side_effect=OSError()), pytest.raises(errors.DistutilsFileError):
+        with patch("os.listdir", side_effect=OSError()), pytest.raises(
+            errors.DistutilsFileError
+        ):
             src = self.tempdirs[-1]
             dir_util.copy_tree(src, None)

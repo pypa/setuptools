@@ -15,7 +15,6 @@ from distutils.core import Distribution
 
 @pytest.mark.usefixtures('distutils_logging_silencer')
 class LoggingSilencer:
-
     def _log(self, level, msg, args):
         if level not in (DEBUG, INFO, WARN, ERROR, FATAL):
             raise ValueError('%s wrong log level' % str(level))

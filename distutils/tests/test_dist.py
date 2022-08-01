@@ -84,8 +84,11 @@ class DistributionTestCase(
         )
         d = self.create_distribution()
         # let's actually try to load our test command:
-        assert d.get_command_packages() == \
-            ["distutils.command", "foo.bar", "distutils.tests"]
+        assert d.get_command_packages() == [
+            "distutils.command",
+            "foo.bar",
+            "distutils.tests",
+        ]
         cmd = d.get_command_obj("test_dist")
         assert isinstance(cmd, test_dist)
         assert cmd.sample_option == "sometext"
@@ -143,7 +146,9 @@ class DistributionTestCase(
             'root': option_tuple,
         }
 
-        assert sorted(d.command_options.get('install').keys()) == sorted(result_dict.keys())
+        assert sorted(d.command_options.get('install').keys()) == sorted(
+            result_dict.keys()
+        )
 
         for (key, value) in d.command_options.get('install').items():
             assert value == result_dict[key]
@@ -309,7 +314,9 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
 
     def test_provides_illegal(self):
         with pytest.raises(ValueError):
-            Distribution({"name": "package", "version": "1.0", "provides": ["my.pkg (splat)"]},)
+            Distribution(
+                {"name": "package", "version": "1.0", "provides": ["my.pkg (splat)"]},
+            )
 
     def test_requires(self):
         attrs = {
@@ -329,7 +336,9 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
 
     def test_requires_illegal(self):
         with pytest.raises(ValueError):
-            Distribution({"name": "package", "version": "1.0", "requires": ["my.pkg (splat)"]},)
+            Distribution(
+                {"name": "package", "version": "1.0", "requires": ["my.pkg (splat)"]},
+            )
 
     def test_requires_to_list(self):
         attrs = {"name": "package", "requires": iter(["other"])}
@@ -354,7 +363,9 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
 
     def test_obsoletes_illegal(self):
         with pytest.raises(ValueError):
-            Distribution({"name": "package", "version": "1.0", "obsoletes": ["my.pkg (splat)"]},)
+            Distribution(
+                {"name": "package", "version": "1.0", "obsoletes": ["my.pkg (splat)"]},
+            )
 
     def test_obsoletes_to_list(self):
         attrs = {"name": "package", "obsoletes": iter(["other"])}
@@ -487,7 +498,9 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
                 # home drive should be found
                 os.environ['USERPROFILE'] = temp_dir
                 files = dist.find_config_files()
-                assert user_filename in files, '{!r} not found in {!r}'.format(user_filename, files)
+                assert user_filename in files, '{!r} not found in {!r}'.format(
+                    user_filename, files
+                )
         finally:
             os.remove(user_filename)
 

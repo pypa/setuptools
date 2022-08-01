@@ -425,9 +425,7 @@ class MSVCCompiler(CCompiler):
                 continue
             else:
                 # how to handle this file?
-                raise CompileError(
-                    f"Don't know how to compile {src} to {obj}"
-                )
+                raise CompileError(f"Don't know how to compile {src} to {obj}")
 
             args = [self.cc] + compile_opts + pp_opts
             if add_cpp_opts:
