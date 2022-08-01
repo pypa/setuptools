@@ -5,29 +5,16 @@ import shutil
 import tempfile
 import unittest
 import sysconfig
+import itertools
 
 import pytest
 
-from distutils import log
 from distutils.log import DEBUG, INFO, WARN, ERROR, FATAL
 from distutils.core import Distribution
 
 
+@pytest.mark.usefixtures('distutils_logging_silencer')
 class LoggingSilencer:
-    def setUp(self):
-        super().setUp()
-        self.threshold = log.set_threshold(log.FATAL)
-        # catching warnings
-        # when log will be replaced by logging
-        # we won't need such monkey-patch anymore
-        self._old_log = log.Log._log
-        log.Log._log = self._log
-        self.logs = []
-
-    def tearDown(self):
-        log.set_threshold(self.threshold)
-        log.Log._log = self._old_log
-        super().tearDown()
 
     def _log(self, level, msg, args):
         if level not in (DEBUG, INFO, WARN, ERROR, FATAL):
@@ -173,3 +160,17 @@ def fixup_build_ext(cmd):
             else:
                 name, equals, value = runshared.partition('=')
                 cmd.library_dirs = [d for d in value.split(os.pathsep) if d]
+
+
+def combine_markers(cls):
+    """
+    pytest will honor markers as found on the class, but when
+    markers are on multiple subclasses, only one appears. Use
+    this decorator to combine those markers.
+    """
+    cls.pytestmark = [
+        mark
+        for base in itertools.chain([cls], cls.__bases__)
+        for mark in getattr(base, 'pytestmark', [])
+    ]
+    return cls

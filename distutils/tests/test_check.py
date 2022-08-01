@@ -16,6 +16,7 @@ except ImportError:
 HERE = os.path.dirname(__file__)
 
 
+@support.combine_markers
 class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.TestCase):
     def _run(self, metadata=None, cwd=None, **options):
         if metadata is None:

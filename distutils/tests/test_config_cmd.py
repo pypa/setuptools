@@ -9,6 +9,7 @@ from distutils.tests import support
 from distutils import log
 
 
+@support.combine_markers
 class ConfigTestCase(
     support.LoggingSilencer, support.TempdirManager, unittest.TestCase
 ):

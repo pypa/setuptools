@@ -12,6 +12,7 @@ from distutils.tests import support
 from distutils.errors import DistutilsOptionError
 
 
+@support.combine_markers
 @pytest.mark.usefixtures('save_env')
 class InstallLibTestCase(
     support.TempdirManager,

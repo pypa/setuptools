@@ -42,6 +42,7 @@ class TestDistribution(Distribution):
         return self._config_files
 
 
+@support.combine_markers
 @pytest.mark.usefixtures('save_env')
 class DistributionTestCase(
     support.LoggingSilencer,

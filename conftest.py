@@ -35,6 +35,25 @@ def needs_zlib():
 
 
 @pytest.fixture
+def distutils_logging_silencer(request):
+    from distutils import log
+    self = request.instance
+    self.threshold = log.set_threshold(log.FATAL)
+    # catching warnings
+    # when log will be replaced by logging
+    # we won't need such monkey-patch anymore
+    self._old_log = log.Log._log
+    log.Log._log = self._log
+    self.logs = []
+
+    try:
+        yield
+    finally:
+        log.set_threshold(self.threshold)
+        log.Log._log = self._old_log
+
+
+@pytest.fixture
 def distutils_managed_tempdir(request):
     from distutils.tests import py38compat as os_helper
     self = request.instance

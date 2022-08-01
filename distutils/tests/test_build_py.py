@@ -12,6 +12,7 @@ from unittest.mock import patch
 from distutils.tests import support
 
 
+@support.combine_markers
 class BuildPyTestCase(
     support.TempdirManager, support.LoggingSilencer, unittest.TestCase
 ):

@@ -51,6 +51,7 @@ password:xxx
 """
 
 
+@support.combine_markers
 @pytest.mark.usefixtures('save_env')
 class BasePyPIRCCommandTestCase(
     support.TempdirManager,
