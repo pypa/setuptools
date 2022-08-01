@@ -87,7 +87,7 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             '2.6.1 (r261:67515, Dec  6 2008, 16:42:21) '
             '\n[GCC 4.0.1 (Apple Computer, Inc. build 5370)]'
         )
-        assert get_msvcr() == None
+        assert get_msvcr() is None
 
         # MSVC 7.0
         sys.version = (

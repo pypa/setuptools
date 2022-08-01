@@ -105,7 +105,7 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         dist = Distribution()
         cmd = upload(dist)
         cmd.finalize_options()
-        assert cmd.password == None
+        assert cmd.password is None
 
         # make sure we get it as well, if another command
         # initialized it at the dist level

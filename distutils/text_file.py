@@ -5,7 +5,6 @@ that (optionally) takes care of stripping comments, ignoring blank
 lines, and joining lines with backslashes."""
 
 import sys
-import io
 
 
 class TextFile:

@@ -227,7 +227,7 @@ class DistributionTestCase(
 
     def test_get_command_packages(self):
         dist = Distribution()
-        assert dist.command_packages == None
+        assert dist.command_packages is None
         cmds = dist.get_command_packages()
         assert cmds == ['distutils.command']
         assert dist.command_packages == ['distutils.command']
@@ -548,6 +548,6 @@ class MetadataTestCase(support.TempdirManager, unittest.TestCase):
         assert metadata.description == "xxx"
         assert metadata.download_url == 'http://example.com'
         assert metadata.keywords == ['one', 'two']
-        assert metadata.platforms == None
-        assert metadata.obsoletes == None
+        assert metadata.platforms is None
+        assert metadata.obsoletes is None
         assert metadata.requires == ['foo']

@@ -138,7 +138,7 @@ class msvc9compilerTestCase(support.TempdirManager, unittest.TestCase):
 
         HKCU = winreg.HKEY_CURRENT_USER
         keys = Reg.read_keys(HKCU, 'xxxx')
-        assert keys == None
+        assert keys is None
 
         keys = Reg.read_keys(HKCU, r'Control Panel')
         assert 'Desktop' in keys

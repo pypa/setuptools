@@ -167,9 +167,9 @@ class InstallTestCase(
         # none
         dist.extra_path = cmd.extra_path = None
         cmd.handle_extra_path()
-        assert cmd.extra_path == None
+        assert cmd.extra_path is None
         assert cmd.extra_dirs == ''
-        assert cmd.path_file == None
+        assert cmd.path_file is None
 
         # three elements (no way !)
         cmd.extra_path = 'path,dirs,again'
