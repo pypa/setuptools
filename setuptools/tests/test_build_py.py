@@ -278,8 +278,8 @@ def test_get_outputs(tmpdir_cwd):
     build_py.editable_mode = True
     build_py.ensure_finalized()
     build_lib = build_py.build_lib.replace(os.sep, "/")
-    outputs = [x.replace(os.sep, "/") for x in build_py.get_outputs()]
-    assert outputs == [
+    outputs = {x.replace(os.sep, "/") for x in build_py.get_outputs()}
+    assert outputs == {
         f"{build_lib}/mypkg/__init__.py",
         f"{build_lib}/mypkg/resource_file.txt",
         f"{build_lib}/mypkg/sub1/__init__.py",
@@ -287,7 +287,7 @@ def test_get_outputs(tmpdir_cwd):
         f"{build_lib}/mypkg/sub2/mod2.py",
         f"{build_lib}/mypkg/sub2/nested/__init__.py",
         f"{build_lib}/mypkg/sub2/nested/mod3.py",
-    ]
+    }
     mapping = {
         k.replace(os.sep, "/"): v.replace(os.sep, "/")
         for k, v in build_py.get_output_mapping().items()
