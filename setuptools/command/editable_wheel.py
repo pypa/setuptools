@@ -60,7 +60,7 @@ class _EditableMode(Enum):
     Possible editable installation modes:
     a) `lenient` (new files automatically added to the package - DEFAULT)
     b) `strict` (requires a new installation when files are added/removed)
-    c) `compat` (attempts to replicate `python setup.py develop` - DEPRECATED)
+    c) `compat` (attempts to emulate `python setup.py develop` - DEPRECATED)
     """
 
     STRICT = "strict"
