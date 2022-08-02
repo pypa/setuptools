@@ -255,20 +255,13 @@ class _ConfigSettingsTranslator:
         >>> list(fn(None))
         []
         >>> list(fn({"editable-mode": "strict"}))
-        ['--strict']
-        >>> list(fn({"editable-mode": "other"}))
-        Traceback (most recent call last):
-           ...
-        ValueError: Invalid value for `editable-mode`: 'other'. Try: 'strict'.
+        ['--mode', 'strict']
         """
         cfg = config_settings or {}
-        if "editable-mode" not in cfg and "editable_mode" not in cfg:
-            return
         mode = cfg.get("editable-mode") or cfg.get("editable_mode")
-        if mode != "strict":
-            msg = f"Invalid value for `editable-mode`: {mode!r}. Try: 'strict'."
-            raise ValueError(msg)
-        yield "--strict"
+        if not mode:
+            return
+        yield from ["--mode", str(mode)]
 
     def _arbitrary_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
