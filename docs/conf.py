@@ -215,6 +215,9 @@ extensions += ['jaraco.tidelift']
 extensions += ['sphinx-favicon']
 html_static_path = ['images']  # should contain the folder with icons
 
+# Add support for nice Not Found 404 pages
+extensions += ['notfound.extension']
+
 # List of dicts with <link> HTML attributes
 # static-file points to files in the html_static_path (href is computed)
 favicons = [
