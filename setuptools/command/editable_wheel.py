@@ -33,10 +33,10 @@ from typing import (
     Optional,
     Tuple,
     TypeVar,
-    Union
+    Union,
 )
 
-from setuptools import Command, errors, namespaces
+from setuptools import Command, SetuptoolsDeprecationWarning, errors, namespaces
 from setuptools.discovery import find_package_path
 from setuptools.dist import Distribution
 
@@ -62,6 +62,7 @@ class _EditableMode(Enum):
     b) `strict` (requires a new installation when files are added/removed)
     c) `compat` (attempts to replicate `python setup.py develop` - DEPRECATED)
     """
+
     STRICT = "strict"
     LENIENT = "lenient"
     COMPAT = "compat"  # TODO: Remove `compat` after Dec/2022.
@@ -74,6 +75,18 @@ class _EditableMode(Enum):
         _mode = mode.upper()
         if _mode not in _EditableMode.__members__:
             raise errors.OptionError(f"Invalid editable mode: {mode!r}. Try: 'strict'.")
+
+        if _mode == "COMPAT":
+            msg = """
+            The 'compat' editable mode is transitional and will be removed
+            in future versions of `setuptools`.
+            Please adapt your code accordingly to use either the 'strict' or the
+            'lenient' modes.
+
+            For more information, please check:
+            https://setuptools.pypa.io/en/latest/userguide/development_mode.html
+            """
+            warnings.warn(msg, SetuptoolsDeprecationWarning)
 
         return _EditableMode[_mode]
 
