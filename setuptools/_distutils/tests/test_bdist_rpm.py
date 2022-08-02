@@ -3,7 +3,8 @@
 import unittest
 import sys
 import os
-from test.support import run_unittest
+
+import pytest
 
 from distutils.core import Distribution
 from distutils.command.bdist_rpm import bdist_rpm
@@ -23,9 +24,9 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 """
 
 
+@pytest.mark.usefixtures('save_env')
 class BuildRpmTestCase(
     support.TempdirManager,
-    support.EnvironGuard,
     support.LoggingSilencer,
     unittest.TestCase,
 ):
@@ -150,11 +151,3 @@ class BuildRpmTestCase(
         )
 
         os.remove(os.path.join(pkg_dir, 'dist', 'foo-0.1-1.noarch.rpm'))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BuildRpmTestCase)
-
-
-if __name__ == '__main__':
-    run_unittest(test_suite())

@@ -2,7 +2,6 @@
 import sys
 import platform
 import unittest
-from test.support import run_unittest
 
 from .py38compat import check_warnings
 
@@ -36,11 +35,3 @@ class BuildWinInstTestCase(
         # no matter what platform we have
         exe_file = cmd.get_exe_bytes()
         self.assertGreater(len(exe_file), 10)
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BuildWinInstTestCase)
-
-
-if __name__ == '__main__':
-    run_unittest(test_suite())

@@ -9,7 +9,7 @@ import warnings
 from distutils.core import Command
 from distutils.util import get_platform
 from distutils.dir_util import remove_tree
-from distutils.errors import *
+from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.sysconfig import get_python_version
 from distutils import log
 
@@ -357,7 +357,7 @@ class bdist_wininst(Command):
             )
         return installer_name
 
-    def get_exe_bytes(self):
+    def get_exe_bytes(self):  # noqa: C901
         # If a target-version other than the current version has been
         # specified, then using the MSVC version from *this* build is no good.
         # Without actually finding and executing the target version and parsing

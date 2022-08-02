@@ -1,0 +1,2 @@
+Installed ``sphinx-hoverxref`` extension to show tooltips on internal an external references.
+-- by :user:`humitos`

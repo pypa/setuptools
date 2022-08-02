@@ -5,7 +5,7 @@ distribution)."""
 
 import os
 from distutils.core import Command
-from distutils.errors import *
+from distutils.errors import DistutilsPlatformError, DistutilsOptionError
 from distutils.util import get_platform
 
 
@@ -15,9 +15,15 @@ def show_formats():
 
     formats = []
     for format in bdist.format_commands:
-        formats.append(("formats=" + format, None, bdist.format_command[format][1]))
+        formats.append(("formats=" + format, None, bdist.format_commands[format][1]))
     pretty_printer = FancyGetopt(formats)
     pretty_printer.print_help("List of available distribution formats:")
+
+
+class ListCompat(dict):
+    # adapter to allow for Setuptools compatibility in format_commands
+    def append(self, item):
+        return
 
 
 class bdist(Command):
@@ -64,31 +70,23 @@ class bdist(Command):
     # Debian-ish Linux, Solaris, FreeBSD, ..., Windows, Mac OS.
     default_format = {'posix': 'gztar', 'nt': 'zip'}
 
-    # Establish the preferred order (for the --help-formats option).
-    format_commands = [
-        'rpm',
-        'gztar',
-        'bztar',
-        'xztar',
-        'ztar',
-        'tar',
-        'wininst',
-        'zip',
-        'msi',
-    ]
+    # Define commands in preferred order for the --help-formats option
+    format_commands = ListCompat(
+        {
+            'rpm': ('bdist_rpm', "RPM distribution"),
+            'gztar': ('bdist_dumb', "gzip'ed tar file"),
+            'bztar': ('bdist_dumb', "bzip2'ed tar file"),
+            'xztar': ('bdist_dumb', "xz'ed tar file"),
+            'ztar': ('bdist_dumb', "compressed tar file"),
+            'tar': ('bdist_dumb', "tar file"),
+            'wininst': ('bdist_wininst', "Windows executable installer"),
+            'zip': ('bdist_dumb', "ZIP file"),
+            'msi': ('bdist_msi', "Microsoft Installer"),
+        }
+    )
 
-    # And the real information.
-    format_command = {
-        'rpm': ('bdist_rpm', "RPM distribution"),
-        'gztar': ('bdist_dumb', "gzip'ed tar file"),
-        'bztar': ('bdist_dumb', "bzip2'ed tar file"),
-        'xztar': ('bdist_dumb', "xz'ed tar file"),
-        'ztar': ('bdist_dumb', "compressed tar file"),
-        'tar': ('bdist_dumb', "tar file"),
-        'wininst': ('bdist_wininst', "Windows executable installer"),
-        'zip': ('bdist_dumb', "ZIP file"),
-        'msi': ('bdist_msi', "Microsoft Installer"),
-    }
+    # for compatibility until Setuptools references only format_commands
+    format_command = format_commands
 
     def initialize_options(self):
         self.bdist_base = None
@@ -132,7 +130,7 @@ class bdist(Command):
         commands = []
         for format in self.formats:
             try:
-                commands.append(self.format_command[format][0])
+                commands.append(self.format_commands[format][0])
             except KeyError:
                 raise DistutilsOptionError("invalid format '%s'" % format)
 

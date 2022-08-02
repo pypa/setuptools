@@ -345,7 +345,7 @@ class MSVCCompiler(CCompiler):
 
         return list(map(make_out_path, source_filenames))
 
-    def compile(
+    def compile(  # noqa: C901
         self,
         sources,
         output_dir=None,

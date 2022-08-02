@@ -102,6 +102,19 @@ intersphinx_mapping.update({
     ),
 })
 
+# Support tooltips on references
+extensions += ['hoverxref.extension']
+hoverxref_auto_ref = True
+hoverxref_intersphinx = [
+    'python',
+    'pip',
+    'build',
+    'PyPUG',
+    'packaging',
+    'twine',
+    'importlib-resources',
+]
+
 # Add support for linking usernames
 github_url = 'https://github.com'
 github_repo_org = 'pypa'
@@ -201,6 +214,9 @@ extensions += ['jaraco.tidelift']
 # Add icons (aka "favicons") to documentation
 extensions += ['sphinx-favicon']
 html_static_path = ['images']  # should contain the folder with icons
+
+# Add support for nice Not Found 404 pages
+extensions += ['notfound.extension']
 
 # List of dicts with <link> HTML attributes
 # static-file points to files in the html_static_path (href is computed)

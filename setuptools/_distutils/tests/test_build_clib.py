@@ -3,7 +3,7 @@ import unittest
 import os
 import sys
 
-from test.support import run_unittest, missing_compiler_executable
+from test.support import missing_compiler_executable
 
 from distutils.command.build_clib import build_clib
 from distutils.errors import DistutilsSetupError
@@ -134,11 +134,3 @@ class BuildCLibTestCase(
 
         # let's check the result
         self.assertIn('libfoo.a', os.listdir(build_temp))
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BuildCLibTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

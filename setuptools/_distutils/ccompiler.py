@@ -3,8 +3,16 @@
 Contains CCompiler, an abstract base class that defines the interface
 for the Distutils compiler abstraction model."""
 
-import sys, os, re
-from distutils.errors import *
+import sys
+import os
+import re
+from distutils.errors import (
+    CompileError,
+    LinkError,
+    UnknownFileError,
+    DistutilsPlatformError,
+    DistutilsModuleError,
+)
 from distutils.spawn import spawn
 from distutils.file_util import move_file
 from distutils.dir_util import mkpath
@@ -808,7 +816,7 @@ class CCompiler:
         """
         raise NotImplementedError
 
-    def has_function(
+    def has_function(  # noqa: C901
         self,
         funcname,
         includes=None,
@@ -945,10 +953,9 @@ int main (int argc, char **argv) {
         self, libname, lib_type='static', strip_dir=0, output_dir=''  # or 'shared'
     ):
         assert output_dir is not None
-        if lib_type not in ("static", "shared", "dylib", "xcode_stub"):
-            raise ValueError(
-                "'lib_type' must be \"static\", \"shared\", \"dylib\", or \"xcode_stub\""
-            )
+        expected = '"static", "shared", "dylib", "xcode_stub"'
+        if lib_type not in eval(expected):
+            raise ValueError(f"'lib_type' must be {expected}")
         fmt = getattr(self, lib_type + "_lib_format")
         ext = getattr(self, lib_type + "_lib_extension")
 

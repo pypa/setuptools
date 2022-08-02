@@ -3,11 +3,19 @@
 Implements the Distutils 'bdist_rpm' command (create RPM source and binary
 distributions)."""
 
-import subprocess, sys, os
+import subprocess
+import sys
+import os
+
 from distutils.core import Command
 from distutils.debug import DEBUG
 from distutils.file_util import write_file
-from distutils.errors import *
+from distutils.errors import (
+    DistutilsOptionError,
+    DistutilsPlatformError,
+    DistutilsFileError,
+    DistutilsExecError,
+)
 from distutils.sysconfig import get_python_version
 from distutils import log
 
@@ -268,7 +276,7 @@ class bdist_rpm(Command):
 
         self.ensure_string('force_arch')
 
-    def run(self):
+    def run(self):  # noqa: C901
         if DEBUG:
             print("before _get_package_data():")
             print("vendor =", self.vendor)
@@ -359,12 +367,12 @@ class bdist_rpm(Command):
                 line = out.readline()
                 if not line:
                     break
-                l = line.strip().split()
-                assert len(l) == 2
-                binary_rpms.append(l[1])
+                ell = line.strip().split()
+                assert len(ell) == 2
+                binary_rpms.append(ell[1])
                 # The source rpm is named after the first entry in the spec file
                 if source_rpm is None:
-                    source_rpm = l[0]
+                    source_rpm = ell[0]
 
             status = out.close()
             if status:
@@ -401,7 +409,7 @@ class bdist_rpm(Command):
     def _dist_path(self, path):
         return os.path.join(self.dist_dir, os.path.basename(path))
 
-    def _make_spec_file(self):
+    def _make_spec_file(self):  # noqa: C901
         """Generate the text of an RPM spec file and return it as a
         list of strings (one per line).
         """

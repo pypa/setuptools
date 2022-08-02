@@ -118,7 +118,7 @@ distributing into something that looks like the following
 
     mypackage
     ├── pyproject.toml
-    |   # setup.cfg or setup.py (depending on the confuguration method)
+    |   # setup.cfg or setup.py (depending on the configuration method)
     |   # README.rst or README.md (a nice description of your package)
     |   # LICENCE (properly chosen license information, e.g. MIT, BSD-3, GPL-3, MPL-2, etc...)
     └── mypackage
@@ -186,9 +186,9 @@ found, as shown in the example below:
     .. code-block:: ini
 
         [options]
-        packages = find: # OR `find_namespaces:` if you want to use namespaces
+        packages = find: # OR `find_namespace:` if you want to use namespaces
 
-        [options.packages.find] # (always `find` even if `find_namespaces:` was used before)
+        [options.packages.find] # (always `find` even if `find_namespace:` was used before)
         # This section is optional
         # Each entry in this section is optional, and if not specified, the default values are:
         # `where=.`, `include=*` and `exclude=` (empty).

@@ -250,7 +250,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         )
 
 
-def customize_compiler(compiler):
+def customize_compiler(compiler):  # noqa: C901
     """Do any platform-specific customization of a CCompiler instance.
 
     Mainly needed on Unix, so we can plug in the information that
@@ -376,7 +376,7 @@ _findvar1_rx = re.compile(r"\$\(([A-Za-z][A-Za-z0-9_]*)\)")
 _findvar2_rx = re.compile(r"\${([A-Za-z][A-Za-z0-9_]*)}")
 
 
-def parse_makefile(fn, g=None):
+def parse_makefile(fn, g=None):  # noqa: C901
     """Parse a Makefile-style file.
 
     A dictionary containing name/value pairs is returned.  If an

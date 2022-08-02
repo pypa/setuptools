@@ -8,7 +8,6 @@ from distutils.file_util import move_file, copy_file
 from distutils import log
 from distutils.tests import support
 from distutils.errors import DistutilsFileError
-from test.support import run_unittest
 from .py38compat import unlink
 
 
@@ -115,11 +114,3 @@ class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
         for fn in (self.source, self.target):
             with open(fn, 'r') as f:
                 self.assertEqual(f.read(), 'some content')
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(FileUtilTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

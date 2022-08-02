@@ -4,19 +4,18 @@ import unittest
 import os
 import threading
 
+import pytest
+
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
-from test.support import run_unittest
+from distutils import _msvccompiler
 
 
-SKIP_MESSAGE = None if sys.platform == "win32" else "These tests are only for win32"
+needs_winreg = pytest.mark.skipif('not hasattr(_msvccompiler, "winreg")')
 
 
-@unittest.skipUnless(SKIP_MESSAGE is None, SKIP_MESSAGE)
 class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
     def test_no_compiler(self):
-        import distutils._msvccompiler as _msvccompiler
-
         # makes sure query_vcvarsall raises
         # a DistutilsPlatformError if the compiler
         # is not found
@@ -34,9 +33,8 @@ class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
         finally:
             _msvccompiler._find_vcvarsall = old_find_vcvarsall
 
+    @needs_winreg
     def test_get_vc_env_unicode(self):
-        import distutils._msvccompiler as _msvccompiler
-
         test_var = 'ṰḖṤṪ┅ṼẨṜ'
         test_value = '₃⁴₅'
 
@@ -52,9 +50,8 @@ class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
             if old_distutils_use_sdk:
                 os.environ['DISTUTILS_USE_SDK'] = old_distutils_use_sdk
 
+    @needs_winreg
     def test_get_vc2017(self):
-        import distutils._msvccompiler as _msvccompiler
-
         # This function cannot be mocked, so pass it if we find VS 2017
         # and mark it skipped if we do not.
         version, path = _msvccompiler._find_vc2017()
@@ -64,9 +61,8 @@ class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
         else:
             raise unittest.SkipTest("VS 2017 is not installed")
 
+    @needs_winreg
     def test_get_vc2015(self):
-        import distutils._msvccompiler as _msvccompiler
-
         # This function cannot be mocked, so pass it if we find VS 2015
         # and mark it skipped if we do not.
         version, path = _msvccompiler._find_vc2015()
@@ -95,8 +91,6 @@ class TestSpawn(unittest.TestCase):
         """
         Concurrent calls to spawn should have consistent results.
         """
-        import distutils._msvccompiler as _msvccompiler
-
         compiler = _msvccompiler.MSVCCompiler()
         compiler._paths = "expected"
         inner_cmd = 'import os; assert os.environ["PATH"] == "expected"'
@@ -116,7 +110,6 @@ class TestSpawn(unittest.TestCase):
         If CCompiler.spawn has been monkey-patched without support
         for an env, it should still execute.
         """
-        import distutils._msvccompiler as _msvccompiler
         from distutils import ccompiler
 
         compiler = _msvccompiler.MSVCCompiler()
@@ -130,11 +123,3 @@ class TestSpawn(unittest.TestCase):
             compiler.spawn(["n/a"])
 
         assert os.environ.get("PATH") != "expected"
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(msvccompilerTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

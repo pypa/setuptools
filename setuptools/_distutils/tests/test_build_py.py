@@ -10,7 +10,6 @@ from distutils.errors import DistutilsFileError
 from unittest.mock import patch
 
 from distutils.tests import support
-from test.support import run_unittest
 
 
 class BuildPyTestCase(
@@ -208,11 +207,3 @@ class BuildPyTestCase(
 
         cmd.run()
         # Test should complete successfully with no exception
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BuildPyTestCase)
-
-
-if __name__ == "__main__":
-    run_unittest(test_suite())

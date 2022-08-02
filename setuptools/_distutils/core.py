@@ -11,13 +11,21 @@ import sys
 import tokenize
 
 from distutils.debug import DEBUG
-from distutils.errors import *
+from distutils.errors import (
+    DistutilsSetupError,
+    DistutilsError,
+    CCompilerError,
+    DistutilsArgError,
+)
 
 # Mainly import these so setup scripts can "from distutils.core import" them.
 from distutils.dist import Distribution
 from distutils.cmd import Command
 from distutils.config import PyPIRCCommand
 from distutils.extension import Extension
+
+
+__all__ = ['Distribution', 'Command', 'PyPIRCCommand', 'Extension', 'setup']
 
 # This is a barebones help message generated displayed when the user
 # runs the setup script with no arguments at all.  More useful help
@@ -33,7 +41,7 @@ usage: %(script)s [global_opts] cmd1 [cmd1_opts] [cmd2 [cmd2_opts] ...]
 
 def gen_usage(script_name):
     script = os.path.basename(script_name)
-    return USAGE % vars()
+    return USAGE % locals()
 
 
 # Some mild magic to control the behaviour of 'setup()' from 'run_setup()'.
@@ -85,7 +93,7 @@ extension_keywords = (
 )
 
 
-def setup(**attrs):
+def setup(**attrs):  # noqa: C901
     """The gateway to the Distutils: do everything your setup script needs
     to do, in a highly flexible and user-driven way.  Briefly: create a
     Distribution instance; find and parse config files; parse the command
