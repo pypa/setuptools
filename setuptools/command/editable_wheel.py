@@ -58,9 +58,9 @@ _logger = logging.getLogger(__name__)
 class _EditableMode(Enum):
     """
     Possible editable installation modes:
-    a) `lenient` (new files automatically added to the package - DEFAULT)
-    b) `strict` (requires a new installation when files are added/removed)
-    c) `compat` (attempts to emulate `python setup.py develop` - DEPRECATED)
+    `lenient` (new files automatically added to the package - DEFAULT);
+    `strict` (requires a new installation when files are added/removed); or
+    `compat` (attempts to emulate `python setup.py develop` - DEPRECATED).
     """
 
     STRICT = "strict"
