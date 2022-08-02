@@ -2,6 +2,7 @@ import sys
 import os
 from io import StringIO
 import textwrap
+import site
 
 from distutils.core import Distribution
 from distutils.command.build_ext import build_ext
@@ -11,6 +12,7 @@ from distutils.tests.support import (
     LoggingSilencer,
     copy_xxmodule_c,
     fixup_build_ext,
+    combine_markers,
 )
 from distutils.extension import Extension
 from distutils.errors import (
@@ -32,35 +34,29 @@ import re
 ALREADY_TESTED = False
 
 
-class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
-    def setUp(self):
-        # Create a simple test environment
-        super().setUp()
-        self.tmp_dir = self.mkdtemp()
-        import site
+@pytest.fixture()
+def user_site_dir(request):
+    self = request.instance
+    self.tmp_dir = self.mkdtemp()
+    from distutils.command import build_ext
 
-        self.old_user_base = site.USER_BASE
-        site.USER_BASE = self.mkdtemp()
-        from distutils.command import build_ext
+    orig_user_base = site.USER_BASE
 
-        build_ext.USER_BASE = site.USER_BASE
+    site.USER_BASE = self.mkdtemp()
+    build_ext.USER_BASE = site.USER_BASE
 
-        # bpo-30132: On Windows, a .pdb file may be created in the current
-        # working directory. Create a temporary working directory to cleanup
-        # everything at the end of the test.
-        change_cwd = os_helper.change_cwd(self.tmp_dir)
-        change_cwd.__enter__()
-        self.addCleanup(change_cwd.__exit__, None, None, None)
+    # bpo-30132: On Windows, a .pdb file may be created in the current
+    # working directory. Create a temporary working directory to cleanup
+    # everything at the end of the test.
+    with os_helper.change_cwd(self.tmp_dir):
+        yield
 
-    def tearDown(self):
-        import site
+    site.USER_BASE = orig_user_base
+    build_ext.USER_BASE = orig_user_base
 
-        site.USER_BASE = self.old_user_base
-        from distutils.command import build_ext
 
-        build_ext.USER_BASE = self.old_user_base
-        super().tearDown()
-
+@pytest.mark.usefixtures('user_site_dir')
+class TestBuildExt(TempdirManager, LoggingSilencer):
     def build_ext(self, *args, **kwargs):
         return build_ext(*args, **kwargs)
 
@@ -458,6 +454,7 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
         assert wanted == path
 
     @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
+    @pytest.mark.usefixtures('save_env')
     def test_deployment_target_default(self):
         # Issue 9516: Test that, in the absence of the environment variable,
         # an extension module is compiled with the same deployment target as
@@ -465,6 +462,7 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
         self._try_compile_deployment_target('==', None)
 
     @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
+    @pytest.mark.usefixtures('save_env')
     def test_deployment_target_too_low(self):
         # Issue 9516: Test that an extension module is not allowed to be
         # compiled with a deployment target less than that of the interpreter.
@@ -472,6 +470,7 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
             self._try_compile_deployment_target('>', '10.1')
 
     @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
+    @pytest.mark.usefixtures('save_env')
     def test_deployment_target_higher_ok(self):
         # Issue 9516: Test that an extension module can be compiled with a
         # deployment target higher than that of the interpreter: the ext
@@ -485,10 +484,6 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
             self._try_compile_deployment_target('<', deptarget)
 
     def _try_compile_deployment_target(self, operator, target):
-        orig_environ = os.environ
-        os.environ = orig_environ.copy()
-        self.addCleanup(setattr, os, 'environ', orig_environ)
-
         if target is None:
             if os.environ.get('MACOSX_DEPLOYMENT_TARGET'):
                 del os.environ['MACOSX_DEPLOYMENT_TARGET']
@@ -557,7 +552,7 @@ class BuildExtTestCase(TempdirManager, LoggingSilencer, unittest.TestCase):
             self.fail("Wrong deployment target during compilation")
 
 
-class ParallelBuildExtTestCase(BuildExtTestCase):
+class TestParallelBuildExt(TestBuildExt):
     def build_ext(self, *args, **kwargs):
         build_ext = super().build_ext(*args, **kwargs)
         build_ext.parallel = True
