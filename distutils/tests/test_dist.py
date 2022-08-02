@@ -5,6 +5,7 @@ import sys
 import unittest
 import warnings
 import textwrap
+import functools
 
 from unittest import mock
 
@@ -42,23 +43,18 @@ class TestDistribution(Distribution):
         return self._config_files
 
 
+@pytest.fixture
+def clear_argv():
+    del sys.argv[1:]
+
+
 @support.combine_markers
 @pytest.mark.usefixtures('save_env')
-class DistributionTestCase(
+@pytest.mark.usefixtures('save_argv')
+class TestDistributionBehavior(
     support.LoggingSilencer,
     support.TempdirManager,
-    unittest.TestCase,
 ):
-    def setUp(self):
-        super().setUp()
-        self.argv = sys.argv, sys.argv[:]
-        del sys.argv[1:]
-
-    def tearDown(self):
-        sys.argv = self.argv[0]
-        sys.argv[:] = self.argv[1]
-        super().tearDown()
-
     def create_distribution(self, configfiles=()):
         d = TestDistribution()
         d._config_files = configfiles
@@ -66,12 +62,12 @@ class DistributionTestCase(
         d.parse_command_line()
         return d
 
-    def test_command_packages_unspecified(self):
+    def test_command_packages_unspecified(self, clear_argv):
         sys.argv.append("build")
         d = self.create_distribution()
         assert d.get_command_packages() == ["distutils.command"]
 
-    def test_command_packages_cmdline(self):
+    def test_command_packages_cmdline(self, clear_argv):
         from distutils.tests.test_dist import test_dist
 
         sys.argv.extend(
@@ -97,9 +93,9 @@ class DistributionTestCase(
         'distutils' not in Distribution.parse_config_files.__module__,
         'Cannot test when virtualenv has monkey-patched Distribution.',
     )
-    def test_venv_install_options(self):
+    def test_venv_install_options(self, request):
         sys.argv.append("install")
-        self.addCleanup(os.unlink, TESTFN)
+        request.addfinalizer(functools.partial(os.unlink, TESTFN))
 
         fakepath = '/somedir'
 
@@ -160,9 +156,9 @@ class DistributionTestCase(
         for key in result_dict.keys():
             assert key not in d.command_options.get('install', {})
 
-    def test_command_packages_configfile(self):
+    def test_command_packages_configfile(self, request, clear_argv):
         sys.argv.append("build")
-        self.addCleanup(os.unlink, TESTFN)
+        request.addfinalizer(functools.partial(os.unlink, TESTFN))
         f = open(TESTFN, "w")
         try:
             print("[global]", file=f)
@@ -184,7 +180,7 @@ class DistributionTestCase(
         d = self.create_distribution([TESTFN])
         assert d.get_command_packages() == ["distutils.command"]
 
-    def test_empty_options(self):
+    def test_empty_options(self, request):
         # an empty options dictionary should not stay in the
         # list of attributes
 
@@ -194,7 +190,8 @@ class DistributionTestCase(
         def _warn(msg):
             warns.append(msg)
 
-        self.addCleanup(setattr, warnings, 'warn', warnings.warn)
+        request.addfinalizer(
+            functools.partial(setattr, warnings, 'warn', warnings.warn))
         warnings.warn = _warn
         dist = Distribution(
             attrs={
@@ -274,16 +271,8 @@ class DistributionTestCase(
 
 
 @pytest.mark.usefixtures('save_env')
-class MetadataTestCase(support.TempdirManager, unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self.argv = sys.argv, sys.argv[:]
-
-    def tearDown(self):
-        sys.argv = self.argv[0]
-        sys.argv[:] = self.argv[1]
-        super().tearDown()
-
+@pytest.mark.usefixtures('save_argv')
+class MetadataTestCase(support.TempdirManager):
     def format_metadata(self, dist):
         sio = io.StringIO()
         dist.metadata.write_pkg_file(sio)

@@ -60,19 +60,17 @@ if __name__ == "__main__":
 
 
 @pytest.mark.usefixtures('save_env')
+@pytest.mark.usefixtures('save_argv')
 class CoreTestCase(unittest.TestCase):
     def setUp(self):
         super().setUp()
         self.old_stdout = sys.stdout
         self.cleanup_testfn()
-        self.old_argv = sys.argv, sys.argv[:]
         self.addCleanup(log.set_threshold, log._global_log.threshold)
 
     def tearDown(self):
         sys.stdout = self.old_stdout
         self.cleanup_testfn()
-        sys.argv = self.old_argv[0]
-        sys.argv[:] = self.old_argv[1]
         super().tearDown()
 
     def cleanup_testfn(self):

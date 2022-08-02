@@ -24,26 +24,21 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 """
 
 
+@pytest.fixture(autouse=True)
+def sys_executable_encodable():
+    try:
+        sys.executable.encode('UTF-8')
+    except UnicodeEncodeError:
+        pytest.skip("sys.executable is not encodable to UTF-8")
+
+
 @pytest.mark.usefixtures('save_env')
+@pytest.mark.usefixtures('save_argv')
+@pytest.mark.usefixtures('save_cwd')
 class TestBuildRpm(
     support.TempdirManager,
     support.LoggingSilencer,
 ):
-    def setUp(self):
-        try:
-            sys.executable.encode("UTF-8")
-        except UnicodeEncodeError:
-            raise unittest.SkipTest("sys.executable is not encodable to UTF-8")
-
-        super().setUp()
-        self.old_location = os.getcwd()
-        self.old_sys_argv = sys.argv, sys.argv[:]
-
-    def tearDown(self):
-        os.chdir(self.old_location)
-        sys.argv = self.old_sys_argv[0]
-        sys.argv[:] = self.old_sys_argv[1]
-        super().tearDown()
 
     # XXX I am unable yet to make this test work without
     # spurious sdtout/stderr output under Mac OS X

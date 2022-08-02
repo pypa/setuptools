@@ -1,4 +1,5 @@
 import os
+import sys
 import platform
 
 import pytest
@@ -70,3 +71,21 @@ def distutils_managed_tempdir(request):
         while self.tempdirs:
             tmpdir = self.tempdirs.pop()
             os_helper.rmtree(tmpdir)
+
+
+@pytest.fixture
+def save_argv():
+    orig = sys.argv[:]
+    try:
+        yield
+    finally:
+        sys.argv[:] = orig
+
+
+@pytest.fixture
+def save_cwd():
+    orig = os.getcwd()
+    try:
+        yield
+    finally:
+        os.chdir(orig)
