@@ -1,0 +1,6 @@
+Added *transient* ``compat`` mode to editable installs.
+This more will be temporarily available (to facilitate the transition period)
+for those that want to emulate the behavior of the ``develop`` command
+(in terms of what is added to ``sys.path``).
+This mode is provided "as is", with limited support, and will be removed in
+future versions of ``setuptools``.
