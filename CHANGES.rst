@@ -1,3 +1,12 @@
+v63.4.1
+-------
+
+
+Misc
+^^^^
+* #3482: Sync with pypa/distutils@274758f1c02048d295efdbc13d2f88d9923547f8, restoring compatibility shim in bdist.format_commands.
+
+
 v63.4.0
 -------
 
