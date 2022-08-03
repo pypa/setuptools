@@ -388,11 +388,11 @@ class UnixCCompiler(CCompiler):
             for type in 'dylib xcode_stub shared static'.split()
         )
 
+        roots = map(self._library_root, dirs)
+
         searched = (
             os.path.join(root, lib_name)
-            for root, lib_name in itertools.product(
-                map(self._library_root, dirs), lib_names
-            )
+            for root, lib_name in itertools.product(roots, lib_names)
         )
 
         found = filter(os.path.exists, searched)
