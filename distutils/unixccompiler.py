@@ -17,6 +17,7 @@ import os
 import sys
 import re
 import shlex
+import itertools
 
 from distutils import sysconfig
 from distutils.dep_util import newer
@@ -389,8 +390,9 @@ class UnixCCompiler(CCompiler):
 
         searched = (
             os.path.join(root, lib_name)
-            for root in map(self._library_root, dirs)
-            for lib_name in lib_names
+            for root, lib_name in itertools.product(
+                map(self._library_root, dirs), lib_names
+            )
         )
 
         found = filter(os.path.exists, searched)

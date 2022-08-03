@@ -191,7 +191,8 @@ class TestDistributionBehavior(
             warns.append(msg)
 
         request.addfinalizer(
-            functools.partial(setattr, warnings, 'warn', warnings.warn))
+            functools.partial(setattr, warnings, 'warn', warnings.warn)
+        )
         warnings.warn = _warn
         dist = Distribution(
             attrs={
