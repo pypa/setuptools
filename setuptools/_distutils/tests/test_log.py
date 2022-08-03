@@ -34,20 +34,18 @@ class TestLog(unittest.TestCase):
                     log.set_threshold(old_threshold)
 
                 stdout.seek(0)
-                self.assertEqual(
-                    stdout.read().rstrip(),
+                assert stdout.read().rstrip() == (
                     'Dεbug\tM?ss?ge'
                     if errors == 'replace'
                     else 'Dεbug\tMssge'
                     if errors == 'ignore'
-                    else 'Dεbug\tM\\u0117ss\\xe3ge',
+                    else 'Dεbug\tM\\u0117ss\\xe3ge'
                 )
                 stderr.seek(0)
-                self.assertEqual(
-                    stderr.read().rstrip(),
+                assert stderr.read().rstrip() == (
                     'Fαtal\t?rr?r'
                     if errors == 'replace'
                     else 'Fαtal\trrr'
                     if errors == 'ignore'
-                    else 'Fαtal\t\\xc8rr\\u014dr',
+                    else 'Fαtal\t\\xc8rr\\u014dr'
                 )

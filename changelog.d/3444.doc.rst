@@ -1,2 +1,0 @@
-Installed ``sphinx-notfound-page`` extension to generate nice 404 pages.
--- by :user:`humitos`

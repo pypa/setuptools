@@ -134,7 +134,7 @@ class Extension:
             warnings.warn(msg)
 
     def __repr__(self):
-        return '<%s.%s(%r) at %#x>' % (
+        return '<{}.{}({!r}) at {:#x}>'.format(
             self.__class__.__module__,
             self.__class__.__qualname__,
             self.name,

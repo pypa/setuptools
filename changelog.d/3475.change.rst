@@ -1,1 +1,0 @@
-Merge with pypa/distutils@129480b, including substantial delinting and cleanup, some refactoring around compiler logic, better messaging in cygwincompiler (pypa/distutils#161).

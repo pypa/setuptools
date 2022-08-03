@@ -22,7 +22,7 @@ longopt_pat = r'[a-zA-Z](?:[a-zA-Z0-9-]*)'
 longopt_re = re.compile(r'^%s$' % longopt_pat)
 
 # For recognizing "negative alias" options, eg. "quiet=!verbose"
-neg_alias_re = re.compile("^(%s)=!(%s)$" % (longopt_pat, longopt_pat))
+neg_alias_re = re.compile("^({})=!({})$".format(longopt_pat, longopt_pat))
 
 # This is used to translate long options to legitimate Python identifiers
 # (for use as attributes of some object).
@@ -157,7 +157,7 @@ class FancyGetopt:
             else:
                 # the option table is part of the code, so simply
                 # assert that it is correct
-                raise ValueError("invalid option tuple: %r" % (option,))
+                raise ValueError("invalid option tuple: {!r}".format(option))
 
             # Type- and value-check the option names
             if not isinstance(long, str) or len(long) < 2:
@@ -359,7 +359,7 @@ class FancyGetopt:
             # Case 2: we have a short option, so we have to include it
             # just after the long option
             else:
-                opt_names = "%s (-%s)" % (long, short)
+                opt_names = "{} (-{})".format(long, short)
                 if text:
                     lines.append("  --%-*s  %s" % (max_opt, opt_names, text[0]))
                 else:

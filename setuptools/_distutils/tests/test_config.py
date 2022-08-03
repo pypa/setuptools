@@ -51,6 +51,7 @@ password:xxx
 """
 
 
+@support.combine_markers
 @pytest.mark.usefixtures('save_env')
 class BasePyPIRCCommandTestCase(
     support.TempdirManager,
@@ -59,7 +60,7 @@ class BasePyPIRCCommandTestCase(
 ):
     def setUp(self):
         """Patches the environment."""
-        super(BasePyPIRCCommandTestCase, self).setUp()
+        super().setUp()
         self.tmp_dir = self.mkdtemp()
         os.environ['HOME'] = self.tmp_dir
         os.environ['USERPROFILE'] = self.tmp_dir
@@ -81,7 +82,7 @@ class BasePyPIRCCommandTestCase(
     def tearDown(self):
         """Removes the patch."""
         set_threshold(self.old_threshold)
-        super(BasePyPIRCCommandTestCase, self).tearDown()
+        super().tearDown()
 
 
 class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
@@ -103,7 +104,7 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
             ('server', 'server1'),
             ('username', 'me'),
         ]
-        self.assertEqual(config, waited)
+        assert config == waited
 
         # old format
         self.write_file(self.rc, PYPIRC_OLD)
@@ -116,18 +117,18 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
             ('server', 'server-login'),
             ('username', 'tarek'),
         ]
-        self.assertEqual(config, waited)
+        assert config == waited
 
     def test_server_empty_registration(self):
         cmd = self._cmd(self.dist)
         rc = cmd._get_rc_file()
-        self.assertFalse(os.path.exists(rc))
+        assert not os.path.exists(rc)
         cmd._store_pypirc('tarek', 'xxx')
-        self.assertTrue(os.path.exists(rc))
+        assert os.path.exists(rc)
         f = open(rc)
         try:
             content = f.read()
-            self.assertEqual(content, WANTED)
+            assert content == WANTED
         finally:
             f.close()
 
@@ -146,4 +147,4 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
             ('server', 'server3'),
             ('username', 'cbiggles'),
         ]
-        self.assertEqual(config, waited)
+        assert config == waited

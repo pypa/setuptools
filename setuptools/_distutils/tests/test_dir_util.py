@@ -16,6 +16,7 @@ from distutils.dir_util import (
 
 from distutils import log
 from distutils.tests import support
+import pytest
 
 
 class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
@@ -26,7 +27,7 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
             self._logs.append(msg)
 
     def setUp(self):
-        super(DirUtilTestCase, self).setUp()
+        super().setUp()
         self._logs = []
         tmp_dir = self.mkdtemp()
         self.root_target = os.path.join(tmp_dir, 'deep')
@@ -37,23 +38,23 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
 
     def tearDown(self):
         log.info = self.old_log
-        super(DirUtilTestCase, self).tearDown()
+        super().tearDown()
 
     def test_mkpath_remove_tree_verbosity(self):
 
         mkpath(self.target, verbose=0)
         wanted = []
-        self.assertEqual(self._logs, wanted)
+        assert self._logs == wanted
         remove_tree(self.root_target, verbose=0)
 
         mkpath(self.target, verbose=1)
         wanted = ['creating %s' % self.root_target, 'creating %s' % self.target]
-        self.assertEqual(self._logs, wanted)
+        assert self._logs == wanted
         self._logs = []
 
         remove_tree(self.root_target, verbose=1)
         wanted = ["removing '%s' (and everything under it)" % self.root_target]
-        self.assertEqual(self._logs, wanted)
+        assert self._logs == wanted
 
     @unittest.skipIf(
         sys.platform.startswith('win'),
@@ -64,19 +65,19 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
         umask = os.umask(0o002)
         os.umask(umask)
         mkpath(self.target, 0o700)
-        self.assertEqual(stat.S_IMODE(os.stat(self.target).st_mode), 0o700 & ~umask)
+        assert stat.S_IMODE(os.stat(self.target).st_mode) == 0o700 & ~umask
         mkpath(self.target2, 0o555)
-        self.assertEqual(stat.S_IMODE(os.stat(self.target2).st_mode), 0o555 & ~umask)
+        assert stat.S_IMODE(os.stat(self.target2).st_mode) == 0o555 & ~umask
 
     def test_create_tree_verbosity(self):
 
         create_tree(self.root_target, ['one', 'two', 'three'], verbose=0)
-        self.assertEqual(self._logs, [])
+        assert self._logs == []
         remove_tree(self.root_target, verbose=0)
 
         wanted = ['creating %s' % self.root_target]
         create_tree(self.root_target, ['one', 'two', 'three'], verbose=1)
-        self.assertEqual(self._logs, wanted)
+        assert self._logs == wanted
 
         remove_tree(self.root_target, verbose=0)
 
@@ -85,7 +86,7 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
         mkpath(self.target, verbose=0)
 
         copy_tree(self.target, self.target2, verbose=0)
-        self.assertEqual(self._logs, [])
+        assert self._logs == []
 
         remove_tree(self.root_target, verbose=0)
 
@@ -94,9 +95,9 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
         with open(a_file, 'w') as f:
             f.write('some content')
 
-        wanted = ['copying %s -> %s' % (a_file, self.target2)]
+        wanted = ['copying {} -> {}'.format(a_file, self.target2)]
         copy_tree(self.target, self.target2, verbose=1)
-        self.assertEqual(self._logs, wanted)
+        assert self._logs == wanted
 
         remove_tree(self.root_target, verbose=0)
         remove_tree(self.target2, verbose=0)
@@ -111,24 +112,24 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
                 fh.write('some content')
 
         copy_tree(self.target, self.target2)
-        self.assertEqual(os.listdir(self.target2), ['ok.txt'])
+        assert os.listdir(self.target2) == ['ok.txt']
 
         remove_tree(self.root_target, verbose=0)
         remove_tree(self.target2, verbose=0)
 
     def test_ensure_relative(self):
         if os.sep == '/':
-            self.assertEqual(ensure_relative('/home/foo'), 'home/foo')
-            self.assertEqual(ensure_relative('some/path'), 'some/path')
+            assert ensure_relative('/home/foo') == 'home/foo'
+            assert ensure_relative('some/path') == 'some/path'
         else:  # \\
-            self.assertEqual(ensure_relative('c:\\home\\foo'), 'c:home\\foo')
-            self.assertEqual(ensure_relative('home\\foo'), 'home\\foo')
+            assert ensure_relative('c:\\home\\foo') == 'c:home\\foo'
+            assert ensure_relative('home\\foo') == 'home\\foo'
 
     def test_copy_tree_exception_in_listdir(self):
         """
         An exception in listdir should raise a DistutilsFileError
         """
-        with patch("os.listdir", side_effect=OSError()), self.assertRaises(
+        with patch("os.listdir", side_effect=OSError()), pytest.raises(
             errors.DistutilsFileError
         ):
             src = self.tempdirs[-1]

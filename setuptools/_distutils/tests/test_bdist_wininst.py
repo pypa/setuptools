@@ -17,9 +17,7 @@ from distutils.tests import support
     getattr(bdist_wininst, '_unsupported', False),
     'bdist_wininst is not supported in this install',
 )
-class BuildWinInstTestCase(
-    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
-):
+class TestBuildWinInst(support.TempdirManager, support.LoggingSilencer):
     def test_get_exe_bytes(self):
 
         # issue5731: command was broken on non-windows platforms
@@ -34,4 +32,4 @@ class BuildWinInstTestCase(
         # and make sure it finds it and returns its content
         # no matter what platform we have
         exe_file = cmd.get_exe_bytes()
-        self.assertGreater(len(exe_file), 10)
+        assert len(exe_file) > 10

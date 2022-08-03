@@ -4,6 +4,8 @@ Implements the Distutils 'bdist' command (create a built [binary]
 distribution)."""
 
 import os
+import warnings
+
 from distutils.core import Command
 from distutils.errors import DistutilsPlatformError, DistutilsOptionError
 from distutils.util import get_platform
@@ -23,7 +25,11 @@ def show_formats():
 class ListCompat(dict):
     # adapter to allow for Setuptools compatibility in format_commands
     def append(self, item):
-        return
+        warnings.warn(
+            """format_commands is now a dict. append is deprecated.""",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
 
 class bdist(Command):
@@ -85,7 +91,7 @@ class bdist(Command):
         }
     )
 
-    # for compatibility until Setuptools references only format_commands
+    # for compatibility until consumers only reference format_commands
     format_command = format_commands
 
     def initialize_options(self):

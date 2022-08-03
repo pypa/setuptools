@@ -125,7 +125,9 @@ class CygwinCCompiler(UnixCCompiler):
         super().__init__(verbose, dry_run, force)
 
         status, details = check_config_h()
-        self.debug_print("Python's GCC status: %s (details: %s)" % (status, details))
+        self.debug_print(
+            "Python's GCC status: {} (details: {})".format(status, details)
+        )
         if status is not CONFIG_H_OK:
             self.warn(
                 "Python's pyconfig.h doesn't seem to support your compiler. "
@@ -144,7 +146,7 @@ class CygwinCCompiler(UnixCCompiler):
             compiler_so='%s -mcygwin -mdll -O -Wall' % self.cc,
             compiler_cxx='%s -mcygwin -O -Wall' % self.cxx,
             linker_exe='%s -mcygwin' % self.cc,
-            linker_so=('%s -mcygwin %s' % (self.linker_dll, shared_option)),
+            linker_so=('{} -mcygwin {}'.format(self.linker_dll, shared_option)),
         )
 
         # Include the appropriate MSVC runtime library if Python was built
@@ -291,7 +293,7 @@ class CygwinCCompiler(UnixCCompiler):
             base, ext = os.path.splitext(os.path.normcase(src_name))
             if ext not in (self.src_extensions + ['.rc', '.res']):
                 raise UnknownFileError(
-                    "unknown file type '%s' (from '%s')" % (ext, src_name)
+                    "unknown file type '{}' (from '{}')".format(ext, src_name)
                 )
             if strip_dir:
                 base = os.path.basename(base)
@@ -325,7 +327,7 @@ class Mingw32CCompiler(CygwinCCompiler):
             compiler_so='%s -mdll -O -Wall' % self.cc,
             compiler_cxx='%s -O -Wall' % self.cxx,
             linker_exe='%s' % self.cc,
-            linker_so='%s %s' % (self.linker_dll, shared_option),
+            linker_so='{} {}'.format(self.linker_dll, shared_option),
         )
 
         # Maybe we should also append -mthreads, but then the finished
@@ -396,7 +398,7 @@ def check_config_h():
         finally:
             config_h.close()
     except OSError as exc:
-        return (CONFIG_H_UNCERTAIN, "couldn't read '%s': %s" % (fn, exc.strerror))
+        return (CONFIG_H_UNCERTAIN, "couldn't read '{}': {}".format(fn, exc.strerror))
 
 
 def is_cygwincc(cc):

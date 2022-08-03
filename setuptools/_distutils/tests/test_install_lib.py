@@ -12,29 +12,31 @@ from distutils.tests import support
 from distutils.errors import DistutilsOptionError
 
 
+@support.combine_markers
 @pytest.mark.usefixtures('save_env')
-class InstallLibTestCase(
+class TestInstallLib(
     support.TempdirManager,
     support.LoggingSilencer,
-    unittest.TestCase,
 ):
     def test_finalize_options(self):
         dist = self.create_dist()[1]
         cmd = install_lib(dist)
 
         cmd.finalize_options()
-        self.assertEqual(cmd.compile, 1)
-        self.assertEqual(cmd.optimize, 0)
+        assert cmd.compile == 1
+        assert cmd.optimize == 0
 
         # optimize must be 0, 1, or 2
         cmd.optimize = 'foo'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
         cmd.optimize = '4'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
 
         cmd.optimize = '2'
         cmd.finalize_options()
-        self.assertEqual(cmd.optimize, 2)
+        assert cmd.optimize == 2
 
     @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
     def test_byte_compile(self):
@@ -50,8 +52,8 @@ class InstallLibTestCase(
         pyc_opt_file = importlib.util.cache_from_source(
             'foo.py', optimization=cmd.optimize
         )
-        self.assertTrue(os.path.exists(pyc_file))
-        self.assertTrue(os.path.exists(pyc_opt_file))
+        assert os.path.exists(pyc_file)
+        assert os.path.exists(pyc_opt_file)
 
     def test_get_outputs(self):
         project_dir, dist = self.create_dist()
@@ -71,7 +73,7 @@ class InstallLibTestCase(
         # get_outputs should return 4 elements: spam/__init__.py and .pyc,
         # foo.import-tag-abiflags.so / foo.pyd
         outputs = cmd.get_outputs()
-        self.assertEqual(len(outputs), 4, outputs)
+        assert len(outputs) == 4, outputs
 
     def test_get_inputs(self):
         project_dir, dist = self.create_dist()
@@ -91,7 +93,7 @@ class InstallLibTestCase(
         # get_inputs should return 2 elements: spam/__init__.py and
         # foo.import-tag-abiflags.so / foo.pyd
         inputs = cmd.get_inputs()
-        self.assertEqual(len(inputs), 2, inputs)
+        assert len(inputs) == 2, inputs
 
     def test_dont_write_bytecode(self):
         # makes sure byte_compile is not used
@@ -107,4 +109,4 @@ class InstallLibTestCase(
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        self.assertIn('byte-compiling is disabled', self.logs[0][1] % self.logs[0][2])
+        assert 'byte-compiling is disabled' in self.logs[0][1] % self.logs[0][2]

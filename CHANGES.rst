@@ -1,14 +1,38 @@
+v63.4.1
+-------
+
+
+Misc
+^^^^
+* #3482: Sync with pypa/distutils@274758f1c02048d295efdbc13d2f88d9923547f8, restoring compatibility shim in bdist.format_commands.
+
+
+v63.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #2971: ``upload_docs`` command is deprecated once again.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3443: Installed ``sphinx-hoverxref`` extension to show tooltips on internal an external references.
+  -- by :user:`humitos`
+* #3444: Installed ``sphinx-notfound-page`` extension to generate nice 404 pages.
+  -- by :user:`humitos`
+
+Misc
+^^^^
+* #3480: Merge with pypa/distutils@c397f4c
+
+
 v63.3.0
 -------
 
 
 Changes
 ^^^^^^^
-* #3460: <<<<<<< HEAD
-  Limit the scope of the _distutils_hack workaround for pip.
-  =======
-  Remove the pip workaround in _distutils_hack.
-  >>>>>>> 46344cf0 (Remove pip workaround in _distutils_hack.)
 * #3475: Merge with pypa/distutils@129480b, including substantial delinting and cleanup, some refactoring around compiler logic, better messaging in cygwincompiler (pypa/distutils#161).
 
 
