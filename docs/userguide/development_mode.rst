@@ -135,10 +135,21 @@ Limitations
   </userguide/entry_point>` to work properly.
 - *Strict* editable installs require the file system to support
   either :wiki:`symbolic <symbolic link>` or :wiki:`hard links <hard link>`.
+  This installation mode might also generate auxiliary files under the project directory.
+- There is *no guarantee* that the editable installation will be performed
+  using a specific technique. Depending on each project, ``setuptools`` may
+  select a different approach to ensure the package is importable at runtime.
+- There is *no guarantee* that files outside the top-level package directory
+  will be accessible after an editable install.
+- There is *no guarantee* that attributes like ``__path__`` or ``__file__``
+  will correspond to the exact location of the original files (e.g.,
+  ``setuptools`` might employ file links to perform the editable installation).
+  Users are encouraged to use tools like :mod:`importlib.resources` or
+  :mod:`importlib.metadata` when trying to access package files directly.
 - Editable installations may not work with
   :doc:`namespaces created with pkgutil or pkg_resouces
   <PyPUG:guides/packaging-namespace-packages>`.
-  Please use :pep:`420`-style implicit namespaces.
+  Please use :pep:`420`-style implicit namespaces [#namespaces]_.
 - Support for :pep:`420`-style implicit namespace packages for
   projects structured using :ref:`flat-layout` is still **experimental**.
   If you experience problems, you can try converting your package structure
@@ -162,3 +173,14 @@ to use the legacy behavior (that mimics the old and deprecated
 .. code-block::
 
    SETUPTOOLS_USE_FEATURE="legacy-editable"
+
+
+
+----
+
+.. rubric:: Notes
+
+.. [#namespaces] 
+   You *may* be able to use *strict* editable installations with with namespace
+   packages created with ``pkgutil`` or ``pkg_namespaces``, however this is not
+   officially supported.
