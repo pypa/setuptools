@@ -361,7 +361,7 @@ class UnixCCompiler(CCompiler):
         return os.path.join(match.group(1), dir[1:]) if apply_root else dir
 
     def find_library_file(self, dirs, lib, debug=0):
-        """
+        r"""
         Second-guess the linker with not much hard
         data to go on: GCC seems to prefer the shared library, so
         assume that *all* Unix C compilers do,
@@ -372,15 +372,15 @@ class UnixCCompiler(CCompiler):
         >>> monkeypatch = getfixture('monkeypatch')
         >>> monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
         >>> dirs = ('/foo/bar/missing', '/foo/bar/existing')
-        >>> compiler.find_library_file(dirs, 'abc')
+        >>> compiler.find_library_file(dirs, 'abc').replace('\\', '/')
         '/foo/bar/existing/libabc.dylib'
-        >>> compiler.find_library_file(reversed(dirs), 'abc')
+        >>> compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
         '/foo/bar/existing/libabc.dylib'
         >>> monkeypatch.setattr(os.path, 'exists',
         ...     lambda d: 'existing' in d and '.a' in d)
-        >>> compiler.find_library_file(dirs, 'abc')
+        >>> compiler.find_library_file(dirs, 'abc').replace('\\', '/')
         '/foo/bar/existing/libabc.a'
-        >>> compiler.find_library_file(reversed(dirs), 'abc')
+        >>> compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
         '/foo/bar/existing/libabc.a'
         """
         lib_names = (
