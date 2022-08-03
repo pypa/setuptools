@@ -1,0 +1,1 @@
+``upload_docs`` command is deprecated once again.
