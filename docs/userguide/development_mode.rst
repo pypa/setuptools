@@ -188,7 +188,8 @@ works (still within the context of :pep:`660`).
    and make the necessary adaptations.
 
 If the ``compat`` mode does not work for you, you can also disable the
-:pep:`660` hooks in ``setuptools`` by setting an environment variable:
+:pep:`editable install <660>` hooks in ``setuptools`` by setting an environment
+variable:
 
 .. code-block::
 
@@ -223,7 +224,7 @@ More information is available on the text of :pep:`660 <660#what-to-put-in-the-w
   :doc:`import system <python:reference/import>` machinery.
 
 .. attention::
-   ``Setuptools`` offers *no guarantee* of which technique will be used to
+   ``Setuptools`` offers **no guarantee** of which technique will be used to
    perform an editable installation. This will vary from project to project
    and may change depending on the specific version of ``setuptools`` being
    used.
@@ -233,8 +234,8 @@ More information is available on the text of :pep:`660 <660#what-to-put-in-the-w
 
 .. rubric:: Notes
 
-.. [#namespaces] 
-   You *may* be able to use *strict* editable installations with with namespace
+.. [#namespaces]
+   You *may* be able to use *strict* editable installations with namespace
    packages created with ``pkgutil`` or ``pkg_namespaces``, however this is not
    officially supported.
 
@@ -244,14 +245,15 @@ More information is available on the text of :pep:`660 <660#what-to-put-in-the-w
    support for this feature).
 
 .. [#criteria]
-   ``Setuptools`` strives to find a balance between allowing the user to see
+   ``setuptools`` strives to find a balance between allowing the user to see
    the effects of project files being edited while still trying to keep the
    editable installation as similar as possible to a regular installation.
 
 .. [#static_pth]
-   I.e., a ``.pth`` file where each line correspond to a path that should be
+   i.e., a ``.pth`` file where each line correspond to a path that should be
    added to :obj:`sys.path`. See :mod:`Site-specific configuration hook <site>`.
 
 .. [#dynamic_pth]
-   I.e., a ``.pth`` file that starts with an ```import`` statement and executes
-   arbitrary Python code. See :mod:`Site-specific configuration hook <site>`.
+   i.e., a ``.pth`` file that starts where each line starts with an ```import``
+   statement and executes arbitrary Python code. See :mod:`Site-specific
+   configuration hook <site>`.
