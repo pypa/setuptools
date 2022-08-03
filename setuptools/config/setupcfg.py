@@ -14,6 +14,7 @@ from typing import (TYPE_CHECKING, Callable, Any, Dict, Generic, Iterable, List,
                     Optional, Tuple, TypeVar, Union)
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
+from setuptools.extern.packaging.requirements import Requirement, InvalidRequirement
 from setuptools.extern.packaging.version import Version, InvalidVersion
 from setuptools.extern.packaging.specifiers import SpecifierSet
 from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
@@ -172,6 +173,43 @@ def parse_configuration(
         meta.parse()
 
     return meta, options
+
+
+def warn_accidental_env_marker_misconfig(section_name, section_options, parsed):
+    """Because users sometimes misinterpret this configuration:
+
+    [options.extras_require]
+    foo = bar;python_version<"4"
+
+    It looks like one requirement with an environment marker
+    but because there is no newline, it's parsed as two requirements
+    with a semicolon as separator.
+
+    Therefore, if:
+        * input string does not contain a newline AND
+        * parsed result contains two requirements AND
+        * parsing of the two parts from the result ("<first>;<second>")
+        leads in a valid Requirement with a valid marker
+    a UserWarning is shown to inform the user about the possible problem.
+    """
+
+    for name, (file, requirements) in section_options.items():
+        if "\n" not in requirements and len(parsed[name]) == 2:
+            original_requirements_str = ";".join(parsed[name])
+            try:
+                req = Requirement(original_requirements_str)
+            except InvalidRequirement:
+                pass
+            else:
+                if req.marker is None:
+                    continue
+                msg = (
+                    f"One of the parsed requirements in {section_name} section "
+                    f"looks like a valid environment marker: '{parsed[name][1]}'\n"
+                    "Make sure that the config is correct and check "
+                    "https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#opt-2"  # noqa: E501
+                )
+                warnings.warn(msg, UserWarning)
 
 
 class ConfigHandler(Generic[Target]):
@@ -420,6 +458,13 @@ class ConfigHandler(Generic[Target]):
         for (name, (_, value)) in section_options.items():
             try:
                 self[name] = value
+
+                if name == "install_requires":
+                    warn_accidental_env_marker_misconfig(
+                        "install_requires",
+                        {name: (_, value)},
+                        {name: self.target_obj.install_requires},
+                    )
 
             except KeyError:
                 pass  # Keep silent for a new option may appear anytime.
@@ -702,6 +747,9 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
             section_options,
             self._parse_requirements_list,
         )
+
+        warn_accidental_env_marker_misconfig("extras_require", section_options, parsed)
+
         self['extras_require'] = parsed
 
     def parse_section_data_files(self, section_options):

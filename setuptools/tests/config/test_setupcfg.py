@@ -716,6 +716,51 @@ class TestOptions:
             }
             assert dist.metadata.provides_extras == set(['pdf', 'rest'])
 
+    @pytest.mark.parametrize(
+        "config",
+        [
+            "[options.extras_require]\nfoo = bar;python_version<'3'",
+            "[options.extras_require]\nfoo = bar;os_name=='linux'",
+            "[options.extras_require]\nfoo = bar;python_version<'3'\n",
+            "[options.extras_require]\nfoo = bar;os_name=='linux'\n",
+            "[options]\ninstall_requires = bar;python_version<'3'",
+            "[options]\ninstall_requires = bar;os_name=='linux'",
+            "[options]\ninstall_requires = bar;python_version<'3'\n",
+            "[options]\ninstall_requires = bar;os_name=='linux'\n",
+        ],
+    )
+    def test_warn_accidental_env_marker_misconfig(self, config, tmpdir):
+        fake_env(tmpdir, config)
+        match = (
+            r"One of the parsed requirements in (install_requires|extras_require) "
+            "section looks like a valid environment marker.*"
+        )
+        with pytest.warns(UserWarning, match=match):
+            with get_dist(tmpdir) as _:
+                pass
+
+    @pytest.mark.parametrize(
+        "config",
+        [
+            "[options.extras_require]\nfoo =\n    bar;python_version<'3'",
+            "[options.extras_require]\nfoo = bar;baz\nboo = xxx;yyy",
+            "[options.extras_require]\nfoo =\n    bar;python_version<'3'\n",
+            "[options.extras_require]\nfoo = bar;baz\nboo = xxx;yyy\n",
+            "[options.extras_require]\nfoo =\n    bar\n    python_version<'3'\n",
+            "[options]\ninstall_requires =\n    bar;python_version<'3'",
+            "[options]\ninstall_requires = bar;baz\nboo = xxx;yyy",
+            "[options]\ninstall_requires =\n    bar;python_version<'3'\n",
+            "[options]\ninstall_requires = bar;baz\nboo = xxx;yyy\n",
+            "[options]\ninstall_requires =\n    bar\n    python_version<'3'\n",
+        ],
+    )
+    def test_nowarn_accidental_env_marker_misconfig(self, config, tmpdir, recwarn):
+        fake_env(tmpdir, config)
+        with get_dist(tmpdir) as _:
+            pass
+        # The examples are valid, no warnings shown
+        assert not any(w.category == UserWarning for w in recwarn)
+
     def test_dash_preserved_extras_require(self, tmpdir):
         fake_env(tmpdir, '[options.extras_require]\n' 'foo-a = foo\n' 'foo_b = test\n')
 
