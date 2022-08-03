@@ -198,6 +198,37 @@ This *may* cause the installer (e.g. ``pip``) to effectively run the "legacy"
 installation command: ``python setup.py develop`` [#installer]_.
 
 
+How editable installations work?
+--------------------------------
+
+*Advanced topic*
+
+There are many techniques that can be used to expose packages under development
+in such a way that they are available as if they were installed.
+Depending on the project file structure and the selected mode, ``setuptools``
+will choose one of these approaches for the editable installation [#criteria]_.
+
+A non-exhaustive list of implementation mechanisms is presented below.
+More information is available on the text of :pep:`660 <660#what-to-put-in-the-wheel>`.
+
+- A static ``.pth`` file [#static_pth]_ can be added to one of the directories
+  listed in :func:`site.getsitepackages` or :func:`site.getusersitepackages` to
+  extend :obj:`sys.path`.
+- A directory containing a *farm of file links* that mimic the
+  project structure and point to the original files can be employed.
+  This directory can then be added to :obj:`sys.path` using a static ``.pth`` file.
+- A dynamic ``.pth`` file [#dynamic_pth]_ can also be used to install an
+  "import :term:`finder`" (:obj:`~importlib.abc.MetaPathFinder` or
+  :obj:`~importlib.abc.PathEntryFinder`) that will hook into Python's
+  :doc:`import system <python:reference/import>` machinery.
+
+.. attention::
+   ``Setuptools`` offers *no guarantee* of which technique will be used to
+   perform an editable installation. This will vary from project to project
+   and may change depending on the specific version of ``setuptools`` being
+   used.
+
+
 ----
 
 .. rubric:: Notes
@@ -211,3 +242,16 @@ installation command: ``python setup.py develop`` [#installer]_.
    For this workaround to work, the installer tool needs to support legacy
    editable installations. (Future versions of ``pip``, for example, may drop
    support for this feature).
+
+.. [#criteria]
+   ``Setuptools`` strives to find a balance between allowing the user to see
+   the effects of project files being edited while still trying to keep the
+   editable installation as similar as possible to a regular installation.
+
+.. [#static_pth]
+   I.e., a ``.pth`` file where each line correspond to a path that should be
+   added to :obj:`sys.path`. See :mod:`Site-specific configuration hook <site>`.
+
+.. [#dynamic_pth]
+   I.e., a ``.pth`` file that starts with an ```import`` statement and executes
+   arbitrary Python code. See :mod:`Site-specific configuration hook <site>`.
