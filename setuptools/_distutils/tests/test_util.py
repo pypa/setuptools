@@ -28,7 +28,7 @@ from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
 @pytest.mark.usefixtures('save_env')
 class UtilTestCase(unittest.TestCase):
     def setUp(self):
-        super(UtilTestCase, self).setUp()
+        super().setUp()
         # saving the environment
         self.name = os.name
         self.platform = sys.platform
@@ -63,7 +63,7 @@ class UtilTestCase(unittest.TestCase):
         else:
             del os.uname
         sysconfig._config_vars = copy(self._config_vars)
-        super(UtilTestCase, self).tearDown()
+        super().tearDown()
 
     def _set_uname(self, uname):
         self._uname = uname
@@ -74,25 +74,25 @@ class UtilTestCase(unittest.TestCase):
     def test_get_host_platform(self):
         with unittest.mock.patch('os.name', 'nt'):
             with unittest.mock.patch('sys.version', '... [... (ARM64)]'):
-                self.assertEqual(get_host_platform(), 'win-arm64')
+                assert get_host_platform() == 'win-arm64'
             with unittest.mock.patch('sys.version', '... [... (ARM)]'):
-                self.assertEqual(get_host_platform(), 'win-arm32')
+                assert get_host_platform() == 'win-arm32'
 
         with unittest.mock.patch('sys.version_info', (3, 9, 0, 'final', 0)):
-            self.assertEqual(get_host_platform(), stdlib_sysconfig.get_platform())
+            assert get_host_platform() == stdlib_sysconfig.get_platform()
 
     def test_get_platform(self):
         with unittest.mock.patch('os.name', 'nt'):
             with unittest.mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x86'}):
-                self.assertEqual(get_platform(), 'win32')
+                assert get_platform() == 'win32'
             with unittest.mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x64'}):
-                self.assertEqual(get_platform(), 'win-amd64')
+                assert get_platform() == 'win-amd64'
             with unittest.mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm'}):
-                self.assertEqual(get_platform(), 'win-arm32')
+                assert get_platform() == 'win-arm32'
             with unittest.mock.patch.dict(
                 'os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm64'}
             ):
-                self.assertEqual(get_platform(), 'win-arm64')
+                assert get_platform() == 'win-arm64'
 
     def test_convert_path(self):
         # linux/mac
@@ -103,7 +103,7 @@ class UtilTestCase(unittest.TestCase):
 
         os.path.join = _join
 
-        self.assertEqual(convert_path('/home/to/my/stuff'), '/home/to/my/stuff')
+        assert convert_path('/home/to/my/stuff') == '/home/to/my/stuff'
 
         # win
         os.sep = '\\'
@@ -113,11 +113,13 @@ class UtilTestCase(unittest.TestCase):
 
         os.path.join = _join
 
-        self.assertRaises(ValueError, convert_path, '/home/to/my/stuff')
-        self.assertRaises(ValueError, convert_path, 'home/to/my/stuff/')
+        with pytest.raises(ValueError):
+            convert_path('/home/to/my/stuff')
+        with pytest.raises(ValueError):
+            convert_path('home/to/my/stuff/')
 
-        self.assertEqual(convert_path('home/to/my/stuff'), 'home\\to\\my\\stuff')
-        self.assertEqual(convert_path('.'), os.curdir)
+        assert convert_path('home/to/my/stuff') == 'home\\to\\my\\stuff'
+        assert convert_path('.') == os.curdir
 
     def test_change_root(self):
         # linux/mac
@@ -133,8 +135,8 @@ class UtilTestCase(unittest.TestCase):
 
         os.path.join = _join
 
-        self.assertEqual(change_root('/root', '/old/its/here'), '/root/old/its/here')
-        self.assertEqual(change_root('/root', 'its/here'), '/root/its/here')
+        assert change_root('/root', '/old/its/here') == '/root/old/its/here'
+        assert change_root('/root', 'its/here') == '/root/its/here'
 
         # windows
         os.name = 'nt'
@@ -156,14 +158,15 @@ class UtilTestCase(unittest.TestCase):
 
         os.path.join = _join
 
-        self.assertEqual(
-            change_root('c:\\root', 'c:\\old\\its\\here'), 'c:\\root\\old\\its\\here'
+        assert (
+            change_root('c:\\root', 'c:\\old\\its\\here') == 'c:\\root\\old\\its\\here'
         )
-        self.assertEqual(change_root('c:\\root', 'its\\here'), 'c:\\root\\its\\here')
+        assert change_root('c:\\root', 'its\\here') == 'c:\\root\\its\\here'
 
         # BugsBunny os (it's a great os)
         os.name = 'BugsBunny'
-        self.assertRaises(DistutilsPlatformError, change_root, 'c:\\root', 'its\\here')
+        with pytest.raises(DistutilsPlatformError):
+            change_root('c:\\root', 'its\\here')
 
         # XXX platforms to be covered: mac
 
@@ -173,8 +176,8 @@ class UtilTestCase(unittest.TestCase):
 
         check_environ()
 
-        self.assertEqual(os.environ['PLAT'], get_platform())
-        self.assertEqual(util._environ_checked, 1)
+        assert os.environ['PLAT'] == get_platform()
+        assert util._environ_checked == 1
 
     @unittest.skipUnless(os.name == 'posix', 'specific to posix')
     def test_check_environ_getpwuid(self):
@@ -189,7 +192,7 @@ class UtilTestCase(unittest.TestCase):
         )
         with mock.patch.object(pwd, 'getpwuid', return_value=result):
             check_environ()
-            self.assertEqual(os.environ['HOME'], '/home/distutils')
+            assert os.environ['HOME'] == '/home/distutils'
 
         util._environ_checked = 0
         os.environ.pop('HOME', None)
@@ -197,23 +200,25 @@ class UtilTestCase(unittest.TestCase):
         # bpo-10496: Catch pwd.getpwuid() error
         with mock.patch.object(pwd, 'getpwuid', side_effect=KeyError):
             check_environ()
-            self.assertNotIn('HOME', os.environ)
+            assert 'HOME' not in os.environ
 
     def test_split_quoted(self):
-        self.assertEqual(
-            split_quoted('""one"" "two" \'three\' \\four'),
-            ['one', 'two', 'three', 'four'],
-        )
+        assert split_quoted('""one"" "two" \'three\' \\four') == [
+            'one',
+            'two',
+            'three',
+            'four',
+        ]
 
     def test_strtobool(self):
         yes = ('y', 'Y', 'yes', 'True', 't', 'true', 'True', 'On', 'on', '1')
         no = ('n', 'no', 'f', 'false', 'off', '0', 'Off', 'No', 'N')
 
         for y in yes:
-            self.assertTrue(strtobool(y))
+            assert strtobool(y)
 
         for n in no:
-            self.assertFalse(strtobool(n))
+            assert not strtobool(n)
 
     def test_rfc822_escape(self):
         header = 'I am a\npoor\nlonesome\nheader\n'
@@ -221,7 +226,7 @@ class UtilTestCase(unittest.TestCase):
         wanted = ('I am a%(8s)spoor%(8s)slonesome%(8s)s' 'header%(8s)s') % {
             '8s': '\n' + 8 * ' '
         }
-        self.assertEqual(res, wanted)
+        assert res == wanted
 
     def test_dont_write_bytecode(self):
         # makes sure byte_compile raise a DistutilsError
@@ -229,7 +234,8 @@ class UtilTestCase(unittest.TestCase):
         old_dont_write_bytecode = sys.dont_write_bytecode
         sys.dont_write_bytecode = True
         try:
-            self.assertRaises(DistutilsByteCompileError, byte_compile, [])
+            with pytest.raises(DistutilsByteCompileError):
+                byte_compile([])
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
@@ -237,4 +243,4 @@ class UtilTestCase(unittest.TestCase):
         # test obsolete function to ensure backward compat (#4931)
         exc = IOError("Unable to find batch file")
         msg = grok_environment_error(exc)
-        self.assertEqual(msg, "error: Unable to find batch file")
+        assert msg == "error: Unable to find batch file"

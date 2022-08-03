@@ -14,7 +14,7 @@ from distutils import _msvccompiler
 needs_winreg = pytest.mark.skipif('not hasattr(_msvccompiler, "winreg")')
 
 
-class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
+class Testmsvccompiler(support.TempdirManager):
     def test_no_compiler(self):
         # makes sure query_vcvarsall raises
         # a DistutilsPlatformError if the compiler
@@ -25,11 +25,10 @@ class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
         old_find_vcvarsall = _msvccompiler._find_vcvarsall
         _msvccompiler._find_vcvarsall = _find_vcvarsall
         try:
-            self.assertRaises(
-                DistutilsPlatformError,
-                _msvccompiler._get_vc_env,
-                'wont find this version',
-            )
+            with pytest.raises(DistutilsPlatformError):
+                _msvccompiler._get_vc_env(
+                    'wont find this version',
+                )
         finally:
             _msvccompiler._find_vcvarsall = old_find_vcvarsall
 
@@ -43,8 +42,8 @@ class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
         os.environ[test_var] = test_value
         try:
             env = _msvccompiler._get_vc_env('x86')
-            self.assertIn(test_var.lower(), env)
-            self.assertEqual(test_value, env[test_var.lower()])
+            assert test_var.lower() in env
+            assert test_value == env[test_var.lower()]
         finally:
             os.environ.pop(test_var)
             if old_distutils_use_sdk:
@@ -56,8 +55,8 @@ class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
         # and mark it skipped if we do not.
         version, path = _msvccompiler._find_vc2017()
         if version:
-            self.assertGreaterEqual(version, 15)
-            self.assertTrue(os.path.isdir(path))
+            assert version >= 15
+            assert os.path.isdir(path)
         else:
             raise unittest.SkipTest("VS 2017 is not installed")
 
@@ -67,8 +66,8 @@ class msvccompilerTestCase(support.TempdirManager, unittest.TestCase):
         # and mark it skipped if we do not.
         version, path = _msvccompiler._find_vc2015()
         if version:
-            self.assertGreaterEqual(version, 14)
-            self.assertTrue(os.path.isdir(path))
+            assert version >= 14
+            assert os.path.isdir(path)
         else:
             raise unittest.SkipTest("VS 2015 is not installed")
 
@@ -86,7 +85,7 @@ class CheckThread(threading.Thread):
         return not self.exc_info
 
 
-class TestSpawn(unittest.TestCase):
+class TestSpawn:
     def test_concurrent_safe(self):
         """
         Concurrent calls to spawn should have consistent results.

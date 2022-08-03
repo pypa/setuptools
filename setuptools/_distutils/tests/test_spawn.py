@@ -11,9 +11,10 @@ from distutils.spawn import find_executable
 from distutils.spawn import spawn
 from distutils.errors import DistutilsExecError
 from distutils.tests import support
+import pytest
 
 
-class SpawnTestCase(support.TempdirManager, support.LoggingSilencer, unittest.TestCase):
+class TestSpawn(support.TempdirManager, support.LoggingSilencer):
     @unittest.skipUnless(os.name in ('nt', 'posix'), 'Runs only under posix or nt')
     def test_spawn(self):
         tmpdir = self.mkdtemp()
@@ -28,7 +29,8 @@ class SpawnTestCase(support.TempdirManager, support.LoggingSilencer, unittest.Te
             self.write_file(exe, 'exit 1')
 
         os.chmod(exe, 0o777)
-        self.assertRaises(DistutilsExecError, spawn, [exe])
+        with pytest.raises(DistutilsExecError):
+            spawn([exe])
 
         # now something that works
         if sys.platform != 'win32':
@@ -56,22 +58,22 @@ class SpawnTestCase(support.TempdirManager, support.LoggingSilencer, unittest.Te
 
             # test path parameter
             rv = find_executable(program, path=tmp_dir)
-            self.assertEqual(rv, filename)
+            assert rv == filename
 
             if sys.platform == 'win32':
                 # test without ".exe" extension
                 rv = find_executable(program_noeext, path=tmp_dir)
-                self.assertEqual(rv, filename)
+                assert rv == filename
 
             # test find in the current directory
             with os_helper.change_cwd(tmp_dir):
                 rv = find_executable(program)
-                self.assertEqual(rv, program)
+                assert rv == program
 
             # test non-existent program
             dont_exist_program = "dontexist_" + program
             rv = find_executable(dont_exist_program, path=tmp_dir)
-            self.assertIsNone(rv)
+            assert rv is None
 
             # PATH='': no match, except in the current directory
             with os_helper.EnvironmentVarGuard() as env:
@@ -80,12 +82,12 @@ class SpawnTestCase(support.TempdirManager, support.LoggingSilencer, unittest.Te
                     'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
                 ), unittest.mock.patch('distutils.spawn.os.defpath', tmp_dir):
                     rv = find_executable(program)
-                    self.assertIsNone(rv)
+                    assert rv is None
 
                     # look in current directory
                     with os_helper.change_cwd(tmp_dir):
                         rv = find_executable(program)
-                        self.assertEqual(rv, program)
+                        assert rv == program
 
             # PATH=':': explicitly looks in the current directory
             with os_helper.EnvironmentVarGuard() as env:
@@ -94,12 +96,12 @@ class SpawnTestCase(support.TempdirManager, support.LoggingSilencer, unittest.Te
                     'distutils.spawn.os.confstr', return_value='', create=True
                 ), unittest.mock.patch('distutils.spawn.os.defpath', ''):
                     rv = find_executable(program)
-                    self.assertIsNone(rv)
+                    assert rv is None
 
                     # look in current directory
                     with os_helper.change_cwd(tmp_dir):
                         rv = find_executable(program)
-                        self.assertEqual(rv, program)
+                        assert rv == program
 
             # missing PATH: test os.confstr("CS_PATH") and os.defpath
             with os_helper.EnvironmentVarGuard() as env:
@@ -110,16 +112,16 @@ class SpawnTestCase(support.TempdirManager, support.LoggingSilencer, unittest.Te
                     'distutils.spawn.os.confstr', side_effect=ValueError, create=True
                 ), unittest.mock.patch('distutils.spawn.os.defpath', tmp_dir):
                     rv = find_executable(program)
-                    self.assertEqual(rv, filename)
+                    assert rv == filename
 
                 # with confstr
                 with unittest.mock.patch(
                     'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
                 ), unittest.mock.patch('distutils.spawn.os.defpath', ''):
                     rv = find_executable(program)
-                    self.assertEqual(rv, filename)
+                    assert rv == filename
 
     def test_spawn_missing_exe(self):
-        with self.assertRaises(DistutilsExecError) as ctx:
+        with pytest.raises(DistutilsExecError) as ctx:
             spawn(['does-not-exist'])
-        self.assertIn("command 'does-not-exist' failed", str(ctx.exception))
+        assert "command 'does-not-exist' failed" in str(ctx.value)

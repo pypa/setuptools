@@ -149,7 +149,7 @@ def setup(**attrs):  # noqa: C901
         if 'name' not in attrs:
             raise SystemExit("error in setup command: %s" % msg)
         else:
-            raise SystemExit("error in %s setup command: %s" % (attrs['name'], msg))
+            raise SystemExit("error in {} setup command: {}".format(attrs['name'], msg))
 
     if _setup_stop_after == "init":
         return dist
@@ -203,10 +203,10 @@ def run_commands(dist):
         raise SystemExit("interrupted")
     except OSError as exc:
         if DEBUG:
-            sys.stderr.write("error: %s\n" % (exc,))
+            sys.stderr.write("error: {}\n".format(exc))
             raise
         else:
-            raise SystemExit("error: %s" % (exc,))
+            raise SystemExit("error: {}".format(exc))
 
     except (DistutilsError, CCompilerError) as msg:
         if DEBUG:
@@ -249,7 +249,7 @@ def run_setup(script_name, script_args=None, stop_after="run"):
     used to drive the Distutils.
     """
     if stop_after not in ('init', 'config', 'commandline', 'run'):
-        raise ValueError("invalid value for 'stop_after': %r" % (stop_after,))
+        raise ValueError("invalid value for 'stop_after': {!r}".format(stop_after))
 
     global _setup_stop_after, _setup_distribution
     _setup_stop_after = stop_after

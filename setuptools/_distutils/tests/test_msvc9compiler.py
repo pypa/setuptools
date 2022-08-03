@@ -1,10 +1,10 @@
 """Tests for distutils.msvc9compiler."""
 import sys
-import unittest
 import os
 
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
+import pytest
 
 # A manifest with the only assembly reference being the msvcrt assembly, so
 # should have the assembly completely stripped.  Note that although the
@@ -100,8 +100,8 @@ else:
     SKIP_MESSAGE = "These tests are only for win32"
 
 
-@unittest.skipUnless(SKIP_MESSAGE is None, SKIP_MESSAGE)
-class msvc9compilerTestCase(support.TempdirManager, unittest.TestCase):
+@pytest.mark.skipif('SKIP_MESSAGE', reason=SKIP_MESSAGE)
+class Testmsvc9compiler(support.TempdirManager):
     def test_no_compiler(self):
         # makes sure query_vcvarsall raises
         # a DistutilsPlatformError if the compiler
@@ -116,31 +116,31 @@ class msvc9compilerTestCase(support.TempdirManager, unittest.TestCase):
         old_find_vcvarsall = msvc9compiler.find_vcvarsall
         msvc9compiler.find_vcvarsall = _find_vcvarsall
         try:
-            self.assertRaises(
-                DistutilsPlatformError, query_vcvarsall, 'wont find this version'
-            )
+            with pytest.raises(DistutilsPlatformError):
+                query_vcvarsall('wont find this version')
         finally:
             msvc9compiler.find_vcvarsall = old_find_vcvarsall
 
     def test_reg_class(self):
         from distutils.msvc9compiler import Reg
 
-        self.assertRaises(KeyError, Reg.get_value, 'xxx', 'xxx')
+        with pytest.raises(KeyError):
+            Reg.get_value('xxx', 'xxx')
 
         # looking for values that should exist on all
         # windows registry versions.
         path = r'Control Panel\Desktop'
         v = Reg.get_value(path, 'dragfullwindows')
-        self.assertIn(v, ('0', '1', '2'))
+        assert v in ('0', '1', '2')
 
         import winreg
 
         HKCU = winreg.HKEY_CURRENT_USER
         keys = Reg.read_keys(HKCU, 'xxxx')
-        self.assertEqual(keys, None)
+        assert keys is None
 
         keys = Reg.read_keys(HKCU, r'Control Panel')
-        self.assertIn('Desktop', keys)
+        assert 'Desktop' in keys
 
     def test_remove_visual_c_ref(self):
         from distutils.msvc9compiler import MSVCCompiler
@@ -165,7 +165,7 @@ class msvc9compilerTestCase(support.TempdirManager, unittest.TestCase):
             f.close()
 
         # makes sure the manifest was properly cleaned
-        self.assertEqual(content, _CLEANED_MANIFEST)
+        assert content == _CLEANED_MANIFEST
 
     def test_remove_entire_manifest(self):
         from distutils.msvc9compiler import MSVCCompiler
@@ -180,4 +180,4 @@ class msvc9compilerTestCase(support.TempdirManager, unittest.TestCase):
 
         compiler = MSVCCompiler()
         got = compiler._remove_visual_c_ref(manifest)
-        self.assertIsNone(got)
+        assert got is None

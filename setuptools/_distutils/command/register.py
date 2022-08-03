@@ -174,7 +174,7 @@ Your selection [default 1]: ''',
             auth.add_password(self.realm, host, username, password)
             # send the info to the server and report the result
             code, result = self.post_to_server(self.build_post_data('submit'), auth)
-            self.announce('Server response (%s): %s' % (code, result), log.INFO)
+            self.announce('Server response ({}): {}'.format(code, result), log.INFO)
 
             # possibly save the login
             if code == 200:
@@ -224,7 +224,7 @@ Your selection [default 1]: ''',
                 log.info('Server response (%s): %s', code, result)
             else:
                 log.info('You will receive an email shortly.')
-                log.info(('Follow the instructions in it to ' 'complete registration.'))
+                log.info('Follow the instructions in it to ' 'complete registration.')
         elif choice == '3':
             data = {':action': 'password_reset'}
             data['email'] = ''
@@ -265,7 +265,7 @@ Your selection [default 1]: ''',
         '''Post a query to the server, and return a string response.'''
         if 'name' in data:
             self.announce(
-                'Registering %s to %s' % (data['name'], self.repository), log.INFO
+                'Registering {} to {}'.format(data['name'], self.repository), log.INFO
             )
         # Build up the MIME payload for the urllib2 POST data
         boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'

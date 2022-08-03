@@ -12,6 +12,7 @@ from distutils.unixccompiler import UnixCCompiler
 from distutils.util import _clear_cached_macosx_ver
 
 from . import support
+import pytest
 
 
 class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
@@ -74,7 +75,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
         def do_darwin_test(syscfg_macosx_ver, env_macosx_ver, expected_flag):
             env = os.environ
-            msg = "macOS version = (sysconfig=%r, env=%r)" % (
+            msg = "macOS version = (sysconfig={!r}, env={!r})".format(
                 syscfg_macosx_ver,
                 env_macosx_ver,
             )
@@ -93,10 +94,10 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
             # Run the test
             if expected_flag is not None:
-                self.assertEqual(self.cc.rpath_foo(), expected_flag, msg=msg)
+                assert self.cc.rpath_foo() == expected_flag, msg
             else:
-                with self.assertRaisesRegex(
-                    DistutilsPlatformError, darwin_ver_var + r' mismatch', msg=msg
+                with pytest.raises(
+                    DistutilsPlatformError, match=darwin_ver_var + r' mismatch'
                 ):
                     self.cc.rpath_foo()
 
@@ -128,19 +129,19 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             return 'xxx'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), ['+s', '-L/foo'])
+        assert self.cc.rpath_foo() == ['+s', '-L/foo']
 
         def gcv(v):
             return 'gcc'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), ['-Wl,+s', '-L/foo'])
+        assert self.cc.rpath_foo() == ['-Wl,+s', '-L/foo']
 
         def gcv(v):
             return 'g++'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), ['-Wl,+s', '-L/foo'])
+        assert self.cc.rpath_foo() == ['-Wl,+s', '-L/foo']
 
         sysconfig.get_config_var = old_gcv
 
@@ -154,7 +155,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         def gcv(v):
             if v == 'CC':
@@ -163,7 +164,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         # GCC non-GNULD
         sys.platform = 'bar'
@@ -175,7 +176,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'no'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,-R/foo'
 
         # GCC GNULD with fully qualified configuration prefix
         # see #7617
@@ -188,7 +189,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         # non-GCC GNULD
         sys.platform = 'bar'
@@ -200,7 +201,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         # non-GCC non-GNULD
         sys.platform = 'bar'
@@ -212,7 +213,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'no'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,-R/foo'
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_cc_overrides_ldshared(self):
@@ -234,7 +235,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             env['CC'] = 'my_cc'
             del env['LDSHARED']
             sysconfig.customize_compiler(self.cc)
-        self.assertEqual(self.cc.linker_so[0], 'my_cc')
+        assert self.cc.linker_so[0] == 'my_cc'
 
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_cc_overrides_ldshared_for_cxx_correctly(self):
@@ -270,7 +271,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             env['CXX'] = 'my_cxx'
             del env['LDSHARED']
             sysconfig.customize_compiler(self.cc)
-            self.assertEqual(self.cc.linker_so[0:2], ['ccache', 'my_cc'])
+            assert self.cc.linker_so[0:2] == ['ccache', 'my_cc']
             self.cc.link(None, [], 'a.out', target_lang='c++')
             call_args = mock_spawn.call_args[0][0]
             expected = ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup']
@@ -297,7 +298,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             env['CC'] = 'my_cc'
             env['LDSHARED'] = 'my_ld -bundle -dynamic'
             sysconfig.customize_compiler(self.cc)
-        self.assertEqual(self.cc.linker_so[0], 'my_ld')
+        assert self.cc.linker_so[0] == 'my_ld'
 
     def test_has_function(self):
         # Issue https://github.com/pypa/distutils/issues/64:

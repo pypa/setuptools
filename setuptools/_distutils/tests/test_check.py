@@ -6,6 +6,7 @@ import unittest
 from distutils.command.check import check, HAS_DOCUTILS
 from distutils.tests import support
 from distutils.errors import DistutilsSetupError
+import pytest
 
 try:
     import pygments
@@ -16,7 +17,8 @@ except ImportError:
 HERE = os.path.dirname(__file__)
 
 
-class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.TestCase):
+@support.combine_markers
+class TestCheck(support.LoggingSilencer, support.TempdirManager):
     def _run(self, metadata=None, cwd=None, **options):
         if metadata is None:
             metadata = {}
@@ -39,7 +41,7 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
         # by default, check is checking the metadata
         # should have some warnings
         cmd = self._run()
-        self.assertEqual(cmd._warnings, 1)
+        assert cmd._warnings == 1
 
         # now let's add the required fields
         # and run it again, to make sure we don't get
@@ -52,15 +54,16 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
             'version': 'xxx',
         }
         cmd = self._run(metadata)
-        self.assertEqual(cmd._warnings, 0)
+        assert cmd._warnings == 0
 
         # now with the strict mode, we should
         # get an error if there are missing metadata
-        self.assertRaises(DistutilsSetupError, self._run, {}, **{'strict': 1})
+        with pytest.raises(DistutilsSetupError):
+            self._run({}, **{'strict': 1})
 
         # and of course, no error when all metadata are present
         cmd = self._run(metadata, strict=1)
-        self.assertEqual(cmd._warnings, 0)
+        assert cmd._warnings == 0
 
         # now a test with non-ASCII characters
         metadata = {
@@ -73,7 +76,7 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
             'long_description': 'More things about esszet \u00df',
         }
         cmd = self._run(metadata)
-        self.assertEqual(cmd._warnings, 0)
+        assert cmd._warnings == 0
 
     def test_check_author_maintainer(self):
         for kind in ("author", "maintainer"):
@@ -86,18 +89,18 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
                 'version': 'xxx',
             }
             cmd = self._run(metadata)
-            self.assertEqual(cmd._warnings, 0)
+            assert cmd._warnings == 0
 
             # the check should not warn if only email is given
             metadata[kind + '_email'] = 'name@email.com'
             cmd = self._run(metadata)
-            self.assertEqual(cmd._warnings, 0)
+            assert cmd._warnings == 0
 
             # the check should not warn if only the name is given
             metadata[kind] = "Name"
             del metadata[kind + '_email']
             cmd = self._run(metadata)
-            self.assertEqual(cmd._warnings, 0)
+            assert cmd._warnings == 0
 
     @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_document(self):
@@ -107,12 +110,12 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
         # let's see if it detects broken rest
         broken_rest = 'title\n===\n\ntest'
         msgs = cmd._check_rst_data(broken_rest)
-        self.assertEqual(len(msgs), 1)
+        assert len(msgs) == 1
 
         # and non-broken rest
         rest = 'title\n=====\n\ntest'
         msgs = cmd._check_rst_data(rest)
-        self.assertEqual(len(msgs), 0)
+        assert len(msgs) == 0
 
     @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_restructuredtext(self):
@@ -121,7 +124,7 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
         pkg_info, dist = self.create_dist(long_description=broken_rest)
         cmd = check(dist)
         cmd.check_restructuredtext()
-        self.assertEqual(cmd._warnings, 1)
+        assert cmd._warnings == 1
 
         # let's see if we have an error with strict=1
         metadata = {
@@ -132,22 +135,18 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
             'version': 'xxx',
             'long_description': broken_rest,
         }
-        self.assertRaises(
-            DistutilsSetupError,
-            self._run,
-            metadata,
-            **{'strict': 1, 'restructuredtext': 1}
-        )
+        with pytest.raises(DistutilsSetupError):
+            self._run(metadata, **{'strict': 1, 'restructuredtext': 1})
 
         # and non-broken rest, including a non-ASCII character to test #12114
         metadata['long_description'] = 'title\n=====\n\ntest \u00df'
         cmd = self._run(metadata, strict=1, restructuredtext=1)
-        self.assertEqual(cmd._warnings, 0)
+        assert cmd._warnings == 0
 
         # check that includes work to test #31292
         metadata['long_description'] = 'title\n=====\n\n.. include:: includetest.rst'
         cmd = self._run(metadata, cwd=HERE, strict=1, restructuredtext=1)
-        self.assertEqual(cmd._warnings, 0)
+        assert cmd._warnings == 0
 
     @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_restructuredtext_with_syntax_highlight(self):
@@ -185,14 +184,14 @@ class CheckTestCase(support.LoggingSilencer, support.TempdirManager, unittest.Te
             cmd.check_restructuredtext()
             msgs = cmd._check_rst_data(rest_with_code)
             if pygments is not None:
-                self.assertEqual(len(msgs), 0)
+                assert len(msgs) == 0
             else:
-                self.assertEqual(len(msgs), 1)
-                self.assertEqual(
-                    str(msgs[0][1]), 'Cannot analyze code. Pygments package not found.'
+                assert len(msgs) == 1
+                assert (
+                    str(msgs[0][1])
+                    == 'Cannot analyze code. Pygments package not found.'
                 )
 
     def test_check_all(self):
-        self.assertRaises(
-            DistutilsSetupError, self._run, {}, **{'strict': 1, 'restructuredtext': 1}
-        )
+        with pytest.raises(DistutilsSetupError):
+            self._run({}, **{'strict': 1, 'restructuredtext': 1})

@@ -1,14 +1,14 @@
 """Tests for distutils.extension."""
-import unittest
 import os
 import warnings
 
 from distutils.extension import read_setup_file, Extension
 
 from .py38compat import check_warnings
+import pytest
 
 
-class ExtensionTestCase(unittest.TestCase):
+class TestExtension:
     def test_read_setup_file(self):
         # trying to read a Setup file
         # (sample extracted from the PyGame project)
@@ -57,20 +57,23 @@ class ExtensionTestCase(unittest.TestCase):
             'transform',
         ]
 
-        self.assertEqual(names, wanted)
+        assert names == wanted
 
     def test_extension_init(self):
         # the first argument, which is the name, must be a string
-        self.assertRaises(AssertionError, Extension, 1, [])
+        with pytest.raises(AssertionError):
+            Extension(1, [])
         ext = Extension('name', [])
-        self.assertEqual(ext.name, 'name')
+        assert ext.name == 'name'
 
         # the second argument, which is the list of files, must
         # be a list of strings
-        self.assertRaises(AssertionError, Extension, 'name', 'file')
-        self.assertRaises(AssertionError, Extension, 'name', ['file', 1])
+        with pytest.raises(AssertionError):
+            Extension('name', 'file')
+        with pytest.raises(AssertionError):
+            Extension('name', ['file', 1])
         ext = Extension('name', ['file1', 'file2'])
-        self.assertEqual(ext.sources, ['file1', 'file2'])
+        assert ext.sources == ['file1', 'file2']
 
         # others arguments have defaults
         for attr in (
@@ -87,17 +90,15 @@ class ExtensionTestCase(unittest.TestCase):
             'swig_opts',
             'depends',
         ):
-            self.assertEqual(getattr(ext, attr), [])
+            assert getattr(ext, attr) == []
 
-        self.assertEqual(ext.language, None)
-        self.assertEqual(ext.optional, None)
+        assert ext.language is None
+        assert ext.optional is None
 
         # if there are unknown keyword options, warn about them
         with check_warnings() as w:
             warnings.simplefilter('always')
             ext = Extension('name', ['file1', 'file2'], chic=True)
 
-        self.assertEqual(len(w.warnings), 1)
-        self.assertEqual(
-            str(w.warnings[0].message), "Unknown Extension options: 'chic'"
-        )
+        assert len(w.warnings) == 1
+        assert str(w.warnings[0].message) == "Unknown Extension options: 'chic'"

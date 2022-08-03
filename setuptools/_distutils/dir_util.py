@@ -34,7 +34,7 @@ def mkpath(name, mode=0o777, verbose=1, dry_run=0):  # noqa: C901
     # Detect a common bug -- name is None
     if not isinstance(name, str):
         raise DistutilsInternalError(
-            "mkpath: 'name' must be a string (got %r)" % (name,)
+            "mkpath: 'name' must be a string (got {!r})".format(name)
         )
 
     # XXX what's the better way to handle verbosity? print as we create
@@ -76,7 +76,7 @@ def mkpath(name, mode=0o777, verbose=1, dry_run=0):  # noqa: C901
             except OSError as exc:
                 if not (exc.errno == errno.EEXIST and os.path.isdir(head)):
                     raise DistutilsFileError(
-                        "could not create '%s': %s" % (head, exc.args[-1])
+                        "could not create '{}': {}".format(head, exc.args[-1])
                     )
             created_dirs.append(head)
 
@@ -144,7 +144,7 @@ def copy_tree(  # noqa: C901
             names = []
         else:
             raise DistutilsFileError(
-                "error listing files in '%s': %s" % (src, e.strerror)
+                "error listing files in '{}': {}".format(src, e.strerror)
             )
 
     if not dry_run:

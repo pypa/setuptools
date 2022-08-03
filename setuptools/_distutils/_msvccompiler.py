@@ -144,12 +144,12 @@ def _get_vc_env(plat_spec):
 
     try:
         out = subprocess.check_output(
-            'cmd /u /c "{}" {} && set'.format(vcvarsall, plat_spec),
+            f'cmd /u /c "{vcvarsall}" {plat_spec} && set',
             stderr=subprocess.STDOUT,
         ).decode('utf-16le', errors='replace')
     except subprocess.CalledProcessError as exc:
         log.error(exc.output)
-        raise DistutilsPlatformError("Error executing {}".format(exc.cmd))
+        raise DistutilsPlatformError(f"Error executing {exc.cmd}")
 
     env = {
         key.lower(): value
@@ -232,7 +232,7 @@ class MSVCCompiler(CCompiler):
         # sanity check for platforms to prevent obscure errors later.
         if plat_name not in PLAT_TO_VCVARS:
             raise DistutilsPlatformError(
-                "--plat-name must be one of {}".format(tuple(PLAT_TO_VCVARS))
+                f"--plat-name must be one of {tuple(PLAT_TO_VCVARS)}"
             )
 
         # Get the vcvarsall.bat spec for the requested platform.
@@ -341,7 +341,7 @@ class MSVCCompiler(CCompiler):
                 # Better to raise an exception instead of silently continuing
                 # and later complain about sources and targets having
                 # different lengths
-                raise CompileError("Don't know how to compile {}".format(p))
+                raise CompileError(f"Don't know how to compile {p}")
 
         return list(map(make_out_path, source_filenames))
 
@@ -425,9 +425,7 @@ class MSVCCompiler(CCompiler):
                 continue
             else:
                 # how to handle this file?
-                raise CompileError(
-                    "Don't know how to compile {} to {}".format(src, obj)
-                )
+                raise CompileError(f"Don't know how to compile {src} to {obj}")
 
             args = [self.cc] + compile_opts + pp_opts
             if add_cpp_opts:

@@ -17,6 +17,7 @@ import os
 import sys
 import re
 import shlex
+import itertools
 
 from distutils import sysconfig
 from distutils.dep_util import newer
@@ -360,21 +361,38 @@ class UnixCCompiler(CCompiler):
         return os.path.join(match.group(1), dir[1:]) if apply_root else dir
 
     def find_library_file(self, dirs, lib, debug=0):
-        """
+        r"""
         Second-guess the linker with not much hard
         data to go on: GCC seems to prefer the shared library, so
         assume that *all* Unix C compilers do,
         ignoring even GCC's "-static" option.
+
+        >>> compiler = UnixCCompiler()
+        >>> compiler._library_root = lambda dir: dir
+        >>> monkeypatch = getfixture('monkeypatch')
+        >>> monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
+        >>> dirs = ('/foo/bar/missing', '/foo/bar/existing')
+        >>> compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+        '/foo/bar/existing/libabc.dylib'
+        >>> compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+        '/foo/bar/existing/libabc.dylib'
+        >>> monkeypatch.setattr(os.path, 'exists',
+        ...     lambda d: 'existing' in d and '.a' in d)
+        >>> compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+        '/foo/bar/existing/libabc.a'
+        >>> compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+        '/foo/bar/existing/libabc.a'
         """
         lib_names = (
             self.library_filename(lib, lib_type=type)
             for type in 'dylib xcode_stub shared static'.split()
         )
 
+        roots = map(self._library_root, dirs)
+
         searched = (
             os.path.join(root, lib_name)
-            for root in map(self._library_root, dirs)
-            for lib_name in lib_names
+            for root, lib_name in itertools.product(roots, lib_names)
         )
 
         found = filter(os.path.exists, searched)
