@@ -185,7 +185,7 @@ class bdist_wininst(Command):
             if not target_version:
                 assert self.skip_build, "Should have already checked this"
                 target_version = '%d.%d' % sys.version_info[:2]
-            plat_specifier = ".%s-%s" % (self.plat_name, target_version)
+            plat_specifier = ".{}-{}".format(self.plat_name, target_version)
             build = self.get_finalized_command('build')
             build.build_lib = os.path.join(build.build_base, 'lib' + plat_specifier)
 
@@ -259,8 +259,8 @@ class bdist_wininst(Command):
         ]:
             data = getattr(metadata, name, "")
             if data:
-                info = info + ("\n    %s: %s" % (name.capitalize(), escape(data)))
-                lines.append("%s=%s" % (name, escape(data)))
+                info = info + ("\n    {}: {}".format(name.capitalize(), escape(data)))
+                lines.append("{}={}".format(name, escape(data)))
 
         # The [setup] section contains entries controlling
         # the installer runtime.
@@ -280,7 +280,7 @@ class bdist_wininst(Command):
         import time
         import distutils
 
-        build_info = "Built %s with distutils-%s" % (
+        build_info = "Built {} with distutils-{}".format(
             time.ctime(time.time()),
             distutils.__version__,
         )
@@ -319,7 +319,7 @@ class bdist_wininst(Command):
                 # We need to normalize newlines, so we open in text mode and
                 # convert back to bytes. "latin-1" simply avoids any possible
                 # failures.
-                with open(self.pre_install_script, "r", encoding="latin-1") as script:
+                with open(self.pre_install_script, encoding="latin-1") as script:
                     script_data = script.read().encode("latin-1")
                 cfgdata = cfgdata + script_data + b"\n\0"
             else:
@@ -349,11 +349,11 @@ class bdist_wininst(Command):
             # it's better to include this in the name
             installer_name = os.path.join(
                 self.dist_dir,
-                "%s.%s-py%s.exe" % (fullname, self.plat_name, self.target_version),
+                "{}.{}-py{}.exe".format(fullname, self.plat_name, self.target_version),
             )
         else:
             installer_name = os.path.join(
-                self.dist_dir, "%s.%s.exe" % (fullname, self.plat_name)
+                self.dist_dir, "{}.{}.exe".format(fullname, self.plat_name)
             )
         return installer_name
 
@@ -410,7 +410,7 @@ class bdist_wininst(Command):
         else:
             sfix = ''
 
-        filename = os.path.join(directory, "wininst-%s%s.exe" % (bv, sfix))
+        filename = os.path.join(directory, "wininst-{}{}.exe".format(bv, sfix))
         f = open(filename, "rb")
         try:
             return f.read()

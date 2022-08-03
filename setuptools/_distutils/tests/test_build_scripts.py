@@ -1,7 +1,6 @@
 """Tests for distutils.command.build_scripts."""
 
 import os
-import unittest
 
 from distutils.command.build_scripts import build_scripts
 from distutils.core import Distribution
@@ -10,18 +9,16 @@ from distutils import sysconfig
 from distutils.tests import support
 
 
-class BuildScriptsTestCase(
-    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
-):
+class TestBuildScripts(support.TempdirManager, support.LoggingSilencer):
     def test_default_settings(self):
         cmd = self.get_build_scripts_cmd("/foo/bar", [])
-        self.assertFalse(cmd.force)
-        self.assertIsNone(cmd.build_dir)
+        assert not cmd.force
+        assert cmd.build_dir is None
 
         cmd.finalize_options()
 
-        self.assertTrue(cmd.force)
-        self.assertEqual(cmd.build_dir, "/foo/bar")
+        assert cmd.force
+        assert cmd.build_dir == "/foo/bar"
 
     def test_build(self):
         source = self.mkdtemp()
@@ -36,7 +33,7 @@ class BuildScriptsTestCase(
 
         built = os.listdir(target)
         for name in expected:
-            self.assertIn(name, built)
+            assert name in built
 
     def get_build_scripts_cmd(self, target, scripts):
         import sys
@@ -106,4 +103,4 @@ class BuildScriptsTestCase(
 
         built = os.listdir(target)
         for name in expected:
-            self.assertIn(name, built)
+            assert name in built

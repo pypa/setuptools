@@ -60,7 +60,7 @@ class Version:
         )
 
     def __repr__(self):
-        return "%s ('%s')" % (self.__class__.__name__, str(self))
+        return "{} ('{}')".format(self.__class__.__name__, str(self))
 
     def __eq__(self, other):
         c = self._cmp(other)

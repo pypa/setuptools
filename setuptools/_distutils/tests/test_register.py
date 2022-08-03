@@ -14,6 +14,7 @@ from distutils.errors import DistutilsSetupError
 from distutils.log import INFO
 
 from distutils.tests.test_config import BasePyPIRCCommandTestCase
+import pytest
 
 try:
     import docutils
@@ -41,7 +42,7 @@ password:password
 """
 
 
-class Inputs(object):
+class Inputs:
     """Fakes user inputs."""
 
     def __init__(self, *answers):
@@ -55,7 +56,7 @@ class Inputs(object):
             self.index += 1
 
 
-class FakeOpener(object):
+class FakeOpener:
     """Fakes a PyPI server"""
 
     def __init__(self):
@@ -79,7 +80,7 @@ class FakeOpener(object):
 
 class RegisterTestCase(BasePyPIRCCommandTestCase):
     def setUp(self):
-        super(RegisterTestCase, self).setUp()
+        super().setUp()
         # patching the password prompt
         self._old_getpass = getpass.getpass
 
@@ -95,7 +96,7 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         getpass.getpass = self._old_getpass
         urllib.request._opener = None
         urllib.request.build_opener = self.old_opener
-        super(RegisterTestCase, self).tearDown()
+        super().tearDown()
 
     def _get_cmd(self, metadata=None):
         if metadata is None:
@@ -117,7 +118,7 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         cmd = self._get_cmd()
 
         # we shouldn't have a .pypirc file yet
-        self.assertFalse(os.path.exists(self.rc))
+        assert not os.path.exists(self.rc)
 
         # patching input and getpass.getpass
         # so register gets happy
@@ -136,13 +137,13 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
             del register_module.input
 
         # we should have a brand new .pypirc file
-        self.assertTrue(os.path.exists(self.rc))
+        assert os.path.exists(self.rc)
 
         # with the content similar to WANTED_PYPIRC
         f = open(self.rc)
         try:
             content = f.read()
-            self.assertEqual(content, WANTED_PYPIRC)
+            assert content == WANTED_PYPIRC
         finally:
             f.close()
 
@@ -159,13 +160,13 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
 
         # let's see what the server received : we should
         # have 2 similar requests
-        self.assertEqual(len(self.conn.reqs), 2)
+        assert len(self.conn.reqs) == 2
         req1 = dict(self.conn.reqs[0].headers)
         req2 = dict(self.conn.reqs[1].headers)
 
-        self.assertEqual(req1['Content-length'], '1359')
-        self.assertEqual(req2['Content-length'], '1359')
-        self.assertIn(b'xxx', self.conn.reqs[1].data)
+        assert req1['Content-length'] == '1359'
+        assert req2['Content-length'] == '1359'
+        assert b'xxx' in self.conn.reqs[1].data
 
     def test_password_not_in_file(self):
 
@@ -177,7 +178,7 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
 
         # dist.password should be set
         # therefore used afterwards by other commands
-        self.assertEqual(cmd.distribution.password, 'password')
+        assert cmd.distribution.password == 'password'
 
     def test_registering(self):
         # this test runs choice 2
@@ -191,11 +192,11 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
             del register_module.input
 
         # we should have send a request
-        self.assertEqual(len(self.conn.reqs), 1)
+        assert len(self.conn.reqs) == 1
         req = self.conn.reqs[0]
         headers = dict(req.headers)
-        self.assertEqual(headers['Content-length'], '608')
-        self.assertIn(b'tarek', req.data)
+        assert headers['Content-length'] == '608'
+        assert b'tarek' in req.data
 
     def test_password_reset(self):
         # this test runs choice 3
@@ -209,11 +210,11 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
             del register_module.input
 
         # we should have send a request
-        self.assertEqual(len(self.conn.reqs), 1)
+        assert len(self.conn.reqs) == 1
         req = self.conn.reqs[0]
         headers = dict(req.headers)
-        self.assertEqual(headers['Content-length'], '290')
-        self.assertIn(b'tarek', req.data)
+        assert headers['Content-length'] == '290'
+        assert b'tarek' in req.data
 
     @unittest.skipUnless(docutils is not None, 'needs docutils')
     def test_strict(self):
@@ -226,7 +227,8 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         cmd = self._get_cmd({})
         cmd.ensure_finalized()
         cmd.strict = 1
-        self.assertRaises(DistutilsSetupError, cmd.run)
+        with pytest.raises(DistutilsSetupError):
+            cmd.run()
 
         # metadata are OK but long_description is broken
         metadata = {
@@ -241,7 +243,8 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
         cmd.strict = 1
-        self.assertRaises(DistutilsSetupError, cmd.run)
+        with pytest.raises(DistutilsSetupError):
+            cmd.run()
 
         # now something that works
         metadata['long_description'] = 'title\n=====\n\ntext'
@@ -307,7 +310,8 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         register_module.input = inputs
         self.addCleanup(delattr, register_module, 'input')
 
-        self.assertRaises(DistutilsSetupError, cmd.run)
+        with pytest.raises(DistutilsSetupError):
+            cmd.run()
 
     def test_check_metadata_deprecated(self):
         # makes sure make_metadata is deprecated
@@ -315,14 +319,14 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         with check_warnings() as w:
             warnings.simplefilter("always")
             cmd.check_metadata()
-            self.assertEqual(len(w.warnings), 1)
+            assert len(w.warnings) == 1
 
     def test_list_classifiers(self):
         cmd = self._get_cmd()
         cmd.list_classifiers = 1
         cmd.run()
         results = self.get_logs(INFO)
-        self.assertEqual(results, ['running check', 'xxx'])
+        assert results == ['running check', 'xxx']
 
     def test_show_response(self):
         # test that the --show-response option return a well formatted response
@@ -336,4 +340,4 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
             del register_module.input
 
         results = self.get_logs(INFO)
-        self.assertEqual(results[3], 75 * '-' + '\nxxx\n' + 75 * '-')
+        assert results[3] == 75 * '-' + '\nxxx\n' + 75 * '-'

@@ -150,7 +150,7 @@ you can try compiling with MingW32, by passing "-c mingw32" to setup.py."""
             except RegError:
                 continue
             key = RegEnumKey(h, 0)
-            d = read_values(base, r"%s\%s" % (p, key))
+            d = read_values(base, r"{}\{}".format(p, key))
             self.macros["$(FrameworkVersion)"] = d["version"]
 
     def sub(self, s):
@@ -446,7 +446,9 @@ class MSVCCompiler(CCompiler):
                 continue
             else:
                 # how to handle this file?
-                raise CompileError("Don't know how to compile %s to %s" % (src, obj))
+                raise CompileError(
+                    "Don't know how to compile {} to {}".format(src, obj)
+                )
 
             output_opt = "/Fo" + obj
             try:
@@ -629,7 +631,7 @@ class MSVCCompiler(CCompiler):
 
         path = path + " dirs"
         if self.__version >= 7:
-            key = r"%s\%0.1f\VC\VC_OBJECTS_PLATFORM_INFO\Win32\Directories" % (
+            key = r"{}\{:0.1f}\VC\VC_OBJECTS_PLATFORM_INFO\Win32\Directories".format(
                 self.__root,
                 self.__version,
             )

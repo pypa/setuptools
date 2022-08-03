@@ -1,15 +1,15 @@
 """Tests for distutils.command.bdist_msi."""
-import sys
-import unittest
+import pytest
+
 from distutils.tests import support
 
 from .py38compat import check_warnings
 
 
-@unittest.skipUnless(sys.platform == 'win32', 'these tests require Windows')
-class BDistMSITestCase(
-    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
-):
+pytest.importorskip('msilib')
+
+
+class TestBDistMSI(support.TempdirManager, support.LoggingSilencer):
     def test_minimal(self):
         # minimal test XXX need more tests
         from distutils.command.bdist_msi import bdist_msi

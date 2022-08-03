@@ -930,7 +930,7 @@ int main (int argc, char **argv) {
             base = base[os.path.isabs(base) :]  # If abs, chop off leading /
             if ext not in self.src_extensions:
                 raise UnknownFileError(
-                    "unknown file type '%s' (from '%s')" % (ext, src_name)
+                    "unknown file type '{}' (from '{}')".format(ext, src_name)
                 )
             if strip_dir:
                 base = os.path.basename(base)

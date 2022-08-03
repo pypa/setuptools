@@ -5,30 +5,16 @@ import shutil
 import tempfile
 import unittest
 import sysconfig
+import itertools
 
-from . import py38compat as os_helper
+import pytest
 
-from distutils import log
 from distutils.log import DEBUG, INFO, WARN, ERROR, FATAL
 from distutils.core import Distribution
 
 
-class LoggingSilencer(object):
-    def setUp(self):
-        super().setUp()
-        self.threshold = log.set_threshold(log.FATAL)
-        # catching warnings
-        # when log will be replaced by logging
-        # we won't need such monkey-patch anymore
-        self._old_log = log.Log._log
-        log.Log._log = self._log
-        self.logs = []
-
-    def tearDown(self):
-        log.set_threshold(self.threshold)
-        log.Log._log = self._old_log
-        super().tearDown()
-
+@pytest.mark.usefixtures('distutils_logging_silencer')
+class LoggingSilencer:
     def _log(self, level, msg, args):
         if level not in (DEBUG, INFO, WARN, ERROR, FATAL):
             raise ValueError('%s wrong log level' % str(level))
@@ -43,25 +29,12 @@ class LoggingSilencer(object):
         self.logs = []
 
 
-class TempdirManager(object):
+@pytest.mark.usefixtures('distutils_managed_tempdir')
+class TempdirManager:
     """Mix-in class that handles temporary directories for test cases.
 
     This is intended to be used with unittest.TestCase.
     """
-
-    def setUp(self):
-        super().setUp()
-        self.old_cwd = os.getcwd()
-        self.tempdirs = []
-
-    def tearDown(self):
-        # Restore working dir, for Solaris and derivatives, where rmdir()
-        # on the current directory fails.
-        os.chdir(self.old_cwd)
-        super().tearDown()
-        while self.tempdirs:
-            tmpdir = self.tempdirs.pop()
-            os_helper.rmtree(tmpdir)
 
     def mkdtemp(self):
         """Create a temporary directory that will be cleaned up.
@@ -108,8 +81,7 @@ class DummyCommand:
     """Class to store options for retrieval via set_undefined_options()."""
 
     def __init__(self, **kwargs):
-        for kw, val in kwargs.items():
-            setattr(self, kw, val)
+        vars(self).update(kwargs)
 
     def ensure_finalized(self):
         pass
@@ -187,3 +159,17 @@ def fixup_build_ext(cmd):
             else:
                 name, equals, value = runshared.partition('=')
                 cmd.library_dirs = [d for d in value.split(os.pathsep) if d]
+
+
+def combine_markers(cls):
+    """
+    pytest will honor markers as found on the class, but when
+    markers are on multiple subclasses, only one appears. Use
+    this decorator to combine those markers.
+    """
+    cls.pytestmark = [
+        mark
+        for base in itertools.chain([cls], cls.__bases__)
+        for mark in getattr(base, 'pytestmark', [])
+    ]
+    return cls

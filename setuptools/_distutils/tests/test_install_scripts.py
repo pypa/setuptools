@@ -1,7 +1,6 @@
 """Tests for distutils.command.install_scripts."""
 
 import os
-import unittest
 
 from distutils.command.install_scripts import install_scripts
 from distutils.core import Distribution
@@ -9,9 +8,7 @@ from distutils.core import Distribution
 from distutils.tests import support
 
 
-class InstallScriptsTestCase(
-    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
-):
+class TestInstallScripts(support.TempdirManager, support.LoggingSilencer):
     def test_default_settings(self):
         dist = Distribution()
         dist.command_obj["build"] = support.DummyCommand(build_scripts="/foo/bar")
@@ -21,17 +18,17 @@ class InstallScriptsTestCase(
             skip_build=1,
         )
         cmd = install_scripts(dist)
-        self.assertFalse(cmd.force)
-        self.assertFalse(cmd.skip_build)
-        self.assertIsNone(cmd.build_dir)
-        self.assertIsNone(cmd.install_dir)
+        assert not cmd.force
+        assert not cmd.skip_build
+        assert cmd.build_dir is None
+        assert cmd.install_dir is None
 
         cmd.finalize_options()
 
-        self.assertTrue(cmd.force)
-        self.assertTrue(cmd.skip_build)
-        self.assertEqual(cmd.build_dir, "/foo/bar")
-        self.assertEqual(cmd.install_dir, "/splat/funk")
+        assert cmd.force
+        assert cmd.skip_build
+        assert cmd.build_dir == "/foo/bar"
+        assert cmd.install_dir == "/splat/funk"
 
     def test_installation(self):
         source = self.mkdtemp()
@@ -75,4 +72,4 @@ class InstallScriptsTestCase(
 
         installed = os.listdir(target)
         for name in expected:
-            self.assertIn(name, installed)
+            assert name in installed
