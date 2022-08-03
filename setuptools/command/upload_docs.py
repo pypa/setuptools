@@ -59,7 +59,7 @@ class upload_docs(upload):
         self.target_dir = None
 
     def finalize_options(self):
-        log.warn("Upload_docs command is deprecated. Use RTD instead.")
+        log.warn("Upload_docs command is deprecated. Use Read the Docs (https://readthedocs.org) instead.")
         upload.finalize_options(self)
         if self.upload_dir is None:
             if self.has_sphinx():
