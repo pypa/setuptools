@@ -29,11 +29,11 @@ from setuptools.command.editable_wheel import (
 from setuptools.dist import Distribution
 
 
-@pytest.fixture(params=["strict", "lax"])
-def editable_mode(request, monkeypatch):
+@pytest.fixture(params=["strict", "lenient"])
+def editable_opts(request):
     if request.param == "strict":
-        monkeypatch.setenv("SETUPTOOLS_EDITABLE", "strict")
-    yield
+        return ["--config-settings", "editable-mode=strict"]
+    return []
 
 
 EXAMPLE = {
@@ -114,14 +114,14 @@ SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
         EXAMPLE,  # No setup.py script
     ]
 )
-def test_editable_with_pyproject(tmp_path, venv, files, editable_mode):
+def test_editable_with_pyproject(tmp_path, venv, files, editable_opts):
     project = tmp_path / "mypkg"
     project.mkdir()
     jaraco.path.build(files, prefix=project)
 
     cmd = [venv.exe(), "-m", "pip", "install",
            "--no-build-isolation",  # required to force current version of setuptools
-           "-e", str(project)]
+           "-e", str(project), *editable_opts]
     print(str(subprocess.check_output(cmd), "utf-8"))
 
     cmd = [venv.exe(), "-m", "mypkg"]
@@ -132,7 +132,7 @@ def test_editable_with_pyproject(tmp_path, venv, files, editable_mode):
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
 
 
-def test_editable_with_flat_layout(tmp_path, venv, editable_mode):
+def test_editable_with_flat_layout(tmp_path, venv, editable_opts):
     files = {
         "mypkg": {
             "pyproject.toml": dedent("""\
@@ -157,7 +157,7 @@ def test_editable_with_flat_layout(tmp_path, venv, editable_mode):
 
     cmd = [venv.exe(), "-m", "pip", "install",
            "--no-build-isolation",  # required to force current version of setuptools
-           "-e", str(project)]
+           "-e", str(project), *editable_opts]
     print(str(subprocess.check_output(cmd), "utf-8"))
     cmd = [venv.exe(), "-c", "import pkg, mod; print(pkg.a, mod.b)"]
     assert subprocess.check_output(cmd).strip() == b"4 2"
@@ -166,7 +166,7 @@ def test_editable_with_flat_layout(tmp_path, venv, editable_mode):
 class TestLegacyNamespaces:
     """Ported from test_develop"""
 
-    def test_namespace_package_importable(self, venv, tmp_path, editable_mode):
+    def test_namespace_package_importable(self, venv, tmp_path, editable_opts):
         """
         Installing two packages sharing the same namespace, one installed
         naturally using pip or `--single-version-externally-managed`
@@ -176,7 +176,8 @@ class TestLegacyNamespaces:
         pkg_A = namespaces.build_namespace_package(tmp_path, 'myns.pkgA')
         pkg_B = namespaces.build_namespace_package(tmp_path, 'myns.pkgB')
         # use pip to install to the target directory
-        opts = ["--no-build-isolation"]  # force current version of setuptools
+        opts = editable_opts[:]
+        opts.append("--no-build-isolation")  # force current version of setuptools
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", "import myns.pkgA; import myns.pkgB"])
@@ -185,7 +186,7 @@ class TestLegacyNamespaces:
 
 
 class TestPep420Namespaces:
-    def test_namespace_package_importable(self, venv, tmp_path, editable_mode):
+    def test_namespace_package_importable(self, venv, tmp_path, editable_opts):
         """
         Installing two packages sharing the same namespace, one installed
         normally using pip and the other installed in editable mode
@@ -194,12 +195,13 @@ class TestPep420Namespaces:
         pkg_A = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgA')
         pkg_B = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgB')
         # use pip to install to the target directory
-        opts = ["--no-build-isolation"]  # force current version of setuptools
+        opts = editable_opts[:]
+        opts.append("--no-build-isolation")  # force current version of setuptools
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", "import myns.n.pkgA; import myns.n.pkgB"])
 
-    def test_namespace_created_via_package_dir(self, venv, tmp_path, editable_mode):
+    def test_namespace_created_via_package_dir(self, venv, tmp_path, editable_opts):
         """Currently users can create a namespace by tweaking `package_dir`"""
         files = {
             "pkgA": {
@@ -224,7 +226,8 @@ class TestPep420Namespaces:
         pkg_C = namespaces.build_pep420_namespace_package(tmp_path, 'myns.n.pkgC')
 
         # use pip to install to the target directory
-        opts = ["--no-build-isolation"]  # force current version of setuptools
+        opts = editable_opts[:]
+        opts.append("--no-build-isolation")  # force current version of setuptools
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_C), *opts])
@@ -236,8 +239,7 @@ class TestPep420Namespaces:
     platform.python_implementation() == 'PyPy',
     reason="Workaround fails on PyPy (why?)",
 )
-@pytest.mark.parametrize("mode", ("strict", "lax"))
-def test_editable_with_prefix(tmp_path, sample_project, mode):
+def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     """
     Editable install to a prefix should be discoverable.
     """
@@ -254,7 +256,7 @@ def test_editable_with_prefix(tmp_path, sample_project, mode):
     # install workaround
     pip_run.launch.inject_sitecustomize(str(site_packages))
 
-    env = dict(os.environ, PYTHONPATH=str(site_packages), SETUPTOOLS_EDITABLE=mode)
+    env = dict(os.environ, PYTHONPATH=str(site_packages))
     cmd = [
         sys.executable,
         '-m',
@@ -265,6 +267,7 @@ def test_editable_with_prefix(tmp_path, sample_project, mode):
         '--prefix',
         str(prefix),
         '--no-build-isolation',
+        *editable_opts,
     ]
     subprocess.check_call(cmd, env=env)
 
@@ -518,8 +521,9 @@ class TestOverallBehaviour:
     }
 
     @pytest.mark.parametrize("layout", EXAMPLES.keys())
-    def test_editable_install(self, tmp_path, venv, layout, editable_mode):
-        project = install_project("mypkg", venv, tmp_path, self.EXAMPLES[layout])
+    def test_editable_install(self, tmp_path, venv, layout, editable_opts):
+        opts = editable_opts
+        project = install_project("mypkg", venv, tmp_path, self.EXAMPLES[layout], *opts)
 
         # Ensure stray files are not importable
         cmd_import_error = """\
@@ -616,9 +620,9 @@ class TestLinkTree:
 
             assert next(aux.glob("**/resource.not_in_manifest"), None) is None
 
-    def test_strict_install(self, tmp_path, venv, monkeypatch):
-        monkeypatch.setenv("SETUPTOOLS_EDITABLE", "strict")
-        install_project("mypkg", venv, tmp_path, self.FILES)
+    def test_strict_install(self, tmp_path, venv):
+        opts = ["--config-settings", "editable-mode=strict"]
+        install_project("mypkg", venv, tmp_path, self.FILES, *opts)
 
         out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
         assert b"42" in out
@@ -648,11 +652,11 @@ class TestLinkTree:
         assert b"resource.not_in_manifest" in out
 
 
-def install_project(name, venv, tmp_path, files):
+def install_project(name, venv, tmp_path, files, *opts):
     project = tmp_path / name
     project.mkdir()
     jaraco.path.build(files, prefix=project)
-    opts = ["--no-build-isolation"]  # force current version of setuptools
+    opts = [*opts, "--no-build-isolation"]  # force current version of setuptools
     venv.run(["python", "-m", "pip", "install", "-e", str(project), *opts])
     return project
 
