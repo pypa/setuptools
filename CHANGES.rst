@@ -1,3 +1,24 @@
+v63.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #2971: ``upload_docs`` command is deprecated once again.
+* #3475: Merge with pypa/distutils@129480b, including substantial delinting and cleanup, some refactoring around compiler logic, better messaging in cygwincompiler (pypa/distutils#161).
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3443: Installed ``sphinx-hoverxref`` extension to show tooltips on internal an external references.
+  -- by :user:`humitos`
+* #3444: Installed ``sphinx-notfound-page`` extension to generate nice 404 pages.
+  -- by :user:`humitos`
+
+Misc
+^^^^
+* #3480: Merge with pypa/distutils@c397f4c
+
+
 v63.3.0
 -------
 
