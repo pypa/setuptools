@@ -167,13 +167,35 @@ Legacy Behavior
 ---------------
 
 If your project is not compatible with the new "editable installs" or you wish
-to use the legacy behavior (that mimics the old and deprecated
-``python setup.py develop`` command), you can set an environment variable:
+to replicate the legacy behavior, for the time being you can also perform the
+installation in the ``compat`` mode:
+
+.. code-block:: bash
+
+    pip install -e . --config-settings editable_mode=compat
+
+This installation mode will try to emulate how ``python setup.py develop``
+works (still within the context of :pep:`660`).
+
+.. warning::
+   The ``compat`` mode is *transitional* and will be removed in
+   future versions of ``setuptools``, it exists only to help during the
+   migration period.
+   Also note that support for this mode is limited:
+   it is safe to assume that the ``compat`` mode is offered "as is", and
+   improvements are unlikely to be implemented.
+   Users are encouraged to try out the new editable installation techniques
+   and make the necessary adaptations.
+
+If the ``compat`` mode does not work for you, you can also disable the
+:pep:`660` hooks in ``setuptools`` by setting an environment variable:
 
 .. code-block::
 
    SETUPTOOLS_USE_FEATURE="legacy-editable"
 
+This *may* cause the installer (e.g. ``pip``) to effectively run the "legacy"
+installation command: ``python setup.py develop`` [#installer]_.
 
 
 ----
@@ -184,3 +206,8 @@ to use the legacy behavior (that mimics the old and deprecated
    You *may* be able to use *strict* editable installations with with namespace
    packages created with ``pkgutil`` or ``pkg_namespaces``, however this is not
    officially supported.
+
+.. [#installer]
+   For this workaround to work, the installer tool needs to support legacy
+   editable installations. (Future versions of ``pip``, for example, may drop
+   support for this feature).
