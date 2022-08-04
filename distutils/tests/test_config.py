@@ -4,11 +4,6 @@ import unittest
 
 import pytest
 
-from distutils.core import PyPIRCCommand
-from distutils.core import Distribution
-from distutils.log import set_threshold
-from distutils.log import WARN
-
 from distutils.tests import support
 
 PYPIRC = """\
@@ -52,37 +47,14 @@ password:xxx
 
 
 @support.combine_markers
-@pytest.mark.usefixtures('save_env')
+@pytest.mark.usefixtures('threshold_warn')
+@pytest.mark.usefixtures('pypirc')
 class BasePyPIRCCommandTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
     unittest.TestCase,
 ):
-    def setUp(self):
-        """Patches the environment."""
-        super().setUp()
-        self.tmp_dir = self.mkdtemp()
-        os.environ['HOME'] = self.tmp_dir
-        os.environ['USERPROFILE'] = self.tmp_dir
-        self.rc = os.path.join(self.tmp_dir, '.pypirc')
-        self.dist = Distribution()
-
-        class command(PyPIRCCommand):
-            def __init__(self, dist):
-                super().__init__(dist)
-
-            def initialize_options(self):
-                pass
-
-            finalize_options = initialize_options
-
-        self._cmd = command
-        self.old_threshold = set_threshold(WARN)
-
-    def tearDown(self):
-        """Removes the patch."""
-        set_threshold(self.old_threshold)
-        super().tearDown()
+    pass
 
 
 class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
