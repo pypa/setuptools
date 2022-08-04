@@ -279,7 +279,7 @@ the provided tools for package discovery:
         [tool.setuptools.packages]
         find = {}  # Scanning implicit namespaces is active by default
         # OR
-        find = {namespace = false}  # Disable implicit namespaces
+        find = {namespaces = false}  # Disable implicit namespaces
 
 
 Finding simple packages
