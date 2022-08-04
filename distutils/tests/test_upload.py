@@ -65,19 +65,14 @@ class FakeOpen:
         return self.code
 
 
-class uploadTestCase(BasePyPIRCCommandTestCase):
-    def setUp(self):
-        super().setUp()
-        self.old_open = upload_mod.urlopen
-        upload_mod.urlopen = self._urlopen
-        self.last_open = None
-        self.next_msg = None
-        self.next_code = None
+@pytest.fixture(autouse=True)
+def urlopen(request, monkeypatch):
+    self = request.instance
+    monkeypatch.setattr(upload_mod, 'urlopen', self._urlopen)
+    self.next_msg = self.next_code = None
 
-    def tearDown(self):
-        upload_mod.urlopen = self.old_open
-        super().tearDown()
 
+class TestUpload(BasePyPIRCCommandTestCase):
     def _urlopen(self, url):
         self.last_open = FakeOpen(url, msg=self.next_msg, code=self.next_code)
         return self.last_open
