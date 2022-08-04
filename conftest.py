@@ -94,6 +94,7 @@ def save_cwd():
 @pytest.fixture
 def threshold_warn():
     from distutils.log import set_threshold, WARN
+
     orig = set_threshold(WARN)
     yield
     set_threshold(orig)
