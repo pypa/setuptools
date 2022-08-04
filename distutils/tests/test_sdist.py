@@ -10,7 +10,8 @@ from test.support import captured_stdout
 from .unix_compat import require_unix_id, require_uid_0, pwd, grp
 
 import pytest
-from jaraco import path
+import path
+import jaraco.path
 
 from .py38compat import check_warnings
 
@@ -46,27 +47,21 @@ somecode%(sep)sdoc.txt
 """
 
 
-class SDistTestCase(BasePyPIRCCommandTestCase):
-    def setUp(self):
-        # PyPIRCCommandTestCase creates a temp dir already
-        # and put it in self.tmp_dir
-        super().setUp()
-        # setting up an environment
-        self.old_path = os.getcwd()
-        path.build({
-            'somecode': {
-                '__init__.py': '#',
-            },
-            'README': 'xxx',
-            'setup.py': SETUP_PY,
-        }, self.tmp_dir)
-        os.chdir(self.tmp_dir)
+@pytest.fixture(autouse=True)
+def project_dir(request, pypirc):
+    self = request.instance
+    jaraco.path.build({
+        'somecode': {
+            '__init__.py': '#',
+        },
+        'README': 'xxx',
+        'setup.py': SETUP_PY,
+    }, self.tmp_dir)
+    with path.Path(self.tmp_dir):
+        yield
 
-    def tearDown(self):
-        # back to normal
-        os.chdir(self.old_path)
-        super().tearDown()
 
+class TestSDist(BasePyPIRCCommandTestCase):
     def get_cmd(self, metadata=None):
         """Returns a cmd"""
         if metadata is None:

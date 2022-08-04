@@ -101,7 +101,7 @@ def threshold_warn():
 
 
 @pytest.fixture
-def pypirc(request, save_env):
+def pypirc(request, save_env, distutils_managed_tempdir):
     from distutils.core import PyPIRCCommand
     from distutils.core import Distribution
 
