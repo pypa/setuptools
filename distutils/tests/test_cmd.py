@@ -1,5 +1,4 @@
 """Tests for distutils.cmd."""
-import unittest
 import os
 from test.support import captured_stdout
 
@@ -15,14 +14,13 @@ class MyCmd(Command):
         pass
 
 
-class TestCommand(unittest.TestCase):
-    def setUp(self):
-        dist = Distribution()
-        self.cmd = MyCmd(dist)
+@pytest.fixture
+def cmd(request):
+    return MyCmd(Distribution())
 
-    def test_ensure_string_list(self):
 
-        cmd = self.cmd
+class TestCommand:
+    def test_ensure_string_list(self, cmd):
         cmd.not_string_list = ['one', 2, 'three']
         cmd.yes_string_list = ['one', 'two', 'three']
         cmd.not_string_list2 = object()
@@ -47,10 +45,7 @@ class TestCommand(unittest.TestCase):
         with pytest.raises(DistutilsOptionError):
             cmd.ensure_string_list('option3')
 
-    def test_make_file(self):
-
-        cmd = self.cmd
-
+    def test_make_file(self, cmd):
         # making sure it raises when infiles is not a string or a list/tuple
         with pytest.raises(TypeError):
             cmd.make_file(infiles=1, outfile='', func='func', args=())
@@ -63,14 +58,13 @@ class TestCommand(unittest.TestCase):
         cmd.execute = _execute
         cmd.make_file(infiles='in', outfile='out', func='func', args=())
 
-    def test_dump_options(self):
+    def test_dump_options(self, cmd):
 
         msgs = []
 
         def _announce(msg, level):
             msgs.append(msg)
 
-        cmd = self.cmd
         cmd.announce = _announce
         cmd.option1 = 1
         cmd.option2 = 1
@@ -80,8 +74,7 @@ class TestCommand(unittest.TestCase):
         wanted = ["command options for 'MyCmd':", '  option1 = 1', '  option2 = 1']
         assert msgs == wanted
 
-    def test_ensure_string(self):
-        cmd = self.cmd
+    def test_ensure_string(self, cmd):
         cmd.option1 = 'ok'
         cmd.ensure_string('option1')
 
@@ -93,24 +86,21 @@ class TestCommand(unittest.TestCase):
         with pytest.raises(DistutilsOptionError):
             cmd.ensure_string('option3')
 
-    def test_ensure_filename(self):
-        cmd = self.cmd
+    def test_ensure_filename(self, cmd):
         cmd.option1 = __file__
         cmd.ensure_filename('option1')
         cmd.option2 = 'xxx'
         with pytest.raises(DistutilsOptionError):
             cmd.ensure_filename('option2')
 
-    def test_ensure_dirname(self):
-        cmd = self.cmd
+    def test_ensure_dirname(self, cmd):
         cmd.option1 = os.path.dirname(__file__) or os.curdir
         cmd.ensure_dirname('option1')
         cmd.option2 = 'xxx'
         with pytest.raises(DistutilsOptionError):
             cmd.ensure_dirname('option2')
 
-    def test_debug_print(self):
-        cmd = self.cmd
+    def test_debug_print(self, cmd):
         with captured_stdout() as stdout:
             cmd.debug_print('xxx')
         stdout.seek(0)
