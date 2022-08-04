@@ -18,6 +18,7 @@ import sys
 import traceback
 import warnings
 from contextlib import suppress
+from enum import Enum
 from inspect import cleandoc
 from itertools import chain
 from pathlib import Path
@@ -32,10 +33,10 @@ from typing import (
     Optional,
     Tuple,
     TypeVar,
-    Union
+    Union,
 )
 
-from setuptools import Command, errors, namespaces
+from setuptools import Command, SetuptoolsDeprecationWarning, errors, namespaces
 from setuptools.discovery import find_package_path
 from setuptools.dist import Distribution
 
@@ -54,34 +55,70 @@ _P = TypeVar("_P", bound=_Path)
 _logger = logging.getLogger(__name__)
 
 
+class _EditableMode(Enum):
+    """
+    Possible editable installation modes:
+    `lenient` (new files automatically added to the package - DEFAULT);
+    `strict` (requires a new installation when files are added/removed); or
+    `compat` (attempts to emulate `python setup.py develop` - DEPRECATED).
+    """
+
+    STRICT = "strict"
+    LENIENT = "lenient"
+    COMPAT = "compat"  # TODO: Remove `compat` after Dec/2022.
+
+    @classmethod
+    def convert(cls, mode: Optional[str]) -> "_EditableMode":
+        if not mode:
+            return _EditableMode.LENIENT  # default
+
+        _mode = mode.upper()
+        if _mode not in _EditableMode.__members__:
+            raise errors.OptionError(f"Invalid editable mode: {mode!r}. Try: 'strict'.")
+
+        if _mode == "COMPAT":
+            msg = """
+            The 'compat' editable mode is transitional and will be removed
+            in future versions of `setuptools`.
+            Please adapt your code accordingly to use either the 'strict' or the
+            'lenient' modes.
+
+            For more information, please check:
+            https://setuptools.pypa.io/en/latest/userguide/development_mode.html
+            """
+            warnings.warn(msg, SetuptoolsDeprecationWarning)
+
+        return _EditableMode[_mode]
+
+
 _STRICT_WARNING = """
 New or renamed files may not be automatically picked up without a new installation.
 """
 
-_LAX_WARNING = """
+_LENIENT_WARNING = """
 Options like `package-data`, `include/exclude-package-data` or
 `packages.find.exclude/include` may have no effect.
 """
 
 
 class editable_wheel(Command):
-    """Build 'editable' wheel for development"""
+    """Build 'editable' wheel for development.
+    (This command is reserved for internal use of setuptools).
+    """
 
     description = "create a PEP 660 'editable' wheel"
 
     user_options = [
         ("dist-dir=", "d", "directory to put final built distributions in"),
         ("dist-info-dir=", "I", "path to a pre-build .dist-info directory"),
-        ("strict", None, "perform an strict installation"),
+        ("mode=", None, cleandoc(_EditableMode.__doc__ or "")),
     ]
-
-    boolean_options = ["strict"]
 
     def initialize_options(self):
         self.dist_dir = None
         self.dist_info_dir = None
         self.project_dir = None
-        self.strict = False
+        self.mode = None
 
     def finalize_options(self):
         dist = self.distribution
@@ -267,16 +304,18 @@ class editable_wheel(Command):
         """Decides which strategy to use to implement an editable installation."""
         build_name = f"__editable__.{name}-{tag}"
         project_dir = Path(self.project_dir)
+        mode = _EditableMode.convert(self.mode)
 
-        if self.strict or os.getenv("SETUPTOOLS_EDITABLE", None) == "strict":
+        if mode is _EditableMode.STRICT:
             auxiliary_dir = _empty_dir(Path(self.project_dir, "build", build_name))
             return _LinkTree(self.distribution, name, auxiliary_dir, build_lib)
 
         packages = _find_packages(self.distribution)
         has_simple_layout = _simple_layout(packages, self.package_dir, project_dir)
-        if set(self.package_dir) == {""} and has_simple_layout:
+        is_compat_mode = mode is _EditableMode.COMPAT
+        if set(self.package_dir) == {""} and has_simple_layout or is_compat_mode:
             # src-layout(ish) is relatively safe for a simple pth file
-            src_dir = self.package_dir[""]
+            src_dir = self.package_dir.get("", ".")
             return _StaticPth(self.distribution, name, [Path(project_dir, src_dir)])
 
         # Use a MetaPathFinder to avoid adding accidental top-level packages/modules
@@ -310,7 +349,7 @@ class _StaticPth:
         Editable install will be performed using .pth file to extend `sys.path` with:
         {self.path_entries!r}
         """
-        _logger.warning(msg + _LAX_WARNING)
+        _logger.warning(msg + _LENIENT_WARNING)
         return self
 
     def __exit__(self, _exc_type, _exc_value, _traceback):
@@ -414,7 +453,7 @@ class _TopLevelFinder:
 
     def __enter__(self):
         msg = "Editable install will be performed using a meta path finder.\n"
-        _logger.warning(msg + _LAX_WARNING)
+        _logger.warning(msg + _LENIENT_WARNING)
         return self
 
     def __exit__(self, _exc_type, _exc_value, _traceback):

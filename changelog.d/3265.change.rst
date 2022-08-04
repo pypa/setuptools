@@ -2,7 +2,7 @@ Added implementation for *editable install* hooks (PEP 660) - **beta** stage.
 
 - The user will be able select between two distinct behaviors:
 
-  - *lax*, which prioritises the ability of the users of changing the
+  - *lenient*, which prioritises the ability of the users of changing the
     distributed packages (e.g. adding new files or removing old ones)
 
   - *strict*, which will try to replicate as much as possible the behavior of

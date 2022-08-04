@@ -643,7 +643,7 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         assert not Path("build").exists()
 
-        cfg = {"--global-option": "--strict"}
+        cfg = {"--global-option": ["--mode", "strict"]}
         build_backend.prepare_metadata_for_build_editable("_meta", cfg)
         build_backend.build_editable("temp", cfg, "_meta")
 
@@ -651,10 +651,10 @@ class TestBuildMetaBackend:
 
     def test_editable_without_config_settings(self, tmpdir_cwd):
         """
-        Sanity check to ensure tests with --strict are different from the ones
-        without --strict.
+        Sanity check to ensure tests with --mode=strict are different from the ones
+        without --mode.
 
-        --strict should create a local directory with a package tree.
+        --mode=strict should create a local directory with a package tree.
         The directory should not get created otherwise.
         """
         path.build(self._simple_pyproject_example)
@@ -665,7 +665,7 @@ class TestBuildMetaBackend:
 
     @pytest.mark.parametrize(
         "config_settings", [
-            {"--build-option": "--strict"},
+            {"--build-option": ["--mode", "strict"]},
             {"editable-mode": "strict"},
         ]
     )
