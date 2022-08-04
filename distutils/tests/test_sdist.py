@@ -10,6 +10,7 @@ from test.support import captured_stdout
 from .unix_compat import require_unix_id, require_uid_0, pwd, grp
 
 import pytest
+from jaraco import path
 
 from .py38compat import check_warnings
 
@@ -52,12 +53,13 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         super().setUp()
         # setting up an environment
         self.old_path = os.getcwd()
-        os.mkdir(join(self.tmp_dir, 'somecode'))
-        os.mkdir(join(self.tmp_dir, 'dist'))
-        # a package, and a README
-        self.write_file((self.tmp_dir, 'README'), 'xxx')
-        self.write_file((self.tmp_dir, 'somecode', '__init__.py'), '#')
-        self.write_file((self.tmp_dir, 'setup.py'), SETUP_PY)
+        path.build({
+            'somecode': {
+                '__init__.py': '#',
+            },
+            'README': 'xxx',
+            'setup.py': SETUP_PY,
+        }, self.tmp_dir)
         os.chdir(self.tmp_dir)
 
     def tearDown(self):
