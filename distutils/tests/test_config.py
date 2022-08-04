@@ -1,6 +1,5 @@
 """Tests for distutils.pypirc.pypirc."""
 import os
-import unittest
 
 import pytest
 
@@ -52,7 +51,6 @@ password:xxx
 class BasePyPIRCCommandTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    unittest.TestCase,
 ):
     pass
 

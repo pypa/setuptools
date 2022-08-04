@@ -12,7 +12,6 @@ from distutils.tests.support import (
     LoggingSilencer,
     copy_xxmodule_c,
     fixup_build_ext,
-    combine_markers,
 )
 from distutils.extension import Extension
 from distutils.errors import (
