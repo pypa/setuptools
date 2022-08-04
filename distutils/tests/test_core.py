@@ -3,15 +3,12 @@
 import io
 import distutils.core
 import os
-import shutil
 import sys
 from test.support import captured_stdout
 
 import pytest
 
 from . import py38compat as os_helper
-import unittest
-from distutils import log
 from distutils.dist import Distribution
 
 # setup script that uses __file__
@@ -59,27 +56,15 @@ if __name__ == "__main__":
 """
 
 
+@pytest.fixture(autouse=True)
+def save_stdout(monkeypatch):
+    monkeypatch.setattr(sys, 'stdout', sys.stdout)
+
+
 @pytest.mark.usefixtures('save_env')
 @pytest.mark.usefixtures('save_argv')
-class CoreTestCase(unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self.old_stdout = sys.stdout
-        self.cleanup_testfn()
-        self.addCleanup(log.set_threshold, log._global_log.threshold)
-
-    def tearDown(self):
-        sys.stdout = self.old_stdout
-        self.cleanup_testfn()
-        super().tearDown()
-
-    def cleanup_testfn(self):
-        path = os_helper.TESTFN
-        if os.path.isfile(path):
-            os.remove(path)
-        elif os.path.isdir(path):
-            shutil.rmtree(path)
-
+@pytest.mark.usefixtures('cleanup_testfn')
+class TestCore:
     def write_setup(self, text, path=os_helper.TESTFN):
         f = open(path, "w")
         try:

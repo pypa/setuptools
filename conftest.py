@@ -1,6 +1,7 @@
 import os
 import sys
 import platform
+import shutil
 
 import pytest
 
@@ -122,3 +123,15 @@ def pypirc(request, save_env, distutils_managed_tempdir):
         finalize_options = initialize_options
 
     self._cmd = command
+
+
+@pytest.fixture
+def cleanup_testfn():
+    from distutils.tests import py38compat as os_helper
+
+    yield
+    path = os_helper.TESTFN
+    if os.path.isfile(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)
