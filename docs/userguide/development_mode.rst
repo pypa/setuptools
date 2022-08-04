@@ -210,7 +210,7 @@ Depending on the project file structure and the selected mode, ``setuptools``
 will choose one of these approaches for the editable installation [#criteria]_.
 
 A non-exhaustive list of implementation mechanisms is presented below.
-More information is available on the text of :pep:`660 <660#what-to-put-in-the-wheel>`.
+More information is available on the text of :pep:`PEP 660 <660#what-to-put-in-the-wheel>`.
 
 - A static ``.pth`` file [#static_pth]_ can be added to one of the directories
   listed in :func:`site.getsitepackages` or :func:`site.getusersitepackages` to
