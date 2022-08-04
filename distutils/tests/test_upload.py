@@ -194,7 +194,7 @@ class TestUpload(BasePyPIRCCommandTestCase):
                 DistutilsError,
                 id="HTTP 400",
             ),
-        ]
+        ],
     )
     def test_wrong_exception_order(self, exception, expected, raised_exception):
         tmp = self.mkdtemp()

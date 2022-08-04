@@ -50,13 +50,16 @@ somecode%(sep)sdoc.txt
 @pytest.fixture(autouse=True)
 def project_dir(request, pypirc):
     self = request.instance
-    jaraco.path.build({
-        'somecode': {
-            '__init__.py': '#',
+    jaraco.path.build(
+        {
+            'somecode': {
+                '__init__.py': '#',
+            },
+            'README': 'xxx',
+            'setup.py': SETUP_PY,
         },
-        'README': 'xxx',
-        'setup.py': SETUP_PY,
-    }, self.tmp_dir)
+        self.tmp_dir,
+    )
     with path.Path(self.tmp_dir):
         yield
 
