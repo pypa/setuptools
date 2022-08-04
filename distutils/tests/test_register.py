@@ -78,26 +78,20 @@ class FakeOpener:
         }.get(name.lower(), default)
 
 
-class RegisterTestCase(BasePyPIRCCommandTestCase):
-    def setUp(self):
-        super().setUp()
-        # patching the password prompt
-        self._old_getpass = getpass.getpass
+@pytest.fixture(autouse=True)
+def autopass(monkeypatch):
+    monkeypatch.setattr(getpass, 'getpass', lambda prompt: 'password')
 
-        def _getpass(prompt):
-            return 'password'
 
-        getpass.getpass = _getpass
-        urllib.request._opener = None
-        self.old_opener = urllib.request.build_opener
-        self.conn = urllib.request.build_opener = FakeOpener()
+@pytest.fixture(autouse=True)
+def fake_opener(monkeypatch, request):
+    opener = FakeOpener()
+    monkeypatch.setattr(urllib.request, 'build_opener', opener)
+    monkeypatch.setattr(urllib.request, '_opener', None)
+    request.instance.conn = opener
 
-    def tearDown(self):
-        getpass.getpass = self._old_getpass
-        urllib.request._opener = None
-        urllib.request.build_opener = self.old_opener
-        super().tearDown()
 
+class TestRegister(BasePyPIRCCommandTestCase):
     def _get_cmd(self, metadata=None):
         if metadata is None:
             metadata = {
