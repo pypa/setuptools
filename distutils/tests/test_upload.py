@@ -1,7 +1,7 @@
 """Tests for distutils.command.upload."""
 import os
 import unittest.mock as mock
-from urllib.request import HTTPError  # noqa
+from urllib.request import HTTPError
 
 
 from distutils.command import upload as upload_mod
@@ -187,16 +187,16 @@ class TestUpload(BasePyPIRCCommandTestCase):
     @pytest.mark.parametrize(
         'exception,expected,raised_exception',
         [
-            ("OSError('oserror')", 'oserror', OSError),
-            (
-                "HTTPError('url', 400, 'httperror', {}, None)",
+            (OSError('oserror'), 'oserror', OSError),
+            pytest.param(
+                HTTPError('url', 400, 'httperror', {}, None),
                 'Upload failed (400): httperror',
                 DistutilsError,
+                id="HTTP 400",
             ),
         ]
     )
     def test_wrong_exception_order(self, exception, expected, raised_exception):
-        exception = eval(exception)
         tmp = self.mkdtemp()
         path = os.path.join(tmp, 'xxx')
         self.write_file(path)
