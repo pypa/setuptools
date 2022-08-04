@@ -135,10 +135,21 @@ Limitations
   </userguide/entry_point>` to work properly.
 - *Strict* editable installs require the file system to support
   either :wiki:`symbolic <symbolic link>` or :wiki:`hard links <hard link>`.
+  This installation mode might also generate auxiliary files under the project directory.
+- There is *no guarantee* that the editable installation will be performed
+  using a specific technique. Depending on each project, ``setuptools`` may
+  select a different approach to ensure the package is importable at runtime.
+- There is *no guarantee* that files outside the top-level package directory
+  will be accessible after an editable install.
+- There is *no guarantee* that attributes like ``__path__`` or ``__file__``
+  will correspond to the exact location of the original files (e.g.,
+  ``setuptools`` might employ file links to perform the editable installation).
+  Users are encouraged to use tools like :mod:`importlib.resources` or
+  :mod:`importlib.metadata` when trying to access package files directly.
 - Editable installations may not work with
   :doc:`namespaces created with pkgutil or pkg_resouces
   <PyPUG:guides/packaging-namespace-packages>`.
-  Please use :pep:`420`-style implicit namespaces.
+  Please use :pep:`420`-style implicit namespaces [#namespaces]_.
 - Support for :pep:`420`-style implicit namespace packages for
   projects structured using :ref:`flat-layout` is still **experimental**.
   If you experience problems, you can try converting your package structure
@@ -156,9 +167,93 @@ Legacy Behavior
 ---------------
 
 If your project is not compatible with the new "editable installs" or you wish
-to use the legacy behavior (that mimics the old and deprecated
-``python setup.py develop`` command), you can set an environment variable:
+to replicate the legacy behavior, for the time being you can also perform the
+installation in the ``compat`` mode:
+
+.. code-block:: bash
+
+    pip install -e . --config-settings editable_mode=compat
+
+This installation mode will try to emulate how ``python setup.py develop``
+works (still within the context of :pep:`660`).
+
+.. warning::
+   The ``compat`` mode is *transitional* and will be removed in
+   future versions of ``setuptools``, it exists only to help during the
+   migration period.
+   Also note that support for this mode is limited:
+   it is safe to assume that the ``compat`` mode is offered "as is", and
+   improvements are unlikely to be implemented.
+   Users are encouraged to try out the new editable installation techniques
+   and make the necessary adaptations.
+
+If the ``compat`` mode does not work for you, you can also disable the
+:pep:`editable install <660>` hooks in ``setuptools`` by setting an environment
+variable:
 
 .. code-block::
 
    SETUPTOOLS_USE_FEATURE="legacy-editable"
+
+This *may* cause the installer (e.g. ``pip``) to effectively run the "legacy"
+installation command: ``python setup.py develop`` [#installer]_.
+
+
+How editable installations work?
+--------------------------------
+
+*Advanced topic*
+
+There are many techniques that can be used to expose packages under development
+in such a way that they are available as if they were installed.
+Depending on the project file structure and the selected mode, ``setuptools``
+will choose one of these approaches for the editable installation [#criteria]_.
+
+A non-exhaustive list of implementation mechanisms is presented below.
+More information is available on the text of :pep:`660 <660#what-to-put-in-the-wheel>`.
+
+- A static ``.pth`` file [#static_pth]_ can be added to one of the directories
+  listed in :func:`site.getsitepackages` or :func:`site.getusersitepackages` to
+  extend :obj:`sys.path`.
+- A directory containing a *farm of file links* that mimic the
+  project structure and point to the original files can be employed.
+  This directory can then be added to :obj:`sys.path` using a static ``.pth`` file.
+- A dynamic ``.pth`` file [#dynamic_pth]_ can also be used to install an
+  "import :term:`finder`" (:obj:`~importlib.abc.MetaPathFinder` or
+  :obj:`~importlib.abc.PathEntryFinder`) that will hook into Python's
+  :doc:`import system <python:reference/import>` machinery.
+
+.. attention::
+   ``Setuptools`` offers **no guarantee** of which technique will be used to
+   perform an editable installation. This will vary from project to project
+   and may change depending on the specific version of ``setuptools`` being
+   used.
+
+
+----
+
+.. rubric:: Notes
+
+.. [#namespaces]
+   You *may* be able to use *strict* editable installations with namespace
+   packages created with ``pkgutil`` or ``pkg_namespaces``, however this is not
+   officially supported.
+
+.. [#installer]
+   For this workaround to work, the installer tool needs to support legacy
+   editable installations. (Future versions of ``pip``, for example, may drop
+   support for this feature).
+
+.. [#criteria]
+   ``setuptools`` strives to find a balance between allowing the user to see
+   the effects of project files being edited while still trying to keep the
+   editable installation as similar as possible to a regular installation.
+
+.. [#static_pth]
+   i.e., a ``.pth`` file where each line correspond to a path that should be
+   added to :obj:`sys.path`. See :mod:`Site-specific configuration hook <site>`.
+
+.. [#dynamic_pth]
+   i.e., a ``.pth`` file that starts where each line starts with an ```import``
+   statement and executes arbitrary Python code. See :mod:`Site-specific
+   configuration hook <site>`.
