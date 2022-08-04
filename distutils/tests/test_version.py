@@ -1,18 +1,18 @@
 """Tests for distutils.version."""
-import unittest
+import pytest
+
 import distutils
 from distutils.version import LooseVersion
 from distutils.version import StrictVersion
 
 
-class VersionTestCase(unittest.TestCase):
-    def setUp(self):
-        self.ctx = distutils.version.suppress_known_deprecation()
-        self.ctx.__enter__()
+@pytest.fixture(autouse=True)
+def suppress_deprecation():
+    with distutils.version.suppress_known_deprecation():
+        yield
 
-    def tearDown(self):
-        self.ctx.__exit__(None, None, None)
 
+class TestVersion:
     def test_prerelease(self):
         version = StrictVersion('1.2.3a1')
         assert version.version == (1, 2, 3)
