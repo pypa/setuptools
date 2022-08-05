@@ -53,11 +53,11 @@ Please have a look on the following section if you are looking for a different b
 
 .. admonition:: Virtual Environments
 
-   You can think virtual environments as "isolated Python runtime deployments"
+   You can think about virtual environments as "isolated Python runtime deployments"
    that allow users to install different sets of libraries and tools without
    messing with the global behaviour of the system.
 
-   They are the safest way of testing new projects and can be created easily
+   They are a safe way of testing new projects and can be created easily
    with the :mod:`venv` module from the standard library.
 
    Please note however that depending on your operating system or distribution,
