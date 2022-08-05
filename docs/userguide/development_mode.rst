@@ -254,6 +254,6 @@ More information is available on the text of :pep:`PEP 660 <660#what-to-put-in-t
    added to :obj:`sys.path`. See :mod:`Site-specific configuration hook <site>`.
 
 .. [#dynamic_pth]
-   i.e., a ``.pth`` file that starts where each line starts with an ```import``
+   i.e., a ``.pth`` file that starts where each line starts with an ``import``
    statement and executes arbitrary Python code. See :mod:`Site-specific
    configuration hook <site>`.
