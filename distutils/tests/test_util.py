@@ -39,16 +39,6 @@ class UtilTestCase(unittest.TestCase):
         self.splitdrive = os.path.splitdrive
         self._config_vars = copy(sysconfig._config_vars)
 
-        # patching os.uname
-        if hasattr(os, 'uname'):
-            self.uname = os.uname
-            self._uname = os.uname()
-        else:
-            self.uname = None
-            self._uname = None
-
-        os.uname = self._get_uname
-
     def tearDown(self):
         # getting back the environment
         os.name = self.name
@@ -58,18 +48,8 @@ class UtilTestCase(unittest.TestCase):
         os.path.join = self.join
         os.path.isabs = self.isabs
         os.path.splitdrive = self.splitdrive
-        if self.uname is not None:
-            os.uname = self.uname
-        else:
-            del os.uname
         sysconfig._config_vars = copy(self._config_vars)
         super().tearDown()
-
-    def _set_uname(self, uname):
-        self._uname = uname
-
-    def _get_uname(self):
-        return self._uname
 
     def test_get_host_platform(self):
         with unittest.mock.patch('os.name', 'nt'):
