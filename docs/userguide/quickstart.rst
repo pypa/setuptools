@@ -117,8 +117,7 @@ distributing into something that looks like the following
 (optional files marked with ``#``)::
 
     mypackage
-    ├── pyproject.toml
-    |   # setup.cfg or setup.py (depending on the configuration method)
+    ├── pyproject.toml  # and/or setup.cfg/setup.py (depending on the configuration method)
     |   # README.rst or README.md (a nice description of your package)
     |   # LICENCE (properly chosen license information, e.g. MIT, BSD-3, GPL-3, MPL-2, etc...)
     └── mypackage
@@ -378,19 +377,18 @@ Here's how to do it::
 
     pip install --editable .
 
-This creates a link file in your interpreter site package directory which
-associate with your source code. For more information, see :doc:`development_mode`.
+See :doc:`development_mode` for more information.
 
 .. tip::
 
     Prior to :ref:`pip v21.1 <pip:v21-1>`, a ``setup.py`` script was
     required to be compatible with development mode. With late
-    versions of pip, ``setup.cfg``-only projects may be installed in this mode.
+    versions of pip, projects without ``setup.py`` may be installed in this mode.
 
-    If you are experimenting with :doc:`configuration using pyproject.toml <pyproject_config>`,
-    or have version of ``pip`` older than v21.1, you might need to keep a
+    If you have a version of ``pip`` older than v21.1 or is using a different
+    packaging-related tool that does not support :pep:`660`, you might need to keep a
     ``setup.py`` file in file in your repository if you want to use editable
-    installs (for the time being).
+    installs.
 
     A simple script will suffice, for example:
 
@@ -400,8 +398,9 @@ associate with your source code. For more information, see :doc:`development_mod
 
         setup()
 
-    You can still keep all the configuration in :doc:`setup.cfg </userguide/declarative_config>`
-    (or :doc:`pyproject.toml </userguide/pyproject_config>`).
+    You can still keep all the configuration in
+    :doc:`pyproject.toml </userguide/pyproject_config>` and/or
+    :doc:`setup.cfg </userguide/declarative_config>`
 
 
 Uploading your package to PyPI
