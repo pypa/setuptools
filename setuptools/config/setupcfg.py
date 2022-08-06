@@ -5,8 +5,9 @@ Load setuptools configuration from ``setup.cfg`` files.
 """
 import os
 
-import warnings
+import contextlib
 import functools
+import warnings
 from collections import defaultdict
 from functools import partial
 from functools import wraps
@@ -175,7 +176,7 @@ def parse_configuration(
     return meta, options
 
 
-def warn_accidental_env_marker_misconfig(label: str, orig_value: str, parsed: list):
+def _warn_accidental_env_marker_misconfig(label: str, orig_value: str, parsed: list):
     """Because users sometimes misinterpret this configuration:
 
     [options.extras_require]
@@ -192,21 +193,20 @@ def warn_accidental_env_marker_misconfig(label: str, orig_value: str, parsed: li
         leads in a valid Requirement with a valid marker
     a UserWarning is shown to inform the user about the possible problem.
     """
-    if "\n" not in orig_value and len(parsed) == 2:
+    if "\n" in orig_value or len(parsed) != 2:
+        return
+
+    with contextlib.suppress(InvalidRequirement):
         original_requirements_str = ";".join(parsed)
-        try:
-            req = Requirement(original_requirements_str)
-        except InvalidRequirement:
-            pass
-        else:
-            if req.marker is not None:
-                msg = (
-                    f"One of the parsed requirements in `{label}` "
-                    f"looks like a valid environment marker: '{parsed[1]}'\n"
-                    "Make sure that the config is correct and check "
-                    "https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#opt-2"  # noqa: E501
-                )
-                warnings.warn(msg, UserWarning)
+        req = Requirement(original_requirements_str)
+        if req.marker is not None:
+            msg = (
+                f"One of the parsed requirements in `{label}` "
+                f"looks like a valid environment marker: '{parsed[1]}'\n"
+                "Make sure that the config is correct and check "
+                "https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#opt-2"  # noqa: E501
+            )
+            warnings.warn(msg, UserWarning)
 
 
 class ConfigHandler(Generic[Target]):
@@ -626,7 +626,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
     def _parse_requirements_list(self, label: str, value: str):
         # Parse a requirements list, either by reading in a `file:`, or a list.
         parsed = self._parse_list_semicolon(self._parse_file_in_root(value))
-        warn_accidental_env_marker_misconfig(label, value, parsed)
+        _warn_accidental_env_marker_misconfig(label, value, parsed)
         # Filter it to only include lines that are not comments. `parse_list`
         # will have stripped each line and filtered out empties.
         return [line for line in parsed if not line.startswith("#")]
