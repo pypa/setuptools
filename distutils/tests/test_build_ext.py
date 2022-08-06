@@ -3,6 +3,9 @@ import os
 from io import StringIO
 import textwrap
 import site
+import contextlib
+import platform
+import tempfile
 
 from distutils.core import Distribution
 from distutils.command.build_ext import build_ext
@@ -23,7 +26,7 @@ from distutils.errors import (
 
 from test import support
 from . import py38compat as os_helper
-from test.support.script_helper import assert_python_ok
+from . import py38compat as import_helper
 import pytest
 import re
 
@@ -47,6 +50,26 @@ def user_site_dir(request):
 
     site.USER_BASE = orig_user_base
     build_ext.USER_BASE = orig_user_base
+
+
+@contextlib.contextmanager
+def cleanup(mod):
+    """
+    Tests will fail to tear down an extension module if it's been imported.
+
+    Move the file to a temporary directory that won't be cleaned up.
+    """
+    try:
+        yield
+    finally:
+        filename = sys.modules[mod].__file__
+        if platform.system() != "Windows":
+            return
+        dest = os.path.join(
+            tempfile.mkdtemp(prefix='deleteme'), os.path.basename(filename)
+        )
+        os.rename(filename, dest)
+        # TODO: can the file be scheduled for deletion?
 
 
 @pytest.mark.usefixtures('user_site_dir')
@@ -76,36 +99,26 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
         finally:
             sys.stdout = old_stdout
 
-        code = textwrap.dedent(
-            f"""
-            tmp_dir = {self.tmp_dir!r}
+        with import_helper.CleanImport('xx'):
+            with import_helper.DirsOnSysPath(self.tmp_dir):
+                self._test_xx()
 
-            import sys
-            import unittest
-            from test import support
+    @staticmethod
+    @cleanup('xx')
+    def _test_xx():
+        import xx
 
-            sys.path.insert(0, tmp_dir)
-            import xx
+        for attr in ('error', 'foo', 'new', 'roj'):
+            assert hasattr(xx, attr)
 
-            class Tests(unittest.TestCase):
-                def test_xx(self):
-                    for attr in ('error', 'foo', 'new', 'roj'):
-                        self.assertTrue(hasattr(xx, attr))
-
-                    self.assertEqual(xx.foo(2, 5), 7)
-                    self.assertEqual(xx.foo(13,15), 28)
-                    self.assertEqual(xx.new().demo(), None)
-                    if support.HAVE_DOCSTRINGS:
-                        doc = 'This is a template module just for instruction.'
-                        self.assertEqual(xx.__doc__, doc)
-                    self.assertIsInstance(xx.Null(), xx.Null)
-                    self.assertIsInstance(xx.Str(), xx.Str)
-
-
-            unittest.main()
-        """
-        )
-        assert_python_ok('-c', code)
+        assert xx.foo(2, 5) == 7
+        assert xx.foo(13, 15) == 28
+        assert xx.new().demo() is None
+        if support.HAVE_DOCSTRINGS:
+            doc = 'This is a template module just for instruction.'
+            assert xx.__doc__ == doc
+        assert isinstance(xx.Null(), xx.Null)
+        assert isinstance(xx.Str(), xx.Str)
 
     def test_solaris_enable_shared(self):
         dist = Distribution({'name': 'xx'})
