@@ -1,5 +1,6 @@
 import os
 import sys
+import platform
 
 from distutils import ccompiler
 
@@ -8,7 +9,7 @@ def _make_strs(paths):
     """
     Convert paths to strings for legacy compatibility.
     """
-    if sys.version_info > (3, 8):
+    if sys.version_info > (3, 8) and platform.system() != "Windows":
         return paths
     return list(map(os.fspath, paths))
 
