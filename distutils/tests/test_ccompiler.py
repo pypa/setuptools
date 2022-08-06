@@ -24,3 +24,15 @@ def test_set_include_dirs(tmp_path):
     compiler = ccompiler.new_compiler()
     compiler.set_include_dirs([])
     compiler.compile(_make_strs([c_file]))
+
+
+def test_set_library_dirs(tmp_path):
+    """
+    Extensions should build even if set_library_dirs is invoked.
+    In particular, compiler-specific paths should not be overridden.
+    """
+    c_file = tmp_path / 'foo.c'
+    c_file.write_text('void PyInit_foo(void) {}\n')
+    compiler = ccompiler.new_compiler()
+    compiler.set_library_dirs([])
+    compiler.compile(_make_strs([c_file]))
