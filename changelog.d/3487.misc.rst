@@ -1,2 +1,0 @@
-Modified ``pyproject.toml`` validation exception handling to
-make relevant debugging information easier to spot.

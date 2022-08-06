@@ -1,1 +1,0 @@
-Bump vendored version of :pypi:`pyparsing` to 3.0.9.

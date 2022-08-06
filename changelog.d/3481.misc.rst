@@ -1,2 +1,0 @@
-Add warning for potential ``install_requires`` and ``extras_require``
-misconfiguration in ``setup.cfg``
