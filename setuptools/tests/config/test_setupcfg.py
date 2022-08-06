@@ -732,8 +732,8 @@ class TestOptions:
     def test_warn_accidental_env_marker_misconfig(self, config, tmpdir):
         fake_env(tmpdir, config)
         match = (
-            r"One of the parsed requirements in (install_requires|extras_require) "
-            "section looks like a valid environment marker.*"
+            r"One of the parsed requirements in `(install_requires|extras_require.+)` "
+            "looks like a valid environment marker.*"
         )
         with pytest.warns(UserWarning, match=match):
             with get_dist(tmpdir) as _:

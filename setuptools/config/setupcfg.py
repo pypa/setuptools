@@ -175,7 +175,7 @@ def parse_configuration(
     return meta, options
 
 
-def warn_accidental_env_marker_misconfig(section_name, section_options, parsed):
+def warn_accidental_env_marker_misconfig(label: str, orig_value: str, parsed: list):
     """Because users sometimes misinterpret this configuration:
 
     [options.extras_require]
@@ -192,20 +192,17 @@ def warn_accidental_env_marker_misconfig(section_name, section_options, parsed):
         leads in a valid Requirement with a valid marker
     a UserWarning is shown to inform the user about the possible problem.
     """
-
-    for name, (file, requirements) in section_options.items():
-        if "\n" not in requirements and len(parsed[name]) == 2:
-            original_requirements_str = ";".join(parsed[name])
-            try:
-                req = Requirement(original_requirements_str)
-            except InvalidRequirement:
-                pass
-            else:
-                if req.marker is None:
-                    continue
+    if "\n" not in orig_value and len(parsed) == 2:
+        original_requirements_str = ";".join(parsed)
+        try:
+            req = Requirement(original_requirements_str)
+        except InvalidRequirement:
+            pass
+        else:
+            if req.marker is not None:
                 msg = (
-                    f"One of the parsed requirements in {section_name} section "
-                    f"looks like a valid environment marker: '{parsed[name][1]}'\n"
+                    f"One of the parsed requirements in `{label}` "
+                    f"looks like a valid environment marker: '{parsed[1]}'\n"
                     "Make sure that the config is correct and check "
                     "https://setuptools.pypa.io/en/latest/userguide/declarative_config.html#opt-2"  # noqa: E501
                 )
@@ -435,20 +432,30 @@ class ConfigHandler(Generic[Target]):
         return parse
 
     @classmethod
-    def _parse_section_to_dict(cls, section_options, values_parser=None):
+    def _parse_section_to_dict_with_key(cls, section_options, values_parser=None):
         """Parses section options into a dictionary.
 
-        Optionally applies a given parser to values.
+        Optionally applies a given parser to each option in a section.
 
         :param dict section_options:
-        :param callable values_parser:
+        :param callable values_parser: function with 2 args corresponding to key, value
         :rtype: dict
         """
         value = {}
-        values_parser = values_parser or (lambda val: val)
+        values_parser = values_parser or (lambda _, val: val)
         for key, (_, val) in section_options.items():
-            value[key] = values_parser(val)
+            value[key] = values_parser(key, val)
         return value
+
+    @classmethod
+    def _parse_section_to_dict(cls, section_options, values_parser=None):
+        """
+        Similar to ``_parse_section_to_dict_with_key`` but uses a ``values_parser`` with
+        only one argument (corresponding to the value in the dict).
+        """
+        return cls._parse_section_to_dict_with_key(
+            section_options, lambda _, val: values_parser(val)
+        )
 
     def parse_section(self, section_options):
         """Parses configuration file section.
@@ -458,14 +465,6 @@ class ConfigHandler(Generic[Target]):
         for (name, (_, value)) in section_options.items():
             try:
                 self[name] = value
-
-                if name == "install_requires":
-                    warn_accidental_env_marker_misconfig(
-                        "install_requires",
-                        {name: (_, value)},
-                        {name: self.target_obj.install_requires},
-                    )
-
             except KeyError:
                 pass  # Keep silent for a new option may appear anytime.
 
@@ -624,9 +623,10 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
     def _parse_file_in_root(self, value):
         return self._parse_file(value, root_dir=self.root_dir)
 
-    def _parse_requirements_list(self, value):
+    def _parse_requirements_list(self, label: str, value: str):
         # Parse a requirements list, either by reading in a `file:`, or a list.
         parsed = self._parse_list_semicolon(self._parse_file_in_root(value))
+        warn_accidental_env_marker_misconfig(label, value, parsed)
         # Filter it to only include lines that are not comments. `parse_list`
         # will have stripped each line and filtered out empties.
         return [line for line in parsed if not line.startswith("#")]
@@ -652,7 +652,9 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
                 "consider using implicit namespaces instead (PEP 420).",
                 SetuptoolsDeprecationWarning,
             ),
-            'install_requires': self._parse_requirements_list,
+            'install_requires': partial(
+                self._parse_requirements_list, "install_requires"
+            ),
             'setup_requires': self._parse_list_semicolon,
             'tests_require': self._parse_list_semicolon,
             'packages': self._parse_packages,
@@ -743,12 +745,10 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
 
         :param dict section_options:
         """
-        parsed = self._parse_section_to_dict(
+        parsed = self._parse_section_to_dict_with_key(
             section_options,
-            self._parse_requirements_list,
+            lambda k, v: self._parse_requirements_list(f"extras_require[{k}]", v)
         )
-
-        warn_accidental_env_marker_misconfig("extras_require", section_options, parsed)
 
         self['extras_require'] = parsed
 
