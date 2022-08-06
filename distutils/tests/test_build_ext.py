@@ -452,7 +452,7 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
         wanted = os.path.join(curdir, 'twisted', 'runner', 'portmap' + ext)
         assert wanted == path
 
-    @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
+    @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
     def test_deployment_target_default(self):
         # Issue 9516: Test that, in the absence of the environment variable,
@@ -460,7 +460,7 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
         #  the interpreter.
         self._try_compile_deployment_target('==', None)
 
-    @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
+    @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
     def test_deployment_target_too_low(self):
         # Issue 9516: Test that an extension module is not allowed to be
@@ -468,7 +468,7 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
         with pytest.raises(DistutilsPlatformError):
             self._try_compile_deployment_target('>', '10.1')
 
-    @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
+    @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
     def test_deployment_target_higher_ok(self):
         # Issue 9516: Test that an extension module can be compiled with a
