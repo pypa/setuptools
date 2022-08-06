@@ -3,7 +3,6 @@ import os
 import sys
 import shutil
 import tempfile
-import unittest
 import sysconfig
 import itertools
 
@@ -31,9 +30,8 @@ class LoggingSilencer:
 
 @pytest.mark.usefixtures('distutils_managed_tempdir')
 class TempdirManager:
-    """Mix-in class that handles temporary directories for test cases.
-
-    This is intended to be used with unittest.TestCase.
+    """
+    Mix-in class that handles temporary directories for test cases.
     """
 
     def mkdtemp(self):
@@ -101,9 +99,7 @@ def copy_xxmodule_c(directory):
     """
     filename = _get_xxmodule_path()
     if filename is None:
-        raise unittest.SkipTest(
-            'cannot find xxmodule.c (test must run in ' 'the python build dir)'
-        )
+        pytest.skip('cannot find xxmodule.c (test must run in ' 'the python build dir)')
     shutil.copy(filename, directory)
 
 

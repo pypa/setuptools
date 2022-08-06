@@ -1,10 +1,12 @@
 """Tests for distutils.archive_util."""
-import unittest
 import os
 import sys
 import tarfile
 from os.path import splitdrive
 import warnings
+import functools
+import operator
+import pathlib
 
 import pytest
 
@@ -16,31 +18,13 @@ from distutils.archive_util import (
     make_archive,
     ARCHIVE_FORMATS,
 )
-from distutils.spawn import find_executable, spawn
+from distutils.spawn import spawn
 from distutils.tests import support
 from test.support import patch
 from .unix_compat import require_unix_id, require_uid_0, grp, pwd, UID_0_SUPPORT
 
 from .py38compat import change_cwd
 from .py38compat import check_warnings
-
-
-try:
-    import zipfile
-
-    ZIP_SUPPORT = True
-except ImportError:
-    ZIP_SUPPORT = find_executable('zip')
-
-try:
-    import bz2
-except ImportError:
-    bz2 = None
-
-try:
-    import lzma
-except ImportError:
-    lzma = None
 
 
 def can_fs_encode(filename):
@@ -54,6 +38,14 @@ def can_fs_encode(filename):
     except UnicodeEncodeError:
         return False
     return True
+
+
+def all_equal(values):
+    return functools.reduce(operator.eq, values)
+
+
+def same_drive(*paths):
+    return all_equal(pathlib.Path(path).drive for path in paths)
 
 
 class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
@@ -70,28 +62,24 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         tmpdir = self._create_files()
         self._make_tarball(tmpdir, 'archive', '.tar.gz', compress='gzip')
 
-    @unittest.skipUnless(bz2, 'Need bz2 support to run')
     def test_make_tarball_bzip2(self):
+        pytest.importorskip('bz2')
         tmpdir = self._create_files()
         self._make_tarball(tmpdir, 'archive', '.tar.bz2', compress='bzip2')
 
-    @unittest.skipUnless(lzma, 'Need lzma support to run')
     def test_make_tarball_xz(self):
+        pytest.importorskip('lzma')
         tmpdir = self._create_files()
         self._make_tarball(tmpdir, 'archive', '.tar.xz', compress='xz')
 
-    @unittest.skipUnless(
-        can_fs_encode('årchiv'), 'File system cannot handle this filename'
-    )
+    @pytest.mark.skipif("not can_fs_encode('årchiv')")
     def test_make_tarball_latin1(self):
         """
         Mirror test_make_tarball, except filename contains latin characters.
         """
         self.test_make_tarball('årchiv')  # note this isn't a real word
 
-    @unittest.skipUnless(
-        can_fs_encode('のアーカイブ'), 'File system cannot handle this filename'
-    )
+    @pytest.mark.skipif("not can_fs_encode('のアーカイブ')")
     def test_make_tarball_extended(self):
         """
         Mirror test_make_tarball, except filename contains extended
@@ -101,10 +89,8 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
 
     def _make_tarball(self, tmpdir, target_name, suffix, **kwargs):
         tmpdir2 = self.mkdtemp()
-        unittest.skipUnless(
-            splitdrive(tmpdir)[0] == splitdrive(tmpdir2)[0],
-            "source and target should be on same drive",
-        )
+        if same_drive(tmpdir, tmpdir2):
+            pytest.skip("source and target should be on same drive")
 
         base_name = os.path.join(tmpdir2, target_name)
 
@@ -149,10 +135,7 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         return tmpdir
 
     @pytest.mark.usefixtures('needs_zlib')
-    @unittest.skipUnless(
-        find_executable('tar') and find_executable('gzip'),
-        'Need the tar and gzip commands to run',
-    )
+    @pytest.mark.skipif("not (find_executable('tar') and find_executable('gzip'))")
     def test_tarfile_vs_tar(self):
         tmpdir = self._create_files()
         tmpdir2 = self.mkdtemp()
@@ -207,9 +190,7 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         tarball = base_name + '.tar'
         assert os.path.exists(tarball)
 
-    @unittest.skipUnless(
-        find_executable('compress'), 'The compress program is required'
-    )
+    @pytest.mark.skipif("not find_executable('compress')")
     def test_compress_deprecated(self):
         tmpdir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
@@ -241,8 +222,8 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         assert len(w.warnings) == 1
 
     @pytest.mark.usefixtures('needs_zlib')
-    @unittest.skipUnless(ZIP_SUPPORT, 'Need zip support to run')
     def test_make_zipfile(self):
+        zipfile = pytest.importorskip('zipfile')
         # creating something to tar
         tmpdir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
@@ -255,8 +236,8 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         with zipfile.ZipFile(tarball) as zf:
             assert sorted(zf.namelist()) == self._zip_created_files
 
-    @unittest.skipUnless(ZIP_SUPPORT, 'Need zip support to run')
     def test_make_zipfile_no_zlib(self):
+        zipfile = pytest.importorskip('zipfile')
         patch(self, archive_util.zipfile, 'zlib', None)  # force zlib ImportError
 
         called = []
@@ -327,8 +308,8 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         assert os.path.basename(res) == 'archive.tar.gz'
         assert self._tarinfo(res) == self._created_files
 
-    @unittest.skipUnless(bz2, 'Need bz2 support to run')
     def test_make_archive_bztar(self):
+        pytest.importorskip('bz2')
         base_dir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
         res = make_archive(base_name, 'bztar', base_dir, 'dist')
@@ -336,8 +317,8 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         assert os.path.basename(res) == 'archive.tar.bz2'
         assert self._tarinfo(res) == self._created_files
 
-    @unittest.skipUnless(lzma, 'Need xz support to run')
     def test_make_archive_xztar(self):
+        pytest.importorskip('lzma')
         base_dir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
         res = make_archive(base_name, 'xztar', base_dir, 'dist')
