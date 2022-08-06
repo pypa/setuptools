@@ -176,6 +176,7 @@ found, as shown in the example below:
 
         # OR
         [tool.setuptools.packages.find]
+        # All the following settings are optional:
         where = ["src"]  # ["."] by default
         include = ["mypackage*"]  # ["*"] by default
         exclude = ["mypackage.tests*"]  # empty by default
@@ -189,6 +190,7 @@ found, as shown in the example below:
         packages = find:  # OR `find_namespaces:` if you want to use namespaces
 
         [options.packages.find]  # (always `find` even if `find_namespaces:` was used before)
+        # This section is optional as well as each of the following options:
         where=src  # . by default
         include=mypackage*  # * by default
         exclude=mypackage.tests*  # empty by default
@@ -202,6 +204,7 @@ found, as shown in the example below:
         setup(
             # ...
             packages=find_packages(
+                # All keyword arguments below are optional:
                 where='src',  # '.' by default
                 include=['mypackage*'],  # ['*'] by default
                 exclude=['mypackage.tests'],  # empty by default
