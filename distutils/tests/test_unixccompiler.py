@@ -1,7 +1,6 @@
 """Tests for distutils.unixccompiler."""
 import os
 import sys
-import unittest
 from unittest.mock import patch
 
 from .py38compat import EnvironmentVarGuard
@@ -32,7 +31,7 @@ def compiler_wrapper(request):
 
 
 class TestUnixCCompiler(support.TempdirManager):
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
         #
@@ -213,7 +212,7 @@ class TestUnixCCompiler(support.TempdirManager):
         sysconfig.get_config_var = gcv
         assert self.cc.rpath_foo() == '-Wl,-R/foo'
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_cc_overrides_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable also changes default linker
@@ -235,7 +234,7 @@ class TestUnixCCompiler(support.TempdirManager):
             sysconfig.customize_compiler(self.cc)
         assert self.cc.linker_so[0] == 'my_cc'
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_cc_overrides_ldshared_for_cxx_correctly(self):
         """
         Ensure that setting CC env variable also changes default linker
@@ -275,7 +274,7 @@ class TestUnixCCompiler(support.TempdirManager):
             expected = ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:4] == expected
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_explicit_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable does not change
