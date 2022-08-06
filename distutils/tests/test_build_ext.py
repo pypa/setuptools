@@ -6,6 +6,8 @@ import site
 import contextlib
 import platform
 import tempfile
+import importlib
+import shutil
 
 from distutils.core import Distribution
 from distutils.command.build_ext import build_ext
@@ -53,23 +55,32 @@ def user_site_dir(request):
 
 
 @contextlib.contextmanager
-def cleanup(mod):
+def safe_extension_import(name, path):
+    with import_helper.CleanImport(name):
+        with extension_redirect(name, path) as new_path:
+            with import_helper.DirsOnSysPath(new_path):
+                yield
+
+
+@contextlib.contextmanager
+def extension_redirect(mod, path):
     """
     Tests will fail to tear down an extension module if it's been imported.
 
-    Move the file to a temporary directory that won't be cleaned up.
+    Before importing, copy the file to a temporary directory that won't
+    be cleaned up. Yield the new path.
     """
-    try:
-        yield
-    finally:
-        filename = sys.modules[mod].__file__
-        if platform.system() != "Windows":
-            return
-        dest = os.path.join(
-            tempfile.mkdtemp(prefix='deleteme'), os.path.basename(filename)
-        )
-        os.rename(filename, dest)
-        # TODO: can the file be scheduled for deletion?
+    if platform.system() != "Windows":
+        yield path
+        return
+    with import_helper.DirsOnSysPath(path):
+        spec = importlib.util.find_spec(mod)
+    filename = os.path.basename(spec.origin)
+    trash_dir = tempfile.mkdtemp(prefix='deleteme')
+    dest = os.path.join(trash_dir, os.path.basename(filename))
+    shutil.copy(spec.origin, dest)
+    yield trash_dir
+    # TODO: can the file be scheduled for deletion?
 
 
 @pytest.mark.usefixtures('user_site_dir')
@@ -99,12 +110,10 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
         finally:
             sys.stdout = old_stdout
 
-        with import_helper.CleanImport('xx'):
-            with import_helper.DirsOnSysPath(self.tmp_dir):
-                self._test_xx()
+        with safe_extension_import('xx', self.tmp_dir):
+            self._test_xx()
 
     @staticmethod
-    @cleanup('xx')
     def _test_xx():
         import xx
 
