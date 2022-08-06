@@ -4,6 +4,7 @@ import os
 import sys
 import unittest
 import site
+import pathlib
 
 from test.support import captured_stdout
 
@@ -253,11 +254,7 @@ class InstallTestCase(
         cmd.ensure_finalized()
         cmd.run()
 
-        f = open(cmd.record)
-        try:
-            content = f.read()
-        finally:
-            f.close()
+        content = pathlib.Path(cmd.record).read_text()
 
         found = [os.path.basename(line) for line in content.splitlines()]
         expected = [
