@@ -1,3 +1,16 @@
+v63.4.2
+-------
+
+
+Misc
+^^^^
+* #3453: Bump vendored version of :pypi:`pyparsing` to 3.0.9.
+* #3481: Add warning for potential ``install_requires`` and ``extras_require``
+  misconfiguration in ``setup.cfg``
+* #3487: Modified ``pyproject.toml`` validation exception handling to
+  make relevant debugging information easier to spot.
+
+
 v63.4.1
 -------
 

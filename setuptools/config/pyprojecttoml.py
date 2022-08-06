@@ -41,10 +41,14 @@ def validate(config: dict, filepath: _Path) -> bool:
     try:
         return validator.validate(config)
     except validator.ValidationError as ex:
-        _logger.error(f"configuration error: {ex.summary}")  # type: ignore
-        _logger.debug(ex.details)  # type: ignore
-        error = ValueError(f"invalid pyproject.toml config: {ex.name}")  # type: ignore
-        raise error from None
+        summary = f"configuration error: {ex.summary}"
+        if ex.name.strip("`") != "project":
+            # Probably it is just a field missing/misnamed, not worthy the verbosity...
+            _logger.debug(summary)
+            _logger.debug(ex.details)
+
+        error = f"invalid pyproject.toml config: {ex.name}."
+        raise ValueError(f"{error}\n{summary}") from None
 
 
 def apply_configuration(
