@@ -116,8 +116,8 @@ class Extension(_Extension):
       specifies that a build failure in the extension should not abort the
       build process, but simply not install the failing extension.
 
-    :raises DistutilsPlatformError: if 'runtime_library_dirs' is specified
-      on Windows. (since v63)
+    :raises setuptools.errors.PlatformError: if 'runtime_library_dirs' is
+      specified on Windows. (since v63)
     """
 
     def __init__(self, name, sources, *args, **kw):

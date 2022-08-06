@@ -186,6 +186,7 @@ nitpick_ignore = [
     ('py:exc', 'LibError'),  # undocumented
     ('py:exc', 'LinkError'),  # undocumented
     ('py:exc', 'PreprocessError'),  # undocumented
+    ('py:exc', 'setuptools.errors.PlatformError'),  # sphinx cannot find it
     ('py:func', 'distutils.CCompiler.new_compiler'),  # undocumented
     # undocumented:
     ('py:func', 'distutils.dist.DistributionMetadata.read_pkg_file'),
