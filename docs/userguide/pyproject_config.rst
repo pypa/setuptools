@@ -216,7 +216,7 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
 
 .. [#setupcfg-caveats] ``pip`` may allow editable install only with ``pyproject.toml``
    and ``setup.cfg``. However, this behavior may not be consistent over various build
-   tools, and having a ``setup.py`` is still recommended.
+   tools. Having a ``setup.py`` is still recommended if you rely on one of these tools.
 
 .. [#entry-points] Dynamic ``scripts`` and ``gui-scripts`` are a special case.
    When resolving these metadata keys, ``setuptools`` will look for
