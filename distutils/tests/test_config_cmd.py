@@ -4,28 +4,27 @@ import os
 import sys
 from test.support import missing_compiler_executable
 
+import pytest
+
 from distutils.command.config import dump_file, config
 from distutils.tests import support
 from distutils import log
 
 
+@pytest.fixture(autouse=True)
+def info_log(request, monkeypatch):
+    self = request.instance
+    self._logs = []
+    monkeypatch.setattr(log, 'info', self._info)
+
+
 @support.combine_markers
-class ConfigTestCase(
-    support.LoggingSilencer, support.TempdirManager, unittest.TestCase
+class TestConfig(
+    support.LoggingSilencer, support.TempdirManager
 ):
     def _info(self, msg, *args):
         for line in msg.splitlines():
             self._logs.append(line)
-
-    def setUp(self):
-        super().setUp()
-        self._logs = []
-        self.old_log = log.info
-        log.info = self._info
-
-    def tearDown(self):
-        log.info = self.old_log
-        super().tearDown()
 
     def test_dump_file(self):
         this_file = os.path.splitext(__file__)[0] + '.py'
