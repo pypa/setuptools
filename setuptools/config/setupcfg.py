@@ -465,10 +465,9 @@ class ConfigHandler(Generic[Target]):
         :param dict section_options:
         """
         for (name, (_, value)) in section_options.items():
-            try:
+            with contextlib.suppress(KeyError):
+                # Keep silent for a new option may appear anytime.
                 self[name] = value
-            except KeyError:
-                pass  # Keep silent for a new option may appear anytime.
 
     def parse(self):
         """Parses configuration file items from one
