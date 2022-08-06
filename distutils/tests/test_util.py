@@ -25,32 +25,20 @@ from distutils import sysconfig
 from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
 
 
+@pytest.fixture(autouse=True)
+def environment(monkeypatch):
+    monkeypatch.setattr(os, 'name', os.name)
+    monkeypatch.setattr(sys, 'platform', sys.platform)
+    monkeypatch.setattr(sys, 'version', sys.version)
+    monkeypatch.setattr(os, 'sep', os.sep)
+    monkeypatch.setattr(os.path, 'join', os.path.join)
+    monkeypatch.setattr(os.path, 'isabs', os.path.isabs)
+    monkeypatch.setattr(os.path, 'splitdrive', os.path.splitdrive)
+    monkeypatch.setattr(sysconfig, '_config_vars', copy(sysconfig._config_vars))
+
+
 @pytest.mark.usefixtures('save_env')
-class UtilTestCase(unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        # saving the environment
-        self.name = os.name
-        self.platform = sys.platform
-        self.version = sys.version
-        self.sep = os.sep
-        self.join = os.path.join
-        self.isabs = os.path.isabs
-        self.splitdrive = os.path.splitdrive
-        self._config_vars = copy(sysconfig._config_vars)
-
-    def tearDown(self):
-        # getting back the environment
-        os.name = self.name
-        sys.platform = self.platform
-        sys.version = self.version
-        os.sep = self.sep
-        os.path.join = self.join
-        os.path.isabs = self.isabs
-        os.path.splitdrive = self.splitdrive
-        sysconfig._config_vars = copy(self._config_vars)
-        super().tearDown()
-
+class TestUtil:
     def test_get_host_platform(self):
         with unittest.mock.patch('os.name', 'nt'):
             with unittest.mock.patch('sys.version', '... [... (ARM64)]'):
