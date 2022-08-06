@@ -3,6 +3,8 @@ import unittest
 import sys
 import os
 
+import pytest
+
 from distutils.cygwinccompiler import (
     check_config_h,
     CONFIG_H_OK,
@@ -11,26 +13,17 @@ from distutils.cygwinccompiler import (
     get_msvcr,
 )
 from distutils.tests import support
-import pytest
+from distutils import sysconfig
 
 
-class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self.version = sys.version
-        self.python_h = os.path.join(self.mkdtemp(), 'python.h')
-        from distutils import sysconfig
+@pytest.fixture(autouse=True)
+def stuff(request, monkeypatch, distutils_managed_tempdir):
+    self = request.instance
+    self.python_h = os.path.join(self.mkdtemp(), 'python.h')
+    monkeypatch.setattr(sysconfig, 'get_config_h_filename', self._get_config_h_filename)
 
-        self.old_get_config_h_filename = sysconfig.get_config_h_filename
-        sysconfig.get_config_h_filename = self._get_config_h_filename
 
-    def tearDown(self):
-        sys.version = self.version
-        from distutils import sysconfig
-
-        sysconfig.get_config_h_filename = self.old_get_config_h_filename
-        super().tearDown()
-
+class TestCygwinCCompiler(support.TempdirManager):
     def _get_config_h_filename(self):
         return self.python_h
 
