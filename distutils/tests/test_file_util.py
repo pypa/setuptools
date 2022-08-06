@@ -12,26 +12,23 @@ from .py38compat import unlink
 import pytest
 
 
-class FileUtilTestCase(support.TempdirManager, unittest.TestCase):
+@pytest.fixture(autouse=True)
+def stuff(request, monkeypatch, distutils_managed_tempdir):
+    self = request.instance
+    self._logs = []
+    tmp_dir = self.mkdtemp()
+    self.source = os.path.join(tmp_dir, 'f1')
+    self.target = os.path.join(tmp_dir, 'f2')
+    self.target_dir = os.path.join(tmp_dir, 'd1')
+    monkeypatch.setattr(log, 'info', self._log)
+
+
+class TestFileUtil(support.TempdirManager):
     def _log(self, msg, *args):
         if len(args) > 0:
             self._logs.append(msg % args)
         else:
             self._logs.append(msg)
-
-    def setUp(self):
-        super().setUp()
-        self._logs = []
-        self.old_log = log.info
-        log.info = self._log
-        tmp_dir = self.mkdtemp()
-        self.source = os.path.join(tmp_dir, 'f1')
-        self.target = os.path.join(tmp_dir, 'f2')
-        self.target_dir = os.path.join(tmp_dir, 'd1')
-
-    def tearDown(self):
-        log.info = self.old_log
-        super().tearDown()
 
     def test_move_file_verbosity(self):
         f = open(self.source, 'w')
