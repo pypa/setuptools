@@ -229,6 +229,7 @@ class InstallTestCase(
         ]
         assert found == expected
 
+    @pytest.mark.xfail(reason="#166")
     def test_record_extensions(self):
         cmd = test_support.missing_compiler_executable()
         if cmd is not None:
