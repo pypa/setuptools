@@ -432,30 +432,32 @@ class ConfigHandler(Generic[Target]):
         return parse
 
     @classmethod
-    def _parse_section_to_dict_with_key(cls, section_options, values_parser=None):
+    def _parse_section_to_dict_with_key(cls, section_options, values_parser):
         """Parses section options into a dictionary.
 
-        Optionally applies a given parser to each option in a section.
+        Applies a given parser to each option in a section.
 
         :param dict section_options:
         :param callable values_parser: function with 2 args corresponding to key, value
         :rtype: dict
         """
         value = {}
-        values_parser = values_parser or (lambda _, val: val)
         for key, (_, val) in section_options.items():
             value[key] = values_parser(key, val)
         return value
 
     @classmethod
     def _parse_section_to_dict(cls, section_options, values_parser=None):
+        """Parses section options into a dictionary.
+
+        Optionally applies a given parser to each value.
+
+        :param dict section_options:
+        :param callable values_parser: function with 1 arg corresponding to option value
+        :rtype: dict
         """
-        Similar to ``_parse_section_to_dict_with_key`` but uses a ``values_parser`` with
-        only one argument (corresponding to the value in the dict).
-        """
-        return cls._parse_section_to_dict_with_key(
-            section_options, lambda _, val: values_parser(val)
-        )
+        parser = (lambda _, v: values_parser(v)) if values_parser else (lambda _, v: v)
+        return cls._parse_section_to_dict_with_key(section_options, parser)
 
     def parse_section(self, section_options):
         """Parses configuration file section.
