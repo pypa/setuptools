@@ -19,26 +19,23 @@ from distutils.tests import support
 import pytest
 
 
-class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
+@pytest.fixture(autouse=True)
+def stuff(request, monkeypatch, distutils_managed_tempdir):
+    self = request.instance
+    self._logs = []
+    tmp_dir = self.mkdtemp()
+    self.root_target = os.path.join(tmp_dir, 'deep')
+    self.target = os.path.join(self.root_target, 'here')
+    self.target2 = os.path.join(tmp_dir, 'deep2')
+    monkeypatch.setattr(log, 'info', self._log)
+
+
+class TestDirUtil(support.TempdirManager):
     def _log(self, msg, *args):
         if len(args) > 0:
             self._logs.append(msg % args)
         else:
             self._logs.append(msg)
-
-    def setUp(self):
-        super().setUp()
-        self._logs = []
-        tmp_dir = self.mkdtemp()
-        self.root_target = os.path.join(tmp_dir, 'deep')
-        self.target = os.path.join(self.root_target, 'here')
-        self.target2 = os.path.join(tmp_dir, 'deep2')
-        self.old_log = log.info
-        log.info = self._log
-
-    def tearDown(self):
-        log.info = self.old_log
-        super().tearDown()
 
     def test_mkpath_remove_tree_verbosity(self):
 
