@@ -15,25 +15,23 @@ from . import support
 import pytest
 
 
-class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self._backup_platform = sys.platform
-        self._backup_get_config_var = sysconfig.get_config_var
-        self._backup_get_config_vars = sysconfig.get_config_vars
+@pytest.fixture(autouse=True)
+def save_values(monkeypatch):
+    monkeypatch.setattr(sys, 'platform', sys.platform)
+    monkeypatch.setattr(sysconfig, 'get_config_var', sysconfig.get_config_var)
+    monkeypatch.setattr(sysconfig, 'get_config_vars', sysconfig.get_config_vars)
 
-        class CompilerWrapper(UnixCCompiler):
-            def rpath_foo(self):
-                return self.runtime_library_dir_option('/foo')
 
-        self.cc = CompilerWrapper()
+@pytest.fixture(autouse=True)
+def compiler_wrapper(request):
+    class CompilerWrapper(UnixCCompiler):
+        def rpath_foo(self):
+            return self.runtime_library_dir_option('/foo')
 
-    def tearDown(self):
-        super().tearDown()
-        sys.platform = self._backup_platform
-        sysconfig.get_config_var = self._backup_get_config_var
-        sysconfig.get_config_vars = self._backup_get_config_vars
+    request.instance.cc = CompilerWrapper()
 
+
+class TestUnixCCompiler(support.TempdirManager):
     @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
     def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
