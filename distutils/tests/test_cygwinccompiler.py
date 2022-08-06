@@ -21,6 +21,7 @@ def stuff(request, monkeypatch, distutils_managed_tempdir):
     self = request.instance
     self.python_h = os.path.join(self.mkdtemp(), 'python.h')
     monkeypatch.setattr(sysconfig, 'get_config_h_filename', self._get_config_h_filename)
+    monkeypatch.setattr(sys, 'version', sys.version)
 
 
 class TestCygwinCCompiler(support.TempdirManager):

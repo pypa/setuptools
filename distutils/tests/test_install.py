@@ -214,7 +214,6 @@ class TestInstall(
         ]
         assert found == expected
 
-    @pytest.mark.xfail('platform.system == "Windows"', reason="#166")
     def test_record_extensions(self):
         cmd = test_support.missing_compiler_executable()
         if cmd is not None:
