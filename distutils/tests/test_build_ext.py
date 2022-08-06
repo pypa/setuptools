@@ -70,7 +70,7 @@ def extension_redirect(mod, path):
     Before importing, copy the file to a temporary directory that won't
     be cleaned up. Yield the new path.
     """
-    if platform.system() != "Windows":
+    if platform.system() != "Windows" and sys.platform != "cygwin":
         yield path
         return
     with import_helper.DirsOnSysPath(path):
