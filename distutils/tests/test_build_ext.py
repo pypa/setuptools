@@ -21,16 +21,11 @@ from distutils.errors import (
     UnknownFileError,
 )
 
-import unittest
 from test import support
 from . import py38compat as os_helper
 from test.support.script_helper import assert_python_ok
 import pytest
 import re
-
-# http://bugs.python.org/issue4373
-# Don't load the xx module more than once.
-ALREADY_TESTED = False
 
 
 @pytest.fixture()
@@ -61,9 +56,6 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
 
     def test_build_ext(self):
         cmd = support.missing_compiler_executable()
-        if cmd is not None:
-            self.skipTest('The %r command is not found' % cmd)
-        global ALREADY_TESTED
         copy_xxmodule_c(self.tmp_dir)
         xx_c = os.path.join(self.tmp_dir, 'xxmodule.c')
         xx_ext = Extension('xx', [xx_c])
@@ -83,11 +75,6 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
             cmd.run()
         finally:
             sys.stdout = old_stdout
-
-        if ALREADY_TESTED:
-            self.skipTest('Already tested in %s' % ALREADY_TESTED)
-        else:
-            ALREADY_TESTED = type(self).__name__
 
         code = textwrap.dedent(
             f"""
@@ -352,8 +339,6 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
 
     def test_get_outputs(self):
         cmd = support.missing_compiler_executable()
-        if cmd is not None:
-            self.skipTest('The %r command is not found' % cmd)
         tmp_dir = self.mkdtemp()
         c_file = os.path.join(tmp_dir, 'foo.c')
         self.write_file(c_file, 'void PyInit_foo(void) {}\n')
