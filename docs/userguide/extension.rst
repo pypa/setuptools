@@ -103,20 +103,20 @@ The idea here is that the entry point defines a function that will be called
 to validate the ``setup()`` argument, if it's supplied.  The ``Distribution``
 object will have the initial value of the attribute set to ``None``, and the
 validation function will only be called if the ``setup()`` call sets it to
-a non-None value.  Here's an example validation function::
+a non-``None`` value.  Here's an example validation function::
 
     def assert_bool(dist, attr, value):
         """Verify that value is True, False, 0, or 1"""
         if bool(value) != value:
-            raise DistutilsSetupError(
+            raise SetupError(
                 "%r must be a boolean value (got %r)" % (attr,value)
             )
 
 Your function should accept three arguments: the ``Distribution`` object,
 the attribute name, and the attribute value.  It should raise a
 ``SetupError`` (from the ``setuptools.errors`` module) if the argument
-is invalid.  Remember, your function will only be called with non-None values,
-and the default value of arguments defined this way is always None.  So, your
+is invalid.  Remember, your function will only be called with non-``None`` values,
+and the default value of arguments defined this way is always ``None``.  So, your
 commands should always be prepared for the possibility that the attribute will
 be ``None`` when they access it later.
 
@@ -129,12 +129,12 @@ what values of that argument are valid.
 Customizing Distribution Options
 --------------------------------
 
-Plugins may wish to extend or alter the options on a Distribution object to
+Plugins may wish to extend or alter the options on a ``Distribution`` object to
 suit the purposes of that project. For example, a tool that infers the
 ``Distribution.version`` from SCM-metadata may need to hook into the
 option finalization. To enable this feature, Setuptools offers an entry
-point "setuptools.finalize_distribution_options". That entry point must
-be a callable taking one argument (the Distribution instance).
+point ``setuptools.finalize_distribution_options``. That entry point must
+be a callable taking one argument (the ``Distribution`` instance).
 
 If the callable has an ``.order`` property, that value will be used to
 determine the order in which the hook is called. Lower numbers are called
