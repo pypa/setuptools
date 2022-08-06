@@ -20,17 +20,8 @@ from .py38compat import TESTFN
 
 
 @pytest.mark.usefixtures('save_env')
-class SysconfigTestCase(unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self.makefile = None
-
-    def tearDown(self):
-        if self.makefile is not None:
-            os.unlink(self.makefile)
-        self.cleanup_testfn()
-        super().tearDown()
-
+@pytest.mark.usefixtures('cleanup_testfn')
+class TestSysconfig:
     def cleanup_testfn(self):
         if os.path.isfile(TESTFN):
             os.remove(TESTFN)
@@ -237,7 +228,7 @@ class SysconfigTestCase(unittest.TestCase):
         import sysconfig as global_sysconfig
 
         if sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER'):
-            self.skipTest('compiler flags customized')
+            pytest.skip('compiler flags customized')
         assert global_sysconfig.get_config_var('LDSHARED') == sysconfig.get_config_var(
             'LDSHARED'
         )
