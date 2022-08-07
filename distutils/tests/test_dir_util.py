@@ -1,5 +1,4 @@
 """Tests for distutils.dir_util."""
-import unittest
 import os
 import stat
 import sys
@@ -53,10 +52,7 @@ class TestDirUtil(support.TempdirManager):
         wanted = ["removing '%s' (and everything under it)" % self.root_target]
         assert self._logs == wanted
 
-    @unittest.skipIf(
-        sys.platform.startswith('win'),
-        "This test is only appropriate for POSIX-like systems.",
-    )
+    @pytest.mark.skipif("platform.system() == 'Windows'")
     def test_mkpath_with_custom_mode(self):
         # Get and set the current umask value for testing mode bits.
         umask = os.umask(0o002)
