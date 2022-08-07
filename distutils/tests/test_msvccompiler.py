@@ -50,26 +50,17 @@ class Testmsvccompiler(support.TempdirManager):
                 os.environ['DISTUTILS_USE_SDK'] = old_distutils_use_sdk
 
     @needs_winreg
-    def test_get_vc2017(self):
-        # This function cannot be mocked, so pass it if we find VS 2017
-        # and mark it skipped if we do not.
-        version, path = _msvccompiler._find_vc2017()
-        if version:
-            assert version >= 15
-            assert os.path.isdir(path)
-        else:
-            pytest.skip("VS 2017 is not installed")
-
-    @needs_winreg
-    def test_get_vc2015(self):
-        # This function cannot be mocked, so pass it if we find VS 2015
-        # and mark it skipped if we do not.
-        version, path = _msvccompiler._find_vc2015()
-        if version:
-            assert version >= 14
-            assert os.path.isdir(path)
-        else:
-            pytest.skip("VS 2015 is not installed")
+    @pytest.mark.parametrize('ver', (2015, 2017))
+    def test_get_vc(self, ver):
+        # This function cannot be mocked, so pass if VC is found
+        # and skip otherwise.
+        lookup = getattr(_msvccompiler, f'_find_vc{ver}')
+        expected_version = {2015: 14, 2017: 15}[ver]
+        version, path = lookup()
+        if not version:
+            pytest.skip(f"VS {ver} is not installed")
+        assert version >= expected_version
+        assert os.path.isdir(path)
 
 
 class CheckThread(threading.Thread):
