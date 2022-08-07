@@ -1,5 +1,4 @@
 """Tests for distutils.command.config."""
-import unittest
 import os
 import sys
 from test.support import missing_compiler_executable
@@ -35,7 +34,7 @@ class TestConfig(support.LoggingSilencer, support.TempdirManager):
         dump_file(this_file, 'I am the header')
         assert len(self._logs) == numlines + 1
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system() == "Windows"')
     def test_search_cpp(self):
         cmd = missing_compiler_executable(['preprocessor'])
         if cmd is not None:
