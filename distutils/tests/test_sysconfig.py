@@ -11,7 +11,7 @@ import jaraco.envs
 
 import distutils
 from distutils import sysconfig
-from distutils.ccompiler import get_default_compiler
+from distutils.ccompiler import get_default_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
 
