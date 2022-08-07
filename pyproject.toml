@@ -1,2 +1,11 @@
 [tool.black]
 skip-string-normalization = true
+
+[tool.pytest-enabler.black]
+addopts = "--black"
+
+[tool.pytest-enabler.flake8]
+addopts = "--flake8"
+
+[tool.pytest-enabler.cov]
+addopts = "--cov"
