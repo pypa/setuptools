@@ -272,15 +272,13 @@ class TestSysconfig:
         assert isinstance(result, dict)
 
     @pytest.mark.skipif("platform.system() != 'Windows'")
-    @pytest.mark.skipif(
-        "sys.implementation.name != 'cpython'")
+    @pytest.mark.skipif("sys.implementation.name != 'cpython'")
     def test_win_ext_suffix(self):
         assert sysconfig.get_config_var("EXT_SUFFIX").endswith(".pyd")
         assert sysconfig.get_config_var("EXT_SUFFIX") != ".pyd"
 
     @pytest.mark.skipif("platform.system() != 'Windows'")
-    @pytest.mark.skipif(
-        "sys.implementation.name != 'cpython'")
+    @pytest.mark.skipif("sys.implementation.name != 'cpython'")
     @pytest.mark.skipif(
         '\\PCbuild\\'.casefold() not in sys.executable.casefold(),
         reason='Need sys.executable to be in a source tree',
