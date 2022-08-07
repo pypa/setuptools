@@ -287,7 +287,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
             del register_module.input
 
     @unittest.skipUnless(docutils is not None, 'needs docutils')
-    def test_register_invalid_long_description(self):
+    def test_register_invalid_long_description(self, monkeypatch):
         description = ':funkie:`str`'  # mimic Sphinx-specific markup
         metadata = {
             'url': 'xxx',
@@ -301,8 +301,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
         cmd.ensure_finalized()
         cmd.strict = True
         inputs = Inputs('2', 'tarek', 'tarek@ziade.org')
-        register_module.input = inputs
-        self.addCleanup(delattr, register_module, 'input')
+        monkeypatch.setattr(register_module, 'input', inputs, raising=False)
 
         with pytest.raises(DistutilsSetupError):
             cmd.run()
