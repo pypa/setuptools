@@ -56,9 +56,7 @@ class TestUtil:
                 assert get_platform() == 'win-amd64'
             with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm'}):
                 assert get_platform() == 'win-arm32'
-            with mock.patch.dict(
-                'os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm64'}
-            ):
+            with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm64'}):
                 assert get_platform() == 'win-arm64'
 
     def test_convert_path(self):
