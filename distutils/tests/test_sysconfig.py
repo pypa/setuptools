@@ -32,12 +32,8 @@ class TestSysconfig:
         config_h = sysconfig.get_config_h_filename()
         assert os.path.isfile(config_h), config_h
 
-    @unittest.skipIf(
-        sys.platform == 'win32', 'Makefile only exists on Unix like systems'
-    )
-    @unittest.skipIf(
-        sys.implementation.name != 'cpython', 'Makefile only exists in CPython'
-    )
+    @pytest.mark.skipif("platform.system() == 'Windows'")
+    @pytest.mark.skipif("sys.implementation.name != 'cpython'")
     def test_get_makefile_filename(self):
         makefile = sysconfig.get_makefile_filename()
         assert os.path.isfile(makefile), makefile
