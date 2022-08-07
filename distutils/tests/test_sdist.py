@@ -1,7 +1,6 @@
 """Tests for distutils.command.sdist."""
 import os
 import tarfile
-import unittest
 import warnings
 import zipfile
 from os.path import join
@@ -19,7 +18,7 @@ from distutils.command.sdist import sdist, show_formats
 from distutils.core import Distribution
 from distutils.tests.test_config import BasePyPIRCCommandTestCase
 from distutils.errors import DistutilsOptionError
-from distutils.spawn import find_executable
+from distutils.spawn import find_executable  # noqa: F401
 from distutils.log import WARN
 from distutils.filelist import FileList
 from distutils.archive_util import ARCHIVE_FORMATS
@@ -133,8 +132,8 @@ class TestSDist(BasePyPIRCCommandTestCase):
         assert sorted(content) == ['fake-1.0/' + x for x in expected]
 
     @pytest.mark.usefixtures('needs_zlib')
-    @unittest.skipIf(find_executable('tar') is None, "The tar command is not found")
-    @unittest.skipIf(find_executable('gzip') is None, "The gzip command is not found")
+    @pytest.mark.skipif("not find_executable('tar')")
+    @pytest.mark.skipif("not find_executable('gzip')")
     def test_make_distribution(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
@@ -341,7 +340,7 @@ class TestSDist(BasePyPIRCCommandTestCase):
         # this manifest command takes one argument
         self._check_template('prune')
 
-    @unittest.skipIf(os.name != 'nt', 'test relevant for Windows only')
+    @pytest.mark.skipif("platform.system() != 'Windows'")
     def test_invalid_template_wrong_path(self):
         # on Windows, trailing slashes are not allowed
         # this used to crash instead of raising a warning: #8286
@@ -466,8 +465,8 @@ class TestSDist(BasePyPIRCCommandTestCase):
     @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id
     @require_uid_0
-    @unittest.skipIf(find_executable('tar') is None, "The tar command is not found")
-    @unittest.skipIf(find_executable('gzip') is None, "The gzip command is not found")
+    @pytest.mark.skipif("not find_executable('tar')")
+    @pytest.mark.skipif("not find_executable('gzip')")
     def test_make_distribution_owner_group(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
