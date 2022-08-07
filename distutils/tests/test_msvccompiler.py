@@ -58,7 +58,7 @@ class Testmsvccompiler(support.TempdirManager):
             assert version >= 15
             assert os.path.isdir(path)
         else:
-            raise unittest.SkipTest("VS 2017 is not installed")
+            pytest.skip("VS 2017 is not installed")
 
     @needs_winreg
     def test_get_vc2015(self):
@@ -69,7 +69,7 @@ class Testmsvccompiler(support.TempdirManager):
             assert version >= 14
             assert os.path.isdir(path)
         else:
-            raise unittest.SkipTest("VS 2015 is not installed")
+            pytest.skip("VS 2015 is not installed")
 
 
 class CheckThread(threading.Thread):
