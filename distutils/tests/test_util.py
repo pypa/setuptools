@@ -19,7 +19,7 @@ from distutils.util import (
     grok_environment_error,
     get_host_platform,
 )
-from distutils import util  # used to patch _environ_checked
+from distutils import util
 from distutils import sysconfig
 from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
 
