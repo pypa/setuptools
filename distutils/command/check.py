@@ -77,7 +77,10 @@ class check(Command):
             self.check_metadata()
         if self.restructuredtext:
             if 'docutils' in globals():
-                self.check_restructuredtext()
+                try:
+                    self.check_restructuredtext()
+                except TypeError as exc:
+                    raise DistutilsSetupError(str(exc))
             elif self.strict:
                 raise DistutilsSetupError('The docutils package is needed.')
 
