@@ -195,7 +195,7 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         tmpdir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
 
-        # using compress and testing the PendingDeprecationWarning
+        # using compress and testing the DeprecationWarning
         old_dir = os.getcwd()
         os.chdir(tmpdir)
         try:
