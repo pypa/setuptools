@@ -49,7 +49,8 @@ class TestSysconfig:
         assert isinstance(cvars, dict)
         assert cvars
 
-    @unittest.skip('sysconfig.IS_PYPY')
+    @pytest.mark.skipif('sysconfig.IS_PYPY')
+    @pytest.mark.xfail(reason="broken")
     def test_srcdir(self):
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')
