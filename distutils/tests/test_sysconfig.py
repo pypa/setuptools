@@ -231,10 +231,7 @@ class TestSysconfig:
         )
         assert global_sysconfig.get_config_var('CC') == sysconfig.get_config_var('CC')
 
-    @unittest.skipIf(
-        sysconfig.get_config_var('EXT_SUFFIX') is None,
-        'EXT_SUFFIX required for this test',
-    )
+    @pytest.mark.skipif("not sysconfig.get_config_var('EXT_SUFFIX')")
     def test_SO_deprecation(self):
         with pytest.warns(DeprecationWarning):
             sysconfig.get_config_var('SO')
@@ -274,21 +271,19 @@ class TestSysconfig:
             result = sysconfig.parse_config_h(f)
         assert isinstance(result, dict)
 
-    @unittest.skipUnless(sys.platform == 'win32', 'Testing windows pyd suffix')
-    @unittest.skipUnless(
-        sys.implementation.name == 'cpython', 'Need cpython for this test'
-    )
+    @pytest.mark.skipif("platform.system() != 'Windows'")
+    @pytest.mark.skipif(
+        "sys.implementation.name != 'cpython'")
     def test_win_ext_suffix(self):
         assert sysconfig.get_config_var("EXT_SUFFIX").endswith(".pyd")
         assert sysconfig.get_config_var("EXT_SUFFIX") != ".pyd"
 
-    @unittest.skipUnless(sys.platform == 'win32', 'Testing Windows build layout')
-    @unittest.skipUnless(
-        sys.implementation.name == 'cpython', 'Need cpython for this test'
-    )
-    @unittest.skipUnless(
-        '\\PCbuild\\'.casefold() in sys.executable.casefold(),
-        'Need sys.executable to be in a source tree',
+    @pytest.mark.skipif("platform.system() != 'Windows'")
+    @pytest.mark.skipif(
+        "sys.implementation.name != 'cpython'")
+    @pytest.mark.skipif(
+        '\\PCbuild\\'.casefold() not in sys.executable.casefold(),
+        reason='Need sys.executable to be in a source tree',
     )
     def test_win_build_venv_from_source_tree(self):
         """Ensure distutils.sysconfig detects venvs from source tree builds."""
