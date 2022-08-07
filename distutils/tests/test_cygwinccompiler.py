@@ -1,5 +1,4 @@
 """Tests for distutils.cygwinccompiler."""
-import unittest
 import sys
 import os
 
@@ -28,10 +27,8 @@ class TestCygwinCCompiler(support.TempdirManager):
     def _get_config_h_filename(self):
         return self.python_h
 
-    @unittest.skipIf(sys.platform != "cygwin", "Not running on Cygwin")
-    @unittest.skipIf(
-        not os.path.exists("/usr/lib/libbash.dll.a"), "Don't know a linkable library"
-    )
+    @pytest.mark.skipif('sys.platform != "cygwin"')
+    @pytest.mark.skipif('not os.path.exists("/usr/lib/libbash.dll.a")')
     def test_find_library_file(self):
         from distutils.cygwinccompiler import CygwinCCompiler
 
@@ -42,7 +39,7 @@ class TestCygwinCCompiler(support.TempdirManager):
         assert os.path.exists(linkable_file)
         assert linkable_file == f"/usr/lib/lib{link_name:s}.dll.a"
 
-    @unittest.skipIf(sys.platform != "cygwin", "Not running on Cygwin")
+    @pytest.mark.skipif('sys.platform != "cygwin"')
     def test_runtime_library_dir_option(self):
         from distutils.cygwinccompiler import CygwinCCompiler
 
