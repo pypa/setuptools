@@ -2,7 +2,6 @@
 import os
 import stat
 import sys
-import unittest
 import unittest.mock as mock
 
 from test.support import unix_shell
@@ -17,7 +16,7 @@ import pytest
 
 
 class TestSpawn(support.TempdirManager, support.LoggingSilencer):
-    @unittest.skipUnless(os.name in ('nt', 'posix'), 'Runs only under posix or nt')
+    @pytest.mark.skipif("os.name not in ('nt', 'posix')")
     def test_spawn(self):
         tmpdir = self.mkdtemp()
 

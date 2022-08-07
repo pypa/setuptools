@@ -5,7 +5,6 @@ import shutil
 import subprocess
 import sys
 import textwrap
-import unittest
 
 import pytest
 import jaraco.envs
@@ -113,9 +112,7 @@ class TestSysconfig:
 
         return comp
 
-    @unittest.skipUnless(
-        get_default_compiler() == 'unix', 'not testing if default compiler is not unix'
-    )
+    @pytest.mark.skipif("get_default_compiler() != 'unix'")
     def test_customize_compiler(self):
         # Make sure that sysconfig._config_vars is initialized
         sysconfig.get_config_vars()
@@ -204,9 +201,7 @@ class TestSysconfig:
             'LDFLAGS'
         )
 
-    @unittest.skipIf(
-        sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER'), 'compiler flags customized'
-    )
+    @pytest.mark.skipif("sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER')")
     def test_sysconfig_compiler_vars(self):
         # On OS X, binary installers support extension module building on
         # various levels of the operating system with differing Xcode

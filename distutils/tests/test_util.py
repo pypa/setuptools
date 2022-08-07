@@ -1,7 +1,6 @@
 """Tests for distutils.util."""
 import os
 import sys
-import unittest
 import sysconfig as stdlib_sysconfig
 import unittest.mock as mock
 from copy import copy
@@ -147,7 +146,7 @@ class TestUtil:
         assert os.environ['PLAT'] == get_platform()
         assert util._environ_checked == 1
 
-    @unittest.skipUnless(os.name == 'posix', 'specific to posix')
+    @pytest.mark.skipif("os.name != 'posix'")
     def test_check_environ_getpwuid(self):
         util._environ_checked = 0
         os.environ.pop('HOME', None)
