@@ -1,8 +1,7 @@
 """Tests for distutils.dir_util."""
 import os
 import stat
-import sys
-from unittest.mock import patch
+import unittest.mock as mock
 
 from distutils import dir_util, errors
 from distutils.dir_util import (
@@ -122,7 +121,7 @@ class TestDirUtil(support.TempdirManager):
         """
         An exception in listdir should raise a DistutilsFileError
         """
-        with patch("os.listdir", side_effect=OSError()), pytest.raises(
+        with mock.patch("os.listdir", side_effect=OSError()), pytest.raises(
             errors.DistutilsFileError
         ):
             src = self.tempdirs[-1]

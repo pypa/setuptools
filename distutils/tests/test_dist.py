@@ -5,8 +5,7 @@ import sys
 import warnings
 import textwrap
 import functools
-
-from unittest import mock
+import unittest.mock as mock
 
 import pytest
 

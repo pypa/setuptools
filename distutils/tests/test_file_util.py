@@ -1,7 +1,7 @@
 """Tests for distutils.file_util."""
 import os
 import errno
-from unittest.mock import patch
+import unittest.mock as mock
 
 from distutils.file_util import move_file, copy_file
 from distutils import log
@@ -59,7 +59,7 @@ class TestFileUtil(support.TempdirManager):
 
     def test_move_file_exception_unpacking_rename(self):
         # see issue 22182
-        with patch("os.rename", side_effect=OSError("wrong", 1)), pytest.raises(
+        with mock.patch("os.rename", side_effect=OSError("wrong", 1)), pytest.raises(
             DistutilsFileError
         ):
             with open(self.source, 'w') as fobj:
@@ -68,9 +68,11 @@ class TestFileUtil(support.TempdirManager):
 
     def test_move_file_exception_unpacking_unlink(self):
         # see issue 22182
-        with patch("os.rename", side_effect=OSError(errno.EXDEV, "wrong")), patch(
-            "os.unlink", side_effect=OSError("wrong", 1)
-        ), pytest.raises(DistutilsFileError):
+        with mock.patch(
+            "os.rename", side_effect=OSError(errno.EXDEV, "wrong")
+        ), mock.patch("os.unlink", side_effect=OSError("wrong", 1)), pytest.raises(
+            DistutilsFileError
+        ):
             with open(self.source, 'w') as fobj:
                 fobj.write('spam eggs')
             move_file(self.source, self.target, verbose=0)
@@ -102,7 +104,7 @@ class TestFileUtil(support.TempdirManager):
         with open(self.source, 'w') as f:
             f.write('some content')
         st = os.stat(self.source)
-        with patch("os.link", side_effect=OSError(0, "linking unsupported")):
+        with mock.patch("os.link", side_effect=OSError(0, "linking unsupported")):
             copy_file(self.source, self.target, link='hard')
         st2 = os.stat(self.source)
         st3 = os.stat(self.target)

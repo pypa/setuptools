@@ -1,7 +1,7 @@
 """Tests for distutils.unixccompiler."""
 import os
 import sys
-from unittest.mock import patch
+import unittest.mock as mock
 
 from .py38compat import EnvironmentVarGuard
 
@@ -257,11 +257,11 @@ class TestUnixCCompiler(support.TempdirManager):
 
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
-        with patch.object(
+        with mock.patch.object(
             self.cc, 'spawn', return_value=None
-        ) as mock_spawn, patch.object(
+        ) as mock_spawn, mock.patch.object(
             self.cc, '_need_link', return_value=True
-        ), patch.object(
+        ), mock.patch.object(
             self.cc, 'mkpath', return_value=None
         ), EnvironmentVarGuard() as env:
             env['CC'] = 'ccache my_cc'

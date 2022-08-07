@@ -1,8 +1,8 @@
 """Tests for distutils._msvccompiler."""
 import sys
-import unittest
 import os
 import threading
+import unittest.mock as mock
 
 import pytest
 
@@ -109,7 +109,7 @@ class TestSpawn:
             "A spawn without an env argument."
             assert os.environ["PATH"] == "expected"
 
-        with unittest.mock.patch.object(ccompiler.CCompiler, 'spawn', CCompiler_spawn):
+        with mock.patch.object(ccompiler.CCompiler, 'spawn', CCompiler_spawn):
             compiler.spawn(["n/a"])
 
         assert os.environ.get("PATH") != "expected"

@@ -2,7 +2,7 @@
 
 import os
 import sys
-from unittest.mock import patch
+import unittest.mock as mock
 
 import pytest
 
@@ -167,7 +167,7 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
 
         assert 'byte-compiling is disabled' in self.logs[0][1] % self.logs[0][2]
 
-    @patch("distutils.command.build_py.log.warn")
+    @mock.patch("distutils.command.build_py.log.warn")
     def test_namespace_package_does_not_warn(self, log_warn):
         """
         Originally distutils implementation did not account for PEP 420

@@ -17,7 +17,7 @@ import os
 import subprocess
 import contextlib
 import warnings
-import unittest.mock
+import unittest.mock as mock
 
 with contextlib.suppress(ImportError):
     import winreg
@@ -554,7 +554,7 @@ class MSVCCompiler(CCompiler):
         else:
             return
         warnings.warn("Fallback spawn triggered. Please update distutils monkeypatch.")
-        with unittest.mock.patch.dict('os.environ', env):
+        with mock.patch.dict('os.environ', env):
             bag.value = super().spawn(cmd)
 
     # -- Miscellaneous methods -----------------------------------------

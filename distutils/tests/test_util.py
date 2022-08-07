@@ -3,8 +3,8 @@ import os
 import sys
 import unittest
 import sysconfig as stdlib_sysconfig
+import unittest.mock as mock
 from copy import copy
-from unittest import mock
 
 import pytest
 
@@ -40,24 +40,24 @@ def environment(monkeypatch):
 @pytest.mark.usefixtures('save_env')
 class TestUtil:
     def test_get_host_platform(self):
-        with unittest.mock.patch('os.name', 'nt'):
-            with unittest.mock.patch('sys.version', '... [... (ARM64)]'):
+        with mock.patch('os.name', 'nt'):
+            with mock.patch('sys.version', '... [... (ARM64)]'):
                 assert get_host_platform() == 'win-arm64'
-            with unittest.mock.patch('sys.version', '... [... (ARM)]'):
+            with mock.patch('sys.version', '... [... (ARM)]'):
                 assert get_host_platform() == 'win-arm32'
 
-        with unittest.mock.patch('sys.version_info', (3, 9, 0, 'final', 0)):
+        with mock.patch('sys.version_info', (3, 9, 0, 'final', 0)):
             assert get_host_platform() == stdlib_sysconfig.get_platform()
 
     def test_get_platform(self):
-        with unittest.mock.patch('os.name', 'nt'):
-            with unittest.mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x86'}):
+        with mock.patch('os.name', 'nt'):
+            with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x86'}):
                 assert get_platform() == 'win32'
-            with unittest.mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x64'}):
+            with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x64'}):
                 assert get_platform() == 'win-amd64'
-            with unittest.mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm'}):
+            with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm'}):
                 assert get_platform() == 'win-arm32'
-            with unittest.mock.patch.dict(
+            with mock.patch.dict(
                 'os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm64'}
             ):
                 assert get_platform() == 'win-arm64'
