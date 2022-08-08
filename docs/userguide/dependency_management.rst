@@ -6,13 +6,10 @@ There are three types of dependency styles offered by setuptools:
 1) build system requirement, 2) required dependency and 3) optional
 dependency.
 
-.. attention::
-   Each dependency, regardless of type, needs to be specified according to :pep:`508`.
-   This allows adding version :pep:`range restrictions <440#version-specifiers>`
-   and :ref:`environment markers <environment-markers>`.
-   Please note however that public package indexes, such as `PyPI`_
-   might not accept packages that declare dependencies using
-   :pep:`direct URLs <440#direct-references>`.
+Each dependency, regardless of type, needs to be specified according to :pep:`508`
+and :pep:`440`.
+This allows adding version :pep:`range restrictions <440#version-specifiers>`
+and :ref:`environment markers <environment-markers>`.
 
 
 .. _build-requires:
@@ -179,6 +176,58 @@ detailed in :pep:`508`.
    If  environment markers are not enough an specific use case,
    you can also consider creating a :ref:`backend wrapper <backend-wrapper>`
    to implement custom detection logic.
+
+
+Direct URL dependencies
+-----------------------
+
+.. attention::
+   `PyPI`_ and other standards-conformant package indices **do not** accept
+   packages that declare dependencies using direct URLs. ``pip`` will accept them
+   when installing packages from the local filesystem or from another URL,
+   however.
+
+Dependencies that are not available on a package index but can be downloaded
+elsewhere in the form of a source repository or archive may be specified
+using a variant of :pep:`PEP 440's direct references <440#direct-references>`:
+
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        [project]
+        # ...
+        dependencies = [
+            "Package-A @ git+https://example.net/package-a.git@main",
+            "Package-B @ https://example.net/archives/package-b.whl",
+        ]
+
+.. tab:: setup.cfg
+
+    .. code-block:: ini
+
+        [options]
+        #...
+        install_requires =
+            Package-A @ git+https://example.net/package-a.git@main
+            Package-B @ https://example.net/archives/package-b.whl
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+        setup(
+            install_requires=[
+               "Package-A @ git+https://example.net/package-a.git@main",
+               "Package-B @ https://example.net/archives/package-b.whl",
+            ],
+            ...,
+        )
+
+For source repository URLs, a list of supported protocols and VCS-specific
+features such as selecting certain branches or tags can be found in pip's
+documentation on `VCS support <https://pip.pypa.io/en/latest/topics/vcs-support/>`_.
+Supported formats for archive URLs are sdists and wheels.
 
 
 Optional dependencies
