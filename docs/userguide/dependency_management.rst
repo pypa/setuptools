@@ -183,7 +183,7 @@ Direct URL dependencies
 
 .. attention::
    `PyPI`_ and other standards-conformant package indices **do not** accept
-   packages that declare dependencies using direct URLs. pip will accept them
+   packages that declare dependencies using direct URLs. ``pip`` will accept them
    when installing packages from the local filesystem or from another URL,
    however.
 
