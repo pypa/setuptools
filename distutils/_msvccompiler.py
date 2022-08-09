@@ -260,9 +260,7 @@ class MSVCCompiler(CCompiler):
         ]
 
         self.__library_dirs = [
-            dir.rstrip(os.sep)
-            for dir in vc_env.get('lib', '').split(os.pathsep)
-            if dir
+            dir.rstrip(os.sep) for dir in vc_env.get('lib', '').split(os.pathsep) if dir
         ]
 
         self.preprocess_options = None
@@ -572,7 +570,9 @@ class MSVCCompiler(CCompiler):
 
     def _fix_lib_args(self, libraries, library_dirs, runtime_library_dirs):
         """Corrects arguments to the link_*() methods and add linker-specific dirs"""
-        fixed_args = super()._fix_lib_args(libraries, library_dirs, runtime_library_dirs)
+        fixed_args = super()._fix_lib_args(
+            libraries, library_dirs, runtime_library_dirs
+        )
         return (
             fixed_args[0],  # libraries
             fixed_args[1] + self.__library_dirs,
