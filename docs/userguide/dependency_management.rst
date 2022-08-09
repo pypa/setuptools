@@ -284,7 +284,7 @@ The name ``PDF`` is an arbitrary :pep:`identifier <685>` of such a list of depen
 which other components can refer and have them installed.
 
 A use case for this approach is that other package can use this "extra" for their
-own dependencies. For example, if ``Package-B`` needs ``Package-B`` with PDF support
+own dependencies. For example, if ``Package-B`` needs ``Package-A`` with PDF support
 installed, it might declare the dependency like this:
 
 .. tab:: pyproject.toml
