@@ -49,3 +49,7 @@ def test_set_include_dirs(c_file):
     python = sysconfig.get_paths()['include']
     compiler.set_include_dirs([python])
     compiler.compile(_make_strs([c_file]))
+
+    # do it again, setting include dirs after any initialization
+    compiler.set_include_dirs([python])
+    compiler.compile(_make_strs([c_file]))
