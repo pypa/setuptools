@@ -65,19 +65,14 @@ class FakeOpen:
         return self.code
 
 
-class uploadTestCase(BasePyPIRCCommandTestCase):
-    def setUp(self):
-        super().setUp()
-        self.old_open = upload_mod.urlopen
-        upload_mod.urlopen = self._urlopen
-        self.last_open = None
-        self.next_msg = None
-        self.next_code = None
+@pytest.fixture(autouse=True)
+def urlopen(request, monkeypatch):
+    self = request.instance
+    monkeypatch.setattr(upload_mod, 'urlopen', self._urlopen)
+    self.next_msg = self.next_code = None
 
-    def tearDown(self):
-        upload_mod.urlopen = self.old_open
-        super().tearDown()
 
+class TestUpload(BasePyPIRCCommandTestCase):
     def _urlopen(self, url):
         self.last_open = FakeOpen(url, msg=self.next_msg, code=self.next_code)
         return self.last_open
@@ -189,7 +184,19 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         with pytest.raises(DistutilsError):
             self.test_upload()
 
-    def test_wrong_exception_order(self):
+    @pytest.mark.parametrize(
+        'exception,expected,raised_exception',
+        [
+            (OSError('oserror'), 'oserror', OSError),
+            pytest.param(
+                HTTPError('url', 400, 'httperror', {}, None),
+                'Upload failed (400): httperror',
+                DistutilsError,
+                id="HTTP 400",
+            ),
+        ],
+    )
+    def test_wrong_exception_order(self, exception, expected, raised_exception):
         tmp = self.mkdtemp()
         path = os.path.join(tmp, 'xxx')
         self.write_file(path)
@@ -197,24 +204,15 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         self.write_file(self.rc, PYPIRC_LONG_PASSWORD)
 
         pkg_dir, dist = self.create_dist(dist_files=dist_files)
-        tests = [
-            (OSError('oserror'), 'oserror', OSError),
-            (
-                HTTPError('url', 400, 'httperror', {}, None),
-                'Upload failed (400): httperror',
-                DistutilsError,
-            ),
-        ]
-        for exception, expected, raised_exception in tests:
-            with self.subTest(exception=type(exception).__name__):
-                with mock.patch(
-                    'distutils.command.upload.urlopen',
-                    new=mock.Mock(side_effect=exception),
-                ):
-                    with pytest.raises(raised_exception):
-                        cmd = upload(dist)
-                        cmd.ensure_finalized()
-                        cmd.run()
-                    results = self.get_logs(ERROR)
-                    assert expected in results[-1]
-                    self.clear_logs()
+
+        with mock.patch(
+            'distutils.command.upload.urlopen',
+            new=mock.Mock(side_effect=exception),
+        ):
+            with pytest.raises(raised_exception):
+                cmd = upload(dist)
+                cmd.ensure_finalized()
+                cmd.run()
+            results = self.get_logs(ERROR)
+            assert expected in results[-1]
+            self.clear_logs()

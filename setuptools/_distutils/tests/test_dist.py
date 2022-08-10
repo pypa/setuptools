@@ -2,12 +2,10 @@
 import os
 import io
 import sys
-import unittest
 import warnings
 import textwrap
 import functools
-
-from unittest import mock
+import unittest.mock as mock
 
 import pytest
 
@@ -89,9 +87,9 @@ class TestDistributionBehavior(
         assert isinstance(cmd, test_dist)
         assert cmd.sample_option == "sometext"
 
-    @unittest.skipIf(
+    @pytest.mark.skipif(
         'distutils' not in Distribution.parse_config_files.__module__,
-        'Cannot test when virtualenv has monkey-patched Distribution.',
+        reason='Cannot test when virtualenv has monkey-patched Distribution',
     )
     def test_venv_install_options(self, request):
         sys.argv.append("install")

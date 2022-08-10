@@ -1,14 +1,13 @@
 """Tests for distutils.command.build_clib."""
-import unittest
 import os
-import sys
 
 from test.support import missing_compiler_executable
+
+import pytest
 
 from distutils.command.build_clib import build_clib
 from distutils.errors import DistutilsSetupError
 from distutils.tests import support
-import pytest
 
 
 class TestBuildCLib(support.TempdirManager, support.LoggingSilencer):
@@ -111,7 +110,7 @@ class TestBuildCLib(support.TempdirManager, support.LoggingSilencer):
         with pytest.raises(DistutilsSetupError):
             cmd.finalize_options()
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system() == "Windows"')
     def test_run(self):
         pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)

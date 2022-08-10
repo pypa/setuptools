@@ -17,7 +17,7 @@ import os
 import subprocess
 import contextlib
 import warnings
-import unittest.mock
+import unittest.mock as mock
 
 with contextlib.suppress(ImportError):
     import winreg
@@ -222,11 +222,23 @@ class MSVCCompiler(CCompiler):
         super().__init__(verbose, dry_run, force)
         # target platform (.plat_name is consistent with 'bdist')
         self.plat_name = None
-        self.initialized = False
+
+    @classmethod
+    def _configure(cls, vc_env):
+        """
+        Set class-level include/lib dirs.
+        """
+        cls.include_dirs = cls._parse_path(vc_env.get('include', ''))
+        cls.library_dirs = cls._parse_path(vc_env.get('lib', ''))
+
+    @staticmethod
+    def _parse_path(val):
+        return [dir.rstrip(os.sep) for dir in val.split(os.pathsep) if dir]
 
     def initialize(self, plat_name=None):
-        # multi-init means we would need to check platform same each time...
-        assert not self.initialized, "don't init multiple times"
+        def _repeat_call_error(plat_name=None):
+            raise AssertionError("repeat initialize not allowed")
+        self.initialize = _repeat_call_error
         if plat_name is None:
             plat_name = get_platform()
         # sanity check for platforms to prevent obscure errors later.
@@ -243,6 +255,7 @@ class MSVCCompiler(CCompiler):
             raise DistutilsPlatformError(
                 "Unable to find a compatible " "Visual Studio installation."
             )
+        self._configure(vc_env)
 
         self._paths = vc_env.get('path', '')
         paths = self._paths.split(os.pathsep)
@@ -252,14 +265,6 @@ class MSVCCompiler(CCompiler):
         self.rc = _find_exe("rc.exe", paths)  # resource compiler
         self.mc = _find_exe("mc.exe", paths)  # message compiler
         self.mt = _find_exe("mt.exe", paths)  # message compiler
-
-        for dir in vc_env.get('include', '').split(os.pathsep):
-            if dir:
-                self.add_include_dir(dir.rstrip(os.sep))
-
-        for dir in vc_env.get('lib', '').split(os.pathsep):
-            if dir:
-                self.add_library_dir(dir.rstrip(os.sep))
 
         self.preprocess_options = None
         # bpo-38597: Always compile with dynamic linking
@@ -308,8 +313,6 @@ class MSVCCompiler(CCompiler):
             (CCompiler.SHARED_LIBRARY, False): self.ldflags_static,
             (CCompiler.SHARED_LIBRARY, True): self.ldflags_static_debug,
         }
-
-        self.initialized = True
 
     # -- Worker methods ------------------------------------------------
 
@@ -554,7 +557,7 @@ class MSVCCompiler(CCompiler):
         else:
             return
         warnings.warn("Fallback spawn triggered. Please update distutils monkeypatch.")
-        with unittest.mock.patch.dict('os.environ', env):
+        with mock.patch.dict('os.environ', env):
             bag.value = super().spawn(cmd)
 
     # -- Miscellaneous methods -----------------------------------------

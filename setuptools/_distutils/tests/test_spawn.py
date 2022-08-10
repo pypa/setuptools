@@ -2,7 +2,8 @@
 import os
 import stat
 import sys
-import unittest.mock
+import unittest.mock as mock
+
 from test.support import unix_shell
 
 from . import py38compat as os_helper
@@ -15,7 +16,7 @@ import pytest
 
 
 class TestSpawn(support.TempdirManager, support.LoggingSilencer):
-    @unittest.skipUnless(os.name in ('nt', 'posix'), 'Runs only under posix or nt')
+    @pytest.mark.skipif("os.name not in ('nt', 'posix')")
     def test_spawn(self):
         tmpdir = self.mkdtemp()
 
@@ -78,9 +79,9 @@ class TestSpawn(support.TempdirManager, support.LoggingSilencer):
             # PATH='': no match, except in the current directory
             with os_helper.EnvironmentVarGuard() as env:
                 env['PATH'] = ''
-                with unittest.mock.patch(
+                with mock.patch(
                     'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
-                ), unittest.mock.patch('distutils.spawn.os.defpath', tmp_dir):
+                ), mock.patch('distutils.spawn.os.defpath', tmp_dir):
                     rv = find_executable(program)
                     assert rv is None
 
@@ -92,9 +93,9 @@ class TestSpawn(support.TempdirManager, support.LoggingSilencer):
             # PATH=':': explicitly looks in the current directory
             with os_helper.EnvironmentVarGuard() as env:
                 env['PATH'] = os.pathsep
-                with unittest.mock.patch(
+                with mock.patch(
                     'distutils.spawn.os.confstr', return_value='', create=True
-                ), unittest.mock.patch('distutils.spawn.os.defpath', ''):
+                ), mock.patch('distutils.spawn.os.defpath', ''):
                     rv = find_executable(program)
                     assert rv is None
 
@@ -108,16 +109,16 @@ class TestSpawn(support.TempdirManager, support.LoggingSilencer):
                 env.pop('PATH', None)
 
                 # without confstr
-                with unittest.mock.patch(
+                with mock.patch(
                     'distutils.spawn.os.confstr', side_effect=ValueError, create=True
-                ), unittest.mock.patch('distutils.spawn.os.defpath', tmp_dir):
+                ), mock.patch('distutils.spawn.os.defpath', tmp_dir):
                     rv = find_executable(program)
                     assert rv == filename
 
                 # with confstr
-                with unittest.mock.patch(
+                with mock.patch(
                     'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
-                ), unittest.mock.patch('distutils.spawn.os.defpath', ''):
+                ), mock.patch('distutils.spawn.os.defpath', ''):
                     rv = find_executable(program)
                     assert rv == filename
 

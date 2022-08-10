@@ -1,9 +1,7 @@
 """Tests for distutils.dir_util."""
-import unittest
 import os
 import stat
-import sys
-from unittest.mock import patch
+import unittest.mock as mock
 
 from distutils import dir_util, errors
 from distutils.dir_util import (
@@ -19,26 +17,23 @@ from distutils.tests import support
 import pytest
 
 
-class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
+@pytest.fixture(autouse=True)
+def stuff(request, monkeypatch, distutils_managed_tempdir):
+    self = request.instance
+    self._logs = []
+    tmp_dir = self.mkdtemp()
+    self.root_target = os.path.join(tmp_dir, 'deep')
+    self.target = os.path.join(self.root_target, 'here')
+    self.target2 = os.path.join(tmp_dir, 'deep2')
+    monkeypatch.setattr(log, 'info', self._log)
+
+
+class TestDirUtil(support.TempdirManager):
     def _log(self, msg, *args):
         if len(args) > 0:
             self._logs.append(msg % args)
         else:
             self._logs.append(msg)
-
-    def setUp(self):
-        super().setUp()
-        self._logs = []
-        tmp_dir = self.mkdtemp()
-        self.root_target = os.path.join(tmp_dir, 'deep')
-        self.target = os.path.join(self.root_target, 'here')
-        self.target2 = os.path.join(tmp_dir, 'deep2')
-        self.old_log = log.info
-        log.info = self._log
-
-    def tearDown(self):
-        log.info = self.old_log
-        super().tearDown()
 
     def test_mkpath_remove_tree_verbosity(self):
 
@@ -56,10 +51,7 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
         wanted = ["removing '%s' (and everything under it)" % self.root_target]
         assert self._logs == wanted
 
-    @unittest.skipIf(
-        sys.platform.startswith('win'),
-        "This test is only appropriate for POSIX-like systems.",
-    )
+    @pytest.mark.skipif("platform.system() == 'Windows'")
     def test_mkpath_with_custom_mode(self):
         # Get and set the current umask value for testing mode bits.
         umask = os.umask(0o002)
@@ -129,7 +121,7 @@ class DirUtilTestCase(support.TempdirManager, unittest.TestCase):
         """
         An exception in listdir should raise a DistutilsFileError
         """
-        with patch("os.listdir", side_effect=OSError()), pytest.raises(
+        with mock.patch("os.listdir", side_effect=OSError()), pytest.raises(
             errors.DistutilsFileError
         ):
             src = self.tempdirs[-1]

@@ -3,7 +3,6 @@ import os
 import sys
 import shutil
 import tempfile
-import unittest
 import sysconfig
 import itertools
 
@@ -31,9 +30,8 @@ class LoggingSilencer:
 
 @pytest.mark.usefixtures('distutils_managed_tempdir')
 class TempdirManager:
-    """Mix-in class that handles temporary directories for test cases.
-
-    This is intended to be used with unittest.TestCase.
+    """
+    Mix-in class that handles temporary directories for test cases.
     """
 
     def mkdtemp(self):
@@ -99,29 +97,12 @@ def copy_xxmodule_c(directory):
     If the source file can be found, it will be copied to *directory*.  If not,
     the test will be skipped.  Errors during copy are not caught.
     """
-    filename = _get_xxmodule_path()
-    if filename is None:
-        raise unittest.SkipTest(
-            'cannot find xxmodule.c (test must run in ' 'the python build dir)'
-        )
-    shutil.copy(filename, directory)
+    shutil.copy(_get_xxmodule_path(), os.path.join(directory, 'xxmodule.c'))
 
 
 def _get_xxmodule_path():
-    srcdir = sysconfig.get_config_var('srcdir')
-    candidates = [
-        # use installed copy if available
-        os.path.join(os.path.dirname(__file__), 'xxmodule.c'),
-        # otherwise try using copy from build directory
-        os.path.join(srcdir, 'Modules', 'xxmodule.c'),
-        # srcdir mysteriously can be $srcdir/Lib/distutils/tests when
-        # this file is run from its parent directory, so walk up the
-        # tree to find the real srcdir
-        os.path.join(srcdir, '..', '..', '..', 'Modules', 'xxmodule.c'),
-    ]
-    for path in candidates:
-        if os.path.exists(path):
-            return path
+    source_name = 'xxmodule.c' if sys.version_info > (3, 9) else 'xxmodule-3.8.c'
+    return os.path.join(os.path.dirname(__file__), source_name)
 
 
 def fixup_build_ext(cmd):

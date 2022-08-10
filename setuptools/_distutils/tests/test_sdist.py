@@ -1,7 +1,6 @@
 """Tests for distutils.command.sdist."""
 import os
 import tarfile
-import unittest
 import warnings
 import zipfile
 from os.path import join
@@ -10,6 +9,8 @@ from test.support import captured_stdout
 from .unix_compat import require_unix_id, require_uid_0, pwd, grp
 
 import pytest
+import path
+import jaraco.path
 
 from .py38compat import check_warnings
 
@@ -17,7 +18,7 @@ from distutils.command.sdist import sdist, show_formats
 from distutils.core import Distribution
 from distutils.tests.test_config import BasePyPIRCCommandTestCase
 from distutils.errors import DistutilsOptionError
-from distutils.spawn import find_executable
+from distutils.spawn import find_executable  # noqa: F401
 from distutils.log import WARN
 from distutils.filelist import FileList
 from distutils.archive_util import ARCHIVE_FORMATS
@@ -45,26 +46,24 @@ somecode%(sep)sdoc.txt
 """
 
 
-class SDistTestCase(BasePyPIRCCommandTestCase):
-    def setUp(self):
-        # PyPIRCCommandTestCase creates a temp dir already
-        # and put it in self.tmp_dir
-        super().setUp()
-        # setting up an environment
-        self.old_path = os.getcwd()
-        os.mkdir(join(self.tmp_dir, 'somecode'))
-        os.mkdir(join(self.tmp_dir, 'dist'))
-        # a package, and a README
-        self.write_file((self.tmp_dir, 'README'), 'xxx')
-        self.write_file((self.tmp_dir, 'somecode', '__init__.py'), '#')
-        self.write_file((self.tmp_dir, 'setup.py'), SETUP_PY)
-        os.chdir(self.tmp_dir)
+@pytest.fixture(autouse=True)
+def project_dir(request, pypirc):
+    self = request.instance
+    jaraco.path.build(
+        {
+            'somecode': {
+                '__init__.py': '#',
+            },
+            'README': 'xxx',
+            'setup.py': SETUP_PY,
+        },
+        self.tmp_dir,
+    )
+    with path.Path(self.tmp_dir):
+        yield
 
-    def tearDown(self):
-        # back to normal
-        os.chdir(self.old_path)
-        super().tearDown()
 
+class TestSDist(BasePyPIRCCommandTestCase):
     def get_cmd(self, metadata=None):
         """Returns a cmd"""
         if metadata is None:
@@ -133,8 +132,8 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         assert sorted(content) == ['fake-1.0/' + x for x in expected]
 
     @pytest.mark.usefixtures('needs_zlib')
-    @unittest.skipIf(find_executable('tar') is None, "The tar command is not found")
-    @unittest.skipIf(find_executable('gzip') is None, "The gzip command is not found")
+    @pytest.mark.skipif("not find_executable('tar')")
+    @pytest.mark.skipif("not find_executable('gzip')")
     def test_make_distribution(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
@@ -341,7 +340,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         # this manifest command takes one argument
         self._check_template('prune')
 
-    @unittest.skipIf(os.name != 'nt', 'test relevant for Windows only')
+    @pytest.mark.skipif("platform.system() != 'Windows'")
     def test_invalid_template_wrong_path(self):
         # on Windows, trailing slashes are not allowed
         # this used to crash instead of raising a warning: #8286
@@ -466,8 +465,8 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
     @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id
     @require_uid_0
-    @unittest.skipIf(find_executable('tar') is None, "The tar command is not found")
-    @unittest.skipIf(find_executable('gzip') is None, "The gzip command is not found")
+    @pytest.mark.skipif("not find_executable('tar')")
+    @pytest.mark.skipif("not find_executable('gzip')")
     def test_make_distribution_owner_group(self):
         # now building a sdist
         dist, cmd = self.get_cmd()

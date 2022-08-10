@@ -2,8 +2,8 @@
 
 import os
 import sys
-import unittest
 import site
+import pathlib
 
 from test.support import captured_stdout
 
@@ -28,10 +28,9 @@ def _make_ext_name(modname):
 
 @support.combine_markers
 @pytest.mark.usefixtures('save_env')
-class InstallTestCase(
+class TestInstall(
     support.TempdirManager,
     support.LoggingSilencer,
-    unittest.TestCase,
 ):
     @pytest.mark.xfail(
         'platform.system() == "Windows" and sys.version_info > (3, 11)',
@@ -78,35 +77,23 @@ class InstallTestCase(
         check_path(cmd.install_scripts, os.path.join(destination, "bin"))
         check_path(cmd.install_data, destination)
 
-    def test_user_site(self):
+    def test_user_site(self, monkeypatch):
         # test install with --user
         # preparing the environment for the test
-        self.old_user_base = site.USER_BASE
-        self.old_user_site = site.USER_SITE
         self.tmpdir = self.mkdtemp()
-        self.user_base = os.path.join(self.tmpdir, 'B')
-        self.user_site = os.path.join(self.tmpdir, 'S')
-        site.USER_BASE = self.user_base
-        site.USER_SITE = self.user_site
-        install_module.USER_BASE = self.user_base
-        install_module.USER_SITE = self.user_site
+        orig_site = site.USER_SITE
+        orig_base = site.USER_BASE
+        monkeypatch.setattr(site, 'USER_BASE', os.path.join(self.tmpdir, 'B'))
+        monkeypatch.setattr(site, 'USER_SITE', os.path.join(self.tmpdir, 'S'))
+        monkeypatch.setattr(install_module, 'USER_BASE', site.USER_BASE)
+        monkeypatch.setattr(install_module, 'USER_SITE', site.USER_SITE)
 
         def _expanduser(path):
             if path.startswith('~'):
                 return os.path.normpath(self.tmpdir + path[1:])
             return path
 
-        self.old_expand = os.path.expanduser
-        os.path.expanduser = _expanduser
-
-        def cleanup():
-            site.USER_BASE = self.old_user_base
-            site.USER_SITE = self.old_user_site
-            install_module.USER_BASE = self.old_user_base
-            install_module.USER_SITE = self.old_user_site
-            os.path.expanduser = self.old_expand
-
-        self.addCleanup(cleanup)
+        monkeypatch.setattr(os.path, 'expanduser', _expanduser)
 
         for key in ('nt_user', 'posix_user'):
             assert key in INSTALL_SCHEMES
@@ -122,24 +109,22 @@ class InstallTestCase(
         cmd.user = 1
 
         # user base and site shouldn't be created yet
-        assert not os.path.exists(self.user_base)
-        assert not os.path.exists(self.user_site)
+        assert not os.path.exists(site.USER_BASE)
+        assert not os.path.exists(site.USER_SITE)
 
         # let's run finalize
         cmd.ensure_finalized()
 
         # now they should
-        assert os.path.exists(self.user_base)
-        assert os.path.exists(self.user_site)
+        assert os.path.exists(site.USER_BASE)
+        assert os.path.exists(site.USER_SITE)
 
         assert 'userbase' in cmd.config_vars
         assert 'usersite' in cmd.config_vars
 
-        actual_headers = os.path.relpath(cmd.install_headers, self.user_base)
+        actual_headers = os.path.relpath(cmd.install_headers, site.USER_BASE)
         if os.name == 'nt':
-            site_path = os.path.relpath(
-                os.path.dirname(self.old_user_site), self.old_user_base
-            )
+            site_path = os.path.relpath(os.path.dirname(orig_site), orig_base)
             include = os.path.join(site_path, 'Include')
         else:
             include = sysconfig.get_python_inc(0, '')
@@ -232,7 +217,7 @@ class InstallTestCase(
     def test_record_extensions(self):
         cmd = test_support.missing_compiler_executable()
         if cmd is not None:
-            self.skipTest('The %r command is not found' % cmd)
+            pytest.skip('The %r command is not found' % cmd)
         install_dir = self.mkdtemp()
         project_dir, dist = self.create_dist(
             ext_modules=[Extension('xx', ['xxmodule.c'])]
@@ -252,11 +237,7 @@ class InstallTestCase(
         cmd.ensure_finalized()
         cmd.run()
 
-        f = open(cmd.record)
-        try:
-            content = f.read()
-        finally:
-            f.close()
+        content = pathlib.Path(cmd.record).read_text()
 
         found = [os.path.basename(line) for line in content.splitlines()]
         expected = [

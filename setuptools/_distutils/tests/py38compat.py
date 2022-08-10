@@ -42,5 +42,17 @@ except (ModuleNotFoundError, ImportError):
     )
 
 
+try:
+    from test.support.import_helper import (
+        DirsOnSysPath,
+        CleanImport,
+    )
+except (ModuleNotFoundError, ImportError):
+    from test.support import (
+        DirsOnSysPath,
+        CleanImport,
+    )
+
+
 if sys.version_info < (3, 9):
     requires_zlib = lambda: test.support.requires_zlib
