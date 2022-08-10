@@ -222,11 +222,11 @@ class MSVCCompiler(CCompiler):
         super().__init__(verbose, dry_run, force)
         # target platform (.plat_name is consistent with 'bdist')
         self.plat_name = None
-        self.initialized = False
 
     def initialize(self, plat_name=None):
-        # multi-init means we would need to check platform same each time...
-        assert not self.initialized, "don't init multiple times"
+        def _repeat_call_error(plat_name=None):
+            raise AssertionError("repeat initialize not allowed")
+        self.initialize = _repeat_call_error
         if plat_name is None:
             plat_name = get_platform()
         # sanity check for platforms to prevent obscure errors later.
@@ -308,8 +308,6 @@ class MSVCCompiler(CCompiler):
             (CCompiler.SHARED_LIBRARY, False): self.ldflags_static,
             (CCompiler.SHARED_LIBRARY, True): self.ldflags_static_debug,
         }
-
-        self.initialized = True
 
     # -- Worker methods ------------------------------------------------
 
