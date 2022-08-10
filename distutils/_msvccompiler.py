@@ -223,6 +223,18 @@ class MSVCCompiler(CCompiler):
         # target platform (.plat_name is consistent with 'bdist')
         self.plat_name = None
 
+    @classmethod
+    def _configure(cls, vc_env):
+        """
+        Set class-level include/lib dirs.
+        """
+        cls.include_dirs = cls._parse_path(vc_env.get('include', ''))
+        cls.library_dirs = cls._parse_path(vc_env.get('lib', ''))
+
+    @staticmethod
+    def _parse_path(val):
+        return [dir.rstrip(os.sep) for dir in val.split(os.pathsep) if dir]
+
     def initialize(self, plat_name=None):
         def _repeat_call_error(plat_name=None):
             raise AssertionError("repeat initialize not allowed")
@@ -243,6 +255,7 @@ class MSVCCompiler(CCompiler):
             raise DistutilsPlatformError(
                 "Unable to find a compatible " "Visual Studio installation."
             )
+        self._configure(vc_env)
 
         self._paths = vc_env.get('path', '')
         paths = self._paths.split(os.pathsep)
@@ -252,14 +265,6 @@ class MSVCCompiler(CCompiler):
         self.rc = _find_exe("rc.exe", paths)  # resource compiler
         self.mc = _find_exe("mc.exe", paths)  # message compiler
         self.mt = _find_exe("mt.exe", paths)  # message compiler
-
-        for dir in vc_env.get('include', '').split(os.pathsep):
-            if dir:
-                self.add_include_dir(dir.rstrip(os.sep))
-
-        for dir in vc_env.get('lib', '').split(os.pathsep):
-            if dir:
-                self.add_library_dir(dir.rstrip(os.sep))
 
         self.preprocess_options = None
         # bpo-38597: Always compile with dynamic linking
