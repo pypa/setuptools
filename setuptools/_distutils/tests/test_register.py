@@ -1,12 +1,7 @@
 """Tests for distutils.command.register."""
 import os
-import unittest
 import getpass
 import urllib
-import warnings
-
-
-from .py38compat import check_warnings
 
 from distutils.command import register as register_module
 from distutils.command.register import register
@@ -78,26 +73,20 @@ class FakeOpener:
         }.get(name.lower(), default)
 
 
-class RegisterTestCase(BasePyPIRCCommandTestCase):
-    def setUp(self):
-        super().setUp()
-        # patching the password prompt
-        self._old_getpass = getpass.getpass
+@pytest.fixture(autouse=True)
+def autopass(monkeypatch):
+    monkeypatch.setattr(getpass, 'getpass', lambda prompt: 'password')
 
-        def _getpass(prompt):
-            return 'password'
 
-        getpass.getpass = _getpass
-        urllib.request._opener = None
-        self.old_opener = urllib.request.build_opener
-        self.conn = urllib.request.build_opener = FakeOpener()
+@pytest.fixture(autouse=True)
+def fake_opener(monkeypatch, request):
+    opener = FakeOpener()
+    monkeypatch.setattr(urllib.request, 'build_opener', opener)
+    monkeypatch.setattr(urllib.request, '_opener', None)
+    request.instance.conn = opener
 
-    def tearDown(self):
-        getpass.getpass = self._old_getpass
-        urllib.request._opener = None
-        urllib.request.build_opener = self.old_opener
-        super().tearDown()
 
+class TestRegister(BasePyPIRCCommandTestCase):
     def _get_cmd(self, metadata=None):
         if metadata is None:
             metadata = {
@@ -106,6 +95,7 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
                 'author_email': 'xxx',
                 'name': 'xxx',
                 'version': 'xxx',
+                'long_description': 'xxx',
             }
         pkg_info, dist = self.create_dist(**metadata)
         return register(dist)
@@ -164,8 +154,8 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         req1 = dict(self.conn.reqs[0].headers)
         req2 = dict(self.conn.reqs[1].headers)
 
-        assert req1['Content-length'] == '1359'
-        assert req2['Content-length'] == '1359'
+        assert req1['Content-length'] == '1358'
+        assert req2['Content-length'] == '1358'
         assert b'xxx' in self.conn.reqs[1].data
 
     def test_password_not_in_file(self):
@@ -216,12 +206,13 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         assert headers['Content-length'] == '290'
         assert b'tarek' in req.data
 
-    @unittest.skipUnless(docutils is not None, 'needs docutils')
     def test_strict(self):
-        # testing the script option
+        # testing the strict option
         # when on, the register command stops if
         # the metadata is incomplete or if
         # long_description is not reSt compliant
+
+        pytest.importorskip('docutils')
 
         # empty metadata
         cmd = self._get_cmd({})
@@ -292,8 +283,8 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         finally:
             del register_module.input
 
-    @unittest.skipUnless(docutils is not None, 'needs docutils')
-    def test_register_invalid_long_description(self):
+    def test_register_invalid_long_description(self, monkeypatch):
+        pytest.importorskip('docutils')
         description = ':funkie:`str`'  # mimic Sphinx-specific markup
         metadata = {
             'url': 'xxx',
@@ -307,19 +298,10 @@ class RegisterTestCase(BasePyPIRCCommandTestCase):
         cmd.ensure_finalized()
         cmd.strict = True
         inputs = Inputs('2', 'tarek', 'tarek@ziade.org')
-        register_module.input = inputs
-        self.addCleanup(delattr, register_module, 'input')
+        monkeypatch.setattr(register_module, 'input', inputs, raising=False)
 
         with pytest.raises(DistutilsSetupError):
             cmd.run()
-
-    def test_check_metadata_deprecated(self):
-        # makes sure make_metadata is deprecated
-        cmd = self._get_cmd()
-        with check_warnings() as w:
-            warnings.simplefilter("always")
-            cmd.check_metadata()
-            assert len(w.warnings) == 1
 
     def test_list_classifiers(self):
         cmd = self._get_cmd()

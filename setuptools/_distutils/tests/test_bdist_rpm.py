@@ -1,6 +1,5 @@
 """Tests for distutils.command.bdist_rpm."""
 
-import unittest
 import sys
 import os
 
@@ -9,7 +8,7 @@ import pytest
 from distutils.core import Distribution
 from distutils.command.bdist_rpm import bdist_rpm
 from distutils.tests import support
-from distutils.spawn import find_executable
+from distutils.spawn import find_executable  # noqa: F401
 
 from .py38compat import requires_zlib
 
@@ -32,6 +31,12 @@ def sys_executable_encodable():
         pytest.skip("sys.executable is not encodable to UTF-8")
 
 
+mac_woes = pytest.mark.skipif(
+    "not sys.platform.startswith('linux')",
+    reason='spurious sdtout/stderr output under macOS',
+)
+
+
 @pytest.mark.usefixtures('save_env')
 @pytest.mark.usefixtures('save_argv')
 @pytest.mark.usefixtures('save_cwd')
@@ -39,17 +44,10 @@ class TestBuildRpm(
     support.TempdirManager,
     support.LoggingSilencer,
 ):
-
-    # XXX I am unable yet to make this test work without
-    # spurious sdtout/stderr output under Mac OS X
-    @unittest.skipUnless(
-        sys.platform.startswith('linux'), 'spurious sdtout/stderr output under Mac OS X'
-    )
+    @mac_woes
     @requires_zlib()
-    @unittest.skipIf(find_executable('rpm') is None, 'the rpm command is not found')
-    @unittest.skipIf(
-        find_executable('rpmbuild') is None, 'the rpmbuild command is not found'
-    )
+    @pytest.mark.skipif("not find_executable('rpm')")
+    @pytest.mark.skipif("not find_executable('rpmbuild')")
     def test_quiet(self):
         # let's create a package
         tmp_dir = self.mkdtemp()
@@ -90,17 +88,11 @@ class TestBuildRpm(
         assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.src.rpm') in dist.dist_files
         assert ('bdist_rpm', 'any', 'dist/foo-0.1-1.noarch.rpm') in dist.dist_files
 
-    # XXX I am unable yet to make this test work without
-    # spurious sdtout/stderr output under Mac OS X
-    @unittest.skipUnless(
-        sys.platform.startswith('linux'), 'spurious sdtout/stderr output under Mac OS X'
-    )
+    @mac_woes
     @requires_zlib()
     # http://bugs.python.org/issue1533164
-    @unittest.skipIf(find_executable('rpm') is None, 'the rpm command is not found')
-    @unittest.skipIf(
-        find_executable('rpmbuild') is None, 'the rpmbuild command is not found'
-    )
+    @pytest.mark.skipif("not find_executable('rpm')")
+    @pytest.mark.skipif("not find_executable('rpmbuild')")
     def test_no_optimize_flag(self):
         # let's create a package that breaks bdist_rpm
         tmp_dir = self.mkdtemp()

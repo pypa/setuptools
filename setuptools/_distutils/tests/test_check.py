@@ -1,12 +1,12 @@
 """Tests for distutils.command.check."""
 import os
 import textwrap
-import unittest
 
-from distutils.command.check import check, HAS_DOCUTILS
+import pytest
+
+from distutils.command.check import check
 from distutils.tests import support
 from distutils.errors import DistutilsSetupError
-import pytest
 
 try:
     import pygments
@@ -102,8 +102,8 @@ class TestCheck(support.LoggingSilencer, support.TempdirManager):
             cmd = self._run(metadata)
             assert cmd._warnings == 0
 
-    @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_document(self):
+        pytest.importorskip('docutils')
         pkg_info, dist = self.create_dist()
         cmd = check(dist)
 
@@ -117,8 +117,8 @@ class TestCheck(support.LoggingSilencer, support.TempdirManager):
         msgs = cmd._check_rst_data(rest)
         assert len(msgs) == 0
 
-    @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_restructuredtext(self):
+        pytest.importorskip('docutils')
         # let's see if it detects broken rest in long_description
         broken_rest = 'title\n===\n\ntest'
         pkg_info, dist = self.create_dist(long_description=broken_rest)
@@ -148,8 +148,8 @@ class TestCheck(support.LoggingSilencer, support.TempdirManager):
         cmd = self._run(metadata, cwd=HERE, strict=1, restructuredtext=1)
         assert cmd._warnings == 0
 
-    @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_restructuredtext_with_syntax_highlight(self):
+        pytest.importorskip('docutils')
         # Don't fail if there is a `code` or `code-block` directive
 
         example_rst_docs = []

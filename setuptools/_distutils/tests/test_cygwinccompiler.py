@@ -1,7 +1,8 @@
 """Tests for distutils.cygwinccompiler."""
-import unittest
 import sys
 import os
+
+import pytest
 
 from distutils.cygwinccompiler import (
     check_config_h,
@@ -11,33 +12,23 @@ from distutils.cygwinccompiler import (
     get_msvcr,
 )
 from distutils.tests import support
-import pytest
+from distutils import sysconfig
 
 
-class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self.version = sys.version
-        self.python_h = os.path.join(self.mkdtemp(), 'python.h')
-        from distutils import sysconfig
+@pytest.fixture(autouse=True)
+def stuff(request, monkeypatch, distutils_managed_tempdir):
+    self = request.instance
+    self.python_h = os.path.join(self.mkdtemp(), 'python.h')
+    monkeypatch.setattr(sysconfig, 'get_config_h_filename', self._get_config_h_filename)
+    monkeypatch.setattr(sys, 'version', sys.version)
 
-        self.old_get_config_h_filename = sysconfig.get_config_h_filename
-        sysconfig.get_config_h_filename = self._get_config_h_filename
 
-    def tearDown(self):
-        sys.version = self.version
-        from distutils import sysconfig
-
-        sysconfig.get_config_h_filename = self.old_get_config_h_filename
-        super().tearDown()
-
+class TestCygwinCCompiler(support.TempdirManager):
     def _get_config_h_filename(self):
         return self.python_h
 
-    @unittest.skipIf(sys.platform != "cygwin", "Not running on Cygwin")
-    @unittest.skipIf(
-        not os.path.exists("/usr/lib/libbash.dll.a"), "Don't know a linkable library"
-    )
+    @pytest.mark.skipif('sys.platform != "cygwin"')
+    @pytest.mark.skipif('not os.path.exists("/usr/lib/libbash.dll.a")')
     def test_find_library_file(self):
         from distutils.cygwinccompiler import CygwinCCompiler
 
@@ -48,7 +39,7 @@ class CygwinCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         assert os.path.exists(linkable_file)
         assert linkable_file == f"/usr/lib/lib{link_name:s}.dll.a"
 
-    @unittest.skipIf(sys.platform != "cygwin", "Not running on Cygwin")
+    @pytest.mark.skipif('sys.platform != "cygwin"')
     def test_runtime_library_dir_option(self):
         from distutils.cygwinccompiler import CygwinCCompiler
 

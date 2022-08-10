@@ -3,6 +3,11 @@ import os
 from io import StringIO
 import textwrap
 import site
+import contextlib
+import platform
+import tempfile
+import importlib
+import shutil
 
 from distutils.core import Distribution
 from distutils.command.build_ext import build_ext
@@ -12,7 +17,6 @@ from distutils.tests.support import (
     LoggingSilencer,
     copy_xxmodule_c,
     fixup_build_ext,
-    combine_markers,
 )
 from distutils.extension import Extension
 from distutils.errors import (
@@ -22,16 +26,11 @@ from distutils.errors import (
     UnknownFileError,
 )
 
-import unittest
 from test import support
 from . import py38compat as os_helper
-from test.support.script_helper import assert_python_ok
+from . import py38compat as import_helper
 import pytest
 import re
-
-# http://bugs.python.org/issue4373
-# Don't load the xx module more than once.
-ALREADY_TESTED = False
 
 
 @pytest.fixture()
@@ -55,6 +54,35 @@ def user_site_dir(request):
     build_ext.USER_BASE = orig_user_base
 
 
+@contextlib.contextmanager
+def safe_extension_import(name, path):
+    with import_helper.CleanImport(name):
+        with extension_redirect(name, path) as new_path:
+            with import_helper.DirsOnSysPath(new_path):
+                yield
+
+
+@contextlib.contextmanager
+def extension_redirect(mod, path):
+    """
+    Tests will fail to tear down an extension module if it's been imported.
+
+    Before importing, copy the file to a temporary directory that won't
+    be cleaned up. Yield the new path.
+    """
+    if platform.system() != "Windows" and sys.platform != "cygwin":
+        yield path
+        return
+    with import_helper.DirsOnSysPath(path):
+        spec = importlib.util.find_spec(mod)
+    filename = os.path.basename(spec.origin)
+    trash_dir = tempfile.mkdtemp(prefix='deleteme')
+    dest = os.path.join(trash_dir, os.path.basename(filename))
+    shutil.copy(spec.origin, dest)
+    yield trash_dir
+    # TODO: can the file be scheduled for deletion?
+
+
 @pytest.mark.usefixtures('user_site_dir')
 class TestBuildExt(TempdirManager, LoggingSilencer):
     def build_ext(self, *args, **kwargs):
@@ -62,9 +90,6 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
 
     def test_build_ext(self):
         cmd = support.missing_compiler_executable()
-        if cmd is not None:
-            self.skipTest('The %r command is not found' % cmd)
-        global ALREADY_TESTED
         copy_xxmodule_c(self.tmp_dir)
         xx_c = os.path.join(self.tmp_dir, 'xxmodule.c')
         xx_ext = Extension('xx', [xx_c])
@@ -85,41 +110,24 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
         finally:
             sys.stdout = old_stdout
 
-        if ALREADY_TESTED:
-            self.skipTest('Already tested in %s' % ALREADY_TESTED)
-        else:
-            ALREADY_TESTED = type(self).__name__
+        with safe_extension_import('xx', self.tmp_dir):
+            self._test_xx()
 
-        code = textwrap.dedent(
-            f"""
-            tmp_dir = {self.tmp_dir!r}
+    @staticmethod
+    def _test_xx():
+        import xx
 
-            import sys
-            import unittest
-            from test import support
+        for attr in ('error', 'foo', 'new', 'roj'):
+            assert hasattr(xx, attr)
 
-            sys.path.insert(0, tmp_dir)
-            import xx
-
-            class Tests(unittest.TestCase):
-                def test_xx(self):
-                    for attr in ('error', 'foo', 'new', 'roj'):
-                        self.assertTrue(hasattr(xx, attr))
-
-                    self.assertEqual(xx.foo(2, 5), 7)
-                    self.assertEqual(xx.foo(13,15), 28)
-                    self.assertEqual(xx.new().demo(), None)
-                    if support.HAVE_DOCSTRINGS:
-                        doc = 'This is a template module just for instruction.'
-                        self.assertEqual(xx.__doc__, doc)
-                    self.assertIsInstance(xx.Null(), xx.Null)
-                    self.assertIsInstance(xx.Str(), xx.Str)
-
-
-            unittest.main()
-        """
-        )
-        assert_python_ok('-c', code)
+        assert xx.foo(2, 5) == 7
+        assert xx.foo(13, 15) == 28
+        assert xx.new().demo() is None
+        if support.HAVE_DOCSTRINGS:
+            doc = 'This is a template module just for instruction.'
+            assert xx.__doc__ == doc
+        assert isinstance(xx.Null(), xx.Null)
+        assert isinstance(xx.Str(), xx.Str)
 
     def test_solaris_enable_shared(self):
         dist = Distribution({'name': 'xx'})
@@ -353,8 +361,6 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
 
     def test_get_outputs(self):
         cmd = support.missing_compiler_executable()
-        if cmd is not None:
-            self.skipTest('The %r command is not found' % cmd)
         tmp_dir = self.mkdtemp()
         c_file = os.path.join(tmp_dir, 'foo.c')
         self.write_file(c_file, 'void PyInit_foo(void) {}\n')
@@ -453,7 +459,7 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
         wanted = os.path.join(curdir, 'twisted', 'runner', 'portmap' + ext)
         assert wanted == path
 
-    @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
+    @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
     def test_deployment_target_default(self):
         # Issue 9516: Test that, in the absence of the environment variable,
@@ -461,7 +467,7 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
         #  the interpreter.
         self._try_compile_deployment_target('==', None)
 
-    @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
+    @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
     def test_deployment_target_too_low(self):
         # Issue 9516: Test that an extension module is not allowed to be
@@ -469,7 +475,7 @@ class TestBuildExt(TempdirManager, LoggingSilencer):
         with pytest.raises(DistutilsPlatformError):
             self._try_compile_deployment_target('>', '10.1')
 
-    @unittest.skipUnless(sys.platform == 'darwin', 'test only relevant for MacOSX')
+    @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
     def test_deployment_target_higher_ok(self):
         # Issue 9516: Test that an extension module can be compiled with a

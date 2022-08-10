@@ -5,14 +5,13 @@ import shutil
 import subprocess
 import sys
 import textwrap
-import unittest
 
 import pytest
 import jaraco.envs
 
 import distutils
 from distutils import sysconfig
-from distutils.ccompiler import get_default_compiler
+from distutils.ccompiler import get_default_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
 
@@ -20,17 +19,8 @@ from .py38compat import TESTFN
 
 
 @pytest.mark.usefixtures('save_env')
-class SysconfigTestCase(unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self.makefile = None
-
-    def tearDown(self):
-        if self.makefile is not None:
-            os.unlink(self.makefile)
-        self.cleanup_testfn()
-        super().tearDown()
-
+@pytest.mark.usefixtures('cleanup_testfn')
+class TestSysconfig:
     def cleanup_testfn(self):
         if os.path.isfile(TESTFN):
             os.remove(TESTFN)
@@ -41,12 +31,8 @@ class SysconfigTestCase(unittest.TestCase):
         config_h = sysconfig.get_config_h_filename()
         assert os.path.isfile(config_h), config_h
 
-    @unittest.skipIf(
-        sys.platform == 'win32', 'Makefile only exists on Unix like systems'
-    )
-    @unittest.skipIf(
-        sys.implementation.name != 'cpython', 'Makefile only exists in CPython'
-    )
+    @pytest.mark.skipif("platform.system() == 'Windows'")
+    @pytest.mark.skipif("sys.implementation.name != 'cpython'")
     def test_get_makefile_filename(self):
         makefile = sysconfig.get_makefile_filename()
         assert os.path.isfile(makefile), makefile
@@ -62,7 +48,8 @@ class SysconfigTestCase(unittest.TestCase):
         assert isinstance(cvars, dict)
         assert cvars
 
-    @unittest.skip('sysconfig.IS_PYPY')
+    @pytest.mark.skipif('sysconfig.IS_PYPY')
+    @pytest.mark.xfail(reason="broken")
     def test_srcdir(self):
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')
@@ -125,9 +112,7 @@ class SysconfigTestCase(unittest.TestCase):
 
         return comp
 
-    @unittest.skipUnless(
-        get_default_compiler() == 'unix', 'not testing if default compiler is not unix'
-    )
+    @pytest.mark.skipif("get_default_compiler() != 'unix'")
     def test_customize_compiler(self):
         # Make sure that sysconfig._config_vars is initialized
         sysconfig.get_config_vars()
@@ -216,9 +201,7 @@ class SysconfigTestCase(unittest.TestCase):
             'LDFLAGS'
         )
 
-    @unittest.skipIf(
-        sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER'), 'compiler flags customized'
-    )
+    @pytest.mark.skipif("sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER')")
     def test_sysconfig_compiler_vars(self):
         # On OS X, binary installers support extension module building on
         # various levels of the operating system with differing Xcode
@@ -237,16 +220,13 @@ class SysconfigTestCase(unittest.TestCase):
         import sysconfig as global_sysconfig
 
         if sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER'):
-            self.skipTest('compiler flags customized')
+            pytest.skip('compiler flags customized')
         assert global_sysconfig.get_config_var('LDSHARED') == sysconfig.get_config_var(
             'LDSHARED'
         )
         assert global_sysconfig.get_config_var('CC') == sysconfig.get_config_var('CC')
 
-    @unittest.skipIf(
-        sysconfig.get_config_var('EXT_SUFFIX') is None,
-        'EXT_SUFFIX required for this test',
-    )
+    @pytest.mark.skipif("not sysconfig.get_config_var('EXT_SUFFIX')")
     def test_SO_deprecation(self):
         with pytest.warns(DeprecationWarning):
             sysconfig.get_config_var('SO')
@@ -286,21 +266,17 @@ class SysconfigTestCase(unittest.TestCase):
             result = sysconfig.parse_config_h(f)
         assert isinstance(result, dict)
 
-    @unittest.skipUnless(sys.platform == 'win32', 'Testing windows pyd suffix')
-    @unittest.skipUnless(
-        sys.implementation.name == 'cpython', 'Need cpython for this test'
-    )
+    @pytest.mark.skipif("platform.system() != 'Windows'")
+    @pytest.mark.skipif("sys.implementation.name != 'cpython'")
     def test_win_ext_suffix(self):
         assert sysconfig.get_config_var("EXT_SUFFIX").endswith(".pyd")
         assert sysconfig.get_config_var("EXT_SUFFIX") != ".pyd"
 
-    @unittest.skipUnless(sys.platform == 'win32', 'Testing Windows build layout')
-    @unittest.skipUnless(
-        sys.implementation.name == 'cpython', 'Need cpython for this test'
-    )
-    @unittest.skipUnless(
-        '\\PCbuild\\'.casefold() in sys.executable.casefold(),
-        'Need sys.executable to be in a source tree',
+    @pytest.mark.skipif("platform.system() != 'Windows'")
+    @pytest.mark.skipif("sys.implementation.name != 'cpython'")
+    @pytest.mark.skipif(
+        '\\PCbuild\\'.casefold() not in sys.executable.casefold(),
+        reason='Need sys.executable to be in a source tree',
     )
     def test_win_build_venv_from_source_tree(self):
         """Ensure distutils.sysconfig detects venvs from source tree builds."""

@@ -1,7 +1,5 @@
 """Tests for distutils.command.bdist_wininst."""
-import sys
-import platform
-import unittest
+import pytest
 
 from .py38compat import check_warnings
 
@@ -9,14 +7,8 @@ from distutils.command.bdist_wininst import bdist_wininst
 from distutils.tests import support
 
 
-@unittest.skipIf(
-    sys.platform == 'win32' and platform.machine() == 'ARM64',
-    'bdist_wininst is not supported in this install',
-)
-@unittest.skipIf(
-    getattr(bdist_wininst, '_unsupported', False),
-    'bdist_wininst is not supported in this install',
-)
+@pytest.mark.skipif("platform.machine() == 'ARM64'")
+@pytest.mark.skipif("bdist_wininst._unsupported")
 class TestBuildWinInst(support.TempdirManager, support.LoggingSilencer):
     def test_get_exe_bytes(self):
 

@@ -1,8 +1,7 @@
 """Tests for distutils.unixccompiler."""
 import os
 import sys
-import unittest
-from unittest.mock import patch
+import unittest.mock as mock
 
 from .py38compat import EnvironmentVarGuard
 
@@ -15,26 +14,24 @@ from . import support
 import pytest
 
 
-class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self._backup_platform = sys.platform
-        self._backup_get_config_var = sysconfig.get_config_var
-        self._backup_get_config_vars = sysconfig.get_config_vars
+@pytest.fixture(autouse=True)
+def save_values(monkeypatch):
+    monkeypatch.setattr(sys, 'platform', sys.platform)
+    monkeypatch.setattr(sysconfig, 'get_config_var', sysconfig.get_config_var)
+    monkeypatch.setattr(sysconfig, 'get_config_vars', sysconfig.get_config_vars)
 
-        class CompilerWrapper(UnixCCompiler):
-            def rpath_foo(self):
-                return self.runtime_library_dir_option('/foo')
 
-        self.cc = CompilerWrapper()
+@pytest.fixture(autouse=True)
+def compiler_wrapper(request):
+    class CompilerWrapper(UnixCCompiler):
+        def rpath_foo(self):
+            return self.runtime_library_dir_option('/foo')
 
-    def tearDown(self):
-        super().tearDown()
-        sys.platform = self._backup_platform
-        sysconfig.get_config_var = self._backup_get_config_var
-        sysconfig.get_config_vars = self._backup_get_config_vars
+    request.instance.cc = CompilerWrapper()
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+
+class TestUnixCCompiler(support.TempdirManager):
+    @pytest.mark.skipif('platform.system == "Windows"')  # noqa: C901
     def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
         #
@@ -215,7 +212,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         sysconfig.get_config_var = gcv
         assert self.cc.rpath_foo() == '-Wl,-R/foo'
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_cc_overrides_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable also changes default linker
@@ -237,7 +234,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             sysconfig.customize_compiler(self.cc)
         assert self.cc.linker_so[0] == 'my_cc'
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_cc_overrides_ldshared_for_cxx_correctly(self):
         """
         Ensure that setting CC env variable also changes default linker
@@ -260,11 +257,11 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
-        with patch.object(
+        with mock.patch.object(
             self.cc, 'spawn', return_value=None
-        ) as mock_spawn, patch.object(
+        ) as mock_spawn, mock.patch.object(
             self.cc, '_need_link', return_value=True
-        ), patch.object(
+        ), mock.patch.object(
             self.cc, 'mkpath', return_value=None
         ), EnvironmentVarGuard() as env:
             env['CC'] = 'ccache my_cc'
@@ -277,7 +274,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             expected = ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:4] == expected
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_explicit_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable does not change

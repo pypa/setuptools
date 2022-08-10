@@ -1,10 +1,9 @@
 """Tests for distutils.util."""
 import os
 import sys
-import unittest
 import sysconfig as stdlib_sysconfig
+import unittest.mock as mock
 from copy import copy
-from unittest import mock
 
 import pytest
 
@@ -20,78 +19,44 @@ from distutils.util import (
     grok_environment_error,
     get_host_platform,
 )
-from distutils import util  # used to patch _environ_checked
+from distutils import util
 from distutils import sysconfig
 from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
 
 
+@pytest.fixture(autouse=True)
+def environment(monkeypatch):
+    monkeypatch.setattr(os, 'name', os.name)
+    monkeypatch.setattr(sys, 'platform', sys.platform)
+    monkeypatch.setattr(sys, 'version', sys.version)
+    monkeypatch.setattr(os, 'sep', os.sep)
+    monkeypatch.setattr(os.path, 'join', os.path.join)
+    monkeypatch.setattr(os.path, 'isabs', os.path.isabs)
+    monkeypatch.setattr(os.path, 'splitdrive', os.path.splitdrive)
+    monkeypatch.setattr(sysconfig, '_config_vars', copy(sysconfig._config_vars))
+
+
 @pytest.mark.usefixtures('save_env')
-class UtilTestCase(unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        # saving the environment
-        self.name = os.name
-        self.platform = sys.platform
-        self.version = sys.version
-        self.sep = os.sep
-        self.join = os.path.join
-        self.isabs = os.path.isabs
-        self.splitdrive = os.path.splitdrive
-        self._config_vars = copy(sysconfig._config_vars)
-
-        # patching os.uname
-        if hasattr(os, 'uname'):
-            self.uname = os.uname
-            self._uname = os.uname()
-        else:
-            self.uname = None
-            self._uname = None
-
-        os.uname = self._get_uname
-
-    def tearDown(self):
-        # getting back the environment
-        os.name = self.name
-        sys.platform = self.platform
-        sys.version = self.version
-        os.sep = self.sep
-        os.path.join = self.join
-        os.path.isabs = self.isabs
-        os.path.splitdrive = self.splitdrive
-        if self.uname is not None:
-            os.uname = self.uname
-        else:
-            del os.uname
-        sysconfig._config_vars = copy(self._config_vars)
-        super().tearDown()
-
-    def _set_uname(self, uname):
-        self._uname = uname
-
-    def _get_uname(self):
-        return self._uname
-
+class TestUtil:
     def test_get_host_platform(self):
-        with unittest.mock.patch('os.name', 'nt'):
-            with unittest.mock.patch('sys.version', '... [... (ARM64)]'):
+        with mock.patch('os.name', 'nt'):
+            with mock.patch('sys.version', '... [... (ARM64)]'):
                 assert get_host_platform() == 'win-arm64'
-            with unittest.mock.patch('sys.version', '... [... (ARM)]'):
+            with mock.patch('sys.version', '... [... (ARM)]'):
                 assert get_host_platform() == 'win-arm32'
 
-        with unittest.mock.patch('sys.version_info', (3, 9, 0, 'final', 0)):
+        with mock.patch('sys.version_info', (3, 9, 0, 'final', 0)):
             assert get_host_platform() == stdlib_sysconfig.get_platform()
 
     def test_get_platform(self):
-        with unittest.mock.patch('os.name', 'nt'):
-            with unittest.mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x86'}):
+        with mock.patch('os.name', 'nt'):
+            with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x86'}):
                 assert get_platform() == 'win32'
-            with unittest.mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x64'}):
+            with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'x64'}):
                 assert get_platform() == 'win-amd64'
-            with unittest.mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm'}):
+            with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm'}):
                 assert get_platform() == 'win-arm32'
-            with unittest.mock.patch.dict(
-                'os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm64'}
-            ):
+            with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm64'}):
                 assert get_platform() == 'win-arm64'
 
     def test_convert_path(self):
@@ -179,7 +144,7 @@ class UtilTestCase(unittest.TestCase):
         assert os.environ['PLAT'] == get_platform()
         assert util._environ_checked == 1
 
-    @unittest.skipUnless(os.name == 'posix', 'specific to posix')
+    @pytest.mark.skipif("os.name != 'posix'")
     def test_check_environ_getpwuid(self):
         util._environ_checked = 0
         os.environ.pop('HOME', None)

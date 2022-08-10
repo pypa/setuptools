@@ -2,12 +2,13 @@
 
 import os
 import sys
-import unittest
+import unittest.mock as mock
+
+import pytest
 
 from distutils.command.build_py import build_py
 from distutils.core import Distribution
 from distutils.errors import DistutilsFileError
-from unittest.mock import patch
 
 from distutils.tests import support
 
@@ -86,7 +87,7 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
         except DistutilsFileError:
             self.fail("failed package_data test when package_dir is ''")
 
-    @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
+    @pytest.mark.skipif('sys.dont_write_bytecode')
     def test_byte_compile(self):
         project_dir, dist = self.create_dist(py_modules=['boiledeggs'])
         os.chdir(project_dir)
@@ -102,7 +103,7 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
         found = os.listdir(os.path.join(cmd.build_lib, '__pycache__'))
         assert found == ['boiledeggs.%s.pyc' % sys.implementation.cache_tag]
 
-    @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
+    @pytest.mark.skipif('sys.dont_write_bytecode')
     def test_byte_compile_optimized(self):
         project_dir, dist = self.create_dist(py_modules=['boiledeggs'])
         os.chdir(project_dir)
@@ -166,7 +167,7 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
 
         assert 'byte-compiling is disabled' in self.logs[0][1] % self.logs[0][2]
 
-    @patch("distutils.command.build_py.log.warn")
+    @mock.patch("distutils.command.build_py.log.warn")
     def test_namespace_package_does_not_warn(self, log_warn):
         """
         Originally distutils implementation did not account for PEP 420

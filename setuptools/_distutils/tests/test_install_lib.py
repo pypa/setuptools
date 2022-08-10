@@ -2,7 +2,6 @@
 import sys
 import os
 import importlib.util
-import unittest
 
 import pytest
 
@@ -38,7 +37,7 @@ class TestInstallLib(
         cmd.finalize_options()
         assert cmd.optimize == 2
 
-    @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
+    @pytest.mark.skipif('sys.dont_write_bytecode')
     def test_byte_compile(self):
         project_dir, dist = self.create_dist()
         os.chdir(project_dir)
