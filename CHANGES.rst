@@ -1,3 +1,12 @@
+v63.4.3
+-------
+
+
+Misc
+^^^^
+* #3496: Update to pypa/distutils@b65aa40 including more robust support for library/include dir handling in msvccompiler (pypa/distutils#153) and test suite improvements.
+
+
 v63.4.2
 -------
 
