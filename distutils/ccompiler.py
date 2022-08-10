@@ -91,6 +91,16 @@ class CCompiler:
     }
     language_order = ["c++", "objc", "c"]
 
+    include_dirs = []
+    """
+    include dirs specific to this compiler class
+    """
+
+    library_dirs = []
+    """
+    library dirs specific to this compiler class
+    """
+
     def __init__(self, verbose=0, dry_run=0, force=0):
         self.dry_run = dry_run
         self.force = force
@@ -383,6 +393,9 @@ class CCompiler:
         else:
             raise TypeError("'include_dirs' (if supplied) must be a list of strings")
 
+        # add include dirs for class
+        include_dirs += self.__class__.include_dirs
+
         return output_dir, macros, include_dirs
 
     def _prep_compile(self, sources, output_dir, depends=None):
@@ -438,6 +451,9 @@ class CCompiler:
             library_dirs = list(library_dirs) + (self.library_dirs or [])
         else:
             raise TypeError("'library_dirs' (if supplied) must be a list of strings")
+
+        # add library dirs for class
+        library_dirs += self.__class__.library_dirs
 
         if runtime_library_dirs is None:
             runtime_library_dirs = self.runtime_library_dirs

@@ -224,6 +224,18 @@ class MSVCCompiler(CCompiler):
         self.plat_name = None
         self.initialized = False
 
+    @classmethod
+    def _configure(cls, vc_env):
+        """
+        Set class-level include/lib dirs.
+        """
+        cls.include_dirs = cls._parse_path(vc_env.get('include', ''))
+        cls.library_dirs = cls._parse_path(vc_env.get('lib', ''))
+
+    @staticmethod
+    def _parse_path(val):
+        return [dir.rstrip(os.sep) for dir in val.split(os.pathsep) if dir]
+
     def initialize(self, plat_name=None):
         # multi-init means we would need to check platform same each time...
         assert not self.initialized, "don't init multiple times"
@@ -243,6 +255,7 @@ class MSVCCompiler(CCompiler):
             raise DistutilsPlatformError(
                 "Unable to find a compatible " "Visual Studio installation."
             )
+        self._configure(vc_env)
 
         self._paths = vc_env.get('path', '')
         paths = self._paths.split(os.pathsep)
@@ -252,16 +265,6 @@ class MSVCCompiler(CCompiler):
         self.rc = _find_exe("rc.exe", paths)  # resource compiler
         self.mc = _find_exe("mc.exe", paths)  # message compiler
         self.mt = _find_exe("mt.exe", paths)  # message compiler
-
-        self.__include_dirs = [
-            dir.rstrip(os.sep)
-            for dir in vc_env.get('include', '').split(os.pathsep)
-            if dir
-        ]
-
-        self.__library_dirs = [
-            dir.rstrip(os.sep) for dir in vc_env.get('lib', '').split(os.pathsep) if dir
-        ]
 
         self.preprocess_options = None
         # bpo-38597: Always compile with dynamic linking
@@ -558,26 +561,6 @@ class MSVCCompiler(CCompiler):
         warnings.warn("Fallback spawn triggered. Please update distutils monkeypatch.")
         with mock.patch.dict('os.environ', env):
             bag.value = super().spawn(cmd)
-
-    def _fix_compile_args(self, output_dir, macros, include_dirs):
-        """Corrects arguments to the compile() method and add compiler-specific dirs"""
-        fixed_args = super()._fix_compile_args(output_dir, macros, include_dirs)
-        return (
-            fixed_args[0],  # output_dir
-            fixed_args[1],  # macros
-            fixed_args[2] + self.__include_dirs,
-        )
-
-    def _fix_lib_args(self, libraries, library_dirs, runtime_library_dirs):
-        """Corrects arguments to the link_*() methods and add linker-specific dirs"""
-        fixed_args = super()._fix_lib_args(
-            libraries, library_dirs, runtime_library_dirs
-        )
-        return (
-            fixed_args[0],  # libraries
-            fixed_args[1] + self.__library_dirs,
-            fixed_args[2],  # runtime_library_dirs
-        )
 
     # -- Miscellaneous methods -----------------------------------------
     # These are all used by the 'gen_lib_options() function, in
