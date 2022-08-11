@@ -1,0 +1,6 @@
+Added filter to ignore external ``.egg-info`` files in manifest.
+
+Some plugins (e.g. ``pbr``) might rely on the fact that the ``.egg-info``
+directory is produced inside the project dir, which may not be the case
+in editable installs (the ``.egg-info`` directory is produced inside the
+metadata directory given by the build frontend via PEP 660 hooks).
