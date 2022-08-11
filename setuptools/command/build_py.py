@@ -52,7 +52,6 @@ class build_py(orig.build_py):
 
     def run(self):
         """Build modules, packages, and copy data files to build directory"""
-        # if self.editable_mode or not (self.py_modules and self.packages):
         if not (self.py_modules or self.packages) or self.editable_mode:
             return
 
