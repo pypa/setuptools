@@ -1,4 +1,0 @@
-Users can *temporarily* specify an environment variable
-``SETUPTOOLS_ENABLE_FEATURE=legacy-editable`` as a escape hatch for the
-:pep:`660` behavior. This setting is **transitional** and may be removed in the
-future.

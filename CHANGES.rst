@@ -1,3 +1,72 @@
+v64.0.0
+-------
+
+
+Deprecations
+^^^^^^^^^^^^
+* #3380: Passing some types of parameters via ``--global-option`` to setuptools PEP 517/PEP 660 backend
+  is now considered deprecated. The user can pass the same arbitrary parameter
+  via ``--build-option`` (``--global-option`` is now reserved for flags like
+  ``--verbose`` or ``--quiet``).
+
+  Both ``--build-option`` and ``--global-option`` are supported as a **transitional** effort (a.k.a. "escape hatch").
+  In the future a proper list of allowed ``config_settings`` may be created.
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #3265: Added implementation for *editable install* hooks (PEP 660).
+
+  By default the users will experience a *lenient* behavior  which prioritises
+  the ability of the users of changing the distributed packages (e.g. adding new
+  files or removing old ones).
+  But they can also opt into a *strict* mode, which will try to replicate as much
+  as possible the behavior of the package as if it would be normally installed by
+  end users. The *strict* editable installation is not able to detect if files
+  are added or removed from the project (a new installation is required).
+
+  .. important::
+     The *editable* aspect of the *editable install* supported this implementation
+     is restricted to the Python modules contained in the distributed package.
+     Changes in binary extensions (e.g. C/C++), entry-point definitions,
+     dependencies, metadata, datafiles, etc may require a new installation.
+
+Changes
+^^^^^^^
+* #3380: Improved the handling of the ``config_settings`` parameter in both PEP 517 and
+  PEP 660 interfaces:
+
+  - It is possible now to pass both ``--global-option`` and ``--build-option``.
+    As discussed in #1928, arbitrary arguments passed via ``--global-option``
+    should be placed before the name of the setuptools' internal command, while
+    ``--build-option`` should come after.
+
+  - Users can pass ``editable-mode=strict`` to select a strict behaviour for the
+    editable installation.
+* #3392: Exposed ``get_output_mapping()`` from ``build_py`` and ``build_ext``
+  subcommands. This interface is reserved for the use of ``setuptools``
+  Extensions and third part packages are explicitly disallowed to calling it.
+  However, any implementation overwriting ``build_py`` or ``build_ext`` are
+  required to honour this interface.
+* #3412: Added ability of collecting source files from custom build sub-commands to
+  ``sdist``. This allows plugins and customization scripts to automatically
+  add required source files in the source distribution.
+* #3414: Users can *temporarily* specify an environment variable
+  ``SETUPTOOLS_ENABLE_FEATURE=legacy-editable`` as a escape hatch for the
+  :pep:`660` behavior. This setting is **transitional** and may be removed in the
+  future.
+* #3484: Added *transient* ``compat`` mode to editable installs.
+  This more will be temporarily available (to facilitate the transition period)
+  for those that want to emulate the behavior of the ``develop`` command
+  (in terms of what is added to ``sys.path``).
+  This mode is provided "as is", with limited support, and will be removed in
+  future versions of ``setuptools``.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3414: Updated :doc:`Development Mode </userguide/development_mode>` to reflect on the
+  implementation of :pep:`660`.
+
+
 v63.4.3
 -------
 
