@@ -1,1 +1,1 @@
-Fix typo in ``editable_wheel.py``
+Fix ``editable_wheel`` for legacy namespaces.
