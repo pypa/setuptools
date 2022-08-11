@@ -11,7 +11,7 @@ import itertools
 import stat
 import warnings
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
 from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools.extern.more_itertools import unique_everseen
@@ -52,7 +52,6 @@ class build_py(orig.build_py):
 
     def run(self):
         """Build modules, packages, and copy data files to build directory"""
-        # if self.editable_mode or not (self.py_modules and self.packages):
         if not (self.py_modules or self.packages) or self.editable_mode:
             return
 
@@ -175,15 +174,17 @@ class build_py(orig.build_py):
             getattr(self, 'existing_egg_info_dir', None)
             and Path(self.existing_egg_info_dir, "SOURCES.txt").exists()
         ):
-            manifest = Path(self.existing_egg_info_dir, "SOURCES.txt")
+            egg_info_dir = self.existing_egg_info_dir
+            manifest = Path(egg_info_dir, "SOURCES.txt")
             files = manifest.read_text(encoding="utf-8").splitlines()
         else:
             self.run_command('egg_info')
             ei_cmd = self.get_finalized_command('egg_info')
+            egg_info_dir = ei_cmd.egg_info
             files = ei_cmd.filelist.files
 
         check = _IncludePackageDataAbuse()
-        for path in files:
+        for path in _filter_absolute_egg_info(files, egg_info_dir):
             d, f = os.path.split(assert_relative(path))
             prev = None
             oldf = f
@@ -346,3 +347,15 @@ class _IncludePackageDataAbuse:
             msg = textwrap.dedent(self.MESSAGE).format(importable=importable)
             warnings.warn(msg, SetuptoolsDeprecationWarning, stacklevel=2)
             self._already_warned.add(importable)
+
+
+def _filter_absolute_egg_info(files: Iterable[str], egg_info: str) -> Iterator[str]:
+    """
+    ``build_meta`` may try to create egg_info outside of the project directory,
+    and this can be problematic for certain plugins (reported in issue #3500).
+    This function should filter this case of invalid files out.
+    """
+    egg_info_name = Path(egg_info).name
+    for file in files:
+        if not (egg_info_name in file and os.path.isabs(file)):
+            yield file
