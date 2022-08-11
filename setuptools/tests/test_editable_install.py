@@ -685,6 +685,43 @@ def test_compat_install(tmp_path, venv):
     assert "cannot import name 'subpackage'" in out
 
 
+def test_pbr_integration(tmp_path, venv, editable_opts):
+    """Ensure editable installs work with pbr, issue #3500"""
+    files = {
+        "pyproject.toml": dedent("""\
+            [build-system]
+            requires = ["setuptools"]
+            build-backend = "setuptools.build_meta"
+            """),
+        "setup.py": dedent("""\
+            __import__('setuptools').setup(
+                pbr=True,
+                setup_requires=["pbr"],
+            )
+            """),
+        "setup.cfg": dedent("""\
+            [metadata]
+            name = mypkg
+
+            [files]
+            packages =
+                mypkg
+            """),
+        "mypkg": {
+            "__init__.py": "",
+            "hello.py": "print('Hello world!')",
+        },
+        "other": {"test.txt": "Another file in here."},
+    }
+    venv.run(["python", "-m", "pip", "install", "pbr"])
+
+    with contexts.environment(PBR_VERSION="0.42"):
+        install_project("mypkg", venv, tmp_path, files, *editable_opts)
+
+    out = venv.run(["python", "-c", "import mypkg.hello"])
+    assert b"Hello world!" in out
+
+
 def install_project(name, venv, tmp_path, files, *opts):
     project = tmp_path / name
     project.mkdir()
