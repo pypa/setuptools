@@ -1,0 +1,10 @@
+Improved the handling of the ``config_settings`` parameter in both PEP 517 and
+PEP 660 interfaces:
+
+- It is possible now to pass both ``--global-option`` and ``--build-option``.
+  As discussed in #1928, arbitrary arguments passed via ``--global-option``
+  should be placed before the name of the setuptools' internal command, while
+  ``--build-option`` should come after.
+
+- Users can pass ``editable-mode=strict`` to select a strict behaviour for the
+  editable installation.

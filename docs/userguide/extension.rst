@@ -56,8 +56,8 @@ a ``foo`` command, you might add something like this to your project:
     distutils.commands =
          foo = mypackage.some_module:foo
 
-(Assuming, of course, that the ``foo`` class in ``mypackage.some_module`` is
-a ``setuptools.Command`` subclass.)
+Assuming, of course, that the ``foo`` class in ``mypackage.some_module`` is
+a ``setuptools.Command`` subclass (documented bellow).
 
 Once a project containing such entry points has been activated on ``sys.path``,
 (e.g. by running ``pip install``) the command(s) will be available to any
@@ -72,8 +72,21 @@ Custom commands should try to replicate the same overall behavior as the
 original classes, and when possible, even inherit from them.
 
 You should also consider handling exceptions such as ``CompileError``,
-``LinkError``, ``LibError``, among others.  These exceptions are available in
+``LinkError``, ``LibError``, among others. These exceptions are available in
 the ``setuptools.errors`` module.
+
+.. autoclass:: setuptools.Command
+   :members:
+
+
+Supporting sdists and editable installs in ``build`` sub-commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``build`` sub-commands (like ``build_py`` and ``build_ext``)
+are encouraged to implement the following protocol:
+
+.. autoclass:: setuptools.command.build.SubCommand
+   :members:
 
 
 Adding Arguments

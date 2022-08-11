@@ -10,6 +10,7 @@ from unittest import mock
 
 import pytest
 
+from setuptools import Command
 from setuptools._importlib import metadata
 from setuptools import SetuptoolsDeprecationWarning
 from setuptools.command.sdist import sdist
@@ -516,6 +517,46 @@ class TestSdistTest:
             cmd.run()
         manifest = cmd.filelist.files
         assert 'pyproject.toml' not in manifest
+
+    def test_build_subcommand_source_files(self, tmpdir):
+        touch(tmpdir / '.myfile~')
+
+        # Sanity check: without custom commands file list should not be affected
+        dist = Distribution({**SETUP_ATTRS, "script_name": "setup.py"})
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+        manifest = cmd.filelist.files
+        assert '.myfile~' not in manifest
+
+        # Test: custom command should be able to augment file list
+        dist = Distribution({**SETUP_ATTRS, "script_name": "setup.py"})
+        build = dist.get_command_obj("build")
+        build.sub_commands = [*build.sub_commands, ("build_custom", None)]
+
+        class build_custom(Command):
+            def initialize_options(self):
+                ...
+
+            def finalize_options(self):
+                ...
+
+            def run(self):
+                ...
+
+            def get_source_files(self):
+                return ['.myfile~']
+
+        dist.cmdclass.update(build_custom=build_custom)
+
+        cmd = sdist(dist)
+        cmd.use_defaults = True
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+        manifest = cmd.filelist.files
+        assert '.myfile~' in manifest
 
 
 def test_default_revctrl():

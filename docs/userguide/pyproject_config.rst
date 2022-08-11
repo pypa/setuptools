@@ -7,10 +7,10 @@ Configuring setuptools using ``pyproject.toml`` files
 .. note:: New in 61.0.0
 
 .. important::
-   For the time being [#pep660-status]_, ``pip`` still might require a ``setup.py`` file
-   to support :doc:`editable installs <pip:cli/pip_install>` [#setupcfg-caveats]_.
-
-   A simple script will suffice, for example:
+   If compatibility with legacy builds or versions of tools that don't support
+   certain packaging standards (e.g. :pep:`517` or :pep:`660`), a simple ``setup.py``
+   script can be added to your project [#setupcfg-caveats]_
+   (while keeping the configuration in ``pyproject.toml``):
 
    .. code-block:: python
 
@@ -214,12 +214,10 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
 
 .. rubric:: Notes
 
-.. [#pep660-status] Editable install without ``setup.py`` will be supported in
-   future versions of ``setuptools``. Check https://github.com/pypa/setuptools/issues/2816 for detail.
-
 .. [#setupcfg-caveats] ``pip`` may allow editable install only with ``pyproject.toml``
-   and ``setup.cfg``. However, this behavior may not be consistent over various build
-   tools. Having a ``setup.py`` is still recommended if you rely on one of these tools.
+   and ``setup.cfg``. However, this behavior may not be consistent over various ``pip``
+   versions and other packaging-related tools
+   (``setup.py`` is more reliable on those scenarios).
 
 .. [#entry-points] Dynamic ``scripts`` and ``gui-scripts`` are a special case.
    When resolving these metadata keys, ``setuptools`` will look for

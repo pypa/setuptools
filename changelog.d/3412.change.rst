@@ -1,0 +1,3 @@
+Added ability of collecting source files from custom build sub-commands to
+``sdist``. This allows plugins and customization scripts to automatically
+add required source files in the source distribution.
