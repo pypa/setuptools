@@ -1,1 +1,1 @@
-Fix issue with editable install and single module distributions.
+Fixed issue with editable install and single module distributions.

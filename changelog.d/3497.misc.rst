@@ -1,1 +1,1 @@
-Fix ``editable_wheel`` for legacy namespaces.
+Fixed ``editable_wheel`` for legacy namespaces.
