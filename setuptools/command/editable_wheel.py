@@ -672,6 +672,7 @@ class _NamespaceInstaller(namespaces.Installer):
         self.installation_dir = installation_dir
         self.editable_name = editable_name
         self.outputs = []
+        self.dry_run = False
 
     def _get_target(self):
         """Installation target."""
