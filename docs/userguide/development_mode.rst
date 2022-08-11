@@ -118,7 +118,8 @@ by mistake otherwise your files may stop being accessible).
 
 .. note::
     .. versionadded:: v64.0.0
-       *Strict* mode implemented as **EXPERIMENTAL**.
+       Added new *strict* mode for editable installations.
+       The exact details of how this mode is implemented may vary.
 
 
 Limitations
