@@ -1,3 +1,19 @@
+v64.0.1
+-------
+
+
+Misc
+^^^^
+* #3497: Fixed ``editable_wheel`` for legacy namespaces.
+* #3502: Fixed issue with editable install and single module distributions.
+* #3503: Added filter to ignore external ``.egg-info`` files in manifest.
+
+  Some plugins might rely on the fact that the ``.egg-info`` directory is
+  produced inside the project dir, which may not be the case in editable installs
+  (the ``.egg-info`` directory is produced inside the metadata directory given by
+  the build frontend via PEP 660 hooks).
+
+
 v64.0.0
 -------
 
