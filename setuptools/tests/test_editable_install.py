@@ -163,6 +163,35 @@ def test_editable_with_flat_layout(tmp_path, venv, editable_opts):
     assert subprocess.check_output(cmd).strip() == b"4 2"
 
 
+def test_editable_with_single_module(tmp_path, venv, editable_opts):
+    files = {
+        "mypkg": {
+            "pyproject.toml": dedent("""\
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta"
+
+                [project]
+                name = "mod"
+                version = "3.14159"
+
+                [tool.setuptools]
+                py-modules = ["mod"]
+                """),
+            "mod.py": "b = 2",
+        },
+    }
+    jaraco.path.build(files, prefix=tmp_path)
+    project = tmp_path / "mypkg"
+
+    cmd = [venv.exe(), "-m", "pip", "install",
+           "--no-build-isolation",  # required to force current version of setuptools
+           "-e", str(project), *editable_opts]
+    print(str(subprocess.check_output(cmd), "utf-8"))
+    cmd = [venv.exe(), "-c", "import mod; print(mod.b)"]
+    assert subprocess.check_output(cmd).strip() == b"2"
+
+
 class TestLegacyNamespaces:
     """Ported from test_develop"""
 
