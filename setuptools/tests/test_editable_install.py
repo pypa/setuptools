@@ -173,8 +173,15 @@ class TestLegacyNamespaces:
         and the other installed in editable mode should leave the namespace
         intact and both packages reachable by import.
         """
+        build_system = """\
+        [build-system]
+        requires = ["setuptools"]
+        build-backend = "setuptools.build_meta"
+        """
         pkg_A = namespaces.build_namespace_package(tmp_path, 'myns.pkgA')
         pkg_B = namespaces.build_namespace_package(tmp_path, 'myns.pkgB')
+        (pkg_A / "pyproject.toml").write_text(build_system, encoding="utf-8")
+        (pkg_B / "pyproject.toml").write_text(build_system, encoding="utf-8")
         # use pip to install to the target directory
         opts = editable_opts[:]
         opts.append("--no-build-isolation")  # force current version of setuptools

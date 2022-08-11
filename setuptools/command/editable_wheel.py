@@ -168,7 +168,7 @@ class editable_wheel(Command):
         if not dist.namespace_packages:
             return
 
-        src_root = Path(self.project_dir, self.pakcage_dir.get("", ".")).resolve()
+        src_root = Path(self.project_dir, self.package_dir.get("", ".")).resolve()
         installer = _NamespaceInstaller(dist, installation_dir, pth_prefix, src_root)
         installer.install_namespaces()
 
@@ -672,6 +672,7 @@ class _NamespaceInstaller(namespaces.Installer):
         self.installation_dir = installation_dir
         self.editable_name = editable_name
         self.outputs = []
+        self.dry_run = False
 
     def _get_target(self):
         """Installation target."""
