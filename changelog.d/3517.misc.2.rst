@@ -1,0 +1,2 @@
+Augmented filter to prevent transient/temporary source files from being
+considered ``package_data`` or ``data_files``.
