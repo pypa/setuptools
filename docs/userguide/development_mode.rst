@@ -200,8 +200,8 @@ This *may* cause the installer (e.g. ``pip``) to effectively run the "legacy"
 installation command: ``python setup.py develop`` [#installer]_.
 
 
-How editable installations work?
---------------------------------
+How editable installations work
+-------------------------------
 
 *Advanced topic*
 
