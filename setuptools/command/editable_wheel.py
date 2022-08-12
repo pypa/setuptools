@@ -594,7 +594,7 @@ def _find_virtual_namespaces(pkg_roots: Dict[str, str]) -> Iterator[str]:
         for i in range(len(parts) - 1, 0, -1):
             partial_name = ".".join(parts[:i])
             path = Path(find_package_path(partial_name, pkg_roots, ""))
-            if not path.exists():
+            if not path.exists() or partial_name not in pkg_roots:
                 yield partial_name
 
 
