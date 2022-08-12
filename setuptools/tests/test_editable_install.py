@@ -269,6 +269,54 @@ class TestPep420Namespaces:
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_C), *opts])
         venv.run(["python", "-c", "from myns.n import pkgA, pkgB, pkgC"])
 
+    def test_namespace_accidental_config_in_lenient_mode(self, venv, tmp_path):
+        """Sometimes users might specify an ``include`` pattern that ignores parent
+        packages. In a normal installation this would ignore all modules inside the
+        parent packages, and make them namespaces (reported in issue #3504),
+        so the editable mode should preserve this behaviour.
+        """
+        files = {
+            "pkgA": {
+                "pyproject.toml": dedent("""\
+                    [build-system]
+                    requires = ["setuptools", "wheel"]
+                    build-backend = "setuptools.build_meta"
+
+                    [project]
+                    name = "pkgA"
+                    version = "3.14159"
+
+                    [tool.setuptools]
+                    packages.find.include = ["mypkg.*"]
+                    """),
+                "mypkg": {
+                    "__init__.py": "",
+                    "other.py": "b = 1",
+                    "n": {
+                        "__init__.py": "",
+                        "pkgA.py": "a = 1",
+                    },
+                 },
+                "MANIFEST.in": EXAMPLE["MANIFEST.in"],
+            },
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+        pkg_A = tmp_path / "pkgA"
+
+        # use pip to install to the target directory
+        opts = ["--no-build-isolation"]  # force current version of setuptools
+        venv.run(["python", "-m", "pip", "-v", "install", "-e", str(pkg_A), *opts])
+        out = venv.run(["python", "-c", "from mypkg.n import pkgA; print(pkgA.a)"])
+        assert str(out, "utf-8").strip() == "1"
+        cmd = """\
+        try:
+            import mypkg.other
+        except ImportError:
+            print("mypkg.other not defined")
+        """
+        out = venv.run(["python", "-c", dedent(cmd)])
+        assert "mypkg.other not defined" in str(out, "utf-8")
+
 
 # Moved here from test_develop:
 @pytest.mark.xfail(
@@ -490,7 +538,7 @@ def test_pkg_roots(tmp_path):
     assert ns == {"f", "f.g"}
 
     ns = set(_find_virtual_namespaces(roots))
-    assert ns == {"a.b.c.x", "a.b.c.x.y", "m", "m.n", "m.n.o", "m.n.o.p"}
+    assert ns == {"a.b", "a.b.c.x", "a.b.c.x.y", "m", "m.n", "m.n.o", "m.n.o.p"}
 
 
 class TestOverallBehaviour:
