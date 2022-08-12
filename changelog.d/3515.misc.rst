@@ -1,0 +1,2 @@
+Fixed "inline" file copying for editable installations and
+optional extensions.

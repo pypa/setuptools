@@ -9,9 +9,12 @@ from jaraco import path
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
+from setuptools.errors import CompileError
 
 from . import environment
 from .textwrap import DALS
+
+import pytest
 
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
@@ -174,6 +177,40 @@ class TestBuildExt:
         assert example_stub in mapping
         assert example_stub.startswith(f"{build_lib}/mypkg/__pycache__/ext1")
         assert example_stub.endswith(".pyc")
+
+
+class TestBuildExtInplace:
+    def get_build_ext_cmd(self, optional: bool, **opts):
+        files = {
+            "eggs.c": "#include missingheader.h\n",
+            ".build": {"lib": {}, "tmp": {}},
+        }
+        path.build(files)
+        extension = Extension('spam.eggs', ['eggs.c'], optional=optional)
+        dist = Distribution(dict(ext_modules=[extension]))
+        dist.script_name = 'setup.py'
+        cmd = build_ext(dist)
+        vars(cmd).update(build_lib=".build/lib", build_temp=".build/tmp", **opts)
+        cmd.ensure_finalized()
+        return cmd
+
+    def test_optional(self, tmpdir_cwd, capsys):
+        """
+        If optional extensions fail to build, setuptools should show the error
+        in the logs but not fail to build
+        """
+        cmd = self.get_build_ext_cmd(optional=True, inplace=True)
+        cmd.run()
+        logs = capsys.readouterr()
+        messages = (logs.out + logs.err)
+        assert 'build_ext: building extension "spam.eggs" failed' in messages
+        # No compile error exception should be raised
+
+    def test_non_optional(self, tmpdir_cwd):
+        # Non-optional extensions should raise an exception
+        cmd = self.get_build_ext_cmd(optional=False, inplace=True)
+        with pytest.raises(CompileError):
+            cmd.run()
 
 
 def test_build_ext_config_handling(tmpdir_cwd):
