@@ -40,6 +40,10 @@ Breaking Changes
   end users. The *strict* editable installation is not able to detect if files
   are added or removed from the project (a new installation is required).
 
+  This implementation might also affect plugins and customizations that assume
+  certain ``build`` subcommands don't run during editable installs or that they
+  always copy files to the temporary build directory.
+
   .. important::
      The *editable* aspect of the *editable install* supported this implementation
      is restricted to the Python modules contained in the distributed package.

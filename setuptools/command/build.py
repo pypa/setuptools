@@ -20,7 +20,7 @@ class build(_build):
     # copy to avoid sharing the object with parent class
     sub_commands = _build.sub_commands[:]
 
-    def run(self):
+    def get_sub_commands(self):
         subcommands = {cmd[0] for cmd in _build.sub_commands}
         if subcommands - _ORIGINAL_SUBCOMMANDS:
             msg = """
@@ -30,7 +30,7 @@ class build(_build):
             """
             warnings.warn(msg, SetuptoolsDeprecationWarning)
             self.sub_commands = _build.sub_commands
-        super().run()
+        return super().get_sub_commands()
 
 
 class SubCommand(Protocol):

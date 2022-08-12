@@ -37,6 +37,7 @@ from typing import (
 )
 
 from setuptools import Command, SetuptoolsDeprecationWarning, errors, namespaces
+from setuptools.command.build_py import build_py as build_py_cls
 from setuptools.discovery import find_package_path
 from setuptools.dist import Distribution
 
@@ -254,12 +255,54 @@ class editable_wheel(Command):
         self, dist_name: str, unpacked_wheel: _Path, build_lib: _Path, tmp_dir: _Path
     ) -> Tuple[List[str], Dict[str, str]]:
         self._configure_build(dist_name, unpacked_wheel, build_lib, tmp_dir)
-        self.run_command("build")
+        self._run_build_subcommands()
         files, mapping = self._collect_build_outputs()
         self._run_install("headers")
         self._run_install("scripts")
         self._run_install("data")
         return files, mapping
+
+    def _run_build_subcommands(self):
+        """
+        Issue #3501 indicates that some plugins/customizations might rely on:
+
+        1. ``build_py`` not running
+        2. ``build_py`` always copying files to ``build_lib``
+
+        However both these assumptions may be false in editable_wheel.
+        This method implements a temporary workaround to support the ecosystem
+        while the implementations catch up.
+        """
+        # TODO: Once plugins/customisations had the chance to catch up, replace
+        #       `self._run_build_subcommands()` with `self.run_command("build")`.
+        #       Also remove _safely_run, TestCustomBuildPy. Suggested date: Aug/2023.
+        build: Command = self.get_finalized_command("build")
+        for name in build.get_sub_commands():
+            cmd = self.distribution.get_command_obj(name)
+            if name == "build_py" and type(cmd) != build_py_cls:
+                self._safely_run(name)
+            else:
+                self.run_command(name)
+
+    def _safely_run(self, cmd_name: str):
+        try:
+            return self.run_command(cmd_name)
+        except Exception:
+            msg = f"""{traceback.format_exc()}\n
+            If you are seeing this warning it is very likely that a setuptools
+            plugin or customization overrides the `{cmd_name}` command, without
+            tacking into consideration how editable installs run build steps
+            starting from v64.0.0.
+
+            Plugin authors and developers relying on custom build steps are encouraged
+            to update their `{cmd_name}` implementation considering the information in
+            https://setuptools.pypa.io/en/latest/userguide/extension.html
+            about editable installs.
+
+            For the time being `setuptools` will silence this error and ignore
+            the faulty command, but this behaviour will change in future versions.\n
+            """
+            warnings.warn(msg, SetuptoolsDeprecationWarning, stacklevel=2)
 
     def _create_wheel_file(self, bdist_wheel):
         from wheel.wheelfile import WheelFile
