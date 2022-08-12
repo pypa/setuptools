@@ -558,8 +558,9 @@ class TestOverallBehaviour:
 
     @pytest.mark.parametrize("layout", EXAMPLES.keys())
     def test_editable_install(self, tmp_path, venv, layout, editable_opts):
-        opts = editable_opts
-        project = install_project("mypkg", venv, tmp_path, self.EXAMPLES[layout], *opts)
+        project, _ = install_project(
+            "mypkg", venv, tmp_path, self.EXAMPLES[layout], *editable_opts
+        )
 
         # Ensure stray files are not importable
         cmd_import_error = """\
@@ -758,13 +759,55 @@ def test_pbr_integration(tmp_path, venv, editable_opts):
     assert b"Hello world!" in out
 
 
+class TestCustomBuildPy:
+    """
+    Issue #3501 indicates that some plugins/customizations might rely on:
+
+    1. ``build_py`` not running
+    2. ``build_py`` always copying files to ``build_lib``
+
+    During the transition period setuptools should prevent potential errors from
+    happening due to those assumptions.
+    """
+    # TODO: Remove tests after _run_build_steps is removed.
+
+    FILES = {
+        **TestOverallBehaviour.EXAMPLES["flat-layout"],
+        "setup.py": dedent("""\
+            import pathlib
+            from setuptools import setup
+            from setuptools.command.build_py import build_py as orig
+
+            class my_build_py(orig):
+                def run(self):
+                    super().run()
+                    raise ValueError("TEST_RAISE")
+
+            setup(cmdclass={"build_py": my_build_py})
+            """),
+    }
+
+    def test_safeguarded_from_errors(self, tmp_path, venv):
+        """Ensure that errors in custom build_py are reported as warnings"""
+        # Warnings should show up
+        _, out = install_project("mypkg", venv, tmp_path, self.FILES)
+        assert b"SetuptoolsDeprecationWarning" in out
+        assert b"ValueError: TEST_RAISE" in out
+        # but installation should be successful
+        out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
+        assert b"42" in out
+
+
 def install_project(name, venv, tmp_path, files, *opts):
     project = tmp_path / name
     project.mkdir()
     jaraco.path.build(files, prefix=project)
     opts = [*opts, "--no-build-isolation"]  # force current version of setuptools
-    venv.run(["python", "-m", "pip", "install", "-e", str(project), *opts])
-    return project
+    out = venv.run(
+        ["python", "-m", "pip", "-v", "install", "-e", str(project), *opts],
+        stderr=subprocess.STDOUT,
+    )
+    return project, out
 
 
 # ---- Assertion Helpers ----
