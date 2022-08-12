@@ -1,3 +1,19 @@
+v64.0.2
+-------
+
+
+Misc
+^^^^
+* #3506: Suppress errors in custom ``build_py`` implementations when running editable
+  installs in favor of a warning indicating what is the most appropriate
+  migration path.
+  This is a *transitional* measure. Errors might be raised in future versions of
+  ``setuptools``.
+* #3512: Added capability of handling namespace packages created
+  accidentally/purposefully via discovery configuration during editable installs.
+  This should emulate the behaviour of a non-editable installation.
+
+
 v64.0.1
 -------
 

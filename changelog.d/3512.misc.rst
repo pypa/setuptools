@@ -1,3 +1,0 @@
-Added capability of handling namespace packages created
-accidentally/purposefully via discovery configuration during editable installs.
-This should emulate the behaviour of a non-editable installation.

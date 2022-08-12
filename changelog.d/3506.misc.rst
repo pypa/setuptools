@@ -1,5 +1,0 @@
-Suppress errors in custom ``build_py`` implementations when running editable
-installs in favor of a warning indicating what is the most appropriate
-migration path.
-This is a *transitional* measure. Errors might be raised in future versions of
-``setuptools``.
