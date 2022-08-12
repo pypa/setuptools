@@ -290,12 +290,12 @@ class editable_wheel(Command):
         except Exception:
             msg = f"""{traceback.format_exc()}\n
             If you are seeing this warning it is very likely that a setuptools
-            plugin or customization overrides the `build_py` command, without
+            plugin or customization overrides the `{cmd_name}` command, without
             tacking into consideration how editable installs run build steps
             starting from v64.0.0.
 
             Plugin authors and developers relying on custom build steps are encouraged
-            to update their `build_py` implementation considering the information in
+            to update their `{cmd_name}` implementation considering the information in
             https://setuptools.pypa.io/en/latest/userguide/extension.html
             about editable installs.
 
