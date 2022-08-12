@@ -1,3 +1,18 @@
+v64.0.3
+-------
+
+
+Misc
+^^^^
+* #3515: Fixed "inline" file copying for editable installations and
+  optional extensions.
+* #3517: Fixed ``editable_wheel`` to ensure other commands are finalized before using
+  them. This should prevent errors with plugins trying to use different commands
+  or reinitializing them.
+* #3517: Augmented filter to prevent transient/temporary source files from being
+  considered ``package_data`` or ``data_files``.
+
+
 v64.0.2
 -------
 
