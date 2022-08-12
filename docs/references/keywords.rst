@@ -20,17 +20,16 @@ tap into special behaviour that requires scripting (such as building C
 extensions).
 
 .. note::
-   When using declarative configs via ``pyproject.toml`` users can still keep a
-   very simple ``setup.py`` just to ensure editable installs are supported, for
-   example::
+   When using declarative configs via ``pyproject.toml``
+   with ``setuptools<64.0.0``, users can still keep a very simple ``setup.py``
+   just to ensure editable installs are supported, for example::
 
        from setuptools import setup
 
        setup()
 
-   Future versions of ``setuptools`` may support editable installs even
-   without ``setup.py``.
-
+   Versions of ``setuptools`` ``>=64.0.0`` do not require this extra minimal
+   ``setup.py`` file.
 
 .. _keyword/name:
 
