@@ -538,7 +538,7 @@ def test_pkg_roots(tmp_path):
     assert ns == {"f", "f.g"}
 
     ns = set(_find_virtual_namespaces(roots))
-    assert ns == {"a.b.c.x", "a.b.c.x.y", "m", "m.n", "m.n.o", "m.n.o.p"}
+    assert ns == {"a.b", "a.b.c.x", "a.b.c.x.y", "m", "m.n", "m.n.o", "m.n.o.p"}
 
 
 class TestOverallBehaviour:
