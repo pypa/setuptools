@@ -862,7 +862,7 @@ class TestCustomBuildWheel:
         dist.cmdclass["bdist_wheel"] = MyBdistWheel
 
     def test_access_plat_name(self, tmpdir_cwd):
-        # Even when a custom build step tries to access plat_name the build should
+        # Even when a custom bdist_wheel tries to access plat_name the build should
         # be successful
         jaraco.path.build({"module.py": "x = 42"})
         dist = Distribution()
@@ -872,7 +872,7 @@ class TestCustomBuildWheel:
         cmd = editable_wheel(dist)
         cmd.ensure_finalized()
         cmd.run()
-        wheel_file = next(Path().glob('dist/*'))
+        wheel_file = str(next(Path().glob('dist/*')))
         assert "editable" in wheel_file
         assert wheel_file.endswith(".whl")
 
