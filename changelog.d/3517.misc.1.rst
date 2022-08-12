@@ -1,0 +1,3 @@
+Fixed ``editable_wheel`` to ensure other commands are finalized before using
+them. This should prevent errors with plugins trying to use different commands
+or reinitializing them.

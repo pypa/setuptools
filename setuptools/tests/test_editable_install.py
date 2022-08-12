@@ -25,6 +25,7 @@ from setuptools.command.editable_wheel import (
     _find_namespaces,
     _find_package_roots,
     _finder_template,
+    editable_wheel,
 )
 from setuptools.dist import Distribution
 
@@ -844,6 +845,36 @@ class TestCustomBuildPy:
         # but installation should be successful
         out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
         assert b"42" in out
+
+
+class TestCustomBuildWheel:
+    def install_custom_build_wheel(self, dist):
+        bdist_wheel_cls = dist.get_command_class("bdist_wheel")
+
+        class MyBdistWheel(bdist_wheel_cls):
+            def get_tag(self):
+                # In issue #3513, we can see that some extensions may try to access
+                # the `plat_name` property in bdist_wheel
+                if self.plat_name.startswith("macosx-"):
+                    _ = "macOS platform"
+                return super().get_tag()
+
+        dist.cmdclass["bdist_wheel"] = MyBdistWheel
+
+    def test_access_plat_name(self, tmpdir_cwd):
+        # Even when a custom bdist_wheel tries to access plat_name the build should
+        # be successful
+        jaraco.path.build({"module.py": "x = 42"})
+        dist = Distribution()
+        dist.script_name = "setup.py"
+        dist.set_defaults()
+        self.install_custom_build_wheel(dist)
+        cmd = editable_wheel(dist)
+        cmd.ensure_finalized()
+        cmd.run()
+        wheel_file = str(next(Path().glob('dist/*')))
+        assert "editable" in wheel_file
+        assert wheel_file.endswith(".whl")
 
 
 def install_project(name, venv, tmp_path, files, *opts):

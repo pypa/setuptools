@@ -133,7 +133,8 @@ class editable_wheel(Command):
             self._ensure_dist_info()
 
             # Add missing dist_info files
-            bdist_wheel = self.reinitialize_command("bdist_wheel")
+            self.reinitialize_command("bdist_wheel")
+            bdist_wheel = self.get_finalized_command("bdist_wheel")
             bdist_wheel.write_wheelfile(self.dist_info_dir)
 
             self._create_wheel_file(bdist_wheel)
@@ -156,7 +157,7 @@ class editable_wheel(Command):
         if self.dist_info_dir is None:
             dist_info = self.reinitialize_command("dist_info")
             dist_info.output_dir = self.dist_dir
-            dist_info.finalize_options()
+            dist_info.ensure_finalized()
             dist_info.run()
             self.dist_info_dir = dist_info.dist_info_dir
         else:
@@ -278,7 +279,7 @@ class editable_wheel(Command):
         #       Also remove _safely_run, TestCustomBuildPy. Suggested date: Aug/2023.
         build: Command = self.get_finalized_command("build")
         for name in build.get_sub_commands():
-            cmd = self.distribution.get_command_obj(name)
+            cmd = self.get_finalized_command(name)
             if name == "build_py" and type(cmd) != build_py_cls:
                 self._safely_run(name)
             else:
