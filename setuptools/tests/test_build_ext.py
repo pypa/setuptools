@@ -212,6 +212,7 @@ class TestBuildExtInplace:
         with pytest.raises(CompileError):
             cmd.run()
 
+
 def test_build_ext_config_handling(tmpdir_cwd):
     files = {
         'setup.py': DALS(
