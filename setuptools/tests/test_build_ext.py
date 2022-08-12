@@ -31,6 +31,26 @@ class TestBuildExt:
         wanted = orig.build_ext.get_ext_filename(cmd, 'foo')
         assert res == wanted
 
+    def test_optional_inplace(self, tmpdir_cwd, capsys):
+        # If optional extensions fail to build, setuptools should show the error
+        # in the logs but not fail to build
+        files = {
+            "eggs.c": "#include missingheader.h\n",
+            ".build": {"lib": {}, "tmp": {}},
+        }
+        path.build(files)
+        extension = Extension('spam.eggs', ['eggs.c'], optional=True)
+        dist = Distribution(dict(ext_modules=[extension]))
+        dist.script_name = 'setup.py'
+        cmd = build_ext(dist)
+        vars(cmd).update(build_lib=".build/lib", build_temp=".build/tmp", inplace=True)
+        cmd.ensure_finalized()
+        cmd.run()
+        logs = capsys.readouterr()
+        messages = (logs.out + logs.err)
+        assert 'build_ext: building extension "spam.eggs" failed' in messages
+        # No exception should be raised
+
     def test_abi3_filename(self):
         """
         Filename needs to be loadable by several versions
