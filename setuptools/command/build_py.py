@@ -184,7 +184,7 @@ class build_py(orig.build_py):
             files = ei_cmd.filelist.files
 
         check = _IncludePackageDataAbuse()
-        for path in _filter_absolute_egg_info(files, egg_info_dir):
+        for path in self._filter_build_files(files, egg_info_dir):
             d, f = os.path.split(assert_relative(path))
             prev = None
             oldf = f
@@ -201,6 +201,25 @@ class build_py(orig.build_py):
                     if importable:
                         check.warn(importable)
                 mf.setdefault(src_dirs[d], []).append(path)
+
+    def _filter_build_files(self, files: Iterable[str], egg_info: str) -> Iterator[str]:
+        """
+        ``build_meta`` may try to create egg_info outside of the project directory,
+        and this can be problematic for certain plugins (reported in issue #3500).
+
+        Extensions might also include between their sources files created on the
+        ``build_lib`` and ``build_temp`` directories.
+
+        This function should filter this case of invalid files out.
+        """
+        build = self.get_finalized_command("build")
+        build_dirs = (egg_info, self.build_lib, build.build_temp, build.build_base)
+        norm_dirs = [os.path.normpath(p) for p in build_dirs if p]
+
+        for file in files:
+            norm_path = os.path.normpath(file)
+            if not os.path.isabs(file) or all(d not in norm_path for d in norm_dirs):
+                yield file
 
     def get_data_files(self):
         pass  # Lazily compute data files in _get_data_files() function.
@@ -347,15 +366,3 @@ class _IncludePackageDataAbuse:
             msg = textwrap.dedent(self.MESSAGE).format(importable=importable)
             warnings.warn(msg, SetuptoolsDeprecationWarning, stacklevel=2)
             self._already_warned.add(importable)
-
-
-def _filter_absolute_egg_info(files: Iterable[str], egg_info: str) -> Iterator[str]:
-    """
-    ``build_meta`` may try to create egg_info outside of the project directory,
-    and this can be problematic for certain plugins (reported in issue #3500).
-    This function should filter this case of invalid files out.
-    """
-    egg_info_name = Path(egg_info).name
-    for file in files:
-        if not (egg_info_name in file and os.path.isabs(file)):
-            yield file
