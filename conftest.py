@@ -135,3 +135,25 @@ def cleanup_testfn():
         os.remove(path)
     elif os.path.isdir(path):
         shutil.rmtree(path)
+
+
+# from pytest-dev/pytest#363
+@pytest.fixture(scope="session")
+def monkeysession(request):
+    from _pytest.monkeypatch import MonkeyPatch
+
+    mpatch = MonkeyPatch()
+    yield mpatch
+    mpatch.undo()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def suppress_path_mangle(monkeysession):
+    """
+    Disable the path mangling in CCompiler. Workaround for #169.
+    """
+    from distutils import ccompiler
+
+    monkeysession.setattr(
+        ccompiler.CCompiler, '_mangle_base', staticmethod(lambda x: x)
+    )
