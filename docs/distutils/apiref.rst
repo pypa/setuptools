@@ -1862,8 +1862,7 @@ Subclasses of :class:`Command` must define the following methods.
 
    .. _Windows Installer: https://msdn.microsoft.com/en-us/library/cc185688(VS.85).aspx
 
-   In most cases, the ``bdist_msi`` installer is a better choice than the
-   ``bdist_wininst`` installer, because it provides better support for
+   The ``bdist_msi`` installer provides better support for
    Win64 platforms, allows administrators to perform non-interactive
    installations, and allows installation through group policies.
 
@@ -1873,19 +1872,6 @@ Subclasses of :class:`Command` must define the following methods.
 
 .. module:: distutils.command.bdist_rpm
    :synopsis: Build a binary distribution as a Redhat RPM and SRPM
-
-
-.. % todo
-
-
-:mod:`distutils.command.bdist_wininst` --- Build a Windows installer
-====================================================================
-
-.. module:: distutils.command.bdist_wininst
-   :synopsis: Build a Windows installer
-
-.. deprecated:: 3.8
-   Use bdist_wheel (wheel packages) instead.
 
 
 .. % todo
