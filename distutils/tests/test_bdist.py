@@ -23,7 +23,6 @@ class TestBuild(support.TempdirManager):
             'msi',
             'rpm',
             'tar',
-            'wininst',
             'xztar',
             'zip',
             'ztar',
@@ -41,7 +40,6 @@ class TestBuild(support.TempdirManager):
 
         names = [
             'bdist_dumb',
-            'bdist_wininst',
         ]  # bdist_rpm does not support --skip-build
         if os.name == 'nt':
             names.append('bdist_msi')
