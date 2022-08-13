@@ -86,7 +86,6 @@ class bdist(Command):
             'ztar': ('bdist_dumb', "compressed tar file"),
             'tar': ('bdist_dumb', "tar file"),
             'zip': ('bdist_dumb', "ZIP file"),
-            'msi': ('bdist_msi', "Microsoft Installer"),
         }
     )
 
