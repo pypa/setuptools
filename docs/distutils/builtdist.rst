@@ -96,9 +96,6 @@ The available formats for built distributions are:
 +-------------+------------------------------+---------+
 | ``sdux``    | HP-UX :program:`swinstall`   |         |
 +-------------+------------------------------+---------+
-| ``wininst`` | self-extracting ZIP file for | \(4)    |
-|             | Windows                      |         |
-+-------------+------------------------------+---------+
 
 .. versionchanged:: 3.5
    Added support for the ``xztar`` format.
