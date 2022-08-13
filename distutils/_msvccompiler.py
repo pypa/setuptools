@@ -17,7 +17,7 @@ import os
 import subprocess
 import contextlib
 import warnings
-import unittest.mock
+import unittest.mock as mock
 
 with contextlib.suppress(ImportError):
     import winreg
@@ -144,12 +144,12 @@ def _get_vc_env(plat_spec):
 
     try:
         out = subprocess.check_output(
-            'cmd /u /c "{}" {} && set'.format(vcvarsall, plat_spec),
+            f'cmd /u /c "{vcvarsall}" {plat_spec} && set',
             stderr=subprocess.STDOUT,
         ).decode('utf-16le', errors='replace')
     except subprocess.CalledProcessError as exc:
         log.error(exc.output)
-        raise DistutilsPlatformError("Error executing {}".format(exc.cmd))
+        raise DistutilsPlatformError(f"Error executing {exc.cmd}")
 
     env = {
         key.lower(): value
@@ -224,6 +224,18 @@ class MSVCCompiler(CCompiler):
         self.plat_name = None
         self.initialized = False
 
+    @classmethod
+    def _configure(cls, vc_env):
+        """
+        Set class-level include/lib dirs.
+        """
+        cls.include_dirs = cls._parse_path(vc_env.get('include', ''))
+        cls.library_dirs = cls._parse_path(vc_env.get('lib', ''))
+
+    @staticmethod
+    def _parse_path(val):
+        return [dir.rstrip(os.sep) for dir in val.split(os.pathsep) if dir]
+
     def initialize(self, plat_name=None):
         # multi-init means we would need to check platform same each time...
         assert not self.initialized, "don't init multiple times"
@@ -232,7 +244,7 @@ class MSVCCompiler(CCompiler):
         # sanity check for platforms to prevent obscure errors later.
         if plat_name not in PLAT_TO_VCVARS:
             raise DistutilsPlatformError(
-                "--plat-name must be one of {}".format(tuple(PLAT_TO_VCVARS))
+                f"--plat-name must be one of {tuple(PLAT_TO_VCVARS)}"
             )
 
         # Get the vcvarsall.bat spec for the requested platform.
@@ -243,6 +255,7 @@ class MSVCCompiler(CCompiler):
             raise DistutilsPlatformError(
                 "Unable to find a compatible " "Visual Studio installation."
             )
+        self._configure(vc_env)
 
         self._paths = vc_env.get('path', '')
         paths = self._paths.split(os.pathsep)
@@ -252,14 +265,6 @@ class MSVCCompiler(CCompiler):
         self.rc = _find_exe("rc.exe", paths)  # resource compiler
         self.mc = _find_exe("mc.exe", paths)  # message compiler
         self.mt = _find_exe("mt.exe", paths)  # message compiler
-
-        for dir in vc_env.get('include', '').split(os.pathsep):
-            if dir:
-                self.add_include_dir(dir.rstrip(os.sep))
-
-        for dir in vc_env.get('lib', '').split(os.pathsep):
-            if dir:
-                self.add_library_dir(dir.rstrip(os.sep))
 
         self.preprocess_options = None
         # bpo-38597: Always compile with dynamic linking
@@ -341,7 +346,7 @@ class MSVCCompiler(CCompiler):
                 # Better to raise an exception instead of silently continuing
                 # and later complain about sources and targets having
                 # different lengths
-                raise CompileError("Don't know how to compile {}".format(p))
+                raise CompileError(f"Don't know how to compile {p}")
 
         return list(map(make_out_path, source_filenames))
 
@@ -425,9 +430,7 @@ class MSVCCompiler(CCompiler):
                 continue
             else:
                 # how to handle this file?
-                raise CompileError(
-                    "Don't know how to compile {} to {}".format(src, obj)
-                )
+                raise CompileError(f"Don't know how to compile {src} to {obj}")
 
             args = [self.cc] + compile_opts + pp_opts
             if add_cpp_opts:
@@ -556,7 +559,7 @@ class MSVCCompiler(CCompiler):
         else:
             return
         warnings.warn("Fallback spawn triggered. Please update distutils monkeypatch.")
-        with unittest.mock.patch.dict('os.environ', env):
+        with mock.patch.dict('os.environ', env):
             bag.value = super().spawn(cmd)
 
     # -- Miscellaneous methods -----------------------------------------

@@ -2,19 +2,19 @@
 
 import os
 import sys
-import unittest
+import unittest.mock as mock
+
+import pytest
 
 from distutils.command.build_py import build_py
 from distutils.core import Distribution
 from distutils.errors import DistutilsFileError
-from unittest.mock import patch
 
 from distutils.tests import support
 
 
-class BuildPyTestCase(
-    support.TempdirManager, support.LoggingSilencer, unittest.TestCase
-):
+@support.combine_markers
+class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
     def test_package_data(self):
         sources = self.mkdtemp()
         f = open(os.path.join(sources, "__init__.py"), "w")
@@ -41,24 +41,24 @@ class BuildPyTestCase(
         cmd = build_py(dist)
         cmd.compile = 1
         cmd.ensure_finalized()
-        self.assertEqual(cmd.package_data, dist.package_data)
+        assert cmd.package_data == dist.package_data
 
         cmd.run()
 
         # This makes sure the list of outputs includes byte-compiled
         # files for Python modules but not for package data files
         # (there shouldn't *be* byte-code files for those!).
-        self.assertEqual(len(cmd.get_outputs()), 3)
+        assert len(cmd.get_outputs()) == 3
         pkgdest = os.path.join(destination, "pkg")
         files = os.listdir(pkgdest)
         pycache_dir = os.path.join(pkgdest, "__pycache__")
-        self.assertIn("__init__.py", files)
-        self.assertIn("README.txt", files)
+        assert "__init__.py" in files
+        assert "README.txt" in files
         if sys.dont_write_bytecode:
-            self.assertFalse(os.path.exists(pycache_dir))
+            assert not os.path.exists(pycache_dir)
         else:
             pyc_files = os.listdir(pycache_dir)
-            self.assertIn("__init__.%s.pyc" % sys.implementation.cache_tag, pyc_files)
+            assert "__init__.%s.pyc" % sys.implementation.cache_tag in pyc_files
 
     def test_empty_package_dir(self):
         # See bugs #1668596/#1720897
@@ -87,7 +87,7 @@ class BuildPyTestCase(
         except DistutilsFileError:
             self.fail("failed package_data test when package_dir is ''")
 
-    @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
+    @pytest.mark.skipif('sys.dont_write_bytecode')
     def test_byte_compile(self):
         project_dir, dist = self.create_dist(py_modules=['boiledeggs'])
         os.chdir(project_dir)
@@ -99,11 +99,11 @@ class BuildPyTestCase(
         cmd.run()
 
         found = os.listdir(cmd.build_lib)
-        self.assertEqual(sorted(found), ['__pycache__', 'boiledeggs.py'])
+        assert sorted(found) == ['__pycache__', 'boiledeggs.py']
         found = os.listdir(os.path.join(cmd.build_lib, '__pycache__'))
-        self.assertEqual(found, ['boiledeggs.%s.pyc' % sys.implementation.cache_tag])
+        assert found == ['boiledeggs.%s.pyc' % sys.implementation.cache_tag]
 
-    @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
+    @pytest.mark.skipif('sys.dont_write_bytecode')
     def test_byte_compile_optimized(self):
         project_dir, dist = self.create_dist(py_modules=['boiledeggs'])
         os.chdir(project_dir)
@@ -116,10 +116,10 @@ class BuildPyTestCase(
         cmd.run()
 
         found = os.listdir(cmd.build_lib)
-        self.assertEqual(sorted(found), ['__pycache__', 'boiledeggs.py'])
+        assert sorted(found) == ['__pycache__', 'boiledeggs.py']
         found = os.listdir(os.path.join(cmd.build_lib, '__pycache__'))
-        expect = 'boiledeggs.{}.opt-1.pyc'.format(sys.implementation.cache_tag)
-        self.assertEqual(sorted(found), [expect])
+        expect = f'boiledeggs.{sys.implementation.cache_tag}.opt-1.pyc'
+        assert sorted(found) == [expect]
 
     def test_dir_in_package_data(self):
         """
@@ -165,9 +165,9 @@ class BuildPyTestCase(
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        self.assertIn('byte-compiling is disabled', self.logs[0][1] % self.logs[0][2])
+        assert 'byte-compiling is disabled' in self.logs[0][1] % self.logs[0][2]
 
-    @patch("distutils.command.build_py.log.warn")
+    @mock.patch("distutils.command.build_py.log.warn")
     def test_namespace_package_does_not_warn(self, log_warn):
         """
         Originally distutils implementation did not account for PEP 420

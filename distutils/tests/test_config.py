@@ -1,13 +1,7 @@
 """Tests for distutils.pypirc.pypirc."""
 import os
-import unittest
 
 import pytest
-
-from distutils.core import PyPIRCCommand
-from distutils.core import Distribution
-from distutils.log import set_threshold
-from distutils.log import WARN
 
 from distutils.tests import support
 
@@ -51,37 +45,14 @@ password:xxx
 """
 
 
-@pytest.mark.usefixtures('save_env')
+@support.combine_markers
+@pytest.mark.usefixtures('threshold_warn')
+@pytest.mark.usefixtures('pypirc')
 class BasePyPIRCCommandTestCase(
     support.TempdirManager,
     support.LoggingSilencer,
-    unittest.TestCase,
 ):
-    def setUp(self):
-        """Patches the environment."""
-        super(BasePyPIRCCommandTestCase, self).setUp()
-        self.tmp_dir = self.mkdtemp()
-        os.environ['HOME'] = self.tmp_dir
-        os.environ['USERPROFILE'] = self.tmp_dir
-        self.rc = os.path.join(self.tmp_dir, '.pypirc')
-        self.dist = Distribution()
-
-        class command(PyPIRCCommand):
-            def __init__(self, dist):
-                super().__init__(dist)
-
-            def initialize_options(self):
-                pass
-
-            finalize_options = initialize_options
-
-        self._cmd = command
-        self.old_threshold = set_threshold(WARN)
-
-    def tearDown(self):
-        """Removes the patch."""
-        set_threshold(self.old_threshold)
-        super(BasePyPIRCCommandTestCase, self).tearDown()
+    pass
 
 
 class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
@@ -103,7 +74,7 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
             ('server', 'server1'),
             ('username', 'me'),
         ]
-        self.assertEqual(config, waited)
+        assert config == waited
 
         # old format
         self.write_file(self.rc, PYPIRC_OLD)
@@ -116,18 +87,18 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
             ('server', 'server-login'),
             ('username', 'tarek'),
         ]
-        self.assertEqual(config, waited)
+        assert config == waited
 
     def test_server_empty_registration(self):
         cmd = self._cmd(self.dist)
         rc = cmd._get_rc_file()
-        self.assertFalse(os.path.exists(rc))
+        assert not os.path.exists(rc)
         cmd._store_pypirc('tarek', 'xxx')
-        self.assertTrue(os.path.exists(rc))
+        assert os.path.exists(rc)
         f = open(rc)
         try:
             content = f.read()
-            self.assertEqual(content, WANTED)
+            assert content == WANTED
         finally:
             f.close()
 
@@ -146,4 +117,4 @@ class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
             ('server', 'server3'),
             ('username', 'cbiggles'),
         ]
-        self.assertEqual(config, waited)
+        assert config == waited

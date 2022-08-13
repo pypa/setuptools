@@ -11,6 +11,7 @@ from distutils.errors import DistutilsError
 from distutils.log import ERROR, INFO
 
 from distutils.tests.test_config import PYPIRC, BasePyPIRCCommandTestCase
+import pytest
 
 PYPIRC_LONG_PASSWORD = """\
 [distutils]
@@ -42,7 +43,7 @@ username:me
 """
 
 
-class FakeOpen(object):
+class FakeOpen:
     def __init__(self, url, msg=None, code=None):
         self.url = url
         if not isinstance(url, str):
@@ -64,19 +65,14 @@ class FakeOpen(object):
         return self.code
 
 
-class uploadTestCase(BasePyPIRCCommandTestCase):
-    def setUp(self):
-        super(uploadTestCase, self).setUp()
-        self.old_open = upload_mod.urlopen
-        upload_mod.urlopen = self._urlopen
-        self.last_open = None
-        self.next_msg = None
-        self.next_code = None
+@pytest.fixture(autouse=True)
+def urlopen(request, monkeypatch):
+    self = request.instance
+    monkeypatch.setattr(upload_mod, 'urlopen', self._urlopen)
+    self.next_msg = self.next_code = None
 
-    def tearDown(self):
-        upload_mod.urlopen = self.old_open
-        super(uploadTestCase, self).tearDown()
 
+class TestUpload(BasePyPIRCCommandTestCase):
     def _urlopen(self, url):
         self.last_open = FakeOpen(url, msg=self.next_msg, code=self.next_code)
         return self.last_open
@@ -94,7 +90,7 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
             ('realm', 'pypi'),
             ('repository', 'https://upload.pypi.org/legacy/'),
         ):
-            self.assertEqual(getattr(cmd, attr), waited)
+            assert getattr(cmd, attr) == waited
 
     def test_saved_password(self):
         # file with no password
@@ -104,14 +100,14 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         dist = Distribution()
         cmd = upload(dist)
         cmd.finalize_options()
-        self.assertEqual(cmd.password, None)
+        assert cmd.password is None
 
         # make sure we get it as well, if another command
         # initialized it at the dist level
         dist.password = 'xxx'
         cmd = upload(dist)
         cmd.finalize_options()
-        self.assertEqual(cmd.password, 'xxx')
+        assert cmd.password == 'xxx'
 
     def test_upload(self):
         tmp = self.mkdtemp()
@@ -130,33 +126,32 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
 
         # what did we send ?
         headers = dict(self.last_open.req.headers)
-        self.assertGreaterEqual(int(headers['Content-length']), 2162)
+        assert int(headers['Content-length']) >= 2162
         content_type = headers['Content-type']
-        self.assertTrue(content_type.startswith('multipart/form-data'))
-        self.assertEqual(self.last_open.req.get_method(), 'POST')
+        assert content_type.startswith('multipart/form-data')
+        assert self.last_open.req.get_method() == 'POST'
         expected_url = 'https://upload.pypi.org/legacy/'
-        self.assertEqual(self.last_open.req.get_full_url(), expected_url)
+        assert self.last_open.req.get_full_url() == expected_url
         data = self.last_open.req.data
-        self.assertIn(b'xxx', data)
-        self.assertIn(b'protocol_version', data)
-        self.assertIn(b'sha256_digest', data)
-        self.assertIn(
-            b'cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf' b'6860',
-            data,
+        assert b'xxx' in data
+        assert b'protocol_version' in data
+        assert b'sha256_digest' in data
+        assert (
+            b'cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf'
+            b'6860' in data
         )
         if b'md5_digest' in data:
-            self.assertIn(b'f561aaf6ef0bf14d4208bb46a4ccb3ad', data)
+            assert b'f561aaf6ef0bf14d4208bb46a4ccb3ad' in data
         if b'blake2_256_digest' in data:
-            self.assertIn(
+            assert (
                 b'b6f289a27d4fe90da63c503bfe0a9b761a8f76bb86148565065f040be'
                 b'6d1c3044cf7ded78ef800509bccb4b648e507d88dc6383d67642aadcc'
-                b'ce443f1534330a',
-                data,
+                b'ce443f1534330a' in data
             )
 
         # The PyPI response body was echoed
         results = self.get_logs(INFO)
-        self.assertEqual(results[-1], 75 * '-' + '\nxyzzy\n' + 75 * '-')
+        assert results[-1] == 75 * '-' + '\nxyzzy\n' + 75 * '-'
 
     # bpo-32304: archives whose last byte was b'\r' were corrupted due to
     # normalization intended for Mac OS 9.
@@ -180,15 +175,28 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         cmd.run()
 
         headers = dict(self.last_open.req.headers)
-        self.assertGreaterEqual(int(headers['Content-length']), 2172)
-        self.assertIn(b'long description\r', self.last_open.req.data)
+        assert int(headers['Content-length']) >= 2172
+        assert b'long description\r' in self.last_open.req.data
 
     def test_upload_fails(self):
         self.next_msg = "Not Found"
         self.next_code = 404
-        self.assertRaises(DistutilsError, self.test_upload)
+        with pytest.raises(DistutilsError):
+            self.test_upload()
 
-    def test_wrong_exception_order(self):
+    @pytest.mark.parametrize(
+        'exception,expected,raised_exception',
+        [
+            (OSError('oserror'), 'oserror', OSError),
+            pytest.param(
+                HTTPError('url', 400, 'httperror', {}, None),
+                'Upload failed (400): httperror',
+                DistutilsError,
+                id="HTTP 400",
+            ),
+        ],
+    )
+    def test_wrong_exception_order(self, exception, expected, raised_exception):
         tmp = self.mkdtemp()
         path = os.path.join(tmp, 'xxx')
         self.write_file(path)
@@ -196,24 +204,15 @@ class uploadTestCase(BasePyPIRCCommandTestCase):
         self.write_file(self.rc, PYPIRC_LONG_PASSWORD)
 
         pkg_dir, dist = self.create_dist(dist_files=dist_files)
-        tests = [
-            (OSError('oserror'), 'oserror', OSError),
-            (
-                HTTPError('url', 400, 'httperror', {}, None),
-                'Upload failed (400): httperror',
-                DistutilsError,
-            ),
-        ]
-        for exception, expected, raised_exception in tests:
-            with self.subTest(exception=type(exception).__name__):
-                with mock.patch(
-                    'distutils.command.upload.urlopen',
-                    new=mock.Mock(side_effect=exception),
-                ):
-                    with self.assertRaises(raised_exception):
-                        cmd = upload(dist)
-                        cmd.ensure_finalized()
-                        cmd.run()
-                    results = self.get_logs(ERROR)
-                    self.assertIn(expected, results[-1])
-                    self.clear_logs()
+
+        with mock.patch(
+            'distutils.command.upload.urlopen',
+            new=mock.Mock(side_effect=exception),
+        ):
+            with pytest.raises(raised_exception):
+                cmd = upload(dist)
+                cmd.ensure_finalized()
+                cmd.run()
+            results = self.get_logs(ERROR)
+            assert expected in results[-1]
+            self.clear_logs()

@@ -2,8 +2,8 @@
 
 import os
 import sys
-import unittest
 import site
+import pathlib
 
 from test.support import captured_stdout
 
@@ -26,11 +26,11 @@ def _make_ext_name(modname):
     return modname + sysconfig.get_config_var('EXT_SUFFIX')
 
 
+@support.combine_markers
 @pytest.mark.usefixtures('save_env')
-class InstallTestCase(
+class TestInstall(
     support.TempdirManager,
     support.LoggingSilencer,
-    unittest.TestCase,
 ):
     @pytest.mark.xfail(
         'platform.system() == "Windows" and sys.version_info > (3, 11)',
@@ -55,13 +55,13 @@ class InstallTestCase(
         cmd.home = destination
         cmd.ensure_finalized()
 
-        self.assertEqual(cmd.install_base, destination)
-        self.assertEqual(cmd.install_platbase, destination)
+        assert cmd.install_base == destination
+        assert cmd.install_platbase == destination
 
         def check_path(got, expected):
             got = os.path.normpath(got)
             expected = os.path.normpath(expected)
-            self.assertEqual(got, expected)
+            assert got == expected
 
         impl_name = sys.implementation.name.replace("cpython", "python")
         libdir = os.path.join(destination, "lib", impl_name)
@@ -77,76 +77,60 @@ class InstallTestCase(
         check_path(cmd.install_scripts, os.path.join(destination, "bin"))
         check_path(cmd.install_data, destination)
 
-    def test_user_site(self):
+    def test_user_site(self, monkeypatch):
         # test install with --user
         # preparing the environment for the test
-        self.old_user_base = site.USER_BASE
-        self.old_user_site = site.USER_SITE
         self.tmpdir = self.mkdtemp()
-        self.user_base = os.path.join(self.tmpdir, 'B')
-        self.user_site = os.path.join(self.tmpdir, 'S')
-        site.USER_BASE = self.user_base
-        site.USER_SITE = self.user_site
-        install_module.USER_BASE = self.user_base
-        install_module.USER_SITE = self.user_site
+        orig_site = site.USER_SITE
+        orig_base = site.USER_BASE
+        monkeypatch.setattr(site, 'USER_BASE', os.path.join(self.tmpdir, 'B'))
+        monkeypatch.setattr(site, 'USER_SITE', os.path.join(self.tmpdir, 'S'))
+        monkeypatch.setattr(install_module, 'USER_BASE', site.USER_BASE)
+        monkeypatch.setattr(install_module, 'USER_SITE', site.USER_SITE)
 
         def _expanduser(path):
             if path.startswith('~'):
                 return os.path.normpath(self.tmpdir + path[1:])
             return path
 
-        self.old_expand = os.path.expanduser
-        os.path.expanduser = _expanduser
-
-        def cleanup():
-            site.USER_BASE = self.old_user_base
-            site.USER_SITE = self.old_user_site
-            install_module.USER_BASE = self.old_user_base
-            install_module.USER_SITE = self.old_user_site
-            os.path.expanduser = self.old_expand
-
-        self.addCleanup(cleanup)
+        monkeypatch.setattr(os.path, 'expanduser', _expanduser)
 
         for key in ('nt_user', 'posix_user'):
-            self.assertIn(key, INSTALL_SCHEMES)
+            assert key in INSTALL_SCHEMES
 
         dist = Distribution({'name': 'xx'})
         cmd = install(dist)
 
         # making sure the user option is there
         options = [name for name, short, lable in cmd.user_options]
-        self.assertIn('user', options)
+        assert 'user' in options
 
         # setting a value
         cmd.user = 1
 
         # user base and site shouldn't be created yet
-        self.assertFalse(os.path.exists(self.user_base))
-        self.assertFalse(os.path.exists(self.user_site))
+        assert not os.path.exists(site.USER_BASE)
+        assert not os.path.exists(site.USER_SITE)
 
         # let's run finalize
         cmd.ensure_finalized()
 
         # now they should
-        self.assertTrue(os.path.exists(self.user_base))
-        self.assertTrue(os.path.exists(self.user_site))
+        assert os.path.exists(site.USER_BASE)
+        assert os.path.exists(site.USER_SITE)
 
-        self.assertIn('userbase', cmd.config_vars)
-        self.assertIn('usersite', cmd.config_vars)
+        assert 'userbase' in cmd.config_vars
+        assert 'usersite' in cmd.config_vars
 
-        actual_headers = os.path.relpath(cmd.install_headers, self.user_base)
+        actual_headers = os.path.relpath(cmd.install_headers, site.USER_BASE)
         if os.name == 'nt':
-            site_path = os.path.relpath(
-                os.path.dirname(self.old_user_site), self.old_user_base
-            )
+            site_path = os.path.relpath(os.path.dirname(orig_site), orig_base)
             include = os.path.join(site_path, 'Include')
         else:
             include = sysconfig.get_python_inc(0, '')
         expect_headers = os.path.join(include, 'xx')
 
-        self.assertEqual(
-            os.path.normcase(actual_headers), os.path.normcase(expect_headers)
-        )
+        assert os.path.normcase(actual_headers) == os.path.normcase(expect_headers)
 
     def test_handle_extra_path(self):
         dist = Distribution({'name': 'xx', 'extra_path': 'path,dirs'})
@@ -154,27 +138,28 @@ class InstallTestCase(
 
         # two elements
         cmd.handle_extra_path()
-        self.assertEqual(cmd.extra_path, ['path', 'dirs'])
-        self.assertEqual(cmd.extra_dirs, 'dirs')
-        self.assertEqual(cmd.path_file, 'path')
+        assert cmd.extra_path == ['path', 'dirs']
+        assert cmd.extra_dirs == 'dirs'
+        assert cmd.path_file == 'path'
 
         # one element
         cmd.extra_path = ['path']
         cmd.handle_extra_path()
-        self.assertEqual(cmd.extra_path, ['path'])
-        self.assertEqual(cmd.extra_dirs, 'path')
-        self.assertEqual(cmd.path_file, 'path')
+        assert cmd.extra_path == ['path']
+        assert cmd.extra_dirs == 'path'
+        assert cmd.path_file == 'path'
 
         # none
         dist.extra_path = cmd.extra_path = None
         cmd.handle_extra_path()
-        self.assertEqual(cmd.extra_path, None)
-        self.assertEqual(cmd.extra_dirs, '')
-        self.assertEqual(cmd.path_file, None)
+        assert cmd.extra_path is None
+        assert cmd.extra_dirs == ''
+        assert cmd.path_file is None
 
         # three elements (no way !)
         cmd.extra_path = 'path,dirs,again'
-        self.assertRaises(DistutilsOptionError, cmd.handle_extra_path)
+        with pytest.raises(DistutilsOptionError):
+            cmd.handle_extra_path()
 
     def test_finalize_options(self):
         dist = Distribution({'name': 'xx'})
@@ -184,18 +169,21 @@ class InstallTestCase(
         # install-base/install-platbase -- not both
         cmd.prefix = 'prefix'
         cmd.install_base = 'base'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
 
         # must supply either home or prefix/exec-prefix -- not both
         cmd.install_base = None
         cmd.home = 'home'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
 
         # can't combine user with prefix/exec_prefix/home or
         # install_(plat)base
         cmd.prefix = None
         cmd.user = 'user'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
 
     def test_record(self):
         install_dir = self.mkdtemp()
@@ -224,12 +212,12 @@ class InstallTestCase(
             'sayhi',
             'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2],
         ]
-        self.assertEqual(found, expected)
+        assert found == expected
 
     def test_record_extensions(self):
         cmd = test_support.missing_compiler_executable()
         if cmd is not None:
-            self.skipTest('The %r command is not found' % cmd)
+            pytest.skip('The %r command is not found' % cmd)
         install_dir = self.mkdtemp()
         project_dir, dist = self.create_dist(
             ext_modules=[Extension('xx', ['xxmodule.c'])]
@@ -249,18 +237,14 @@ class InstallTestCase(
         cmd.ensure_finalized()
         cmd.run()
 
-        f = open(cmd.record)
-        try:
-            content = f.read()
-        finally:
-            f.close()
+        content = pathlib.Path(cmd.record).read_text()
 
         found = [os.path.basename(line) for line in content.splitlines()]
         expected = [
             _make_ext_name('xx'),
             'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2],
         ]
-        self.assertEqual(found, expected)
+        assert found == expected
 
     def test_debug_mode(self):
         # this covers the code called when DEBUG is set
@@ -271,4 +255,4 @@ class InstallTestCase(
                 self.test_record()
         finally:
             install_module.DEBUG = False
-        self.assertGreater(len(self.logs), old_logs_len)
+        assert len(self.logs) > old_logs_len

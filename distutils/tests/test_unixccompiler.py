@@ -1,8 +1,7 @@
 """Tests for distutils.unixccompiler."""
 import os
 import sys
-import unittest
-from unittest.mock import patch
+import unittest.mock as mock
 
 from .py38compat import EnvironmentVarGuard
 
@@ -12,28 +11,27 @@ from distutils.unixccompiler import UnixCCompiler
 from distutils.util import _clear_cached_macosx_ver
 
 from . import support
+import pytest
 
 
-class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        self._backup_platform = sys.platform
-        self._backup_get_config_var = sysconfig.get_config_var
-        self._backup_get_config_vars = sysconfig.get_config_vars
+@pytest.fixture(autouse=True)
+def save_values(monkeypatch):
+    monkeypatch.setattr(sys, 'platform', sys.platform)
+    monkeypatch.setattr(sysconfig, 'get_config_var', sysconfig.get_config_var)
+    monkeypatch.setattr(sysconfig, 'get_config_vars', sysconfig.get_config_vars)
 
-        class CompilerWrapper(UnixCCompiler):
-            def rpath_foo(self):
-                return self.runtime_library_dir_option('/foo')
 
-        self.cc = CompilerWrapper()
+@pytest.fixture(autouse=True)
+def compiler_wrapper(request):
+    class CompilerWrapper(UnixCCompiler):
+        def rpath_foo(self):
+            return self.runtime_library_dir_option('/foo')
 
-    def tearDown(self):
-        super().tearDown()
-        sys.platform = self._backup_platform
-        sysconfig.get_config_var = self._backup_get_config_var
-        sysconfig.get_config_vars = self._backup_get_config_vars
+    request.instance.cc = CompilerWrapper()
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+
+class TestUnixCCompiler(support.TempdirManager):
+    @pytest.mark.skipif('platform.system == "Windows"')  # noqa: C901
     def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
         #
@@ -74,7 +72,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
         def do_darwin_test(syscfg_macosx_ver, env_macosx_ver, expected_flag):
             env = os.environ
-            msg = "macOS version = (sysconfig=%r, env=%r)" % (
+            msg = "macOS version = (sysconfig={!r}, env={!r})".format(
                 syscfg_macosx_ver,
                 env_macosx_ver,
             )
@@ -93,10 +91,10 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
             # Run the test
             if expected_flag is not None:
-                self.assertEqual(self.cc.rpath_foo(), expected_flag, msg=msg)
+                assert self.cc.rpath_foo() == expected_flag, msg
             else:
-                with self.assertRaisesRegex(
-                    DistutilsPlatformError, darwin_ver_var + r' mismatch', msg=msg
+                with pytest.raises(
+                    DistutilsPlatformError, match=darwin_ver_var + r' mismatch'
                 ):
                     self.cc.rpath_foo()
 
@@ -128,19 +126,19 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             return 'xxx'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), ['+s', '-L/foo'])
+        assert self.cc.rpath_foo() == ['+s', '-L/foo']
 
         def gcv(v):
             return 'gcc'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), ['-Wl,+s', '-L/foo'])
+        assert self.cc.rpath_foo() == ['-Wl,+s', '-L/foo']
 
         def gcv(v):
             return 'g++'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), ['-Wl,+s', '-L/foo'])
+        assert self.cc.rpath_foo() == ['-Wl,+s', '-L/foo']
 
         sysconfig.get_config_var = old_gcv
 
@@ -154,7 +152,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         def gcv(v):
             if v == 'CC':
@@ -163,7 +161,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         # GCC non-GNULD
         sys.platform = 'bar'
@@ -175,7 +173,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'no'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,-R/foo'
 
         # GCC GNULD with fully qualified configuration prefix
         # see #7617
@@ -188,7 +186,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         # non-GCC GNULD
         sys.platform = 'bar'
@@ -200,7 +198,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         # non-GCC non-GNULD
         sys.platform = 'bar'
@@ -212,9 +210,9 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 return 'no'
 
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,-R/foo'
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_cc_overrides_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable also changes default linker
@@ -234,9 +232,9 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             env['CC'] = 'my_cc'
             del env['LDSHARED']
             sysconfig.customize_compiler(self.cc)
-        self.assertEqual(self.cc.linker_so[0], 'my_cc')
+        assert self.cc.linker_so[0] == 'my_cc'
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_cc_overrides_ldshared_for_cxx_correctly(self):
         """
         Ensure that setting CC env variable also changes default linker
@@ -259,24 +257,24 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
-        with patch.object(
+        with mock.patch.object(
             self.cc, 'spawn', return_value=None
-        ) as mock_spawn, patch.object(
+        ) as mock_spawn, mock.patch.object(
             self.cc, '_need_link', return_value=True
-        ), patch.object(
+        ), mock.patch.object(
             self.cc, 'mkpath', return_value=None
         ), EnvironmentVarGuard() as env:
             env['CC'] = 'ccache my_cc'
             env['CXX'] = 'my_cxx'
             del env['LDSHARED']
             sysconfig.customize_compiler(self.cc)
-            self.assertEqual(self.cc.linker_so[0:2], ['ccache', 'my_cc'])
+            assert self.cc.linker_so[0:2] == ['ccache', 'my_cc']
             self.cc.link(None, [], 'a.out', target_lang='c++')
             call_args = mock_spawn.call_args[0][0]
             expected = ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:4] == expected
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_explicit_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable does not change
@@ -297,7 +295,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             env['CC'] = 'my_cc'
             env['LDSHARED'] = 'my_ld -bundle -dynamic'
             sysconfig.customize_compiler(self.cc)
-        self.assertEqual(self.cc.linker_so[0], 'my_ld')
+        assert self.cc.linker_so[0] == 'my_ld'
 
     def test_has_function(self):
         # Issue https://github.com/pypa/distutils/issues/64:

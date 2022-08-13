@@ -6,6 +6,8 @@ for the Distutils compiler abstraction model."""
 import sys
 import os
 import re
+import warnings
+
 from distutils.errors import (
     CompileError,
     LinkError,
@@ -90,6 +92,16 @@ class CCompiler:
         ".m": "objc",
     }
     language_order = ["c++", "objc", "c"]
+
+    include_dirs = []
+    """
+    include dirs specific to this compiler class
+    """
+
+    library_dirs = []
+    """
+    library dirs specific to this compiler class
+    """
 
     def __init__(self, verbose=0, dry_run=0, force=0):
         self.dry_run = dry_run
@@ -324,24 +336,7 @@ class CCompiler:
 
     def _setup_compile(self, outdir, macros, incdirs, sources, depends, extra):
         """Process arguments and decide which source files to compile."""
-        if outdir is None:
-            outdir = self.output_dir
-        elif not isinstance(outdir, str):
-            raise TypeError("'output_dir' must be a string or None")
-
-        if macros is None:
-            macros = self.macros
-        elif isinstance(macros, list):
-            macros = macros + (self.macros or [])
-        else:
-            raise TypeError("'macros' (if supplied) must be a list of tuples")
-
-        if incdirs is None:
-            incdirs = self.include_dirs
-        elif isinstance(incdirs, (list, tuple)):
-            incdirs = list(incdirs) + (self.include_dirs or [])
-        else:
-            raise TypeError("'include_dirs' (if supplied) must be a list of strings")
+        outdir, macros, incdirs = self._fix_compile_args(outdir, macros, incdirs)
 
         if extra is None:
             extra = []
@@ -400,6 +395,9 @@ class CCompiler:
         else:
             raise TypeError("'include_dirs' (if supplied) must be a list of strings")
 
+        # add include dirs for class
+        include_dirs += self.__class__.include_dirs
+
         return output_dir, macros, include_dirs
 
     def _prep_compile(self, sources, output_dir, depends=None):
@@ -455,6 +453,9 @@ class CCompiler:
             library_dirs = list(library_dirs) + (self.library_dirs or [])
         else:
             raise TypeError("'library_dirs' (if supplied) must be a list of strings")
+
+        # add library dirs for class
+        library_dirs += self.__class__.library_dirs
 
         if runtime_library_dirs is None:
             runtime_library_dirs = self.runtime_library_dirs
@@ -926,16 +927,34 @@ int main (int argc, char **argv) {
         obj_names = []
         for src_name in source_filenames:
             base, ext = os.path.splitext(src_name)
-            base = os.path.splitdrive(base)[1]  # Chop off the drive
-            base = base[os.path.isabs(base) :]  # If abs, chop off leading /
+            base = self._mangle_base(base)
             if ext not in self.src_extensions:
                 raise UnknownFileError(
-                    "unknown file type '%s' (from '%s')" % (ext, src_name)
+                    "unknown file type '{}' (from '{}')".format(ext, src_name)
                 )
             if strip_dir:
                 base = os.path.basename(base)
             obj_names.append(os.path.join(output_dir, base + self.obj_extension))
         return obj_names
+
+    @staticmethod
+    def _mangle_base(base):
+        """
+        For unknown reasons, absolute paths are mangled.
+        """
+        # Chop off the drive
+        no_drive = os.path.splitdrive(base)[1]
+        # If abs, chop off leading /
+        rel = no_drive[os.path.isabs(no_drive) :]
+        if rel != base:
+            msg = (
+                f"Absolute path {base!r} is being replaced with a "
+                f"relative path {rel!r} for outputs. This behavior is "
+                "deprecated. If this behavior is desired, please "
+                "comment in pypa/distutils#169."
+            )
+            warnings.warn(msg, DeprecationWarning)
+        return rel
 
     def shared_object_filename(self, basename, strip_dir=0, output_dir=''):
         assert output_dir is not None

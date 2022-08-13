@@ -1,26 +1,26 @@
 """Tests for distutils.version."""
-import unittest
+import pytest
+
 import distutils
 from distutils.version import LooseVersion
 from distutils.version import StrictVersion
 
 
-class VersionTestCase(unittest.TestCase):
-    def setUp(self):
-        self.ctx = distutils.version.suppress_known_deprecation()
-        self.ctx.__enter__()
+@pytest.fixture(autouse=True)
+def suppress_deprecation():
+    with distutils.version.suppress_known_deprecation():
+        yield
 
-    def tearDown(self):
-        self.ctx.__exit__(None, None, None)
 
+class TestVersion:
     def test_prerelease(self):
         version = StrictVersion('1.2.3a1')
-        self.assertEqual(version.version, (1, 2, 3))
-        self.assertEqual(version.prerelease, ('a', 1))
-        self.assertEqual(str(version), '1.2.3a1')
+        assert version.version == (1, 2, 3)
+        assert version.prerelease == ('a', 1)
+        assert str(version) == '1.2.3a1'
 
         version = StrictVersion('1.2.0')
-        self.assertEqual(str(version), '1.2')
+        assert str(version) == '1.2'
 
     def test_cmp_strict(self):
         versions = (
@@ -51,19 +51,17 @@ class VersionTestCase(unittest.TestCase):
                     raise AssertionError(
                         ("cmp(%s, %s) " "shouldn't raise ValueError") % (v1, v2)
                     )
-            self.assertEqual(
-                res, wanted, 'cmp(%s, %s) should be %s, got %s' % (v1, v2, wanted, res)
+            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
+                v1, v2, wanted, res
             )
             res = StrictVersion(v1)._cmp(v2)
-            self.assertEqual(
-                res, wanted, 'cmp(%s, %s) should be %s, got %s' % (v1, v2, wanted, res)
+            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
+                v1, v2, wanted, res
             )
             res = StrictVersion(v1)._cmp(object())
-            self.assertIs(
-                res,
-                NotImplemented,
-                'cmp(%s, %s) should be NotImplemented, got %s' % (v1, v2, res),
-            )
+            assert (
+                res is NotImplemented
+            ), 'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)
 
     def test_cmp(self):
         versions = (
@@ -79,16 +77,14 @@ class VersionTestCase(unittest.TestCase):
 
         for v1, v2, wanted in versions:
             res = LooseVersion(v1)._cmp(LooseVersion(v2))
-            self.assertEqual(
-                res, wanted, 'cmp(%s, %s) should be %s, got %s' % (v1, v2, wanted, res)
+            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
+                v1, v2, wanted, res
             )
             res = LooseVersion(v1)._cmp(v2)
-            self.assertEqual(
-                res, wanted, 'cmp(%s, %s) should be %s, got %s' % (v1, v2, wanted, res)
+            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
+                v1, v2, wanted, res
             )
             res = LooseVersion(v1)._cmp(object())
-            self.assertIs(
-                res,
-                NotImplemented,
-                'cmp(%s, %s) should be NotImplemented, got %s' % (v1, v2, res),
-            )
+            assert (
+                res is NotImplemented
+            ), 'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)

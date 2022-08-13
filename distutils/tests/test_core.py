@@ -3,15 +3,12 @@
 import io
 import distutils.core
 import os
-import shutil
 import sys
 from test.support import captured_stdout
 
 import pytest
 
 from . import py38compat as os_helper
-import unittest
-from distutils import log
 from distutils.dist import Distribution
 
 # setup script that uses __file__
@@ -59,29 +56,15 @@ if __name__ == "__main__":
 """
 
 
+@pytest.fixture(autouse=True)
+def save_stdout(monkeypatch):
+    monkeypatch.setattr(sys, 'stdout', sys.stdout)
+
+
 @pytest.mark.usefixtures('save_env')
-class CoreTestCase(unittest.TestCase):
-    def setUp(self):
-        super(CoreTestCase, self).setUp()
-        self.old_stdout = sys.stdout
-        self.cleanup_testfn()
-        self.old_argv = sys.argv, sys.argv[:]
-        self.addCleanup(log.set_threshold, log._global_log.threshold)
-
-    def tearDown(self):
-        sys.stdout = self.old_stdout
-        self.cleanup_testfn()
-        sys.argv = self.old_argv[0]
-        sys.argv[:] = self.old_argv[1]
-        super(CoreTestCase, self).tearDown()
-
-    def cleanup_testfn(self):
-        path = os_helper.TESTFN
-        if os.path.isfile(path):
-            os.remove(path)
-        elif os.path.isdir(path):
-            shutil.rmtree(path)
-
+@pytest.mark.usefixtures('save_argv')
+@pytest.mark.usefixtures('cleanup_testfn')
+class TestCore:
     def write_setup(self, text, path=os_helper.TESTFN):
         f = open(path, "w")
         try:
@@ -99,14 +82,14 @@ class CoreTestCase(unittest.TestCase):
         # Make sure run_setup does not clobber sys.argv
         argv_copy = sys.argv.copy()
         distutils.core.run_setup(self.write_setup(setup_does_nothing))
-        self.assertEqual(sys.argv, argv_copy)
+        assert sys.argv == argv_copy
 
     def test_run_setup_defines_subclass(self):
         # Make sure the script can use __file__; if that's missing, the test
         # setup.py script will raise NameError.
         dist = distutils.core.run_setup(self.write_setup(setup_defines_subclass))
         install = dist.get_command_obj('install')
-        self.assertIn('cmd', install.sub_commands)
+        assert 'cmd' in install.sub_commands
 
     def test_run_setup_uses_current_dir(self):
         # This tests that the setup script is run with the current directory
@@ -123,23 +106,23 @@ class CoreTestCase(unittest.TestCase):
         output = sys.stdout.getvalue()
         if output.endswith("\n"):
             output = output[:-1]
-        self.assertEqual(cwd, output)
+        assert cwd == output
 
     def test_run_setup_within_if_main(self):
         dist = distutils.core.run_setup(
             self.write_setup(setup_within_if_main), stop_after="config"
         )
-        self.assertIsInstance(dist, Distribution)
-        self.assertEqual(dist.get_name(), "setup_within_if_main")
+        assert isinstance(dist, Distribution)
+        assert dist.get_name() == "setup_within_if_main"
 
     def test_run_commands(self):
         sys.argv = ['setup.py', 'build']
         dist = distutils.core.run_setup(
             self.write_setup(setup_within_if_main), stop_after="commandline"
         )
-        self.assertNotIn('build', dist.have_run)
+        assert 'build' not in dist.have_run
         distutils.core.run_commands(dist)
-        self.assertIn('build', dist.have_run)
+        assert 'build' in dist.have_run
 
     def test_debug_mode(self):
         # this covers the code called when DEBUG is set
@@ -147,7 +130,7 @@ class CoreTestCase(unittest.TestCase):
         with captured_stdout() as stdout:
             distutils.core.setup(name='bar')
         stdout.seek(0)
-        self.assertEqual(stdout.read(), 'bar\n')
+        assert stdout.read() == 'bar\n'
 
         distutils.core.DEBUG = True
         try:
@@ -157,4 +140,4 @@ class CoreTestCase(unittest.TestCase):
             distutils.core.DEBUG = False
         stdout.seek(0)
         wanted = "options (after parsing config files):\n"
-        self.assertEqual(stdout.readlines()[0], wanted)
+        assert stdout.readlines()[0] == wanted
