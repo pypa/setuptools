@@ -1,6 +1,4 @@
 """Tests for distutils.command.bdist."""
-import warnings
-
 from distutils.command.bdist import bdist
 from distutils.tests import support
 
@@ -11,9 +9,9 @@ class TestBuild(support.TempdirManager):
         # we can set the format
         dist = self.create_dist()[1]
         cmd = bdist(dist)
-        cmd.formats = ['msi']
+        cmd.formats = ['gztar']
         cmd.ensure_finalized()
-        assert cmd.formats == ['msi']
+        assert cmd.formats == ['gztar']
 
         # what formats does bdist offer?
         formats = [
