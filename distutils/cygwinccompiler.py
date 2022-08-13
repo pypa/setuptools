@@ -6,47 +6,6 @@ the Mingw32CCompiler class which handles the mingw32 port of GCC (same as
 cygwin in no-cygwin mode).
 """
 
-# problems:
-#
-# * if you use a msvc compiled python version (1.5.2)
-#   1. you have to insert a __GNUC__ section in its config.h
-#   2. you have to generate an import library for its dll
-#      - create a def-file for python??.dll
-#      - create an import library using
-#             dlltool --dllname python15.dll --def python15.def \
-#                       --output-lib libpython15.a
-#
-#   see also http://starship.python.net/crew/kernr/mingw32/Notes.html
-#
-# * We put export_symbols in a def-file, and don't use
-#   --export-all-symbols because it doesn't worked reliable in some
-#   tested configurations. And because other windows compilers also
-#   need their symbols specified this no serious problem.
-#
-# tested configurations:
-#
-# * cygwin gcc 2.91.57/ld 2.9.4/dllwrap 0.2.4 works
-#   (after patching python's config.h and for C++ some other include files)
-#   see also http://starship.python.net/crew/kernr/mingw32/Notes.html
-# * mingw32 gcc 2.95.2/ld 2.9.4/dllwrap 0.2.4 works
-#   (ld doesn't support -shared, so we use dllwrap)
-# * cygwin gcc 2.95.2/ld 2.10.90/dllwrap 2.10.90 works now
-#   - its dllwrap doesn't work, there is a bug in binutils 2.10.90
-#     see also http://sources.redhat.com/ml/cygwin/2000-06/msg01274.html
-#   - using gcc -mdll instead dllwrap doesn't work without -static because
-#     it tries to link against dlls instead their import libraries. (If
-#     it finds the dll first.)
-#     By specifying -static we force ld to link against the import libraries,
-#     this is windows standard and there are normally not the necessary symbols
-#     in the dlls.
-#   *** only the version of June 2000 shows these problems
-# * cygwin gcc 3.2/ld 2.13.90 works
-#   (ld supports -shared)
-# * mingw gcc 3.2/ld 2.13 works
-#   (ld supports -shared)
-# * llvm-mingw with Clang 11 works
-#   (lld supports -shared)
-
 import os
 import sys
 import copy
