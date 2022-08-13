@@ -1,5 +1,4 @@
 """Tests for distutils.command.bdist."""
-import os
 import warnings
 
 from distutils.command.bdist import bdist
