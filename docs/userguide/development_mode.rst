@@ -148,7 +148,7 @@ Limitations
   Users are encouraged to use tools like :mod:`importlib.resources` or
   :mod:`importlib.metadata` when trying to access package files directly.
 - Editable installations may not work with
-  :doc:`namespaces created with pkgutil or pkg_resouces
+  :doc:`namespaces created with pkgutil or pkg_resources
   <PyPUG:guides/packaging-namespace-packages>`.
   Please use :pep:`420`-style implicit namespaces [#namespaces]_.
 - Support for :pep:`420`-style implicit namespace packages for
