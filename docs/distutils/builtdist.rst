@@ -96,9 +96,6 @@ The available formats for built distributions are:
 +-------------+------------------------------+---------+
 | ``sdux``    | HP-UX :program:`swinstall`   |         |
 +-------------+------------------------------+---------+
-| ``wininst`` | self-extracting ZIP file for | \(4)    |
-|             | Windows                      |         |
-+-------------+------------------------------+---------+
 | ``msi``     | Microsoft Installer.         |         |
 +-------------+------------------------------+---------+
 
