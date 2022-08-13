@@ -1,7 +1,4 @@
 """Tests for distutils.command.bdist."""
-import os
-import warnings
-
 from distutils.command.bdist import bdist
 from distutils.tests import support
 
@@ -12,18 +9,16 @@ class TestBuild(support.TempdirManager):
         # we can set the format
         dist = self.create_dist()[1]
         cmd = bdist(dist)
-        cmd.formats = ['msi']
+        cmd.formats = ['gztar']
         cmd.ensure_finalized()
-        assert cmd.formats == ['msi']
+        assert cmd.formats == ['gztar']
 
         # what formats does bdist offer?
         formats = [
             'bztar',
             'gztar',
-            'msi',
             'rpm',
             'tar',
-            'wininst',
             'xztar',
             'zip',
             'ztar',
@@ -41,17 +36,10 @@ class TestBuild(support.TempdirManager):
 
         names = [
             'bdist_dumb',
-            'bdist_wininst',
         ]  # bdist_rpm does not support --skip-build
-        if os.name == 'nt':
-            names.append('bdist_msi')
 
         for name in names:
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    'ignore', 'bdist_wininst command is deprecated', DeprecationWarning
-                )
-                subcmd = cmd.get_finalized_command(name)
+            subcmd = cmd.get_finalized_command(name)
             if getattr(subcmd, '_unsupported', False):
                 # command is not supported on this build
                 continue

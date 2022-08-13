@@ -6,6 +6,8 @@ for the Distutils compiler abstraction model."""
 import sys
 import os
 import re
+import warnings
+
 from distutils.errors import (
     CompileError,
     LinkError,
@@ -925,8 +927,7 @@ int main (int argc, char **argv) {
         obj_names = []
         for src_name in source_filenames:
             base, ext = os.path.splitext(src_name)
-            base = os.path.splitdrive(base)[1]  # Chop off the drive
-            base = base[os.path.isabs(base) :]  # If abs, chop off leading /
+            base = self._mangle_base(base)
             if ext not in self.src_extensions:
                 raise UnknownFileError(
                     "unknown file type '{}' (from '{}')".format(ext, src_name)
@@ -935,6 +936,25 @@ int main (int argc, char **argv) {
                 base = os.path.basename(base)
             obj_names.append(os.path.join(output_dir, base + self.obj_extension))
         return obj_names
+
+    @staticmethod
+    def _mangle_base(base):
+        """
+        For unknown reasons, absolute paths are mangled.
+        """
+        # Chop off the drive
+        no_drive = os.path.splitdrive(base)[1]
+        # If abs, chop off leading /
+        rel = no_drive[os.path.isabs(no_drive) :]
+        if rel != base:
+            msg = (
+                f"Absolute path {base!r} is being replaced with a "
+                f"relative path {rel!r} for outputs. This behavior is "
+                "deprecated. If this behavior is desired, please "
+                "comment in pypa/distutils#169."
+            )
+            warnings.warn(msg, DeprecationWarning)
+        return rel
 
     def shared_object_filename(self, basename, strip_dir=0, output_dir=''):
         assert output_dir is not None

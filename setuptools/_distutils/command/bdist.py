@@ -85,9 +85,7 @@ class bdist(Command):
             'xztar': ('bdist_dumb', "xz'ed tar file"),
             'ztar': ('bdist_dumb', "compressed tar file"),
             'tar': ('bdist_dumb', "tar file"),
-            'wininst': ('bdist_wininst', "Windows executable installer"),
             'zip': ('bdist_dumb', "ZIP file"),
-            'msi': ('bdist_msi', "Microsoft Installer"),
         }
     )
 
