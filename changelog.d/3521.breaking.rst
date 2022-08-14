@@ -1,0 +1,1 @@
+Remove bdist_msi and bdist_wininst commands, which have been deprecated since Python 3.9. Use older Setuptools for these behaviors if needed.
