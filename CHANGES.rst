@@ -1,3 +1,18 @@
+v65.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #3505: Removed 'msvccompiler' and 'msvc9compiler' modules from distutils.
+* #3521: Remove bdist_msi and bdist_wininst commands, which have been deprecated since Python 3.9. Use older Setuptools for these behaviors if needed.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3519: Changed the note in ``keywords`` documentation regarding editable installations
+  to specify which ``setuptools`` version require a minimal ``setup.py`` file or not.
+
+
 v64.0.3
 -------
 

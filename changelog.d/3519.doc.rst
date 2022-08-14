@@ -1,2 +1,0 @@
-Changed the note in ``keywords`` documentation regarding editable installations
-to specify which ``setuptools`` version require a minimal ``setup.py`` file or not.

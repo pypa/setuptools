@@ -1,1 +1,0 @@
-Removed 'msvccompiler' and 'msvc9compiler' modules from distutils.
