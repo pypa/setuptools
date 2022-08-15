@@ -40,6 +40,7 @@ from typing import Dict, Iterator, List, Optional, Union
 
 import setuptools
 import distutils
+from . import errors
 from ._path import same_path
 from ._reqs import parse_strings
 from ._deprecation_warning import SetuptoolsDeprecationWarning
@@ -346,15 +347,22 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
         Returns the basename of the info directory, e.g. `proj-0.0.0.dist-info`.
         """
-        candidates = list(Path(metadata_directory).glob(f"**/*{suffix}/"))
-        assert len(candidates) == 1, f"Exactly one {suffix} should have been produced"
-        info_dir = candidates[0]
-
+        info_dir = self._find_info_directory(metadata_directory, suffix)
         if not same_path(info_dir.parent, metadata_directory):
             shutil.move(str(info_dir), metadata_directory)
             # PEP 517 allow other files and dirs to exist in metadata_directory
-
         return info_dir.name
+
+    def _find_info_directory(self, metadata_directory: str, suffix: str) -> Path:
+        for parent, dirs, _ in os.walk(metadata_directory):
+            candidates = [f for f in dirs if f.endswith(suffix)]
+
+            if len(candidates) != 0 or len(dirs) != 1:
+                assert len(candidates) == 1, f"Multiple {suffix} directories found"
+                return Path(parent, candidates[0])
+
+        msg = f"No {suffix} directory found in {metadata_directory}"
+        raise errors.InternalError(msg)
 
     def prepare_metadata_for_build_wheel(self, metadata_directory,
                                          config_settings=None):
