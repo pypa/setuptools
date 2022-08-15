@@ -874,9 +874,8 @@ class TestCustomBuildWheel:
         cmd = editable_wheel(dist)
         cmd.ensure_finalized()
         cmd.run()
-        wheel_file = str(next(Path().glob('dist/*')))
+        wheel_file = str(next(Path().glob('dist/*.whl')))
         assert "editable" in wheel_file
-        assert wheel_file.endswith(".whl")
 
 
 class TestCustomBuildExt:
@@ -900,7 +899,7 @@ class TestCustomBuildExt:
         cmd = editable_wheel(dist)
         cmd.ensure_finalized()
         cmd.run()
-        wheel_file = str(next(Path().glob('dist/*')))
+        wheel_file = str(next(Path().glob('dist/*.whl')))
         assert "editable" in wheel_file
         files = [p for p in Path().glob("module.*") if p.suffix != ".c"]
         assert len(files) == 1
