@@ -346,15 +346,30 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
         Returns the basename of the info directory, e.g. `proj-0.0.0.dist-info`.
         """
-        candidates = list(Path(metadata_directory).glob(f"**/*{suffix}/"))
-        assert len(candidates) == 1, f"Exactly one {suffix} should have been produced"
-        info_dir = candidates[0]
+        dist_info_directory = metadata_directory
+        while True:
+            dist_infos = [f for f in os.listdir(dist_info_directory)
+                          if f.endswith('.dist-info')]
 
-        if not same_path(info_dir.parent, metadata_directory):
-            shutil.move(str(info_dir), metadata_directory)
-            # PEP 517 allow other files and dirs to exist in metadata_directory
+            if (
+                len(dist_infos) == 0 and
+                len(_get_immediate_subdirectories(dist_info_directory)) == 1
+            ):
 
-        return info_dir.name
+                dist_info_directory = os.path.join(
+                    dist_info_directory, os.listdir(dist_info_directory)[0])
+                continue
+
+            assert len(dist_infos) == 1
+            break
+
+        if dist_info_directory != metadata_directory:
+            shutil.move(
+                os.path.join(dist_info_directory, dist_infos[0]),
+                metadata_directory)
+            shutil.rmtree(dist_info_directory, ignore_errors=True)
+
+        return dist_infos[0]
 
     def prepare_metadata_for_build_wheel(self, metadata_directory,
                                          config_settings=None):
