@@ -1,0 +1,2 @@
+Fixed ``buid_meta.prepare_metadata_for_build_wheel`` when
+given ``metadata_directory`` is ``"."``.
