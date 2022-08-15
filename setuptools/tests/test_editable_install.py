@@ -872,9 +872,8 @@ class TestCustomBuildWheel:
         cmd = editable_wheel(dist)
         cmd.ensure_finalized()
         cmd.run()
-        wheel_file = str(next(Path().glob('dist/*')))
+        wheel_file = str(next(Path().glob('dist/*.whl')))
         assert "editable" in wheel_file
-        assert wheel_file.endswith(".whl")
 
 
 def install_project(name, venv, tmp_path, files, *opts):
