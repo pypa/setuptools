@@ -888,7 +888,7 @@ class TestCustomBuildExt:
         dist.cmdclass["build_ext"] = MyBuildExt
 
     @pytest.mark.skipif(
-        sys.platform != "linux", reason="compilers may fail without correct setup",
+        sys.platform != "linux", reason="compilers may fail without correct setup"
     )
     def test_distutils_leave_inplace_files(self, tmpdir_cwd):
         jaraco.path.build({"module.c": ""})
