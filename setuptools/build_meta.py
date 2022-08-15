@@ -36,7 +36,7 @@ import contextlib
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Union, Tuple
+from typing import Dict, Iterator, List, Optional, Union
 
 import setuptools
 import distutils
