@@ -1,3 +1,20 @@
+v65.0.1
+-------
+
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3529: Added clarification to :doc:`/userguide/quickstart` about support
+  to ``setup.py``.
+
+Misc
+^^^^
+* #3526: Fix backward compatibility of editable installs and custom ``build_ext``
+  commands inheriting directly from ``distutils``.
+* #3528: Fixed ``buid_meta.prepare_metadata_for_build_wheel`` when
+  given ``metadata_directory`` is ``"."``.
+
+
 v65.0.0
 -------
 

@@ -1,2 +1,0 @@
-Added clarification to :doc:`/userguide/quickstart` about support
-to ``setup.py``.
