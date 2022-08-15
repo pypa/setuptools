@@ -59,8 +59,7 @@ library will be used to actually do the packaging.
 In addition to specifying a build system, you also will need to add
 some package information such as metadata, contents, dependencies, etc.
 This can be done in the same ``pyproject.toml`` [#beta]_ file,
-or in a separated one: ``setup.cfg`` or ``setup.py`` (please note however
-that configuring new projects via ``setup.py`` is discouraged [#setup.py]_).
+or in a separated one: ``setup.cfg`` or ``setup.py`` [#setup.py]_.
 
 The following example demonstrates a minimum configuration
 (which assumes the project depends on :pypi:`requests` and
@@ -148,6 +147,27 @@ to specify to properly package your project.
    ecosystem, such as "sdist", "wheel", "index". It would also be nice if we
    could have a diagram for that (explaining for example that "wheels" are
    built from "sdists" not the source tree).
+
+.. _setuppy_discouraged:
+.. admonition:: Info: Using ``setup.py``
+  :class: seealso
+
+  Setuptools offers first class support for ``setup.py`` files as a configuration
+  mechanism.
+
+  It is important to remember, however, that running this file as a
+  script (e.g. ``python setup.py sdist``) is strongly **discouraged**, and
+  that the majority of the command line interfaces are (or will be) **deprecated**
+  (e.g. ``python setup.py install``, ``python setup.py bdist_wininst``, ...).
+
+  We also recommend users to expose as much as possible configuration in a
+  more *declarative* way via the :doc:`pyproject.toml <pyproject_config>` or
+  :doc:`setup.cfg <declarative_config>`, and keep the ``setup.py`` minimal
+  with only the dynamic parts (or even omit it completely if applicable).
+
+  See `Why you shouldn't invoke setup.py directly`_ for more background.  
+
+.. _Why you shouldn't invoke setup.py directly: https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html
 
 
 Overview
@@ -438,14 +458,15 @@ up-to-date references that can help you when it is time to distribute your work.
 .. rubric:: Notes
 
 .. [#setup.py]
-   The ``setup.py`` file should be used only when custom scripting during the
-   build is necessary.
+   New projects are advised to avoid ``setup.py`` configurations (beyond the minimal stub)
+   when custom scripting during the build is not necessary.
    Examples are kept in this document to help people interested in maintaining or
    contributing to existing packages that use ``setup.py``.
    Note that you can still keep most of configuration declarative in
    :doc:`setup.cfg <declarative_config>` or :doc:`pyproject.toml
    <pyproject_config>` and use ``setup.py`` only for the parts not
    supported in those files (e.g. C extensions).
+   See :ref:`note <setuppy_discouraged>`.
 
 .. [#beta]
    Support for adding build configuration options via the ``[tool.setuptools]``
