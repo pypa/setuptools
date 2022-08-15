@@ -485,6 +485,23 @@ class TestBuildMetaBackend:
 
         assert os.path.isfile(os.path.join(dist_dir, dist_info, 'METADATA'))
 
+    def test_prepare_metadata_inplace(self, build_backend):
+        """
+        Some users might pass metadata_directory pre-populated with `.tox` or `.venv`.
+        See issue #3523.
+        """
+        for pre_existing in [
+            ".tox/python/lib/python3.10/site-packages/attrs-22.1.0.dist-info",
+            ".tox/python/lib/python3.10/site-packages/autocommand-2.2.1.dist-info",
+            ".nox/python/lib/python3.10/site-packages/build-0.8.0.dist-info",
+            ".venv/python3.10/site-packages/click-8.1.3.dist-info",
+            "venv/python3.10/site-packages/distlib-0.3.5.dist-info",
+            "env/python3.10/site-packages/docutils-0.19.dist-info",
+        ]:
+            os.makedirs(pre_existing, exist_ok=True)
+        dist_info = build_backend.prepare_metadata_for_build_wheel(".")
+        assert os.path.isfile(os.path.join(dist_info, 'METADATA'))
+
     def test_build_sdist_explicit_dist(self, build_backend):
         # explicitly specifying the dist folder should work
         # the folder sdist_directory and the ``--dist-dir`` can be the same
