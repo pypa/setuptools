@@ -1,0 +1,2 @@
+Fix backward compatibility of editable installs and custom ``build_ext``
+commands inheriting directly from ``distutils``.
