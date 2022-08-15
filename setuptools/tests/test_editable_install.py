@@ -5,6 +5,7 @@ import subprocess
 import platform
 from copy import deepcopy
 from importlib import import_module
+from importlib.machinery import EXTENSION_SUFFIXES
 from pathlib import Path
 from textwrap import dedent
 from unittest.mock import Mock
@@ -28,6 +29,7 @@ from setuptools.command.editable_wheel import (
     editable_wheel,
 )
 from setuptools.dist import Distribution
+from setuptools.extension import Extension
 
 
 @pytest.fixture(params=["strict", "lenient"])
@@ -875,6 +877,35 @@ class TestCustomBuildWheel:
         wheel_file = str(next(Path().glob('dist/*')))
         assert "editable" in wheel_file
         assert wheel_file.endswith(".whl")
+
+
+class TestCustomBuildExt:
+    def install_custom_build_ext_distutils(self, dist):
+        from distutils.command.build_ext import build_ext as build_ext_cls
+
+        class MyBuildExt(build_ext_cls):
+            pass
+
+        dist.cmdclass["build_ext"] = MyBuildExt
+
+    def test_distutils_leave_inplace_files(self, tmpdir_cwd):
+        jaraco.path.build({"module.c": ""})
+        attrs = {
+            "ext_modules": [Extension("module", ["module.c"])],
+        }
+        dist = Distribution(attrs)
+        dist.script_name = "setup.py"
+        dist.set_defaults()
+        self.install_custom_build_ext_distutils(dist)
+        cmd = editable_wheel(dist)
+        cmd.ensure_finalized()
+        cmd.run()
+        wheel_file = str(next(Path().glob('dist/*')))
+        assert "editable" in wheel_file
+        files = [p for p in Path().glob("module.*") if p.suffix != ".c"]
+        assert len(files) == 1
+        name = files[0].name
+        assert any(name.endswith(ext) for ext in EXTENSION_SUFFIXES)
 
 
 def install_project(name, venv, tmp_path, files, *opts):
