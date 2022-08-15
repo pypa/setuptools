@@ -237,6 +237,8 @@ class editable_wheel(Command):
             cmd = dist.get_command_obj(cmd_name)
             if hasattr(cmd, "editable_mode"):
                 cmd.editable_mode = True
+            elif hasattr(cmd, "inplace"):
+                cmd.inplace = True  # backward compatibility with distutils
 
     def _collect_build_outputs(self) -> Tuple[List[str], Dict[str, str]]:
         files: List[str] = []
