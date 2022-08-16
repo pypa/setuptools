@@ -16,6 +16,7 @@ import os
 import subprocess
 import sys
 import re
+import warnings
 
 from distutils.errors import (
     DistutilsExecError,
@@ -29,6 +30,13 @@ from distutils import log
 from distutils.util import get_platform
 
 import winreg
+
+warnings.warn(
+    "msvc9compiler is deprecated and slated to be removed "
+    "in the future. Please discontinue use or file an issue "
+    "with pypa/distutils describing your use case.",
+    DeprecationWarning,
+)
 
 RegOpenKeyEx = winreg.OpenKeyEx
 RegEnumKey = winreg.EnumKey
