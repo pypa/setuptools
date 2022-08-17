@@ -1,1 +1,0 @@
-Restored distutils msvccompiler and msvc9compiler modules and marked as deprecated (pypa/distutils@c802880).

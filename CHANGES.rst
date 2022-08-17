@@ -1,3 +1,12 @@
+v65.0.2
+-------
+
+
+Misc
+^^^^
+* #3505: Restored distutils msvccompiler and msvc9compiler modules and marked as deprecated (pypa/distutils@c802880).
+
+
 v65.0.1
 -------
 
