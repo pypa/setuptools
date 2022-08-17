@@ -123,7 +123,7 @@ distributing into something that looks like the following
         ├── __init__.py
         └── ... (other Python files)
 
-With :ref:`build installed in you system <install-build>`, you can then run::
+With :ref:`build installed in your system <install-build>`, you can then run::
 
     python -m build
 
