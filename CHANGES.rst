@@ -143,7 +143,7 @@ Changes
   ``sdist``. This allows plugins and customization scripts to automatically
   add required source files in the source distribution.
 * #3414: Users can *temporarily* specify an environment variable
-  ``SETUPTOOLS_ENABLE_FEATURE=legacy-editable`` as a escape hatch for the
+  ``SETUPTOOLS_ENABLE_FEATURES=legacy-editable`` as a escape hatch for the
   :pep:`660` behavior. This setting is **transitional** and may be removed in the
   future.
 * #3484: Added *transient* ``compat`` mode to editable installs.
