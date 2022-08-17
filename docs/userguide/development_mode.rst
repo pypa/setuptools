@@ -194,7 +194,7 @@ variable:
 
 .. code-block::
 
-   SETUPTOOLS_USE_FEATURE="legacy-editable"
+   SETUPTOOLS_ENABLE_FEATURES="legacy-editable"
 
 This *may* cause the installer (e.g. ``pip``) to effectively run the "legacy"
 installation command: ``python setup.py develop`` [#installer]_.

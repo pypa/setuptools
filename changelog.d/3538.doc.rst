@@ -1,0 +1,1 @@
+Corrected documentation on how to use the `legacy-editable` mode.
