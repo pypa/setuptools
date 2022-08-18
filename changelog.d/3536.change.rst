@@ -1,1 +1,0 @@
-Remove monkeypatching of msvc9compiler.

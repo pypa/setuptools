@@ -1,3 +1,16 @@
+v65.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #3536: Remove monkeypatching of msvc9compiler.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3538: Corrected documentation on how to use the `legacy-editable` mode.
+
+
 v65.0.2
 -------
 
