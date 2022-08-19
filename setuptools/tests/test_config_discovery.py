@@ -508,6 +508,15 @@ def test_compatible_with_numpy_configuration(tmp_path):
     assert dist.packages is None
 
 
+def test_name_discovery_doesnt_break_cli(tmpdir_cwd):
+    jaraco.path.build({"pkg.py": ""})
+    dist = Distribution({})
+    dist.script_args = ["--name"]
+    dist.set_defaults()
+    dist.parse_command_line()  # <-- no exception should be raised here.
+    assert dist.get_name() == "pkg"
+
+
 def _populate_project_dir(root, files, options):
     # NOTE: Currently pypa/build will refuse to build the project if no
     # `pyproject.toml` or `setup.py` is found. So it is impossible to do
