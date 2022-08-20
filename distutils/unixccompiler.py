@@ -153,7 +153,11 @@ class UnixCCompiler(CCompiler):
         libraries, library_dirs, runtime_library_dirs = super()._fix_lib_args(
             libraries, library_dirs, runtime_library_dirs)
         libdir = sysconfig.get_config_var('LIBDIR')
-        if runtime_library_dirs and (libdir in runtime_library_dirs):
+        if (
+            runtime_library_dirs
+            and libdir.startswith("/usr/lib")
+            and (libdir in runtime_library_dirs)
+        ):
             runtime_library_dirs.remove(libdir)
         return libraries, library_dirs, runtime_library_dirs
   

@@ -8,6 +8,7 @@ import site
 import sys
 import tempfile
 import textwrap
+import time
 from distutils import sysconfig
 from distutils.command.build_ext import build_ext
 from distutils.core import Distribution
@@ -55,6 +56,9 @@ def user_site_dir(request):
     site.USER_BASE = orig_user_base
     build_ext.USER_BASE = orig_user_base
 
+    if sys.platform == 'cygwin':
+        time.sleep(1)
+
 
 @contextlib.contextmanager
 def safe_extension_import(name, path):
@@ -95,6 +99,12 @@ class TestBuildExt(TempdirManager):
         copy_xxmodule_c(self.tmp_dir)
         xx_c = os.path.join(self.tmp_dir, 'xxmodule.c')
         xx_ext = Extension('xx', [xx_c])
+        if sys.platform != "win32":
+            xx_ext = Extension(
+                'xx', [xx_c],
+                library_dirs=['/usr/lib'], libraries=['z'],
+                runtime_library_dirs=['/usr/lib']
+            )
         dist = Distribution({'name': 'xx', 'ext_modules': [xx_ext]})
         dist.package_dir = self.tmp_dir
         cmd = self.build_ext(dist)
