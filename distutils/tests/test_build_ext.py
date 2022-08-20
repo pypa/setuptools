@@ -101,9 +101,11 @@ class TestBuildExt(TempdirManager):
         xx_ext = Extension('xx', [xx_c])
         if sys.platform != "win32":
             xx_ext = Extension(
-                'xx', [xx_c],
-                library_dirs=['/usr/lib'], libraries=['z'],
-                runtime_library_dirs=['/usr/lib']
+                'xx',
+                [xx_c],
+                library_dirs=['/usr/lib'],
+                libraries=['z'],
+                runtime_library_dirs=['/usr/lib'],
             )
         dist = Distribution({'name': 'xx', 'ext_modules': [xx_ext]})
         dist.package_dir = self.tmp_dir

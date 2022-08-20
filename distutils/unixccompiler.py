@@ -151,7 +151,8 @@ class UnixCCompiler(CCompiler):
     def _fix_lib_args(self, libraries, library_dirs, runtime_library_dirs):
         """Remove standard library path from rpath"""
         libraries, library_dirs, runtime_library_dirs = super()._fix_lib_args(
-            libraries, library_dirs, runtime_library_dirs)
+            libraries, library_dirs, runtime_library_dirs
+        )
         libdir = sysconfig.get_config_var('LIBDIR')
         if (
             runtime_library_dirs
@@ -160,7 +161,7 @@ class UnixCCompiler(CCompiler):
         ):
             runtime_library_dirs.remove(libdir)
         return libraries, library_dirs, runtime_library_dirs
-  
+
     def preprocess(
         self,
         source,
