@@ -154,5 +154,5 @@ def suppress_path_mangle(monkeysession):
     from distutils import ccompiler
 
     monkeysession.setattr(
-        ccompiler.CCompiler, '_mangle_base', staticmethod(lambda x: x)
+        ccompiler.CCompiler, '_make_relative', staticmethod(lambda x: x)
     )

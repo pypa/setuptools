@@ -927,7 +927,7 @@ int main (int argc, char **argv) {
         obj_names = []
         for src_name in source_filenames:
             base, ext = os.path.splitext(src_name)
-            base = self._mangle_base(base)
+            base = self._make_relative(base)
             if ext not in self.src_extensions:
                 raise UnknownFileError(
                     "unknown file type '{}' (from '{}')".format(ext, src_name)
@@ -938,9 +938,11 @@ int main (int argc, char **argv) {
         return obj_names
 
     @staticmethod
-    def _mangle_base(base):
+    def _make_relative(base):
         """
-        For unknown reasons, absolute paths are mangled.
+        In order to ensure that a filename always honors the
+        indicated output_dir, make sure it's relative.
+        Ref python/cpython#37775.
         """
         # Chop off the drive
         no_drive = os.path.splitdrive(base)[1]
