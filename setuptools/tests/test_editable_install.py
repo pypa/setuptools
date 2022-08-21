@@ -494,6 +494,26 @@ class TestFinderTemplate:
             three = import_module("parent.child.three")
             assert three.x == 3
 
+    def test_no_recursion(self, tmp_path):
+        files = {
+            "pkg": {
+                "__init__.py": "from . import pkg",
+            },
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {
+            "pkg": str(tmp_path / "pkg"),
+        }
+        template = _finder_template(str(uuid4()), mapping, {})
+
+        with contexts.save_paths(), contexts.save_sys_modules():
+            sys.modules.pop("pkg", None)
+
+            self.install_finder(template)
+            with pytest.raises(ModuleNotFoundError, match="No module named 'pkg.pkg'"):
+                import_module("pkg")
+
 
 def test_pkg_roots(tmp_path):
     """This test focus in getting a particular implementation detail right.
