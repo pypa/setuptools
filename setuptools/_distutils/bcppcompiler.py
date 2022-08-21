@@ -13,6 +13,8 @@ for the Borland C++ compiler.
 
 
 import os
+import warnings
+
 from distutils.errors import (
     DistutilsExecError,
     CompileError,
@@ -24,6 +26,14 @@ from distutils.ccompiler import CCompiler, gen_preprocess_options
 from distutils.file_util import write_file
 from distutils.dep_util import newer
 from distutils import log
+
+
+warnings.warn(
+    "bcppcompiler is deprecated and slated to be removed "
+    "in the future. Please discontinue use or file an issue "
+    "with pypa/distutils describing your use case.",
+    DeprecationWarning,
+)
 
 
 class BCPPCompiler(CCompiler):

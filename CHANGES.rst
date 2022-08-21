@@ -1,3 +1,12 @@
+v65.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #3553: Sync with pypa/distutils@22b9bcf, including fixed cross-compiling support and removing deprecation warning per pypa/distutils#169.
+
+
 v65.1.1
 -------
 
