@@ -330,9 +330,7 @@ class MSVCCompiler(CCompiler):
         if strip_dir:
             base = os.path.basename(base)
         else:
-            _, base = os.path.splitdrive(base)
-            if base.startswith((os.path.sep, os.path.altsep)):
-                base = base[1:]
+            base = self._make_relative(base)
         try:
             # XXX: This may produce absurdly long paths. We should check
             # the length of the result and trim base until we fit within
