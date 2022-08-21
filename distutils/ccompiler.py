@@ -928,16 +928,22 @@ int main (int argc, char **argv) {
             for src_name in source_filenames
         )
 
+    @property
+    def out_extensions(self):
+        return dict.fromkeys(self.src_extensions, self.obj_extension)
+
     def _make_out_path(self, output_dir, strip_dir, src_name):
         base, ext = os.path.splitext(src_name)
         base = self._make_relative(base)
-        if ext not in self.src_extensions:
+        try:
+            new_ext = self.out_extensions[ext]
+        except LookupError:
             raise UnknownFileError(
                 "unknown file type '{}' (from '{}')".format(ext, src_name)
             )
         if strip_dir:
             base = os.path.basename(base)
-        return os.path.join(output_dir, base + self.obj_extension)
+        return os.path.join(output_dir, base + new_ext)
 
     @staticmethod
     def _make_relative(base):
