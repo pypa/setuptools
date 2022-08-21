@@ -318,7 +318,7 @@ class MSVCCompiler(CCompiler):
 
     # -- Worker methods ------------------------------------------------
 
-    def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
+    def _make_out_path(self, output_dir, strip_dir, src_name):
         ext_map = {
             **{ext: self.obj_extension for ext in self.src_extensions},
             **{
@@ -326,29 +326,23 @@ class MSVCCompiler(CCompiler):
                 for ext in self._rc_extensions + self._mc_extensions
             },
         }
-
-        output_dir = output_dir or ''
-
-        def make_out_path(p):
-            base, ext = os.path.splitext(p)
-            if strip_dir:
-                base = os.path.basename(base)
-            else:
-                _, base = os.path.splitdrive(base)
-                if base.startswith((os.path.sep, os.path.altsep)):
-                    base = base[1:]
-            try:
-                # XXX: This may produce absurdly long paths. We should check
-                # the length of the result and trim base until we fit within
-                # 260 characters.
-                return os.path.join(output_dir, base + ext_map[ext])
-            except LookupError:
-                # Better to raise an exception instead of silently continuing
-                # and later complain about sources and targets having
-                # different lengths
-                raise CompileError(f"Don't know how to compile {p}")
-
-        return list(map(make_out_path, source_filenames))
+        base, ext = os.path.splitext(src_name)
+        if strip_dir:
+            base = os.path.basename(base)
+        else:
+            _, base = os.path.splitdrive(base)
+            if base.startswith((os.path.sep, os.path.altsep)):
+                base = base[1:]
+        try:
+            # XXX: This may produce absurdly long paths. We should check
+            # the length of the result and trim base until we fit within
+            # 260 characters.
+            return os.path.join(output_dir, base + ext_map[ext])
+        except LookupError:
+            # Better to raise an exception instead of silently continuing
+            # and later complain about sources and targets having
+            # different lengths
+            raise CompileError(f"Don't know how to compile {src_name}")
 
     def compile(  # noqa: C901
         self,
