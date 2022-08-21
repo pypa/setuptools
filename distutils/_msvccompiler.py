@@ -328,23 +328,6 @@ class MSVCCompiler(CCompiler):
             },
         }
 
-    def _make_out_path(self, output_dir, strip_dir, src_name):
-        base, ext = os.path.splitext(src_name)
-        if strip_dir:
-            base = os.path.basename(base)
-        else:
-            base = self._make_relative(base)
-        try:
-            # XXX: This may produce absurdly long paths. We should check
-            # the length of the result and trim base until we fit within
-            # 260 characters.
-            return os.path.join(output_dir, base + self.out_extensions[ext])
-        except LookupError:
-            # Better to raise an exception instead of silently continuing
-            # and later complain about sources and targets having
-            # different lengths
-            raise CompileError(f"Don't know how to compile {src_name}")
-
     def compile(  # noqa: C901
         self,
         sources,
