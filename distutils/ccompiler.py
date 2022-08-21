@@ -6,7 +6,6 @@ for the Distutils compiler abstraction model."""
 import sys
 import os
 import re
-import warnings
 
 from distutils.errors import (
     CompileError,
@@ -947,16 +946,7 @@ int main (int argc, char **argv) {
         # Chop off the drive
         no_drive = os.path.splitdrive(base)[1]
         # If abs, chop off leading /
-        rel = no_drive[os.path.isabs(no_drive) :]
-        if rel != base:
-            msg = (
-                f"Absolute path {base!r} is being replaced with a "
-                f"relative path {rel!r} for outputs. This behavior is "
-                "deprecated. If this behavior is desired, please "
-                "comment in pypa/distutils#169."
-            )
-            warnings.warn(msg, DeprecationWarning)
-        return rel
+        return no_drive[os.path.isabs(no_drive) :]
 
     def shared_object_filename(self, basename, strip_dir=0, output_dir=''):
         assert output_dir is not None
