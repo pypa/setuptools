@@ -164,10 +164,19 @@ def _get_python_inc_from_config(plat_specific, spec_prefix):
     the host
     platform Python installation, while the current Python
     executable is from the build platform installation.
+
+    >>> monkeypatch = getfixture('monkeypatch')
+    >>> gpifc = _get_python_inc_from_config
+    >>> monkeypatch.setitem(gpifc.__globals__, 'get_config_var', str.lower)
+    >>> gpifc(False, '/usr/bin/')
+    >>> gpifc(False, '')
+    >>> gpifc(False, None)
+    'includepy'
+    >>> gpifc(True, None)
+    'confincludepy'
     """
-    if not spec_prefix:
-        return
-    return get_config_var('CONF' * plat_specific + 'INCLUDEPY')
+    if spec_prefix is None:
+        return get_config_var('CONF' * plat_specific + 'INCLUDEPY')
 
 
 def _get_python_inc_posix_prefix(prefix):

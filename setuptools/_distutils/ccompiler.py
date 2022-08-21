@@ -6,7 +6,6 @@ for the Distutils compiler abstraction model."""
 import sys
 import os
 import re
-import warnings
 
 from distutils.errors import (
     CompileError,
@@ -924,37 +923,39 @@ int main (int argc, char **argv) {
     def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
         if output_dir is None:
             output_dir = ''
-        obj_names = []
-        for src_name in source_filenames:
-            base, ext = os.path.splitext(src_name)
-            base = self._mangle_base(base)
-            if ext not in self.src_extensions:
-                raise UnknownFileError(
-                    "unknown file type '{}' (from '{}')".format(ext, src_name)
-                )
-            if strip_dir:
-                base = os.path.basename(base)
-            obj_names.append(os.path.join(output_dir, base + self.obj_extension))
-        return obj_names
+        return list(
+            self._make_out_path(output_dir, strip_dir, src_name)
+            for src_name in source_filenames
+        )
+
+    @property
+    def out_extensions(self):
+        return dict.fromkeys(self.src_extensions, self.obj_extension)
+
+    def _make_out_path(self, output_dir, strip_dir, src_name):
+        base, ext = os.path.splitext(src_name)
+        base = self._make_relative(base)
+        try:
+            new_ext = self.out_extensions[ext]
+        except LookupError:
+            raise UnknownFileError(
+                "unknown file type '{}' (from '{}')".format(ext, src_name)
+            )
+        if strip_dir:
+            base = os.path.basename(base)
+        return os.path.join(output_dir, base + new_ext)
 
     @staticmethod
-    def _mangle_base(base):
+    def _make_relative(base):
         """
-        For unknown reasons, absolute paths are mangled.
+        In order to ensure that a filename always honors the
+        indicated output_dir, make sure it's relative.
+        Ref python/cpython#37775.
         """
         # Chop off the drive
         no_drive = os.path.splitdrive(base)[1]
         # If abs, chop off leading /
-        rel = no_drive[os.path.isabs(no_drive) :]
-        if rel != base:
-            msg = (
-                f"Absolute path {base!r} is being replaced with a "
-                f"relative path {rel!r} for outputs. This behavior is "
-                "deprecated. If this behavior is desired, please "
-                "comment in pypa/distutils#169."
-            )
-            warnings.warn(msg, DeprecationWarning)
-        return rel
+        return no_drive[os.path.isabs(no_drive) :]
 
     def shared_object_filename(self, basename, strip_dir=0, output_dir=''):
         assert output_dir is not None
