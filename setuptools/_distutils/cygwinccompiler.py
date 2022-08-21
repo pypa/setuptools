@@ -20,7 +20,6 @@ from distutils.errors import (
     DistutilsPlatformError,
     CCompilerError,
     CompileError,
-    UnknownFileError,
 )
 from distutils.version import LooseVersion, suppress_known_deprecation
 
@@ -242,28 +241,20 @@ class CygwinCCompiler(UnixCCompiler):
 
     # -- Miscellaneous methods -----------------------------------------
 
-    def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
-        """Adds supports for rc and res files."""
-        if output_dir is None:
-            output_dir = ''
-        obj_names = []
-        for src_name in source_filenames:
-            # use normcase to make sure '.rc' is really '.rc' and not '.RC'
-            base, ext = os.path.splitext(os.path.normcase(src_name))
-            if ext not in (self.src_extensions + ['.rc', '.res']):
-                raise UnknownFileError(
-                    "unknown file type '{}' (from '{}')".format(ext, src_name)
-                )
-            if strip_dir:
-                base = os.path.basename(base)
-            if ext in ('.res', '.rc'):
-                # these need to be compiled to object files
-                obj_names.append(
-                    os.path.join(output_dir, base + ext + self.obj_extension)
-                )
-            else:
-                obj_names.append(os.path.join(output_dir, base + self.obj_extension))
-        return obj_names
+    def _make_out_path(self, output_dir, strip_dir, src_name):
+        # use normcase to make sure '.rc' is really '.rc' and not '.RC'
+        norm_src_name = os.path.normcase(src_name)
+        return super()._make_out_path(output_dir, strip_dir, norm_src_name)
+
+    @property
+    def out_extensions(self):
+        """
+        Add support for rc and res files.
+        """
+        return {
+            **super().out_extensions,
+            **{ext: ext + self.obj_extension for ext in ('.res', '.rc')},
+        }
 
 
 # the same as cygwin plus some additional parameters
