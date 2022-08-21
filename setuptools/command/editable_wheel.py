@@ -755,7 +755,7 @@ class _EditableFinder:  # MetaPathFinder
     def find_spec(cls, fullname, path=None, target=None):
         for pkg, pkg_path in reversed(list(MAPPING.items())):
             if fullname.startswith(pkg):
-                rest = fullname.replace(pkg, "").strip(".").split(".")
+                rest = fullname.replace(pkg, "", 1).strip(".").split(".")
                 return cls._find_spec(fullname, Path(pkg_path, *rest))
 
         return None

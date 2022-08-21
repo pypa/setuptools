@@ -495,6 +495,7 @@ class TestFinderTemplate:
             assert three.x == 3
 
     def test_no_recursion(self, tmp_path):
+        # See issue #3550
         files = {
             "pkg": {
                 "__init__.py": "from . import pkg",
@@ -511,7 +512,7 @@ class TestFinderTemplate:
             sys.modules.pop("pkg", None)
 
             self.install_finder(template)
-            with pytest.raises(ModuleNotFoundError, match="No module named 'pkg.pkg'"):
+            with pytest.raises(ImportError, match="pkg"):
                 import_module("pkg")
 
 
