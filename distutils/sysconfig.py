@@ -165,9 +165,8 @@ def _get_python_inc_from_config(plat_specific, spec_prefix):
     platform Python installation, while the current Python
     executable is from the build platform installation.
     """
-    if not spec_prefix:
-        return
-    return get_config_var('CONF' * plat_specific + 'INCLUDEPY')
+    if spec_prefix is None:
+        return get_config_var('CONF' * plat_specific + 'INCLUDEPY')
 
 
 def _get_python_inc_posix_prefix(prefix):
