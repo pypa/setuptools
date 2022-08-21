@@ -57,7 +57,7 @@ a ``foo`` command, you might add something like this to your project:
          foo = mypackage.some_module:foo
 
 Assuming, of course, that the ``foo`` class in ``mypackage.some_module`` is
-a ``setuptools.Command`` subclass (documented bellow).
+a ``setuptools.Command`` subclass (documented below).
 
 Once a project containing such entry points has been activated on ``sys.path``,
 (e.g. by running ``pip install``) the command(s) will be available to any
