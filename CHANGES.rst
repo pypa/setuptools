@@ -1,3 +1,13 @@
+v65.1.1
+-------
+
+
+Misc
+^^^^
+* #3551: Avoided circular imports in meta path finder for editable installs when a
+  missing module has the same name as its parent.
+
+
 v65.1.0
 -------
 
