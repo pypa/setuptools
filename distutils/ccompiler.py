@@ -923,18 +923,21 @@ int main (int argc, char **argv) {
     def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
         if output_dir is None:
             output_dir = ''
-        obj_names = []
-        for src_name in source_filenames:
-            base, ext = os.path.splitext(src_name)
-            base = self._make_relative(base)
-            if ext not in self.src_extensions:
-                raise UnknownFileError(
-                    "unknown file type '{}' (from '{}')".format(ext, src_name)
-                )
-            if strip_dir:
-                base = os.path.basename(base)
-            obj_names.append(os.path.join(output_dir, base + self.obj_extension))
-        return obj_names
+        return list(
+            self._make_out_path(output_dir, strip_dir, src_name)
+            for src_name in source_filenames
+        )
+
+    def _make_out_path(self, output_dir, strip_dir, src_name):
+        base, ext = os.path.splitext(src_name)
+        base = self._make_relative(base)
+        if ext not in self.src_extensions:
+            raise UnknownFileError(
+                "unknown file type '{}' (from '{}')".format(ext, src_name)
+            )
+        if strip_dir:
+            base = os.path.basename(base)
+        return os.path.join(output_dir, base + self.obj_extension)
 
     @staticmethod
     def _make_relative(base):
