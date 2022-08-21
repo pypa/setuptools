@@ -114,6 +114,7 @@ jobs:
             python${{ matrix.python }}-tox,
             gcc-core,
             gcc-g++,
+            zlib-devel,
             ncompress
             git
       - name: Run tests
