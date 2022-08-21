@@ -309,7 +309,7 @@ The example below show how to configure this kind of dependencies:
         # ...
         dependencies = [
             "docutils",
-            "requires <= 0.4",
+            "requests <= 0.4",
         ]
         # ...
 
