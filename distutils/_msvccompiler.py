@@ -318,14 +318,17 @@ class MSVCCompiler(CCompiler):
 
     # -- Worker methods ------------------------------------------------
 
-    def _make_out_path(self, output_dir, strip_dir, src_name):
-        ext_map = {
-            **{ext: self.obj_extension for ext in self.src_extensions},
+    @property
+    def out_extensions(self):
+        return {
+            **super().out_extensions,
             **{
                 ext: self.res_extension
                 for ext in self._rc_extensions + self._mc_extensions
             },
         }
+
+    def _make_out_path(self, output_dir, strip_dir, src_name):
         base, ext = os.path.splitext(src_name)
         if strip_dir:
             base = os.path.basename(base)
@@ -335,7 +338,7 @@ class MSVCCompiler(CCompiler):
             # XXX: This may produce absurdly long paths. We should check
             # the length of the result and trim base until we fit within
             # 260 characters.
-            return os.path.join(output_dir, base + ext_map[ext])
+            return os.path.join(output_dir, base + self.out_extensions[ext])
         except LookupError:
             # Better to raise an exception instead of silently continuing
             # and later complain about sources and targets having
