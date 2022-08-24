@@ -1,1 +1,1 @@
-Fix accidental name matching in editable hooks.
+Fixed accidental name matching in editable hooks.

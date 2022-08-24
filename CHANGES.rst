@@ -50,7 +50,7 @@ Documentation changes
 
 Misc
 ^^^^
-* #3526: Fix backward compatibility of editable installs and custom ``build_ext``
+* #3526: Fixed backward compatibility of editable installs and custom ``build_ext``
   commands inheriting directly from ``distutils``.
 * #3528: Fixed ``buid_meta.prepare_metadata_for_build_wheel`` when
   given ``metadata_directory`` is ``"."``.
