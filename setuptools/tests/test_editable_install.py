@@ -515,6 +515,30 @@ class TestFinderTemplate:
             with pytest.raises(ImportError, match="pkg"):
                 import_module("pkg")
 
+    def test_similar_name(self, tmp_path):
+        files = {
+            "foo": {
+                "__init__.py": "",
+                "bar": {
+                    "__init__.py": "",
+                }
+            },
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {
+            "foo": str(tmp_path / "foo"),
+        }
+        template = _finder_template(str(uuid4()), mapping, {})
+
+        with contexts.save_paths(), contexts.save_sys_modules():
+            sys.modules.pop("foo", None)
+            sys.modules.pop("foo.bar", None)
+
+            self.install_finder(template)
+            with pytest.raises(ImportError, match="foobar"):
+                import_module("foobar")
+
 
 def test_pkg_roots(tmp_path):
     """This test focus in getting a particular implementation detail right.
