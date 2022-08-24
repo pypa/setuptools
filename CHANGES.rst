@@ -1,3 +1,20 @@
+v65.3.0
+-------
+
+
+Changes
+^^^^^^^
+* #3547: Stop ``ConfigDiscovery.analyse_name`` from splatting the ``Distribution.name`` attribute -- by :user:`jeamland`
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3554: Changed requires to requests in the pyproject.toml example in the :ref:`Dependency management section of the Quickstart guide <userguide/quickstart:dependency-management>` -- by :user:`mfbutner`
+
+Misc
+^^^^
+* #3561: Fixed accidental name matching in editable hooks.
+
+
 v65.2.0
 -------
 

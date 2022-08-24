@@ -1,1 +1,0 @@
-Changed requires to requests in the pyproject.toml example in the :ref:`Dependency management section of the Quickstart guide <userguide/quickstart:dependency-management>` -- by :user:`mfbutner`

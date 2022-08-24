@@ -1,1 +1,0 @@
-Stop ``ConfigDiscovery.analyse_name`` from splatting the ``Distribution.name`` attribute -- by :user:`jeamland`
