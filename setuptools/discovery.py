@@ -481,7 +481,6 @@ class ConfigDiscovery:
         )
         if name:
             self.dist.metadata.name = name
-            self.dist.name = name
 
     def _find_name_single_package_or_module(self) -> Optional[str]:
         """Exactly one module or package"""
