@@ -90,4 +90,4 @@ File :file:`changelog.d/2355.change.rst`:
    (``tool.towncrier.type``).
 
 .. _Towncrier philosophy:
-   https://towncrier.readthedocs.io/en/actual-freaking-docs/#philosophy
+   https://towncrier.readthedocs.io/en/latest/#philosophy
