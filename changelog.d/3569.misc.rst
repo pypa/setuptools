@@ -1,0 +1,2 @@
+Improved information about conflicting entries in the current working directory
+and editable install (in documentation and as an informational warning).
