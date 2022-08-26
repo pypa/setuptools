@@ -393,7 +393,7 @@ class _StaticPth:
     def __enter__(self):
         msg = f"""
         Editable install will be performed using .pth file to extend `sys.path` with:
-        {self.path_entries!r}
+        {list(map(os.fspath, self.path_entries))!r}
         """
         _logger.warning(msg + _LENIENT_WARNING)
         return self
@@ -503,7 +503,11 @@ class _TopLevelFinder:
         return self
 
     def __exit__(self, _exc_type, _exc_value, _traceback):
-        ...
+        msg = """\n
+        Please be careful with folders in your working directory with the same
+        name as your package as they may take precedence during imports.
+        """
+        warnings.warn(msg, InformationOnly)
 
 
 def _can_symlink_files(base_dir: Path) -> bool:
