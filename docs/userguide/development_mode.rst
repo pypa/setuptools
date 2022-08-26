@@ -155,6 +155,10 @@ Limitations
   projects structured using :ref:`flat-layout` is still **experimental**.
   If you experience problems, you can try converting your package structure
   to the :ref:`src-layout`.
+- File system entries in the current working directory
+  whose names coincidentally match installed packages
+  may take precedence in :doc:`Python's import system <python:reference/import>`.
+  Users are encouraged to avoid such scenarios [#cwd]_.
 
 .. attention::
    Editable installs are **not a perfect replacement for regular installs**
@@ -239,6 +243,13 @@ More information is available on the text of :pep:`PEP 660 <660#what-to-put-in-t
    You *may* be able to use *strict* editable installations with namespace
    packages created with ``pkgutil`` or ``pkg_namespaces``, however this is not
    officially supported.
+
+.. [#cwd]
+   Techniques like the :ref:`src-layout` or tooling-specific options like
+   `tox's changedir <https://tox.wiki/en/stable/config.html#conf-changedir>`_
+   can be used to prevent such kinds of situations (chekout `this blog post
+   <https://blog.ganssle.io/articles/2019/08/test-as-installed.html>`_ for more
+   insights).
 
 .. [#installer]
    For this workaround to work, the installer tool needs to support legacy
