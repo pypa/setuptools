@@ -1,5 +1,6 @@
 from distutils import log
 import distutils.command.sdist as orig
+from distutils import dir_util
 import os
 import sys
 import io
@@ -45,8 +46,12 @@ class sdist(sdist_add_defaults, orig.sdist):
     READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
 
     def run(self):
-        self.run_command('egg_info')
         ei_cmd = self.get_finalized_command('egg_info')
+        clean_egg_info = not os.path.exists(ei_cmd.egg_info)
+        if not clean_egg_info:
+            log.warn(f'egg-info directory already exists {ei_cmd.egg_info}; '
+                     'build may not be reproducible')
+        self.run_command('egg_info')
         self.filelist = ei_cmd.filelist
         self.filelist.append(os.path.join(ei_cmd.egg_info, 'SOURCES.txt'))
         self.check_readme()
@@ -56,6 +61,9 @@ class sdist(sdist_add_defaults, orig.sdist):
             self.run_command(cmd_name)
 
         self.make_distribution()
+
+        if clean_egg_info:
+            dir_util.remove_tree(ei_cmd.egg_info)
 
         dist_files = getattr(self.distribution, 'dist_files', [])
         for file in self.archive_files:
