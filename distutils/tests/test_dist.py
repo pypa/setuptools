@@ -492,6 +492,27 @@ class TestMetadata(support.TempdirManager):
         finally:
             os.remove(user_filename)
 
+    def test_extra_pydistutils(self):
+        # make sure pydistutils.cfg is found
+        extra_filename = "overrides.cfg"
+
+        temp_dir = self.mkdtemp()
+        extra_filename = os.path.join(temp_dir, extra_filename)
+        with open(extra_filename, 'w') as f:
+            f.write('.')
+
+        # Testing will have been going terribly if this was set, but preserve
+        # it anyway (so it goes terribly but *consistently*)
+        old_extra_filename = os.environ.get("DISTUTILS_EXTRA_CONFIG")
+        os.environ["DISTUTILS_EXTRA_CONFIG"] = extra_filename
+        try:
+            dist = Distribution()
+            files = dist.find_config_files()
+            assert user_filename in files
+        finally:
+            os.remove(user_filename)
+            os.environ["DISTUTILS_EXTRA_CONFIG"] = old_extra_filename
+
     def test_fix_help_options(self):
         help_tuples = [('a', 'b', 'c', 'd'), (1, 2, 3, 4)]
         fancy_options = fix_help_options(help_tuples)

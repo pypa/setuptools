@@ -359,6 +359,10 @@ Common commands: (see '--help-commands' for more)
         if os.path.isfile(local_file):
             files.append(local_file)
 
+        extra_file = os.getenv("DISTUTILS_EXTRA_CONFIG")
+        if extra_file and os.path.isfile(extra_file):
+            files.append(extra_file)
+
         if DEBUG:
             self.announce("using config files: %s" % ', '.join(files))
 
