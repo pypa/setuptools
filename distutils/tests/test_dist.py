@@ -508,9 +508,9 @@ class TestMetadata(support.TempdirManager):
         try:
             dist = Distribution()
             files = dist.find_config_files()
-            assert user_filename in files
+            assert extra_filename in files
         finally:
-            os.remove(user_filename)
+            os.remove(extra_filename)
             os.environ["DISTUTILS_EXTRA_CONFIG"] = old_extra_filename
 
     def test_fix_help_options(self):
