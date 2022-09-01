@@ -1,4 +1,5 @@
 import contextlib
+import glob
 import importlib
 import os
 import platform
@@ -94,19 +95,32 @@ class TestBuildExt(TempdirManager):
     def build_ext(self, *args, **kwargs):
         return build_ext(*args, **kwargs)
 
-    def test_build_ext(self):
+    @pytest.mark.parametrize("copy_so", [False, True])
+    def test_build_ext(self, copy_so):
         missing_compiler_executable()
         copy_xxmodule_c(self.tmp_dir)
         xx_c = os.path.join(self.tmp_dir, 'xxmodule.c')
         xx_ext = Extension('xx', [xx_c])
         if sys.platform != "win32":
-            xx_ext = Extension(
-                'xx',
-                [xx_c],
-                library_dirs=['/usr/lib'],
-                libraries=['z'],
-                runtime_library_dirs=['/usr/lib'],
-            )
+            if not copy_so:
+                xx_ext = Extension(
+                    'xx',
+                    [xx_c],
+                    library_dirs=['/usr/lib'],
+                    libraries=['z'],
+                    runtime_library_dirs=['/usr/lib'],
+                )
+            elif sys.platform == 'linux':
+                libz_so = glob.glob('/usr/lib*/libz.so*')
+                shutil.copyfile(libz_so[0], '/tmp/libxx_z.so')
+                
+                xx_ext = Extension(
+                    'xx',
+                    [xx_c],
+                    library_dirs=['/tmp'],
+                    libraries=['xx_z'],
+                    runtime_library_dirs=['/tmp'],
+                )
         dist = Distribution({'name': 'xx', 'ext_modules': [xx_ext]})
         dist.package_dir = self.tmp_dir
         cmd = self.build_ext(dist)
@@ -125,10 +139,13 @@ class TestBuildExt(TempdirManager):
             sys.stdout = old_stdout
 
         with safe_extension_import('xx', self.tmp_dir):
-            self._test_xx()
+            self._test_xx(copy_so)
+            
+        if sys.platform == 'linux' and copy_so:
+            os.unlink('/tmp/libxx_z.so')
 
     @staticmethod
-    def _test_xx():
+    def _test_xx(copy_so):
         import xx
 
         for attr in ('error', 'foo', 'new', 'roj'):
@@ -142,6 +159,16 @@ class TestBuildExt(TempdirManager):
             assert xx.__doc__ == doc
         assert isinstance(xx.Null(), xx.Null)
         assert isinstance(xx.Str(), xx.Str)
+        
+        if sys.platform == 'linux':
+            so_headers = subprocess.check_output(["readelf", "-d", xx.__file__], universal_newlines=True)
+            if not copy_so:
+                # Linked against a library in /usr/lib{,64}
+                assert 'RPATH' not in so_headers and 'RUNPATH' not in so_headers
+            else:
+                # Linked against a library in /tmp
+                assert 'RPATH' in so_headers or 'RUNPATH' in so_headers
+                # The import is the real test here
 
     def test_solaris_enable_shared(self):
         dist = Distribution({'name': 'xx'})
