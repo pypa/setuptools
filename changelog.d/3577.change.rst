@@ -1,0 +1,1 @@
+Implemented providing the right file name in the stack frame of ``setup.py`` being ``exec``-uted.

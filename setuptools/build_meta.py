@@ -126,10 +126,13 @@ def _file_with_extension(directory, extension):
 
 def _open_setup_script(setup_script):
     if not os.path.exists(setup_script):
-        # Supply a default setup.py
-        return io.StringIO(u"from setuptools import setup; setup()")
+        from inspect import currentframe, getframeinfo
 
-    return getattr(tokenize, 'open', open)(setup_script)
+        fi = getframeinfo(currentframe())
+        # Supply a default setup.py
+        return io.StringIO(u"from setuptools import setup; setup()"), "".join(("<setuptools inline setup.py, ", fi.filename + ":", str(fi.lineno + 2), ">"))
+
+    return getattr(tokenize, 'open', open)(setup_script), setup_script
 
 
 @contextlib.contextmanager
@@ -329,9 +332,11 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         __file__ = setup_script
         __name__ = '__main__'
 
-        with _open_setup_script(__file__) as f:
+        f, fn = _open_setup_script(__file__)
+        with f as f:
             code = f.read().replace(r'\r\n', r'\n')
 
+        code = compile(code, fn, 'exec')
         exec(code, locals())
 
     def get_requires_for_build_wheel(self, config_settings=None):
