@@ -364,6 +364,7 @@ class TestSdistTest:
 
         # Create manifest
         with quiet():
+            cmd.run_command('egg_info')
             cmd.run()
 
         # Add UTF-8 filename to manifest
@@ -395,6 +396,7 @@ class TestSdistTest:
 
         # Create manifest
         with quiet():
+            cmd.run_command('egg_info')
             cmd.run()
 
         # Add Latin-1 filename to manifest
