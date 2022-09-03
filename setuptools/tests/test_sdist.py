@@ -560,6 +560,30 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert '.myfile~' in manifest
 
+    @pytest.mark.parametrize("existing_egg", (True, False))
+    def test_egg_info_cleanup(self, tmpdir, existing_egg):
+        """
+        Test that sdist does not add or remove a .egg-info directory from the
+        source tree
+        """
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        ei_cmd = cmd.get_finalized_command('egg_info')
+
+        if existing_egg:
+            with quiet():
+                cmd.run_command('egg_info')
+
+        assert os.path.isdir(ei_cmd.egg_info) == existing_egg
+
+        with quiet():
+            cmd.run()
+
+        assert os.path.isdir(ei_cmd.egg_info) == existing_egg
+
 
 def test_default_revctrl():
     """
