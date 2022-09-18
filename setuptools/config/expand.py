@@ -41,6 +41,7 @@ from typing import (
     Union,
     cast
 )
+from pathlib import Path
 from types import ModuleType
 
 from distutils.errors import DistutilsOptionError
@@ -150,7 +151,9 @@ def _read_file(filepath: Union[bytes, _Path]) -> str:
 
 
 def _assert_local(filepath: _Path, root_dir: str):
-    if not os.path.abspath(filepath).startswith(root_dir):
+    # NOTE: Path.resolve() will raise RuntimeError if an infinite loop is
+    # encountered along the resolution path of root_dir or file_path.
+    if Path(root_dir).resolve() not in Path(filepath).resolve().parents:
         msg = f"Cannot access {filepath!r} (or anything outside {root_dir!r})"
         raise DistutilsOptionError(msg)
 
