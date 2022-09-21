@@ -6,6 +6,7 @@ import platform
 import re
 import shutil
 import site
+import subprocess
 import sys
 import tempfile
 import textwrap
@@ -112,8 +113,8 @@ class TestBuildExt(TempdirManager):
                 )
             elif sys.platform == 'linux':
                 libz_so = glob.glob('/usr/lib*/libz.so*')
-                shutil.copyfile(libz_so[0], '/tmp/libxx_z.so')
-                
+                shutil.copyfile(libz_so[-1], '/tmp/libxx_z.so')
+
                 xx_ext = Extension(
                     'xx',
                     [xx_c],
@@ -140,7 +141,7 @@ class TestBuildExt(TempdirManager):
 
         with safe_extension_import('xx', self.tmp_dir):
             self._test_xx(copy_so)
-            
+
         if sys.platform == 'linux' and copy_so:
             os.unlink('/tmp/libxx_z.so')
 
@@ -159,9 +160,11 @@ class TestBuildExt(TempdirManager):
             assert xx.__doc__ == doc
         assert isinstance(xx.Null(), xx.Null)
         assert isinstance(xx.Str(), xx.Str)
-        
+
         if sys.platform == 'linux':
-            so_headers = subprocess.check_output(["readelf", "-d", xx.__file__], universal_newlines=True)
+            so_headers = subprocess.check_output(
+                ["readelf", "-d", xx.__file__], universal_newlines=True
+            )
             if not copy_so:
                 # Linked against a library in /usr/lib{,64}
                 assert 'RPATH' not in so_headers and 'RUNPATH' not in so_headers
