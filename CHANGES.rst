@@ -13,7 +13,6 @@ Documentation changes
 Misc
 ^^^^
 * #3561: Fixed accidental name matching in editable hooks.
-* #3601: renamed `.readthedocs.yml` -> `.readthedocs.yaml`
 
 v65.2.0
 -------

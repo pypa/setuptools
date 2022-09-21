@@ -1,0 +1,1 @@
+renamed ``.readthedocs.yml`` -> ``.readthedocs.yaml`` as specified in RTD documentation
