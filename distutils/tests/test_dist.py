@@ -241,9 +241,8 @@ class TestDistributionBehavior(
         with pytest.raises(ValueError):
             dist.announce(args, kwargs)
 
-    def test_find_config_files_disable(self, monkeypatch):
+    def test_find_config_files_disable(self, temp_home):
         # Ticket #1180: Allow user to disable their home config file.
-        temp_home = self.mkdtemp()
         if os.name == 'posix':
             user_filename = os.path.join(temp_home, ".pydistutils.cfg")
         else:
@@ -251,8 +250,6 @@ class TestDistributionBehavior(
 
         with open(user_filename, 'w') as f:
             f.write('[distutils]\n')
-
-        monkeypatch.setenv('HOME', temp_home)
 
         d = Distribution()
         all_files = d.find_config_files()
