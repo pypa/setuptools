@@ -8,6 +8,7 @@ import functools
 import unittest.mock as mock
 
 import pytest
+import jaraco.path
 
 from distutils.dist import Distribution, fix_help_options
 from distutils.cmd import Command
@@ -16,6 +17,9 @@ from test.support import captured_stdout, captured_stderr
 from .py38compat import TESTFN
 from distutils.tests import support
 from distutils import log
+
+
+pydistutils_cfg = '.' * (os.name == 'posix') + 'pydistutils.cfg'
 
 
 class test_dist(Command):
@@ -97,26 +101,26 @@ class TestDistributionBehavior(
 
         fakepath = '/somedir'
 
-        with open(TESTFN, "w") as f:
-            print(
-                (
-                    "[install]\n"
-                    "install-base = {0}\n"
-                    "install-platbase = {0}\n"
-                    "install-lib = {0}\n"
-                    "install-platlib = {0}\n"
-                    "install-purelib = {0}\n"
-                    "install-headers = {0}\n"
-                    "install-scripts = {0}\n"
-                    "install-data = {0}\n"
-                    "prefix = {0}\n"
-                    "exec-prefix = {0}\n"
-                    "home = {0}\n"
-                    "user = {0}\n"
-                    "root = {0}"
-                ).format(fakepath),
-                file=f,
-            )
+        jaraco.path.build(
+            {
+                TESTFN: f"""
+                    [install]
+                    install-base = {fakepath}
+                    install-platbase = {fakepath}
+                    install-lib = {fakepath}
+                    install-platlib = {fakepath}
+                    install-purelib = {fakepath}
+                    install-headers = {fakepath}
+                    install-scripts = {fakepath}
+                    install-data = {fakepath}
+                    prefix = {fakepath}
+                    exec-prefix = {fakepath}
+                    home = {fakepath}
+                    user = {fakepath}
+                    root = {fakepath}
+                    """,
+            }
+        )
 
         # Base case: Not in a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/a'):
@@ -157,12 +161,14 @@ class TestDistributionBehavior(
     def test_command_packages_configfile(self, request, clear_argv):
         sys.argv.append("build")
         request.addfinalizer(functools.partial(os.unlink, TESTFN))
-        f = open(TESTFN, "w")
-        try:
-            print("[global]", file=f)
-            print("command_packages = foo.bar, splat", file=f)
-        finally:
-            f.close()
+        jaraco.path.build(
+            {
+                TESTFN: """
+                    [global]
+                    command_packages = foo.bar, splat
+                    """,
+            }
+        )
 
         d = self.create_distribution([TESTFN])
         assert d.get_command_packages() == ["distutils.command", "foo.bar", "splat"]
@@ -240,30 +246,15 @@ class TestDistributionBehavior(
         with pytest.raises(ValueError):
             dist.announce(args, kwargs)
 
-    def test_find_config_files_disable(self):
+    def test_find_config_files_disable(self, temp_home):
         # Ticket #1180: Allow user to disable their home config file.
-        temp_home = self.mkdtemp()
-        if os.name == 'posix':
-            user_filename = os.path.join(temp_home, ".pydistutils.cfg")
-        else:
-            user_filename = os.path.join(temp_home, "pydistutils.cfg")
+        jaraco.path.build({pydistutils_cfg: '[distutils]\n'}, temp_home)
 
-        with open(user_filename, 'w') as f:
-            f.write('[distutils]\n')
+        d = Distribution()
+        all_files = d.find_config_files()
 
-        def _expander(path):
-            return temp_home
-
-        old_expander = os.path.expanduser
-        os.path.expanduser = _expander
-        try:
-            d = Distribution()
-            all_files = d.find_config_files()
-
-            d = Distribution(attrs={'script_args': ['--no-user-cfg']})
-            files = d.find_config_files()
-        finally:
-            os.path.expanduser = old_expander
+        d = Distribution(attrs={'script_args': ['--no-user-cfg']})
+        files = d.find_config_files()
 
         # make sure --no-user-cfg disables the user cfg file
         assert len(all_files) - 1 == len(files)
@@ -271,7 +262,7 @@ class TestDistributionBehavior(
 
 @pytest.mark.usefixtures('save_env')
 @pytest.mark.usefixtures('save_argv')
-class MetadataTestCase(support.TempdirManager):
+class TestMetadata(support.TempdirManager):
     def format_metadata(self, dist):
         sio = io.StringIO()
         dist.metadata.write_pkg_file(sio)
@@ -456,41 +447,20 @@ class MetadataTestCase(support.TempdirManager):
         meta = meta.replace('\n' + 8 * ' ', '\n')
         assert long_desc in meta
 
-    def test_custom_pydistutils(self):
-        # fixes #2166
-        # make sure pydistutils.cfg is found
-        if os.name == 'posix':
-            user_filename = ".pydistutils.cfg"
-        else:
-            user_filename = "pydistutils.cfg"
+    def test_custom_pydistutils(self, temp_home):
+        """
+        pydistutils.cfg is found
+        """
+        jaraco.path.build({pydistutils_cfg: ''}, temp_home)
+        config_path = temp_home / pydistutils_cfg
 
-        temp_dir = self.mkdtemp()
-        user_filename = os.path.join(temp_dir, user_filename)
-        f = open(user_filename, 'w')
-        try:
-            f.write('.')
-        finally:
-            f.close()
+        assert str(config_path) in Distribution().find_config_files()
 
-        try:
-            dist = Distribution()
-
-            # linux-style
-            if sys.platform in ('linux', 'darwin'):
-                os.environ['HOME'] = temp_dir
-                files = dist.find_config_files()
-                assert user_filename in files
-
-            # win32-style
-            if sys.platform == 'win32':
-                # home drive should be found
-                os.environ['USERPROFILE'] = temp_dir
-                files = dist.find_config_files()
-                assert user_filename in files, '{!r} not found in {!r}'.format(
-                    user_filename, files
-                )
-        finally:
-            os.remove(user_filename)
+    def test_extra_pydistutils(self, monkeypatch, tmp_path):
+        jaraco.path.build({'overrides.cfg': ''}, tmp_path)
+        filename = tmp_path / 'overrides.cfg'
+        monkeypatch.setenv('DIST_EXTRA_CONFIG', str(filename))
+        assert str(filename) in Distribution().find_config_files()
 
     def test_fix_help_options(self):
         help_tuples = [('a', 'b', 'c', 'd'), (1, 2, 3, 4)]
@@ -498,9 +468,10 @@ class MetadataTestCase(support.TempdirManager):
         assert fancy_options[0] == ('a', 'b', 'c')
         assert fancy_options[1] == (1, 2, 3)
 
-    def test_show_help(self):
+    def test_show_help(self, request):
         # smoke test, just makes sure some help is displayed
-        self.addCleanup(log.set_threshold, log._global_log.threshold)
+        reset_log = functools.partial(log.set_threshold, log._global_log.threshold)
+        request.addfinalizer(reset_log)
         dist = Distribution()
         sys.argv = []
         dist.help = 1

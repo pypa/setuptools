@@ -136,17 +136,16 @@ class TestUtil:
         # XXX platforms to be covered: mac
 
     def test_check_environ(self):
-        util._environ_checked = 0
+        util.check_environ.cache_clear()
         os.environ.pop('HOME', None)
 
         check_environ()
 
         assert os.environ['PLAT'] == get_platform()
-        assert util._environ_checked == 1
 
     @pytest.mark.skipif("os.name != 'posix'")
     def test_check_environ_getpwuid(self):
-        util._environ_checked = 0
+        util.check_environ.cache_clear()
         os.environ.pop('HOME', None)
 
         import pwd
@@ -159,7 +158,7 @@ class TestUtil:
             check_environ()
             assert os.environ['HOME'] == '/home/distutils'
 
-        util._environ_checked = 0
+        util.check_environ.cache_clear()
         os.environ.pop('HOME', None)
 
         # bpo-10496: Catch pwd.getpwuid() error
