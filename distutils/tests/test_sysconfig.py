@@ -52,7 +52,7 @@ class TestSysconfig:
     @pytest.mark.skipif('sysconfig.IS_PYPY')
     @pytest.mark.xfail(reason="broken")
     def test_srcdir(self):
-        # See Issues #15322, #15364.
+        # See #15364.
         srcdir = sysconfig.get_config_var('srcdir')
 
         assert os.path.isabs(srcdir)
@@ -69,7 +69,7 @@ class TestSysconfig:
 
     def test_srcdir_independent_of_cwd(self):
         # srcdir should be independent of the current working directory
-        # See Issues #15322, #15364.
+        # See #15364.
         srcdir = sysconfig.get_config_var('srcdir')
         with path.Path('..'):
             srcdir2 = sysconfig.get_config_var('srcdir')
