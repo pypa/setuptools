@@ -451,41 +451,27 @@ class TestMetadata(support.TempdirManager):
         meta = meta.replace('\n' + 8 * ' ', '\n')
         assert long_desc in meta
 
-    def test_custom_pydistutils(self):
-        # fixes #2166
-        # make sure pydistutils.cfg is found
-        if os.name == 'posix':
-            user_filename = ".pydistutils.cfg"
-        else:
-            user_filename = "pydistutils.cfg"
+    def test_custom_pydistutils(self, tmp_path):
+        """
+        pydistutils.cfg is found
+        """
+        prefix = '.' * (os.name == 'posix')
+        filename = prefix + 'pydistutils.cfg'
+        jaraco.path.build({filename: '.'}, tmp_path)
+        config_path = tmp_path / filename
 
-        temp_dir = self.mkdtemp()
-        user_filename = os.path.join(temp_dir, user_filename)
-        f = open(user_filename, 'w')
-        try:
-            f.write('.')
-        finally:
-            f.close()
+        dist = Distribution()
 
-        try:
-            dist = Distribution()
+        # linux-style
+        if sys.platform in ('linux', 'darwin'):
+            os.environ['HOME'] = str(tmp_path)
 
-            # linux-style
-            if sys.platform in ('linux', 'darwin'):
-                os.environ['HOME'] = temp_dir
-                files = dist.find_config_files()
-                assert user_filename in files
+        # win32-style
+        if sys.platform == 'win32':
+            # home drive should be found
+            os.environ['USERPROFILE'] = str(tmp_path)
 
-            # win32-style
-            if sys.platform == 'win32':
-                # home drive should be found
-                os.environ['USERPROFILE'] = temp_dir
-                files = dist.find_config_files()
-                assert user_filename in files, '{!r} not found in {!r}'.format(
-                    user_filename, files
-                )
-        finally:
-            os.remove(user_filename)
+        assert str(config_path) in dist.find_config_files()
 
     def test_extra_pydistutils(self, monkeypatch, tmp_path):
         jaraco.path.build({'overrides.cfg': '.'}, tmp_path)
