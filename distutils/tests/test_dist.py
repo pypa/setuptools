@@ -492,7 +492,7 @@ class TestMetadata(support.TempdirManager):
         finally:
             os.remove(user_filename)
 
-    def test_extra_pydistutils(self):
+    def test_extra_pydistutils(self, monkeypatch):
         # make sure pydistutils.cfg is found
         extra_filename = "overrides.cfg"
 
@@ -501,17 +501,13 @@ class TestMetadata(support.TempdirManager):
         with open(extra_filename, 'w') as f:
             f.write('.')
 
-        # Testing will have been going terribly if this was set, but preserve
-        # it anyway (so it goes terribly but *consistently*)
-        old_extra_filename = os.environ.get("DISTUTILS_EXTRA_CONFIG")
-        os.environ["DISTUTILS_EXTRA_CONFIG"] = extra_filename
+        monkeypatch.setenv('DISTUTILS_EXTRA_CONFIG', extra_filename)
         try:
             dist = Distribution()
             files = dist.find_config_files()
             assert extra_filename in files
         finally:
             os.remove(extra_filename)
-            os.environ["DISTUTILS_EXTRA_CONFIG"] = old_extra_filename
 
     def test_fix_help_options(self):
         help_tuples = [('a', 'b', 'c', 'd'), (1, 2, 3, 4)]
