@@ -101,26 +101,26 @@ class TestDistributionBehavior(
 
         fakepath = '/somedir'
 
-        with open(TESTFN, "w") as f:
-            print(
-                (
-                    "[install]\n"
-                    "install-base = {0}\n"
-                    "install-platbase = {0}\n"
-                    "install-lib = {0}\n"
-                    "install-platlib = {0}\n"
-                    "install-purelib = {0}\n"
-                    "install-headers = {0}\n"
-                    "install-scripts = {0}\n"
-                    "install-data = {0}\n"
-                    "prefix = {0}\n"
-                    "exec-prefix = {0}\n"
-                    "home = {0}\n"
-                    "user = {0}\n"
-                    "root = {0}"
-                ).format(fakepath),
-                file=f,
-            )
+        jaraco.path.build(
+            {
+                TESTFN: f"""
+                    [install]
+                    install-base = {fakepath}
+                    install-platbase = {fakepath}
+                    install-lib = {fakepath}
+                    install-platlib = {fakepath}
+                    install-purelib = {fakepath}
+                    install-headers = {fakepath}
+                    install-scripts = {fakepath}
+                    install-data = {fakepath}
+                    prefix = {fakepath}
+                    exec-prefix = {fakepath}
+                    home = {fakepath}
+                    user = {fakepath}
+                    root = {fakepath}
+                    """,
+            }
+        )
 
         # Base case: Not in a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/a'):
@@ -161,12 +161,14 @@ class TestDistributionBehavior(
     def test_command_packages_configfile(self, request, clear_argv):
         sys.argv.append("build")
         request.addfinalizer(functools.partial(os.unlink, TESTFN))
-        f = open(TESTFN, "w")
-        try:
-            print("[global]", file=f)
-            print("command_packages = foo.bar, splat", file=f)
-        finally:
-            f.close()
+        jaraco.path.build(
+            {
+                TESTFN: """
+                    [global]
+                    command_packages = foo.bar, splat
+                    """,
+            }
+        )
 
         d = self.create_distribution([TESTFN])
         assert d.get_command_packages() == ["distutils.command", "foo.bar", "splat"]
