@@ -30,13 +30,13 @@ class TestSysconfig:
 
     def test_get_config_h_filename(self):
         config_h = sysconfig.get_config_h_filename()
-        assert os.path.isfile(config_h), config_h
+        assert os.path.isfile(config_h)
 
     @pytest.mark.skipif("platform.system() == 'Windows'")
     @pytest.mark.skipif("sys.implementation.name != 'cpython'")
     def test_get_makefile_filename(self):
         makefile = sysconfig.get_makefile_filename()
-        assert os.path.isfile(makefile), makefile
+        assert os.path.isfile(makefile)
 
     def test_get_python_lib(self):
         # XXX doesn't work on Linux when Python was never installed before
@@ -55,14 +55,14 @@ class TestSysconfig:
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')
 
-        assert os.path.isabs(srcdir), srcdir
-        assert os.path.isdir(srcdir), srcdir
+        assert os.path.isabs(srcdir)
+        assert os.path.isdir(srcdir)
 
         if sysconfig.python_build:
             # The python executable has not been installed so srcdir
             # should be a full source checkout.
             Python_h = os.path.join(srcdir, 'Include', 'Python.h')
-            assert os.path.exists(Python_h), Python_h
+            assert os.path.exists(Python_h)
             assert sysconfig._is_python_source_dir(srcdir)
         elif os.name == 'posix':
             assert os.path.dirname(sysconfig.get_makefile_filename()) == srcdir
