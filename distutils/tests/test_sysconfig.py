@@ -51,22 +51,29 @@ class TestSysconfig:
         assert cvars
 
     @pytest.mark.skipif('sysconfig.IS_PYPY')
-    def test_srcdir(self):
+    @pytest.mark.skipif('sysconfig.python_build')
+    def test_srcdir_simple(self):
         # See #15364.
-        srcdir = sysconfig.get_config_var('srcdir')
+        srcdir = pathlib.Path(sysconfig.get_config_var('srcdir'))
 
-        assert os.path.isabs(srcdir)
-        assert os.path.isdir(srcdir)
+        assert srcdir.absolute()
+        assert srcdir.is_dir()
 
-        if sysconfig.python_build:
-            # The python executable has not been installed so srcdir
-            # should be a full source checkout.
-            Python_h = os.path.join(srcdir, 'Include', 'Python.h')
-            assert os.path.exists(Python_h)
-            assert sysconfig._is_python_source_dir(srcdir)
-        elif os.name == 'posix':
-            makefile = pathlib.Path(sysconfig.get_makefile_filename())
-            assert makefile.parent.samefile(srcdir)
+        makefile = pathlib.Path(sysconfig.get_makefile_filename())
+        assert makefile.parent.samefile(srcdir)
+
+    @pytest.mark.skipif('sysconfig.IS_PYPY')
+    @pytest.mark.skipif('not sysconfig.python_build')
+    def test_srcdir_python_build(self):
+        # See #15364.
+        srcdir = pathlib.Path(sysconfig.get_config_var('srcdir'))
+
+        # The python executable has not been installed so srcdir
+        # should be a full source checkout.
+        Python_h = srcdir.joinpath('Include', 'Python.h')
+        assert Python_h.is_file()
+        assert sysconfig._is_python_source_dir(srcdir)
+        assert sysconfig._is_python_source_dir(str(srcdir))
 
     def test_srcdir_independent_of_cwd(self):
         """
