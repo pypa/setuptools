@@ -460,8 +460,6 @@ class TestMetadata(support.TempdirManager):
         jaraco.path.build({filename: '.'}, tmp_path)
         config_path = tmp_path / filename
 
-        dist = Distribution()
-
         # linux-style
         if sys.platform in ('linux', 'darwin'):
             os.environ['HOME'] = str(tmp_path)
@@ -471,16 +469,13 @@ class TestMetadata(support.TempdirManager):
             # home drive should be found
             os.environ['USERPROFILE'] = str(tmp_path)
 
-        assert str(config_path) in dist.find_config_files()
+        assert str(config_path) in Distribution().find_config_files()
 
     def test_extra_pydistutils(self, monkeypatch, tmp_path):
         jaraco.path.build({'overrides.cfg': '.'}, tmp_path)
         filename = tmp_path / 'overrides.cfg'
-
         monkeypatch.setenv('DIST_EXTRA_CONFIG', filename)
-        dist = Distribution()
-        files = dist.find_config_files()
-        assert str(filename) in files
+        assert str(filename) in Distribution().find_config_files()
 
     def test_fix_help_options(self):
         help_tuples = [('a', 'b', 'c', 'd'), (1, 2, 3, 4)]
