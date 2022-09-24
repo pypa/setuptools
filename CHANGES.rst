@@ -1,3 +1,12 @@
+v65.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #3609: Merge with pypa/distutils@d82d926 including support for DIST_EXTRA_CONFIG in pypa/distutils#177.
+
+
 v65.3.0
 -------
 
