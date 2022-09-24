@@ -19,6 +19,9 @@ from distutils.tests import support
 from distutils import log
 
 
+pydistutils_cfg = '.' * (os.name == 'posix') + 'pydistutils.cfg'
+
+
 class test_dist(Command):
     """Sample distutils extension command."""
 
@@ -243,13 +246,7 @@ class TestDistributionBehavior(
 
     def test_find_config_files_disable(self, temp_home):
         # Ticket #1180: Allow user to disable their home config file.
-        if os.name == 'posix':
-            user_filename = os.path.join(temp_home, ".pydistutils.cfg")
-        else:
-            user_filename = os.path.join(temp_home, "pydistutils.cfg")
-
-        with open(user_filename, 'w') as f:
-            f.write('[distutils]\n')
+        jaraco.path.build({pydistutils_cfg: '[distutils]\n'}, temp_home)
 
         d = Distribution()
         all_files = d.find_config_files()
@@ -448,17 +445,12 @@ class TestMetadata(support.TempdirManager):
         meta = meta.replace('\n' + 8 * ' ', '\n')
         assert long_desc in meta
 
-    @property
-    def pydistutilscfg(self):
-        prefix = '.' * (os.name == 'posix')
-        return prefix + 'pydistutils.cfg'
-
     def test_custom_pydistutils(self, temp_home):
         """
         pydistutils.cfg is found
         """
-        jaraco.path.build({self.pydistutilscfg: ''}, temp_home)
-        config_path = temp_home / self.pydistutilscfg
+        jaraco.path.build({pydistutils_cfg: ''}, temp_home)
+        config_path = temp_home / pydistutils_cfg
 
         assert str(config_path) in Distribution().find_config_files()
 
