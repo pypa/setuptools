@@ -241,7 +241,7 @@ class TestDistributionBehavior(
         with pytest.raises(ValueError):
             dist.announce(args, kwargs)
 
-    def test_find_config_files_disable(self):
+    def test_find_config_files_disable(self, monkeypatch):
         # Ticket #1180: Allow user to disable their home config file.
         temp_home = self.mkdtemp()
         if os.name == 'posix':
@@ -252,19 +252,13 @@ class TestDistributionBehavior(
         with open(user_filename, 'w') as f:
             f.write('[distutils]\n')
 
-        def _expander(path):
-            return temp_home
+        monkeypatch.setenv('HOME', temp_home)
 
-        old_expander = os.path.expanduser
-        os.path.expanduser = _expander
-        try:
-            d = Distribution()
-            all_files = d.find_config_files()
+        d = Distribution()
+        all_files = d.find_config_files()
 
-            d = Distribution(attrs={'script_args': ['--no-user-cfg']})
-            files = d.find_config_files()
-        finally:
-            os.path.expanduser = old_expander
+        d = Distribution(attrs={'script_args': ['--no-user-cfg']})
+        files = d.find_config_files()
 
         # make sure --no-user-cfg disables the user cfg file
         assert len(all_files) - 1 == len(files)

@@ -7,6 +7,8 @@ being built/installed/distributed.
 import sys
 import os
 import re
+import pathlib
+import contextlib
 from email import message_from_file
 
 try:
@@ -331,42 +333,30 @@ Common commands: (see '--help-commands' for more)
         The file in the user's home directory can be disabled with the
         --no-user-cfg option.
         """
-        files = []
         check_environ()
-
-        # Where to look for the system-wide Distutils config file
-        sys_dir = os.path.dirname(sys.modules['distutils'].__file__)
-
-        # Look for the system config file
-        sys_file = os.path.join(sys_dir, "distutils.cfg")
-        if os.path.isfile(sys_file):
-            files.append(sys_file)
-
-        # What to call the per-user config file
-        if os.name == 'posix':
-            user_filename = ".pydistutils.cfg"
-        else:
-            user_filename = "pydistutils.cfg"
-
-        # And look for the user config file
-        if self.want_user_cfg:
-            user_file = os.path.join(os.path.expanduser('~'), user_filename)
-            if os.path.isfile(user_file):
-                files.append(user_file)
-
-        # All platforms support local setup.cfg
-        local_file = "setup.cfg"
-        if os.path.isfile(local_file):
-            files.append(local_file)
-
-        extra_file = os.getenv("DISTUTILS_EXTRA_CONFIG")
-        if extra_file and os.path.isfile(extra_file):
-            files.append(extra_file)
+        files = [str(path) for path in self._gen_paths() if path.is_file()]
 
         if DEBUG:
             self.announce("using config files: %s" % ', '.join(files))
 
         return files
+
+    def _gen_paths(self):
+        # The system-wide Distutils config file
+        sys_dir = pathlib.Path(sys.modules['distutils'].__file__).parent
+        yield sys_dir / "distutils.cfg"
+
+        # The per-user config file
+        prefix = '.' * (os.name == 'posix')
+        filename = prefix + 'pydistutils.cfg'
+        if self.want_user_cfg:
+            yield pathlib.Path('~').expanduser() / filename
+
+        # All platforms support local setup.cfg
+        yield pathlib.Path('setup.cfg')
+
+        with contextlib.suppress(TypeError):
+            yield pathlib.Path(os.getenv("DISTUTILS_EXTRA_CONFIG"))
 
     def parse_config_files(self, filenames=None):  # noqa: C901
         from configparser import ConfigParser
