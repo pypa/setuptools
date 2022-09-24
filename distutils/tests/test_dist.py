@@ -448,14 +448,17 @@ class TestMetadata(support.TempdirManager):
         meta = meta.replace('\n' + 8 * ' ', '\n')
         assert long_desc in meta
 
+    @property
+    def pydistutilscfg(self):
+        prefix = '.' * (os.name == 'posix')
+        return prefix + 'pydistutils.cfg'
+
     def test_custom_pydistutils(self, temp_home):
         """
         pydistutils.cfg is found
         """
-        prefix = '.' * (os.name == 'posix')
-        filename = prefix + 'pydistutils.cfg'
-        jaraco.path.build({filename: ''}, temp_home)
-        config_path = temp_home / filename
+        jaraco.path.build({self.pydistutilscfg: ''}, temp_home)
+        config_path = temp_home / self.pydistutilscfg
 
         assert str(config_path) in Distribution().find_config_files()
 
