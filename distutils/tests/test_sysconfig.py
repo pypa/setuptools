@@ -8,6 +8,7 @@ import textwrap
 
 import pytest
 import jaraco.envs
+import path
 
 import distutils
 from distutils import sysconfig
@@ -70,12 +71,8 @@ class TestSysconfig:
         # srcdir should be independent of the current working directory
         # See Issues #15322, #15364.
         srcdir = sysconfig.get_config_var('srcdir')
-        cwd = os.getcwd()
-        try:
-            os.chdir('..')
+        with path.Path('..'):
             srcdir2 = sysconfig.get_config_var('srcdir')
-        finally:
-            os.chdir(cwd)
         assert srcdir == srcdir2
 
     def customize_compiler(self):
