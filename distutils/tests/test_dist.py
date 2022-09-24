@@ -8,6 +8,7 @@ import functools
 import unittest.mock as mock
 
 import pytest
+import jaraco.path
 
 from distutils.dist import Distribution, fix_help_options
 from distutils.cmd import Command
@@ -492,22 +493,14 @@ class TestMetadata(support.TempdirManager):
         finally:
             os.remove(user_filename)
 
-    def test_extra_pydistutils(self, monkeypatch):
-        # make sure pydistutils.cfg is found
-        extra_filename = "overrides.cfg"
+    def test_extra_pydistutils(self, monkeypatch, tmp_path):
+        jaraco.path.build({'overrides.cfg': '.'}, tmp_path)
+        filename = tmp_path / 'overrides.cfg'
 
-        temp_dir = self.mkdtemp()
-        extra_filename = os.path.join(temp_dir, extra_filename)
-        with open(extra_filename, 'w') as f:
-            f.write('.')
-
-        monkeypatch.setenv('DISTUTILS_EXTRA_CONFIG', extra_filename)
-        try:
-            dist = Distribution()
-            files = dist.find_config_files()
-            assert extra_filename in files
-        finally:
-            os.remove(extra_filename)
+        monkeypatch.setenv('DISTUTILS_EXTRA_CONFIG', filename)
+        dist = Distribution()
+        files = dist.find_config_files()
+        assert str(filename) in files
 
     def test_fix_help_options(self):
         help_tuples = [('a', 'b', 'c', 'd'), (1, 2, 3, 4)]
