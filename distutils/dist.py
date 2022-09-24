@@ -357,7 +357,7 @@ Common commands: (see '--help-commands' for more)
 
         # Additional config indicated in the environment
         with contextlib.suppress(TypeError):
-            yield pathlib.Path(os.getenv("DISTUTILS_EXTRA_CONFIG"))
+            yield pathlib.Path(os.getenv("DIST_EXTRA_CONFIG"))
 
     def parse_config_files(self, filenames=None):  # noqa: C901
         from configparser import ConfigParser

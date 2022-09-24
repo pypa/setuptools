@@ -491,7 +491,7 @@ class TestMetadata(support.TempdirManager):
         jaraco.path.build({'overrides.cfg': '.'}, tmp_path)
         filename = tmp_path / 'overrides.cfg'
 
-        monkeypatch.setenv('DISTUTILS_EXTRA_CONFIG', filename)
+        monkeypatch.setenv('DIST_EXTRA_CONFIG', filename)
         dist = Distribution()
         files = dist.find_config_files()
         assert str(filename) in files
