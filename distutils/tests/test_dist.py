@@ -451,23 +451,14 @@ class TestMetadata(support.TempdirManager):
         meta = meta.replace('\n' + 8 * ' ', '\n')
         assert long_desc in meta
 
-    def test_custom_pydistutils(self, tmp_path):
+    def test_custom_pydistutils(self, temp_home):
         """
         pydistutils.cfg is found
         """
         prefix = '.' * (os.name == 'posix')
         filename = prefix + 'pydistutils.cfg'
-        jaraco.path.build({filename: ''}, tmp_path)
-        config_path = tmp_path / filename
-
-        # linux-style
-        if sys.platform in ('linux', 'darwin'):
-            os.environ['HOME'] = str(tmp_path)
-
-        # win32-style
-        if sys.platform == 'win32':
-            # home drive should be found
-            os.environ['USERPROFILE'] = str(tmp_path)
+        jaraco.path.build({filename: ''}, temp_home)
+        config_path = temp_home / filename
 
         assert str(config_path) in Distribution().find_config_files()
 

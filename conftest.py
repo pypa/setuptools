@@ -156,3 +156,10 @@ def suppress_path_mangle(monkeysession):
     monkeysession.setattr(
         ccompiler.CCompiler, '_make_relative', staticmethod(lambda x: x)
     )
+
+
+@pytest.fixture
+def temp_home(tmp_path, monkeypatch):
+    var = 'USERPROFILE' if platform.system() == 'Windows' else 'HOME'
+    monkeypatch.setenv(var, str(tmp_path))
+    return tmp_path
