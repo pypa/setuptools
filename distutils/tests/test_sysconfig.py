@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import pathlib
 
 import pytest
 import jaraco.envs
@@ -50,7 +51,6 @@ class TestSysconfig:
         assert cvars
 
     @pytest.mark.skipif('sysconfig.IS_PYPY')
-    @pytest.mark.xfail(reason="broken")
     def test_srcdir(self):
         # See #15364.
         srcdir = sysconfig.get_config_var('srcdir')
@@ -65,10 +65,13 @@ class TestSysconfig:
             assert os.path.exists(Python_h)
             assert sysconfig._is_python_source_dir(srcdir)
         elif os.name == 'posix':
-            assert os.path.dirname(sysconfig.get_makefile_filename()) == srcdir
+            makefile = pathlib.Path(sysconfig.get_makefile_filename())
+            assert makefile.parent.samefile(srcdir)
 
     def test_srcdir_independent_of_cwd(self):
-        # srcdir should be independent of the current working directory
+        """
+        srcdir should be independent of the current working directory
+        """
         # See #15364.
         srcdir = sysconfig.get_config_var('srcdir')
         with path.Path('..'):
