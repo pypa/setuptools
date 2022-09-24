@@ -271,7 +271,7 @@ class TestDistributionBehavior(
 
 @pytest.mark.usefixtures('save_env')
 @pytest.mark.usefixtures('save_argv')
-class MetadataTestCase(support.TempdirManager):
+class TestMetadata(support.TempdirManager):
     def format_metadata(self, dist):
         sio = io.StringIO()
         dist.metadata.write_pkg_file(sio)
@@ -498,9 +498,10 @@ class MetadataTestCase(support.TempdirManager):
         assert fancy_options[0] == ('a', 'b', 'c')
         assert fancy_options[1] == (1, 2, 3)
 
-    def test_show_help(self):
+    def test_show_help(self, request):
         # smoke test, just makes sure some help is displayed
-        self.addCleanup(log.set_threshold, log._global_log.threshold)
+        reset_log = functools.partial(log.set_threshold, log._global_log.threshold)
+        request.addfinalizer(reset_log)
         dist = Distribution()
         sys.argv = []
         dist.help = 1
