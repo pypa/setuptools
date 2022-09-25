@@ -90,6 +90,12 @@ def save_cwd():
 
 
 @pytest.fixture
+def temp_cwd(tmp_path):
+    with path.Path(tmp_path):
+        yield
+
+
+@pytest.fixture
 def threshold_warn():
     from distutils.log import set_threshold, WARN
 

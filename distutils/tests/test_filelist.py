@@ -303,26 +303,24 @@ class TestFileList(support.LoggingSilencer):
 
 class TestFindAll:
     @os_helper.skip_unless_symlink
-    def test_missing_symlink(self):
-        with os_helper.temp_cwd():
-            os.symlink('foo', 'bar')
-            assert filelist.findall() == []
+    def test_missing_symlink(self, temp_cwd):
+        os.symlink('foo', 'bar')
+        assert filelist.findall() == []
 
-    def test_basic_discovery(self):
+    def test_basic_discovery(self, temp_cwd):
         """
         When findall is called with no parameters or with
         '.' as the parameter, the dot should be omitted from
         the results.
         """
-        with os_helper.temp_cwd():
-            os.mkdir('foo')
-            file1 = os.path.join('foo', 'file1.txt')
-            os_helper.create_empty_file(file1)
-            os.mkdir('bar')
-            file2 = os.path.join('bar', 'file2.txt')
-            os_helper.create_empty_file(file2)
-            expected = [file2, file1]
-            assert sorted(filelist.findall()) == expected
+        os.mkdir('foo')
+        file1 = os.path.join('foo', 'file1.txt')
+        os_helper.create_empty_file(file1)
+        os.mkdir('bar')
+        file2 = os.path.join('bar', 'file2.txt')
+        os_helper.create_empty_file(file2)
+        expected = [file2, file1]
+        assert sorted(filelist.findall()) == expected
 
     def test_non_local_discovery(self):
         """

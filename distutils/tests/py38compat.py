@@ -24,7 +24,6 @@ try:
         skip_unless_symlink,
         temp_dir,
         create_empty_file,
-        temp_cwd,
     )
 except (ModuleNotFoundError, ImportError):
     from test.support import (
@@ -34,7 +33,6 @@ except (ModuleNotFoundError, ImportError):
         skip_unless_symlink,
         temp_dir,
         create_empty_file,
-        temp_cwd,
     )
 
 
