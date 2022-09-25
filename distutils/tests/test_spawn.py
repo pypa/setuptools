@@ -45,82 +45,81 @@ class TestSpawn(support.TempdirManager, support.LoggingSilencer):
         spawn([exe])  # should work without any error
 
     def test_find_executable(self, tmp_path):
-        if True:
-            program_noeext = 'program'
-            # Give the temporary program an ".exe" suffix for all.
-            # It's needed on Windows and not harmful on other platforms.
-            program = program_noeext + ".exe"
+        program_noeext = 'program'
+        # Give the temporary program an ".exe" suffix for all.
+        # It's needed on Windows and not harmful on other platforms.
+        program = program_noeext + ".exe"
 
-            program_path = tmp_path / program
-            program_path.write_text("")
-            program_path.chmod(stat.S_IXUSR)
-            filename = str(program_path)
-            tmp_dir = str(tmp_path)
+        program_path = tmp_path / program
+        program_path.write_text("")
+        program_path.chmod(stat.S_IXUSR)
+        filename = str(program_path)
+        tmp_dir = str(tmp_path)
 
-            # test path parameter
-            rv = find_executable(program, path=tmp_dir)
+        # test path parameter
+        rv = find_executable(program, path=tmp_dir)
+        assert rv == filename
+
+        if sys.platform == 'win32':
+            # test without ".exe" extension
+            rv = find_executable(program_noeext, path=tmp_dir)
             assert rv == filename
 
-            if sys.platform == 'win32':
-                # test without ".exe" extension
-                rv = find_executable(program_noeext, path=tmp_dir)
+        # test find in the current directory
+        with os_helper.change_cwd(tmp_dir):
+            rv = find_executable(program)
+            assert rv == program
+
+        # test non-existent program
+        dont_exist_program = "dontexist_" + program
+        rv = find_executable(dont_exist_program, path=tmp_dir)
+        assert rv is None
+
+        # PATH='': no match, except in the current directory
+        with os_helper.EnvironmentVarGuard() as env:
+            env['PATH'] = ''
+            with mock.patch(
+                'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
+            ), mock.patch('distutils.spawn.os.defpath', tmp_dir):
+                rv = find_executable(program)
+                assert rv is None
+
+                # look in current directory
+                with os_helper.change_cwd(tmp_dir):
+                    rv = find_executable(program)
+                    assert rv == program
+
+        # PATH=':': explicitly looks in the current directory
+        with os_helper.EnvironmentVarGuard() as env:
+            env['PATH'] = os.pathsep
+            with mock.patch(
+                'distutils.spawn.os.confstr', return_value='', create=True
+            ), mock.patch('distutils.spawn.os.defpath', ''):
+                rv = find_executable(program)
+                assert rv is None
+
+                # look in current directory
+                with os_helper.change_cwd(tmp_dir):
+                    rv = find_executable(program)
+                    assert rv == program
+
+        # missing PATH: test os.confstr("CS_PATH") and os.defpath
+        with os_helper.EnvironmentVarGuard() as env:
+            env.pop('PATH', None)
+
+            # without confstr
+            with mock.patch(
+                'distutils.spawn.os.confstr', side_effect=ValueError, create=True
+            ), mock.patch('distutils.spawn.os.defpath', tmp_dir):
+                rv = find_executable(program)
                 assert rv == filename
 
-            # test find in the current directory
-            with os_helper.change_cwd(tmp_dir):
+            # with confstr
+            with mock.patch(
+                'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
+            ), mock.patch('distutils.spawn.os.defpath', ''):
                 rv = find_executable(program)
-                assert rv == program
-
-            # test non-existent program
-            dont_exist_program = "dontexist_" + program
-            rv = find_executable(dont_exist_program, path=tmp_dir)
-            assert rv is None
-
-            # PATH='': no match, except in the current directory
-            with os_helper.EnvironmentVarGuard() as env:
-                env['PATH'] = ''
-                with mock.patch(
-                    'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
-                ), mock.patch('distutils.spawn.os.defpath', tmp_dir):
-                    rv = find_executable(program)
-                    assert rv is None
-
-                    # look in current directory
-                    with os_helper.change_cwd(tmp_dir):
-                        rv = find_executable(program)
-                        assert rv == program
-
-            # PATH=':': explicitly looks in the current directory
-            with os_helper.EnvironmentVarGuard() as env:
-                env['PATH'] = os.pathsep
-                with mock.patch(
-                    'distutils.spawn.os.confstr', return_value='', create=True
-                ), mock.patch('distutils.spawn.os.defpath', ''):
-                    rv = find_executable(program)
-                    assert rv is None
-
-                    # look in current directory
-                    with os_helper.change_cwd(tmp_dir):
-                        rv = find_executable(program)
-                        assert rv == program
-
-            # missing PATH: test os.confstr("CS_PATH") and os.defpath
-            with os_helper.EnvironmentVarGuard() as env:
-                env.pop('PATH', None)
-
-                # without confstr
-                with mock.patch(
-                    'distutils.spawn.os.confstr', side_effect=ValueError, create=True
-                ), mock.patch('distutils.spawn.os.defpath', tmp_dir):
-                    rv = find_executable(program)
-                    assert rv == filename
-
-                # with confstr
-                with mock.patch(
-                    'distutils.spawn.os.confstr', return_value=tmp_dir, create=True
-                ), mock.patch('distutils.spawn.os.defpath', ''):
-                    rv = find_executable(program)
-                    assert rv == filename
+                assert rv == filename
 
     def test_spawn_missing_exe(self):
         with pytest.raises(DistutilsExecError) as ctx:
