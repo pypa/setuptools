@@ -4,6 +4,7 @@ import io
 import distutils.core
 import os
 import sys
+import pathlib
 from test.support import captured_stdout
 
 import pytest
@@ -66,11 +67,7 @@ def save_stdout(monkeypatch):
 @pytest.mark.usefixtures('cleanup_testfn')
 class TestCore:
     def write_setup(self, text, path=os_helper.TESTFN):
-        f = open(path, "w")
-        try:
-            f.write(text)
-        finally:
-            f.close()
+        pathlib.Path(path).write_text(text)
         return path
 
     def test_run_setup_provides_file(self):
