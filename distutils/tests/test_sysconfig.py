@@ -39,6 +39,7 @@ class TestSysconfig:
 
     @pytest.mark.skipif('sysconfig.IS_PYPY')
     @pytest.mark.skipif('sysconfig.python_build')
+    @pytest.mark.xfail('platform.system() == "Windows"')
     def test_srcdir_simple(self):
         # See #15364.
         srcdir = pathlib.Path(sysconfig.get_config_var('srcdir'))
