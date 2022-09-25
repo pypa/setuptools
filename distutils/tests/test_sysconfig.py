@@ -1,7 +1,6 @@
 """Tests for distutils.sysconfig."""
 import contextlib
 import os
-import shutil
 import subprocess
 import sys
 import textwrap
@@ -23,12 +22,6 @@ from .py38compat import TESTFN
 @pytest.mark.usefixtures('save_env')
 @pytest.mark.usefixtures('cleanup_testfn')
 class TestSysconfig:
-    def cleanup_testfn(self):
-        if os.path.isfile(TESTFN):
-            os.remove(TESTFN)
-        elif os.path.isdir(TESTFN):
-            shutil.rmtree(TESTFN)
-
     def test_get_config_h_filename(self):
         config_h = sysconfig.get_config_h_filename()
         assert os.path.isfile(config_h)
