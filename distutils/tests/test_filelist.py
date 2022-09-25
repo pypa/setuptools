@@ -8,10 +8,12 @@ from distutils.filelist import glob_to_re, translate_pattern, FileList
 from distutils import filelist
 
 from test.support import captured_stdout
-from distutils.tests import support
 
-from . import py38compat as os_helper
 import pytest
+import jaraco.path
+
+from distutils.tests import support
+from . import py38compat as os_helper
 
 
 MANIFEST_IN = """\
@@ -313,32 +315,25 @@ class TestFindAll:
         '.' as the parameter, the dot should be omitted from
         the results.
         """
-        os.mkdir('foo')
+        jaraco.path.build({'foo': {'file1.txt': ''}, 'bar': {'file2.txt': ''}})
         file1 = os.path.join('foo', 'file1.txt')
-        os_helper.create_empty_file(file1)
-        os.mkdir('bar')
         file2 = os.path.join('bar', 'file2.txt')
-        os_helper.create_empty_file(file2)
         expected = [file2, file1]
         assert sorted(filelist.findall()) == expected
 
-    def test_non_local_discovery(self):
+    def test_non_local_discovery(self, tmp_path):
         """
         When findall is called with another path, the full
         path name should be returned.
         """
-        with os_helper.temp_dir() as temp_dir:
-            file1 = os.path.join(temp_dir, 'file1.txt')
-            os_helper.create_empty_file(file1)
-            expected = [file1]
-            assert filelist.findall(temp_dir) == expected
+        filename = tmp_path / 'file1.txt'
+        filename.write_text('')
+        expected = [str(filename)]
+        assert filelist.findall(tmp_path) == expected
 
     @os_helper.skip_unless_symlink
-    def test_symlink_loop(self):
-        with os_helper.temp_dir() as temp_dir:
-            link = os.path.join(temp_dir, 'link-to-parent')
-            content = os.path.join(temp_dir, 'somefile')
-            os_helper.create_empty_file(content)
-            os.symlink('.', link)
-            files = filelist.findall(temp_dir)
-            assert len(files) == 1
+    def test_symlink_loop(self, tmp_path):
+        tmp_path.joinpath('link-to-parent').symlink_to('.')
+        tmp_path.joinpath('somefile').write_text('')
+        files = filelist.findall(tmp_path)
+        assert len(files) == 1

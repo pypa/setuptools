@@ -23,7 +23,6 @@ try:
         unlink,
         skip_unless_symlink,
         temp_dir,
-        create_empty_file,
     )
 except (ModuleNotFoundError, ImportError):
     from test.support import (
@@ -32,7 +31,6 @@ except (ModuleNotFoundError, ImportError):
         unlink,
         skip_unless_symlink,
         temp_dir,
-        create_empty_file,
     )
 
 
