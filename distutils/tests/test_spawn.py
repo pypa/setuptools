@@ -44,18 +44,18 @@ class TestSpawn(support.TempdirManager, support.LoggingSilencer):
         os.chmod(exe, 0o777)
         spawn([exe])  # should work without any error
 
-    def test_find_executable(self):
-        with os_helper.temp_dir() as tmp_dir:
-            # use TESTFN to get a pseudo-unique filename
-            program_noeext = os_helper.TESTFN
+    def test_find_executable(self, tmp_path):
+        if True:
+            program_noeext = 'program'
             # Give the temporary program an ".exe" suffix for all.
             # It's needed on Windows and not harmful on other platforms.
             program = program_noeext + ".exe"
 
-            filename = os.path.join(tmp_dir, program)
-            with open(filename, "wb"):
-                pass
-            os.chmod(filename, stat.S_IXUSR)
+            program_path = tmp_path / program
+            program_path.write_text("")
+            program_path.chmod(stat.S_IXUSR)
+            filename = str(program_path)
+            tmp_dir = str(tmp_path)
 
             # test path parameter
             rv = find_executable(program, path=tmp_dir)
