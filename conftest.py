@@ -3,6 +3,7 @@ import sys
 import platform
 
 import pytest
+import path
 
 
 collect_ignore = []
@@ -54,19 +55,20 @@ def distutils_logging_silencer(request):
         log.Log._log = self._old_log
 
 
+def _save_cwd():
+    return path.Path('.')
+
+
 @pytest.fixture
 def distutils_managed_tempdir(request):
     from distutils.tests import py38compat as os_helper
 
     self = request.instance
-    self.old_cwd = os.getcwd()
     self.tempdirs = []
     try:
-        yield
+        with _save_cwd():
+            yield
     finally:
-        # Restore working dir, for Solaris and derivatives, where rmdir()
-        # on the current directory fails.
-        os.chdir(self.old_cwd)
         while self.tempdirs:
             tmpdir = self.tempdirs.pop()
             os_helper.rmtree(tmpdir)
@@ -83,11 +85,8 @@ def save_argv():
 
 @pytest.fixture
 def save_cwd():
-    orig = os.getcwd()
-    try:
+    with _save_cwd():
         yield
-    finally:
-        os.chdir(orig)
 
 
 @pytest.fixture
