@@ -6,6 +6,8 @@ import unittest.mock as mock
 
 from test.support import unix_shell
 
+import path
+
 from . import py38compat as os_helper
 
 from distutils.spawn import find_executable
@@ -54,7 +56,7 @@ class TestSpawn(support.TempdirManager, support.LoggingSilencer):
         program_path.write_text("")
         program_path.chmod(stat.S_IXUSR)
         filename = str(program_path)
-        tmp_dir = str(tmp_path)
+        tmp_dir = path.Path(tmp_path)
 
         # test path parameter
         rv = find_executable(program, path=tmp_dir)
@@ -66,7 +68,7 @@ class TestSpawn(support.TempdirManager, support.LoggingSilencer):
             assert rv == filename
 
         # test find in the current directory
-        with os_helper.change_cwd(tmp_dir):
+        with tmp_dir:
             rv = find_executable(program)
             assert rv == program
 
@@ -85,7 +87,7 @@ class TestSpawn(support.TempdirManager, support.LoggingSilencer):
                 assert rv is None
 
                 # look in current directory
-                with os_helper.change_cwd(tmp_dir):
+                with tmp_dir:
                     rv = find_executable(program)
                     assert rv == program
 
@@ -99,7 +101,7 @@ class TestSpawn(support.TempdirManager, support.LoggingSilencer):
                 assert rv is None
 
                 # look in current directory
-                with os_helper.change_cwd(tmp_dir):
+                with tmp_dir:
                     rv = find_executable(program)
                     assert rv == program
 
