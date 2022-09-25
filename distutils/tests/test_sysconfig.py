@@ -16,6 +16,8 @@ from distutils.ccompiler import get_default_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
 
+from . import py37compat
+
 
 @pytest.mark.usefixtures('save_env')
 class TestSysconfig:
@@ -249,7 +251,7 @@ class TestSysconfig:
             )
         )
         p = subprocess.Popen(
-            [str(sys.executable), file],
+            py37compat.subprocess_args(sys.executable, file),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
