@@ -66,9 +66,9 @@ def save_stdout(monkeypatch):
 @pytest.mark.usefixtures('save_argv')
 @pytest.mark.usefixtures('cleanup_testfn')
 class TestCore:
-    def write_setup(self, text, path=os_helper.TESTFN):
-        pathlib.Path(path).write_text(text)
-        return path
+    def write_setup(self, text):
+        pathlib.Path(os_helper.TESTFN).write_text(text)
+        return os_helper.TESTFN
 
     def test_run_setup_provides_file(self):
         # Make sure the script can use __file__; if that's missing, the test
@@ -88,17 +88,18 @@ class TestCore:
         install = dist.get_command_obj('install')
         assert 'cmd' in install.sub_commands
 
-    def test_run_setup_uses_current_dir(self):
-        # This tests that the setup script is run with the current directory
-        # as its own current directory; this was temporarily broken by a
-        # previous patch when TESTFN did not use the current directory.
+    def test_run_setup_uses_current_dir(self, tmp_path):
+        """
+        Test that the setup script is run with the current directory
+        as its own current directory.
+        """
         sys.stdout = io.StringIO()
         cwd = os.getcwd()
 
         # Create a directory and write the setup.py file there:
-        os.mkdir(os_helper.TESTFN)
-        setup_py = os.path.join(os_helper.TESTFN, "setup.py")
-        distutils.core.run_setup(self.write_setup(setup_prints_cwd, path=setup_py))
+        setup_py = tmp_path / 'setup.py'
+        setup_py.write_text(setup_prints_cwd)
+        distutils.core.run_setup(setup_py)
 
         output = sys.stdout.getvalue()
         if output.endswith("\n"):
