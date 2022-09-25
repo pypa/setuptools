@@ -3,12 +3,12 @@ import contextlib
 import os
 import subprocess
 import sys
-import textwrap
 import pathlib
 
 import pytest
 import jaraco.envs
 import path
+from jaraco.text import trim
 
 import distutils
 from distutils import sysconfig
@@ -16,11 +16,8 @@ from distutils.ccompiler import get_default_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
 
-from .py38compat import TESTFN
-
 
 @pytest.mark.usefixtures('save_env')
-@pytest.mark.usefixtures('cleanup_testfn')
 class TestSysconfig:
     def test_get_config_h_filename(self):
         config_h = sysconfig.get_config_h_filename()
@@ -32,8 +29,8 @@ class TestSysconfig:
         makefile = sysconfig.get_makefile_filename()
         assert os.path.isfile(makefile)
 
-    def test_get_python_lib(self):
-        assert sysconfig.get_python_lib() != sysconfig.get_python_lib(prefix=TESTFN)
+    def test_get_python_lib(self, tmp_path):
+        assert sysconfig.get_python_lib() != sysconfig.get_python_lib(prefix=tmp_path)
 
     def test_get_config_vars(self):
         cvars = sysconfig.get_config_vars()
@@ -166,26 +163,32 @@ class TestSysconfig:
         assert comp.shared_lib_extension == 'sc_shutil_suffix'
         assert 'ranlib' not in comp.exes
 
-    def test_parse_makefile_base(self):
-        self.makefile = TESTFN
-        fd = open(self.makefile, 'w')
-        try:
-            fd.write(r"CONFIG_ARGS=  '--arg1=optarg1' 'ENV=LIB'" '\n')
-            fd.write('VAR=$OTHER\nOTHER=foo')
-        finally:
-            fd.close()
-        d = sysconfig.parse_makefile(self.makefile)
+    def test_parse_makefile_base(self, tmp_path):
+        makefile = tmp_path / 'Makefile'
+        makefile.write_text(
+            trim(
+                """
+                CONFIG_ARGS=  '--arg1=optarg1' 'ENV=LIB'
+                VAR=$OTHER
+                OTHER=foo
+                """
+            )
+        )
+        d = sysconfig.parse_makefile(makefile)
         assert d == {'CONFIG_ARGS': "'--arg1=optarg1' 'ENV=LIB'", 'OTHER': 'foo'}
 
-    def test_parse_makefile_literal_dollar(self):
-        self.makefile = TESTFN
-        fd = open(self.makefile, 'w')
-        try:
-            fd.write(r"CONFIG_ARGS=  '--arg1=optarg1' 'ENV=\$$LIB'" '\n')
-            fd.write('VAR=$OTHER\nOTHER=foo')
-        finally:
-            fd.close()
-        d = sysconfig.parse_makefile(self.makefile)
+    def test_parse_makefile_literal_dollar(self, tmp_path):
+        makefile = tmp_path / 'Makefile'
+        makefile.write_text(
+            trim(
+                """
+                CONFIG_ARGS=  '--arg1=optarg1' 'ENV=\\$$LIB'
+                VAR=$OTHER
+                OTHER=foo
+                """
+            )
+        )
+        d = sysconfig.parse_makefile(makefile)
         assert d == {'CONFIG_ARGS': r"'--arg1=optarg1' 'ENV=\$LIB'", 'OTHER': 'foo'}
 
     def test_sysconfig_module(self):
@@ -228,24 +231,24 @@ class TestSysconfig:
         with pytest.warns(DeprecationWarning):
             sysconfig.get_config_var('SO')
 
-    def test_customize_compiler_before_get_config_vars(self):
+    def test_customize_compiler_before_get_config_vars(self, tmp_path):
         # Issue #21923: test that a Distribution compiler
         # instance can be called without an explicit call to
         # get_config_vars().
-        with open(TESTFN, 'w') as f:
-            f.writelines(
-                textwrap.dedent(
-                    '''\
+        file = tmp_path / 'file'
+        file.write_text(
+            trim(
+                """
                 from distutils.core import Distribution
                 config = Distribution().get_command_obj('config')
                 # try_compile may pass or it may fail if no compiler
                 # is found but it should not raise an exception.
                 rc = config.try_compile('int x;')
-                '''
-                )
+                """
             )
+        )
         p = subprocess.Popen(
-            [str(sys.executable), TESTFN],
+            [str(sys.executable), file],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
@@ -275,11 +278,11 @@ class TestSysconfig:
         '\\PCbuild\\'.casefold() not in sys.executable.casefold(),
         reason='Need sys.executable to be in a source tree',
     )
-    def test_win_build_venv_from_source_tree(self):
+    def test_win_build_venv_from_source_tree(self, tmp_path):
         """Ensure distutils.sysconfig detects venvs from source tree builds."""
         env = jaraco.envs.VEnv()
         env.create_opts = env.clean_opts
-        env.root = TESTFN
+        env.root = tmp_path
         env.ensure_env()
         cmd = [
             env.exe(),
