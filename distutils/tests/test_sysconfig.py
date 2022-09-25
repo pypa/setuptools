@@ -33,9 +33,6 @@ class TestSysconfig:
         assert os.path.isfile(makefile)
 
     def test_get_python_lib(self):
-        # XXX doesn't work on Linux when Python was never installed before
-        # self.assertTrue(os.path.isdir(lib_dir), lib_dir)
-        # test for pythonxx.lib?
         assert sysconfig.get_python_lib() != sysconfig.get_python_lib(prefix=TESTFN)
 
     def test_get_config_vars(self):
