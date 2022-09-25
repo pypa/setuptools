@@ -9,6 +9,7 @@ import operator
 import pathlib
 
 import pytest
+import path
 
 from distutils import archive_util
 from distutils.archive_util import (
@@ -23,7 +24,6 @@ from distutils.tests import support
 from test.support import patch
 from .unix_compat import require_unix_id, require_uid_0, grp, pwd, UID_0_SUPPORT
 
-from .py38compat import change_cwd
 from .py38compat import check_warnings
 
 
@@ -95,7 +95,7 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         base_name = os.path.join(tmpdir2, target_name)
 
         # working with relative paths to avoid tar warnings
-        with change_cwd(tmpdir):
+        with path.Path(tmpdir):
             make_tarball(splitdrive(base_name)[1], 'dist', **kwargs)
 
         # check if the compressed tarball was created
@@ -227,7 +227,7 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         # creating something to tar
         tmpdir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
-        with change_cwd(tmpdir):
+        with path.Path(tmpdir):
             make_zipfile(base_name, 'dist')
 
         # check if the compressed tarball was created
@@ -253,7 +253,7 @@ class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
         # create something to tar and compress
         tmpdir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')
-        with change_cwd(tmpdir):
+        with path.Path(tmpdir):
             make_zipfile(base_name, 'dist')
 
         tarball = base_name + '.zip'

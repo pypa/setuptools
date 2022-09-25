@@ -18,7 +18,6 @@ except (ModuleNotFoundError, ImportError):
 
 try:
     from test.support.os_helper import (
-        change_cwd,
         rmtree,
         EnvironmentVarGuard,
         unlink,
@@ -29,7 +28,6 @@ try:
     )
 except (ModuleNotFoundError, ImportError):
     from test.support import (
-        change_cwd,
         rmtree,
         EnvironmentVarGuard,
         unlink,
