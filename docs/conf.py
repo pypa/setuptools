@@ -1,7 +1,15 @@
-extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+extensions = [
+    'sphinx.ext.autodoc',
+    'jaraco.packaging.sphinx',
+]
 
 master_doc = "index"
 
+# Link dates and other references in the changelog
+extensions += ['rst.linker']
 link_files = {
     '../CHANGES.rst': dict(
         using=dict(
@@ -81,7 +89,7 @@ link_files = {
     ),
 }
 
-# Be strict about any broken references:
+# Be strict about any broken references
 nitpicky = True
 
 # Include Python intersphinx mapping to prevent failures
@@ -90,6 +98,9 @@ extensions += ['sphinx.ext.intersphinx']
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
 }
+
+# Preserve authored syntax for defaults
+autodoc_preserve_defaults = True
 
 intersphinx_mapping.update({
     'pip': ('https://pip.pypa.io/en/latest', None),
