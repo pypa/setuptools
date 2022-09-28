@@ -77,7 +77,8 @@ jobs:
 
   linux:
     # https://github.com/sagemath/sage/blob/develop/.github/workflows/docker.yml
-    uses: sagemath/sage/.github/workflows/docker.yml@develop
+    # Use branch of ticket https://trac.sagemath.org/ticket/33288
+    uses: sagemath/sagetrac-mirror/.github/workflows/docker.yml@u/mkoeppe/setuptools_ci_target
     with:
       # Sage distribution packages to build
       targets: setuptools pyzmq
