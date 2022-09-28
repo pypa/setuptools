@@ -37,6 +37,9 @@ on:
   push:
     tags:
       - '*'
+  pull_request:
+    paths:
+      - .github/workflows/ci-sage.yml
   workflow_dispatch:
     # Allow to run manually
 
