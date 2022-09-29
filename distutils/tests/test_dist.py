@@ -258,7 +258,6 @@ class TestDistributionBehavior(
         # make sure --no-user-cfg disables the user cfg file
         assert len(all_files) - 1 == len(files)
 
-    @pytest.mark.xfail(reason="pypa/distutils#181", strict=True)
     @pytest.mark.skipif(
         'platform.system() == "Windows"',
         reason='Windows does not honor chmod 000',
