@@ -18,27 +18,19 @@ except (ModuleNotFoundError, ImportError):
 
 try:
     from test.support.os_helper import (
-        change_cwd,
         rmtree,
         EnvironmentVarGuard,
-        TESTFN,
         unlink,
         skip_unless_symlink,
         temp_dir,
-        create_empty_file,
-        temp_cwd,
     )
 except (ModuleNotFoundError, ImportError):
     from test.support import (
-        change_cwd,
         rmtree,
         EnvironmentVarGuard,
-        TESTFN,
         unlink,
         skip_unless_symlink,
         temp_dir,
-        create_empty_file,
-        temp_cwd,
     )
 
 

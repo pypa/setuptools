@@ -1,13 +1,14 @@
 """Tests for distutils.sysconfig."""
 import contextlib
 import os
-import shutil
 import subprocess
 import sys
-import textwrap
+import pathlib
 
 import pytest
 import jaraco.envs
+import path
+from jaraco.text import trim
 
 import distutils
 from distutils import sysconfig
@@ -15,33 +16,23 @@ from distutils.ccompiler import get_default_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
 
-from .py38compat import TESTFN
+from . import py37compat
 
 
 @pytest.mark.usefixtures('save_env')
-@pytest.mark.usefixtures('cleanup_testfn')
 class TestSysconfig:
-    def cleanup_testfn(self):
-        if os.path.isfile(TESTFN):
-            os.remove(TESTFN)
-        elif os.path.isdir(TESTFN):
-            shutil.rmtree(TESTFN)
-
     def test_get_config_h_filename(self):
         config_h = sysconfig.get_config_h_filename()
-        assert os.path.isfile(config_h), config_h
+        assert os.path.isfile(config_h)
 
     @pytest.mark.skipif("platform.system() == 'Windows'")
     @pytest.mark.skipif("sys.implementation.name != 'cpython'")
     def test_get_makefile_filename(self):
         makefile = sysconfig.get_makefile_filename()
-        assert os.path.isfile(makefile), makefile
+        assert os.path.isfile(makefile)
 
-    def test_get_python_lib(self):
-        # XXX doesn't work on Linux when Python was never installed before
-        # self.assertTrue(os.path.isdir(lib_dir), lib_dir)
-        # test for pythonxx.lib?
-        assert sysconfig.get_python_lib() != sysconfig.get_python_lib(prefix=TESTFN)
+    def test_get_python_lib(self, tmp_path):
+        assert sysconfig.get_python_lib() != sysconfig.get_python_lib(prefix=tmp_path)
 
     def test_get_config_vars(self):
         cvars = sysconfig.get_config_vars()
@@ -49,33 +40,39 @@ class TestSysconfig:
         assert cvars
 
     @pytest.mark.skipif('sysconfig.IS_PYPY')
-    @pytest.mark.xfail(reason="broken")
-    def test_srcdir(self):
-        # See Issues #15322, #15364.
-        srcdir = sysconfig.get_config_var('srcdir')
+    @pytest.mark.skipif('sysconfig.python_build')
+    @pytest.mark.xfail('platform.system() == "Windows"')
+    def test_srcdir_simple(self):
+        # See #15364.
+        srcdir = pathlib.Path(sysconfig.get_config_var('srcdir'))
 
-        assert os.path.isabs(srcdir), srcdir
-        assert os.path.isdir(srcdir), srcdir
+        assert srcdir.absolute()
+        assert srcdir.is_dir()
 
-        if sysconfig.python_build:
-            # The python executable has not been installed so srcdir
-            # should be a full source checkout.
-            Python_h = os.path.join(srcdir, 'Include', 'Python.h')
-            assert os.path.exists(Python_h), Python_h
-            assert sysconfig._is_python_source_dir(srcdir)
-        elif os.name == 'posix':
-            assert os.path.dirname(sysconfig.get_makefile_filename()) == srcdir
+        makefile = pathlib.Path(sysconfig.get_makefile_filename())
+        assert makefile.parent.samefile(srcdir)
+
+    @pytest.mark.skipif('sysconfig.IS_PYPY')
+    @pytest.mark.skipif('not sysconfig.python_build')
+    def test_srcdir_python_build(self):
+        # See #15364.
+        srcdir = pathlib.Path(sysconfig.get_config_var('srcdir'))
+
+        # The python executable has not been installed so srcdir
+        # should be a full source checkout.
+        Python_h = srcdir.joinpath('Include', 'Python.h')
+        assert Python_h.is_file()
+        assert sysconfig._is_python_source_dir(srcdir)
+        assert sysconfig._is_python_source_dir(str(srcdir))
 
     def test_srcdir_independent_of_cwd(self):
-        # srcdir should be independent of the current working directory
-        # See Issues #15322, #15364.
+        """
+        srcdir should be independent of the current working directory
+        """
+        # See #15364.
         srcdir = sysconfig.get_config_var('srcdir')
-        cwd = os.getcwd()
-        try:
-            os.chdir('..')
+        with path.Path('..'):
             srcdir2 = sysconfig.get_config_var('srcdir')
-        finally:
-            os.chdir(cwd)
         assert srcdir == srcdir2
 
     def customize_compiler(self):
@@ -169,26 +166,32 @@ class TestSysconfig:
         assert comp.shared_lib_extension == 'sc_shutil_suffix'
         assert 'ranlib' not in comp.exes
 
-    def test_parse_makefile_base(self):
-        self.makefile = TESTFN
-        fd = open(self.makefile, 'w')
-        try:
-            fd.write(r"CONFIG_ARGS=  '--arg1=optarg1' 'ENV=LIB'" '\n')
-            fd.write('VAR=$OTHER\nOTHER=foo')
-        finally:
-            fd.close()
-        d = sysconfig.parse_makefile(self.makefile)
+    def test_parse_makefile_base(self, tmp_path):
+        makefile = tmp_path / 'Makefile'
+        makefile.write_text(
+            trim(
+                """
+                CONFIG_ARGS=  '--arg1=optarg1' 'ENV=LIB'
+                VAR=$OTHER
+                OTHER=foo
+                """
+            )
+        )
+        d = sysconfig.parse_makefile(makefile)
         assert d == {'CONFIG_ARGS': "'--arg1=optarg1' 'ENV=LIB'", 'OTHER': 'foo'}
 
-    def test_parse_makefile_literal_dollar(self):
-        self.makefile = TESTFN
-        fd = open(self.makefile, 'w')
-        try:
-            fd.write(r"CONFIG_ARGS=  '--arg1=optarg1' 'ENV=\$$LIB'" '\n')
-            fd.write('VAR=$OTHER\nOTHER=foo')
-        finally:
-            fd.close()
-        d = sysconfig.parse_makefile(self.makefile)
+    def test_parse_makefile_literal_dollar(self, tmp_path):
+        makefile = tmp_path / 'Makefile'
+        makefile.write_text(
+            trim(
+                """
+                CONFIG_ARGS=  '--arg1=optarg1' 'ENV=\\$$LIB'
+                VAR=$OTHER
+                OTHER=foo
+                """
+            )
+        )
+        d = sysconfig.parse_makefile(makefile)
         assert d == {'CONFIG_ARGS': r"'--arg1=optarg1' 'ENV=\$LIB'", 'OTHER': 'foo'}
 
     def test_sysconfig_module(self):
@@ -231,24 +234,24 @@ class TestSysconfig:
         with pytest.warns(DeprecationWarning):
             sysconfig.get_config_var('SO')
 
-    def test_customize_compiler_before_get_config_vars(self):
+    def test_customize_compiler_before_get_config_vars(self, tmp_path):
         # Issue #21923: test that a Distribution compiler
         # instance can be called without an explicit call to
         # get_config_vars().
-        with open(TESTFN, 'w') as f:
-            f.writelines(
-                textwrap.dedent(
-                    '''\
+        file = tmp_path / 'file'
+        file.write_text(
+            trim(
+                """
                 from distutils.core import Distribution
                 config = Distribution().get_command_obj('config')
                 # try_compile may pass or it may fail if no compiler
                 # is found but it should not raise an exception.
                 rc = config.try_compile('int x;')
-                '''
-                )
+                """
             )
+        )
         p = subprocess.Popen(
-            [str(sys.executable), TESTFN],
+            py37compat.subprocess_args(sys.executable, file),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
@@ -278,11 +281,11 @@ class TestSysconfig:
         '\\PCbuild\\'.casefold() not in sys.executable.casefold(),
         reason='Need sys.executable to be in a source tree',
     )
-    def test_win_build_venv_from_source_tree(self):
+    def test_win_build_venv_from_source_tree(self, tmp_path):
         """Ensure distutils.sysconfig detects venvs from source tree builds."""
         env = jaraco.envs.VEnv()
         env.create_opts = env.clean_opts
-        env.root = TESTFN
+        env.root = tmp_path
         env.ensure_env()
         cmd = [
             env.exe(),

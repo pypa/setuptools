@@ -8,7 +8,6 @@ from test.support import captured_stdout
 
 import pytest
 
-from . import py38compat as os_helper
 from distutils.dist import Distribution
 
 # setup script that uses __file__
@@ -61,65 +60,63 @@ def save_stdout(monkeypatch):
     monkeypatch.setattr(sys, 'stdout', sys.stdout)
 
 
+@pytest.fixture
+def temp_file(tmp_path):
+    return tmp_path / 'file'
+
+
 @pytest.mark.usefixtures('save_env')
 @pytest.mark.usefixtures('save_argv')
-@pytest.mark.usefixtures('cleanup_testfn')
 class TestCore:
-    def write_setup(self, text, path=os_helper.TESTFN):
-        f = open(path, "w")
-        try:
-            f.write(text)
-        finally:
-            f.close()
-        return path
-
-    def test_run_setup_provides_file(self):
+    def test_run_setup_provides_file(self, temp_file):
         # Make sure the script can use __file__; if that's missing, the test
         # setup.py script will raise NameError.
-        distutils.core.run_setup(self.write_setup(setup_using___file__))
+        temp_file.write_text(setup_using___file__)
+        distutils.core.run_setup(temp_file)
 
-    def test_run_setup_preserves_sys_argv(self):
+    def test_run_setup_preserves_sys_argv(self, temp_file):
         # Make sure run_setup does not clobber sys.argv
         argv_copy = sys.argv.copy()
-        distutils.core.run_setup(self.write_setup(setup_does_nothing))
+        temp_file.write_text(setup_does_nothing)
+        distutils.core.run_setup(temp_file)
         assert sys.argv == argv_copy
 
-    def test_run_setup_defines_subclass(self):
+    def test_run_setup_defines_subclass(self, temp_file):
         # Make sure the script can use __file__; if that's missing, the test
         # setup.py script will raise NameError.
-        dist = distutils.core.run_setup(self.write_setup(setup_defines_subclass))
+        temp_file.write_text(setup_defines_subclass)
+        dist = distutils.core.run_setup(temp_file)
         install = dist.get_command_obj('install')
         assert 'cmd' in install.sub_commands
 
-    def test_run_setup_uses_current_dir(self):
-        # This tests that the setup script is run with the current directory
-        # as its own current directory; this was temporarily broken by a
-        # previous patch when TESTFN did not use the current directory.
+    def test_run_setup_uses_current_dir(self, tmp_path):
+        """
+        Test that the setup script is run with the current directory
+        as its own current directory.
+        """
         sys.stdout = io.StringIO()
         cwd = os.getcwd()
 
         # Create a directory and write the setup.py file there:
-        os.mkdir(os_helper.TESTFN)
-        setup_py = os.path.join(os_helper.TESTFN, "setup.py")
-        distutils.core.run_setup(self.write_setup(setup_prints_cwd, path=setup_py))
+        setup_py = tmp_path / 'setup.py'
+        setup_py.write_text(setup_prints_cwd)
+        distutils.core.run_setup(setup_py)
 
         output = sys.stdout.getvalue()
         if output.endswith("\n"):
             output = output[:-1]
         assert cwd == output
 
-    def test_run_setup_within_if_main(self):
-        dist = distutils.core.run_setup(
-            self.write_setup(setup_within_if_main), stop_after="config"
-        )
+    def test_run_setup_within_if_main(self, temp_file):
+        temp_file.write_text(setup_within_if_main)
+        dist = distutils.core.run_setup(temp_file, stop_after="config")
         assert isinstance(dist, Distribution)
         assert dist.get_name() == "setup_within_if_main"
 
-    def test_run_commands(self):
+    def test_run_commands(self, temp_file):
         sys.argv = ['setup.py', 'build']
-        dist = distutils.core.run_setup(
-            self.write_setup(setup_within_if_main), stop_after="commandline"
-        )
+        temp_file.write_text(setup_within_if_main)
+        dist = distutils.core.run_setup(temp_file, stop_after="commandline")
         assert 'build' not in dist.have_run
         distutils.core.run_commands(dist)
         assert 'build' in dist.have_run
