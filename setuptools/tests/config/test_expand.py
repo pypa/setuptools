@@ -60,6 +60,20 @@ def test_read_files(tmp_path, monkeypatch):
 
 
 class TestReadAttr:
+    @pytest.mark.parametrize(
+        "example",
+        [
+            # No cookie means UTF-8:
+            b"__version__ = '\xc3\xa9'\nraise SystemExit(1)\n",
+            # If a cookie is present, honor it:
+            b"# -*- coding: utf-8 -*-\n__version__ = '\xc3\xa9'\nraise SystemExit(1)\n",
+            b"# -*- coding: latin1 -*-\n__version__ = '\xe9'\nraise SystemExit(1)\n",
+        ]
+    )
+    def test_read_attr_encoding_cookie(self, example, tmp_path):
+        (tmp_path / "mod.py").write_bytes(example)
+        assert expand.read_attr('mod.__version__', root_dir=tmp_path) == 'é'
+
     def test_read_attr(self, tmp_path, monkeypatch):
         files = {
             "pkg/__init__.py": "",

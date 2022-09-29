@@ -1,0 +1,1 @@
+Fixed encoding errors in ``expand.StaticModule`` when system default encoding doesn't match expectations for source files.

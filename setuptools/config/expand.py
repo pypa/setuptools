@@ -21,6 +21,7 @@ import ast
 import importlib
 import io
 import os
+import pathlib
 import sys
 import warnings
 from glob import iglob
@@ -62,9 +63,7 @@ class StaticModule:
     """Proxy to a module object that avoids executing arbitrary code."""
 
     def __init__(self, name: str, spec: ModuleSpec):
-        with open(spec.origin) as strm:  # type: ignore
-            src = strm.read()
-        module = ast.parse(src)
+        module = ast.parse(pathlib.Path(spec.origin).read_bytes())
         vars(self).update(locals())
         del self.self
 
