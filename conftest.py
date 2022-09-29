@@ -1,6 +1,7 @@
 import os
 import sys
 import platform
+import pathlib
 
 import pytest
 import path
@@ -150,8 +151,18 @@ def suppress_path_mangle(monkeysession):
     )
 
 
+def _set_home(monkeypatch, path):
+    var = 'USERPROFILE' if platform.system() == 'Windows' else 'HOME'
+    monkeypatch.setenv(var, str(path))
+    return path
+
+
 @pytest.fixture
 def temp_home(tmp_path, monkeypatch):
-    var = 'USERPROFILE' if platform.system() == 'Windows' else 'HOME'
-    monkeypatch.setenv(var, str(tmp_path))
-    return tmp_path
+    return _set_home(monkeypatch, tmp_path)
+
+
+@pytest.fixture
+def fake_home(fs, monkeypatch):
+    home = fs.create_dir('/fakehome')
+    return _set_home(monkeypatch, pathlib.Path(home.path))
