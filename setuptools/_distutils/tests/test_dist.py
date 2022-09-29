@@ -14,7 +14,6 @@ from distutils.dist import Distribution, fix_help_options
 from distutils.cmd import Command
 
 from test.support import captured_stdout, captured_stderr
-from .py38compat import TESTFN
 from distutils.tests import support
 from distutils import log
 
@@ -95,15 +94,15 @@ class TestDistributionBehavior(
         'distutils' not in Distribution.parse_config_files.__module__,
         reason='Cannot test when virtualenv has monkey-patched Distribution',
     )
-    def test_venv_install_options(self, request):
+    def test_venv_install_options(self, tmp_path):
         sys.argv.append("install")
-        request.addfinalizer(functools.partial(os.unlink, TESTFN))
+        file = str(tmp_path / 'file')
 
         fakepath = '/somedir'
 
         jaraco.path.build(
             {
-                TESTFN: f"""
+                file: f"""
                     [install]
                     install-base = {fakepath}
                     install-platbase = {fakepath}
@@ -124,9 +123,9 @@ class TestDistributionBehavior(
 
         # Base case: Not in a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/a'):
-            d = self.create_distribution([TESTFN])
+            d = self.create_distribution([file])
 
-        option_tuple = (TESTFN, fakepath)
+        option_tuple = (file, fakepath)
 
         result_dict = {
             'install_base': option_tuple,
@@ -153,35 +152,35 @@ class TestDistributionBehavior(
 
         # Test case: In a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/b'):
-            d = self.create_distribution([TESTFN])
+            d = self.create_distribution([file])
 
         for key in result_dict.keys():
             assert key not in d.command_options.get('install', {})
 
-    def test_command_packages_configfile(self, request, clear_argv):
+    def test_command_packages_configfile(self, tmp_path, clear_argv):
         sys.argv.append("build")
-        request.addfinalizer(functools.partial(os.unlink, TESTFN))
+        file = str(tmp_path / "file")
         jaraco.path.build(
             {
-                TESTFN: """
+                file: """
                     [global]
                     command_packages = foo.bar, splat
                     """,
             }
         )
 
-        d = self.create_distribution([TESTFN])
+        d = self.create_distribution([file])
         assert d.get_command_packages() == ["distutils.command", "foo.bar", "splat"]
 
         # ensure command line overrides config:
         sys.argv[1:] = ["--command-packages", "spork", "build"]
-        d = self.create_distribution([TESTFN])
+        d = self.create_distribution([file])
         assert d.get_command_packages() == ["distutils.command", "spork"]
 
         # Setting --command-packages to '' should cause the default to
         # be used even if a config file specified something else:
         sys.argv[1:] = ["--command-packages", "", "build"]
-        d = self.create_distribution([TESTFN])
+        d = self.create_distribution([file])
         assert d.get_command_packages() == ["distutils.command"]
 
     def test_empty_options(self, request):
@@ -258,6 +257,18 @@ class TestDistributionBehavior(
 
         # make sure --no-user-cfg disables the user cfg file
         assert len(all_files) - 1 == len(files)
+
+    @pytest.mark.skipif(
+        'platform.system() == "Windows"',
+        reason='Windows does not honor chmod 000',
+    )
+    def test_find_config_files_permission_error(self, fake_home):
+        """
+        Finding config files should not fail when directory is inaccessible.
+        """
+        fake_home.joinpath(pydistutils_cfg).write_text('')
+        fake_home.chmod(0o000)
+        Distribution().find_config_files()
 
 
 @pytest.mark.usefixtures('save_env')

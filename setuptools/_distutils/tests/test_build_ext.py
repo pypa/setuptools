@@ -8,6 +8,10 @@ import platform
 import tempfile
 import importlib
 import shutil
+import re
+
+import path
+import pytest
 
 from distutils.core import Distribution
 from distutils.command.build_ext import build_ext
@@ -27,10 +31,7 @@ from distutils.errors import (
 )
 
 from test import support
-from . import py38compat as os_helper
 from . import py38compat as import_helper
-import pytest
-import re
 
 
 @pytest.fixture()
@@ -47,7 +48,7 @@ def user_site_dir(request):
     # bpo-30132: On Windows, a .pdb file may be created in the current
     # working directory. Create a temporary working directory to cleanup
     # everything at the end of the test.
-    with os_helper.change_cwd(self.tmp_dir):
+    with path.Path(self.tmp_dir):
         yield
 
     site.USER_BASE = orig_user_base

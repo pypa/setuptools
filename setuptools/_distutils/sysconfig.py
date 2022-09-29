@@ -13,6 +13,7 @@ import os
 import re
 import sys
 import sysconfig
+import pathlib
 
 from .errors import DistutilsPlatformError
 from . import py39compat
@@ -40,14 +41,13 @@ else:
         project_base = os.getcwd()
 
 
-# python_build: (Boolean) if true, we're either building Python or
-# building an extension with an un-installed Python, so we use
-# different (hard-wired) directories.
 def _is_python_source_dir(d):
-    for fn in ("Setup", "Setup.local"):
-        if os.path.isfile(os.path.join(d, "Modules", fn)):
-            return True
-    return False
+    """
+    Return True if the target directory appears to point to an
+    un-installed Python.
+    """
+    modules = pathlib.Path(d).joinpath('Modules')
+    return any(modules.joinpath(fn).is_file() for fn in ('Setup', 'Setup.local'))
 
 
 _sys_home = getattr(sys, '_home', None)
