@@ -1,3 +1,13 @@
+v65.4.1
+-------
+
+
+Misc
+^^^^
+* #3613: Fixed encoding errors in ``expand.StaticModule`` when system default encoding doesn't match expectations for source files.
+* #3617: Merge with pypa/distutils@6852b20 including fix for pypa/distutils#181.
+
+
 v65.4.0
 -------
 

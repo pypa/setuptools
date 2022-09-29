@@ -1,1 +1,0 @@
-Merge with pypa/distutils@6852b20 including fix for pypa/distutils#181.
