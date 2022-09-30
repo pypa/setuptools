@@ -7,6 +7,7 @@ extensions = [
 ]
 
 master_doc = "index"
+html_theme = "furo"
 
 # Link dates and other references in the changelog
 extensions += ['rst.linker']
