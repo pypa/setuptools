@@ -168,5 +168,5 @@ Extension API Reference
 .. _Python docs about C/C++ extensions: https://docs.python.org/3/extending/extending.html
 .. _Cython: https://cython.readthedocs.io/en/stable/index.html
 .. _directory options: https://gcc.gnu.org/onlinedocs/gcc/Directory-Options.html
-.. _environment variables: https://gcc.gnu.org/onlinedocs/gcc/Environment-Variables.html>
+.. _environment variables: https://gcc.gnu.org/onlinedocs/gcc/Environment-Variables.html
 .. _cython command line tool: https://cython.readthedocs.io/en/stable/src/userguide/source_files_and_compilation.html
