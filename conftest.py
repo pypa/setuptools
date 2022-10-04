@@ -37,23 +37,16 @@ def needs_zlib():
 
 
 @pytest.fixture
-def distutils_logging_silencer(request):
+def distutils_logging_silencer(request, monkeypatch):
     from distutils import log
 
     self = request.instance
-    threshold = log.set_threshold(log.FATAL)
     # catching warnings
     # when log will be replaced by logging
     # we won't need such monkey-patch anymore
-    self._old_log = log.Log._log
-    log.Log._log = self._log
+    monkeypatch.setattr(log.Log, '_log', self._log)
     self.logs = []
-
-    try:
-        yield
-    finally:
-        log.set_threshold(threshold)
-        log.Log._log = self._old_log
+    monkeypatch.setattr(log._global_log, 'threshold', log.FATAL)
 
 
 def _save_cwd():
