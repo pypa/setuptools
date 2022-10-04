@@ -6,9 +6,9 @@ import os
 import re
 from stat import ST_MODE
 from distutils import sysconfig
-from distutils.core import Command
-from distutils.dep_util import newer
-from distutils.util import convert_path
+from ..core import Command
+from ..dep_util import newer
+from ..util import convert_path
 from distutils import log
 import tokenize
 

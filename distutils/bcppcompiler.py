@@ -15,17 +15,17 @@ for the Borland C++ compiler.
 import os
 import warnings
 
-from distutils.errors import (
+from .errors import (
     DistutilsExecError,
     CompileError,
     LibError,
     LinkError,
     UnknownFileError,
 )
-from distutils.ccompiler import CCompiler, gen_preprocess_options
-from distutils.file_util import write_file
-from distutils.dep_util import newer
-from distutils import log
+from .ccompiler import CCompiler, gen_preprocess_options
+from .file_util import write_file
+from .dep_util import newer
+from . import log
 
 
 warnings.warn(

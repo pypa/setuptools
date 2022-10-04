@@ -9,9 +9,9 @@ import re
 import fnmatch
 import functools
 
-from distutils.util import convert_path
-from distutils.errors import DistutilsTemplateError, DistutilsInternalError
-from distutils import log
+from .util import convert_path
+from .errors import DistutilsTemplateError, DistutilsInternalError
+from . import log
 
 
 class FileList:

@@ -16,16 +16,16 @@ try:
 except ImportError:
     warnings = None
 
-from distutils.errors import (
+from .errors import (
     DistutilsOptionError,
     DistutilsModuleError,
     DistutilsArgError,
     DistutilsClassError,
 )
-from distutils.fancy_getopt import FancyGetopt, translate_longopt
-from distutils.util import check_environ, strtobool, rfc822_escape
-from distutils import log
-from distutils.debug import DEBUG
+from .fancy_getopt import FancyGetopt, translate_longopt
+from .util import check_environ, strtobool, rfc822_escape
+from . import log
+from .debug import DEBUG
 
 # Regex to define acceptable Distutils command names.  This is not *quite*
 # the same as a Python NAME -- I don't allow leading underscores.  The fact

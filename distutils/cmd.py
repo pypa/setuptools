@@ -7,9 +7,9 @@ in the distutils.command package.
 import sys
 import os
 import re
-from distutils.errors import DistutilsOptionError
-from distutils import util, dir_util, file_util, archive_util, dep_util
-from distutils import log
+
+from .errors import DistutilsOptionError
+from . import util, dir_util, file_util, archive_util, dep_util, log
 
 
 class Command:

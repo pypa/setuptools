@@ -4,8 +4,8 @@ Utility functions for manipulating directories and directory trees."""
 
 import os
 import errno
-from distutils.errors import DistutilsInternalError, DistutilsFileError
-from distutils import log
+from .errors import DistutilsInternalError, DistutilsFileError
+from . import log
 
 # cache for by mkpath() -- in addition to cheapening redundant calls,
 # eliminates redundant "creating /foo/bar/baz" messages in dry-run mode

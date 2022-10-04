@@ -7,9 +7,9 @@ import importlib.util
 import sys
 import glob
 
-from distutils.core import Command
-from distutils.errors import DistutilsOptionError, DistutilsFileError
-from distutils.util import convert_path
+from ..core import Command
+from ..errors import DistutilsOptionError, DistutilsFileError
+from ..util import convert_path
 from distutils import log
 
 
@@ -384,7 +384,7 @@ class build_py(Command):
             self.warn('byte-compiling is disabled, skipping.')
             return
 
-        from distutils.util import byte_compile
+        from ..util import byte_compile
 
         prefix = self.build_lib
         if prefix[-1] != os.sep:

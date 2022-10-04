@@ -9,7 +9,7 @@ import os
 import sys
 import re
 
-from distutils.cmd import Command
+from ..cmd import Command
 from distutils import log, dir_util
 
 

@@ -11,9 +11,9 @@ import hashlib
 from base64 import standard_b64encode
 from urllib.request import urlopen, Request, HTTPError
 from urllib.parse import urlparse
-from distutils.errors import DistutilsError, DistutilsOptionError
-from distutils.core import PyPIRCCommand
-from distutils.spawn import spawn
+from ..errors import DistutilsError, DistutilsOptionError
+from ..core import PyPIRCCommand
+from ..spawn import spawn
 from distutils import log
 
 

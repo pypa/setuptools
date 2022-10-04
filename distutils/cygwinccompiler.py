@@ -13,15 +13,15 @@ import shlex
 import warnings
 from subprocess import check_output
 
-from distutils.unixccompiler import UnixCCompiler
-from distutils.file_util import write_file
-from distutils.errors import (
+from .unixccompiler import UnixCCompiler
+from .file_util import write_file
+from .errors import (
     DistutilsExecError,
     DistutilsPlatformError,
     CCompilerError,
     CompileError,
 )
-from distutils.version import LooseVersion, suppress_known_deprecation
+from .version import LooseVersion, suppress_known_deprecation
 
 
 def get_msvcr():

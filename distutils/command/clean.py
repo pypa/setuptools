@@ -5,8 +5,8 @@ Implements the Distutils 'clean' command."""
 # contributed by Bastian Kleineidam <calvin@cs.uni-sb.de>, added 2000-03-18
 
 import os
-from distutils.core import Command
-from distutils.dir_util import remove_tree
+from ..core import Command
+from ..dir_util import remove_tree
 from distutils import log
 
 
