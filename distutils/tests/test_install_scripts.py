@@ -8,7 +8,7 @@ from distutils.core import Distribution
 from distutils.tests import support
 
 
-class TestInstallScripts(support.TempdirManager, support.LoggingSilencer):
+class TestInstallScripts(support.TempdirManager):
     def test_default_settings(self):
         dist = Distribution()
         dist.command_obj["build"] = support.DummyCommand(build_scripts="/foo/bar")

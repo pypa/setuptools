@@ -10,7 +10,6 @@ from distutils.tests import support
 @pytest.mark.usefixtures('save_env')
 class TestInstallData(
     support.TempdirManager,
-    support.LoggingSilencer,
 ):
     def test_simple_run(self):
         pkg_dir, dist = self.create_dist()

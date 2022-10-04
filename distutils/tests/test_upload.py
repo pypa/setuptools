@@ -109,7 +109,7 @@ class TestUpload(BasePyPIRCCommandTestCase):
         cmd.finalize_options()
         assert cmd.password == 'xxx'
 
-    def test_upload(self):
+    def test_upload(self, logs):
         tmp = self.mkdtemp()
         path = os.path.join(tmp, 'xxx')
         self.write_file(path)
@@ -150,7 +150,7 @@ class TestUpload(BasePyPIRCCommandTestCase):
             )
 
         # The PyPI response body was echoed
-        results = self.get_logs(INFO)
+        results = logs.render(INFO)
         assert results[-1] == 75 * '-' + '\nxyzzy\n' + 75 * '-'
 
     # bpo-32304: archives whose last byte was b'\r' were corrupted due to
@@ -178,11 +178,11 @@ class TestUpload(BasePyPIRCCommandTestCase):
         assert int(headers['Content-length']) >= 2172
         assert b'long description\r' in self.last_open.req.data
 
-    def test_upload_fails(self):
+    def test_upload_fails(self, logs):
         self.next_msg = "Not Found"
         self.next_code = 404
         with pytest.raises(DistutilsError):
-            self.test_upload()
+            self.test_upload(logs)
 
     @pytest.mark.parametrize(
         'exception,expected,raised_exception',
@@ -196,7 +196,7 @@ class TestUpload(BasePyPIRCCommandTestCase):
             ),
         ],
     )
-    def test_wrong_exception_order(self, exception, expected, raised_exception):
+    def test_wrong_exception_order(self, exception, expected, raised_exception, logs):
         tmp = self.mkdtemp()
         path = os.path.join(tmp, 'xxx')
         self.write_file(path)
@@ -213,6 +213,6 @@ class TestUpload(BasePyPIRCCommandTestCase):
                 cmd = upload(dist)
                 cmd.ensure_finalized()
                 cmd.run()
-            results = self.get_logs(ERROR)
+            results = logs.render(ERROR)
             assert expected in results[-1]
-            self.clear_logs()
+            logs.clear()

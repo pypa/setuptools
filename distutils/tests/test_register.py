@@ -303,14 +303,13 @@ class TestRegister(BasePyPIRCCommandTestCase):
         with pytest.raises(DistutilsSetupError):
             cmd.run()
 
-    def test_list_classifiers(self):
+    def test_list_classifiers(self, logs):
         cmd = self._get_cmd()
         cmd.list_classifiers = 1
         cmd.run()
-        results = self.get_logs(INFO)
-        assert results == ['running check', 'xxx']
+        assert logs.render(INFO) == ['running check', 'xxx']
 
-    def test_show_response(self):
+    def test_show_response(self, logs):
         # test that the --show-response option return a well formatted response
         cmd = self._get_cmd()
         inputs = Inputs('1', 'tarek', 'y')
@@ -321,5 +320,5 @@ class TestRegister(BasePyPIRCCommandTestCase):
         finally:
             del register_module.input
 
-        results = self.get_logs(INFO)
+        results = logs.render(INFO)
         assert results[3] == 75 * '-' + '\nxxx\n' + 75 * '-'

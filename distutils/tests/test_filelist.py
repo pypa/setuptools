@@ -12,7 +12,6 @@ from test.support import captured_stdout
 import pytest
 import jaraco.path
 
-from distutils.tests import support
 from . import py38compat as os_helper
 
 
@@ -37,14 +36,14 @@ def make_local_path(s):
     return s.replace('/', os.sep)
 
 
-class TestFileList(support.LoggingSilencer):
-    def assertNoWarnings(self):
-        assert self.get_logs(WARN) == []
-        self.clear_logs()
+class TestFileList:
+    def assertNoWarnings(self, logs):
+        assert logs.render(WARN) == []
+        logs.clear()
 
-    def assertWarnings(self):
-        assert len(self.get_logs(WARN)) > 0
-        self.clear_logs()
+    def assertWarnings(self, logs):
+        assert logs.render(WARN)
+        logs.clear()
 
     def test_glob_to_re(self):
         sep = os.sep
@@ -188,7 +187,7 @@ class TestFileList(support.LoggingSilencer):
         file_list.include_pattern('*')
         assert file_list.allfiles == ['a.py', 'b.txt']
 
-    def test_process_template(self):
+    def test_process_template(self, logs):
         mlp = make_local_path
         # invalid lines
         file_list = FileList()
@@ -212,11 +211,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('include *.py')
         assert file_list.files == ['a.py']
-        self.assertNoWarnings()
+        self.assertNoWarnings(logs)
 
         file_list.process_template_line('include *.rb')
         assert file_list.files == ['a.py']
-        self.assertWarnings()
+        self.assertWarnings(logs)
 
         # exclude
         file_list = FileList()
@@ -224,11 +223,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('exclude *.py')
         assert file_list.files == ['b.txt', mlp('d/c.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(logs)
 
         file_list.process_template_line('exclude *.rb')
         assert file_list.files == ['b.txt', mlp('d/c.py')]
-        self.assertWarnings()
+        self.assertWarnings(logs)
 
         # global-include
         file_list = FileList()
@@ -236,11 +235,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('global-include *.py')
         assert file_list.files == ['a.py', mlp('d/c.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(logs)
 
         file_list.process_template_line('global-include *.rb')
         assert file_list.files == ['a.py', mlp('d/c.py')]
-        self.assertWarnings()
+        self.assertWarnings(logs)
 
         # global-exclude
         file_list = FileList()
@@ -248,11 +247,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('global-exclude *.py')
         assert file_list.files == ['b.txt']
-        self.assertNoWarnings()
+        self.assertNoWarnings(logs)
 
         file_list.process_template_line('global-exclude *.rb')
         assert file_list.files == ['b.txt']
-        self.assertWarnings()
+        self.assertWarnings(logs)
 
         # recursive-include
         file_list = FileList()
@@ -260,11 +259,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('recursive-include d *.py')
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(logs)
 
         file_list.process_template_line('recursive-include e *.py')
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
-        self.assertWarnings()
+        self.assertWarnings(logs)
 
         # recursive-exclude
         file_list = FileList()
@@ -272,11 +271,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('recursive-exclude d *.py')
         assert file_list.files == ['a.py', mlp('d/c.txt')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(logs)
 
         file_list.process_template_line('recursive-exclude e *.py')
         assert file_list.files == ['a.py', mlp('d/c.txt')]
-        self.assertWarnings()
+        self.assertWarnings(logs)
 
         # graft
         file_list = FileList()
@@ -284,11 +283,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('graft d')
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(logs)
 
         file_list.process_template_line('graft e')
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
-        self.assertWarnings()
+        self.assertWarnings(logs)
 
         # prune
         file_list = FileList()
@@ -296,11 +295,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('prune d')
         assert file_list.files == ['a.py', mlp('f/f.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(logs)
 
         file_list.process_template_line('prune e')
         assert file_list.files == ['a.py', mlp('f/f.py')]
-        self.assertWarnings()
+        self.assertWarnings(logs)
 
 
 class TestFindAll:

@@ -36,19 +36,6 @@ def needs_zlib():
     pytest.importorskip('zlib')
 
 
-@pytest.fixture
-def distutils_logging_silencer(request, monkeypatch):
-    from distutils import log
-
-    self = request.instance
-    # catching warnings
-    # when log will be replaced by logging
-    # we won't need such monkey-patch anymore
-    monkeypatch.setattr(log.Log, '_log', self._log)
-    self.logs = []
-    monkeypatch.setattr(log._global_log, 'threshold', log.FATAL)
-
-
 # from jaraco.collections
 class Everything:
     def __contains__(self, other):
@@ -58,7 +45,7 @@ class Everything:
 class SavedLogs(list):
     def render(self, *levels):
         return [
-            msg % args for level, msg, args in self if level in levels or Everything()
+            msg % args for level, msg, args in self if level in (levels or Everything())
         ]
 
 

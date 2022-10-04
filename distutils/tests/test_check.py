@@ -18,7 +18,7 @@ HERE = os.path.dirname(__file__)
 
 
 @support.combine_markers
-class TestCheck(support.LoggingSilencer, support.TempdirManager):
+class TestCheck(support.TempdirManager):
     def _run(self, metadata=None, cwd=None, **options):
         if metadata is None:
             metadata = {}

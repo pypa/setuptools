@@ -9,7 +9,7 @@ from distutils import sysconfig
 from distutils.tests import support
 
 
-class TestBuildScripts(support.TempdirManager, support.LoggingSilencer):
+class TestBuildScripts(support.TempdirManager):
     def test_default_settings(self):
         cmd = self.get_build_scripts_cmd("/foo/bar", [])
         assert not cmd.force

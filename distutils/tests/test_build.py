@@ -7,7 +7,7 @@ from distutils.tests import support
 from sysconfig import get_platform
 
 
-class TestBuild(support.TempdirManager, support.LoggingSilencer):
+class TestBuild(support.TempdirManager):
     def test_finalize_options(self):
         pkg_dir, dist = self.create_dist()
         cmd = build(dist)

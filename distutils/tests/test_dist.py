@@ -52,10 +52,7 @@ def clear_argv():
 @support.combine_markers
 @pytest.mark.usefixtures('save_env')
 @pytest.mark.usefixtures('save_argv')
-class TestDistributionBehavior(
-    support.LoggingSilencer,
-    support.TempdirManager,
-):
+class TestDistributionBehavior(support.TempdirManager):
     def create_distribution(self, configfiles=()):
         d = TestDistribution()
         d._config_files = configfiles

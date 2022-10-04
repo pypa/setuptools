@@ -15,7 +15,6 @@ from distutils.errors import DistutilsOptionError
 @pytest.mark.usefixtures('save_env')
 class TestInstallLib(
     support.TempdirManager,
-    support.LoggingSilencer,
 ):
     def test_finalize_options(self):
         dist = self.create_dist()[1]
@@ -94,7 +93,7 @@ class TestInstallLib(
         inputs = cmd.get_inputs()
         assert len(inputs) == 2, inputs
 
-    def test_dont_write_bytecode(self):
+    def test_dont_write_bytecode(self, logs):
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = install_lib(dist)
@@ -108,4 +107,4 @@ class TestInstallLib(
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        assert 'byte-compiling is disabled' in self.logs[0][1] % self.logs[0][2]
+        assert 'byte-compiling is disabled' in logs.render()[0]

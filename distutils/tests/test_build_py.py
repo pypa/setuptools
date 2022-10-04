@@ -14,7 +14,7 @@ from distutils.tests import support
 
 
 @support.combine_markers
-class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
+class TestBuildPy(support.TempdirManager):
     def test_package_data(self):
         sources = self.mkdtemp()
         f = open(os.path.join(sources, "__init__.py"), "w")
@@ -151,7 +151,7 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
         except DistutilsFileError:
             self.fail("failed package_data when data dir includes a dir")
 
-    def test_dont_write_bytecode(self):
+    def test_dont_write_bytecode(self, logs):
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = build_py(dist)
@@ -165,7 +165,7 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        assert 'byte-compiling is disabled' in self.logs[0][1] % self.logs[0][2]
+        assert 'byte-compiling is disabled' in logs.render()[0]
 
     @mock.patch("distutils.command.build_py.log.warn")
     def test_namespace_package_does_not_warn(self, log_warn):
