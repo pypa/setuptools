@@ -1,7 +1,7 @@
 import sys
 import importlib
 
-__version__ = sys.version[: sys.version.index(' ')]
+__version__, _, _ = sys.version.partition(' ')
 
 
 try:
