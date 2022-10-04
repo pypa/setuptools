@@ -21,7 +21,7 @@ from ..sysconfig import customize_compiler, get_python_version
 from ..sysconfig import get_config_h_filename
 from .._modified import newer_group
 from ..extension import Extension
-from ..util import get_platform
+from ..util import get_platform, is_mingw
 from distutils._log import log
 from . import py37compat
 
@@ -189,7 +189,7 @@ class build_ext(Command):
         # for extensions under windows use different directories
         # for Release and Debug builds.
         # also Python's library directory must be appended to library_dirs
-        if os.name == 'nt':
+        if os.name == 'nt' and not is_mingw():
             # the 'libs' directory is for binary installs - we assume that
             # must be the *native* platform.  But we don't really support
             # cross-compiling via a binary install anyway, so we let it go.
@@ -742,7 +742,7 @@ class build_ext(Command):
         # pyconfig.h that MSVC groks.  The other Windows compilers all seem
         # to need it mentioned explicitly, though, so that's what we do.
         # Append '_d' to the python import library on debug builds.
-        if sys.platform == "win32":
+        if sys.platform == "win32" and not is_mingw():
             from .._msvccompiler import MSVCCompiler
 
             if not isinstance(self.compiler, MSVCCompiler):
@@ -772,7 +772,7 @@ class build_ext(Command):
                 # A native build on an Android device or on Cygwin
                 if hasattr(sys, 'getandroidapilevel'):
                     link_libpython = True
-                elif sys.platform == 'cygwin':
+                elif sys.platform == 'cygwin' or is_mingw():
                     link_libpython = True
                 elif '_PYTHON_HOST_PLATFORM' in os.environ:
                     # We are cross-compiling for one of the relevant platforms

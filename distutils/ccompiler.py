@@ -19,7 +19,7 @@ from .spawn import spawn
 from .file_util import move_file
 from .dir_util import mkpath
 from ._modified import newer_group
-from .util import split_quoted, execute
+from .util import split_quoted, execute, is_mingw
 from ._log import log
 
 
@@ -1076,6 +1076,10 @@ def get_default_compiler(osname=None, platform=None):
         osname = os.name
     if platform is None:
         platform = sys.platform
+    # Mingw is a special case where sys.platform is 'win32' but we
+    # want to use the 'mingw32' compiler, so check it first
+    if is_mingw():
+        return 'mingw32'
     for pattern, compiler in _default_compilers:
         if (
             re.match(pattern, platform) is not None

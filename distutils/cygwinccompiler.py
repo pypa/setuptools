@@ -57,7 +57,7 @@ def get_msvcr():
     try:
         msc_ver = int(match.group(1))
     except AttributeError:
-        return
+        return []
     try:
         return _msvcr_lookup[msc_ver]
     except KeyError:
@@ -277,7 +277,7 @@ class Mingw32CCompiler(CygwinCCompiler):
 
         self.set_executables(
             compiler='%s -O -Wall' % self.cc,
-            compiler_so='%s -mdll -O -Wall' % self.cc,
+            compiler_so='%s -shared -O -Wall' % self.cc,
             compiler_cxx='%s -O -Wall' % self.cxx,
             linker_exe='%s' % self.cc,
             linker_so='{} {}'.format(self.linker_dll, shared_option),
