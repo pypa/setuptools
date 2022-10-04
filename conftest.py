@@ -49,6 +49,19 @@ def distutils_logging_silencer(request, monkeypatch):
     monkeypatch.setattr(log._global_log, 'threshold', log.FATAL)
 
 
+@pytest.fixture
+def logs(monkeypatch):
+    from distutils import log
+
+    logs = []
+
+    def save_log(msg, *args):
+        logs.append(msg % args)
+
+    monkeypatch.setattr(log, 'info', save_log)
+    return logs
+
+
 def _save_cwd():
     return path.Path('.')
 
