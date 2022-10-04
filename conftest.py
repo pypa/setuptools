@@ -41,7 +41,7 @@ def distutils_logging_silencer(request):
     from distutils import log
 
     self = request.instance
-    self.threshold = log.set_threshold(log.FATAL)
+    threshold = log.set_threshold(log.FATAL)
     # catching warnings
     # when log will be replaced by logging
     # we won't need such monkey-patch anymore
@@ -52,7 +52,7 @@ def distutils_logging_silencer(request):
     try:
         yield
     finally:
-        log.set_threshold(self.threshold)
+        log.set_threshold(threshold)
         log.Log._log = self._old_log
 
 
