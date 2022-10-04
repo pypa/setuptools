@@ -49,16 +49,38 @@ def distutils_logging_silencer(request, monkeypatch):
     monkeypatch.setattr(log._global_log, 'threshold', log.FATAL)
 
 
+# from jaraco.collections
+class Everything:
+    def __contains__(self, other):
+        return True
+
+
+class SavedLogs(list):
+    def render(self, *levels):
+        return [
+            msg % args for level, msg, args in self if level in levels or Everything()
+        ]
+
+
 @pytest.fixture
 def logs(monkeypatch):
     from distutils import log
 
-    logs = []
+    logs = SavedLogs()
+    log_levels = log.DEBUG, log.INFO, log.WARN, log.ERROR, log.FATAL
 
-    def save_log(msg, *args):
-        logs.append(msg % args)
+    def _log(self, level, msg, args):
+        self.logs.append((level, msg, args))
 
-    monkeypatch.setattr(log, 'info', save_log)
+    def save_log(self, level, msg, args):
+        if level not in log_levels:
+            raise ValueError(f'invalid log level {level}')
+        if not isinstance(msg, str):
+            raise TypeError(f'msg should be str, not {type(msg).__name__!r}')
+        logs.append((level, msg, args))
+
+    monkeypatch.setattr(log.Log, '_log', save_log)
+    monkeypatch.setattr(log._global_log, 'threshold', log.FATAL)
     return logs
 
 

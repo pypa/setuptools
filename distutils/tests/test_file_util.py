@@ -29,14 +29,14 @@ class TestFileUtil(support.TempdirManager):
 
         move_file(self.source, self.target, verbose=0)
         wanted = []
-        assert logs == wanted
+        assert logs.render() == wanted
 
         # back to original state
         move_file(self.target, self.source, verbose=0)
 
         move_file(self.source, self.target, verbose=1)
         wanted = ['moving {} -> {}'.format(self.source, self.target)]
-        assert logs == wanted
+        assert logs.render() == wanted
 
         # back to original state
         move_file(self.target, self.source, verbose=0)
@@ -46,7 +46,7 @@ class TestFileUtil(support.TempdirManager):
         os.mkdir(self.target_dir)
         move_file(self.source, self.target_dir, verbose=1)
         wanted = ['moving {} -> {}'.format(self.source, self.target_dir)]
-        assert logs == wanted
+        assert logs.render() == wanted
 
     def test_move_file_exception_unpacking_rename(self):
         # see issue 22182

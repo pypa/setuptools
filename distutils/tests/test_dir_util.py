@@ -30,17 +30,17 @@ class TestDirUtil(support.TempdirManager):
 
         mkpath(self.target, verbose=0)
         wanted = []
-        assert logs == wanted
+        assert logs.render() == wanted
         remove_tree(self.root_target, verbose=0)
 
         mkpath(self.target, verbose=1)
         wanted = ['creating %s' % self.root_target, 'creating %s' % self.target]
-        assert logs == wanted
+        assert logs.render() == wanted
         logs.clear()
 
         remove_tree(self.root_target, verbose=1)
         wanted = ["removing '%s' (and everything under it)" % self.root_target]
-        assert logs == wanted
+        assert logs.render() == wanted
 
     @pytest.mark.skipif("platform.system() == 'Windows'")
     def test_mkpath_with_custom_mode(self):
@@ -55,12 +55,12 @@ class TestDirUtil(support.TempdirManager):
     def test_create_tree_verbosity(self, logs):
 
         create_tree(self.root_target, ['one', 'two', 'three'], verbose=0)
-        assert logs == []
+        assert logs.render() == []
         remove_tree(self.root_target, verbose=0)
 
         wanted = ['creating %s' % self.root_target]
         create_tree(self.root_target, ['one', 'two', 'three'], verbose=1)
-        assert logs == wanted
+        assert logs.render() == wanted
 
         remove_tree(self.root_target, verbose=0)
 
@@ -69,7 +69,7 @@ class TestDirUtil(support.TempdirManager):
         mkpath(self.target, verbose=0)
 
         copy_tree(self.target, self.target2, verbose=0)
-        assert logs == []
+        assert logs.render() == []
 
         remove_tree(self.root_target, verbose=0)
 
@@ -80,7 +80,7 @@ class TestDirUtil(support.TempdirManager):
 
         wanted = ['copying {} -> {}'.format(a_file, self.target2)]
         copy_tree(self.target, self.target2, verbose=1)
-        assert logs == wanted
+        assert logs.render() == wanted
 
         remove_tree(self.root_target, verbose=0)
         remove_tree(self.target2, verbose=0)
