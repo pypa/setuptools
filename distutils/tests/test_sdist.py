@@ -5,7 +5,6 @@ import warnings
 import zipfile
 from os.path import join
 from textwrap import dedent
-from test.support import captured_stdout
 from .unix_compat import require_unix_id, require_uid_0, pwd, grp
 
 import pytest
@@ -285,15 +284,14 @@ class TestSDist(BasePyPIRCCommandTestCase):
             cmd.check_metadata()
             assert len(w.warnings) == 1
 
-    def test_show_formats(self):
-        with captured_stdout() as stdout:
-            show_formats()
+    def test_show_formats(self, capsys):
+        show_formats()
 
         # the output should be a header line + one line per format
         num_formats = len(ARCHIVE_FORMATS.keys())
         output = [
             line
-            for line in stdout.getvalue().split('\n')
+            for line in capsys.readouterr().out.split('\n')
             if line.strip().startswith('--formats=')
         ]
         assert len(output) == num_formats

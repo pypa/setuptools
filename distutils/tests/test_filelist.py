@@ -7,8 +7,6 @@ from distutils.errors import DistutilsTemplateError
 from distutils.filelist import glob_to_re, translate_pattern, FileList
 from distutils import filelist
 
-from test.support import captured_stdout
-
 import pytest
 import jaraco.path
 
@@ -109,19 +107,14 @@ class TestFileList:
 
         assert file_list.files == wanted
 
-    def test_debug_print(self):
+    def test_debug_print(self, capsys, monkeypatch):
         file_list = FileList()
-        with captured_stdout() as stdout:
-            file_list.debug_print('xxx')
-        assert stdout.getvalue() == ''
+        file_list.debug_print('xxx')
+        assert capsys.readouterr().out == ''
 
-        debug.DEBUG = True
-        try:
-            with captured_stdout() as stdout:
-                file_list.debug_print('xxx')
-            assert stdout.getvalue() == 'xxx\n'
-        finally:
-            debug.DEBUG = False
+        monkeypatch.setattr(debug, 'DEBUG', True)
+        file_list.debug_print('xxx')
+        assert capsys.readouterr().out == 'xxx\n'
 
     def test_set_allfiles(self):
         file_list = FileList()

@@ -13,7 +13,6 @@ import jaraco.path
 from distutils.dist import Distribution, fix_help_options
 from distutils.cmd import Command
 
-from test.support import captured_stdout, captured_stderr
 from distutils.tests import support
 from distutils import log
 
@@ -370,16 +369,15 @@ class TestMetadata(support.TempdirManager):
         meta = self.format_metadata(dist)
         assert 'Metadata-Version: 1.1' in meta
 
-    def test_classifier_invalid_type(self):
+    def test_classifier_invalid_type(self, capsys):
         attrs = {
             'name': 'Boa',
             'version': '3.0',
             'classifiers': ('Programming Language :: Python :: 3',),
         }
-        with captured_stderr() as error:
-            d = Distribution(attrs)
+        d = Distribution(attrs)
         # should have warning about passing a non-list
-        assert 'should be a list' in error.getvalue()
+        assert 'should be a list' in capsys.readouterr().err
         # should be converted to a list
         assert isinstance(d.metadata.classifiers, list)
         assert d.metadata.classifiers == list(attrs['classifiers'])
@@ -393,16 +391,15 @@ class TestMetadata(support.TempdirManager):
         dist = Distribution(attrs)
         assert dist.get_keywords() == ['spam', 'eggs', 'life of brian']
 
-    def test_keywords_invalid_type(self):
+    def test_keywords_invalid_type(self, capsys):
         attrs = {
             'name': 'Monty',
             'version': '1.0',
             'keywords': ('spam', 'eggs', 'life of brian'),
         }
-        with captured_stderr() as error:
-            d = Distribution(attrs)
+        d = Distribution(attrs)
         # should have warning about passing a non-list
-        assert 'should be a list' in error.getvalue()
+        assert 'should be a list' in capsys.readouterr().err
         # should be converted to a list
         assert isinstance(d.metadata.keywords, list)
         assert d.metadata.keywords == list(attrs['keywords'])
@@ -416,16 +413,15 @@ class TestMetadata(support.TempdirManager):
         dist = Distribution(attrs)
         assert dist.get_platforms() == ['GNU/Linux', 'Some Evil Platform']
 
-    def test_platforms_invalid_types(self):
+    def test_platforms_invalid_types(self, capsys):
         attrs = {
             'name': 'Monty',
             'version': '1.0',
             'platforms': ('GNU/Linux', 'Some Evil Platform'),
         }
-        with captured_stderr() as error:
-            d = Distribution(attrs)
+        d = Distribution(attrs)
         # should have warning about passing a non-list
-        assert 'should be a list' in error.getvalue()
+        assert 'should be a list' in capsys.readouterr().err
         # should be converted to a list
         assert isinstance(d.metadata.platforms, list)
         assert d.metadata.platforms == list(attrs['platforms'])
@@ -476,7 +472,7 @@ class TestMetadata(support.TempdirManager):
         assert fancy_options[0] == ('a', 'b', 'c')
         assert fancy_options[1] == (1, 2, 3)
 
-    def test_show_help(self, request):
+    def test_show_help(self, request, capsys):
         # smoke test, just makes sure some help is displayed
         reset_log = functools.partial(log.set_threshold, log._global_log.threshold)
         request.addfinalizer(reset_log)
@@ -484,10 +480,11 @@ class TestMetadata(support.TempdirManager):
         sys.argv = []
         dist.help = 1
         dist.script_name = 'setup.py'
-        with captured_stdout() as s:
-            dist.parse_command_line()
+        dist.parse_command_line()
 
-        output = [line for line in s.getvalue().split('\n') if line.strip() != '']
+        output = [
+            line for line in capsys.readouterr().out.split('\n') if line.strip() != ''
+        ]
         assert output
 
     def test_read_metadata(self):

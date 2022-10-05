@@ -5,8 +5,6 @@ import sys
 import site
 import pathlib
 
-from test.support import captured_stdout
-
 import pytest
 
 from distutils import sysconfig
@@ -249,6 +247,5 @@ class TestInstall(
     def test_debug_mode(self, logs, monkeypatch):
         # this covers the code called when DEBUG is set
         monkeypatch.setattr(install_module, 'DEBUG', True)
-        with captured_stdout():
-            self.test_record()
+        self.test_record()
         assert logs.render(DEBUG)
