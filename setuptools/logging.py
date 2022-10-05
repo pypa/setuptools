@@ -22,7 +22,8 @@ def configure():
     handlers = err_handler, out_handler
     logging.basicConfig(
         format="{message}", style='{', handlers=handlers, level=logging.DEBUG)
-    monkey.patch_func(set_threshold, distutils.log, 'set_threshold')
+    if hasattr(distutils.log, 'Log'):
+        monkey.patch_func(set_threshold, distutils.log, 'set_threshold')
 
 
 def set_threshold(level):
