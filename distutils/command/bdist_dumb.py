@@ -10,7 +10,7 @@ from ..util import get_platform
 from ..dir_util import remove_tree, ensure_relative
 from ..errors import DistutilsPlatformError
 from ..sysconfig import get_python_version
-from distutils import log
+from distutils._log import log
 
 
 class bdist_dumb(Command):

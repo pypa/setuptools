@@ -26,7 +26,7 @@ from .errors import (
     LinkError,
 )
 from .ccompiler import CCompiler, gen_lib_options
-from . import log
+from ._log import log
 from .util import get_platform
 
 import winreg

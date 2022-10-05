@@ -19,7 +19,7 @@ from .file_util import move_file
 from .dir_util import mkpath
 from .dep_util import newer_group
 from .util import split_quoted, execute
-from . import log
+from ._log import log
 
 
 class CCompiler:

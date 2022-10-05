@@ -25,7 +25,7 @@ from .errors import (
 from .ccompiler import CCompiler, gen_preprocess_options
 from .file_util import write_file
 from .dep_util import newer
-from . import log
+from ._log import log
 
 
 warnings.warn(
@@ -210,7 +210,7 @@ class BCPPCompiler(CCompiler):
         )
 
         if runtime_library_dirs:
-            log.warn(
+            log.warning(
                 "I don't know what to do with 'runtime_library_dirs': %s",
                 str(runtime_library_dirs),
             )

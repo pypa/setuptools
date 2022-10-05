@@ -2,7 +2,7 @@
 
 import logging
 
-from distutils import log
+from distutils._log import log
 
 
 class TestLog:

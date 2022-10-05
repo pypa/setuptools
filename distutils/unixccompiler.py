@@ -23,7 +23,7 @@ from . import sysconfig
 from .dep_util import newer
 from .ccompiler import CCompiler, gen_preprocess_options, gen_lib_options
 from .errors import DistutilsExecError, CompileError, LibError, LinkError
-from . import log
+from ._log import log
 from ._macos_compat import compiler_fixup
 
 # XXX Things not currently handled:

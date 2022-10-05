@@ -6,6 +6,8 @@ Retained for compatibility and should not be used.
 
 import logging
 
+from ._log import log as _global_log
+
 
 DEBUG = logging.DEBUG
 INFO = logging.INFO
@@ -13,7 +15,6 @@ WARN = logging.WARN
 ERROR = logging.ERROR
 FATAL = logging.FATAL
 
-_global_log = logging.getLogger('distutils')
 log = _global_log.log
 debug = _global_log.debug
 info = _global_log.info

@@ -8,7 +8,7 @@ import contextlib
 import sysconfig
 import itertools
 
-from distutils import log
+from distutils._log import log
 from ..core import Command
 from ..debug import DEBUG
 from ..sysconfig import get_config_vars
@@ -644,7 +644,7 @@ class install(Command):
             self.extra_path = self.distribution.extra_path
 
         if self.extra_path is not None:
-            log.warn(
+            log.warning(
                 "Distribution option extra_path is deprecated. "
                 "See issue27919 for details."
             )

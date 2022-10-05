@@ -16,7 +16,7 @@ except ImportError:
 from .errors import DistutilsExecError
 from .spawn import spawn
 from .dir_util import mkpath
-from . import log
+from ._log import log
 
 try:
     from pwd import getpwnam

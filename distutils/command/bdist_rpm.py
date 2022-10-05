@@ -17,7 +17,7 @@ from ..errors import (
     DistutilsExecError,
 )
 from ..sysconfig import get_python_version
-from distutils import log
+from distutils._log import log
 
 
 class bdist_rpm(Command):

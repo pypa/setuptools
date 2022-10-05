@@ -19,7 +19,7 @@ from .errors import (
     LinkError,
 )
 from .ccompiler import CCompiler, gen_lib_options
-from . import log
+from ._log import log
 
 _can_read_reg = False
 try:

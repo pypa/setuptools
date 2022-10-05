@@ -22,7 +22,7 @@ from ..sysconfig import get_config_h_filename
 from ..dep_util import newer_group
 from ..extension import Extension
 from ..util import get_platform
-from distutils import log
+from distutils._log import log
 from . import py37compat
 
 from site import USER_BASE
@@ -373,7 +373,7 @@ class build_ext(Command):
 
             ext_name, build_info = ext
 
-            log.warn(
+            log.warning(
                 "old-style (ext_name, build_info) tuple found in "
                 "ext_modules for extension '%s' "
                 "-- please convert to Extension instance",
@@ -413,7 +413,9 @@ class build_ext(Command):
             # Medium-easy stuff: same syntax/semantics, different names.
             ext.runtime_library_dirs = build_info.get('rpath')
             if 'def_file' in build_info:
-                log.warn("'def_file' element of build info dict " "no longer supported")
+                log.warning(
+                    "'def_file' element of build info dict " "no longer supported"
+                )
 
             # Non-trivial stuff: 'macros' split into 'define_macros'
             # and 'undef_macros'.
@@ -597,7 +599,7 @@ class build_ext(Command):
         # the temp dir.
 
         if self.swig_cpp:
-            log.warn("--swig-cpp is deprecated - use --swig-opts=-c++")
+            log.warning("--swig-cpp is deprecated - use --swig-opts=-c++")
 
         if (
             self.swig_cpp

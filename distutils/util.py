@@ -16,7 +16,7 @@ import functools
 from .errors import DistutilsPlatformError, DistutilsByteCompileError
 from .dep_util import newer
 from .spawn import spawn
-from . import log
+from ._log import log
 
 
 def get_host_platform():
