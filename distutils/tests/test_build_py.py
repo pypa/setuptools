@@ -2,7 +2,6 @@
 
 import os
 import sys
-import unittest.mock as mock
 
 import pytest
 
@@ -167,8 +166,7 @@ class TestBuildPy(support.TempdirManager):
 
         assert 'byte-compiling is disabled' in logs.render()[0]
 
-    @mock.patch("distutils.command.build_py.log.warn")
-    def test_namespace_package_does_not_warn(self, log_warn):
+    def test_namespace_package_does_not_warn(self, caplog):
         """
         Originally distutils implementation did not account for PEP 420
         and included warns for package directories that did not contain
@@ -181,13 +179,6 @@ class TestBuildPy(support.TempdirManager):
         os.chdir(tmp)
         os.makedirs("ns/pkg")
         open("ns/pkg/module.py", "w").close()
-
-        # Set up a trap if the undesirable effect is observed:
-        def _trap(msg, *args):
-            if "package init file" in msg and "not found" in msg:
-                raise AssertionError(f"Undesired warning: {msg!r} {args!r}")
-
-        log_warn.side_effect = _trap
 
         # Configure the package:
         attrs = {
@@ -206,4 +197,7 @@ class TestBuildPy(support.TempdirManager):
         assert module_path.replace(os.sep, "/") == "ns/pkg/module.py"
 
         cmd.run()
-        # Test should complete successfully with no exception
+
+        assert not any(
+            "package init file" in msg and "not found" in msg for msg in caplog.messages
+        )
