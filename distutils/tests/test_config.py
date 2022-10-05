@@ -46,7 +46,6 @@ password:xxx
 
 
 @support.combine_markers
-@pytest.mark.usefixtures('threshold_warn')
 @pytest.mark.usefixtures('pypirc')
 class BasePyPIRCCommandTestCase(support.TempdirManager):
     pass

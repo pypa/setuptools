@@ -2,6 +2,7 @@ import os
 import sys
 import platform
 import pathlib
+import logging
 
 import pytest
 import path
@@ -36,39 +37,20 @@ def needs_zlib():
     pytest.importorskip('zlib')
 
 
-# from jaraco.collections
-class Everything:
-    def __contains__(self, other):
-        return True
+@pytest.fixture(autouse=True)
+def log_everything():
+    """
+    For tests, set the level on the logger to log everything.
+    """
+    logging.getLogger('distutils').setLevel(0)
 
 
-class SavedLogs(list):
-    def render(self, *levels):
-        return [
-            msg % args for level, msg, args in self if level in (levels or Everything())
-        ]
-
-
-@pytest.fixture
-def logs(monkeypatch):
-    from distutils import log
-
-    logs = SavedLogs()
-    log_levels = log.DEBUG, log.INFO, log.WARN, log.ERROR, log.FATAL
-
-    def _log(self, level, msg, args):
-        self.logs.append((level, msg, args))
-
-    def save_log(self, level, msg, args):
-        if level not in log_levels:
-            raise ValueError(f'invalid log level {level}')
-        if not isinstance(msg, str):
-            raise TypeError(f'msg should be str, not {type(msg).__name__!r}')
-        logs.append((level, msg, args))
-
-    monkeypatch.setattr(log.Log, '_log', save_log)
-    monkeypatch.setattr(log._global_log, 'threshold', log.FATAL)
-    return logs
+@pytest.fixture(autouse=True)
+def capture_log_at_info(caplog):
+    """
+    By default, capture logs at INFO and greater.
+    """
+    caplog.set_level(logging.INFO)
 
 
 def _save_cwd():
@@ -109,15 +91,6 @@ def save_cwd():
 def temp_cwd(tmp_path):
     with path.Path(tmp_path):
         yield
-
-
-@pytest.fixture
-def threshold_warn():
-    from distutils.log import set_threshold, WARN
-
-    orig = set_threshold(WARN)
-    yield
-    set_threshold(orig)
 
 
 @pytest.fixture

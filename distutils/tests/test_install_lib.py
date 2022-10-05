@@ -93,7 +93,7 @@ class TestInstallLib(
         inputs = cmd.get_inputs()
         assert len(inputs) == 2, inputs
 
-    def test_dont_write_bytecode(self, logs):
+    def test_dont_write_bytecode(self, caplog):
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = install_lib(dist)
@@ -107,4 +107,4 @@ class TestInstallLib(
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        assert 'byte-compiling is disabled' in logs.render()[0]
+        assert 'byte-compiling is disabled' in caplog.messages[0]

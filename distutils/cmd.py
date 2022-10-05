@@ -7,6 +7,7 @@ in the distutils.command package.
 import sys
 import os
 import re
+import logging
 
 from .errors import DistutilsOptionError
 from . import util, dir_util, file_util, archive_util, dep_util, log
@@ -179,10 +180,7 @@ class Command:
             "abstract method -- subclass %s must override" % self.__class__
         )
 
-    def announce(self, msg, level=1):
-        """If the current verbosity level is of greater than or equal to
-        'level' print 'msg' to stdout.
-        """
+    def announce(self, msg, level=logging.DEBUG):
         log.log(level, msg)
 
     def debug_print(self, msg):

@@ -150,7 +150,7 @@ class TestBuildPy(support.TempdirManager):
         except DistutilsFileError:
             self.fail("failed package_data when data dir includes a dir")
 
-    def test_dont_write_bytecode(self, logs):
+    def test_dont_write_bytecode(self, caplog):
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = build_py(dist)
@@ -164,7 +164,7 @@ class TestBuildPy(support.TempdirManager):
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        assert 'byte-compiling is disabled' in logs.render()[0]
+        assert 'byte-compiling is disabled' in caplog.records[0].message
 
     def test_namespace_package_does_not_warn(self, caplog):
         """
