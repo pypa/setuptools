@@ -236,10 +236,8 @@ class TestDistributionBehavior(support.TempdirManager):
     def test_announce(self):
         # make sure the level is known
         dist = Distribution()
-        args = ('ok',)
-        kwargs = {'level': 'ok2'}
         with pytest.raises(ValueError):
-            dist.announce(args, kwargs)
+            dist.announce('ok', level='ok2')
 
     def test_find_config_files_disable(self, temp_home):
         # Ticket #1180: Allow user to disable their home config file.
