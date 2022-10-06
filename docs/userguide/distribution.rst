@@ -11,8 +11,10 @@ other tools can always tell what version of your package is newer than another
 version.  Knowing these things will also help you correctly specify what
 versions of other projects your project depends on.
 
-A version consists of an alternating series of release numbers and pre-release
-or post-release tags.  A release number is a series of digits punctuated by
+A version consists of an alternating series of release numbers and
+`pre-release <https://peps.python.org/pep-0440/#pre-releases>`_
+or `post-release <https://peps.python.org/pep-0440/#post-releases>`_ tags.  A
+release number is a series of digits punctuated by
 dots, such as ``2.4`` or ``0.5``.  Each series of digits is treated
 numerically, so releases ``2.1`` and ``2.1.0`` are different ways to spell the
 same release number, denoting the first subrelease of release 2.  But  ``2.10``
@@ -22,15 +24,16 @@ ignored, so ``2.01`` is the same as ``2.1``, and different from ``2.0.1``.
 
 Following a release number, you can have either a pre-release or post-release
 tag.  Pre-release tags make a version be considered *older* than the version
-they are appended to.  So, revision ``2.4`` is *newer* than revision ``2.4c1``,
-which in turn is newer than ``2.4b1`` or ``2.4a1``.  Postrelease tags make
+they are appended to.  So, revision ``2.4`` is *newer* than release candidate
+``2.4rc1``, which in turn is newer than beta release ``2.4b1`` or
+alpha release ``2.4a1``.  Postrelease tags make
 a version be considered *newer* than the version they are appended to.  So,
-revisions like ``2.4-1`` are newer than ``2.4``, but *older*
+revisions like ``2.4.post1`` are newer than ``2.4``, but *older*
 than ``2.4.1`` (which has a higher release number).
 
 In the case of legacy versions (for example, ``2.4pl1``), they are considered
 older than non-legacy versions. Taking that in count, a revision ``2.4pl1``
-is *older* than ``2.4``
+is *older* than ``2.4``. Note that ``2.4pl1`` is not :pep:`440`-compliant.
 
 A pre-release tag is a series of letters that are alphabetically before
 "final".  Some examples of prerelease tags would include ``alpha``, ``beta``,
@@ -38,27 +41,30 @@ A pre-release tag is a series of letters that are alphabetically before
 before the prerelease tag if it's immediately after a number, but it's okay to
 do so if you prefer.  Thus, ``2.4c1`` and ``2.4.c1`` and ``2.4-c1`` all
 represent release candidate 1 of version ``2.4``, and are treated as identical
-by setuptools.
+by setuptools. Note that only ``a``, ``b``, and ``rc`` are :pep:`440`-compliant
+pre-release tags.
 
 In addition, there are three special prerelease tags that are treated as if
 they were the letter ``c``: ``pre``, ``preview``, and ``rc``.  So, version
 ``2.4rc1``, ``2.4pre1`` and ``2.4preview1`` are all the exact same version as
 ``2.4c1``, and are treated as identical by setuptools.
 
-A post-release tag is either a series of letters that are alphabetically
-greater than or equal to "final", or a dash (``-``).  Post-release tags are
-generally used to separate patch numbers, port numbers, build numbers, revision
-numbers, or date stamps from the release number.  For example, the version
-``2.4-r1263`` might denote Subversion revision 1263 of a post-release patch of
-version ``2.4``.  Or you might use ``2.4-20051127`` to denote a date-stamped
-post-release.
+A post-release tag is the string ``.post``, followed by a non-negative integer
+value. Post-release tags are generally used to separate patch numbers, port
+numbers, build numbers, revision numbers, or date stamps from the release
+number.  For example, the version ``2.4.post1263`` might denote Subversion
+revision 1263 of a post-release patch of version ``2.4``. Or you might use
+``2.4.post20051127`` to denote a date-stamped post-release. Legacy post-release
+tags could be either a series of letters that are alphabetically greater than or
+equal to "final", or a dash (``-``) - for example ``2.4-r1263`` or
+``2.4-20051127``.
 
-Notice that after each pre or post-release tag, you are free to place another
-release number, followed again by more pre- or post-release tags.  For example,
-``0.6a9.dev-r41475`` could denote Subversion revision 41475 of the in-
+Notice that after each legacy pre or post-release tag, you are free to place
+another release number, followed again by more pre- or post-release tags.  For
+example, ``0.6a9.dev41475`` could denote Subversion revision 41475 of the in-
 development version of the ninth alpha of release 0.6.  Notice that ``dev`` is
 a pre-release tag, so this version is a *lower* version number than ``0.6a9``,
-which would be the actual ninth alpha of release 0.6.  But the ``-r41475`` is
+which would be the actual ninth alpha of release 0.6.  But the ``41475`` is
 a post-release tag, so this version is *newer* than ``0.6a9.dev``.
 
 For the most part, setuptools' interpretation of version numbers is intuitive,
@@ -68,9 +74,10 @@ but here are a few tips that will keep you out of trouble in the corner cases:
   between them.  Version ``1.9adev`` is the ``adev`` prerelease of ``1.9``,
   *not* a development pre-release of ``1.9a``.  Use ``.dev`` instead, as in
   ``1.9a.dev``, or separate the prerelease tags with a number, as in
-  ``1.9a0dev``.  ``1.9a.dev``, ``1.9a0dev``, and even ``1.9.a.dev`` are
+  ``1.9a0dev``.  ``1.9a.dev``, ``1.9a0dev``, and even ``1.9a0.dev0`` are
   identical versions from setuptools' point of view, so you can use whatever
-  scheme you prefer.
+  scheme you prefer. Of these examples, only ``1.9a0.dev0`` is
+  :pep:`440`-compliant.
 
 * If you want to be certain that your chosen numbering scheme works the way
   you think it will, you can use the ``pkg_resources.parse_version()`` function
