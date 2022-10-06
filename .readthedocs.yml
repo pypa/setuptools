@@ -4,3 +4,10 @@ python:
   - path: .
     extra_requirements:
       - docs
+
+# workaround for readthedocs/readthedocs.org#9623
+build:
+  # workaround for readthedocs/readthedocs.org#9635
+  os: ubuntu-22.04
+  tools:
+    python: "3"
