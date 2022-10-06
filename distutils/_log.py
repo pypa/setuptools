@@ -1,4 +1,4 @@
 import logging
 
 
-log = logging.getLogger('distutils')
+log = logging.getLogger()

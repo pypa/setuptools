@@ -466,7 +466,7 @@ Common commands: (see '--help-commands' for more)
         parser.set_aliases({'licence': 'license'})
         args = parser.getopt(args=self.script_args, object=self)
         option_order = parser.get_option_order()
-        log.setLevel(logging.WARN - 10 * self.verbose)
+        logging.getLogger().setLevel(logging.WARN - 10 * self.verbose)
 
         # for display options we return immediately
         if self.handle_display_options(option_order):
