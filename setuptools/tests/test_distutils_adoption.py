@@ -135,3 +135,21 @@ def test_modules_are_not_duplicated_on_import(
     cmd = ['python', '-c', script]
     output = popen_text(venv.run)(cmd, env=win_sr(env)).strip()
     assert output == "success"
+
+
+ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED = r"""
+import types
+import distutils.dist as dist
+from distutils import log
+if isinstance(dist.log, types.ModuleType):
+    assert dist.log == log, f"\n{dist.log}\n!=\n{log}"
+print("success")
+"""
+
+
+@pytest.mark.parametrize("distutils_version", "local stdlib".split())
+def test_log_module_is_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
+    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    cmd = ['python', '-c', ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED]
+    output = popen_text(venv.run)(cmd, env=win_sr(env)).strip()
+    assert output == "success"
