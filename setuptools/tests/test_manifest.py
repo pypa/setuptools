@@ -322,6 +322,8 @@ class TestFileListTest(TempDirTestCase):
     """
 
     def setup_method(self, method):
+        if not hasattr(log, 'Log'):
+            pytest.skip("These tests rely on old logging infra")
         super(TestFileListTest, self).setup_method(method)
         self.threshold = log.set_threshold(log.FATAL)
         self._old_log = log.Log._log

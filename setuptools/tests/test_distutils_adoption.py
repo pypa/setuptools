@@ -138,14 +138,11 @@ def test_modules_are_not_duplicated_on_import(
 
 
 ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED = r"""
-# Similar to ENSURE_IMPORTS_ARE_NOT_DUPLICATED
+import types
 import distutils.dist as dist
 from distutils import log
-
-assert dist.log == log, (
-    f"\n{dist.log}\n!=\n{log}"
-)
-
+if isinstance(dist.log, types.ModuleType):
+    assert dist.log == log, f"\n{dist.log}\n!=\n{log}"
 print("success")
 """
 

@@ -194,16 +194,26 @@ class TestBuildExtInplace:
         cmd.ensure_finalized()
         return cmd
 
-    def test_optional(self, tmpdir_cwd, capsys):
+    def get_log_messages(self, caplog, capsys):
+        """
+        Historically, distutils "logged" by printing to sys.std*.
+        Later versions adopted the logging framework. Grab
+        messages regardless of how they were captured.
+        """
+        std = capsys.readouterr()
+        return std.out.splitlines() + std.err.splitlines() + caplog.messages
+
+    def test_optional(self, tmpdir_cwd, caplog, capsys):
         """
         If optional extensions fail to build, setuptools should show the error
         in the logs but not fail to build
         """
         cmd = self.get_build_ext_cmd(optional=True, inplace=True)
         cmd.run()
-        logs = capsys.readouterr()
-        messages = (logs.out + logs.err)
-        assert 'build_ext: building extension "spam.eggs" failed' in messages
+        assert any(
+            'build_ext: building extension "spam.eggs" failed'
+            for msg in self.get_log_messages(caplog, capsys)
+        )
         # No compile error exception should be raised
 
     def test_non_optional(self, tmpdir_cwd):
