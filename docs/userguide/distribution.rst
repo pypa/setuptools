@@ -45,9 +45,9 @@ by setuptools. Note that only ``a``, ``b``, and ``rc`` are :pep:`440`-compliant
 pre-release tags.
 
 In addition, there are three special prerelease tags that are treated as if
-they were the letter ``c``: ``pre``, ``preview``, and ``rc``.  So, version
-``2.4rc1``, ``2.4pre1`` and ``2.4preview1`` are all the exact same version as
-``2.4c1``, and are treated as identical by setuptools.
+they were ``rc``: ``c``, ``pre``, and ``preview``.  So, version
+``2.4c1``, ``2.4pre1`` and ``2.4preview1`` are all the exact same version as
+``2.4rc1``, and are treated as identical by setuptools.
 
 A post-release tag is the string ``.post``, followed by a non-negative integer
 value. Post-release tags are generally used to separate patch numbers, port
