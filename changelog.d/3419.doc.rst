@@ -1,0 +1,1 @@
+Updated the example version numbers to be compliant with PEP-440 on the "Specifying Your Project’s Version" page of the user guide.
