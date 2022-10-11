@@ -111,7 +111,7 @@ Key                       Value Type (TOML)           Notes
 
 .. note::
    The `TOML value types`_ ``array`` and ``table/inline-table`` are roughly
-   equivalent to the Python's :obj:`dict` and :obj:`list` data types.
+   equivalent to the Python's :obj:`list` and :obj:`dict` data types, respectively.
 
 Please note that some of these configurations are deprecated or at least
 discouraged, but they are made available to ensure portability.
