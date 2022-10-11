@@ -247,7 +247,7 @@ More information is available on the text of :pep:`PEP 660 <660#what-to-put-in-t
 .. [#cwd]
    Techniques like the :ref:`src-layout` or tooling-specific options like
    `tox's changedir <https://tox.wiki/en/stable/config.html#conf-changedir>`_
-   can be used to prevent such kinds of situations (chekout `this blog post
+   can be used to prevent such kinds of situations (checkout `this blog post
    <https://blog.ganssle.io/articles/2019/08/test-as-installed.html>`_ for more
    insights).
 
