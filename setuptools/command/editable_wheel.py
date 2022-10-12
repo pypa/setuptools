@@ -551,13 +551,18 @@ def _simple_layout(
     False
     >>> _simple_layout(['a', 'a.b'], {"": "src", "a.b": "_ab"}, "/tmp/myproj")
     False
+    >>> # Special cases, no packages yet:
+    >>> _simple_layout([], {"": "src"}, "/tmp/myproj")
+    True
+    >>> _simple_layout([], {"a": "_a", "": "src"}, "/tmp/myproj")
+    False
     """
     layout = {
         pkg: find_package_path(pkg, package_dir, project_dir)
         for pkg in packages
     }
     if not layout:
-        return False
+        return set(package_dir) in ({}, {""})
     parent = os.path.commonpath([_parent_path(k, v) for k, v in layout.items()])
     return all(
         _normalize_path(Path(parent, *key.split('.'))) == _normalize_path(value)
