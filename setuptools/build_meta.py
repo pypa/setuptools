@@ -437,9 +437,10 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             info_dir = self._get_dist_info_dir(metadata_directory)
             opts = ["--dist-info-dir", info_dir] if info_dir else []
             cmd = ["editable_wheel", *opts, *self._editable_args(config_settings)]
-            return self._build_with_temp_dir(
-                cmd, ".whl", wheel_directory, config_settings
-            )
+            with suppress_known_deprecation():
+                return self._build_with_temp_dir(
+                    cmd, ".whl", wheel_directory, config_settings
+                )
 
         def get_requires_for_build_editable(self, config_settings=None):
             return self.get_requires_for_build_wheel(config_settings)

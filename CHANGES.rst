@@ -27,7 +27,7 @@ Changes
 
 Documentation changes
 ^^^^^^^^^^^^^^^^^^^^^
-* #3554: Changed requires to requests in the pyproject.toml example in the :ref:`Dependency management section of the Quickstart guide <userguide/quickstart:dependency-management>` -- by :user:`mfbutner`
+* #3554: Changed requires to requests in the pyproject.toml example in the :doc:`Dependency management section of the Quickstart guide <userguide/quickstart>` -- by :user:`mfbutner`
 
 Misc
 ^^^^
@@ -63,7 +63,7 @@ Changes
 
 Documentation changes
 ^^^^^^^^^^^^^^^^^^^^^
-* #3538: Corrected documentation on how to use the `legacy-editable` mode.
+* #3538: Corrected documentation on how to use the ``legacy-editable`` mode.
 
 
 v65.0.2
