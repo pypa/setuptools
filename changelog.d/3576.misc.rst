@@ -1,1 +1,0 @@
-Updated version of ``validate_pyproject``.

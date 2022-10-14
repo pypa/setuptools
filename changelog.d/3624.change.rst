@@ -1,1 +1,0 @@
-Fixed editable install for multi-module/no-package ``src``-layout projects.

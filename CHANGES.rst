@@ -1,3 +1,23 @@
+v65.5.0
+-------
+
+
+Changes
+^^^^^^^
+* #3624: Fixed editable install for multi-module/no-package ``src``-layout projects.
+* #3626: Minor refactorings to support distutils using stdlib logging module.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3419: Updated the example version numbers to be compliant with PEP-440 on the "Specifying Your Project’s Version" page of the user guide.
+
+Misc
+^^^^
+* #3569: Improved information about conflicting entries in the current working directory
+  and editable install (in documentation and as an informational warning).
+* #3576: Updated version of ``validate_pyproject``.
+
+
 v65.4.1
 -------
 
