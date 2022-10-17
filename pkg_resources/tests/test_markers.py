@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 
 from pkg_resources import evaluate_marker
 

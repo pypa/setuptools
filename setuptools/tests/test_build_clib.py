@@ -1,6 +1,7 @@
+from unittest import mock
+
 import pytest
 
-import mock
 from distutils.errors import DistutilsSetupError
 from setuptools.command.build_clib import build_clib
 from setuptools.dist import Distribution

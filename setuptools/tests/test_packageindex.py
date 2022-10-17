@@ -5,8 +5,8 @@ import platform
 import urllib.request
 import urllib.error
 import http.client
+from unittest import mock
 
-import mock
 import pytest
 
 import setuptools.package_index

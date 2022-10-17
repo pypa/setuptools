@@ -12,7 +12,6 @@ import itertools
 import distutils.errors
 import io
 import zipfile
-import mock
 import time
 import re
 import subprocess
@@ -20,6 +19,7 @@ import pathlib
 import warnings
 from collections import namedtuple
 from pathlib import Path
+from unittest import mock
 
 import pytest
 from jaraco import path

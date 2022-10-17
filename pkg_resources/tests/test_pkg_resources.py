@@ -9,10 +9,7 @@ import stat
 import distutils.dist
 import distutils.command.install_egg_info
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import mock
 
 from pkg_resources import (
     DistInfoDistribution, Distribution, EggInfoDistribution,
