@@ -193,7 +193,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install build-essential gfortran libopenblas-dev
       - name: Setup Python
-        uses: actions/setup-python@v2
+        id: python-install
+        uses: actions/setup-python@v4
         with:
           # Use a release that is not very new but still have a long life:
           python-version: "3.8"
@@ -202,6 +203,23 @@ jobs:
           python -m pip install tox
       - name: Run integration tests
         run: tox -e integration
+      - name: Create coverage report
+        if: hashFiles('.coverage') != ''  # Rudimentary `file.exists()`
+        run: pipx run coverage xml --ignore-errors
+      - name: Publish coverage
+        if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
+        uses: codecov/codecov-action@v3
+        with:
+          flags: >-  # Mark which lines are covered by which envs
+            CI-GHA,
+            ${{ github.job }},
+            OS-${{
+              runner.os
+            }},
+            VM-ubuntu-latest,
+            Py-${{
+              steps.python-install.outputs.python-version
+            }}
 
   release:
     needs:
