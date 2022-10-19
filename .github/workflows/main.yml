@@ -40,6 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Setup Python
+        id: python-install
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}${{ matrix.dev }}
@@ -67,8 +68,17 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           flags: >-  # Mark which lines are covered by which envs
-            ${{ runner.os }},
-            ${{ matrix.python }}
+            CI-GHA,
+            Type-units,
+            OS-${{
+              runner.os
+            }},
+            VM-${{
+              matrix.platform
+            }},
+            Py-${{
+              steps.python-install.outputs.python-version
+            }}
 
   check:  # This job does nothing and is only used for the branch protection
     if: always()
