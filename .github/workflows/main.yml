@@ -69,7 +69,7 @@ jobs:
         with:
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
-            Type-units,
+            ${{ github.job }},
             OS-${{
               runner.os
             }},
