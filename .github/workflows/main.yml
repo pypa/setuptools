@@ -131,6 +131,7 @@ jobs:
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
         uses: codecov/codecov-action@v3
         with:
+          files: coverage.xml
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
             ${{ github.job }},
