@@ -32,33 +32,30 @@ def get_msvcr():
     if not rest:
         return
 
-    msc_ver = int(rest[:4])
-    if msc_ver == 1300:
+    lookup = {
         # MSVC 7.0
-        return ['msvcr70']
-    elif msc_ver == 1310:
+        1300: ['msvcr70'],
         # MSVC 7.1
-        return ['msvcr71']
-    elif msc_ver == 1400:
+        1310: ['msvcr71'],
         # VS2005 / MSVC 8.0
-        return ['msvcr80']
-    elif msc_ver == 1500:
+        1400: ['msvcr80'],
         # VS2008 / MSVC 9.0
-        return ['msvcr90']
-    elif msc_ver == 1600:
+        1500: ['msvcr90'],
         # VS2010 / MSVC 10.0
-        return ['msvcr100']
-    elif msc_ver == 1700:
+        1600: ['msvcr100'],
         # VS2012 / MSVC 11.0
-        return ['msvcr110']
-    elif msc_ver == 1800:
+        1700: ['msvcr110'],
         # VS2013 / MSVC 12.0
-        return ['msvcr120']
-    elif 1900 <= msc_ver < 2000:
+        1800: ['msvcr120'],
+    }
+    msc_ver = int(rest[:4])
+    if 1900 <= msc_ver < 2000:
         # VS2015 / MSVC 14.0
         return ['ucrt', 'vcruntime140']
-    else:
-        raise ValueError("Unknown MS Compiler version %s " % msc_ver)
+    if msc_ver in lookup:
+        return lookup[msc_ver]
+
+    raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 
 
 _runtime_library_dirs_msg = (
