@@ -24,6 +24,24 @@ from .errors import (
 from .version import LooseVersion, suppress_known_deprecation
 
 
+_msvcr_lookup = {
+    # MSVC 7.0
+    1300: ['msvcr70'],
+    # MSVC 7.1
+    1310: ['msvcr71'],
+    # VS2005 / MSVC 8.0
+    1400: ['msvcr80'],
+    # VS2008 / MSVC 9.0
+    1500: ['msvcr90'],
+    # VS2010 / MSVC 10.0
+    1600: ['msvcr100'],
+    # VS2012 / MSVC 11.0
+    1700: ['msvcr110'],
+    # VS2013 / MSVC 12.0
+    1800: ['msvcr120'],
+}
+
+
 def get_msvcr():
     """Include the appropriate MSVC runtime library if Python was built
     with MSVC 7.0 or later.
@@ -32,28 +50,12 @@ def get_msvcr():
     if not rest:
         return
 
-    lookup = {
-        # MSVC 7.0
-        1300: ['msvcr70'],
-        # MSVC 7.1
-        1310: ['msvcr71'],
-        # VS2005 / MSVC 8.0
-        1400: ['msvcr80'],
-        # VS2008 / MSVC 9.0
-        1500: ['msvcr90'],
-        # VS2010 / MSVC 10.0
-        1600: ['msvcr100'],
-        # VS2012 / MSVC 11.0
-        1700: ['msvcr110'],
-        # VS2013 / MSVC 12.0
-        1800: ['msvcr120'],
-    }
     msc_ver = int(rest[:4])
     if 1900 <= msc_ver < 2000:
         # VS2015 / MSVC 14.0
         return ['ucrt', 'vcruntime140']
-    if msc_ver in lookup:
-        return lookup[msc_ver]
+    if msc_ver in _msvcr_lookup:
+        return _msvcr_lookup[msc_ver]
 
     raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 
