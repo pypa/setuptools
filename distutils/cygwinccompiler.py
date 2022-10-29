@@ -7,6 +7,7 @@ cygwin in no-cygwin mode).
 """
 
 import os
+import re
 import sys
 import copy
 import shlex
@@ -46,11 +47,11 @@ def get_msvcr():
     """Include the appropriate MSVC runtime library if Python was built
     with MSVC 7.0 or later.
     """
-    _, _, rest = sys.version.partition('MSC v.')
-    if not rest:
+    match = re.search(r'MSC v\.(\d{4})', sys.version)
+    if not match:
         return
 
-    msc_ver = int(rest[:4])
+    msc_ver = int(match.group(1))
     if 1900 <= msc_ver < 2000:
         # VS2015 / MSVC 14.0
         return ['ucrt', 'vcruntime140']
