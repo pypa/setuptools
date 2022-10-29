@@ -29,34 +29,36 @@ def get_msvcr():
     with MSVC 7.0 or later.
     """
     msc_pos = sys.version.find('MSC v.')
-    if msc_pos != -1:
-        msc_ver = sys.version[msc_pos + 6 : msc_pos + 10]
-        if msc_ver == '1300':
-            # MSVC 7.0
-            return ['msvcr70']
-        elif msc_ver == '1310':
-            # MSVC 7.1
-            return ['msvcr71']
-        elif msc_ver == '1400':
-            # VS2005 / MSVC 8.0
-            return ['msvcr80']
-        elif msc_ver == '1500':
-            # VS2008 / MSVC 9.0
-            return ['msvcr90']
-        elif msc_ver == '1600':
-            # VS2010 / MSVC 10.0
-            return ['msvcr100']
-        elif msc_ver == '1700':
-            # VS2012 / MSVC 11.0
-            return ['msvcr110']
-        elif msc_ver == '1800':
-            # VS2013 / MSVC 12.0
-            return ['msvcr120']
-        elif 1900 <= int(msc_ver) < 2000:
-            # VS2015 / MSVC 14.0
-            return ['ucrt', 'vcruntime140']
-        else:
-            raise ValueError("Unknown MS Compiler version %s " % msc_ver)
+    if msc_pos == -1:
+        return
+
+    msc_ver = sys.version[msc_pos + 6 : msc_pos + 10]
+    if msc_ver == '1300':
+        # MSVC 7.0
+        return ['msvcr70']
+    elif msc_ver == '1310':
+        # MSVC 7.1
+        return ['msvcr71']
+    elif msc_ver == '1400':
+        # VS2005 / MSVC 8.0
+        return ['msvcr80']
+    elif msc_ver == '1500':
+        # VS2008 / MSVC 9.0
+        return ['msvcr90']
+    elif msc_ver == '1600':
+        # VS2010 / MSVC 10.0
+        return ['msvcr100']
+    elif msc_ver == '1700':
+        # VS2012 / MSVC 11.0
+        return ['msvcr110']
+    elif msc_ver == '1800':
+        # VS2013 / MSVC 12.0
+        return ['msvcr120']
+    elif 1900 <= int(msc_ver) < 2000:
+        # VS2015 / MSVC 14.0
+        return ['ucrt', 'vcruntime140']
+    else:
+        raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 
 
 _runtime_library_dirs_msg = (
