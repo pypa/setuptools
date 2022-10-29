@@ -12,7 +12,6 @@ import sys
 import copy
 import shlex
 import warnings
-import operator
 from subprocess import check_output
 
 from .unixccompiler import UnixCCompiler
