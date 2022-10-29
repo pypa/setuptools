@@ -280,10 +280,6 @@ class Mingw32CCompiler(CygwinCCompiler):
             linker_so='{} {}'.format(self.linker_dll, shared_option),
         )
 
-        # Maybe we should also append -mthreads, but then the finished
-        # dlls need another dll (mingwm10.dll see Mingw32 docs)
-        # (-mthreads: Support thread-safe exception handling on `Mingw32')
-
         # no additional libraries needed
         self.dll_libraries = []
 
