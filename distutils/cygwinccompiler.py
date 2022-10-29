@@ -280,13 +280,6 @@ class Mingw32CCompiler(CygwinCCompiler):
             linker_so='{} {}'.format(self.linker_dll, shared_option),
         )
 
-        # no additional libraries needed
-        self.dll_libraries = []
-
-        # Include the appropriate MSVC runtime library if Python was built
-        # with MSVC 7.0 or later.
-        self.dll_libraries = get_msvcr()
-
     def runtime_library_dir_option(self, dir):
         raise DistutilsPlatformError(_runtime_library_dirs_msg)
 
