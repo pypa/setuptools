@@ -28,11 +28,11 @@ def get_msvcr():
     """Include the appropriate MSVC runtime library if Python was built
     with MSVC 7.0 or later.
     """
-    msc_pos = sys.version.find('MSC v.')
-    if msc_pos == -1:
+    _, _, rest = sys.version.partition('MSC v.')
+    if not rest:
         return
 
-    msc_ver = sys.version[msc_pos + 6 : msc_pos + 10]
+    msc_ver = rest[:4]
     if msc_ver == '1300':
         # MSVC 7.0
         return ['msvcr70']
