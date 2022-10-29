@@ -55,10 +55,10 @@ def get_msvcr():
     with MSVC 7.0 or later.
     """
     match = re.search(r'MSC v\.(\d{4})', sys.version)
-    if not match:
+    try:
+        msc_ver = int(match.group(1))
+    except AttributeError:
         return
-
-    msc_ver = int(match.group(1))
     try:
         return _msvcr_lookup[msc_ver]
     except KeyError:
