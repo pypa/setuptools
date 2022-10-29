@@ -12,6 +12,7 @@ import sys
 import copy
 import shlex
 import warnings
+import operator
 from subprocess import check_output
 
 from .unixccompiler import UnixCCompiler
@@ -23,24 +24,30 @@ from .errors import (
     CompileError,
 )
 from .version import LooseVersion, suppress_known_deprecation
+from ._collections import RangeMap
 
 
-_msvcr_lookup = {
-    # MSVC 7.0
-    1300: ['msvcr70'],
-    # MSVC 7.1
-    1310: ['msvcr71'],
-    # VS2005 / MSVC 8.0
-    1400: ['msvcr80'],
-    # VS2008 / MSVC 9.0
-    1500: ['msvcr90'],
-    # VS2010 / MSVC 10.0
-    1600: ['msvcr100'],
-    # VS2012 / MSVC 11.0
-    1700: ['msvcr110'],
-    # VS2013 / MSVC 12.0
-    1800: ['msvcr120'],
-}
+_msvcr_lookup = RangeMap.left(
+    {
+        # MSVC 7.0
+        1300: ['msvcr70'],
+        # MSVC 7.1
+        1310: ['msvcr71'],
+        # VS2005 / MSVC 8.0
+        1400: ['msvcr80'],
+        # VS2008 / MSVC 9.0
+        1500: ['msvcr90'],
+        # VS2010 / MSVC 10.0
+        1600: ['msvcr100'],
+        # VS2012 / MSVC 11.0
+        1700: ['msvcr110'],
+        # VS2013 / MSVC 12.0
+        1800: ['msvcr120'],
+        # VS2015 / MSVC 14.0
+        1900: ['ucrt', 'vcruntime140'],
+        2000: RangeMap.undefined_value,
+    },
+)
 
 
 def get_msvcr():
@@ -52,13 +59,10 @@ def get_msvcr():
         return
 
     msc_ver = int(match.group(1))
-    if 1900 <= msc_ver < 2000:
-        # VS2015 / MSVC 14.0
-        return ['ucrt', 'vcruntime140']
-    if msc_ver in _msvcr_lookup:
+    try:
         return _msvcr_lookup[msc_ver]
-
-    raise ValueError("Unknown MS Compiler version %s " % msc_ver)
+    except KeyError:
+        raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 
 
 _runtime_library_dirs_msg = (
