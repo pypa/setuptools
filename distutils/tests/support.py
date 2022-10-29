@@ -5,8 +5,10 @@ import shutil
 import tempfile
 import sysconfig
 import itertools
+import pathlib
 
 import pytest
+from more_itertools import always_iterable
 
 from distutils.core import Distribution
 
@@ -29,16 +31,9 @@ class TempdirManager:
     def write_file(self, path, content='xxx'):
         """Writes a file in the given path.
 
-
         path can be a string or a sequence.
         """
-        if isinstance(path, (list, tuple)):
-            path = os.path.join(*path)
-        f = open(path, 'w')
-        try:
-            f.write(content)
-        finally:
-            f.close()
+        pathlib.Path(*always_iterable(path)).write_text(content)
 
     def create_dist(self, pkg_name='foo', **kw):
         """Will generate a test environment.
