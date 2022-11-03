@@ -537,13 +537,7 @@ def get_config_vars(*args):
         _config_vars = sysconfig.get_config_vars().copy()
         py39compat.add_ext_suffix(_config_vars)
 
-    if args:
-        vals = []
-        for name in args:
-            vals.append(_config_vars.get(name))
-        return vals
-    else:
-        return _config_vars
+    return [_config_vars.get(name) for name in args] if args else _config_vars
 
 
 def get_config_var(name):
