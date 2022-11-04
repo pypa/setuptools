@@ -307,7 +307,6 @@ class TestPyPIConfig:
         assert cred.password == 'pity%'
 
 
-@pytest.mark.xfail(reason="#3659")
 @pytest.mark.timeout(1)
 def test_REL_DoS():
     """
