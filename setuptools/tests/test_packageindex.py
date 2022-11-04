@@ -305,3 +305,12 @@ class TestPyPIConfig:
         cred = cfg.creds_by_repository['https://pypi.org']
         assert cred.username == 'jaraco'
         assert cred.password == 'pity%'
+
+
+@pytest.mark.xfail(reason="#3659")
+@pytest.mark.timeout(1)
+def test_REL_DoS():
+    """
+    REL should not hang on a contrived attack string.
+    """
+    setuptools.package_index.REL.search('< rel=' + ' ' * 2**12)

@@ -1,4 +1,5 @@
-"""PyPI and direct package downloading"""
+"""PyPI and direct package downloading."""
+
 import sys
 import os
 import re
@@ -217,6 +218,9 @@ def unique_values(func):
 
 
 REL = re.compile(r"""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
+"""
+Regex for an HTML tag with 'rel="val"' attributes.
+"""
 
 
 @unique_values
