@@ -19,9 +19,20 @@ from functools import wraps
 
 import setuptools
 from pkg_resources import (
-    CHECKOUT_DIST, Distribution, BINARY_DIST, normalize_path, SOURCE_DIST,
-    Environment, find_distributions, safe_name, safe_version,
-    to_filename, Requirement, DEVELOP_DIST, EGG_DIST, parse_version,
+    CHECKOUT_DIST,
+    Distribution,
+    BINARY_DIST,
+    normalize_path,
+    SOURCE_DIST,
+    Environment,
+    find_distributions,
+    safe_name,
+    safe_version,
+    to_filename,
+    Requirement,
+    DEVELOP_DIST,
+    EGG_DIST,
+    parse_version,
 )
 from distutils import log
 from distutils.errors import DistutilsError
@@ -40,7 +51,9 @@ URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):', re.I).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
 
 __all__ = [
-    'PackageIndex', 'distros_for_url', 'parse_bdist_wininst',
+    'PackageIndex',
+    'distros_for_url',
+    'parse_bdist_wininst',
     'interpret_distro_name',
 ]
 
@@ -48,7 +61,8 @@ _SOCKET_TIMEOUT = 15
 
 _tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
 user_agent = _tmpl.format(
-    py_major='{}.{}'.format(*sys.version_info), setuptools=setuptools)
+    py_major='{}.{}'.format(*sys.version_info), setuptools=setuptools
+)
 
 
 def parse_requirement_arg(spec):
@@ -120,13 +134,15 @@ def distros_for_location(location, basename, metadata=None):
         wheel = Wheel(basename)
         if not wheel.is_compatible():
             return []
-        return [Distribution(
-            location=location,
-            project_name=wheel.project_name,
-            version=wheel.version,
-            # Increase priority over eggs.
-            precedence=EGG_DIST + 1,
-        )]
+        return [
+            Distribution(
+                location=location,
+                project_name=wheel.project_name,
+                version=wheel.version,
+                # Increase priority over eggs.
+                precedence=EGG_DIST + 1,
+            )
+        ]
     if basename.endswith('.exe'):
         win_base, py_ver, platform = parse_bdist_wininst(basename)
         if win_base is not None:
@@ -137,7 +153,7 @@ def distros_for_location(location, basename, metadata=None):
     #
     for ext in EXTENSIONS:
         if basename.endswith(ext):
-            basename = basename[:-len(ext)]
+            basename = basename[: -len(ext)]
             return interpret_distro_name(location, basename, metadata)
     return []  # no extension matched
 
@@ -150,8 +166,7 @@ def distros_for_filename(filename, metadata=None):
 
 
 def interpret_distro_name(
-        location, basename, metadata, py_version=None, precedence=SOURCE_DIST,
-        platform=None
+    location, basename, metadata, py_version=None, precedence=SOURCE_DIST, platform=None
 ):
     """Generate alternative interpretations of a source distro name
 
@@ -178,9 +193,13 @@ def interpret_distro_name(
 
     for p in range(1, len(parts) + 1):
         yield Distribution(
-            location, metadata, '-'.join(parts[:p]), '-'.join(parts[p:]),
-            py_version=py_version, precedence=precedence,
-            platform=platform
+            location,
+            metadata,
+            '-'.join(parts[:p]),
+            '-'.join(parts[p:]),
+            py_version=py_version,
+            precedence=precedence,
+            platform=platform,
         )
 
 
@@ -282,11 +301,16 @@ class PackageIndex(Environment):
     """A distribution index that scans web pages for download URLs"""
 
     def __init__(
-            self, index_url="https://pypi.org/simple/", hosts=('*',),
-            ca_bundle=None, verify_ssl=True, *args, **kw
+        self,
+        index_url="https://pypi.org/simple/",
+        hosts=('*',),
+        ca_bundle=None,
+        verify_ssl=True,
+        *args,
+        **kw
     ):
         super().__init__(*args, **kw)
-        self.index_url = index_url + "/" [:not index_url.endswith('/')]
+        self.index_url = index_url + "/"[: not index_url.endswith('/')]
         self.scanned_urls = {}
         self.fetched_urls = {}
         self.package_pages = {}
@@ -379,7 +403,8 @@ class PackageIndex(Environment):
             return True
         msg = (
             "\nNote: Bypassing %s (disallowed host; see "
-            "http://bit.ly/2hrImnY for details).\n")
+            "http://bit.ly/2hrImnY for details).\n"
+        )
         if fatal:
             raise DistutilsError(msg % url)
         else:
@@ -417,9 +442,7 @@ class PackageIndex(Environment):
         if not link.startswith(self.index_url):
             return NO_MATCH_SENTINEL
 
-        parts = list(map(
-            urllib.parse.unquote, link[len(self.index_url):].split('/')
-        ))
+        parts = list(map(urllib.parse.unquote, link[len(self.index_url) :].split('/')))
         if len(parts) != 2 or '#' in parts[1]:
             return NO_MATCH_SENTINEL
 
@@ -461,16 +484,15 @@ class PackageIndex(Environment):
     def need_version_info(self, url):
         self.scan_all(
             "Page at %s links to .py file(s) without version info; an index "
-            "scan is required.", url
+            "scan is required.",
+            url,
         )
 
     def scan_all(self, msg=None, *args):
         if self.index_url not in self.fetched_urls:
             if msg:
                 self.warn(msg, *args)
-            self.info(
-                "Scanning index of all packages (this may take a while)"
-            )
+            self.info("Scanning index of all packages (this may take a while)")
         self.scan_url(self.index_url)
 
     def find_packages(self, requirement):
@@ -501,9 +523,7 @@ class PackageIndex(Environment):
         """
         checker is a ContentChecker
         """
-        checker.report(
-            self.debug,
-            "Validating %%s checksum for %s" % filename)
+        checker.report(self.debug, "Validating %%s checksum for %s" % filename)
         if not checker.is_valid():
             tfp.close()
             os.unlink(filename)
@@ -540,7 +560,8 @@ class PackageIndex(Environment):
         else:  # no distros seen for this name, might be misspelled
             meth, msg = (
                 self.warn,
-                "Couldn't find index page for %r (maybe misspelled?)")
+                "Couldn't find index page for %r (maybe misspelled?)",
+            )
         meth(msg, requirement.unsafe_name)
         self.scan_all()
 
@@ -579,8 +600,14 @@ class PackageIndex(Environment):
         return getattr(self.fetch_distribution(spec, tmpdir), 'location', None)
 
     def fetch_distribution(  # noqa: C901  # is too complex (14)  # FIXME
-            self, requirement, tmpdir, force_scan=False, source=False,
-            develop_ok=False, local_index=None):
+        self,
+        requirement,
+        tmpdir,
+        force_scan=False,
+        source=False,
+        develop_ok=False,
+        local_index=None,
+    ):
         """Obtain a distribution suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
@@ -612,15 +639,13 @@ class PackageIndex(Environment):
                 if dist.precedence == DEVELOP_DIST and not develop_ok:
                     if dist not in skipped:
                         self.warn(
-                            "Skipping development or system egg: %s", dist,
+                            "Skipping development or system egg: %s",
+                            dist,
                         )
                         skipped[dist] = 1
                     continue
 
-                test = (
-                    dist in req
-                    and (dist.precedence <= SOURCE_DIST or not source)
-                )
+                test = dist in req and (dist.precedence <= SOURCE_DIST or not source)
                 if test:
                     loc = self.download(dist.location, tmpdir)
                     dist.download_location = loc
@@ -669,10 +694,15 @@ class PackageIndex(Environment):
 
     def gen_setup(self, filename, fragment, tmpdir):
         match = EGG_FRAGMENT.match(fragment)
-        dists = match and [
-            d for d in
-            interpret_distro_name(filename, match.group(1), None) if d.version
-        ] or []
+        dists = (
+            match
+            and [
+                d
+                for d in interpret_distro_name(filename, match.group(1), None)
+                if d.version
+            ]
+            or []
+        )
 
         if len(dists) == 1:  # unambiguous ``#egg`` fragment
             basename = os.path.basename(filename)
@@ -689,8 +719,9 @@ class PackageIndex(Environment):
                     "from setuptools import setup\n"
                     "setup(name=%r, version=%r, py_modules=[%r])\n"
                     % (
-                        dists[0].project_name, dists[0].version,
-                        os.path.splitext(basename)[0]
+                        dists[0].project_name,
+                        dists[0].version,
+                        os.path.splitext(basename)[0],
                     )
                 )
             return filename
@@ -766,23 +797,22 @@ class PackageIndex(Environment):
             if warning:
                 self.warn(warning, v.reason)
             else:
-                raise DistutilsError("Download error for %s: %s"
-                                     % (url, v.reason)) from v
+                raise DistutilsError(
+                    "Download error for %s: %s" % (url, v.reason)
+                ) from v
         except http.client.BadStatusLine as v:
             if warning:
                 self.warn(warning, v.line)
             else:
                 raise DistutilsError(
                     '%s returned a bad status line. The server might be '
-                    'down, %s' %
-                    (url, v.line)
+                    'down, %s' % (url, v.line)
                 ) from v
         except (http.client.HTTPException, socket.error) as v:
             if warning:
                 self.warn(warning, v)
             else:
-                raise DistutilsError("Download error for %s: %s"
-                                     % (url, v)) from v
+                raise DistutilsError("Download error for %s: %s" % (url, v)) from v
 
     def _download_url(self, scheme, url, tmpdir):
         # Determine download filename
@@ -887,10 +917,13 @@ class PackageIndex(Environment):
 
         if rev is not None:
             self.info("Checking out %s", rev)
-            os.system("git -C %s checkout --quiet %s" % (
-                filename,
-                rev,
-            ))
+            os.system(
+                "git -C %s checkout --quiet %s"
+                % (
+                    filename,
+                    rev,
+                )
+            )
 
         return filename
 
@@ -903,10 +936,13 @@ class PackageIndex(Environment):
 
         if rev is not None:
             self.info("Updating to %s", rev)
-            os.system("hg --cwd %s up -C -r %s -q" % (
-                filename,
-                rev,
-            ))
+            os.system(
+                "hg --cwd %s up -C -r %s -q"
+                % (
+                    filename,
+                    rev,
+                )
+            )
 
         return filename
 
@@ -1010,7 +1046,8 @@ class PyPIConfig(configparser.RawConfigParser):
     @property
     def creds_by_repository(self):
         sections_with_repositories = [
-            section for section in self.sections()
+            section
+            for section in self.sections()
             if self.get(section, 'repository').strip()
         ]
 
@@ -1114,8 +1151,8 @@ def local_open(url):
             files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
             tmpl = (
-                "<html><head><title>{url}</title>"
-                "</head><body>{files}</body></html>")
+                "<html><head><title>{url}</title>" "</head><body>{files}</body></html>"
+            )
             body = tmpl.format(url=url, files='\n'.join(files))
         status, message = 200, "OK"
     else:
