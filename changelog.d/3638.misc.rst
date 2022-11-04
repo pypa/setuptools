@@ -1,1 +1,0 @@
-Drop a test dependency on the ``mock`` package, always use :external+python:py:mod:`unittest.mock` -- by :user:`hroncok`
