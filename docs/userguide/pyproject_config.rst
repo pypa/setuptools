@@ -210,6 +210,13 @@ Also note that the file format for specifying dependencies resembles a ``require
 however please keep in mind that all non-comment lines must conform with :pep:`508`
 (``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
 
+
+.. attention::
+   When using the ``file`` directive, please make sure that all necessary
+   files are included in the ``sdist``. You can do that via ``MANIFEST.in``
+   or using plugins such as ``setuptools-scm``.
+   Please have a look on :doc:`/userguide/miscellaneous` for more information.
+
 ----
 
 .. rubric:: Notes
