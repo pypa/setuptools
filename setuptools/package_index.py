@@ -217,7 +217,6 @@ def unique_values(func):
 
 
 REL = re.compile(r"""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
-# this line is here to fix emacs' cruddy broken syntax highlighting
 
 
 @unique_values
