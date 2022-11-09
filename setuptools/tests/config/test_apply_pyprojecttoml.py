@@ -98,7 +98,9 @@ authors = [
   {name = "Tzu-Ping Chung"}
 ]
 maintainers = [
-  {name = "Brett Cannon", email = "brett@python.org"}
+  {name = "Brett Cannon", email = "brett@python.org"},
+  {name = "John X. Ãørçeč", email = "john@utf8.org"},
+  {name = "Γαμα קּ 東", email = "gama@utf8.org"},
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -147,7 +149,7 @@ def _pep621_example_project(tmp_path, readme="README.rst"):
     replacements = {'readme = "README.rst"': f'readme = "{readme}"'}
     for orig, subst in replacements.items():
         text = text.replace(orig, subst)
-    pyproject.write_text(text)
+    pyproject.write_text(text, encoding="utf-8")
 
     (tmp_path / readme).write_text("hello world")
     (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---")
@@ -187,6 +189,21 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
     pyproject = _pep621_example_project(tmp_path, "README")
     dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
     assert dist.metadata.long_description_content_type is None
+
+
+def test_utf8_maintainer_in_metadata(tmp_path):  # issue-3663
+    pyproject = _pep621_example_project(tmp_path, "README")
+    dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+    expected = (
+        'Brett Cannon <brett@python.org>, "John X. Ãørçeč" <john@utf8.org>, '
+        'Γαμα קּ 東 <gama@utf8.org>'
+    )
+    assert dist.metadata.maintainer_email == expected
+    pkg_file = tmp_path / "PKG-FILE"
+    with open(pkg_file, "w", encoding="utf-8") as fh:
+        dist.metadata.write_pkg_file(fh)
+    content = pkg_file.read_text(encoding="utf-8")
+    assert f"Maintainer-email: {expected}" in content
 
 
 # TODO: After PEP 639 is accepted, we have to move the license-files
