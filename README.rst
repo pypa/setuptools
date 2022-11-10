@@ -1,15 +1,7 @@
-.. image:: https://raw.githubusercontent.com/pypa/setuptools/main/docs/images/banner-640x320.svg
-   :align: center
-
-|
-
 .. image:: https://img.shields.io/pypi/v/setuptools.svg
-   :target: `PyPI link`_
+   :target: https://pypi.org/project/setuptools
 
 .. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
-   :target: `PyPI link`_
-
-.. _PyPI link: https://pypi.org/project/setuptools
 
 .. image:: https://github.com/pypa/setuptools/workflows/tests/badge.svg
    :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22
