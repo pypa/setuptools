@@ -166,6 +166,12 @@ Special directives:
       The ``file:`` directive is sandboxed and won't reach anything outside the
       project directory (i.e. the directory containing ``setup.cfg``/``pyproject.toml``).
 
+  .. attention::
+      When using the ``file:`` directive, please make sure that all necessary
+      files are included in the ``sdist``. You can do that via ``MANIFEST.in``
+      or using plugins such as ``setuptools-scm``.
+      Please have a look on :doc:`/userguide/miscellaneous` for more information.
+
 
 Metadata
 --------
