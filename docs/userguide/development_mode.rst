@@ -5,7 +5,7 @@ When creating a Python project, developers usually want to implement and test
 changes iteratively, before cutting a release and preparing a distribution archive.
 
 In normal circumstances this can be quite cumbersome and require the developers
-to manipulate the ``PYTHONPATH`` environment variable or to continuous re-build
+to manipulate the ``PYTHONPATH`` environment variable or to continuously re-build
 and re-install the project.
 
 To facilitate iterative exploration and experimentation, setuptools allows
