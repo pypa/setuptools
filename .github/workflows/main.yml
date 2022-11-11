@@ -110,10 +110,8 @@ jobs:
         # NOTE: This roughly emulates what `actions/setup-python@v4` provides
         # NOTE: except the action gets the version from the installation path
         # NOTE: on disk and we get it from runtime.
-        run: >-
-          python -c
-          'import platform; print("python-version=" + platform.python_version())'
-          >> ${GITHUB_OUTPUT}
+        run: |
+          python -c 'import platform; print("python-version=" + platform.python_version())' >> ${GITHUB_OUTPUT}
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
@@ -122,9 +120,8 @@ jobs:
           tox
       - name: Create coverage report
         if: hashFiles('.coverage') != ''  # Rudimentary `file.exists()`
-        run: >-
+        run: |
           python -m pip install coverage
-          &&
           python -m coverage xml --ignore-errors
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
       - name: Publish coverage
@@ -136,15 +133,9 @@ jobs:
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
             ${{ github.job }},
-            OS-${{
-              runner.os
-            }},
-            VM-${{
-              matrix.platform
-            }},
-            Py-${{
-              steps.python-install.outputs.python-version
-            }}
+            OS-${{ runner.os }},
+            VM-${{ matrix.platform }},
+            Py-${{ steps.python-install.outputs.python-version }}
 
   integration-test:
     needs: test
