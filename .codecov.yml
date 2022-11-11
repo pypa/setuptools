@@ -8,5 +8,18 @@ coverage:
     patch:
       default:
         informational: true  # Treat coverage info as informational only
+flags:
+  test:  # Unit tests
+    paths:
+    - .*
+    carryforward: false
+  test_cygwin:  # Cygwin env
+    paths:
+    - .*
+    carryforward: false
+  integration-test:  # Integration tests
+    paths:
+    - .*
+    carryforward: true
 github_checks:
   annotations: false  # Codecov may pollute the "files" diff view
