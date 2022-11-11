@@ -70,15 +70,9 @@ jobs:
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
             ${{ github.job }},
-            OS-${{
-              runner.os
-            }},
-            VM-${{
-              matrix.platform
-            }},
-            Py-${{
-              steps.python-install.outputs.python-version
-            }}
+            OS-${{ runner.os }},
+            VM-${{ matrix.platform }},
+            Py-${{ steps.python-install.outputs.python-version }}
 
   check:  # This job does nothing and is only used for the branch protection
     if: always()
