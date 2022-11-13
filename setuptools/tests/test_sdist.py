@@ -28,11 +28,14 @@ SETUP_ATTRS = {
     'data_files': [("data", [os.path.join("d", "e.dat")])],
 }
 
-SETUP_PY = """\
+SETUP_PY = (
+    """\
 from setuptools import setup
 
 setup(**%r)
-""" % SETUP_ATTRS
+"""
+    % SETUP_ATTRS
+)
 
 
 @contextlib.contextmanager
@@ -451,8 +454,7 @@ class TestSdistTest:
     @classmethod
     def make_strings(cls, item):
         if isinstance(item, dict):
-            return {
-                key: cls.make_strings(value) for key, value in item.items()}
+            return {key: cls.make_strings(value) for key, value in item.items()}
         if isinstance(item, list):
             return list(map(cls.make_strings, item))
         return str(item)
@@ -570,9 +572,11 @@ def test_default_revctrl():
     This interface must be maintained until Ubuntu 12.04 is no longer
     supported (by Setuptools).
     """
-    ep, = metadata.EntryPoints._from_text("""
+    (ep,) = metadata.EntryPoints._from_text(
+        """
         [setuptools.file_finders]
         svn_cvs = setuptools.command.sdist:_default_revctrl
-        """)
+        """
+    )
     res = ep.load()
     assert hasattr(res, '__iter__')
