@@ -322,6 +322,10 @@ class TestSdistTest:
         # The filelist should have been updated as well
         assert u_filename in mm.filelist.files
 
+    @pytest.mark.skipif(
+        "os.environ.get('PYTEST_XDIST_WORKER')",
+        reason="pytest-dev/pytest-xdist#843",
+    )
     def test_write_manifest_skips_non_utf8_filenames(self):
         """
         Files that cannot be encoded to UTF-8 (specifically, those that
