@@ -10,7 +10,6 @@ from distutils.tests import support
 @pytest.mark.usefixtures('save_env')
 class TestInstallHeaders(
     support.TempdirManager,
-    support.LoggingSilencer,
 ):
     def test_simple_run(self):
         # we have two headers

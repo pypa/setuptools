@@ -1,6 +1,5 @@
 """Tests for distutils.cmd."""
 import os
-from test.support import captured_stdout
 
 from distutils.cmd import Command
 from distutils.dist import Distribution
@@ -100,17 +99,9 @@ class TestCommand:
         with pytest.raises(DistutilsOptionError):
             cmd.ensure_dirname('option2')
 
-    def test_debug_print(self, cmd):
-        with captured_stdout() as stdout:
-            cmd.debug_print('xxx')
-        stdout.seek(0)
-        assert stdout.read() == ''
-
-        debug.DEBUG = True
-        try:
-            with captured_stdout() as stdout:
-                cmd.debug_print('xxx')
-            stdout.seek(0)
-            assert stdout.read() == 'xxx\n'
-        finally:
-            debug.DEBUG = False
+    def test_debug_print(self, cmd, capsys, monkeypatch):
+        cmd.debug_print('xxx')
+        assert capsys.readouterr().out == ''
+        monkeypatch.setattr(debug, 'DEBUG', True)
+        cmd.debug_print('xxx')
+        assert capsys.readouterr().out == 'xxx\n'

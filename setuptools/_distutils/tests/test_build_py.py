@@ -2,7 +2,6 @@
 
 import os
 import sys
-import unittest.mock as mock
 
 import pytest
 
@@ -14,7 +13,7 @@ from distutils.tests import support
 
 
 @support.combine_markers
-class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
+class TestBuildPy(support.TempdirManager):
     def test_package_data(self):
         sources = self.mkdtemp()
         f = open(os.path.join(sources, "__init__.py"), "w")
@@ -151,7 +150,7 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
         except DistutilsFileError:
             self.fail("failed package_data when data dir includes a dir")
 
-    def test_dont_write_bytecode(self):
+    def test_dont_write_bytecode(self, caplog):
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = build_py(dist)
@@ -165,10 +164,9 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        assert 'byte-compiling is disabled' in self.logs[0][1] % self.logs[0][2]
+        assert 'byte-compiling is disabled' in caplog.records[0].message
 
-    @mock.patch("distutils.command.build_py.log.warn")
-    def test_namespace_package_does_not_warn(self, log_warn):
+    def test_namespace_package_does_not_warn(self, caplog):
         """
         Originally distutils implementation did not account for PEP 420
         and included warns for package directories that did not contain
@@ -181,13 +179,6 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
         os.chdir(tmp)
         os.makedirs("ns/pkg")
         open("ns/pkg/module.py", "w").close()
-
-        # Set up a trap if the undesirable effect is observed:
-        def _trap(msg, *args):
-            if "package init file" in msg and "not found" in msg:
-                raise AssertionError(f"Undesired warning: {msg!r} {args!r}")
-
-        log_warn.side_effect = _trap
 
         # Configure the package:
         attrs = {
@@ -206,4 +197,7 @@ class TestBuildPy(support.TempdirManager, support.LoggingSilencer):
         assert module_path.replace(os.sep, "/") == "ns/pkg/module.py"
 
         cmd.run()
-        # Test should complete successfully with no exception
+
+        assert not any(
+            "package init file" in msg and "not found" in msg for msg in caplog.messages
+        )

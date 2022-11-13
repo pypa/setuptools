@@ -42,7 +42,6 @@ mac_woes = pytest.mark.skipif(
 @pytest.mark.usefixtures('save_cwd')
 class TestBuildRpm(
     support.TempdirManager,
-    support.LoggingSilencer,
 ):
     @mac_woes
     @requires_zlib()

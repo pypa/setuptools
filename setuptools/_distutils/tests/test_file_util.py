@@ -4,7 +4,6 @@ import errno
 import unittest.mock as mock
 
 from distutils.file_util import move_file, copy_file
-from distutils import log
 from distutils.tests import support
 from distutils.errors import DistutilsFileError
 from .py38compat import unlink
@@ -14,22 +13,14 @@ import pytest
 @pytest.fixture(autouse=True)
 def stuff(request, monkeypatch, distutils_managed_tempdir):
     self = request.instance
-    self._logs = []
     tmp_dir = self.mkdtemp()
     self.source = os.path.join(tmp_dir, 'f1')
     self.target = os.path.join(tmp_dir, 'f2')
     self.target_dir = os.path.join(tmp_dir, 'd1')
-    monkeypatch.setattr(log, 'info', self._log)
 
 
 class TestFileUtil(support.TempdirManager):
-    def _log(self, msg, *args):
-        if len(args) > 0:
-            self._logs.append(msg % args)
-        else:
-            self._logs.append(msg)
-
-    def test_move_file_verbosity(self):
+    def test_move_file_verbosity(self, caplog):
         f = open(self.source, 'w')
         try:
             f.write('some content')
@@ -37,25 +28,24 @@ class TestFileUtil(support.TempdirManager):
             f.close()
 
         move_file(self.source, self.target, verbose=0)
-        wanted = []
-        assert self._logs == wanted
+        assert not caplog.messages
 
         # back to original state
         move_file(self.target, self.source, verbose=0)
 
         move_file(self.source, self.target, verbose=1)
         wanted = ['moving {} -> {}'.format(self.source, self.target)]
-        assert self._logs == wanted
+        assert caplog.messages == wanted
 
         # back to original state
         move_file(self.target, self.source, verbose=0)
 
-        self._logs = []
+        caplog.clear()
         # now the target is a dir
         os.mkdir(self.target_dir)
         move_file(self.source, self.target_dir, verbose=1)
         wanted = ['moving {} -> {}'.format(self.source, self.target_dir)]
-        assert self._logs == wanted
+        assert caplog.messages == wanted
 
     def test_move_file_exception_unpacking_rename(self):
         # see issue 22182

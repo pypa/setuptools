@@ -10,7 +10,7 @@ from distutils.errors import DistutilsSetupError
 from distutils.tests import support
 
 
-class TestBuildCLib(support.TempdirManager, support.LoggingSilencer):
+class TestBuildCLib(support.TempdirManager):
     def test_check_library_dist(self):
         pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)

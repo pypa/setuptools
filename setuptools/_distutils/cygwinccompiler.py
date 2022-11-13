@@ -7,56 +7,61 @@ cygwin in no-cygwin mode).
 """
 
 import os
+import re
 import sys
 import copy
 import shlex
 import warnings
 from subprocess import check_output
 
-from distutils.unixccompiler import UnixCCompiler
-from distutils.file_util import write_file
-from distutils.errors import (
+from .unixccompiler import UnixCCompiler
+from .file_util import write_file
+from .errors import (
     DistutilsExecError,
     DistutilsPlatformError,
     CCompilerError,
     CompileError,
 )
-from distutils.version import LooseVersion, suppress_known_deprecation
+from .version import LooseVersion, suppress_known_deprecation
+from ._collections import RangeMap
+
+
+_msvcr_lookup = RangeMap.left(
+    {
+        # MSVC 7.0
+        1300: ['msvcr70'],
+        # MSVC 7.1
+        1310: ['msvcr71'],
+        # VS2005 / MSVC 8.0
+        1400: ['msvcr80'],
+        # VS2008 / MSVC 9.0
+        1500: ['msvcr90'],
+        # VS2010 / MSVC 10.0
+        1600: ['msvcr100'],
+        # VS2012 / MSVC 11.0
+        1700: ['msvcr110'],
+        # VS2013 / MSVC 12.0
+        1800: ['msvcr120'],
+        # VS2015 / MSVC 14.0
+        1900: ['ucrt', 'vcruntime140'],
+        2000: RangeMap.undefined_value,
+    },
+)
 
 
 def get_msvcr():
     """Include the appropriate MSVC runtime library if Python was built
     with MSVC 7.0 or later.
     """
-    msc_pos = sys.version.find('MSC v.')
-    if msc_pos != -1:
-        msc_ver = sys.version[msc_pos + 6 : msc_pos + 10]
-        if msc_ver == '1300':
-            # MSVC 7.0
-            return ['msvcr70']
-        elif msc_ver == '1310':
-            # MSVC 7.1
-            return ['msvcr71']
-        elif msc_ver == '1400':
-            # VS2005 / MSVC 8.0
-            return ['msvcr80']
-        elif msc_ver == '1500':
-            # VS2008 / MSVC 9.0
-            return ['msvcr90']
-        elif msc_ver == '1600':
-            # VS2010 / MSVC 10.0
-            return ['msvcr100']
-        elif msc_ver == '1700':
-            # VS2012 / MSVC 11.0
-            return ['msvcr110']
-        elif msc_ver == '1800':
-            # VS2013 / MSVC 12.0
-            return ['msvcr120']
-        elif 1900 <= int(msc_ver) < 2000:
-            # VS2015 / MSVC 14.0
-            return ['ucrt', 'vcruntime140']
-        else:
-            raise ValueError("Unknown MS Compiler version %s " % msc_ver)
+    match = re.search(r'MSC v\.(\d{4})', sys.version)
+    try:
+        msc_ver = int(match.group(1))
+    except AttributeError:
+        return
+    try:
+        return _msvcr_lookup[msc_ver]
+    except KeyError:
+        raise ValueError("Unknown MS Compiler version %s " % msc_ver)
 
 
 _runtime_library_dirs_msg = (
@@ -279,17 +284,6 @@ class Mingw32CCompiler(CygwinCCompiler):
             linker_exe='%s' % self.cc,
             linker_so='{} {}'.format(self.linker_dll, shared_option),
         )
-
-        # Maybe we should also append -mthreads, but then the finished
-        # dlls need another dll (mingwm10.dll see Mingw32 docs)
-        # (-mthreads: Support thread-safe exception handling on `Mingw32')
-
-        # no additional libraries needed
-        self.dll_libraries = []
-
-        # Include the appropriate MSVC runtime library if Python was built
-        # with MSVC 7.0 or later.
-        self.dll_libraries = get_msvcr()
 
     def runtime_library_dir_option(self, dir):
         raise DistutilsPlatformError(_runtime_library_dirs_msg)

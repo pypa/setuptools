@@ -7,19 +7,19 @@ import sys
 import os
 import re
 
-from distutils.errors import (
+from .errors import (
     CompileError,
     LinkError,
     UnknownFileError,
     DistutilsPlatformError,
     DistutilsModuleError,
 )
-from distutils.spawn import spawn
-from distutils.file_util import move_file
-from distutils.dir_util import mkpath
-from distutils.dep_util import newer_group
-from distutils.util import split_quoted, execute
-from distutils import log
+from .spawn import spawn
+from .file_util import move_file
+from .dir_util import mkpath
+from .dep_util import newer_group
+from .util import split_quoted, execute
+from ._log import log
 
 
 class CCompiler:

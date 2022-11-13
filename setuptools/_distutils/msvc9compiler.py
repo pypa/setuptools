@@ -18,16 +18,16 @@ import sys
 import re
 import warnings
 
-from distutils.errors import (
+from .errors import (
     DistutilsExecError,
     DistutilsPlatformError,
     CompileError,
     LibError,
     LinkError,
 )
-from distutils.ccompiler import CCompiler, gen_lib_options
-from distutils import log
-from distutils.util import get_platform
+from .ccompiler import CCompiler, gen_lib_options
+from ._log import log
+from .util import get_platform
 
 import winreg
 

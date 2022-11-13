@@ -4,8 +4,7 @@ import os
 import sys
 import site
 import pathlib
-
-from test.support import captured_stdout
+import logging
 
 import pytest
 
@@ -30,7 +29,6 @@ def _make_ext_name(modname):
 @pytest.mark.usefixtures('save_env')
 class TestInstall(
     support.TempdirManager,
-    support.LoggingSilencer,
 ):
     @pytest.mark.xfail(
         'platform.system() == "Windows" and sys.version_info > (3, 11)',
@@ -246,13 +244,9 @@ class TestInstall(
         ]
         assert found == expected
 
-    def test_debug_mode(self):
+    def test_debug_mode(self, caplog, monkeypatch):
         # this covers the code called when DEBUG is set
-        old_logs_len = len(self.logs)
-        install_module.DEBUG = True
-        try:
-            with captured_stdout():
-                self.test_record()
-        finally:
-            install_module.DEBUG = False
-        assert len(self.logs) > old_logs_len
+        monkeypatch.setattr(install_module, 'DEBUG', True)
+        caplog.set_level(logging.DEBUG)
+        self.test_record()
+        assert any(rec for rec in caplog.records if rec.levelno == logging.DEBUG)

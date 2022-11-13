@@ -6,7 +6,6 @@ import urllib
 from distutils.command import register as register_module
 from distutils.command.register import register
 from distutils.errors import DistutilsSetupError
-from distutils.log import INFO
 
 from distutils.tests.test_config import BasePyPIRCCommandTestCase
 import pytest
@@ -303,14 +302,13 @@ class TestRegister(BasePyPIRCCommandTestCase):
         with pytest.raises(DistutilsSetupError):
             cmd.run()
 
-    def test_list_classifiers(self):
+    def test_list_classifiers(self, caplog):
         cmd = self._get_cmd()
         cmd.list_classifiers = 1
         cmd.run()
-        results = self.get_logs(INFO)
-        assert results == ['running check', 'xxx']
+        assert caplog.messages == ['running check', 'xxx']
 
-    def test_show_response(self):
+    def test_show_response(self, caplog):
         # test that the --show-response option return a well formatted response
         cmd = self._get_cmd()
         inputs = Inputs('1', 'tarek', 'y')
@@ -321,5 +319,4 @@ class TestRegister(BasePyPIRCCommandTestCase):
         finally:
             del register_module.input
 
-        results = self.get_logs(INFO)
-        assert results[3] == 75 * '-' + '\nxxx\n' + 75 * '-'
+        assert caplog.messages[3] == 75 * '-' + '\nxxx\n' + 75 * '-'
