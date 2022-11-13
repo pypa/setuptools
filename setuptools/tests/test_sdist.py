@@ -89,6 +89,12 @@ fail_on_latin1_encoded_filenames = pytest.mark.xfail(
 )
 
 
+skip_under_xdist = pytest.mark.skipif(
+    "os.environ.get('PYTEST_XDIST_WORKER')",
+    reason="pytest-dev/pytest-xdist#843",
+)
+
+
 def touch(path):
     path.write_text('', encoding='utf-8')
 
@@ -322,10 +328,7 @@ class TestSdistTest:
         # The filelist should have been updated as well
         assert u_filename in mm.filelist.files
 
-    @pytest.mark.skipif(
-        "os.environ.get('PYTEST_XDIST_WORKER')",
-        reason="pytest-dev/pytest-xdist#843",
-    )
+    @skip_under_xdist
     def test_write_manifest_skips_non_utf8_filenames(self):
         """
         Files that cannot be encoded to UTF-8 (specifically, those that
@@ -464,6 +467,7 @@ class TestSdistTest:
         return str(item)
 
     @fail_on_latin1_encoded_filenames
+    @skip_under_xdist
     def test_sdist_with_latin1_encoded_filename(self):
         # Test for #303.
         dist = Distribution(self.make_strings(SETUP_ATTRS))
