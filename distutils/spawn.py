@@ -12,7 +12,7 @@ import subprocess
 
 from .errors import DistutilsExecError
 from .debug import DEBUG
-from . import log
+from ._log import log
 
 
 def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):  # noqa: C901

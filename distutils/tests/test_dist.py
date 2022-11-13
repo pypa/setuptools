@@ -14,7 +14,6 @@ from distutils.dist import Distribution, fix_help_options
 from distutils.cmd import Command
 
 from distutils.tests import support
-from distutils import log
 
 
 pydistutils_cfg = '.' * (os.name == 'posix') + 'pydistutils.cfg'
@@ -236,7 +235,7 @@ class TestDistributionBehavior(support.TempdirManager):
     def test_announce(self):
         # make sure the level is known
         dist = Distribution()
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             dist.announce('ok', level='ok2')
 
     def test_find_config_files_disable(self, temp_home):
@@ -367,7 +366,7 @@ class TestMetadata(support.TempdirManager):
         meta = self.format_metadata(dist)
         assert 'Metadata-Version: 1.1' in meta
 
-    def test_classifier_invalid_type(self, capsys):
+    def test_classifier_invalid_type(self, caplog):
         attrs = {
             'name': 'Boa',
             'version': '3.0',
@@ -375,7 +374,7 @@ class TestMetadata(support.TempdirManager):
         }
         d = Distribution(attrs)
         # should have warning about passing a non-list
-        assert 'should be a list' in capsys.readouterr().err
+        assert 'should be a list' in caplog.messages[0]
         # should be converted to a list
         assert isinstance(d.metadata.classifiers, list)
         assert d.metadata.classifiers == list(attrs['classifiers'])
@@ -389,7 +388,7 @@ class TestMetadata(support.TempdirManager):
         dist = Distribution(attrs)
         assert dist.get_keywords() == ['spam', 'eggs', 'life of brian']
 
-    def test_keywords_invalid_type(self, capsys):
+    def test_keywords_invalid_type(self, caplog):
         attrs = {
             'name': 'Monty',
             'version': '1.0',
@@ -397,7 +396,7 @@ class TestMetadata(support.TempdirManager):
         }
         d = Distribution(attrs)
         # should have warning about passing a non-list
-        assert 'should be a list' in capsys.readouterr().err
+        assert 'should be a list' in caplog.messages[0]
         # should be converted to a list
         assert isinstance(d.metadata.keywords, list)
         assert d.metadata.keywords == list(attrs['keywords'])
@@ -411,7 +410,7 @@ class TestMetadata(support.TempdirManager):
         dist = Distribution(attrs)
         assert dist.get_platforms() == ['GNU/Linux', 'Some Evil Platform']
 
-    def test_platforms_invalid_types(self, capsys):
+    def test_platforms_invalid_types(self, caplog):
         attrs = {
             'name': 'Monty',
             'version': '1.0',
@@ -419,7 +418,7 @@ class TestMetadata(support.TempdirManager):
         }
         d = Distribution(attrs)
         # should have warning about passing a non-list
-        assert 'should be a list' in capsys.readouterr().err
+        assert 'should be a list' in caplog.messages[0]
         # should be converted to a list
         assert isinstance(d.metadata.platforms, list)
         assert d.metadata.platforms == list(attrs['platforms'])
@@ -472,8 +471,6 @@ class TestMetadata(support.TempdirManager):
 
     def test_show_help(self, request, capsys):
         # smoke test, just makes sure some help is displayed
-        reset_log = functools.partial(log.set_threshold, log._global_log.threshold)
-        request.addfinalizer(reset_log)
         dist = Distribution()
         sys.argv = []
         dist.help = 1

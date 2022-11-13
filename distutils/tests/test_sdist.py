@@ -18,7 +18,6 @@ from distutils.core import Distribution
 from distutils.tests.test_config import BasePyPIRCCommandTestCase
 from distutils.errors import DistutilsOptionError
 from distutils.spawn import find_executable  # noqa: F401
-from distutils.log import WARN
 from distutils.filelist import FileList
 from distutils.archive_util import ARCHIVE_FORMATS
 
@@ -251,8 +250,12 @@ class TestSDist(BasePyPIRCCommandTestCase):
             f.close()
         assert manifest == MANIFEST % {'sep': os.sep}
 
+    @staticmethod
+    def warnings(messages, prefix='warning: '):
+        return [msg for msg in messages if msg.startswith(prefix)]
+
     @pytest.mark.usefixtures('needs_zlib')
-    def test_metadata_check_option(self, logs):
+    def test_metadata_check_option(self, caplog):
         # testing the `medata-check` option
         dist, cmd = self.get_cmd(metadata={})
 
@@ -260,21 +263,15 @@ class TestSDist(BasePyPIRCCommandTestCase):
         # with the `check` subcommand
         cmd.ensure_finalized()
         cmd.run()
-        warnings = [
-            msg for msg in logs.render(WARN) if msg.startswith('warning: check:')
-        ]
-        assert len(warnings) == 1
+        assert len(self.warnings(caplog.messages, 'warning: check: ')) == 1
 
         # trying with a complete set of metadata
-        logs.clear()
+        caplog.clear()
         dist, cmd = self.get_cmd()
         cmd.ensure_finalized()
         cmd.metadata_check = 0
         cmd.run()
-        warnings = [
-            msg for msg in logs.render(WARN) if msg.startswith('warning: check:')
-        ]
-        assert len(warnings) == 0
+        assert len(self.warnings(caplog.messages, 'warning: check: ')) == 0
 
     def test_check_metadata_deprecated(self):
         # makes sure make_metadata is deprecated
@@ -321,28 +318,27 @@ class TestSDist(BasePyPIRCCommandTestCase):
     # the following tests make sure there is a nice error message instead
     # of a traceback when parsing an invalid manifest template
 
-    def _check_template(self, content, logs):
+    def _check_template(self, content, caplog):
         dist, cmd = self.get_cmd()
         os.chdir(self.tmp_dir)
         self.write_file('MANIFEST.in', content)
         cmd.ensure_finalized()
         cmd.filelist = FileList()
         cmd.read_template()
-        warnings = logs.render(WARN)
-        assert len(warnings) == 1
+        assert len(self.warnings(caplog.messages)) == 1
 
-    def test_invalid_template_unknown_command(self, logs):
-        self._check_template('taunt knights *', logs)
+    def test_invalid_template_unknown_command(self, caplog):
+        self._check_template('taunt knights *', caplog)
 
-    def test_invalid_template_wrong_arguments(self, logs):
+    def test_invalid_template_wrong_arguments(self, caplog):
         # this manifest command takes one argument
-        self._check_template('prune', logs)
+        self._check_template('prune', caplog)
 
     @pytest.mark.skipif("platform.system() != 'Windows'")
-    def test_invalid_template_wrong_path(self, logs):
+    def test_invalid_template_wrong_path(self, caplog):
         # on Windows, trailing slashes are not allowed
         # this used to crash instead of raising a warning: #8286
-        self._check_template('include examples/', logs)
+        self._check_template('include examples/', caplog)
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_get_file_list(self):

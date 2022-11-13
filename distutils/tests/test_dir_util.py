@@ -26,21 +26,19 @@ def stuff(request, monkeypatch, distutils_managed_tempdir):
 
 
 class TestDirUtil(support.TempdirManager):
-    def test_mkpath_remove_tree_verbosity(self, logs):
-
+    def test_mkpath_remove_tree_verbosity(self, caplog):
         mkpath(self.target, verbose=0)
-        wanted = []
-        assert logs.render() == wanted
+        assert not caplog.records
         remove_tree(self.root_target, verbose=0)
 
         mkpath(self.target, verbose=1)
         wanted = ['creating %s' % self.root_target, 'creating %s' % self.target]
-        assert logs.render() == wanted
-        logs.clear()
+        assert caplog.messages == wanted
+        caplog.clear()
 
         remove_tree(self.root_target, verbose=1)
         wanted = ["removing '%s' (and everything under it)" % self.root_target]
-        assert logs.render() == wanted
+        assert caplog.messages == wanted
 
     @pytest.mark.skipif("platform.system() == 'Windows'")
     def test_mkpath_with_custom_mode(self):
@@ -52,24 +50,24 @@ class TestDirUtil(support.TempdirManager):
         mkpath(self.target2, 0o555)
         assert stat.S_IMODE(os.stat(self.target2).st_mode) == 0o555 & ~umask
 
-    def test_create_tree_verbosity(self, logs):
+    def test_create_tree_verbosity(self, caplog):
 
         create_tree(self.root_target, ['one', 'two', 'three'], verbose=0)
-        assert logs.render() == []
+        assert caplog.messages == []
         remove_tree(self.root_target, verbose=0)
 
         wanted = ['creating %s' % self.root_target]
         create_tree(self.root_target, ['one', 'two', 'three'], verbose=1)
-        assert logs.render() == wanted
+        assert caplog.messages == wanted
 
         remove_tree(self.root_target, verbose=0)
 
-    def test_copy_tree_verbosity(self, logs):
+    def test_copy_tree_verbosity(self, caplog):
 
         mkpath(self.target, verbose=0)
 
         copy_tree(self.target, self.target2, verbose=0)
-        assert logs.render() == []
+        assert caplog.messages == []
 
         remove_tree(self.root_target, verbose=0)
 
@@ -80,7 +78,7 @@ class TestDirUtil(support.TempdirManager):
 
         wanted = ['copying {} -> {}'.format(a_file, self.target2)]
         copy_tree(self.target, self.target2, verbose=1)
-        assert logs.render() == wanted
+        assert caplog.messages == wanted
 
         remove_tree(self.root_target, verbose=0)
         remove_tree(self.target2, verbose=0)

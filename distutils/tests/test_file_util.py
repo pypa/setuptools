@@ -20,7 +20,7 @@ def stuff(request, monkeypatch, distutils_managed_tempdir):
 
 
 class TestFileUtil(support.TempdirManager):
-    def test_move_file_verbosity(self, logs):
+    def test_move_file_verbosity(self, caplog):
         f = open(self.source, 'w')
         try:
             f.write('some content')
@@ -28,25 +28,24 @@ class TestFileUtil(support.TempdirManager):
             f.close()
 
         move_file(self.source, self.target, verbose=0)
-        wanted = []
-        assert logs.render() == wanted
+        assert not caplog.messages
 
         # back to original state
         move_file(self.target, self.source, verbose=0)
 
         move_file(self.source, self.target, verbose=1)
         wanted = ['moving {} -> {}'.format(self.source, self.target)]
-        assert logs.render() == wanted
+        assert caplog.messages == wanted
 
         # back to original state
         move_file(self.target, self.source, verbose=0)
 
-        logs.clear()
+        caplog.clear()
         # now the target is a dir
         os.mkdir(self.target_dir)
         move_file(self.source, self.target_dir, verbose=1)
         wanted = ['moving {} -> {}'.format(self.source, self.target_dir)]
-        assert logs.render() == wanted
+        assert caplog.messages == wanted
 
     def test_move_file_exception_unpacking_rename(self):
         # see issue 22182

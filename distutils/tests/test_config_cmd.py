@@ -7,7 +7,7 @@ import pytest
 
 from distutils.command.config import dump_file, config
 from distutils.tests import support
-from distutils import log
+from distutils._log import log
 
 
 @pytest.fixture(autouse=True)

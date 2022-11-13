@@ -9,7 +9,7 @@ from distutils import sysconfig
 from ..core import Command
 from ..dep_util import newer
 from ..util import convert_path
-from distutils import log
+from distutils._log import log
 import tokenize
 
 shebang_pattern = re.compile('^#!.*python[0-9.]*([ \t].*)?$')

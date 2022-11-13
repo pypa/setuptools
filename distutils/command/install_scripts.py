@@ -7,7 +7,7 @@ Python scripts."""
 
 import os
 from ..core import Command
-from distutils import log
+from distutils._log import log
 from stat import ST_MODE
 
 

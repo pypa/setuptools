@@ -8,7 +8,6 @@ from distutils.command import upload as upload_mod
 from distutils.command.upload import upload
 from distutils.core import Distribution
 from distutils.errors import DistutilsError
-from distutils.log import ERROR, INFO
 
 from distutils.tests.test_config import PYPIRC, BasePyPIRCCommandTestCase
 import pytest
@@ -109,7 +108,7 @@ class TestUpload(BasePyPIRCCommandTestCase):
         cmd.finalize_options()
         assert cmd.password == 'xxx'
 
-    def test_upload(self, logs):
+    def test_upload(self, caplog):
         tmp = self.mkdtemp()
         path = os.path.join(tmp, 'xxx')
         self.write_file(path)
@@ -150,7 +149,7 @@ class TestUpload(BasePyPIRCCommandTestCase):
             )
 
         # The PyPI response body was echoed
-        results = logs.render(INFO)
+        results = caplog.messages
         assert results[-1] == 75 * '-' + '\nxyzzy\n' + 75 * '-'
 
     # bpo-32304: archives whose last byte was b'\r' were corrupted due to
@@ -178,11 +177,11 @@ class TestUpload(BasePyPIRCCommandTestCase):
         assert int(headers['Content-length']) >= 2172
         assert b'long description\r' in self.last_open.req.data
 
-    def test_upload_fails(self, logs):
+    def test_upload_fails(self, caplog):
         self.next_msg = "Not Found"
         self.next_code = 404
         with pytest.raises(DistutilsError):
-            self.test_upload(logs)
+            self.test_upload(caplog)
 
     @pytest.mark.parametrize(
         'exception,expected,raised_exception',
@@ -196,7 +195,7 @@ class TestUpload(BasePyPIRCCommandTestCase):
             ),
         ],
     )
-    def test_wrong_exception_order(self, exception, expected, raised_exception, logs):
+    def test_wrong_exception_order(self, exception, expected, raised_exception, caplog):
         tmp = self.mkdtemp()
         path = os.path.join(tmp, 'xxx')
         self.write_file(path)
@@ -213,6 +212,6 @@ class TestUpload(BasePyPIRCCommandTestCase):
                 cmd = upload(dist)
                 cmd.ensure_finalized()
                 cmd.run()
-            results = logs.render(ERROR)
+            results = caplog.messages
             assert expected in results[-1]
-            logs.clear()
+            caplog.clear()

@@ -4,6 +4,7 @@ import os
 import sys
 import site
 import pathlib
+import logging
 
 import pytest
 
@@ -15,7 +16,6 @@ from distutils.command.install import INSTALL_SCHEMES
 from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
-from distutils.log import DEBUG
 
 from distutils.tests import support
 from test import support as test_support
@@ -244,8 +244,9 @@ class TestInstall(
         ]
         assert found == expected
 
-    def test_debug_mode(self, logs, monkeypatch):
+    def test_debug_mode(self, caplog, monkeypatch):
         # this covers the code called when DEBUG is set
         monkeypatch.setattr(install_module, 'DEBUG', True)
+        caplog.set_level(logging.DEBUG)
         self.test_record()
-        assert logs.render(DEBUG)
+        assert any(rec for rec in caplog.records if rec.levelno == logging.DEBUG)

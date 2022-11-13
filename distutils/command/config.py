@@ -15,7 +15,7 @@ import re
 from ..core import Command
 from ..errors import DistutilsExecError
 from ..sysconfig import customize_compiler
-from distutils import log
+from distutils._log import log
 
 LANG_EXT = {"c": ".c", "c++": ".cxx"}
 
