@@ -2190,8 +2190,7 @@ def resolve_egg_link(path):
 if hasattr(pkgutil, 'ImpImporter'):
     register_finder(pkgutil.ImpImporter, find_on_path)
 
-if hasattr(importlib_machinery, 'FileFinder'):
-    register_finder(importlib_machinery.FileFinder, find_on_path)
+register_finder(importlib_machinery.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})
@@ -2349,9 +2348,7 @@ if hasattr(pkgutil, 'ImpImporter'):
     register_namespace_handler(pkgutil.ImpImporter, file_ns_handler)
 
 register_namespace_handler(zipimport.zipimporter, file_ns_handler)
-
-if hasattr(importlib_machinery, 'FileFinder'):
-    register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
+register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
 
 
 def null_ns_handler(importer, path_item, packageName, module):
