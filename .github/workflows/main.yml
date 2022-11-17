@@ -115,6 +115,45 @@ jobs:
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: tox
 
+  test_msys2_mingw:
+    strategy:
+      matrix:
+        include:
+          - { sys: mingw64, env: x86_64 }
+          - { sys: mingw32, env: i686 }
+          - { sys: ucrt64,  env: ucrt-x86_64 }
+          - { sys: clang64, env: clang-x86_64 }
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          install: |
+            mingw-w64-${{matrix.env}}-toolchain
+            mingw-w64-${{matrix.env}}-python
+            mingw-w64-${{matrix.env}}-python-pip
+            mingw-w64-${{matrix.env}}-python-virtualenv
+            mingw-w64-${{matrix.env}}-cc
+            git
+      - name: Install Dependencies
+        shell: msys2 {0}
+        run: |
+          export VIRTUALENV_NO_SETUPTOOLS=1
+
+          python -m virtualenv venv
+          source venv/bin/activate
+
+          # python-ruff doesn't work without rust
+          sed -i '/pytest-ruff/d' setup.cfg
+
+          pip install -e .[testing]
+      - name: Run tests
+        shell: msys2 {0}
+        run: |
+          source venv/bin/activate
+          pytest distutils/tests
+
   ci_setuptools:
     # Integration testing with setuptools
     if: ${{ false }}  # disabled for deprecation warnings
