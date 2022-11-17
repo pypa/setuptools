@@ -12,7 +12,7 @@ from jaraco.text import trim
 
 import distutils
 from distutils import sysconfig
-from distutils.ccompiler import get_default_compiler  # noqa: F401
+from distutils.ccompiler import new_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
 
@@ -109,7 +109,7 @@ class TestSysconfig:
 
         return comp
 
-    @pytest.mark.skipif("get_default_compiler() != 'unix'")
+    @pytest.mark.skipif("not isinstance(new_compiler(), UnixCCompiler)")
     def test_customize_compiler(self):
         # Make sure that sysconfig._config_vars is initialized
         sysconfig.get_config_vars()
