@@ -48,7 +48,7 @@ def same_drive(*paths):
     return all_equal(pathlib.Path(path).drive for path in paths)
 
 
-class ArchiveUtilTestCase(support.TempdirManager, support.LoggingSilencer):
+class ArchiveUtilTestCase(support.TempdirManager):
     @pytest.mark.usefixtures('needs_zlib')
     def test_make_tarball(self, name='archive'):
         # creating something to tar

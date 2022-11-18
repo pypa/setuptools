@@ -9,6 +9,7 @@ import os
 import re
 import pathlib
 import contextlib
+import logging
 from email import message_from_file
 
 try:
@@ -16,16 +17,16 @@ try:
 except ImportError:
     warnings = None
 
-from distutils.errors import (
+from .errors import (
     DistutilsOptionError,
     DistutilsModuleError,
     DistutilsArgError,
     DistutilsClassError,
 )
-from distutils.fancy_getopt import FancyGetopt, translate_longopt
-from distutils.util import check_environ, strtobool, rfc822_escape
-from distutils import log
-from distutils.debug import DEBUG
+from .fancy_getopt import FancyGetopt, translate_longopt
+from .util import check_environ, strtobool, rfc822_escape
+from ._log import log
+from .debug import DEBUG
 
 # Regex to define acceptable Distutils command names.  This is not *quite*
 # the same as a Python NAME -- I don't allow leading underscores.  The fact
@@ -44,7 +45,7 @@ def _ensure_list(value, fieldname):
         typename = type(value).__name__
         msg = "Warning: '{fieldname}' should be a list, got type '{typename}'"
         msg = msg.format(**locals())
-        log.log(log.WARN, msg)
+        log.warning(msg)
         value = list(value)
     return value
 
@@ -465,7 +466,7 @@ Common commands: (see '--help-commands' for more)
         parser.set_aliases({'licence': 'license'})
         args = parser.getopt(args=self.script_args, object=self)
         option_order = parser.get_option_order()
-        log.set_verbosity(self.verbose)
+        logging.getLogger().setLevel(logging.WARN - 10 * self.verbose)
 
         # for display options we return immediately
         if self.handle_display_options(option_order):
@@ -956,7 +957,7 @@ Common commands: (see '--help-commands' for more)
 
     # -- Methods that operate on the Distribution ----------------------
 
-    def announce(self, msg, level=log.INFO):
+    def announce(self, msg, level=logging.INFO):
         log.log(level, msg)
 
     def run_commands(self):

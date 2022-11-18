@@ -13,10 +13,10 @@ import sys
 import sysconfig
 import functools
 
-from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
-from distutils.dep_util import newer
-from distutils.spawn import spawn
-from distutils import log
+from .errors import DistutilsPlatformError, DistutilsByteCompileError
+from .dep_util import newer
+from .spawn import spawn
+from ._log import log
 
 
 def get_host_platform():

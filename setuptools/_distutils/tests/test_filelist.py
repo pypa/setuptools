@@ -1,18 +1,16 @@
 """Tests for distutils.filelist."""
 import os
 import re
+import logging
+
 from distutils import debug
-from distutils.log import WARN
 from distutils.errors import DistutilsTemplateError
 from distutils.filelist import glob_to_re, translate_pattern, FileList
 from distutils import filelist
 
-from test.support import captured_stdout
-
 import pytest
 import jaraco.path
 
-from distutils.tests import support
 from . import py38compat as os_helper
 
 
@@ -37,14 +35,16 @@ def make_local_path(s):
     return s.replace('/', os.sep)
 
 
-class TestFileList(support.LoggingSilencer):
-    def assertNoWarnings(self):
-        assert self.get_logs(WARN) == []
-        self.clear_logs()
+class TestFileList:
+    def assertNoWarnings(self, caplog):
+        warnings = [rec for rec in caplog.records if rec.levelno == logging.WARNING]
+        assert not warnings
+        caplog.clear()
 
-    def assertWarnings(self):
-        assert len(self.get_logs(WARN)) > 0
-        self.clear_logs()
+    def assertWarnings(self, caplog):
+        warnings = [rec for rec in caplog.records if rec.levelno == logging.WARNING]
+        assert warnings
+        caplog.clear()
 
     def test_glob_to_re(self):
         sep = os.sep
@@ -110,19 +110,14 @@ class TestFileList(support.LoggingSilencer):
 
         assert file_list.files == wanted
 
-    def test_debug_print(self):
+    def test_debug_print(self, capsys, monkeypatch):
         file_list = FileList()
-        with captured_stdout() as stdout:
-            file_list.debug_print('xxx')
-        assert stdout.getvalue() == ''
+        file_list.debug_print('xxx')
+        assert capsys.readouterr().out == ''
 
-        debug.DEBUG = True
-        try:
-            with captured_stdout() as stdout:
-                file_list.debug_print('xxx')
-            assert stdout.getvalue() == 'xxx\n'
-        finally:
-            debug.DEBUG = False
+        monkeypatch.setattr(debug, 'DEBUG', True)
+        file_list.debug_print('xxx')
+        assert capsys.readouterr().out == 'xxx\n'
 
     def test_set_allfiles(self):
         file_list = FileList()
@@ -188,7 +183,7 @@ class TestFileList(support.LoggingSilencer):
         file_list.include_pattern('*')
         assert file_list.allfiles == ['a.py', 'b.txt']
 
-    def test_process_template(self):
+    def test_process_template(self, caplog):
         mlp = make_local_path
         # invalid lines
         file_list = FileList()
@@ -212,11 +207,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('include *.py')
         assert file_list.files == ['a.py']
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('include *.rb')
         assert file_list.files == ['a.py']
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
         # exclude
         file_list = FileList()
@@ -224,11 +219,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('exclude *.py')
         assert file_list.files == ['b.txt', mlp('d/c.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('exclude *.rb')
         assert file_list.files == ['b.txt', mlp('d/c.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
         # global-include
         file_list = FileList()
@@ -236,11 +231,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('global-include *.py')
         assert file_list.files == ['a.py', mlp('d/c.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('global-include *.rb')
         assert file_list.files == ['a.py', mlp('d/c.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
         # global-exclude
         file_list = FileList()
@@ -248,11 +243,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('global-exclude *.py')
         assert file_list.files == ['b.txt']
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('global-exclude *.rb')
         assert file_list.files == ['b.txt']
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
         # recursive-include
         file_list = FileList()
@@ -260,11 +255,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('recursive-include d *.py')
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('recursive-include e *.py')
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
         # recursive-exclude
         file_list = FileList()
@@ -272,11 +267,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('recursive-exclude d *.py')
         assert file_list.files == ['a.py', mlp('d/c.txt')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('recursive-exclude e *.py')
         assert file_list.files == ['a.py', mlp('d/c.txt')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
         # graft
         file_list = FileList()
@@ -284,11 +279,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('graft d')
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('graft e')
         assert file_list.files == [mlp('d/b.py'), mlp('d/d/e.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
         # prune
         file_list = FileList()
@@ -296,11 +291,11 @@ class TestFileList(support.LoggingSilencer):
 
         file_list.process_template_line('prune d')
         assert file_list.files == ['a.py', mlp('f/f.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('prune e')
         assert file_list.files == ['a.py', mlp('f/f.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
 
 class TestFindAll:

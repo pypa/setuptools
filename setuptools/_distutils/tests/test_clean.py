@@ -5,7 +5,7 @@ from distutils.command.clean import clean
 from distutils.tests import support
 
 
-class TestClean(support.TempdirManager, support.LoggingSilencer):
+class TestClean(support.TempdirManager):
     def test_simple_run(self):
         pkg_dir, dist = self.create_dist()
         cmd = clean(dist)

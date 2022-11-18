@@ -11,15 +11,15 @@ for the Microsoft Visual Studio.
 import sys
 import os
 import warnings
-from distutils.errors import (
+from .errors import (
     DistutilsExecError,
     DistutilsPlatformError,
     CompileError,
     LibError,
     LinkError,
 )
-from distutils.ccompiler import CCompiler, gen_lib_options
-from distutils import log
+from .ccompiler import CCompiler, gen_lib_options
+from ._log import log
 
 _can_read_reg = False
 try:

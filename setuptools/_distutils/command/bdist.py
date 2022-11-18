@@ -6,14 +6,14 @@ distribution)."""
 import os
 import warnings
 
-from distutils.core import Command
-from distutils.errors import DistutilsPlatformError, DistutilsOptionError
-from distutils.util import get_platform
+from ..core import Command
+from ..errors import DistutilsPlatformError, DistutilsOptionError
+from ..util import get_platform
 
 
 def show_formats():
     """Print list of available formats (arguments to "--format" option)."""
-    from distutils.fancy_getopt import FancyGetopt
+    from ..fancy_getopt import FancyGetopt
 
     formats = []
     for format in bdist.format_commands:

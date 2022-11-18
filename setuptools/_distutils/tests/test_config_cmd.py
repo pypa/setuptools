@@ -7,7 +7,7 @@ import pytest
 
 from distutils.command.config import dump_file, config
 from distutils.tests import support
-from distutils import log
+from distutils._log import log
 
 
 @pytest.fixture(autouse=True)
@@ -18,7 +18,7 @@ def info_log(request, monkeypatch):
 
 
 @support.combine_markers
-class TestConfig(support.LoggingSilencer, support.TempdirManager):
+class TestConfig(support.TempdirManager):
     def _info(self, msg, *args):
         for line in msg.splitlines():
             self._logs.append(line)

@@ -17,7 +17,7 @@ from distutils.tests import support
 import pytest
 
 
-class TestSpawn(support.TempdirManager, support.LoggingSilencer):
+class TestSpawn(support.TempdirManager):
     @pytest.mark.skipif("os.name not in ('nt', 'posix')")
     def test_spawn(self):
         tmpdir = self.mkdtemp()

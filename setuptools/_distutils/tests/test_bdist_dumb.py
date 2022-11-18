@@ -26,7 +26,6 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 @pytest.mark.usefixtures('save_cwd')
 class TestBuildDumb(
     support.TempdirManager,
-    support.LoggingSilencer,
 ):
     @pytest.mark.usefixtures('needs_zlib')
     def test_simple_built(self):

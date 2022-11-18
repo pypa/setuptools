@@ -4,7 +4,6 @@ import io
 import distutils.core
 import os
 import sys
-from test.support import captured_stdout
 
 import pytest
 
@@ -121,20 +120,12 @@ class TestCore:
         distutils.core.run_commands(dist)
         assert 'build' in dist.have_run
 
-    def test_debug_mode(self):
+    def test_debug_mode(self, capsys, monkeypatch):
         # this covers the code called when DEBUG is set
         sys.argv = ['setup.py', '--name']
-        with captured_stdout() as stdout:
-            distutils.core.setup(name='bar')
-        stdout.seek(0)
-        assert stdout.read() == 'bar\n'
-
-        distutils.core.DEBUG = True
-        try:
-            with captured_stdout() as stdout:
-                distutils.core.setup(name='bar')
-        finally:
-            distutils.core.DEBUG = False
-        stdout.seek(0)
+        distutils.core.setup(name='bar')
+        capsys.readouterr().out == 'bar\n'
+        monkeypatch.setattr(distutils.core, 'DEBUG', True)
+        distutils.core.setup(name='bar')
         wanted = "options (after parsing config files):\n"
-        assert stdout.readlines()[0] == wanted
+        assert capsys.readouterr().out.startswith(wanted)
