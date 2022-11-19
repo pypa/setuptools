@@ -1,1 +1,0 @@
-Sync with pypa/distutils@e0787fa, including pypa/distutils#183 updating distutils to use the Python logging framework.

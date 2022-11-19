@@ -1,3 +1,12 @@
+v65.6.0
+-------
+
+
+Changes
+^^^^^^^
+* #3674: Sync with pypa/distutils@e0787fa, including pypa/distutils#183 updating distutils to use the Python logging framework.
+
+
 v65.5.1
 -------
 
