@@ -38,8 +38,8 @@ jobs:
       matrix:
         python:
         - "3.7"
-        - "3.10"
         - "3.11"
+        - "3.12"
         # Workaround for actions/setup-python#508
         dev:
         - -dev
@@ -48,6 +48,12 @@ jobs:
         - macos-latest
         - windows-latest
         include:
+        - python: "3.8"
+          platform: ubuntu-latest
+        - python: "3.9"
+          platform: ubuntu-latest
+        - python: "3.10"
+          platform: ubuntu-latest
         - python: pypy3.9
           platform: ubuntu-latest
     runs-on: ${{ matrix.platform }}
