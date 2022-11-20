@@ -117,7 +117,7 @@ class CygwinCCompiler(UnixCCompiler):
 
     @property
     def gcc_version(self):
-        # Older numpy dependend on this existing to check for ancient
+        # Older numpy depended on this existing to check for ancient
         # gcc versions. This doesn't make much sense with clang etc so
         # just hardcode to something recent.
         # https://github.com/numpy/numpy/pull/20333
