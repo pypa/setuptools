@@ -165,7 +165,7 @@ to specify to properly package your project.
   :doc:`setup.cfg <declarative_config>`, and keep the ``setup.py`` minimal
   with only the dynamic parts (or even omit it completely if applicable).
 
-  See `Why you shouldn't invoke setup.py directly`_ for more background.  
+  See `Why you shouldn't invoke setup.py directly`_ for more background.
 
 .. _Why you shouldn't invoke setup.py directly: https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html
 

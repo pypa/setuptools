@@ -48,8 +48,8 @@ files, a ``pyproject.toml`` file and a ``setup.cfg`` file::
         pyproject.toml
         setup.cfg
         meowpkg/
-		    __init__.py
-			module.py
+            __init__.py
+            module.py
 
 The ``pyproject.toml`` file specifies the build system (i.e. what is
 being used to package your scripts and install from source). To use it with
@@ -161,7 +161,7 @@ requirements.
    and :pypi:`setuptools-svn`), or by correctly setting up :ref:`MANIFEST.in
    <manifest>`.
 
-   The generated ``.tar.gz`` and ``.whl`` files are compressed archives that 
+   The generated ``.tar.gz`` and ``.whl`` files are compressed archives that
    can be inspected as follows:
    On POSIX systems, this can be done with ``tar -tf dist/*.tar.gz``
    and ``unzip -l dist/*.whl``.

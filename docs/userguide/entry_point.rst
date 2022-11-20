@@ -89,7 +89,7 @@ configuration:
 .. tab:: setup.py
 
     .. code-block:: python
-    
+
         from setuptools import setup
 
         setup(

@@ -62,7 +62,7 @@ Currently, popular Python package installers (such as :pypi:`pip`) and package
 indexes (such as PyPI_) consider that distribution packages are always
 installed as a directory.
 It is however still possible to load packages from zip files added to
-:obj:`sys.path`, thanks to the :mod:`zipimport` module 
+:obj:`sys.path`, thanks to the :mod:`zipimport` module
 and the :mod:`importlib` machinery provided by Python standard library.
 
 When working with modules loaded from a zip file, it is important to keep in
