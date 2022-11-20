@@ -204,7 +204,7 @@ int create_and_wait_for_subprocess(char* command) {
     ZeroMemory(&p_info, sizeof(p_info));
     ZeroMemory(&s_info, sizeof(s_info));
     s_info.cb = sizeof(STARTUPINFO);
-    // set-up control handler callback funciotn
+    // set-up control handler callback function
     SetConsoleCtrlHandler((PHANDLER_ROUTINE) control_handler, TRUE);
     if (!CreateProcessA(NULL, commandline, NULL, NULL, TRUE, 0, NULL, NULL, &s_info, &p_info)) {
         fprintf(stderr, "failed to create process.\n");

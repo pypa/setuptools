@@ -44,7 +44,7 @@ class BuildBackend(BuildBackendBase):
         self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
     def __getattr__(self, name):
-        """Handles aribrary function invocations on the build backend."""
+        """Handles arbitrary function invocations on the build backend."""
 
         def method(*args, **kw):
             root = os.path.abspath(self.cwd)
@@ -79,7 +79,7 @@ class BuildBackendCaller(BuildBackendBase):
          self.backend_obj) = self.backend_name.partition(':')
 
     def __call__(self, name, *args, **kw):
-        """Handles aribrary function invocations on the build backend."""
+        """Handles arbitrary function invocations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)
         mod = importlib.import_module(self.backend_name)
