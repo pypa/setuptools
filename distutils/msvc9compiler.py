@@ -391,7 +391,7 @@ class MSVCCompiler(CCompiler):
             # to cross compile, you use 'x86_amd64'.
             # On AMD64, 'vcvars32.bat amd64' is a native build env; to cross
             # compile use 'x86' (ie, it runs the x86 compiler directly)
-            if plat_name == get_platform() or plat_name == 'win32':
+            if plat_name in (get_platform(), 'win32'):
                 # native build or cross-compile to win32
                 plat_spec = PLAT_TO_VCVARS[plat_name]
             else:
