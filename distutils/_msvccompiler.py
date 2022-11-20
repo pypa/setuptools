@@ -413,8 +413,7 @@ class MSVCCompiler(CCompiler):
             args = [self.cc] + compile_opts + pp_opts
             if add_cpp_opts:
                 args.append('/EHsc')
-            args.append(input_opt)
-            args.append("/Fo" + obj)
+            args.extend((input_opt, "/Fo" + obj))
             args.extend(extra_postargs)
 
             try:
