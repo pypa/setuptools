@@ -49,7 +49,7 @@ files, a ``pyproject.toml`` file and a ``setup.cfg`` file::
         setup.cfg
         meowpkg/
 		    __init__.py
-			module.py
+		    module.py
 
 The ``pyproject.toml`` file specifies the build system (i.e. what is
 being used to package your scripts and install from source). To use it with
