@@ -69,7 +69,7 @@ Please have a look on the following section if you are looking for a different b
 
        sudo apt install python3-venv
 
-   Alternatively, you can also try installing :pypi:`virtualenᴠ`.
+   Alternatively, you can also try installing :pypi:`virtualenv`.
    More information is available on the Python Packaging User Guide on
    :doc:`PyPUG:guides/installing-using-pip-and-virtual-environments`.
 
