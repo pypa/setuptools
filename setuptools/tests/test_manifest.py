@@ -322,19 +322,30 @@ class TestFileListTest(TempDirTestCase):
     to ensure setuptools' version of FileList keeps parity with distutils.
     """
 
-    def get_logs(self, caplog, *levels):
-        return [
-            record.getMessage()
-            for record in caplog.records
-            if record.levelno in levels
-        ]
+    @pytest.fixture(autouse=True)
+    def _compat_record_logs(self, monkeypatch, caplog):
+        """Account for stdlib compatibility"""
+        if (
+            os.getenv("SETUPTOOLS_USE_DISTUTILS") == "stdlib"
+            and hasattr(log, "Log")
+            and not isinstance(log.Log, logging.Logger)
+        ):
+            def _log(_logger, level, msg, args):
+                exc = sys.exc_info()
+                rec = logging.LogRecord("distutils", level, "", 0, msg, args, exc)
+                caplog.records.append(rec)
+
+            monkeypatch.setattr(log.Log, "_log", _log)
+
+    def get_records(self, caplog, *levels):
+        return [r for r in caplog.records if r.levelno in levels]
 
     def assertNoWarnings(self, caplog):
-        assert self.get_logs(caplog, log.WARN) == []
+        assert self.get_records(caplog, log.WARN) == []
         caplog.clear()
 
     def assertWarnings(self, caplog):
-        assert len(self.get_logs(caplog, log.WARN)) > 0
+        assert len(self.get_records(caplog, log.WARN)) > 0
         caplog.clear()
 
     def make_files(self, files):
