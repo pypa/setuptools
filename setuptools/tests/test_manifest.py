@@ -19,6 +19,9 @@ from setuptools.tests.textwrap import DALS
 import pytest
 
 
+IS_PYPY = '__pypy__' in sys.builtin_module_names
+
+
 def make_local_path(s):
     """Converts '/' in a string to os.sep"""
     return s.replace('/', os.sep)
@@ -340,8 +343,11 @@ class TestFileListTest(TempDirTestCase):
         caplog.clear()
 
     def assertWarnings(self, caplog):
-        assert len(self.get_records(caplog, log.WARN)) > 0
-        caplog.clear()
+        if IS_PYPY and not caplog.records:
+            pytest.xfail("caplog checks may not work well in PyPy")
+        else:
+            assert len(self.get_records(caplog, log.WARN)) > 0
+            caplog.clear()
 
     def make_files(self, files):
         for file in files:
