@@ -5,6 +5,7 @@ Retained for compatibility and should not be used.
 """
 
 import logging
+import warnings
 
 from ._log import log as _global_log
 
@@ -36,3 +37,21 @@ def set_verbosity(v):
         set_threshold(logging.INFO)
     elif v >= 2:
         set_threshold(logging.DEBUG)
+
+
+class Log(logging.Logger):
+    """distutils.log.Log is deprecated, please use an alternative from `logging`."""
+
+    def __init__(self, threshold=WARN):
+        warnings.warn(Log.__doc__)  # avoid DeprecationWarning to ensure warn is shown
+        super().__init__(__name__, level=threshold)
+
+    @property
+    def threshold(self):
+        return self.level
+
+    @threshold.setter
+    def threshold(self, level):
+        self.setLevel(level)
+
+    warn = logging.Logger.warning
