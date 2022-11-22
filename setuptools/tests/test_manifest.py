@@ -8,6 +8,7 @@ import sys
 import tempfile
 import itertools
 import io
+import logging
 from distutils import log
 from distutils.errors import DistutilsTemplateError
 
@@ -321,43 +322,20 @@ class TestFileListTest(TempDirTestCase):
     to ensure setuptools' version of FileList keeps parity with distutils.
     """
 
-    def setup_method(self, method):
-        if not hasattr(log, 'Log'):
-            pytest.skip("These tests rely on old logging infra")
-        super(TestFileListTest, self).setup_method(method)
-        self.threshold = log.set_threshold(log.FATAL)
-        self._old_log = log.Log._log
-        log.Log._log = self._log
-        self.logs = []
+    def get_logs(self, caplog, *levels):
+        return [
+            record.getMessage()
+            for record in caplog.records
+            if record.levelno in levels
+        ]
 
-    def teardown_method(self, method):
-        log.set_threshold(self.threshold)
-        log.Log._log = self._old_log
-        super(TestFileListTest, self).teardown_method(method)
+    def assertNoWarnings(self, caplog):
+        assert self.get_logs(caplog, log.WARN) == []
+        caplog.clear()
 
-    def _log(self, level, msg, args):
-        if level not in (log.DEBUG, log.INFO, log.WARN, log.ERROR, log.FATAL):
-            raise ValueError('%s wrong log level' % str(level))
-        self.logs.append((level, msg, args))
-
-    def get_logs(self, *levels):
-        def _format(msg, args):
-            if len(args) == 0:
-                return msg
-            return msg % args
-        return [_format(msg, args) for level, msg, args
-                in self.logs if level in levels]
-
-    def clear_logs(self):
-        self.logs = []
-
-    def assertNoWarnings(self):
-        assert self.get_logs(log.WARN) == []
-        self.clear_logs()
-
-    def assertWarnings(self):
-        assert len(self.get_logs(log.WARN)) > 0
-        self.clear_logs()
+    def assertWarnings(self, caplog):
+        assert len(self.get_logs(caplog, log.WARN)) > 0
+        caplog.clear()
 
     def make_files(self, files):
         for file in files:
@@ -474,7 +452,8 @@ class TestFileListTest(TempDirTestCase):
             else:
                 assert False, "Should have thrown an error"
 
-    def test_include(self):
+    def test_include(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # include
         file_list = FileList()
@@ -483,14 +462,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('include *.py')
         file_list.sort()
         assert file_list.files == ['a.py']
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('include *.rb')
         file_list.sort()
         assert file_list.files == ['a.py']
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_exclude(self):
+    def test_exclude(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # exclude
         file_list = FileList()
@@ -499,14 +479,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('exclude *.py')
         file_list.sort()
         assert file_list.files == ['b.txt', ml('d/c.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('exclude *.rb')
         file_list.sort()
         assert file_list.files == ['b.txt', ml('d/c.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_global_include(self):
+    def test_global_include(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # global-include
         file_list = FileList()
@@ -515,14 +496,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('global-include *.py')
         file_list.sort()
         assert file_list.files == ['a.py', ml('d/c.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('global-include *.rb')
         file_list.sort()
         assert file_list.files == ['a.py', ml('d/c.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_global_exclude(self):
+    def test_global_exclude(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # global-exclude
         file_list = FileList()
@@ -531,14 +513,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('global-exclude *.py')
         file_list.sort()
         assert file_list.files == ['b.txt']
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('global-exclude *.rb')
         file_list.sort()
         assert file_list.files == ['b.txt']
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_recursive_include(self):
+    def test_recursive_include(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # recursive-include
         file_list = FileList()
@@ -547,14 +530,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('recursive-include d *.py')
         file_list.sort()
         assert file_list.files == [ml('d/b.py'), ml('d/d/e.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('recursive-include e *.py')
         file_list.sort()
         assert file_list.files == [ml('d/b.py'), ml('d/d/e.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_recursive_exclude(self):
+    def test_recursive_exclude(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # recursive-exclude
         file_list = FileList()
@@ -563,14 +547,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('recursive-exclude d *.py')
         file_list.sort()
         assert file_list.files == ['a.py', ml('d/c.txt')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('recursive-exclude e *.py')
         file_list.sort()
         assert file_list.files == ['a.py', ml('d/c.txt')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_graft(self):
+    def test_graft(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # graft
         file_list = FileList()
@@ -579,14 +564,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('graft d')
         file_list.sort()
         assert file_list.files == [ml('d/b.py'), ml('d/d/e.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('graft e')
         file_list.sort()
         assert file_list.files == [ml('d/b.py'), ml('d/d/e.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_prune(self):
+    def test_prune(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # prune
         file_list = FileList()
@@ -595,9 +581,9 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('prune d')
         file_list.sort()
         assert file_list.files == ['a.py', ml('f/f.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('prune e')
         file_list.sort()
         assert file_list.files == ['a.py', ml('f/f.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
