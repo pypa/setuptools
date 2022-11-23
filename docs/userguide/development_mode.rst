@@ -17,7 +17,7 @@ without requiring a new installation.
 
 You can enter this "development mode" by performing an :doc:`editable installation
 <pip:topics/local-project-installs>` inside of a :term:`virtual environment`,
-using :doc:`pip's <pip:cli/pip_install>` ``-e/--editable`` flag, as shown bellow:
+using :doc:`pip's <pip:cli/pip_install>` ``-e/--editable`` flag, as shown below:
 
 .. code-block:: bash
 
@@ -69,7 +69,7 @@ Please have a look on the following section if you are looking for a different b
 
        sudo apt install python3-venv
 
-   Alternatively, you can also try installing :pypi:`virtualenᴠ`.
+   Alternatively, you can also try installing :pypi:`virtualenv`.
    More information is available on the Python Packaging User Guide on
    :doc:`PyPUG:guides/installing-using-pip-and-virtual-environments`.
 
@@ -93,7 +93,7 @@ expectations:
 Unfortunately these expectations are in conflict with each other.
 To solve this problem ``setuptools`` allows developers to choose a more
 *"strict"* mode for the editable installation. This can be done by passing
-a special *configuration setting* via :pypi:`pip`, as indicated bellow:
+a special *configuration setting* via :pypi:`pip`, as indicated below:
 
 .. code-block:: bash
 
