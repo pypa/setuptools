@@ -7,6 +7,15 @@ Since the 60.0.0 release, Setuptools includes a local, vendored copy of distutil
 
     SETUPTOOLS_USE_DISTUTILS=stdlib
 
+.. warning::
+   Please note that this also affects how ``distutils.cfg`` files inside stdlib's ``distutils``
+   package directory are processed.
+   Unless ``SETUPTOOLS_USE_DISTUTILS=stdlib``, they will have no effect on the build process.
+
+   You can still use a global user config file, ``~/.pydistutils.cfg`` (POSIX) or ``%USERPROFILE%/pydistutils.cfg`` (Windows),
+   or use the environment variable :doc:`DIST_EXTRA_CONFIG <deprecated/distutils/configfile>` to point to another
+   supplementary configuration file.
+
 
 Prefer Setuptools
 -----------------
