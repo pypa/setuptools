@@ -1,1 +1,0 @@
-Improve clib builds reproducibility by sorting sources -- by :user:`danigm`

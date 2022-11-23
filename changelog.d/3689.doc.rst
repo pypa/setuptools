@@ -1,2 +1,0 @@
-Document that ``distutils.cfg`` might be ignored unless
-``SETUPTOOLS_USE_DISTUTILS=stdlib``.

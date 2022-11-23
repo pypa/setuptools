@@ -1,1 +1,0 @@
-Merge pypa/distutils@3e9d47e with compatibility fix for distutils.log.Log.

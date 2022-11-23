@@ -1,1 +1,0 @@
-Fix temporary build directories interference with auto-discovery.
