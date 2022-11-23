@@ -1,0 +1,1 @@
+Improved exception/traceback when invalid entry-points are specified.
