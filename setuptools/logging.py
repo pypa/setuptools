@@ -1,4 +1,5 @@
 import sys
+import inspect
 import logging
 import distutils.log
 from . import monkey
@@ -22,7 +23,7 @@ def configure():
     handlers = err_handler, out_handler
     logging.basicConfig(
         format="{message}", style='{', handlers=handlers, level=logging.DEBUG)
-    if hasattr(distutils.log, 'Log'):
+    if inspect.ismodule(distutils.dist.log):
         monkey.patch_func(set_threshold, distutils.log, 'set_threshold')
         # For some reason `distutils.log` module is getting cached in `distutils.dist`
         # and then loaded again when patched,
