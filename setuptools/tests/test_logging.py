@@ -42,7 +42,7 @@ def test_patching_does_not_cause_problems():
     # Ensure `dist.log` is only patched if necessary
 
     import setuptools.logging
-    from distutils import dist  # <- load distutils after all the patches take place
+    from distutils import dist
 
     setuptools.logging.configure()
 
