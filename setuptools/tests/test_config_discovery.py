@@ -248,6 +248,19 @@ class TestDiscoverPackagesAndPyModules:
         with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
             _get_dist(tmp_path, {})
 
+    def test_py_modules_when_wheel_dir_is_cwd(self, tmp_path):
+        """Regression for issue 3692"""
+        from setuptools import build_meta
+
+        pyproject = '[project]\nname = "test"\nversion = "1"'
+        (tmp_path / "pyproject.toml").write_text(DALS(pyproject), encoding="utf-8")
+        (tmp_path / "foo.py").touch()
+        with jaraco.path.DirectoryStack().context(tmp_path):
+            build_meta.build_wheel(".")
+        # Ensure py_modules are found
+        wheel_files = get_wheel_members(next(tmp_path.glob("*.whl")))
+        assert "foo.py" in wheel_files
+
 
 class TestNoConfig:
     DEFAULT_VERSION = "0.0.0"  # Default version given by setuptools
