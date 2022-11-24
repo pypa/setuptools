@@ -1,3 +1,13 @@
+v65.6.3
+-------
+
+
+Misc
+^^^^
+* #3709: Fix condition to patch ``distutils.dist.log`` to only apply when using
+  ``distutils`` from the stdlib.
+
+
 v65.6.2
 -------
 

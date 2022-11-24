@@ -1,2 +1,0 @@
-Fix condition to patch ``distutils.dist.log`` to only apply when using
-``distutils`` from the stdlib.
