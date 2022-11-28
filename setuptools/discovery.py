@@ -273,6 +273,7 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "benchmarks",
         "exercise",
         "exercises",
+        "htmlcov",
         # ---- Hidden files/Private modules ----
         "[._]*",
     )
