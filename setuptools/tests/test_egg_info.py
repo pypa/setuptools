@@ -7,6 +7,7 @@ import stat
 import time
 from typing import List, Tuple
 from pathlib import Path
+from unittest import mock
 
 import pytest
 from jaraco import path
@@ -157,6 +158,16 @@ class TestEggInfo:
             'top_level.txt',
         ]
         assert sorted(actual) == expected
+
+    def test_handling_utime_error(self, tmpdir_cwd, env):
+        dist = Distribution()
+        ei = egg_info(dist)
+        with mock.patch('os.utime', side_effect=OSError("TEST")),\
+        mock.patch('setuptools.command.egg_info.egg_info.mkpath', return_val=None):
+            import distutils.errors
+            with pytest.raises(distutils.errors.DistutilsFileError, match =
+            r"Cannot update time stamp of directory 'None'"):
+                ei.run()
 
     def test_license_is_a_string(self, tmpdir_cwd, env):
         setup_config = DALS("""
