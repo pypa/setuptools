@@ -1,0 +1,1 @@
+Added a human-readable error description when ``.egg-info`` directory is not writeable -- by :user:`droodev`
