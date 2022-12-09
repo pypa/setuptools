@@ -7,8 +7,10 @@ env:
   # Request colored output from CLI tools supporting it. Different tools
   # interpret the value differently. For some, just being set is sufficient.
   # For others, it must be a non-zero integer. For yet others, being set
-  # to a non-empty value is sufficient.
-  FORCE_COLOR: -106
+  # to a non-empty value is sufficient. For tox, it must be one of
+  # <blank>, 0, 1, false, no, off, on, true, yes. The only enabling value
+  # in common is "1".
+  FORCE_COLOR: 1
   # MyPy's color enforcement (must be a non-zero number)
   MYPY_FORCE_COLOR: -42
   # Recognized by the `py` package, dependency of `pytest` (must be "1")
