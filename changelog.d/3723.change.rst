@@ -1,0 +1,2 @@
+Updated ``CCompiler.has_function`` to work with more C99 compilers.
+Deprecated the ```includes`` and ``include_dirs`` keyword arguments.

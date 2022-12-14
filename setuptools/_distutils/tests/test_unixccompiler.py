@@ -304,3 +304,19 @@ class TestUnixCCompiler(support.TempdirManager):
         self.cc.output_dir = 'scratch'
         os.chdir(self.mkdtemp())
         self.cc.has_function('abort', includes=['stdlib.h'])
+
+    def test_has_function_prototype(self):
+        # Issue https://github.com/pypa/setuptools/issues/3648
+        # Test prototype-generating behavior.
+
+        # Every C implementation should have these.
+        assert self.cc.has_function('abort')
+        assert self.cc.has_function('exit')
+        # abort() is a valid expression with the <stdlib.h> prototype.
+        assert self.cc.has_function('abort', includes=['<stdlib.h>'])
+        # But exit() is not valid with the actual prototype in scope.
+        assert not self.cc.has_function('exit', includes=['<stdlib.h>'])
+        # And setuptools_does_not_exist is not declared or defined at all.
+        assert not self.cc.has_function('setuptools_does_not_exist')
+        assert not self.cc.has_function('setuptools_does_not_exist',
+                                        includes=['<stdio.h>'])
