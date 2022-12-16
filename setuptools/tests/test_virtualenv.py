@@ -56,8 +56,20 @@ def access_pypi():
     [
         None,
         pytest.param('pip<20', marks=pytest.mark.xfail(reason='pypa/pip#6599')),
-        'pip<20.1',
-        'pip<21',
+        pytest.param(
+            'pip<20.1',
+            marks=pytest.mark.xfail(
+                'sys.version_info > (3, 12)',
+                reason="pip 21 requried for Python 3.12 and later",
+            ),
+        ),
+        pytest.param(
+            'pip<21',
+            marks=pytest.mark.xfail(
+                'sys.version_info > (3, 12)',
+                reason="pip 21 requried for Python 3.12 and later",
+            ),
+        ),
         'pip<22',
         pytest.param(
             'https://github.com/pypa/pip/archive/main.zip',
