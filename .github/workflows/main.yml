@@ -49,7 +49,7 @@ jobs:
         - "3.7"
         # disabled due to #3365
         # - "3.11"
-        # - "3.12"
+        - "3.12"
         # Workaround for actions/setup-python#508
         dev:
         - -dev
