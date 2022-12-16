@@ -14,8 +14,10 @@ env:
   # Request colored output from CLI tools supporting it. Different tools
   # interpret the value differently. For some, just being set is sufficient.
   # For others, it must be a non-zero integer. For yet others, being set
-  # to a non-empty value is sufficient.
-  FORCE_COLOR: -106
+  # to a non-empty value is sufficient. For tox, it must be one of
+  # <blank>, 0, 1, false, no, off, on, true, yes. The only enabling value
+  # in common is "1".
+  FORCE_COLOR: 1
   # MyPy's color enforcement (must be a non-zero number)
   MYPY_FORCE_COLOR: -42
   # Recognized by the `py` package, dependency of `pytest` (must be "1")
@@ -47,9 +49,9 @@ jobs:
         - local
         python:
         - "3.7"
-        - "3.10"
         # disabled due to #3365
         # - "3.11"
+        # - "3.12"
         # Workaround for actions/setup-python#508
         dev:
         - -dev
@@ -58,12 +60,19 @@ jobs:
         - macos-latest
         - windows-latest
         include:
+        - python: "3.8"
+          platform: ubuntu-latest
+        - python: "3.9"
+          platform: ubuntu-latest
+        - python: "3.10"
+          platform: ubuntu-latest
         - python: pypy3.9
           platform: ubuntu-latest
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
     runs-on: ${{ matrix.platform }}
+    continue-on-error: ${{ matrix.python == '3.12' }}
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
     timeout-minutes: 75

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 extensions = [
     'sphinx.ext.autodoc',
     'jaraco.packaging.sphinx',
