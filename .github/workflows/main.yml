@@ -72,11 +72,28 @@ jobs:
       - name: Run tests
         run: tox
 
+  docs:
+    runs-on: ubuntu-latest
+    env:
+      TOXENV: docs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}${{ matrix.dev }}
+      - name: Install tox
+        run: |
+          python -m pip install tox
+      - name: Run tests
+        run: tox
+
   check:  # This job does nothing and is only used for the branch protection
     if: always()
 
     needs:
     - test
+    - docs
 
     runs-on: ubuntu-latest
 
