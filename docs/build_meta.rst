@@ -143,11 +143,11 @@ the ``_custom_build/backend.py`` file, as shown in the following example:
     build_sdist = _orig.build_sdist
 
 
-    def get_requires_for_build_wheel(self, config_settings=None):
+    def get_requires_for_build_wheel(config_settings=None):
         return _orig.get_requires_for_build_wheel(config_settings) + [...]
 
 
-    def get_requires_for_build_sdist(self, config_settings=None):
+    def get_requires_for_build_sdist(config_settings=None):
         return _orig.get_requires_for_build_sdist(config_settings) + [...]
 
 
