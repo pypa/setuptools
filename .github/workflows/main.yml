@@ -108,7 +108,7 @@ jobs:
     if: always()
 
     needs:
-    - check_changed_folders
+    - check-changed-folders
     - integration-test
     - test
     - test_cygwin
