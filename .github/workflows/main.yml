@@ -108,10 +108,10 @@ jobs:
     if: always()
 
     needs:
+    - check_changed_folders
     - integration-test
     - test
     - test_cygwin
-    - check_changed_folders
 
     runs-on: ubuntu-latest
 
