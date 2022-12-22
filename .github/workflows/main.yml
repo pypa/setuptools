@@ -196,7 +196,9 @@ jobs:
           files: |
             setuptools/_vendor/**
       - name: Run step if any file(s) in the docs folder change
-        if: steps.changed-files-specific-distutils.outputs.any_changed == 'true' || steps.changed-files-specific-vendor.outputs.any_changed == 'true'
+        if: >-
+          steps.changed-files-specific-distutils.outputs.any_changed == 'true'
+          || steps.changed-files-specific-vendor.outputs.any_changed == 'true'
         run: |
           echo "One or more files in the setuptools/_distutils or setuptools/_vendor folder has changed."
           exit 1            
