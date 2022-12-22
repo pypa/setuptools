@@ -195,13 +195,16 @@ jobs:
         with:
           files: |
             setuptools/_vendor/**
-      - name: Run step if any file(s) in the docs folder change
-        if: >-
-          steps.changed-files-specific-distutils.outputs.any_changed == 'true'
-          || steps.changed-files-specific-vendor.outputs.any_changed == 'true'
+      - name: Run step if any file(s) in the _distutils folder change
+        if: steps.changed-files-specific-distutils.outputs.any_changed == 'true'
         run: |
-          echo "One or more files in the setuptools/_distutils or setuptools/_vendor folder has changed."
-          exit 1            
+          echo "One or more files in the setuptools/_distutils folder has changed." >> $GITHUB_STEP_SUMMARY
+          exit 1      
+      - name: Run step if any file(s) in the _vendor folder change
+        if: steps.changed-files-specific-vendor.outputs.any_changed == 'true'
+        run: |
+          echo "One or more files in the setuptools/_vendor folder has changed." >> $GITHUB_STEP_SUMMARY
+          exit 1 
 
   integration-test:
     needs: test
