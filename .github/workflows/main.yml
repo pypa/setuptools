@@ -203,7 +203,7 @@ jobs:
       - name: Run step if any file(s) in the _vendor folder change
         if: steps.changed-files-specific-vendor.outputs.any_changed == 'true'
         run: |
-          echo "One or more files in the setuptools/_vendor folder has changed." >> $GITHUB_STEP_SUMMARY
+          echo "One or more files in the setuptools/_vendor folder has changed." | tee "${GITHUB_STEP_SUMMARY}"
           exit 1 
 
   integration-test:
