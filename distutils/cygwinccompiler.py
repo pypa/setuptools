@@ -43,7 +43,7 @@ _msvcr_lookup = RangeMap.left(
         # VS2013 / MSVC 12.0
         1800: ['msvcr120'],
         # VS2015 / MSVC 14.0
-        1900: ['ucrt', 'vcruntime140'],
+        1900: ['vcruntime140'],
         2000: RangeMap.undefined_value,
     },
 )
