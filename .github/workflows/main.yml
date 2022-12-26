@@ -177,6 +177,7 @@ jobs:
             
   check-changed-folders:
     name: Check files
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
