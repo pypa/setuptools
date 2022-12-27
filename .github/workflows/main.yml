@@ -176,7 +176,6 @@ jobs:
             Py-${{ steps.python-install.outputs.python-version }}
             
   check-changed-folders:
-    name: Check files
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
