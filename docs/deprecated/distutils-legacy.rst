@@ -24,7 +24,7 @@ As Distutils is deprecated, any usage of functions or objects from distutils is 
 
 ``distutils.core.setup`` → ``setuptools.setup``
 
-``distutils.cmd.Command`` → ``setuptools.Command``
+``distutils.cmd.Command`` or ``distutils.core.Command`` → ``setuptools.Command``
 
 ``distutils.command.{build_clib,build_ext,build_py,sdist}`` → ``setuptools.command.*``
 
