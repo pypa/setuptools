@@ -192,8 +192,8 @@ Key                        Directive           Notes
 ``classifiers``            ``file``            Multi-line text with one classifier per line
 ``entry-points``           ``file``            INI format following :doc:`PyPUG:specifications/entry-points`
                                                (``console_scripts`` and ``gui_scripts`` can be included)
-``dependencies``           ``file``            ``requirements.txt`` format (``#`` comments and blank lines excluded) **BETA**
-``optional-dependencies``  ``file``            ``requirements.txt`` format per group (``#`` comments and blank lines excluded) **BETA**
+``dependencies``           ``file``            ``requirements.txt`` format (``#`` comments and blank lines excluded)
+``optional-dependencies``  ``file``            ``requirements.txt`` format per group (``#`` comments and blank lines excluded)
 ========================== =================== =================================================================================================
 
 Supporting ``file`` for dependencies is meant for a convenience for packaging
