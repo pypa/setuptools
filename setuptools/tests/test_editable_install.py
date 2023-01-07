@@ -341,7 +341,7 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     site_packages.mkdir(parents=True)
 
     # install workaround
-    pip_run.launch.inject_sitecustomize(str(site_packages))
+    pip_run.launch.inject_sitecustomize(site_packages)
 
     env = dict(os.environ, PYTHONPATH=str(site_packages))
     cmd = [
