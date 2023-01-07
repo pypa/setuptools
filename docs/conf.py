@@ -176,6 +176,7 @@ nitpick_ignore = [
     ('envvar', 'DISTUTILS_DEBUG'),  # undocumented
     ('envvar', 'HOME'),  # undocumented
     ('envvar', 'PLAT'),  # undocumented
+    ('envvar', 'DIST_EXTRA_CONFIG'),  # undocumented
     ('py:attr', 'CCompiler.language_map'),  # undocumented
     ('py:attr', 'CCompiler.language_order'),  # undocumented
     ('py:class', 'distutils.dist.Distribution'),  # undocumented
