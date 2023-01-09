@@ -1,19 +1,12 @@
-@echo off
+del -R build
+mkdir build
+cd build
+call "cmake"
+if ERRORLEVEL 1 (echo Cannot locate CMake on PATH & exit /b 2)
+mkdir arm64
+cd arm64
+cmake -G "Visual Studio 17 2022" -A "arm64" ../../launcher
+MSBuild launcher.vcxproj /t:Build /property:Configuration=Release /property:Platform=arm64 /p:OutDir="../../setuptools" /p:TargetName="cli-arm64" /p:GUI=0
+MSBuild launcher.vcxproj /t:Build /property:Configuration=Release /property:Platform=arm64 /p:OutDir="../../setuptools" /p:TargetName="gui-arm64" /p:GUI=1
 
-REM Build with jaraco/windows Docker image
-
-set PATH_OLD=%PATH%
-set PATH=C:\BuildTools\VC\Auxiliary\Build;%PATH_OLD%
-
-REM now for arm 64-bit
-REM Cross compile for arm64
-call VCVARSx86_arm64
-if "%ERRORLEVEL%"=="0" (
-  cl /D "GUI=0" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:arm64 /SUBSYSTEM:CONSOLE /out:setuptools/cli-arm64.exe
-  cl /D "GUI=1" /D "WIN32_LEAN_AND_MEAN" launcher.c /O2 /link /MACHINE:arm64 /SUBSYSTEM:WINDOWS /out:setuptools/gui-arm64.exe
-) else (
-  echo Visual Studio 2019 with arm64 toolchain not installed
-)
-
-set PATH=%PATH_OLD%
-
+cd ..\..

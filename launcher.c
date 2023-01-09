@@ -260,6 +260,16 @@ int run(int argc, char **argv, int is_gui) {
 
     /* compute script name from our .exe name*/
     GetModuleFileNameA(NULL, script, sizeof(script));
+    /* resolve final path in case script name is symlink */
+    HANDLE hFile = CreateFile(script,
+                   GENERIC_READ,
+                   FILE_SHARE_READ,
+                   NULL,
+                   OPEN_EXISTING,
+                   FILE_ATTRIBUTE_NORMAL,
+                   NULL);
+    GetFinalPathNameByHandle(hFile, script, 256, VOLUME_NAME_DOS);
+    
     end = script + strlen(script);
     while( end>script && *end != '.')
         *end-- = '\0';
