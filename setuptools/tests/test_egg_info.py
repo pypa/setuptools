@@ -162,11 +162,16 @@ class TestEggInfo:
     def test_handling_utime_error(self, tmpdir_cwd, env):
         dist = Distribution()
         ei = egg_info(dist)
-        with mock.patch('os.utime', side_effect=OSError("TEST")),\
-        mock.patch('setuptools.command.egg_info.egg_info.mkpath', return_val=None):
+        utime_patch = mock.patch('os.utime', side_effect=OSError("TEST"))
+        mkpath_patch = mock.patch(
+            'setuptools.command.egg_info.egg_info.mkpath', return_val=None
+        )
+
+        with utime_patch, mkpath_patch:
             import distutils.errors
-            with pytest.raises(distutils.errors.DistutilsFileError, match =
-            r"Cannot update time stamp of directory 'None'"):
+
+            msg = r"Cannot update time stamp of directory 'None'"
+            with pytest.raises(distutils.errors.DistutilsFileError, match=msg):
                 ei.run()
 
     def test_license_is_a_string(self, tmpdir_cwd, env):
