@@ -39,6 +39,7 @@ Target = TypeVar("Target", bound=Union["Distribution", "DistributionMetadata"])
 
 def read_configuration(
     filepath: _Path,
+    expand=True,
     find_others=False,
     ignore_option_errors=False
 ) -> dict:
@@ -46,6 +47,9 @@ def read_configuration(
 
     :param str|unicode filepath: Path to configuration file
         to get options from.
+
+    :param bool expand: Whether to expand directives and other computed values
+        (i.e. post-process the given configuration)
 
     :param bool find_others: Whether to search for other configuration files
         which could be on in various places.
@@ -61,7 +65,7 @@ def read_configuration(
 
     dist = Distribution()
     filenames = dist.find_config_files() if find_others else []
-    handlers = _apply(dist, filepath, filenames, ignore_option_errors)
+    handlers = _apply(dist, filepath, expand, filenames, ignore_option_errors)
     return configuration_to_dict(handlers)
 
 
@@ -75,7 +79,9 @@ def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution"
 
 
 def _apply(
-    dist: "Distribution", filepath: _Path,
+    dist: "Distribution",
+    filepath: _Path,
+    expand: bool = True,
     other_files: Iterable[_Path] = (),
     ignore_option_errors: bool = False,
 ) -> Tuple["ConfigHandler", ...]:
@@ -94,7 +100,10 @@ def _apply(
     try:
         _Distribution.parse_config_files(dist, filenames=filenames)
         handlers = parse_configuration(
-            dist, dist.command_options, ignore_option_errors=ignore_option_errors
+            dist,
+            dist.command_options,
+            expand_directives=expand,
+            ignore_option_errors=ignore_option_errors,
         )
         dist._finalize_license_files()
     finally:
@@ -136,6 +145,7 @@ def configuration_to_dict(handlers: Tuple["ConfigHandler", ...]) -> dict:
 def parse_configuration(
     distribution: "Distribution",
     command_options: AllCommandOptions,
+    expand_directives=True,
     ignore_option_errors=False
 ) -> Tuple["ConfigMetadataHandler", "ConfigOptionsHandler"]:
     """Performs additional parsing of configuration options
@@ -145,6 +155,8 @@ def parse_configuration(
 
     :param Distribution distribution:
     :param dict command_options:
+    :param bool expand_directives: Whether to expand directives and
+        other computed values (i.e. post-process the given configuration)
     :param bool ignore_option_errors: Whether to silently ignore
         options, values of which could not be resolved (e.g. due to exceptions
         in directives such as file:, attr:, etc.).
@@ -166,6 +178,7 @@ def parse_configuration(
         meta = ConfigMetadataHandler(
             distribution.metadata,
             command_options,
+            expand_directives,
             ignore_option_errors,
             ensure_discovered,
             distribution.package_dir,
@@ -231,6 +244,7 @@ class ConfigHandler(Generic[Target]):
         options: AllCommandOptions,
         ignore_option_errors,
         ensure_discovered: expand.EnsurePackagesDiscovered,
+        expand_directives: bool = True,
     ):
         sections: AllCommandOptions = {}
 
@@ -247,6 +261,7 @@ class ConfigHandler(Generic[Target]):
         self.sections = sections
         self.set_options: List[str] = []
         self.ensure_discovered = ensure_discovered
+        self.expand_directives = expand_directives
 
     @property
     def parsers(self):
@@ -273,7 +288,7 @@ class ConfigHandler(Generic[Target]):
 
         skip_option = False
         parser = self.parsers.get(option_name)
-        if parser:
+        if parser and self.expand_directives:
             try:
                 value = parser(value)
 
@@ -532,12 +547,13 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         self,
         target_obj: "DistributionMetadata",
         options: AllCommandOptions,
+        expand_directives: bool,
         ignore_option_errors: bool,
         ensure_discovered: expand.EnsurePackagesDiscovered,
         package_dir: Optional[dict] = None,
-        root_dir: _Path = os.curdir
+        root_dir: _Path = os.curdir,
     ):
-        super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
+        super().__init__(target_obj, options, ignore_option_errors, ensure_discovered, expand_directives)
         self.package_dir = package_dir
         self.root_dir = root_dir
 
