@@ -190,13 +190,19 @@ of all given files and concatenate them in a single string.
 Key                        Directive           Notes
 ========================== =================== =================================================================================================
 ``version``                ``attr``, ``file``
-``readme``                 ``file``
-``description``            ``file``            One-line text
+``readme``                 ``file``            Here you can also set ``"content-type"``:
+
+                                               ``readme = {file = ["README", "USAGE"], content-type = "text/plain"}``
+
+                                               If ``content-type`` is not given, ``"text/x-rst"`` is used by default.
+``description``            ``file``            One-line text (no line breaks)
 ``classifiers``            ``file``            Multi-line text with one classifier per line
 ``entry-points``           ``file``            INI format following :doc:`PyPUG:specifications/entry-points`
                                                (``console_scripts`` and ``gui_scripts`` can be included)
-``dependencies``           ``file``            ``requirements.txt`` format (``#`` comments and blank lines excluded) **BETA**
-``optional-dependencies``  ``file``            ``requirements.txt`` format per group (``#`` comments and blank lines excluded) **BETA**
+``dependencies``           ``file``            *subset* of the ``requirements.txt`` format
+                                               (``#`` comments and blank lines excluded) **BETA**
+``optional-dependencies``  ``file``            *subset* of the ``requirements.txt`` format per group
+                                               (``#`` comments and blank lines excluded) **BETA**
 ========================== =================== =================================================================================================
 
 Supporting ``file`` for dependencies is meant for a convenience for packaging
