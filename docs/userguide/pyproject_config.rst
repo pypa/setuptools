@@ -42,11 +42,14 @@ The ``project`` table contains metadata fields as described by
 
    [project]
    name = "my_package"
+   authors = [
+       {name = "Josiah Carberry", email = "josiah_carberry@brown.edu"},
+   ]
    description = "My package description"
    readme = "README.rst"
    requires-python = ">=3.7"
    keywords = ["one", "two"]
-   license = {text = "BSD 3-Clause License"}
+   license = {text = "BSD-3-Clause"}
    classifiers = [
        "Framework :: Django",
        "Programming Language :: Python :: 3",

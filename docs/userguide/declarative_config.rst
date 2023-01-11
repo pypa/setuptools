@@ -25,10 +25,13 @@ boilerplate code in some cases.
     [metadata]
     name = my_package
     version = attr: my_package.VERSION
+    author = Josiah Carberry
+    author_email = josiah_carberry@brown.edu
     description = My package description
     long_description = file: README.rst, CHANGELOG.rst, LICENSE.rst
     keywords = one, two
-    license = BSD 3-Clause License
+    python_requires = >=3.7
+    license = BSD-3-Clause
     classifiers =
         Framework :: Django
         Programming Language :: Python :: 3
