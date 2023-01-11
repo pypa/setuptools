@@ -76,8 +76,8 @@ compiler and linker options from various sources:
 * the ``sysconfig`` variables ``CC``, ``CXX``, ``CCSHARED``,
   ``LDSHARED``, and ``CFLAGS``,
 * the environment variables ``CC``, ``CPP``,
-  ``CXX``, ``LDSHARED`` and ``LDFLAGS``,
-  ``CFLAGS``, ``CPPFLAGS``, ``LDFLAGS``,
+  ``CXX``, ``LDSHARED`` and ``CFLAGS``,
+  ``CPPFLAGS``, ``LDFLAGS``,
 * the ``Extension`` attributes ``include_dirs``,
   ``library_dirs``, ``extra_compile_args``, ``extra_link_args``,
   ``runtime_library_dirs``.
