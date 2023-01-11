@@ -1,2 +1,0 @@
-Fixed incomplete ``getattr`` statement that caused problems when accessing
-undefined attribute.

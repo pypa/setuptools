@@ -1,1 +1,0 @@
-Added ``htmlcov`` to FlatLayoutModuleFinder.DEFAULT_EXCLUDE -- by :user:`demianbrecht`

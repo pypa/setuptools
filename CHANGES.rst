@@ -1,3 +1,18 @@
+v65.7.0
+-------
+
+
+Changes
+^^^^^^^
+* #3594: Added ``htmlcov`` to FlatLayoutModuleFinder.DEFAULT_EXCLUDE -- by :user:`demianbrecht`
+* #3667: Added a human-readable error description when ``.egg-info`` directory is not writeable -- by :user:`droodev`
+
+Misc
+^^^^
+* #3713: Fixed incomplete ``getattr`` statement that caused problems when accessing
+  undefined attribute.
+
+
 v65.6.3
 -------
 
