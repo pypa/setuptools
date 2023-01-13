@@ -96,6 +96,7 @@ def rewrite_platformdirs(pkg_files: Path):
     init = pkg_files.joinpath('__init__.py')
     text = init.read_text()
     text = text.replace('from platformdirs.', 'from .')
+    text = text.replace('from typing_extensions', 'from ..typing_extensions')
     init.write_text(text)
 
 
