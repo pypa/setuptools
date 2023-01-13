@@ -1,0 +1,15 @@
+more_itertools-9.0.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+more_itertools-9.0.0.dist-info/LICENSE,sha256=CfHIyelBrz5YTVlkHqm4fYPAyw_QB-te85Gn4mQ8GkY,1053
+more_itertools-9.0.0.dist-info/METADATA,sha256=o71Ks93mbZ7709yvfFg09Vxgj-8t2ZZaYIyUprS8GHw,31266
+more_itertools-9.0.0.dist-info/RECORD,,
+more_itertools-9.0.0.dist-info/WHEEL,sha256=4TfKIB_xu-04bc2iKz6_zFt-gEFEEDU_31HGhqzOCE8,81
+more_itertools/__init__.py,sha256=5PNQMpy400s5GB3jcWwzje0RCw8k0bvU9W_C49V0fd0,148
+more_itertools/__init__.pyi,sha256=5B3eTzON1BBuOLob1vCflyEb2lSd6usXQQ-Cv-hXkeA,43
+more_itertools/__pycache__/__init__.cpython-311.pyc,,
+more_itertools/__pycache__/more.cpython-311.pyc,,
+more_itertools/__pycache__/recipes.cpython-311.pyc,,
+more_itertools/more.py,sha256=FmmtkT-j69qILkxEELk5ZRoZK8St1Vg_fOGW0sTFd7g,133336
+more_itertools/more.pyi,sha256=hbf2oqg56wctXwf6yM1B0QLWqsNyDrqtX2znvQRAe3Q,20297
+more_itertools/py.typed,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
+more_itertools/recipes.py,sha256=ZX4-2IfbZKlPIVaDITH2buX_fPuMDe1EVc6e2XSsCz8,22975
+more_itertools/recipes.pyi,sha256=NA6qqcKMbQ2fly9hCyCzMcx46Tn9TLl-9mFnZsRytZM,3851
