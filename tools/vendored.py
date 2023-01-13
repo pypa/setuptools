@@ -89,6 +89,16 @@ def rewrite_more_itertools(pkg_files: Path):
     more_file.write_text(text)
 
 
+def rewrite_platformdirs(pkg_files: Path):
+    """
+    Replace some absolute imports with relative ones.
+    """
+    init = pkg_files.joinpath('__init__.py')
+    text = init.read_text()
+    text = text.replace('from platformdirs.', 'from .')
+    init.write_text(text)
+
+
 def clean(vendor):
     """
     Remove all files out of the vendor directory except the meta
@@ -121,6 +131,7 @@ def update_pkg_resources():
     rewrite_jaraco(vendor / 'jaraco', 'pkg_resources.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'pkg_resources.extern')
     rewrite_more_itertools(vendor / "more_itertools")
+    rewrite_platformdirs(vendor / "platformdirs")
 
 
 def update_setuptools():

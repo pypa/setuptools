@@ -80,7 +80,7 @@ from pkg_resources.extern.jaraco.text import (
     join_continuation,
 )
 
-from pkg_resources.extern import appdirs
+from pkg_resources.extern import platformdirs
 from pkg_resources.extern import packaging
 
 __import__('pkg_resources.extern.packaging.version')
@@ -1367,7 +1367,7 @@ def get_default_cache():
     or a platform-relevant user cache dir for an app
     named "Python-Eggs".
     """
-    return os.environ.get('PYTHON_EGG_CACHE') or appdirs.user_cache_dir(
+    return os.environ.get('PYTHON_EGG_CACHE') or platformdirs.user_cache_dir(
         appname='Python-Eggs'
     )
 
