@@ -94,21 +94,20 @@ def clean(vendor):
     Remove all files out of the vendor directory except the meta
     data (as pip uninstall doesn't support -t).
     """
-    remove_all(
-        path
-        for path in vendor.glob('*')
-        if path.basename() != 'vendored.txt'
-    )
+    remove_all(path for path in vendor.glob('*') if path.basename() != 'vendored.txt')
 
 
 def install(vendor):
     clean(vendor)
     install_args = [
         sys.executable,
-        '-m', 'pip',
+        '-m',
+        'pip',
         'install',
-        '-r', str(vendor / 'vendored.txt'),
-        '-t', str(vendor),
+        '-r',
+        str(vendor / 'vendored.txt'),
+        '-t',
+        str(vendor),
     ]
     subprocess.check_call(install_args)
     (vendor / '__init__.py').write_text('')
