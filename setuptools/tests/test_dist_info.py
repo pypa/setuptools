@@ -82,13 +82,16 @@ class TestDistInfo:
             assert d.extras == ['baz']
 
     def test_invalid_version(self, tmp_path):
+        """
+        Supplying an invalid version crashes dist_info.
+        """
         config = "[metadata]\nname=proj\nversion=42\n[egg_info]\ntag_build=invalid!!!\n"
         (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
         msg = re.compile("invalid version", re.M | re.I)
-        output = run_command("dist_info", cwd=tmp_path)
-        assert msg.search(output)
-        dist_info = next(tmp_path.glob("*.dist-info"))
-        assert dist_info.name.startswith("proj-42")
+        proc = run_command_inner("dist_info", cwd=tmp_path, check=False)
+        assert proc.returncode
+        assert msg.search(proc.stdout)
+        assert not list(tmp_path.glob("*.dist-info"))
 
     def test_tag_arguments(self, tmp_path):
         config = """
@@ -190,7 +193,17 @@ class TestWheelCompatibility:
             assert read(dist_info / file) == read(wheel_dist_info / file)
 
 
-def run_command(*cmd, **kwargs):
-    opts = {"stderr": subprocess.STDOUT, "text": True, **kwargs}
+def run_command_inner(*cmd, **kwargs):
+    opts = {
+        "stderr": subprocess.STDOUT,
+        "stdout": subprocess.PIPE,
+        "text": True,
+        'check': True,
+        **kwargs,
+    }
     cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *map(str, cmd)]
-    return subprocess.check_output(cmd, **opts)
+    return subprocess.run(cmd, **opts)
+
+
+def run_command(*args, **kwargs):
+    return run_command_inner(*args, **kwargs).stdout
