@@ -989,9 +989,7 @@ The following section lists only the easiest and most relevant approaches [1]_.
 
 `Use "virtualenv"`_
 
-.. [1] There are older ways to achieve custom installation using various ``easy_install`` and ``setup.py install`` options, combined with ``PYTHONPATH`` and/or ``PYTHONUSERBASE`` alterations, but all of these are effectively deprecated by the User scheme brought in by `PEP-370`_.
-
-.. _PEP-370: http://www.python.org/dev/peps/pep-0370/
+.. [1] There are older ways to achieve custom installation using various ``easy_install`` and ``setup.py install`` options, combined with ``PYTHONPATH`` and/or ``PYTHONUSERBASE`` alterations, but all of these are effectively deprecated by the User scheme brought in by :pep:`370`.
 
 
 Use the "--user" option

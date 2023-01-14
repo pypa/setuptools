@@ -65,7 +65,7 @@ Inspiration
 This design was inspired by :user:`cajhne`'s `original proposal`_ and the
 ancient symbol of the ouroboros_.
 It features a snake moving in a circular trajectory not only as a reference to
-the Python programming language but also to the `wheel package format`_ as one
+the Python programming language but also to the :pep:`wheel package format <427>` as one
 of the distribution formats supported by setuptools.
 The shape of the snake also resembles a cog, which together with the hammer is
 a nod to the two words that compose the name of the project.
@@ -115,5 +115,4 @@ https://github.com/pypa/setuptools or https://setuptools.pypa.io.
 .. _setuptools repository: https://github.com/pypa/setuptools
 .. _install the correct fonts: https://wiki.inkscape.org/wiki/Installing_fonts
 .. _original proposal: https://github.com/pypa/setuptools/issues/2227#issuecomment-653628344
-.. _wheel package format: https://www.python.org/dev/peps/pep-0427/
 .. _ouroboros: https://en.wikipedia.org/wiki/Ouroboros

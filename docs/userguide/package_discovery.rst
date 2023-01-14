@@ -508,7 +508,7 @@ available to your interpreter.
 Legacy Namespace Packages
 =========================
 The fact you can create namespace packages so effortlessly above is credited
-to `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_. It used to be more
+to :pep:`420`. It used to be more
 cumbersome to accomplish the same result. Historically, there were two methods
 to create namespace packages. One is the ``pkg_resources`` style supported by
 ``setuptools`` and the other one being ``pkgutils`` style offered by
