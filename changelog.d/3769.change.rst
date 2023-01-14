@@ -1,0 +1,1 @@
+Replace 'appdirs' with 'platformdirs'.
