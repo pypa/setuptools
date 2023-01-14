@@ -3,8 +3,8 @@
 import os
 import sys
 import zipfile
-import unittest
-from test.support import run_unittest
+
+import pytest
 
 from distutils.core import Distribution
 from distutils.command.bdist_dumb import bdist_dumb
@@ -19,30 +19,15 @@ setup(name='foo', version='0.1', py_modules=['foo'],
 
 """
 
-try:
-    import zlib
-    ZLIB_SUPPORT = True
-except ImportError:
-    ZLIB_SUPPORT = False
 
-
-class BuildDumbTestCase(support.TempdirManager,
-                        support.LoggingSilencer,
-                        support.EnvironGuard,
-                        unittest.TestCase):
-
-    def setUp(self):
-        super(BuildDumbTestCase, self).setUp()
-        self.old_location = os.getcwd()
-        self.old_sys_argv = sys.argv, sys.argv[:]
-
-    def tearDown(self):
-        os.chdir(self.old_location)
-        sys.argv = self.old_sys_argv[0]
-        sys.argv[:] = self.old_sys_argv[1]
-        super(BuildDumbTestCase, self).tearDown()
-
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+@support.combine_markers
+@pytest.mark.usefixtures('save_env')
+@pytest.mark.usefixtures('save_argv')
+@pytest.mark.usefixtures('save_cwd')
+class TestBuildDumb(
+    support.TempdirManager,
+):
+    @pytest.mark.usefixtures('needs_zlib')
     def test_simple_built(self):
 
         # let's create a simple package
@@ -54,10 +39,16 @@ class BuildDumbTestCase(support.TempdirManager,
         self.write_file((pkg_dir, 'MANIFEST.in'), 'include foo.py')
         self.write_file((pkg_dir, 'README'), '')
 
-        dist = Distribution({'name': 'foo', 'version': '0.1',
-                             'py_modules': ['foo'],
-                             'url': 'xxx', 'author': 'xxx',
-                             'author_email': 'xxx'})
+        dist = Distribution(
+            {
+                'name': 'foo',
+                'version': '0.1',
+                'py_modules': ['foo'],
+                'url': 'xxx',
+                'author': 'xxx',
+                'author_email': 'xxx',
+            }
+        )
         dist.script_name = 'setup.py'
         os.chdir(pkg_dir)
 
@@ -73,9 +64,9 @@ class BuildDumbTestCase(support.TempdirManager,
 
         # see what we have
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
-        base = "%s.%s.zip" % (dist.get_fullname(), cmd.plat_name)
+        base = "{}.{}.zip".format(dist.get_fullname(), cmd.plat_name)
 
-        self.assertEqual(dist_created, [base])
+        assert dist_created == [base]
 
         # now let's check what we have in the zip file
         fp = zipfile.ZipFile(os.path.join('dist', base))
@@ -88,10 +79,4 @@ class BuildDumbTestCase(support.TempdirManager,
         wanted = ['foo-0.1-py%s.%s.egg-info' % sys.version_info[:2], 'foo.py']
         if not sys.dont_write_bytecode:
             wanted.append('foo.%s.pyc' % sys.implementation.cache_tag)
-        self.assertEqual(contents, sorted(wanted))
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BuildDumbTestCase)
-
-if __name__ == '__main__':
-    run_unittest(test_suite())
+        assert contents == sorted(wanted)

@@ -2,123 +2,246 @@
 Keywords
 ========
 
+The following are keywords ``setuptools.setup()`` accepts.
+They allow configuring the build process for a Python distribution or adding
+metadata via a ``setup.py`` script placed at the root of your project.
+All of them are optional; you do not have to supply them unless you need the
+associated ``setuptools`` feature.
+
+Metadata and configuration supplied via ``setup()`` is complementary to (and
+may be overwritten by) the information present in ``setup.cfg`` and ``pyproject.toml``.
+Some important metadata, such as ``name`` and ``version``, may assume
+a default *degenerate* value if not specified.
+
+Users are strongly encouraged to use a declarative config either via
+:doc:`setup.cfg </userguide/declarative_config>` or :doc:`pyproject.toml
+</userguide/pyproject_config>` and only rely on ``setup.py`` if they need to
+tap into special behaviour that requires scripting (such as building C
+extensions).
+
+.. note::
+   When using declarative configs via ``pyproject.toml``
+   with ``setuptools<64.0.0``, users can still keep a very simple ``setup.py``
+   just to ensure editable installs are supported, for example::
+
+       from setuptools import setup
+
+       setup()
+
+   Versions of ``setuptools`` ``>=64.0.0`` do not require this extra minimal
+   ``setup.py`` file.
+
+.. _keyword/name:
+
 ``name``
     A string specifying the name of the package.
+
+.. _keyword/version:
 
 ``version``
     A string specifying the version number of the package.
 
+.. _keyword/description:
+
 ``description``
     A string describing the package in a single line.
 
+.. _keyword/long_description:
+
 ``long_description``
     A string providing a longer description of the package.
+
+.. _keyword/long_description_content_type:
 
 ``long_description_content_type``
     A string specifying the content type is used for the ``long_description``
     (e.g. ``text/markdown``)
 
+.. _keyword/author:
+
 ``author``
     A string specifying the author of the package.
 
+.. _keyword/author_email:
+
 ``author_email``
     A string specifying the email address of the package author.
+
+.. _keyword/maintainer:
 
 ``maintainer``
     A string specifying the name of the current maintainer, if different from
     the author. Note that if the maintainer is provided, setuptools will use it
     as the author in ``PKG-INFO``.
 
+.. _keyword/maintainer_email:
+
 ``maintainer_email``
     A string specifying the email address of the current maintainer, if
     different from the author.
 
+.. _keyword/url:
+
 ``url``
     A string specifying the URL for the package homepage.
+
+.. _keyword/download_url:
 
 ``download_url``
     A string specifying the URL to download the package.
 
+.. _keyword/packages:
+
 ``packages``
     A list of strings specifying the packages that setuptools will manipulate.
 
+.. _keyword/py_modules:
+
 ``py_modules``
     A list of strings specifying the modules that setuptools will manipulate.
+
+.. _keyword/scripts:
 
 ``scripts``
     A list of strings specifying the standalone script files to be built and
     installed.
 
+.. _keyword/ext_package:
+
 ``ext_package``
     A string specifying the base package name for the extensions provided by
     this package.
+
+.. _keyword/ext_modules:
 
 ``ext_modules``
     A list of instances of ``setuptools.Extension`` providing the list of
     Python extensions to be built.
 
+.. _keyword/classifiers:
+
 ``classifiers``
     A list of strings describing the categories for the package.
 
+.. _keyword/distclass:
+
 ``distclass``
     A subclass of ``Distribution`` to use.
+
+.. _keyword/script_name:
 
 ``script_name``
     A string specifying the name of the setup.py script -- defaults to
     ``sys.argv[0]``
 
+.. _keyword/script_args:
+
 ``script_args``
     A list of strings defining the arguments to supply to the setup script.
+
+.. _keyword/options:
 
 ``options``
     A dictionary providing the default options for the setup script.
 
+.. _keyword/license:
+
 ``license``
     A string specifying the license of the package.
 
-``license_file``
+.. _keyword/license_file:
 
+``license_file``
     .. warning::
         ``license_file`` is deprecated. Use ``license_files`` instead.
 
-``license_files``
+.. _keyword/license_files:
 
+``license_files``
     A list of glob patterns for license related files that should be included.
     If neither ``license_file`` nor ``license_files`` is specified, this option
     defaults to ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, and ``AUTHORS*``.
 
+.. _keyword/keywords:
+
 ``keywords``
     A list of strings or a comma-separated string providing descriptive
-    meta-data. See: `PEP 0314`_.
+    meta-data. See: :ref:`Core Metadata Specifications<core-metadata-keywords>`.
 
-.. _PEP 0314: https://www.python.org/dev/peps/pep-0314/
+.. _keyword/platforms:
 
 ``platforms``
     A list of strings or comma-separated string.
+
+.. _keyword/cmdclass:
 
 ``cmdclass``
     A dictionary providing a mapping of command names to ``Command``
     subclasses.
 
-``data_files``
+.. _keyword/data_files:
 
+``data_files``
     .. warning::
         ``data_files`` is deprecated. It does not work with wheels, so it
         should be avoided.
 
     A list of strings specifying the data files to install.
 
+.. _keyword/package_dir:
+
 ``package_dir``
-    A dictionary providing a mapping of package to directory names.
+    A dictionary that maps package names (as they will be
+    imported by the end-users) into directory paths (that actually exist in the
+    project's source tree). This configuration has two main purposes:
+
+    1. To effectively "rename" paths when building your package.
+       For example, ``package_dir={"mypkg": "dir1/dir2/code_for_mypkg"}``
+       will instruct setuptools to copy the ``dir1/dir2/code_for_mypkg/...`` files
+       as ``mypkg/...`` when building the final :term:`wheel distribution <Wheel>`.
+
+       .. attention::
+          While it is *possible* to specify arbitrary mappings, developers are
+          **STRONGLY ADVISED AGAINST** that. They should try as much as possible
+          to keep the directory names and hierarchy identical to the way they will
+          appear in the final wheel, only deviating when absolutely necessary.
+
+    2. To indicate that the relevant code is entirely contained inside
+       a specific directory (instead of directly placed under the project's root).
+       In this case, a special key is required (the empty string, ``""``),
+       for example: ``package_dir={"": "<name of the container directory>"}``.
+       All the directories inside the container directory will be copied
+       directly into the final :term:`wheel distribution <Wheel>`, but the
+       container directory itself will not.
+
+       This practice is very common in the community to help separate the
+       package implementation from auxiliary files (e.g. CI configuration files),
+       and is referred to as :ref:`src-layout`, because the container
+       directory is commonly named ``src``.
+
+    All paths in ``package_dir`` must be relative to the project root directory
+    and use a forward slash (``/``) as path separator regardless of the
+    operating system.
+
+    .. tip::
+       When using :doc:`package discovery </userguide/package_discovery>`
+       together with :doc:`setup.cfg </userguide/declarative_config>` or
+       :doc:`pyproject.toml </userguide/pyproject_config>`, it is very likely
+       that you don't need to specify a value for ``package_dir``.  Please have
+       a look at the definitions of :ref:`src-layout` and :ref:`flat-layout` to
+       learn common practices on how to design a project's directory structure
+       and minimise the amount of configuration that is needed.
+
+.. _keyword/requires:
 
 ``requires``
-
    .. warning::
       ``requires`` is superseded by ``install_requires`` and should not be used
       anymore.
 
-``obsoletes``
+.. _keyword/obsoletes:
 
+``obsoletes``
    .. warning::
       ``obsoletes`` is currently ignored by ``pip``.
 
@@ -135,8 +258,9 @@ Keywords
    e.g. Gorgon 2.3 gets subsumed into Torqued Python 1.0. When you install
    Torqued Python, the Gorgon distribution should be removed.
 
-``provides``
+.. _keyword/provides:
 
+``provides``
    .. warning::
       ``provides`` is currently ignored by ``pip``.
 
@@ -164,7 +288,7 @@ Keywords
    Each package may be followed by an environment marker after a semicolon
    (e.g. ``foo; os_name == "posix"``).
 
-.. Below are setuptools keywords, above are distutils
+.. _keyword/include_package_data:
 
 ``include_package_data``
     If set to ``True``, this tells ``setuptools`` to automatically include any
@@ -172,11 +296,15 @@ Keywords
     your ``MANIFEST.in`` file.  For more information, see the section on
     :ref:`Including Data Files`.
 
+.. _keyword/exclude_package_data:
+
 ``exclude_package_data``
     A dictionary mapping package names to lists of glob patterns that should
     be *excluded* from your package directories.  You can use this to trim back
     any excess files included by ``include_package_data``.  For a complete
     description and examples, see the section on :ref:`Including Data Files`.
+
+.. _keyword/package_data:
 
 ``package_data``
     A dictionary mapping package names to lists of glob patterns.  For a
@@ -187,16 +315,22 @@ Keywords
     in source control or are files that you don't want to include in your
     source distribution.)
 
+.. _keyword/zip_safe:
+
 ``zip_safe``
     A boolean (True or False) flag specifying whether the project can be
     safely installed and run from a zip file.  If this argument is not
     supplied, the ``bdist_egg`` command will have to analyze all of your
     project's contents for possible problems each time it builds an egg.
 
+.. _keyword/install_requires:
+
 ``install_requires``
     A string or list of strings specifying what other distributions need to
     be installed when this one is.  See the section on :ref:`Declaring
     Dependencies` for details and examples of the format of this argument.
+
+.. _keyword/entry_points:
 
 ``entry_points``
     A dictionary mapping entry point group names to strings or lists of strings
@@ -206,28 +340,33 @@ Keywords
     of this argument.  In addition, this keyword is used to support
     :ref:`Automatic Script Creation <entry_points>`.
 
+.. _keyword/extras_require:
+
 ``extras_require``
     A dictionary mapping names of "extras" (optional features of your project)
     to strings or lists of strings specifying what other distributions must be
     installed to support those features.  See the section on :ref:`Declaring
     Dependencies` for details and examples of the format of this argument.
 
+.. _keyword/python_requires:
+
 ``python_requires``
     A string corresponding to a version specifier (as defined in PEP 440) for
     the Python version, used to specify the Requires-Python defined in PEP 345.
 
-``setup_requires``
+.. _keyword/setup_requires:
 
+``setup_requires``
     .. warning::
-        Using ``setup_requires`` is discouraged in favor of `PEP-518`_
+        Using ``setup_requires`` is discouraged in favor of :pep:`518`.
 
     A string or list of strings specifying what other distributions need to
     be present in order for the *setup script* to run.  ``setuptools`` will
-    attempt to obtain these (even going so far as to download them using
-    ``EasyInstall``) before processing the rest of the setup script or commands.
-    This argument is needed if you are using distutils extensions as part of
-    your build process; for example, extensions that process setup() arguments
-    and turn them into EGG-INFO metadata files.
+    attempt to obtain these before processing the
+    rest of the setup script or commands.  This argument is needed if you
+    are using distutils extensions as part of your build process; for
+    example, extensions that process setup() arguments and turn them into
+    EGG-INFO metadata files.
 
     (Note: projects listed in ``setup_requires`` will NOT be automatically
     installed on the system where the setup script is being run.  They are
@@ -236,20 +375,25 @@ Keywords
     when the setup script is run, you should add them to ``install_requires``
     **and** ``setup_requires``.)
 
-.. _PEP-518: http://www.python.org/dev/peps/pep-0518/
+.. _keyword/dependency_links:
 
 ``dependency_links``
-
     .. warning::
         ``dependency_links`` is deprecated. It is not supported anymore by pip.
 
     A list of strings naming URLs to be searched when satisfying dependencies.
     These links will be used if needed to install packages specified by
     ``setup_requires`` or ``tests_require``.  They will also be written into
-    the egg's metadata for use by tools like EasyInstall to use when installing
-    an ``.egg`` file.
+    the egg's metadata for use during install by tools that support them.
+
+.. _keyword/namespace_packages:
 
 ``namespace_packages``
+    .. warning::
+        ``namespace_packages`` is deprecated in favor of native/implicit
+        namespaces (:pep:`420`). Check :doc:`the Python Packaging User Guide
+        <PyPUG:guides/packaging-namespace-packages>` for more information.
+
     A list of strings naming the project's "namespace packages".  A namespace
     package is a package that may be split across multiple project
     distributions.  For example, Zope 3's ``zope`` package is a namespace
@@ -261,6 +405,8 @@ Keywords
     does not contain any code other than a namespace declaration.  See the
     section on :ref:`Namespace Packages` for more information.
 
+.. _keyword/test_suite:
+
 ``test_suite``
     A string naming a ``unittest.TestCase`` subclass (or a package or module
     containing one or more of them, or a method of such a subclass), or naming
@@ -270,26 +416,35 @@ Keywords
     added to the tests to be run.  If the named suite is a package, any
     submodules and subpackages are recursively added to the overall test suite.
 
-    Specifying this argument enables use of the :ref:`test` command to run the
+    Specifying this argument enables use of the :ref:`test <test>` command to run the
     specified test suite, e.g. via ``setup.py test``.  See the section on the
-    :ref:`test` command below for more details.
+    :ref:`test <test>` command below for more details.
 
-    New in 41.5.0: Deprecated the test command.
+    .. warning::
+       .. deprecated:: 41.5.0
+          The test command will be removed in a future version of ``setuptools``,
+          alongside any test configuration parameter.
+
+.. _keyword/tests_require:
 
 ``tests_require``
     If your project's tests need one or more additional packages besides those
     needed to install it, you can use this option to specify them.  It should
     be a string or list of strings specifying what other distributions need to
     be present for the package's tests to run.  When you run the ``test``
-    command, ``setuptools`` will  attempt to obtain these (even going
-    so far as to download them using ``EasyInstall``).  Note that these
-    required projects will *not* be installed on the system where the tests
-    are run, but only downloaded to the project's setup directory if they're
-    not already installed locally.
+    command, ``setuptools`` will  attempt to obtain these.
+    Note that these required projects will *not* be installed on
+    the system where the tests are run, but only downloaded to the project's setup
+    directory if they're not already installed locally.
 
-    New in 41.5.0: Deprecated the test command.
+    .. warning::
+       .. deprecated:: 41.5.0
+          The test command will be removed in a future version of ``setuptools``,
+          alongside any test configuration parameter.
 
 .. _test_loader:
+
+.. _keyword/test_loader:
 
 ``test_loader``
     If you would like to use a different way of finding tests to run than what
@@ -312,7 +467,12 @@ Keywords
     as long as you use the ``tests_require`` option to ensure that the package
     containing the loader class is available when the ``test`` command is run.
 
-    New in 41.5.0: Deprecated the test command.
+    .. warning::
+       .. deprecated:: 41.5.0
+          The test command will be removed in a future version of ``setuptools``,
+          alongside any test configuration parameter.
+
+.. _keyword/eager_resources:
 
 ``eager_resources``
     A list of strings naming resources that should be extracted together, if
@@ -329,6 +489,8 @@ Keywords
     shared libraries), you probably do NOT need this argument and shouldn't
     mess with it.  For more details on how this argument works, see the section
     below on :ref:`Automatic Resource Extraction`.
+
+.. _keyword/project_urls:
 
 ``project_urls``
     An arbitrary map of URL names to hyperlinks, allowing more extensible

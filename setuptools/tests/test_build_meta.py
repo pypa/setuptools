@@ -1,14 +1,32 @@
 import os
+import sys
 import shutil
+import signal
 import tarfile
 import importlib
+import contextlib
 from concurrent import futures
 import re
+from zipfile import ZipFile
+from pathlib import Path
 
 import pytest
 from jaraco import path
 
 from .textwrap import DALS
+
+SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
+
+
+TIMEOUT = int(os.getenv("TIMEOUT_BACKEND_TEST", "180"))  # in seconds
+IS_PYPY = '__pypy__' in sys.builtin_module_names
+
+
+pytestmark = pytest.mark.skipif(
+    sys.platform == "win32" and IS_PYPY,
+    reason="The combination of PyPy + Windows + pytest-xdist + ProcessPoolExecutor "
+    "is flaky and problematic"
+)
 
 
 class BuildBackendBase:
@@ -26,14 +44,31 @@ class BuildBackend(BuildBackendBase):
         self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
     def __getattr__(self, name):
-        """Handles aribrary function invocations on the build backend."""
+        """Handles arbitrary function invocations on the build backend."""
 
         def method(*args, **kw):
             root = os.path.abspath(self.cwd)
             caller = BuildBackendCaller(root, self.env, self.backend_name)
-            return self.pool.submit(caller, name, *args, **kw).result()
+            pid = None
+            try:
+                pid = self.pool.submit(os.getpid).result(TIMEOUT)
+                return self.pool.submit(caller, name, *args, **kw).result(TIMEOUT)
+            except futures.TimeoutError:
+                self.pool.shutdown(wait=False)  # doesn't stop already running processes
+                self._kill(pid)
+                pytest.xfail(f"Backend did not respond before timeout ({TIMEOUT} s)")
+            except (futures.process.BrokenProcessPool, MemoryError, OSError):
+                if IS_PYPY:
+                    pytest.xfail("PyPy frequently fails tests with ProcessPoolExector")
+                raise
 
         return method
+
+    def _kill(self, pid):
+        if pid is None:
+            return
+        with contextlib.suppress(ProcessLookupError, OSError):
+            os.kill(pid, signal.SIGTERM if os.name == "nt" else signal.SIGKILL)
 
 
 class BuildBackendCaller(BuildBackendBase):
@@ -44,7 +79,7 @@ class BuildBackendCaller(BuildBackendBase):
          self.backend_obj) = self.backend_name.partition(':')
 
     def __call__(self, name, *args, **kw):
-        """Handles aribrary function invocations on the build backend."""
+        """Handles arbitrary function invocations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)
         mod = importlib.import_module(self.backend_name)
@@ -58,7 +93,7 @@ class BuildBackendCaller(BuildBackendBase):
 
 
 defns = [
-    {
+    {  # simple setup.py script
         'setup.py': DALS("""
             __import__('setuptools').setup(
                 name='foo',
@@ -72,7 +107,7 @@ defns = [
                 print('hello')
             """),
     },
-    {
+    {  # setup.py that relies on __name__
         'setup.py': DALS("""
             assert __name__ == '__main__'
             __import__('setuptools').setup(
@@ -87,7 +122,7 @@ defns = [
                 print('hello')
             """),
     },
-    {
+    {  # setup.py script that runs arbitrary code
         'setup.py': DALS("""
             variable = True
             def function():
@@ -105,7 +140,30 @@ defns = [
                 print('hello')
             """),
     },
-    {
+    {  # setup.py script that constructs temp files to be included in the distribution
+        'setup.py': DALS("""
+            # Some packages construct files on the fly, include them in the package,
+            # and immediately remove them after `setup()` (e.g. pybind11==2.9.1).
+            # Therefore, we cannot use `distutils.core.run_setup(..., stop_after=...)`
+            # to obtain a distribution object first, and then run the distutils
+            # commands later, because these files will be removed in the meantime.
+
+            with open('world.py', 'w') as f:
+                f.write('x = 42')
+
+            try:
+                __import__('setuptools').setup(
+                    name='foo',
+                    version='0.0.0',
+                    py_modules=['world'],
+                    setup_requires=['six'],
+                )
+            finally:
+                # Some packages will clean temporary files
+                __import__('os').unlink('world.py')
+            """),
+    },
+    {  # setup.cfg only
         'setup.cfg': DALS("""
         [metadata]
         name = foo
@@ -115,6 +173,22 @@ defns = [
         py_modules=hello
         setup_requires=six
         """),
+        'hello.py': DALS("""
+        def run():
+            print('hello')
+        """)
+    },
+    {  # setup.cfg and setup.py
+        'setup.cfg': DALS("""
+        [metadata]
+        name = foo
+        version = 0.0.0
+
+        [options]
+        py_modules=hello
+        setup_requires=six
+        """),
+        'setup.py': "__import__('setuptools').setup()",
         'hello.py': DALS("""
         def run():
             print('hello')
@@ -150,7 +224,20 @@ class TestBuildMetaBackend:
         os.makedirs(dist_dir)
         wheel_name = build_backend.build_wheel(dist_dir)
 
-        assert os.path.isfile(os.path.join(dist_dir, wheel_name))
+        wheel_file = os.path.join(dist_dir, wheel_name)
+        assert os.path.isfile(wheel_file)
+
+        # Temporary files should be removed
+        assert not os.path.isfile('world.py')
+
+        with ZipFile(wheel_file) as zipfile:
+            wheel_contents = set(zipfile.namelist())
+
+        # Each one of the examples have a single module
+        # that should be included in the distribution
+        python_scripts = (f for f in wheel_contents if f.endswith('.py'))
+        modules = [f for f in python_scripts if not f.endswith('setup.py')]
+        assert len(modules) == 1
 
     @pytest.mark.parametrize('build_type', ('wheel', 'sdist'))
     def test_build_with_existing_file_present(self, build_type, tmpdir_cwd):
@@ -199,6 +286,190 @@ class TestBuildMetaBackend:
         assert third_result == second_result
         assert os.path.getsize(os.path.join(dist_dir, third_result)) > 0
 
+    @pytest.mark.parametrize("setup_script", [None, SETUP_SCRIPT_STUB])
+    def test_build_with_pyproject_config(self, tmpdir, setup_script):
+        files = {
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta"
+
+                [project]
+                name = "foo"
+                license = {text = "MIT"}
+                description = "This is a Python package"
+                dynamic = ["version", "readme"]
+                classifiers = [
+                    "Development Status :: 5 - Production/Stable",
+                    "Intended Audience :: Developers"
+                ]
+                urls = {Homepage = "http://github.com"}
+                dependencies = [
+                    "appdirs",
+                ]
+
+                [project.optional-dependencies]
+                all = [
+                    "tomli>=1",
+                    "pyscaffold>=4,<5",
+                    'importlib; python_version == "2.6"',
+                ]
+
+                [project.scripts]
+                foo = "foo.cli:main"
+
+                [tool.setuptools]
+                zip-safe = false
+                package-dir = {"" = "src"}
+                packages = {find = {where = ["src"]}}
+                license-files = ["LICENSE*"]
+
+                [tool.setuptools.dynamic]
+                version = {attr = "foo.__version__"}
+                readme = {file = "README.rst"}
+
+                [tool.distutils.sdist]
+                formats = "gztar"
+
+                [tool.distutils.bdist_wheel]
+                universal = true
+                """),
+            "MANIFEST.in": DALS("""
+                global-include *.py *.txt
+                global-exclude *.py[cod]
+                """),
+            "README.rst": "This is a ``README``",
+            "LICENSE.txt": "---- placeholder MIT license ----",
+            "src": {
+                "foo": {
+                    "__init__.py": "__version__ = '0.1'",
+                    "cli.py": "def main(): print('hello world')",
+                    "data.txt": "def main(): print('hello world')",
+                }
+            }
+        }
+        if setup_script:
+            files["setup.py"] = setup_script
+
+        build_backend = self.get_build_backend()
+        with tmpdir.as_cwd():
+            path.build(files)
+            sdist_path = build_backend.build_sdist("temp")
+            wheel_file = build_backend.build_wheel("temp")
+
+        with tarfile.open(os.path.join(tmpdir, "temp", sdist_path)) as tar:
+            sdist_contents = set(tar.getnames())
+
+        with ZipFile(os.path.join(tmpdir, "temp", wheel_file)) as zipfile:
+            wheel_contents = set(zipfile.namelist())
+            metadata = str(zipfile.read("foo-0.1.dist-info/METADATA"), "utf-8")
+            license = str(zipfile.read("foo-0.1.dist-info/LICENSE.txt"), "utf-8")
+            epoints = str(zipfile.read("foo-0.1.dist-info/entry_points.txt"), "utf-8")
+
+        assert sdist_contents - {"foo-0.1/setup.py"} == {
+            'foo-0.1',
+            'foo-0.1/LICENSE.txt',
+            'foo-0.1/MANIFEST.in',
+            'foo-0.1/PKG-INFO',
+            'foo-0.1/README.rst',
+            'foo-0.1/pyproject.toml',
+            'foo-0.1/setup.cfg',
+            'foo-0.1/src',
+            'foo-0.1/src/foo',
+            'foo-0.1/src/foo/__init__.py',
+            'foo-0.1/src/foo/cli.py',
+            'foo-0.1/src/foo/data.txt',
+            'foo-0.1/src/foo.egg-info',
+            'foo-0.1/src/foo.egg-info/PKG-INFO',
+            'foo-0.1/src/foo.egg-info/SOURCES.txt',
+            'foo-0.1/src/foo.egg-info/dependency_links.txt',
+            'foo-0.1/src/foo.egg-info/entry_points.txt',
+            'foo-0.1/src/foo.egg-info/requires.txt',
+            'foo-0.1/src/foo.egg-info/top_level.txt',
+            'foo-0.1/src/foo.egg-info/not-zip-safe',
+        }
+        assert wheel_contents == {
+            "foo/__init__.py",
+            "foo/cli.py",
+            "foo/data.txt",  # include_package_data defaults to True
+            "foo-0.1.dist-info/LICENSE.txt",
+            "foo-0.1.dist-info/METADATA",
+            "foo-0.1.dist-info/WHEEL",
+            "foo-0.1.dist-info/entry_points.txt",
+            "foo-0.1.dist-info/top_level.txt",
+            "foo-0.1.dist-info/RECORD",
+        }
+        assert license == "---- placeholder MIT license ----"
+        for line in (
+            "Summary: This is a Python package",
+            "License: MIT",
+            "Classifier: Intended Audience :: Developers",
+            "Requires-Dist: appdirs",
+            "Requires-Dist: tomli (>=1) ; extra == 'all'",
+            "Requires-Dist: importlib ; (python_version == \"2.6\") and extra == 'all'"
+        ):
+            assert line in metadata
+
+        assert metadata.strip().endswith("This is a ``README``")
+        assert epoints.strip() == "[console_scripts]\nfoo = foo.cli:main"
+
+    def test_static_metadata_in_pyproject_config(self, tmpdir):
+        # Make sure static metadata in pyproject.toml is not overwritten by setup.py
+        # as required by PEP 621
+        files = {
+            'pyproject.toml': DALS("""
+                [build-system]
+                requires = ["setuptools", "wheel"]
+                build-backend = "setuptools.build_meta"
+
+                [project]
+                name = "foo"
+                description = "This is a Python package"
+                version = "42"
+                dependencies = ["six"]
+                """),
+            'hello.py': DALS("""
+                def run():
+                    print('hello')
+                """),
+            'setup.py': DALS("""
+                __import__('setuptools').setup(
+                    name='bar',
+                    version='13',
+                )
+                """),
+        }
+        build_backend = self.get_build_backend()
+        with tmpdir.as_cwd():
+            path.build(files)
+            sdist_path = build_backend.build_sdist("temp")
+            wheel_file = build_backend.build_wheel("temp")
+
+        assert (tmpdir / "temp/foo-42.tar.gz").exists()
+        assert (tmpdir / "temp/foo-42-py3-none-any.whl").exists()
+        assert not (tmpdir / "temp/bar-13.tar.gz").exists()
+        assert not (tmpdir / "temp/bar-42.tar.gz").exists()
+        assert not (tmpdir / "temp/foo-13.tar.gz").exists()
+        assert not (tmpdir / "temp/bar-13-py3-none-any.whl").exists()
+        assert not (tmpdir / "temp/bar-42-py3-none-any.whl").exists()
+        assert not (tmpdir / "temp/foo-13-py3-none-any.whl").exists()
+
+        with tarfile.open(os.path.join(tmpdir, "temp", sdist_path)) as tar:
+            pkg_info = str(tar.extractfile('foo-42/PKG-INFO').read(), "utf-8")
+            members = tar.getnames()
+            assert "bar-13/PKG-INFO" not in members
+
+        with ZipFile(os.path.join(tmpdir, "temp", wheel_file)) as zipfile:
+            metadata = str(zipfile.read("foo-42.dist-info/METADATA"), "utf-8")
+            members = zipfile.namelist()
+            assert "bar-13.dist-info/METADATA" not in members
+
+        for file in pkg_info, metadata:
+            for line in ("Name: foo", "Version: 42"):
+                assert line in file
+            for line in ("Name: bar", "Version: 13"):
+                assert line not in file
+
     def test_build_sdist(self, build_backend):
         dist_dir = os.path.abspath('pip-sdist')
         os.makedirs(dist_dir)
@@ -213,6 +484,23 @@ class TestBuildMetaBackend:
         dist_info = build_backend.prepare_metadata_for_build_wheel(dist_dir)
 
         assert os.path.isfile(os.path.join(dist_dir, dist_info, 'METADATA'))
+
+    def test_prepare_metadata_inplace(self, build_backend):
+        """
+        Some users might pass metadata_directory pre-populated with `.tox` or `.venv`.
+        See issue #3523.
+        """
+        for pre_existing in [
+            ".tox/python/lib/python3.10/site-packages/attrs-22.1.0.dist-info",
+            ".tox/python/lib/python3.10/site-packages/autocommand-2.2.1.dist-info",
+            ".nox/python/lib/python3.10/site-packages/build-0.8.0.dist-info",
+            ".venv/python3.10/site-packages/click-8.1.3.dist-info",
+            "venv/python3.10/site-packages/distlib-0.3.5.dist-info",
+            "env/python3.10/site-packages/docutils-0.19.dist-info",
+        ]:
+            os.makedirs(pre_existing, exist_ok=True)
+        dist_info = build_backend.prepare_metadata_for_build_wheel(".")
+        assert os.path.isfile(os.path.join(dist_info, 'METADATA'))
 
     def test_build_sdist_explicit_dist(self, build_backend):
         # explicitly specifying the dist folder should work
@@ -341,6 +629,71 @@ class TestBuildMetaBackend:
         with pytest.raises(ImportError, match="^No module named 'hello'$"):
             build_backend.build_sdist("temp")
 
+    _simple_pyproject_example = {
+        "pyproject.toml": DALS("""
+            [project]
+            name = "proj"
+            version = "42"
+            """),
+        "src": {
+            "proj": {"__init__.py": ""}
+        }
+    }
+
+    def _assert_link_tree(self, parent_dir):
+        """All files in the directory should be either links or hard links"""
+        files = list(Path(parent_dir).glob("**/*"))
+        assert files  # Should not be empty
+        for file in files:
+            assert file.is_symlink() or os.stat(file).st_nlink > 0
+
+    @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
+    # Since the backend is running via a process pool, in some operating systems
+    # we may have problems to make assertions based on warnings/stdout/stderr...
+    # So the best is to ignore them for the time being.
+    def test_editable_with_global_option_still_works(self, tmpdir_cwd):
+        """The usage of --global-option is now discouraged in favour of --build-option.
+        This is required to make more sense of the provided scape hatch and align with
+        previous pip behaviour. See pypa/setuptools#1928.
+        """
+        path.build({**self._simple_pyproject_example, '_meta': {}})
+        build_backend = self.get_build_backend()
+        assert not Path("build").exists()
+
+        cfg = {"--global-option": ["--mode", "strict"]}
+        build_backend.prepare_metadata_for_build_editable("_meta", cfg)
+        build_backend.build_editable("temp", cfg, "_meta")
+
+        self._assert_link_tree(next(Path("build").glob("__editable__.*")))
+
+    def test_editable_without_config_settings(self, tmpdir_cwd):
+        """
+        Sanity check to ensure tests with --mode=strict are different from the ones
+        without --mode.
+
+        --mode=strict should create a local directory with a package tree.
+        The directory should not get created otherwise.
+        """
+        path.build(self._simple_pyproject_example)
+        build_backend = self.get_build_backend()
+        assert not Path("build").exists()
+        build_backend.build_editable("temp")
+        assert not Path("build").exists()
+
+    @pytest.mark.parametrize(
+        "config_settings", [
+            {"--build-option": ["--mode", "strict"]},
+            {"editable-mode": "strict"},
+        ]
+    )
+    def test_editable_with_config_settings(self, tmpdir_cwd, config_settings):
+        path.build({**self._simple_pyproject_example, '_meta': {}})
+        assert not Path("build").exists()
+        build_backend = self.get_build_backend()
+        build_backend.prepare_metadata_for_build_editable("_meta", config_settings)
+        build_backend.build_editable("temp", config_settings, "_meta")
+        self._assert_link_tree(next(Path("build").glob("__editable__.*")))
+
     @pytest.mark.parametrize('setup_literal, requirements', [
         ("'foo'", ['foo']),
         ("['foo']", ['foo']),
@@ -391,6 +744,30 @@ class TestBuildMetaBackend:
         actual = get_requires()
 
         assert expected == sorted(actual)
+
+    def test_setup_requires_with_auto_discovery(self, tmpdir_cwd):
+        # Make sure patches introduced to retrieve setup_requires don't accidentally
+        # activate auto-discovery and cause problems due to the incomplete set of
+        # attributes passed to MinimalDistribution
+        files = {
+            'pyproject.toml': DALS("""
+                [project]
+                name = "proj"
+                version = "42"
+            """),
+            "setup.py": DALS("""
+                __import__('setuptools').setup(
+                    setup_requires=["foo"],
+                    py_modules = ["hello", "world"]
+                )
+            """),
+            'hello.py': "'hello'",
+            'world.py': "'world'",
+        }
+        path.build(files)
+        build_backend = self.get_build_backend()
+        setup_requires = build_backend.get_requires_for_build_wheel()
+        assert setup_requires == ["wheel", "foo"]
 
     def test_dont_install_setup_requires(self, tmpdir_cwd):
         files = {
@@ -470,3 +847,27 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
+
+
+def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
+    pyproject = """
+    [build-system]
+    requires = ["setuptools"]
+    build-backend = "setuptools.build_meta"
+    [project]
+    name = "myproj"
+    version = "42"
+    """
+    path.build({"pyproject.toml": DALS(pyproject), "mymod.py": ""})
+
+    # First: sanity check
+    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
+    output = str(venv.run(cmd, cwd=tmpdir), "utf-8").lower()
+    assert "running setup.py develop for myproj" not in output
+    assert "created wheel for myproj" in output
+
+    # Then: real test
+    env = {**os.environ, "SETUPTOOLS_ENABLE_FEATURES": "legacy-editable"}
+    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
+    output = str(venv.run(cmd, cwd=tmpdir, env=env), "utf-8").lower()
+    assert "running setup.py develop for myproj" in output

@@ -3,13 +3,10 @@
 import io
 import distutils.core
 import os
-import shutil
 import sys
-from test.support import captured_stdout, run_unittest
-from . import py38compat as os_helper
-import unittest
-from distutils.tests import support
-from distutils import log
+
+import pytest
+
 from distutils.dist import Distribution
 
 # setup script that uses __file__
@@ -56,110 +53,79 @@ if __name__ == "__main__":
     main()
 """
 
-class CoreTestCase(support.EnvironGuard, unittest.TestCase):
 
-    def setUp(self):
-        super(CoreTestCase, self).setUp()
-        self.old_stdout = sys.stdout
-        self.cleanup_testfn()
-        self.old_argv = sys.argv, sys.argv[:]
-        self.addCleanup(log.set_threshold, log._global_log.threshold)
+@pytest.fixture(autouse=True)
+def save_stdout(monkeypatch):
+    monkeypatch.setattr(sys, 'stdout', sys.stdout)
 
-    def tearDown(self):
-        sys.stdout = self.old_stdout
-        self.cleanup_testfn()
-        sys.argv = self.old_argv[0]
-        sys.argv[:] = self.old_argv[1]
-        super(CoreTestCase, self).tearDown()
 
-    def cleanup_testfn(self):
-        path = os_helper.TESTFN
-        if os.path.isfile(path):
-            os.remove(path)
-        elif os.path.isdir(path):
-            shutil.rmtree(path)
+@pytest.fixture
+def temp_file(tmp_path):
+    return tmp_path / 'file'
 
-    def write_setup(self, text, path=os_helper.TESTFN):
-        f = open(path, "w")
-        try:
-            f.write(text)
-        finally:
-            f.close()
-        return path
 
-    def test_run_setup_provides_file(self):
+@pytest.mark.usefixtures('save_env')
+@pytest.mark.usefixtures('save_argv')
+class TestCore:
+    def test_run_setup_provides_file(self, temp_file):
         # Make sure the script can use __file__; if that's missing, the test
         # setup.py script will raise NameError.
-        distutils.core.run_setup(
-            self.write_setup(setup_using___file__))
+        temp_file.write_text(setup_using___file__)
+        distutils.core.run_setup(temp_file)
 
-    def test_run_setup_preserves_sys_argv(self):
+    def test_run_setup_preserves_sys_argv(self, temp_file):
         # Make sure run_setup does not clobber sys.argv
         argv_copy = sys.argv.copy()
-        distutils.core.run_setup(
-            self.write_setup(setup_does_nothing))
-        self.assertEqual(sys.argv, argv_copy)
+        temp_file.write_text(setup_does_nothing)
+        distutils.core.run_setup(temp_file)
+        assert sys.argv == argv_copy
 
-    def test_run_setup_defines_subclass(self):
+    def test_run_setup_defines_subclass(self, temp_file):
         # Make sure the script can use __file__; if that's missing, the test
         # setup.py script will raise NameError.
-        dist = distutils.core.run_setup(
-            self.write_setup(setup_defines_subclass))
+        temp_file.write_text(setup_defines_subclass)
+        dist = distutils.core.run_setup(temp_file)
         install = dist.get_command_obj('install')
-        self.assertIn('cmd', install.sub_commands)
+        assert 'cmd' in install.sub_commands
 
-    def test_run_setup_uses_current_dir(self):
-        # This tests that the setup script is run with the current directory
-        # as its own current directory; this was temporarily broken by a
-        # previous patch when TESTFN did not use the current directory.
+    def test_run_setup_uses_current_dir(self, tmp_path):
+        """
+        Test that the setup script is run with the current directory
+        as its own current directory.
+        """
         sys.stdout = io.StringIO()
         cwd = os.getcwd()
 
         # Create a directory and write the setup.py file there:
-        os.mkdir(os_helper.TESTFN)
-        setup_py = os.path.join(os_helper.TESTFN, "setup.py")
-        distutils.core.run_setup(
-            self.write_setup(setup_prints_cwd, path=setup_py))
+        setup_py = tmp_path / 'setup.py'
+        setup_py.write_text(setup_prints_cwd)
+        distutils.core.run_setup(setup_py)
 
         output = sys.stdout.getvalue()
         if output.endswith("\n"):
             output = output[:-1]
-        self.assertEqual(cwd, output)
+        assert cwd == output
 
-    def test_run_setup_within_if_main(self):
-        dist = distutils.core.run_setup(
-            self.write_setup(setup_within_if_main), stop_after="config")
-        self.assertIsInstance(dist, Distribution)
-        self.assertEqual(dist.get_name(), "setup_within_if_main")
+    def test_run_setup_within_if_main(self, temp_file):
+        temp_file.write_text(setup_within_if_main)
+        dist = distutils.core.run_setup(temp_file, stop_after="config")
+        assert isinstance(dist, Distribution)
+        assert dist.get_name() == "setup_within_if_main"
 
-    def test_run_commands(self):
+    def test_run_commands(self, temp_file):
         sys.argv = ['setup.py', 'build']
-        dist = distutils.core.run_setup(
-            self.write_setup(setup_within_if_main), stop_after="commandline")
-        self.assertNotIn('build', dist.have_run)
+        temp_file.write_text(setup_within_if_main)
+        dist = distutils.core.run_setup(temp_file, stop_after="commandline")
+        assert 'build' not in dist.have_run
         distutils.core.run_commands(dist)
-        self.assertIn('build', dist.have_run)
+        assert 'build' in dist.have_run
 
-    def test_debug_mode(self):
+    def test_debug_mode(self, capsys, monkeypatch):
         # this covers the code called when DEBUG is set
         sys.argv = ['setup.py', '--name']
-        with captured_stdout() as stdout:
-            distutils.core.setup(name='bar')
-        stdout.seek(0)
-        self.assertEqual(stdout.read(), 'bar\n')
-
-        distutils.core.DEBUG = True
-        try:
-            with captured_stdout() as stdout:
-                distutils.core.setup(name='bar')
-        finally:
-            distutils.core.DEBUG = False
-        stdout.seek(0)
+        distutils.core.setup(name='bar')
+        capsys.readouterr().out == 'bar\n'
+        monkeypatch.setattr(distutils.core, 'DEBUG', True)
+        distutils.core.setup(name='bar')
         wanted = "options (after parsing config files):\n"
-        self.assertEqual(stdout.readlines()[0], wanted)
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(CoreTestCase)
-
-if __name__ == "__main__":
-    run_unittest(test_suite())
+        assert capsys.readouterr().out.startswith(wanted)

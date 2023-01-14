@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
-
 """wheel tests
 """
 
 from distutils.sysconfig import get_config_var
 from distutils.util import get_platform
 import contextlib
+import pathlib
+import stat
 import glob
 import inspect
 import os
@@ -614,3 +614,88 @@ def test_wheel_is_compatible(monkeypatch):
     monkeypatch.setattr('setuptools.wheel.sys_tags', sys_tags)
     assert Wheel(
         'onnxruntime-0.1.2-cp36-cp36m-manylinux1_x86_64.whl').is_compatible()
+
+
+def test_wheel_mode():
+    @contextlib.contextmanager
+    def build_wheel(extra_file_defs=None, **kwargs):
+        file_defs = {
+            'setup.py': (DALS(
+                '''
+                # -*- coding: utf-8 -*-
+                from setuptools import setup
+                import setuptools
+                setup(**%r)
+                '''
+            ) % kwargs).encode('utf-8'),
+        }
+        if extra_file_defs:
+            file_defs.update(extra_file_defs)
+        with tempdir() as source_dir:
+            path.build(file_defs, source_dir)
+            runsh = pathlib.Path(source_dir) / "script.sh"
+            os.chmod(runsh, 0o777)
+            subprocess.check_call((sys.executable, 'setup.py',
+                                   '-q', 'bdist_wheel'), cwd=source_dir)
+            yield glob.glob(os.path.join(source_dir, 'dist', '*.whl'))[0]
+
+    params = dict(
+        id='script',
+        file_defs={
+            'script.py': DALS(
+                '''
+                #/usr/bin/python
+                print('hello world!')
+                '''
+            ),
+            'script.sh': DALS(
+                '''
+                #/bin/sh
+                echo 'hello world!'
+                '''
+            ),
+        },
+        setup_kwargs=dict(
+            scripts=['script.py', 'script.sh'],
+        ),
+        install_tree=flatten_tree({
+            'foo-1.0-py{py_version}.egg': {
+                'EGG-INFO': [
+                    'PKG-INFO',
+                    'RECORD',
+                    'WHEEL',
+                    'top_level.txt',
+                    {'scripts': [
+                        'script.py',
+                        'script.sh'
+                    ]}
+
+                ]
+            }
+        })
+    )
+
+    project_name = params.get('name', 'foo')
+    version = params.get('version', '1.0')
+    install_tree = params.get('install_tree')
+    file_defs = params.get('file_defs', {})
+    setup_kwargs = params.get('setup_kwargs', {})
+
+    with build_wheel(
+        name=project_name,
+        version=version,
+        install_requires=[],
+        extras_require={},
+        extra_file_defs=file_defs,
+        **setup_kwargs
+    ) as filename, tempdir() as install_dir:
+        _check_wheel_install(filename, install_dir,
+                             install_tree, project_name,
+                             version, None)
+        w = Wheel(filename)
+        base = pathlib.Path(install_dir) / w.egg_name()
+        script_sh = base / "EGG-INFO" / "scripts" / "script.sh"
+        assert script_sh.exists()
+        if sys.platform != 'win32':
+            # Editable file mode has no effect on Windows
+            assert oct(stat.S_IMODE(script_sh.stat().st_mode)) == "0o777"

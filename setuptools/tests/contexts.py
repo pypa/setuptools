@@ -123,3 +123,26 @@ def session_locked_tmp_dir(request, tmp_path_factory, name):
         # ^-- prevent multiple workers to access the directory at once
         locked_dir.mkdir(exist_ok=True, parents=True)
         yield locked_dir
+
+
+@contextlib.contextmanager
+def save_paths():
+    """Make sure ``sys.path``, ``sys.meta_path`` and ``sys.path_hooks`` are preserved"""
+    prev = sys.path[:], sys.meta_path[:], sys.path_hooks[:]
+
+    try:
+        yield
+    finally:
+        sys.path, sys.meta_path, sys.path_hooks = prev
+
+
+@contextlib.contextmanager
+def save_sys_modules():
+    """Make sure initial ``sys.modules`` is preserved"""
+    prev_modules = sys.modules
+
+    try:
+        sys.modules = sys.modules.copy()
+        yield
+    finally:
+        sys.modules = prev_modules

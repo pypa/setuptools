@@ -64,6 +64,16 @@ def rewrite_importlib_resources(pkg_files, new_root):
         file.write_text(text)
 
 
+def rewrite_importlib_metadata(pkg_files, new_root):
+    """
+    Rewrite imports in importlib_metadata to redirect to vendored copies.
+    """
+    for file in pkg_files.glob('*.py'):
+        text = file.read_text().replace('typing_extensions', '..typing_extensions')
+        text = text.replace('import zipp', 'from .. import zipp')
+        file.write_text(text)
+
+
 def rewrite_more_itertools(pkg_files: Path):
     """
     Defer import of concurrent.futures. Workaround for #3090.
@@ -79,26 +89,36 @@ def rewrite_more_itertools(pkg_files: Path):
     more_file.write_text(text)
 
 
+def rewrite_platformdirs(pkg_files: Path):
+    """
+    Replace some absolute imports with relative ones.
+    """
+    init = pkg_files.joinpath('__init__.py')
+    text = init.read_text()
+    text = text.replace('from platformdirs.', 'from .')
+    text = text.replace('from typing_extensions', 'from ..typing_extensions')
+    init.write_text(text)
+
+
 def clean(vendor):
     """
     Remove all files out of the vendor directory except the meta
     data (as pip uninstall doesn't support -t).
     """
-    remove_all(
-        path
-        for path in vendor.glob('*')
-        if path.basename() != 'vendored.txt'
-    )
+    remove_all(path for path in vendor.glob('*') if path.basename() != 'vendored.txt')
 
 
 def install(vendor):
     clean(vendor)
     install_args = [
         sys.executable,
-        '-m', 'pip',
+        '-m',
+        'pip',
         'install',
-        '-r', str(vendor / 'vendored.txt'),
-        '-t', str(vendor),
+        '-r',
+        str(vendor / 'vendored.txt'),
+        '-t',
+        str(vendor),
     ]
     subprocess.check_call(install_args)
     (vendor / '__init__.py').write_text('')
@@ -112,6 +132,7 @@ def update_pkg_resources():
     rewrite_jaraco(vendor / 'jaraco', 'pkg_resources.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'pkg_resources.extern')
     rewrite_more_itertools(vendor / "more_itertools")
+    rewrite_platformdirs(vendor / "platformdirs")
 
 
 def update_setuptools():
@@ -121,6 +142,7 @@ def update_setuptools():
     rewrite_jaraco_text(vendor / 'jaraco/text', 'setuptools.extern')
     rewrite_jaraco(vendor / 'jaraco', 'setuptools.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
+    rewrite_importlib_metadata(vendor / 'importlib_metadata', 'setuptools.extern')
     rewrite_more_itertools(vendor / "more_itertools")
 
 

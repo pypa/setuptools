@@ -1,13 +1,14 @@
 """Wheels support."""
 
-from distutils.util import get_platform
-from distutils import log
 import email
 import itertools
 import os
 import posixpath
 import re
 import zipfile
+import contextlib
+
+from distutils.util import get_platform
 
 import pkg_resources
 import setuptools
@@ -15,6 +16,7 @@ from pkg_resources import parse_version
 from setuptools.extern.packaging.tags import sys_tags
 from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.command.egg_info import write_requirements
+from setuptools.archive_util import _unpack_zipfile_obj
 
 
 WHEEL_NAME = re.compile(
@@ -47,6 +49,19 @@ def unpack(src_dir, dst_dir):
     for dirpath, dirnames, filenames in os.walk(src_dir, topdown=True):
         assert not filenames
         os.rmdir(dirpath)
+
+
+@contextlib.contextmanager
+def disable_info_traces():
+    """
+    Temporarily disable info traces.
+    """
+    from distutils import log
+    saved = log.set_threshold(log.WARN)
+    try:
+        yield
+    finally:
+        log.set_threshold(saved)
 
 
 class Wheel:
@@ -121,8 +136,7 @@ class Wheel:
             raise ValueError(
                 'unsupported wheel format version: %s' % wheel_version)
         # Extract to target directory.
-        os.mkdir(destination_eggdir)
-        zf.extractall(destination_eggdir)
+        _unpack_zipfile_obj(zf, destination_eggdir)
         # Convert metadata.
         dist_info = os.path.join(destination_eggdir, dist_info)
         dist = pkg_resources.Distribution.from_location(
@@ -156,17 +170,12 @@ class Wheel:
                 extras_require=extras_require,
             ),
         )
-        # Temporarily disable info traces.
-        log_threshold = log._global_log.threshold
-        log.set_threshold(log.WARN)
-        try:
+        with disable_info_traces():
             write_requirements(
                 setup_dist.get_command_obj('egg_info'),
                 None,
                 os.path.join(egg_info, 'requires.txt'),
             )
-        finally:
-            log.set_threshold(log_threshold)
 
     @staticmethod
     def _move_data_entries(destination_eggdir, dist_data):

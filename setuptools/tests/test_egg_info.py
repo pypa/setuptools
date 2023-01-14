@@ -6,12 +6,19 @@ import re
 import stat
 import time
 from typing import List, Tuple
+from pathlib import Path
+from unittest import mock
 
 import pytest
 from jaraco import path
 
+from setuptools import errors
 from setuptools.command.egg_info import (
-    egg_info, manifest_maker, EggInfoDeprecationWarning, get_pkg_info_revision,
+    EggInfoDeprecationWarning,
+    egg_info,
+    get_pkg_info_revision,
+    manifest_maker,
+    write_entries,
 )
 from setuptools.dist import Distribution
 
@@ -22,6 +29,28 @@ from . import contexts
 
 class Environment(str):
     pass
+
+
+@pytest.fixture
+def env():
+    with contexts.tempdir(prefix='setuptools-test.') as env_dir:
+        env = Environment(env_dir)
+        os.chmod(env_dir, stat.S_IRWXU)
+        subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
+        env.paths = dict(
+            (dirname, os.path.join(env_dir, dirname))
+            for dirname in subs
+        )
+        list(map(os.mkdir, env.paths.values()))
+        path.build({
+            env.paths['home']: {
+                '.pydistutils.cfg': DALS("""
+                [egg_info]
+                egg-base = %(egg-base)s
+                """ % env.paths)
+            }
+        })
+        yield env
 
 
 class TestEggInfo:
@@ -50,27 +79,6 @@ class TestEggInfo:
     def _extract_mv_version(pkg_info_lines: List[str]) -> Tuple[int, int]:
         version_str = pkg_info_lines[0].split(' ')[1]
         return tuple(map(int, version_str.split('.')[:2]))
-
-    @pytest.fixture
-    def env(self):
-        with contexts.tempdir(prefix='setuptools-test.') as env_dir:
-            env = Environment(env_dir)
-            os.chmod(env_dir, stat.S_IRWXU)
-            subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
-            env.paths = dict(
-                (dirname, os.path.join(env_dir, dirname))
-                for dirname in subs
-            )
-            list(map(os.mkdir, env.paths.values()))
-            path.build({
-                env.paths['home']: {
-                    '.pydistutils.cfg': DALS("""
-                    [egg_info]
-                    egg-base = %(egg-base)s
-                    """ % env.paths)
-                }
-            })
-            yield env
 
     def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):
         """
@@ -150,6 +158,21 @@ class TestEggInfo:
             'top_level.txt',
         ]
         assert sorted(actual) == expected
+
+    def test_handling_utime_error(self, tmpdir_cwd, env):
+        dist = Distribution()
+        ei = egg_info(dist)
+        utime_patch = mock.patch('os.utime', side_effect=OSError("TEST"))
+        mkpath_patch = mock.patch(
+            'setuptools.command.egg_info.egg_info.mkpath', return_val=None
+        )
+
+        with utime_patch, mkpath_patch:
+            import distutils.errors
+
+            msg = r"Cannot update time stamp of directory 'None'"
+            with pytest.raises(distutils.errors.DistutilsFileError, match=msg):
+                ei.run()
 
     def test_license_is_a_string(self, tmpdir_cwd, env):
         setup_config = DALS("""
@@ -1084,3 +1107,27 @@ class TestEggInfo:
 
     def test_get_pkg_info_revision_deprecated(self):
         pytest.warns(EggInfoDeprecationWarning, get_pkg_info_revision)
+
+
+class TestWriteEntries:
+
+    def test_invalid_entry_point(self, tmpdir_cwd, env):
+        dist = Distribution({"name": "foo", "version": "0.0.1"})
+        dist.entry_points = {"foo": "foo = invalid-identifier:foo"}
+        cmd = dist.get_command_obj("egg_info")
+        expected_msg = r"Problems to parse .*invalid-identifier.*"
+        with pytest.raises(errors.OptionError, match=expected_msg) as ex:
+            write_entries(cmd, "entry_points", "entry_points.txt")
+            assert "ensure entry-point follows the spec" in ex.value.args[0]
+
+    def test_valid_entry_point(self, tmpdir_cwd, env):
+        dist = Distribution({"name": "foo", "version": "0.0.1"})
+        dist.entry_points = {
+            "abc": "foo = bar:baz",
+            "def": ["faa = bor:boz"],
+        }
+        cmd = dist.get_command_obj("egg_info")
+        write_entries(cmd, "entry_points", "entry_points.txt")
+        content = Path("entry_points.txt").read_text(encoding="utf-8")
+        assert "[abc]\nfoo = bar:baz\n" in content
+        assert "[def]\nfaa = bor:boz\n" in content

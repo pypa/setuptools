@@ -8,6 +8,7 @@ extend-exclude =
 	build
 	setuptools/_vendor
 	setuptools/_distutils
+	setuptools/config/_validate_pyproject/fastjsonschema_*
 	pkg_resources/_vendor
 
 extend-ignore =

@@ -1,52 +1,271 @@
-"Development Mode"
-==================
+Development Mode (a.k.a. "Editable Installs")
+=============================================
 
-Under normal circumstances, the ``distutils`` assume that you are going to
-build a distribution of your project, not use it in its "raw" or "unbuilt"
-form.  However, if you were to use the ``distutils`` to build a distribution,
-you would have to rebuild and reinstall your project every time you made a
-change to it during development.
+When creating a Python project, developers usually want to implement and test
+changes iteratively, before cutting a release and preparing a distribution archive.
 
-Another problem that sometimes comes up with the ``distutils`` is that you may
-need to do development on two related projects at the same time.  You may need
-to put both projects' packages in the same directory to run them, but need to
-keep them separate for revision control purposes.  How can you do this?
+In normal circumstances this can be quite cumbersome and require the developers
+to manipulate the ``PYTHONPATH`` environment variable or to continuously re-build
+and re-install the project.
 
-Setuptools allows you to deploy your projects for use in a common directory or
-staging area, but without copying any files.  Thus, you can edit each project's
-code in its checkout directory, and only need to run build commands when you
-change a project's C extensions or similarly compiled files.  You can even
-deploy a project into another project's checkout directory, if that's your
-preferred way of working (as opposed to using a common independent staging area
-or the site-packages directory).
+To facilitate iterative exploration and experimentation, setuptools allows
+users to instruct the Python interpreter and its import machinery to load the
+code under development directly from the project folder without having to
+copy the files to a different location in the disk.
+This means that changes in the Python source code can immediately take place
+without requiring a new installation.
 
-To do this, use the ``setup.py develop`` command.  It works very similarly to
-``setup.py install``, except that it doesn't actually install anything.
-Instead, it creates a special ``.egg-link`` file in the deployment directory,
-that links to your project's source code.  And, if your deployment directory is
-Python's ``site-packages`` directory, it will also update the
-``easy-install.pth`` file to include your project's source code, thereby making
-it available on ``sys.path`` for all programs using that Python installation.
+You can enter this "development mode" by performing an :doc:`editable installation
+<pip:topics/local-project-installs>` inside of a :term:`virtual environment`,
+using :doc:`pip's <pip:cli/pip_install>` ``-e/--editable`` flag, as shown below:
 
-In addition, the ``develop`` command creates wrapper scripts in the target
-script directory that will run your in-development scripts after ensuring that
-all your ``install_requires`` packages are available on ``sys.path``.
+.. code-block:: bash
 
-You can deploy the same project to multiple staging areas, e.g. if you have
-multiple projects on the same machine that are sharing the same project you're
-doing development work.
+   $ cd your-python-project
+   $ python -m venv .venv
+   # Activate your environemt with:
+   #      `source .venv/bin/activate` on Unix/macOS
+   # or   `.venv\Scripts\activate` on Windows
 
-When you're done with a given development task, you can remove the project
-source from a staging area using ``setup.py develop --uninstall``, specifying
-the desired staging area if it's not the default.
+   $ pip install --editable .
 
-There are several options to control the precise behavior of the ``develop``
-command; see the section on the :ref:`develop <develop>` command below for more details.
+   # Now you have access to your package
+   # as if it was installed in .venv
+   $ python -c "import your_python_project"
 
-Note that you can also apply setuptools commands to non-setuptools projects,
-using commands like this::
 
-   python -c "import setuptools; with open('setup.py') as f: exec(compile(f.read(), 'setup.py', 'exec'))" develop
+An "editable installation" works very similarly to a regular install with
+``pip install .``, except that it only installs your package dependencies,
+metadata and wrappers for :ref:`console and GUI scripts <console-scripts>`.
+Under the hood, setuptools will try to create a special :mod:`.pth file <site>`
+in the target directory (usually ``site-packages``) that extends the
+``PYTHONPATH`` or install a custom :doc:`import hook <python:reference/import>`.
 
-That is, you can simply list the normal setup commands and options following
-the quoted part.
+When you're done with a given development task, you can simply uninstall your
+package (as you would normally do with ``pip uninstall <package name>``).
+
+Please note that, by default an editable install will expose at least all the
+files that would be available in a regular installation. However, depending on
+the file and directory organization in your project, it might also expose
+as a side effect files that would not be normally available.
+This is allowed so you can iteratively create new Python modules.
+Please have a look on the following section if you are looking for a different behaviour.
+
+.. admonition:: Virtual Environments
+
+   You can think about virtual environments as "isolated Python runtime deployments"
+   that allow users to install different sets of libraries and tools without
+   messing with the global behaviour of the system.
+
+   They are a safe way of testing new projects and can be created easily
+   with the :mod:`venv` module from the standard library.
+
+   Please note however that depending on your operating system or distribution,
+   ``venv`` might not come installed by default with Python. For those cases,
+   you might need to use the OS package manager to install it.
+   For example, in Debian/Ubuntu-based systems you can obtain it via:
+
+   .. code-block:: bash
+
+       sudo apt install python3-venv
+
+   Alternatively, you can also try installing :pypi:`virtualenv`.
+   More information is available on the Python Packaging User Guide on
+   :doc:`PyPUG:guides/installing-using-pip-and-virtual-environments`.
+
+.. note::
+    .. versionchanged:: v64.0.0
+       Editable installation hooks implemented according to :pep:`660`.
+       Support for :pep:`namespace packages <420>` is still **EXPERIMENTAL**.
+
+
+"Strict" editable installs
+--------------------------
+
+When thinking about editable installations, users might have the following
+expectations:
+
+1. It should allow developers to add new files (or split/rename existing ones)
+   and have them automatically exposed.
+2. It should behave as close as possible to a regular installation and help
+   users to detect problems (e.g. new files not being included in the distribution).
+
+Unfortunately these expectations are in conflict with each other.
+To solve this problem ``setuptools`` allows developers to choose a more
+*"strict"* mode for the editable installation. This can be done by passing
+a special *configuration setting* via :pypi:`pip`, as indicated below:
+
+.. code-block:: bash
+
+    pip install -e . --config-settings editable_mode=strict
+
+In this mode, new files **won't** be exposed and the editable installs will
+try to mimic as much as possible the behavior of a regular install.
+Under the hood, ``setuptools`` will create a tree of file links in an auxiliary
+directory (``$your_project_dir/build``) and add it to ``PYTHONPATH`` via a
+:mod:`.pth file <site>`. (Please be careful to not delete this repository
+by mistake otherwise your files may stop being accessible).
+
+.. warning::
+   Strict editable installs require auxiliary files to be placed in a
+   ``build/__editable__.*`` directory (relative to your project root).
+
+   Please be careful to not remove this directory while testing your project,
+   otherwise your editable installation may be compromised.
+
+   You can remove the ``build/__editable__.*`` directory after uninstalling.
+
+
+.. note::
+    .. versionadded:: v64.0.0
+       Added new *strict* mode for editable installations.
+       The exact details of how this mode is implemented may vary.
+
+
+Limitations
+-----------
+
+- The *editable* term is used to refer only to Python modules
+  inside the package directories. Non-Python files, external (data) files,
+  executable script files, binary extensions, headers and metadata may be
+  exposed as a *snapshot* of the version they were at the moment of the
+  installation.
+- Adding new dependencies, entry-points or changing your project's metadata
+  require a fresh "editable" re-installation.
+- Console scripts and GUI scripts **MUST** be specified via :doc:`entry-points
+  </userguide/entry_point>` to work properly.
+- *Strict* editable installs require the file system to support
+  either :wiki:`symbolic <symbolic link>` or :wiki:`hard links <hard link>`.
+  This installation mode might also generate auxiliary files under the project directory.
+- There is *no guarantee* that the editable installation will be performed
+  using a specific technique. Depending on each project, ``setuptools`` may
+  select a different approach to ensure the package is importable at runtime.
+- There is *no guarantee* that files outside the top-level package directory
+  will be accessible after an editable install.
+- There is *no guarantee* that attributes like ``__path__`` or ``__file__``
+  will correspond to the exact location of the original files (e.g.,
+  ``setuptools`` might employ file links to perform the editable installation).
+  Users are encouraged to use tools like :mod:`importlib.resources` or
+  :mod:`importlib.metadata` when trying to access package files directly.
+- Editable installations may not work with
+  :doc:`namespaces created with pkgutil or pkg_resources
+  <PyPUG:guides/packaging-namespace-packages>`.
+  Please use :pep:`420`-style implicit namespaces [#namespaces]_.
+- Support for :pep:`420`-style implicit namespace packages for
+  projects structured using :ref:`flat-layout` is still **experimental**.
+  If you experience problems, you can try converting your package structure
+  to the :ref:`src-layout`.
+- File system entries in the current working directory
+  whose names coincidentally match installed packages
+  may take precedence in :doc:`Python's import system <python:reference/import>`.
+  Users are encouraged to avoid such scenarios [#cwd]_.
+
+.. attention::
+   Editable installs are **not a perfect replacement for regular installs**
+   in a test environment. When in doubt, please test your projects as
+   installed via a regular wheel. There are tools in the Python ecosystem,
+   like :pypi:`tox` or :pypi:`nox`, that can help you with that
+   (when used with appropriate configuration).
+
+
+Legacy Behavior
+---------------
+
+If your project is not compatible with the new "editable installs" or you wish
+to replicate the legacy behavior, for the time being you can also perform the
+installation in the ``compat`` mode:
+
+.. code-block:: bash
+
+    pip install -e . --config-settings editable_mode=compat
+
+This installation mode will try to emulate how ``python setup.py develop``
+works (still within the context of :pep:`660`).
+
+.. warning::
+   The ``compat`` mode is *transitional* and will be removed in
+   future versions of ``setuptools``, it exists only to help during the
+   migration period.
+   Also note that support for this mode is limited:
+   it is safe to assume that the ``compat`` mode is offered "as is", and
+   improvements are unlikely to be implemented.
+   Users are encouraged to try out the new editable installation techniques
+   and make the necessary adaptations.
+
+If the ``compat`` mode does not work for you, you can also disable the
+:pep:`editable install <660>` hooks in ``setuptools`` by setting an environment
+variable:
+
+.. code-block::
+
+   SETUPTOOLS_ENABLE_FEATURES="legacy-editable"
+
+This *may* cause the installer (e.g. ``pip``) to effectively run the "legacy"
+installation command: ``python setup.py develop`` [#installer]_.
+
+
+How editable installations work
+-------------------------------
+
+*Advanced topic*
+
+There are many techniques that can be used to expose packages under development
+in such a way that they are available as if they were installed.
+Depending on the project file structure and the selected mode, ``setuptools``
+will choose one of these approaches for the editable installation [#criteria]_.
+
+A non-exhaustive list of implementation mechanisms is presented below.
+More information is available on the text of :pep:`PEP 660 <660#what-to-put-in-the-wheel>`.
+
+- A static ``.pth`` file [#static_pth]_ can be added to one of the directories
+  listed in :func:`site.getsitepackages` or :func:`site.getusersitepackages` to
+  extend :obj:`sys.path`.
+- A directory containing a *farm of file links* that mimic the
+  project structure and point to the original files can be employed.
+  This directory can then be added to :obj:`sys.path` using a static ``.pth`` file.
+- A dynamic ``.pth`` file [#dynamic_pth]_ can also be used to install an
+  "import :term:`finder`" (:obj:`~importlib.abc.MetaPathFinder` or
+  :obj:`~importlib.abc.PathEntryFinder`) that will hook into Python's
+  :doc:`import system <python:reference/import>` machinery.
+
+.. attention::
+   ``Setuptools`` offers **no guarantee** of which technique will be used to
+   perform an editable installation. This will vary from project to project
+   and may change depending on the specific version of ``setuptools`` being
+   used.
+
+
+----
+
+.. rubric:: Notes
+
+.. [#namespaces]
+   You *may* be able to use *strict* editable installations with namespace
+   packages created with ``pkgutil`` or ``pkg_namespaces``, however this is not
+   officially supported.
+
+.. [#cwd]
+   Techniques like the :ref:`src-layout` or tooling-specific options like
+   `tox's changedir <https://tox.wiki/en/stable/config.html#conf-changedir>`_
+   can be used to prevent such kinds of situations (checkout `this blog post
+   <https://blog.ganssle.io/articles/2019/08/test-as-installed.html>`_ for more
+   insights).
+
+.. [#installer]
+   For this workaround to work, the installer tool needs to support legacy
+   editable installations. (Future versions of ``pip``, for example, may drop
+   support for this feature).
+
+.. [#criteria]
+   ``setuptools`` strives to find a balance between allowing the user to see
+   the effects of project files being edited while still trying to keep the
+   editable installation as similar as possible to a regular installation.
+
+.. [#static_pth]
+   i.e., a ``.pth`` file where each line correspond to a path that should be
+   added to :obj:`sys.path`. See :mod:`Site-specific configuration hook <site>`.
+
+.. [#dynamic_pth]
+   i.e., a ``.pth`` file that starts where each line starts with an ``import``
+   statement and executes arbitrary Python code. See :mod:`Site-specific
+   configuration hook <site>`.

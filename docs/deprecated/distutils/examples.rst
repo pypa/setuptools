@@ -253,9 +253,7 @@ Running the ``check`` command will display some warnings:
 
     $ python setup.py check
     running check
-    warning: check: missing required meta-data: version, url
-    warning: check: missing meta-data: either (author and author_email) or
-             (maintainer and maintainer_email) should be supplied
+    warning: check: missing required meta-data: version
 
 
 If you use the reStructuredText syntax in the ``long_description`` field and

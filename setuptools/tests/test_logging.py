@@ -1,4 +1,6 @@
+import inspect
 import logging
+import os
 
 import pytest
 
@@ -34,3 +36,18 @@ def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
     log_level = logger.getEffectiveLevel()
     log_level_name = logging.getLevelName(log_level)
     assert log_level_name == expected_level
+
+
+def test_patching_does_not_cause_problems():
+    # Ensure `dist.log` is only patched if necessary
+
+    import setuptools.logging
+    from distutils import dist
+
+    setuptools.logging.configure()
+
+    if os.getenv("SETUPTOOLS_USE_DISTUTILS", "local").lower() == "local":
+        # Modern logging infra, no problematic patching.
+        assert isinstance(dist.log, logging.Logger)
+    else:
+        assert inspect.ismodule(dist.log)

@@ -1,7 +1,13 @@
-extensions = ['sphinx.ext.autodoc', 'jaraco.packaging.sphinx', 'rst.linker']
+extensions = [
+    'sphinx.ext.autodoc',
+    'jaraco.packaging.sphinx',
+]
 
 master_doc = "index"
+html_theme = "furo"
 
+# Link dates and other references in the changelog
+extensions += ['rst.linker']
 link_files = {
     '../CHANGES.rst': dict(
         using=dict(
@@ -10,8 +16,20 @@ link_files = {
         ),
         replace=[
             dict(
-                pattern=r'(Issue )?#(?P<issue>\d+)',
+                pattern=r'(Issue #|\B#)(?P<issue>\d+)',
                 url='{package_url}/issues/{issue}',
+            ),
+            dict(
+                pattern=r'(?m:^((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n)',
+                with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
+            ),
+            dict(
+                pattern=r'PEP[- ](?P<pep_number>\d+)',
+                url='https://peps.python.org/pep-{pep_number:0>4}/',
+            ),
+            dict(
+                pattern=r'(?<!\w)PR #(?P<pull>\d+)',
+                url='{package_url}/pull/{pull}',
             ),
             dict(
                 pattern=r'BB Pull Request ?#(?P<bb_pull_request>\d+)',
@@ -54,30 +72,22 @@ link_files = {
                 url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
             ),
             dict(
-                pattern=r'PEP[- ](?P<pep_number>\d+)',
-                url='https://www.python.org/dev/peps/pep-{pep_number:0>4}/',
-            ),
-            dict(
                 pattern=r'setuptools_svn #(?P<setuptools_svn>\d+)',
                 url='{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
             ),
             dict(
-                pattern=r'pypa/distutils#(?P<distutils>\d+)',
-                url='{GH}/pypa/distutils/issues/{distutils}',
+                pattern=r'pypa/(?P<issue_repo>[\-\.\w]+)#(?P<issue_number>\d+)',
+                url='{GH}/pypa/{issue_repo}/issues/{issue_number}',
             ),
             dict(
-                pattern=r'pypa/distutils@(?P<distutils_commit>[\da-f]+)',
-                url='{GH}/pypa/distutils/commit/{distutils_commit}',
-            ),
-            dict(
-                pattern=r'^(?m)((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n',
-                with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
+                pattern=r'pypa/(?P<commit_repo>[\-\.\w]+)@(?P<commit_number>[\da-f]+)',
+                url='{GH}/pypa/{commit_repo}/commit/{commit_number}',
             ),
         ],
     ),
 }
 
-# Be strict about any broken references:
+# Be strict about any broken references
 nitpicky = True
 
 # Include Python intersphinx mapping to prevent failures
@@ -87,16 +97,44 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
 }
 
+# Preserve authored syntax for defaults
+autodoc_preserve_defaults = True
+
 intersphinx_mapping.update({
-    'pypa-build': ('https://pypa-build.readthedocs.io/en/latest/', None)
+    'pip': ('https://pip.pypa.io/en/latest', None),
+    'build': ('https://pypa-build.readthedocs.io/en/latest', None),
+    'PyPUG': ('https://packaging.python.org/en/latest/', None),
+    'packaging': ('https://packaging.pypa.io/en/latest/', None),
+    'twine': ('https://twine.readthedocs.io/en/stable/', None),
+    'importlib-resources': (
+        'https://importlib-resources.readthedocs.io/en/latest', None
+    ),
 })
+
+# Support tooltips on references
+extensions += ['hoverxref.extension']
+hoverxref_auto_ref = True
+hoverxref_intersphinx = [
+    'python',
+    'pip',
+    'build',
+    'PyPUG',
+    'packaging',
+    'twine',
+    'importlib-resources',
+]
 
 # Add support for linking usernames
 github_url = 'https://github.com'
+github_repo_org = 'pypa'
+github_repo_name = 'setuptools'
+github_repo_slug = f'{github_repo_org}/{github_repo_name}'
+github_repo_url = f'{github_url}/{github_repo_slug}'
 github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
-    'user': (f'{github_sponsors_url}/%s', '@'),  # noqa: WPS323
-    'pypi': ('https://pypi.org/project/%s', '%s'),
+    'user': (f'{github_sponsors_url}/%s', '@%s'),  # noqa: WPS323
+    'pypi': ('https://pypi.org/project/%s', '%s'),  # noqa: WPS323
+    'wiki': ('https://wikipedia.org/wiki/%s', '%s'),  # noqa: WPS323
 }
 extensions += ['sphinx.ext.extlinks']
 
@@ -120,6 +158,13 @@ html_theme_options = {
     },
 }
 
+# Redirect old docs so links and references in the ecosystem don't break
+extensions += ['sphinx_reredirects']
+redirects = {
+    "userguide/keywords": "/deprecated/changed_keywords.html",
+    "userguide/commands": "/deprecated/commands.html",
+}
+
 # Add support for inline tabs
 extensions += ['sphinx_inline_tabs']
 
@@ -131,6 +176,7 @@ nitpick_ignore = [
     ('envvar', 'DISTUTILS_DEBUG'),  # undocumented
     ('envvar', 'HOME'),  # undocumented
     ('envvar', 'PLAT'),  # undocumented
+    ('envvar', 'DIST_EXTRA_CONFIG'),  # undocumented
     ('py:attr', 'CCompiler.language_map'),  # undocumented
     ('py:attr', 'CCompiler.language_order'),  # undocumented
     ('py:class', 'distutils.dist.Distribution'),  # undocumented
@@ -150,6 +196,7 @@ nitpick_ignore = [
     ('py:exc', 'LibError'),  # undocumented
     ('py:exc', 'LinkError'),  # undocumented
     ('py:exc', 'PreprocessError'),  # undocumented
+    ('py:exc', 'setuptools.errors.PlatformError'),  # sphinx cannot find it
     ('py:func', 'distutils.CCompiler.new_compiler'),  # undocumented
     # undocumented:
     ('py:func', 'distutils.dist.DistributionMetadata.read_pkg_file'),
@@ -164,7 +211,6 @@ nitpick_ignore = [
 # Allow linking objects on other Sphinx sites seamlessly:
 intersphinx_mapping.update(
     python=('https://docs.python.org/3', None),
-    python2=('https://docs.python.org/2', None),
 )
 
 # Add support for the unreleased "next-version" change notes
@@ -179,6 +225,9 @@ extensions += ['jaraco.tidelift']
 # Add icons (aka "favicons") to documentation
 extensions += ['sphinx-favicon']
 html_static_path = ['images']  # should contain the folder with icons
+
+# Add support for nice Not Found 404 pages
+extensions += ['notfound.extension']
 
 # List of dicts with <link> HTML attributes
 # static-file points to files in the html_static_path (href is computed)
@@ -197,5 +246,3 @@ favicons = [
     },
     # rel="apple-touch-icon" does not support SVG yet
 ]
-
-intersphinx_mapping['pip'] = 'https://pip.pypa.io/en/latest', None
