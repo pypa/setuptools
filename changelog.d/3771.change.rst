@@ -1,0 +1,1 @@
+Added `file:` referenced files auto-inclusion into sdist
