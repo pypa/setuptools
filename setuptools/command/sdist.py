@@ -9,9 +9,8 @@ from itertools import chain
 from .py36compat import sdist_add_defaults
 
 from .._importlib import metadata
-from ..config import pyprojecttoml
-from ..config import setupcfg
 from ..extern.more_itertools import always_iterable
+from ..dist import Distribution
 from .build import _ORIGINAL_SUBCOMMANDS
 
 _default_revctrl = list
@@ -111,16 +110,13 @@ class sdist(sdist_add_defaults, orig.sdist):
 
     def add_metadata_files(self):
         """Add all metadata `file:` referenced files to the source distribution"""
-        if os.path.isfile("setup.cfg"):
-            config = setupcfg.read_configuration("setup.cfg", expand=False)
-            self._add_ini_metadata_files(config.get("metadata", {}))
+        raw_dist = Distribution()
+        raw_dist.parse_config_files(expand_directives=False)
 
-        if os.path.isfile("pyproject.toml"):
-            config = pyprojecttoml.read_configuration("pyproject.toml", expand=False)
-            self._add_toml_metadata_files(config.get("project", {}))
-            self._add_toml_metadata_files(
-                config.get("tool", {}).get("setuptools", {}).get("dynamic", {})
-            )
+        if hasattr(raw_dist, "metadata"):
+            self._add_ini_metadata_files(raw_dist.metadata.__dict__)
+        if hasattr(raw_dist, "dynamic"):
+            self._add_toml_metadata_files(raw_dist.dynamic)
 
     def _add_defaults_optional(self):
         super()._add_defaults_optional()

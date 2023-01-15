@@ -852,7 +852,9 @@ class Distribution(_Distribution):
             tomlfiles = [standard_project_metadata]
         return filenames, tomlfiles
 
-    def parse_config_files(self, filenames=None, ignore_option_errors=False):
+    def parse_config_files(
+        self, filenames=None, expand_directives=True, ignore_option_errors=False
+    ):
         """Parses configuration files from various levels
         and loads configuration.
         """
@@ -861,10 +863,18 @@ class Distribution(_Distribution):
         self._parse_config_files(filenames=inifiles)
 
         setupcfg.parse_configuration(
-            self, self.command_options, ignore_option_errors=ignore_option_errors
+            self,
+            self.command_options,
+            expand_directives=expand_directives,
+            ignore_option_errors=ignore_option_errors,
         )
         for filename in tomlfiles:
-            pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)
+            pyprojecttoml.apply_configuration(
+                self,
+                filename,
+                expand_directives,
+                ignore_option_errors,
+            )
 
         self._finalize_requires()
         self._finalize_license_files()
