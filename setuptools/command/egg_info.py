@@ -565,6 +565,7 @@ class manifest_maker(sdist):
         if os.path.exists(self.template):
             self.read_template()
         self.add_license_files()
+        self.add_metadata_files()
         self.prune_file_list()
         self.filelist.sort()
         self.filelist.remove_duplicates()
@@ -621,6 +622,10 @@ class manifest_maker(sdist):
             log.info("adding license file '%s'", lf)
             pass
         self.filelist.extend(license_files)
+
+    def add_metadata_files(self):
+        """Add all metadata `file:` referenced files to self.filelist"""
+        sdist.add_metadata_files(self)
 
     def prune_file_list(self):
         build = self.get_finalized_command('build')

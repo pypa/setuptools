@@ -9,6 +9,9 @@ from itertools import chain
 from .py36compat import sdist_add_defaults
 
 from .._importlib import metadata
+from ..config import pyprojecttoml
+from ..config import setupcfg
+from ..extern.more_itertools import always_iterable
 from .build import _ORIGINAL_SUBCOMMANDS
 
 _default_revctrl = list
@@ -106,6 +109,19 @@ class sdist(sdist_add_defaults, orig.sdist):
         super().add_defaults()
         self._add_defaults_build_sub_commands()
 
+    def add_metadata_files(self):
+        """Add all metadata `file:` referenced files to the source distribution"""
+        if os.path.isfile("setup.cfg"):
+            config = setupcfg.read_configuration("setup.cfg", expand=False)
+            self._add_ini_metadata_files(config.get("metadata", {}))
+
+        if os.path.isfile("pyproject.toml"):
+            config = pyprojecttoml.read_configuration("pyproject.toml", expand=False)
+            self._add_toml_metadata_files(config.get("project", {}))
+            self._add_toml_metadata_files(
+                config.get("tool", {}).get("setuptools", {}).get("dynamic", {})
+            )
+
     def _add_defaults_optional(self):
         super()._add_defaults_optional()
         if os.path.isfile('pyproject.toml'):
@@ -125,6 +141,48 @@ class sdist(sdist_add_defaults, orig.sdist):
         cmds = (self.get_finalized_command(c) for c in missing_cmds)
         files = (c.get_source_files() for c in cmds if hasattr(c, "get_source_files"))
         self.filelist.extend(chain.from_iterable(files))
+
+    def _add_ini_metadata_files(self, metadata):
+        """Add all INI metadata `file:` referenced files to self.filelist"""
+        file_directive = 'file:'
+
+        for key, value in metadata.items():
+            if not isinstance(value, str):
+                continue
+            if not value.startswith(file_directive):
+                continue
+
+            spec = value[len(file_directive):]
+            paths = (path.strip() for path in spec.split(','))
+
+            for path in paths:
+                if not os.path.isfile(path):
+                    log.warn("skipping non-existing file '%s'", path)
+                    continue
+
+                log.info("adding metadata referenced file '%s'", path)
+                self.filelist.append(path)
+
+    def _add_toml_metadata_files(self, metadata):
+        """Add all TOML metadata `file:` referenced files to self.filelist"""
+        file_directive = 'file'
+
+        for key, value in metadata.items():
+            if not isinstance(value, dict):
+                continue
+            if not file_directive in value:
+                continue
+
+            spec = value[file_directive]
+            paths = (path.strip() for path in always_iterable(spec))
+
+            for path in paths:
+                if not os.path.isfile(path):
+                    log.warn("skipping non-existing file '%s'", path)
+                    continue
+
+                log.info("adding metadata referenced file '%s'", path)
+                self.filelist.append(path)
 
     def _safe_data_files(self, build_py):
         """
