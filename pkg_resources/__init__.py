@@ -34,7 +34,6 @@ import email.parser
 import errno
 import tempfile
 import textwrap
-import itertools
 import inspect
 import ntpath
 import posixpath
@@ -120,16 +119,7 @@ class PEP440Warning(RuntimeWarning):
     """
 
 
-def parse_version(v):
-    try:
-        return packaging.version.Version(v)
-    except packaging.version.InvalidVersion:
-        warnings.warn(
-            f"{v} is an invalid version and will not be supported in "
-            "a future release",
-            PkgResourcesDeprecationWarning,
-        )
-        return packaging.version.LegacyVersion(v)
+parse_version = packaging.version.Version
 
 
 _state_vars = {}
@@ -2083,42 +2073,6 @@ def find_nothing(importer, path_item, only=False):
 register_finder(object, find_nothing)
 
 
-def _by_version_descending(names):
-    """
-    Given a list of filenames, return them in descending order
-    by version number.
-
-    >>> names = 'bar', 'foo', 'Python-2.7.10.egg', 'Python-2.7.2.egg'
-    >>> _by_version_descending(names)
-    ['Python-2.7.10.egg', 'Python-2.7.2.egg', 'bar', 'foo']
-    >>> names = 'Setuptools-1.2.3b1.egg', 'Setuptools-1.2.3.egg'
-    >>> _by_version_descending(names)
-    ['Setuptools-1.2.3.egg', 'Setuptools-1.2.3b1.egg']
-    >>> names = 'Setuptools-1.2.3b1.egg', 'Setuptools-1.2.3.post1.egg'
-    >>> _by_version_descending(names)
-    ['Setuptools-1.2.3.post1.egg', 'Setuptools-1.2.3b1.egg']
-    """
-
-    def try_parse(name):
-        """
-        Attempt to parse as a version or return a null version.
-        """
-        try:
-            return packaging.version.Version(name)
-        except Exception:
-            return packaging.version.Version('0')
-
-    def _by_version(name):
-        """
-        Parse each component of the filename
-        """
-        name, ext = os.path.splitext(name)
-        parts = itertools.chain(name.split('-'), [ext])
-        return [try_parse(part) for part in parts]
-
-    return sorted(names, key=_by_version, reverse=True)
-
-
 def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
     path_item = _normalize_cached(path_item)
@@ -2132,14 +2086,8 @@ def find_on_path(importer, path_item, only=False):
 
     entries = (os.path.join(path_item, child) for child in safe_listdir(path_item))
 
-    # for performance, before sorting by version,
-    # screen entries for only those that will yield
-    # distributions
-    filtered = (entry for entry in entries if dist_factory(path_item, entry, only))
-
     # scan for .egg and .egg-info in directory
-    path_item_entries = _by_version_descending(filtered)
-    for entry in path_item_entries:
+    for entry in sorted(entries):
         fullpath = os.path.join(path_item, entry)
         factory = dist_factory(path_item, entry, only)
         for dist in factory(fullpath):
@@ -2730,38 +2678,6 @@ class Distribution:
             self._parsed_version = parse_version(self.version)
 
         return self._parsed_version
-
-    def _warn_legacy_version(self):
-        LV = packaging.version.LegacyVersion
-        is_legacy = isinstance(self._parsed_version, LV)
-        if not is_legacy:
-            return
-
-        # While an empty version is technically a legacy version and
-        # is not a valid PEP 440 version, it's also unlikely to
-        # actually come from someone and instead it is more likely that
-        # it comes from setuptools attempting to parse a filename and
-        # including it in the list. So for that we'll gate this warning
-        # on if the version is anything at all or not.
-        if not self.version:
-            return
-
-        tmpl = (
-            textwrap.dedent(
-                """
-            '{project_name} ({version})' is being parsed as a legacy,
-            non PEP 440,
-            version. You may find odd behavior and sort order.
-            In particular it will be sorted as less than 0.0. It
-            is recommended to migrate to PEP 440 compatible
-            versions.
-            """
-            )
-            .strip()
-            .replace('\n', ' ')
-        )
-
-        warnings.warn(tmpl.format(**vars(self)), PEP440Warning)
 
     @property
     def version(self):

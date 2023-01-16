@@ -155,7 +155,7 @@ class InfoCommon:
         if self.tag_build:
             version += self.tag_build
         if self.tag_date:
-            version += time.strftime("-%Y%m%d")
+            version += time.strftime("%Y%m%d")
         return version
     vtags = property(tags)
 
