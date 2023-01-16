@@ -766,8 +766,7 @@ class WorkingSet:
             keys2.append(dist.key)
         self._added_new(dist)
 
-    # FIXME: 'WorkingSet.resolve' is too complex (11)
-    def resolve(  # noqa: C901
+    def resolve(
         self,
         requirements,
         env=None,
@@ -823,32 +822,9 @@ class WorkingSet:
             if not req_extras.markers_pass(req, extras):
                 continue
 
-            dist = best.get(req.key)
-            if dist is None:
-                # Find the best distribution and add it to the map
-                dist = self.by_key.get(req.key)
-                if dist is None or (dist not in req and replace_conflicting):
-                    ws = self
-                    if env is None:
-                        if dist is None:
-                            env = Environment(self.entries)
-                        else:
-                            # Use an empty environment and workingset to avoid
-                            # any further conflicts with the conflicting
-                            # distribution
-                            env = Environment([])
-                            ws = WorkingSet([])
-                    dist = best[req.key] = env.best_match(
-                        req, ws, installer, replace_conflicting=replace_conflicting
-                    )
-                    if dist is None:
-                        requirers = required_by.get(req, None)
-                        raise DistributionNotFound(req, requirers)
-                to_activate.append(dist)
-            if dist not in req:
-                # Oops, the "best" so far conflicts with a dependency
-                dependent_req = required_by[req]
-                raise VersionConflict(dist, req).with_context(dependent_req)
+            dist = self._resolve_dist(
+                req, best, replace_conflicting, env, installer, required_by, to_activate
+            )
 
             # push the new requirements onto the stack
             new_requirements = dist.requires(req.extras)[::-1]
@@ -863,6 +839,37 @@ class WorkingSet:
 
         # return list of distros to activate
         return to_activate
+
+    def _resolve_dist(
+        self, req, best, replace_conflicting, env, installer, required_by, to_activate
+    ):
+        dist = best.get(req.key)
+        if dist is None:
+            # Find the best distribution and add it to the map
+            dist = self.by_key.get(req.key)
+            if dist is None or (dist not in req and replace_conflicting):
+                ws = self
+                if env is None:
+                    if dist is None:
+                        env = Environment(self.entries)
+                    else:
+                        # Use an empty environment and workingset to avoid
+                        # any further conflicts with the conflicting
+                        # distribution
+                        env = Environment([])
+                        ws = WorkingSet([])
+                dist = best[req.key] = env.best_match(
+                    req, ws, installer, replace_conflicting=replace_conflicting
+                )
+                if dist is None:
+                    requirers = required_by.get(req, None)
+                    raise DistributionNotFound(req, requirers)
+            to_activate.append(dist)
+        if dist not in req:
+            # Oops, the "best" so far conflicts with a dependency
+            dependent_req = required_by[req]
+            raise VersionConflict(dist, req).with_context(dependent_req)
+        return dist
 
     def find_plugins(self, plugin_env, full_env=None, installer=None, fallback=True):
         """Find all activatable distributions in `plugin_env`
