@@ -1,3 +1,16 @@
+v66.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #2497: Support for PEP 440 non-conforming versions has been removed. Environments containing packages with non-conforming versions may fail or the packages may not be recognized.
+
+Changes
+^^^^^^^
+* #3769: Replace 'appdirs' with 'platformdirs'.
+
+
 v65.7.0
 -------
 
