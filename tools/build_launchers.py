@@ -27,14 +27,14 @@ def build_cmake_project_with_msbuild(build_arena, msbuild_parameters):
 
 
 def main():
+    build_arena = REPO_ROOT / "build-arena"
     for platform in BUILD_PLATFORMS:
-        repo_root = Path(__file__).parent.parent.resolve()
-        build_arena = repo_root / "build-arena"
         if build_arena.exists():
             shutil.rmtree(build_arena)
         build_arena.mkdir()
 
         generate_cmake_project(build_arena, LAUNCHER_CMAKE_PROJECT.resolve(), platform)
+
         for target in BUILD_TARGETS:
             build_params = f"/t:build " \
                            f"/property:Configuration=Release " \
