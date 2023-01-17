@@ -1,3 +1,20 @@
+"""
+Build module requires installation of CMake and Visual Studio. Please download and
+install console CMake and ensure that you add it to your PATH.
+You can find the latest CMake release at https://cmake.org/download/.
+
+Please ensure that 143 buildtools are installed for Visual Studio. Ensure that you
+install ARM build tools.
+
+From visual studio installer:
+Visual Studio -> Modify -> Individual Components
+
+List of components to install to compile ARM:
+C++ Universal Windows Platform Support for v143 build Tools (ARM64)
+MSVC v143 - VS 2022 C++ ARM64 build tools (latest)
+MSVC v143 - VS 2022 C++ ARM64 Spectre-mitigated libs (latest)
+C++ ATL for latest v143 build tools (ARM64)
+"""
 import shutil
 from pathlib import Path
 import subprocess
@@ -6,7 +23,7 @@ BUILD_TARGETS = ["cli", "gui"]
 GUI = {"cli": 0, "gui": 1}
 BUILD_PLATFORMS = ["Win32", "x64", "arm64"]
 REPO_ROOT = Path(__file__).parent.parent.resolve()
-LAUNCHER_CMAKE_PROJECT = REPO_ROOT / "launcher"
+LAUNCHER_PROJECT_ROOT = REPO_ROOT / "launcher"
 MSBUILD_OUT_DIR = REPO_ROOT / "setuptools"
 """
 Might be modified to visual studio that currently installed on the machine.
@@ -37,33 +54,88 @@ def get_executable_name(name, platform: str):
     return f"{name}-{platform}"
 
 
-def generate_cmake_project(build_arena, cmake_project_path, platform):
-    subprocess.check_call(f'cmake -G "{VISUAL_STUDIO_VERSION}" -A "{platform}"'
-                          f' {cmake_project_path}', shell=True, cwd=build_arena)
+def generate_cmake_project(cmake, build_arena, cmake_project_path, platform):
+    subprocess.check_call(f'{cmake} -G "{VISUAL_STUDIO_VERSION}" -A "{platform}"'
+                          f' {cmake_project_path}', cwd=build_arena, shell=True)
 
 
-def build_cmake_project_with_msbuild(build_arena, msbuild_parameters):
-    cmd = "MSBuild launcher.vcxproj " + msbuild_parameters
-    subprocess.check_call(cmd, shell=True, cwd=build_arena)
+def build_cmake_project_with_msbuild(msbuild, build_arena, msbuild_parameters):
+    cmd = f"{msbuild} launcher.vcxproj " + msbuild_parameters
+    subprocess.check_call(cmd, cwd=build_arena, shell=True)
+
+
+def get_cmake():
+    try:
+        subprocess.check_call("cmake", shell=True)
+        return "cmake"
+    except Exception:
+        print("CMake is not found in your system PATH. Please install it from"
+              " https://cmake.org/download/ and ensure that cmake added to path")
+    print("Trying to locate cmake at default place")
+    try:
+        possible_cmake_location = '"C:\\Program Files\\CMake\\bin\\cmake.exe"'
+        subprocess.check_call(possible_cmake_location)
+        return possible_cmake_location
+    except Exception:
+        raise "Can't find CMake either in PATH and installed in programs files"
+
+
+def get_msbuild():
+    try:
+        subprocess.check_call("MSBuild --help", shell=True)
+        return "MSBuild"
+    except Exception:
+        print("MSBuild is not found in your path. Ensure that Visual Studio "
+              "is installed")
+    print("Trying work around to find MSBuild")
+    try:
+        # cmdlet that finds MSBuild
+        msbuild_path = subprocess.check_output(
+            '"%ProgramFiles(x86)%\\Microsoft Visual Studio'
+            '\\Installer\\vswhere.exe" -latest -prerelease '
+            '-products * -requires Microsoft.Component.'
+            'MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe',
+            shell=True, encoding="utf-8").strip()
+        if msbuild_path is "":
+            raise
+    except Exception:
+        raise Exception("Ensure that Visual Studio is installed correctly")
 
 
 def main():
+    cmake = get_cmake()
+    msbuild = f'"{get_msbuild()}"'
+
     build_arena = REPO_ROOT / "build-arena"
+    launcher_project_in_arena = build_arena / "launcher"
     for platform in BUILD_PLATFORMS:
-        if build_arena.exists():
-            shutil.rmtree(build_arena)
-        build_arena.mkdir()
-
-        generate_cmake_project(build_arena, LAUNCHER_CMAKE_PROJECT.resolve(), platform)
-
         for target in BUILD_TARGETS:
+            print(f"Building {target} for {platform}")
+            if build_arena.exists():
+                shutil.rmtree(build_arena)
+            build_arena.mkdir()
+
+            # Since MSBuild does not allow to pass compile definitions we modify them
+            # per target in CMakeLists.txt
+            shutil.copytree(REPO_ROOT / LAUNCHER_PROJECT_ROOT,
+                            launcher_project_in_arena)
+            cmake_lists = launcher_project_in_arena / "CMakeLists.txt"
+            modified_definition = cmake_lists.read_text(encoding="utf-8") \
+                .replace("GUI",
+                         f"GUI={GUI[target]}")
+            cmake_lists.write_text(modified_definition)
+
+            generate_cmake_project(cmake,
+                                   build_arena,
+                                   (build_arena / "launcher").resolve(),
+                                   platform)
+
             build_params = f"/t:build " \
                            f"/property:Configuration=Release " \
                            f"/property:Platform={platform} " \
                            f'/p:OutDir="{MSBUILD_OUT_DIR.resolve()}" ' \
-                           f"/p:TargetName={get_executable_name(target, platform)} " \
-                           f"/p:GUI={GUI[target]}"
-            build_cmake_project_with_msbuild(build_arena, build_params)
+                           f"/p:TargetName={get_executable_name(target, platform)}"
+            build_cmake_project_with_msbuild(msbuild, build_arena, build_params)
 
     # copying win32 as default executables
     for target in BUILD_TARGETS:

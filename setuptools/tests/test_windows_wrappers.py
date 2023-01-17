@@ -123,6 +123,7 @@ class TestCLI(WrapperTester):
         Ensure that symlink for the foo.exe is working correctly.
         """
         script_dir = tmpdir / "script_dir"
+        script_dir.mkdir()
         self.create_script(script_dir)
         symlink = pathlib.Path(tmpdir / "foo.exe")
         symlink.symlink_to(script_dir / "foo.exe")
