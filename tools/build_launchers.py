@@ -23,7 +23,7 @@ BUILD_TARGETS = ["cli", "gui"]
 GUI = {"cli": 0, "gui": 1}
 BUILD_PLATFORMS = ["Win32", "x64", "arm64"]
 REPO_ROOT = Path(__file__).parent.parent.resolve()
-LAUNCHER_PROJECT_ROOT = REPO_ROOT / "launcher"
+LAUNCHER_CMAKE_PROJECT = REPO_ROOT / "launcher"
 MSBUILD_OUT_DIR = REPO_ROOT / "setuptools"
 """
 Might be modified to visual studio that currently installed on the machine.
@@ -54,9 +54,9 @@ def get_executable_name(name, platform: str):
     return f"{name}-{platform}"
 
 
-def generate_cmake_project(cmake, build_arena, cmake_project_path, platform):
+def generate_cmake_project(cmake, build_arena, cmake_project_path, platform, is_gui):
     subprocess.check_call(f'{cmake} -G "{VISUAL_STUDIO_VERSION}" -A "{platform}"'
-                          f' {cmake_project_path}', cwd=build_arena, shell=True)
+                          f' {cmake_project_path} -DGUI={is_gui}', cwd=build_arena, shell=True)
 
 
 def build_cmake_project_with_msbuild(msbuild, build_arena, msbuild_parameters):
@@ -96,7 +96,7 @@ def get_msbuild():
             '-products * -requires Microsoft.Component.'
             'MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe',
             shell=True, encoding="utf-8").strip()
-        if msbuild_path is "":
+        if msbuild_path == "":
             raise
     except Exception:
         raise Exception("Ensure that Visual Studio is installed correctly")
@@ -107,7 +107,6 @@ def main():
     msbuild = f'"{get_msbuild()}"'
 
     build_arena = REPO_ROOT / "build-arena"
-    launcher_project_in_arena = build_arena / "launcher"
     for platform in BUILD_PLATFORMS:
         for target in BUILD_TARGETS:
             print(f"Building {target} for {platform}")
@@ -115,20 +114,11 @@ def main():
                 shutil.rmtree(build_arena)
             build_arena.mkdir()
 
-            # Since MSBuild does not allow to pass compile definitions we modify them
-            # per target in CMakeLists.txt
-            shutil.copytree(REPO_ROOT / LAUNCHER_PROJECT_ROOT,
-                            launcher_project_in_arena)
-            cmake_lists = launcher_project_in_arena / "CMakeLists.txt"
-            modified_definition = cmake_lists.read_text(encoding="utf-8") \
-                .replace("GUI",
-                         f"GUI={GUI[target]}")
-            cmake_lists.write_text(modified_definition)
-
             generate_cmake_project(cmake,
                                    build_arena,
-                                   (build_arena / "launcher").resolve(),
-                                   platform)
+                                   LAUNCHER_CMAKE_PROJECT,
+                                   platform,
+                                   GUI[target])
 
             build_params = f"/t:build " \
                            f"/property:Configuration=Release " \
