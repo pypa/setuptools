@@ -76,3 +76,17 @@ def test_has_function_prototype():
         assert not compiler.has_function(
             'setuptools_does_not_exist', includes=['<stdio.h>']
         )
+
+
+def test_include_dirs_after_multiple_compile_calls(c_file):
+    """
+    Calling compile multiple times should not change the include dirs
+    (regression test for setuptools issue #3591).
+    """
+    compiler = ccompiler.new_compiler()
+    python = sysconfig.get_paths()['include']
+    compiler.set_include_dirs([python])
+    compiler.compile(_make_strs([c_file]))
+    assert compiler.include_dirs == [python]
+    compiler.compile(_make_strs([c_file]))
+    assert compiler.include_dirs == [python]
