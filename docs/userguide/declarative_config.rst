@@ -30,7 +30,6 @@ boilerplate code in some cases.
     description = My package description
     long_description = file: README.rst, CHANGELOG.rst, LICENSE.rst
     keywords = one, two
-    python_requires = >=3.7
     license = BSD-3-Clause
     classifiers =
         Framework :: Django
@@ -40,6 +39,7 @@ boilerplate code in some cases.
     zip_safe = False
     include_package_data = True
     packages = find:
+    python_requires = >=3.7
     install_requires =
         requests
         importlib-metadata; python_version<"3.8"
