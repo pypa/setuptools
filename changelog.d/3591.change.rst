@@ -1,0 +1,2 @@
+Fixed gradually increasing length of include dirs after each ``compile`` call, which could lead to compile errors under
+Windows (command line too long).

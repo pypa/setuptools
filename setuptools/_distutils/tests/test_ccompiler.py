@@ -53,3 +53,17 @@ def test_set_include_dirs(c_file):
     # do it again, setting include dirs after any initialization
     compiler.set_include_dirs([python])
     compiler.compile(_make_strs([c_file]))
+
+
+def test_include_dirs_after_multiple_compile_calls(c_file):
+    """
+    Calling compile multiple times should not change the include dirs
+    (regression test for #3591).
+    """
+    compiler = ccompiler.new_compiler()
+    python = sysconfig.get_paths()['include']
+    compiler.set_include_dirs([python])
+    compiler.compile(_make_strs([c_file]))
+    assert compiler.include_dirs == [python]
+    compiler.compile(_make_strs([c_file]))
+    assert compiler.include_dirs == [python]
