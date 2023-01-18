@@ -2682,7 +2682,7 @@ class Distribution:
                 if hasattr(ex, "add_note"):
                     ex.add_note(info)  # PEP 678
                     raise
-                raise packaging.version.InvalidVersion(f"{str(ex)} {info}")
+                raise packaging.version.InvalidVersion(f"{str(ex)} {info}") from None
 
         return self._parsed_version
 
