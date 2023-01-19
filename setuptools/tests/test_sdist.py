@@ -501,13 +501,16 @@ class TestSdistTest:
     _EXAMPLE_DIRECTIVES = {
         "setup.cfg - long_description and version": """
             [metadata]
+            name = testing
             version = file: VERSION.txt
+            license_files = DOWHATYOUWANT
             long_description = file: README.rst, USAGE.rst
             """,
-        "pyproject.toml - static readme file and dynamic version": """
+        "pyproject.toml - static readme/license files and dynamic version": """
             [project]
             name = "testing"
             readme = "USAGE.rst"
+            license = {file = "DOWHATYOUWANT"}
             dynamic = ["version"]
             [tool.setuptools.dynamic]
             version = {file = ["VERSION.txt"]}
@@ -521,10 +524,10 @@ class TestSdistTest:
         (tmp_path / 'VERSION.txt').write_text("0.42", encoding="utf-8")
         (tmp_path / 'README.rst').write_text("hello world!", encoding="utf-8")
         (tmp_path / 'USAGE.rst').write_text("hello world!", encoding="utf-8")
+        (tmp_path / 'DOWHATYOUWANT').write_text("hello world!", encoding="utf-8")
         (tmp_path / config_file).write_text(config_text, encoding="utf-8")
 
-        attrs = {k: v for k, v in SETUP_ATTRS.items() if k != "version"}
-        dist = Distribution(attrs)
+        dist = Distribution({"packages": []})
         dist.script_name = 'setup.py'
         dist.parse_config_files()
 
@@ -535,6 +538,7 @@ class TestSdistTest:
 
         assert 'VERSION.txt' in cmd.filelist.files
         assert 'USAGE.rst' in cmd.filelist.files
+        assert 'DOWHATYOUWANT' in cmd.filelist.files
 
     def test_pyproject_toml_in_sdist(self, tmpdir):
         """
