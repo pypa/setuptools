@@ -164,6 +164,7 @@ def _license(dist: "Distribution", val: dict, root_dir: _Path):
 
     if "file" in val:
         _set_config(dist, "license", expand.read_files([val["file"]], root_dir))
+        dist._referenced_files.add(val["file"])
     else:
         _set_config(dist, "license", val["text"])
 
