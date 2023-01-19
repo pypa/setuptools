@@ -498,7 +498,7 @@ class TestSdistTest:
             filename = filename.decode('latin-1')
             filename not in cmd.filelist.files
 
-    def test_add_setup_cfg_referenced_files(self, tmpdir):
+    def test_add_files_referenced_by_setupcfg(self, tmpdir):
         touch(tmpdir / 'README.rst')
         touch(tmpdir / 'USAGE.rst')
 
@@ -508,6 +508,32 @@ class TestSdistTest:
                 long_description = file: README.rst, USAGE.rst
                 [options]
                 packages = find:
+            """)
+
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        dist.parse_config_files()
+
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+
+        assert 'README.rst' in cmd.filelist.files
+        assert 'USAGE.rst' in cmd.filelist.files
+
+    def test_add_files_referenced_by_pyproject_toml(self, tmpdir):
+        touch(tmpdir / 'README.rst')
+        touch(tmpdir / 'USAGE.rst')
+
+        with open(tmpdir / 'pyproject.toml', 'w') as f:
+            f.writelines("""
+                [project]
+                name = 'testing'
+                version = '0.0.1'
+                dynamic = ['readme']
+                [tool.setuptools.dynamic]
+                readme = {file = ["README.rst", "USAGE.rst"]}
             """)
 
         dist = Distribution(SETUP_ATTRS)
