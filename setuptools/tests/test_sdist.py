@@ -498,6 +498,30 @@ class TestSdistTest:
             filename = filename.decode('latin-1')
             filename not in cmd.filelist.files
 
+    def test_add_setup_cfg_referenced_files(self, tmpdir):
+        touch(tmpdir / 'README.rst')
+        touch(tmpdir / 'USAGE.rst')
+
+        with open(tmpdir / 'setup.cfg', 'w') as f:
+            f.writelines("""
+                [metadata]
+                long_description = file: README.rst, USAGE.rst
+                [options]
+                packages = find:
+            """)
+
+        dist = Distribution(SETUP_ATTRS)
+        dist.script_name = 'setup.py'
+        dist.parse_config_files()
+
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+
+        assert 'README.rst' in cmd.filelist.files
+        assert 'USAGE.rst' in cmd.filelist.files
+
     def test_pyproject_toml_in_sdist(self, tmpdir):
         """
         Check if pyproject.toml is included in source distribution if present
