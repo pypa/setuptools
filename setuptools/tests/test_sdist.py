@@ -522,19 +522,20 @@ class TestSdistTest:
         assert 'README.rst' in cmd.filelist.files
         assert 'USAGE.rst' in cmd.filelist.files
 
-    def test_add_files_referenced_by_pyproject_toml(self, tmpdir):
-        touch(tmpdir / 'README.rst')
-        touch(tmpdir / 'USAGE.rst')
-
-        with open(tmpdir / 'pyproject.toml', 'w') as f:
-            f.writelines("""
-                [project]
-                name = 'testing'
-                version = '0.0.1'
-                dynamic = ['readme']
-                [tool.setuptools.dynamic]
-                readme = {file = ["README.rst", "USAGE.rst"]}
-            """)
+    def test_add_files_referenced_by_pyproject_toml(self, tmp_path):
+        (tmp_path / 'VERSION.txt').write_text("0.0.1", encoding="utf-8")
+        (tmp_path / 'USAGE.rst').write_text("hello world!", encoding="utf-8")
+        (tmp_path / 'pyproject.toml').write_text(
+            """
+            [project]
+            name = 'testing'
+            readme = "USAGE.rst"
+            dynamic = ['version']
+            [tool.setuptools.dynamic]
+            version = {file = ["VERSION.txt"]}
+            """,
+            encoding="utf-8"
+        )
 
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
@@ -545,7 +546,7 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        assert 'README.rst' in cmd.filelist.files
+        assert 'VERSION.txt' in cmd.filelist.files
         assert 'USAGE.rst' in cmd.filelist.files
 
     def test_pyproject_toml_in_sdist(self, tmpdir):
