@@ -24,7 +24,11 @@ def fetch_build_egg(dist, req):  # noqa: C901  # is too complex (16)  # FIXME
     """Fetch an egg needed for building.
 
     Use pip/wheel to fetch/build a wheel."""
-    _DeprecatedWorkflow.warn(req, stacklevel=2)
+    warnings.warn(
+        "setuptools.installer is deprecated. Requirements should "
+        "be satisfied by a PEP 517 installer.",
+        SetuptoolsDeprecationWarning,
+    )
     # Warn if wheel is not available
     try:
         pkg_resources.get_distribution('wheel')
@@ -98,22 +102,3 @@ def strip_marker(req):
     req = pkg_resources.Requirement.parse(str(req))
     req.marker = None
     return req
-
-
-class _DeprecatedWorkflow(SetuptoolsDeprecationWarning):
-    """Deprecated installation or configuration method for requirement: {req}
-    !!\n\n
-    ########################
-    # Deprecated Workflow #
-    ########################
-    `setuptools.installer` is deprecated. Requirements should
-    be satisfied by a PEP 517 installer.
-
-    If you are using `pip install` you can try adding the `--use-pep517` flag.
-    \n\n!!
-    """
-
-    @classmethod
-    def warn(cls, req, stacklevel=1):
-        msg = cls.__doc__.format(req=req)
-        warnings.warn(msg, cls, stacklevel=stacklevel+1)
