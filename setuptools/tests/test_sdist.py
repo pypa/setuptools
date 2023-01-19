@@ -498,46 +498,33 @@ class TestSdistTest:
             filename = filename.decode('latin-1')
             filename not in cmd.filelist.files
 
-    def test_add_files_referenced_by_setupcfg(self, tmpdir):
-        touch(tmpdir / 'README.rst')
-        touch(tmpdir / 'USAGE.rst')
-
-        with open(tmpdir / 'setup.cfg', 'w') as f:
-            f.writelines("""
-                [metadata]
-                long_description = file: README.rst, USAGE.rst
-                [options]
-                packages = find:
-            """)
-
-        dist = Distribution(SETUP_ATTRS)
-        dist.script_name = 'setup.py'
-        dist.parse_config_files()
-
-        cmd = sdist(dist)
-        cmd.ensure_finalized()
-        with quiet():
-            cmd.run()
-
-        assert 'README.rst' in cmd.filelist.files
-        assert 'USAGE.rst' in cmd.filelist.files
-
-    def test_add_files_referenced_by_pyproject_toml(self, tmp_path):
-        (tmp_path / 'VERSION.txt').write_text("0.0.1", encoding="utf-8")
-        (tmp_path / 'USAGE.rst').write_text("hello world!", encoding="utf-8")
-        (tmp_path / 'pyproject.toml').write_text(
-            """
+    _EXAMPLE_DIRECTIVES = {
+        "setup.cfg - long_description and version": """
+            [metadata]
+            version = file: VERSION.txt
+            long_description = file: README.rst, USAGE.rst
+            """,
+        "pyproject.toml - static readme file and dynamic version": """
             [project]
-            name = 'testing'
+            name = "testing"
             readme = "USAGE.rst"
-            dynamic = ['version']
+            dynamic = ["version"]
             [tool.setuptools.dynamic]
             version = {file = ["VERSION.txt"]}
-            """,
-            encoding="utf-8"
-        )
+            """
+    }
 
-        dist = Distribution(SETUP_ATTRS)
+    @pytest.mark.parametrize("config", _EXAMPLE_DIRECTIVES.keys())
+    def test_add_files_referenced_by_config_directives(self, tmp_path, config):
+        config_file, _, _ = config.partition(" - ")
+        config_text = self._EXAMPLE_DIRECTIVES[config]
+        (tmp_path / 'VERSION.txt').write_text("0.42", encoding="utf-8")
+        (tmp_path / 'README.rst').write_text("hello world!", encoding="utf-8")
+        (tmp_path / 'USAGE.rst').write_text("hello world!", encoding="utf-8")
+        (tmp_path / config_file).write_text(config_text, encoding="utf-8")
+
+        attrs = {k: v for k, v in SETUP_ATTRS.items() if k != "version"}
+        dist = Distribution(attrs)
         dist.script_name = 'setup.py'
         dist.parse_config_files()
 
