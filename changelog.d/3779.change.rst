@@ -1,0 +1,4 @@
+Files referenced by ``file:`` in ``setup.cfg`` and by ``project.readme.file``,
+``project.license.file`` or ``tool.setuptools.dynamic.*.file`` in
+``pyproject.toml`` are now automatically included in the generated sdists.
+
