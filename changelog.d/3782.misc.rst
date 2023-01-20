@@ -1,0 +1,2 @@
+Fixed problem with ``file`` directive in ``tool.setuptools.dynamic``
+(``pyproject.toml``) when value is a simple string instead of list.
