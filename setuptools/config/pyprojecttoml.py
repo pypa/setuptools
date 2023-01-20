@@ -314,9 +314,8 @@ class _ConfigExpander:
         with _ignore_errors(self.ignore_option_errors):
             root_dir = self.root_dir
             if "file" in directive:
-                files = always_iterable(directive["file"])
-                self._referenced_files.update(files)
-                return _expand.read_files(files, root_dir)
+                self._referenced_files.update(always_iterable(directive["file"]))
+                return _expand.read_files(directive["file"], root_dir)
             if "attr" in directive:
                 return _expand.read_attr(directive["attr"], package_dir, root_dir)
             raise ValueError(f"invalid `{specifier}`: {directive!r}")
