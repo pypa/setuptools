@@ -1,0 +1,2 @@
+Added note about using the ``--pep-517`` flag with ``pip`` to workaround
+``InvalidVersion`` errors for packages that are already installed in the system.

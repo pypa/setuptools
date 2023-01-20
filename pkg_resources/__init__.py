@@ -2675,7 +2675,14 @@ class Distribution:
     @property
     def parsed_version(self):
         if not hasattr(self, "_parsed_version"):
-            self._parsed_version = parse_version(self.version)
+            try:
+                self._parsed_version = parse_version(self.version)
+            except packaging.version.InvalidVersion as ex:
+                info = f"(package: {self.project_name})"
+                if hasattr(ex, "add_note"):
+                    ex.add_note(info)  # PEP 678
+                    raise
+                raise packaging.version.InvalidVersion(f"{str(ex)} {info}") from None
 
         return self._parsed_version
 
