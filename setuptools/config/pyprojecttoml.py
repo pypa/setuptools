@@ -11,7 +11,6 @@ from functools import partial
 from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Set, Union
 
 from setuptools.errors import FileError, OptionError
-from setuptools.extern.more_itertools import always_iterable
 
 from . import expand as _expand
 from ._apply_pyprojecttoml import apply as _apply
@@ -310,6 +309,8 @@ class _ConfigExpander:
     def _expand_directive(
         self, specifier: str, directive, package_dir: Mapping[str, str]
     ):
+        from setuptools.extern.more_itertools import always_iterable  # type: ignore
+
         with _ignore_errors(self.ignore_option_errors):
             root_dir = self.root_dir
             if "file" in directive:
