@@ -309,10 +309,12 @@ class _ConfigExpander:
     def _expand_directive(
         self, specifier: str, directive, package_dir: Mapping[str, str]
     ):
+        from setuptools.extern.more_itertools import always_iterable  # type: ignore
+
         with _ignore_errors(self.ignore_option_errors):
             root_dir = self.root_dir
             if "file" in directive:
-                self._referenced_files.update(directive["file"])
+                self._referenced_files.update(always_iterable(directive["file"]))
                 return _expand.read_files(directive["file"], root_dir)
             if "attr" in directive:
                 return _expand.read_attr(directive["attr"], package_dir, root_dir)

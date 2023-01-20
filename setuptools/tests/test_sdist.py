@@ -502,7 +502,7 @@ class TestSdistTest:
         "setup.cfg - long_description and version": """
             [metadata]
             name = testing
-            version = file: VERSION.txt
+            version = file: src/VERSION.txt
             license_files = DOWHATYOUWANT
             long_description = file: README.rst, USAGE.rst
             """,
@@ -513,7 +513,16 @@ class TestSdistTest:
             license = {file = "DOWHATYOUWANT"}
             dynamic = ["version"]
             [tool.setuptools.dynamic]
-            version = {file = ["VERSION.txt"]}
+            version = {file = ["src/VERSION.txt"]}
+            """,
+        "pyproject.toml - directive with str instead of list": """
+            [project]
+            name = "testing"
+            readme = "USAGE.rst"
+            license = {file = "DOWHATYOUWANT"}
+            dynamic = ["version"]
+            [tool.setuptools.dynamic]
+            version = {file = "src/VERSION.txt"}
             """
     }
 
@@ -521,7 +530,8 @@ class TestSdistTest:
     def test_add_files_referenced_by_config_directives(self, tmp_path, config):
         config_file, _, _ = config.partition(" - ")
         config_text = self._EXAMPLE_DIRECTIVES[config]
-        (tmp_path / 'VERSION.txt').write_text("0.42", encoding="utf-8")
+        (tmp_path / 'src').mkdir()
+        (tmp_path / 'src/VERSION.txt').write_text("0.42", encoding="utf-8")
         (tmp_path / 'README.rst').write_text("hello world!", encoding="utf-8")
         (tmp_path / 'USAGE.rst').write_text("hello world!", encoding="utf-8")
         (tmp_path / 'DOWHATYOUWANT').write_text("hello world!", encoding="utf-8")
@@ -536,9 +546,14 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        assert 'VERSION.txt' in cmd.filelist.files
+        assert (
+            'src/VERSION.txt' in cmd.filelist.files
+            or 'src\\VERSION.txt' in cmd.filelist.files
+        )
         assert 'USAGE.rst' in cmd.filelist.files
         assert 'DOWHATYOUWANT' in cmd.filelist.files
+        assert '/' not in cmd.filelist.files
+        assert '\\' not in cmd.filelist.files
 
     def test_pyproject_toml_in_sdist(self, tmpdir):
         """
