@@ -1,3 +1,13 @@
+v66.1.1
+-------
+
+
+Misc
+^^^^
+* #3782: Fixed problem with ``file`` directive in ``tool.setuptools.dynamic``
+  (``pyproject.toml``) when value is a simple string instead of list.
+
+
 v66.1.0
 -------
 
