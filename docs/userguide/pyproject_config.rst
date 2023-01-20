@@ -220,11 +220,14 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
 (``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
 
 
-.. attention::
-   When using the ``file`` directive, please make sure that all necessary
-   files are included in the ``sdist``. You can do that via ``MANIFEST.in``
-   or using plugins such as ``setuptools-scm``.
-   Please have a look on :doc:`/userguide/miscellaneous` for more information.
+.. note::
+   If you are using an old version of ``setuptools``, you might need to ensure
+   that all files referenced by the ``file`` directive are included in the ``sdist``
+   (you can do that via ``MANIFEST.in`` or using plugins such as ``setuptools-scm``,
+   please have a look on :doc:`/userguide/miscellaneous` for more information).
+
+   .. versionchanged:: 66.1.0
+      Newer versions of ``setuptools`` will automatically add these files to the ``sdist``.
 
 ----
 
