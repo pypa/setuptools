@@ -16,7 +16,7 @@ overhaul. Because ``setup.py`` scripts allow for arbitrary execution, it
 is difficult to provide a reliable user experience across environments
 and history.
 
-`PEP 517 <https://www.python.org/dev/peps/pep-0517/>`_ came to
+:pep:`517` came to
 the rescue and specified a new standard for packaging and distributing Python
 modules. Under PEP 517:
 
