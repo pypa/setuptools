@@ -226,10 +226,8 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
    (you can do that via ``MANIFEST.in`` or using plugins such as ``setuptools-scm``,
    please have a look on :doc:`/userguide/miscellaneous` for more information).
 
-   .. TODO add versionchanged with specific version when the behavior changed
-
-   Newer versions of ``setuptools`` will automatically add these files to
-   the ``sdist``.
+   .. versionchanged:: 66.1.0
+      Newer versions of ``setuptools`` will automatically add these files to the ``sdist``.
 
 ----
 
