@@ -21,7 +21,7 @@ import platform
 import itertools
 import subprocess
 import distutils.errors
-from setuptools.extern.packaging.version import LegacyVersion
+from setuptools.extern.packaging.version import InvalidVersion, Version
 from setuptools.extern.more_itertools import unique_everseen
 
 from .monkey import get_unpatched
@@ -225,9 +225,16 @@ def msvc14_gen_lib_options(*args, **kwargs):
     """
     if "numpy.distutils" in sys.modules:
         import numpy as np
-        if LegacyVersion(np.__version__) < LegacyVersion('1.11.2'):
+        if _is_old_numpy_release(np, "1.11.2"):
             return np.distutils.ccompiler.gen_lib_options(*args, **kwargs)
     return get_unpatched(msvc14_gen_lib_options)(*args, **kwargs)
+
+
+def _is_old_numpy_release(np, threshold_version):
+    try:
+        return Version(np.__version__) < Version(threshold_version)
+    except InvalidVersion:
+        return True
 
 
 def _augment_exception(exc, version, arch=''):
