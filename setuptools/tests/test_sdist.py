@@ -546,10 +546,14 @@ class TestSdistTest:
         with quiet():
             cmd.run()
 
-        assert 'src/VERSION.txt' in cmd.filelist.files
+        assert (
+            'src/VERSION.txt' in cmd.filelist.files
+            or 'src\\VERSION.txt' in cmd.filelist.files
+        )
         assert 'USAGE.rst' in cmd.filelist.files
         assert 'DOWHATYOUWANT' in cmd.filelist.files
         assert '/' not in cmd.filelist.files
+        assert '\\' not in cmd.filelist.files
 
     def test_pyproject_toml_in_sdist(self, tmpdir):
         """
