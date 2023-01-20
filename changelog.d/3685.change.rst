@@ -1,1 +1,0 @@
-Fix improper usage of deprecated/removed ``pkgutil`` APIs in Python 3.12+.

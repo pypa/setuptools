@@ -1,3 +1,20 @@
+v66.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #3685: Fix improper usage of deprecated/removed ``pkgutil`` APIs in Python 3.12+.
+* #3779: Files referenced by ``file:`` in ``setup.cfg`` and by ``project.readme.file``,
+  ``project.license.file`` or ``tool.setuptools.dynamic.*.file`` in
+  ``pyproject.toml`` are now automatically included in the generated sdists.
+
+Misc
+^^^^
+* #3776: Added note about using the ``--pep-517`` flag with ``pip`` to workaround
+  ``InvalidVersion`` errors for packages that are already installed in the system.
+
+
 v66.0.0
 -------
 
