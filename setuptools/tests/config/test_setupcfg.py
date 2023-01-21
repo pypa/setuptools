@@ -746,12 +746,12 @@ class TestOptions:
             "[options.extras_require]\nfoo = bar;baz\nboo = xxx;yyy",
             "[options.extras_require]\nfoo =\n    bar;python_version<'3'\n",
             "[options.extras_require]\nfoo = bar;baz\nboo = xxx;yyy\n",
-            "[options.extras_require]\nfoo =\n    bar\n    python_version<'3'\n",
+            "[options.extras_require]\nfoo =\n    bar\n    python_version<3\n",
             "[options]\ninstall_requires =\n    bar;python_version<'3'",
             "[options]\ninstall_requires = bar;baz\nboo = xxx;yyy",
             "[options]\ninstall_requires =\n    bar;python_version<'3'\n",
             "[options]\ninstall_requires = bar;baz\nboo = xxx;yyy\n",
-            "[options]\ninstall_requires =\n    bar\n    python_version<'3'\n",
+            "[options]\ninstall_requires =\n    bar\n    python_version<3\n",
         ],
     )
     def test_nowarn_accidental_env_marker_misconfig(self, config, tmpdir, recwarn):
