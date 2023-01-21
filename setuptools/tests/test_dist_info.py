@@ -142,7 +142,8 @@ class TestWheelCompatibility:
     version = {version}
 
     [options]
-    install_requires = foo>=12; sys_platform != "linux"
+    install_requires =
+        foo>=12; sys_platform != "linux"
 
     [options.extras_require]
     test = pytest
