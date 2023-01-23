@@ -300,9 +300,19 @@ def check_extras(dist, attr, value):
 
 def _check_extra(extra, reqs):
     name, sep, marker = extra.partition(':')
-    if marker and pkg_resources.invalid_marker(marker):
-        raise DistutilsSetupError("Invalid environment marker: " + marker)
+    try:
+        _check_marker(marker)
+    except packaging.markers.InvalidMarker:
+        msg = f"Invalid environment marker: {marker} ({extra!r})"
+        raise DistutilsSetupError(msg) from None
     list(_reqs.parse(reqs))
+
+
+def _check_marker(marker):
+    if not marker:
+        return
+    m = packaging.markers.Marker(marker)
+    m.evaluate()
 
 
 def assert_bool(dist, attr, value):
