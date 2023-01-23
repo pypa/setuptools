@@ -1,5 +1,4 @@
-packaging==21.3
-pyparsing==3.0.9
+packaging==23.0
 
 platformdirs==2.6.2
 # required for platformdirs on Python < 3.8
