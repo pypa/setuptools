@@ -17,6 +17,7 @@ from distutils.fancy_getopt import translate_longopt
 from glob import iglob
 import itertools
 import textwrap
+from contextlib import suppress
 from typing import List, Optional, Set, TYPE_CHECKING
 from pathlib import Path
 
@@ -32,7 +33,7 @@ from setuptools.extern.more_itertools import unique_everseen, partition
 
 from ._importlib import metadata
 
-from . import SetuptoolsDeprecationWarning
+from . import SetuptoolsDeprecationWarning, _normalization
 
 import setuptools
 import setuptools.command
@@ -453,11 +454,12 @@ class Distribution(_Distribution):
         #
         if not attrs or 'name' not in attrs or 'version' not in attrs:
             return
-        key = pkg_resources.safe_name(str(attrs['name'])).lower()
-        dist = pkg_resources.working_set.by_key.get(key)
-        if dist is not None and not dist.has_metadata('PKG-INFO'):
-            dist._version = pkg_resources.safe_version(str(attrs['version']))
-            self._patched_dist = dist
+        name = _normalization.safe_name(str(attrs['name'])).lower()
+        with suppress(metadata.PackageNotFoundError):
+            dist = metadata.distribution(name)
+            if dist is not None and not dist.read_text('PKG-INFO'):
+                dist._version = _normalization.safe_version(str(attrs['version']))
+                self._patched_dist = dist
 
     def __init__(self, attrs=None):
         have_package_data = hasattr(self, "package_data")
