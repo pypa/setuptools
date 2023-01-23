@@ -18,7 +18,7 @@ import time
 import collections
 
 from .._importlib import metadata
-from .. import _entry_points
+from .. import _entry_points, _normalization
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
@@ -125,10 +125,11 @@ class InfoCommon:
 
     @property
     def name(self):
-        return safe_name(self.distribution.get_name())
+        return _normalization.safe_name(self.distribution.get_name())
 
     def tagged_version(self):
-        return safe_version(self._maybe_tag(self.distribution.get_version()))
+        tagged = self._maybe_tag(self.distribution.get_version())
+        return _normalization.best_effort_version(tagged)
 
     def _maybe_tag(self, version):
         """
@@ -148,7 +149,7 @@ class InfoCommon:
     def _safe_tags(self) -> str:
         # To implement this we can rely on `safe_version` pretending to be version 0
         # followed by tags. Then we simply discard the starting 0 (fake version number)
-        return safe_version(f"0{self.vtags}")[1:]
+        return _normalization.best_effort_version(f"0{self.vtags}")[1:]
 
     def tags(self) -> str:
         version = ''
@@ -233,7 +234,7 @@ class egg_info(InfoCommon, Command):
             self.egg_base = (dirs or {}).get('', os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = to_filename(self.egg_name) + '.egg-info'
+        self.egg_info = self.egg_name.replace("-", "_") + '.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
         if '-' in self.egg_name:
