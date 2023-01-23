@@ -25,9 +25,6 @@ from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
 from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
-from pkg_resources import (
-    Requirement, safe_name, parse_version,
-    safe_version, to_filename)
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
@@ -217,12 +214,12 @@ class egg_info(InfoCommon, Command):
         # repercussions.
         self.egg_name = self.name
         self.egg_version = self.tagged_version()
-        parsed_version = parse_version(self.egg_version)
+        parsed_version = packaging.version.Version(self.egg_version)
 
         try:
             is_version = isinstance(parsed_version, packaging.version.Version)
             spec = "%s==%s" if is_version else "%s===%s"
-            Requirement(spec % (self.egg_name, self.egg_version))
+            packaging.requirements.Requirement(spec % (self.egg_name, self.egg_version))
         except ValueError as e:
             raise distutils.errors.DistutilsOptionError(
                 "Invalid distribution name or version syntax: %s-%s" %
@@ -252,7 +249,7 @@ class egg_info(InfoCommon, Command):
         pd = self.distribution._patched_dist
         if pd is not None and pd.key == self.egg_name.lower():
             pd._version = self.egg_version
-            pd._parsed_version = parse_version(self.egg_version)
+            pd._parsed_version = packaging.version.Version(self.egg_version)
             self.distribution._patched_dist = None
 
     def write_or_delete_file(self, what, filename, data, force=False):
