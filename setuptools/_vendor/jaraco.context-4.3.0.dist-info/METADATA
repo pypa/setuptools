@@ -1,0 +1,68 @@
+Metadata-Version: 2.1
+Name: jaraco.context
+Version: 4.3.0
+Summary: Context managers by jaraco
+Home-page: https://github.com/jaraco/jaraco.context
+Author: Jason R. Coombs
+Author-email: jaraco@jaraco.com
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Requires-Python: >=3.7
+License-File: LICENSE
+Provides-Extra: docs
+Requires-Dist: sphinx (>=3.5) ; extra == 'docs'
+Requires-Dist: jaraco.packaging (>=9) ; extra == 'docs'
+Requires-Dist: rst.linker (>=1.9) ; extra == 'docs'
+Requires-Dist: furo ; extra == 'docs'
+Requires-Dist: sphinx-lint ; extra == 'docs'
+Requires-Dist: jaraco.tidelift (>=1.4) ; extra == 'docs'
+Provides-Extra: testing
+Requires-Dist: pytest (>=6) ; extra == 'testing'
+Requires-Dist: pytest-checkdocs (>=2.4) ; extra == 'testing'
+Requires-Dist: flake8 (<5) ; extra == 'testing'
+Requires-Dist: pytest-cov ; extra == 'testing'
+Requires-Dist: pytest-enabler (>=1.3) ; extra == 'testing'
+Requires-Dist: pytest-black (>=0.3.7) ; (platform_python_implementation != "PyPy") and extra == 'testing'
+Requires-Dist: pytest-mypy (>=0.9.1) ; (platform_python_implementation != "PyPy") and extra == 'testing'
+Requires-Dist: pytest-flake8 ; (python_version < "3.12") and extra == 'testing'
+
+.. image:: https://img.shields.io/pypi/v/jaraco.context.svg
+   :target: https://pypi.org/project/jaraco.context
+
+.. image:: https://img.shields.io/pypi/pyversions/jaraco.context.svg
+
+.. image:: https://github.com/jaraco/jaraco.context/workflows/tests/badge.svg
+   :target: https://github.com/jaraco/jaraco.context/actions?query=workflow%3A%22tests%22
+   :alt: tests
+
+.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
+   :alt: Code style: Black
+
+.. image:: https://readthedocs.org/projects/jaracocontext/badge/?version=latest
+   :target: https://jaracocontext.readthedocs.io/en/latest/?badge=latest
+
+.. image:: https://img.shields.io/badge/skeleton-2023-informational
+   :target: https://blog.jaraco.com/skeleton
+
+.. image:: https://tidelift.com/badges/package/pypi/jaraco.context
+   :target: https://tidelift.com/subscription/pkg/pypi-jaraco.context?utm_source=pypi-jaraco.context&utm_medium=readme
+
+For Enterprise
+==============
+
+Available as part of the Tidelift Subscription.
+
+This project and the maintainers of thousands of other packages are working with Tidelift to deliver one enterprise subscription that covers all of the open source you use.
+
+`Learn more <https://tidelift.com/subscription/pkg/pypi-jaraco.context?utm_source=pypi-jaraco.context&utm_medium=referral&utm_campaign=github>`_.
+
+Security Contact
+================
+
+To report a security vulnerability, please use the
+`Tidelift security contact <https://tidelift.com/security>`_.
+Tidelift will coordinate the fix and disclosure.

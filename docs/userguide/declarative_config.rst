@@ -228,7 +228,7 @@ Key                      Type                                 Minimum Version No
 =======================  ===================================  =============== ====================
 zip_safe                 bool
 setup_requires           list-semi                            36.7.0
-install_requires         file:, list-semi                                     **BETA** [#opt-6]_
+install_requires         file:, list-semi                                     **BETA** [#opt-2]_, [#opt-6]_
 extras_require           file:, section                                       **BETA** [#opt-2]_, [#opt-6]_
 python_requires          str                                  34.4.0
 entry_points             file:, section                       51.0.0
@@ -251,17 +251,19 @@ data_files               section                              40.6.0          [#
 .. [#opt-1] In the ``package_data`` section, a key named with a single asterisk
    (``*``) refers to all packages, in lieu of the empty string used in ``setup.py``.
 
-.. [#opt-2] In the ``extras_require`` section, values are parsed as ``list-semi``.
-   This implies that in order to include markers, they **must** be *dangling*:
+.. [#opt-2] In ``install_requires`` and ``extras_require``, values are parsed as ``list-semi``.
+   This implies that in order to include markers, each requirement **must** be *dangling*
+   in a new line:
 
    .. code-block:: ini
 
+      [options]
+      install_requires =
+          importlib-metadata; python_version<"3.8"
+
       [options.extras_require]
-      rest = docutils>=0.3; pack ==1.1, ==1.3
-      pdf =
-        ReportLab>=1.2
-        RXP
-        importlib-metadata; python_version < "3.8"
+      all =
+          importlib-metadata; python_version < "3.8"
 
 .. [#opt-3] The ``find:`` and ``find_namespace:`` directive can be further configured
    in a dedicated subsection ``options.packages.find``. This subsection accepts the

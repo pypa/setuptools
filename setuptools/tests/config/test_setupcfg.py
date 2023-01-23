@@ -10,6 +10,7 @@ from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
+from setuptools.extern.packaging.requirements import InvalidRequirement
 from ..textwrap import DALS
 
 
@@ -727,6 +728,25 @@ class TestOptions:
             "[options]\ninstall_requires = bar;os_name=='linux'",
             "[options]\ninstall_requires = bar;python_version<'3'\n",
             "[options]\ninstall_requires = bar;os_name=='linux'\n",
+        ],
+    )
+    def test_raises_accidental_env_marker_misconfig(self, config, tmpdir):
+        fake_env(tmpdir, config)
+        match = (
+            r"One of the parsed requirements in `(install_requires|extras_require.+)` "
+            "looks like a valid environment marker.*"
+        )
+        with pytest.raises(InvalidRequirement, match=match):
+            with get_dist(tmpdir) as _:
+                pass
+
+    @pytest.mark.parametrize(
+        "config",
+        [
+            "[options.extras_require]\nfoo = bar;python_version<3",
+            "[options.extras_require]\nfoo = bar;python_version<3\n",
+            "[options]\ninstall_requires = bar;python_version<3",
+            "[options]\ninstall_requires = bar;python_version<3\n",
         ],
     )
     def test_warn_accidental_env_marker_misconfig(self, config, tmpdir):
