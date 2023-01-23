@@ -256,6 +256,7 @@ data_files               section                              40.6.0          [#
    in a new line:
 
    .. code-block:: ini
+
       [options]
       install_requires =
           importlib-metadata; python_version<"3.8"
