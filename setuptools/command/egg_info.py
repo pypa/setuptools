@@ -33,6 +33,9 @@ from setuptools.extern.jaraco.text import yield_lines
 from setuptools import SetuptoolsDeprecationWarning
 
 
+PY_MAJOR = '{}.{}'.format(*sys.version_info)
+
+
 def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
     """
     Translate a file path glob like '*.txt' in to a regular expression.
@@ -231,7 +234,7 @@ class egg_info(InfoCommon, Command):
             self.egg_base = (dirs or {}).get('', os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = self.egg_name.replace("-", "_") + '.egg-info'
+        self.egg_info = _filename_component(self.egg_name) + '.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
         if '-' in self.egg_name:
@@ -251,6 +254,10 @@ class egg_info(InfoCommon, Command):
             pd._version = self.egg_version
             pd._parsed_version = packaging.version.Version(self.egg_version)
             self.distribution._patched_dist = None
+
+    def _get_egg_basename(self, py_version=PY_MAJOR, platform=None):
+        """Compute filename of the output egg. Private API."""
+        return _egg_basename(self.egg_name, self.egg_version, py_version, platform)
 
     def write_or_delete_file(self, what, filename, data, force=False):
         """Write `data` to `filename` or delete if empty
@@ -767,6 +774,20 @@ def get_pkg_info_revision():
                 if match:
                     return int(match.group(1))
     return 0
+
+
+def _egg_basename(egg_name, egg_version, py_version=PY_MAJOR, platform=None):
+    """Compute filename of the output egg. Private API."""
+    name = _filename_component(egg_name)
+    version = _filename_component(egg_version)
+    egg = f"{name}-{version}-py{py_version}"
+    if platform:
+        egg += f"-{platform}"
+    return egg
+
+
+def _filename_component(value):
+    return value.replace("-", "_")
 
 
 class EggInfoDeprecationWarning(SetuptoolsDeprecationWarning):
