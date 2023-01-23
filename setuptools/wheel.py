@@ -10,9 +10,8 @@ import contextlib
 
 from distutils.util import get_platform
 
-import pkg_resources
 import setuptools
-from pkg_resources import parse_version
+from setuptools.extern.packaging.version import Version as parse_version
 from setuptools.extern.packaging.tags import sys_tags
 from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.command.egg_info import write_requirements, _egg_basename
@@ -122,6 +121,8 @@ class Wheel:
 
     @staticmethod
     def _convert_metadata(zf, destination_eggdir, dist_info, egg_info):
+        import pkg_resources
+
         def get_metadata(name):
             with zf.open(posixpath.join(dist_info, name)) as fp:
                 value = fp.read().decode('utf-8')
