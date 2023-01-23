@@ -5,9 +5,9 @@ import os
 import glob
 import io
 
-import pkg_resources
 from setuptools.command.easy_install import easy_install
 from setuptools import namespaces
+from setuptools import _normalization
 import setuptools
 
 
@@ -42,6 +42,8 @@ class develop(namespaces.DevelopInstaller, easy_install):
         self.always_copy_from = '.'  # always copy eggs installed in curdir
 
     def finalize_options(self):
+        import pkg_resources
+
         ei = self.get_finalized_command("egg_info")
         if ei.broken_egg_info:
             template = "Please rename %r to %r before using 'develop'"
@@ -61,8 +63,8 @@ class develop(namespaces.DevelopInstaller, easy_install):
         if self.egg_path is None:
             self.egg_path = os.path.abspath(ei.egg_base)
 
-        target = pkg_resources.normalize_path(self.egg_base)
-        egg_path = pkg_resources.normalize_path(
+        target = _normalization.path(self.egg_base)
+        egg_path = _normalization.path(
             os.path.join(self.install_dir, self.egg_path)
         )
         if egg_path != target:
@@ -94,15 +96,15 @@ class develop(namespaces.DevelopInstaller, easy_install):
         path_to_setup = egg_base.replace(os.sep, '/').rstrip('/')
         if path_to_setup != os.curdir:
             path_to_setup = '../' * (path_to_setup.count('/') + 1)
-        resolved = pkg_resources.normalize_path(
+        resolved = _normalization.path(
             os.path.join(install_dir, egg_path, path_to_setup)
         )
-        if resolved != pkg_resources.normalize_path(os.curdir):
+        if resolved != _normalization.path(os.curdir):
             raise DistutilsOptionError(
                 "Can't get a consistent path to setup script from"
                 " installation directory",
                 resolved,
-                pkg_resources.normalize_path(os.curdir),
+                _normalization.path(os.curdir),
             )
         return path_to_setup
 
