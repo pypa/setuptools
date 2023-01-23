@@ -15,7 +15,7 @@ import setuptools
 from pkg_resources import parse_version
 from setuptools.extern.packaging.tags import sys_tags
 from setuptools.extern.packaging.utils import canonicalize_name
-from setuptools.command.egg_info import write_requirements
+from setuptools.command.egg_info import write_requirements, _egg_basename
 from setuptools.archive_util import _unpack_zipfile_obj
 
 
@@ -89,10 +89,11 @@ class Wheel:
         return next((True for t in self.tags() if t in supported_tags), False)
 
     def egg_name(self):
-        return pkg_resources.Distribution(
-            project_name=self.project_name, version=self.version,
+        return _egg_basename(
+            self.project_name,
+            self.version,
             platform=(None if self.platform == 'any' else get_platform()),
-        ).egg_name() + '.egg'
+        ) + ".egg"
 
     def get_dist_info(self, zf):
         # find the correct name of the .dist-info dir in the wheel file
