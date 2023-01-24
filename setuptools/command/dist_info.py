@@ -70,8 +70,8 @@ class dist_info(Command):
         egg_info.finalize_options()
         self.egg_info = egg_info
 
-        name = _normalization.safe_name(dist.get_name()).replace(".", "_")
-        version = _normalization.best_effort_version(dist.get_version())
+        name = _normalization.safer_name(dist.get_name())
+        version = _normalization.safer_best_effort_version(dist.get_version())
         self.name = f"{name}-{version}"
         self.dist_info_dir = os.path.join(self.output_dir, f"{self.name}.dist-info")
 

@@ -234,7 +234,7 @@ class egg_info(InfoCommon, Command):
             self.egg_base = (dirs or {}).get('', os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = _filename_component(self.egg_name) + '.egg-info'
+        self.egg_info = _normalization.filename_component(self.egg_name) + '.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
         if '-' in self.egg_name:
@@ -778,16 +778,12 @@ def get_pkg_info_revision():
 
 def _egg_basename(egg_name, egg_version, py_version=PY_MAJOR, platform=None):
     """Compute filename of the output egg. Private API."""
-    name = _filename_component(egg_name)
-    version = _filename_component(egg_version)
+    name = _normalization.filename_component(egg_name)
+    version = _normalization.filename_component(egg_version)
     egg = f"{name}-{version}-py{py_version}"
     if platform:
         egg += f"-{platform}"
     return egg
-
-
-def _filename_component(value):
-    return value.replace("-", "_")
 
 
 class EggInfoDeprecationWarning(SetuptoolsDeprecationWarning):

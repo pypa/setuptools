@@ -1,3 +1,7 @@
+"""
+Helpers for normalization as expected in wheel/sdist/module file names
+and core metadata
+"""
 import re
 import warnings
 from inspect import cleandoc
@@ -71,6 +75,7 @@ def best_effort_version(version: str) -> str:
     >>> best_effort_version("ubuntu lts")
     'ubuntu.lts'
     """
+    # See pkg_resources.safe_version
     try:
         return safe_version(version)
     except packaging.version.InvalidVersion:
@@ -87,4 +92,26 @@ def best_effort_version(version: str) -> str:
         """
         warnings.warn(cleandoc(msg), SetuptoolsDeprecationWarning)
         v = version.replace(' ', '.')
-        return safe_name(v).strip("_")
+        return safe_name(v)
+
+
+def filename_component(value: str) -> str:
+    """Normalize each component of a filename (e.g. distribution/version part of wheel)
+    Note: ``value`` needs to be already normalized.
+    >>> filename_component("my-pkg")
+    'my_pkg'
+    """
+    return value.replace("-", "_").strip("_")
+
+
+def safer_name(value: str) -> str:
+    """Like ``safe_name`` but can be used as filename component for wheel"""
+    # See bdist_wheel.safer_name
+    return filename_component(safe_name(value))
+
+
+def safer_best_effort_version(value: str) -> str:
+    """Like ``best_effort_version`` but can be used as filename component for wheel"""
+    # See bdist_wheel.safer_verion
+    # TODO: Replace with only safe_version in the future (no need for best effort)
+    return filename_component(best_effort_version(value))
