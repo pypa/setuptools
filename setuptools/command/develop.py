@@ -6,8 +6,8 @@ import glob
 import io
 
 from setuptools.command.easy_install import easy_install
+from setuptools import _path
 from setuptools import namespaces
-from setuptools import _normalization
 import setuptools
 
 
@@ -63,20 +63,17 @@ class develop(namespaces.DevelopInstaller, easy_install):
         if self.egg_path is None:
             self.egg_path = os.path.abspath(ei.egg_base)
 
-        target = _normalization.path(self.egg_base)
-        egg_path = _normalization.path(
-            os.path.join(self.install_dir, self.egg_path)
-        )
-        if egg_path != target:
+        egg_path = os.path.join(self.install_dir, self.egg_path)
+        if not _path.same_path(egg_path, self.egg_base):
             raise DistutilsOptionError(
                 "--egg-path must be a relative path from the install"
-                " directory to " + target
+                f" directory to {self.egg_base}"
             )
 
         # Make a distribution for the package's source
         self.dist = pkg_resources.Distribution(
-            target,
-            pkg_resources.PathMetadata(target, os.path.abspath(ei.egg_info)),
+            self.egg_base,
+            pkg_resources.PathMetadata(self.egg_base, os.path.abspath(ei.egg_info)),
             project_name=ei.egg_name,
         )
 
@@ -96,15 +93,16 @@ class develop(namespaces.DevelopInstaller, easy_install):
         path_to_setup = egg_base.replace(os.sep, '/').rstrip('/')
         if path_to_setup != os.curdir:
             path_to_setup = '../' * (path_to_setup.count('/') + 1)
-        resolved = _normalization.path(
+        resolved = _path.normpath(
             os.path.join(install_dir, egg_path, path_to_setup)
         )
-        if resolved != _normalization.path(os.curdir):
+        curdir = _path.normpath(os.curdir)
+        if resolved != curdir:
             raise DistutilsOptionError(
                 "Can't get a consistent path to setup script from"
                 " installation directory",
                 resolved,
-                _normalization.path(os.curdir),
+                curdir,
             )
         return path_to_setup
 

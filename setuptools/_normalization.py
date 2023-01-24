@@ -1,6 +1,4 @@
-import os
 import re
-import sys
 import warnings
 from inspect import cleandoc
 from pathlib import Path
@@ -15,13 +13,6 @@ _Path = Union[str, Path]
 # https://packaging.python.org/en/latest/specifications/core-metadata/#name
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
 _UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9.]+", re.I)
-
-
-def path(filename: _Path) -> str:
-    """Normalize a file/dir name for comparison purposes."""
-    # See pkg_resources.normalize_path
-    file = os.path.abspath(filename) if sys.platform == 'cygwin' else filename
-    return os.path.normcase(os.path.realpath(os.path.normpath(file)))
 
 
 def safe_identifier(name: str) -> str:

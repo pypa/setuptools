@@ -35,7 +35,14 @@ from typing import (
     Union,
 )
 
-from .. import Command, SetuptoolsDeprecationWarning, errors, namespaces, _normalization
+from .. import (
+    Command,
+    SetuptoolsDeprecationWarning,
+    _normalization,
+    _path,
+    errors,
+    namespaces,
+)
 from ..discovery import find_package_path
 from ..dist import Distribution
 from .build_py import build_py as build_py_cls
@@ -568,7 +575,7 @@ def _simple_layout(
         return set(package_dir) in ({}, {""})
     parent = os.path.commonpath([_parent_path(k, v) for k, v in layout.items()])
     return all(
-        _normalization.path(Path(parent, *key.split('.'))) == _normalization.path(value)
+        _path.same_path(Path(parent, *key.split('.')), value)
         for key, value in layout.items()
     )
 
@@ -697,11 +704,11 @@ def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
     >>> _is_nested("b.a", "path/b/a", "a", "path/a")
     False
     """
-    norm_pkg_path = _normalization.path(pkg_path)
+    norm_pkg_path = _path.normpath(pkg_path)
     rest = pkg.replace(parent, "", 1).strip(".").split(".")
     return (
         pkg.startswith(parent)
-        and norm_pkg_path == _normalization.path(Path(parent_path, *rest))
+        and norm_pkg_path == _path.normpath(Path(parent_path, *rest))
     )
 
 
