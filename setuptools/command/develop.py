@@ -63,17 +63,18 @@ class develop(namespaces.DevelopInstaller, easy_install):
         if self.egg_path is None:
             self.egg_path = os.path.abspath(ei.egg_base)
 
-        egg_path = os.path.join(self.install_dir, self.egg_path)
-        if not _path.same_path(egg_path, self.egg_base):
+        target = _path.normpath(self.egg_base)
+        egg_path = _path.normpath(os.path.join(self.install_dir, self.egg_path))
+        if egg_path != target:
             raise DistutilsOptionError(
                 "--egg-path must be a relative path from the install"
-                f" directory to {self.egg_base}"
+                " directory to " + target
             )
 
         # Make a distribution for the package's source
         self.dist = pkg_resources.Distribution(
-            self.egg_base,
-            pkg_resources.PathMetadata(self.egg_base, os.path.abspath(ei.egg_info)),
+            target,
+            pkg_resources.PathMetadata(target, os.path.abspath(ei.egg_info)),
             project_name=ei.egg_name,
         )
 
