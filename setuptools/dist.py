@@ -42,7 +42,6 @@ from setuptools.monkey import get_unpatched
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.discovery import ConfigDiscovery
 
-import pkg_resources
 from setuptools.extern.packaging import version
 from . import _reqs
 from . import _entry_points
@@ -888,14 +887,9 @@ class Distribution(_Distribution):
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
-        resolved_dists = pkg_resources.working_set.resolve(
-            _reqs.parse(requires),
-            installer=self.fetch_build_egg,
-            replace_conflicting=True,
-        )
-        for dist in resolved_dists:
-            pkg_resources.working_set.add(dist, replace=True)
-        return resolved_dists
+        from setuptools.installer import _fetch_build_eggs
+
+        return _fetch_build_eggs(self, requires)
 
     def finalize_options(self):
         """
