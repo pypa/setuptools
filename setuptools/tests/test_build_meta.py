@@ -194,6 +194,22 @@ defns = [
             print('hello')
         """)
     },
+    {  # setup.py that relies on __file__ being an absolute path
+        'setup.py': DALS("""
+            import os
+            assert os.path.isabs(__file__)
+            __import__('setuptools').setup(
+                name='foo',
+                version='0.0.0',
+                py_modules=['hello'],
+                setup_requires=['six'],
+            )
+            """),
+        'hello.py': DALS("""
+            def run():
+                print('hello')
+            """),
+    },
 ]
 
 
