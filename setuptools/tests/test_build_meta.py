@@ -194,22 +194,6 @@ defns = [
             print('hello')
         """)
     },
-    {  # setup.py that relies on __file__ being an absolute path
-        'setup.py': DALS("""
-            import os
-            assert os.path.isabs(__file__)
-            __import__('setuptools').setup(
-                name='foo',
-                version='0.0.0',
-                py_modules=['hello'],
-                setup_requires=['six'],
-            )
-            """),
-        'hello.py': DALS("""
-            def run():
-                print('hello')
-            """),
-    },
 ]
 
 
@@ -835,6 +819,24 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         with pytest.raises(AssertionError):
             build_backend.build_sdist("temp")
+
+    _setup_py_file_abspath = {
+        'setup.py': DALS("""
+            import os
+            assert os.path.isabs(__file__)
+            __import__('setuptools').setup(
+                name='foo',
+                version='0.0.0',
+                py_modules=['hello'],
+                setup_requires=['six'],
+            )
+            """)
+    }
+
+    def test_setup_py_file_abspath(self, tmpdir_cwd):
+        path.build(self._setup_py_file_abspath)
+        build_backend = self.get_build_backend()
+        build_backend.build_sdist("temp")
 
     @pytest.mark.parametrize('build_hook', ('build_sdist', 'build_wheel'))
     def test_build_with_empty_setuppy(self, build_backend, build_hook):
