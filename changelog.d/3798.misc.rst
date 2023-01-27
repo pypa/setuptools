@@ -1,2 +1,3 @@
-Updated validations for ``pyproject.toml`` using ``validate-pyproject==0.12``
-to allow stub packages (:pep:`561`) to be listed in ``tool.setuptools.packages``.
+Updated validations for ``pyproject.toml`` using ``validate-pyproject==0.12.1``
+to allow stub packages (:pep:`561`) to be listed in ``tool.setuptools.packages``
+and ``tool.setuptools.package-dir``.
