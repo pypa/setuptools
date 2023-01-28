@@ -1,3 +1,18 @@
+v67.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #3741: Removed patching of ``distutils._msvccompiler.gen_lib_options``
+  for compatibility with Numpy < 1.11.2 -- by :user:`mgorny`
+* #3790: Bump vendored version of :pypi:`packaging` to 23.0
+  (:pypi:`pyparsing` is no longer required and was removed).
+  As a consequence, users will experience a more strict parsing of requirements.
+  Specifications that don't comply with :pep:`440` and :pep:`508` will result
+  in build errors.
+
+
 v66.1.1
 -------
 
