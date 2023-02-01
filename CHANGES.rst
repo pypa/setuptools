@@ -1,3 +1,19 @@
+v67.1.0
+-------
+
+
+Changes
+^^^^^^^
+* #3795: Ensured that ``__file__`` is an absolute path when executing ``setup.py`` as
+  part of ``setuptools.build_meta``.
+
+Misc
+^^^^
+* #3798: Updated validations for ``pyproject.toml`` using ``validate-pyproject==0.12.1``
+  to allow stub packages (:pep:`561`) to be listed in ``tool.setuptools.packages``
+  and ``tool.setuptools.package-dir``.
+
+
 v67.0.0
 -------
 

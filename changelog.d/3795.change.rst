@@ -1,2 +1,0 @@
-Ensured that ``__file__`` is an absolute path when executing ``setup.py`` as
-part of ``setuptools.build_meta``.
