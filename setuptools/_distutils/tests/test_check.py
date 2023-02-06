@@ -152,8 +152,7 @@ class TestCheck(support.TempdirManager):
         pytest.importorskip('docutils')
         # Don't fail if there is a `code` or `code-block` directive
 
-        example_rst_docs = []
-        example_rst_docs.append(
+        example_rst_docs = [
             textwrap.dedent(
                 """\
             Here's some code:
@@ -163,9 +162,7 @@ class TestCheck(support.TempdirManager):
                 def foo():
                     pass
             """
-            )
-        )
-        example_rst_docs.append(
+            ),
             textwrap.dedent(
                 """\
             Here's some code:
@@ -175,8 +172,8 @@ class TestCheck(support.TempdirManager):
                 def foo():
                     pass
             """
-            )
-        )
+            ),
+        ]
 
         for rest_with_code in example_rst_docs:
             pkg_info, dist = self.create_dist(long_description=rest_with_code)

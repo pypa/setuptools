@@ -297,3 +297,22 @@ class TestSysconfig:
             cmd, env={**os.environ, "PYTHONPATH": distutils_path}
         )
         assert out == "True"
+
+    def test_get_python_inc_missing_config_dir(self, monkeypatch):
+        """
+        In portable Python installations, the sysconfig will be broken,
+        pointing to the directories where the installation was built and
+        not where it currently is. In this case, ensure that the missing
+        directory isn't used for get_python_inc.
+
+        See pypa/distutils#178.
+        """
+
+        def override(name):
+            if name == 'INCLUDEPY':
+                return '/does-not-exist'
+            return sysconfig.get_config_var(name)
+
+        monkeypatch.setattr(sysconfig, 'get_config_var', override)
+
+        assert os.path.exists(sysconfig.get_python_inc())

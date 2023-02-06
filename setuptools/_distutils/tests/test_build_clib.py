@@ -71,7 +71,6 @@ class TestBuildCLib(support.TempdirManager):
         assert cmd.get_source_files() == ['a', 'b', 'c', 'd']
 
     def test_build_libraries(self):
-
         pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
 

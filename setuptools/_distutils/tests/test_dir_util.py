@@ -51,7 +51,6 @@ class TestDirUtil(support.TempdirManager):
         assert stat.S_IMODE(os.stat(self.target2).st_mode) == 0o555 & ~umask
 
     def test_create_tree_verbosity(self, caplog):
-
         create_tree(self.root_target, ['one', 'two', 'three'], verbose=0)
         assert caplog.messages == []
         remove_tree(self.root_target, verbose=0)
@@ -63,7 +62,6 @@ class TestDirUtil(support.TempdirManager):
         remove_tree(self.root_target, verbose=0)
 
     def test_copy_tree_verbosity(self, caplog):
-
         mkpath(self.target, verbose=0)
 
         copy_tree(self.target, self.target2, verbose=0)
