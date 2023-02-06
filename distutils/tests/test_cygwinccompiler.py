@@ -106,7 +106,7 @@ class TestCygwinCCompiler(support.TempdirManager):
             '3.10.0 (tags/v3.10.0:b494f59, Oct  4 2021, 18:46:30) '
             '[MSC v.1929 32 bit (Intel)]'
         )
-        assert get_msvcr() == ['ucrt', 'vcruntime140']
+        assert get_msvcr() == ['vcruntime140']
 
         # unknown
         sys.version = (
