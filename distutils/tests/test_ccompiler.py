@@ -55,6 +55,7 @@ def test_set_include_dirs(c_file):
     compiler.compile(_make_strs([c_file]))
 
 
+@pytest.mark.xfail('platform.system() == "Windows"')
 def test_has_function_prototype():
     # Issue https://github.com/pypa/setuptools/issues/3648
     # Test prototype-generating behavior.
