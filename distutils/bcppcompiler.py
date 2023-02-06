@@ -294,8 +294,7 @@ class BCPPCompiler(CCompiler):
                     ld_args.append(libfile)
 
             # some default libraries
-            ld_args.append('import32')
-            ld_args.append('cw32mt')
+            ld_args.extend(('import32', 'cw32mt'))
 
             # def file for export symbols
             ld_args.extend([',', def_file])

@@ -133,7 +133,7 @@ class CygwinCCompiler(UnixCCompiler):
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         """Compiles the source by spawning GCC and windres if needed."""
-        if ext == '.rc' or ext == '.res':
+        if ext in ('.rc', '.res'):
             # gcc needs '.res' and '.rc' compiled to object files !!!
             try:
                 self.spawn(["windres", "-i", src, "-o", obj])

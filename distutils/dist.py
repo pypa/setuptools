@@ -700,7 +700,7 @@ Common commands: (see '--help-commands' for more)
             if val and is_display_option.get(opt):
                 opt = translate_longopt(opt)
                 value = getattr(self.metadata, "get_" + opt)()
-                if opt in ['keywords', 'platforms']:
+                if opt in ('keywords', 'platforms'):
                     print(','.join(value))
                 elif opt in ('classifiers', 'provides', 'requires', 'obsoletes'):
                     print('\n'.join(value))
