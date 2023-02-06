@@ -58,7 +58,6 @@ class TestCommand:
         cmd.make_file(infiles='in', outfile='out', func='func', args=())
 
     def test_dump_options(self, cmd):
-
         msgs = []
 
         def _announce(msg, level):

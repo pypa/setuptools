@@ -180,7 +180,6 @@ class TextFile:
                 line = None
 
             if self.strip_comments and line:
-
                 # Look for the first "#" in the line.  If none, never
                 # mind.  If we find one and it's the first character, or
                 # is not preceded by "\", then it starts a comment --

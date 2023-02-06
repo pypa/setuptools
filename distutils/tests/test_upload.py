@@ -77,7 +77,6 @@ class TestUpload(BasePyPIRCCommandTestCase):
         return self.last_open
 
     def test_finalize_options(self):
-
         # new format
         self.write_file(self.rc, PYPIRC)
         dist = Distribution()

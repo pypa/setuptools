@@ -180,7 +180,6 @@ class TestBuildExt(TempdirManager):
         assert incl in cmd.include_dirs
 
     def test_optional_extension(self):
-
         # this extension will fail, but let's ignore this failure
         # with the optional argument.
         modules = [Extension('foo', ['xxx'], optional=False)]

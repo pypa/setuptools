@@ -180,7 +180,6 @@ def _pypy_hack(name):
 
 
 class install(Command):
-
     description = "install everything from build directory"
 
     user_options = [

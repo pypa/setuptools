@@ -47,7 +47,6 @@ class TestCygwinCCompiler(support.TempdirManager):
         assert compiler.runtime_library_dir_option('/foo') == []
 
     def test_check_config_h(self):
-
         # check_config_h looks for "GCC" in sys.version first
         # returns CONFIG_H_OK if found
         sys.version = (
@@ -72,7 +71,6 @@ class TestCygwinCCompiler(support.TempdirManager):
         assert check_config_h()[0] == CONFIG_H_OK
 
     def test_get_msvcr(self):
-
         # none
         sys.version = (
             '2.6.1 (r261:67515, Dec  6 2008, 16:42:21) '

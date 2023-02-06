@@ -84,7 +84,6 @@ class CygwinCCompiler(UnixCCompiler):
     exe_extension = ".exe"
 
     def __init__(self, verbose=0, dry_run=0, force=0):
-
         super().__init__(verbose, dry_run, force)
 
         status, details = check_config_h()
@@ -269,7 +268,6 @@ class Mingw32CCompiler(CygwinCCompiler):
     compiler_type = 'mingw32'
 
     def __init__(self, verbose=0, dry_run=0, force=0):
-
         super().__init__(verbose, dry_run, force)
 
         shared_option = "-shared"
