@@ -389,7 +389,7 @@ class CCompiler:
             raise TypeError("'macros' (if supplied) must be a list of tuples")
 
         if include_dirs is None:
-            include_dirs = self.include_dirs
+            include_dirs = list(self.include_dirs)
         elif isinstance(include_dirs, (list, tuple)):
             include_dirs = list(include_dirs) + (self.include_dirs or [])
         else:
