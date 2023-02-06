@@ -499,7 +499,6 @@ class MSVCCompiler(CCompiler):
         extra_postargs=None,
         depends=None,
     ):
-
         if not self.initialized:
             self.initialize()
         compile_info = self._setup_compile(
@@ -586,7 +585,6 @@ class MSVCCompiler(CCompiler):
     def create_static_lib(
         self, objects, output_libname, output_dir=None, debug=0, target_lang=None
     ):
-
         if not self.initialized:
             self.initialize()
         (objects, output_dir) = self._fix_object_args(objects, output_dir)
@@ -619,7 +617,6 @@ class MSVCCompiler(CCompiler):
         build_temp=None,
         target_lang=None,
     ):
-
         if not self.initialized:
             self.initialize()
         (objects, output_dir) = self._fix_object_args(objects, output_dir)

@@ -142,7 +142,7 @@ class TestDistributionBehavior(support.TempdirManager):
             result_dict.keys()
         )
 
-        for (key, value) in d.command_options.get('install').items():
+        for key, value in d.command_options.get('install').items():
             assert value == result_dict[key]
 
         # Test case: In a Virtual Environment

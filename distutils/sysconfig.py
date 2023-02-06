@@ -482,7 +482,6 @@ def parse_makefile(fn, g=None):  # noqa: C901
                         del notdone[name]
 
                         if name.startswith('PY_') and name[3:] in renamed_variables:
-
                             name = name[3:]
                             if name not in done:
                                 done[name] = value

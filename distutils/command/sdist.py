@@ -33,7 +33,6 @@ def show_formats():
 
 
 class sdist(Command):
-
     description = "create a source distribution (tarball, zip file, etc.)"
 
     def checking_metadata(self):

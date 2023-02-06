@@ -9,7 +9,6 @@ import pytest
 
 class TestDepUtil(support.TempdirManager):
     def test_newer(self):
-
         tmpdir = self.mkdtemp()
         new_file = os.path.join(tmpdir, 'new')
         old_file = os.path.abspath(__file__)
