@@ -158,7 +158,7 @@ class TestBuildExt(TempdirManager):
         cmd = self.build_ext(dist)
 
         # making sure the user option is there
-        options = [name for name, short, lable in cmd.user_options]
+        options = [name for name, short, label in cmd.user_options]
         assert 'user' in options
 
         # setting a value
