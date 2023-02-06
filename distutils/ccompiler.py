@@ -903,7 +903,9 @@ int main (int argc, char **argv) {
         except (LinkError, TypeError):
             return False
         else:
-            os.remove(os.path.join(self.output_dir or '', "a.out"))
+            os.remove(
+                self.executable_filename("a.out", output_dir=self.output_dir or '')
+            )
         finally:
             for fn in objects:
                 os.remove(fn)
