@@ -1,3 +1,12 @@
+v67.2.0
+-------
+
+
+Changes
+^^^^^^^
+* #3809: Merge with distutils@8c3c3d29, including fix for ``sysconfig.get_python_inc()`` (pypa/distutils#178), fix for segfault on MinGW (pypa/distutils#196), and better ``has_function`` support (pypa/distutils#195).
+
+
 v67.1.0
 -------
 
