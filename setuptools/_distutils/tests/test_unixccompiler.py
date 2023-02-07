@@ -303,4 +303,4 @@ class TestUnixCCompiler(support.TempdirManager):
         # FileNotFoundError: [Errno 2] No such file or directory: 'a.out'
         self.cc.output_dir = 'scratch'
         os.chdir(self.mkdtemp())
-        self.cc.has_function('abort', includes=['stdlib.h'])
+        self.cc.has_function('abort')

@@ -289,7 +289,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
                 pass
             assert os.getcwd() == current_dir
         finally:
-            del ARCHIVE_FORMATS['xxx']
+            ARCHIVE_FORMATS.pop('xxx')
 
     def test_make_archive_tar(self):
         base_dir = self._create_files()
