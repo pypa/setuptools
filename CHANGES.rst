@@ -1,3 +1,30 @@
+v67.3.0
+-------
+
+
+Deprecations
+^^^^^^^^^^^^
+* #3434: Added deprecation warning for ``pkg_resources.declare_namespace``.
+  Users that wish to implement namespace packages, are recommended to follow the
+  practice described in PEP 420 and omit the ``__init__.py`` file entirely.
+
+Changes
+^^^^^^^
+* #3792: Reduced usage of ``pkg_resources`` in ``setuptools`` via internal
+  restructuring and refactoring.
+
+Misc
+^^^^
+* #3822: Added debugging tips for "editable mode" and update related docs.
+  Instead of using a custom exception to display the help message to the user,
+  ``setuptools`` will now use a warning and re-raise the original exception.
+* #3822: Added clarification about ``editable_wheel`` and ``dist_info`` CLI commands:
+  they should not be called directly with ``python setup.py ...``.
+  Instead they are reserved for internal use of ``setuptools`` (effectively as "private" commands).
+  Users are recommended to rely on build backend APIs (:pep:`517` and :pep:`660`)
+  exposed by ``setuptools.build_meta``.
+
+
 v67.2.0
 -------
 

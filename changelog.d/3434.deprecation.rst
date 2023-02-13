@@ -1,3 +1,0 @@
-Added deprecation warning for ``pkg_resources.declare_namespace``.
-Users that wish to implement namespace packages, are recommended to follow the
-practice described in PEP 420 and omit the ``__init__.py`` file entirely.
