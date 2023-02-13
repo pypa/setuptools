@@ -2290,7 +2290,9 @@ def declare_namespace(packageName):
 
     msg = (
         "Implementing implicit namespace packages (as specified in PEP 420) "
-        "is preferred to `pkg_resources.declare_namespace`."
+        "is preferred to `pkg_resources.declare_namespace`. "
+        "See https://setuptools.pypa.io/en/latest/references/"
+        "keywords.html#keyword-namespace-packages"
     )
     warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
