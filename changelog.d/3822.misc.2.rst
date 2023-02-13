@@ -1,0 +1,5 @@
+Added clarification about ``editable_wheel`` and ``dist_info`` CLI commands:
+they should not be called directly with ``python setup.py ...`` instead they
+are intended for internal use of ``setuptools`` (effectively as "private" commands).
+Users are recommended to user build backend APIs (:pep:`517` and :pep:`660`)
+in ``setuptools.build_meta``.
