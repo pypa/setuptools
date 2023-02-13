@@ -19,7 +19,7 @@ from .._deprecation_warning import SetuptoolsDeprecationWarning
 class dist_info(Command):
     """
     This command is private and reserved for internal use of setuptools,
-    clients should use the ``setuptools.build_meta`` APIs.
+    users should rely on ``setuptools.build_meta`` APIs.
     """
 
     description = "DO NOT CALL DIRECTLY, INTERNAL ONLY: create .dist-info directory"

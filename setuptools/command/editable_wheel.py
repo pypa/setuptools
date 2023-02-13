@@ -111,7 +111,7 @@ Options like `package-data`, `include/exclude-package-data` or
 class editable_wheel(Command):
     """Build 'editable' wheel for development.
     This command is private and reserved for internal use of setuptools,
-    clients should use the ``setuptools.build_meta`` APIs.
+    users should rely on ``setuptools.build_meta`` APIs.
     """
 
     description = "DO NOT CALL DIRECTLY, INTERNAL ONLY: create PEP 660 editable wheel"
