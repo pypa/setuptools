@@ -12,7 +12,6 @@ Create a wheel that, when installed, will make the source package 'editable'
 
 import logging
 import os
-import re
 import shutil
 import sys
 import traceback
@@ -36,10 +35,17 @@ from typing import (
     Union,
 )
 
-from setuptools import Command, SetuptoolsDeprecationWarning, errors, namespaces
-from setuptools.command.build_py import build_py as build_py_cls
-from setuptools.discovery import find_package_path
-from setuptools.dist import Distribution
+from .. import (
+    Command,
+    SetuptoolsDeprecationWarning,
+    _normalization,
+    _path,
+    errors,
+    namespaces,
+)
+from ..discovery import find_package_path
+from ..dist import Distribution
+from .build_py import build_py as build_py_cls
 
 if TYPE_CHECKING:
     from wheel.wheelfile import WheelFile  # noqa
@@ -482,7 +488,7 @@ class _TopLevelFinder:
         ))
 
         name = f"__editable__.{self.name}.finder"
-        finder = _make_identifier(name)
+        finder = _normalization.safe_identifier(name)
         content = bytes(_finder_template(name, roots, namespaces_), "utf-8")
         wheel.writestr(f"{finder}.py", content)
 
@@ -561,7 +567,7 @@ def _simple_layout(
         return set(package_dir) in ({}, {""})
     parent = os.path.commonpath([_parent_path(k, v) for k, v in layout.items()])
     return all(
-        _normalize_path(Path(parent, *key.split('.'))) == _normalize_path(value)
+        _path.same_path(Path(parent, *key.split('.')), value)
         for key, value in layout.items()
     )
 
@@ -690,19 +696,12 @@ def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
     >>> _is_nested("b.a", "path/b/a", "a", "path/a")
     False
     """
-    norm_pkg_path = _normalize_path(pkg_path)
+    norm_pkg_path = _path.normpath(pkg_path)
     rest = pkg.replace(parent, "", 1).strip(".").split(".")
     return (
         pkg.startswith(parent)
-        and norm_pkg_path == _normalize_path(Path(parent_path, *rest))
+        and norm_pkg_path == _path.normpath(Path(parent_path, *rest))
     )
-
-
-def _normalize_path(filename: _Path) -> str:
-    """Normalize a file/dir name for comparison purposes"""
-    # See pkg_resources.normalize_path
-    file = os.path.abspath(filename) if sys.platform == 'cygwin' else filename
-    return os.path.normcase(os.path.realpath(os.path.normpath(file)))
 
 
 def _empty_dir(dir_: _P) -> _P:
@@ -710,18 +709,6 @@ def _empty_dir(dir_: _P) -> _P:
     shutil.rmtree(dir_, ignore_errors=True)
     os.makedirs(dir_)
     return dir_
-
-
-def _make_identifier(name: str) -> str:
-    """Make a string safe to be used as Python identifier.
-    >>> _make_identifier("12abc")
-    '_12abc'
-    >>> _make_identifier("__editable__.myns.pkg-78.9.3_local")
-    '__editable___myns_pkg_78_9_3_local'
-    """
-    safe = re.sub(r'\W|^(?=\d)', '_', name)
-    assert safe.isidentifier()
-    return safe
 
 
 class _NamespaceInstaller(namespaces.Installer):
