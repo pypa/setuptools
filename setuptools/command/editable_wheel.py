@@ -140,18 +140,9 @@ class editable_wheel(Command):
             self._create_wheel_file(bdist_wheel)
         except Exception as ex:
             traceback.print_exc()
-            msg = """
-            Support for editable installs via PEP 660 was recently introduced
-            in `setuptools`. If you are seeing this error, please report to:
-
-            https://github.com/pypa/setuptools/issues
-
-            Meanwhile you can try the legacy behavior by setting an
-            environment variable and trying to install again:
-
-            SETUPTOOLS_ENABLE_FEATURES="legacy-editable"
-            """
-            raise errors.InternalError(cleandoc(msg)) from ex
+            project = self.distribution.name or self.distribution.get_name()
+            _DebuggingInfo.add_help(ex, project)
+            raise
 
     def _ensure_dist_info(self):
         if self.dist_info_dir is None:
@@ -842,3 +833,37 @@ class InformationOnly(UserWarning):
 
 class LinksNotSupported(errors.FileError):
     """File system does not seem to support either symlinks or hard links."""
+
+
+class _DebuggingInfo(InformationOnly):
+    @classmethod
+    def add_help(cls, ex: Exception, project: str):
+        msg = f"""An error happened while installing {project!r} in editable mode.
+
+        ************************************************************************
+        The following steps are recommended to help debugging this problem:
+
+        - Try to install the project normally, without using the editable mode.
+          Does the error still persists?
+          (If it does, try fixing the problem before attempting the editable mode).
+        - If you are using binary extensions, make sure you have all OS-level
+          dependencies installed (e.g. compilers, toolchains, binary libraries, ...).
+        - Try the latest version of setuptools (maybe the error was already fixed).
+        - If you (or your project dependencies) are using any setuptools extension
+          or customization, make sure they support the editable mode.
+
+        After following the steps above, if you think this is related to how setuptools
+        handles editable installations, please submit a reproducible example
+        (see https://stackoverflow.com/help/minimal-reproducible-example) to:
+
+            https://github.com/pypa/setuptools/issues
+
+        More information about editable installs can be found in the docs:
+
+            https://setuptools.pypa.io/en/latest/userguide/development_mode.html
+        ************************************************************************
+        """
+        if hasattr(ex, "add_note"):
+            ex.add_note(msg)
+        else:  # PEP 678 fallback
+            warnings.warn(msg, cls, stacklevel=3)
