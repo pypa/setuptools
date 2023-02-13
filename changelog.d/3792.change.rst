@@ -1,0 +1,2 @@
+Reduced usage of ``pkg_resources`` in ``setuptools`` via internal
+restructuring and refactoring.
