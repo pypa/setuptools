@@ -280,7 +280,9 @@ def check_nsp(dist, attr, value):
             )
         msg = (
             "The namespace_packages parameter is deprecated, "
-            "consider using implicit namespaces instead (PEP 420)."
+            "consider using implicit namespaces instead (PEP 420). "
+            "See https://setuptools.pypa.io/en/latest/references/"
+            "keywords.html#keyword-namespace-packages"
         )
         warnings.warn(msg, SetuptoolsDeprecationWarning)
 

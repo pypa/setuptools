@@ -390,7 +390,10 @@ extensions).
 
 ``namespace_packages``
     .. warning::
-        ``namespace_packages`` is deprecated in favor of native/implicit
+        The ``namespace_packages`` implementation relies on ``pkg_resources``.
+        However, ``pkg_resources`` has some undesirable behaviours, and
+        Setuptools intends to obviate its usage in the future. Therefore,
+        ``namespace_packages`` was deprecated in favor of native/implicit
         namespaces (:pep:`420`). Check :doc:`the Python Packaging User Guide
         <PyPUG:guides/packaging-namespace-packages>` for more information.
 
