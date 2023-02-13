@@ -19,8 +19,12 @@ from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 
 
 class dist_info(Command):
+    """
+    This command is private and reserved for internal use of setuptools,
+    clients should use the ``setuptools.build_meta`` APIs.
+    """
 
-    description = 'create a .dist-info directory'
+    description = "DO NOT CALL DIRECTLY, INTERNAL ONLY: create .dist-info directory"
 
     user_options = [
         ('egg-base=', 'e', "directory containing .egg-info directories"
