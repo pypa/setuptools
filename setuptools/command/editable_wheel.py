@@ -138,10 +138,10 @@ class editable_wheel(Command):
             bdist_wheel.write_wheelfile(self.dist_info_dir)
 
             self._create_wheel_file(bdist_wheel)
-        except Exception as ex:
+        except Exception:
             traceback.print_exc()
             project = self.distribution.name or self.distribution.get_name()
-            _DebuggingInfo.add_help(ex, project)
+            _DebuggingTips.warn(project)
             raise
 
     def _ensure_dist_info(self):
@@ -835,9 +835,9 @@ class LinksNotSupported(errors.FileError):
     """File system does not seem to support either symlinks or hard links."""
 
 
-class _DebuggingInfo(InformationOnly):
+class _DebuggingTips(InformationOnly):
     @classmethod
-    def add_help(cls, ex: Exception, project: str):
+    def warn(cls, project: str):
         msg = f"""An error happened while installing {project!r} in editable mode.
 
         ************************************************************************
@@ -863,7 +863,5 @@ class _DebuggingInfo(InformationOnly):
             https://setuptools.pypa.io/en/latest/userguide/development_mode.html
         ************************************************************************
         """
-        if hasattr(ex, "add_note"):
-            ex.add_note(msg)
-        else:  # PEP 678 fallback
-            warnings.warn(msg, cls, stacklevel=3)
+        # We cannot use `add_notes` since pip hides PEP 678 notes
+        warnings.warn(msg, cls, stacklevel=2)
