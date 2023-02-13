@@ -853,8 +853,9 @@ class _DebuggingTips(InformationOnly):
         - If you (or your project dependencies) are using any setuptools extension
           or customization, make sure they support the editable mode.
 
-        After following the steps above, if you think this is related to how setuptools
-        handles editable installations, please submit a reproducible example
+        After following the steps above, if the problem still persist and
+        you think this is related to how setuptools handles editable installations,
+        please submit a reproducible example
         (see https://stackoverflow.com/help/minimal-reproducible-example) to:
 
             https://github.com/pypa/setuptools/issues
