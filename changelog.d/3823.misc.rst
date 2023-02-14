@@ -1,1 +1,0 @@
-Fixes ``egg_info`` code path triggered during integration with ``pip``.

@@ -1,3 +1,12 @@
+v67.3.1
+-------
+
+
+Misc
+^^^^
+* #3823: Fixes ``egg_info`` code path triggered during integration with ``pip``.
+
+
 v67.3.0
 -------
 
