@@ -159,6 +159,11 @@ Limitations
   whose names coincidentally match installed packages
   may take precedence in :doc:`Python's import system <python:reference/import>`.
   Users are encouraged to avoid such scenarios [#cwd]_.
+- Setuptools will try to give the right precedence to modules in an editable install.
+  However this is not always an easy task. If you have a particular order in
+  ``sys.path`` or some specific import precedence that needs to be respected,
+  the editable installation as supported by Setuptools might not be able to
+  fulfil this requirement, and therefore it might not be the right tool for your use case.
 
 .. attention::
    Editable installs are **not a perfect replacement for regular installs**
