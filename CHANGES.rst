@@ -1,3 +1,13 @@
+v67.3.2
+-------
+
+
+Misc
+^^^^
+* #3827: Improve deprecation warning message on ``pkg_resources.declare_namespace``
+  to display package name.
+
+
 v67.3.1
 -------
 
