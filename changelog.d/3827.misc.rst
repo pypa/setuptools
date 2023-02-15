@@ -1,0 +1,2 @@
+Improve deprecation warning message on ``pkg_resources.declare_namespace``
+to display package name.
