@@ -495,6 +495,49 @@ class TestFinderTemplate:
             three = import_module("parent.child.three")
             assert three.x == 3
 
+    @pytest.mark.parametrize("use_namespace", (False, True))
+    def test_precedence(self, tmp_path, use_namespace):
+        """
+        Editable installs should take precedence over other entries in ``sys.path``
+        See issues #3806, #3828.
+        """
+        files = {
+            "project1": {"pkg": {"__init__.py": "", "mod.py": "x = 1"}},
+            "project2": {"pkg": {"mod.py": "x = 2"}},
+        }
+        if use_namespace:
+            namespaces = {"pkg": [str(tmp_path / "project2/pkg")]}
+        else:
+            files["project2"]["pkg"]["__init__.py"] = ""
+            namespaces = {}
+
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {"pkg": str(tmp_path / "project2/pkg")}
+        template = _finder_template(str(uuid4()), mapping, namespaces)
+
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in ("pkg", "pkg.mod"):
+                sys.modules.pop(mod, None)
+
+            # Simulate a sys.path entry with low precedence
+            sys.path.append(str(tmp_path / "project1"))
+
+            self.install_finder(template)
+            mod = import_module("pkg.mod")
+
+            # Editable install should take precedence
+            assert mod.x == 2
+
+            try:
+                expected = str((tmp_path / "project2/pkg").resolve())
+                assert_path(import_module("pkg"), expected)
+            except AssertionError:
+                if use_namespace:
+                    msg = "Namespace priority is tricky (related: pfmoore/editables#21)"
+                    pytest.xfail(reason=f"TODO: {msg}")
+                raise
+
     def test_no_recursion(self, tmp_path):
         # See issue #3550
         files = {
