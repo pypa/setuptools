@@ -731,11 +731,12 @@ class _NamespaceInstaller(namespaces.Installer):
 
 _FINDER_TEMPLATE = """\
 import sys
-from importlib.machinery import ModuleSpec
+from importlib.machinery import ModuleSpec, PathFinder
 from importlib.machinery import all_suffixes as module_suffixes
 from importlib.util import spec_from_file_location
 from itertools import chain
 from pathlib import Path
+from zipimport import zipimporter
 
 MAPPING = {mapping!r}
 NAMESPACES = {namespaces!r}
@@ -786,18 +787,24 @@ class _EditableNamespaceFinder:  # PathEntryFinder
         return None
 
 
+def _insert_before(alist, reference, new_item):
+    j = next((i for i, x in enumerate(alist) if x == reference), len(alist))
+    alist.insert(j, new_item)
+
+
 def install():
     if not any(finder == _EditableFinder for finder in sys.meta_path):
-        sys.meta_path.append(_EditableFinder)
+        # Avoid inserting at 0 to prevent conflicts with other finders, e.g. pip's
+        _insert_before(sys.meta_path, PathFinder, _EditableFinder)
 
     if not NAMESPACES:
         return
 
     if not any(hook == _EditableNamespaceFinder._path_hook for hook in sys.path_hooks):
         # PathEntryFinder is needed to create NamespaceSpec without private APIS
-        sys.path_hooks.append(_EditableNamespaceFinder._path_hook)
+        _insert_before(sys.path_hooks, zipimporter, _EditableNamespaceFinder._path_hook)
     if PATH_PLACEHOLDER not in sys.path:
-        sys.path.append(PATH_PLACEHOLDER)  # Used just to trigger the path hook
+        sys.path.insert(0, PATH_PLACEHOLDER)  # Used just to trigger the path hook
 """
 
 
