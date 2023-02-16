@@ -2,6 +2,9 @@ name: tests
 
 on: [push, pull_request, workflow_dispatch]
 
+permissions:
+  contents: read
+
 concurrency:
   group: >-
     ${{ github.workflow }}-
@@ -230,6 +233,8 @@ jobs:
   release:
     needs:
     - check
+    permissions:
+      contents: write
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 75
