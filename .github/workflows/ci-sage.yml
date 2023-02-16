@@ -43,6 +43,9 @@ on:
   workflow_dispatch:
     # Allow to run manually
 
+permissions:
+  contents: read
+
 env:
   # Ubuntu packages to install so that the project's "setup.py sdist" can succeed
   DIST_PREREQ: python3
