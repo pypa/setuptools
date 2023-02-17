@@ -1,1 +1,1 @@
-Improve token permissions on ``main.yml`` and ``ci-sage.yml``.
+Improve token permissions on ``main.yml`` and ``ci-sage.yml`` -- by :user:`joycebrum`
