@@ -2,6 +2,8 @@
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
 	*/.tox/*
+disable_warnings =
+	couldnt-parse
 
 [report]
 show_missing = True
