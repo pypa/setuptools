@@ -44,7 +44,7 @@ different aspect of the build. In ``setuptools``, however, these command
 objects are just a design abstraction that encapsulate logic and help to
 organise the code.
 
-You can overwrite exiting commands (or add new ones) by defining entry
+You can overwrite existing commands (or add new ones) by defining entry
 points in the ``distutils.commands`` group.  For example, if you wanted to add
 a ``foo`` command, you might add something like this to your project:
 
