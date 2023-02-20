@@ -1,0 +1,1 @@
+Restore quoted ``#include`` argument to ``has_function``.
