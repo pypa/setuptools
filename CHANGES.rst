@@ -1,3 +1,12 @@
+v67.3.3
+-------
+
+
+Misc
+^^^^
+* #3820: Restore quoted ``#include`` argument to ``has_function``.
+
+
 v67.3.2
 -------
 
