@@ -1,2 +1,0 @@
-Update vendored ``importlib-metadata`` (to 6.0.0) and
-``importlib-resources`` (to 5.10.2)

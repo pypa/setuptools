@@ -1,3 +1,13 @@
+v67.4.0
+-------
+
+
+Changes
+^^^^^^^
+* #3832: Update vendored ``importlib-metadata`` (to 6.0.0) and
+  ``importlib-resources`` (to 5.10.2)
+
+
 v67.3.3
 -------
 
