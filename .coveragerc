@@ -2,7 +2,8 @@
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
 	*/.tox/*
-	*/pep517-build-env-*
+disable_warnings =
+	couldnt-parse
 
 	# local
 	*/_validate_pyproject/*  # generated code, tested in `validate-pyproject`
