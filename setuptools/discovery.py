@@ -274,7 +274,6 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "benchmarks",
         "exercise",
         "exercises",
-        "htmlcov",  # Coverage.py
         # ---- Hidden files/Private modules ----
         "[._]*",
     )
