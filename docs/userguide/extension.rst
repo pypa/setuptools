@@ -78,7 +78,7 @@ the ``setuptools.errors`` module.
 .. autoclass:: setuptools.Command
    :members:
 
-.. _setuptools sub commands:
+.. _custom build steps:
 
 Adding Custom Build Steps
 -------------------------
