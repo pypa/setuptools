@@ -2740,7 +2740,7 @@ class Distribution:
             notes = "\n".join(getattr(ex, "__notes__", []))  # PEP 678
             msg = f"""!!\n\n
             *************************************************************************
-            Invalid Version: {str(ex)}\n{notes}
+            {str(ex)}\n{notes}
 
             This is a long overdue deprecation.
             For the time being, `pkg_resources` will use `{self._parsed_version}`
