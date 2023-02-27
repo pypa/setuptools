@@ -1,28 +1,62 @@
 import sys
 import warnings
+from operator import itemgetter
 from typing import TYPE_CHECKING, List, Dict
 from distutils.command.build import build as _build
 
 from setuptools import SetuptoolsDeprecationWarning
+from .._importlib import metadata
 
 if sys.version_info >= (3, 8):
     from typing import Protocol
-elif TYPE_CHECKING:
+elif TYPE_CHECKING:  # pragma: no cover
     from typing_extensions import Protocol
-else:
+else:  # pragma: no cover
     from abc import ABC as Protocol
 
 
 _ORIGINAL_SUBCOMMANDS = {"build_py", "build_clib", "build_ext", "build_scripts"}
+_BUILD_STEPS_ENTRYPOINT = "setuptools.build_steps"
 
 
 class build(_build):
-    # copy to avoid sharing the object with parent class
-    sub_commands = _build.sub_commands[:]
+    def initialize_options(self):
+        super().initialize_options()
+        self.sub_commands = _build.sub_commands[:]  # copy to avoid shared refs.
+        self._sub_commands_loaded_from_entry_points = False
 
     def get_sub_commands(self):
+        f"""Extends :meth:`distutils.command.build.build.get_sub_commands` to auto-load
+        from ``{_BUILD_STEPS_ENTRYPOINT}`` entry-points.
+
+        The entry-point value should be a subclass of :class:`Command`.
+        If defined by this class, the following (optional) attributes will be
+        considered:
+
+        - ``priority`` (:obj:`int`): Will be used to sort the available entry-points.
+          When two entry-points have the same named, the one with highest priority
+          supersedes the one with lowest priority. By default, the value ``0`` is used.
+        - ``condition`` (:obj:`str`): name of a method in the parent command
+          class. If this method returns ``False`` the sub command is skipped.
+          By default, no condition is analysed.
+        - ``insert_build_step``: Function that is used to insert the custom build step
+          in the exist list of build sub-commands. By default ``list.append`` is used,
+          which means that the build step will be inserted after all the sub-commands
+          that are built into ``setuptools`` (e.g. ``build_py``, ``build_ext``, ...).
+          If given ``insert_build_step`` should be a class or static method that accepts
+          2 arguments: the ``build.sub_commands`` list, and an entry representing the
+          custom build step being inserted.
+        """
+        if not self._sub_commands_loaded_from_entry_points:
+            self._verify_distutils_usage()
+            self._insert_custom_steps()
+            self._sub_commands_loaded_from_entry_points = True
+
+        return super().get_sub_commands()
+
+    def _verify_distutils_usage(self):
         subcommands = {cmd[0] for cmd in _build.sub_commands}
-        if subcommands - _ORIGINAL_SUBCOMMANDS:
+        if subcommands - _ORIGINAL_SUBCOMMANDS:  # pragma: no cover
             msg = """
             It seems that you are using `distutils.command.build` to add
             new subcommands. Using `distutils` directly is considered deprecated,
@@ -30,7 +64,25 @@ class build(_build):
             """
             warnings.warn(msg, SetuptoolsDeprecationWarning)
             self.sub_commands = _build.sub_commands
-        return super().get_sub_commands()
+
+    def _insert_custom_steps(self):
+        available = []
+        for ep in metadata.entry_points(group=_BUILD_STEPS_ENTRYPOINT):
+            cls = ep.load()
+            cls.command_name = ep.name
+            priority = getattr(cls, "priority", 0)
+            available.append(((priority, ep.name), ep.name, cls))
+
+        order = itemgetter(0)
+        unique = {item[1]: item for item in sorted(available, key=order)}
+        # ^-- dict insert with ASC order: removes duplicates keeping priority.
+
+        for _, name, cls in sorted(unique.values(), key=order, reverse=True):
+            # reversed sort makes sure higher priority is invoked first
+            insert_fn = getattr(cls, "insert_build_step", list.append)
+            condition = getattr(cls, "condition", None)
+            insert_fn(self.sub_commands, (name, condition))
+            self.distribution.cmdclass[name] = cls
 
 
 class SubCommand(Protocol):

@@ -177,9 +177,6 @@ class Command(_Command):
         vars(self) with any keyword parameters.
         """
         super().__init__(dist)
-        self._sub_commands_loaded_from_entry_points = False
-        self.sub_commands = self.__class__.sub_commands[:]
-        # ^-- avoid modifying class attribute directly
         vars(self).update(kw)
 
     def _ensure_stringlike(self, option, what, default=None):
@@ -224,51 +221,6 @@ class Command(_Command):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
         return cmd
-
-    def get_sub_commands(self):
-        """Extends :meth:`distutils.cmd.Command.get_sub_commands` to auto-load
-        from ``setuptools.sub_commands.*`` entry-points.
-
-        The entry point value should be a subclass of :class:`Command`.
-        If defined by this class, the following (optional) attributes will be
-        considered:
-
-        - ``after`` or ``before`` (:obj:`str`): name of another (already
-          defined) sub command. This influences the order sub commands run.
-        - ``condition`` (:obj:`str`): name of a method in the parent command
-          class. If this method returns ``False`` the sub command is skipped.
-        """
-        from ._importlib import metadata
-
-        if not self._sub_commands_loaded_from_entry_points:
-            names = [cmd[0] for cmd in self.sub_commands]
-            group = f"setuptools.sub_commands.{self.get_command_name()}"
-
-            for ep in metadata.entry_points(group=group):
-                cls = ep.load()
-                cls.command_name = ep.name
-                entry = (ep.name, getattr(cls, 'condition', None))
-                idx = _find_sub_command_index(cls, names)
-                names.insert(idx, ep.name)
-                self.sub_commands.insert(idx, entry)
-                self.distribution.cmdclass[ep.name] = cls
-
-            self._sub_commands_loaded_from_entry_points = True
-
-        return _Command.get_sub_commands(self)
-
-
-def _find_sub_command_index(cls, existing):
-    ref = getattr(cls, 'after', None) or getattr(cls, 'before', None)
-    try:
-        idx = existing.index(ref) if ref else len(existing)
-        if getattr(cls, 'after', None):
-            idx += 1
-        return idx
-    except IndexError as ex:
-        msg = f"Impossible to add sub command {cls.command_name!r}. "
-        msg += f"Ordering reference {ref!r} was not found among {existing!r}."
-        raise ValueError(msg) from ex
 
 
 def _find_all_simple(path):
