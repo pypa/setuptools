@@ -23,7 +23,7 @@ class build(_build):
     def initialize_options(self):
         super().initialize_options()
         self.sub_commands = _build.sub_commands[:]  # copy to avoid shared refs.
-        self._sub_commands_loaded_from_entry_points = False
+        self._steps_loaded_from_entry_points = False
 
     def get_sub_commands(self):
         f"""Extends :meth:`distutils.command.build.build.get_sub_commands` to auto-load
@@ -36,10 +36,10 @@ class build(_build):
 
         See :doc:`userguide/extension` for more details
         """
-        if not self._sub_commands_loaded_from_entry_points:
+        if not self._steps_loaded_from_entry_points:
             self._verify_distutils_usage()
             self._insert_custom_steps()
-            self._sub_commands_loaded_from_entry_points = True
+            self._steps_loaded_from_entry_points = True
 
         return super().get_sub_commands()
 
