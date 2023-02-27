@@ -30,22 +30,11 @@ class build(_build):
         from ``{_BUILD_STEPS_ENTRYPOINT}`` entry-points.
 
         The entry-point value should be a subclass of :class:`Command`.
-        If defined by this class, the following (optional) attributes will be
-        considered:
+        If defined, the following (optional) attributes will be considered::
 
-        - ``priority`` (:obj:`int`): Will be used to sort the available entry-points.
-          When two entry-points have the same named, the one with highest priority
-          supersedes the one with lowest priority. By default, the value ``0`` is used.
-        - ``condition`` (:obj:`str`): name of a method in the parent command
-          class. If this method returns ``False`` the sub command is skipped.
-          By default, no condition is analysed.
-        - ``insert_build_step``: Function that is used to insert the custom build step
-          in the exist list of build sub-commands. By default ``list.append`` is used,
-          which means that the build step will be inserted after all the sub-commands
-          that are built into ``setuptools`` (e.g. ``build_py``, ``build_ext``, ...).
-          If given ``insert_build_step`` should be a class or static method that accepts
-          2 arguments: the ``build.sub_commands`` list, and an entry representing the
-          custom build step being inserted.
+            priority, condition, insert_build_step
+
+        See :doc:`userguide/extension` for more details
         """
         if not self._sub_commands_loaded_from_entry_points:
             self._verify_distutils_usage()
@@ -128,7 +117,7 @@ class SubCommand(Protocol):
     """Boolean flag that will be set to ``True`` when setuptools is used for an
     editable installation (see :pep:`660`).
     Implementations **SHOULD** explicitly set the default value of this attribute to
-    ``False``.
+    ``False`` in ``initialize_options``.
     When subcommands run, they can use this flag to perform optimizations or change
     their behaviour accordingly.
     """
