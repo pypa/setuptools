@@ -382,7 +382,7 @@ class CCompiler:
             raise TypeError("'output_dir' must be a string or None")
 
         if macros is None:
-            macros = self.macros
+            macros = list(self.macros)
         elif isinstance(macros, list):
             macros = macros + (self.macros or [])
         else:
@@ -441,14 +441,14 @@ class CCompiler:
         fixed versions of all arguments.
         """
         if libraries is None:
-            libraries = self.libraries
+            libraries = list(self.libraries)
         elif isinstance(libraries, (list, tuple)):
             libraries = list(libraries) + (self.libraries or [])
         else:
             raise TypeError("'libraries' (if supplied) must be a list of strings")
 
         if library_dirs is None:
-            library_dirs = self.library_dirs
+            library_dirs = list(self.library_dirs)
         elif isinstance(library_dirs, (list, tuple)):
             library_dirs = list(library_dirs) + (self.library_dirs or [])
         else:
@@ -458,7 +458,7 @@ class CCompiler:
         library_dirs += self.__class__.library_dirs
 
         if runtime_library_dirs is None:
-            runtime_library_dirs = self.runtime_library_dirs
+            runtime_library_dirs = list(self.runtime_library_dirs)
         elif isinstance(runtime_library_dirs, (list, tuple)):
             runtime_library_dirs = list(runtime_library_dirs) + (
                 self.runtime_library_dirs or []
