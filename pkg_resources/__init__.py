@@ -12,6 +12,12 @@ The package resource API is designed to work with normal filesystem packages,
 .egg files, and unpacked .egg files.  It can also work in a limited way with
 .zip files and with custom PEP 302 loaders that support the ``get_data()``
 method.
+
+This module is deprecated. Users are directed to
+`importlib.resources <https://docs.python.org/3/library/importlib.resources.html>`_
+and
+`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_
+instead.
 """
 
 import sys
@@ -110,6 +116,9 @@ resource_exists = None
 _distribution_finders = None
 _namespace_handlers = None
 _namespace_packages = None
+
+
+warnings.warn("pkg_resources is deprecated as an API", DeprecationWarning)
 
 
 class PEP440Warning(RuntimeWarning):
@@ -914,9 +923,7 @@ class WorkingSet:
         list(map(shadow_set.add, self))
 
         for project_name in plugin_projects:
-
             for dist in plugin_env[project_name]:
-
                 req = [dist.as_requirement()]
 
                 try:
@@ -1822,7 +1829,6 @@ class ZipProvider(EggProvider):
 
     # FIXME: 'ZipProvider._extract_resource' is too complex (12)
     def _extract_resource(self, manager, zip_path):  # noqa: C901
-
         if zip_path in self._index():
             for name in self._index()[zip_path]:
                 last = self._extract_resource(manager, os.path.join(zip_path, name))
@@ -1836,7 +1842,6 @@ class ZipProvider(EggProvider):
                 '"os.rename" and "os.unlink" are not supported ' 'on this platform'
             )
         try:
-
             real_path = manager.get_cache_path(self.egg_name, self._parts(zip_path))
 
             if self._is_current(real_path, zip_path):

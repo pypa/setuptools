@@ -6,7 +6,6 @@ import contextlib
 import site
 import io
 
-import pkg_resources
 from filelock import FileLock
 
 
@@ -28,11 +27,7 @@ def environment(**replacements):
     In a context, patch the environment with replacements. Pass None values
     to clear the values.
     """
-    saved = dict(
-        (key, os.environ[key])
-        for key in replacements
-        if key in os.environ
-    )
+    saved = dict((key, os.environ[key]) for key in replacements if key in os.environ)
 
     # remove values that are null
     remove = (key for (key, value) in replacements.items() if value is None)
@@ -81,6 +76,8 @@ def save_user_site_setting():
 
 @contextlib.contextmanager
 def save_pkg_resources_state():
+    import pkg_resources
+
     pr_state = pkg_resources.__getstate__()
     # also save sys.path
     sys_path = sys.path[:]
