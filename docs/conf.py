@@ -226,7 +226,7 @@ towncrier_draft_include_empty = False
 extensions += ['jaraco.tidelift']
 
 # Add icons (aka "favicons") to documentation
-extensions += ['sphinx-favicon']
+extensions += ['sphinx_favicon']
 html_static_path = ['images']  # should contain the folder with icons
 
 # Add support for nice Not Found 404 pages
