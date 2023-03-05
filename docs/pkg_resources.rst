@@ -11,12 +11,13 @@ subpackages, and APIs for managing Python's current "working set" of active
 packages.
 
 .. attention::
-   Use of ``pkg_resources`` is discouraged in favor of
+   Use of ``pkg_resources`` is deprecated in favor of
    `importlib.resources <https://docs.python.org/3/library/importlib.html#module-importlib.resources>`_,
    `importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_,
    and their backports (:pypi:`importlib_resources`,
    :pypi:`importlib_metadata`).
-   Please consider using those libraries instead of pkg_resources.
+   Users should refrain from new usage of ``pkg_resources`` and
+   should work to port to importlib-based solutions.
 
 
 --------
