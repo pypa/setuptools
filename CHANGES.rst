@@ -1,3 +1,12 @@
+v67.5.0
+-------
+
+
+Changes
+^^^^^^^
+* #3843: Although pkg_resources has been discouraged for use, some projects still consider pkg_resources viable for usage. This change makes it clear that pkg_resources should not be used, emitting a DeprecationWarning when imported.
+
+
 v67.4.0
 -------
 
