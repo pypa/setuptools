@@ -293,18 +293,9 @@ class ConfigHandler(Generic[Target]):
             # Already inhabited. Skipping.
             return
 
-        skip_option = False
-        parser = self.parsers.get(option_name)
-        if parser:
-            try:
-                parsed = parser(value)
-
-            except Exception:
-                skip_option = True
-                if not self.ignore_option_errors:
-                    raise
-
-        if skip_option:
+        try:
+            parsed = self.parsers.get(option_name, lambda x: x)(value)
+        except (Exception,) * self.ignore_option_errors:
             return
 
         setter = getattr(target_obj, 'set_%s' % option_name, None)
