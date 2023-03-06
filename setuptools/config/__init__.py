@@ -6,7 +6,7 @@ from functools import wraps
 from textwrap import dedent
 from typing import Callable, TypeVar, cast
 
-from .._deprecation_warning import SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsDeprecationWarning
 from . import setupcfg
 
 Fn = TypeVar("Fn", bound=Callable)

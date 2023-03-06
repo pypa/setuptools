@@ -13,7 +13,7 @@ import warnings
 from pathlib import Path
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+from setuptools.warnings import SetuptoolsDeprecationWarning
 from setuptools.extern.more_itertools import unique_everseen
 
 

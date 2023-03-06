@@ -10,7 +10,7 @@ from functools import partial
 
 from . import _reqs
 from .wheel import Wheel
-from ._deprecation_warning import SetuptoolsDeprecationWarning
+from .warnings import SetuptoolsDeprecationWarning
 
 
 def _fixup_find_links(find_links):

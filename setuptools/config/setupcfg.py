@@ -31,7 +31,7 @@ from setuptools.extern.packaging.requirements import Requirement, InvalidRequire
 from setuptools.extern.packaging.markers import default_environment as marker_env
 from setuptools.extern.packaging.version import Version, InvalidVersion
 from setuptools.extern.packaging.specifiers import SpecifierSet
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from . import expand
 

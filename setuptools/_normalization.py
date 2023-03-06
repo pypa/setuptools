@@ -10,7 +10,7 @@ from typing import Union
 
 from setuptools.extern import packaging
 
-from ._deprecation_warning import SetuptoolsDeprecationWarning
+from .warnings import SetuptoolsDeprecationWarning
 
 _Path = Union[str, Path]
 

@@ -43,7 +43,7 @@ import distutils
 from . import errors
 from ._path import same_path
 from ._reqs import parse_strings
-from ._deprecation_warning import SetuptoolsDeprecationWarning
+from .warnings import SetuptoolsDeprecationWarning
 from distutils.util import strtobool
 
 

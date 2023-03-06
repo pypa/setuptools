@@ -13,7 +13,7 @@ from distutils.core import Command
 from pathlib import Path
 
 from .. import _normalization
-from .._deprecation_warning import SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsDeprecationWarning
 
 
 class dist_info(Command):

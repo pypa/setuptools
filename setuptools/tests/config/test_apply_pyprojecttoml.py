@@ -15,7 +15,7 @@ import pytest
 from ini2toml.api import Translator
 
 import setuptools  # noqa ensure monkey patch to metadata
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+from setuptools.warnings import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand

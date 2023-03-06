@@ -18,7 +18,7 @@ from types import MappingProxyType
 from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple,
                     Type, Union, cast)
 
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 if TYPE_CHECKING:
     from setuptools._importlib import metadata  # noqa

@@ -11,7 +11,7 @@ import distutils.core
 from distutils.errors import DistutilsOptionError
 from distutils.util import convert_path as _convert_path
 
-from ._deprecation_warning import SetuptoolsDeprecationWarning
+from .warnings import SetuptoolsDeprecationWarning
 
 import setuptools.version
 from setuptools.extension import Extension

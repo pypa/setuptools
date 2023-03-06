@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
+from setuptools.warnings import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
 from setuptools.extern.packaging.requirements import InvalidRequirement
