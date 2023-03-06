@@ -299,12 +299,15 @@ class _ConfigSettingsTranslator:
         yield from self._get_config("--build-option", config_settings)
 
         if bad_args:
-            msg = f"""
-            The arguments {bad_args!r} were given via `--global-option`.
-            Please use `--build-option` instead,
-            `--global-option` is reserved to flags like `--verbose` or `--quiet`.
-            """
-            warnings.warn(msg, SetuptoolsDeprecationWarning)
+            SetuptoolsDeprecationWarning.emit(
+                "Incompatible `config_settings` passed to build backend.",
+                f"""
+                The arguments {bad_args!r} were given via `--global-option`.
+                Please use `--build-option` instead,
+                `--global-option` is reserved to flags like `--verbose` or `--quiet`.
+                """,
+                due_date=(2023, 8, 11),  # Warning introduced in v64.0.1, 11/Aug/2022.
+            )
 
 
 class _BuildMetaBackend(_ConfigSettingsTranslator):
