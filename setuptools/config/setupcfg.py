@@ -11,8 +11,20 @@ import warnings
 from collections import defaultdict
 from functools import partial
 from functools import wraps
-from typing import (TYPE_CHECKING, Callable, Any, Dict, Generic, Iterable, List,
-                    Optional, Set, Tuple, TypeVar, Union)
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Any,
+    Dict,
+    Generic,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.requirements import Requirement, InvalidRequirement
@@ -39,9 +51,7 @@ Target = TypeVar("Target", bound=Union["Distribution", "DistributionMetadata"])
 
 
 def read_configuration(
-    filepath: _Path,
-    find_others=False,
-    ignore_option_errors=False
+    filepath: _Path, find_others=False, ignore_option_errors=False
 ) -> dict:
     """Read given configuration file and returns options from it as a dict.
 
@@ -76,7 +86,8 @@ def apply_configuration(dist: "Distribution", filepath: _Path) -> "Distribution"
 
 
 def _apply(
-    dist: "Distribution", filepath: _Path,
+    dist: "Distribution",
+    filepath: _Path,
     other_files: Iterable[_Path] = (),
     ignore_option_errors: bool = False,
 ) -> Tuple["ConfigHandler", ...]:
@@ -137,7 +148,7 @@ def configuration_to_dict(handlers: Tuple["ConfigHandler", ...]) -> dict:
 def parse_configuration(
     distribution: "Distribution",
     command_options: AllCommandOptions,
-    ignore_option_errors=False
+    ignore_option_errors=False,
 ) -> Tuple["ConfigMetadataHandler", "ConfigOptionsHandler"]:
     """Performs additional parsing of configuration options
     for a distribution.
@@ -476,7 +487,7 @@ class ConfigHandler(Generic[Target]):
 
         :param dict section_options:
         """
-        for (name, (_, value)) in section_options.items():
+        for name, (_, value) in section_options.items():
             with contextlib.suppress(KeyError):
                 # Keep silent for a new option may appear anytime.
                 self[name] = value
@@ -487,7 +498,6 @@ class ConfigHandler(Generic[Target]):
 
         """
         for section_name, section_options in self.sections.items():
-
             method_postfix = ''
             if section_name:  # [section.option] variant
                 method_postfix = '_%s' % section_name
@@ -524,7 +534,6 @@ class ConfigHandler(Generic[Target]):
 
 
 class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
-
     section_prefix = 'metadata'
 
     aliases = {
@@ -547,7 +556,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         ignore_option_errors: bool,
         ensure_discovered: expand.EnsurePackagesDiscovered,
         package_dir: Optional[dict] = None,
-        root_dir: _Path = os.curdir
+        root_dir: _Path = os.curdir,
     ):
         super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.package_dir = package_dir
@@ -615,7 +624,6 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
 
 
 class ConfigOptionsHandler(ConfigHandler["Distribution"]):
-
     section_prefix = 'options'
 
     def __init__(
@@ -760,7 +768,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         """
         parsed = self._parse_section_to_dict_with_key(
             section_options,
-            lambda k, v: self._parse_requirements_list(f"extras_require[{k}]", v)
+            lambda k, v: self._parse_requirements_list(f"extras_require[{k}]", v),
         )
 
         self['extras_require'] = parsed
