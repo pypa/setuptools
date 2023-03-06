@@ -1,3 +1,23 @@
+v67.5.1
+-------
+
+
+Misc
+^^^^
+* #3836: Fixed interaction between ``setuptools``' package auto-discovery and
+  auto-generated ``htmlcov`` files.
+
+  Previously, the ``htmlcov`` name was ignored when searching for single-file
+  modules, however the correct behaviour is to ignore it when searching for
+  packages (since it is supposed to be a directory, see `coverage config`_)
+  -- by :user:`yukihiko-shinoda`.
+
+  .. _coverage config: https://coverage.readthedocs.io/en/stable/config.html#html-directory
+* #3838: Improved error messages for ``pyproject.toml`` validations.
+* #3839: Fixed ``pkg_resources`` errors caused when parsing metadata of packages that
+  are already installed but do not conform with PEP 440.
+
+
 v67.5.0
 -------
 
