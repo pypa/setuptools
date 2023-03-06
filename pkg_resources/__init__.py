@@ -121,6 +121,9 @@ _namespace_packages = None
 warnings.warn("pkg_resources is deprecated as an API", DeprecationWarning)
 
 
+_PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
+
+
 class PEP440Warning(RuntimeWarning):
     """
     Used when there is an issue with a version or specifier not complying with
@@ -1396,6 +1399,38 @@ def safe_version(version):
         return re.sub('[^A-Za-z0-9.]+', '-', version)
 
 
+def _forgiving_version(version):
+    """Fallback when ``safe_version`` is not safe enough
+    >>> parse_version(_forgiving_version('0.23ubuntu1'))
+    <Version('0.23.dev0+sanitized.ubuntu1')>
+    >>> parse_version(_forgiving_version('0.23-'))
+    <Version('0.23.dev0+sanitized')>
+    >>> parse_version(_forgiving_version('0.-_'))
+    <Version('0.dev0+sanitized')>
+    >>> parse_version(_forgiving_version('42.+?1'))
+    <Version('42.dev0+sanitized.1')>
+    >>> parse_version(_forgiving_version('hello world'))
+    <Version('0.dev0+sanitized.hello.world')>
+    """
+    version = version.replace(' ', '.')
+    match = _PEP440_FALLBACK.search(version)
+    if match:
+        safe = match["safe"]
+        rest = version[len(safe):]
+    else:
+        safe = "0"
+        rest = version
+    local = f"sanitized.{_safe_segment(rest)}".strip(".")
+    return f"{safe}.dev0+{local}"
+
+
+def _safe_segment(segment):
+    """Convert an arbitrary string into a safe segment"""
+    segment = re.sub('[^A-Za-z0-9.]+', '-', segment)
+    segment = re.sub('-[^A-Za-z0-9]+', '-', segment)
+    return re.sub(r'\.[^A-Za-z0-9]+', '.', segment).strip(".-")
+
+
 def safe_extra(extra):
     """Convert an arbitrary string to a standard 'extra' name
 
@@ -2642,7 +2677,7 @@ class Distribution:
     @property
     def hashcmp(self):
         return (
-            self.parsed_version,
+            self._forgiving_parsed_version,
             self.precedence,
             self.key,
             self.location,
@@ -2699,6 +2734,32 @@ class Distribution:
                 raise packaging.version.InvalidVersion(f"{str(ex)} {info}") from None
 
         return self._parsed_version
+
+    @property
+    def _forgiving_parsed_version(self):
+        try:
+            return self.parsed_version
+        except packaging.version.InvalidVersion as ex:
+            self._parsed_version = parse_version(_forgiving_version(self.version))
+
+            notes = "\n".join(getattr(ex, "__notes__", []))  # PEP 678
+            msg = f"""!!\n\n
+            *************************************************************************
+            {str(ex)}\n{notes}
+
+            This is a long overdue deprecation.
+            For the time being, `pkg_resources` will use `{self._parsed_version}`
+            as a replacement to avoid breaking existing environments,
+            but no future compatibility is guaranteed.
+
+            If you maintain package {self.project_name} you should implement
+            the relevant changes to adequate the project to PEP 440 immediately.
+            *************************************************************************
+            \n\n!!
+            """
+            warnings.warn(msg, DeprecationWarning)
+
+            return self._parsed_version
 
     @property
     def version(self):

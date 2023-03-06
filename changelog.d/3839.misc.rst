@@ -1,0 +1,2 @@
+Fixed ``pkg_resources`` errors caused when parsing metadata of packages that
+are already installed but do not conform with PEP 440.
