@@ -297,7 +297,7 @@ class ConfigHandler(Generic[Target]):
         parser = self.parsers.get(option_name)
         if parser:
             try:
-                value = parser(value)
+                parsed = parser(value)
 
             except Exception:
                 skip_option = True
@@ -309,9 +309,9 @@ class ConfigHandler(Generic[Target]):
 
         setter = getattr(target_obj, 'set_%s' % option_name, None)
         if setter is None:
-            setattr(target_obj, option_name, value)
+            setattr(target_obj, option_name, parsed)
         else:
-            setter(value)
+            setter(parsed)
 
         self.set_options.append(option_name)
 
