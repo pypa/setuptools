@@ -279,15 +279,14 @@ class ConfigHandler(Generic[Target]):
         )
 
     def __setitem__(self, option_name, value):
-        unknown = tuple()
         target_obj = self.target_obj
 
         # Translate alias into real name.
         option_name = self.aliases.get(option_name, option_name)
 
-        current_value = getattr(target_obj, option_name, unknown)
-
-        if current_value is unknown:
+        try:
+            current_value = getattr(target_obj, option_name)
+        except AttributeError:
             raise KeyError(option_name)
 
         if current_value:
