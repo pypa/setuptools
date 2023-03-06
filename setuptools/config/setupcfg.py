@@ -253,7 +253,7 @@ class ConfigHandler(Generic[Target]):
     ):
         self.ignore_option_errors = ignore_option_errors
         self.target_obj = target_obj
-        self.sections = self._section_options(options)
+        self.sections = dict(self._section_options(options))
         self.set_options: List[str] = []
         self.ensure_discovered = ensure_discovered
         self._referenced_files: Set[str] = set()
@@ -263,17 +263,11 @@ class ConfigHandler(Generic[Target]):
 
     @classmethod
     def _section_options(cls, options: AllCommandOptions):
-        sections: AllCommandOptions = {}
-
-        section_prefix = cls.section_prefix
-        for section_name, section_options in options.items():
-            if not section_name.startswith(section_prefix):
+        for full_name, value in options.items():
+            pre, sep, name = full_name.partition(cls.section_prefix)
+            if pre:
                 continue
-
-            section_name = section_name.replace(section_prefix, '').strip('.')
-            sections[section_name] = section_options
-
-        return sections
+            yield name.lstrip('.'), value
 
     @property
     def parsers(self):
