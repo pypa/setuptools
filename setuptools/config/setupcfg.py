@@ -298,11 +298,9 @@ class ConfigHandler(Generic[Target]):
         except (Exception,) * self.ignore_option_errors:
             return
 
-        setter = getattr(target_obj, 'set_%s' % option_name, None)
-        if setter is None:
-            setattr(target_obj, option_name, parsed)
-        else:
-            setter(parsed)
+        simple_setter = functools.partial(target_obj.__setattr__, option_name)
+        setter = getattr(target_obj, 'set_%s' % option_name, simple_setter)
+        setter(parsed)
 
         self.set_options.append(option_name)
 
