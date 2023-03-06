@@ -10,7 +10,7 @@
 # *** PLEASE DO NOT MODIFY DIRECTLY: Automatically generated code *** 
 
 
-VERSION = "2.16.2"
+VERSION = "2.16.3"
 import re
 from .fastjsonschema_exceptions import JsonSchemaValueException
 
@@ -185,7 +185,7 @@ def validate_https___setuptools_pypa_io_en_latest_references_keywords_html(data,
                     if data__packages_is_list:
                         data__packages_len = len(data__packages)
                         for data__packages_x, data__packages_item in enumerate(data__packages):
-                            validate_https___setuptools_pypa_io_en_latest_references_keywords_html__definitions_package_name(data__packages_item, custom_formats, (name_prefix or "data") + ".packages[{data__packages_x}]")
+                            validate_https___setuptools_pypa_io_en_latest_references_keywords_html__definitions_package_name(data__packages_item, custom_formats, (name_prefix or "data") + ".packages[{data__packages_x}]".format(**locals()))
                     data__packages_one_of_count1 += 1
                 except JsonSchemaValueException: pass
             if data__packages_one_of_count1 < 2:
@@ -462,7 +462,7 @@ def validate_https___setuptools_pypa_io_en_latest_references_keywords_html(data,
                             if REGEX_PATTERNS['.+'].search(data__dynamic__optionaldependencies_key):
                                 if data__dynamic__optionaldependencies_key in data__dynamic__optionaldependencies_keys:
                                     data__dynamic__optionaldependencies_keys.remove(data__dynamic__optionaldependencies_key)
-                                validate_https___setuptools_pypa_io_en_latest_references_keywords_html__definitions_file_directive(data__dynamic__optionaldependencies_val, custom_formats, (name_prefix or "data") + ".dynamic.optional-dependencies.{data__dynamic__optionaldependencies_key}")
+                                validate_https___setuptools_pypa_io_en_latest_references_keywords_html__definitions_file_directive(data__dynamic__optionaldependencies_val, custom_formats, (name_prefix or "data") + ".dynamic.optional-dependencies.{data__dynamic__optionaldependencies_key}".format(**locals()))
                         if data__dynamic__optionaldependencies_keys:
                             raise JsonSchemaValueException("" + (name_prefix or "data") + ".dynamic.optional-dependencies must not contain "+str(data__dynamic__optionaldependencies_keys)+" properties", value=data__dynamic__optionaldependencies, name="" + (name_prefix or "data") + ".dynamic.optional-dependencies", definition={'type': 'object', 'propertyNames': {'format': 'python-identifier'}, 'additionalProperties': False, 'patternProperties': {'.+': {'$id': '#/definitions/file-directive', 'title': "'file:' directive", 'description': 'Value is read from a file (or list of files and then concatenated)', 'type': 'object', 'additionalProperties': False, 'properties': {'file': {'oneOf': [{'type': 'string'}, {'type': 'array', 'items': {'type': 'string'}}]}}, 'required': ['file']}}}, rule='additionalProperties')
                         data__dynamic__optionaldependencies_len = len(data__dynamic__optionaldependencies)
@@ -810,7 +810,7 @@ def validate_https___packaging_python_org_en_latest_specifications_declaring_pro
             if data__authors_is_list:
                 data__authors_len = len(data__authors)
                 for data__authors_x, data__authors_item in enumerate(data__authors):
-                    validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_author(data__authors_item, custom_formats, (name_prefix or "data") + ".authors[{data__authors_x}]")
+                    validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_author(data__authors_item, custom_formats, (name_prefix or "data") + ".authors[{data__authors_x}]".format(**locals()))
         if "maintainers" in data_keys:
             data_keys.remove("maintainers")
             data__maintainers = data["maintainers"]
@@ -820,7 +820,7 @@ def validate_https___packaging_python_org_en_latest_specifications_declaring_pro
             if data__maintainers_is_list:
                 data__maintainers_len = len(data__maintainers)
                 for data__maintainers_x, data__maintainers_item in enumerate(data__maintainers):
-                    validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_author(data__maintainers_item, custom_formats, (name_prefix or "data") + ".maintainers[{data__maintainers_x}]")
+                    validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_author(data__maintainers_item, custom_formats, (name_prefix or "data") + ".maintainers[{data__maintainers_x}]".format(**locals()))
         if "keywords" in data_keys:
             data_keys.remove("keywords")
             data__keywords = data["keywords"]
@@ -883,7 +883,7 @@ def validate_https___packaging_python_org_en_latest_specifications_declaring_pro
                     if REGEX_PATTERNS['^.+$'].search(data__entrypoints_key):
                         if data__entrypoints_key in data__entrypoints_keys:
                             data__entrypoints_keys.remove(data__entrypoints_key)
-                        validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_entry_point_group(data__entrypoints_val, custom_formats, (name_prefix or "data") + ".entry-points.{data__entrypoints_key}")
+                        validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_entry_point_group(data__entrypoints_val, custom_formats, (name_prefix or "data") + ".entry-points.{data__entrypoints_key}".format(**locals()))
                 if data__entrypoints_keys:
                     raise JsonSchemaValueException("" + (name_prefix or "data") + ".entry-points must not contain "+str(data__entrypoints_keys)+" properties", value=data__entrypoints, name="" + (name_prefix or "data") + ".entry-points", definition={'$$description': ['Instruct the installer to expose the given modules/functions via', '``entry-point`` discovery mechanism (useful for plugins).', 'More information available in the `Python packaging guide', '<https://packaging.python.org/specifications/entry-points/>`_.'], 'propertyNames': {'format': 'python-entrypoint-group'}, 'additionalProperties': False, 'patternProperties': {'^.+$': {'$id': '#/definitions/entry-point-group', 'title': 'Entry-points', 'type': 'object', '$$description': ['Entry-points are grouped together to indicate what sort of capabilities they', 'provide.', 'See the `packaging guides', '<https://packaging.python.org/specifications/entry-points/>`_', 'and `setuptools docs', '<https://setuptools.pypa.io/en/latest/userguide/entry_point.html>`_', 'for more information.'], 'propertyNames': {'format': 'python-entrypoint-name'}, 'additionalProperties': False, 'patternProperties': {'^.+$': {'type': 'string', '$$description': ['Reference to a Python object. It is either in the form', '``importable.module``, or ``importable.module:object.attr``.'], 'format': 'python-entrypoint-reference', '$comment': 'https://packaging.python.org/specifications/entry-points/'}}}}}, rule='additionalProperties')
                 data__entrypoints_len = len(data__entrypoints)
@@ -907,7 +907,7 @@ def validate_https___packaging_python_org_en_latest_specifications_declaring_pro
             if data__dependencies_is_list:
                 data__dependencies_len = len(data__dependencies)
                 for data__dependencies_x, data__dependencies_item in enumerate(data__dependencies):
-                    validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_dependency(data__dependencies_item, custom_formats, (name_prefix or "data") + ".dependencies[{data__dependencies_x}]")
+                    validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_dependency(data__dependencies_item, custom_formats, (name_prefix or "data") + ".dependencies[{data__dependencies_x}]".format(**locals()))
         if "optional-dependencies" in data_keys:
             data_keys.remove("optional-dependencies")
             data__optionaldependencies = data["optional-dependencies"]
@@ -926,7 +926,7 @@ def validate_https___packaging_python_org_en_latest_specifications_declaring_pro
                         if data__optionaldependencies_val_is_list:
                             data__optionaldependencies_val_len = len(data__optionaldependencies_val)
                             for data__optionaldependencies_val_x, data__optionaldependencies_val_item in enumerate(data__optionaldependencies_val):
-                                validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_dependency(data__optionaldependencies_val_item, custom_formats, (name_prefix or "data") + ".optional-dependencies.{data__optionaldependencies_key}[{data__optionaldependencies_val_x}]")
+                                validate_https___packaging_python_org_en_latest_specifications_declaring_project_metadata___definitions_dependency(data__optionaldependencies_val_item, custom_formats, (name_prefix or "data") + ".optional-dependencies.{data__optionaldependencies_key}[{data__optionaldependencies_val_x}]".format(**locals()))
                 if data__optionaldependencies_keys:
                     raise JsonSchemaValueException("" + (name_prefix or "data") + ".optional-dependencies must not contain "+str(data__optionaldependencies_keys)+" properties", value=data__optionaldependencies, name="" + (name_prefix or "data") + ".optional-dependencies", definition={'type': 'object', 'description': 'Optional dependency for the project', 'propertyNames': {'format': 'pep508-identifier'}, 'additionalProperties': False, 'patternProperties': {'^.+$': {'type': 'array', 'items': {'$id': '#/definitions/dependency', 'title': 'Dependency', 'type': 'string', 'description': 'Project dependency specification according to PEP 508', 'format': 'pep508'}}}}, rule='additionalProperties')
                 data__optionaldependencies_len = len(data__optionaldependencies)
