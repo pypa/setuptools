@@ -251,9 +251,21 @@ class ConfigHandler(Generic[Target]):
         ignore_option_errors,
         ensure_discovered: expand.EnsurePackagesDiscovered,
     ):
+        self.ignore_option_errors = ignore_option_errors
+        self.target_obj = target_obj
+        self.sections = self._section_options(options)
+        self.set_options: List[str] = []
+        self.ensure_discovered = ensure_discovered
+        self._referenced_files: Set[str] = set()
+        """After parsing configurations, this property will enumerate
+        all files referenced by the "file:" directive. Private API for setuptools only.
+        """
+
+    @classmethod
+    def _section_options(cls, options: AllCommandOptions):
         sections: AllCommandOptions = {}
 
-        section_prefix = self.section_prefix
+        section_prefix = cls.section_prefix
         for section_name, section_options in options.items():
             if not section_name.startswith(section_prefix):
                 continue
@@ -261,15 +273,7 @@ class ConfigHandler(Generic[Target]):
             section_name = section_name.replace(section_prefix, '').strip('.')
             sections[section_name] = section_options
 
-        self.ignore_option_errors = ignore_option_errors
-        self.target_obj = target_obj
-        self.sections = sections
-        self.set_options: List[str] = []
-        self.ensure_discovered = ensure_discovered
-        self._referenced_files: Set[str] = set()
-        """After parsing configurations, this property will enumerate
-        all files referenced by the "file:" directive. Private API for setuptools only.
-        """
+        return sections
 
     @property
     def parsers(self):
