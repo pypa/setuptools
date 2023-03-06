@@ -234,6 +234,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "benchmarks",
         "exercise",
         "exercises",
+        "htmlcov",  # Coverage.py
         # ---- Hidden directories/Private packages ----
         "[._]*",
     )
@@ -273,7 +274,6 @@ class FlatLayoutModuleFinder(ModuleFinder):
         "benchmarks",
         "exercise",
         "exercises",
-        "htmlcov",
         # ---- Hidden files/Private modules ----
         "[._]*",
     )
