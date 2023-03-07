@@ -8,7 +8,6 @@ import os
 import re
 import sys
 import textwrap
-from collections import defaultdict
 from contextlib import suppress
 from email import message_from_file
 from glob import iglob
@@ -490,11 +489,6 @@ class Distribution(_Distribution):
         # sdist (e.g. `version = file: VERSION.txt`)
         self._referenced_files: Set[str] = set()
 
-        # Save the original dependencies before they are processed into the egg format
-        self._orig_extras_require = {}
-        self._orig_install_requires = []
-        self._tmp_extras_require = defaultdict(OrderedSet)
-
         self.set_defaults = ConfigDiscovery(self)
 
         self._set_metadata_defaults(attrs)
@@ -575,81 +569,23 @@ class Distribution(_Distribution):
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
 
-        if getattr(self, 'extras_require', None):
-            # Save original before it is messed by _convert_extras_requirements
-            self._orig_extras_require = self._orig_extras_require or self.extras_require
+        self._normalize_requires()
+
+        if self.extras_require:
             for extra in self.extras_require.keys():
-                # Since this gets called multiple times at points where the
-                # keys have become 'converted' extras, ensure that we are only
-                # truly adding extras we haven't seen before here.
+                # Setuptools allows a weird "<name>:<env markers> syntax for extras
                 extra = extra.split(':')[0]
                 if extra:
                     self.metadata.provides_extras.add(extra)
 
-        if getattr(self, 'install_requires', None) and not self._orig_install_requires:
-            # Save original before it is messed by _move_install_requirements_markers
-            self._orig_install_requires = self.install_requires
-
-        self._convert_extras_requirements()
-        self._move_install_requirements_markers()
-
-    def _convert_extras_requirements(self):
-        """
-        Convert requirements in `extras_require` of the form
-        `"extra": ["barbazquux; {marker}"]` to
-        `"extra:{marker}": ["barbazquux"]`.
-        """
-        spec_ext_reqs = getattr(self, 'extras_require', None) or {}
-        tmp = defaultdict(OrderedSet)
-        self._tmp_extras_require = getattr(self, '_tmp_extras_require', tmp)
-        for section, v in spec_ext_reqs.items():
-            # Do not strip empty sections.
-            self._tmp_extras_require[section]
-            for r in _reqs.parse(v):
-                suffix = self._suffix_for(r)
-                self._tmp_extras_require[section + suffix].append(r)
-
-    @staticmethod
-    def _suffix_for(req):
-        """
-        For a requirement, return the 'extras_require' suffix for
-        that requirement.
-        """
-        return ':' + str(req.marker) if req.marker else ''
-
-    def _move_install_requirements_markers(self):
-        """
-        Move requirements in `install_requires` that are using environment
-        markers `extras_require`.
-        """
-
-        # divide the install_requires into two sets, simple ones still
-        # handled by install_requires and more complex ones handled
-        # by extras_require.
-
-        def is_simple_req(req):
-            return not req.marker
-
-        spec_inst_reqs = getattr(self, 'install_requires', None) or ()
-        inst_reqs = list(_reqs.parse(spec_inst_reqs))
-        simple_reqs = filter(is_simple_req, inst_reqs)
-        complex_reqs = itertools.filterfalse(is_simple_req, inst_reqs)
-        self.install_requires = list(map(str, simple_reqs))
-
-        for r in complex_reqs:
-            self._tmp_extras_require[':' + str(r.marker)].append(r)
-        self.extras_require = dict(
-            # list(dict.fromkeys(...))  ensures a list of unique strings
-            (k, list(dict.fromkeys(str(r) for r in map(self._clean_req, v))))
-            for k, v in self._tmp_extras_require.items()
-        )
-
-    def _clean_req(self, req):
-        """
-        Given a Requirement, remove environment markers and return it.
-        """
-        req.marker = None
-        return req
+    def _normalize_requires(self):
+        """Make sure requirement-related attributes exist and are normalized"""
+        install_requires = getattr(self, "install_requires", None) or []
+        extras_require = getattr(self, "extras_require", None) or {}
+        self.install_requires = list(map(str, _reqs.parse(install_requires)))
+        self.extras_require = {
+            k: list(map(str, _reqs.parse(v or []))) for k, v in extras_require.items()
+        }
 
     def _finalize_license_files(self):
         """Compute names of all license files which should be included."""
