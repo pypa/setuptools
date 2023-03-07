@@ -60,7 +60,7 @@ _EXAMPLES = {
 
 
 @pytest.mark.parametrize("example_name", _EXAMPLES.keys())
-def test_formatting(example_name):
+def test_formatting(monkeypatch, example_name):
     """
     It should automatically handle indentation, interpolation and things like due date.
     """
@@ -68,6 +68,7 @@ def test_formatting(example_name):
     kwargs = _EXAMPLES[example_name]["kwargs"]
     expected = _EXAMPLES[example_name]["expected"]
 
+    monkeypatch.setenv("SETUPTOOLS_ENFORCE_DEPRECATION", "false")
     with pytest.warns(SetuptoolsWarning) as warn_info:
         SetuptoolsWarning.emit(*args, **kwargs)
     assert _get_message(warn_info) == cleandoc(expected)
