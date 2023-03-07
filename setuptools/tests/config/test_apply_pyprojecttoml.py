@@ -388,12 +388,12 @@ class TestPresetField:
         dist = makedist(tmp_path, install_requires=install_req)
         dist = pyprojecttoml.apply_configuration(dist, pyproject)
         assert "foo" in dist.extras_require
-        assert ':python_version < "3.7"' in dist.extras_require
         egg_info = dist.get_command_obj("egg_info")
         write_requirements(egg_info, tmp_path, tmp_path / "requires.txt")
         reqs = (tmp_path / "requires.txt").read_text(encoding="utf-8")
         assert "importlib-resources" in reqs
         assert "bar" in reqs
+        assert ':python_version < "3.7"' in reqs
 
     @pytest.mark.parametrize(
         "field,group", [("scripts", "console_scripts"), ("gui-scripts", "gui_scripts")]
