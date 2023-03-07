@@ -12,7 +12,7 @@ packages.
 
 .. attention::
    Use of ``pkg_resources`` is deprecated in favor of
-   `importlib.resources <https://docs.python.org/3/library/importlib.html#module-importlib.resources>`_,
+   `importlib.resources <https://docs.python.org/3/library/importlib.resources.html#module-importlib.resources>`_,
    `importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_,
    and their backports (:pypi:`importlib_resources`,
    :pypi:`importlib_metadata`).
