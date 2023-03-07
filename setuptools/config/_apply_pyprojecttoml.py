@@ -327,7 +327,7 @@ TOOL_TABLE_RENAMES = {"script_files": "scripts"}
 TOOL_TABLE_DEPRECATIONS = {
     "namespace_packages": (
         "consider using implicit namespaces instead (PEP 420).",
-        {"due_date": (2023, 10, 15)},  # warning introduced in May 2022
+        {"due_date": (2023, 10, 30)},  # warning introduced in May 2022
     )
 }
 
@@ -377,4 +377,4 @@ class _WouldIgnoreField(SetuptoolsDeprecationWarning):
     remove the `[project]` table from your file and rely entirely on other means of
     configuration.
     """
-    _DUE_DATE = (2023, 10, 27)  # Initially introduced in 27 May 2022
+    _DUE_DATE = (2023, 10, 30)  # Initially introduced in 27 May 2022

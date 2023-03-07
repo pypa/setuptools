@@ -338,7 +338,7 @@ class egg_info(InfoCommon, Command):
 
                 Please rename {bei!r} to {self.egg_info!r} to correct this problem.
                 """,
-                due_date=(2023, 9, 1),
+                due_date=(2023, 6, 1),
                 # Old warning, introduced in 2005, might be safe to remove soon
             )
             self.broken_egg_info = self.egg_info
@@ -714,7 +714,7 @@ def warn_depends_obsolete(cmd, basename, filename):
             Configure your dependencies via `setup.cfg` or `pyproject.toml` instead.
             """,
             see_docs="userguide/declarative_config.html",
-            due_date=(2023, 9, 1),
+            due_date=(2023, 6, 1),
             # Old warning, introduced in 2005, it might be safe to remove soon.
         )
 

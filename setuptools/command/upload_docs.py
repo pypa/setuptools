@@ -97,7 +97,7 @@ class upload_docs(upload):
             Instead, use tools like devpi and Read the Docs; or lower level tools like
             httpie and curl to interact directly with your hosting service API.
             """,
-            due_date=(2023, 9, 27),  # warning introduced in 27 Jul 2022
+            due_date=(2023, 9, 26),  # warning introduced in 27 Jul 2022
         )
 
         # Run sub commands

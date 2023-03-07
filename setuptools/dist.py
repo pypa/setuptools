@@ -55,7 +55,7 @@ def _get_unpatched(cls):
     DistDeprecationWarning.emit(
         "Private function",
         "Do not call this function",
-        due_date=(2023, 7, 9),
+        due_date=(2023, 6, 1),
         # Warning initially introduced in 2016
     )
     return get_unpatched(cls)
@@ -804,7 +804,7 @@ class Distribution(_Distribution):
                 versions. Please use the underscore name {underscore_opt!r} instead.
                 """,
                 see_docs="userguide/declarative_config.html",
-                due_date=(2023, 9, 10),
+                due_date=(2023, 9, 26),
                 # Warning initially introduced in 3 Mar 2021
             )
         return underscore_opt
@@ -828,7 +828,7 @@ class Distribution(_Distribution):
             future versions. Please use lowercase {lowercase_opt!r} instead
             """,
             see_docs="userguide/declarative_config.html",
-            due_date=(2023, 9, 10),
+            due_date=(2023, 9, 26),
             # Warning initially introduced in 6 Mar 2021
         )
         return lowercase_opt

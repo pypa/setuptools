@@ -50,7 +50,7 @@ class dist_info(Command):
     def finalize_options(self):
         if self.egg_base:
             msg = "--egg-base is deprecated for dist_info command. Use --output-dir."
-            SetuptoolsDeprecationWarning.emit(msg, due_date=(2023, 8, 23))
+            SetuptoolsDeprecationWarning.emit(msg, due_date=(2023, 9, 26))
             # This command is internal to setuptools, therefore it should be safe
             # to remove the deprecated support soon.
             self.output_dir = self.egg_base or self.output_dir

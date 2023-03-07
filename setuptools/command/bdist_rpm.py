@@ -20,7 +20,7 @@ class bdist_rpm(orig.bdist_rpm):
             Use bdist_wheel (wheel packages) instead.
             """,
             see_url="https://github.com/pypa/setuptools/issues/1988",
-            due_date=(2023, 10, 22)  # Deprecation introduced in 22 Oct 2021.
+            due_date=(2023, 10, 30)  # Deprecation introduced in 22 Oct 2021.
         )
 
         # ensure distro name is up-to-date

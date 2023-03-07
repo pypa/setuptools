@@ -871,7 +871,7 @@ class PackageIndex(Environment):
         SetuptoolsDeprecationWarning.emit(
             "Invalid config",
             f"SVN download support is deprecated: {url}",
-            due_date=(2023, 10, 23),  # Initially introduced in 23 Sept 2018
+            due_date=(2023, 6, 1),  # Initially introduced in 23 Sept 2018
         )
         url = url.split('#', 1)[0]  # remove any fragment for svn's sake
         creds = ''

@@ -306,7 +306,7 @@ class _ConfigSettingsTranslator:
                 Please use `--build-option` instead,
                 `--global-option` is reserved to flags like `--verbose` or `--quiet`.
                 """,
-                due_date=(2023, 8, 11),  # Warning introduced in v64.0.1, 11/Aug/2022.
+                due_date=(2023, 9, 26),  # Warning introduced in v64.0.1, 11/Aug/2022.
             )
 
 

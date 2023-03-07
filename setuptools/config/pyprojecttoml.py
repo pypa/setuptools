@@ -492,5 +492,5 @@ class _InvalidFile(SetuptoolsWarning):
     To prevent setuptools from considering `pyproject.toml` please
     DO NOT include both `[project]` or `[tool.setuptools]` tables in your file.
     """
-    _DUE_DATE = (2023, 4, 26)  # warning introduced in 2022-03-26
+    _DUE_DATE = (2023, 6, 1)  # warning introduced in 2022-03-26
     _SEE_DOCS = "userguide/pyproject_config.html"
