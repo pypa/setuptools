@@ -6,11 +6,13 @@ The ``requires.txt`` file has an specific format:
 
 See https://setuptools.pypa.io/en/latest/deprecated/python_eggs.html#requires-txt
 """
+import io
 from collections import defaultdict
 from itertools import filterfalse
 from typing import Dict, List, Tuple, Mapping, TypeVar
 
 from .. import _reqs
+from ..extern.jaraco.text import yield_lines
 from ..extern.packaging.requirements import Requirement
 
 
@@ -94,3 +96,32 @@ def _clean_req(req):
 
 def _no_marker(req):
     return not req.marker
+
+
+def _write_requirements(stream, reqs):
+    lines = yield_lines(reqs or ())
+
+    def append_cr(line):
+        return line + '\n'
+
+    lines = map(append_cr, lines)
+    stream.writelines(lines)
+
+
+def write_requirements(cmd, basename, filename):
+    dist = cmd.distribution
+    data = io.StringIO()
+    install_requires, extras_require = _prepare(
+        dist.install_requires or (), dist.extras_require or {}
+    )
+    _write_requirements(data, install_requires)
+    for extra in sorted(extras_require):
+        data.write('\n[{extra}]\n'.format(**vars()))
+        _write_requirements(data, extras_require[extra])
+    cmd.write_or_delete_file("requirements", filename, data.getvalue())
+
+
+def write_setup_requirements(cmd, basename, filename):
+    data = io.StringIO()
+    _write_requirements(data, cmd.distribution.setup_requires)
+    cmd.write_or_delete_file("setup-requirements", filename, data.getvalue())
