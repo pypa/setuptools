@@ -612,9 +612,17 @@ def test_wheel_is_compatible(monkeypatch):
         for t in parse_tag('cp36-cp36m-manylinux1_x86_64'):
             yield t
     monkeypatch.setattr('setuptools.wheel.sys_tags', sys_tags)
-    monkeypatch.setattr('setuptools.wheel._supported_tags', None)
-    assert Wheel(
-        'onnxruntime-0.1.2-cp36-cp36m-manylinux1_x86_64.whl').is_compatible()
+    # Clear the supported tags cache, otherwise the sys_tags monkeypatch
+    # has no effect.
+    setuptools.wheel._supported_tags.cache_clear()
+    try:
+        assert Wheel(
+            'onnxruntime-0.1.2-cp36-cp36m-manylinux1_x86_64.whl'
+        ).is_compatible()
+    finally:
+        # Clear the cache again, otherwise the sys_tags monkeypatch
+        # is still in effect for the rest of the tests.
+        setuptools.wheel._supported_tags.cache_clear()
 
 
 def test_wheel_mode():
