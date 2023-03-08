@@ -263,6 +263,8 @@ class Distribution(_Distribution):
         'provides_extras': OrderedSet,
         'license_file': lambda: None,
         'license_files': lambda: None,
+        'install_requires': list,
+        'extras_require': dict,
     }
 
     _patched_dist = None
@@ -389,6 +391,8 @@ class Distribution(_Distribution):
             self.metadata.python_requires = self.python_requires
 
         self._normalize_requires()
+        self.metadata.install_requires = self.install_requires
+        self.metadata.extras_require = self.extras_require
 
         if self.extras_require:
             for extra in self.extras_require.keys():

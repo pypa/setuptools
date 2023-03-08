@@ -10,6 +10,10 @@ from typing import Optional, List
 
 from distutils.util import rfc822_escape
 
+from . import _normalization
+from ._deprecation_warning import SetuptoolsDeprecationWarning
+from .extern.packaging.markers import Marker
+from .extern.packaging.requirements import Requirement
 from .extern.packaging.version import Version
 from .warnings import SetuptoolsDeprecationWarning
 
@@ -175,14 +179,59 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     # PEP 566
     if self.long_description_content_type:
         write_field('Description-Content-Type', self.long_description_content_type)
-    if self.provides_extras:
-        for extra in self.provides_extras:
-            write_field('Provides-Extra', extra)
 
     self._write_list(file, 'License-File', self.license_files or [])
+    _write_requirements(self, file)
 
     long_description = self.get_long_description()
     if long_description:
         file.write("\n%s" % long_description)
         if not long_description.endswith("\n"):
             file.write("\n")
+
+
+def _write_requirements(self, file):
+    for req in self.install_requires:
+        file.write(f"Requires-Dist: {req}\n")
+
+    processed_extras = {}
+    for augmented_extra, reqs in self.extras_require.items():
+        # Historically, setuptools allows "augmented extras": `<extra>:<condition>`
+        unsafe_extra, _, condition = augmented_extra.partition(":")
+        unsafe_extra = unsafe_extra.strip()
+        extra = _normalization.safe_extra(unsafe_extra)
+
+        if extra:
+            _write_provides_extra(file, processed_extras, extra, unsafe_extra)
+        for req in reqs:
+            r = _include_extra(req, extra, condition.strip())
+            file.write(f"Requires-Dist: {r}\n")
+
+    return processed_extras
+
+
+def _include_extra(req: str, extra: str, condition: str) -> Requirement:
+    r = Requirement(req)
+    parts = (
+        f"({r.marker})" if r.marker else None,
+        f"({condition})" if condition else None,
+        f"extra == {extra!r}" if extra else None,
+    )
+    r.marker = Marker(" and ".join(x for x in parts if x))
+    return r
+
+
+def _write_provides_extra(file, processed_extras, safe, unsafe):
+    previous = processed_extras.get(safe)
+    if previous == unsafe:
+        msg = f"""Ambiguity during "extra" normalization for dependencies.\n\n
+        ********************************************************************
+        {previous!r} and {unsafe!r} normalize to the same value:\n
+            {safe!r}\n
+        In future versions, setuptools might halt the build process.
+        ********************************************************************\n\n
+        """
+        warnings.warn(msg, SetuptoolsDeprecationWarning, stacklevel=3)
+    else:
+        processed_extras[safe] = unsafe
+        file.write(f"Provides-Extra: {safe}\n")
