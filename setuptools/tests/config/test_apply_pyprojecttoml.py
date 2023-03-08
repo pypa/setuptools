@@ -45,6 +45,7 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
 
     dist_toml = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject_example)
     dist_cfg = setupcfg.apply_configuration(makedist(tmp_path), setupcfg_example)
+    _port_tests_require(dist_cfg)
 
     pkg_info_toml = core_metadata(dist_toml)
     pkg_info_cfg = core_metadata(dist_cfg)
@@ -448,3 +449,15 @@ def core_metadata(dist) -> str:
         result.append(line + "\n")
 
     return "".join(result)
+
+
+def _port_tests_require(dist):
+    """
+    ``ini2toml`` "forward fix" deprecated tests_require definitions by moving
+    them into an extra called ``testing``.
+    """
+    tests_require = getattr(dist, "tests_require", None) or []
+    if tests_require:
+        dist.tests_require = []
+        dist.extras_require.setdefault("testing", []).extend(tests_require)
+        dist._finalize_requires()
