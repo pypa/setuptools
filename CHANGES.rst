@@ -1,3 +1,13 @@
+v67.6.0
+-------
+
+
+Changes
+^^^^^^^
+* #3804: Added caching for supported wheel tags.
+* #3846: Added pruning heuristics to ``PackageFinder`` based on ``exclude``.
+
+
 v67.5.1
 -------
 
