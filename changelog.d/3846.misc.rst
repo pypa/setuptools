@@ -1,0 +1,1 @@
+Add pruning heuristics to ``PackageFinder`` based on ``exclude``.
