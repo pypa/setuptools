@@ -190,11 +190,11 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
 
 
 def _write_requirements(self, file):
-    for req in self.install_requires:
+    for req in self._normalized_install_requires:
         file.write(f"Requires-Dist: {req}\n")
 
     processed_extras = {}
-    for augmented_extra, reqs in self.extras_require.items():
+    for augmented_extra, reqs in self._normalized_extras_require.items():
         # Historically, setuptools allows "augmented extras": `<extra>:<condition>`
         unsafe_extra, _, condition = augmented_extra.partition(":")
         unsafe_extra = unsafe_extra.strip()
