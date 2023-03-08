@@ -263,8 +263,11 @@ class Distribution(_Distribution):
         'provides_extras': OrderedSet,
         'license_file': lambda: None,
         'license_files': lambda: None,
-        'install_requires': list,
-        'extras_require': dict,
+        # Both install_requires and extras_require are needed to write PKG-INFO,
+        # So we take this opportunity to cache parsed requirement objects.
+        # These attributes are not part of the public API and intended for internal use.
+        '_normalized_install_requires': dict,  # Dict[str, Requirement]
+        '_normalized_extras_require': dict,  # Dict[str, Dict[str, Requirement]]
     }
 
     _patched_dist = None
@@ -391,8 +394,6 @@ class Distribution(_Distribution):
             self.metadata.python_requires = self.python_requires
 
         self._normalize_requires()
-        self.metadata.install_requires = self.install_requires
-        self.metadata.extras_require = self.extras_require
 
         if self.extras_require:
             for extra in self.extras_require.keys():
@@ -405,9 +406,17 @@ class Distribution(_Distribution):
         """Make sure requirement-related attributes exist and are normalized"""
         install_requires = getattr(self, "install_requires", None) or []
         extras_require = getattr(self, "extras_require", None) or {}
-        self.install_requires = list(map(str, _reqs.parse(install_requires)))
+        meta = self.metadata
+        meta._normalized_install_requires = {
+            str(r): r for r in _reqs.parse(install_requires)
+        }
+        meta._normalized_extras_require = {
+            k: {str(r): r for r in _reqs.parse(v or [])}
+            for k, v in extras_require.items()
+        }
+        self.install_requires = list(meta._normalized_install_requires)
         self.extras_require = {
-            k: list(map(str, _reqs.parse(v or []))) for k, v in extras_require.items()
+            k: list(v) for k, v in meta._normalized_extras_require.items()
         }
 
     def _finalize_license_files(self):
