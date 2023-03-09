@@ -1,11 +1,14 @@
 import functools
 import io
+import importlib
+from email import message_from_string
 
 import pytest
 
-from setuptools import sic
+from setuptools import sic, _reqs
 from setuptools.dist import Distribution
 from setuptools._core_metadata import rfc822_escape, rfc822_unescape
+from setuptools.command.egg_info import egg_info, write_requirements
 
 
 EXAMPLE_BASE_INFO = dict(
@@ -296,3 +299,82 @@ def test_maintainer_author(name, attrs, tmpdir):
         else:
             line = '%s: %s' % (fkey, val)
             assert line in pkg_lines_set
+
+
+def test_parity_with_metadata_from_pypa_wheel(tmp_path):
+    attrs = dict(
+        **EXAMPLE_BASE_INFO,
+        # Example with complex requirement definition
+        python_requires=">=3.8",
+        install_requires="""
+        packaging==23.0
+        ordered-set==3.1.1
+        more-itertools==8.8.0; extra == "other"
+        jaraco.text==3.7.0
+        importlib-resources==5.10.2; python_version<"3.8"
+        importlib-metadata==6.0.0 ; python_version<"3.8"
+        colorama>=0.4.4; sys_platform == "win32"
+        """,
+        extras_require={
+            "testing": """
+                pytest >= 6
+                pytest-checkdocs >= 2.4
+                pytest-flake8 ; \\
+                        # workaround for tholo/pytest-flake8#87
+                        python_version < "3.12"
+                ini2toml[lite]>=0.9
+                """,
+            "other": [],
+        }
+    )
+    # Generate a PKG-INFO file using setuptools
+    dist = Distribution(attrs)
+    with io.StringIO() as fp:
+        dist.metadata.write_pkg_file(fp)
+        pkg_info = fp.getvalue()
+
+    # Ensure Requires-Dist is present
+    expected = [
+        'Metadata-Version:',
+        'Requires-Python: >=3.8',
+        'Provides-Extra: other',
+        'Provides-Extra: testing',
+        'Requires-Dist: pytest-flake8; python_version < "3.12" and extra == "testing"',
+        'Requires-Dist: more-itertools==8.8.0; extra == "other"',
+        'Requires-Dist: ini2toml[lite]>=0.9; extra == "testing"',
+    ]
+    for line in expected:
+        assert line in pkg_info
+
+    # Generate a METADATA file using pypa/wheel for comparisson
+    wheel_metadata = importlib.import_module("wheel.metadata")
+    pkginfo_to_metadata = getattr(wheel_metadata, "pkginfo_to_metadata", None)
+
+    if pkginfo_to_metadata is None:
+        pytest.xfail(
+            "wheel.metadata.pkginfo_to_metadata is undefined, "
+            "(this is likely to be caused by API changes in pypa/wheel"
+        )
+
+    # Generate an simplified "egg-info" dir for pypa/wheel to convert
+    egg_info_dir = tmp_path / "pkg.egg-info"
+    egg_info_dir.mkdir(parents=True)
+    (egg_info_dir / "PKG-INFO").write_text(pkg_info, encoding="utf-8")
+    write_requirements(egg_info(dist), egg_info_dir, egg_info_dir / "requires.txt")
+
+    # Get pypa/wheel generated METADATA but normalize requirements formatting
+    metadata_msg = pkginfo_to_metadata(egg_info_dir, egg_info_dir / "PKG-INFO")
+    metadata_deps = set(_reqs.parse(metadata_msg.get_all("Requires-Dist")))
+    metadata_extras = set(metadata_msg.get_all("Provides-Extra"))
+    del metadata_msg["Requires-Dist"]
+    del metadata_msg["Provides-Extra"]
+    pkg_info_msg = message_from_string(pkg_info)
+    pkg_info_deps = set(_reqs.parse(pkg_info_msg.get_all("Requires-Dist")))
+    pkg_info_extras = set(pkg_info_msg.get_all("Provides-Extra"))
+    del pkg_info_msg["Requires-Dist"]
+    del pkg_info_msg["Provides-Extra"]
+
+    # Compare setuptools PKG-INFO x pypa/wheel METADATA
+    assert metadata_msg.as_string() == pkg_info_msg.as_string()
+    assert metadata_deps == pkg_info_deps
+    assert metadata_extras == pkg_info_extras
