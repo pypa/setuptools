@@ -5,11 +5,13 @@ import re
 import shutil
 import subprocess
 import sys
+from email import message_from_string
 from functools import partial
 
 import pytest
 
 import pkg_resources
+from setuptools import _reqs
 from setuptools.archive_util import unpack_archive
 from .textwrap import DALS
 
@@ -131,7 +133,7 @@ class TestDistInfo:
 
 class TestWheelCompatibility:
     """Make sure the .dist-info directory produced with the ``dist_info`` command
-    is the same as the one produced by ``bdist_wheel``.
+    is the same(ish) as the one produced by ``bdist_wheel``.
     """
 
     SETUPCFG = DALS(
@@ -189,8 +191,30 @@ class TestWheelCompatibility:
 
         assert dist_info.name == wheel_dist_info.name
         assert dist_info.name.startswith(f"{name.replace('-', '_')}-{version}{suffix}")
-        for file in "METADATA", "entry_points.txt":
-            assert read(dist_info / file) == read(wheel_dist_info / file)
+
+        assert (dist_info / "entry_points.txt").read_text(encoding="utf-8") == (
+            wheel_dist_info / "entry_points.txt"
+        ).read_text(encoding="utf-8")
+
+        wheel_metadata = (wheel_dist_info / "METADATA").read_text(encoding="utf-8")
+        metadata = (dist_info / "METADATA").read_text(encoding="utf-8")
+
+        # Compare metadata but normalize requirements formatting
+        wheel_msg = message_from_string(wheel_metadata)
+        wheel_deps = set(_reqs.parse(wheel_msg.get_all("Requires-Dist")))
+        wheel_extras = set(wheel_msg.get_all("Provides-Extra"))
+        del wheel_msg["Requires-Dist"]
+        del wheel_msg["Provides-Extra"]
+
+        metadata_msg = message_from_string(metadata)
+        metadata_deps = set(_reqs.parse(metadata_msg.get_all("Requires-Dist")))
+        metadata_extras = set(metadata_msg.get_all("Provides-Extra"))
+        del metadata_msg["Requires-Dist"]
+        del metadata_msg["Provides-Extra"]
+
+        assert metadata_msg.as_string() == wheel_msg.as_string()
+        assert metadata_deps == wheel_deps
+        assert metadata_extras == wheel_extras
 
 
 def run_command_inner(*cmd, **kwargs):
