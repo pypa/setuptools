@@ -36,7 +36,7 @@ def _customize_compiler_for_shlib(compiler):
         try:
             # XXX Help!  I don't have any idea whether these are right...
             _CONFIG_VARS['LDSHARED'] = (
-                "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup")
+                "gcc -Wl,-x -dynamiclib")
             _CONFIG_VARS['CCSHARED'] = " -dynamiclib"
             _CONFIG_VARS['SO'] = ".dylib"
             customize_compiler(compiler)
