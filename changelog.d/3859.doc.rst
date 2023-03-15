@@ -1,0 +1,2 @@
+Added a note about historical presence of ``wheel``
+in ``build-system.requires``, in ``pyproject.toml``.
