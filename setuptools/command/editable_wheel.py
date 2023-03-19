@@ -305,7 +305,7 @@ class editable_wheel(Command):
                 If you are seeing this warning it is very likely that a setuptools
                 plugin or customization overrides the `{cmd_name}` command, without
                 taking into consideration how editable installs run build steps
-                starting from v64.0.0.
+                starting from setuptools v64.0.0.
 
                 Plugin authors and developers relying on custom build steps are
                 encouraged to update their `{cmd_name}` implementation considering the
@@ -836,10 +836,10 @@ class _DebuggingTips(SetuptoolsWarning):
     _DETAILS = """
     An error happened while installing `{project}` in editable mode.
 
-    The following steps are recommended to help debugging this problem:
+    The following steps are recommended to help debug this problem:
 
     - Try to install the project normally, without using the editable mode.
-      Does the error still persists?
+      Does the error still persist?
       (If it does, try fixing the problem before attempting the editable mode).
     - If you are using binary extensions, make sure you have all OS-level
       dependencies installed (e.g. compilers, toolchains, binary libraries, ...).
@@ -847,7 +847,7 @@ class _DebuggingTips(SetuptoolsWarning):
     - If you (or your project dependencies) are using any setuptools extension
       or customization, make sure they support the editable mode.
 
-    After following the steps above, if the problem still persist and
+    After following the steps above, if the problem still persists and
     you think this is related to how setuptools handles editable installations,
     please submit a reproducible example
     (see https://stackoverflow.com/help/minimal-reproducible-example) to:

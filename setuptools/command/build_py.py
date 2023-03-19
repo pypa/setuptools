@@ -336,9 +336,9 @@ class _IncludePackageDataAbuse:
         Python recognizes {importable!r} as an importable package[^1],
         but it is absent from setuptools' `packages` configuration.
 
-        This leads to an ambiguous overall configuration. If you want distribute this
+        This leads to an ambiguous overall configuration. If you want to distribute this
         package, please make sure that {importable!r} is explicitly added
-        the `packages` configuration field.
+        to the `packages` configuration field.
 
         Alternatively, you can also rely on setuptools' discovery methods
         (for example by using `find_namespace_packages(...)`/`find_namespace:`

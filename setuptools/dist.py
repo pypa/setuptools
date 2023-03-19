@@ -825,7 +825,7 @@ class Distribution(_Distribution):
             "Invalid uppercase configuration",
             f"""
             Usage of uppercase key {opt!r} in {section!r} will not be supported in
-            future versions. Please use lowercase {lowercase_opt!r} instead
+            future versions. Please use lowercase {lowercase_opt!r} instead.
             """,
             see_docs="userguide/declarative_config.html",
             due_date=(2023, 9, 26),

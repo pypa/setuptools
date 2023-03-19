@@ -81,7 +81,7 @@ def best_effort_version(version: str) -> str:
             f"""
             Version {version!r} is not valid according to PEP 440.
 
-            Please make sure specify a valid version for your package.
+            Please make sure to specify a valid version for your package.
             Also note that future releases of setuptools may halt the build process
             if an invalid version is given.
             """,

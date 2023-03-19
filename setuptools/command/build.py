@@ -23,7 +23,7 @@ class build(_build):
         subcommands = {cmd[0] for cmd in _build.sub_commands}
         if subcommands - _ORIGINAL_SUBCOMMANDS:
             SetuptoolsDeprecationWarning.emit(
-                "Directly usage of `distutils` commands",
+                "Direct usage of `distutils` commands",
                 """
                 It seems that you are using `distutils.command.build` to add
                 new subcommands. Using `distutils` directly is considered deprecated,
