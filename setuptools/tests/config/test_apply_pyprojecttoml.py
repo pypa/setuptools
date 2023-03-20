@@ -363,6 +363,18 @@ class TestPresetField:
         assert "importlib-resources" in reqs
         assert "bar" in reqs
 
+    @pytest.mark.parametrize(
+        "field,group",
+        [("scripts", "console_scripts"), ("gui-scripts", "gui_scripts")]
+    )
+    @pytest.mark.filterwarnings("error")
+    def test_scripts_dont_require_dynamic_entry_points(self, tmp_path, field, group):
+        # Issue 3862
+        pyproject = self.pyproject(tmp_path, [field])
+        dist = makedist(tmp_path, entry_points={group: ["foobar=foobar:main"]})
+        dist = pyprojecttoml.apply_configuration(dist, pyproject)
+        assert group in dist.entry_points
+
 
 class TestMeta:
     def test_example_file_in_sdist(self, setuptools_sdist):
