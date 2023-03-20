@@ -279,6 +279,12 @@ def _normalise_cmd_options(desc: List[Tuple[str, Optional[str], str]]) -> Set[st
     return {_normalise_cmd_option_key(fancy_option[0]) for fancy_option in desc}
 
 
+def _get_previous_entrypoints(dist: "Distribution") -> Dict[str, list]:
+    ignore = ("console_scripts", "gui_scripts")
+    value = getattr(dist, "entry_points", None) or {}
+    return {k: v for k, v in value.items() if k not in ignore}
+
+
 def _attrgetter(attr):
     """
     Similar to ``operator.attrgetter`` but returns None if ``attr`` is not found
@@ -343,7 +349,7 @@ _PREVIOUSLY_DEFINED = {
     "keywords": _attrgetter("metadata.keywords"),
     "classifiers": _attrgetter("metadata.classifiers"),
     "urls": _attrgetter("metadata.project_urls"),
-    "entry-points": _attrgetter("entry_points"),
+    "entry-points": _get_previous_entrypoints,
     "dependencies": _some_attrgetter("_orig_install_requires", "install_requires"),
     "optional-dependencies": _some_attrgetter("_orig_extras_require", "extras_require"),
 }
