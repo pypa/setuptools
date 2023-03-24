@@ -26,14 +26,19 @@ def test_write_str(tmp_path):
         assert infolist[2].filename == "test-1.0.dist-info/WHEEL"
         assert infolist[3].filename == "test-1.0.dist-info/RECORD"
 
-        record = zf.read("test-1.0.dist-info/RECORD")
+        record = "\n".join(
+            line
+            for line in str(zf.read("test-1.0.dist-info/RECORD"), "utf-8").splitlines()
+            if not line.startswith("test-1.0.dist-info/WHEEL")
+            # Avoid changes in setuptools versions messing with the test
+        )
+
         expected = """\
         hello/héllö.py,sha256=bv-QV3RciQC2v3zL8Uvhd_arp40J5A9xmyubN34OVwo,25
         "hello/h,ll,.py",sha256=bv-QV3RciQC2v3zL8Uvhd_arp40J5A9xmyubN34OVwo,25
-        test-1.0.dist-info/WHEEL,sha256=NQO4GQhpskiOxMaJNXoSMmqqiP8mLs4mkxW8zYE9nzo,100
         test-1.0.dist-info/RECORD,,
         """
-        assert str(record, "utf-8") == textwrap.dedent(expected)
+        assert record.strip() == textwrap.dedent(expected).strip()
 
 
 def test_timestamp(tmp_path_factory, tmp_path, monkeypatch):
