@@ -1,6 +1,7 @@
 # This test is based on the `test_wheelfile.py` from pypa/wheel,
 # which was initially distributed under the MIT License:
 # Copyright (c) 2012 Daniel Holth <dholth@fastmail.fm> and contributors
+import stat
 import sys
 import textwrap
 from zipfile import ZipFile, ZIP_DEFLATED
@@ -73,9 +74,8 @@ def test_attributes(tmp_path_factory, tmp_path):
     with ZipFile(wheel_path, "r") as zf:
         for filename, mode in files:
             info = zf.getinfo(filename)
-            assert info.external_attr == (mode | 0o100000) << 16
+            assert info.external_attr == (mode | stat.S_IFREG) << 16
             assert info.compress_type == ZIP_DEFLATED
 
         info = zf.getinfo("test-1.0.dist-info/RECORD")
-        permissions = (info.external_attr >> 16) & 0o777
-        assert permissions == 0o664
+        assert info.external_attr == (0o664 | stat.S_IFREG) << 16

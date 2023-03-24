@@ -125,7 +125,7 @@ class WheelBuilder:
         the UTF-8 text specified by ``contents``.
         """
         zipinfo = ZipInfo(arcname, self._timestamp)
-        zipinfo.external_attr = permissions << 16
+        zipinfo.external_attr = (permissions | stat.S_IFREG) << 16
         zipinfo.compress_type = _COMPRESSION
         hashsum = hashlib.new(_HASH_ALG)
         file_size = 0
@@ -141,7 +141,7 @@ class WheelBuilder:
     def _save_record(self):
         arcname = f"{self._dist_info}/RECORD"
         zipinfo = ZipInfo(arcname, self._timestamp)
-        zipinfo.external_attr = 0o664 << 16
+        zipinfo.external_attr = (0o664 | stat.S_IFREG) << 16
         zipinfo.compress_type = _COMPRESSION
         out = self._zip.open(zipinfo, "w")
         buf = io.TextIOWrapper(out, encoding="utf-8")
