@@ -1,0 +1,2 @@
+Fixed ``_WouldIgnoreField`` warnings for ``scripts`` and ``gui_scripts``,
+when ``entry-points`` is not listed in dynamic.
