@@ -247,28 +247,51 @@ def test_utf8_maintainer_in_metadata(  # issue-3663
     assert f"Maintainer-email: {expected_maintainers_meta_value}" in content
 
 
-# TODO: After PEP 639 is accepted, we have to move the license-files
-#       to the `project` table instead of `tool.setuptools`
-def test_license_and_license_files(tmp_path):
-    pyproject = _pep621_example_project(tmp_path, "README")
-    text = pyproject.read_text(encoding="utf-8")
+class TestLicenseFiles:
+    # TODO: After PEP 639 is accepted, we have to move the license-files
+    #       to the `project` table instead of `tool.setuptools`
 
-    # Sanity-check
-    assert 'license = {file = "LICENSE.txt"}' in text
-    assert "[tool.setuptools]" not in text
+    def base_pyproject(self, tmp_path, additional_text):
+        pyproject = _pep621_example_project(tmp_path, "README")
+        text = pyproject.read_text(encoding="utf-8")
 
-    text += '\n[tool.setuptools]\nlicense-files = ["_FILE*"]\n'
-    pyproject.write_text(text, encoding="utf-8")
-    (tmp_path / "_FILE.txt").touch()
-    (tmp_path / "_FILE.rst").touch()
+        # Sanity-check
+        assert 'license = {file = "LICENSE.txt"}' in text
+        assert "[tool.setuptools]" not in text
 
-    # Would normally match the `license_files` glob patterns, but we want to exclude it
-    # by being explicit. On the other hand, its contents should be added to `license`
-    (tmp_path / "LICENSE.txt").write_text("LicenseRef-Proprietary\n", encoding="utf-8")
+        text = f"{text}\n{additional_text}\n"
+        pyproject.write_text(text, encoding="utf-8")
+        return pyproject
 
-    dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
-    assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
-    assert dist.metadata.license == "LicenseRef-Proprietary\n"
+    def test_both_license_and_license_files_defined(self, tmp_path):
+        setuptools_config = '[tool.setuptools]\nlicense-files = ["_FILE*"]'
+        pyproject = self.base_pyproject(tmp_path, setuptools_config)
+
+        (tmp_path / "_FILE.txt").touch()
+        (tmp_path / "_FILE.rst").touch()
+
+        # Would normally match the `license_files` patterns, but we want to exclude it
+        # by being explicit. On the other hand, contents should be added to `license`
+        license = tmp_path / "LICENSE.txt"
+        license.write_text("LicenseRef-Proprietary\n", encoding="utf-8")
+
+        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
+        assert dist.metadata.license == "LicenseRef-Proprietary\n"
+
+    def test_default_patterns(self, tmp_path):
+        setuptools_config = '[tool.setuptools]\nzip-safe = false'
+        # ^ used just to trigger section validation
+        pyproject = self.base_pyproject(tmp_path, setuptools_config)
+
+        license_files = "LICENCE-a.html COPYING-abc.txt AUTHORS-xyz NOTICE,def".split()
+
+        for fname in license_files:
+            (tmp_path / fname).write_text(f"{fname}\n", encoding="utf-8")
+
+        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        assert (tmp_path / "LICENSE.txt").exists()  # from base example
+        assert set(dist.metadata.license_files) == {*license_files, "LICENSE.txt"}
 
 
 class TestDeprecatedFields:
