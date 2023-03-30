@@ -12,7 +12,7 @@ from setuptools._wheelbuilder import WheelBuilder
 
 
 def test_write_str(tmp_path):
-    with WheelBuilder(tmp_path / "test-1.0-py3-none-any.whl", "w") as builder:
+    with WheelBuilder(tmp_path / "test-1.0-py3-none-any.whl") as builder:
         builder.new_file("hello/héllö.py", 'print("Héllö, world!")\n')
         builder.new_file("hello/h,ll,.py", 'print("Héllö, world!")\n')
 
@@ -50,7 +50,7 @@ def test_timestamp(tmp_path_factory, tmp_path, monkeypatch):
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "315576060")
 
     wheel_path = tmp_path / "test-1.0-py3-none-any.whl"
-    with WheelBuilder(wheel_path, "w") as builder:
+    with WheelBuilder(wheel_path) as builder:
         builder.add_tree(build_dir)
 
     with ZipFile(wheel_path, "r") as zf:
@@ -73,7 +73,7 @@ def test_attributes(tmp_path_factory, tmp_path):
         path.chmod(mode)
 
     wheel_path = tmp_path / "test-1.0-py3-none-any.whl"
-    with WheelBuilder(wheel_path, "w") as builder:
+    with WheelBuilder(wheel_path) as builder:
         builder.add_tree(build_dir)
 
     with ZipFile(wheel_path, "r") as zf:
