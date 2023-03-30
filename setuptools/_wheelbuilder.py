@@ -20,7 +20,7 @@ _StrOrIter = Union[str, Iterable[str]]
 _HASH_ALG = "sha256"
 _HASH_BUF_SIZE = 65536
 _MINIMUM_TIMESTAMP = 315532800  # 1980-01-01 00:00:00 UTC
-_COMPRESSION = ZIP_DEFLATED
+_DEFAULT_COMPRESSION = ZIP_DEFLATED
 _WHEEL_VERSION = "1.0"
 _META_TEMPLATE = f"""\
 Wheel-Version: {_WHEEL_VERSION}
@@ -43,13 +43,15 @@ class WheelBuilder:
         self,
         path: _Path,
         root_is_purelib: bool = True,
+        compression: int = _DEFAULT_COMPRESSION,
         generator: Optional[str] = None,
         timestamp: Optional[int] = None,
     ):
         self._path = Path(path)
         self._root_is_purelib = root_is_purelib
         self._generator = generator
-        self._zip = ZipFile(self._path, "w", compression=_COMPRESSION)
+        self._compression = compression
+        self._zip = ZipFile(self._path, "w", compression=compression)
         self._records: Dict[str, Tuple[str, int]] = {}
 
         basename = str(self._path.with_suffix("").name)
@@ -83,7 +85,7 @@ class WheelBuilder:
         zipinfo = ZipInfo(arcname, self._timestamp)
         attr = stat.S_IMODE(file_stat.st_mode) | stat.S_IFMT(file_stat.st_mode)
         zipinfo.external_attr = attr << 16
-        zipinfo.compress_type = _COMPRESSION
+        zipinfo.compress_type = self._compression
 
         with open(file, "rb") as src, self._zip.open(zipinfo, "w") as dst:
             while True:
@@ -126,7 +128,7 @@ class WheelBuilder:
         """
         zipinfo = ZipInfo(arcname, self._timestamp)
         zipinfo.external_attr = (permissions | stat.S_IFREG) << 16
-        zipinfo.compress_type = _COMPRESSION
+        zipinfo.compress_type = self._compression
         hashsum = hashlib.new(_HASH_ALG)
         file_size = 0
         iter_contents = [contents] if isinstance(contents, str) else contents
@@ -142,7 +144,7 @@ class WheelBuilder:
         arcname = f"{self._dist_info}/RECORD"
         zipinfo = ZipInfo(arcname, self._timestamp)
         zipinfo.external_attr = (0o664 | stat.S_IFREG) << 16
-        zipinfo.compress_type = _COMPRESSION
+        zipinfo.compress_type = self._compression
         out = self._zip.open(zipinfo, "w")
         buf = io.TextIOWrapper(out, encoding="utf-8")
         with out, buf:
