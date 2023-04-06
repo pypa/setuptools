@@ -182,28 +182,42 @@ corresponding entry is required in the ``tool.setuptools.dynamic`` table
    version = {attr = "my_package.VERSION"}
    readme = {file = ["README.rst", "USAGE.rst"]}
 
+Or alternatively to set the ``version`` field dynamically using the ``env``:
+
+.. code-block:: toml
+
+   # ...
+   [project]
+   name = "my_package"
+   dynamic = ["version", "readme"]
+   # ...
+   [tool.setuptools.dynamic]
+   version = {env = "MY_PACKAGE_VERSION"}
+   readme = {file = ["README.rst", "USAGE.rst"]}
+
 In the ``dynamic`` table, the ``attr`` directive [#directives]_ will read an
-attribute from the given module [#attr]_, while ``file`` will read the contents
-of all given files and concatenate them in a single string.
+attribute from the given module [#attr]_, ``file`` will read the contents
+of all given files and concatenate them in a single string, and the ``env``
+directive will read the value of the given environment variable.
 
-========================== =================== =================================================================================================
-Key                        Directive           Notes
-========================== =================== =================================================================================================
-``version``                ``attr``, ``file``
-``readme``                 ``file``            Here you can also set ``"content-type"``:
+========================== =========================== =================================================================================================
+Key                        Directive                   Notes
+========================== =========================== =================================================================================================
+``version``                ``attr``, ``file``, ``env``
+``readme``                 ``file``                    Here you can also set ``"content-type"``:
 
-                                               ``readme = {file = ["README", "USAGE"], content-type = "text/plain"}``
+                                                       ``readme = {file = ["README", "USAGE"], content-type = "text/plain"}``
 
-                                               If ``content-type`` is not given, ``"text/x-rst"`` is used by default.
-``description``            ``file``            One-line text (no line breaks)
-``classifiers``            ``file``            Multi-line text with one classifier per line
-``entry-points``           ``file``            INI format following :doc:`PyPUG:specifications/entry-points`
-                                               (``console_scripts`` and ``gui_scripts`` can be included)
-``dependencies``           ``file``            *subset* of the ``requirements.txt`` format
-                                               (``#`` comments and blank lines excluded) **BETA**
-``optional-dependencies``  ``file``            *subset* of the ``requirements.txt`` format per group
-                                               (``#`` comments and blank lines excluded) **BETA**
-========================== =================== =================================================================================================
+                                                       If ``content-type`` is not given, ``"text/x-rst"`` is used by default.
+``description``            ``file``                    One-line text (no line breaks)
+``classifiers``            ``file``                    Multi-line text with one classifier per line
+``entry-points``           ``file``                    INI format following :doc:`PyPUG:specifications/entry-points`
+                                                       (``console_scripts`` and ``gui_scripts`` can be included)
+``dependencies``           ``file``                    *subset* of the ``requirements.txt`` format
+                                                       (``#`` comments and blank lines excluded) **BETA**
+``optional-dependencies``  ``file``                    *subset* of the ``requirements.txt`` format per group
+                                                       (``#`` comments and blank lines excluded) **BETA**
+========================== =========================== =================================================================================================
 
 Supporting ``file`` for dependencies is meant for a convenience for packaging
 applications with possibly strictly versioned dependencies.
