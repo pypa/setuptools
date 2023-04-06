@@ -283,6 +283,39 @@ class TestClassifiers:
             expanded = read_configuration(pyproject)
         assert "classifiers" not in expanded["project"]
 
+    @pytest.mark.parametrize("package_version", ("1.2.3", "1.2.3.dev0"))
+    def test_dynamic_version_env(self, tmp_path, monkeypatch, package_version):
+        monkeypatch.setenv("PACKAGE_VERSION", package_version)
+
+        config = """
+        [project]
+        name = "myproj"
+        dynamic = ["version"]
+
+        [tool.setuptools.dynamic.version]
+        env = "PACKAGE_VERSION"
+        """
+
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(cleandoc(config))
+        expanded = read_configuration(pyproject)
+        assert expanded["project"]["version"] == package_version
+
+    def test_dynamic_version_env_without_environment_variable(self, tmp_path):
+        config = """
+        [project]
+        name = "myproj"
+        dynamic = ["version"]
+
+        [tool.setuptools.dynamic.version]
+        env = "PACKAGE_VERSION"
+        """
+
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(cleandoc(config))
+        with pytest.raises(KeyError, match="Environment variable .* not found"):
+            read_configuration(pyproject)
+
 
 @pytest.mark.parametrize(
     "example",
