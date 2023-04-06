@@ -1,0 +1,1 @@
+Adding the ability to set the dynamic version using an environment variable -- by :user: IlyaMichlin
