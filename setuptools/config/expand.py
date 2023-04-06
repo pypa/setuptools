@@ -249,6 +249,18 @@ def _find_module(
     return parent_path, module_path, module_name
 
 
+def read_env(env_name: str):
+    """Reads the value of an environment variable.
+
+    :param str env_name: Name of the environment variable
+    :rtype: str
+    """
+    if env_name not in os.environ:
+        raise KeyError(f"Environment variable {env_name!r} not found")
+
+    return os.environ[env_name]
+
+
 def resolve_class(
     qualified_class_name: str,
     package_dir: Optional[Mapping[str, str]] = None,

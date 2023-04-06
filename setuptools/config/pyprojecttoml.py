@@ -318,6 +318,8 @@ class _ConfigExpander:
                 return _expand.read_files(directive["file"], root_dir)
             if "attr" in directive:
                 return _expand.read_attr(directive["attr"], package_dir, root_dir)
+            if "env" in directive:
+                return _expand.read_env(directive["env"])
             raise ValueError(f"invalid `{specifier}`: {directive!r}")
         return None
 

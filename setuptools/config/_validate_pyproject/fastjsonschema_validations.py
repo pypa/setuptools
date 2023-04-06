@@ -431,6 +431,11 @@ def validate_https___setuptools_pypa_io_en_latest_references_keywords_html(data,
                             validate_https___setuptools_pypa_io_en_latest_references_keywords_html__definitions_file_directive(data__dynamic__version, custom_formats, (name_prefix or "data") + ".dynamic.version")
                             data__dynamic__version_one_of_count5 += 1
                         except JsonSchemaValueException: pass
+                    if data__dynamic__version_one_of_count5 < 2:
+                        try:
+                            validate_https___setuptools_pypa_io_en_latest_references_keywords_html__definitions_env_directive(data__dynamic__version, custom_formats, (name_prefix or "data") + ".dynamic.version")
+                            data__dynamic__version_one_of_count5 += 1
+                        except JsonSchemaValueException: pass
                     if data__dynamic__version_one_of_count5 != 1:
                         raise JsonSchemaValueException("" + (name_prefix or "data") + ".dynamic.version must be valid exactly by one definition" + (" (" + str(data__dynamic__version_one_of_count5) + " matches found)"), value=data__dynamic__version, name="" + (name_prefix or "data") + ".dynamic.version", definition={'$$description': ['A version dynamically loaded via either the ``attr:`` or ``file:``', 'directives. Please make sure the given file or attribute respects :pep:`440`.'], 'oneOf': [{'title': "'attr:' directive", '$id': '#/definitions/attr-directive', '$$description': ['Value is read from a module attribute. Supports callables and iterables;', 'unsupported types are cast via ``str()``'], 'type': 'object', 'additionalProperties': False, 'properties': {'attr': {'type': 'string'}}, 'required': ['attr']}, {'$id': '#/definitions/file-directive', 'title': "'file:' directive", 'description': 'Value is read from a file (or list of files and then concatenated)', 'type': 'object', 'additionalProperties': False, 'properties': {'file': {'oneOf': [{'type': 'string'}, {'type': 'array', 'items': {'type': 'string'}}]}}, 'required': ['file']}]}, rule='oneOf')
                 if "classifiers" in data__dynamic_keys:
@@ -563,6 +568,24 @@ def validate_https___setuptools_pypa_io_en_latest_references_keywords_html__defi
                 raise JsonSchemaValueException("" + (name_prefix or "data") + ".attr must be string", value=data__attr, name="" + (name_prefix or "data") + ".attr", definition={'type': 'string'}, rule='type')
         if data_keys:
             raise JsonSchemaValueException("" + (name_prefix or "data") + " must not contain "+str(data_keys)+" properties", value=data, name="" + (name_prefix or "data") + "", definition={'title': "'attr:' directive", '$id': '#/definitions/attr-directive', '$$description': ['Value is read from a module attribute. Supports callables and iterables;', 'unsupported types are cast via ``str()``'], 'type': 'object', 'additionalProperties': False, 'properties': {'attr': {'type': 'string'}}, 'required': ['attr']}, rule='additionalProperties')
+    return data
+
+def validate_https___setuptools_pypa_io_en_latest_references_keywords_html__definitions_env_directive(data, custom_formats={}, name_prefix=None):
+    if not isinstance(data, (dict)):
+        raise JsonSchemaValueException("" + (name_prefix or "data") + " must be object", value=data, name="" + (name_prefix or "data") + "", definition={'title': "'env:' directive", '$id': '#/definitions/env-directive', 'description': 'Value is read from an environment variable', 'type': 'object', 'additionalProperties': False, 'properties': {'env': 'string'}, 'required': ['env']}, rule='type')
+    data_is_dict = isinstance(data, dict)
+    if data_is_dict:
+        data_len = len(data)
+        if not all(prop in data for prop in ['env']):
+            raise JsonSchemaValueException("" + (name_prefix or "data") + " must contain ['env'] properties", value=data, name="" + (name_prefix or "data") + "", definition={'title': "'env:' directive", '$id': '#/definitions/env-directive', 'description': 'Value is read from an environment variable', 'type': 'object', 'additionalProperties': False, 'properties': {'env': 'string'}, 'required': ['env']}, rule='required')
+        data_keys = set(data.keys())
+        if "env" in data_keys:
+            data_keys.remove("env")
+            data__env = data["env"]
+            if not isinstance(data__env, (str)):
+                raise JsonSchemaValueException("" + (name_prefix or "data") + ".attr must be string", value=data__env, name="" + (name_prefix or "data") + ".env", definition={'type': 'string'}, rule='type')
+        if data_keys:
+            raise JsonSchemaValueException("" + (name_prefix or "data") + " must not contain "+str(data_keys)+" properties", value=data, name="" + (name_prefix or "data") + "", definition={'title': "'env:' directive", '$id': '#/definitions/env-directive', '$$description': ['Value is read from a module attribute. Supports callables and iterables;', 'unsupported types are cast via ``str()``'], 'type': 'object', 'additionalProperties': False, 'properties': {'attr': {'type': 'string'}}, 'required': ['attr']}, rule='additionalProperties')
     return data
 
 def validate_https___setuptools_pypa_io_en_latest_references_keywords_html__definitions_find_directive(data, custom_formats={}, name_prefix=None):
