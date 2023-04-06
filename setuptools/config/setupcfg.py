@@ -513,7 +513,7 @@ class ConfigHandler(Generic[Target]):
 
         @wraps(func)
         def config_handler(*args, **kwargs):
-            warnings.warn(msg, warning_class)
+            warnings.warn(msg, warning_class, stacklevel=2)
             return func(*args, **kwargs)
 
         return config_handler
