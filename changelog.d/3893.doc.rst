@@ -1,0 +1,3 @@
+Improved the documentation example regarding making a thin :pep:`517` in-tree
+backend wrapper of ``setuptools.build_meta`` that is future-proof and supports
+:pep:`660` hook too -- by :user:`webknjaz`.
