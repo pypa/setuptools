@@ -319,6 +319,10 @@ class TestDistro:
         res = list(ws.resolve(parse_requirements("a"), ad))
         assert res == [a, c, b, foo]
 
+    @pytest.mark.xfail(
+        sys.version_info[:2] == (3, 12) and sys.version_info.releaselevel != 'final',
+        reason="https://github.com/python/cpython/issues/103632",
+    )
     def testDistroDependsOptions(self):
         d = self.distRequires("""
             Twisted>=1.5
