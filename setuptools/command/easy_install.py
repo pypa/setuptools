@@ -62,6 +62,7 @@ from pkg_resources import (
     VersionConflict, DEVELOP_DIST,
 )
 import pkg_resources
+from .. import py312compat
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
 
@@ -202,7 +203,7 @@ class easy_install(Command):
             return
 
         is_tree = os.path.isdir(path) and not os.path.islink(path)
-        remover = rmtree if is_tree else os.unlink
+        remover = _rmtree if is_tree else os.unlink
         remover(path)
 
     @staticmethod
@@ -645,7 +646,7 @@ class easy_install(Command):
             # cast to str as workaround for #709 and #710 and #712
             yield str(tmpdir)
         finally:
-            os.path.exists(tmpdir) and rmtree(tmpdir)
+            os.path.exists(tmpdir) and _rmtree(tmpdir)
 
     def easy_install(self, spec, deps=False):
         with self._tmpdir() as tmpdir:
@@ -1182,7 +1183,7 @@ class easy_install(Command):
                          dist_dir)
             return eggs
         finally:
-            rmtree(dist_dir)
+            _rmtree(dist_dir)
             log.set_verbosity(self.verbose)  # restore our log verbosity
 
     def _set_fetcher_options(self, base):
@@ -2289,8 +2290,8 @@ def load_launcher_manifest(name):
     return manifest.decode('utf-8') % vars()
 
 
-def rmtree(path, ignore_errors=False, onerror=auto_chmod):
-    return shutil.rmtree(path, ignore_errors, onerror)
+def _rmtree(path, ignore_errors=False, onexc=auto_chmod):
+    return py312compat.shutil_rmtree(path, ignore_errors, onexc)
 
 
 def current_umask():
