@@ -63,7 +63,7 @@ library will be used to actually do the packaging.
    not recommended. The backend automatically adds ``wheel`` dependency
    when it is required, and listing it explicitly causes it to be
    unnecessarily required for source distribution builds.
-   You should only include ``wheel`` in `requires` if you need to explicitly
+   You should only include ``wheel`` in ``requires`` if you need to explicitly
    access it during build time (e.g. if your project needs a ``setup.py``
    script that imports ``wheel``).
 
