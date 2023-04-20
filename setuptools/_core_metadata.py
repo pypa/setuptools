@@ -11,7 +11,6 @@ from typing import Optional, List
 from distutils.util import rfc822_escape
 
 from . import _normalization
-from ._deprecation_warning import SetuptoolsDeprecationWarning
 from .extern.packaging.markers import Marker
 from .extern.packaging.requirements import Requirement
 from .extern.packaging.version import Version
@@ -224,14 +223,15 @@ def _include_extra(req: str, extra: str, condition: str) -> Requirement:
 def _write_provides_extra(file, processed_extras, safe, unsafe):
     previous = processed_extras.get(safe)
     if previous == unsafe:
-        msg = f"""Ambiguity during "extra" normalization for dependencies.\n\n
-        ********************************************************************
-        {previous!r} and {unsafe!r} normalize to the same value:\n
-            {safe!r}\n
-        In future versions, setuptools might halt the build process.
-        ********************************************************************\n\n
-        """
-        warnings.warn(msg, SetuptoolsDeprecationWarning, stacklevel=3)
+        SetuptoolsDeprecationWarning.emit(
+            'Ambiguity during "extra" normalization for dependencies.',
+            f"""
+            {previous!r} and {unsafe!r} normalize to the same value:\n
+                {safe!r}\n
+            In future versions, setuptools might halt the build process.
+            """,
+            see_url="https://peps.python.org/pep-0685/",
+        )
     else:
         processed_extras[safe] = unsafe
         file.write(f"Provides-Extra: {safe}\n")
