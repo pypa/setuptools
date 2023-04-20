@@ -1,19 +1,21 @@
+import contextlib
+import importlib
 import os
-import sys
+import re
 import shutil
 import signal
+import sys
 import tarfile
-import importlib
-import contextlib
 from concurrent import futures
-import re
-from zipfile import ZipFile
+from email import message_from_string
 from pathlib import Path
+from zipfile import ZipFile
 
 import pytest
 from jaraco import path
 
 from .textwrap import DALS
+from setuptools import _reqs
 
 SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
 
@@ -232,7 +234,7 @@ class TestBuildMetaBackend:
 
     def test_get_requires_for_build_wheel(self, build_backend):
         actual = build_backend.get_requires_for_build_wheel()
-        expected = ['six', 'wheel']
+        expected = ['six']
         assert sorted(actual) == sorted(expected)
 
     def test_get_requires_for_build_sdist(self, build_backend):
@@ -437,11 +439,16 @@ class TestBuildMetaBackend:
             "Summary: This is a Python package",
             "License: MIT",
             "Classifier: Intended Audience :: Developers",
-            "Requires-Dist: appdirs",
-            "Requires-Dist: tomli >=1 ; extra == 'all'",
-            "Requires-Dist: importlib ; python_version == \"2.6\" and extra == 'all'",
         ):
             assert line in metadata
+
+        reqs = [
+            "appdirs",
+            "tomli>=1; extra == 'all'",
+            "importlib; python_version == '2.6' and extra == 'all'",
+            "pyscaffold<5,>=4; extra == 'all'",
+        ]
+        _assert_dependencies(metadata, reqs)
 
         assert metadata.strip().endswith("This is a ``README``")
         assert epoints.strip() == "[console_scripts]\nfoo = foo.cli:main"
@@ -792,17 +799,15 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
 
         if use_wheel:
-            base_requirements = ['wheel']
             get_requires = build_backend.get_requires_for_build_wheel
         else:
-            base_requirements = []
             get_requires = build_backend.get_requires_for_build_sdist
 
         # Ensure that the build requirements are properly parsed
-        expected = sorted(base_requirements + requirements)
-        actual = get_requires()
+        expected = sorted(requirements)
+        actual = sorted(get_requires())
 
-        assert expected == sorted(actual)
+        assert expected == actual
 
     def test_setup_requires_with_auto_discovery(self, tmpdir_cwd):
         # Make sure patches introduced to retrieve setup_requires don't accidentally
@@ -830,7 +835,7 @@ class TestBuildMetaBackend:
         path.build(files)
         build_backend = self.get_build_backend()
         setup_requires = build_backend.get_requires_for_build_wheel()
-        assert setup_requires == ["wheel", "foo"]
+        assert setup_requires == ["foo"]
 
     def test_dont_install_setup_requires(self, tmpdir_cwd):
         files = {
@@ -971,7 +976,7 @@ def test_sys_exit_0_in_setuppy(monkeypatch, tmp_path):
         """
     (tmp_path / "setup.py").write_text(DALS(setuppy), encoding="utf-8")
     backend = BuildBackend(backend_name="setuptools.build_meta")
-    assert backend.get_requires_for_build_wheel() == ["wheel"]
+    assert backend.get_requires_for_build_wheel() == []
 
 
 def test_system_exit_in_setuppy(monkeypatch, tmp_path):
@@ -981,3 +986,10 @@ def test_system_exit_in_setuppy(monkeypatch, tmp_path):
     with pytest.raises(SystemExit, match="some error"):
         backend = BuildBackend(backend_name="setuptools.build_meta")
         backend.get_requires_for_build_wheel()
+
+
+def _assert_dependencies(metadata, reqs):
+    expected = _reqs.parse(reqs)
+    message = message_from_string(metadata)
+    found = _reqs.parse(message.get_all("Requires-Dist"))
+    assert set(found) == set(expected)

@@ -352,7 +352,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             )
 
     def get_requires_for_build_wheel(self, config_settings=None):
-        return self._get_build_requires(config_settings, requirements=['wheel'])
+        return self._get_build_requires(config_settings, requirements=[])
 
     def get_requires_for_build_sdist(self, config_settings=None):
         return self._get_build_requires(config_settings, requirements=[])
@@ -430,9 +430,13 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
     def build_wheel(
         self, wheel_directory, config_settings=None, metadata_directory=None
     ):
+        info_dir = self._get_dist_info_dir(metadata_directory)
+        cmd = ["bdist_wheel"]
+        if info_dir:
+            cmd = ["dist_info", "--use-cached", "--dist-info-dir", info_dir] + cmd
         with suppress_known_deprecation():
             return self._build_with_temp_dir(
-                ['bdist_wheel'], '.whl', wheel_directory, config_settings
+                cmd, ".whl", wheel_directory, config_settings
             )
 
     def build_sdist(self, sdist_directory, config_settings=None):
