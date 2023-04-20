@@ -9,7 +9,6 @@ import socket
 import base64
 import hashlib
 import itertools
-import warnings
 import configparser
 import html
 import http.client
@@ -40,6 +39,7 @@ from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
 from setuptools.extern.more_itertools import unique_everseen
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
@@ -868,7 +868,11 @@ class PackageIndex(Environment):
         raise DistutilsError("Unexpected HTML page found at " + url)
 
     def _download_svn(self, url, filename):
-        warnings.warn("SVN download support is deprecated", UserWarning)
+        SetuptoolsDeprecationWarning.emit(
+            "Invalid config",
+            f"SVN download support is deprecated: {url}",
+            due_date=(2023, 6, 1),  # Initially introduced in 23 Sept 2018
+        )
         url = url.split('#', 1)[0]  # remove any fragment for svn's sake
         creds = ''
         if url.lower().startswith('svn:') and '@' in url:

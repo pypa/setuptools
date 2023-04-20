@@ -44,8 +44,6 @@ import sysconfig
 
 from sysconfig import get_path
 
-from setuptools import SetuptoolsDeprecationWarning
-
 from setuptools import Command
 from setuptools.sandbox import run_setup
 from setuptools.command import setopt
@@ -54,6 +52,7 @@ from setuptools.package_index import (
     PackageIndex, parse_requirement_arg, URL_SCHEME,
 )
 from setuptools.command import bdist_egg, egg_info
+from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 from setuptools.wheel import Wheel
 from pkg_resources import (
     normalize_path, resource_string,
@@ -142,11 +141,7 @@ class easy_install(Command):
     create_index = PackageIndex
 
     def initialize_options(self):
-        warnings.warn(
-            "easy_install command is deprecated. "
-            "Use build and pip and other standards-based tools.",
-            EasyInstallDeprecationWarning,
-        )
+        EasyInstallDeprecationWarning.emit()
 
         # the --user option seems to be an opt-in one,
         # so the default should be False.
@@ -2095,7 +2090,8 @@ class ScriptWriter:
     @classmethod
     def get_script_args(cls, dist, executable=None, wininst=False):
         # for backward compatibility
-        warnings.warn("Use get_args", EasyInstallDeprecationWarning)
+        EasyInstallDeprecationWarning.emit("Use get_args", due_date=(2023, 6, 1))
+        # This is a direct API call, it should be safe to remove soon.
         writer = (WindowsScriptWriter if wininst else ScriptWriter).best()
         header = cls.get_script_header("", executable, wininst)
         return writer.get_args(dist, header)
@@ -2103,8 +2099,8 @@ class ScriptWriter:
     @classmethod
     def get_script_header(cls, script_text, executable=None, wininst=False):
         # for backward compatibility
-        warnings.warn(
-            "Use get_header", EasyInstallDeprecationWarning, stacklevel=2)
+        EasyInstallDeprecationWarning.emit("Use get_header", due_date=(2023, 6, 1))
+        # This is a direct API call, it should be safe to remove soon.
         if wininst:
             executable = "python.exe"
         return cls.get_header(script_text, executable)
@@ -2139,7 +2135,8 @@ class ScriptWriter:
     @classmethod
     def get_writer(cls, force_windows):
         # for backward compatibility
-        warnings.warn("Use best", EasyInstallDeprecationWarning)
+        EasyInstallDeprecationWarning.emit("Use best", due_date=(2023, 6, 1))
+        # This is a direct API call, it should be safe to remove soon.
         return WindowsScriptWriter.best() if force_windows else cls.best()
 
     @classmethod
@@ -2171,7 +2168,8 @@ class WindowsScriptWriter(ScriptWriter):
     @classmethod
     def get_writer(cls):
         # for backward compatibility
-        warnings.warn("Use best", EasyInstallDeprecationWarning)
+        EasyInstallDeprecationWarning.emit("Use best", due_date=(2023, 6, 1))
+        # This is a direct API call, it should be safe to remove soon.
         return cls.best()
 
     @classmethod
@@ -2196,7 +2194,7 @@ class WindowsScriptWriter(ScriptWriter):
                 "{ext} not listed in PATHEXT; scripts will not be "
                 "recognized as executables."
             ).format(**locals())
-            warnings.warn(msg, UserWarning)
+            SetuptoolsWarning.emit(msg)
         old = ['.pya', '.py', '-script.py', '.pyc', '.pyo', '.pyw', '.exe']
         old.remove(ext)
         header = cls._adjust_header(type_, header)
@@ -2308,6 +2306,11 @@ def only_strs(values):
 
 
 class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):
+    _SUMMARY = "easy_install command is deprecated."
+    _DETAILS = """
+    Please avoid running ``setup.py`` and ``easy_install``.
+    Instead, use pypa/build, pypa/installer, pypa/build or
+    other standards-based tools.
     """
-    Warning for EasyInstall deprecations, bypassing suppression.
-    """
+    _SEE_URL = "https://github.com/pypa/setuptools/issues/917"
+    # _DUE_DATE not defined yet

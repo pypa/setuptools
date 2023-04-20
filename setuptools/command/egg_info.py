@@ -13,7 +13,6 @@ import os
 import re
 import sys
 import io
-import warnings
 import time
 import collections
 
@@ -30,7 +29,7 @@ from setuptools.glob import glob
 
 from setuptools.extern import packaging
 from setuptools.extern.jaraco.text import yield_lines
-from setuptools import SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsDeprecationWarning
 
 
 PY_MAJOR = '{}.{}'.format(*sys.version_info)
@@ -331,12 +330,16 @@ class egg_info(InfoCommon, Command):
         if self.egg_base != os.curdir:
             bei = os.path.join(self.egg_base, bei)
         if os.path.exists(bei):
-            log.warn(
-                "-" * 78 + '\n'
-                "Note: Your current .egg-info directory has a '-' in its name;"
-                '\nthis will not work correctly with "setup.py develop".\n\n'
-                'Please rename %s to %s to correct this problem.\n' + '-' * 78,
-                bei, self.egg_info
+            EggInfoDeprecationWarning.emit(
+                "Invalid egg-info directory name.",
+                f"""
+                Your current .egg-info directory has a '-' in its name;
+                this will not work correctly with setuptools commands.
+
+                Please rename {bei!r} to {self.egg_info!r} to correct this problem.
+                """,
+                due_date=(2023, 6, 1),
+                # Old warning, introduced in 2005, might be safe to remove soon
             )
             self.broken_egg_info = self.egg_info
             self.egg_info = bei  # make it work for now
@@ -658,11 +661,14 @@ class manifest_maker(sdist):
         if hasattr(build_py, 'get_data_files_without_manifest'):
             return build_py.get_data_files_without_manifest()
 
-        warnings.warn(
-            "Custom 'build_py' does not implement "
-            "'get_data_files_without_manifest'.\nPlease extend command classes"
-            " from setuptools instead of distutils.",
-            SetuptoolsDeprecationWarning
+        SetuptoolsDeprecationWarning.emit(
+            "`build_py` command does not inherit from setuptools' `build_py`.",
+            """
+            Custom 'build_py' does not implement 'get_data_files_without_manifest'.
+            Please extend command classes from setuptools instead of distutils.
+            """,
+            see_url="https://peps.python.org/pep-0632/",
+            # due_date not defined yet, old projects might still do it?
         )
         return build_py.get_data_files()
 
@@ -701,9 +707,15 @@ def write_pkg_info(cmd, basename, filename):
 
 def warn_depends_obsolete(cmd, basename, filename):
     if os.path.exists(filename):
-        log.warn(
-            "WARNING: 'depends.txt' is not used by setuptools 0.6!\n"
-            "Use the install_requires/extras_require setup() args instead."
+        EggInfoDeprecationWarning.emit(
+            "Deprecated config.",
+            """
+            'depends.txt' is not used by setuptools >= 0.6!
+            Configure your dependencies via `setup.cfg` or `pyproject.toml` instead.
+            """,
+            see_docs="userguide/declarative_config.html",
+            due_date=(2023, 6, 1),
+            # Old warning, introduced in 2005, it might be safe to remove soon.
         )
 
 
@@ -766,8 +778,12 @@ def get_pkg_info_revision():
     Get a -r### off of PKG-INFO Version in case this is an sdist of
     a subversion revision.
     """
-    warnings.warn(
-        "get_pkg_info_revision is deprecated.", EggInfoDeprecationWarning)
+    EggInfoDeprecationWarning.emit(
+        "Deprecated API call",
+        "get_pkg_info_revision is deprecated.",
+        due_date=(2023, 6, 1),
+        # Warning introduced in 11 Dec 2015, should be safe to remove
+    )
     if os.path.exists('PKG-INFO'):
         with io.open('PKG-INFO') as f:
             for line in f:

@@ -15,12 +15,12 @@ import pytest
 from ini2toml.api import Translator
 
 import setuptools  # noqa ensure monkey patch to metadata
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
 from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField, _some_attrgetter
 from setuptools.command.egg_info import write_requirements
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from .downloads import retrieve_file, urls_from_file
 
