@@ -7,6 +7,6 @@ def shutil_rmtree(path, ignore_errors=False, onexc=None):
         return shutil.rmtree(path, ignore_errors, onexc=onexc)
 
     def _handler(fn, path, excinfo):
-        onexc(fn, path, excinfo[1])
+        return onexc(fn, path, excinfo[1])
 
     return shutil.rmtree(path, ignore_errors, onerror=_handler)
