@@ -1,0 +1,1 @@
+Fixes setuptools.dist:invalid_unless_false when value is false don't raise error -- by :user:`jammarher`
