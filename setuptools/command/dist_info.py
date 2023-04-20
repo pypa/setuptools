@@ -7,6 +7,7 @@ import os
 import shutil
 from distutils import log
 from distutils.core import Command
+from distutils import dir_util  # prefer dir_util for log/cache consistency
 from pathlib import Path
 
 from .. import _normalization
@@ -49,9 +50,10 @@ class dist_info(Command):
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
         ('no-date', 'D', "Don't include date stamp [default]"),
         ('keep-egg-info', None, "*TRANSITIONAL* will be removed in the future"),
+        ('use-cached', None, "*TRANSITIONAL* will be removed in the future"),
     ]
 
-    boolean_options = ['tag-date', 'keep-egg-info']
+    boolean_options = ['tag-date', 'keep-egg-info', 'use-cached']
     negative_opt = {'no-date': 'tag-date'}
 
     def initialize_options(self):
@@ -62,6 +64,7 @@ class dist_info(Command):
         self.tag_date = None
         self.tag_build = None
         self.keep_egg_info = False
+        self.use_cached = False
 
     def finalize_options(self):
         if self.egg_base:
@@ -98,7 +101,10 @@ class dist_info(Command):
             self.tag_build = egg_info.tag_build
 
     def run(self):
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        if self.use_cached and (self.dist_info_dir / "METADATA").is_file():
+            return
+
+        self.mkpath(str(self.output_dir))
         self.egg_info.run()
         egg_info_dir = Path(self.egg_info.egg_info)
         dist_info_dir = self.dist_info_dir
@@ -111,18 +117,17 @@ class dist_info(Command):
         # METADATA, entry-points.txt
         shutil.copytree(egg_info_dir, dist_info_dir, ignore=lambda _, __: _IGNORE)
         metadata_file = dist_info_dir / "METADATA"
-        shutil.copy2(egg_info_dir / "PKG-INFO", metadata_file)
-        log.debug(f"creating {str(os.path.abspath(metadata_file))!r}")
+        self.copy_file(egg_info_dir / "PKG-INFO", metadata_file)
         if self.distribution.dependency_links:
-            shutil.copy2(egg_info_dir / "dependency_links.txt", dist_info_dir)
+            self.copy_file(egg_info_dir / "dependency_links.txt", dist_info_dir)
 
         for dest, orig in self._license_paths():
             dest = dist_info_dir / dest
-            dest.parent.mkdir(exist_ok=True, parents=True)
-            shutil.copy2(orig, dest)
+            self.mkpath(str(dest.parent))
+            self.copy_file(orig, dest)
 
         if not self.keep_egg_info:
-            shutil.rmtree(egg_info_dir)
+            dir_util.remove_tree(egg_info_dir, self.verbose, self.dry_run)
 
     def _license_paths(self):
         for file in self.distribution.metadata.license_files or ():
