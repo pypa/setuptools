@@ -1,3 +1,25 @@
+v67.7.0
+-------
+
+
+Changes
+^^^^^^^
+* #3849: Overhaul warning system for better visibility.
+
+Documentation changes
+^^^^^^^^^^^^^^^^^^^^^
+* #3859: Added a note about historical presence of ``wheel``
+  in ``build-system.requires``, in ``pyproject.toml``.
+* #3893: Improved the documentation example regarding making a thin :pep:`517` in-tree
+  backend wrapper of ``setuptools.build_meta`` that is future-proof and supports
+  :pep:`660` hook too -- by :user:`webknjaz`.
+
+Misc
+^^^^
+* #3884: Add a ``stacklevel`` parameter to ``warnings.warn()`` to provide more information to the user.
+  -- by :user:`cclauss`
+
+
 v67.6.1
 -------
 
