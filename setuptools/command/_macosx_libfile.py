@@ -278,7 +278,7 @@ def read_data(struct_class, lib_file):
     return struct_class.from_buffer_copy(lib_file.read(ctypes.sizeof(struct_class)))
 
 
-def extract_macosx_min_system_version(path_to_lib):
+def extract_macosx_min_system_version(path_to_lib):  # noqa: C901
     with open(path_to_lib, "rb") as lib_file:
         BaseClass, magic_number = get_base_class_and_magic_number(lib_file, 0)
         if magic_number not in [FAT_MAGIC, FAT_MAGIC_64, MH_MAGIC, MH_MAGIC_64]:
@@ -392,7 +392,7 @@ def parse_version(version):
     return x, y, z
 
 
-def calculate_macosx_platform_tag(archive_root, platform_tag):
+def calculate_macosx_platform_tag(archive_root, platform_tag):  # noqa: C901
     """
     Calculate proper macosx platform tag basing on files which are included to wheel
 
