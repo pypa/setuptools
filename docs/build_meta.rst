@@ -136,18 +136,16 @@ the ``_custom_build/backend.py`` file, as shown in the following example:
 
 .. code-block:: python
 
+    from setuptools import build_meta as _orig
     from setuptools.build_meta import *
-
-    _original_get_requires_for_build_wheel = get_requires_for_build_wheel
-    _original_get_requires_for_build_sdist = get_requires_for_build_sdist
 
 
     def get_requires_for_build_wheel(config_settings=None):
-        return _original_get_requires_for_build_wheel(config_settings) + [...]
+        return _orig.get_requires_for_build_wheel(config_settings) + [...]
 
 
     def get_requires_for_build_sdist(config_settings=None):
-        return _original_get_requires_for_build_sdist(config_settings) + [...]
+        return _orig.get_requires_for_build_sdist(config_settings) + [...]
 
 
 .. note::
