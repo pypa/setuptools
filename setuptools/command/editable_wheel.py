@@ -185,7 +185,7 @@ class editable_wheel(Command):
 
     def _ensure_dist_info(self):
         if not Path(self.dist_info_dir, "METADATA").exists():
-            self.distribution.run_command("dist_info")
+            self.run_command("dist_info")
 
     def _install_namespaces(self, installation_dir, pth_prefix):
         # XXX: Only required to support the deprecated namespace practice
