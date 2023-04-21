@@ -17,6 +17,7 @@ from distutils.core import run_setup
 from setuptools.command.bdist_wheel import _get_abi_tag, bdist_wheel
 from setuptools.dist import Distribution
 from setuptools.extern.packaging import tags
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 DEFAULT_FILES = {
     "dummy_dist-1.0.dist-info/top_level.txt",
@@ -276,7 +277,10 @@ def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
         "[metadata]\nlicense_file=licenses/DUMMYFILE", encoding="utf-8"
     )
     monkeypatch.chdir(dummy_dist)
-    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
+
+    with pytest.warns(SetuptoolsDeprecationWarning, match="use license_files"):
+        bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
+
     with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         license_files = {"dummy_dist-1.0.dist-info/DUMMYFILE"}
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
