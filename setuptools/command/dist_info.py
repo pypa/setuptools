@@ -75,7 +75,7 @@ class dist_info(Command):
         project_dir = dist.src_root or os.curdir
         self.output_dir = Path(self.output_dir or project_dir)
 
-        egg_info = self.reinitialize_command("egg_info")
+        egg_info = self.reinitialize_command("egg_info", reinit_subcommands=True)
         egg_info.egg_base = str(self.output_dir)
         self._sync_tag_details(egg_info)
         egg_info.finalize_options()
@@ -110,7 +110,9 @@ class dist_info(Command):
         # If in the future we don't want to use egg_info, we have to create the files:
         # METADATA, entry-points.txt
         shutil.copytree(egg_info_dir, dist_info_dir, ignore=lambda _, __: _IGNORE)
-        shutil.copy2(egg_info_dir / "PKG-INFO", dist_info_dir / "METADATA")
+        metadata_file = dist_info_dir / "METADATA"
+        shutil.copy2(egg_info_dir / "PKG-INFO", metadata_file)
+        log.debug(f"creating {str(os.path.abspath(metadata_file))!r}")
         if self.distribution.dependency_links:
             shutil.copy2(egg_info_dir / "dependency_links.txt", dist_info_dir)
 
