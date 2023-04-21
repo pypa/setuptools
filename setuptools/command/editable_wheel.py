@@ -16,8 +16,9 @@ import os
 import shutil
 import sys
 import traceback
-from contextlib import suppress
+from contextlib import ExitStack, suppress
 from enum import Enum
+from functools import lru_cache
 from inspect import cleandoc
 from itertools import chain
 from pathlib import Path
@@ -33,6 +34,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    cast,
 )
 
 from .. import (
@@ -42,6 +44,8 @@ from .. import (
     errors,
     namespaces,
 )
+from .._wheelbuilder import WheelBuilder
+from ..extern.packaging.tags import sys_tags
 from ..discovery import find_package_path
 from ..dist import Distribution
 from ..warnings import (
@@ -50,9 +54,6 @@ from ..warnings import (
     SetuptoolsWarning,
 )
 from .build_py import build_py as build_py_cls
-
-if TYPE_CHECKING:
-    from wheel.wheelfile import WheelFile  # noqa
 
 if sys.version_info >= (3, 8):
     from typing import Protocol
@@ -63,6 +64,7 @@ else:
 
 _Path = Union[str, Path]
 _P = TypeVar("_P", bound=_Path)
+_Tag = Tuple[str, str, str]
 _logger = logging.getLogger(__name__)
 
 
@@ -117,6 +119,20 @@ Options like `package-data`, `include/exclude-package-data` or
 """
 
 
+@lru_cache(maxsize=0)
+def _any_compat_tag() -> _Tag:
+    """
+    PEP 660 does not require the tag to be identical to the tag that will be used
+    in production, it only requires the tag to be compatible with the current system.
+    Moreover, PEP 660 also guarantees that the generated wheel file should be used in
+    the same system where it was produced.
+    Therefore we can just be pragmatic and pick one of the compatible tags.
+    """
+    tag = next(sys_tags())
+    components = (tag.interpreter, tag.abi, tag.platform)
+    return cast(_Tag, tuple(map(_normalization.filename_component, components)))
+
+
 class editable_wheel(Command):
     """Build 'editable' wheel for development.
     This command is private and reserved for internal use of setuptools,
@@ -142,34 +158,34 @@ class editable_wheel(Command):
         self.project_dir = dist.src_root or os.curdir
         self.package_dir = dist.package_dir or {}
         self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
+        if self.dist_info_dir:
+            self.dist_info_dir = Path(self.dist_info_dir)
 
     def run(self):
         try:
             self.dist_dir.mkdir(exist_ok=True)
-            self._ensure_dist_info()
-
-            # Add missing dist_info files
-            self.reinitialize_command("bdist_wheel")
-            bdist_wheel = self.get_finalized_command("bdist_wheel")
-            bdist_wheel.write_wheelfile(self.dist_info_dir)
-
-            self._create_wheel_file(bdist_wheel)
+            self._create_wheel_file()
         except Exception:
             traceback.print_exc()
             project = self.distribution.name or self.distribution.get_name()
             _DebuggingTips.emit(project=project)
             raise
 
-    def _ensure_dist_info(self):
+    def _get_dist_info_name(self, tmp_dir):
         if self.dist_info_dir is None:
             dist_info = self.reinitialize_command("dist_info")
-            dist_info.output_dir = self.dist_dir
+            dist_info.output_dir = tmp_dir
             dist_info.ensure_finalized()
-            dist_info.run()
             self.dist_info_dir = dist_info.dist_info_dir
-        else:
-            assert str(self.dist_info_dir).endswith(".dist-info")
-            assert Path(self.dist_info_dir, "METADATA").exists()
+            return dist_info.name
+
+        assert str(self.dist_info_dir).endswith(".dist-info")
+        assert (self.dist_info_dir / "METADATA").exists()
+        return self.dist_info_dir.name[: -len(".dist-info")]
+
+    def _ensure_dist_info(self):
+        if not Path(self.dist_info_dir, "METADATA").exists():
+            self.distribution.run_command("dist_info")
 
     def _install_namespaces(self, installation_dir, pth_prefix):
         # XXX: Only required to support the deprecated namespace practice
@@ -209,8 +225,7 @@ class editable_wheel(Command):
         scripts = str(Path(unpacked_wheel, f"{name}.data", "scripts"))
 
         # egg-info may be generated again to create a manifest (used for package data)
-        egg_info = dist.reinitialize_command("egg_info", reinit_subcommands=True)
-        egg_info.egg_base = str(tmp_dir)
+        egg_info = dist.get_command_obj("egg_info")
         egg_info.ignore_egg_info_in_manifest = True
 
         build = dist.reinitialize_command("build", reinit_subcommands=True)
@@ -322,31 +337,29 @@ class editable_wheel(Command):
                 # needs work.
             )
 
-    def _create_wheel_file(self, bdist_wheel):
-        from wheel.wheelfile import WheelFile
+    def _create_wheel_file(self):
+        with ExitStack() as stack:
+            lib = stack.enter_context(TemporaryDirectory(suffix=".build-lib"))
+            tmp = stack.enter_context(TemporaryDirectory(suffix=".build-temp"))
+            dist_name = self._get_dist_info_name(tmp)
 
-        dist_info = self.get_finalized_command("dist_info")
-        dist_name = dist_info.name
-        tag = "-".join(bdist_wheel.get_tag())
-        build_tag = "0.editable"  # According to PEP 427 needs to start with digit
-        archive_name = f"{dist_name}-{build_tag}-{tag}.whl"
-        wheel_path = Path(self.dist_dir, archive_name)
-        if wheel_path.exists():
-            wheel_path.unlink()
+            tag = "-".join(_any_compat_tag())  # Loose tag for the sake of simplicity...
+            build_tag = "0.editable"  # According to PEP 427 needs to start with digit.
+            archive_name = f"{dist_name}-{build_tag}-{tag}.whl"
+            wheel_path = Path(self.dist_dir, archive_name)
+            if wheel_path.exists():
+                wheel_path.unlink()
 
-        unpacked_wheel = TemporaryDirectory(suffix=archive_name)
-        build_lib = TemporaryDirectory(suffix=".build-lib")
-        build_tmp = TemporaryDirectory(suffix=".build-temp")
-
-        with unpacked_wheel as unpacked, build_lib as lib, build_tmp as tmp:
-            unpacked_dist_info = Path(unpacked, Path(self.dist_info_dir).name)
-            shutil.copytree(self.dist_info_dir, unpacked_dist_info)
-            self._install_namespaces(unpacked, dist_info.name)
+            unpacked = stack.enter_context(TemporaryDirectory(suffix=archive_name))
+            self._install_namespaces(unpacked, dist_name)
             files, mapping = self._run_build_commands(dist_name, unpacked, lib, tmp)
-            strategy = self._select_strategy(dist_name, tag, lib)
-            with strategy, WheelFile(wheel_path, "w") as wheel_obj:
-                strategy(wheel_obj, files, mapping)
-                wheel_obj.write_files(unpacked)
+
+            strategy = stack.enter_context(self._select_strategy(dist_name, tag, lib))
+            builder = stack.enter_context(WheelBuilder(wheel_path))
+            strategy(builder, files, mapping)
+            builder.add_tree(unpacked, exclude=["*.dist-info/*", "*.egg-info/*"])
+            self._ensure_dist_info()
+            builder.add_tree(self.dist_info_dir, prefix=self.dist_info_dir.name)
 
         return wheel_path
 
@@ -384,7 +397,7 @@ class editable_wheel(Command):
 
 
 class EditableStrategy(Protocol):
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+    def __call__(self, wheel: WheelBuilder, files: List[str], mapping: Dict[str, str]):
         ...
 
     def __enter__(self):
@@ -400,10 +413,10 @@ class _StaticPth:
         self.name = name
         self.path_entries = path_entries
 
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+    def __call__(self, wheel: WheelBuilder, files: List[str], mapping: Dict[str, str]):
         entries = "\n".join((str(p.resolve()) for p in self.path_entries))
         contents = _encode_pth(f"{entries}\n")
-        wheel.writestr(f"__editable__.{self.name}.pth", contents)
+        wheel.new_file(f"__editable__.{self.name}.pth", contents)
 
     def __enter__(self):
         msg = f"""
@@ -440,7 +453,7 @@ class _LinkTree(_StaticPth):
         self._file = dist.get_command_obj("build_py").copy_file
         super().__init__(dist, name, [self.auxiliary_dir])
 
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+    def __call__(self, wheel: WheelBuilder, files: List[str], mapping: Dict[str, str]):
         self._create_links(files, mapping)
         super().__call__(wheel, files, mapping)
 
@@ -492,7 +505,7 @@ class _TopLevelFinder:
         self.dist = dist
         self.name = name
 
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+    def __call__(self, wheel: WheelBuilder, files: List[str], mapping: Dict[str, str]):
         src_root = self.dist.src_root or os.curdir
         top_level = chain(_find_packages(self.dist), _find_top_level_modules(self.dist))
         package_dir = self.dist.package_dir or {}
@@ -507,11 +520,9 @@ class _TopLevelFinder:
 
         name = f"__editable__.{self.name}.finder"
         finder = _normalization.safe_identifier(name)
-        content = bytes(_finder_template(name, roots, namespaces_), "utf-8")
-        wheel.writestr(f"{finder}.py", content)
-
+        wheel.new_file(f"{finder}.py", _finder_template(name, roots, namespaces_))
         content = _encode_pth(f"import {finder}; {finder}.install()")
-        wheel.writestr(f"__editable__.{self.name}.pth", content)
+        wheel.new_file(f"__editable__.{self.name}.pth", content)
 
     def __enter__(self):
         msg = "Editable install will be performed using a meta path finder.\n"
