@@ -1,3 +1,12 @@
+v67.7.1
+-------
+
+
+Misc
+^^^^
+* #3898: Fixes setuptools.dist:invalid_unless_false when value is false don't raise error -- by :user:`jammarher`
+
+
 v67.7.0
 -------
 
