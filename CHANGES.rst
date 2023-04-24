@@ -1,3 +1,12 @@
+v67.7.2
+-------
+
+
+Misc
+^^^^
+* #3902: Fixed wrong URLs used in warnings and logs.
+
+
 v67.7.1
 -------
 
