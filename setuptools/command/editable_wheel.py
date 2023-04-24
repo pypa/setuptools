@@ -128,9 +128,17 @@ def _any_compat_tag() -> _Tag:
     the same system where it was produced.
     Therefore we can just be pragmatic and pick one of the compatible tags.
     """
-    tag = next(sys_tags())
+    tag = next(_skip_incompatible_tags())
+    # ^-- TODO: replace with `tag = next(sys_tags())` (pypa/python#11789)
     components = (tag.interpreter, tag.abi, tag.platform)
     return cast(_Tag, tuple(map(_normalization.filename_component, components)))
+
+
+def _skip_incompatible_tags():
+    # Temporary workaround for https://github.com/pypa/pip/issues/11789
+    for tag in sys_tags():
+        if all(plat not in tag.platform for plat in ("macosx_12", "macosx_11")):
+            yield tag
 
 
 class editable_wheel(Command):
