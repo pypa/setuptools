@@ -402,7 +402,8 @@ class PackageIndex(Environment):
             return True
         msg = (
             "\nNote: Bypassing %s (disallowed host; see "
-            "http://bit.ly/2hrImnY for details).\n"
+            "https://setuptools.pypa.io/en/latest/deprecated/"
+            "easy_install.html#restricting-downloads-with-allow-hosts for details).\n"
         )
         if fatal:
             raise DistutilsError(msg % url)

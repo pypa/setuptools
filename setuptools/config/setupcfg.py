@@ -786,4 +786,4 @@ class _AmbiguousMarker(SetuptoolsDeprecationWarning):
 
 
 class _DeprecatedConfig(SetuptoolsDeprecationWarning):
-    _SEE_DOCS = "https://setuptools.pypa.io/en/latest/userguide/declarative_config.html"
+    _SEE_DOCS = "userguide/declarative_config.html"
