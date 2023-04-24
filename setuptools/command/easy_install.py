@@ -1845,7 +1845,7 @@ def _update_zipimporter_cache(normalized_path, cache, updater=None):
         #    get/del patterns instead. For more detailed information see the
         #    following links:
         #      https://github.com/pypa/setuptools/issues/202#issuecomment-202913420
-        #      http://bit.ly/2h9itJX
+        #      https://foss.heptapod.net/pypy/pypy/-/blob/144c4e65cb6accb8e592f3a7584ea38265d1873c/pypy/module/zipimport/interp_zipimport.py
         old_entry = cache[p]
         del cache[p]
         new_entry = updater and updater(p, old_entry)
