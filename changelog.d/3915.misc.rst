@@ -1,0 +1,1 @@
+Adequate tests to the latest changes in ``virtualenv`` for Python 3.12.
