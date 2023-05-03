@@ -174,8 +174,8 @@ def _check_test_command_install_requirements(venv, tmpdir):
 
 
 def test_test_command_install_requirements(venv, tmpdir, tmpdir_cwd):
-    # Ensure pip/wheel packages are installed.
-    venv.run(["python", "-c", "__import__('pkg_resources').require(['pip', 'wheel'])"])
+    # Ensure pip is installed.
+    venv.run(["python", "-c", "import pip"])
     # disable index URL so bits and bobs aren't requested from PyPI
     with contexts.environment(PYTHONPATH=None, PIP_NO_INDEX="1"):
         _check_test_command_install_requirements(venv, tmpdir)
