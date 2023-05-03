@@ -3,9 +3,12 @@ Handling of Core Metadata for Python packages (including reading and writing).
 
 See: https://packaging.python.org/en/latest/specifications/core-metadata/
 """
+import os
+import stat
 import textwrap
 from email import message_from_file
 from email.message import Message
+from tempfile import NamedTemporaryFile
 from typing import Optional, List
 
 from distutils.util import rfc822_escape
@@ -117,6 +120,24 @@ def single_line(val):
         # due_date is undefined. Controversial change, there was a lot of push back.
         val = val.strip().split('\n')[0]
     return val
+
+
+def write_pkg_info(self, base_dir):
+    """Write the PKG-INFO file into the release tree."""
+    temp = ""
+    final = os.path.join(base_dir, 'PKG-INFO')
+    try:
+        # Use a temporary file while writing to avoid race conditions
+        # (e.g. `importlib.metadata` reading `.egg-info/PKG-INFO`):
+        with NamedTemporaryFile("w", encoding="utf-8", dir=base_dir, delete=False) as f:
+            temp = f.name
+            self.write_pkg_file(f)
+        permissions = stat.S_IMODE(os.lstat(temp).st_mode)
+        os.chmod(temp, permissions | stat.S_IRGRP | stat.S_IROTH)
+        os.replace(temp, final)  # atomic operation.
+    finally:
+        if temp and os.path.exists(temp):
+            os.remove(temp)
 
 
 # Based on Python 3.5 version
