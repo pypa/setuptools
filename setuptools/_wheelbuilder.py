@@ -114,9 +114,9 @@ class WheelBuilder:
             dirs[:] = [x for x in sorted(dirs) if x != "__pycache__"]
             for name in sorted(files):
                 file = os.path.normpath(os.path.join(root, name))
-                if not os.path.isfile(file) or should_exclude(file):
-                    continue
                 arcname = os.path.relpath(file, path).replace(os.path.sep, "/")
+                if not os.path.isfile(file) or should_exclude(arcname):
+                    continue
                 if prefix:
                     arcname = os.path.join(prefix, arcname)
                 self.add_existing_file(arcname, file)
