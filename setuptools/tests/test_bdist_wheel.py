@@ -362,8 +362,15 @@ setup(
 """
 
 
-@pytest.mark.filterwarnings("ignore:Config variable 'Py_DEBUG' is unset.*")
-# ^-- Warning may happen in Windows (inherited from original pypa/wheel implementation)
+# On Windows, a warning may inform the user that Py_DEBUG is unset.
+# This behaviour seems to be inherited from the original pypa/wheel implementation.
+ignore_pydebug = (
+    pytest.mark.filterwarnings("ignore:Config variable 'Py_DEBUG' is unset.*")
+    if sys.platform == "win32" else lambda x: x
+)
+
+
+@ignore_pydebug
 def test_limited_abi(monkeypatch, tmp_path, tmp_path_factory):
     """Test that building a binary wheel with the limited ABI works."""
     proj_dir = tmp_path_factory.mktemp("dummy_dist")
