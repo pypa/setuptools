@@ -118,7 +118,9 @@ _namespace_handlers = None
 _namespace_packages = None
 
 
-warnings.warn("pkg_resources is deprecated as an API", DeprecationWarning)
+warnings.warn("pkg_resources is deprecated as an API.  "
+              "See https://setuptools.pypa.io/en/latest/pkg_resources.html",
+              DeprecationWarning, stacklevel=2)
 
 
 _PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
