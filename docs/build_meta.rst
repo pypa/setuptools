@@ -69,12 +69,9 @@ Use ``setuptools``' :ref:`declarative config <declarative config>` to
 specify the package information in ``setup.cfg``::
 
     [metadata]
-    name = meowpkg
+    name = "meowpkg"
     version = 0.0.1
-    description = a package that meows
-
-    [options]
-    packages = find:
+    description = "a package that meows"
 
 .. _building:
 
