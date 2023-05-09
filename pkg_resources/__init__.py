@@ -1661,10 +1661,9 @@ is not allowed.
 
         # for compatibility, warn; in future
         # raise ValueError(msg)
-        warnings.warn(
+        issue_warning(
             msg[:-1] + " and will raise exceptions in a future release.",
             DeprecationWarning,
-            stacklevel=4,
         )
 
     def _get(self, path):
