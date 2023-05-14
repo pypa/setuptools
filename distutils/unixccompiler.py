@@ -141,6 +141,10 @@ class UnixCCompiler(CCompiler):
     xcode_stub_lib_format = dylib_lib_format
     if sys.platform == "cygwin":
         exe_extension = ".exe"
+        shared_lib_extension = ".dll.a"
+        dylib_lib_extension = ".dll"
+        static_lib_format = shared_lib_format = "lib%s%s"
+        dylib_lib_format = "cyg%s%s"
 
     def preprocess(
         self,
