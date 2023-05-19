@@ -1,3 +1,16 @@
+v67.8.0
+-------
+
+
+Changes
+^^^^^^^
+* #3128: In deprecated easy_install, reload and merge the pth file before saving.
+
+Misc
+^^^^
+* #3915: Adequate tests to the latest changes in ``virtualenv`` for Python 3.12.
+
+
 v67.7.2
 -------
 

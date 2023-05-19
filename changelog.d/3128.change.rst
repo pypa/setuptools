@@ -1,1 +1,0 @@
-In deprecated easy_install, reload and merge the pth file before saving.
