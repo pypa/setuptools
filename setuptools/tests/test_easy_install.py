@@ -1381,9 +1381,20 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path)
 
     # Patching $HOME for 2 reasons:
     # 1. setuptools/command/easy_install.py:create_home_path
-    #    tries creating directories in $HOME
-    # given `self.config_vars['DESTDIRS'] = "/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload"``  # noqa: E501
-    # it will `makedirs("/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")``  # noqa: E501
+    #    tries creating directories in $HOME.
+    #    Given::
+    #        self.config_vars['DESTDIRS'] = (
+    #            "/home/user/.pyenv/versions/3.9.10 "
+    #            "/home/user/.pyenv/versions/3.9.10/lib "
+    #            "/home/user/.pyenv/versions/3.9.10/lib/python3.9 "
+    #            "/home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")
+    #    `create_home_path` will::
+    #        makedirs(
+    #            "/home/user/.pyenv/versions/3.9.10 "
+    #            "/home/user/.pyenv/versions/3.9.10/lib "
+    #            "/home/user/.pyenv/versions/3.9.10/lib/python3.9 "
+    #            "/home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")
+    #
     # 2. We are going to force `site` to update site.USER_BASE and site.USER_SITE
     #    To point inside our new home
     monkeypatch.setenv('HOME', str(tmp_path / '.home'))
