@@ -851,8 +851,10 @@ class TestSetupRequires:
             <html><head><title>Links for dep</title></head>
             <body>
                 <h1>Links for dep</h1>
-                <a href="{dep_1_0_url}" data-requires-python="{dep_1_0_python_requires}">{dep_1_0_sdist}</a><br/>
-                <a href="{dep_2_0_url}" data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
+                <a href="{dep_1_0_url}"\
+data-requires-python="{dep_1_0_python_requires}">{dep_1_0_sdist}</a><br/>
+                <a href="{dep_2_0_url}"\
+data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
             </body>
             </html>
             '''
