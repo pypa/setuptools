@@ -55,8 +55,12 @@ def get_executable_name(name, platform: str):
 
 
 def generate_cmake_project(cmake, build_arena, cmake_project_path, platform, is_gui):
-    subprocess.check_call(f'{cmake} -G "{VISUAL_STUDIO_VERSION}" -A "{platform}"'
-                          f' {cmake_project_path} -DGUI={is_gui}', cwd=build_arena, shell=True)
+    subprocess.check_call(
+        f'{cmake} -G "{VISUAL_STUDIO_VERSION}" -A "{platform}"'
+        f' {cmake_project_path} -DGUI={is_gui}',
+        cwd=build_arena,
+        shell=True,
+    )
 
 
 def build_cmake_project_with_msbuild(msbuild, build_arena, msbuild_parameters):
@@ -69,8 +73,10 @@ def get_cmake():
         subprocess.check_call("cmake", shell=True)
         return "cmake"
     except Exception:
-        print("CMake is not found in your system PATH. Please install it from"
-              " https://cmake.org/download/ and ensure that cmake added to path")
+        print(
+            "CMake is not found in your system PATH. Please install it from"
+            " https://cmake.org/download/ and ensure that cmake added to path"
+        )
     print("Trying to locate cmake at default place")
     try:
         possible_cmake_location = '"C:\\Program Files\\CMake\\bin\\cmake.exe"'
@@ -85,8 +91,10 @@ def get_msbuild():
         subprocess.check_call("MSBuild --help", shell=True)
         return "MSBuild"
     except Exception:
-        print("MSBuild is not found in your path. Ensure that Visual Studio "
-              "is installed")
+        print(
+            "MSBuild is not found in your path. Ensure that Visual Studio "
+            "is installed"
+        )
     print("Trying work around to find MSBuild")
     try:
         # cmdlet that finds MSBuild
@@ -95,7 +103,9 @@ def get_msbuild():
             '\\Installer\\vswhere.exe" -latest -prerelease '
             '-products * -requires Microsoft.Component.'
             'MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe',
-            shell=True, encoding="utf-8").strip()
+            shell=True,
+            encoding="utf-8",
+        ).strip()
         if msbuild_path == "":
             raise
     except Exception:
@@ -114,17 +124,17 @@ def main():
                 shutil.rmtree(build_arena)
             build_arena.mkdir()
 
-            generate_cmake_project(cmake,
-                                   build_arena,
-                                   LAUNCHER_CMAKE_PROJECT,
-                                   platform,
-                                   GUI[target])
+            generate_cmake_project(
+                cmake, build_arena, LAUNCHER_CMAKE_PROJECT, platform, GUI[target]
+            )
 
-            build_params = f"/t:build " \
-                           f"/property:Configuration=Release " \
-                           f"/property:Platform={platform} " \
-                           f'/p:OutDir="{MSBUILD_OUT_DIR.resolve()}" ' \
-                           f"/p:TargetName={get_executable_name(target, platform)}"
+            build_params = (
+                f"/t:build "
+                f"/property:Configuration=Release "
+                f"/property:Platform={platform} "
+                f'/p:OutDir="{MSBUILD_OUT_DIR.resolve()}" '
+                f"/p:TargetName={get_executable_name(target, platform)}"
+            )
             build_cmake_project_with_msbuild(msbuild, build_arena, build_params)
 
     # copying win32 as default executables
