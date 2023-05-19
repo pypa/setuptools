@@ -369,7 +369,7 @@ For the simplest use, you can simply use the ``include_package_data`` keyword:
 
         [tool.setuptools]
         include-package-data = true
-        # This is already the default behaviour if your are using
+        # This is already the default behaviour if you are using
         # pyproject.toml to configure your build.
         # You can deactivate that with `include-package-data = false`
 
