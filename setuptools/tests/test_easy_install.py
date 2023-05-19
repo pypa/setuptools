@@ -858,7 +858,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
             </body>
             </html>
             '''
-            ).format(  # noqa
+            ).format(
                 dep_1_0_url=dep_1_0_url,
                 dep_1_0_sdist=dep_1_0_sdist,
                 dep_1_0_python_requires=dep_1_0_python_requires,
