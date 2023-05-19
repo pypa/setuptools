@@ -1,6 +1,8 @@
+import os
 import contextlib
 import sys
 import subprocess
+from pathlib import Path
 
 import pytest
 import path
@@ -64,6 +66,9 @@ def sample_project(tmp_path):
 
 @pytest.fixture(scope="session")
 def setuptools_sdist(tmp_path_factory, request):
+    if os.getenv("PRE_BUILT_SETUPTOOLS_SDIST"):
+        return Path(os.getenv("PRE_BUILT_SETUPTOOLS_SDIST")).resolve()
+
     with contexts.session_locked_tmp_dir(
             request, tmp_path_factory, "sdist_build") as tmp:
         dist = next(tmp.glob("*.tar.gz"), None)
@@ -79,6 +84,9 @@ def setuptools_sdist(tmp_path_factory, request):
 
 @pytest.fixture(scope="session")
 def setuptools_wheel(tmp_path_factory, request):
+    if os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL"):
+        return Path(os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL")).resolve()
+
     with contexts.session_locked_tmp_dir(
             request, tmp_path_factory, "wheel_build") as tmp:
         dist = next(tmp.glob("*.whl"), None)
@@ -97,8 +105,21 @@ def venv(tmp_path, setuptools_wheel):
     """Virtual env with the version of setuptools under test installed"""
     env = environment.VirtualEnv()
     env.root = path.Path(tmp_path / 'venv')
+    env.create_opts = ['--no-setuptools', '--wheel=bundle']
+    # TODO: Use `--no-wheel` when setuptools implements its own bdist_wheel
     env.req = str(setuptools_wheel)
-    return env.create()
+    # In some environments (eg. downstream distro packaging),
+    # where tox isn't used to run tests and PYTHONPATH is set to point to
+    # a specific setuptools codebase, PYTHONPATH will leak into the spawned
+    # processes.
+    # env.create() should install the just created setuptools
+    # wheel, but it doesn't if it finds another existing matching setuptools
+    # installation present on PYTHONPATH:
+    # `setuptools is already installed with the same version as the provided
+    # wheel. Use --force-reinstall to force an installation of the wheel.`
+    # This prevents leaking PYTHONPATH to the created environment.
+    with contexts.environment(PYTHONPATH=None):
+        return env.create()
 
 
 @pytest.fixture
@@ -106,7 +127,7 @@ def venv_without_setuptools(tmp_path):
     """Virtual env without any version of setuptools installed"""
     env = environment.VirtualEnv()
     env.root = path.Path(tmp_path / 'venv_without_setuptools')
-    env.create_opts = ['--no-setuptools']
+    env.create_opts = ['--no-setuptools', '--no-wheel']
     env.ensure_env()
     return env
 

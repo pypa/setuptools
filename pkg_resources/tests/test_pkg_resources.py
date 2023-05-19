@@ -9,10 +9,7 @@ import stat
 import distutils.dist
 import distutils.command.install_egg_info
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import mock
 
 from pkg_resources import (
     DistInfoDistribution, Distribution, EggInfoDistribution,
@@ -259,6 +256,10 @@ def make_distribution_no_version(tmpdir, basename):
         ('dist-info', 'METADATA', DistInfoDistribution),
     ],
 )
+@pytest.mark.xfail(
+    sys.version_info[:2] == (3, 12) and sys.version_info.releaselevel != 'final',
+    reason="https://github.com/python/cpython/issues/103632",
+)
 def test_distribution_version_missing(
         tmpdir, suffix, expected_filename, expected_dist_type):
     """
@@ -289,6 +290,10 @@ def test_distribution_version_missing(
     assert type(dist) == expected_dist_type
 
 
+@pytest.mark.xfail(
+    sys.version_info[:2] == (3, 12) and sys.version_info.releaselevel != 'final',
+    reason="https://github.com/python/cpython/issues/103632",
+)
 def test_distribution_version_missing_undetected_path():
     """
     Test Distribution.version when the "Version" header is missing and

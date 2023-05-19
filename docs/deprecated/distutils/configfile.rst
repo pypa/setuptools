@@ -36,7 +36,8 @@ consequences:
   :file:`setup.py`
 
 * installers can override anything in :file:`setup.cfg` using the command-line
-  options to :file:`setup.py`
+  options to :file:`setup.py` or by pointing :envvar:`DIST_EXTRA_CONFIG`
+  to another configuration file
 
 The basic syntax of the configuration file is simple:
 
@@ -141,4 +142,3 @@ split across multiple lines for readability.
 
 .. [#] This ideal probably won't be achieved until auto-configuration is fully
    supported by the Distutils.
-

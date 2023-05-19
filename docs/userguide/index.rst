@@ -2,36 +2,47 @@
 Building and Distributing Packages with Setuptools
 ==================================================
 
-``Setuptools`` is a collection of enhancements to the Python ``distutils``
-that allow developers to more easily build and
-distribute Python packages, especially ones that have dependencies on other
-packages.
+The first step towards sharing a Python library or program is to build a
+distribution package [#package-overload]_. This includes adding a set of
+additional files containing metadata and configuration to not only instruct
+``setuptools`` on how the distribution should be built but also
+to help installer (such as :pypi:`pip`) during the installation process.
 
-Packages built and distributed using ``setuptools`` look to the user like
-ordinary Python packages based on the ``distutils``.
+This document contains information to help Python developers through this
+process. Please check the :doc:`/userguide/quickstart` for an overview of
+the workflow.
 
-Transition to PEP517
-====================
+Also note that ``setuptools`` is what is known in the community as :pep:`build
+backend <517#terminology-and-goals>`, user facing interfaces are provided by tools
+such as :pypi:`pip` and :pypi:`build`. To use ``setuptools``, one must
+explicitly create a ``pyproject.toml`` file as described :doc:`/build_meta`.
 
-Since setuptools no longer serves as the default build tool, one must explicitly
-opt in (by providing a :file:`pyproject.toml` file) to use this library. The user
-facing part is provided by tools such as pip and
-backend interface is described :doc:`in this document <../build_meta>`. The
-quickstart provides an overview of the new workflow.
+
+Contents
+========
 
 .. toctree::
     :maxdepth: 1
 
     quickstart
     package_discovery
-    entry_point
     dependency_management
-    datafiles
     development_mode
+    entry_point
+    datafiles
+    ext_modules
     distribution
+    miscellaneous
     extension
     declarative_config
-    keywords
-    commands
-    functionalities_rewrite
-    miscellaneous
+    pyproject_config
+
+---
+
+.. rubric:: Notes
+
+.. [#package-overload]
+   A :term:`Distribution Package` is also referred in the Python community simply as "package"
+   Unfortunately, this jargon might be a bit confusing for new users because the term package
+   can also to refer any :term:`directory <package>` (or sub directory) used to organize
+   :term:`modules <module>` and auxiliary files.

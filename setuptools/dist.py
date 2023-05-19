@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 __all__ = ['Distribution']
 
 import io
 import sys
 import re
 import os
-import warnings
 import numbers
 import distutils.log
 import distutils.core
@@ -18,7 +16,9 @@ from distutils.fancy_getopt import translate_longopt
 from glob import iglob
 import itertools
 import textwrap
-from typing import List, Optional, TYPE_CHECKING
+from contextlib import suppress
+from typing import List, Optional, Set, TYPE_CHECKING
+from pathlib import Path
 
 from collections import defaultdict
 from email import message_from_file
@@ -28,21 +28,21 @@ from distutils.util import rfc822_escape
 
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen, always_iterable
-
-from ._importlib import metadata
-
-from . import SetuptoolsDeprecationWarning
+from setuptools.extern.more_itertools import unique_everseen, partition
 
 import setuptools
 import setuptools.command
 from setuptools import windows_support
 from setuptools.monkey import get_unpatched
-from setuptools.config import parse_configuration
-import pkg_resources
-from setuptools.extern.packaging import version, requirements
+from setuptools.config import setupcfg, pyprojecttoml
+from setuptools.discovery import ConfigDiscovery
+
+from setuptools.extern.packaging import version
 from . import _reqs
 from . import _entry_points
+from . import _normalization
+from ._importlib import metadata
+from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
 if TYPE_CHECKING:
     from email.message import Message
@@ -52,7 +52,12 @@ __import__('setuptools.extern.packaging.version')
 
 
 def _get_unpatched(cls):
-    warnings.warn("Do not call this function", DistDeprecationWarning)
+    DistDeprecationWarning.emit(
+        "Private function",
+        "Do not call this function",
+        due_date=(2023, 6, 1),
+        # Warning initially introduced in 2016
+    )
     return get_unpatched(cls)
 
 
@@ -98,7 +103,7 @@ def _read_list_from_msg(msg: "Message", field: str) -> Optional[List[str]]:
 
 def _read_payload_from_msg(msg: "Message") -> Optional[str]:
     value = msg.get_payload().strip()
-    if value == 'UNKNOWN':
+    if value == 'UNKNOWN' or not value:
         return None
     return value
 
@@ -154,7 +159,9 @@ def single_line(val):
     if '\n' in val:
         # TODO: Replace with `raise ValueError("newlines not allowed")`
         # after reviewing #2893.
-        warnings.warn("newlines not allowed and will break in the future")
+        msg = "newlines are not allowed in `summary` and will break in the future"
+        SetuptoolsDeprecationWarning.emit("Invalid config.", msg)
+        # due_date is undefined. Controversial change, there was a lot of push back.
         val = val.strip().split('\n')[0]
     return val
 
@@ -170,7 +177,10 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
     write_field('Version', self.get_version())
-    write_field('Summary', single_line(self.get_description()))
+
+    summary = self.get_description()
+    if summary:
+        write_field('Summary', single_line(summary))
 
     optional_fields = (
         ('Home-page', 'url'),
@@ -186,8 +196,10 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
         if attr_val is not None:
             write_field(field, attr_val)
 
-    license = rfc822_escape(self.get_license())
-    write_field('License', license)
+    license = self.get_license()
+    if license:
+        write_field('License', rfc822_escape(license))
+
     for project_url in self.project_urls.items():
         write_field('Project-URL', '%s, %s' % project_url)
 
@@ -195,7 +207,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if keywords:
         write_field('Keywords', keywords)
 
-    for platform in self.get_platforms():
+    platforms = self.get_platforms() or []
+    for platform in platforms:
         write_field('Platform', platform)
 
     self._write_list(file, 'Classifier', self.get_classifiers())
@@ -218,7 +231,11 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
 
     self._write_list(file, 'License-File', self.license_files or [])
 
-    file.write("\n%s\n\n" % self.get_long_description())
+    long_description = self.get_long_description()
+    if long_description:
+        file.write("\n%s" % long_description)
+        if not long_description.endswith("\n"):
+            file.write("\n")
 
 
 sequence = tuple, list
@@ -266,6 +283,15 @@ def check_nsp(dist, attr, value):
                 nsp,
                 parent,
             )
+        SetuptoolsDeprecationWarning.emit(
+            "The namespace_packages parameter is deprecated.",
+            "Please replace its usage with implicit namespaces (PEP 420).",
+            see_docs="references/keywords.html#keyword-namespace-packages"
+            # TODO: define due_date, it may break old packages that are no longer
+            # maintained (e.g. sphinxcontrib extensions) when installed from source.
+            # Warning officially introduced in May 2022, however the deprecation
+            # was mentioned much earlier in the docs (May 2020, see #2149).
+        )
 
 
 def check_extras(dist, attr, value):
@@ -282,9 +308,19 @@ def check_extras(dist, attr, value):
 
 def _check_extra(extra, reqs):
     name, sep, marker = extra.partition(':')
-    if marker and pkg_resources.invalid_marker(marker):
-        raise DistutilsSetupError("Invalid environment marker: " + marker)
+    try:
+        _check_marker(marker)
+    except packaging.markers.InvalidMarker:
+        msg = f"Invalid environment marker: {marker} ({extra!r})"
+        raise DistutilsSetupError(msg) from None
     list(_reqs.parse(reqs))
+
+
+def _check_marker(marker):
+    if not marker:
+        return
+    m = packaging.markers.Marker(marker)
+    m.evaluate()
 
 
 def assert_bool(dist, attr, value):
@@ -296,7 +332,8 @@ def assert_bool(dist, attr, value):
 
 def invalid_unless_false(dist, attr, value):
     if not value:
-        warnings.warn(f"{attr} is ignored.", DistDeprecationWarning)
+        DistDeprecationWarning.emit(f"{attr} is ignored.")
+        # TODO: should there be a `due_date` here?
         return
     raise DistutilsSetupError(f"{attr} is invalid.")
 
@@ -436,11 +473,12 @@ class Distribution(_Distribution):
         #
         if not attrs or 'name' not in attrs or 'version' not in attrs:
             return
-        key = pkg_resources.safe_name(str(attrs['name'])).lower()
-        dist = pkg_resources.working_set.by_key.get(key)
-        if dist is not None and not dist.has_metadata('PKG-INFO'):
-            dist._version = pkg_resources.safe_version(str(attrs['version']))
-            self._patched_dist = dist
+        name = _normalization.safe_name(str(attrs['name'])).lower()
+        with suppress(metadata.PackageNotFoundError):
+            dist = metadata.distribution(name)
+            if dist is not None and not dist.read_text('PKG-INFO'):
+                dist._version = _normalization.safe_version(str(attrs['version']))
+                self._patched_dist = dist
 
     def __init__(self, attrs=None):
         have_package_data = hasattr(self, "package_data")
@@ -463,6 +501,18 @@ class Distribution(_Distribution):
                 if k not in self._DISTUTILS_UNSUPPORTED_METADATA
             },
         )
+
+        # Private API (setuptools-use only, not restricted to Distribution)
+        # Stores files that are referenced by the configuration and need to be in the
+        # sdist (e.g. `version = file: VERSION.txt`)
+        self._referenced_files: Set[str] = set()
+
+        # Save the original dependencies before they are processed into the egg format
+        self._orig_extras_require = {}
+        self._orig_install_requires = []
+        self._tmp_extras_require = defaultdict(ordered_set.OrderedSet)
+
+        self.set_defaults = ConfigDiscovery(self)
 
         self._set_metadata_defaults(attrs)
 
@@ -501,8 +551,7 @@ class Distribution(_Distribution):
 
         normalized = str(packaging.version.Version(version))
         if version != normalized:
-            tmpl = "Normalizing '{version}' to '{normalized}'"
-            warnings.warn(tmpl.format(**locals()))
+            InformationOnly.emit(f"Normalizing '{version}' to '{normalized}'")
             return normalized
         return version
 
@@ -516,11 +565,17 @@ class Distribution(_Distribution):
             try:
                 packaging.version.Version(version)
             except (packaging.version.InvalidVersion, TypeError):
-                warnings.warn(
-                    "The version specified (%r) is an invalid version, this "
-                    "may not work as expected with newer versions of "
-                    "setuptools, pip, and PyPI. Please see PEP 440 for more "
-                    "details." % version
+                SetuptoolsDeprecationWarning.emit(
+                    f"Invalid version: {version!r}.",
+                    """
+                    The version specified is not a valid version according to PEP 440.
+                    This may not work as expected with newer versions of
+                    setuptools, pip, and PyPI.
+                    """,
+                    see_url="https://peps.python.org/pep-0440/",
+                    due_date=(2023, 9, 26),
+                    # Warning initially introduced in 26 Sept 2014
+                    # pypa/packaging already removed legacy versions.
                 )
                 return setuptools.sic(version)
         return version
@@ -534,6 +589,8 @@ class Distribution(_Distribution):
             self.metadata.python_requires = self.python_requires
 
         if getattr(self, 'extras_require', None):
+            # Save original before it is messed by _convert_extras_requirements
+            self._orig_extras_require = self._orig_extras_require or self.extras_require
             for extra in self.extras_require.keys():
                 # Since this gets called multiple times at points where the
                 # keys have become 'converted' extras, ensure that we are only
@@ -541,6 +598,10 @@ class Distribution(_Distribution):
                 extra = extra.split(':')[0]
                 if extra:
                     self.metadata.provides_extras.add(extra)
+
+        if getattr(self, 'install_requires', None) and not self._orig_install_requires:
+            # Save original before it is messed by _move_install_requirements_markers
+            self._orig_install_requires = self.install_requires
 
         self._convert_extras_requirements()
         self._move_install_requirements_markers()
@@ -552,7 +613,8 @@ class Distribution(_Distribution):
         `"extra:{marker}": ["barbazquux"]`.
         """
         spec_ext_reqs = getattr(self, 'extras_require', None) or {}
-        self._tmp_extras_require = defaultdict(list)
+        tmp = defaultdict(ordered_set.OrderedSet)
+        self._tmp_extras_require = getattr(self, '_tmp_extras_require', tmp)
         for section, v in spec_ext_reqs.items():
             # Do not strip empty sections.
             self._tmp_extras_require[section]
@@ -590,7 +652,8 @@ class Distribution(_Distribution):
         for r in complex_reqs:
             self._tmp_extras_require[':' + str(r.marker)].append(r)
         self.extras_require = dict(
-            (k, [str(r) for r in map(self._clean_req, v)])
+            # list(dict.fromkeys(...))  ensures a list of unique strings
+            (k, list(dict.fromkeys(str(r) for r in map(self._clean_req, v))))
             for k, v in self._tmp_extras_require.items()
         )
 
@@ -735,10 +798,15 @@ class Distribution(_Distribution):
             return underscore_opt
 
         if '-' in opt:
-            warnings.warn(
-                "Usage of dash-separated '%s' will not be supported in future "
-                "versions. Please use the underscore name '%s' instead"
-                % (opt, underscore_opt)
+            SetuptoolsDeprecationWarning.emit(
+                "Invalid dash-separated options",
+                f"""
+                Usage of dash-separated {opt!r} will not be supported in future
+                versions. Please use the underscore name {underscore_opt!r} instead.
+                """,
+                see_docs="userguide/declarative_config.html",
+                due_date=(2023, 9, 26),
+                # Warning initially introduced in 3 Mar 2021
             )
         return underscore_opt
 
@@ -754,10 +822,15 @@ class Distribution(_Distribution):
             return opt
 
         lowercase_opt = opt.lower()
-        warnings.warn(
-            "Usage of uppercase key '%s' in '%s' will be deprecated in future "
-            "versions. Please use lowercase '%s' instead"
-            % (opt, section, lowercase_opt)
+        SetuptoolsDeprecationWarning.emit(
+            "Invalid uppercase configuration",
+            f"""
+            Usage of uppercase key {opt!r} in {section!r} will not be supported in
+            future versions. Please use lowercase {lowercase_opt!r} instead.
+            """,
+            see_docs="userguide/declarative_config.html",
+            due_date=(2023, 9, 26),
+            # Warning initially introduced in 6 Mar 2021
         )
         return lowercase_opt
 
@@ -808,29 +881,40 @@ class Distribution(_Distribution):
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
+    def _get_project_config_files(self, filenames):
+        """Add default file and split between INI and TOML"""
+        tomlfiles = []
+        standard_project_metadata = Path(self.src_root or os.curdir, "pyproject.toml")
+        if filenames is not None:
+            parts = partition(lambda f: Path(f).suffix == ".toml", filenames)
+            filenames = list(parts[0])  # 1st element => predicate is False
+            tomlfiles = list(parts[1])  # 2nd element => predicate is True
+        elif standard_project_metadata.exists():
+            tomlfiles = [standard_project_metadata]
+        return filenames, tomlfiles
+
     def parse_config_files(self, filenames=None, ignore_option_errors=False):
         """Parses configuration files from various levels
         and loads configuration.
-
         """
-        self._parse_config_files(filenames=filenames)
+        inifiles, tomlfiles = self._get_project_config_files(filenames)
 
-        parse_configuration(
+        self._parse_config_files(filenames=inifiles)
+
+        setupcfg.parse_configuration(
             self, self.command_options, ignore_option_errors=ignore_option_errors
         )
+        for filename in tomlfiles:
+            pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)
+
         self._finalize_requires()
         self._finalize_license_files()
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
-        resolved_dists = pkg_resources.working_set.resolve(
-            _reqs.parse(requires),
-            installer=self.fetch_build_egg,
-            replace_conflicting=True,
-        )
-        for dist in resolved_dists:
-            pkg_resources.working_set.add(dist, replace=True)
-        return resolved_dists
+        from setuptools.installer import _fetch_build_eggs
+
+        return _fetch_build_eggs(self, requires)
 
     def finalize_options(self):
         """
@@ -868,32 +952,7 @@ class Distribution(_Distribution):
         for ep in metadata.entry_points(group='distutils.setup_keywords'):
             value = getattr(self, ep.name, None)
             if value is not None:
-                self._install_dependencies(ep)
                 ep.load()(self, ep.name, value)
-
-    def _install_dependencies(self, ep):
-        """
-        Given an entry point, ensure that any declared extras for
-        its distribution are installed.
-        """
-        reqs = {
-            req
-            for req in map(requirements.Requirement, always_iterable(ep.dist.requires))
-            for extra in ep.extras
-            if extra in req.extras
-        }
-        missing = itertools.filterfalse(self._is_installed, reqs)
-        for req in missing:
-            # fetch_build_egg expects pkg_resources.Requirement
-            self.fetch_build_egg(pkg_resources.Requirement(str(req)))
-
-    def _is_installed(self, req):
-        try:
-            dist = metadata.distribution(req.name)
-        except metadata.PackageNotFoundError:
-            return False
-        found_ver = packaging.version.Version(dist.version())
-        return found_ver in req.specifier
 
     def get_egg_cache_dir(self):
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
@@ -927,7 +986,6 @@ class Distribution(_Distribution):
 
         eps = metadata.entry_points(group='distutils.commands', name=command)
         for ep in eps:
-            self._install_dependencies(ep)
             self.cmdclass[command] = cmdclass = ep.load()
             return cmdclass
         else:
@@ -1172,19 +1230,18 @@ class Distribution(_Distribution):
 
         # Print metadata in UTF-8 no matter the platform
         encoding = sys.stdout.encoding
-        errors = sys.stdout.errors
-        newline = sys.platform != 'win32' and '\n' or None
-        line_buffering = sys.stdout.line_buffering
-
-        sys.stdout = io.TextIOWrapper(
-            sys.stdout.detach(), 'utf-8', errors, newline, line_buffering
-        )
+        sys.stdout.reconfigure(encoding='utf-8')
         try:
             return _Distribution.handle_display_options(self, option_order)
         finally:
-            sys.stdout = io.TextIOWrapper(
-                sys.stdout.detach(), encoding, errors, newline, line_buffering
-            )
+            sys.stdout.reconfigure(encoding=encoding)
+
+    def run_command(self, command):
+        self.set_defaults()
+        # Postpone defaults until all explicit configuration is considered
+        # (setup() args, config files, command line and plugins)
+
+        super().run_command(command)
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):

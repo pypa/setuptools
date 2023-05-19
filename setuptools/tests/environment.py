@@ -18,6 +18,19 @@ class VirtualEnv(jaraco.envs.VirtualEnv):
     def run(self, cmd, *args, **kwargs):
         cmd = [self.exe(cmd[0])] + cmd[1:]
         kwargs = {"cwd": self.root, **kwargs}  # Allow overriding
+        # In some environments (eg. downstream distro packaging), where:
+        # - tox isn't used to run tests and
+        # - PYTHONPATH is set to point to a specific setuptools codebase and
+        # - no custom env is explicitly set by a test
+        # PYTHONPATH will leak into the spawned processes.
+        # In that case tests look for module in the wrong place (on PYTHONPATH).
+        # Unless the test sets its own special env, pass a copy of the existing
+        # environment with removed PYTHONPATH to the subprocesses.
+        if "env" not in kwargs:
+            env = dict(os.environ)
+            if "PYTHONPATH" in env:
+                del env["PYTHONPATH"]
+            kwargs["env"] = env
         return subprocess.check_output(cmd, *args, **kwargs)
 
 

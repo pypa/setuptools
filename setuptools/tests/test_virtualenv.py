@@ -1,7 +1,8 @@
 import os
 import sys
-import itertools
 import subprocess
+from urllib.request import urlopen
+from urllib.error import URLError
 
 import pathlib
 
@@ -18,7 +19,7 @@ def pytest_virtualenv_works(venv):
     pytest_virtualenv may not work. if it doesn't, skip these
     tests. See #1284.
     """
-    venv_prefix = venv.run(["python" , "-c", "import sys; print(sys.prefix)"]).strip()
+    venv_prefix = venv.run(["python", "-c", "import sys; print(sys.prefix)"]).strip()
     if venv_prefix == sys.prefix:
         pytest.skip("virtualenv is broken (see pypa/setuptools#1284)")
 
@@ -31,58 +32,60 @@ def test_clean_env_install(venv_without_setuptools, setuptools_wheel):
     venv_without_setuptools.run(cmd)
 
 
-def _get_pip_versions():
-    # This fixture will attempt to detect if tests are being run without
-    # network connectivity and if so skip some tests
-
-    network = True
+def access_pypi():
+    # Detect if tests are being run without connectivity
     if not os.environ.get('NETWORK_REQUIRED', False):  # pragma: nocover
-        try:
-            from urllib.request import urlopen
-            from urllib.error import URLError
-        except ImportError:
-            from urllib2 import urlopen, URLError  # Python 2.7 compat
-
         try:
             urlopen('https://pypi.org', timeout=1)
         except URLError:
             # No network, disable most of these tests
-            network = False
+            return False
 
-    def mark(param, *marks):
-        if not isinstance(param, type(pytest.param(''))):
-            param = pytest.param(param)
-        return param._replace(marks=param.marks + marks)
-
-    def skip_network(param):
-        return param if network else mark(param, pytest.mark.skip(reason="no network"))
-
-    network_versions = [
-        mark('pip<20', pytest.mark.xfail(reason='pypa/pip#6599')),
-        'pip<20.1',
-        'pip<21',
-        'pip<22',
-        mark(
-            'https://github.com/pypa/pip/archive/main.zip',
-            pytest.mark.xfail(reason='#2975'),
-        ),
-    ]
-
-    versions = itertools.chain(
-        [None],
-        map(skip_network, network_versions)
-    )
-
-    return list(versions)
+    return True
 
 
 @pytest.mark.skipif(
     'platform.python_implementation() == "PyPy"',
     reason="https://github.com/pypa/setuptools/pull/2865#issuecomment-965834995",
 )
-@pytest.mark.parametrize('pip_version', _get_pip_versions())
-def test_pip_upgrade_from_source(pip_version, venv_without_setuptools,
-                                 setuptools_wheel, setuptools_sdist):
+@pytest.mark.skipif(not access_pypi(), reason="no network")
+# ^-- Even when it is not necessary to install a different version of `pip`
+#     the build process will still try to download `wheel`, see #3147 and #2986.
+@pytest.mark.parametrize(
+    'pip_version',
+    [
+        None,
+        pytest.param(
+            'pip<20.1',
+            marks=pytest.mark.xfail(
+                'sys.version_info > (3, 12)',
+                reason="pip 22 requried for Python 3.12 and later",
+            ),
+        ),
+        pytest.param(
+            'pip<21',
+            marks=pytest.mark.xfail(
+                'sys.version_info > (3, 12)',
+                reason="pip 22 requried for Python 3.12 and later",
+            ),
+        ),
+        pytest.param(
+            'pip<22',
+            marks=pytest.mark.xfail(
+                'sys.version_info > (3, 12)',
+                reason="pip 22 requried for Python 3.12 and later",
+            ),
+        ),
+        'pip<23',
+        pytest.param(
+            'https://github.com/pypa/pip/archive/main.zip',
+            marks=pytest.mark.xfail(reason='#2975'),
+        ),
+    ],
+)
+def test_pip_upgrade_from_source(
+    pip_version, venv_without_setuptools, setuptools_wheel, setuptools_sdist
+):
     """
     Check pip can upgrade setuptools from source.
     """
@@ -106,10 +109,12 @@ def _check_test_command_install_requirements(venv, tmpdir):
     """
     Check the test command will install all required dependencies.
     """
+
     def sdist(distname, version):
         dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
         make_nspkg_sdist(str(dist_path), distname, version)
         return dist_path
+
     dependency_links = [
         pathlib.Path(str(dist_path)).as_uri()
         for dist_path in (
@@ -120,8 +125,9 @@ def _check_test_command_install_requirements(venv, tmpdir):
         )
     ]
     with tmpdir.join('setup.py').open('w') as fp:
-        fp.write(DALS(
-            '''
+        fp.write(
+            DALS(
+                '''
             from setuptools import setup
 
             setup(
@@ -143,17 +149,24 @@ def _check_test_command_install_requirements(venv, tmpdir):
                     """,
                 }}
             )
-            '''.format(dependency_links=dependency_links)))
+            '''.format(
+                    dependency_links=dependency_links
+                )
+            )
+        )
     with tmpdir.join('test.py').open('w') as fp:
-        fp.write(DALS(
-            '''
+        fp.write(
+            DALS(
+                '''
             import foobar
             import bits
             import bobs
             import pieces
 
             open('success', 'w').close()
-            '''))
+            '''
+            )
+        )
 
     cmd = ["python", 'setup.py', 'test', '-s', 'test']
     venv.run(cmd, cwd=str(tmpdir))
@@ -161,8 +174,8 @@ def _check_test_command_install_requirements(venv, tmpdir):
 
 
 def test_test_command_install_requirements(venv, tmpdir, tmpdir_cwd):
-    # Ensure pip/wheel packages are installed.
-    venv.run(["python", "-c", "__import__('pkg_resources').require(['pip', 'wheel'])"])
+    # Ensure pip is installed.
+    venv.run(["python", "-c", "import pip"])
     # disable index URL so bits and bobs aren't requested from PyPI
     with contexts.environment(PYTHONPATH=None, PIP_NO_INDEX="1"):
         _check_test_command_install_requirements(venv, tmpdir)

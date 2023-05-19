@@ -14,22 +14,26 @@ def warn_distutils_present():
         # https://foss.heptapod.net/pypy/pypy/-/blob/be829135bc0d758997b3566062999ee8b23872b4/lib-python/3/site.py#L250
         return
     import warnings
+
     warnings.warn(
         "Distutils was imported before Setuptools, but importing Setuptools "
         "also replaces the `distutils` module in `sys.modules`. This may lead "
         "to undesirable behaviors or errors. To avoid these issues, avoid "
         "using distutils directly, ensure that setuptools is installed in the "
         "traditional way (e.g. not an editable install), and/or make sure "
-        "that setuptools is always imported before distutils.")
+        "that setuptools is always imported before distutils."
+    )
 
 
 def clear_distutils():
     if 'distutils' not in sys.modules:
         return
     import warnings
+
     warnings.warn("Setuptools is replacing distutils.")
     mods = [
-        name for name in sys.modules
+        name
+        for name in sys.modules
         if name == "distutils" or name.startswith("distutils.")
     ]
     for name in mods:
@@ -46,6 +50,7 @@ def enabled():
 
 def ensure_local_distutils():
     import importlib
+
     clear_distutils()
 
     # With the DistutilsMetaFinder in place,
@@ -82,7 +87,9 @@ class _TrivialRe:
 
 class DistutilsMetaFinder:
     def find_spec(self, fullname, path, target=None):
-        if path is not None:
+        # optimization: only consider top level modules and those
+        # found in the CPython test suite.
+        if path is not None and not fullname.startswith('test.'):
             return
 
         method_name = 'spec_for_{fullname}'.format(**locals())
@@ -111,7 +118,6 @@ class DistutilsMetaFinder:
             return
 
         class DistutilsLoader(importlib.abc.Loader):
-
             def create_module(self, spec):
                 mod.__name__ = 'distutils'
                 return mod
@@ -147,9 +153,9 @@ class DistutilsMetaFinder:
         Detect if pip is being imported in a build script. Ref #2355.
         """
         import traceback
+
         return any(
-            cls.frame_file_is_setup(frame)
-            for frame, line in traceback.walk_stack(None)
+            cls.frame_file_is_setup(frame) for frame, line in traceback.walk_stack(None)
         )
 
     @staticmethod
@@ -159,6 +165,35 @@ class DistutilsMetaFinder:
         """
         # some frames may not have __file__ (#2940)
         return frame.f_globals.get('__file__', '').endswith('setup.py')
+
+    def spec_for_sensitive_tests(self):
+        """
+        Ensure stdlib distutils when running select tests under CPython.
+
+        python/cpython#91169
+        """
+        clear_distutils()
+        self.spec_for_distutils = lambda: None
+
+    sensitive_tests = (
+        [
+            'test.test_distutils',
+            'test.test_peg_generator',
+            'test.test_importlib',
+        ]
+        if sys.version_info < (3, 10)
+        else [
+            'test.test_distutils',
+        ]
+    )
+
+
+for name in DistutilsMetaFinder.sensitive_tests:
+    setattr(
+        DistutilsMetaFinder,
+        f'spec_for_{name}',
+        DistutilsMetaFinder.spec_for_sensitive_tests,
+    )
 
 
 DISTUTILS_FINDER = DistutilsMetaFinder()

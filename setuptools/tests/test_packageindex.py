@@ -5,8 +5,8 @@ import platform
 import urllib.request
 import urllib.error
 import http.client
+from unittest import mock
 
-import mock
 import pytest
 
 import setuptools.package_index
@@ -21,7 +21,9 @@ class TestPackageIndex:
             <a href="http://some_url">Name</a>
             (<a title="MD5 hash"
             href="{hash_url}">md5</a>)
-        """.lstrip().format(**locals())
+        """.lstrip().format(
+            **locals()
+        )
         assert setuptools.package_index.PYPI_MD5.match(doc)
 
     def test_bad_url_bad_port(self):
@@ -38,9 +40,7 @@ class TestPackageIndex:
         # issue 16
         # easy_install inquant.contentmirror.plone breaks because of a typo
         # in its home URL
-        index = setuptools.package_index.PackageIndex(
-            hosts=('www.example.com',)
-        )
+        index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
 
         url = (
             'url:%20https://svn.plone.org/svn'
@@ -54,9 +54,7 @@ class TestPackageIndex:
             assert isinstance(v, urllib.error.HTTPError)
 
     def test_bad_url_bad_status_line(self):
-        index = setuptools.package_index.PackageIndex(
-            hosts=('www.example.com',)
-        )
+        index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
 
         def _urlopen(*args):
             raise http.client.BadStatusLine('line')
@@ -74,9 +72,7 @@ class TestPackageIndex:
         """
         A bad URL with a double scheme should raise a DistutilsError.
         """
-        index = setuptools.package_index.PackageIndex(
-            hosts=('www.example.com',)
-        )
+        index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
 
         # issue 20
         url = 'http://http://svn.pythonpaste.org/Paste/wphp/trunk'
@@ -93,22 +89,17 @@ class TestPackageIndex:
         raise RuntimeError("Did not raise")
 
     def test_bad_url_screwy_href(self):
-        index = setuptools.package_index.PackageIndex(
-            hosts=('www.example.com',)
-        )
+        index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
 
         # issue #160
         if sys.version_info[0] == 2 and sys.version_info[1] == 7:
             # this should not fail
             url = 'http://example.com'
-            page = ('<a href="http://www.famfamfam.com]('
-                    'http://www.famfamfam.com/">')
+            page = '<a href="http://www.famfamfam.com](' 'http://www.famfamfam.com/">'
             index.process_index(url, page)
 
     def test_url_ok(self):
-        index = setuptools.package_index.PackageIndex(
-            hosts=('www.example.com',)
-        )
+        index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
         url = 'file:///tmp/test_package_index'
         assert index.url_ok(url, True)
 
@@ -169,9 +160,7 @@ class TestPackageIndex:
             'b0',
             'rc0',
         ]
-        post = [
-            '.post0'
-        ]
+        post = ['.post0']
         dev = [
             '.dev0',
         ]
@@ -186,10 +175,14 @@ class TestPackageIndex:
             for e in epoch
             for r in releases
             for p in sum([pre, post, dev], [''])
-            for locs in local]
+            for locs in local
+        ]
         for v, vc in versions:
-            dists = list(setuptools.package_index.distros_for_url(
-                'http://example.com/example.zip#egg=example-' + v))
+            dists = list(
+                setuptools.package_index.distros_for_url(
+                    'http://example.com/example-foo.zip#egg=example-foo-' + v
+                )
+            )
             assert dists[0].version == ''
             assert dists[1].version == vc
 
@@ -204,8 +197,7 @@ class TestPackageIndex:
 
         expected_dir = str(tmpdir / 'project@master')
         expected = (
-            'git clone --quiet '
-            'https://github.example/group/project {expected_dir}'
+            'git clone --quiet ' 'https://github.example/group/project {expected_dir}'
         ).format(**locals())
         first_call_args = os_system_mock.call_args_list[0][0]
         assert first_call_args == (expected,)
@@ -226,8 +218,7 @@ class TestPackageIndex:
 
         expected_dir = str(tmpdir / 'project')
         expected = (
-            'git clone --quiet '
-            'https://github.example/group/project {expected_dir}'
+            'git clone --quiet ' 'https://github.example/group/project {expected_dir}'
         ).format(**locals())
         os_system_mock.assert_called_once_with(expected)
 
@@ -243,8 +234,7 @@ class TestPackageIndex:
 
         expected_dir = str(tmpdir / 'project')
         expected = (
-            'svn checkout -q '
-            'svn+https://svn.example/project {expected_dir}'
+            'svn checkout -q ' 'svn+https://svn.example/project {expected_dir}'
         ).format(**locals())
         os_system_mock.assert_called_once_with(expected)
 
@@ -252,7 +242,8 @@ class TestPackageIndex:
 class TestContentCheckers:
     def test_md5(self):
         checker = setuptools.package_index.HashChecker.from_url(
-            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
+            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478'
+        )
         checker.feed('You should probably not be using MD5'.encode('ascii'))
         assert checker.hash.hexdigest() == 'f12895fdffbd45007040d2e44df98478'
         assert checker.is_valid()
@@ -260,25 +251,27 @@ class TestContentCheckers:
     def test_other_fragment(self):
         "Content checks should succeed silently if no hash is present"
         checker = setuptools.package_index.HashChecker.from_url(
-            'http://foo/bar#something%20completely%20different')
+            'http://foo/bar#something%20completely%20different'
+        )
         checker.feed('anything'.encode('ascii'))
         assert checker.is_valid()
 
     def test_blank_md5(self):
         "Content checks should succeed if a hash is empty"
-        checker = setuptools.package_index.HashChecker.from_url(
-            'http://foo/bar#md5=')
+        checker = setuptools.package_index.HashChecker.from_url('http://foo/bar#md5=')
         checker.feed('anything'.encode('ascii'))
         assert checker.is_valid()
 
     def test_get_hash_name_md5(self):
         checker = setuptools.package_index.HashChecker.from_url(
-            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
+            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478'
+        )
         assert checker.hash_name == 'md5'
 
     def test_report(self):
         checker = setuptools.package_index.HashChecker.from_url(
-            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478')
+            'http://foo/bar#md5=f12895fdffbd45007040d2e44df98478'
+        )
         rep = checker.report(lambda x: x, 'My message about %s')
         assert rep == 'My message about md5'
 
@@ -287,8 +280,8 @@ class TestContentCheckers:
 def temp_home(tmpdir, monkeypatch):
     key = (
         'USERPROFILE'
-        if platform.system() == 'Windows' and sys.version_info > (3, 8) else
-        'HOME'
+        if platform.system() == 'Windows' and sys.version_info > (3, 8)
+        else 'HOME'
     )
 
     monkeypatch.setitem(os.environ, key, str(tmpdir))
@@ -298,13 +291,25 @@ def temp_home(tmpdir, monkeypatch):
 class TestPyPIConfig:
     def test_percent_in_password(self, temp_home):
         pypirc = temp_home / '.pypirc'
-        pypirc.write(DALS("""
+        pypirc.write(
+            DALS(
+                """
             [pypi]
             repository=https://pypi.org
             username=jaraco
             password=pity%
-        """))
+        """
+            )
+        )
         cfg = setuptools.package_index.PyPIConfig()
         cred = cfg.creds_by_repository['https://pypi.org']
         assert cred.username == 'jaraco'
         assert cred.password == 'pity%'
+
+
+@pytest.mark.timeout(1)
+def test_REL_DoS():
+    """
+    REL should not hang on a contrived attack string.
+    """
+    setuptools.package_index.REL.search('< rel=' + ' ' * 2**12)

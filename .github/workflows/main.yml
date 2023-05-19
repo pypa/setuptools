@@ -9,36 +9,92 @@ concurrency:
     ${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+env:
+  # Environment variables to support color support (jaraco/skeleton#66):
+  # Request colored output from CLI tools supporting it. Different tools
+  # interpret the value differently. For some, just being set is sufficient.
+  # For others, it must be a non-zero integer. For yet others, being set
+  # to a non-empty value is sufficient. For tox, it must be one of
+  # <blank>, 0, 1, false, no, off, on, true, yes. The only enabling value
+  # in common is "1".
+  FORCE_COLOR: 1
+  # MyPy's color enforcement (must be a non-zero number)
+  MYPY_FORCE_COLOR: -42
+  # Recognized by the `py` package, dependency of `pytest` (must be "1")
+  PY_COLORS: 1
+  # Make tox-wrapped tools see color requests
+  TOX_TESTENV_PASSENV: >-
+    FORCE_COLOR
+    MYPY_FORCE_COLOR
+    NO_COLOR
+    PY_COLORS
+    PYTEST_THEME
+    PYTEST_THEME_MODE
+
+  # Suppress noisy pip warnings
+  PIP_DISABLE_PIP_VERSION_CHECK: 'true'
+  PIP_NO_PYTHON_VERSION_WARNING: 'true'
+  PIP_NO_WARN_SCRIPT_LOCATION: 'true'
+
+  # Disable the spinner, noise in GHA; TODO(webknjaz): Fix this upstream
+  # Must be "1".
+  TOX_PARALLEL_NO_SPINNER: 1
+
+
 jobs:
   test:
     strategy:
       matrix:
-        distutils:
-        - local
         python:
-        - pypy-3.7
-        - 3.7
-        - 3.8
-        - 3.9
-        - "3.10"
+        - "3.7"
+        - "3.11"
+        - "3.12"
+        # Workaround for actions/setup-python#508
+        dev:
+        - -dev
         platform:
         - ubuntu-latest
         - macos-latest
         - windows-latest
         include:
+        - python: "3.8"
+          platform: ubuntu-latest
+        - python: "3.9"
+          platform: ubuntu-latest
+        - python: "3.10"
+          platform: ubuntu-latest
+        - python: pypy3.9
+          platform: ubuntu-latest
+          distutils: stdlib
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
     runs-on: ${{ matrix.platform }}
+    continue-on-error: ${{ matrix.python == '3.12' }}
     env:
-      SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils }}
+      SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils || 'local' }}
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Python
-        uses: actions/setup-python@v2
+        id: python-install
+        uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python }}
+          python-version: ${{ matrix.python }}${{ matrix.dev }}
+      - uses: actions/cache@v3
+        id: cache
+        with:
+          path: setuptools/tests/config/downloads/*.cfg
+          key: >-
+            ${{ hashFiles('setuptools/tests/config/setupcfg_examples.txt') }}-
+            ${{ hashFiles('setuptools/tests/config/downloads/*.py') }}
+      - name: Populate download cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: setuptools/tests/config
+        run: python -m downloads.preload setupcfg_examples.txt
       - name: Install tox
         run: |
           python -m pip install tox
@@ -49,35 +105,101 @@ jobs:
         run: pipx run coverage xml --ignore-errors
       - name: Publish coverage
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v3
         with:
           flags: >-  # Mark which lines are covered by which envs
-            ${{ runner.os }},
-            ${{ matrix.python }}
+            CI-GHA,
+            ${{ github.job }},
+            OS-${{ runner.os }},
+            VM-${{ matrix.platform }},
+            Py-${{ steps.python-install.outputs.python-version }}
+
+  docs:
+    runs-on: ubuntu-latest
+    env:
+      TOXENV: docs
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}${{ matrix.dev }}
+      - name: Install tox
+        run: |
+          python -m pip install tox
+      - name: Run tests
+        run: tox
+
+  check:  # This job does nothing and is only used for the branch protection
+    if: always()
+
+    needs:
+    - integration-test
+    - test
+    - docs
+    - test_cygwin
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Decide whether the needed jobs succeeded or failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        allowed-skips: integration-test
+        jobs: ${{ toJSON(needs) }}
 
   test_cygwin:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        python:
+        - 39
+        platform:
+        - windows-latest
+    runs-on: ${{ matrix.platform }}
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install Cygwin with Python
-        uses: cygwin/cygwin-install-action@v1
+        uses: cygwin/cygwin-install-action@v2
         with:
           platform: x86_64
           packages: >-
-            git,
+            python${{ matrix.python }},
+            python${{ matrix.python }}-devel,
+            python${{ matrix.python }}-tox,
             gcc-core,
-            python38,
-            python38-devel,
-            python38-pip
-      - name: Install tox
-        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+            git,
+      - name: Record the currently selected Python version
+        id: python-install
+        # NOTE: This roughly emulates what `actions/setup-python@v4` provides
+        # NOTE: except the action gets the version from the installation path
+        # NOTE: on disk and we get it from runtime.
         run: |
-          python3.8 -m pip install tox
+          python -c 'import platform; print("python-version=" + platform.python_version())' >> ${GITHUB_OUTPUT}
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
-          tox -- --cov-report xml
+          git config --global --add safe.directory "$(cygpath -u "$GITHUB_WORKSPACE")" # workaround for #3408
+          tox
+      - name: Create coverage report
+        if: hashFiles('.coverage') != ''  # Rudimentary `file.exists()`
+        run: |
+          python -m pip install coverage
+          python -m coverage xml --ignore-errors
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+      - name: Publish coverage
+        if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
+        uses: codecov/codecov-action@v3
+        with:
+          files: >-
+            ${{ github.workspace }}\coverage.xml
+          flags: >-  # Mark which lines are covered by which envs
+            CI-GHA,
+            ${{ github.job }},
+            OS-${{ runner.os }},
+            VM-${{ matrix.platform }},
+            Py-${{ steps.python-install.outputs.python-version }}
 
   integration-test:
     needs: test
@@ -92,13 +214,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install OS-level dependencies
         run: |
           sudo apt-get update
           sudo apt-get install build-essential gfortran libopenblas-dev
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           # Use a release that is not very new but still have a long life:
           python-version: "3.8"
@@ -109,16 +231,19 @@ jobs:
         run: tox -e integration
 
   release:
-    needs: [test, test_cygwin, integration-test]
+    permissions:
+      contents: write
+    needs:
+    - check
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: 3.11-dev
       - name: Install tox
         run: |
           python -m pip install tox
