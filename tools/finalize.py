@@ -60,9 +60,9 @@ def _repair_changelog():
     Workaround for #2666
     """
     changelog_fn = pathlib.Path('CHANGES.rst')
-    changelog = changelog_fn.read_text()
+    changelog = changelog_fn.read_text(encoding='utf-8')
     fixed = re.sub(r'^(v[0-9.]+)v[0-9.]+$', r'\1', changelog, flags=re.M)
-    changelog_fn.write_text(fixed)
+    changelog_fn.write_text(fixed, encoding='utf-8')
     subprocess.check_output(['git', 'add', changelog_fn])
 
 
