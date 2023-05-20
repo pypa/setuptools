@@ -27,8 +27,9 @@ BUILD_PLATFORMS = ["Win32", "x64", "arm64"]
 REPO_ROOT = pathlib.Path(__file__).parent.parent.resolve()
 LAUNCHER_CMAKE_PROJECT = REPO_ROOT / "launcher"
 MSBUILD_OUT_DIR = REPO_ROOT / "setuptools"
+VISUAL_STUDIO_VERSION = "Visual Studio 17 2022"
 """
-Might be modified to visual studio that currently installed on the machine.
+Version of Visual Studio that is currently installed on the machine.
 Not tested with the older visual studios less then 16 version.
 Generators
 * Visual Studio 17 2022        = Generates Visual Studio 2022 project files.
@@ -47,7 +48,6 @@ Generators
   Visual Studio 9 2008 [arch]  = Generates Visual Studio 2008 project files.
                                  Optional [arch] can be "Win64" or "IA64".
 """
-VISUAL_STUDIO_VERSION = "Visual Studio 17 2022"
 
 
 def get_executable_name(name, platform: str):
