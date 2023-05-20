@@ -1,0 +1,1 @@
+Added symlink support to launcher for installed executables -- by :user:`eugene-sevostianov-sc`
