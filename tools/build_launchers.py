@@ -120,31 +120,34 @@ def get_msbuild():
         raise SystemExit("Unable to find MSBuild; check Visual Studio install")
 
 
+def do_build(platform, target):
+    build_arena = REPO_ROOT / "build-arena"
+
+    print(f"Building {target} for {platform}")
+    if build_arena.exists():
+        shutil.rmtree(build_arena)
+    build_arena.mkdir()
+
+    generate_cmake_project(build_arena, LAUNCHER_CMAKE_PROJECT, platform, GUI[target])
+
+    build_params = [
+        '/t:build',
+        '/property:Configuration=Release',
+        f'/property:Platform={platform}',
+        f'/p:OutDir={MSBUILD_OUT_DIR.resolve()}',
+        f'/p:TargetName={get_executable_name(target, platform)}',
+    ]
+    build_cmake_project_with_msbuild(build_arena, build_params)
+
+
 def main():
     # check for executables early
     get_cmake()
     get_msbuild()
 
-    build_arena = REPO_ROOT / "build-arena"
     for platform in BUILD_PLATFORMS:
         for target in BUILD_TARGETS:
-            print(f"Building {target} for {platform}")
-            if build_arena.exists():
-                shutil.rmtree(build_arena)
-            build_arena.mkdir()
-
-            generate_cmake_project(
-                build_arena, LAUNCHER_CMAKE_PROJECT, platform, GUI[target]
-            )
-
-            build_params = [
-                '/t:build',
-                '/property:Configuration=Release',
-                f'/property:Platform={platform}',
-                f'/p:OutDir={MSBUILD_OUT_DIR.resolve()}',
-                f'/p:TargetName={get_executable_name(target, platform)}',
-            ]
-            build_cmake_project_with_msbuild(build_arena, build_params)
+            do_build(platform, target)
 
     # copying win32 as default executables
     for target in BUILD_TARGETS:
