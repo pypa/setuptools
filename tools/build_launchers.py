@@ -53,10 +53,14 @@ Generators
 """
 
 
-def get_executable_name(name, platform: str):
+def resolve_platform(platform: str):
     if platform in ["Win32", "x64"]:
-        return f"{name}-{platform[-2:]}"
-    return f"{name}-{platform}"
+        return platform[-2:]
+    return platform
+
+
+def get_executable_name(name, platform: str):
+    return f"{name}-{resolve_platform(platform)}"
 
 
 def generate_cmake_project(build_arena, cmake_project_path, platform, is_gui):
