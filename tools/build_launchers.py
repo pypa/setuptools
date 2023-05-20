@@ -17,8 +17,8 @@ C++ ATL for latest v143 build tools (ARM64)
 """
 
 import os
-import shutil
 import pathlib
+import shutil
 import subprocess
 
 BUILD_TARGETS = ["cli", "gui"]
@@ -71,21 +71,12 @@ def build_cmake_project_with_msbuild(msbuild, build_arena, msbuild_parameters):
 
 
 def get_cmake():
-    try:
-        subprocess.check_call("cmake", shell=True)
-        return "cmake"
-    except Exception:
-        print(
-            "CMake is not found in your system PATH. Please install it from"
-            " https://cmake.org/download/ and ensure that cmake added to path"
-        )
-    print("Trying to locate cmake at default place")
-    try:
-        possible_cmake_location = '"C:\\Program Files\\CMake\\bin\\cmake.exe"'
-        subprocess.check_call(possible_cmake_location)
-        return possible_cmake_location
-    except Exception:
-        raise "Can't find CMake either in PATH and installed in programs files"
+    """Find CMake using registry."""
+    import winreg
+
+    with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Kitware\CMake") as key:
+        root = pathlib.Path(winreg.QueryValueEx(key, "InstallDir")[0])
+    return root / 'bin\\CMake.exe'
 
 
 def get_msbuild():
