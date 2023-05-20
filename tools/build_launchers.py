@@ -15,14 +15,16 @@ MSVC v143 - VS 2022 C++ ARM64 build tools (latest)
 MSVC v143 - VS 2022 C++ ARM64 Spectre-mitigated libs (latest)
 C++ ATL for latest v143 build tools (ARM64)
 """
+
+import os
 import shutil
-from pathlib import Path
+import pathlib
 import subprocess
 
 BUILD_TARGETS = ["cli", "gui"]
 GUI = {"cli": 0, "gui": 1}
 BUILD_PLATFORMS = ["Win32", "x64", "arm64"]
-REPO_ROOT = Path(__file__).parent.parent.resolve()
+REPO_ROOT = pathlib.Path(__file__).parent.parent.resolve()
 LAUNCHER_CMAKE_PROJECT = REPO_ROOT / "launcher"
 MSBUILD_OUT_DIR = REPO_ROOT / "setuptools"
 """
@@ -87,35 +89,33 @@ def get_cmake():
 
 
 def get_msbuild():
+    """Use VSWhere to find MSBuild."""
+    vswhere = pathlib.Path(
+        os.environ['ProgramFiles(x86)'],
+        'Microsoft Visual Studio',
+        'Installer',
+        'vswhere.exe',
+    )
+    cmd = [
+        vswhere,
+        '-latest',
+        '-prerelease',
+        '-products',
+        '*',
+        '-requires',
+        'Microsoft.Component.MSBuild',
+        '-find',
+        r'MSBuild\**\Bin\MSBuild.exe',
+    ]
     try:
-        subprocess.check_call("MSBuild --help", shell=True)
-        return "MSBuild"
-    except Exception:
-        print(
-            "MSBuild is not found in your path. Ensure that Visual Studio "
-            "is installed"
-        )
-    print("Trying work around to find MSBuild")
-    try:
-        # cmdlet that finds MSBuild
-        msbuild_path = subprocess.check_output(
-            '"%ProgramFiles(x86)%\\Microsoft Visual Studio'
-            '\\Installer\\vswhere.exe" -latest -prerelease '
-            '-products * -requires Microsoft.Component.'
-            'MSBuild -find MSBuild\\**\\Bin\\MSBuild.exe',
-            shell=True,
-            encoding="utf-8",
-        ).strip()
-        if msbuild_path == "":
-            raise
-    except Exception:
-        raise Exception("Ensure that Visual Studio is installed correctly")
-    return msbuild_path
+        return subprocess.check_output(cmd, encoding='utf-8', text=True).strip()
+    except subprocess.CalledProcessError:
+        raise SystemExit("Unable to find MSBuild; check Visual Studio install")
 
 
 def main():
     cmake = get_cmake()
-    msbuild = f'"{get_msbuild()}"'
+    msbuild = get_msbuild()
 
     build_arena = REPO_ROOT / "build-arena"
     for platform in BUILD_PLATFORMS:
