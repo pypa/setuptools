@@ -19,6 +19,7 @@ List of components needed to install to compile on ARM:
 
 import os
 import functools
+import itertools
 import pathlib
 import shutil
 import subprocess
@@ -141,10 +142,9 @@ def main():
     get_cmake()
     get_msbuild()
 
-    for platform in BUILD_PLATFORMS:
-        for target in BUILD_TARGETS:
-            with tempfile.TemporaryDirectory(dir=REPO_ROOT) as arena:
-                do_build(arena, platform, target)
+    for platform, target in itertools.product(BUILD_PLATFORMS, BUILD_TARGETS):
+        with tempfile.TemporaryDirectory(dir=REPO_ROOT) as arena:
+            do_build(arena, platform, target)
 
     # copy win32 as default executables
     for target in BUILD_TARGETS:
