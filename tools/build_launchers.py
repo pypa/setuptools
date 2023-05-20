@@ -110,6 +110,7 @@ def get_msbuild():
             raise
     except Exception:
         raise Exception("Ensure that Visual Studio is installed correctly")
+    return msbuild_path
 
 
 def main():
