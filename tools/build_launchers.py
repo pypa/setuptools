@@ -18,6 +18,7 @@ List of components needed to install to compile on ARM:
 """
 
 import os
+import functools
 import pathlib
 import shutil
 import subprocess
@@ -58,20 +59,21 @@ def get_executable_name(name, platform: str):
     return f"{name}-{platform}"
 
 
-def generate_cmake_project(cmake, build_arena, cmake_project_path, platform, is_gui):
+def generate_cmake_project(build_arena, cmake_project_path, platform, is_gui):
     subprocess.check_call(
-        f'{cmake} -G "{VISUAL_STUDIO_VERSION}" -A "{platform}"'
+        f'{get_cmake()} -G "{VISUAL_STUDIO_VERSION}" -A "{platform}"'
         f' {cmake_project_path} -DGUI={is_gui}',
         cwd=build_arena,
         shell=True,
     )
 
 
-def build_cmake_project_with_msbuild(msbuild, build_arena, msbuild_parameters):
-    cmd = f"{msbuild} launcher.vcxproj " + msbuild_parameters
+def build_cmake_project_with_msbuild(build_arena, msbuild_parameters):
+    cmd = f"{get_msbuild()} launcher.vcxproj " + msbuild_parameters
     subprocess.check_call(cmd, cwd=build_arena, shell=True)
 
 
+@functools.lru_cache()
 def get_cmake():
     """Find CMake using registry."""
     import winreg
@@ -81,6 +83,7 @@ def get_cmake():
     return root / 'bin\\CMake.exe'
 
 
+@functools.lru_cache()
 def get_msbuild():
     """Use VSWhere to find MSBuild."""
     vswhere = pathlib.Path(
@@ -107,8 +110,9 @@ def get_msbuild():
 
 
 def main():
-    cmake = get_cmake()
-    msbuild = get_msbuild()
+    # check for executables early
+    get_cmake()
+    get_msbuild()
 
     build_arena = REPO_ROOT / "build-arena"
     for platform in BUILD_PLATFORMS:
@@ -119,7 +123,7 @@ def main():
             build_arena.mkdir()
 
             generate_cmake_project(
-                cmake, build_arena, LAUNCHER_CMAKE_PROJECT, platform, GUI[target]
+                build_arena, LAUNCHER_CMAKE_PROJECT, platform, GUI[target]
             )
 
             build_params = (
@@ -129,7 +133,7 @@ def main():
                 f'/p:OutDir="{MSBUILD_OUT_DIR.resolve()}" '
                 f"/p:TargetName={get_executable_name(target, platform)}"
             )
-            build_cmake_project_with_msbuild(msbuild, build_arena, build_params)
+            build_cmake_project_with_msbuild(build_arena, build_params)
 
     # copying win32 as default executables
     for target in BUILD_TARGETS:
