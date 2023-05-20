@@ -1,25 +1,27 @@
 """
-Build module requires installation of CMake and Visual Studio. Please download and
-install console CMake and ensure that you add it to your PATH.
-You can find the latest CMake release at https://cmake.org/download/.
+Build executable launchers for Windows.
 
-Please ensure that 143 buildtools are installed for Visual Studio. Ensure that you
-install ARM build tools.
+Build module requires installation of
+`CMake <https://cmake.org/download/>`_ and Visual Studio.
 
-From visual studio installer:
+Please ensure that buildtools v143 or later are installed for Visual
+Studio. Ensure that you install ARM build tools.
+
+From Visual Studio Installer:
 Visual Studio -> Modify -> Individual Components
 
-List of components to install to compile ARM:
-C++ Universal Windows Platform Support for v143 build Tools (ARM64)
-MSVC v143 - VS 2022 C++ ARM64 build tools (latest)
-MSVC v143 - VS 2022 C++ ARM64 Spectre-mitigated libs (latest)
-C++ ATL for latest v143 build tools (ARM64)
+List of components needed to install to compile on ARM:
+- C++ Universal Windows Platform Support for v143 build Tools (ARM64)
+- MSVC v143 - VS 2022 C++ ARM64 build tools (latest)
+- MSVC v143 - VS 2022 C++ ARM64 Spectre-mitigated libs (latest)
+- C++ ATL for latest v143 build tools (ARM64)
 """
 
 import os
 import pathlib
 import shutil
 import subprocess
+
 
 BUILD_TARGETS = ["cli", "gui"]
 GUI = {"cli": 0, "gui": 1}
