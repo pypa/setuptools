@@ -21,6 +21,7 @@ from . import contexts, namespaces
 
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
+    _DebuggingTips,
     _LinkTree,
     _find_virtual_namespaces,
     _find_namespaces,
@@ -341,7 +342,7 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     site_packages.mkdir(parents=True)
 
     # install workaround
-    pip_run.launch.inject_sitecustomize(str(site_packages))
+    pip_run.launch.inject_sitecustomize(site_packages)
 
     env = dict(os.environ, PYTHONPATH=str(site_packages))
     cmd = [
@@ -953,6 +954,24 @@ class TestCustomBuildExt:
         assert len(files) == 1
         name = files[0].name
         assert any(name.endswith(ext) for ext in EXTENSION_SUFFIXES)
+
+
+def test_debugging_tips(tmpdir_cwd, monkeypatch):
+    """Make sure to display useful debugging tips to the user."""
+    jaraco.path.build({"module.py": "x = 42"})
+    dist = Distribution()
+    dist.script_name = "setup.py"
+    dist.set_defaults()
+    cmd = editable_wheel(dist)
+    cmd.ensure_finalized()
+
+    SimulatedErr = type("SimulatedErr", (Exception,), {})
+    simulated_failure = Mock(side_effect=SimulatedErr())
+    monkeypatch.setattr(cmd, "get_finalized_command", simulated_failure)
+
+    expected_msg = "following steps are recommended to help debugging"
+    with pytest.raises(SimulatedErr), pytest.warns(_DebuggingTips, match=expected_msg):
+        cmd.run()
 
 
 def install_project(name, venv, tmp_path, files, *opts):

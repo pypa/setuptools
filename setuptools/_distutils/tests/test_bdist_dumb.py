@@ -29,7 +29,6 @@ class TestBuildDumb(
 ):
     @pytest.mark.usefixtures('needs_zlib')
     def test_simple_built(self):
-
         # let's create a simple package
         tmp_dir = self.mkdtemp()
         pkg_dir = os.path.join(tmp_dir, 'foo')

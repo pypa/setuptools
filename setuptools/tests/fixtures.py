@@ -105,6 +105,8 @@ def venv(tmp_path, setuptools_wheel):
     """Virtual env with the version of setuptools under test installed"""
     env = environment.VirtualEnv()
     env.root = path.Path(tmp_path / 'venv')
+    env.create_opts = ['--no-setuptools', '--wheel=bundle']
+    # TODO: Use `--no-wheel` when setuptools implements its own bdist_wheel
     env.req = str(setuptools_wheel)
     # In some environments (eg. downstream distro packaging),
     # where tox isn't used to run tests and PYTHONPATH is set to point to
@@ -125,7 +127,7 @@ def venv_without_setuptools(tmp_path):
     """Virtual env without any version of setuptools installed"""
     env = environment.VirtualEnv()
     env.root = path.Path(tmp_path / 'venv_without_setuptools')
-    env.create_opts = ['--no-setuptools']
+    env.create_opts = ['--no-setuptools', '--no-wheel']
     env.ensure_env()
     return env
 

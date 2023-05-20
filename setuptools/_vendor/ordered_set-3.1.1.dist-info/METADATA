@@ -153,5 +153,3 @@ look up an entry by its index.
 
 OrderedSet is automatically tested on Python 2.7, 3.4, 3.5, 3.6, and 3.7.
 We've checked more informally that it works on PyPy and PyPy3.
-
-

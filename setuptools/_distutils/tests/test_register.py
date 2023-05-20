@@ -158,7 +158,6 @@ class TestRegister(BasePyPIRCCommandTestCase):
         assert b'xxx' in self.conn.reqs[1].data
 
     def test_password_not_in_file(self):
-
         self.write_file(self.rc, PYPIRC_NOPASSWORD)
         cmd = self._get_cmd()
         cmd._set_config()

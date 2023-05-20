@@ -18,16 +18,19 @@ def release_kind():
     """
     # use min here as 'major' < 'minor' < 'patch'
     return min(
-        'major' if 'breaking' in file.name else
-        'minor' if 'change' in file.name else
-        'patch'
+        'major'
+        if 'breaking' in file.name
+        else 'minor'
+        if 'change' in file.name
+        else 'patch'
         for file in pathlib.Path('changelog.d').iterdir()
     )
 
 
 bump_version_command = [
     sys.executable,
-    '-m', 'bumpversion',
+    '-m',
+    'bumpversion',
     release_kind(),
 ]
 
@@ -40,10 +43,12 @@ def get_version():
 
 def update_changelog():
     cmd = [
-        sys.executable, '-m',
+        sys.executable,
+        '-m',
         'towncrier',
         'build',
-        '--version', get_version(),
+        '--version',
+        get_version(),
         '--yes',
     ]
     subprocess.check_call(cmd)
@@ -55,9 +60,9 @@ def _repair_changelog():
     Workaround for #2666
     """
     changelog_fn = pathlib.Path('CHANGES.rst')
-    changelog = changelog_fn.read_text()
+    changelog = changelog_fn.read_text(encoding='utf-8')
     fixed = re.sub(r'^(v[0-9.]+)v[0-9.]+$', r'\1', changelog, flags=re.M)
-    changelog_fn.write_text(fixed)
+    changelog_fn.write_text(fixed, encoding='utf-8')
     subprocess.check_output(['git', 'add', changelog_fn])
 
 

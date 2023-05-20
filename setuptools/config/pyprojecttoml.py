@@ -2,19 +2,23 @@
 Load setuptools configuration from ``pyproject.toml`` files.
 
 **PRIVATE MODULE**: API reserved for setuptools internal usage only.
+
+To read project metadata, consider using
+``build.util.project_wheel_metadata`` (https://pypi.org/project/build/).
+For simple scenarios, you can also try parsing the file directly
+with the help of ``tomllib`` or ``tomli``.
 """
 import logging
 import os
-import warnings
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Union
+from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set, Union
 
-from setuptools.errors import FileError, OptionError
-
+from ..errors import FileError, OptionError
+from ..warnings import SetuptoolsWarning
 from . import expand as _expand
-from ._apply_pyprojecttoml import apply as _apply
 from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _WouldIgnoreField
+from ._apply_pyprojecttoml import apply as _apply
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
@@ -84,8 +88,8 @@ def read_configuration(
 
     :param Distribution|None: Distribution object to which the configuration refers.
         If not given a dummy object will be created and discarded after the
-        configuration is read. This is used for auto-discovery of packages in the case
-        a dynamic configuration (e.g. ``attr`` or ``cmdclass``) is expanded.
+        configuration is read. This is used for auto-discovery of packages and in the
+        case a dynamic configuration (e.g. ``attr`` or ``cmdclass``) is expanded.
         When ``expand=False`` this object is simply ignored.
 
     :rtype: dict
@@ -104,15 +108,14 @@ def read_configuration(
 
     if setuptools_table:
         # TODO: Remove the following once the feature stabilizes:
-        msg = "Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*."
-        warnings.warn(msg, _BetaConfiguration)
+        _BetaConfiguration.emit()
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
     # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
     # therefore setting a default here is backwards compatible.
     orig_setuptools_table = setuptools_table.copy()
-    if dist and getattr(dist, "include_package_data") is not None:
+    if dist and getattr(dist, "include_package_data", None) is not None:
         setuptools_table.setdefault("include-package-data", dist.include_package_data)
     else:
         setuptools_table.setdefault("include-package-data", True)
@@ -166,7 +169,7 @@ def _skip_bad_config(
         # It seems that the docs in cibuildtool has been inadvertently encouraging users
         # to create `pyproject.toml` files that are not compliant with the standards.
         # Let's be forgiving for the time being.
-        warnings.warn(_InvalidFile.message(), _InvalidFile, stacklevel=2)
+        _InvalidFile.emit()
         return True
 
     return False
@@ -211,6 +214,7 @@ class _ConfigExpander:
         self.dynamic_cfg = self.setuptools_cfg.get("dynamic", {})
         self.ignore_option_errors = ignore_option_errors
         self._dist = dist
+        self._referenced_files: Set[str] = set()
 
     def _ensure_dist(self) -> "Distribution":
         from setuptools.dist import Distribution
@@ -241,6 +245,7 @@ class _ConfigExpander:
             self._expand_cmdclass(package_dir)
             self._expand_all_dynamic(dist, package_dir)
 
+        dist._referenced_files.update(self._referenced_files)
         return self.config
 
     def _expand_packages(self):
@@ -307,9 +312,12 @@ class _ConfigExpander:
     def _expand_directive(
         self, specifier: str, directive, package_dir: Mapping[str, str]
     ):
+        from setuptools.extern.more_itertools import always_iterable  # type: ignore
+
         with _ignore_errors(self.ignore_option_errors):
             root_dir = self.root_dir
             if "file" in directive:
+                self._referenced_files.update(always_iterable(directive["file"]))
                 return _expand.read_files(directive["file"], root_dir)
             if "attr" in directive:
                 return _expand.read_attr(directive["attr"], package_dir, root_dir)
@@ -364,8 +372,7 @@ class _ConfigExpander:
             if group in groups:
                 value = groups.pop(group)
                 if field not in self.dynamic:
-                    msg = _WouldIgnoreField.message(field, value)
-                    warnings.warn(msg, _WouldIgnoreField)
+                    _WouldIgnoreField.emit(field=field, value=value)
                 # TODO: Don't set field when support for pyproject.toml stabilizes
                 #       instead raise an error as specified in PEP 621
                 expanded[field] = value
@@ -467,13 +474,13 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         return super().__exit__(exc_type, exc_value, traceback)
 
 
-class _BetaConfiguration(UserWarning):
-    """Explicitly inform users that some `pyproject.toml` configuration is *beta*"""
+class _BetaConfiguration(SetuptoolsWarning):
+    _SUMMARY = "Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*."
 
 
-class _InvalidFile(UserWarning):
-    """The given `pyproject.toml` file is invalid and would be ignored.
-    !!\n\n
+class _InvalidFile(SetuptoolsWarning):
+    _SUMMARY = "The given `pyproject.toml` file is invalid and would be ignored."
+    _DETAILS = """
     ############################
     # Invalid `pyproject.toml` #
     ############################
@@ -483,11 +490,7 @@ class _InvalidFile(UserWarning):
     if an invalid file is given.
 
     To prevent setuptools from considering `pyproject.toml` please
-    DO NOT include the `[project]` or `[tool.setuptools]` tables in your file.
-    \n\n!!
+    DO NOT include both `[project]` or `[tool.setuptools]` tables in your file.
     """
-
-    @classmethod
-    def message(cls):
-        from inspect import cleandoc
-        return cleandoc(cls.__doc__)
+    _DUE_DATE = (2023, 6, 1)  # warning introduced in 2022-03-26
+    _SEE_DOCS = "userguide/pyproject_config.html"

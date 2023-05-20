@@ -100,16 +100,19 @@ intersphinx_mapping = {
 # Preserve authored syntax for defaults
 autodoc_preserve_defaults = True
 
-intersphinx_mapping.update({
-    'pip': ('https://pip.pypa.io/en/latest', None),
-    'build': ('https://pypa-build.readthedocs.io/en/latest', None),
-    'PyPUG': ('https://packaging.python.org/en/latest/', None),
-    'packaging': ('https://packaging.pypa.io/en/latest/', None),
-    'twine': ('https://twine.readthedocs.io/en/stable/', None),
-    'importlib-resources': (
-        'https://importlib-resources.readthedocs.io/en/latest', None
-    ),
-})
+intersphinx_mapping.update(
+    {
+        'pip': ('https://pip.pypa.io/en/latest', None),
+        'build': ('https://pypa-build.readthedocs.io/en/latest', None),
+        'PyPUG': ('https://packaging.python.org/en/latest/', None),
+        'packaging': ('https://packaging.pypa.io/en/latest/', None),
+        'twine': ('https://twine.readthedocs.io/en/stable/', None),
+        'importlib-resources': (
+            'https://importlib-resources.readthedocs.io/en/latest',
+            None,
+        ),
+    }
+)
 
 # Support tooltips on references
 extensions += ['hoverxref.extension']
@@ -176,6 +179,7 @@ nitpick_ignore = [
     ('envvar', 'DISTUTILS_DEBUG'),  # undocumented
     ('envvar', 'HOME'),  # undocumented
     ('envvar', 'PLAT'),  # undocumented
+    ('envvar', 'DIST_EXTRA_CONFIG'),  # undocumented
     ('py:attr', 'CCompiler.language_map'),  # undocumented
     ('py:attr', 'CCompiler.language_order'),  # undocumented
     ('py:class', 'distutils.dist.Distribution'),  # undocumented
@@ -222,7 +226,7 @@ towncrier_draft_include_empty = False
 extensions += ['jaraco.tidelift']
 
 # Add icons (aka "favicons") to documentation
-extensions += ['sphinx-favicon']
+extensions += ['sphinx_favicon']
 html_static_path = ['images']  # should contain the folder with icons
 
 # Add support for nice Not Found 404 pages
@@ -235,13 +239,13 @@ favicons = [
         "rel": "icon",
         "type": "image/svg+xml",
         "static-file": "logo-symbol-only.svg",
-        "sizes": "any"
+        "sizes": "any",
     },
     {  # Version with thicker strokes for better visibility at smaller sizes
         "rel": "icon",
         "type": "image/svg+xml",
         "static-file": "favicon.svg",
-        "sizes": "16x16 24x24 32x32 48x48"
+        "sizes": "16x16 24x24 32x32 48x48",
     },
     # rel="apple-touch-icon" does not support SVG yet
 ]

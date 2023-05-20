@@ -25,10 +25,12 @@ boilerplate code in some cases.
     [metadata]
     name = my_package
     version = attr: my_package.VERSION
+    author = Josiah Carberry
+    author_email = josiah_carberry@brown.edu
     description = My package description
     long_description = file: README.rst, CHANGELOG.rst, LICENSE.rst
     keywords = one, two
-    license = BSD 3-Clause License
+    license = BSD-3-Clause
     classifiers =
         Framework :: Django
         Programming Language :: Python :: 3
@@ -37,6 +39,7 @@ boilerplate code in some cases.
     zip_safe = False
     include_package_data = True
     packages = find:
+    python_requires = >=3.7
     install_requires =
         requests
         importlib-metadata; python_version<"3.8"
@@ -166,11 +169,14 @@ Special directives:
       The ``file:`` directive is sandboxed and won't reach anything outside the
       project directory (i.e. the directory containing ``setup.cfg``/``pyproject.toml``).
 
-  .. attention::
-      When using the ``file:`` directive, please make sure that all necessary
-      files are included in the ``sdist``. You can do that via ``MANIFEST.in``
-      or using plugins such as ``setuptools-scm``.
-      Please have a look on :doc:`/userguide/miscellaneous` for more information.
+  .. note::
+      If you are using an old version of ``setuptools``, you might need to ensure
+      that all files referenced by the ``file:`` directive are included in the ``sdist``
+      (you can do that via ``MANIFEST.in`` or using plugins such as ``setuptools-scm``,
+      please have a look on :doc:`/userguide/miscellaneous` for more information).
+
+      .. versionchanged:: 66.1.0
+         Newer versions of ``setuptools`` will automatically add these files to the ``sdist``.
 
 
 Metadata
@@ -222,7 +228,7 @@ Key                      Type                                 Minimum Version No
 =======================  ===================================  =============== ====================
 zip_safe                 bool
 setup_requires           list-semi                            36.7.0
-install_requires         file:, list-semi                                     **BETA** [#opt-6]_
+install_requires         file:, list-semi                                     **BETA** [#opt-2]_, [#opt-6]_
 extras_require           file:, section                                       **BETA** [#opt-2]_, [#opt-6]_
 python_requires          str                                  34.4.0
 entry_points             file:, section                       51.0.0
@@ -245,17 +251,19 @@ data_files               section                              40.6.0          [#
 .. [#opt-1] In the ``package_data`` section, a key named with a single asterisk
    (``*``) refers to all packages, in lieu of the empty string used in ``setup.py``.
 
-.. [#opt-2] In the ``extras_require`` section, values are parsed as ``list-semi``.
-   This implies that in order to include markers, they **must** be *dangling*:
+.. [#opt-2] In ``install_requires`` and ``extras_require``, values are parsed as ``list-semi``.
+   This implies that in order to include markers, each requirement **must** be *dangling*
+   in a new line:
 
    .. code-block:: ini
 
+      [options]
+      install_requires =
+          importlib-metadata; python_version<"3.8"
+
       [options.extras_require]
-      rest = docutils>=0.3; pack ==1.1, ==1.3
-      pdf =
-        ReportLab>=1.2
-        RXP
-        importlib-metadata; python_version < "3.8"
+      all =
+          importlib-metadata; python_version < "3.8"
 
 .. [#opt-3] The ``find:`` and ``find_namespace:`` directive can be further configured
    in a dedicated subsection ``options.packages.find``. This subsection accepts the

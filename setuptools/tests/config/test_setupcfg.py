@@ -7,9 +7,10 @@ from unittest.mock import Mock, patch
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools._deprecation_warning import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
+from setuptools.extern.packaging.requirements import InvalidRequirement
+from setuptools.warnings import SetuptoolsDeprecationWarning
 from ..textwrap import DALS
 
 
@@ -467,12 +468,8 @@ class TestMetadata:
             'author-email = test@test.com\n'
             'maintainer_email = foo@foo.com\n',
         )
-        msg = (
-            "Usage of dash-separated 'author-email' will not be supported "
-            "in future versions. "
-            "Please use the underscore name 'author_email' instead"
-        )
-        with pytest.warns(UserWarning, match=msg):
+        msg = "Usage of dash-separated 'author-email' will not be supported"
+        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
             with get_dist(tmpdir) as dist:
                 metadata = dist.metadata
 
@@ -485,12 +482,8 @@ class TestMetadata:
         fake_env(
             tmpdir, '[metadata]\n' 'Name = foo\n' 'description = Some description\n'
         )
-        msg = (
-            "Usage of uppercase key 'Name' in 'metadata' will be deprecated in "
-            "future versions. "
-            "Please use lowercase 'name' instead"
-        )
-        with pytest.warns(UserWarning, match=msg):
+        msg = "Usage of uppercase key 'Name' in 'metadata' will not be supported"
+        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
             with get_dist(tmpdir) as dist:
                 metadata = dist.metadata
 
@@ -729,13 +722,32 @@ class TestOptions:
             "[options]\ninstall_requires = bar;os_name=='linux'\n",
         ],
     )
+    def test_raises_accidental_env_marker_misconfig(self, config, tmpdir):
+        fake_env(tmpdir, config)
+        match = (
+            r"One of the parsed requirements in `(install_requires|extras_require.+)` "
+            "looks like a valid environment marker.*"
+        )
+        with pytest.raises(InvalidRequirement, match=match):
+            with get_dist(tmpdir) as _:
+                pass
+
+    @pytest.mark.parametrize(
+        "config",
+        [
+            "[options.extras_require]\nfoo = bar;python_version<3",
+            "[options.extras_require]\nfoo = bar;python_version<3\n",
+            "[options]\ninstall_requires = bar;python_version<3",
+            "[options]\ninstall_requires = bar;python_version<3\n",
+        ],
+    )
     def test_warn_accidental_env_marker_misconfig(self, config, tmpdir):
         fake_env(tmpdir, config)
         match = (
             r"One of the parsed requirements in `(install_requires|extras_require.+)` "
             "looks like a valid environment marker.*"
         )
-        with pytest.warns(UserWarning, match=match):
+        with pytest.warns(SetuptoolsDeprecationWarning, match=match):
             with get_dist(tmpdir) as _:
                 pass
 
@@ -746,20 +758,22 @@ class TestOptions:
             "[options.extras_require]\nfoo = bar;baz\nboo = xxx;yyy",
             "[options.extras_require]\nfoo =\n    bar;python_version<'3'\n",
             "[options.extras_require]\nfoo = bar;baz\nboo = xxx;yyy\n",
-            "[options.extras_require]\nfoo =\n    bar\n    python_version<'3'\n",
+            "[options.extras_require]\nfoo =\n    bar\n    python_version<3\n",
             "[options]\ninstall_requires =\n    bar;python_version<'3'",
             "[options]\ninstall_requires = bar;baz\nboo = xxx;yyy",
             "[options]\ninstall_requires =\n    bar;python_version<'3'\n",
             "[options]\ninstall_requires = bar;baz\nboo = xxx;yyy\n",
-            "[options]\ninstall_requires =\n    bar\n    python_version<'3'\n",
+            "[options]\ninstall_requires =\n    bar\n    python_version<3\n",
         ],
     )
+    @pytest.mark.filterwarnings("error::setuptools.SetuptoolsDeprecationWarning")
     def test_nowarn_accidental_env_marker_misconfig(self, config, tmpdir, recwarn):
         fake_env(tmpdir, config)
+        num_warnings = len(recwarn)
         with get_dist(tmpdir) as _:
             pass
         # The examples are valid, no warnings shown
-        assert not any(w.category == UserWarning for w in recwarn)
+        assert len(recwarn) == num_warnings
 
     def test_dash_preserved_extras_require(self, tmpdir):
         fake_env(tmpdir, '[options.extras_require]\n' 'foo-a = foo\n' 'foo_b = test\n')

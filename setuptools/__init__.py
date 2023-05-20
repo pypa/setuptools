@@ -3,7 +3,6 @@
 import functools
 import os
 import re
-import warnings
 
 import _distutils_hack.override  # noqa: F401
 
@@ -11,7 +10,7 @@ import distutils.core
 from distutils.errors import DistutilsOptionError
 from distutils.util import convert_path as _convert_path
 
-from ._deprecation_warning import SetuptoolsDeprecationWarning
+from .warnings import SetuptoolsDeprecationWarning
 
 import setuptools.version
 from setuptools.extension import Extension
@@ -77,7 +76,28 @@ def _install_setup_requires(attrs):
     # Honor setup.cfg's options.
     dist.parse_config_files(ignore_option_errors=True)
     if dist.setup_requires:
+        _fetch_build_eggs(dist)
+
+
+def _fetch_build_eggs(dist):
+    try:
         dist.fetch_build_eggs(dist.setup_requires)
+    except Exception as ex:
+        msg = """
+        It is possible a package already installed in your system
+        contains an version that is invalid according to PEP 440.
+        You can try `pip install --use-pep517` as a workaround for this problem,
+        or rely on a new virtual environment.
+
+        If the problem refers to a package that is not installed yet,
+        please contact that package's maintainers or distributors.
+        """
+        if "InvalidVersion" in ex.__class__.__name__:
+            if hasattr(ex, "add_note"):
+                ex.add_note(msg)  # PEP 678
+            else:
+                dist.announce(f"\n{msg}\n")
+        raise
 
 
 def setup(**attrs):
@@ -228,14 +248,17 @@ def findall(dir=os.curdir):
 
 @functools.wraps(_convert_path)
 def convert_path(pathname):
-    from inspect import cleandoc
+    SetuptoolsDeprecationWarning.emit(
+        "Access to implementation detail",
+        """
+        The function `convert_path` is not provided by setuptools itself,
+        and therefore not part of the public API.
 
-    msg = """
-    The function `convert_path` is considered internal and not part of the public API.
-    Its direct usage by 3rd-party packages is considered deprecated and the function
-    may be removed in the future.
-    """
-    warnings.warn(cleandoc(msg), SetuptoolsDeprecationWarning)
+        Its direct usage by 3rd-party packages is considered improper and the function
+        may be removed in the future.
+        """,
+        due_date=(2023, 12, 13)  # initial deprecation 2022-03-25, see #3201
+    )
     return _convert_path(pathname)
 
 

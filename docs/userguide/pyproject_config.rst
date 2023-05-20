@@ -42,11 +42,14 @@ The ``project`` table contains metadata fields as described by
 
    [project]
    name = "my_package"
+   authors = [
+       {name = "Josiah Carberry", email = "josiah_carberry@brown.edu"},
+   ]
    description = "My package description"
    readme = "README.rst"
    requires-python = ">=3.7"
    keywords = ["one", "two"]
-   license = {text = "BSD 3-Clause License"}
+   license = {text = "BSD-3-Clause"}
    classifiers = [
        "Framework :: Django",
        "Programming Language :: Python :: 3",
@@ -187,13 +190,19 @@ of all given files and concatenate them in a single string.
 Key                        Directive           Notes
 ========================== =================== =================================================================================================
 ``version``                ``attr``, ``file``
-``readme``                 ``file``
-``description``            ``file``            One-line text
+``readme``                 ``file``            Here you can also set ``"content-type"``:
+
+                                               ``readme = {file = ["README", "USAGE"], content-type = "text/plain"}``
+
+                                               If ``content-type`` is not given, ``"text/x-rst"`` is used by default.
+``description``            ``file``            One-line text (no line breaks)
 ``classifiers``            ``file``            Multi-line text with one classifier per line
 ``entry-points``           ``file``            INI format following :doc:`PyPUG:specifications/entry-points`
                                                (``console_scripts`` and ``gui_scripts`` can be included)
-``dependencies``           ``file``            ``requirements.txt`` format (``#`` comments and blank lines excluded) **BETA**
-``optional-dependencies``  ``file``            ``requirements.txt`` format per group (``#`` comments and blank lines excluded) **BETA**
+``dependencies``           ``file``            *subset* of the ``requirements.txt`` format
+                                               (``#`` comments and blank lines excluded) **BETA**
+``optional-dependencies``  ``file``            *subset* of the ``requirements.txt`` format per group
+                                               (``#`` comments and blank lines excluded) **BETA**
 ========================== =================== =================================================================================================
 
 Supporting ``file`` for dependencies is meant for a convenience for packaging
@@ -211,11 +220,14 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
 (``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
 
 
-.. attention::
-   When using the ``file`` directive, please make sure that all necessary
-   files are included in the ``sdist``. You can do that via ``MANIFEST.in``
-   or using plugins such as ``setuptools-scm``.
-   Please have a look on :doc:`/userguide/miscellaneous` for more information.
+.. note::
+   If you are using an old version of ``setuptools``, you might need to ensure
+   that all files referenced by the ``file`` directive are included in the ``sdist``
+   (you can do that via ``MANIFEST.in`` or using plugins such as ``setuptools-scm``,
+   please have a look on :doc:`/userguide/miscellaneous` for more information).
+
+   .. versionchanged:: 66.1.0
+      Newer versions of ``setuptools`` will automatically add these files to the ``sdist``.
 
 ----
 
