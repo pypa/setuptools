@@ -60,17 +60,24 @@ def get_executable_name(name, platform: str):
 
 
 def generate_cmake_project(build_arena, cmake_project_path, platform, is_gui):
-    subprocess.check_call(
-        f'{get_cmake()} -G "{VISUAL_STUDIO_VERSION}" -A "{platform}"'
-        f' {cmake_project_path} -DGUI={is_gui}',
-        cwd=build_arena,
-        shell=True,
-    )
+    cmd = [
+        get_cmake(),
+        '-G',
+        VISUAL_STUDIO_VERSION,
+        '-A',
+        platform,
+        cmake_project_path,
+        f'-DGUI={is_gui}',
+    ]
+    subprocess.check_call(cmd, cwd=build_arena)
 
 
 def build_cmake_project_with_msbuild(build_arena, msbuild_parameters):
-    cmd = f"{get_msbuild()} launcher.vcxproj " + msbuild_parameters
-    subprocess.check_call(cmd, cwd=build_arena, shell=True)
+    cmd = [
+        get_msbuild(),
+        'launcher.vcxproj',
+    ] + msbuild_parameters
+    subprocess.check_call(cmd, cwd=build_arena)
 
 
 @functools.lru_cache()
@@ -126,13 +133,13 @@ def main():
                 build_arena, LAUNCHER_CMAKE_PROJECT, platform, GUI[target]
             )
 
-            build_params = (
-                f"/t:build "
-                f"/property:Configuration=Release "
-                f"/property:Platform={platform} "
-                f'/p:OutDir="{MSBUILD_OUT_DIR.resolve()}" '
-                f"/p:TargetName={get_executable_name(target, platform)}"
-            )
+            build_params = [
+                '/t:build',
+                '/property:Configuration=Release',
+                f'/property:Platform={platform}',
+                f'/p:OutDir={MSBUILD_OUT_DIR.resolve()}',
+                f'/p:TargetName={get_executable_name(target, platform)}',
+            ]
             build_cmake_project_with_msbuild(build_arena, build_params)
 
     # copying win32 as default executables
