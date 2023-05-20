@@ -22,6 +22,7 @@ import functools
 import pathlib
 import shutil
 import subprocess
+import tempfile
 
 
 BUILD_TARGETS = ["cli", "gui"]
@@ -120,15 +121,10 @@ def get_msbuild():
         raise SystemExit("Unable to find MSBuild; check Visual Studio install")
 
 
-def do_build(platform, target):
-    build_arena = REPO_ROOT / "build-arena"
-
+def do_build(arena, platform, target):
     print(f"Building {target} for {platform}")
-    if build_arena.exists():
-        shutil.rmtree(build_arena)
-    build_arena.mkdir()
 
-    generate_cmake_project(build_arena, LAUNCHER_CMAKE_PROJECT, platform, GUI[target])
+    generate_cmake_project(arena, LAUNCHER_CMAKE_PROJECT, platform, GUI[target])
 
     build_params = [
         '/t:build',
@@ -137,7 +133,7 @@ def do_build(platform, target):
         f'/p:OutDir={MSBUILD_OUT_DIR.resolve()}',
         f'/p:TargetName={get_executable_name(target, platform)}',
     ]
-    build_cmake_project_with_msbuild(build_arena, build_params)
+    build_cmake_project_with_msbuild(arena, build_params)
 
 
 def main():
@@ -147,9 +143,10 @@ def main():
 
     for platform in BUILD_PLATFORMS:
         for target in BUILD_TARGETS:
-            do_build(platform, target)
+            with tempfile.TemporaryDirectory(dir=REPO_ROOT) as arena:
+                do_build(arena, platform, target)
 
-    # copying win32 as default executables
+    # copy win32 as default executables
     for target in BUILD_TARGETS:
         executable = MSBUILD_OUT_DIR / f"{get_executable_name(target, 'Win32')}.exe"
         destination_executable = MSBUILD_OUT_DIR / f"{target}.exe"
