@@ -2337,8 +2337,8 @@ class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):
     _SUMMARY = "easy_install command is deprecated."
     _DETAILS = """
     Please avoid running ``setup.py`` and ``easy_install``.
-    Instead, use pypa/build, pypa/installer, pypa/build or
-    other standards-based tools.
+    Instead, use pypa/build, pypa/installer or other
+    standards-based tools.
     """
     _SEE_URL = "https://github.com/pypa/setuptools/issues/917"
     # _DUE_DATE not defined yet

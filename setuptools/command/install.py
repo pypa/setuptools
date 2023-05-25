@@ -34,8 +34,8 @@ class install(orig.install):
             "setup.py install is deprecated.",
             """
             Please avoid running ``setup.py`` directly.
-            Instead, use pypa/build, pypa/installer, pypa/build or
-            other standards-based tools.
+            Instead, use pypa/build, pypa/installer or other
+            standards-based tools.
             """,
             see_url="https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html",
             # TODO: Document how to bootstrap setuptools without install
