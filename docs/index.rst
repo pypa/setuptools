@@ -7,7 +7,7 @@ Welcome to |project| documentation!
    history
 
 
-.. automodule:: skeleton
+.. automodule:: PROJECT
     :members:
     :undoc-members:
     :show-inheritance:
