@@ -13,11 +13,8 @@ The package resource API is designed to work with normal filesystem packages,
 .zip files and with custom PEP 302 loaders that support the ``get_data()``
 method.
 
-This module is deprecated. Users are directed to
-`importlib.resources <https://docs.python.org/3/library/importlib.resources.html>`_
-and
-`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_
-instead.
+This module is deprecated. Users are directed to :mod:`importlib.resources`,
+:mod:`importlib.metadata` and :pypi:`packaging` instead.
 """
 
 import sys
@@ -118,7 +115,11 @@ _namespace_handlers = None
 _namespace_packages = None
 
 
-warnings.warn("pkg_resources is deprecated as an API", DeprecationWarning)
+warnings.warn(
+    "pkg_resources is deprecated as an API. "
+    "See https://setuptools.pypa.io/en/latest/pkg_resources.html",
+    DeprecationWarning
+)
 
 
 _PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
