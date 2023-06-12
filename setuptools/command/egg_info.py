@@ -751,26 +751,6 @@ def write_entries(cmd, basename, filename):
     cmd.write_or_delete_file('entry points', filename, defn, True)
 
 
-def get_pkg_info_revision():
-    """
-    Get a -r### off of PKG-INFO Version in case this is an sdist of
-    a subversion revision.
-    """
-    EggInfoDeprecationWarning.emit(
-        "Deprecated API call",
-        "get_pkg_info_revision is deprecated.",
-        due_date=(2023, 6, 1),
-        # Warning introduced in 11 Dec 2015, should be safe to remove
-    )
-    if os.path.exists('PKG-INFO'):
-        with io.open('PKG-INFO') as f:
-            for line in f:
-                match = re.match(r"Version:.*-r(\d+)\s*$", line)
-                if match:
-                    return int(match.group(1))
-    return 0
-
-
 def _egg_basename(egg_name, egg_version, py_version=None, platform=None):
     """Compute filename of the output egg. Private API."""
     name = _normalization.filename_component(egg_name)
