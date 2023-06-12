@@ -1,0 +1,1 @@
+Changed ``DistutilsMetaFinder`` to skip ``spec_for_pip`` on Python >= 3.12.
