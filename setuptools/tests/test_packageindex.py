@@ -226,17 +226,9 @@ class TestPackageIndex:
         url = 'svn+https://svn.example/project#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
-        with pytest.warns(UserWarning):
-            with mock.patch("os.system") as os_system_mock:
-                result = index.download(url, str(tmpdir))
-
-        os_system_mock.assert_called()
-
-        expected_dir = str(tmpdir / 'project')
-        expected = (
-            'svn checkout -q ' 'svn+https://svn.example/project {expected_dir}'
-        ).format(**locals())
-        os_system_mock.assert_called_once_with(expected)
+        msg = r".*SVN download is not supported.*"
+        with pytest.raises(distutils.errors.DistutilsError, match=msg):
+            index.download(url, str(tmpdir))
 
 
 class TestContentCheckers:
