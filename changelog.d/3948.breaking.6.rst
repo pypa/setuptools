@@ -1,0 +1,1 @@
+Removed support for SVN in ``setuptools.package_index`` (deprecated since 2018).

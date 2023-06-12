@@ -1,0 +1,1 @@
+Removed ``egg_info.get_pkg_info_revision`` (deprecated since 2015).
