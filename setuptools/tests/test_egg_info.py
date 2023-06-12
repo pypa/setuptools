@@ -14,7 +14,6 @@ from jaraco import path
 
 from setuptools import errors
 from setuptools.command.egg_info import (
-    EggInfoDeprecationWarning,
     egg_info,
     manifest_maker,
     write_entries,

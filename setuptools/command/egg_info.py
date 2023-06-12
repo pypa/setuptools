@@ -683,20 +683,6 @@ def write_pkg_info(cmd, basename, filename):
         bdist_egg.write_safety_flag(cmd.egg_info, safe)
 
 
-def warn_depends_obsolete(cmd, basename, filename):
-    if os.path.exists(filename):
-        EggInfoDeprecationWarning.emit(
-            "Deprecated config.",
-            """
-            'depends.txt' is not used by setuptools >= 0.6!
-            Configure your dependencies via `setup.cfg` or `pyproject.toml` instead.
-            """,
-            see_docs="userguide/declarative_config.html",
-            due_date=(2023, 6, 1),
-            # Old warning, introduced in 2005, it might be safe to remove soon.
-        )
-
-
 def _write_requirements(stream, reqs):
     lines = yield_lines(reqs or ())
 
