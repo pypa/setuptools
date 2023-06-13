@@ -223,5 +223,5 @@ def _remove_shim():
 
 
 if sys.version_info < (3, 12):
-    # DistutilsMetaFinder can only be disabled in Python < 3.12
+    # DistutilsMetaFinder can only be disabled in Python < 3.12 (PEP 632)
     remove_shim = _remove_shim
