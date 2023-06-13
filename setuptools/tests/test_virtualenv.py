@@ -58,25 +58,31 @@ def access_pypi():
         pytest.param(
             'pip<20.1',
             marks=pytest.mark.xfail(
-                'sys.version_info > (3, 12)',
-                reason="pip 22 requried for Python 3.12 and later",
+                'sys.version_info >= (3, 12)',
+                reason="pip 23.1.2 required for Python 3.12 and later",
             ),
         ),
         pytest.param(
             'pip<21',
             marks=pytest.mark.xfail(
-                'sys.version_info > (3, 12)',
-                reason="pip 22 requried for Python 3.12 and later",
+                'sys.version_info >= (3, 12)',
+                reason="pip 23.1.2 required for Python 3.12 and later",
             ),
         ),
         pytest.param(
             'pip<22',
             marks=pytest.mark.xfail(
-                'sys.version_info > (3, 12)',
-                reason="pip 22 requried for Python 3.12 and later",
+                'sys.version_info >= (3, 12)',
+                reason="pip 23.1.2 required for Python 3.12 and later",
             ),
         ),
-        'pip<23',
+        pytest.param(
+            'pip<23',
+            marks=pytest.mark.xfail(
+                'sys.version_info >= (3, 12)',
+                reason="pip 23.1.2 required for Python 3.12 and later",
+            ),
+        ),
         pytest.param(
             'https://github.com/pypa/pip/archive/main.zip',
             marks=pytest.mark.xfail(reason='#2975'),
