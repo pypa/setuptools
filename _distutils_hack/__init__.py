@@ -215,15 +215,13 @@ def insert_shim():
     sys.meta_path.insert(0, DISTUTILS_FINDER)
 
 
-if sys.version_info < (3, 12):
-    # DistutilsMetaFinder should not be disabled in Python >= 3.12
-
-    def remove_shim():
-        _remove_shim()
-
-
 def _remove_shim():
     try:
         sys.meta_path.remove(DISTUTILS_FINDER)
     except ValueError:
         pass
+
+
+if sys.version_info < (3, 12):
+    # DistutilsMetaFinder can only be disabled in Python < 3.12
+    remove_shim = _remove_shim
