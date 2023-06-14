@@ -86,7 +86,7 @@ exactly to the directory structure, you also need to configure ``package_dir``:
         setup(
             # ...
             package_dir = {
-                "mypkg": "lib",  # mypkg.module corresponds to lib/mod.py
+                "mypkg": "lib",  # mypkg.module corresponds to lib/module.py
                 "mypkg.subpkg1": "lib1",  # mypkg.subpkg1.module1 corresponds to lib1/module1.py
                 "mypkg.subpkg2": "lib2"   # mypkg.subpkg2.module2 corresponds to lib2/module2.py
                 # ...
