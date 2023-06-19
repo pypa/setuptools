@@ -14,6 +14,8 @@ packages.
    Use of ``pkg_resources`` is deprecated in favor of
    :mod:`importlib.resources`, :mod:`importlib.metadata`
    and their backports (:pypi:`importlib_resources`, :pypi:`importlib_metadata`).
+   Some useful APIs are also provided by :pypi:`packaging` (e.g. requirements
+   and version parsing).
    Users should refrain from new usage of ``pkg_resources`` and
    should work to port to importlib-based solutions.
 
