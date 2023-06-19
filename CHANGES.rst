@@ -1,3 +1,43 @@
+v68.0.0
+-------
+
+
+Breaking Changes
+^^^^^^^^^^^^^^^^
+* #3948: Removed verification for existing ``depends.txt`` file (deprecated since v0.5a4).
+* #3948: Remove autofixing of broken ``.egg-info`` directories containing the ``-``
+  character in their base name (without suffix).
+  They should no longer be produced by sufficiently new versions of ``setuptools``
+  (warning introduced in 2005).
+* #3948: Remove deprecated APIs in ``easy_install``: ``get_script_args``,
+  ``get_script_header`` and ``get_writer``.
+  The direct usage of ``easy_install`` has been deprecated since v58.3.0,
+  and the warnings regarding these APIs predate that version.
+* #3948: Removed ``egg_info.get_pkg_info_revision`` (deprecated since 2015).
+* #3948: Removed ``setuptools.dist._get_unpatched`` (deprecated since 2016)
+* #3948: Removed support for SVN in ``setuptools.package_index`` (deprecated since 2018).
+* #3948: Removed support for invalid ``pyproject.toml`` files.
+  During the implementation of PEP 621, it was identified that some users were
+  producing invalid files. As a transitional measure, the validation was relaxed
+  for a few use cases. The grace period, however, came to an end.
+
+Changes
+^^^^^^^
+* #3760: Added symlink support to launcher for installed executables -- by :user:`eugene-sevostianov-sc`
+* #3926: Updated vendored ``packaging`` version from 23.0 to 23.1 -- by :user:`MetRonnie`
+* #3950: Implemented workaround for old versions of ``vswhere``, which miss the
+  ``-requiresAny`` parameter, such as the ones distributed together with Visual Studio 2017 < 15.6.
+* #3952: Changed ``DistutilsMetaFinder`` to skip ``spec_for_pip`` on Python >= 3.12.
+* #3952: Removed ``_distutils_hack.remove_shim`` on Python >= 3.12
+  (since ``distutils`` was removed from the standard library,
+  ``DistutilsMetaFinder`` cannot be disabled on Python >= 3.12).
+
+Misc
+^^^^
+* #3920: Add a link to deprecation warning in ``pkg_resources`` and improve
+  ``stacklevel`` for better visibility.
+
+
 v67.8.0
 -------
 

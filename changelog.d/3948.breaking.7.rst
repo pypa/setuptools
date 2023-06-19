@@ -1,4 +1,0 @@
-Removed support for invalid ``pyproject.toml`` files.
-During the implementation of PEP 621, it was identified that some users were
-producing invalid files. As a transitional measure, the validation was relaxed
-for a few use cases. The grace period, however, came to an end.

@@ -1,4 +1,0 @@
-Remove deprecated APIs in ``easy_install``: ``get_script_args``,
-``get_script_header`` and ``get_writer``.
-The direct usage of ``easy_install`` has been deprecated since v58.3.0,
-and the warnings regarding these APIs predate that version.

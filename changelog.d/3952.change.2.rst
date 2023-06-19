@@ -1,3 +1,0 @@
-Removed ``_distutils_hack.remove_shim`` on Python >= 3.12
-(since ``distutils`` was removed from the standard library,
-``DistutilsMetaFinder`` cannot be disabled on Python >= 3.12).
