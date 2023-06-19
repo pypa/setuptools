@@ -1,0 +1,2 @@
+Implemented workaround for old versions of ``vswhere``, which miss the
+``-requiresAny`` parameter, such as the ones distributed together with Visual Studio 2017 < 15.6.
