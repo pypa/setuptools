@@ -1,0 +1,2 @@
+Add a link to deprecation warning in ``pkg_resources`` and improve
+``stacklevel`` for better visibility.
