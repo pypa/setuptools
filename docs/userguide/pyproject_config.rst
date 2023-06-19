@@ -192,7 +192,7 @@ Key                        Directive           Notes
 ``version``                ``attr``, ``file``
 ``readme``                 ``file``            Here you can also set ``"content-type"``:
 
-                                               ``readme = {file = ["README", "USAGE"], content-type = "text/plain"}``
+                                               ``readme = {file = ["README.txt", "USAGE.txt"], content-type = "text/plain"}``
 
                                                If ``content-type`` is not given, ``"text/x-rst"`` is used by default.
 ``description``            ``file``            One-line text (no line breaks)
