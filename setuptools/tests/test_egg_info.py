@@ -14,9 +14,7 @@ from jaraco import path
 
 from setuptools import errors
 from setuptools.command.egg_info import (
-    EggInfoDeprecationWarning,
     egg_info,
-    get_pkg_info_revision,
     manifest_maker,
     write_entries,
 )
@@ -1104,9 +1102,6 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Version: 0.0.0.dev0' in pkg_info_lines
-
-    def test_get_pkg_info_revision_deprecated(self):
-        pytest.warns(EggInfoDeprecationWarning, get_pkg_info_revision)
 
 
 class TestWriteEntries:

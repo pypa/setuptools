@@ -1,0 +1,4 @@
+Remove autofixing of broken ``.egg-info`` directories containing the ``-``
+character in their base name (without suffix).
+They should no longer be produced by sufficiently new versions of ``setuptools``
+(warning introduced in 2005).

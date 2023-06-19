@@ -27,12 +27,7 @@ from jaraco import path
 from setuptools import sandbox
 from setuptools.sandbox import run_setup
 import setuptools.command.easy_install as ei
-from setuptools.command.easy_install import (
-    EasyInstallDeprecationWarning,
-    ScriptWriter,
-    PthDistributions,
-    WindowsScriptWriter,
-)
+from setuptools.command.easy_install import PthDistributions
 from setuptools.dist import Distribution
 from pkg_resources import normalize_path, working_set
 from pkg_resources import Distribution as PRDistribution
@@ -294,22 +289,6 @@ class TestEasyInstallTest:
         cmd.ensure_finalized()
         cmd.easy_install(sdist_script)
         assert (target / 'mypkg_script').exists()
-
-    def test_dist_get_script_args_deprecated(self):
-        with pytest.warns(EasyInstallDeprecationWarning):
-            ScriptWriter.get_script_args(None, None)
-
-    def test_dist_get_script_header_deprecated(self):
-        with pytest.warns(EasyInstallDeprecationWarning):
-            ScriptWriter.get_script_header("")
-
-    def test_dist_get_writer_deprecated(self):
-        with pytest.warns(EasyInstallDeprecationWarning):
-            ScriptWriter.get_writer(None)
-
-    def test_dist_WindowsScriptWriter_get_writer_deprecated(self):
-        with pytest.warns(EasyInstallDeprecationWarning):
-            WindowsScriptWriter.get_writer()
 
 
 @pytest.mark.filterwarnings('ignore:Unbuilt egg')

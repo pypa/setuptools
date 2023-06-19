@@ -2116,24 +2116,6 @@ class ScriptWriter:
     command_spec_class = CommandSpec
 
     @classmethod
-    def get_script_args(cls, dist, executable=None, wininst=False):
-        # for backward compatibility
-        EasyInstallDeprecationWarning.emit("Use get_args", due_date=(2023, 6, 1))
-        # This is a direct API call, it should be safe to remove soon.
-        writer = (WindowsScriptWriter if wininst else ScriptWriter).best()
-        header = cls.get_script_header("", executable, wininst)
-        return writer.get_args(dist, header)
-
-    @classmethod
-    def get_script_header(cls, script_text, executable=None, wininst=False):
-        # for backward compatibility
-        EasyInstallDeprecationWarning.emit("Use get_header", due_date=(2023, 6, 1))
-        # This is a direct API call, it should be safe to remove soon.
-        if wininst:
-            executable = "python.exe"
-        return cls.get_header(script_text, executable)
-
-    @classmethod
     def get_args(cls, dist, header=None):
         """
         Yield write_script() argument tuples for a distribution's
@@ -2161,13 +2143,6 @@ class ScriptWriter:
             raise ValueError("Path separators not allowed in script names")
 
     @classmethod
-    def get_writer(cls, force_windows):
-        # for backward compatibility
-        EasyInstallDeprecationWarning.emit("Use best", due_date=(2023, 6, 1))
-        # This is a direct API call, it should be safe to remove soon.
-        return WindowsScriptWriter.best() if force_windows else cls.best()
-
-    @classmethod
     def best(cls):
         """
         Select the best ScriptWriter for this environment.
@@ -2192,13 +2167,6 @@ class ScriptWriter:
 
 class WindowsScriptWriter(ScriptWriter):
     command_spec_class = WindowsCommandSpec
-
-    @classmethod
-    def get_writer(cls):
-        # for backward compatibility
-        EasyInstallDeprecationWarning.emit("Use best", due_date=(2023, 6, 1))
-        # This is a direct API call, it should be safe to remove soon.
-        return cls.best()
 
     @classmethod
     def best(cls):
@@ -2285,11 +2253,6 @@ class WindowsExecutableLauncherWriter(WindowsScriptWriter):
             #  See Distribute #143 for details.
             m_name = name + '.exe.manifest'
             yield (m_name, load_launcher_manifest(name), 't')
-
-
-# for backward-compatibility
-get_script_args = ScriptWriter.get_script_args
-get_script_header = ScriptWriter.get_script_header
 
 
 def get_win_launcher(type):

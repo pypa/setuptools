@@ -1,0 +1,1 @@
+Removed ``setuptools.dist._get_unpatched`` (deprecated since 2016)

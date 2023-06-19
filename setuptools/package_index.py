@@ -39,7 +39,6 @@ from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
 from setuptools.extern.more_itertools import unique_everseen
-from setuptools.warnings import SetuptoolsDeprecationWarning
 
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
@@ -849,50 +848,16 @@ class PackageIndex(Environment):
     def _attempt_download(self, url, filename):
         headers = self._download_to(url, filename)
         if 'html' in headers.get('content-type', '').lower():
-            return self._download_html(url, headers, filename)
+            return self._invalid_download_html(url, headers, filename)
         else:
             return filename
 
-    def _download_html(self, url, headers, filename):
-        file = open(filename)
-        for line in file:
-            if line.strip():
-                # Check for a subversion index page
-                if re.search(r'<title>([^- ]+ - )?Revision \d+:', line):
-                    # it's a subversion index page:
-                    file.close()
-                    os.unlink(filename)
-                    return self._download_svn(url, filename)
-                break  # not an index page
-        file.close()
+    def _invalid_download_html(self, url, headers, filename):
         os.unlink(filename)
-        raise DistutilsError("Unexpected HTML page found at " + url)
+        raise DistutilsError(f"Unexpected HTML page found at {url}")
 
-    def _download_svn(self, url, filename):
-        SetuptoolsDeprecationWarning.emit(
-            "Invalid config",
-            f"SVN download support is deprecated: {url}",
-            due_date=(2023, 6, 1),  # Initially introduced in 23 Sept 2018
-        )
-        url = url.split('#', 1)[0]  # remove any fragment for svn's sake
-        creds = ''
-        if url.lower().startswith('svn:') and '@' in url:
-            scheme, netloc, path, p, q, f = urllib.parse.urlparse(url)
-            if not netloc and path.startswith('//') and '/' in path[2:]:
-                netloc, path = path[2:].split('/', 1)
-                auth, host = _splituser(netloc)
-                if auth:
-                    if ':' in auth:
-                        user, pw = auth.split(':', 1)
-                        creds = " --username=%s --password=%s" % (user, pw)
-                    else:
-                        creds = " --username=" + auth
-                    netloc = host
-                    parts = scheme, netloc, url, p, q, f
-                    url = urllib.parse.urlunparse(parts)
-        self.info("Doing subversion checkout from %s to %s", url, filename)
-        os.system("svn checkout%s -q %s %s" % (creds, url, filename))
-        return filename
+    def _download_svn(self, url, _filename):
+        raise DistutilsError(f"Invalid config, SVN download is not supported: {url}")
 
     @staticmethod
     def _vcs_split_rev_from_url(url, pop_prefix=False):

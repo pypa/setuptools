@@ -51,16 +51,6 @@ __import__('setuptools.extern.packaging.specifiers')
 __import__('setuptools.extern.packaging.version')
 
 
-def _get_unpatched(cls):
-    DistDeprecationWarning.emit(
-        "Private function",
-        "Do not call this function",
-        due_date=(2023, 6, 1),
-        # Warning initially introduced in 2016
-    )
-    return get_unpatched(cls)
-
-
 def get_metadata_version(self):
     mv = getattr(self, 'metadata_version', None)
     if mv is None:

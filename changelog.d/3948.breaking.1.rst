@@ -1,0 +1,1 @@
+Removed verification for existing ``depends.txt`` file (deprecated since v0.5a4).
