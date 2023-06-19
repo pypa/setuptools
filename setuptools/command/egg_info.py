@@ -683,6 +683,16 @@ def write_pkg_info(cmd, basename, filename):
         bdist_egg.write_safety_flag(cmd.egg_info, safe)
 
 
+def warn_depends_obsolete(cmd, basename, filename):
+    """
+    Unused: left to avoid errors when updating (from source) from <= 67.8.
+    Old installations have a .dist-info directory with the entry-point
+    ``depends.txt = setuptools.command.egg_info:warn_depends_obsolete``.
+    This may trigger errors when running the first egg_info in build_meta.
+    TODO: Remove this function in a version sufficiently > 68.
+    """
+
+
 def _write_requirements(stream, reqs):
     lines = yield_lines(reqs or ())
 
