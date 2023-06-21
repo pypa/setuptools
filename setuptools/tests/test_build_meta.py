@@ -8,6 +8,7 @@ import contextlib
 from concurrent import futures
 import re
 from zipfile import ZipFile
+from pathlib import Path
 
 import pytest
 from jaraco import path
@@ -43,7 +44,7 @@ class BuildBackend(BuildBackendBase):
         self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
     def __getattr__(self, name):
-        """Handles aribrary function invocations on the build backend."""
+        """Handles arbitrary function invocations on the build backend."""
 
         def method(*args, **kw):
             root = os.path.abspath(self.cwd)
@@ -78,7 +79,7 @@ class BuildBackendCaller(BuildBackendBase):
          self.backend_obj) = self.backend_name.partition(':')
 
     def __call__(self, name, *args, **kw):
-        """Handles aribrary function invocations on the build backend."""
+        """Handles arbitrary function invocations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)
         mod = importlib.import_module(self.backend_name)
@@ -484,6 +485,23 @@ class TestBuildMetaBackend:
 
         assert os.path.isfile(os.path.join(dist_dir, dist_info, 'METADATA'))
 
+    def test_prepare_metadata_inplace(self, build_backend):
+        """
+        Some users might pass metadata_directory pre-populated with `.tox` or `.venv`.
+        See issue #3523.
+        """
+        for pre_existing in [
+            ".tox/python/lib/python3.10/site-packages/attrs-22.1.0.dist-info",
+            ".tox/python/lib/python3.10/site-packages/autocommand-2.2.1.dist-info",
+            ".nox/python/lib/python3.10/site-packages/build-0.8.0.dist-info",
+            ".venv/python3.10/site-packages/click-8.1.3.dist-info",
+            "venv/python3.10/site-packages/distlib-0.3.5.dist-info",
+            "env/python3.10/site-packages/docutils-0.19.dist-info",
+        ]:
+            os.makedirs(pre_existing, exist_ok=True)
+        dist_info = build_backend.prepare_metadata_for_build_wheel(".")
+        assert os.path.isfile(os.path.join(dist_info, 'METADATA'))
+
     def test_build_sdist_explicit_dist(self, build_backend):
         # explicitly specifying the dist folder should work
         # the folder sdist_directory and the ``--dist-dir`` can be the same
@@ -611,6 +629,71 @@ class TestBuildMetaBackend:
         with pytest.raises(ImportError, match="^No module named 'hello'$"):
             build_backend.build_sdist("temp")
 
+    _simple_pyproject_example = {
+        "pyproject.toml": DALS("""
+            [project]
+            name = "proj"
+            version = "42"
+            """),
+        "src": {
+            "proj": {"__init__.py": ""}
+        }
+    }
+
+    def _assert_link_tree(self, parent_dir):
+        """All files in the directory should be either links or hard links"""
+        files = list(Path(parent_dir).glob("**/*"))
+        assert files  # Should not be empty
+        for file in files:
+            assert file.is_symlink() or os.stat(file).st_nlink > 0
+
+    @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
+    # Since the backend is running via a process pool, in some operating systems
+    # we may have problems to make assertions based on warnings/stdout/stderr...
+    # So the best is to ignore them for the time being.
+    def test_editable_with_global_option_still_works(self, tmpdir_cwd):
+        """The usage of --global-option is now discouraged in favour of --build-option.
+        This is required to make more sense of the provided scape hatch and align with
+        previous pip behaviour. See pypa/setuptools#1928.
+        """
+        path.build({**self._simple_pyproject_example, '_meta': {}})
+        build_backend = self.get_build_backend()
+        assert not Path("build").exists()
+
+        cfg = {"--global-option": ["--mode", "strict"]}
+        build_backend.prepare_metadata_for_build_editable("_meta", cfg)
+        build_backend.build_editable("temp", cfg, "_meta")
+
+        self._assert_link_tree(next(Path("build").glob("__editable__.*")))
+
+    def test_editable_without_config_settings(self, tmpdir_cwd):
+        """
+        Sanity check to ensure tests with --mode=strict are different from the ones
+        without --mode.
+
+        --mode=strict should create a local directory with a package tree.
+        The directory should not get created otherwise.
+        """
+        path.build(self._simple_pyproject_example)
+        build_backend = self.get_build_backend()
+        assert not Path("build").exists()
+        build_backend.build_editable("temp")
+        assert not Path("build").exists()
+
+    @pytest.mark.parametrize(
+        "config_settings", [
+            {"--build-option": ["--mode", "strict"]},
+            {"editable-mode": "strict"},
+        ]
+    )
+    def test_editable_with_config_settings(self, tmpdir_cwd, config_settings):
+        path.build({**self._simple_pyproject_example, '_meta': {}})
+        assert not Path("build").exists()
+        build_backend = self.get_build_backend()
+        build_backend.prepare_metadata_for_build_editable("_meta", config_settings)
+        build_backend.build_editable("temp", config_settings, "_meta")
+        self._assert_link_tree(next(Path("build").glob("__editable__.*")))
+
     @pytest.mark.parametrize('setup_literal, requirements', [
         ("'foo'", ['foo']),
         ("['foo']", ['foo']),
@@ -737,6 +820,24 @@ class TestBuildMetaBackend:
         with pytest.raises(AssertionError):
             build_backend.build_sdist("temp")
 
+    _setup_py_file_abspath = {
+        'setup.py': DALS("""
+            import os
+            assert os.path.isabs(__file__)
+            __import__('setuptools').setup(
+                name='foo',
+                version='0.0.0',
+                py_modules=['hello'],
+                setup_requires=['six'],
+            )
+            """)
+    }
+
+    def test_setup_py_file_abspath(self, tmpdir_cwd):
+        path.build(self._setup_py_file_abspath)
+        build_backend = self.get_build_backend()
+        build_backend.build_sdist("temp")
+
     @pytest.mark.parametrize('build_hook', ('build_sdist', 'build_wheel'))
     def test_build_with_empty_setuppy(self, build_backend, build_hook):
         files = {'setup.py': ''}
@@ -764,3 +865,27 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
+
+
+def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
+    pyproject = """
+    [build-system]
+    requires = ["setuptools"]
+    build-backend = "setuptools.build_meta"
+    [project]
+    name = "myproj"
+    version = "42"
+    """
+    path.build({"pyproject.toml": DALS(pyproject), "mymod.py": ""})
+
+    # First: sanity check
+    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
+    output = str(venv.run(cmd, cwd=tmpdir), "utf-8").lower()
+    assert "running setup.py develop for myproj" not in output
+    assert "created wheel for myproj" in output
+
+    # Then: real test
+    env = {**os.environ, "SETUPTOOLS_ENABLE_FEATURES": "legacy-editable"}
+    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
+    output = str(venv.run(cmd, cwd=tmpdir, env=env), "utf-8").lower()
+    assert "running setup.py develop for myproj" in output

@@ -9,10 +9,10 @@ Closes <!-- issue number here -->
 
 ### Pull Request Checklist
 - [ ] Changes have tests
-- [ ] News fragment added in [`changelog.d/`].
+- [ ] News fragment added in [`newsfragments/`].
   _(See [documentation][PR docs] for details)_
 
 
-[`changelog.d/`]: https://github.com/pypa/setuptools/tree/master/changelog.d
+[`newsfragments/`]: https://github.com/pypa/setuptools/tree/master/newsfragments
 [PR docs]:
 https://setuptools.pypa.io/en/latest/development/developer-guide.html#making-a-pull-request

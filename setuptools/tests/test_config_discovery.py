@@ -248,6 +248,19 @@ class TestDiscoverPackagesAndPyModules:
         with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
             _get_dist(tmp_path, {})
 
+    def test_py_modules_when_wheel_dir_is_cwd(self, tmp_path):
+        """Regression for issue 3692"""
+        from setuptools import build_meta
+
+        pyproject = '[project]\nname = "test"\nversion = "1"'
+        (tmp_path / "pyproject.toml").write_text(DALS(pyproject), encoding="utf-8")
+        (tmp_path / "foo.py").touch()
+        with jaraco.path.DirectoryStack().context(tmp_path):
+            build_meta.build_wheel(".")
+        # Ensure py_modules are found
+        wheel_files = get_wheel_members(next(tmp_path.glob("*.whl")))
+        assert "foo.py" in wheel_files
+
 
 class TestNoConfig:
     DEFAULT_VERSION = "0.0.0"  # Default version given by setuptools
@@ -506,6 +519,49 @@ def test_compatible_with_numpy_configuration(tmp_path):
     dist.set_defaults()
     assert dist.py_modules is None
     assert dist.packages is None
+
+
+def test_name_discovery_doesnt_break_cli(tmpdir_cwd):
+    jaraco.path.build({"pkg.py": ""})
+    dist = Distribution({})
+    dist.script_args = ["--name"]
+    dist.set_defaults()
+    dist.parse_command_line()  # <-- no exception should be raised here.
+    assert dist.get_name() == "pkg"
+
+
+def test_preserve_explicit_name_with_dynamic_version(tmpdir_cwd, monkeypatch):
+    """According to #3545 it seems that ``name`` discovery is running,
+    even when the project already explicitly sets it.
+    This seems to be related to parsing of dynamic versions (via ``attr`` directive),
+    which requires the auto-discovery of ``package_dir``.
+    """
+    files = {
+        "src": {
+            "pkg": {"__init__.py": "__version__ = 42\n"},
+        },
+        "pyproject.toml": DALS("""
+            [project]
+            name = "myproj"  # purposefully different from package name
+            dynamic = ["version"]
+            [tool.setuptools.dynamic]
+            version = {"attr" = "pkg.__version__"}
+            """)
+    }
+    jaraco.path.build(files)
+    dist = Distribution({})
+    orig_analyse_name = dist.set_defaults.analyse_name
+
+    def spy_analyse_name():
+        # We can check if name discovery was triggered by ensuring the original
+        # name remains instead of the package name.
+        orig_analyse_name()
+        assert dist.get_name() == "myproj"
+
+    monkeypatch.setattr(dist.set_defaults, "analyse_name", spy_analyse_name)
+    dist.parse_config_files()
+    assert dist.get_version() == "42"
+    assert set(dist.packages) == {"pkg"}
 
 
 def _populate_project_dir(root, files, options):

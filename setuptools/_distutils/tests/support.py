@@ -3,69 +3,21 @@ import os
 import sys
 import shutil
 import tempfile
-import unittest
 import sysconfig
-from copy import deepcopy
+import itertools
+import pathlib
 
-from . import py38compat as os_helper
+import pytest
+from more_itertools import always_iterable
 
-from distutils import log
-from distutils.log import DEBUG, INFO, WARN, ERROR, FATAL
 from distutils.core import Distribution
 
 
-class LoggingSilencer(object):
-
-    def setUp(self):
-        super().setUp()
-        self.threshold = log.set_threshold(log.FATAL)
-        # catching warnings
-        # when log will be replaced by logging
-        # we won't need such monkey-patch anymore
-        self._old_log = log.Log._log
-        log.Log._log = self._log
-        self.logs = []
-
-    def tearDown(self):
-        log.set_threshold(self.threshold)
-        log.Log._log = self._old_log
-        super().tearDown()
-
-    def _log(self, level, msg, args):
-        if level not in (DEBUG, INFO, WARN, ERROR, FATAL):
-            raise ValueError('%s wrong log level' % str(level))
-        if not isinstance(msg, str):
-            raise TypeError("msg should be str, not '%.200s'"
-                            % (type(msg).__name__))
-        self.logs.append((level, msg, args))
-
-    def get_logs(self, *levels):
-        return [msg % args for level, msg, args
-                in self.logs if level in levels]
-
-    def clear_logs(self):
-        self.logs = []
-
-
-class TempdirManager(object):
-    """Mix-in class that handles temporary directories for test cases.
-
-    This is intended to be used with unittest.TestCase.
+@pytest.mark.usefixtures('distutils_managed_tempdir')
+class TempdirManager:
     """
-
-    def setUp(self):
-        super().setUp()
-        self.old_cwd = os.getcwd()
-        self.tempdirs = []
-
-    def tearDown(self):
-        # Restore working dir, for Solaris and derivatives, where rmdir()
-        # on the current directory fails.
-        os.chdir(self.old_cwd)
-        super().tearDown()
-        while self.tempdirs:
-            tmpdir = self.tempdirs.pop()
-            os_helper.rmtree(tmpdir)
+    Mix-in class that handles temporary directories for test cases.
+    """
 
     def mkdtemp(self):
         """Create a temporary directory that will be cleaned up.
@@ -79,16 +31,9 @@ class TempdirManager(object):
     def write_file(self, path, content='xxx'):
         """Writes a file in the given path.
 
-
         path can be a string or a sequence.
         """
-        if isinstance(path, (list, tuple)):
-            path = os.path.join(*path)
-        f = open(path, 'w')
-        try:
-            f.write(content)
-        finally:
-            f.close()
+        pathlib.Path(*always_iterable(path)).write_text(content)
 
     def create_dist(self, pkg_name='foo', **kw):
         """Will generate a test environment.
@@ -112,29 +57,10 @@ class DummyCommand:
     """Class to store options for retrieval via set_undefined_options()."""
 
     def __init__(self, **kwargs):
-        for kw, val in kwargs.items():
-            setattr(self, kw, val)
+        vars(self).update(kwargs)
 
     def ensure_finalized(self):
         pass
-
-
-class EnvironGuard(object):
-
-    def setUp(self):
-        super(EnvironGuard, self).setUp()
-        self.old_environ = deepcopy(os.environ)
-
-    def tearDown(self):
-        for key, value in self.old_environ.items():
-            if os.environ.get(key) != value:
-                os.environ[key] = value
-
-        for key in tuple(os.environ.keys()):
-            if key not in self.old_environ:
-                del os.environ[key]
-
-        super(EnvironGuard, self).tearDown()
 
 
 def copy_xxmodule_c(directory):
@@ -149,28 +75,12 @@ def copy_xxmodule_c(directory):
     If the source file can be found, it will be copied to *directory*.  If not,
     the test will be skipped.  Errors during copy are not caught.
     """
-    filename = _get_xxmodule_path()
-    if filename is None:
-        raise unittest.SkipTest('cannot find xxmodule.c (test must run in '
-                                'the python build dir)')
-    shutil.copy(filename, directory)
+    shutil.copy(_get_xxmodule_path(), os.path.join(directory, 'xxmodule.c'))
 
 
 def _get_xxmodule_path():
-    srcdir = sysconfig.get_config_var('srcdir')
-    candidates = [
-        # use installed copy if available
-        os.path.join(os.path.dirname(__file__), 'xxmodule.c'),
-        # otherwise try using copy from build directory
-        os.path.join(srcdir, 'Modules', 'xxmodule.c'),
-        # srcdir mysteriously can be $srcdir/Lib/distutils/tests when
-        # this file is run from its parent directory, so walk up the
-        # tree to find the real srcdir
-        os.path.join(srcdir, '..', '..', '..', 'Modules', 'xxmodule.c'),
-    ]
-    for path in candidates:
-        if os.path.exists(path):
-            return path
+    source_name = 'xxmodule.c' if sys.version_info > (3, 9) else 'xxmodule-3.8.c'
+    return os.path.join(os.path.dirname(__file__), source_name)
 
 
 def fixup_build_ext(cmd):
@@ -208,3 +118,17 @@ def fixup_build_ext(cmd):
             else:
                 name, equals, value = runshared.partition('=')
                 cmd.library_dirs = [d for d in value.split(os.pathsep) if d]
+
+
+def combine_markers(cls):
+    """
+    pytest will honor markers as found on the class, but when
+    markers are on multiple subclasses, only one appears. Use
+    this decorator to combine those markers.
+    """
+    cls.pytestmark = [
+        mark
+        for base in itertools.chain([cls], cls.__bases__)
+        for mark in getattr(base, 'pytestmark', [])
+    ]
+    return cls

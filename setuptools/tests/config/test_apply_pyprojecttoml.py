@@ -6,6 +6,7 @@ To run these tests offline, please have a look on ``./downloads/preload.py``
 import io
 import re
 import tarfile
+from inspect import cleandoc
 from pathlib import Path
 from unittest.mock import Mock
 from zipfile import ZipFile
@@ -19,6 +20,7 @@ from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
 from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField, _some_attrgetter
 from setuptools.command.egg_info import write_requirements
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from .downloads import retrieve_file, urls_from_file
 
@@ -96,7 +98,9 @@ authors = [
   {name = "Tzu-Ping Chung"}
 ]
 maintainers = [
-  {name = "Brett Cannon", email = "brett@python.org"}
+  {name = "Brett Cannon", email = "brett@python.org"},
+  {name = "John X. Ãørçeč", email = "john@utf8.org"},
+  {name = "Γαμα קּ 東", email = "gama@utf8.org"},
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -132,6 +136,19 @@ spam-gui = "spam:main_gui"
 tomatoes = "spam:main_tomatoes"
 """
 
+PEP621_INTERNATIONAL_EMAIL_EXAMPLE = """\
+[project]
+name = "spam"
+version = "2020.0.0"
+authors = [
+  {email = "hi@pradyunsg.me"},
+  {name = "Tzu-Ping Chung"}
+]
+maintainers = [
+  {name = "Степан Бандера", email = "криївка@оун-упа.укр"},
+]
+"""
+
 PEP621_EXAMPLE_SCRIPT = """
 def main_cli(): pass
 def main_gui(): pass
@@ -139,13 +156,17 @@ def main_tomatoes(): pass
 """
 
 
-def _pep621_example_project(tmp_path, readme="README.rst"):
+def _pep621_example_project(
+        tmp_path,
+        readme="README.rst",
+        pyproject_text=PEP621_EXAMPLE,
+):
     pyproject = tmp_path / "pyproject.toml"
-    text = PEP621_EXAMPLE
+    text = pyproject_text
     replacements = {'readme = "README.rst"': f'readme = "{readme}"'}
     for orig, subst in replacements.items():
         text = text.replace(orig, subst)
-    pyproject.write_text(text)
+    pyproject.write_text(text, encoding="utf-8")
 
     (tmp_path / readme).write_text("hello world")
     (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---")
@@ -187,28 +208,105 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
     assert dist.metadata.long_description_content_type is None
 
 
-# TODO: After PEP 639 is accepted, we have to move the license-files
-#       to the `project` table instead of `tool.setuptools`
-def test_license_and_license_files(tmp_path):
-    pyproject = _pep621_example_project(tmp_path, "README")
-    text = pyproject.read_text(encoding="utf-8")
-
-    # Sanity-check
-    assert 'license = {file = "LICENSE.txt"}' in text
-    assert "[tool.setuptools]" not in text
-
-    text += '\n[tool.setuptools]\nlicense-files = ["_FILE*"]\n'
-    pyproject.write_text(text, encoding="utf-8")
-    (tmp_path / "_FILE.txt").touch()
-    (tmp_path / "_FILE.rst").touch()
-
-    # Would normally match the `license_files` glob patterns, but we want to exclude it
-    # by being explicit. On the other hand, its contents should be added to `license`
-    (tmp_path / "LICENSE.txt").write_text("LicenseRef-Proprietary\n", encoding="utf-8")
-
+@pytest.mark.parametrize(
+    ('pyproject_text', 'expected_maintainers_meta_value'),
+    (
+        pytest.param(
+            PEP621_EXAMPLE,
+            (
+                'Brett Cannon <brett@python.org>, "John X. Ãørçeč" <john@utf8.org>, '
+                'Γαμα קּ 東 <gama@utf8.org>'
+            ),
+            id='non-international-emails',
+        ),
+        pytest.param(
+            PEP621_INTERNATIONAL_EMAIL_EXAMPLE,
+            'Степан Бандера <криївка@оун-упа.укр>',
+            marks=pytest.mark.xfail(
+                reason="CPython's `email.headerregistry.Address` only supports "
+                'RFC 5322, as of Nov 10, 2022 and latest Python 3.11.0',
+                strict=True,
+            ),
+            id='international-email',
+        ),
+    ),
+)
+def test_utf8_maintainer_in_metadata(  # issue-3663
+        expected_maintainers_meta_value,
+        pyproject_text, tmp_path,
+):
+    pyproject = _pep621_example_project(
+        tmp_path, "README", pyproject_text=pyproject_text,
+    )
     dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
-    assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
-    assert dist.metadata.license == "LicenseRef-Proprietary\n"
+    assert dist.metadata.maintainer_email == expected_maintainers_meta_value
+    pkg_file = tmp_path / "PKG-FILE"
+    with open(pkg_file, "w", encoding="utf-8") as fh:
+        dist.metadata.write_pkg_file(fh)
+    content = pkg_file.read_text(encoding="utf-8")
+    assert f"Maintainer-email: {expected_maintainers_meta_value}" in content
+
+
+class TestLicenseFiles:
+    # TODO: After PEP 639 is accepted, we have to move the license-files
+    #       to the `project` table instead of `tool.setuptools`
+
+    def base_pyproject(self, tmp_path, additional_text):
+        pyproject = _pep621_example_project(tmp_path, "README")
+        text = pyproject.read_text(encoding="utf-8")
+
+        # Sanity-check
+        assert 'license = {file = "LICENSE.txt"}' in text
+        assert "[tool.setuptools]" not in text
+
+        text = f"{text}\n{additional_text}\n"
+        pyproject.write_text(text, encoding="utf-8")
+        return pyproject
+
+    def test_both_license_and_license_files_defined(self, tmp_path):
+        setuptools_config = '[tool.setuptools]\nlicense-files = ["_FILE*"]'
+        pyproject = self.base_pyproject(tmp_path, setuptools_config)
+
+        (tmp_path / "_FILE.txt").touch()
+        (tmp_path / "_FILE.rst").touch()
+
+        # Would normally match the `license_files` patterns, but we want to exclude it
+        # by being explicit. On the other hand, contents should be added to `license`
+        license = tmp_path / "LICENSE.txt"
+        license.write_text("LicenseRef-Proprietary\n", encoding="utf-8")
+
+        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
+        assert dist.metadata.license == "LicenseRef-Proprietary\n"
+
+    def test_default_patterns(self, tmp_path):
+        setuptools_config = '[tool.setuptools]\nzip-safe = false'
+        # ^ used just to trigger section validation
+        pyproject = self.base_pyproject(tmp_path, setuptools_config)
+
+        license_files = "LICENCE-a.html COPYING-abc.txt AUTHORS-xyz NOTICE,def".split()
+
+        for fname in license_files:
+            (tmp_path / fname).write_text(f"{fname}\n", encoding="utf-8")
+
+        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        assert (tmp_path / "LICENSE.txt").exists()  # from base example
+        assert set(dist.metadata.license_files) == {*license_files, "LICENSE.txt"}
+
+
+class TestDeprecatedFields:
+    def test_namespace_packages(self, tmp_path):
+        pyproject = tmp_path / "pyproject.toml"
+        config = """
+        [project]
+        name = "myproj"
+        version = "42"
+        [tool.setuptools]
+        namespace-packages = ["myproj.pkg"]
+        """
+        pyproject.write_text(cleandoc(config), encoding="utf-8")
+        with pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages"):
+            pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
 
 class TestPresetField:
@@ -257,6 +355,15 @@ class TestPresetField:
         dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
         assert dist_value == value
 
+    def test_warning_overwritten_dependencies(self, tmp_path):
+        src = "[project]\nname='pkg'\nversion='0.1'\ndependencies=['click']\n"
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text(src, encoding="utf-8")
+        dist = makedist(tmp_path, install_requires=["wheel"])
+        with pytest.warns(match="`install_requires` overwritten"):
+            dist = pyprojecttoml.apply_configuration(dist, pyproject)
+        assert "wheel" not in dist.install_requires
+
     def test_optional_dependencies_dont_remove_env_markers(self, tmp_path):
         """
         Internally setuptools converts dependencies with markers to "extras".
@@ -278,6 +385,18 @@ class TestPresetField:
         reqs = (tmp_path / "requires.txt").read_text(encoding="utf-8")
         assert "importlib-resources" in reqs
         assert "bar" in reqs
+
+    @pytest.mark.parametrize(
+        "field,group",
+        [("scripts", "console_scripts"), ("gui-scripts", "gui_scripts")]
+    )
+    @pytest.mark.filterwarnings("error")
+    def test_scripts_dont_require_dynamic_entry_points(self, tmp_path, field, group):
+        # Issue 3862
+        pyproject = self.pyproject(tmp_path, [field])
+        dist = makedist(tmp_path, entry_points={group: ["foobar=foobar:main"]})
+        dist = pyprojecttoml.apply_configuration(dist, pyproject)
+        assert group in dist.entry_points
 
 
 class TestMeta:

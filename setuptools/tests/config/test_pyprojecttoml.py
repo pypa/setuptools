@@ -1,4 +1,3 @@
-import logging
 import re
 from configparser import ConfigParser
 from inspect import cleandoc
@@ -13,7 +12,6 @@ from setuptools.config.pyprojecttoml import (
     expand_configuration,
     apply_configuration,
     validate,
-    _InvalidFile,
 )
 from setuptools.dist import Distribution
 from setuptools.errors import OptionError
@@ -307,7 +305,7 @@ def test_ignore_unrelated_config(tmp_path, example):
 
 
 @pytest.mark.parametrize(
-    "example, error_msg, value_shown_in_debug",
+    "example, error_msg",
     [
         (
             """
@@ -316,29 +314,17 @@ def test_ignore_unrelated_config(tmp_path, example):
             version = "1.2"
             requires = ['pywin32; platform_system=="Windows"' ]
             """,
-            "configuration error: `project` must not contain {'requires'} properties",
-            '"requires": ["pywin32; platform_system==\\"Windows\\""]',
+            "configuration error: .project. must not contain ..requires.. properties",
         ),
     ],
 )
-def test_invalid_example(tmp_path, caplog, example, error_msg, value_shown_in_debug):
-    caplog.set_level(logging.DEBUG)
+def test_invalid_example(tmp_path, example, error_msg):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(cleandoc(example))
 
-    caplog.clear()
-    with pytest.raises(ValueError, match="invalid pyproject.toml"):
+    pattern = re.compile(f"invalid pyproject.toml.*{error_msg}.*", re.M | re.S)
+    with pytest.raises(ValueError, match=pattern):
         read_configuration(pyproject)
-
-    # Make sure the logs give guidance to the user
-    error_log = caplog.record_tuples[0]
-    assert error_log[1] == logging.ERROR
-    assert error_msg in error_log[2]
-
-    debug_log = caplog.record_tuples[1]
-    assert debug_log[1] == logging.DEBUG
-    debug_msg = "".join(line.strip() for line in debug_log[2].splitlines())
-    assert value_shown_in_debug in debug_msg
 
 
 @pytest.mark.parametrize("config", ("", "[tool.something]\nvalue = 42"))
@@ -379,37 +365,3 @@ def test_include_package_data_in_setuppy(tmp_path):
     assert dist.get_name() == "myproj"
     assert dist.get_version() == "42"
     assert dist.include_package_data is False
-
-
-class TestSkipBadConfig:
-    @pytest.mark.parametrize(
-        "setup_attrs",
-        [
-            {"name": "myproj"},
-            {"install_requires": ["does-not-exist"]},
-        ],
-    )
-    @pytest.mark.parametrize(
-        "pyproject_content",
-        [
-            "[project]\nrequires-python = '>=3.7'\n",
-            "[project]\nversion = '42'\nrequires-python = '>=3.7'\n",
-            "[project]\nname='othername'\nrequires-python = '>=3.7'\n",
-        ],
-    )
-    def test_popular_config(self, tmp_path, pyproject_content, setup_attrs):
-        # See pypa/setuptools#3199 and pypa/cibuildwheel#1064
-        pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(pyproject_content)
-        dist = Distribution(attrs=setup_attrs)
-
-        prev_name = dist.get_name()
-        prev_deps = dist.install_requires
-
-        with pytest.warns(_InvalidFile, match=r"DO NOT include.*\[project\].* table"):
-            dist = apply_configuration(dist, pyproject)
-
-        assert dist.get_name() != "othername"
-        assert dist.get_name() == prev_name
-        assert dist.python_requires is None
-        assert set(dist.install_requires) == set(prev_deps)

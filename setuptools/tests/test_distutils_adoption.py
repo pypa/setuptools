@@ -49,6 +49,13 @@ def count_meta_path(venv, env=None):
     return int(popen_text(venv.run)(cmd, env=win_sr(env)))
 
 
+skip_without_stdlib_distutils = pytest.mark.skipif(
+    sys.version_info >= (3, 12),
+    reason='stdlib distutils is removed from Python 3.12+',
+)
+
+
+@skip_without_stdlib_distutils
 def test_distutils_stdlib(venv):
     """
     Ensure stdlib distutils is used when appropriate.
@@ -119,9 +126,9 @@ print("success")
 @pytest.mark.parametrize(
     "distutils_version, imported_module",
     [
-        ("stdlib", "dir_util"),
-        ("stdlib", "file_util"),
-        ("stdlib", "archive_util"),
+        pytest.param("stdlib", "dir_util", marks=skip_without_stdlib_distutils),
+        pytest.param("stdlib", "file_util", marks=skip_without_stdlib_distutils),
+        pytest.param("stdlib", "archive_util", marks=skip_without_stdlib_distutils),
         ("local", "dir_util"),
         ("local", "file_util"),
         ("local", "archive_util"),
@@ -138,19 +145,22 @@ def test_modules_are_not_duplicated_on_import(
 
 
 ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED = r"""
-# Similar to ENSURE_IMPORTS_ARE_NOT_DUPLICATED
+import types
 import distutils.dist as dist
 from distutils import log
-
-assert dist.log == log, (
-    f"\n{dist.log}\n!=\n{log}"
-)
-
+if isinstance(dist.log, types.ModuleType):
+    assert dist.log == log, f"\n{dist.log}\n!=\n{log}"
 print("success")
 """
 
 
-@pytest.mark.parametrize("distutils_version", "local stdlib".split())
+@pytest.mark.parametrize(
+    "distutils_version",
+    [
+        "local",
+        pytest.param("stdlib", marks=skip_without_stdlib_distutils),
+    ]
+)
 def test_log_module_is_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
     cmd = ['python', '-c', ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED]

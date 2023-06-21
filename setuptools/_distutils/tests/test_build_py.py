@@ -2,20 +2,18 @@
 
 import os
 import sys
-import unittest
+
+import pytest
 
 from distutils.command.build_py import build_py
 from distutils.core import Distribution
 from distutils.errors import DistutilsFileError
 
 from distutils.tests import support
-from test.support import run_unittest
 
 
-class BuildPyTestCase(support.TempdirManager,
-                      support.LoggingSilencer,
-                      unittest.TestCase):
-
+@support.combine_markers
+class TestBuildPy(support.TempdirManager):
     def test_package_data(self):
         sources = self.mkdtemp()
         f = open(os.path.join(sources, "__init__.py"), "w")
@@ -31,13 +29,10 @@ class BuildPyTestCase(support.TempdirManager,
 
         destination = self.mkdtemp()
 
-        dist = Distribution({"packages": ["pkg"],
-                             "package_dir": {"pkg": sources}})
+        dist = Distribution({"packages": ["pkg"], "package_dir": {"pkg": sources}})
         # script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(sources, "setup.py")
-        dist.command_obj["build"] = support.DummyCommand(
-            force=0,
-            build_lib=destination)
+        dist.command_obj["build"] = support.DummyCommand(force=0, build_lib=destination)
         dist.packages = ["pkg"]
         dist.package_data = {"pkg": ["README.txt"]}
         dist.package_dir = {"pkg": sources}
@@ -45,25 +40,24 @@ class BuildPyTestCase(support.TempdirManager,
         cmd = build_py(dist)
         cmd.compile = 1
         cmd.ensure_finalized()
-        self.assertEqual(cmd.package_data, dist.package_data)
+        assert cmd.package_data == dist.package_data
 
         cmd.run()
 
         # This makes sure the list of outputs includes byte-compiled
         # files for Python modules but not for package data files
         # (there shouldn't *be* byte-code files for those!).
-        self.assertEqual(len(cmd.get_outputs()), 3)
+        assert len(cmd.get_outputs()) == 3
         pkgdest = os.path.join(destination, "pkg")
         files = os.listdir(pkgdest)
         pycache_dir = os.path.join(pkgdest, "__pycache__")
-        self.assertIn("__init__.py", files)
-        self.assertIn("README.txt", files)
+        assert "__init__.py" in files
+        assert "README.txt" in files
         if sys.dont_write_bytecode:
-            self.assertFalse(os.path.exists(pycache_dir))
+            assert not os.path.exists(pycache_dir)
         else:
             pyc_files = os.listdir(pycache_dir)
-            self.assertIn("__init__.%s.pyc" % sys.implementation.cache_tag,
-                          pyc_files)
+            assert "__init__.%s.pyc" % sys.implementation.cache_tag in pyc_files
 
     def test_empty_package_dir(self):
         # See bugs #1668596/#1720897
@@ -75,9 +69,13 @@ class BuildPyTestCase(support.TempdirManager,
         open(os.path.join(testdir, "testfile"), "w").close()
 
         os.chdir(sources)
-        dist = Distribution({"packages": ["pkg"],
-                             "package_dir": {"pkg": ""},
-                             "package_data": {"pkg": ["doc/*"]}})
+        dist = Distribution(
+            {
+                "packages": ["pkg"],
+                "package_dir": {"pkg": ""},
+                "package_data": {"pkg": ["doc/*"]},
+            }
+        )
         # script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(sources, "setup.py")
         dist.script_args = ["build"]
@@ -88,7 +86,7 @@ class BuildPyTestCase(support.TempdirManager,
         except DistutilsFileError:
             self.fail("failed package_data test when package_dir is ''")
 
-    @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
+    @pytest.mark.skipif('sys.dont_write_bytecode')
     def test_byte_compile(self):
         project_dir, dist = self.create_dist(py_modules=['boiledeggs'])
         os.chdir(project_dir)
@@ -100,12 +98,11 @@ class BuildPyTestCase(support.TempdirManager,
         cmd.run()
 
         found = os.listdir(cmd.build_lib)
-        self.assertEqual(sorted(found), ['__pycache__', 'boiledeggs.py'])
+        assert sorted(found) == ['__pycache__', 'boiledeggs.py']
         found = os.listdir(os.path.join(cmd.build_lib, '__pycache__'))
-        self.assertEqual(found,
-                         ['boiledeggs.%s.pyc' % sys.implementation.cache_tag])
+        assert found == ['boiledeggs.%s.pyc' % sys.implementation.cache_tag]
 
-    @unittest.skipIf(sys.dont_write_bytecode, 'byte-compile disabled')
+    @pytest.mark.skipif('sys.dont_write_bytecode')
     def test_byte_compile_optimized(self):
         project_dir, dist = self.create_dist(py_modules=['boiledeggs'])
         os.chdir(project_dir)
@@ -118,10 +115,10 @@ class BuildPyTestCase(support.TempdirManager,
         cmd.run()
 
         found = os.listdir(cmd.build_lib)
-        self.assertEqual(sorted(found), ['__pycache__', 'boiledeggs.py'])
+        assert sorted(found) == ['__pycache__', 'boiledeggs.py']
         found = os.listdir(os.path.join(cmd.build_lib, '__pycache__'))
-        expect = 'boiledeggs.{}.opt-1.pyc'.format(sys.implementation.cache_tag)
-        self.assertEqual(sorted(found), [expect])
+        expect = f'boiledeggs.{sys.implementation.cache_tag}.opt-1.pyc'
+        assert sorted(found) == [expect]
 
     def test_dir_in_package_data(self):
         """
@@ -142,8 +139,7 @@ class BuildPyTestCase(support.TempdirManager,
         os.mkdir(os.path.join(docdir, 'otherdir'))
 
         os.chdir(sources)
-        dist = Distribution({"packages": ["pkg"],
-                             "package_data": {"pkg": ["doc/*"]}})
+        dist = Distribution({"packages": ["pkg"], "package_data": {"pkg": ["doc/*"]}})
         # script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(sources, "setup.py")
         dist.script_args = ["build"]
@@ -154,7 +150,7 @@ class BuildPyTestCase(support.TempdirManager,
         except DistutilsFileError:
             self.fail("failed package_data when data dir includes a dir")
 
-    def test_dont_write_bytecode(self):
+    def test_dont_write_bytecode(self, caplog):
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = build_py(dist)
@@ -168,12 +164,40 @@ class BuildPyTestCase(support.TempdirManager,
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        self.assertIn('byte-compiling is disabled',
-                      self.logs[0][1] % self.logs[0][2])
+        assert 'byte-compiling is disabled' in caplog.records[0].message
 
+    def test_namespace_package_does_not_warn(self, caplog):
+        """
+        Originally distutils implementation did not account for PEP 420
+        and included warns for package directories that did not contain
+        ``__init__.py`` files.
+        After the acceptance of PEP 420, these warnings don't make more sense
+        so we want to ensure there are not displayed to not confuse the users.
+        """
+        # Create a fake project structure with a package namespace:
+        tmp = self.mkdtemp()
+        os.chdir(tmp)
+        os.makedirs("ns/pkg")
+        open("ns/pkg/module.py", "w").close()
 
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(BuildPyTestCase)
+        # Configure the package:
+        attrs = {
+            "name": "ns.pkg",
+            "packages": ["ns", "ns.pkg"],
+            "script_name": "setup.py",
+        }
+        dist = Distribution(attrs)
 
-if __name__ == "__main__":
-    run_unittest(test_suite())
+        # Run code paths that would trigger the trap:
+        cmd = dist.get_command_obj("build_py")
+        cmd.finalize_options()
+        modules = cmd.find_all_modules()
+        assert len(modules) == 1
+        module_path = modules[0][-1]
+        assert module_path.replace(os.sep, "/") == "ns/pkg/module.py"
+
+        cmd.run()
+
+        assert not any(
+            "package init file" in msg and "not found" in msg for msg in caplog.messages
+        )

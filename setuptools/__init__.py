@@ -3,7 +3,6 @@
 import functools
 import os
 import re
-import warnings
 
 import _distutils_hack.override  # noqa: F401
 
@@ -11,7 +10,7 @@ import distutils.core
 from distutils.errors import DistutilsOptionError
 from distutils.util import convert_path as _convert_path
 
-from ._deprecation_warning import SetuptoolsDeprecationWarning
+from .warnings import SetuptoolsDeprecationWarning
 
 import setuptools.version
 from setuptools.extension import Extension
@@ -77,7 +76,28 @@ def _install_setup_requires(attrs):
     # Honor setup.cfg's options.
     dist.parse_config_files(ignore_option_errors=True)
     if dist.setup_requires:
+        _fetch_build_eggs(dist)
+
+
+def _fetch_build_eggs(dist):
+    try:
         dist.fetch_build_eggs(dist.setup_requires)
+    except Exception as ex:
+        msg = """
+        It is possible a package already installed in your system
+        contains an version that is invalid according to PEP 440.
+        You can try `pip install --use-pep517` as a workaround for this problem,
+        or rely on a new virtual environment.
+
+        If the problem refers to a package that is not installed yet,
+        please contact that package's maintainers or distributors.
+        """
+        if "InvalidVersion" in ex.__class__.__name__:
+            if hasattr(ex, "add_note"):
+                ex.add_note(msg)  # PEP 678
+            else:
+                dist.announce(f"\n{msg}\n")
+        raise
 
 
 def setup(**attrs):
@@ -94,7 +114,59 @@ _Command = monkey.get_unpatched(distutils.core.Command)
 
 
 class Command(_Command):
-    __doc__ = _Command.__doc__
+    """
+    Setuptools internal actions are organized using a *command design pattern*.
+    This means that each action (or group of closely related actions) executed during
+    the build should be implemented as a ``Command`` subclass.
+
+    These commands are abstractions and do not necessarily correspond to a command that
+    can (or should) be executed via a terminal, in a CLI fashion (although historically
+    they would).
+
+    When creating a new command from scratch, custom defined classes **SHOULD** inherit
+    from ``setuptools.Command`` and implement a few mandatory methods.
+    Between these mandatory methods, are listed:
+
+    .. method:: initialize_options(self)
+
+        Set or (reset) all options/attributes/caches used by the command
+        to their default values. Note that these values may be overwritten during
+        the build.
+
+    .. method:: finalize_options(self)
+
+        Set final values for all options/attributes used by the command.
+        Most of the time, each option/attribute/cache should only be set if it does not
+        have any value yet (e.g. ``if self.attr is None: self.attr = val``).
+
+    .. method:: run(self)
+
+        Execute the actions intended by the command.
+        (Side effects **SHOULD** only take place when ``run`` is executed,
+        for example, creating new files or writing to the terminal output).
+
+    A useful analogy for command classes is to think of them as subroutines with local
+    variables called "options".  The options are "declared" in ``initialize_options()``
+    and "defined" (given their final values, aka "finalized") in ``finalize_options()``,
+    both of which must be defined by every command class. The "body" of the subroutine,
+    (where it does all the work) is the ``run()`` method.
+    Between ``initialize_options()`` and ``finalize_options()``, ``setuptools`` may set
+    the values for options/attributes based on user's input (or circumstance),
+    which means that the implementation should be careful to not overwrite values in
+    ``finalize_options`` unless necessary.
+
+    Please note that other commands (or other parts of setuptools) may also overwrite
+    the values of the command's options/attributes multiple times during the build
+    process.
+    Therefore it is important to consistently implement ``initialize_options()`` and
+    ``finalize_options()``. For example, all derived attributes (or attributes that
+    depend on the value of other attributes) **SHOULD** be recomputed in
+    ``finalize_options``.
+
+    When overwriting existing commands, custom defined classes **MUST** abide by the
+    same APIs implemented by the original class. They also **SHOULD** inherit from the
+    original class.
+    """
 
     command_consumes_arguments = False
 
@@ -122,6 +194,12 @@ class Command(_Command):
         currently a string, we split it either on /,\s*/ or /\s+/, so
         "foo bar baz", "foo,bar,baz", and "foo,   bar baz" all become
         ["foo", "bar", "baz"].
+
+        ..
+           TODO: This method seems to be similar to the one in ``distutils.cmd``
+           Probably it is just here for backward compatibility with old Python versions?
+
+        :meta private:
         """
         val = getattr(self, option)
         if val is None:
@@ -170,14 +248,17 @@ def findall(dir=os.curdir):
 
 @functools.wraps(_convert_path)
 def convert_path(pathname):
-    from inspect import cleandoc
+    SetuptoolsDeprecationWarning.emit(
+        "Access to implementation detail",
+        """
+        The function `convert_path` is not provided by setuptools itself,
+        and therefore not part of the public API.
 
-    msg = """
-    The function `convert_path` is considered internal and not part of the public API.
-    Its direct usage by 3rd-party packages is considered deprecated and the function
-    may be removed in the future.
-    """
-    warnings.warn(cleandoc(msg), SetuptoolsDeprecationWarning)
+        Its direct usage by 3rd-party packages is considered improper and the function
+        may be removed in the future.
+        """,
+        due_date=(2023, 12, 13)  # initial deprecation 2022-03-25, see #3201
+    )
     return _convert_path(pathname)
 
 

@@ -180,7 +180,7 @@ void pass_control_to_child(DWORD control_type) {
 }
 
 BOOL control_handler(DWORD control_type) {
-    /* 
+    /*
      * distribute-issue207
      * control event handler callback function
      */
@@ -204,12 +204,12 @@ int create_and_wait_for_subprocess(char* command) {
     ZeroMemory(&p_info, sizeof(p_info));
     ZeroMemory(&s_info, sizeof(s_info));
     s_info.cb = sizeof(STARTUPINFO);
-    // set-up control handler callback funciotn
+    // set-up control handler callback function
     SetConsoleCtrlHandler((PHANDLER_ROUTINE) control_handler, TRUE);
     if (!CreateProcessA(NULL, commandline, NULL, NULL, TRUE, 0, NULL, NULL, &s_info, &p_info)) {
         fprintf(stderr, "failed to create process.\n");
         return 0;
-    }   
+    }
     child_pid = p_info.dwProcessId;
     // wait for Python to exit
     WaitForSingleObject(p_info.hProcess, INFINITE);
@@ -229,7 +229,7 @@ char* join_executable_and_args(char *executable, char **args, int argc)
      */
     int len,counter;
     char* cmdline;
-    
+
     len=strlen(executable)+2;
     for (counter=1; counter<argc; counter++) {
         len+=strlen(args[counter])+1;
@@ -260,6 +260,16 @@ int run(int argc, char **argv, int is_gui) {
 
     /* compute script name from our .exe name*/
     GetModuleFileNameA(NULL, script, sizeof(script));
+    /* resolve final path in case script name is symlink */
+    HANDLE hFile = CreateFile(script,
+                   GENERIC_READ,
+                   FILE_SHARE_READ,
+                   NULL,
+                   OPEN_EXISTING,
+                   FILE_ATTRIBUTE_NORMAL,
+                   NULL);
+    GetFinalPathNameByHandle(hFile, script, 256, VOLUME_NAME_DOS);
+    
     end = script + strlen(script);
     while( end>script && *end != '.')
         *end-- = '\0';
@@ -333,4 +343,3 @@ int WINAPI WinMain(HINSTANCE hI, HINSTANCE hP, LPSTR lpCmd, int nShow) {
 int main(int argc, char** argv) {
     return run(argc, argv, GUI);
 }
-

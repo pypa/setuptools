@@ -1,16 +1,24 @@
-"""Load setuptools configuration from ``pyproject.toml`` files"""
+"""
+Load setuptools configuration from ``pyproject.toml`` files.
+
+**PRIVATE MODULE**: API reserved for setuptools internal usage only.
+
+To read project metadata, consider using
+``build.util.project_wheel_metadata`` (https://pypi.org/project/build/).
+For simple scenarios, you can also try parsing the file directly
+with the help of ``tomllib`` or ``tomli``.
+"""
 import logging
 import os
-import warnings
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Mapping, Union
+from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set, Union
 
-from setuptools.errors import FileError, OptionError
-
+from ..errors import FileError, OptionError
+from ..warnings import SetuptoolsWarning
 from . import expand as _expand
-from ._apply_pyprojecttoml import apply as _apply
 from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _WouldIgnoreField
+from ._apply_pyprojecttoml import apply as _apply
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
@@ -37,10 +45,14 @@ def validate(config: dict, filepath: _Path) -> bool:
     try:
         return validator.validate(config)
     except validator.ValidationError as ex:
-        _logger.error(f"configuration error: {ex.summary}")  # type: ignore
-        _logger.debug(ex.details)  # type: ignore
-        error = ValueError(f"invalid pyproject.toml config: {ex.name}")  # type: ignore
-        raise error from None
+        summary = f"configuration error: {ex.summary}"
+        if ex.name.strip("`") != "project":
+            # Probably it is just a field missing/misnamed, not worthy the verbosity...
+            _logger.debug(summary)
+            _logger.debug(ex.details)
+
+        error = f"invalid pyproject.toml config: {ex.name}."
+        raise ValueError(f"{error}\n{summary}") from None
 
 
 def apply_configuration(
@@ -76,8 +88,8 @@ def read_configuration(
 
     :param Distribution|None: Distribution object to which the configuration refers.
         If not given a dummy object will be created and discarded after the
-        configuration is read. This is used for auto-discovery of packages in the case
-        a dynamic configuration (e.g. ``attr`` or ``cmdclass``) is expanded.
+        configuration is read. This is used for auto-discovery of packages and in the
+        case a dynamic configuration (e.g. ``attr`` or ``cmdclass``) is expanded.
         When ``expand=False`` this object is simply ignored.
 
     :rtype: dict
@@ -94,19 +106,15 @@ def read_configuration(
     if not asdict or not (project_table or setuptools_table):
         return {}  # User is not using pyproject to configure setuptools
 
-    # TODO: Remove the following once the feature stabilizes:
-    msg = (
-        "Support for project metadata in `pyproject.toml` is still experimental "
-        "and may be removed (or change) in future releases."
-    )
-    warnings.warn(msg, _ExperimentalProjectMetadata)
+    if setuptools_table:
+        # TODO: Remove the following once the feature stabilizes:
+        _BetaConfiguration.emit()
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
     # `ini2toml` backfills include_package_data=False when nothing is explicitly given,
     # therefore setting a default here is backwards compatible.
-    orig_setuptools_table = setuptools_table.copy()
-    if dist and getattr(dist, "include_package_data") is not None:
+    if dist and getattr(dist, "include_package_data", None) is not None:
         setuptools_table.setdefault("include-package-data", dist.include_package_data)
     else:
         setuptools_table.setdefault("include-package-data", True)
@@ -114,56 +122,16 @@ def read_configuration(
     asdict["tool"] = tool_table
     tool_table["setuptools"] = setuptools_table
 
-    try:
+    with _ignore_errors(ignore_option_errors):
         # Don't complain about unrelated errors (e.g. tools not using the "tool" table)
         subset = {"project": project_table, "tool": {"setuptools": setuptools_table}}
         validate(subset, filepath)
-    except Exception as ex:
-        # TODO: Remove the following once the feature stabilizes:
-        if _skip_bad_config(project_table, orig_setuptools_table, dist):
-            return {}
-        # TODO: After the previous statement is removed the try/except can be replaced
-        # by the _ignore_errors context manager.
-        if ignore_option_errors:
-            _logger.debug(f"ignored error: {ex.__class__.__name__} - {ex}")
-        else:
-            raise  # re-raise exception
 
     if expand:
         root_dir = os.path.dirname(filepath)
         return expand_configuration(asdict, root_dir, ignore_option_errors, dist)
 
     return asdict
-
-
-def _skip_bad_config(
-    project_cfg: dict, setuptools_cfg: dict, dist: Optional["Distribution"]
-) -> bool:
-    """Be temporarily forgiving with invalid ``pyproject.toml``"""
-    # See pypa/setuptools#3199 and pypa/cibuildwheel#1064
-
-    if dist is None or (
-        dist.metadata.name is None
-        and dist.metadata.version is None
-        and dist.install_requires is None
-    ):
-        # It seems that the build is not getting any configuration from other places
-        return False
-
-    if setuptools_cfg:
-        # If `[tool.setuptools]` is set, then `pyproject.toml` config is intentional
-        return False
-
-    given_config = set(project_cfg.keys())
-    popular_subset = {"name", "version", "python_requires", "requires-python"}
-    if given_config <= popular_subset:
-        # It seems that the docs in cibuildtool has been inadvertently encouraging users
-        # to create `pyproject.toml` files that are not compliant with the standards.
-        # Let's be forgiving for the time being.
-        warnings.warn(_InvalidFile.message(), _InvalidFile, stacklevel=2)
-        return True
-
-    return False
 
 
 def expand_configuration(
@@ -205,6 +173,7 @@ class _ConfigExpander:
         self.dynamic_cfg = self.setuptools_cfg.get("dynamic", {})
         self.ignore_option_errors = ignore_option_errors
         self._dist = dist
+        self._referenced_files: Set[str] = set()
 
     def _ensure_dist(self) -> "Distribution":
         from setuptools.dist import Distribution
@@ -228,13 +197,14 @@ class _ConfigExpander:
 
         # A distribution object is required for discovering the correct package_dir
         dist = self._ensure_dist()
-
-        with _EnsurePackagesDiscovered(dist, self.setuptools_cfg) as ensure_discovered:
+        ctx = _EnsurePackagesDiscovered(dist, self.project_cfg, self.setuptools_cfg)
+        with ctx as ensure_discovered:
             package_dir = ensure_discovered.package_dir
             self._expand_data_files()
             self._expand_cmdclass(package_dir)
             self._expand_all_dynamic(dist, package_dir)
 
+        dist._referenced_files.update(self._referenced_files)
         return self.config
 
     def _expand_packages(self):
@@ -266,6 +236,8 @@ class _ConfigExpander:
             "scripts",
             "gui-scripts",
             "classifiers",
+            "dependencies",
+            "optional-dependencies",
         )
         # `_obtain` functions are assumed to raise appropriate exceptions/warnings.
         obtained_dynamic = {
@@ -278,6 +250,8 @@ class _ConfigExpander:
             version=self._obtain_version(dist, package_dir),
             readme=self._obtain_readme(dist),
             classifiers=self._obtain_classifiers(dist),
+            dependencies=self._obtain_dependencies(dist),
+            optional_dependencies=self._obtain_optional_dependencies(dist),
         )
         # `None` indicates there is nothing in `tool.setuptools.dynamic` but the value
         # might have already been set by setup.py/extensions, so avoid overwriting.
@@ -294,18 +268,28 @@ class _ConfigExpander:
             )
             raise OptionError(msg)
 
+    def _expand_directive(
+        self, specifier: str, directive, package_dir: Mapping[str, str]
+    ):
+        from setuptools.extern.more_itertools import always_iterable  # type: ignore
+
+        with _ignore_errors(self.ignore_option_errors):
+            root_dir = self.root_dir
+            if "file" in directive:
+                self._referenced_files.update(always_iterable(directive["file"]))
+                return _expand.read_files(directive["file"], root_dir)
+            if "attr" in directive:
+                return _expand.read_attr(directive["attr"], package_dir, root_dir)
+            raise ValueError(f"invalid `{specifier}`: {directive!r}")
+        return None
+
     def _obtain(self, dist: "Distribution", field: str, package_dir: Mapping[str, str]):
         if field in self.dynamic_cfg:
-            directive = self.dynamic_cfg[field]
-            with _ignore_errors(self.ignore_option_errors):
-                root_dir = self.root_dir
-                if "file" in directive:
-                    return _expand.read_files(directive["file"], root_dir)
-                if "attr" in directive:
-                    return _expand.read_attr(directive["attr"], package_dir, root_dir)
-                msg = f"invalid `tool.setuptools.dynamic.{field}`: {directive!r}"
-                raise ValueError(msg)
-            return None
+            return self._expand_directive(
+                f"tool.setuptools.dynamic.{field}",
+                self.dynamic_cfg[field],
+                package_dir,
+            )
         self._ensure_previously_set(dist, field)
         return None
 
@@ -347,8 +331,7 @@ class _ConfigExpander:
             if group in groups:
                 value = groups.pop(group)
                 if field not in self.dynamic:
-                    msg = _WouldIgnoreField.message(field, value)
-                    warnings.warn(msg, _WouldIgnoreField)
+                    _WouldIgnoreField.emit(field=field, value=value)
                 # TODO: Don't set field when support for pyproject.toml stabilizes
                 #       instead raise an error as specified in PEP 621
                 expanded[field] = value
@@ -365,6 +348,38 @@ class _ConfigExpander:
                 return value.splitlines()
         return None
 
+    def _obtain_dependencies(self, dist: "Distribution"):
+        if "dependencies" in self.dynamic:
+            value = self._obtain(dist, "dependencies", {})
+            if value:
+                return _parse_requirements_list(value)
+        return None
+
+    def _obtain_optional_dependencies(self, dist: "Distribution"):
+        if "optional-dependencies" not in self.dynamic:
+            return None
+        if "optional-dependencies" in self.dynamic_cfg:
+            optional_dependencies_map = self.dynamic_cfg["optional-dependencies"]
+            assert isinstance(optional_dependencies_map, dict)
+            return {
+                group: _parse_requirements_list(self._expand_directive(
+                    f"tool.setuptools.dynamic.optional-dependencies.{group}",
+                    directive,
+                    {},
+                ))
+                for group, directive in optional_dependencies_map.items()
+            }
+        self._ensure_previously_set(dist, "optional-dependencies")
+        return None
+
+
+def _parse_requirements_list(value):
+    return [
+        line
+        for line in value.splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+
 
 @contextmanager
 def _ignore_errors(ignore_option_errors: bool):
@@ -379,8 +394,11 @@ def _ignore_errors(ignore_option_errors: bool):
 
 
 class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
-    def __init__(self, distribution: "Distribution", setuptools_cfg: dict):
+    def __init__(
+        self, distribution: "Distribution", project_cfg: dict, setuptools_cfg: dict
+    ):
         super().__init__(distribution)
+        self._project_cfg = project_cfg
         self._setuptools_cfg = setuptools_cfg
 
     def __enter__(self):
@@ -394,8 +412,10 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
 
         dist.set_defaults._ignore_ext_modules()  # pyproject.toml-specific behaviour
 
-        # Set `py_modules` and `packages` in dist to short-circuit auto-discovery,
-        # but avoid overwriting empty lists purposefully set by users.
+        # Set `name`, `py_modules` and `packages` in dist to short-circuit
+        # auto-discovery, but avoid overwriting empty lists purposefully set by users.
+        if dist.metadata.name is None:
+            dist.metadata.name = self._project_cfg.get("name")
         if dist.py_modules is None:
             dist.py_modules = cfg.get("py-modules")
         if dist.packages is None:
@@ -413,28 +433,5 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         return super().__exit__(exc_type, exc_value, traceback)
 
 
-class _ExperimentalProjectMetadata(UserWarning):
-    """Explicitly inform users that `pyproject.toml` configuration is experimental"""
-
-
-class _InvalidFile(UserWarning):
-    """Inform users that the given `pyproject.toml` is experimental:
-    !!\n\n
-    ############################
-    # Invalid `pyproject.toml` #
-    ############################
-
-    Any configurations in `pyproject.toml` will be ignored.
-    Please note that future releases of setuptools will halt the build process
-    if an invalid file is given.
-
-    To prevent setuptools from considering `pyproject.toml` please
-    DO NOT include the `[project]` or `[tool.setuptools]` tables in your file.
-    \n\n!!
-    """
-
-    @classmethod
-    def message(cls):
-        from inspect import cleandoc
-        msg = "\n".join(cls.__doc__.splitlines()[1:])
-        return cleandoc(msg)
+class _BetaConfiguration(SetuptoolsWarning):
+    _SUMMARY = "Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*."

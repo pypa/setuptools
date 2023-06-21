@@ -1,6 +1,8 @@
+from unittest import mock
+
 import pytest
 
-import mock
+import random
 from distutils.errors import DistutilsSetupError
 from setuptools.command.build_clib import build_clib
 from setuptools.dist import Distribution
@@ -55,3 +57,30 @@ class TestBuildCLib:
         cmd.build_libraries(libs)
         assert cmd.compiler.compile.call_count == 1
         assert cmd.compiler.create_static_lib.call_count == 1
+
+    @mock.patch(
+        'setuptools.command.build_clib.newer_pairwise_group')
+    def test_build_libraries_reproducible(self, mock_newer):
+        dist = Distribution()
+        cmd = build_clib(dist)
+
+        # with that out of the way, let's see if the crude dependency
+        # system works
+        cmd.compiler = mock.MagicMock(spec=cmd.compiler)
+        mock_newer.return_value = ([], [])
+
+        original_sources = ['a-example.c', 'example.c']
+        sources = original_sources
+
+        obj_deps = {'': ('global.h',), 'example.c': ('example.h',)}
+        libs = [('example', {'sources': sources, 'obj_deps': obj_deps})]
+
+        cmd.build_libraries(libs)
+        computed_call_args = mock_newer.call_args[0]
+
+        while sources == original_sources:
+            sources = random.sample(original_sources, len(original_sources))
+        libs = [('example', {'sources': sources, 'obj_deps': obj_deps})]
+
+        cmd.build_libraries(libs)
+        assert computed_call_args == mock_newer.call_args[0]

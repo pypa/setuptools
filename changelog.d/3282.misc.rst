@@ -1,1 +1,0 @@
-Added CI cache for ``setup.cfg`` examples used when testing ``setuptools.config``.

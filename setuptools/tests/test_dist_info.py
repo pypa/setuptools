@@ -2,6 +2,7 @@
 """
 import pathlib
 import re
+import shutil
 import subprocess
 import sys
 from functools import partial
@@ -18,19 +19,18 @@ read = partial(pathlib.Path.read_text, encoding="utf-8")
 
 class TestDistInfo:
 
-    metadata_base = DALS("""
+    metadata_base = DALS(
+        """
         Metadata-Version: 1.2
         Requires-Dist: splort (==4)
         Provides-Extra: baz
         Requires-Dist: quux (>=1.1); extra == 'baz'
-        """)
+        """
+    )
 
     @classmethod
     def build_metadata(cls, **kwargs):
-        lines = (
-            '{key}: {value}\n'.format(**locals())
-            for key, value in kwargs.items()
-        )
+        lines = ('{key}: {value}\n'.format(**locals()) for key, value in kwargs.items())
         return cls.metadata_base + ''.join(lines)
 
     @pytest.fixture
@@ -58,8 +58,7 @@ class TestDistInfo:
 
     def test_distinfo(self, metadata):
         dists = dict(
-            (d.project_name, d)
-            for d in pkg_resources.find_distributions(metadata)
+            (d.project_name, d) for d in pkg_resources.find_distributions(metadata)
         )
 
         assert len(dists) == 2, dists
@@ -83,26 +82,68 @@ class TestDistInfo:
             assert d.extras == ['baz']
 
     def test_invalid_version(self, tmp_path):
+        """
+        Supplying an invalid version crashes dist_info.
+        """
         config = "[metadata]\nname=proj\nversion=42\n[egg_info]\ntag_build=invalid!!!\n"
         (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
         msg = re.compile("invalid version", re.M | re.I)
-        output = run_command("dist_info", cwd=tmp_path)
-        assert msg.search(output)
+        proc = run_command_inner("dist_info", cwd=tmp_path, check=False)
+        assert proc.returncode
+        assert msg.search(proc.stdout)
+        assert not list(tmp_path.glob("*.dist-info"))
+
+    def test_tag_arguments(self, tmp_path):
+        config = """
+        [metadata]
+        name=proj
+        version=42
+        [egg_info]
+        tag_date=1
+        tag_build=.post
+        """
+        (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
+
+        print(run_command("dist_info", "--no-date", cwd=tmp_path))
         dist_info = next(tmp_path.glob("*.dist-info"))
         assert dist_info.name.startswith("proj-42")
+        shutil.rmtree(dist_info)
+
+        print(run_command("dist_info", "--tag-build", ".a", cwd=tmp_path))
+        dist_info = next(tmp_path.glob("*.dist-info"))
+        assert dist_info.name.startswith("proj-42a")
+
+    @pytest.mark.parametrize("keep_egg_info", (False, True))
+    def test_output_dir(self, tmp_path, keep_egg_info):
+        config = "[metadata]\nname=proj\nversion=42\n"
+        (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
+        out = tmp_path / "__out"
+        out.mkdir()
+        opts = ["--keep-egg-info"] if keep_egg_info else []
+        run_command("dist_info", "--output-dir", out, *opts, cwd=tmp_path)
+        assert len(list(out.glob("*.dist-info"))) == 1
+        assert len(list(tmp_path.glob("*.dist-info"))) == 0
+        expected_egg_info = 1 if keep_egg_info else 0
+        assert len(list(out.glob("*.egg-info"))) == expected_egg_info
+        assert len(list(tmp_path.glob("*.egg-info"))) == 0
+        assert len(list(out.glob("*.__bkp__"))) == 0
+        assert len(list(tmp_path.glob("*.__bkp__"))) == 0
 
 
 class TestWheelCompatibility:
     """Make sure the .dist-info directory produced with the ``dist_info`` command
     is the same as the one produced by ``bdist_wheel``.
     """
-    SETUPCFG = DALS("""
+
+    SETUPCFG = DALS(
+        """
     [metadata]
     name = {name}
     version = {version}
 
     [options]
-    install_requires = foo>=12; sys_platform != "linux"
+    install_requires =
+        foo>=12; sys_platform != "linux"
 
     [options.extras_require]
     test = pytest
@@ -112,7 +153,8 @@ class TestWheelCompatibility:
         executable-name = my_package.module:function
     discover =
         myproj = my_package.other_module:function
-    """)
+    """
+    )
 
     EGG_INFO_OPTS = [
         # Related: #3088 #2872
@@ -152,7 +194,17 @@ class TestWheelCompatibility:
             assert read(dist_info / file) == read(wheel_dist_info / file)
 
 
-def run_command(*cmd, **kwargs):
-    opts = {"stderr": subprocess.STDOUT, "text": True, **kwargs}
-    cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *cmd]
-    return subprocess.check_output(cmd, **opts)
+def run_command_inner(*cmd, **kwargs):
+    opts = {
+        "stderr": subprocess.STDOUT,
+        "stdout": subprocess.PIPE,
+        "text": True,
+        'check': True,
+        **kwargs,
+    }
+    cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *map(str, cmd)]
+    return subprocess.run(cmd, **opts)
+
+
+def run_command(*args, **kwargs):
+    return run_command_inner(*args, **kwargs).stdout

@@ -1,9 +1,7 @@
 """Tests for distutils.unixccompiler."""
 import os
 import sys
-import unittest
-from test.support import run_unittest
-from unittest.mock import patch
+import unittest.mock as mock
 
 from .py38compat import EnvironmentVarGuard
 
@@ -13,27 +11,28 @@ from distutils.unixccompiler import UnixCCompiler
 from distutils.util import _clear_cached_macosx_ver
 
 from . import support
+import pytest
 
-class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
-    def setUp(self):
-        super().setUp()
-        self._backup_platform = sys.platform
-        self._backup_get_config_var = sysconfig.get_config_var
-        self._backup_get_config_vars = sysconfig.get_config_vars
-        class CompilerWrapper(UnixCCompiler):
-            def rpath_foo(self):
-                return self.runtime_library_dir_option('/foo')
-        self.cc = CompilerWrapper()
+@pytest.fixture(autouse=True)
+def save_values(monkeypatch):
+    monkeypatch.setattr(sys, 'platform', sys.platform)
+    monkeypatch.setattr(sysconfig, 'get_config_var', sysconfig.get_config_var)
+    monkeypatch.setattr(sysconfig, 'get_config_vars', sysconfig.get_config_vars)
 
-    def tearDown(self):
-        super().tearDown()
-        sys.platform = self._backup_platform
-        sysconfig.get_config_var = self._backup_get_config_var
-        sysconfig.get_config_vars = self._backup_get_config_vars
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
-    def test_runtime_libdir_option(self):
+@pytest.fixture(autouse=True)
+def compiler_wrapper(request):
+    class CompilerWrapper(UnixCCompiler):
+        def rpath_foo(self):
+            return self.runtime_library_dir_option('/foo')
+
+    request.instance.cc = CompilerWrapper()
+
+
+class TestUnixCCompiler(support.TempdirManager):
+    @pytest.mark.skipif('platform.system == "Windows"')  # noqa: C901
+    def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
         #
         # Ensure RUNPATH is added to extension modules with RPATH if
@@ -49,18 +48,18 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         # Version value of None generates two tests: as None and as empty string
         # Expected flag value of None means an mismatch exception is expected
         darwin_test_cases = [
-            ((None    , None    ), darwin_lib_flag),
-            ((None    , '11'    ), darwin_rpath_flag),
-            (('10'    , None    ), darwin_lib_flag),
-            (('10.3'  , None    ), darwin_lib_flag),
-            (('10.3.1', None    ), darwin_lib_flag),
-            (('10.5'  , None    ), darwin_rpath_flag),
-            (('10.5.1', None    ), darwin_rpath_flag),
-            (('10.3'  , '10.3'  ), darwin_lib_flag),
-            (('10.3'  , '10.5'  ), darwin_rpath_flag),
-            (('10.5'  , '10.3'  ), darwin_lib_flag),
-            (('10.5'  , '11'    ), darwin_rpath_flag),
-            (('10.4'  , '10'    ), None),
+            ((None, None), darwin_lib_flag),
+            ((None, '11'), darwin_rpath_flag),
+            (('10', None), darwin_lib_flag),
+            (('10.3', None), darwin_lib_flag),
+            (('10.3.1', None), darwin_lib_flag),
+            (('10.5', None), darwin_rpath_flag),
+            (('10.5.1', None), darwin_rpath_flag),
+            (('10.3', '10.3'), darwin_lib_flag),
+            (('10.3', '10.5'), darwin_rpath_flag),
+            (('10.5', '10.3'), darwin_lib_flag),
+            (('10.5', '11'), darwin_rpath_flag),
+            (('10.4', '10'), None),
         ]
 
         def make_darwin_gcv(syscfg_macosx_ver):
@@ -68,12 +67,15 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
                 if var == darwin_ver_var:
                     return syscfg_macosx_ver
                 return "xxx"
+
             return gcv
 
         def do_darwin_test(syscfg_macosx_ver, env_macosx_ver, expected_flag):
             env = os.environ
-            msg = "macOS version = (sysconfig=%r, env=%r)" % \
-                    (syscfg_macosx_ver, env_macosx_ver)
+            msg = "macOS version = (sysconfig={!r}, env={!r})".format(
+                syscfg_macosx_ver,
+                env_macosx_ver,
+            )
 
             # Save
             old_gcv = sysconfig.get_config_var
@@ -89,10 +91,11 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
             # Run the test
             if expected_flag is not None:
-                self.assertEqual(self.cc.rpath_foo(), expected_flag, msg=msg)
+                assert self.cc.rpath_foo() == expected_flag, msg
             else:
-                with self.assertRaisesRegex(DistutilsPlatformError,
-                        darwin_ver_var + r' mismatch', msg=msg):
+                with pytest.raises(
+                    DistutilsPlatformError, match=darwin_ver_var + r' mismatch'
+                ):
                     self.cc.rpath_foo()
 
             # Restore
@@ -118,83 +121,98 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
         # hp-ux
         sys.platform = 'hp-ux'
+
         def gcv(v):
             return 'xxx'
+
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), ['+s', '-L/foo'])
+        assert self.cc.rpath_foo() == ['+s', '-L/foo']
 
         def gcv(v):
             return 'gcc'
+
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), ['-Wl,+s', '-L/foo'])
+        assert self.cc.rpath_foo() == ['-Wl,+s', '-L/foo']
 
         def gcv(v):
             return 'g++'
+
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), ['-Wl,+s', '-L/foo'])
+        assert self.cc.rpath_foo() == ['-Wl,+s', '-L/foo']
 
         sysconfig.get_config_var = old_gcv
 
         # GCC GNULD
         sys.platform = 'bar'
+
         def gcv(v):
             if v == 'CC':
                 return 'gcc'
             elif v == 'GNULD':
                 return 'yes'
+
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         def gcv(v):
             if v == 'CC':
                 return 'gcc -pthread -B /bar'
             elif v == 'GNULD':
                 return 'yes'
+
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         # GCC non-GNULD
         sys.platform = 'bar'
+
         def gcv(v):
             if v == 'CC':
                 return 'gcc'
             elif v == 'GNULD':
                 return 'no'
+
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,-R/foo'
 
         # GCC GNULD with fully qualified configuration prefix
         # see #7617
         sys.platform = 'bar'
+
         def gcv(v):
             if v == 'CC':
                 return 'x86_64-pc-linux-gnu-gcc-4.4.2'
             elif v == 'GNULD':
                 return 'yes'
+
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         # non-GCC GNULD
         sys.platform = 'bar'
+
         def gcv(v):
             if v == 'CC':
                 return 'cc'
             elif v == 'GNULD':
                 return 'yes'
+
         sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,--enable-new-dtags,-R/foo')
+        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
 
         # non-GCC non-GNULD
         sys.platform = 'bar'
+
         def gcv(v):
             if v == 'CC':
                 return 'cc'
             elif v == 'GNULD':
                 return 'no'
-        sysconfig.get_config_var = gcv
-        self.assertEqual(self.cc.rpath_foo(), '-Wl,-R/foo')
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+        sysconfig.get_config_var = gcv
+        assert self.cc.rpath_foo() == '-Wl,-R/foo'
+
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_cc_overrides_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable also changes default linker
@@ -207,15 +225,16 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             if args:
                 return list(map(sysconfig.get_config_var, args))
             return _orig()
+
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
         with EnvironmentVarGuard() as env:
             env['CC'] = 'my_cc'
             del env['LDSHARED']
             sysconfig.customize_compiler(self.cc)
-        self.assertEqual(self.cc.linker_so[0], 'my_cc')
+        assert self.cc.linker_so[0] == 'my_cc'
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_cc_overrides_ldshared_for_cxx_correctly(self):
         """
         Ensure that setting CC env variable also changes default linker
@@ -223,6 +242,7 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
         pypa/distutils#126
         """
+
         def gcv(v):
             if v == 'LDSHARED':
                 return 'gcc-4.2 -bundle -undefined dynamic_lookup '
@@ -237,21 +257,24 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
 
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
-        with patch.object(self.cc, 'spawn', return_value=None) as mock_spawn, \
-                patch.object(self.cc, '_need_link', return_value=True), \
-                patch.object(self.cc, 'mkpath', return_value=None), \
-                EnvironmentVarGuard() as env:
+        with mock.patch.object(
+            self.cc, 'spawn', return_value=None
+        ) as mock_spawn, mock.patch.object(
+            self.cc, '_need_link', return_value=True
+        ), mock.patch.object(
+            self.cc, 'mkpath', return_value=None
+        ), EnvironmentVarGuard() as env:
             env['CC'] = 'ccache my_cc'
             env['CXX'] = 'my_cxx'
             del env['LDSHARED']
             sysconfig.customize_compiler(self.cc)
-            self.assertEqual(self.cc.linker_so[0:2], ['ccache', 'my_cc'])
+            assert self.cc.linker_so[0:2] == ['ccache', 'my_cc']
             self.cc.link(None, [], 'a.out', target_lang='c++')
             call_args = mock_spawn.call_args[0][0]
             expected = ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:4] == expected
 
-    @unittest.skipIf(sys.platform == 'win32', "can't test on Windows")
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_explicit_ldshared(self):
         # Issue #18080:
         # ensure that setting CC env variable does not change
@@ -265,13 +288,14 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
             if args:
                 return list(map(sysconfig.get_config_var, args))
             return _orig()
+
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
         with EnvironmentVarGuard() as env:
             env['CC'] = 'my_cc'
             env['LDSHARED'] = 'my_ld -bundle -dynamic'
             sysconfig.customize_compiler(self.cc)
-        self.assertEqual(self.cc.linker_so[0], 'my_ld')
+        assert self.cc.linker_so[0] == 'my_ld'
 
     def test_has_function(self):
         # Issue https://github.com/pypa/distutils/issues/64:
@@ -279,11 +303,4 @@ class UnixCCompilerTestCase(support.TempdirManager, unittest.TestCase):
         # FileNotFoundError: [Errno 2] No such file or directory: 'a.out'
         self.cc.output_dir = 'scratch'
         os.chdir(self.mkdtemp())
-        self.cc.has_function('abort', includes=['stdlib.h'])
-
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(UnixCCompilerTestCase)
-
-if __name__ == "__main__":
-    run_unittest(test_suite())
+        self.cc.has_function('abort')

@@ -4,19 +4,13 @@
 Configuring setuptools using ``pyproject.toml`` files
 -----------------------------------------------------
 
-.. note:: New in 61.0.0 (**experimental**)
-
-.. warning::
-   Support for declaring :doc:`project metadata
-   <PyPUG:specifications/declaring-project-metadata>` or configuring
-   ``setuptools`` via ``pyproject.toml`` files is still experimental and might
-   change (or be removed) in future releases.
+.. note:: New in 61.0.0
 
 .. important::
-   For the time being, ``pip`` still might require a ``setup.py`` file
-   to support :doc:`editable installs <pip:cli/pip_install>`.
-
-   A simple script will suffice, for example:
+   If compatibility with legacy builds or versions of tools that don't support
+   certain packaging standards (e.g. :pep:`517` or :pep:`660`), a simple ``setup.py``
+   script can be added to your project [#setupcfg-caveats]_
+   (while keeping the configuration in ``pyproject.toml``):
 
    .. code-block:: python
 
@@ -48,10 +42,14 @@ The ``project`` table contains metadata fields as described by
 
    [project]
    name = "my_package"
+   authors = [
+       {name = "Josiah Carberry", email = "josiah_carberry@brown.edu"},
+   ]
    description = "My package description"
    readme = "README.rst"
+   requires-python = ">=3.7"
    keywords = ["one", "two"]
-   license = {text = "BSD 3-Clause License"}
+   license = {text = "BSD-3-Clause"}
    classifiers = [
        "Framework :: Django",
        "Programming Language :: Python :: 3",
@@ -69,11 +67,18 @@ The ``project`` table contains metadata fields as described by
    [project.scripts]
    my-script = "my_package.module:function"
 
+   # ... other project metadata fields as specified in:
+   #     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 
 .. _setuptools-table:
 
 Setuptools-specific configuration
 =================================
+
+.. warning::
+   Support for declaring configurations not standardized by :pep:`621`
+   (i.e.  the ``[tool.setuptools]`` table),
+   is still in **beta** stage and might change in future releases.
 
 While the standard ``project`` table in the ``pyproject.toml`` file covers most
 of the metadata used during the packaging process, there are still some
@@ -94,13 +99,13 @@ Key                       Value Type (TOML)           Notes
 ``py-modules``            array                       See tip below
 ``packages``              array or ``find`` directive See tip below
 ``package-dir``           table/inline-table          Used when explicitly listing ``packages``
-``namespace-packages``    array                       Not necessary if you use :pep:`420`
+``namespace-packages``    array                       **Deprecated** - Use implicit namespaces instead (:pep:`420`)
 ``package-data``          table/inline-table          See :doc:`/userguide/datafiles`
 ``include-package-data``  boolean                     ``True`` by default
 ``exclude-package-data``  table/inline-table
 ``license-files``         array of glob patterns      **Provisional** - likely to change with :pep:`639`
                                                       (by default: ``['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']``)
-``data-files``            table/inline-table          **Deprecated** - check :doc:`/userguide/datafiles`
+``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`
 ``script-files``          array                       **Deprecated** - equivalent to the ``script`` keyword in ``setup.py``
                                                       (should be avoided in favour of ``project.scripts``)
 ``provides``              array                       **Ignored by pip**
@@ -109,7 +114,7 @@ Key                       Value Type (TOML)           Notes
 
 .. note::
    The `TOML value types`_ ``array`` and ``table/inline-table`` are roughly
-   equivalent to the Python's :obj:`dict` and :obj:`list` data types.
+   equivalent to the Python's :obj:`list` and :obj:`dict` data types, respectively.
 
 Please note that some of these configurations are deprecated or at least
 discouraged, but they are made available to ensure portability.
@@ -181,20 +186,57 @@ In the ``dynamic`` table, the ``attr`` directive [#directives]_ will read an
 attribute from the given module [#attr]_, while ``file`` will read the contents
 of all given files and concatenate them in a single string.
 
-================= =================== =========================
-Key               Directive           Notes
-================= =================== =========================
-``version``       ``attr``, ``file``
-``readme``        ``file``
-``description``   ``file``            One-line text
-``classifiers``   ``file``            Multi-line text with one classifier per line
-``entry-points``  ``file``            INI format following :doc:`PyPUG:specifications/entry-points`
-                                      (``console_scripts`` and ``gui_scripts`` can be included)
-================= =================== =========================
+========================== =================== =================================================================================================
+Key                        Directive           Notes
+========================== =================== =================================================================================================
+``version``                ``attr``, ``file``
+``readme``                 ``file``            Here you can also set ``"content-type"``:
+
+                                               ``readme = {file = ["README.txt", "USAGE.txt"], content-type = "text/plain"}``
+
+                                               If ``content-type`` is not given, ``"text/x-rst"`` is used by default.
+``description``            ``file``            One-line text (no line breaks)
+``classifiers``            ``file``            Multi-line text with one classifier per line
+``entry-points``           ``file``            INI format following :doc:`PyPUG:specifications/entry-points`
+                                               (``console_scripts`` and ``gui_scripts`` can be included)
+``dependencies``           ``file``            *subset* of the ``requirements.txt`` format
+                                               (``#`` comments and blank lines excluded) **BETA**
+``optional-dependencies``  ``file``            *subset* of the ``requirements.txt`` format per group
+                                               (``#`` comments and blank lines excluded) **BETA**
+========================== =================== =================================================================================================
+
+Supporting ``file`` for dependencies is meant for a convenience for packaging
+applications with possibly strictly versioned dependencies.
+
+Library packagers are discouraged from using overly strict (or "locked")
+dependency versions in their ``dependencies`` and ``optional-dependencies``.
+
+Currently, when specifying ``optional-dependencies`` dynamically, all of the groups
+must be specified dynamically; one can not specify some of them statically and
+some of them dynamically.
+
+Also note that the file format for specifying dependencies resembles a ``requirements.txt`` file,
+however please keep in mind that all non-comment lines must conform with :pep:`508`
+(``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
+
+
+.. note::
+   If you are using an old version of ``setuptools``, you might need to ensure
+   that all files referenced by the ``file`` directive are included in the ``sdist``
+   (you can do that via ``MANIFEST.in`` or using plugins such as ``setuptools-scm``,
+   please have a look on :doc:`/userguide/miscellaneous` for more information).
+
+   .. versionchanged:: 66.1.0
+      Newer versions of ``setuptools`` will automatically add these files to the ``sdist``.
 
 ----
 
 .. rubric:: Notes
+
+.. [#setupcfg-caveats] ``pip`` may allow editable install only with ``pyproject.toml``
+   and ``setup.cfg``. However, this behavior may not be consistent over various ``pip``
+   versions and other packaging-related tools
+   (``setup.py`` is more reliable on those scenarios).
 
 .. [#entry-points] Dynamic ``scripts`` and ``gui-scripts`` are a special case.
    When resolving these metadata keys, ``setuptools`` will look for

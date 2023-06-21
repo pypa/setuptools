@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -45,6 +46,10 @@ def test_read_files(tmp_path, monkeypatch):
     }
     write_files(files, dir_)
 
+    secrets = Path(str(dir_) + "secrets")
+    secrets.mkdir(exist_ok=True)
+    write_files({"secrets.txt": "secret keys"}, secrets)
+
     with monkeypatch.context() as m:
         m.chdir(dir_)
         assert expand.read_files(list(files)) == "a\nb\nc"
@@ -53,6 +58,10 @@ def test_read_files(tmp_path, monkeypatch):
         with pytest.raises(DistutilsOptionError, match=cannot_access_msg):
             expand.read_files(["../a.txt"])
 
+        cannot_access_secrets_msg = r"Cannot access '.*secrets\.txt'"
+        with pytest.raises(DistutilsOptionError, match=cannot_access_secrets_msg):
+            expand.read_files(["../dir_secrets/secrets.txt"])
+
     # Make sure the same APIs work outside cwd
     assert expand.read_files(list(files), dir_) == "a\nb\nc"
     with pytest.raises(DistutilsOptionError, match=cannot_access_msg):
@@ -60,6 +69,20 @@ def test_read_files(tmp_path, monkeypatch):
 
 
 class TestReadAttr:
+    @pytest.mark.parametrize(
+        "example",
+        [
+            # No cookie means UTF-8:
+            b"__version__ = '\xc3\xa9'\nraise SystemExit(1)\n",
+            # If a cookie is present, honor it:
+            b"# -*- coding: utf-8 -*-\n__version__ = '\xc3\xa9'\nraise SystemExit(1)\n",
+            b"# -*- coding: latin1 -*-\n__version__ = '\xe9'\nraise SystemExit(1)\n",
+        ]
+    )
+    def test_read_attr_encoding_cookie(self, example, tmp_path):
+        (tmp_path / "mod.py").write_bytes(example)
+        assert expand.read_attr('mod.__version__', root_dir=tmp_path) == 'é'
+
     def test_read_attr(self, tmp_path, monkeypatch):
         files = {
             "pkg/__init__.py": "",
@@ -84,6 +107,22 @@ class TestReadAttr:
         assert expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path) == '0.1.1'
         values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'}, tmp_path)
         assert values['c'] == (0, 1, 1)
+
+    @pytest.mark.parametrize(
+        "example",
+        [
+            "VERSION: str\nVERSION = '0.1.1'\nraise SystemExit(1)\n",
+            "VERSION: str = '0.1.1'\nraise SystemExit(1)\n",
+        ]
+    )
+    def test_read_annotated_attr(self, tmp_path, example):
+        files = {
+            "pkg/__init__.py": "",
+            "pkg/sub/__init__.py": example,
+        }
+        write_files(files, tmp_path)
+        # Make sure this attribute can be read statically
+        assert expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path) == '0.1.1'
 
     def test_import_order(self, tmp_path):
         """

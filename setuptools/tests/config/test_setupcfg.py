@@ -9,6 +9,8 @@ import pytest
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.dist import Distribution, _Distribution
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
+from setuptools.extern.packaging.requirements import InvalidRequirement
+from setuptools.warnings import SetuptoolsDeprecationWarning
 from ..textwrap import DALS
 
 
@@ -409,7 +411,7 @@ class TestMetadata:
             'requires = some, requirement\n',
         )
 
-        with pytest.deprecated_call():
+        with pytest.warns(SetuptoolsDeprecationWarning, match="requires"):
             with get_dist(tmpdir) as dist:
                 metadata = dist.metadata
 
@@ -466,12 +468,8 @@ class TestMetadata:
             'author-email = test@test.com\n'
             'maintainer_email = foo@foo.com\n',
         )
-        msg = (
-            "Usage of dash-separated 'author-email' will not be supported "
-            "in future versions. "
-            "Please use the underscore name 'author_email' instead"
-        )
-        with pytest.warns(UserWarning, match=msg):
+        msg = "Usage of dash-separated 'author-email' will not be supported"
+        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
             with get_dist(tmpdir) as dist:
                 metadata = dist.metadata
 
@@ -484,12 +482,8 @@ class TestMetadata:
         fake_env(
             tmpdir, '[metadata]\n' 'Name = foo\n' 'description = Some description\n'
         )
-        msg = (
-            "Usage of uppercase key 'Name' in 'metadata' will be deprecated in "
-            "future versions. "
-            "Please use lowercase 'name' instead"
-        )
-        with pytest.warns(UserWarning, match=msg):
+        msg = "Usage of uppercase key 'Name' in 'metadata' will not be supported"
+        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
             with get_dist(tmpdir) as dist:
                 metadata = dist.metadata
 
@@ -518,7 +512,8 @@ class TestOptions:
             'python_requires = >=1.0, !=2.8\n'
             'py_modules = module1, module2\n',
         )
-        with get_dist(tmpdir) as dist:
+        deprec = pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages")
+        with deprec, get_dist(tmpdir) as dist:
             assert dist.zip_safe
             assert dist.include_package_data
             assert dist.package_dir == {'': 'src', 'b': 'c'}
@@ -572,7 +567,8 @@ class TestOptions:
             '  http://some.com/here/1\n'
             '  http://some.com/there/2\n',
         )
-        with get_dist(tmpdir) as dist:
+        deprec = pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages")
+        with deprec, get_dist(tmpdir) as dist:
             assert dist.package_dir == {'': 'src', 'b': 'c'}
             assert dist.packages == ['pack_a', 'pack_b.subpack']
             assert dist.namespace_packages == ['pack1', 'pack2']
@@ -712,6 +708,72 @@ class TestOptions:
                 'rest': ['docutils>=0.3', 'pack==1.1,==1.3'],
             }
             assert dist.metadata.provides_extras == set(['pdf', 'rest'])
+
+    @pytest.mark.parametrize(
+        "config",
+        [
+            "[options.extras_require]\nfoo = bar;python_version<'3'",
+            "[options.extras_require]\nfoo = bar;os_name=='linux'",
+            "[options.extras_require]\nfoo = bar;python_version<'3'\n",
+            "[options.extras_require]\nfoo = bar;os_name=='linux'\n",
+            "[options]\ninstall_requires = bar;python_version<'3'",
+            "[options]\ninstall_requires = bar;os_name=='linux'",
+            "[options]\ninstall_requires = bar;python_version<'3'\n",
+            "[options]\ninstall_requires = bar;os_name=='linux'\n",
+        ],
+    )
+    def test_raises_accidental_env_marker_misconfig(self, config, tmpdir):
+        fake_env(tmpdir, config)
+        match = (
+            r"One of the parsed requirements in `(install_requires|extras_require.+)` "
+            "looks like a valid environment marker.*"
+        )
+        with pytest.raises(InvalidRequirement, match=match):
+            with get_dist(tmpdir) as _:
+                pass
+
+    @pytest.mark.parametrize(
+        "config",
+        [
+            "[options.extras_require]\nfoo = bar;python_version<3",
+            "[options.extras_require]\nfoo = bar;python_version<3\n",
+            "[options]\ninstall_requires = bar;python_version<3",
+            "[options]\ninstall_requires = bar;python_version<3\n",
+        ],
+    )
+    def test_warn_accidental_env_marker_misconfig(self, config, tmpdir):
+        fake_env(tmpdir, config)
+        match = (
+            r"One of the parsed requirements in `(install_requires|extras_require.+)` "
+            "looks like a valid environment marker.*"
+        )
+        with pytest.warns(SetuptoolsDeprecationWarning, match=match):
+            with get_dist(tmpdir) as _:
+                pass
+
+    @pytest.mark.parametrize(
+        "config",
+        [
+            "[options.extras_require]\nfoo =\n    bar;python_version<'3'",
+            "[options.extras_require]\nfoo = bar;baz\nboo = xxx;yyy",
+            "[options.extras_require]\nfoo =\n    bar;python_version<'3'\n",
+            "[options.extras_require]\nfoo = bar;baz\nboo = xxx;yyy\n",
+            "[options.extras_require]\nfoo =\n    bar\n    python_version<3\n",
+            "[options]\ninstall_requires =\n    bar;python_version<'3'",
+            "[options]\ninstall_requires = bar;baz\nboo = xxx;yyy",
+            "[options]\ninstall_requires =\n    bar;python_version<'3'\n",
+            "[options]\ninstall_requires = bar;baz\nboo = xxx;yyy\n",
+            "[options]\ninstall_requires =\n    bar\n    python_version<3\n",
+        ],
+    )
+    @pytest.mark.filterwarnings("error::setuptools.SetuptoolsDeprecationWarning")
+    def test_nowarn_accidental_env_marker_misconfig(self, config, tmpdir, recwarn):
+        fake_env(tmpdir, config)
+        num_warnings = len(recwarn)
+        with get_dist(tmpdir) as _:
+            pass
+        # The examples are valid, no warnings shown
+        assert len(recwarn) == num_warnings
 
     def test_dash_preserved_extras_require(self, tmpdir):
         fake_env(tmpdir, '[options.extras_require]\n' 'foo-a = foo\n' 'foo_b = test\n')
@@ -880,6 +942,24 @@ class TestOptions:
             assert cmdclass.__name__ == "CustomCmd"
             assert cmdclass.__module__ == "custom_build"
             assert module_path.samefile(inspect.getfile(cmdclass))
+
+    def test_requirements_file(self, tmpdir):
+        fake_env(
+            tmpdir,
+            DALS("""
+            [options]
+            install_requires = file:requirements.txt
+            [options.extras_require]
+            colors = file:requirements-extra.txt
+            """)
+        )
+
+        tmpdir.join('requirements.txt').write('\ndocutils>=0.3\n\n')
+        tmpdir.join('requirements-extra.txt').write('colorama')
+
+        with get_dist(tmpdir) as dist:
+            assert dist.install_requires == ['docutils>=0.3']
+            assert dist.extras_require == {'colors': ['colorama']}
 
 
 saved_dist_init = _Distribution.__init__

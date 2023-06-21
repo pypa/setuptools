@@ -19,7 +19,7 @@ def pytest_virtualenv_works(venv):
     pytest_virtualenv may not work. if it doesn't, skip these
     tests. See #1284.
     """
-    venv_prefix = venv.run(["python" , "-c", "import sys; print(sys.prefix)"]).strip()
+    venv_prefix = venv.run(["python", "-c", "import sys; print(sys.prefix)"]).strip()
     if venv_prefix == sys.prefix:
         pytest.skip("virtualenv is broken (see pypa/setuptools#1284)")
 
@@ -55,18 +55,43 @@ def access_pypi():
     'pip_version',
     [
         None,
-        pytest.param('pip<20', marks=pytest.mark.xfail(reason='pypa/pip#6599')),
-        'pip<20.1',
-        'pip<21',
-        'pip<22',
+        pytest.param(
+            'pip<20.1',
+            marks=pytest.mark.xfail(
+                'sys.version_info >= (3, 12)',
+                reason="pip 23.1.2 required for Python 3.12 and later",
+            ),
+        ),
+        pytest.param(
+            'pip<21',
+            marks=pytest.mark.xfail(
+                'sys.version_info >= (3, 12)',
+                reason="pip 23.1.2 required for Python 3.12 and later",
+            ),
+        ),
+        pytest.param(
+            'pip<22',
+            marks=pytest.mark.xfail(
+                'sys.version_info >= (3, 12)',
+                reason="pip 23.1.2 required for Python 3.12 and later",
+            ),
+        ),
+        pytest.param(
+            'pip<23',
+            marks=pytest.mark.xfail(
+                'sys.version_info >= (3, 12)',
+                reason="pip 23.1.2 required for Python 3.12 and later",
+            ),
+        ),
         pytest.param(
             'https://github.com/pypa/pip/archive/main.zip',
             marks=pytest.mark.xfail(reason='#2975'),
         ),
-    ]
+    ],
 )
-def test_pip_upgrade_from_source(pip_version, venv_without_setuptools,
-                                 setuptools_wheel, setuptools_sdist):
+def test_pip_upgrade_from_source(
+    pip_version, venv_without_setuptools, setuptools_wheel, setuptools_sdist
+):
     """
     Check pip can upgrade setuptools from source.
     """
@@ -90,10 +115,12 @@ def _check_test_command_install_requirements(venv, tmpdir):
     """
     Check the test command will install all required dependencies.
     """
+
     def sdist(distname, version):
         dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
         make_nspkg_sdist(str(dist_path), distname, version)
         return dist_path
+
     dependency_links = [
         pathlib.Path(str(dist_path)).as_uri()
         for dist_path in (
@@ -104,8 +131,9 @@ def _check_test_command_install_requirements(venv, tmpdir):
         )
     ]
     with tmpdir.join('setup.py').open('w') as fp:
-        fp.write(DALS(
-            '''
+        fp.write(
+            DALS(
+                '''
             from setuptools import setup
 
             setup(
@@ -127,17 +155,24 @@ def _check_test_command_install_requirements(venv, tmpdir):
                     """,
                 }}
             )
-            '''.format(dependency_links=dependency_links)))
+            '''.format(
+                    dependency_links=dependency_links
+                )
+            )
+        )
     with tmpdir.join('test.py').open('w') as fp:
-        fp.write(DALS(
-            '''
+        fp.write(
+            DALS(
+                '''
             import foobar
             import bits
             import bobs
             import pieces
 
             open('success', 'w').close()
-            '''))
+            '''
+            )
+        )
 
     cmd = ["python", 'setup.py', 'test', '-s', 'test']
     venv.run(cmd, cwd=str(tmpdir))
@@ -145,8 +180,8 @@ def _check_test_command_install_requirements(venv, tmpdir):
 
 
 def test_test_command_install_requirements(venv, tmpdir, tmpdir_cwd):
-    # Ensure pip/wheel packages are installed.
-    venv.run(["python", "-c", "__import__('pkg_resources').require(['pip', 'wheel'])"])
+    # Ensure pip is installed.
+    venv.run(["python", "-c", "import pip"])
     # disable index URL so bits and bobs aren't requested from PyPI
     with contexts.environment(PYTHONPATH=None, PIP_NO_INDEX="1"):
         _check_test_command_install_requirements(venv, tmpdir)

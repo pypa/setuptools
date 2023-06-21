@@ -1,0 +1,5 @@
+[tool.towncrier]
+filename = "CHANGES.rst"
+# workaround for sphinx-contrib/sphinxcontrib-towncrier#83
+directory = "newsfragments"
+title_format = "{version}"

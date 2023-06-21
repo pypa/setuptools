@@ -13,27 +13,26 @@ import os
 import re
 import sys
 import io
-import warnings
 import time
 import collections
 
 from .._importlib import metadata
-from .. import _entry_points
+from .. import _entry_points, _normalization
 
 from setuptools import Command
 from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
 from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
-from pkg_resources import (
-    Requirement, safe_name, parse_version,
-    safe_version, to_filename)
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
 from setuptools.extern import packaging
 from setuptools.extern.jaraco.text import yield_lines
-from setuptools import SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsDeprecationWarning
+
+
+PY_MAJOR = '{}.{}'.format(*sys.version_info)
 
 
 def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME
@@ -125,10 +124,11 @@ class InfoCommon:
 
     @property
     def name(self):
-        return safe_name(self.distribution.get_name())
+        return _normalization.safe_name(self.distribution.get_name())
 
     def tagged_version(self):
-        return safe_version(self._maybe_tag(self.distribution.get_version()))
+        tagged = self._maybe_tag(self.distribution.get_version())
+        return _normalization.best_effort_version(tagged)
 
     def _maybe_tag(self, version):
         """
@@ -148,14 +148,14 @@ class InfoCommon:
     def _safe_tags(self) -> str:
         # To implement this we can rely on `safe_version` pretending to be version 0
         # followed by tags. Then we simply discard the starting 0 (fake version number)
-        return safe_version(f"0{self.vtags}")[1:]
+        return _normalization.best_effort_version(f"0{self.vtags}")[1:]
 
     def tags(self) -> str:
         version = ''
         if self.tag_build:
             version += self.tag_build
         if self.tag_date:
-            version += time.strftime("-%Y%m%d")
+            version += time.strftime("%Y%m%d")
         return version
     vtags = property(tags)
 
@@ -181,7 +181,7 @@ class egg_info(InfoCommon, Command):
         self.egg_name = None
         self.egg_info = None
         self.egg_version = None
-        self.broken_egg_info = False
+        self.ignore_egg_info_in_manifest = False
 
     ####################################
     # allow the 'tag_svn_revision' to be detected and
@@ -215,12 +215,12 @@ class egg_info(InfoCommon, Command):
         # repercussions.
         self.egg_name = self.name
         self.egg_version = self.tagged_version()
-        parsed_version = parse_version(self.egg_version)
+        parsed_version = packaging.version.Version(self.egg_version)
 
         try:
             is_version = isinstance(parsed_version, packaging.version.Version)
             spec = "%s==%s" if is_version else "%s===%s"
-            Requirement(spec % (self.egg_name, self.egg_version))
+            packaging.requirements.Requirement(spec % (self.egg_name, self.egg_version))
         except ValueError as e:
             raise distutils.errors.DistutilsOptionError(
                 "Invalid distribution name or version syntax: %s-%s" %
@@ -232,11 +232,9 @@ class egg_info(InfoCommon, Command):
             self.egg_base = (dirs or {}).get('', os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = to_filename(self.egg_name) + '.egg-info'
+        self.egg_info = _normalization.filename_component(self.egg_name) + '.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
-        if '-' in self.egg_name:
-            self.check_broken_egg_info()
 
         # Set package version for the benefit of dumber commands
         # (e.g. sdist, bdist_wininst, etc.)
@@ -248,10 +246,15 @@ class egg_info(InfoCommon, Command):
         # to the version info
         #
         pd = self.distribution._patched_dist
-        if pd is not None and pd.key == self.egg_name.lower():
+        key = getattr(pd, "key", None) or getattr(pd, "name", None)
+        if pd is not None and key == self.egg_name.lower():
             pd._version = self.egg_version
-            pd._parsed_version = parse_version(self.egg_version)
+            pd._parsed_version = packaging.version.Version(self.egg_version)
             self.distribution._patched_dist = None
+
+    def _get_egg_basename(self, py_version=PY_MAJOR, platform=None):
+        """Compute filename of the output egg. Private API."""
+        return _egg_basename(self.egg_name, self.egg_version, py_version, platform)
 
     def write_or_delete_file(self, what, filename, data, force=False):
         """Write `data` to `filename` or delete if empty
@@ -294,9 +297,12 @@ class egg_info(InfoCommon, Command):
 
     def run(self):
         self.mkpath(self.egg_info)
-        os.utime(self.egg_info, None)
+        try:
+            os.utime(self.egg_info, None)
+        except OSError as e:
+            msg = f"Cannot update time stamp of directory '{self.egg_info}'"
+            raise distutils.errors.DistutilsFileError(msg) from e
         for ep in metadata.entry_points(group='egg_info.writers'):
-            self.distribution._install_dependencies(ep)
             writer = ep.load()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 
@@ -311,28 +317,18 @@ class egg_info(InfoCommon, Command):
         """Generate SOURCES.txt manifest file"""
         manifest_filename = os.path.join(self.egg_info, "SOURCES.txt")
         mm = manifest_maker(self.distribution)
+        mm.ignore_egg_info_dir = self.ignore_egg_info_in_manifest
         mm.manifest = manifest_filename
         mm.run()
         self.filelist = mm.filelist
 
-    def check_broken_egg_info(self):
-        bei = self.egg_name + '.egg-info'
-        if self.egg_base != os.curdir:
-            bei = os.path.join(self.egg_base, bei)
-        if os.path.exists(bei):
-            log.warn(
-                "-" * 78 + '\n'
-                "Note: Your current .egg-info directory has a '-' in its name;"
-                '\nthis will not work correctly with "setup.py develop".\n\n'
-                'Please rename %s to %s to correct this problem.\n' + '-' * 78,
-                bei, self.egg_info
-            )
-            self.broken_egg_info = self.egg_info
-            self.egg_info = bei  # make it work for now
-
 
 class FileList(_FileList):
     # Implementations of the various MANIFEST.in commands
+
+    def __init__(self, warn=None, debug_print=None, ignore_egg_info_dir=False):
+        super().__init__(warn, debug_print)
+        self.ignore_egg_info_dir = ignore_egg_info_dir
 
     def process_template_line(self, line):
         # Parse the line: split it up, make sure the right number of words
@@ -523,6 +519,10 @@ class FileList(_FileList):
             return False
 
         try:
+            # ignore egg-info paths
+            is_egg_info = ".egg-info" in u_path or b".egg-info" in utf8_path
+            if self.ignore_egg_info_dir and is_egg_info:
+                return False
             # accept is either way checks out
             if os.path.exists(u_path) or os.path.exists(utf8_path):
                 return True
@@ -539,18 +539,20 @@ class manifest_maker(sdist):
         self.prune = 1
         self.manifest_only = 1
         self.force_manifest = 1
+        self.ignore_egg_info_dir = False
 
     def finalize_options(self):
         pass
 
     def run(self):
-        self.filelist = FileList()
+        self.filelist = FileList(ignore_egg_info_dir=self.ignore_egg_info_dir)
         if not os.path.exists(self.manifest):
             self.write_manifest()  # it must exist so it'll get in the list
         self.add_defaults()
         if os.path.exists(self.template):
             self.read_template()
         self.add_license_files()
+        self._add_referenced_files()
         self.prune_file_list()
         self.filelist.sort()
         self.filelist.remove_duplicates()
@@ -605,8 +607,15 @@ class manifest_maker(sdist):
         license_files = self.distribution.metadata.license_files or []
         for lf in license_files:
             log.info("adding license file '%s'", lf)
-            pass
         self.filelist.extend(license_files)
+
+    def _add_referenced_files(self):
+        """Add files referenced by the config (e.g. `file:` directive) to filelist"""
+        referenced = getattr(self.distribution, '_referenced_files', [])
+        # ^-- fallback if dist comes from distutils or is a custom class
+        for rf in referenced:
+            log.debug("adding file referenced by config '%s'", rf)
+        self.filelist.extend(referenced)
 
     def prune_file_list(self):
         build = self.get_finalized_command('build')
@@ -630,11 +639,14 @@ class manifest_maker(sdist):
         if hasattr(build_py, 'get_data_files_without_manifest'):
             return build_py.get_data_files_without_manifest()
 
-        warnings.warn(
-            "Custom 'build_py' does not implement "
-            "'get_data_files_without_manifest'.\nPlease extend command classes"
-            " from setuptools instead of distutils.",
-            SetuptoolsDeprecationWarning
+        SetuptoolsDeprecationWarning.emit(
+            "`build_py` command does not inherit from setuptools' `build_py`.",
+            """
+            Custom 'build_py' does not implement 'get_data_files_without_manifest'.
+            Please extend command classes from setuptools instead of distutils.
+            """,
+            see_url="https://peps.python.org/pep-0632/",
+            # due_date not defined yet, old projects might still do it?
         )
         return build_py.get_data_files()
 
@@ -672,11 +684,13 @@ def write_pkg_info(cmd, basename, filename):
 
 
 def warn_depends_obsolete(cmd, basename, filename):
-    if os.path.exists(filename):
-        log.warn(
-            "WARNING: 'depends.txt' is not used by setuptools 0.6!\n"
-            "Use the install_requires/extras_require setup() args instead."
-        )
+    """
+    Unused: left to avoid errors when updating (from source) from <= 67.8.
+    Old installations have a .dist-info directory with the entry-point
+    ``depends.txt = setuptools.command.egg_info:warn_depends_obsolete``.
+    This may trigger errors when running the first egg_info in build_meta.
+    TODO: Remove this function in a version sufficiently > 68.
+    """
 
 
 def _write_requirements(stream, reqs):
@@ -733,20 +747,14 @@ def write_entries(cmd, basename, filename):
     cmd.write_or_delete_file('entry points', filename, defn, True)
 
 
-def get_pkg_info_revision():
-    """
-    Get a -r### off of PKG-INFO Version in case this is an sdist of
-    a subversion revision.
-    """
-    warnings.warn(
-        "get_pkg_info_revision is deprecated.", EggInfoDeprecationWarning)
-    if os.path.exists('PKG-INFO'):
-        with io.open('PKG-INFO') as f:
-            for line in f:
-                match = re.match(r"Version:.*-r(\d+)\s*$", line)
-                if match:
-                    return int(match.group(1))
-    return 0
+def _egg_basename(egg_name, egg_version, py_version=None, platform=None):
+    """Compute filename of the output egg. Private API."""
+    name = _normalization.filename_component(egg_name)
+    version = _normalization.filename_component(egg_version)
+    egg = f"{name}-{version}-py{py_version or PY_MAJOR}"
+    if platform:
+        egg += f"-{platform}"
+    return egg
 
 
 class EggInfoDeprecationWarning(SetuptoolsDeprecationWarning):

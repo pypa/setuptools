@@ -7,6 +7,7 @@ def add_ext_suffix_39(vars):
     Ensure vars contains 'EXT_SUFFIX'. pypa/distutils#130
     """
     import _imp
+
     ext_suffix = _imp.extension_suffixes()[0]
     vars.update(
         EXT_SUFFIX=ext_suffix,

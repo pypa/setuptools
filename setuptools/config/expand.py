@@ -14,13 +14,15 @@ We can split the process of interpreting configuration files into 2 steps:
 
 This module focus on the second step, and therefore allow sharing the expansion
 functions among several configuration file formats.
+
+**PRIVATE MODULE**: API reserved for setuptools internal usage only.
 """
 import ast
 import importlib
 import io
 import os
+import pathlib
 import sys
-import warnings
 from glob import iglob
 from configparser import ConfigParser
 from importlib.machinery import ModuleSpec
@@ -39,9 +41,13 @@ from typing import (
     Union,
     cast
 )
+from pathlib import Path
 from types import ModuleType
 
 from distutils.errors import DistutilsOptionError
+
+from .._path import same_path as _same_path
+from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
@@ -58,31 +64,25 @@ class StaticModule:
     """Proxy to a module object that avoids executing arbitrary code."""
 
     def __init__(self, name: str, spec: ModuleSpec):
-        with open(spec.origin) as strm:  # type: ignore
-            src = strm.read()
-        module = ast.parse(src)
+        module = ast.parse(pathlib.Path(spec.origin).read_bytes())
         vars(self).update(locals())
         del self.self
+
+    def _find_assignments(self) -> Iterator[Tuple[ast.AST, ast.AST]]:
+        for statement in self.module.body:
+            if isinstance(statement, ast.Assign):
+                yield from ((target, statement.value) for target in statement.targets)
+            elif isinstance(statement, ast.AnnAssign) and statement.value:
+                yield (statement.target, statement.value)
 
     def __getattr__(self, attr):
         """Attempt to load an attribute "statically", via :func:`ast.literal_eval`."""
         try:
-            assignment_expressions = (
-                statement
-                for statement in self.module.body
-                if isinstance(statement, ast.Assign)
-            )
-            expressions_with_target = (
-                (statement, target)
-                for statement in assignment_expressions
-                for target in statement.targets
-            )
-            matching_values = (
-                statement.value
-                for statement, target in expressions_with_target
+            return next(
+                ast.literal_eval(value)
+                for target, value in self._find_assignments()
                 if isinstance(target, ast.Name) and target.id == attr
             )
-            return next(ast.literal_eval(value) for value in matching_values)
         except Exception as e:
             raise AttributeError(f"{self.name} has no attribute {attr}") from e
 
@@ -141,7 +141,7 @@ def _filter_existing_files(filepaths: Iterable[_Path]) -> Iterator[_Path]:
         if os.path.isfile(path):
             yield path
         else:
-            warnings.warn(f"File {path!r} cannot be found")
+            SetuptoolsWarning.emit(f"File {path!r} cannot be found")
 
 
 def _read_file(filepath: Union[bytes, _Path]) -> str:
@@ -150,7 +150,7 @@ def _read_file(filepath: Union[bytes, _Path]) -> str:
 
 
 def _assert_local(filepath: _Path, root_dir: str):
-    if not os.path.abspath(filepath).startswith(root_dir):
+    if Path(os.path.abspath(root_dir)) not in Path(os.path.abspath(filepath)).parents:
         msg = f"Cannot access {filepath!r} (or anything outside {root_dir!r})"
         raise DistutilsOptionError(msg)
 
@@ -328,25 +328,6 @@ def find_packages(
             fill_package_dir.update(construct_package_dir(pkgs, path))
 
     return packages
-
-
-def _same_path(p1: _Path, p2: _Path) -> bool:
-    """Differs from os.path.samefile because it does not require paths to exist.
-    Purely string based (no comparison between i-nodes).
-    >>> _same_path("a/b", "./a/b")
-    True
-    >>> _same_path("a/b", "a/./b")
-    True
-    >>> _same_path("a/b", "././a/b")
-    True
-    >>> _same_path("a/b", "./a/b/c/..")
-    True
-    >>> _same_path("a/b", "../a/b/c")
-    False
-    >>> _same_path("a", "a/b")
-    False
-    """
-    return os.path.normpath(p1) == os.path.normpath(p2)
 
 
 def _nest_path(parent: _Path, path: _Path) -> str:

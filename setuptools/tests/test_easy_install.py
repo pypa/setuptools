@@ -11,21 +11,18 @@ import itertools
 import distutils.errors
 import io
 import zipfile
-import mock
 import time
 import re
 import subprocess
 import pathlib
 import warnings
 import collections
+from unittest import mock
 
 import pytest
 
 import setuptools.command.easy_install as ei
-from setuptools.command.easy_install import (
-    EasyInstallDeprecationWarning, ScriptWriter, PthDistributions,
-    WindowsScriptWriter,
-)
+from setuptools.command.easy_install import PthDistributions
 from setuptools.dist import Distribution
 from pkg_resources import normalize_path
 from pkg_resources import Distribution as PRDistribution
@@ -56,11 +53,13 @@ class FakeDist:
         return 'spec'
 
 
-SETUP_PY = DALS("""
+SETUP_PY = DALS(
+    """
     from setuptools import setup
 
     setup()
-    """)
+    """
+)
 
 
 class TestEasyInstallTest:
@@ -73,8 +72,7 @@ class TestEasyInstallTest:
         assert "'spec'" in script
         assert "'console_scripts'" in script
         assert "'name'" in script
-        assert re.search(
-            '^# EASY-INSTALL-ENTRY-SCRIPT', script, flags=re.MULTILINE)
+        assert re.search('^# EASY-INSTALL-ENTRY-SCRIPT', script, flags=re.MULTILINE)
 
     def test_no_find_links(self):
         # new option '--no-find-links', that blocks find-links added at
@@ -118,6 +116,7 @@ class TestEasyInstallTest:
 
         def mock_gsp():
             return [path]
+
         monkeypatch.setattr(site, 'getsitepackages', mock_gsp, raising=False)
         assert path in ei.get_site_dirs()
 
@@ -130,7 +129,8 @@ class TestEasyInstallTest:
         files = [
             (
                 'setup.py',
-                DALS("""
+                DALS(
+                    """
                     import setuptools
                     setuptools.setup(
                         name="setuptools-test-unicode",
@@ -138,7 +138,8 @@ class TestEasyInstallTest:
                         packages=["mypkg"],
                         include_package_data=True,
                     )
-                    """),
+                    """
+                ),
             ),
             (
                 'mypkg/__init__.py',
@@ -164,7 +165,8 @@ class TestEasyInstallTest:
         files = [
             (
                 "setup.py",
-                DALS("""
+                DALS(
+                    """
                     import setuptools
                     setuptools.setup(
                         name="setuptools-test-unicode",
@@ -173,7 +175,8 @@ class TestEasyInstallTest:
                         include_package_data=True,
                         scripts=['mypkg/unicode_in_script'],
                     )
-                    """),
+                    """
+                ),
             ),
             ("mypkg/__init__.py", ""),
             (
@@ -185,7 +188,8 @@ class TestEasyInstallTest:
 
                     non_python_fn() {
                     }
-                """),
+                """
+                ),
             ),
         ]
         sdist_name = "setuptools-test-unicode-script-1.0.zip"
@@ -203,21 +207,25 @@ class TestEasyInstallTest:
         files = [
             (
                 'setup.py',
-                DALS("""
+                DALS(
+                    """
                     import setuptools
                     setuptools.setup(
                         name="setuptools-test-script",
                         version="1.0",
                         scripts=["mypkg_script"],
                     )
-                    """),
+                    """
+                ),
             ),
             (
                 'mypkg_script',
-                DALS("""
+                DALS(
+                    """
                      #/usr/bin/python
                      print('mypkg_script')
-                     """),
+                     """
+                ),
             ),
         ]
         sdist_name = 'setuptools-test-script-1.0.zip'
@@ -257,10 +265,58 @@ class TestPTHFileWriter:
         location = '/test/location/does-not-have-to-exist'
         # PthDistributions expects all locations to be normalized
         location = pkg_resources.normalize_path(location)
-        pth = PthDistributions('does-not_exist', [location, ])
+        pth = PthDistributions(
+            'does-not_exist',
+            [
+                location,
+            ],
+        )
         assert not pth.dirty
         pth.add(PRDistribution(location))
         assert not pth.dirty
+
+    def test_many_pth_distributions_merge_together(self, tmpdir):
+        """
+        If the pth file is modified under the hood, then PthDistribution
+        will refresh its content before saving, merging contents when
+        necessary.
+        """
+        # putting the pth file in a dedicated sub-folder,
+        pth_subdir = tmpdir.join("pth_subdir")
+        pth_subdir.mkdir()
+        pth_path = str(pth_subdir.join("file1.pth"))
+        pth1 = PthDistributions(pth_path)
+        pth2 = PthDistributions(pth_path)
+        assert (
+            pth1.paths == pth2.paths == []
+        ), "unless there would be some default added at some point"
+        # and so putting the src_subdir in folder distinct than the pth one,
+        # so to keep it absolute by PthDistributions
+        new_src_path = tmpdir.join("src_subdir")
+        new_src_path.mkdir()  # must exist to be accounted
+        new_src_path_str = str(new_src_path)
+        pth1.paths.append(new_src_path_str)
+        pth1.save()
+        assert (
+            pth1.paths
+        ), "the new_src_path added must still be present/valid in pth1 after save"
+        # now,
+        assert (
+            new_src_path_str not in pth2.paths
+        ), "right before we save the entry should still not be present"
+        pth2.save()
+        assert (
+            new_src_path_str in pth2.paths
+        ), "the new_src_path entry should have been added by pth2 with its save() call"
+        assert pth2.paths[-1] == new_src_path, (
+            "and it should match exactly on the last entry actually "
+            "given we append to it in save()"
+        )
+        # finally,
+        assert PthDistributions(pth_path).paths == pth2.paths, (
+            "and we should have the exact same list at the end "
+            "with a fresh PthDistributions instance"
+        )
 
 
 @pytest.fixture
@@ -274,7 +330,6 @@ def setup_context(tmpdir):
 @pytest.mark.usefixtures("user_override")
 @pytest.mark.usefixtures("setup_context")
 class TestUserInstallTest:
-
     # prevent check that site-packages is writable. easy_install
     # shouldn't be writing to system site-packages during finalize
     # options, but while it does, bypass the behavior.
@@ -384,32 +439,45 @@ class TestInstallRequires:
         self.create_project(project_root)
         cmd = [
             sys.executable,
-            '-c', '__import__("setuptools").setup()',
+            '-c',
+            '__import__("setuptools").setup()',
             'install',
-            '--install-base', str(install_root),
-            '--install-lib', str(install_root),
-            '--install-headers', str(install_root),
-            '--install-scripts', str(install_root),
-            '--install-data', str(install_root),
-            '--install-purelib', str(install_root),
-            '--install-platlib', str(install_root),
+            '--install-base',
+            str(install_root),
+            '--install-lib',
+            str(install_root),
+            '--install-headers',
+            str(install_root),
+            '--install-scripts',
+            str(install_root),
+            '--install-data',
+            str(install_root),
+            '--install-purelib',
+            str(install_root),
+            '--install-platlib',
+            str(install_root),
         ]
-        env = {"PYTHONPATH": str(install_root), "__EASYINSTALL_INDEX": mock_index.url}
-        with pytest.raises(subprocess.CalledProcessError) as exc_info:
-            subprocess.check_output(
-                cmd, cwd=str(project_root), env=env, stderr=subprocess.STDOUT, text=True
-            )
+        env = {**os.environ, "__EASYINSTALL_INDEX": mock_index.url}
+        cp = subprocess.run(
+            cmd,
+            cwd=str(project_root),
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        assert cp.returncode != 0
         try:
             assert '/does-not-exist/' in {r.path for r in mock_index.requests}
             assert next(
                 line
-                for line in exc_info.value.output.splitlines()
+                for line in cp.stdout.splitlines()
                 if "not find suitable distribution for" in line
                 and "does-not-exist" in line
             )
         except Exception:
-            if "failed to get random numbers" in exc_info.value.output:
-                pytest.xfail(f"{sys.platform} failure - {exc_info.value.output}")
+            if "failed to get random numbers" in cp.stdout:
+                pytest.xfail(f"{sys.platform} failure - {cp.stdout}")
             raise
 
     def create_project(self, root):
@@ -432,17 +500,25 @@ def make_trivial_sdist(dist_path, distname, version):
     setup.py.
     """
 
-    make_sdist(dist_path, [
-        ('setup.py',
-         DALS("""\
+    make_sdist(
+        dist_path,
+        [
+            (
+                'setup.py',
+                DALS(
+                    """\
              import setuptools
              setuptools.setup(
                  name=%r,
                  version=%r
              )
-         """ % (distname, version))),
-        ('setup.cfg', ''),
-    ])
+         """
+                    % (distname, version)
+                ),
+            ),
+            ('setup.cfg', ''),
+        ],
+    )
 
 
 def make_nspkg_sdist(dist_path, distname, version):
@@ -457,7 +533,8 @@ def make_nspkg_sdist(dist_path, distname, version):
 
     packages = ['.'.join(parts[:idx]) for idx in range(1, len(parts) + 1)]
 
-    setup_py = DALS("""\
+    setup_py = DALS(
+        """\
         import setuptools
         setuptools.setup(
             name=%r,
@@ -465,12 +542,13 @@ def make_nspkg_sdist(dist_path, distname, version):
             packages=%r,
             namespace_packages=[%r]
         )
-    """ % (distname, version, packages, nspackage))
+    """
+        % (distname, version, packages, nspackage)
+    )
 
     init = "__import__('pkg_resources').declare_namespace(__name__)"
 
-    files = [('setup.py', setup_py),
-             (os.path.join(nspackage, '__init__.py'), init)]
+    files = [('setup.py', setup_py), (os.path.join(nspackage, '__init__.py'), init)]
     for package in packages[1:]:
         filename = os.path.join(*(package.split('.') + ['__init__.py']))
         files.append((filename, ''))
@@ -479,21 +557,27 @@ def make_nspkg_sdist(dist_path, distname, version):
 
 
 def make_python_requires_sdist(dist_path, distname, version, python_requires):
-    make_sdist(dist_path, [
-        (
-            'setup.py',
-            DALS("""\
+    make_sdist(
+        dist_path,
+        [
+            (
+                'setup.py',
+                DALS(
+                    """\
                 import setuptools
                 setuptools.setup(
                   name={name!r},
                   version={version!r},
                   python_requires={python_requires!r},
                 )
-                """).format(
-                name=distname, version=version,
-                python_requires=python_requires)),
-        ('setup.cfg', ''),
-    ])
+                """
+                ).format(
+                    name=distname, version=version, python_requires=python_requires
+                ),
+            ),
+            ('setup.cfg', ''),
+        ],
+    )
 
 
 def make_sdist(dist_path, files):
@@ -513,10 +597,15 @@ def make_sdist(dist_path, files):
             dist.addfile(file_info, fileobj=file_bytes)
 
 
-def create_setup_requires_package(path, distname='foobar', version='0.1',
-                                  make_package=make_trivial_sdist,
-                                  setup_py_template=None, setup_attrs={},
-                                  use_setup_cfg=()):
+def create_setup_requires_package(
+    path,
+    distname='foobar',
+    version='0.1',
+    make_package=make_trivial_sdist,
+    setup_py_template=None,
+    setup_attrs={},
+    use_setup_cfg=(),
+):
     """Creates a source tree under path for a trivial test package that has a
     single requirement in setup_requires--a tarball for that requirement is
     also created and added to the dependency_links argument.
@@ -527,9 +616,10 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
     """
 
     test_setup_attrs = {
-        'name': 'test_pkg', 'version': '0.0',
+        'name': 'test_pkg',
+        'version': '0.0',
         'setup_requires': ['%s==%s' % (distname, version)],
-        'dependency_links': [os.path.abspath(path)]
+        'dependency_links': [os.path.abspath(path)],
     }
     test_setup_attrs.update(setup_attrs)
 
@@ -567,10 +657,12 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
 
     # setup.py
     if setup_py_template is None:
-        setup_py_template = DALS("""\
+        setup_py_template = DALS(
+            """\
             import setuptools
             setuptools.setup(**%r)
-        """)
+        """
+        )
     with open(os.path.join(test_pkg, 'setup.py'), 'w') as f:
         f.write(setup_py_template % test_setup_attrs)
 
@@ -582,7 +674,7 @@ def create_setup_requires_package(path, distname='foobar', version='0.1',
 
 @pytest.mark.skipif(
     sys.platform.startswith('java') and ei.is_sh(sys.executable),
-    reason="Test cannot run under java when executable is sh"
+    reason="Test cannot run under java when executable is sh",
 )
 class TestScriptHeader:
     non_ascii_exe = '/Users/José/bin/python'
@@ -594,22 +686,21 @@ class TestScriptHeader:
         assert actual == expected
 
     def test_get_script_header_args(self):
-        expected = '#!%s -x\n' % ei.nt_quote_arg(
-            os.path.normpath(sys.executable))
+        expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
         actual = ei.ScriptWriter.get_header('#!/usr/bin/python -x')
         assert actual == expected
 
     def test_get_script_header_non_ascii_exe(self):
         actual = ei.ScriptWriter.get_header(
-            '#!/usr/bin/python',
-            executable=self.non_ascii_exe)
+            '#!/usr/bin/python', executable=self.non_ascii_exe
+        )
         expected = str('#!%s -x\n') % self.non_ascii_exe
         assert actual == expected
 
     def test_get_script_header_exe_with_spaces(self):
         actual = ei.ScriptWriter.get_header(
-            '#!/usr/bin/python',
-            executable='"' + self.exe_with_spaces + '"')
+            '#!/usr/bin/python', executable='"' + self.exe_with_spaces + '"'
+        )
         expected = '#!"%s"\n' % self.exe_with_spaces
         assert actual == expected
 
@@ -711,18 +802,29 @@ def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
 
 
 def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path):
-    ''' `setup.py develop` should honor `--user` even under build isolation'''
+    '''`setup.py develop` should honor `--user` even under build isolation'''
 
     # == Arrange ==
     # Pretend that build isolation was enabled
-    # e.g pip sets the environment varible PYTHONNOUSERSITE=1
+    # e.g pip sets the environment variable PYTHONNOUSERSITE=1
     monkeypatch.setattr('site.ENABLE_USER_SITE', False)
 
     # Patching $HOME for 2 reasons:
     # 1. setuptools/command/easy_install.py:create_home_path
-    #    tries creating directories in $HOME
-    # given `self.config_vars['DESTDIRS'] = "/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload"``  # noqa: E501
-    # it will `makedirs("/home/user/.pyenv/versions/3.9.10 /home/user/.pyenv/versions/3.9.10/lib /home/user/.pyenv/versions/3.9.10/lib/python3.9 /home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")``  # noqa: E501
+    #    tries creating directories in $HOME.
+    #    Given::
+    #        self.config_vars['DESTDIRS'] = (
+    #            "/home/user/.pyenv/versions/3.9.10 "
+    #            "/home/user/.pyenv/versions/3.9.10/lib "
+    #            "/home/user/.pyenv/versions/3.9.10/lib/python3.9 "
+    #            "/home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")
+    #    `create_home_path` will::
+    #        makedirs(
+    #            "/home/user/.pyenv/versions/3.9.10 "
+    #            "/home/user/.pyenv/versions/3.9.10/lib "
+    #            "/home/user/.pyenv/versions/3.9.10/lib/python3.9 "
+    #            "/home/user/.pyenv/versions/3.9.10/lib/python3.9/lib-dynload")
+    #
     # 2. We are going to force `site` to update site.USER_BASE and site.USER_SITE
     #    To point inside our new home
     monkeypatch.setenv('HOME', str(tmp_path / '.home'))
@@ -733,7 +835,7 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path)
     user_site = pathlib.Path(site.getusersitepackages())
     user_site.mkdir(parents=True, exist_ok=True)
 
-    sys_prefix = (tmp_path / '.sys_prefix')
+    sys_prefix = tmp_path / '.sys_prefix'
     sys_prefix.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr('sys.prefix', str(sys_prefix))
 

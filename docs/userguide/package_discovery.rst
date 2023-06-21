@@ -1,24 +1,23 @@
 .. _`package_discovery`:
 
 ========================================
-Package Discovery and Namespace Package
+Package Discovery and Namespace Packages
 ========================================
 
 .. note::
-    a full specification for the keyword supplied to ``setup.cfg`` or
-    ``setup.py`` can be found at :doc:`keywords reference <keywords>`
+    a full specification for the keywords supplied to ``setup.cfg`` or
+    ``setup.py`` can be found at :doc:`keywords reference </references/keywords>`
 
-.. note::
-    the examples provided here are only to demonstrate the functionality
+.. important::
+    The examples provided here are only to demonstrate the functionality
     introduced. More metadata and options arguments need to be supplied
     if you want to replicate them on your system. If you are completely
-    new to setuptools, the :doc:`quickstart section <quickstart>` is a good
-    place to start.
+    new to setuptools, the :doc:`quickstart` section is a good place to start.
 
-``Setuptools`` provide powerful tools to handle package discovery, including
-support for namespace package.
+``Setuptools`` provides powerful tools to handle package discovery, including
+support for namespace packages.
 
-Normally, you would specify the package to be included manually in the following manner:
+Normally, you would specify the packages to be included manually in the following manner:
 
 .. tab:: setup.cfg
 
@@ -27,8 +26,9 @@ Normally, you would specify the package to be included manually in the following
         [options]
         #...
         packages =
-            mypkg1
-            mypkg2
+            mypkg
+            mypkg.subpkg1
+            mypkg.subpkg2
 
 .. tab:: setup.py
 
@@ -36,21 +36,21 @@ Normally, you would specify the package to be included manually in the following
 
         setup(
             # ...
-            packages=['mypkg1', 'mypkg2']
+            packages=['mypkg', 'mypkg.subpkg1', 'mypkg.subpkg2']
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
         # ...
         [tool.setuptools]
-        packages = ["mypkg1", "mypkg2"]
+        packages = ["mypkg", "mypkg.subpkg1", "mypkg.subpkg2"]
         # ...
 
 
-If your packages are not in the root of the repository you also need to
-configure ``package_dir``:
+If your packages are not in the root of the repository or do not correspond
+exactly to the directory structure, you also need to configure ``package_dir``:
 
 .. tab:: setup.cfg
 
@@ -60,16 +60,16 @@ configure ``package_dir``:
         # ...
         package_dir =
             = src
-            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+            # directory containing all the packages (e.g.  src/mypkg, src/mypkg/subpkg1, ...)
         # OR
         package_dir =
-            mypkg1 = lib1
-            # mypkg1.mod corresponds to lib1/mod.py
-            # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-            mypkg2 = lib2
-            # mypkg2.mod corresponds to lib2/mod.py
-            mypkg2.subpkg = lib3
-            # mypkg2.subpkg.mod corresponds to lib3/mod.py
+            mypkg = lib
+            # mypkg.module corresponds to lib/module.py
+            mypkg.subpkg1 = lib1
+            # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+            mypkg.subpkg2 = lib2
+            # mypkg.subpkg2.module2 corresponds to lib2/module2.py
+        # ...
 
 .. tab:: setup.py
 
@@ -78,7 +78,7 @@ configure ``package_dir``:
         setup(
             # ...
             package_dir = {"": "src"}
-            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
+            # directory containing all the packages (e.g.  src/mypkg, src/mypkg/subpkg1, ...)
         )
 
         # OR
@@ -86,14 +86,13 @@ configure ``package_dir``:
         setup(
             # ...
             package_dir = {
-                "mypkg1": "lib1",   # mypkg1.mod corresponds to lib1/mod.py
-                                    # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-                "mypkg2": "lib2",   # mypkg2.mod corresponds to lib2/mod.py
-                "mypkg2.subpkg": "lib3"  # mypkg2.subpkg.mod corresponds to lib3/mod.py
+                "mypkg": "lib",  # mypkg.module corresponds to lib/module.py
+                "mypkg.subpkg1": "lib1",  # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+                "mypkg.subpkg2": "lib2"   # mypkg.subpkg2.module2 corresponds to lib2/module2.py
                 # ...
         )
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -105,28 +104,31 @@ configure ``package_dir``:
         # OR
 
         [tool.setuptools.package-dir]
-        mypkg1 = "lib1"
-            # mypkg1.mod corresponds to lib1/mod.py
-            # mypkg1.subpkg.mod corresponds to lib1/subpkg/mod.py
-        mypkg2 = "lib2"
-            # mypkg2.mod corresponds to lib2/mod.py
-        "mypkg2.subpkg" = "lib3"
-            # mypkg2.subpkg.mod corresponds to lib3/mod.py
+        mypkg = "lib"
+        # mypkg.module corresponds to lib/module.py
+        "mypkg.subpkg1" = "lib1"
+        # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+        "mypkg.subpkg2" = "lib2"
+        # mypkg.subpkg2.module2 corresponds to lib2/module2.py
         # ...
 
 This can get tiresome really quickly. To speed things up, you can rely on
 setuptools automatic discovery, or use the provided tools, as explained in
 the following sections.
 
+.. important::
+   Although ``setuptools`` allows developers to create a very complex mapping
+   between directory names and package names, it is better to *keep it simple*
+   and reflect the desired package hierarchy in the directory structure,
+   preserving the same names.
 
 .. _auto-discovery:
 
 Automatic discovery
 ===================
 
-.. warning:: Automatic discovery is an **experimental** feature and might change
-   (or be completely removed) in the future.
-   See :ref:`custom-discovery` for a stable way of configuring ``setuptools``.
+.. warning:: Automatic discovery is a **beta** feature and might change in the future.
+   See :ref:`custom-discovery` for other methods of discovery.
 
 By default ``setuptools`` will consider 2 popular project layouts, each one with
 its own set of advantages and disadvantages [#layout1]_ [#layout2]_ as
@@ -154,14 +156,21 @@ all modules and packages meant for distribution are placed inside this
 directory::
 
     project_root_directory
-    ├── pyproject.toml
-    ├── setup.cfg  # or setup.py
+    ├── pyproject.toml  # AND/OR setup.cfg, setup.py
     ├── ...
     └── src/
         └── mypkg/
             ├── __init__.py
             ├── ...
-            └── mymodule.py
+            ├── module.py
+            ├── subpkg1/
+            │   ├── __init__.py
+            │   ├── ...
+            │   └── module1.py
+            └── subpkg2/
+                ├── __init__.py
+                ├── ...
+                └── module2.py
 
 This layout is very handy when you wish to use automatic discovery,
 since you don't have to worry about other Python files or folders in your
@@ -180,17 +189,24 @@ flat-layout
 The package folder(s) are placed directly under the project root::
 
     project_root_directory
-    ├── pyproject.toml
-    ├── setup.cfg  # or setup.py
+    ├── pyproject.toml  # AND/OR setup.cfg, setup.py
     ├── ...
     └── mypkg/
         ├── __init__.py
         ├── ...
-        └── mymodule.py
+        ├── module.py
+        ├── subpkg1/
+        │   ├── __init__.py
+        │   ├── ...
+        │   └── module1.py
+        └── subpkg2/
+            ├── __init__.py
+            ├── ...
+            └── module2.py
 
 This layout is very practical for using the REPL, but in some situations
 it can be more error-prone (e.g. during tests or if you have a bunch
-of folders or Python files hanging around your project root)
+of folders or Python files hanging around your project root).
 
 To avoid confusion, file and folder names that are used by popular tools (or
 that correspond to well-known conventions, such as distributing documentation
@@ -222,8 +238,7 @@ A standalone module is placed directly under the project root, instead of
 inside a package folder::
 
     project_root_directory
-    ├── pyproject.toml
-    ├── setup.cfg  # or setup.py
+    ├── pyproject.toml  # AND/OR setup.cfg, setup.py
     ├── ...
     └── single_file_lib.py
 
@@ -256,7 +271,7 @@ the provided tools for package discovery:
         # or
         from setuptools import find_namespace_packages
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -264,31 +279,31 @@ the provided tools for package discovery:
         [tool.setuptools.packages]
         find = {}  # Scanning implicit namespaces is active by default
         # OR
-        find = {namespace = false}  # Disable implicit namespaces
+        find = {namespaces = false}  # Disable implicit namespaces
 
 
 Finding simple packages
 -----------------------
 Let's start with the first tool. ``find:`` (``find_packages()``) takes a source
 directory and two lists of package name patterns to exclude and include, and
-then return a list of ``str`` representing the packages it could find. To use
+then returns a list of ``str`` representing the packages it could find. To use
 it, consider the following directory::
 
     mypkg
-    ├── setup.cfg  # and/or setup.py, pyproject.toml
+    ├── pyproject.toml  # AND/OR setup.cfg, setup.py
     └── src
         ├── pkg1
         │   └── __init__.py
         ├── pkg2
         │   └── __init__.py
-        ├── aditional
+        ├── additional
         │   └── __init__.py
         └── pkg
             └── namespace
                 └── __init__.py
 
 To have setuptools to automatically include packages found
-in ``src`` that starts with the name ``pkg`` and not ``additional``:
+in ``src`` that start with the name ``pkg`` and not ``additional``:
 
 .. tab:: setup.cfg
 
@@ -302,7 +317,7 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
         [options.packages.find]
         where = src
         include = pkg*
-        exclude = additional
+        # alternatively: `exclude = additional*`
 
     .. note::
         ``pkg`` does not contain an ``__init__.py`` file, therefore
@@ -316,8 +331,7 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
             # ...
             packages=find_packages(
                 where='src',
-                include=['pkg*'],
-                exclude=['additional'],
+                include=['pkg*'],  # alternatively: `exclude=['additional*']`
             ),
             package_dir={"": "src"}
             # ...
@@ -329,14 +343,13 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
         ``pkg.namespace`` is ignored by ``find_packages()``
         (see ``find_namespace_packages()`` below).
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
         [tool.setuptools.packages.find]
         where = ["src"]
-        include = ["pkg*"]
-        exclude = ["additional"]
+        include = ["pkg*"]  # alternatively: `exclude = ["additional*"]`
         namespaces = false
 
     .. note::
@@ -364,8 +377,8 @@ in ``src`` that starts with the name ``pkg`` and not ``additional``:
 
 Finding namespace packages
 --------------------------
-``setuptools``  provides the ``find_namespace:`` (``find_namespace_packages()``)
-which behaves similarly to ``find:`` but works with namespace package.
+``setuptools``  provides ``find_namespace:`` (``find_namespace_packages()``)
+which behaves similarly to ``find:`` but works with namespace packages.
 
 Before diving in, it is important to have a good understanding of what
 :pep:`namespace packages <420>` are. Here is a quick recap.
@@ -394,7 +407,7 @@ Now, suppose you decide to package the ``foo`` part for distribution and start
 by creating a project directory organized as follows::
 
    foo
-   ├── setup.cfg  # and/or setup.py, pyproject.toml
+   ├── pyproject.toml  # AND/OR setup.cfg, setup.py
    └── src
        └── timmins
            └── foo
@@ -415,7 +428,7 @@ distribution, then you will need to specify:
         [options.packages.find]
         where = src
 
-    ``find:`` won't work because timmins doesn't contain ``__init__.py``
+    ``find:`` won't work because ``timmins`` doesn't contain ``__init__.py``
     directly, instead, you have to use ``find_namespace:``.
 
     You can think of ``find_namespace:`` as identical to ``find:`` except it
@@ -438,7 +451,7 @@ distribution, then you will need to specify:
     On the other hand, ``find_namespace_packages()`` will scan all
     directories.
 
-.. tab:: pyproject.toml (**EXPERIMENTAL**) [#experimental]_
+.. tab:: pyproject.toml (**BETA**) [#beta]_
 
     .. code-block:: toml
 
@@ -494,15 +507,15 @@ available to your interpreter.
 
 Legacy Namespace Packages
 =========================
-The fact you can create namespace package so effortlessly above is credited
-to `PEP 420 <https://www.python.org/dev/peps/pep-0420/>`_. It use to be more
+The fact you can create namespace packages so effortlessly above is credited
+to :pep:`420`. It used to be more
 cumbersome to accomplish the same result. Historically, there were two methods
 to create namespace packages. One is the ``pkg_resources`` style supported by
 ``setuptools`` and the other one being ``pkgutils`` style offered by
-``pkgutils`` module in Python. Both are now considered deprecated despite the
+``pkgutils`` module in Python. Both are now considered *deprecated* despite the
 fact they still linger in many existing packages. These two differ in many
 subtle yet significant aspects and you can find out more on `Python packaging
-user guide <https://packaging.python.org/guides/packaging-namespace-packages/>`_
+user guide <https://packaging.python.org/guides/packaging-namespace-packages/>`_.
 
 
 ``pkg_resource`` style namespace package
@@ -539,7 +552,7 @@ And your directory should look like this
 .. code-block:: bash
 
    foo
-   ├── setup.cfg  # and/or setup.py, pyproject.toml
+   ├── pyproject.toml  # AND/OR setup.cfg, setup.py
    └── src
        └── timmins
            ├── __init__.py
@@ -559,16 +572,16 @@ file contains the following:
 
     __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
-The project layout remains the same and ``setup.cfg`` remains the same.
+The project layout remains the same and ``pyproject.toml/setup.cfg`` remains the same.
 
 
 ----
 
 
-.. [#experimental]
-   Support for specifying package metadata and build configuration options via
-   ``pyproject.toml`` is experimental and might change (or be completely
-   removed) in the future. See :doc:`/userguide/pyproject_config`.
+.. [#beta]
+   Support for adding build configuration options via the ``[tool.setuptools]``
+   table in the ``pyproject.toml`` file is still in **beta** stage.
+   See :doc:`/userguide/pyproject_config`.
 .. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
 .. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
 

@@ -10,12 +10,14 @@ eggs, support for merging packages that have separately-distributed modules or
 subpackages, and APIs for managing Python's current "working set" of active
 packages.
 
-Use of ``pkg_resources`` is discouraged in favor of
-`importlib.resources <https://docs.python.org/3/library/importlib.html#module-importlib.resources>`_,
-`importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_,
-and their backports (:pypi:`importlib_resources`,
-:pypi:`importlib_metadata`).
-Please consider using those libraries instead of pkg_resources.
+.. attention::
+   Use of ``pkg_resources`` is deprecated in favor of
+   :mod:`importlib.resources`, :mod:`importlib.metadata`
+   and their backports (:pypi:`importlib_resources`, :pypi:`importlib_metadata`).
+   Some useful APIs are also provided by :pypi:`packaging` (e.g. requirements
+   and version parsing).
+   Users should refrain from new usage of ``pkg_resources`` and
+   should work to port to importlib-based solutions.
 
 
 --------

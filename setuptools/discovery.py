@@ -42,8 +42,17 @@ import os
 from fnmatch import fnmatchcase
 from glob import glob
 from pathlib import Path
-from typing import TYPE_CHECKING
-from typing import Callable, Dict, Iterator, Iterable, List, Optional, Tuple, Union
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union
+)
 
 import _distutils_hack.override  # noqa: F401
 
@@ -51,7 +60,6 @@ from distutils import log
 from distutils.util import convert_path
 
 _Path = Union[str, os.PathLike]
-_Filter = Callable[[str], bool]
 StrIter = Iterator[str]
 
 chain_iter = itertools.chain.from_iterable
@@ -63,6 +71,22 @@ if TYPE_CHECKING:
 def _valid_name(path: _Path) -> bool:
     # Ignore invalid names that cannot be imported directly
     return os.path.basename(path).isidentifier()
+
+
+class _Filter:
+    """
+    Given a list of patterns, create a callable that will be true only if
+    the input matches at least one of the patterns.
+    """
+
+    def __init__(self, *patterns: str):
+        self._patterns = dict.fromkeys(patterns)
+
+    def __call__(self, item: str) -> bool:
+        return any(fnmatchcase(item, pat) for pat in self._patterns)
+
+    def __contains__(self, item: str) -> bool:
+        return item in self._patterns
 
 
 class _Finder:
@@ -101,22 +125,14 @@ class _Finder:
         return list(
             cls._find_iter(
                 convert_path(str(where)),
-                cls._build_filter(*cls.ALWAYS_EXCLUDE, *exclude),
-                cls._build_filter(*include),
+                _Filter(*cls.ALWAYS_EXCLUDE, *exclude),
+                _Filter(*include),
             )
         )
 
     @classmethod
     def _find_iter(cls, where: _Path, exclude: _Filter, include: _Filter) -> StrIter:
         raise NotImplementedError
-
-    @staticmethod
-    def _build_filter(*patterns: str) -> _Filter:
-        """
-        Given a list of patterns, return a callable that will be true only if
-        the input matches at least one of the patterns.
-        """
-        return lambda name: any(fnmatchcase(name, pat) for pat in patterns)
 
 
 class PackageFinder(_Finder):
@@ -149,6 +165,10 @@ class PackageFinder(_Finder):
                 # Should this package be included?
                 if include(package) and not exclude(package):
                     yield package
+
+                # Early pruning if there is nothing else to be scanned
+                if f"{package}*" in exclude or f"{package}.*" in exclude:
+                    continue
 
                 # Keep searching subdirectories, as there may be more packages
                 # down there, even if the parent was excluded.
@@ -224,6 +244,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "benchmarks",
         "exercise",
         "exercises",
+        "htmlcov",  # Coverage.py
         # ---- Hidden directories/Private packages ----
         "[._]*",
     )
@@ -435,6 +456,7 @@ class ConfigDiscovery:
     def _ensure_no_accidental_inclusion(self, detected: List[str], kind: str):
         if len(detected) > 1:
             from inspect import cleandoc
+
             from setuptools.errors import PackageDiscoveryError
 
             msg = f"""Multiple top-level {kind} discovered in a flat-layout: {detected}.
@@ -470,7 +492,6 @@ class ConfigDiscovery:
         )
         if name:
             self.dist.metadata.name = name
-            self.dist.name = name
 
     def _find_name_single_package_or_module(self) -> Optional[str]:
         """Exactly one module or package"""
@@ -527,7 +548,7 @@ def remove_stubs(packages: List[str]) -> List[str]:
 
 
 def find_parent_package(
-    packages: List[str], package_dir: Dict[str, str], root_dir: _Path
+    packages: List[str], package_dir: Mapping[str, str], root_dir: _Path
 ) -> Optional[str]:
     """Find the parent package that is not a namespace."""
     packages = sorted(packages, key=len)
@@ -550,7 +571,9 @@ def find_parent_package(
     return None
 
 
-def find_package_path(name: str, package_dir: Dict[str, str], root_dir: _Path) -> str:
+def find_package_path(
+    name: str, package_dir: Mapping[str, str], root_dir: _Path
+) -> str:
     """Given a package name, return the path where it should be found on
     disk, considering the ``package_dir`` option.
 

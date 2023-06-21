@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tests for msvc support module (msvc14 unit tests).
 """

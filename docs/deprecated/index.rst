@@ -13,8 +13,13 @@ objectives.
 .. toctree::
     :maxdepth: 1
 
+    changed_keywords
+    dependency_links
     python_eggs
     easy_install
+    zip_safe
+    resource_extraction
     distutils/index
     distutils-legacy
     functionalities
+    commands
