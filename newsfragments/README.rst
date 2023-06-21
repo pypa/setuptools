@@ -23,7 +23,10 @@ Alright! So how to add a news fragment?
 
 ``setuptools`` uses :pypi:`towncrier` for changelog management.
 To submit a change note about your PR, add a text file into the
-``changelog.d/`` folder. It should contain an
+``newsfragments/`` folder, manually or by running
+``towncrier create``.
+
+It should contain an
 explanation of what applying this PR will change in the way
 end-users interact with the project. One sentence is usually
 enough but feel free to add as many details as you feel necessary
@@ -41,7 +44,7 @@ with your own!).
 
 Finally, name your file following the convention that Towncrier
 understands: it should start with the number of an issue or a
-PR followed by a dot, then add a patch type, like ``change``,
+PR followed by a dot, then add a patch type, like ``feature``,
 ``doc``, ``misc`` etc., and add ``.rst`` as a suffix. If you
 need to add more than one fragment, you may add an optional
 sequence number (delimited with another period) between the type
@@ -50,11 +53,11 @@ and the suffix.
 In general the name will follow ``<pr_number>.<category>.rst`` pattern,
 where the categories are:
 
-- ``change``: Any backwards compatible code change
-- ``breaking``: Any backwards-compatibility breaking change
+- ``feature``: Any backwards compatible code change
+- ``bugfix``: A fix for broken behavior of a previous change
 - ``doc``: A change to the documentation
+- ``removal``: Any backwards-compatibility breaking change
 - ``misc``: Changes internal to the repo like CI, test and build changes
-- ``deprecation``: For deprecations of an existing feature or behavior
 
 A pull request may have more than one of these components, for example
 a code change may introduce a new feature that deprecates an old
@@ -65,19 +68,19 @@ changes accompanying the relevant code changes.
 Examples for adding changelog entries to your Pull Requests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-File :file:`changelog.d/2395.doc.1.rst`:
+File :file:`newsfragments/2395.doc.1.rst`:
 
 .. code-block:: rst
 
     Added a ``:user:`` role to Sphinx config -- by :user:`webknjaz`
 
-File :file:`changelog.d/1354.misc.rst`:
+File :file:`newsfragments/1354.misc.rst`:
 
 .. code-block:: rst
 
     Added ``towncrier`` for changelog management -- by :user:`pganssle`
 
-File :file:`changelog.d/2355.change.rst`:
+File :file:`newsfragments/2355.feature.rst`:
 
 .. code-block:: rst
 
@@ -86,7 +89,7 @@ File :file:`changelog.d/2355.change.rst`:
 
 .. tip::
 
-   See :file:`pyproject.toml` for all available categories
+   See :file:`towncrier.toml` for all available categories
    (``tool.towncrier.type``).
 
 .. _Towncrier philosophy:

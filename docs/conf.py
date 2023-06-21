@@ -222,6 +222,8 @@ extensions += ['sphinxcontrib.towncrier']
 towncrier_draft_working_directory = '..'
 # Avoid an empty section for unpublished changes.
 towncrier_draft_include_empty = False
+# sphinx-contrib/sphinxcontrib-towncrier#81
+towncrier_draft_config_path = 'towncrier.toml'
 
 extensions += ['jaraco.tidelift']
 
