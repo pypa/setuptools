@@ -44,7 +44,7 @@ with your own!).
 
 Finally, name your file following the convention that Towncrier
 understands: it should start with the number of an issue or a
-PR followed by a dot, then add a patch type, like ``change``,
+PR followed by a dot, then add a patch type, like ``feature``,
 ``doc``, ``misc`` etc., and add ``.rst`` as a suffix. If you
 need to add more than one fragment, you may add an optional
 sequence number (delimited with another period) between the type
@@ -53,11 +53,11 @@ and the suffix.
 In general the name will follow ``<pr_number>.<category>.rst`` pattern,
 where the categories are:
 
-- ``change``: Any backwards compatible code change
-- ``breaking``: Any backwards-compatibility breaking change
+- ``feature``: Any backwards compatible code change
+- ``bugfix``: A fix for broken behavior of a previous change
 - ``doc``: A change to the documentation
+- ``removal``: Any backwards-compatibility breaking change
 - ``misc``: Changes internal to the repo like CI, test and build changes
-- ``deprecation``: For deprecations of an existing feature or behavior
 
 A pull request may have more than one of these components, for example
 a code change may introduce a new feature that deprecates an old
@@ -80,7 +80,7 @@ File :file:`newsfragments/1354.misc.rst`:
 
     Added ``towncrier`` for changelog management -- by :user:`pganssle`
 
-File :file:`newsfragments/2355.change.rst`:
+File :file:`newsfragments/2355.feature.rst`:
 
 .. code-block:: rst
 

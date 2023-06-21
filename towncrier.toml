@@ -8,28 +8,3 @@ title_format = "{version}"
 issue_format = "#{issue}"
 template = "tools/towncrier_template.rst"
 underlines = ["-", "^"]
-
-[[tool.towncrier.type]]
-directory = "deprecation"
-name = "Deprecations"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "breaking"
-name = "Breaking Changes"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "change"
-name = "Changes"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "doc"
-name = "Documentation changes"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "misc"
-name = "Misc"
-showcontent = true

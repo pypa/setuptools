@@ -13,13 +13,6 @@ import sys
 from jaraco.develop import towncrier
 
 
-towncrier._release_bumps.update(
-    breaking='major',
-    change='minor',
-    deprecation='patch',
-)
-
-
 bump_version_command = [
     sys.executable,
     '-m',
