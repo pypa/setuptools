@@ -86,7 +86,7 @@ File :file:`changelog.d/2355.change.rst`:
 
 .. tip::
 
-   See :file:`pyproject.toml` for all available categories
+   See :file:`towncrier.toml` for all available categories
    (``tool.towncrier.type``).
 
 .. _Towncrier philosophy:
