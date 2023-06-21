@@ -45,6 +45,10 @@ if sys.version_info < (3, 6):
     collect_ignore.append('pavement.py')
 
 
+if sys.version_info < (3, 9):
+    collect_ignore.append('tools/finalize.py')
+
+
 @pytest.fixture(autouse=True)
 def _skip_integration(request):
     running_integration_tests = request.config.getoption("--integration")

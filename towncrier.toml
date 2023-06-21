@@ -4,7 +4,7 @@ package_dir = "setuptools"
 filename = "CHANGES.rst"
 # workaround for sphinx-contrib/sphinxcontrib-towncrier#83
 directory = "newsfragments"
-title_format = "v{version}"
+title_format = "{version}"
 issue_format = "#{issue}"
 template = "tools/towncrier_template.rst"
 underlines = ["-", "^"]
