@@ -7,9 +7,7 @@ import urllib.request
 import urllib.parse
 from distutils.errors import DistutilsSetupError
 from setuptools.dist import (
-    _get_unpatched,
     check_package_data,
-    DistDeprecationWarning,
     check_specifier,
     rfc822_escape,
     rfc822_unescape,
@@ -65,10 +63,6 @@ def test_dist_fetch_build_egg(tmpdir):
             for r in reqs
         ]
     assert [dist.key for dist in resolved_dists if dist] == reqs
-
-
-def test_dist__get_unpatched_deprecated():
-    pytest.warns(DistDeprecationWarning, _get_unpatched, [""])
 
 
 EXAMPLE_BASE_INFO = dict(

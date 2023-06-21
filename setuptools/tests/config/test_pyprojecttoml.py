@@ -12,7 +12,6 @@ from setuptools.config.pyprojecttoml import (
     expand_configuration,
     apply_configuration,
     validate,
-    _InvalidFile,
 )
 from setuptools.dist import Distribution
 from setuptools.errors import OptionError
@@ -366,37 +365,3 @@ def test_include_package_data_in_setuppy(tmp_path):
     assert dist.get_name() == "myproj"
     assert dist.get_version() == "42"
     assert dist.include_package_data is False
-
-
-class TestSkipBadConfig:
-    @pytest.mark.parametrize(
-        "setup_attrs",
-        [
-            {"name": "myproj"},
-            {"install_requires": ["does-not-exist"]},
-        ],
-    )
-    @pytest.mark.parametrize(
-        "pyproject_content",
-        [
-            "[project]\nrequires-python = '>=3.7'\n",
-            "[project]\nversion = '42'\nrequires-python = '>=3.7'\n",
-            "[project]\nname='othername'\nrequires-python = '>=3.7'\n",
-        ],
-    )
-    def test_popular_config(self, tmp_path, pyproject_content, setup_attrs):
-        # See pypa/setuptools#3199 and pypa/cibuildwheel#1064
-        pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(pyproject_content)
-        dist = Distribution(attrs=setup_attrs)
-
-        prev_name = dist.get_name()
-        prev_deps = dist.install_requires
-
-        with pytest.warns(_InvalidFile, match=r"DO NOT include.*\[project\].* table"):
-            dist = apply_configuration(dist, pyproject)
-
-        assert dist.get_name() != "othername"
-        assert dist.get_name() == prev_name
-        assert dist.python_requires is None
-        assert set(dist.install_requires) == set(prev_deps)

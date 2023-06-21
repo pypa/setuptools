@@ -31,8 +31,8 @@ class TestPackageIndex:
         url = 'http://127.0.0.1:0/nonesuch/test_package_index'
         try:
             v = index.open_url(url)
-        except Exception as v:
-            assert url in str(v)
+        except Exception as exc:
+            assert url in str(exc)
         else:
             assert isinstance(v, urllib.error.HTTPError)
 
@@ -48,8 +48,8 @@ class TestPackageIndex:
         )
         try:
             v = index.open_url(url)
-        except Exception as v:
-            assert url in str(v)
+        except Exception as exc:
+            assert url in str(exc)
         else:
             assert isinstance(v, urllib.error.HTTPError)
 
@@ -226,17 +226,9 @@ class TestPackageIndex:
         url = 'svn+https://svn.example/project#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
-        with pytest.warns(UserWarning):
-            with mock.patch("os.system") as os_system_mock:
-                result = index.download(url, str(tmpdir))
-
-        os_system_mock.assert_called()
-
-        expected_dir = str(tmpdir / 'project')
-        expected = (
-            'svn checkout -q ' 'svn+https://svn.example/project {expected_dir}'
-        ).format(**locals())
-        os_system_mock.assert_called_once_with(expected)
+        msg = r".*SVN download is not supported.*"
+        with pytest.raises(distutils.errors.DistutilsError, match=msg):
+            index.download(url, str(tmpdir))
 
 
 class TestContentCheckers:

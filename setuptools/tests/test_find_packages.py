@@ -217,6 +217,7 @@ class TestFlatLayoutPackageFinder:
         ),
         "tool-specific": (
             [
+                "htmlcov/index.html",
                 "pkg/__init__.py",
                 "tasks/__init__.py",
                 "tasks/subpackage/__init__.py",

@@ -56,6 +56,17 @@ containing a ``build-system`` section similar to the example below:
 This section declares what are your build system dependencies, and which
 library will be used to actually do the packaging.
 
+.. note::
+
+   Historically this documentation has unnecessarily listed ``wheel``
+   in the ``requires`` list, and many projects still do that. This is
+   not recommended. The backend automatically adds ``wheel`` dependency
+   when it is required, and listing it explicitly causes it to be
+   unnecessarily required for source distribution builds.
+   You should only include ``wheel`` in ``requires`` if you need to explicitly
+   access it during build time (e.g. if your project needs a ``setup.py``
+   script that imports ``wheel``).
+
 In addition to specifying a build system, you also will need to add
 some package information such as metadata, contents, dependencies, etc.
 This can be done in the same ``pyproject.toml`` [#beta]_ file,
@@ -358,7 +369,7 @@ For the simplest use, you can simply use the ``include_package_data`` keyword:
 
         [tool.setuptools]
         include-package-data = true
-        # This is already the default behaviour if your are using
+        # This is already the default behaviour if you are using
         # pyproject.toml to configure your build.
         # You can deactivate that with `include-package-data = false`
 

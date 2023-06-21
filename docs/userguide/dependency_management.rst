@@ -173,9 +173,8 @@ The environmental markers that may be used for testing platform types are
 detailed in :pep:`508`.
 
 .. seealso::
-   If  environment markers are not enough an specific use case,
-   you can also consider creating a :ref:`backend wrapper <backend-wrapper>`
-   to implement custom detection logic.
+   Alternatively, a :ref:`backend wrapper <backend-wrapper>` can be used for
+   specific use cases where environment markers aren't sufficient.
 
 
 Direct URL dependencies

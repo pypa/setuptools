@@ -11,7 +11,7 @@ wrapper programs are used by copying them to the directory containing
 the script they are to wrap and with the same name as the script they
 are to wrap.
 """
-
+import pathlib
 import sys
 import platform
 import textwrap
@@ -98,6 +98,36 @@ class TestCLI(WrapperTester):
           by preceding each of them with back slashes.
         """
         self.create_script(tmpdir)
+        cmd = [
+            str(tmpdir / 'foo.exe'),
+            'arg1',
+            'arg 2',
+            'arg "2\\"',
+            'arg 4\\',
+            'arg5 a\\\\b',
+        ]
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
+        stdout, stderr = proc.communicate('hello\nworld\n')
+        actual = stdout.replace('\r\n', '\n')
+        expected = textwrap.dedent(r"""
+            \foo-script.py
+            ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
+            'hello\nworld\n'
+            non-optimized
+            """).lstrip()
+        assert actual == expected
+
+    def test_symlink(self, tmpdir):
+        """
+        Ensure that symlink for the foo.exe is working correctly.
+        """
+        script_dir = tmpdir / "script_dir"
+        script_dir.mkdir()
+        self.create_script(script_dir)
+        symlink = pathlib.Path(tmpdir / "foo.exe")
+        symlink.symlink_to(script_dir / "foo.exe")
+
         cmd = [
             str(tmpdir / 'foo.exe'),
             'arg1',

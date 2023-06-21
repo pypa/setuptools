@@ -46,7 +46,7 @@ To instruct setuptools to compile the ``foo.c`` file into the extension module
 
 .. seealso::
    You can find more information on the `Python docs about C/C++ extensions`_.
-   Alternatively, you might also be interested in learn about `Cython`_.
+   Alternatively, you might also be interested in learning about `Cython`_.
 
    If you plan to distribute a package that uses extensions across multiple
    platforms, :pypi:`cibuildwheel` can also be helpful.
