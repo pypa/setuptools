@@ -45,7 +45,7 @@ if sys.version_info < (3, 6):
     collect_ignore.append('pavement.py')
 
 
-if sys.version_info < (3, 9):
+if sys.version_info < (3, 9) or sys.platform == 'cygwin':
     collect_ignore.append('tools/finalize.py')
 
 
