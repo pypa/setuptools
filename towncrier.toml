@@ -7,4 +7,3 @@ directory = "newsfragments"
 title_format = "{version}"
 issue_format = "#{issue}"
 template = "tools/towncrier_template.rst"
-underlines = ["-", "^"]
