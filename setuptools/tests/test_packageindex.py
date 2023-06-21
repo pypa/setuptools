@@ -31,8 +31,8 @@ class TestPackageIndex:
         url = 'http://127.0.0.1:0/nonesuch/test_package_index'
         try:
             v = index.open_url(url)
-        except Exception as v:
-            assert url in str(v)
+        except Exception as exc:
+            assert url in str(exc)
         else:
             assert isinstance(v, urllib.error.HTTPError)
 
@@ -48,8 +48,8 @@ class TestPackageIndex:
         )
         try:
             v = index.open_url(url)
-        except Exception as v:
-            assert url in str(v)
+        except Exception as exc:
+            assert url in str(exc)
         else:
             assert isinstance(v, urllib.error.HTTPError)
 
