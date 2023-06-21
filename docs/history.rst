@@ -7,7 +7,7 @@ History
 
 .. towncrier-draft-entries:: DRAFT, unreleased as on |today|
 
-.. include:: ../CHANGES (links).rst
+.. include:: ../NEWS (links).rst
 
 Credits
 *******
