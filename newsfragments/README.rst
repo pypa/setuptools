@@ -23,7 +23,10 @@ Alright! So how to add a news fragment?
 
 ``setuptools`` uses :pypi:`towncrier` for changelog management.
 To submit a change note about your PR, add a text file into the
-``changelog.d/`` folder. It should contain an
+``newsfragments/`` folder, manually or by running
+``towncrier create``.
+
+It should contain an
 explanation of what applying this PR will change in the way
 end-users interact with the project. One sentence is usually
 enough but feel free to add as many details as you feel necessary
@@ -65,19 +68,19 @@ changes accompanying the relevant code changes.
 Examples for adding changelog entries to your Pull Requests
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-File :file:`changelog.d/2395.doc.1.rst`:
+File :file:`newsfragments/2395.doc.1.rst`:
 
 .. code-block:: rst
 
     Added a ``:user:`` role to Sphinx config -- by :user:`webknjaz`
 
-File :file:`changelog.d/1354.misc.rst`:
+File :file:`newsfragments/1354.misc.rst`:
 
 .. code-block:: rst
 
     Added ``towncrier`` for changelog management -- by :user:`pganssle`
 
-File :file:`changelog.d/2355.change.rst`:
+File :file:`newsfragments/2355.change.rst`:
 
 .. code-block:: rst
 

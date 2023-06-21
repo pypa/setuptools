@@ -2,7 +2,8 @@
 package = "setuptools"
 package_dir = "setuptools"
 filename = "CHANGES.rst"
-directory = "changelog.d"
+# workaround for sphinx-contrib/sphinxcontrib-towncrier#83
+directory = "newsfragments"
 title_format = "v{version}"
 issue_format = "#{issue}"
 template = "tools/towncrier_template.rst"

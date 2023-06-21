@@ -23,7 +23,7 @@ def release_kind():
         else 'minor'
         if 'change' in file.name
         else 'patch'
-        for file in pathlib.Path('changelog.d').iterdir()
+        for file in pathlib.Path('newsfragments').iterdir()
     )
 
 
@@ -80,14 +80,13 @@ def ensure_config():
 
 def check_changes():
     """
-    Verify that all of the files in changelog.d have the appropriate
-    names.
+    Verify that all of the news fragments have the appropriate names.
     """
     allowed = 'deprecation', 'breaking', 'change', 'doc', 'misc'
     except_ = 'README.rst', '.gitignore'
     news_fragments = (
         file
-        for file in pathlib.Path('changelog.d').iterdir()
+        for file in pathlib.Path('newsfragments').iterdir()
         if file.name not in except_
     )
     unrecognized = [
