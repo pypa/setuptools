@@ -108,9 +108,9 @@ Key                       Value Type (TOML)           Notes
 ``platforms``             array                       Sets the ``Platform`` :doc:`core-metadata <PyPUG:specifications/core-metadata>` field
                                                       (*ignored by pip when installing packages*).
 ------------------------- --------------------------- -------------------------
-``zip-safe``              boolean                     **Discouraged** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
+``zip-safe``              boolean                     **Obsolete** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
                                                       in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
-``eager-resources``       array                       **Discouraged** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
+``eager-resources``       array                       **Obsolete** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
                                                       in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
 ``namespace-packages``    array                       **Deprecated** - use implicit namespaces instead (:pep:`420`).
 ========================= =========================== =========================
@@ -119,10 +119,11 @@ Key                       Value Type (TOML)           Notes
    The `TOML value types`_ ``array`` and ``table/inline-table`` are roughly
    equivalent to the Python's :obj:`list` and :obj:`dict` data types, respectively.
 
-Please note that some of these configurations are deprecated or at least
+Please note that some of these configurations are deprecated, obsolete or at least
 discouraged, but they are made available to ensure portability.
-New packages should avoid relying on deprecated/discouraged fields, and
-existing packages should consider alternatives.
+Deprecated and obsolete configurations may be removed in future versions of ``setuptools``.
+New packages should avoid relying on discouraged fields if possible, and
+existing packages should consider migrating to alternatives.
 
 .. tip::
    When both ``py-modules`` and ``packages`` are left unspecified,
