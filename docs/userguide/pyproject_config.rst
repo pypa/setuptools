@@ -108,9 +108,11 @@ Key                       Value Type (TOML)           Notes
 ``platforms``             array                       Sets the ``Platform`` :doc:`core-metadata <PyPUG:specifications/core-metadata>` field
                                                       (*ignored by pip when installing packages*).
 ------------------------- --------------------------- -------------------------
-``zip-safe``              boolean                     **Discouraged** - only relevant for ``pkg_resources`` and/or ``easy_install`` in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
-``eager-resources``       array                       **Discouraged** - only relevant for ``pkg_resources`` and/or ``easy_install`` in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
-``namespace-packages``    array                       **Deprecated** - Use implicit namespaces instead (:pep:`420`).
+``zip-safe``              boolean                     **Discouraged** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
+                                                      in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
+``eager-resources``       array                       **Discouraged** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
+                                                      in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
+``namespace-packages``    array                       **Deprecated** - use implicit namespaces instead (:pep:`420`).
 ========================= =========================== =========================
 
 .. note::
