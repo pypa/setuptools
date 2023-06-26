@@ -43,35 +43,27 @@ class TestDiscoverPackagesAndPyModules:
     """Make sure discovered values for ``packages`` and ``py_modules`` work
     similarly to explicit configuration for the simple scenarios.
     """
+
     OPTIONS = {
         # Different options according to the circumstance being tested
-        "explicit-src": {
-            "package_dir": {"": "src"},
-            "packages": ["pkg"]
-        },
+        "explicit-src": {"package_dir": {"": "src"}, "packages": ["pkg"]},
         "variation-lib": {
             "package_dir": {"": "lib"},  # variation of the source-layout
         },
-        "explicit-flat": {
-            "packages": ["pkg"]
-        },
-        "explicit-single_module": {
-            "py_modules": ["pkg"]
-        },
-        "explicit-namespace": {
-            "packages": ["ns", "ns.pkg"]
-        },
+        "explicit-flat": {"packages": ["pkg"]},
+        "explicit-single_module": {"py_modules": ["pkg"]},
+        "explicit-namespace": {"packages": ["ns", "ns.pkg"]},
         "automatic-src": {},
         "automatic-flat": {},
         "automatic-single_module": {},
-        "automatic-namespace": {}
+        "automatic-namespace": {},
     }
     FILES = {
         "src": ["src/pkg/__init__.py", "src/pkg/main.py"],
         "lib": ["lib/pkg/__init__.py", "lib/pkg/main.py"],
         "flat": ["pkg/__init__.py", "pkg/main.py"],
         "single_module": ["pkg.py"],
-        "namespace": ["ns/pkg/__init__.py"]
+        "namespace": ["ns/pkg/__init__.py"],
     }
 
     def _get_info(self, circumstance):
@@ -164,7 +156,7 @@ class TestDiscoverPackagesAndPyModules:
             requires = []
             build-backend = 'setuptools.build_meta'
             """
-        )
+        ),
     }
 
     @pytest.mark.parametrize(
@@ -172,8 +164,8 @@ class TestDiscoverPackagesAndPyModules:
         product(
             ["setup.cfg", "setup.py", "pyproject.toml"],
             ["packages", "py_modules"],
-            FILES.keys()
-        )
+            FILES.keys(),
+        ),
     )
     def test_purposefully_empty(self, tmp_path, config_file, param, circumstance):
         files = self.FILES[circumstance] + ["mod.py", "other.py", "src/pkg/__init__.py"]
@@ -211,11 +203,11 @@ class TestDiscoverPackagesAndPyModules:
             (
                 # Just the top-level package can have `-stubs`, ignore nested ones
                 ["namespace-stubs/pkg-stubs/__init__.pyi"],
-                {"pkg", "namespace-stubs"}
+                {"pkg", "namespace-stubs"},
             ),
             (["_hidden/file.py"], {"pkg"}),
             (["news/finalize.py"], {"pkg"}),
-        ]
+        ],
     )
     def test_flat_layout_with_extra_files(self, tmp_path, extra_files, pkgs):
         files = self.FILES["flat"] + extra_files
@@ -228,7 +220,7 @@ class TestDiscoverPackagesAndPyModules:
         [
             ["other/__init__.py"],
             ["other/finalize.py"],
-        ]
+        ],
     )
     def test_flat_layout_with_dangerous_extra_files(self, tmp_path, extra_files):
         files = self.FILES["flat"] + extra_files
@@ -295,7 +287,7 @@ class TestWithAttrDirective:
         [
             ("src", {}),
             ("lib", {"packages": "find:", "packages.find": {"where": "lib"}}),
-        ]
+        ],
     )
     def test_setupcfg_metadata(self, tmp_path, folder, opts):
         files = [f"{folder}/pkg/__init__.py", "setup.cfg"]
@@ -455,7 +447,8 @@ class TestWithPackageData:
             (
                 "src",
                 {
-                    "setup.cfg": DALS(EXAMPLE_SETUPCFG) + DALS(
+                    "setup.cfg": DALS(EXAMPLE_SETUPCFG)
+                    + DALS(
                         """
                         packages = find:
                         package_dir =
@@ -465,12 +458,13 @@ class TestWithPackageData:
                         where = src
                         """
                     )
-                }
+                },
             ),
             (
                 "src",
                 {
-                    "pyproject.toml": DALS(EXAMPLE_PYPROJECT) + DALS(
+                    "pyproject.toml": DALS(EXAMPLE_PYPROJECT)
+                    + DALS(
                         """
                         [tool.setuptools]
                         package-dir = {"" = "src"}
@@ -478,7 +472,7 @@ class TestWithPackageData:
                     )
                 },
             ),
-        ]
+        ],
     )
     def test_include_package_data(self, tmp_path, src_root, files):
         """
@@ -540,13 +534,15 @@ def test_preserve_explicit_name_with_dynamic_version(tmpdir_cwd, monkeypatch):
         "src": {
             "pkg": {"__init__.py": "__version__ = 42\n"},
         },
-        "pyproject.toml": DALS("""
+        "pyproject.toml": DALS(
+            """
             [project]
             name = "myproj"  # purposefully different from package name
             dynamic = ["version"]
             [tool.setuptools.dynamic]
             version = {"attr" = "pkg.__version__"}
-            """)
+            """
+        ),
     }
     jaraco.path.build(files)
     dist = Distribution({})

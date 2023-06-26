@@ -676,7 +676,7 @@ class TestSetupRequires:
                 foobar_1_dir = os.path.join(temp_dir, 'foo.bar-0.1')
                 os.mkdir(foobar_1_dir)
                 with tarfile.open(foobar_1_archive) as tf:
-                    tf.extraction_filter = (lambda member, path: member)
+                    tf.extraction_filter = lambda member, path: member
                     tf.extractall(foobar_1_dir)
                 sys.path.insert(1, foobar_1_dir)
 

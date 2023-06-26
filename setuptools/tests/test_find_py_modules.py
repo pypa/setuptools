@@ -29,11 +29,7 @@ class TestModuleFinder:
             {"include": ["f*"], "exclude": ["fo*"]},
             ["file"],
         ),
-        "invalid-name": (
-            ["my-file.py", "other.file.py"],
-            {},
-            []
-        )
+        "invalid-name": (["my-file.py", "other.file.py"], {}, []),
     }
 
     @pytest.mark.parametrize("example", EXAMPLES.keys())
@@ -56,22 +52,16 @@ class TestFlatLayoutModuleFinder:
 
     EXAMPLES = {
         # circumstance: (files, expected_modules)
-        "hidden-files": (
-            [".module.py"],
-            []
-        ),
-        "private-modules": (
-            ["_module.py"],
-            []
-        ),
+        "hidden-files": ([".module.py"], []),
+        "private-modules": (["_module.py"], []),
         "common-names": (
             ["setup.py", "conftest.py", "test.py", "tests.py", "example.py", "mod.py"],
-            ["mod"]
+            ["mod"],
         ),
         "tool-specific": (
             ["tasks.py", "fabfile.py", "noxfile.py", "dodo.py", "manage.py", "mod.py"],
-            ["mod"]
-        )
+            ["mod"],
+        ),
     }
 
     @pytest.mark.parametrize("example", EXAMPLES.keys())

@@ -26,9 +26,7 @@ class TestSandbox:
         """
         It should be possible to execute a setup.py with a Byte Order Mark
         """
-        target = pkg_resources.resource_filename(
-            __name__,
-            'script-with-bom.py')
+        target = pkg_resources.resource_filename(__name__, 'script-with-bom.py')
         namespace = types.ModuleType('namespace')
         setuptools.sandbox._execfile(target, vars(namespace))
         assert namespace.result == 'passed'
@@ -76,6 +74,7 @@ class TestExceptionSaver:
     def test_unpickleable_exception(self):
         class CantPickleThis(Exception):
             "This Exception is unpickleable because it's not in globals"
+
             def __repr__(self):
                 return 'CantPickleThis%r' % (self.args,)
 
@@ -103,7 +102,7 @@ class TestExceptionSaver:
                 setuptools.sandbox.hide_setuptools()
                 raise ExceptionUnderTest()
 
-        msg, = caught.value.args
+        (msg,) = caught.value.args
         assert msg == 'ExceptionUnderTest()'
 
     def test_sandbox_violation_raised_hiding_setuptools(self, tmpdir):

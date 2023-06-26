@@ -70,15 +70,23 @@ def setuptools_sdist(tmp_path_factory, request):
         return Path(os.getenv("PRE_BUILT_SETUPTOOLS_SDIST")).resolve()
 
     with contexts.session_locked_tmp_dir(
-            request, tmp_path_factory, "sdist_build") as tmp:
+        request, tmp_path_factory, "sdist_build"
+    ) as tmp:
         dist = next(tmp.glob("*.tar.gz"), None)
         if dist:
             return dist
 
-        subprocess.check_call([
-            sys.executable, "-m", "build", "--sdist",
-            "--outdir", str(tmp), str(request.config.rootdir)
-        ])
+        subprocess.check_call(
+            [
+                sys.executable,
+                "-m",
+                "build",
+                "--sdist",
+                "--outdir",
+                str(tmp),
+                str(request.config.rootdir),
+            ]
+        )
         return next(tmp.glob("*.tar.gz"))
 
 
@@ -88,15 +96,23 @@ def setuptools_wheel(tmp_path_factory, request):
         return Path(os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL")).resolve()
 
     with contexts.session_locked_tmp_dir(
-            request, tmp_path_factory, "wheel_build") as tmp:
+        request, tmp_path_factory, "wheel_build"
+    ) as tmp:
         dist = next(tmp.glob("*.whl"), None)
         if dist:
             return dist
 
-        subprocess.check_call([
-            sys.executable, "-m", "build", "--wheel",
-            "--outdir", str(tmp) , str(request.config.rootdir)
-        ])
+        subprocess.check_call(
+            [
+                sys.executable,
+                "-m",
+                "build",
+                "--wheel",
+                "--outdir",
+                str(tmp),
+                str(request.config.rootdir),
+            ]
+        )
         return next(tmp.glob("*.whl"))
 
 

@@ -55,10 +55,14 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
 
     if any(getattr(d, "entry_points", None) for d in (dist_toml, dist_cfg)):
         print(dist_cfg.entry_points)
-        ep_toml = {(k, *sorted(i.replace(" ", "") for i in v))
-                   for k, v in dist_toml.entry_points.items()}
-        ep_cfg = {(k, *sorted(i.replace(" ", "") for i in v))
-                  for k, v in dist_cfg.entry_points.items()}
+        ep_toml = {
+            (k, *sorted(i.replace(" ", "") for i in v))
+            for k, v in dist_toml.entry_points.items()
+        }
+        ep_cfg = {
+            (k, *sorted(i.replace(" ", "") for i in v))
+            for k, v in dist_cfg.entry_points.items()
+        }
         assert ep_toml == ep_cfg
 
     if any(getattr(d, "package_data", None) for d in (dist_toml, dist_cfg)):
@@ -157,9 +161,9 @@ def main_tomatoes(): pass
 
 
 def _pep621_example_project(
-        tmp_path,
-        readme="README.rst",
-        pyproject_text=PEP621_EXAMPLE,
+    tmp_path,
+    readme="README.rst",
+    pyproject_text=PEP621_EXAMPLE,
 ):
     pyproject = tmp_path / "pyproject.toml"
     text = pyproject_text
@@ -188,7 +192,7 @@ def test_pep621_example(tmp_path):
         ("Readme.txt", "text/plain"),
         ("readme.md", "text/markdown"),
         ("text.rst", "text/x-rst"),
-    ]
+    ],
 )
 def test_readme_content_type(tmp_path, readme, ctype):
     pyproject = _pep621_example_project(tmp_path, readme)
@@ -232,11 +236,14 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
     ),
 )
 def test_utf8_maintainer_in_metadata(  # issue-3663
-        expected_maintainers_meta_value,
-        pyproject_text, tmp_path,
+    expected_maintainers_meta_value,
+    pyproject_text,
+    tmp_path,
 ):
     pyproject = _pep621_example_project(
-        tmp_path, "README", pyproject_text=pyproject_text,
+        tmp_path,
+        "README",
+        pyproject_text=pyproject_text,
     )
     dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
     assert dist.metadata.maintainer_email == expected_maintainers_meta_value
@@ -323,7 +330,7 @@ class TestPresetField:
         [
             ("install_requires", "dependencies", ["six"]),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
-        ]
+        ],
     )
     def test_not_listed_in_dynamic(self, tmp_path, attr, field, value):
         """For the time being we just warn if the user pre-set values (e.g. via
@@ -346,7 +353,7 @@ class TestPresetField:
             ("extras_require", "optional-dependencies", {}),
             ("install_requires", "dependencies", ["six"]),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
-        ]
+        ],
     )
     def test_listed_in_dynamic(self, tmp_path, attr, field, value):
         pyproject = self.pyproject(tmp_path, [field])
@@ -387,8 +394,7 @@ class TestPresetField:
         assert "bar" in reqs
 
     @pytest.mark.parametrize(
-        "field,group",
-        [("scripts", "console_scripts"), ("gui-scripts", "gui_scripts")]
+        "field,group", [("scripts", "console_scripts"), ("gui-scripts", "gui_scripts")]
     )
     @pytest.mark.filterwarnings("error")
     def test_scripts_dont_require_dynamic_entry_points(self, tmp_path, field, group):

@@ -16,6 +16,7 @@ from ..textwrap import DALS
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
+
     section_prefix = "**err**"
 
 
@@ -33,7 +34,6 @@ def make_package_dir(name, base_dir, ns=False):
 def fake_env(
     tmpdir, setup_cfg, setup_py=None, encoding='ascii', package_path='fake_package'
 ):
-
     if setup_py is None:
         setup_py = 'from setuptools import setup\n' 'setup()\n'
 
@@ -69,7 +69,6 @@ def get_dist(tmpdir, kwargs_initial=None, parse=True):
 
 
 def test_parsers_implemented():
-
     with pytest.raises(NotImplementedError):
         handler = ErrConfigHandler(None, {}, False, Mock())
         handler.parsers
@@ -113,7 +112,6 @@ class TestConfigurationReader:
 
 class TestMetadata:
     def test_basic(self, tmpdir):
-
         fake_env(
             tmpdir,
             '[metadata]\n'
@@ -171,7 +169,6 @@ class TestMetadata:
             assert metadata.license == "Apache 2.0"
 
     def test_file_mixed(self, tmpdir):
-
         fake_env(
             tmpdir,
             '[metadata]\n' 'long_description = file: README.rst, CHANGES.rst\n' '\n',
@@ -186,7 +183,6 @@ class TestMetadata:
             )
 
     def test_file_sandboxed(self, tmpdir):
-
         tmpdir.ensure("README")
         project = tmpdir.join('depth1', 'depth2')
         project.ensure(dir=True)
@@ -197,7 +193,6 @@ class TestMetadata:
                 dist.parse_config_files()  # file: out of sandbox
 
     def test_aliases(self, tmpdir):
-
         fake_env(
             tmpdir,
             '[metadata]\n'
@@ -222,7 +217,6 @@ class TestMetadata:
             ]
 
     def test_multiline(self, tmpdir):
-
         fake_env(
             tmpdir,
             '[metadata]\n'
@@ -243,7 +237,6 @@ class TestMetadata:
             ]
 
     def test_dict(self, tmpdir):
-
         fake_env(
             tmpdir,
             '[metadata]\n'
@@ -259,7 +252,6 @@ class TestMetadata:
             }
 
     def test_version(self, tmpdir):
-
         package_dir, config = fake_env(
             tmpdir, '[metadata]\n' 'version = attr: fake_package.VERSION\n'
         )
@@ -298,7 +290,6 @@ class TestMetadata:
             assert dist.metadata.version == '2016.11.26'
 
     def test_version_file(self, tmpdir):
-
         _, config = fake_env(
             tmpdir, '[metadata]\n' 'version = file: fake_package/version.txt\n'
         )
@@ -313,7 +304,6 @@ class TestMetadata:
                 dist.metadata.version
 
     def test_version_with_package_dir_simple(self, tmpdir):
-
         _, config = fake_env(
             tmpdir,
             '[metadata]\n'
@@ -328,7 +318,6 @@ class TestMetadata:
             assert dist.metadata.version == '1.2.3'
 
     def test_version_with_package_dir_rename(self, tmpdir):
-
         _, config = fake_env(
             tmpdir,
             '[metadata]\n'
@@ -343,7 +332,6 @@ class TestMetadata:
             assert dist.metadata.version == '1.2.3'
 
     def test_version_with_package_dir_complex(self, tmpdir):
-
         _, config = fake_env(
             tmpdir,
             '[metadata]\n'
@@ -358,13 +346,11 @@ class TestMetadata:
             assert dist.metadata.version == '1.2.3'
 
     def test_unknown_meta_item(self, tmpdir):
-
         fake_env(tmpdir, '[metadata]\n' 'name = fake_name\n' 'unknown = some\n')
         with get_dist(tmpdir, parse=False) as dist:
             dist.parse_config_files()  # Skip unknown.
 
     def test_usupported_section(self, tmpdir):
-
         fake_env(tmpdir, '[metadata.some]\n' 'key = val\n')
         with get_dist(tmpdir, parse=False) as dist:
             with pytest.raises(DistutilsOptionError):
@@ -493,7 +479,6 @@ class TestMetadata:
 
 class TestOptions:
     def test_basic(self, tmpdir):
-
         fake_env(
             tmpdir,
             '[options]\n'
@@ -859,7 +844,7 @@ class TestOptions:
             '      *.ico\n'
             'audio = \n'
             '      *.wav\n'
-            '      sounds.db\n'
+            '      sounds.db\n',
         )
 
         # Create dummy files for glob()'s sake:
@@ -926,8 +911,7 @@ class TestOptions:
         module_path = Path(tmpdir, "src/custom_build.py")  # auto discovery for src
         module_path.parent.mkdir(parents=True, exist_ok=True)
         module_path.write_text(
-            "from distutils.core import Command\n"
-            "class CustomCmd(Command): pass\n"
+            "from distutils.core import Command\n" "class CustomCmd(Command): pass\n"
         )
 
         setup_cfg = """
@@ -946,12 +930,14 @@ class TestOptions:
     def test_requirements_file(self, tmpdir):
         fake_env(
             tmpdir,
-            DALS("""
+            DALS(
+                """
             [options]
             install_requires = file:requirements.txt
             [options.extras_require]
             colors = file:requirements-extra.txt
-            """)
+            """
+            ),
         )
 
         tmpdir.join('requirements.txt').write('\ndocutils>=0.3\n\n')

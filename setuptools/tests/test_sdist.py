@@ -523,7 +523,7 @@ class TestSdistTest:
             dynamic = ["version"]
             [tool.setuptools.dynamic]
             version = {file = "src/VERSION.txt"}
-            """
+            """,
     }
 
     @pytest.mark.parametrize("config", _EXAMPLE_DIRECTIVES.keys())

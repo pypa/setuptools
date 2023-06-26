@@ -53,7 +53,7 @@ class WrapperTester:
 
 
 def win_launcher_exe(prefix):
-    """ A simple routine to select launcher script based on platform."""
+    """A simple routine to select launcher script based on platform."""
     assert prefix in ('cli', 'gui')
     if platform.machine() == "ARM64":
         return "{}-arm64.exe".format(prefix)
@@ -66,7 +66,8 @@ class TestCLI(WrapperTester):
     wrapper_name = 'foo.exe'
     wrapper_source = win_launcher_exe('cli')
 
-    script_tmpl = textwrap.dedent("""
+    script_tmpl = textwrap.dedent(
+        """
         #!%(python_exe)s
         import sys
         input = repr(sys.stdin.read())
@@ -75,7 +76,8 @@ class TestCLI(WrapperTester):
         print(input)
         if __debug__:
             print('non-optimized')
-        """).lstrip()
+        """
+    ).lstrip()
 
     def test_basic(self, tmpdir):
         """
@@ -107,15 +109,18 @@ class TestCLI(WrapperTester):
             'arg5 a\\\\b',
         ]
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
+            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True
+        )
         stdout, stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
-        expected = textwrap.dedent(r"""
+        expected = textwrap.dedent(
+            r"""
             \foo-script.py
             ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
             'hello\nworld\n'
             non-optimized
-            """).lstrip()
+            """
+        ).lstrip()
         assert actual == expected
 
     def test_symlink(self, tmpdir):
@@ -137,15 +142,18 @@ class TestCLI(WrapperTester):
             'arg5 a\\\\b',
         ]
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True)
+            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True
+        )
         stdout, stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
-        expected = textwrap.dedent(r"""
+        expected = textwrap.dedent(
+            r"""
             \foo-script.py
             ['arg1', 'arg 2', 'arg "2\\"', 'arg 4\\', 'arg5 a\\\\b']
             'hello\nworld\n'
             non-optimized
-            """).lstrip()
+            """
+        ).lstrip()
         assert actual == expected
 
     def test_with_options(self, tmpdir):
@@ -160,7 +168,8 @@ class TestCLI(WrapperTester):
         enter the interpreter after running the script, you could use -Oi:
         """
         self.create_script(tmpdir)
-        tmpl = textwrap.dedent("""
+        tmpl = textwrap.dedent(
+            """
             #!%(python_exe)s  -Oi
             import sys
             input = repr(sys.stdin.read())
@@ -170,7 +179,8 @@ class TestCLI(WrapperTester):
             if __debug__:
                 print('non-optimized')
             sys.ps1 = '---'
-            """).lstrip()
+            """
+        ).lstrip()
         with (tmpdir / 'foo-script.py').open('w') as f:
             f.write(self.prep_script(tmpl))
         cmd = [str(tmpdir / 'foo.exe')]
@@ -183,12 +193,14 @@ class TestCLI(WrapperTester):
         )
         stdout, stderr = proc.communicate()
         actual = stdout.replace('\r\n', '\n')
-        expected = textwrap.dedent(r"""
+        expected = textwrap.dedent(
+            r"""
             \foo-script.py
             []
             ''
             ---
-            """).lstrip()
+            """
+        ).lstrip()
         assert actual == expected
 
 
@@ -197,17 +209,20 @@ class TestGUI(WrapperTester):
     Testing the GUI Version
     -----------------------
     """
+
     script_name = 'bar-script.pyw'
     wrapper_source = win_launcher_exe('gui')
     wrapper_name = 'bar.exe'
 
-    script_tmpl = textwrap.dedent("""
+    script_tmpl = textwrap.dedent(
+        """
         #!%(python_exe)s
         import sys
         f = open(sys.argv[1], 'wb')
         bytes_written = f.write(repr(sys.argv[2]).encode('utf-8'))
         f.close()
-        """).strip()
+        """
+    ).strip()
 
     def test_basic(self, tmpdir):
         """Test the GUI version with the simple script, bar-script.py"""
@@ -219,8 +234,12 @@ class TestGUI(WrapperTester):
             'Test Argument',
         ]
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE,
-            stderr=subprocess.STDOUT, text=True)
+            cmd,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
         stdout, stderr = proc.communicate()
         assert not stdout
         assert not stderr

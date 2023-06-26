@@ -27,30 +27,34 @@ def test_dist_fetch_build_egg(tmpdir):
     Check multiple calls to `Distribution.fetch_build_egg` work as expected.
     """
     index = tmpdir.mkdir('index')
-    index_url = urllib.parse.urljoin(
-        'file://', urllib.request.pathname2url(str(index)))
+    index_url = urllib.parse.urljoin('file://', urllib.request.pathname2url(str(index)))
 
     def sdist_with_index(distname, version):
         dist_dir = index.mkdir(distname)
         dist_sdist = '%s-%s.tar.gz' % (distname, version)
         make_nspkg_sdist(str(dist_dir.join(dist_sdist)), distname, version)
         with dist_dir.join('index.html').open('w') as fp:
-            fp.write(DALS(
-                '''
+            fp.write(
+                DALS(
+                    '''
                 <!DOCTYPE html><html><body>
                 <a href="{dist_sdist}" rel="internal">{dist_sdist}</a><br/>
                 </body></html>
                 '''
-            ).format(dist_sdist=dist_sdist))
+                ).format(dist_sdist=dist_sdist)
+            )
+
     sdist_with_index('barbazquux', '3.2.0')
     sdist_with_index('barbazquux-runner', '2.11.1')
     with tmpdir.join('setup.cfg').open('w') as fp:
-        fp.write(DALS(
-            '''
+        fp.write(
+            DALS(
+                '''
             [easy_install]
             index_url = {index_url}
             '''
-        ).format(index_url=index_url))
+            ).format(index_url=index_url)
+        )
     reqs = '''
     barbazquux-runner
     barbazquux
@@ -58,10 +62,7 @@ def test_dist_fetch_build_egg(tmpdir):
     with tmpdir.as_cwd():
         dist = Distribution()
         dist.parse_config_files()
-        resolved_dists = [
-            dist.fetch_build_egg(r)
-            for r in reqs
-        ]
+        resolved_dists = [dist.fetch_build_egg(r) for r in reqs]
     assert [dist.key for dist in resolved_dists if dist] == reqs
 
 
@@ -83,22 +84,34 @@ def __read_test_cases():
 
     test_cases = [
         ('Metadata version 1.0', params()),
-        ('Metadata Version 1.0: Short long description', params(
-            long_description='Short long description',
-        )),
-        ('Metadata version 1.1: Classifiers', params(
-            classifiers=[
-                'Programming Language :: Python :: 3',
-                'Programming Language :: Python :: 3.7',
-                'License :: OSI Approved :: MIT License',
-            ],
-        )),
-        ('Metadata version 1.1: Download URL', params(
-            download_url='https://example.com',
-        )),
-        ('Metadata Version 1.2: Requires-Python', params(
-            python_requires='>=3.7',
-        )),
+        (
+            'Metadata Version 1.0: Short long description',
+            params(
+                long_description='Short long description',
+            ),
+        ),
+        (
+            'Metadata version 1.1: Classifiers',
+            params(
+                classifiers=[
+                    'Programming Language :: Python :: 3',
+                    'Programming Language :: Python :: 3.7',
+                    'License :: OSI Approved :: MIT License',
+                ],
+            ),
+        ),
+        (
+            'Metadata version 1.1: Download URL',
+            params(
+                download_url='https://example.com',
+            ),
+        ),
+        (
+            'Metadata Version 1.2: Requires-Python',
+            params(
+                python_requires='>=3.7',
+            ),
+        ),
         pytest.param(
             'Metadata Version 1.2: Project-Url',
             params(project_urls=dict(Foo='https://example.bar')),
@@ -106,36 +119,59 @@ def __read_test_cases():
                 reason="Issue #1578: project_urls not read",
             ),
         ),
-        ('Metadata Version 2.1: Long Description Content Type', params(
-            long_description_content_type='text/x-rst; charset=UTF-8',
-        )),
-        ('License', params(license='MIT', )),
-        ('License multiline', params(
-            license='This is a long license \nover multiple lines',
-        )),
+        (
+            'Metadata Version 2.1: Long Description Content Type',
+            params(
+                long_description_content_type='text/x-rst; charset=UTF-8',
+            ),
+        ),
+        (
+            'License',
+            params(
+                license='MIT',
+            ),
+        ),
+        (
+            'License multiline',
+            params(
+                license='This is a long license \nover multiple lines',
+            ),
+        ),
         pytest.param(
             'Metadata Version 2.1: Provides Extra',
             params(provides_extras=['foo', 'bar']),
             marks=pytest.mark.xfail(reason="provides_extras not read"),
         ),
-        ('Missing author', dict(
-            name='foo',
-            version='1.0.0',
-            author_email='snorri@sturluson.name',
-        )),
-        ('Missing author e-mail', dict(
-            name='foo',
-            version='1.0.0',
-            author='Snorri Sturluson',
-        )),
-        ('Missing author and e-mail', dict(
-            name='foo',
-            version='1.0.0',
-        )),
-        ('Bypass normalized version', dict(
-            name='foo',
-            version=sic('1.0.0a'),
-        )),
+        (
+            'Missing author',
+            dict(
+                name='foo',
+                version='1.0.0',
+                author_email='snorri@sturluson.name',
+            ),
+        ),
+        (
+            'Missing author e-mail',
+            dict(
+                name='foo',
+                version='1.0.0',
+                author='Snorri Sturluson',
+            ),
+        ),
+        (
+            'Missing author and e-mail',
+            dict(
+                name='foo',
+                version='1.0.0',
+            ),
+        ),
+        (
+            'Bypass normalized version',
+            dict(
+                name='foo',
+                version=sic('1.0.0a'),
+            ),
+        ),
     ]
 
     return test_cases
@@ -180,9 +216,7 @@ def test_read_metadata(name, attrs):
 
 
 def __maintainer_test_cases():
-    attrs = {"name": "package",
-             "version": "1.0",
-             "description": "xxx"}
+    attrs = {"name": "package", "version": "1.0", "description": "xxx"}
 
     def merge_dicts(d1, d2):
         d1 = d1.copy()
@@ -192,40 +226,60 @@ def __maintainer_test_cases():
 
     test_cases = [
         ('No author, no maintainer', attrs.copy()),
-        ('Author (no e-mail), no maintainer', merge_dicts(
-            attrs,
-            {'author': 'Author Name'})),
-        ('Author (e-mail), no maintainer', merge_dicts(
-            attrs,
-            {'author': 'Author Name',
-             'author_email': 'author@name.com'})),
-        ('No author, maintainer (no e-mail)', merge_dicts(
-            attrs,
-            {'maintainer': 'Maintainer Name'})),
-        ('No author, maintainer (e-mail)', merge_dicts(
-            attrs,
-            {'maintainer': 'Maintainer Name',
-             'maintainer_email': 'maintainer@name.com'})),
-        ('Author (no e-mail), Maintainer (no-email)', merge_dicts(
-            attrs,
-            {'author': 'Author Name',
-             'maintainer': 'Maintainer Name'})),
-        ('Author (e-mail), Maintainer (e-mail)', merge_dicts(
-            attrs,
-            {'author': 'Author Name',
-             'author_email': 'author@name.com',
-             'maintainer': 'Maintainer Name',
-             'maintainer_email': 'maintainer@name.com'})),
-        ('No author (e-mail), no maintainer (e-mail)', merge_dicts(
-            attrs,
-            {'author_email': 'author@name.com',
-             'maintainer_email': 'maintainer@name.com'})),
-        ('Author unicode', merge_dicts(
-            attrs,
-            {'author': '鉄沢寛'})),
-        ('Maintainer unicode', merge_dicts(
-            attrs,
-            {'maintainer': 'Jan Łukasiewicz'})),
+        (
+            'Author (no e-mail), no maintainer',
+            merge_dicts(attrs, {'author': 'Author Name'}),
+        ),
+        (
+            'Author (e-mail), no maintainer',
+            merge_dicts(
+                attrs, {'author': 'Author Name', 'author_email': 'author@name.com'}
+            ),
+        ),
+        (
+            'No author, maintainer (no e-mail)',
+            merge_dicts(attrs, {'maintainer': 'Maintainer Name'}),
+        ),
+        (
+            'No author, maintainer (e-mail)',
+            merge_dicts(
+                attrs,
+                {
+                    'maintainer': 'Maintainer Name',
+                    'maintainer_email': 'maintainer@name.com',
+                },
+            ),
+        ),
+        (
+            'Author (no e-mail), Maintainer (no-email)',
+            merge_dicts(
+                attrs, {'author': 'Author Name', 'maintainer': 'Maintainer Name'}
+            ),
+        ),
+        (
+            'Author (e-mail), Maintainer (e-mail)',
+            merge_dicts(
+                attrs,
+                {
+                    'author': 'Author Name',
+                    'author_email': 'author@name.com',
+                    'maintainer': 'Maintainer Name',
+                    'maintainer_email': 'maintainer@name.com',
+                },
+            ),
+        ),
+        (
+            'No author (e-mail), no maintainer (e-mail)',
+            merge_dicts(
+                attrs,
+                {
+                    'author_email': 'author@name.com',
+                    'maintainer_email': 'maintainer@name.com',
+                },
+            ),
+        ),
+        ('Author unicode', merge_dicts(attrs, {'author': '鉄沢寛'})),
+        ('Maintainer unicode', merge_dicts(attrs, {'maintainer': 'Jan Łukasiewicz'})),
     ]
 
     return test_cases
@@ -276,56 +330,68 @@ def test_provides_extras_deterministic_order():
     dist = Distribution(attrs)
     assert dist.metadata.provides_extras == ['a', 'b']
     attrs['extras_require'] = collections.OrderedDict(
-        reversed(list(attrs['extras_require'].items())))
+        reversed(list(attrs['extras_require'].items()))
+    )
     dist = Distribution(attrs)
     assert dist.metadata.provides_extras == ['b', 'a']
 
 
 CHECK_PACKAGE_DATA_TESTS = (
     # Valid.
-    ({
-        '': ['*.txt', '*.rst'],
-        'hello': ['*.msg'],
-    }, None),
+    (
+        {
+            '': ['*.txt', '*.rst'],
+            'hello': ['*.msg'],
+        },
+        None,
+    ),
     # Not a dictionary.
-    ((
-        ('', ['*.txt', '*.rst']),
-        ('hello', ['*.msg']),
-    ), (
-        "'package_data' must be a dictionary mapping package"
-        " names to lists of string wildcard patterns"
-    )),
+    (
+        (
+            ('', ['*.txt', '*.rst']),
+            ('hello', ['*.msg']),
+        ),
+        (
+            "'package_data' must be a dictionary mapping package"
+            " names to lists of string wildcard patterns"
+        ),
+    ),
     # Invalid key type.
-    ({
-        400: ['*.txt', '*.rst'],
-    }, (
-        "keys of 'package_data' dict must be strings (got 400)"
-    )),
+    (
+        {
+            400: ['*.txt', '*.rst'],
+        },
+        ("keys of 'package_data' dict must be strings (got 400)"),
+    ),
     # Invalid value type.
-    ({
-        'hello': str('*.msg'),
-    }, (
-        "\"values of 'package_data' dict\" "
-        "must be a list of strings (got '*.msg')"
-    )),
+    (
+        {
+            'hello': str('*.msg'),
+        },
+        (
+            "\"values of 'package_data' dict\" "
+            "must be a list of strings (got '*.msg')"
+        ),
+    ),
     # Invalid value type (generators are single use)
-    ({
-        'hello': (x for x in "generator"),
-    }, (
-        "\"values of 'package_data' dict\" must be a list of strings "
-        "(got <generator object"
-    )),
+    (
+        {
+            'hello': (x for x in "generator"),
+        },
+        (
+            "\"values of 'package_data' dict\" must be a list of strings "
+            "(got <generator object"
+        ),
+    ),
 )
 
 
-@pytest.mark.parametrize(
-    'package_data, expected_message', CHECK_PACKAGE_DATA_TESTS)
+@pytest.mark.parametrize('package_data, expected_message', CHECK_PACKAGE_DATA_TESTS)
 def test_check_package_data(package_data, expected_message):
     if expected_message is None:
         assert check_package_data(None, 'package_data', package_data) is None
     else:
-        with pytest.raises(
-                DistutilsSetupError, match=re.escape(expected_message)):
+        with pytest.raises(DistutilsSetupError, match=re.escape(expected_message)):
             check_package_data(None, str('package_data'), package_data)
 
 
@@ -369,7 +435,7 @@ def test_check_specifier():
             "Leading whitespace\nIn\n    Multiline comment",
             id="remove_leading_whitespace_multiline",
         ),
-    )
+    ),
 )
 def test_rfc822_unescape(content, result):
     assert (result or content) == rfc822_unescape(rfc822_escape(content))
@@ -387,7 +453,7 @@ def test_metadata_name():
         ("my-pkg", "my_pkg"),
         ("my_pkg", "my_pkg"),
         ("pkg", "pkg"),
-    ]
+    ],
 )
 def test_dist_default_py_modules(tmp_path, dist_name, py_module):
     (tmp_path / f"{py_module}.py").touch()
@@ -396,11 +462,7 @@ def test_dist_default_py_modules(tmp_path, dist_name, py_module):
     (tmp_path / "noxfile.py").touch()
     # ^-- make sure common tool files are ignored
 
-    attrs = {
-        **EXAMPLE_BASE_INFO,
-        "name": dist_name,
-        "src_root": str(tmp_path)
-    }
+    attrs = {**EXAMPLE_BASE_INFO, "name": dist_name, "src_root": str(tmp_path)}
     # Find `py_modules` corresponding to dist_name if not given
     dist = Distribution(attrs)
     dist.set_defaults()
@@ -426,15 +488,15 @@ def test_dist_default_py_modules(tmp_path, dist_name, py_module):
             "my_pkg",
             None,
             ["src/my_pkg/__init__.py", "src/my_pkg2/__init__.py"],
-            ["my_pkg", "my_pkg2"]
+            ["my_pkg", "my_pkg2"],
         ),
         (
             "my_pkg",
             {"pkg": "lib", "pkg2": "lib2"},
             ["lib/__init__.py", "lib/nested/__init__.pyt", "lib2/__init__.py"],
-            ["pkg", "pkg.nested", "pkg2"]
+            ["pkg", "pkg.nested", "pkg2"],
         ),
-    ]
+    ],
 )
 def test_dist_default_packages(
     tmp_path, dist_name, package_dir, package_files, packages
@@ -449,7 +511,7 @@ def test_dist_default_packages(
         **EXAMPLE_BASE_INFO,
         "name": dist_name,
         "src_root": str(tmp_path),
-        "package_dir": package_dir
+        "package_dir": package_dir,
     }
     # Find `packages` either corresponding to dist_name or inside src
     dist = Distribution(attrs)
@@ -485,7 +547,7 @@ def test_dist_default_packages(
         # Should not try to guess a name from multiple py_modules/packages
         ("UNKNOWN", None, ["src/mod1.py", "src/mod2.py"]),
         ("UNKNOWN", None, ["src/pkg1/__ini__.py", "src/pkg2/__init__.py"]),
-    ]
+    ],
 )
 def test_dist_default_name(tmp_path, dist_name, package_dir, package_files):
     """Make sure dist.name is discovered from packages/py_modules"""
@@ -493,7 +555,7 @@ def test_dist_default_name(tmp_path, dist_name, package_dir, package_files):
     attrs = {
         **EXAMPLE_BASE_INFO,
         "src_root": "/".join(os.path.split(tmp_path)),  # POSIX-style
-        "package_dir": package_dir
+        "package_dir": package_dir,
     }
     del attrs["name"]
 

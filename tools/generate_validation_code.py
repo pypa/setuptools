@@ -17,7 +17,7 @@ def generate_pyproject_validation(dest: Path):
         "--enable-plugins",
         "setuptools",
         "distutils",
-        "--very-verbose"
+        "--very-verbose",
     ]
     subprocess.check_call(cmd)
     print(f"Validation code generated at: {dest}")

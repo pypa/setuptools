@@ -13,12 +13,14 @@ def test_distribution_gives_setuptools_build_obj(tmpdir_cwd):
     setuptools specific build object.
     """
 
-    dist = Distribution(dict(
-        script_name='setup.py',
-        script_args=['build'],
-        packages=[],
-        package_data={'': ['path/*']},
-    ))
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build'],
+            packages=[],
+            package_data={'': ['path/*']},
+        )
+    )
     assert isinstance(dist.get_command_obj("build"), build)
 
 
@@ -50,10 +52,12 @@ def test_subcommand_in_distutils(tmpdir_cwd):
     Ensure that sub commands registered in ``distutils`` run,
     after instructing the users to migrate to ``setuptools``.
     """
-    dist = Distribution(dict(
-        packages=[],
-        cmdclass={'subcommand': Subcommand},
-    ))
+    dist = Distribution(
+        dict(
+            packages=[],
+            cmdclass={'subcommand': Subcommand},
+        )
+    )
     distutils_build.sub_commands.append(('subcommand', None))
 
     warning_msg = "please use .setuptools.command.build."

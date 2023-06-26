@@ -32,11 +32,14 @@ SETUP_ATTRS = {
     'packages': ['app'],
 }
 
-SETUP_PY = """\
+SETUP_PY = (
+    """\
 from setuptools import setup
 
 setup(**%r)
-""" % SETUP_ATTRS
+"""
+    % SETUP_ATTRS
+)
 
 
 @contextlib.contextmanager
@@ -55,30 +58,31 @@ def touch(filename):
 
 # The set of files always in the manifest, including all files in the
 # .egg-info directory
-default_files = frozenset(map(make_local_path, [
-    'README.rst',
-    'MANIFEST.in',
-    'setup.py',
-    'app.egg-info/PKG-INFO',
-    'app.egg-info/SOURCES.txt',
-    'app.egg-info/dependency_links.txt',
-    'app.egg-info/top_level.txt',
-    'app/__init__.py',
-]))
+default_files = frozenset(
+    map(
+        make_local_path,
+        [
+            'README.rst',
+            'MANIFEST.in',
+            'setup.py',
+            'app.egg-info/PKG-INFO',
+            'app.egg-info/SOURCES.txt',
+            'app.egg-info/dependency_links.txt',
+            'app.egg-info/top_level.txt',
+            'app/__init__.py',
+        ],
+    )
+)
 
 
 translate_specs = [
     ('foo', ['foo'], ['bar', 'foobar']),
     ('foo/bar', ['foo/bar'], ['foo/bar/baz', './foo/bar', 'foo']),
-
     # Glob matching
     ('*.txt', ['foo.txt', 'bar.txt'], ['foo/foo.txt']),
-    (
-        'dir/*.txt',
-        ['dir/foo.txt', 'dir/bar.txt', 'dir/.txt'], ['notdir/foo.txt']),
+    ('dir/*.txt', ['dir/foo.txt', 'dir/bar.txt', 'dir/.txt'], ['notdir/foo.txt']),
     ('*/*.py', ['bin/start.py'], []),
     ('docs/page-?.txt', ['docs/page-9.txt'], ['docs/page-10.txt']),
-
     # Globstars change what they mean depending upon where they are
     (
         'foo/**/bar',
@@ -95,32 +99,27 @@ translate_specs = [
         ['x', 'abc/xyz', '@nything'],
         [],
     ),
-
     # Character classes
     (
         'pre[one]post',
         ['preopost', 'prenpost', 'preepost'],
         ['prepost', 'preonepost'],
     ),
-
     (
         'hello[!one]world',
         ['helloxworld', 'helloyworld'],
         ['hellooworld', 'helloworld', 'hellooneworld'],
     ),
-
     (
         '[]one].txt',
         ['o.txt', '].txt', 'e.txt'],
         ['one].txt'],
     ),
-
     (
         'foo[!]one]bar',
         ['fooybar'],
         ['foo]bar', 'fooobar', 'fooebar'],
     ),
-
 ]
 """
 A spec of inputs for 'translate_pattern' and matches and mismatches
@@ -238,8 +237,7 @@ class TestManifestTest(TempDirTestCase):
     def test_include(self):
         """Include extra rst files in the project root."""
         self.make_manifest("include *.rst")
-        files = default_files | set([
-            'testing.rst', '.hidden.rst'])
+        files = default_files | set(['testing.rst', '.hidden.rst'])
         assert files == self.get_files()
 
     def test_exclude(self):
@@ -249,7 +247,8 @@ class TestManifestTest(TempDirTestCase):
             """
             include app/*
             exclude app/*.txt
-            """)
+            """
+        )
         files = default_files | set([ml('app/c.rst')])
         assert files == self.get_files()
 
@@ -257,28 +256,44 @@ class TestManifestTest(TempDirTestCase):
         """Include with multiple patterns."""
         ml = make_local_path
         self.make_manifest("include app/*.txt app/static/*")
-        files = default_files | set([
-            ml('app/a.txt'), ml('app/b.txt'),
-            ml('app/static/app.js'), ml('app/static/app.js.map'),
-            ml('app/static/app.css'), ml('app/static/app.css.map')])
+        files = default_files | set(
+            [
+                ml('app/a.txt'),
+                ml('app/b.txt'),
+                ml('app/static/app.js'),
+                ml('app/static/app.js.map'),
+                ml('app/static/app.css'),
+                ml('app/static/app.css.map'),
+            ]
+        )
         assert files == self.get_files()
 
     def test_graft(self):
         """Include the whole app/static/ directory."""
         ml = make_local_path
         self.make_manifest("graft app/static")
-        files = default_files | set([
-            ml('app/static/app.js'), ml('app/static/app.js.map'),
-            ml('app/static/app.css'), ml('app/static/app.css.map')])
+        files = default_files | set(
+            [
+                ml('app/static/app.js'),
+                ml('app/static/app.js.map'),
+                ml('app/static/app.css'),
+                ml('app/static/app.css.map'),
+            ]
+        )
         assert files == self.get_files()
 
     def test_graft_glob_syntax(self):
         """Include the whole app/static/ directory."""
         ml = make_local_path
         self.make_manifest("graft */static")
-        files = default_files | set([
-            ml('app/static/app.js'), ml('app/static/app.js.map'),
-            ml('app/static/app.css'), ml('app/static/app.css.map')])
+        files = default_files | set(
+            [
+                ml('app/static/app.js'),
+                ml('app/static/app.js.map'),
+                ml('app/static/app.css'),
+                ml('app/static/app.css.map'),
+            ]
+        )
         assert files == self.get_files()
 
     def test_graft_global_exclude(self):
@@ -288,9 +303,9 @@ class TestManifestTest(TempDirTestCase):
             """
             graft app/static
             global-exclude *.map
-            """)
-        files = default_files | set([
-            ml('app/static/app.js'), ml('app/static/app.css')])
+            """
+        )
+        files = default_files | set([ml('app/static/app.js'), ml('app/static/app.css')])
         assert files == self.get_files()
 
     def test_global_include(self):
@@ -299,10 +314,17 @@ class TestManifestTest(TempDirTestCase):
         self.make_manifest(
             """
             global-include *.rst *.js *.css
-            """)
-        files = default_files | set([
-            '.hidden.rst', 'testing.rst', ml('app/c.rst'),
-            ml('app/static/app.js'), ml('app/static/app.css')])
+            """
+        )
+        files = default_files | set(
+            [
+                '.hidden.rst',
+                'testing.rst',
+                ml('app/c.rst'),
+                ml('app/static/app.js'),
+                ml('app/static/app.css'),
+            ]
+        )
         assert files == self.get_files()
 
     def test_graft_prune(self):
@@ -312,9 +334,9 @@ class TestManifestTest(TempDirTestCase):
             """
             graft app
             prune app/static
-            """)
-        files = default_files | set([
-            ml('app/a.txt'), ml('app/b.txt'), ml('app/c.rst')])
+            """
+        )
+        files = default_files | set([ml('app/a.txt'), ml('app/b.txt'), ml('app/c.rst')])
         assert files == self.get_files()
 
 
@@ -327,6 +349,7 @@ class TestFileListTest(TempDirTestCase):
     @pytest.fixture(autouse=os.getenv("SETUPTOOLS_USE_DISTUTILS") == "stdlib")
     def _compat_record_logs(self, monkeypatch, caplog):
         """Account for stdlib compatibility"""
+
         def _log(_logger, level, msg, args):
             exc = sys.exc_info()
             rec = logging.LogRecord("distutils", level, "", 0, msg, args, exc)
@@ -361,24 +384,30 @@ class TestFileListTest(TempDirTestCase):
         ml = make_local_path
 
         # simulated file list
-        self.make_files([
-            'foo.tmp', 'ok', 'xo', 'four.txt',
-            'buildout.cfg',
-            # filelist does not filter out VCS directories,
-            # it's sdist that does
-            ml('.hg/last-message.txt'),
-            ml('global/one.txt'),
-            ml('global/two.txt'),
-            ml('global/files.x'),
-            ml('global/here.tmp'),
-            ml('f/o/f.oo'),
-            ml('dir/graft-one'),
-            ml('dir/dir2/graft2'),
-            ml('dir3/ok'),
-            ml('dir3/sub/ok.txt'),
-        ])
+        self.make_files(
+            [
+                'foo.tmp',
+                'ok',
+                'xo',
+                'four.txt',
+                'buildout.cfg',
+                # filelist does not filter out VCS directories,
+                # it's sdist that does
+                ml('.hg/last-message.txt'),
+                ml('global/one.txt'),
+                ml('global/two.txt'),
+                ml('global/files.x'),
+                ml('global/here.tmp'),
+                ml('f/o/f.oo'),
+                ml('dir/graft-one'),
+                ml('dir/dir2/graft2'),
+                ml('dir3/ok'),
+                ml('dir3/sub/ok.txt'),
+            ]
+        )
 
-        MANIFEST_IN = DALS("""\
+        MANIFEST_IN = DALS(
+            """\
         include ok
         include xo
         exclude xo
@@ -391,7 +420,8 @@ class TestFileListTest(TempDirTestCase):
         recursive-exclude global *.x
         graft dir
         prune dir3
-        """)
+        """
+        )
 
         for line in MANIFEST_IN.split('\n'):
             if not line:
@@ -451,9 +481,17 @@ class TestFileListTest(TempDirTestCase):
     def test_process_template_line_invalid(self):
         # invalid lines
         file_list = FileList()
-        for action in ('include', 'exclude', 'global-include',
-                       'global-exclude', 'recursive-include',
-                       'recursive-exclude', 'graft', 'prune', 'blarg'):
+        for action in (
+            'include',
+            'exclude',
+            'global-include',
+            'global-exclude',
+            'recursive-include',
+            'recursive-exclude',
+            'graft',
+            'prune',
+            'blarg',
+        ):
             try:
                 file_list.process_template_line(action)
             except DistutilsTemplateError:
