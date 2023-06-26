@@ -6,15 +6,3 @@ build-backend = "setuptools.build_meta"
 skip-string-normalization = true
 
 [tool.setuptools_scm]
-
-[tool.pytest-enabler.black]
-addopts = "--black"
-
-[tool.pytest-enabler.mypy]
-addopts = "--mypy"
-
-[tool.pytest-enabler.cov]
-addopts = "--cov"
-
-[tool.pytest-enabler.ruff]
-addopts = "--ruff"
