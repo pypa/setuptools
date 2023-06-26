@@ -251,7 +251,9 @@ class easy_install(Command):
                 'dist_version': self.distribution.get_version(),
                 'dist_fullname': self.distribution.get_fullname(),
                 'py_version': py_version,
-                'py_version_short': f'{sys.version_info.major}.{sys.version_info.minor}',
+                'py_version_short': (
+                    f'{sys.version_info.major}.{sys.version_info.minor}'
+                ),
                 'py_version_nodot': f'{sys.version_info.major}{sys.version_info.minor}',
                 'sys_prefix': self.config_vars['prefix'],
                 'sys_exec_prefix': self.config_vars['exec_prefix'],

@@ -490,7 +490,9 @@ WHEEL_INSTALL_TESTS = (
         id='empty_namespace_package',
         file_defs={
             'foobar': {
-                '__init__.py': "__import__('pkg_resources').declare_namespace(__name__)",
+                '__init__.py': (
+                    "__import__('pkg_resources').declare_namespace(__name__)"
+                )
             },
         },
         setup_kwargs=dict(
