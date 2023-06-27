@@ -172,9 +172,9 @@ def _pep621_example_project(
         text = text.replace(orig, subst)
     pyproject.write_text(text, encoding="utf-8")
 
-    (tmp_path / readme).write_text("hello world")
-    (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---")
-    (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT)
+    (tmp_path / readme).write_text("hello world", encoding='utf-8')
+    (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---", encoding='utf-8')
+    (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT, encoding='utf-8')
     return pyproject
 
 

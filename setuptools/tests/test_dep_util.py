@@ -13,7 +13,7 @@ def groups_target(tmpdir):
 
     for i in range(len(creation_order)):
         creation_order[i] = os.path.join(str(tmpdir), creation_order[i])
-        with open(creation_order[i], 'w'):
+        with open(creation_order[i], 'w', encoding='utf-8'):
             pass
 
         # make sure modification times are sequential

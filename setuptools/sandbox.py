@@ -452,6 +452,8 @@ class DirectorySandbox(AbstractSandbox):
     def _open(self, path, mode='r', *args, **kw):
         if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
             self._violation("open", path, mode, *args, **kw)
+        if 'encoding' not in kw and 'b' not in mode:
+            raise ValueError('Need Encoding')
         return _open(path, mode, *args, **kw)
 
     def tmpnam(self):

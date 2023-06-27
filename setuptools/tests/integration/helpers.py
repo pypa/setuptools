@@ -17,8 +17,9 @@ def run(cmd, env=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         universal_newlines=True,
-        env={**os.environ, **(env or {})}
+        env={**os.environ, **(env or {})},
         # ^-- allow overwriting instead of discarding the current env
+        encoding='utf-8',
     )
 
     out = r.stdout + "\n" + r.stderr

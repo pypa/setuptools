@@ -1009,7 +1009,7 @@ class PyPIConfig(configparser.RawConfigParser):
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
-            self.read(rc)
+            self.read(rc, encoding='utf-8')
 
     @property
     def creds_by_repository(self):
@@ -1111,7 +1111,7 @@ def local_open(url):
         for f in os.listdir(filename):
             filepath = os.path.join(filename, f)
             if f == 'index.html':
-                with open(filepath, 'r') as fp:
+                with open(filepath, 'r', encoding='utf-8') as fp:
                     body = fp.read()
                 break
             elif os.path.isdir(filepath):

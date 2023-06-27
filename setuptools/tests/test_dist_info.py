@@ -202,7 +202,7 @@ def run_command_inner(*cmd, **kwargs):
         **kwargs,
     }
     cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *map(str, cmd)]
-    return subprocess.run(cmd, **opts)
+    return subprocess.run(cmd, encoding='utf-8', **opts)
 
 
 def run_command(*args, **kwargs):

@@ -468,7 +468,7 @@ def distutils_package():
         'from distutils.core import setup',
     )
     with contexts.tempdir(cd=os.chdir):
-        with open('setup.py', 'w') as f:
+        with open('setup.py', 'w', encoding='utf-8') as f:
             f.write(distutils_setup_py)
         yield
 
@@ -531,6 +531,7 @@ class TestInstallRequires:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding='utf-8',
         )
         assert cp.returncode != 0
         try:
@@ -787,7 +788,7 @@ class TestSetupRequires:
                     setup_attrs=dict(dependency_links=[]),
                 )
                 test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
-                with open(test_setup_cfg, 'w') as fp:
+                with open(test_setup_cfg, 'w', encoding='utf-8') as fp:
                     fp.write(
                         DALS(
                             '''
@@ -921,7 +922,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
                 os.mkdir(test_pkg)
-                with open(test_setup_py, 'w') as fp:
+                with open(test_setup_py, 'w', encoding='utf-8') as fp:
                     if with_dependency_links_in_setup_py:
                         dependency_links = [os.path.join(temp_dir, 'links')]
                     else:
@@ -935,7 +936,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                         '''
                         ).format(dependency_links=dependency_links)
                     )
-                with open(test_setup_cfg, 'w') as fp:
+                with open(test_setup_cfg, 'w', encoding='utf-8') as fp:
                     fp.write(
                         DALS(
                             '''
@@ -987,7 +988,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 test_pkg = os.path.join(temp_dir, 'test_pkg')
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 os.mkdir(test_pkg)
-                with open(test_setup_py, 'w') as fp:
+                with open(test_setup_py, 'w', encoding='utf-8') as fp:
                     fp.write(
                         DALS(
                             '''
@@ -1071,7 +1072,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 test_pkg = os.path.join(temp_dir, 'test_pkg')
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 os.mkdir(test_pkg)
-                with open(test_setup_py, 'w') as fp:
+                with open(test_setup_py, 'w', encoding='utf-8') as fp:
                     fp.write(
                         DALS(
                             '''
@@ -1246,7 +1247,7 @@ def create_setup_requires_package(
         )
     else:
         test_setup_cfg_contents = ''
-    with open(os.path.join(test_pkg, 'setup.cfg'), 'w') as f:
+    with open(os.path.join(test_pkg, 'setup.cfg'), 'w', encoding='utf-8') as f:
         f.write(test_setup_cfg_contents)
 
     # setup.py
@@ -1257,7 +1258,7 @@ def create_setup_requires_package(
             setuptools.setup(**%r)
         """
         )
-    with open(os.path.join(test_pkg, 'setup.py'), 'w') as f:
+    with open(os.path.join(test_pkg, 'setup.py'), 'w', encoding='utf-8') as f:
         f.write(setup_py_template % test_setup_attrs)
 
     foobar_path = os.path.join(path, '%s-%s.tar.gz' % (distname, version))

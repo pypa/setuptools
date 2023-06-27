@@ -146,8 +146,8 @@ def test_editable_with_pyproject(tmp_path, venv, files, editable_opts):
     cmd = [venv.exe(), "-m", "mypkg"]
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 Hello World"
 
-    (project / "src/mypkg/data.txt").write_text("foobar")
-    (project / "src/mypkg/mod.py").write_text("x = 42")
+    (project / "src/mypkg/data.txt").write_text("foobar", encoding='utf-8')
+    (project / "src/mypkg/mod.py").write_text("x = 42", encoding='utf-8')
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
 
 

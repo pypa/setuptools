@@ -15,9 +15,9 @@ def popen_text(call):
     Augment the Popen call with the parameters to ensure unicode text.
     """
     return (
-        functools.partial(call, universal_newlines=True)
+        functools.partial(call, universal_newlines=True, encoding='utf-8')
         if sys.version_info < (3, 7)
-        else functools.partial(call, text=True)
+        else functools.partial(call, text=True, encoding='utf-8')
     )
 
 

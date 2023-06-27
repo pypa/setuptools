@@ -65,8 +65,9 @@ def find_module(module, paths=None):
         elif suffix in importlib.machinery.EXTENSION_SUFFIXES:
             kind = C_EXTENSION
 
+        encoding = dict(encoding='utf-8') if 'b' not in mode else {}
         if kind in {PY_SOURCE, PY_COMPILED}:
-            file = open(path, mode)
+            file = open(path, mode, **encoding)
     else:
         path = None
         suffix = mode = ''

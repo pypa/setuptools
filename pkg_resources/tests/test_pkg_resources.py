@@ -120,13 +120,12 @@ class TestZipProvider:
         filename = zp.get_resource_filename(manager, 'data.dat')
         actual = datetime.datetime.fromtimestamp(os.stat(filename).st_mtime)
         assert actual == self.ref_time
-        f = open(filename, 'w')
-        f.write('hello, world?')
-        f.close()
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write('hello, world?')
         ts = timestamp(self.ref_time)
         os.utime(filename, (ts, ts))
         filename = zp.get_resource_filename(manager, 'data.dat')
-        with open(filename) as f:
+        with open(filename, encoding='utf-8') as f:
             assert f.read() == 'hello, world!'
         manager.cleanup_resources()
 

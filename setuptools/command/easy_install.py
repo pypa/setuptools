@@ -496,7 +496,7 @@ class easy_install(Command):
             try:
                 if test_exists:
                     os.unlink(testfile)
-                open(testfile, 'w').close()
+                open(testfile, 'w', encoding='utf-8').close()
                 os.unlink(testfile)
             except (OSError, IOError):
                 self.cant_write_to_target()
@@ -593,7 +593,7 @@ class easy_install(Command):
                 os.unlink(ok_file)
             dirname = os.path.dirname(ok_file)
             os.makedirs(dirname, exist_ok=True)
-            f = open(pth_file, 'w')
+            f = open(pth_file, 'w', encoding='utf-8')
         except (OSError, IOError):
             self.cant_write_to_target()
         else:
@@ -876,7 +876,8 @@ class easy_install(Command):
         ensure_directory(target)
         if os.path.exists(target):
             os.unlink(target)
-        with open(target, "w" + mode) as f:
+        encoding = dict(encoding='utf-8') if 'b' not in mode else {}
+        with open(target, "w" + mode, **encoding) as f:
             f.write(contents)
         chmod(target, 0o777 - mask)
 
@@ -1629,7 +1630,7 @@ class PthDistributions(Environment):
         paths = []
         dirty = saw_import = False
         seen = dict.fromkeys(self.sitedirs)
-        f = open(self.filename, 'rt')
+        f = open(self.filename, 'rt', encoding='utf-8')
         for line in f:
             path = line.rstrip()
             # still keep imports and empty/commented lines for formatting
@@ -1698,7 +1699,7 @@ class PthDistributions(Environment):
             data = '\n'.join(lines) + '\n'
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
-            with open(self.filename, 'wt') as f:
+            with open(self.filename, 'wt', encoding='utf-8') as f:
                 f.write(data)
         elif os.path.exists(self.filename):
             log.debug("Deleting empty %s", self.filename)
