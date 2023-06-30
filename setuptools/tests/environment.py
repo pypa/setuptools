@@ -43,8 +43,7 @@ def _which_dirs(cmd):
     return result
 
 
-def run_setup_py(cmd, pypath=None, path=None,
-                 data_stream=0, env=None):
+def run_setup_py(cmd, pypath=None, path=None, data_stream=0, env=None):
     """
     Execution command for tests, separate from those used by the
     code directly to prevent accidental behavior issues
@@ -72,7 +71,11 @@ def run_setup_py(cmd, pypath=None, path=None,
 
     try:
         proc = _Popen(
-            cmd, stdout=_PIPE, stderr=_PIPE, shell=shell, env=env,
+            cmd,
+            stdout=_PIPE,
+            stderr=_PIPE,
+            shell=shell,
+            env=env,
         )
 
         if isinstance(data_stream, tuple):

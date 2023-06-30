@@ -12,7 +12,9 @@ import distutils.command.install_egg_info
 from unittest import mock
 
 from pkg_resources import (
-    DistInfoDistribution, Distribution, EggInfoDistribution,
+    DistInfoDistribution,
+    Distribution,
+    EggInfoDistribution,
 )
 
 import pytest
@@ -82,6 +84,7 @@ class TestZipProvider:
 
     def test_resource_listdir(self):
         import mod
+
         zp = pkg_resources.ZipProvider(mod)
 
         expected_root = ['data.dat', 'mod.py', 'subdir']
@@ -95,6 +98,7 @@ class TestZipProvider:
         assert zp.resource_listdir('nonexistent/') == []
 
         import mod2
+
         zp2 = pkg_resources.ZipProvider(mod2)
 
         assert sorted(zp2.resource_listdir('')) == expected_subdir
@@ -110,6 +114,7 @@ class TestZipProvider:
         subsequent call to get_resource_filename.
         """
         import mod
+
         manager = pkg_resources.ResourceManager()
         zp = pkg_resources.ZipProvider(mod)
         filename = zp.get_resource_filename(manager, 'data.dat')
@@ -174,10 +179,7 @@ class TestResourceManager:
         lines = (
             'import pkg_resources',
             'import sys',
-            (
-                'assert "setuptools" not in sys.modules, '
-                '"setuptools was imported"'
-            ),
+            ('assert "setuptools" not in sys.modules, ' '"setuptools was imported"'),
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)
@@ -198,7 +200,7 @@ def make_test_distribution(metadata_path, metadata):
     with open(metadata_path, 'wb') as f:
         f.write(metadata)
     dists = list(pkg_resources.distributions_from_metadata(dist_dir))
-    dist, = dists
+    (dist,) = dists
 
     return dist
 
@@ -244,7 +246,7 @@ def make_distribution_no_version(tmpdir, basename):
 
     dists = list(pkg_resources.distributions_from_metadata(dist_dir))
     assert len(dists) == 1
-    dist, = dists
+    (dist,) = dists
 
     return dist, dist_dir
 
@@ -261,16 +263,17 @@ def make_distribution_no_version(tmpdir, basename):
     reason="https://github.com/python/cpython/issues/103632",
 )
 def test_distribution_version_missing(
-        tmpdir, suffix, expected_filename, expected_dist_type):
+    tmpdir, suffix, expected_filename, expected_dist_type
+):
     """
     Test Distribution.version when the "Version" header is missing.
     """
     basename = 'foo.{}'.format(suffix)
     dist, dist_dir = make_distribution_no_version(tmpdir, basename)
 
-    expected_text = (
-        "Missing 'Version:' header and/or {} file at path: "
-    ).format(expected_filename)
+    expected_text = ("Missing 'Version:' header and/or {} file at path: ").format(
+        expected_filename
+    )
     metadata_path = os.path.join(dist_dir, expected_filename)
 
     # Now check the exception raised when the "version" attribute is accessed.
@@ -307,8 +310,7 @@ def test_distribution_version_missing_undetected_path():
 
     msg, dist = excinfo.value.args
     expected = (
-        "Missing 'Version:' header and/or PKG-INFO file at path: "
-        '[could not detect]'
+        "Missing 'Version:' header and/or PKG-INFO file at path: " '[could not detect]'
     )
     assert msg == expected
 
@@ -335,10 +337,7 @@ class TestDeepVersionLookupDistutils:
         env = Environment(tmpdir)
         tmpdir.chmod(stat.S_IRWXU)
         subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
-        env.paths = dict(
-            (dirname, str(tmpdir / dirname))
-            for dirname in subs
-        )
+        env.paths = dict((dirname, str(tmpdir / dirname)) for dirname in subs)
         list(map(os.mkdir, env.paths.values()))
         return env
 
@@ -395,8 +394,7 @@ class TestDeepVersionLookupDistutils:
         ],
     )
     def test_normalize_path_normcase(self, unnormalized, normalized):
-        """Ensure mixed case is normalized on case-insensitive filesystems.
-        """
+        """Ensure mixed case is normalized on case-insensitive filesystems."""
         result_from_unnormalized = pkg_resources.normalize_path(unnormalized)
         result_from_normalized = pkg_resources.normalize_path(normalized)
         assert result_from_unnormalized == result_from_normalized
@@ -414,7 +412,6 @@ class TestDeepVersionLookupDistutils:
         ],
     )
     def test_normalize_path_backslash_sep(self, unnormalized, expected):
-        """Ensure path seps are cleaned on backslash path sep systems.
-        """
+        """Ensure path seps are cleaned on backslash path sep systems."""
         result = pkg_resources.normalize_path(unnormalized)
         assert result.endswith(expected)

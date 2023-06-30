@@ -14,8 +14,11 @@ def popen_text(call):
     """
     Augment the Popen call with the parameters to ensure unicode text.
     """
-    return functools.partial(call, universal_newlines=True) \
-        if sys.version_info < (3, 7) else functools.partial(call, text=True)
+    return (
+        functools.partial(call, universal_newlines=True)
+        if sys.version_info < (3, 7)
+        else functools.partial(call, text=True)
+    )
 
 
 def win_sr(env):
@@ -44,7 +47,8 @@ def count_meta_path(venv, env=None):
         import sys
         is_distutils = lambda finder: finder.__class__.__name__ == "DistutilsMetaFinder"
         print(len(list(filter(is_distutils, sys.meta_path))))
-        """)
+        """
+    )
     cmd = ['python', '-c', py_cmd]
     return int(popen_text(venv.run)(cmd, env=win_sr(env)))
 
@@ -132,10 +136,10 @@ print("success")
         ("local", "dir_util"),
         ("local", "file_util"),
         ("local", "archive_util"),
-    ]
+    ],
 )
 def test_modules_are_not_duplicated_on_import(
-        distutils_version, imported_module, tmpdir_cwd, venv
+    distutils_version, imported_module, tmpdir_cwd, venv
 ):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
     script = ENSURE_IMPORTS_ARE_NOT_DUPLICATED.format(imported_module=imported_module)
@@ -159,7 +163,7 @@ print("success")
     [
         "local",
         pytest.param("stdlib", marks=skip_without_stdlib_distutils),
-    ]
+    ],
 )
 def test_log_module_is_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)

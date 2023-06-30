@@ -18,7 +18,6 @@ read = partial(pathlib.Path.read_text, encoding="utf-8")
 
 
 class TestDistInfo:
-
     metadata_base = DALS(
         """
         Metadata-Version: 1.2

@@ -13,10 +13,9 @@ def test_tests_are_run_once(capfd):
         packages=['dummy'],
     )
     files = {
-        'setup.py':
-            'from setuptools import setup; setup('
-            + ','.join(f'{name}={params[name]!r}' for name in params)
-            + ')',
+        'setup.py': 'from setuptools import setup; setup('
+        + ','.join(f'{name}={params[name]!r}' for name in params)
+        + ')',
         'dummy': {
             '__init__.py': '',
             'test_dummy.py': DALS(
@@ -26,8 +25,8 @@ def test_tests_are_run_once(capfd):
                     def test_test(self):
                         print('Foo')
                 """
-                ),
-            },
+            ),
+        },
     }
     path.build(files)
     dist = Distribution(params)

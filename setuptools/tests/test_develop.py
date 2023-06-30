@@ -104,7 +104,6 @@ class TestResolver:
 class TestNamespaces:
     @staticmethod
     def install_develop(src_dir, target):
-
         develop_cmd = [
             sys.executable,
             'setup.py',

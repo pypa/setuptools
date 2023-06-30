@@ -12,7 +12,8 @@ from .test_resources import Metadata
 
 def strip_comments(s):
     return '\n'.join(
-        line for line in s.split('\n')
+        line
+        for line in s.split('\n')
         if line.strip() and not line.strip().startswith('#')
     )
 
@@ -48,20 +49,20 @@ def parse_distributions(s):
             metadata = Metadata(('requires.txt', requires))
         else:
             metadata = None
-        dist = pkg_resources.Distribution(project_name=name,
-                                          version=version,
-                                          metadata=metadata)
+        dist = pkg_resources.Distribution(
+            project_name=name, version=version, metadata=metadata
+        )
         yield dist
 
 
 class FakeInstaller:
-
     def __init__(self, installable_dists):
         self._installable_dists = installable_dists
 
     def __call__(self, req):
-        return next(iter(filter(lambda dist: dist in req,
-                                self._installable_dists)), None)
+        return next(
+            iter(filter(lambda dist: dist in req, self._installable_dists)), None
+        )
 
 
 def parametrize_test_working_set_resolve(*test_list):
@@ -73,10 +74,11 @@ def parametrize_test_working_set_resolve(*test_list):
             installed_dists,
             installable_dists,
             requirements,
-            expected1, expected2
+            expected1,
+            expected2,
         ) = [
-            strip_comments(s.lstrip()) for s in
-            textwrap.dedent(test).lstrip().split('\n\n', 5)
+            strip_comments(s.lstrip())
+            for s in textwrap.dedent(test).lstrip().split('\n\n', 5)
         ]
         installed_dists = list(parse_distributions(installed_dists))
         installable_dists = list(parse_distributions(installable_dists))
@@ -92,13 +94,22 @@ def parametrize_test_working_set_resolve(*test_list):
                 assert issubclass(expected, Exception)
             else:
                 expected = list(parse_distributions(expected))
-            argvalues.append(pytest.param(installed_dists, installable_dists,
-                                          requirements, replace_conflicting,
-                                          expected))
-    return pytest.mark.parametrize('installed_dists,installable_dists,'
-                                   'requirements,replace_conflicting,'
-                                   'resolved_dists_or_exception',
-                                   argvalues, ids=idlist)
+            argvalues.append(
+                pytest.param(
+                    installed_dists,
+                    installable_dists,
+                    requirements,
+                    replace_conflicting,
+                    expected,
+                )
+            )
+    return pytest.mark.parametrize(
+        'installed_dists,installable_dists,'
+        'requirements,replace_conflicting,'
+        'resolved_dists_or_exception',
+        argvalues,
+        ids=idlist,
+    )
 
 
 @parametrize_test_working_set_resolve(
@@ -116,7 +127,6 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     ''',
-
     '''
     # id
     already_installed
@@ -135,7 +145,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     foo-3.0
     ''',
-
     '''
     # id
     installable_not_installed
@@ -155,7 +164,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     foo-3.0
     ''',
-
     '''
     # id
     not_installable
@@ -173,7 +181,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     DistributionNotFound
     ''',
-
     '''
     # id
     no_matching_version
@@ -192,7 +199,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     DistributionNotFound
     ''',
-
     '''
     # id
     installable_with_installed_conflict
@@ -212,7 +218,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     foo-3.5
     ''',
-
     '''
     # id
     not_installable_with_installed_conflict
@@ -231,7 +236,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     DistributionNotFound
     ''',
-
     '''
     # id
     installed_with_installed_require
@@ -254,7 +258,6 @@ def parametrize_test_working_set_resolve(*test_list):
     foo-3.9
     baz-0.1
     ''',
-
     '''
     # id
     installed_with_conflicting_installed_require
@@ -275,7 +278,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     DistributionNotFound
     ''',
-
     '''
     # id
     installed_with_installable_conflicting_require
@@ -298,7 +300,6 @@ def parametrize_test_working_set_resolve(*test_list):
     baz-0.1
     foo-2.9
     ''',
-
     '''
     # id
     installed_with_installable_require
@@ -321,7 +322,6 @@ def parametrize_test_working_set_resolve(*test_list):
     foo-3.9
     baz-0.1
     ''',
-
     '''
     # id
     installable_with_installed_require
@@ -344,7 +344,6 @@ def parametrize_test_working_set_resolve(*test_list):
     foo-3.9
     baz-0.1
     ''',
-
     '''
     # id
     installable_with_installable_require
@@ -367,7 +366,6 @@ def parametrize_test_working_set_resolve(*test_list):
     foo-3.9
     baz-0.1
     ''',
-
     '''
     # id
     installable_with_conflicting_installable_require
@@ -390,7 +388,6 @@ def parametrize_test_working_set_resolve(*test_list):
     baz-0.1
     foo-2.9
     ''',
-
     '''
     # id
     conflicting_installables
@@ -411,7 +408,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     VersionConflict
     ''',
-
     '''
     # id
     installables_with_conflicting_requires
@@ -436,7 +432,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     VersionConflict
     ''',
-
     '''
     # id
     installables_with_conflicting_nested_requires
@@ -465,7 +460,6 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     VersionConflict
     ''',
-
     '''
     # id
     wanted_normalized_name_installed_canonical
@@ -485,13 +479,19 @@ def parametrize_test_working_set_resolve(*test_list):
     foo.bar-3.6
     ''',
 )
-def test_working_set_resolve(installed_dists, installable_dists, requirements,
-                             replace_conflicting, resolved_dists_or_exception):
+def test_working_set_resolve(
+    installed_dists,
+    installable_dists,
+    requirements,
+    replace_conflicting,
+    resolved_dists_or_exception,
+):
     ws = pkg_resources.WorkingSet([])
     list(map(ws.add, installed_dists))
     resolve_call = functools.partial(
         ws.resolve,
-        requirements, installer=FakeInstaller(installable_dists),
+        requirements,
+        installer=FakeInstaller(installable_dists),
         replace_conflicting=replace_conflicting,
     )
     if inspect.isclass(resolved_dists_or_exception):

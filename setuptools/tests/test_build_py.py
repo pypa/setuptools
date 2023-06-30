@@ -20,12 +20,14 @@ def test_directories_in_package_data_glob(tmpdir_cwd):
 
     Regression test for #261.
     """
-    dist = Distribution(dict(
-        script_name='setup.py',
-        script_args=['build_py'],
-        packages=[''],
-        package_data={'': ['path/*']},
-    ))
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build_py'],
+            packages=[''],
+            package_data={'': ['path/*']},
+        )
+    )
     os.makedirs('path/subpath')
     dist.parse_command_line()
     dist.run_commands()
@@ -38,20 +40,23 @@ def test_recursive_in_package_data_glob(tmpdir_cwd):
 
     #1806
     """
-    dist = Distribution(dict(
-        script_name='setup.py',
-        script_args=['build_py'],
-        packages=[''],
-        package_data={'': ['path/**/data']},
-    ))
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build_py'],
+            packages=[''],
+            package_data={'': ['path/**/data']},
+        )
+    )
     os.makedirs('path/subpath/subsubpath')
     open('path/subpath/subsubpath/data', 'w').close()
 
     dist.parse_command_line()
     dist.run_commands()
 
-    assert stat.S_ISREG(os.stat('build/lib/path/subpath/subsubpath/data').st_mode), \
-        "File is not included"
+    assert stat.S_ISREG(
+        os.stat('build/lib/path/subpath/subsubpath/data').st_mode
+    ), "File is not included"
 
 
 def test_read_only(tmpdir_cwd):
@@ -63,12 +68,14 @@ def test_read_only(tmpdir_cwd):
 
     #1451
     """
-    dist = Distribution(dict(
-        script_name='setup.py',
-        script_args=['build_py'],
-        packages=['pkg'],
-        package_data={'pkg': ['data.dat']},
-    ))
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build_py'],
+            packages=['pkg'],
+            package_data={'pkg': ['data.dat']},
+        )
+    )
     os.makedirs('pkg')
     open('pkg/__init__.py', 'w').close()
     open('pkg/data.dat', 'w').close()
@@ -92,12 +99,14 @@ def test_executable_data(tmpdir_cwd):
 
     #2041
     """
-    dist = Distribution(dict(
-        script_name='setup.py',
-        script_args=['build_py'],
-        packages=['pkg'],
-        package_data={'pkg': ['run-me']},
-    ))
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build_py'],
+            packages=['pkg'],
+            package_data={'pkg': ['run-me']},
+        )
+    )
     os.makedirs('pkg')
     open('pkg/__init__.py', 'w').close()
     open('pkg/run-me', 'w').close()
@@ -106,12 +115,14 @@ def test_executable_data(tmpdir_cwd):
     dist.parse_command_line()
     dist.run_commands()
 
-    assert os.stat('build/lib/pkg/run-me').st_mode & stat.S_IEXEC, \
-        "Script is not executable"
+    assert (
+        os.stat('build/lib/pkg/run-me').st_mode & stat.S_IEXEC
+    ), "Script is not executable"
 
 
 EXAMPLE_WITH_MANIFEST = {
-    "setup.cfg": DALS("""
+    "setup.cfg": DALS(
+        """
         [metadata]
         name = mypkg
         version = 42
@@ -122,7 +133,8 @@ EXAMPLE_WITH_MANIFEST = {
 
         [options.packages.find]
         exclude = *.tests*
-        """),
+        """
+    ),
     "mypkg": {
         "__init__.py": "",
         "resource_file.txt": "",
@@ -130,15 +142,17 @@ EXAMPLE_WITH_MANIFEST = {
             "__init__.py": "",
             "test_mypkg.py": "",
             "test_file.txt": "",
-        }
+        },
     },
-    "MANIFEST.in": DALS("""
+    "MANIFEST.in": DALS(
+        """
         global-include *.py *.txt
         global-exclude *.py[cod]
         prune dist
         prune build
         prune *.egg-info
-        """)
+        """
+    ),
 }
 
 
@@ -232,7 +246,8 @@ def test_existing_egg_info(tmpdir_cwd, monkeypatch):
 
 
 EXAMPLE_ARBITRARY_MAPPING = {
-    "pyproject.toml": DALS("""
+    "pyproject.toml": DALS(
+        """
         [project]
         name = "mypkg"
         version = "42"
@@ -244,7 +259,8 @@ EXAMPLE_ARBITRARY_MAPPING = {
         "" = "src"
         "mypkg.sub2" = "src/mypkg/_sub2"
         "mypkg.sub2.nested" = "other"
-        """),
+        """
+    ),
     "src": {
         "mypkg": {
             "__init__.py": "",
@@ -262,10 +278,12 @@ EXAMPLE_ARBITRARY_MAPPING = {
         "__init__.py": "",
         "mod3.py": "",
     },
-    "MANIFEST.in": DALS("""
+    "MANIFEST.in": DALS(
+        """
         global-include *.py *.txt
         global-exclude *.py[cod]
-        """)
+        """
+    ),
 }
 
 

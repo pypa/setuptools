@@ -7,7 +7,6 @@ TESTS_DATA_DIR = py.path.local(__file__).dirpath('data')
 
 
 class TestFindDistributions:
-
     @pytest.fixture
     def target_dir(self, tmpdir):
         target_dir = tmpdir.mkdir('target')
@@ -36,8 +35,10 @@ class TestFindDistributions:
     def test_zipped_sdist_one_level_removed(self, target_dir):
         (TESTS_DATA_DIR / 'my-test-package-zip').copy(target_dir)
         dists = pkg_resources.find_distributions(
-            str(target_dir / "my-test-package.zip"))
+            str(target_dir / "my-test-package.zip")
+        )
         assert [dist.project_name for dist in dists] == ['my-test-package']
         dists = pkg_resources.find_distributions(
-            str(target_dir / "my-test-package.zip"), only=True)
+            str(target_dir / "my-test-package.zip"), only=True
+        )
         assert not list(dists)

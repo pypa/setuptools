@@ -9,9 +9,16 @@ from pkg_resources.extern import packaging
 
 import pkg_resources
 from pkg_resources import (
-    parse_requirements, VersionConflict, parse_version,
-    Distribution, EntryPoint, Requirement, safe_version, safe_name,
-    WorkingSet)
+    parse_requirements,
+    VersionConflict,
+    parse_version,
+    Distribution,
+    EntryPoint,
+    Requirement,
+    safe_version,
+    safe_name,
+    WorkingSet,
+)
 
 
 # from Python 3.6 docs.
@@ -71,7 +78,7 @@ class TestDistro:
         ws = WorkingSet([])
         foo12 = dist_from_fn("FooPkg-1.2-py2.4.egg")
         foo14 = dist_from_fn("FooPkg-1.4-py2.4-win32.egg")
-        req, = parse_requirements("FooPkg>=1.3")
+        (req,) = parse_requirements("FooPkg>=1.3")
 
         # Nominal case: no distros on path, should yield all applicable
         assert ad.best_match(req, ws).version == '1.9'
@@ -123,11 +130,11 @@ class TestDistro:
 
     def testDistroMetadata(self):
         d = Distribution(
-            "/some/path", project_name="FooPkg",
-            py_version="2.4", platform="win32",
-            metadata=Metadata(
-                ('PKG-INFO', "Metadata-Version: 1.0\nVersion: 1.3-1\n")
-            ),
+            "/some/path",
+            project_name="FooPkg",
+            py_version="2.4",
+            platform="win32",
+            metadata=Metadata(('PKG-INFO', "Metadata-Version: 1.0\nVersion: 1.3-1\n")),
         )
         self.checkFooPkg(d)
 
@@ -181,7 +188,7 @@ class TestDistro:
 
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.egg",
-            metadata=Metadata(('depends.txt', "[bar]\nBaz>=2.0"))
+            metadata=Metadata(('depends.txt', "[bar]\nBaz>=2.0")),
         )
         ad.add(Foo)
         ad.add(Distribution.from_filename("Foo-0.9.egg"))
@@ -204,10 +211,7 @@ class TestDistro:
         ad.add(Baz)
 
         # Activation list now includes resolved dependency
-        assert (
-            list(ws.resolve(parse_requirements("Foo[bar]"), ad))
-            == [Foo, Baz]
-        )
+        assert list(ws.resolve(parse_requirements("Foo[bar]"), ad)) == [Foo, Baz]
         # Requests for conflicting versions produce VersionConflict
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo==1.2\nFoo!=1.2"), ad)
@@ -235,13 +239,13 @@ class TestDistro:
         If one package foo requires bar without any extras,
         markers should pass for bar without extras.
         """
-        parent_req, = parse_requirements("foo")
-        req, = parse_requirements("bar;python_version>='2'")
+        (parent_req,) = parse_requirements("foo")
+        (req,) = parse_requirements("bar;python_version>='2'")
         req_extras = pkg_resources._ReqExtras({req: parent_req.extras})
         assert req_extras.markers_pass(req)
 
-        parent_req, = parse_requirements("foo[]")
-        req, = parse_requirements("bar;python_version>='2'")
+        (parent_req,) = parse_requirements("foo[]")
+        (req,) = parse_requirements("bar;python_version>='2'")
         req_extras = pkg_resources._ReqExtras({req: parent_req.extras})
         assert req_extras.markers_pass(req)
 
@@ -251,8 +255,12 @@ class TestDistro:
         ws = WorkingSet([])
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.dist-info",
-            metadata=Metadata(("METADATA", "Provides-Extra: baz\n"
-                               "Requires-Dist: quux; extra=='baz'"))
+            metadata=Metadata(
+                (
+                    "METADATA",
+                    "Provides-Extra: baz\n" "Requires-Dist: quux; extra=='baz'",
+                )
+            ),
         )
         ad.add(Foo)
         assert list(ws.resolve(parse_requirements("Foo"), ad)) == [Foo]
@@ -267,8 +275,13 @@ class TestDistro:
         ws = WorkingSet([])
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.dist-info",
-            metadata=Metadata(("METADATA", "Provides-Extra: baz-lightyear\n"
-                               "Requires-Dist: quux; extra=='baz-lightyear'"))
+            metadata=Metadata(
+                (
+                    "METADATA",
+                    "Provides-Extra: baz-lightyear\n"
+                    "Requires-Dist: quux; extra=='baz-lightyear'",
+                )
+            ),
         )
         ad.add(Foo)
         assert list(ws.resolve(parse_requirements("Foo"), ad)) == [Foo]
@@ -282,10 +295,15 @@ class TestDistro:
         ws = WorkingSet([])
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.dist-info",
-            metadata=Metadata(("METADATA", "Provides-Extra: baz\n"
-                               "Requires-Dist: quux; extra=='baz'\n"
-                               "Provides-Extra: bar\n"
-                               "Requires-Dist: fred; extra=='bar'\n"))
+            metadata=Metadata(
+                (
+                    "METADATA",
+                    "Provides-Extra: baz\n"
+                    "Requires-Dist: quux; extra=='baz'\n"
+                    "Provides-Extra: bar\n"
+                    "Requires-Dist: fred; extra=='bar'\n",
+                )
+            ),
         )
         ad.add(Foo)
         quux = Distribution.from_filename("/foo_dir/quux-1.0.dist-info")
@@ -300,18 +318,23 @@ class TestDistro:
         ws = WorkingSet([])
         a = Distribution.from_filename(
             "/foo_dir/a-0.2.dist-info",
-            metadata=Metadata(("METADATA", "Requires-Dist: c[a]"))
+            metadata=Metadata(("METADATA", "Requires-Dist: c[a]")),
         )
         b = Distribution.from_filename(
             "/foo_dir/b-0.3.dist-info",
-            metadata=Metadata(("METADATA", "Requires-Dist: c[b]"))
+            metadata=Metadata(("METADATA", "Requires-Dist: c[b]")),
         )
         c = Distribution.from_filename(
             "/foo_dir/c-1.0.dist-info",
-            metadata=Metadata(("METADATA", "Provides-Extra: a\n"
-                               "Requires-Dist: b;extra=='a'\n"
-                               "Provides-Extra: b\n"
-                               "Requires-Dist: foo;extra=='b'"))
+            metadata=Metadata(
+                (
+                    "METADATA",
+                    "Provides-Extra: a\n"
+                    "Requires-Dist: b;extra=='a'\n"
+                    "Provides-Extra: b\n"
+                    "Requires-Dist: foo;extra=='b'",
+                )
+            ),
         )
         foo = Distribution.from_filename("/foo_dir/foo-0.1.dist-info")
         for dist in (a, b, c, foo):
@@ -324,27 +347,29 @@ class TestDistro:
         reason="https://github.com/python/cpython/issues/103632",
     )
     def testDistroDependsOptions(self):
-        d = self.distRequires("""
+        d = self.distRequires(
+            """
             Twisted>=1.5
             [docgen]
             ZConfig>=2.0
             docutils>=0.3
             [fastcgi]
-            fcgiapp>=0.1""")
+            fcgiapp>=0.1"""
+        )
         self.checkRequires(d, "Twisted>=1.5")
         self.checkRequires(
             d, "Twisted>=1.5 ZConfig>=2.0 docutils>=0.3".split(), ["docgen"]
         )
+        self.checkRequires(d, "Twisted>=1.5 fcgiapp>=0.1".split(), ["fastcgi"])
         self.checkRequires(
-            d, "Twisted>=1.5 fcgiapp>=0.1".split(), ["fastcgi"]
+            d,
+            "Twisted>=1.5 ZConfig>=2.0 docutils>=0.3 fcgiapp>=0.1".split(),
+            ["docgen", "fastcgi"],
         )
         self.checkRequires(
-            d, "Twisted>=1.5 ZConfig>=2.0 docutils>=0.3 fcgiapp>=0.1".split(),
-            ["docgen", "fastcgi"]
-        )
-        self.checkRequires(
-            d, "Twisted>=1.5 fcgiapp>=0.1 ZConfig>=2.0 docutils>=0.3".split(),
-            ["fastcgi", "docgen"]
+            d,
+            "Twisted>=1.5 fcgiapp>=0.1 ZConfig>=2.0 docutils>=0.3".split(),
+            ["fastcgi", "docgen"],
         )
         with pytest.raises(pkg_resources.UnknownExtra):
             d.requires(["foo"])
@@ -404,12 +429,16 @@ class TestEntryPoints:
 
     def setup_method(self, method):
         self.dist = Distribution.from_filename(
-            "FooPkg-1.2-py2.4.egg", metadata=Metadata(('requires.txt', '[x]')))
+            "FooPkg-1.2-py2.4.egg", metadata=Metadata(('requires.txt', '[x]'))
+        )
 
     def testBasics(self):
         ep = EntryPoint(
-            "foo", "pkg_resources.tests.test_resources", ["TestEntryPoints"],
-            ["x"], self.dist
+            "foo",
+            "pkg_resources.tests.test_resources",
+            ["TestEntryPoints"],
+            ["x"],
+            self.dist,
         )
         self.assertfields(ep)
 
@@ -463,8 +492,9 @@ class TestEntryPoints:
     submap_expect = dict(
         feature1=EntryPoint('feature1', 'somemodule', ['somefunction']),
         feature2=EntryPoint(
-            'feature2', 'another.module', ['SomeClass'], ['extra1', 'extra2']),
-        feature3=EntryPoint('feature3', 'this.module', extras=['something'])
+            'feature2', 'another.module', ['SomeClass'], ['extra1', 'extra2']
+        ),
+        feature3=EntryPoint('feature3', 'this.module', extras=['something']),
     )
     submap_str = """
             # define features for blah blah
@@ -494,8 +524,7 @@ class TestEntryPoints:
 
     def testDeprecationWarnings(self):
         ep = EntryPoint(
-            "foo", "pkg_resources.tests.test_resources", ["TestEntryPoints"],
-            ["x"]
+            "foo", "pkg_resources.tests.test_resources", ["TestEntryPoints"], ["x"]
         )
         with pytest.warns(pkg_resources.PkgResourcesDeprecationWarning):
             ep.load(require=False)
@@ -519,10 +548,8 @@ class TestRequirements:
         assert r1 == r2
         assert str(r1) == str(r2)
         assert str(r2) == "Twisted==1.2c1,>=1.2"
-        assert (
-            Requirement("Twisted")
-            !=
-            Requirement("Twisted @ https://localhost/twisted.zip")
+        assert Requirement("Twisted") != Requirement(
+            "Twisted @ https://localhost/twisted.zip"
         )
 
     def testBasicContains(self):
@@ -545,27 +572,25 @@ class TestRequirements:
         assert set(r1.extras) == set(("foo", "bar"))
         assert set(r2.extras) == set(("foo", "bar"))
         assert hash(r1) == hash(r2)
-        assert (
-            hash(r1)
-            ==
-            hash((
+        assert hash(r1) == hash(
+            (
                 "twisted",
                 None,
                 packaging.specifiers.SpecifierSet(">=1.2"),
                 frozenset(["foo", "bar"]),
-                None
-            ))
+                None,
+            )
         )
-        assert (
-            hash(Requirement.parse("Twisted @ https://localhost/twisted.zip"))
-            ==
-            hash((
+        assert hash(
+            Requirement.parse("Twisted @ https://localhost/twisted.zip")
+        ) == hash(
+            (
                 "twisted",
                 "https://localhost/twisted.zip",
                 packaging.specifiers.SpecifierSet(),
                 frozenset(),
-                None
-            ))
+                None,
+            )
         )
 
     def testVersionEquality(self):
@@ -587,21 +612,11 @@ class TestRequirements:
         The setuptools project should implement the setuptools package.
         """
 
-        assert (
-            Requirement.parse('setuptools').project_name == 'setuptools')
+        assert Requirement.parse('setuptools').project_name == 'setuptools'
         # setuptools 0.7 and higher means setuptools.
-        assert (
-            Requirement.parse('setuptools == 0.7').project_name
-            == 'setuptools'
-        )
-        assert (
-            Requirement.parse('setuptools == 0.7a1').project_name
-            == 'setuptools'
-        )
-        assert (
-            Requirement.parse('setuptools >= 0.7').project_name
-            == 'setuptools'
-        )
+        assert Requirement.parse('setuptools == 0.7').project_name == 'setuptools'
+        assert Requirement.parse('setuptools == 0.7a1').project_name == 'setuptools'
+        assert Requirement.parse('setuptools >= 0.7').project_name == 'setuptools'
 
 
 class TestParsing:
@@ -610,7 +625,10 @@ class TestParsing:
 
     def testYielding(self):
         for inp, out in [
-            ([], []), ('x', ['x']), ([[]], []), (' x\n y', ['x', 'y']),
+            ([], []),
+            ('x', ['x']),
+            ([[]], []),
+            (' x\n y', ['x', 'y']),
             (['x\n\n', 'y'], ['x', 'y']),
         ]:
             assert list(pkg_resources.yield_lines(inp)) == out
@@ -629,17 +647,13 @@ class TestParsing:
                     [q]
                     v
                     """
-        assert (
-            list(pkg_resources.split_sections(sample))
-            ==
-            [
-                (None, ["x"]),
-                ("Y", ["z", "a"]),
-                ("b", ["c"]),
-                ("d", []),
-                ("q", ["v"]),
-            ]
-        )
+        assert list(pkg_resources.split_sections(sample)) == [
+            (None, ["x"]),
+            ("Y", ["z", "a"]),
+            ("b", ["c"]),
+            ("d", []),
+            ("q", ["v"]),
+        ]
         with pytest.raises(ValueError):
             list(pkg_resources.split_sections("[foo"))
 
@@ -658,21 +672,13 @@ class TestParsing:
         assert safe_version("peak.web") == "peak.web"
 
     def testSimpleRequirements(self):
-        assert (
-            list(parse_requirements('Twis-Ted>=1.2-1'))
-            ==
-            [Requirement('Twis-Ted>=1.2-1')]
-        )
-        assert (
-            list(parse_requirements('Twisted >=1.2, \\ # more\n<2.0'))
-            ==
-            [Requirement('Twisted>=1.2,<2.0')]
-        )
-        assert (
-            Requirement.parse("FooBar==1.99a3")
-            ==
-            Requirement("FooBar==1.99a3")
-        )
+        assert list(parse_requirements('Twis-Ted>=1.2-1')) == [
+            Requirement('Twis-Ted>=1.2-1')
+        ]
+        assert list(parse_requirements('Twisted >=1.2, \\ # more\n<2.0')) == [
+            Requirement('Twisted>=1.2,<2.0')
+        ]
+        assert Requirement.parse("FooBar==1.99a3") == Requirement("FooBar==1.99a3")
         with pytest.raises(ValueError):
             Requirement.parse(">=2.3")
         with pytest.raises(ValueError):
@@ -685,33 +691,25 @@ class TestParsing:
             Requirement.parse("#")
 
     def test_requirements_with_markers(self):
-        assert (
-            Requirement.parse("foobar;os_name=='a'")
-            ==
-            Requirement.parse("foobar;os_name=='a'")
+        assert Requirement.parse("foobar;os_name=='a'") == Requirement.parse(
+            "foobar;os_name=='a'"
         )
-        assert (
-            Requirement.parse("name==1.1;python_version=='2.7'")
-            !=
-            Requirement.parse("name==1.1;python_version=='3.6'")
-        )
-        assert (
-            Requirement.parse("name==1.0;python_version=='2.7'")
-            !=
-            Requirement.parse("name==1.2;python_version=='2.7'")
-        )
-        assert (
-            Requirement.parse("name[foo]==1.0;python_version=='3.6'")
-            !=
-            Requirement.parse("name[foo,bar]==1.0;python_version=='3.6'")
-        )
+        assert Requirement.parse(
+            "name==1.1;python_version=='2.7'"
+        ) != Requirement.parse("name==1.1;python_version=='3.6'")
+        assert Requirement.parse(
+            "name==1.0;python_version=='2.7'"
+        ) != Requirement.parse("name==1.2;python_version=='2.7'")
+        assert Requirement.parse(
+            "name[foo]==1.0;python_version=='3.6'"
+        ) != Requirement.parse("name[foo,bar]==1.0;python_version=='3.6'")
 
     def test_local_version(self):
-        req, = parse_requirements('foo==1.0+org1')
+        (req,) = parse_requirements('foo==1.0+org1')
 
     def test_spaces_between_multiple_versions(self):
-        req, = parse_requirements('foo>=1.0, <3')
-        req, = parse_requirements('foo >= 1.0, < 3')
+        (req,) = parse_requirements('foo>=1.0, <3')
+        (req,) = parse_requirements('foo >= 1.0, < 3')
 
     @pytest.mark.parametrize(
         ['lower', 'upper'],
@@ -756,7 +754,8 @@ class TestParsing:
             ('0post1', '0.4post1'),
             ('2.1.0-rc1', '2.1.0'),
             ('2.1dev', '2.1a0'),
-        ] + list(pairwise(reversed(torture.split()))),
+        ]
+        + list(pairwise(reversed(torture.split()))),
     )
     def testVersionOrdering(self, lower, upper):
         assert parse_version(lower) < parse_version(upper)
@@ -766,15 +765,10 @@ class TestParsing:
         Ensure that our versions stay hashable even though we've subclassed
         them and added some shim code to them.
         """
-        assert (
-            hash(parse_version("1.0"))
-            ==
-            hash(parse_version("1.0"))
-        )
+        assert hash(parse_version("1.0")) == hash(parse_version("1.0"))
 
 
 class TestNamespaces:
-
     ns_str = "__import__('pkg_resources').declare_namespace(__name__)\n"
 
     @pytest.fixture
@@ -877,15 +871,11 @@ class TestNamespaces:
             subpkg = nspkg / 'subpkg'
             subpkg.ensure_dir()
             (nspkg / '__init__.py').write_text(self.ns_str, encoding='utf-8')
-            (subpkg / '__init__.py').write_text(
-                vers_str % number, encoding='utf-8')
+            (subpkg / '__init__.py').write_text(vers_str % number, encoding='utf-8')
 
         with pytest.warns(DeprecationWarning, match="pkg_resources.declare_namespace"):
             import nspkg.subpkg
             import nspkg
-        expected = [
-            str(site.realpath() / 'nspkg')
-            for site in site_dirs
-        ]
+        expected = [str(site.realpath() / 'nspkg') for site in site_dirs]
         assert nspkg.__path__ == expected
         assert nspkg.subpkg.__version__ == 1

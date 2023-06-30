@@ -80,10 +80,13 @@ class TestDepends:
     @needs_bytecode
     def testModuleExtract(self):
         from json import __version__
+
         assert dep.get_module_constant('json', '__version__') == __version__
         assert dep.get_module_constant('sys', 'version') == sys.version
-        assert dep.get_module_constant(
-            'setuptools.tests.test_setuptools', '__doc__') == __doc__
+        assert (
+            dep.get_module_constant('setuptools.tests.test_setuptools', '__doc__')
+            == __doc__
+        )
 
     @needs_bytecode
     def testRequire(self):
@@ -96,6 +99,7 @@ class TestDepends:
         assert req.full_name() == 'Json-1.0.3'
 
         from json import __version__
+
         assert str(req.get_version()) == __version__
         assert req.version_ok('1.0.9')
         assert not req.version_ok('0.9.1')
@@ -121,6 +125,7 @@ class TestDepends:
         assert req.homepage == 'http://example.com'
 
         from setuptools.tests import __path__
+
         paths = [os.path.dirname(p) for p in __path__]
         assert req.is_present(paths)
         assert req.is_current(paths)
@@ -219,7 +224,7 @@ class TestDistro:
 class TestCommandTests:
     def testTestIsCommand(self):
         test_cmd = makeSetup().get_command_obj('test')
-        assert (isinstance(test_cmd, distutils.cmd.Command))
+        assert isinstance(test_cmd, distutils.cmd.Command)
 
     def testLongOptSuiteWNoDefault(self):
         ts1 = makeSetup(script_args=['test', '--test-suite=foo.tests.suite'])
@@ -234,8 +239,7 @@ class TestCommandTests:
 
     def testDefaultWModuleOnCmdLine(self):
         ts3 = makeSetup(
-            test_suite='bar.tests',
-            script_args=['test', '-m', 'foo.tests']
+            test_suite='bar.tests', script_args=['test', '-m', 'foo.tests']
         ).get_command_obj('test')
         ts3.ensure_finalized()
         assert ts3.test_module == 'foo.tests'

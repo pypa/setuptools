@@ -27,7 +27,7 @@ from .helpers import Archive, run
 
 pytestmark = pytest.mark.integration
 
-LATEST, = Enum("v", "LATEST")
+(LATEST,) = Enum("v", "LATEST")
 """Default version to be checked"""
 # There are positive and negative aspects of checking the latest version of the
 # packages.
@@ -46,12 +46,10 @@ EXAMPLES = [
     ("pip", LATEST),  # just in case...
     ("pytest", LATEST),  # uses setuptools_scm
     ("mypy", LATEST),  # custom build_py + ext_modules
-
     # --- Popular packages: https://hugovk.github.io/top-pypi-packages/ ---
     ("botocore", LATEST),
     ("kiwisolver", "1.3.2"),  # build_ext, version pinned due to setup_requires
     ("brotli", LATEST),  # not in the list but used by urllib3
-
     # When adding packages to this list, make sure they expose a `__version__`
     # attribute, or modify the tests below
 ]
@@ -59,10 +57,7 @@ EXAMPLES = [
 
 # Some packages have "optional" dependencies that modify their build behaviour
 # and are not listed in pyproject.toml, others still use `setup_requires`
-EXTRA_BUILD_DEPS = {
-    "sphinx": ("babel>=1.3",),
-    "kiwisolver": ("cppy>=1.1.0",)
-}
+EXTRA_BUILD_DEPS = {"sphinx": ("babel>=1.3",), "kiwisolver": ("cppy>=1.1.0",)}
 
 
 VIRTUALENV = (sys.executable, "-m", "virtualenv")
@@ -105,6 +100,7 @@ def _prepare(tmp_path, venv_python, monkeypatch, request):
         map(print, tmp_path.glob("*"))
         print("Virtual environment:")
         run([venv_python, "-m", "pip", "freeze"])
+
     request.addfinalizer(_debug_info)
 
 
@@ -166,7 +162,7 @@ def retrieve_pypi_sdist_metadata(package, version):
 
     version = metadata["info"]["version"]
     release = metadata["releases"][version] if version is LATEST else metadata["urls"]
-    sdist, = filter(lambda d: d["packagetype"] == "sdist", release)
+    (sdist,) = filter(lambda d: d["packagetype"] == "sdist", release)
     return sdist
 
 

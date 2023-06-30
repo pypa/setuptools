@@ -30,7 +30,8 @@ def can_symlink():
 def has_symlink():
     bad_symlink = (
         # Windows symlink directory detection is broken on Python 3.2
-        platform.system() == 'Windows' and sys.version_info[:2] == (3, 2)
+        platform.system() == 'Windows'
+        and sys.version_info[:2] == (3, 2)
     )
     return can_symlink() and not bad_symlink
 
@@ -153,25 +154,24 @@ class TestFindPackages:
 
     def test_pep420_ns_package(self):
         packages = find_namespace_packages(
-            self.dist_dir, include=['pkg*'], exclude=['pkg.subpkg.assets'])
+            self.dist_dir, include=['pkg*'], exclude=['pkg.subpkg.assets']
+        )
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     def test_pep420_ns_package_no_includes(self):
-        packages = find_namespace_packages(
-            self.dist_dir, exclude=['pkg.subpkg.assets'])
-        self._assert_packages(
-            packages, ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg'])
+        packages = find_namespace_packages(self.dist_dir, exclude=['pkg.subpkg.assets'])
+        self._assert_packages(packages, ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     def test_pep420_ns_package_no_includes_or_excludes(self):
         packages = find_namespace_packages(self.dist_dir)
-        expected = [
-            'docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg', 'pkg.subpkg.assets']
+        expected = ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg', 'pkg.subpkg.assets']
         self._assert_packages(packages, expected)
 
     def test_regular_package_with_nested_pep420_ns_packages(self):
         self._touch('__init__.py', self.pkg_dir)
         packages = find_namespace_packages(
-            self.dist_dir, exclude=['docs', 'pkg.subpkg.assets'])
+            self.dist_dir, exclude=['docs', 'pkg.subpkg.assets']
+        )
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     def test_pep420_ns_package_no_non_package_dirs(self):
@@ -185,35 +185,31 @@ class TestFlatLayoutPackageFinder:
     EXAMPLES = {
         "hidden-folders": (
             [".pkg/__init__.py", "pkg/__init__.py", "pkg/nested/file.txt"],
-            ["pkg", "pkg.nested"]
+            ["pkg", "pkg.nested"],
         ),
         "private-packages": (
             ["_pkg/__init__.py", "pkg/_private/__init__.py"],
-            ["pkg", "pkg._private"]
+            ["pkg", "pkg._private"],
         ),
         "invalid-name": (
             ["invalid-pkg/__init__.py", "other.pkg/__init__.py", "yet,another/file.py"],
-            []
+            [],
         ),
-        "docs": (
-            ["pkg/__init__.py", "docs/conf.py", "docs/readme.rst"],
-            ["pkg"]
-        ),
+        "docs": (["pkg/__init__.py", "docs/conf.py", "docs/readme.rst"], ["pkg"]),
         "tests": (
             ["pkg/__init__.py", "tests/test_pkg.py", "tests/__init__.py"],
-            ["pkg"]
+            ["pkg"],
         ),
         "examples": (
             [
                 "pkg/__init__.py",
                 "examples/__init__.py",
-                "examples/file.py"
-                "example/other_file.py",
+                "examples/file.py" "example/other_file.py",
                 # Sub-packages should always be fine
                 "pkg/example/__init__.py",
                 "pkg/examples/__init__.py",
             ],
-            ["pkg", "pkg.examples", "pkg.example"]
+            ["pkg", "pkg.examples", "pkg.example"],
         ),
         "tool-specific": (
             [
@@ -227,8 +223,8 @@ class TestFlatLayoutPackageFinder:
                 "pkg/tasks/__init__.py",
                 "pkg/fabfile/__init__.py",
             ],
-            ["pkg", "pkg.tasks", "pkg.fabfile"]
-        )
+            ["pkg", "pkg.tasks", "pkg.fabfile"],
+        ),
     }
 
     @pytest.mark.parametrize("example", EXAMPLES.keys())

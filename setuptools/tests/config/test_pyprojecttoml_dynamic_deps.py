@@ -7,8 +7,10 @@ from setuptools.tests.textwrap import DALS
 
 def test_dynamic_dependencies(tmp_path):
     (tmp_path / "requirements.txt").write_text("six\n  # comment\n")
-    pyproject = (tmp_path / "pyproject.toml")
-    pyproject.write_text(DALS("""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        DALS(
+            """
     [project]
     name = "myproj"
     version = "1.0"
@@ -20,7 +22,9 @@ def test_dynamic_dependencies(tmp_path):
 
     [tool.setuptools.dynamic.dependencies]
     file = ["requirements.txt"]
-    """))
+    """
+        )
+    )
     dist = Distribution()
     dist = apply_configuration(dist, pyproject)
     assert dist.install_requires == ["six"]
@@ -28,8 +32,10 @@ def test_dynamic_dependencies(tmp_path):
 
 def test_dynamic_optional_dependencies(tmp_path):
     (tmp_path / "requirements-docs.txt").write_text("sphinx\n  # comment\n")
-    pyproject = (tmp_path / "pyproject.toml")
-    pyproject.write_text(DALS("""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        DALS(
+            """
     [project]
     name = "myproj"
     version = "1.0"
@@ -41,7 +47,9 @@ def test_dynamic_optional_dependencies(tmp_path):
     [build-system]
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
-    """))
+    """
+        )
+    )
     dist = Distribution()
     dist = apply_configuration(dist, pyproject)
     assert dist.extras_require == {"docs": ["sphinx"]}
@@ -54,8 +62,10 @@ def test_mixed_dynamic_optional_dependencies(tmp_path):
     things would work out.
     """
     (tmp_path / "requirements-images.txt").write_text("pillow~=42.0\n  # comment\n")
-    pyproject = (tmp_path / "pyproject.toml")
-    pyproject.write_text(DALS("""
+    pyproject = tmp_path / "pyproject.toml"
+    pyproject.write_text(
+        DALS(
+            """
     [project]
     name = "myproj"
     version = "1.0"
@@ -70,7 +80,9 @@ def test_mixed_dynamic_optional_dependencies(tmp_path):
     [build-system]
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
-    """))
+    """
+        )
+    )
     # Test that the mix-and-match doesn't currently validate.
     with pytest.raises(ValueError, match="project.optional-dependencies"):
         apply_configuration(Distribution(), pyproject)

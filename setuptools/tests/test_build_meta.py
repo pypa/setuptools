@@ -25,7 +25,7 @@ IS_PYPY = '__pypy__' in sys.builtin_module_names
 pytestmark = pytest.mark.skipif(
     sys.platform == "win32" and IS_PYPY,
     reason="The combination of PyPy + Windows + pytest-xdist + ProcessPoolExecutor "
-    "is flaky and problematic"
+    "is flaky and problematic",
 )
 
 
@@ -75,8 +75,7 @@ class BuildBackendCaller(BuildBackendBase):
     def __init__(self, *args, **kwargs):
         super(BuildBackendCaller, self).__init__(*args, **kwargs)
 
-        (self.backend_name, _,
-         self.backend_obj) = self.backend_name.partition(':')
+        (self.backend_name, _, self.backend_obj) = self.backend_name.partition(':')
 
     def __call__(self, name, *args, **kw):
         """Handles arbitrary function invocations on the build backend."""
@@ -94,21 +93,26 @@ class BuildBackendCaller(BuildBackendBase):
 
 defns = [
     {  # simple setup.py script
-        'setup.py': DALS("""
+        'setup.py': DALS(
+            """
             __import__('setuptools').setup(
                 name='foo',
                 version='0.0.0',
                 py_modules=['hello'],
                 setup_requires=['six'],
             )
-            """),
-        'hello.py': DALS("""
+            """
+        ),
+        'hello.py': DALS(
+            """
             def run():
                 print('hello')
-            """),
+            """
+        ),
     },
     {  # setup.py that relies on __name__
-        'setup.py': DALS("""
+        'setup.py': DALS(
+            """
             assert __name__ == '__main__'
             __import__('setuptools').setup(
                 name='foo',
@@ -116,14 +120,18 @@ defns = [
                 py_modules=['hello'],
                 setup_requires=['six'],
             )
-            """),
-        'hello.py': DALS("""
+            """
+        ),
+        'hello.py': DALS(
+            """
             def run():
                 print('hello')
-            """),
+            """
+        ),
     },
     {  # setup.py script that runs arbitrary code
-        'setup.py': DALS("""
+        'setup.py': DALS(
+            """
             variable = True
             def function():
                 return variable
@@ -134,14 +142,18 @@ defns = [
                 py_modules=['hello'],
                 setup_requires=['six'],
             )
-            """),
-        'hello.py': DALS("""
+            """
+        ),
+        'hello.py': DALS(
+            """
             def run():
                 print('hello')
-            """),
+            """
+        ),
     },
     {  # setup.py script that constructs temp files to be included in the distribution
-        'setup.py': DALS("""
+        'setup.py': DALS(
+            """
             # Some packages construct files on the fly, include them in the package,
             # and immediately remove them after `setup()` (e.g. pybind11==2.9.1).
             # Therefore, we cannot use `distutils.core.run_setup(..., stop_after=...)`
@@ -161,10 +173,12 @@ defns = [
             finally:
                 # Some packages will clean temporary files
                 __import__('os').unlink('world.py')
-            """),
+            """
+        ),
     },
     {  # setup.cfg only
-        'setup.cfg': DALS("""
+        'setup.cfg': DALS(
+            """
         [metadata]
         name = foo
         version = 0.0.0
@@ -172,14 +186,18 @@ defns = [
         [options]
         py_modules=hello
         setup_requires=six
-        """),
-        'hello.py': DALS("""
+        """
+        ),
+        'hello.py': DALS(
+            """
         def run():
             print('hello')
-        """)
+        """
+        ),
     },
     {  # setup.cfg and setup.py
-        'setup.cfg': DALS("""
+        'setup.cfg': DALS(
+            """
         [metadata]
         name = foo
         version = 0.0.0
@@ -187,12 +205,15 @@ defns = [
         [options]
         py_modules=hello
         setup_requires=six
-        """),
+        """
+        ),
         'setup.py': "__import__('setuptools').setup()",
-        'hello.py': DALS("""
+        'hello.py': DALS(
+            """
         def run():
             print('hello')
-        """)
+        """
+        ),
     },
 ]
 
@@ -246,16 +267,20 @@ class TestBuildMetaBackend:
         files = {
             'setup.py': "from setuptools import setup\nsetup()",
             'VERSION': "0.0.1",
-            'setup.cfg': DALS("""
+            'setup.cfg': DALS(
+                """
                 [metadata]
                 name = foo
                 version = file: VERSION
-            """),
-            'pyproject.toml': DALS("""
+            """
+            ),
+            'pyproject.toml': DALS(
+                """
                 [build-system]
                 requires = ["setuptools", "wheel"]
                 build-backend = "setuptools.build_meta"
-            """),
+            """
+            ),
         }
 
         path.build(files)
@@ -289,7 +314,8 @@ class TestBuildMetaBackend:
     @pytest.mark.parametrize("setup_script", [None, SETUP_SCRIPT_STUB])
     def test_build_with_pyproject_config(self, tmpdir, setup_script):
         files = {
-            'pyproject.toml': DALS("""
+            'pyproject.toml': DALS(
+                """
                 [build-system]
                 requires = ["setuptools", "wheel"]
                 build-backend = "setuptools.build_meta"
@@ -333,11 +359,14 @@ class TestBuildMetaBackend:
 
                 [tool.distutils.bdist_wheel]
                 universal = true
-                """),
-            "MANIFEST.in": DALS("""
+                """
+            ),
+            "MANIFEST.in": DALS(
+                """
                 global-include *.py *.txt
                 global-exclude *.py[cod]
-                """),
+                """
+            ),
             "README.rst": "This is a ``README``",
             "LICENSE.txt": "---- placeholder MIT license ----",
             "src": {
@@ -346,7 +375,7 @@ class TestBuildMetaBackend:
                     "cli.py": "def main(): print('hello world')",
                     "data.txt": "def main(): print('hello world')",
                 }
-            }
+            },
         }
         if setup_script:
             files["setup.py"] = setup_script
@@ -406,7 +435,7 @@ class TestBuildMetaBackend:
             "Classifier: Intended Audience :: Developers",
             "Requires-Dist: appdirs",
             "Requires-Dist: tomli (>=1) ; extra == 'all'",
-            "Requires-Dist: importlib ; (python_version == \"2.6\") and extra == 'all'"
+            "Requires-Dist: importlib ; (python_version == \"2.6\") and extra == 'all'",
         ):
             assert line in metadata
 
@@ -417,7 +446,8 @@ class TestBuildMetaBackend:
         # Make sure static metadata in pyproject.toml is not overwritten by setup.py
         # as required by PEP 621
         files = {
-            'pyproject.toml': DALS("""
+            'pyproject.toml': DALS(
+                """
                 [build-system]
                 requires = ["setuptools", "wheel"]
                 build-backend = "setuptools.build_meta"
@@ -427,17 +457,22 @@ class TestBuildMetaBackend:
                 description = "This is a Python package"
                 version = "42"
                 dependencies = ["six"]
-                """),
-            'hello.py': DALS("""
+                """
+            ),
+            'hello.py': DALS(
+                """
                 def run():
                     print('hello')
-                """),
-            'setup.py': DALS("""
+                """
+            ),
+            'setup.py': DALS(
+                """
                 __import__('setuptools').setup(
                     name='bar',
                     version='13',
                 )
-                """),
+                """
+            ),
         }
         build_backend = self.get_build_backend()
         with tmpdir.as_cwd():
@@ -526,30 +561,32 @@ class TestBuildMetaBackend:
         with open(setup_loc, 'rt') as file_handler:
             content = file_handler.read()
         with open(setup_loc, 'wt') as file_handler:
-            file_handler.write(
-                content.replace("version='0.0.0'", "version='0.0.1'"))
+            file_handler.write(content.replace("version='0.0.0'", "version='0.0.1'"))
 
         shutil.rmtree(sdist_into_directory)
         os.makedirs(sdist_into_directory)
 
         sdist_name = build_backend.build_sdist("out_sdist")
-        assert os.path.isfile(
-            os.path.join(os.path.abspath("out_sdist"), sdist_name))
+        assert os.path.isfile(os.path.join(os.path.abspath("out_sdist"), sdist_name))
 
     def test_build_sdist_pyproject_toml_exists(self, tmpdir_cwd):
         files = {
-            'setup.py': DALS("""
+            'setup.py': DALS(
+                """
                 __import__('setuptools').setup(
                     name='foo',
                     version='0.0.0',
                     py_modules=['hello']
-                )"""),
+                )"""
+            ),
             'hello.py': '',
-            'pyproject.toml': DALS("""
+            'pyproject.toml': DALS(
+                """
                 [build-system]
                 requires = ["setuptools", "wheel"]
                 build-backend = "setuptools.build_meta"
-                """),
+                """
+            ),
         }
         path.build(files)
         build_backend = self.get_build_backend()
@@ -570,16 +607,20 @@ class TestBuildMetaBackend:
     def test_build_sdist_setup_py_manifest_excluded(self, tmpdir_cwd):
         # Ensure that MANIFEST.in can exclude setup.py
         files = {
-            'setup.py': DALS("""
+            'setup.py': DALS(
+                """
         __import__('setuptools').setup(
             name='foo',
             version='0.0.0',
             py_modules=['hello']
-        )"""),
+        )"""
+            ),
             'hello.py': '',
-            'MANIFEST.in': DALS("""
+            'MANIFEST.in': DALS(
+                """
         exclude setup.py
-        """)
+        """
+            ),
         }
 
         path.build(files)
@@ -591,17 +632,21 @@ class TestBuildMetaBackend:
 
     def test_build_sdist_builds_targz_even_if_zip_indicated(self, tmpdir_cwd):
         files = {
-            'setup.py': DALS("""
+            'setup.py': DALS(
+                """
                 __import__('setuptools').setup(
                     name='foo',
                     version='0.0.0',
                     py_modules=['hello']
-                )"""),
+                )"""
+            ),
             'hello.py': '',
-            'setup.cfg': DALS("""
+            'setup.cfg': DALS(
+                """
                 [sdist]
                 formats=zip
-                """)
+                """
+            ),
         }
 
         path.build(files)
@@ -610,17 +655,21 @@ class TestBuildMetaBackend:
         build_backend.build_sdist("temp")
 
     _relative_path_import_files = {
-        'setup.py': DALS("""
+        'setup.py': DALS(
+            """
             __import__('setuptools').setup(
                 name='foo',
                 version=__import__('hello').__version__,
                 py_modules=['hello']
-            )"""),
+            )"""
+        ),
         'hello.py': '__version__ = "0.0.0"',
-        'setup.cfg': DALS("""
+        'setup.cfg': DALS(
+            """
             [sdist]
             formats=zip
-            """)
+            """
+        ),
     }
 
     def test_build_sdist_relative_path_import(self, tmpdir_cwd):
@@ -630,14 +679,14 @@ class TestBuildMetaBackend:
             build_backend.build_sdist("temp")
 
     _simple_pyproject_example = {
-        "pyproject.toml": DALS("""
+        "pyproject.toml": DALS(
+            """
             [project]
             name = "proj"
             version = "42"
-            """),
-        "src": {
-            "proj": {"__init__.py": ""}
-        }
+            """
+        ),
+        "src": {"proj": {"__init__.py": ""}},
     }
 
     def _assert_link_tree(self, parent_dir):
@@ -681,10 +730,11 @@ class TestBuildMetaBackend:
         assert not Path("build").exists()
 
     @pytest.mark.parametrize(
-        "config_settings", [
+        "config_settings",
+        [
             {"--build-option": ["--mode", "strict"]},
             {"editable-mode": "strict"},
-        ]
+        ],
     )
     def test_editable_with_config_settings(self, tmpdir_cwd, config_settings):
         path.build({**self._simple_pyproject_example, '_meta': {}})
@@ -694,25 +744,27 @@ class TestBuildMetaBackend:
         build_backend.build_editable("temp", config_settings, "_meta")
         self._assert_link_tree(next(Path("build").glob("__editable__.*")))
 
-    @pytest.mark.parametrize('setup_literal, requirements', [
-        ("'foo'", ['foo']),
-        ("['foo']", ['foo']),
-        (r"'foo\n'", ['foo']),
-        (r"'foo\n\n'", ['foo']),
-        ("['foo', 'bar']", ['foo', 'bar']),
-        (r"'# Has a comment line\nfoo'", ['foo']),
-        (r"'foo # Has an inline comment'", ['foo']),
-        (r"'foo \\\n >=3.0'", ['foo>=3.0']),
-        (r"'foo\nbar'", ['foo', 'bar']),
-        (r"'foo\nbar\n'", ['foo', 'bar']),
-        (r"['foo\n', 'bar\n']", ['foo', 'bar']),
-    ])
+    @pytest.mark.parametrize(
+        'setup_literal, requirements',
+        [
+            ("'foo'", ['foo']),
+            ("['foo']", ['foo']),
+            (r"'foo\n'", ['foo']),
+            (r"'foo\n\n'", ['foo']),
+            ("['foo', 'bar']", ['foo', 'bar']),
+            (r"'# Has a comment line\nfoo'", ['foo']),
+            (r"'foo # Has an inline comment'", ['foo']),
+            (r"'foo \\\n >=3.0'", ['foo>=3.0']),
+            (r"'foo\nbar'", ['foo', 'bar']),
+            (r"'foo\nbar\n'", ['foo', 'bar']),
+            (r"['foo\n', 'bar\n']", ['foo', 'bar']),
+        ],
+    )
     @pytest.mark.parametrize('use_wheel', [True, False])
-    def test_setup_requires(self, setup_literal, requirements, use_wheel,
-                            tmpdir_cwd):
-
+    def test_setup_requires(self, setup_literal, requirements, use_wheel, tmpdir_cwd):
         files = {
-            'setup.py': DALS("""
+            'setup.py': DALS(
+                """
                 from setuptools import setup
 
                 setup(
@@ -721,11 +773,14 @@ class TestBuildMetaBackend:
                     py_modules=["hello"],
                     setup_requires={setup_literal},
                 )
-            """).format(setup_literal=setup_literal),
-            'hello.py': DALS("""
+            """
+            ).format(setup_literal=setup_literal),
+            'hello.py': DALS(
+                """
             def run():
                 print('hello')
-            """),
+            """
+            ),
         }
 
         path.build(files)
@@ -750,17 +805,21 @@ class TestBuildMetaBackend:
         # activate auto-discovery and cause problems due to the incomplete set of
         # attributes passed to MinimalDistribution
         files = {
-            'pyproject.toml': DALS("""
+            'pyproject.toml': DALS(
+                """
                 [project]
                 name = "proj"
                 version = "42"
-            """),
-            "setup.py": DALS("""
+            """
+            ),
+            "setup.py": DALS(
+                """
                 __import__('setuptools').setup(
                     setup_requires=["foo"],
                     py_modules = ["hello", "world"]
                 )
-            """),
+            """
+            ),
             'hello.py': "'hello'",
             'world.py': "'world'",
         }
@@ -771,7 +830,8 @@ class TestBuildMetaBackend:
 
     def test_dont_install_setup_requires(self, tmpdir_cwd):
         files = {
-            'setup.py': DALS("""
+            'setup.py': DALS(
+                """
                         from setuptools import setup
 
                         setup(
@@ -780,11 +840,14 @@ class TestBuildMetaBackend:
                             py_modules=["hello"],
                             setup_requires=["does-not-exist >99"],
                         )
-                    """),
-            'hello.py': DALS("""
+                    """
+            ),
+            'hello.py': DALS(
+                """
                     def run():
                         print('hello')
-                    """),
+                    """
+            ),
         }
 
         path.build(files)
@@ -799,7 +862,8 @@ class TestBuildMetaBackend:
         build_backend.prepare_metadata_for_build_wheel(dist_dir)
 
     _sys_argv_0_passthrough = {
-        'setup.py': DALS("""
+        'setup.py': DALS(
+            """
             import os
             import sys
 
@@ -811,7 +875,8 @@ class TestBuildMetaBackend:
             sys_argv = os.path.abspath(sys.argv[0])
             file_path = os.path.abspath('setup.py')
             assert sys_argv == file_path
-            """)
+            """
+        )
     }
 
     def test_sys_argv_passthrough(self, tmpdir_cwd):
@@ -821,7 +886,8 @@ class TestBuildMetaBackend:
             build_backend.build_sdist("temp")
 
     _setup_py_file_abspath = {
-        'setup.py': DALS("""
+        'setup.py': DALS(
+            """
             import os
             assert os.path.isabs(__file__)
             __import__('setuptools').setup(
@@ -830,7 +896,8 @@ class TestBuildMetaBackend:
                 py_modules=['hello'],
                 setup_requires=['six'],
             )
-            """)
+            """
+        )
     }
 
     def test_setup_py_file_abspath(self, tmpdir_cwd):
@@ -843,9 +910,7 @@ class TestBuildMetaBackend:
         files = {'setup.py': ''}
         path.build(files)
 
-        with pytest.raises(
-                ValueError,
-                match=re.escape('No distribution was found.')):
+        with pytest.raises(ValueError, match=re.escape('No distribution was found.')):
             getattr(build_backend, build_hook)("temp")
 
 

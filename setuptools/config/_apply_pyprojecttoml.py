@@ -14,8 +14,19 @@ from email.headerregistry import Address
 from functools import partial, reduce
 from itertools import chain
 from types import MappingProxyType
-from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Tuple,
-                    Type, Union, cast)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+)
 
 from ..warnings import SetuptoolsWarning, SetuptoolsDeprecationWarning
 
@@ -312,9 +323,11 @@ def _some_attrgetter(*items):
     >>> _some_attrgetter("d", "e", "f")(obj) is None
     True
     """
+
     def _acessor(obj):
         values = (_attrgetter(i)(obj) for i in items)
         return next((i for i in values if i is not None), None)
+
     return _acessor
 
 
@@ -337,8 +350,13 @@ TOOL_TABLE_DEPRECATIONS = {
     )
 }
 
-SETUPTOOLS_PATCHES = {"long_description_content_type", "project_urls",
-                      "provides_extras", "license_file", "license_files"}
+SETUPTOOLS_PATCHES = {
+    "long_description_content_type",
+    "project_urls",
+    "provides_extras",
+    "license_file",
+    "license_files",
+}
 
 _PREVIOUSLY_DEFINED = {
     "name": _attrgetter("metadata.name"),

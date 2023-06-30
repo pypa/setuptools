@@ -6,7 +6,8 @@ def build_namespace_package(tmpdir, name):
     src_dir.mkdir()
     setup_py = src_dir / 'setup.py'
     namespace, sep, rest = name.partition('.')
-    script = textwrap.dedent("""
+    script = textwrap.dedent(
+        """
         import setuptools
         setuptools.setup(
             name={name!r},
@@ -14,7 +15,8 @@ def build_namespace_package(tmpdir, name):
             namespace_packages=[{namespace!r}],
             packages=[{namespace!r}],
         )
-        """).format(**locals())
+        """
+    ).format(**locals())
     setup_py.write_text(script, encoding='utf-8')
     ns_pkg_dir = src_dir / namespace
     ns_pkg_dir.mkdir()

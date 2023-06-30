@@ -14,10 +14,9 @@ package_data = dict(
     setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
 )
 
-force_windows_specific_files = (
-    os.environ.get("SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES", "1").lower()
-    not in ("", "0", "false", "no")
-)
+force_windows_specific_files = os.environ.get(
+    "SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES", "1"
+).lower() not in ("", "0", "false", "no")
 
 include_windows_files = sys.platform == 'win32' or force_windows_specific_files
 
@@ -51,12 +50,18 @@ class install_with_pth(install):
     """
 
     _pth_name = 'distutils-precedence'
-    _pth_contents = textwrap.dedent("""
+    _pth_contents = (
+        textwrap.dedent(
+            """
         import os
         var = 'SETUPTOOLS_USE_DISTUTILS'
         enabled = os.environ.get(var, 'local') == 'local'
         enabled and __import__('_distutils_hack').add_shim()
-        """).lstrip().replace('\n', '; ')
+        """
+        )
+        .lstrip()
+        .replace('\n', '; ')
+    )
 
     def initialize_options(self):
         install.initialize_options(self)

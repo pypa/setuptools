@@ -426,8 +426,10 @@ class _LinkTree(_StaticPth):
     By collocating ``auxiliary_dir`` and the original source code, limitations
     with hardlinks should be avoided.
     """
+
     def __init__(
-        self, dist: Distribution,
+        self,
+        dist: Distribution,
         name: str,
         auxiliary_dir: _Path,
         build_lib: _Path,
@@ -457,10 +459,7 @@ class _LinkTree(_StaticPth):
     def _create_links(self, outputs, output_mapping):
         self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
         link_type = "sym" if _can_symlink_files(self.auxiliary_dir) else "hard"
-        mappings = {
-            self._normalize_output(k): v
-            for k, v in output_mapping.items()
-        }
+        mappings = {self._normalize_output(k): v for k, v in output_mapping.items()}
         mappings.pop(None, None)  # remove files that are not relative to build_lib
 
         for output in outputs:
@@ -498,10 +497,12 @@ class _TopLevelFinder:
         package_dir = self.dist.package_dir or {}
         roots = _find_package_roots(top_level, package_dir, src_root)
 
-        namespaces_: Dict[str, List[str]] = dict(chain(
-            _find_namespaces(self.dist.packages or [], roots),
-            ((ns, []) for ns in _find_virtual_namespaces(roots)),
-        ))
+        namespaces_: Dict[str, List[str]] = dict(
+            chain(
+                _find_namespaces(self.dist.packages or [], roots),
+                ((ns, []) for ns in _find_virtual_namespaces(roots)),
+            )
+        )
 
         name = f"__editable__.{self.name}.finder"
         finder = _normalization.safe_identifier(name)
@@ -575,10 +576,7 @@ def _simple_layout(
     >>> _simple_layout([], {"a": "_a", "": "src"}, "/tmp/myproj")
     False
     """
-    layout = {
-        pkg: find_package_path(pkg, package_dir, project_dir)
-        for pkg in packages
-    }
+    layout = {pkg: find_package_path(pkg, package_dir, project_dir) for pkg in packages}
     if not layout:
         return set(package_dir) in ({}, {""})
     parent = os.path.commonpath([_parent_path(k, v) for k, v in layout.items()])
@@ -598,7 +596,7 @@ def _parent_path(pkg, pkg_path):
     >>> _parent_path("b", "src/c")
     'src/c'
     """
-    parent = pkg_path[:-len(pkg)] if pkg_path.endswith(pkg) else pkg_path
+    parent = pkg_path[: -len(pkg)] if pkg_path.endswith(pkg) else pkg_path
     return parent.rstrip("/" + os.sep)
 
 
@@ -714,9 +712,8 @@ def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
     """
     norm_pkg_path = _path.normpath(pkg_path)
     rest = pkg.replace(parent, "", 1).strip(".").split(".")
-    return (
-        pkg.startswith(parent)
-        and norm_pkg_path == _path.normpath(Path(parent_path, *rest))
+    return pkg.startswith(parent) and norm_pkg_path == _path.normpath(
+        Path(parent_path, *rest)
     )
 
 

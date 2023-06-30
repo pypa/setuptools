@@ -31,8 +31,10 @@ class install_scripts(orig.install_scripts):
 
         ei_cmd = self.get_finalized_command("egg_info")
         dist = Distribution(
-            ei_cmd.egg_base, PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
-            ei_cmd.egg_name, ei_cmd.egg_version,
+            ei_cmd.egg_base,
+            PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
+            ei_cmd.egg_name,
+            ei_cmd.egg_version,
         )
         bs_cmd = self.get_finalized_command('build_scripts')
         exec_param = getattr(bs_cmd, 'executable', None)
