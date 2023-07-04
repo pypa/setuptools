@@ -35,7 +35,7 @@ How the ``zip_safe`` flag was used?
 To set this flag, a developer would pass a boolean value for the ``zip_safe`` argument to the
 ``setup()`` function, or omit it.  When omitted, the ``bdist_egg``
 command would analyze the project's contents to see if it could detect any
-conditions that preventing the project from working in a zipfile.
+conditions preventing the project from working in a zipfile.
 
 This was extremely conservative: ``bdist_egg`` would consider the
 project unsafe if it contained any C extensions or datafiles whatsoever.  This
