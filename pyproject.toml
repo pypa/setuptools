@@ -1,11 +1,8 @@
+[build-system]
+requires = ["setuptools>=56", "setuptools_scm[toml]>=3.4.1"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
 skip-string-normalization = true
 
-[tool.pytest-enabler.black]
-addopts = "--black"
-
-[tool.pytest-enabler.flake8]
-addopts = "--flake8"
-
-[tool.pytest-enabler.cov]
-addopts = "--cov"
+[tool.setuptools_scm]
