@@ -337,7 +337,15 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         with _open_setup_script(__file__) as f:
             code = f.read().replace(r'\r\n', r'\n')
 
-        exec(code, locals())
+        try:
+            exec(code, locals())
+        except SystemExit as e:
+            if e.code:
+                # We pretend under PEP 517 that the implementation
+                # called a subprocess, which failed.
+                from subprocess import CalledProcessError
+                raise CalledProcessError(e.code, "setup.py")
+            # We ignore exit code indicating success
 
     def get_requires_for_build_wheel(self, config_settings=None):
         return self._get_build_requires(config_settings, requirements=['wheel'])

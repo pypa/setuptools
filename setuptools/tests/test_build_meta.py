@@ -9,6 +9,7 @@ from concurrent import futures
 import re
 from zipfile import ZipFile
 from pathlib import Path
+from subprocess import CalledProcessError
 
 import pytest
 from jaraco import path
@@ -217,6 +218,37 @@ defns = [
     },
 ]
 
+sys_exit_defns = [
+    {  # simple setup.py script
+        'setup.py': DALS(
+            """
+            __import__('setuptools').setup(
+                name='foo',
+                version='0.0.0',
+                py_modules=['hello'],
+                setup_requires=['six'],
+            )
+            import sys
+            sys.exit(0)
+            """
+        ),
+        'hello.py': DALS(
+            """
+            def run():
+                print('hello')
+            """
+        ),
+    },
+    {  # simple setup.py script
+        'setup.py': DALS(
+            """
+            import sys
+            sys.exit(1)
+            """
+        ),
+    },
+]
+
 
 class TestBuildMetaBackend:
     backend_name = 'setuptools.build_meta'
@@ -259,6 +291,30 @@ class TestBuildMetaBackend:
         python_scripts = (f for f in wheel_contents if f.endswith('.py'))
         modules = [f for f in python_scripts if not f.endswith('setup.py')]
         assert len(modules) == 1
+
+    @pytest.fixture(params=sys_exit_defns)
+    def sys_exit_build_backend(self, tmpdir, request):
+        path.build(request.param, prefix=str(tmpdir))
+        with tmpdir.as_cwd():
+            yield self.get_build_backend()
+
+    def test_get_requires_for_build_wheel_with_sys_exit(self, sys_exit_build_backend):
+        try:
+            actual = sys_exit_build_backend.get_requires_for_build_wheel()
+            expected = ['six', 'wheel']
+            assert sorted(actual) == sorted(expected)
+        except CalledProcessError as e:
+            assert e.returncode == 1
+            assert e.cmd == "setup.py"
+
+    def test_get_requires_for_build_sdist_with_sys_exit(self, sys_exit_build_backend):
+        try:
+            actual = sys_exit_build_backend.get_requires_for_build_sdist()
+            expected = ['six']
+            assert sorted(actual) == sorted(expected)
+        except CalledProcessError as e:
+            assert e.returncode == 1
+            assert e.cmd == "setup.py"
 
     @pytest.mark.parametrize('build_type', ('wheel', 'sdist'))
     def test_build_with_existing_file_present(self, build_type, tmpdir_cwd):
