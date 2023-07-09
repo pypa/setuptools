@@ -233,14 +233,6 @@ we specify that ``data1.rst`` from ``mypkg1`` alone should be captured as well.
     ``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
     the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
 
-.. note::
-   If using the ``include_package_data`` argument, files specified by
-   ``package_data`` will *not* be automatically added to the manifest unless
-   they are listed in the |MANIFEST.in|_ file or by a plugin like
-   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
-
-.. https://docs.python.org/3/distutils/setupscript.html#installing-package-data
-
 exclude_package_data
 ====================
 
