@@ -1,5 +1,6 @@
 import importlib.util
 import sys
+from typing import TYPE_CHECKING
 
 
 class VendorImporter:
@@ -82,3 +83,14 @@ names = (
     'tomli',
 )
 VendorImporter(__name__, names, 'setuptools._vendor').install()
+
+if TYPE_CHECKING:
+    import packaging as packaging 
+    import ordered_set as ordered_set 
+    import more_itertools as more_itertools 
+    import importlib_metadata as importlib_metadata 
+    import zipp as zipp 
+    import importlib_resources as importlib_resources 
+    import jaraco as jaraco 
+    import typing_extensions as typing_extensions 
+    import tomli as tomli 

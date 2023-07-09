@@ -3,9 +3,8 @@ import sys
 import itertools
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
-from typing import Dict, Iterator, List, Tuple
+from typing import TYPE_CHECKING, Dict, Iterator, List, Tuple
 
-from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
 from distutils import log
@@ -13,19 +12,22 @@ from distutils import log
 from setuptools.errors import BaseError
 from setuptools.extension import Extension, Library
 
-try:
-    # Attempt to use Cython for building extensions, if available
-    from Cython.Distutils.build_ext import build_ext as _build_ext
+if TYPE_CHECKING:
+    from distutils.command.build_ext import build_ext as _build_ext
+else:
+    try:
+        # Attempt to use Cython for building extensions, if available
+        from Cython.Distutils.build_ext import build_ext as _build_ext
 
-    # Additionally, assert that the compiler module will load
-    # also. Ref #1229.
-    __import__('Cython.Compiler.Main')
-except ImportError:
-    _build_ext = _du_build_ext
+        # Additionally, assert that the compiler module will load
+        # also. Ref #1229.
+        __import__('Cython.Compiler.Main')
+    except ImportError:
+        from distutils.command.build_ext import build_ext as _build_ext
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")
-from distutils.sysconfig import _config_vars as _CONFIG_VARS  # noqa
+from distutils.sysconfig import _config_vars as _CONFIG_VARS  # type: ignore # noqa # Not publicly exposed in distutils stubs
 
 
 def _customize_compiler_for_shlib(compiler):
@@ -126,7 +128,7 @@ class build_ext(_build_ext):
             return
 
         build_py = self.get_finalized_command('build_py')
-        opt = self.get_finalized_command('install_lib').optimize or ""
+        opt = self.get_finalized_command('install_lib').optimize or ""  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
 
         for ext in self.extensions:
             inplace_file, regular_file = self._get_inplace_equivalent(build_py, ext)
@@ -296,7 +298,7 @@ class build_ext(_build_ext):
         log.info("writing stub loader for %s to %s", ext._full_name, stub_file)
         if compile and os.path.exists(stub_file):
             raise BaseError(stub_file + " already exists! Please delete.")
-        if not self.dry_run:
+        if not self.dry_run:  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
             f = open(stub_file, 'w')
             f.write(
                 '\n'.join(
@@ -334,13 +336,13 @@ class build_ext(_build_ext):
     def _compile_and_remove_stub(self, stub_file: str):
         from distutils.util import byte_compile
 
-        byte_compile([stub_file], optimize=0, force=True, dry_run=self.dry_run)
-        optimize = self.get_finalized_command('install_lib').optimize
+        byte_compile([stub_file], optimize=0, force=True, dry_run=self.dry_run)  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
+        optimize = self.get_finalized_command('install_lib').optimize  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
         if optimize > 0:
             byte_compile(
-                [stub_file], optimize=optimize, force=True, dry_run=self.dry_run
+                [stub_file], optimize=optimize, force=True, dry_run=self.dry_run  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
             )
-        if os.path.exists(stub_file) and not self.dry_run:
+        if os.path.exists(stub_file) and not self.dry_run:  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
             os.unlink(stub_file)
 
 

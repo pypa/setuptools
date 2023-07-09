@@ -21,9 +21,10 @@ import platform
 import itertools
 import subprocess
 import distutils.errors
+import sys
 from setuptools.extern.more_itertools import unique_everseen
 
-if platform.system() == 'Windows':
+if sys.platform == "win32":
     import winreg
     from os import environ
 else:

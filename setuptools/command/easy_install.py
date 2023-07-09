@@ -25,6 +25,7 @@ from distutils.spawn import find_executable
 from distutils.command import install
 import sys
 import os
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 import zipimport
 import shutil
 import tempfile
@@ -77,6 +78,8 @@ import pkg_resources
 from .. import py312compat
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
+
+_FileDescriptorOrPath = Union[int, str, bytes, os.PathLike[str], os.PathLike[bytes]]
 
 
 # Turn on PEP440Warnings
@@ -1774,7 +1777,7 @@ class RewritePthDistributions(PthDistributions):
 
 
 if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'raw') == 'rewrite':
-    PthDistributions = RewritePthDistributions
+    PthDistributions = RewritePthDistributions  # type: ignore[misc]  # Overwriting type
 
 
 def _first_line_re():
@@ -2024,7 +2027,13 @@ try:
     from os import chmod as _chmod
 except ImportError:
     # Jython compatibility
-    def _chmod(*args):
+    def _chmod(
+        path: _FileDescriptorOrPath,
+        mode: int,
+        *,
+        dir_fd: Optional[int] = None,
+        follow_symlinks: bool = True
+    ) -> None:
         pass
 
 
@@ -2042,8 +2051,8 @@ class CommandSpec(list):
     those passed to Popen.
     """
 
-    options = []
-    split_args = dict()
+    options: List[str] = []
+    split_args: Dict[str, bool] = dict()
 
     @classmethod
     def best(cls):

@@ -17,6 +17,7 @@ import sys
 from enum import Enum
 from glob import glob
 from hashlib import md5
+from typing_extensions import reveal_type
 from urllib.request import urlopen
 
 import pytest
@@ -27,7 +28,12 @@ from .helpers import Archive, run
 
 pytestmark = pytest.mark.integration
 
-(LATEST,) = Enum("v", "LATEST")
+
+class v(Enum):
+    LATEST = 1
+
+
+(LATEST,) = v
 """Default version to be checked"""
 # There are positive and negative aspects of checking the latest version of the
 # packages.

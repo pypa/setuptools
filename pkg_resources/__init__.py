@@ -23,6 +23,7 @@ import io
 import time
 import re
 import types
+from typing import TYPE_CHECKING, Optional
 import zipfile
 import zipimport
 import warnings
@@ -43,11 +44,7 @@ import posixpath
 import importlib
 from pkgutil import get_importer
 
-try:
-    import _imp
-except ImportError:
-    # Python 3.2 compatibility
-    import imp as _imp
+import _imp
 
 try:
     FileExistsError
@@ -68,8 +65,10 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
+importlib_machinery: Optional[types.ModuleType]
 try:
-    import importlib.machinery as importlib_machinery
+    import importlib.machinery
+    importlib_machinery = importlib.machinery
 
     # access attribute to force import under delayed import mechanisms.
     importlib_machinery.__name__
@@ -2231,7 +2230,8 @@ def resolve_egg_link(path):
 if hasattr(pkgutil, 'ImpImporter'):
     register_finder(pkgutil.ImpImporter, find_on_path)
 
-register_finder(importlib_machinery.FileFinder, find_on_path)
+if importlib_machinery:
+    register_finder(importlib_machinery.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})
@@ -2398,7 +2398,8 @@ if hasattr(pkgutil, 'ImpImporter'):
     register_namespace_handler(pkgutil.ImpImporter, file_ns_handler)
 
 register_namespace_handler(zipimport.zipimporter, file_ns_handler)
-register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
+if importlib_machinery:
+    register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
 
 
 def null_ns_handler(importer, path_item, packageName, module):

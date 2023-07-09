@@ -215,7 +215,7 @@ class build_py(orig.build_py):
         This function should filter this case of invalid files out.
         """
         build = self.get_finalized_command("build")
-        build_dirs = (egg_info, self.build_lib, build.build_temp, build.build_base)
+        build_dirs = (egg_info, self.build_lib, build.build_temp, build.build_base)  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
         norm_dirs = [os.path.normpath(p) for p in build_dirs if p]
 
         for file in files:

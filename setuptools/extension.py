@@ -27,7 +27,7 @@ have_pyrex = _have_cython
 _Extension = get_unpatched(distutils.core.Extension)
 
 
-class Extension(_Extension):
+class Extension(_Extension):  # type: ignore[valid-type, misc]  # https://github.com/python/mypy/issues/14458
     """
     Describes a single extension module.
 

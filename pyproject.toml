@@ -11,3 +11,22 @@ extend_exclude = "_vendor"
 
 [tool.pytest-enabler.mypy]
 # disabled
+
+
+[tool.mypy]
+# CI should test for all versions, local development gets hints for oldest supported
+python_version = "3.8"
+strict = false
+# TODO: Not all dependencies are typed. setuptools itself should be typed too
+# TODO: Test environment is not yet properly configured to install all imported packages
+ignore_missing_imports = true
+# required to support namespace packages: https://github.com/python/mypy/issues/14057
+explicit_package_bases = true
+exclude = [
+	"^build/",
+	# Duplicate module name
+	"^pkg_resources/tests/data/my-test-package-source/setup.py$",
+	# Vendored
+	"^.+?/_vendor",
+	"^setuptools/_distutils",
+]

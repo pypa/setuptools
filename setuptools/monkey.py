@@ -9,10 +9,13 @@ import types
 import functools
 from importlib import import_module
 import inspect
+from typing import List, TypeVar
 
 import setuptools
 
-__all__ = []
+_T = TypeVar("_T")
+
+__all__: List[str] = []
 """
 Everything is private. Contact the project team
 if you think you need this functionality.
@@ -33,7 +36,7 @@ def _get_mro(cls):
     return inspect.getmro(cls)
 
 
-def get_unpatched(item):
+def get_unpatched(item: _T) -> _T:
     lookup = (
         get_unpatched_class
         if isinstance(item, type)

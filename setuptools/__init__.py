@@ -113,7 +113,7 @@ setup.__doc__ = distutils.core.setup.__doc__
 _Command = monkey.get_unpatched(distutils.core.Command)
 
 
-class Command(_Command):
+class Command(_Command):  # type: ignore[valid-type, misc]  # https://github.com/python/mypy/issues/14458
     """
     Setuptools internal actions are organized using a *command design pattern*.
     This means that each action (or group of closely related actions) executed during

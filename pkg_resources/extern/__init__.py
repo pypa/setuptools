@@ -1,5 +1,6 @@
 import importlib.util
 import sys
+from typing import TYPE_CHECKING
 
 
 class VendorImporter:
@@ -78,3 +79,10 @@ names = (
     'more_itertools',
 )
 VendorImporter(__name__, names).install()
+
+if TYPE_CHECKING:
+    from . import packaging as packaging
+    import platformdirs as platformdirs
+    import jaraco as jaraco
+    import importlib_resources as importlib_resources
+    import more_itertools as more_itertools

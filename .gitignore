@@ -8,6 +8,7 @@ lib
 distribute.egg-info
 setuptools.egg-info
 .coverage
+test_*
 .eggs
 .tox
 .venv

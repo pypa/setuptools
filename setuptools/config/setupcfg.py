@@ -107,7 +107,7 @@ def _apply(
     filenames = [*other_files, filepath]
 
     try:
-        _Distribution.parse_config_files(dist, filenames=filenames)
+        _Distribution.parse_config_files(dist, filenames=filenames)  # type: ignore[arg-type] # TODO: fix in disutils stubs
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )

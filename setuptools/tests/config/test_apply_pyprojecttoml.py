@@ -8,6 +8,7 @@ import re
 import tarfile
 from inspect import cleandoc
 from pathlib import Path
+from typing import Tuple
 from unittest.mock import Mock
 from zipfile import ZipFile
 
@@ -425,7 +426,7 @@ def core_metadata(dist) -> str:
         dist.metadata.write_pkg_file(buffer)
         pkg_file_txt = buffer.getvalue()
 
-    skip_prefixes = ()
+    skip_prefixes: Tuple[str, ...] = ()
     skip_lines = set()
     # ---- DIFF NORMALISATION ----
     # PEP 621 is very particular about author/maintainer metadata conversion, so skip
