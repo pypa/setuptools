@@ -68,6 +68,7 @@ from os.path import isdir, split
 importlib_machinery: Optional[types.ModuleType]
 try:
     import importlib.machinery
+
     importlib_machinery = importlib.machinery
 
     # access attribute to force import under delayed import mechanisms.

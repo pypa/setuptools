@@ -274,6 +274,7 @@ def _mk_dual_path_wrapper(name):
 
     return wrap
 
+
 def _mk_single_path_wrapper(name, original=None):
     original = original or getattr(_os, name)
 
@@ -283,6 +284,7 @@ def _mk_single_path_wrapper(name, original=None):
         return original(path, *args, **kw)
 
     return wrap
+
 
 def _mk_single_with_return(name):
     original = getattr(_os, name)
@@ -295,6 +297,7 @@ def _mk_single_with_return(name):
 
     return wrap
 
+
 def _mk_query(name):
     original = getattr(_os, name)
 
@@ -305,6 +308,7 @@ def _mk_query(name):
         return retval
 
     return wrap
+
 
 class AbstractSandbox:
     """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""

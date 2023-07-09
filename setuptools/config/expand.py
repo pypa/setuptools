@@ -64,7 +64,7 @@ class StaticModule:
     """Proxy to a module object that avoids executing arbitrary code."""
 
     def __init__(self, name: str, spec: ModuleSpec):
-        module = ast.parse(pathlib.Path(spec.origin).read_bytes()) # type: ignore[arg-type] # Let it raise an error on None
+        module = ast.parse(pathlib.Path(spec.origin).read_bytes())  # type: ignore[arg-type] # Let it raise an error on None
         vars(self).update(locals())
         del self.self
 

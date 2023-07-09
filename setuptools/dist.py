@@ -393,7 +393,7 @@ def check_packages(dist, attr, value):
 _Distribution = get_unpatched(distutils.core.Distribution)
 
 
-class Distribution(_Distribution): # type: ignore[valid-type, misc]  # https://github.com/python/mypy/issues/14458
+class Distribution(_Distribution):  # type: ignore[valid-type, misc]  # https://github.com/python/mypy/issues/14458
     """Distribution with support for tests and package data
 
     This is an enhanced version of 'distutils.dist.Distribution' that

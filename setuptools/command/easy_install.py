@@ -2032,7 +2032,7 @@ except ImportError:
         mode: int,
         *,
         dir_fd: Optional[int] = None,
-        follow_symlinks: bool = True
+        follow_symlinks: bool = True,
     ) -> None:
         pass
 
