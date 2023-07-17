@@ -13,7 +13,6 @@ from uuid import uuid4
 
 import jaraco.envs
 import jaraco.path
-import pip_run.launch
 import pytest
 from path import Path as _Path
 
@@ -379,7 +378,7 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     site_packages.mkdir(parents=True)
 
     # install workaround
-    pip_run.launch.inject_sitecustomize(site_packages)
+    _addsitedir(site_packages)
 
     env = dict(os.environ, PYTHONPATH=str(site_packages))
     cmd = [
@@ -1036,6 +1035,16 @@ def install_project(name, venv, tmp_path, files, *opts):
         stderr=subprocess.STDOUT,
     )
     return project, out
+
+
+def _addsitedir(new_dir: Path):
+    """To use this function, it is necessary to insert new_dir in front of sys.path.
+    The Python process will try to import a ``sitecustomize`` module on startup.
+    If we manipulate sys.path/PYTHONPATH, we can force it to run our code,
+    which invokes ``addsitedir`` and ensure ``.pth`` files are loaded.
+    """
+    file = f"import site; site.addsitedir({os.fspath(new_dir)!r})\n"
+    (new_dir / "sitecustomize.py").write_text(file, encoding="utf-8")
 
 
 # ---- Assertion Helpers ----

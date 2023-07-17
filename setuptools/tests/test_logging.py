@@ -20,7 +20,7 @@ setup(
 )
 def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
     """Make sure the correct verbosity level is set (issue #3038)"""
-    import setuptools  # noqa: Import setuptools to monkeypatch distutils
+    import setuptools  # noqa: F401  # import setuptools to monkeypatch distutils
     import distutils  # <- load distutils after all the patches take place
 
     logger = logging.Logger(__name__)
