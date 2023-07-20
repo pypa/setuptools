@@ -240,7 +240,7 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
 
 .. [#entry-points] Dynamic ``scripts`` and ``gui-scripts`` are a special case.
    When resolving these metadata keys, ``setuptools`` will look for
-   ``tool.setuptool.dynamic.entry-points``, and use the values of the
+   ``tool.setuptools.dynamic.entry-points``, and use the values of the
    ``console_scripts`` and ``gui_scripts`` :doc:`entry-point groups
    <PyPUG:specifications/entry-points>`.
 
