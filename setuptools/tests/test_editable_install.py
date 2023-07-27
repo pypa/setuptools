@@ -577,6 +577,27 @@ class TestFinderTemplate:
             with pytest.raises(ImportError, match="foobar"):
                 import_module("foobar")
 
+    def test_case_sensitivity(self, tmp_path):
+        files = {
+            "foo": {
+                "__init__.py": "",
+                "lowercase.py": "x = 1",
+            },
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+        mapping = {
+            "foo": str(tmp_path / "foo"),
+        }
+        template = _finder_template(str(uuid4()), mapping, {})
+        with contexts.save_paths(), contexts.save_sys_modules():
+            sys.modules.pop("foo", None)
+
+            self.install_finder(template)
+            with pytest.raises(ImportError, match="foo\\.Lowercase"):
+                import_module("foo.Lowercase")
+            foo_lowercase = import_module("foo.lowercase")
+            assert foo_lowercase.x == 1
+
 
 def test_pkg_roots(tmp_path):
     """This test focus in getting a particular implementation detail right.
