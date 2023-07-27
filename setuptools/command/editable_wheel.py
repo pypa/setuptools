@@ -776,8 +776,7 @@ class _EditableFinder:  # MetaPathFinder
             if (
                 candidate.is_file()
                 and (
-                    candidate.parent.is_dir()
-                    and candidate in candidate.parent.iterdir()
+                    candidate in candidate.parent.iterdir()
                     or "PYTHONCASEOK" in os.environ
                 )
             ):
