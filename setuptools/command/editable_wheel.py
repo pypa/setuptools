@@ -743,6 +743,7 @@ class _NamespaceInstaller(namespaces.Installer):
 
 
 _FINDER_TEMPLATE = """\
+import os
 import sys
 from importlib.machinery import ModuleSpec
 from importlib.machinery import all_suffixes as module_suffixes
@@ -770,7 +771,16 @@ class _EditableFinder:  # MetaPathFinder
         init = candidate_path / "__init__.py"
         candidates = (candidate_path.with_suffix(x) for x in module_suffixes())
         for candidate in chain([init], candidates):
-            if candidate.exists():
+            # this is meant to be a case-sensitive check that the candidate exists, for
+            # case-insensitive, case-preserving filesystems (e.g. APFS)
+            if (
+                candidate.is_file()
+                and (
+                    candidate.parent.is_dir()
+                    and candidate in candidate.parent.iterdir()
+                    or "PYTHONCASEOK" in os.environ
+                )
+            ):
                 return spec_from_file_location(fullname, candidate)
 
 
