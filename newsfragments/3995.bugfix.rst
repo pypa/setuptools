@@ -1,0 +1,1 @@
+Made imports in editable installs case-sensitive on case-insensitive filesystems -- by :user:`aganders3`
