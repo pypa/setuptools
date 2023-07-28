@@ -742,7 +742,7 @@ class _NamespaceInstaller(namespaces.Installer):
         return repr(str(self.src_root))
 
 
-_FINDER_TEMPLATE = """\
+_FINDER_TEMPLATE = '''\
 import os
 import sys
 from importlib.machinery import ModuleSpec
@@ -754,6 +754,15 @@ from pathlib import Path
 MAPPING = {mapping!r}
 NAMESPACES = {namespaces!r}
 PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
+
+
+def _relax_case():
+    return not sys.flags.ignore_environment and "PYTHONCASEOK" in os.environ
+
+
+def _in_dir_case_sensitive(path, dir):
+    """Provide a case-sensitive confirmation that `path` exists in `dir`."""
+    return path.as_posix() in [f.as_posix() for f in dir.iterdir()]
 
 
 class _EditableFinder:  # MetaPathFinder
@@ -771,14 +780,8 @@ class _EditableFinder:  # MetaPathFinder
         init = candidate_path / "__init__.py"
         candidates = (candidate_path.with_suffix(x) for x in module_suffixes())
         for candidate in chain([init], candidates):
-            # this is meant to be a case-sensitive check that the candidate exists, for
-            # case-insensitive, case-preserving filesystems (e.g. APFS)
-            if (
-                candidate.is_file()
-                and (
-                    candidate in candidate.parent.iterdir()
-                    or "PYTHONCASEOK" in os.environ
-                )
+            if candidate.is_file() and (
+                _relax_case() or _in_dir_case_sensitive(candidate, candidate.parent)
             ):
                 return spec_from_file_location(fullname, candidate)
 
@@ -820,7 +823,7 @@ def install():
         sys.path_hooks.append(_EditableNamespaceFinder._path_hook)
     if PATH_PLACEHOLDER not in sys.path:
         sys.path.append(PATH_PLACEHOLDER)  # Used just to trigger the path hook
-"""
+'''
 
 
 def _finder_template(
