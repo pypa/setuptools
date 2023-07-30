@@ -742,7 +742,7 @@ class _NamespaceInstaller(namespaces.Installer):
         return repr(str(self.src_root))
 
 
-_FINDER_TEMPLATE = '''\
+_FINDER_TEMPLATE = """\
 import os
 import sys
 from importlib.machinery import ModuleSpec
@@ -756,13 +756,20 @@ NAMESPACES = {namespaces!r}
 PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 
 
-def _relax_case():
-    return not sys.flags.ignore_environment and "PYTHONCASEOK" in os.environ
-
-
-def _in_dir_case_sensitive(path, dir):
-    """Provide a case-sensitive confirmation that `path` exists in `dir`."""
-    return path.as_posix() in [f.as_posix() for f in dir.iterdir()]
+def _check_case(path, n):
+    '''Verify the last `n` parts of the path have correct case.'''
+    return (
+        (not sys.flags.ignore_environment and "PYTHONCASEOK" in os.environ)
+        or (
+            # check the case of the name by listing its parent directory
+            path.as_posix() in (p.as_posix() for p in path.parent.iterdir())
+            # check the case of the next n - 1 parent directories the same way
+            and all(
+                p1.as_posix() in (p.as_posix() for p in p2.iterdir())
+                for p1, p2 in list(zip(path.parents, path.parents[1:]))[:n - 1]
+            )
+        )
+    )
 
 
 class _EditableFinder:  # MetaPathFinder
@@ -771,18 +778,17 @@ class _EditableFinder:  # MetaPathFinder
         for pkg, pkg_path in reversed(list(MAPPING.items())):
             if fullname == pkg or fullname.startswith(f"{{pkg}}."):
                 rest = fullname.replace(pkg, "", 1).strip(".").split(".")
-                return cls._find_spec(fullname, Path(pkg_path, *rest))
+                return cls._find_spec(fullname, pkg_path, rest)
 
         return None
 
     @classmethod
-    def _find_spec(cls, fullname, candidate_path):
+    def _find_spec(cls, fullname, pkg_path, rest):
+        candidate_path = Path(pkg_path, *rest)
         init = candidate_path / "__init__.py"
         candidates = (candidate_path.with_suffix(x) for x in module_suffixes())
         for candidate in chain([init], candidates):
-            if candidate.is_file() and (
-                _relax_case() or _in_dir_case_sensitive(candidate, candidate.parent)
-            ):
+            if candidate.is_file() and _check_case(candidate, len(rest)):
                 return spec_from_file_location(fullname, candidate)
 
 
@@ -823,7 +829,7 @@ def install():
         sys.path_hooks.append(_EditableNamespaceFinder._path_hook)
     if PATH_PLACEHOLDER not in sys.path:
         sys.path.append(PATH_PLACEHOLDER)  # Used just to trigger the path hook
-'''
+"""
 
 
 def _finder_template(
