@@ -756,22 +756,6 @@ NAMESPACES = {namespaces!r}
 PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 
 
-def _check_case(path, n):
-    '''Verify the last `n` parts of the path have correct case.'''
-    return (
-        (not sys.flags.ignore_environment and "PYTHONCASEOK" in os.environ)
-        or (
-            # check the case of the name by listing its parent directory
-            path.as_posix() in (p.as_posix() for p in path.parent.iterdir())
-            # check the case of the next n - 1 parent directories the same way
-            and all(
-                p1.as_posix() in (p.as_posix() for p in p2.iterdir())
-                for p1, p2 in list(zip(path.parents, path.parents[1:]))[:n - 1]
-            )
-        )
-    )
-
-
 class _EditableFinder:  # MetaPathFinder
     @classmethod
     def find_spec(cls, fullname, path=None, target=None):
@@ -815,6 +799,22 @@ class _EditableNamespaceFinder:  # PathEntryFinder
     @classmethod
     def find_module(cls, fullname):
         return None
+
+
+def _check_case(path, n):
+    '''Verify the last `n` parts of the path have correct case.'''
+    return (
+        (not sys.flags.ignore_environment and "PYTHONCASEOK" in os.environ)
+        or (
+            # check the case of the name by listing its parent directory
+            path.as_posix() in (p.as_posix() for p in path.parent.iterdir())
+            # check the case of the next n parent directories the same way
+            and all(
+                p1.as_posix() in (p.as_posix() for p in p2.iterdir())
+                for p1, p2 in list(zip(path.parents, path.parents[1:]))[:n]
+            )
+        )
+    )
 
 
 def install():
