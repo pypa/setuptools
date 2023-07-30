@@ -582,6 +582,10 @@ class TestFinderTemplate:
             "foo": {
                 "__init__.py": "",
                 "lowercase.py": "x = 1",
+                "bar": {
+                    "__init__.py": "",
+                    "lowercase.py": "x = 2",
+                },
             },
         }
         jaraco.path.build(files, prefix=tmp_path)
@@ -593,10 +597,62 @@ class TestFinderTemplate:
             sys.modules.pop("foo", None)
 
             self.install_finder(template)
-            with pytest.raises(ImportError, match="foo\\.Lowercase"):
-                import_module("foo.Lowercase")
-            foo_lowercase = import_module("foo.lowercase")
-            assert foo_lowercase.x == 1
+            with pytest.raises(ImportError, match="\'FOO\'"):
+                import_module("FOO")
+
+            with pytest.raises(ImportError, match="\'foo\\.LOWERCASE\'"):
+                import_module("foo.LOWERCASE")
+
+            with pytest.raises(ImportError, match="\'foo\\.bar\\.Lowercase\'"):
+                import_module("foo.bar.Lowercase")
+
+            with pytest.raises(ImportError, match="\'foo\\.BAR\'"):
+                import_module("foo.BAR.lowercase")
+
+            mod = import_module("foo.lowercase")
+            assert mod.x == 1
+
+            mod = import_module("foo.bar.lowercase")
+            assert mod.x == 2
+
+    def test_namespace_case_sensitivity(self, tmp_path):
+        files = {
+            "pkg": {
+                "__init__.py": "a = 13",
+                "foo": {
+                    "__init__.py": "b = 37",
+                    "bar.py": "c = 42",
+                },
+            },
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {"ns.othername": str(tmp_path / "pkg")}
+        namespaces = {"ns": []}
+
+        template = _finder_template(str(uuid4()), mapping, namespaces)
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in ("ns", "ns.othername"):
+                sys.modules.pop(mod, None)
+
+            self.install_finder(template)
+            pkg = import_module("ns.othername")
+            expected = str((tmp_path / "pkg").resolve())
+            assert_path(pkg, expected)
+            assert pkg.a == 13
+
+            foo = import_module("ns.othername.foo")
+            assert foo.b == 37
+
+            bar = import_module("ns.othername.foo.bar")
+            assert bar.c == 42
+
+            with pytest.raises(ImportError, match="\'ns\\.othername\\.FOO\\'"):
+                import_module("ns.othername.FOO")
+
+            with pytest.raises(ImportError, match="\'ns\\.othername\\.foo\\.BAR\\'"):
+                import_module("ns.othername.foo.BAR")
+
 
 
 def test_pkg_roots(tmp_path):
