@@ -654,7 +654,6 @@ class TestFinderTemplate:
                 import_module("ns.othername.foo.BAR")
 
 
-
 def test_pkg_roots(tmp_path):
     """This test focus in getting a particular implementation detail right.
     If at some point in time the implementation is changed for something different,

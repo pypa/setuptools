@@ -772,7 +772,8 @@ class _EditableFinder:  # MetaPathFinder
         init = candidate_path / "__init__.py"
         candidates = (candidate_path.with_suffix(x) for x in module_suffixes())
         for candidate in chain([init], candidates):
-            if candidate.is_file() and _check_case(candidate, len(rest)):
+            last_n = len(rest) + len(candidate.parts) - len(candidate_path.parts)
+            if candidate.is_file() and _check_case(candidate, last_n):
                 return spec_from_file_location(fullname, candidate)
 
 
@@ -801,17 +802,17 @@ class _EditableNamespaceFinder:  # PathEntryFinder
         return None
 
 
-def _check_case(path, n):
+def _check_case(path, last_n):
     '''Verify the last `n` parts of the path have correct case.'''
     return (
         (not sys.flags.ignore_environment and "PYTHONCASEOK" in os.environ)
         or (
             # check the case of the name by listing its parent directory
             path.as_posix() in (p.as_posix() for p in path.parent.iterdir())
-            # check the case of the next n parent directories the same way
+            # check the case of the next n - 1 components the same way
             and all(
                 part.as_posix() in (p.as_posix() for p in part.parent.iterdir())
-                for part in list(path.parents)[:n]
+                for part in list(path.parents)[:last_n - 1]
             )
         )
     )
