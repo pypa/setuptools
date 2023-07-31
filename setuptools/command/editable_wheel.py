@@ -810,8 +810,8 @@ def _check_case(path, n):
             path.as_posix() in (p.as_posix() for p in path.parent.iterdir())
             # check the case of the next n parent directories the same way
             and all(
-                p1.as_posix() in (p.as_posix() for p in p2.iterdir())
-                for p1, p2 in list(zip(path.parents, path.parents[1:]))[:n]
+                part.as_posix() in (p.as_posix() for p in part.parent.iterdir())
+                for part in list(path.parents)[:n]
             )
         )
     )
