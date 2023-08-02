@@ -609,6 +609,9 @@ class TestFinderTemplate:
             with pytest.raises(ImportError, match="\'foo\\.BAR\'"):
                 import_module("foo.BAR.lowercase")
 
+            with pytest.raises(ImportError, match="\'FOO\'"):
+                import_module("FOO.bar.lowercase")
+
             mod = import_module("foo.lowercase")
             assert mod.x == 1
 
@@ -646,6 +649,9 @@ class TestFinderTemplate:
 
             bar = import_module("ns.othername.foo.bar")
             assert bar.c == 42
+
+            with pytest.raises(ImportError, match="\'NS\'"):
+                import_module("NS.othername.foo")
 
             with pytest.raises(ImportError, match="\'ns\\.othername\\.FOO\\'"):
                 import_module("ns.othername.FOO")
