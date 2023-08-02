@@ -743,7 +743,6 @@ class _NamespaceInstaller(namespaces.Installer):
 
 
 _FINDER_TEMPLATE = """\
-import os
 import sys
 from importlib.machinery import ModuleSpec
 from importlib.machinery import all_suffixes as module_suffixes
@@ -762,18 +761,16 @@ class _EditableFinder:  # MetaPathFinder
         for pkg, pkg_path in reversed(list(MAPPING.items())):
             if fullname == pkg or fullname.startswith(f"{{pkg}}."):
                 rest = fullname.replace(pkg, "", 1).strip(".").split(".")
-                return cls._find_spec(fullname, pkg_path, rest)
+                return cls._find_spec(fullname, Path(pkg_path, *rest))
 
         return None
 
     @classmethod
-    def _find_spec(cls, fullname, pkg_path, rest):
-        candidate_path = Path(pkg_path, *rest)
+    def _find_spec(cls, fullname, candidate_path):
         init = candidate_path / "__init__.py"
         candidates = (candidate_path.with_suffix(x) for x in module_suffixes())
         for candidate in chain([init], candidates):
-            last_n = len(rest) + len(candidate.parts) - len(candidate_path.parts)
-            if candidate.is_file() and _check_case(candidate, last_n):
+            if candidate.exists():
                 return spec_from_file_location(fullname, candidate)
 
 
@@ -800,22 +797,6 @@ class _EditableNamespaceFinder:  # PathEntryFinder
     @classmethod
     def find_module(cls, fullname):
         return None
-
-
-def _check_case(path, last_n):
-    '''Verify the last `n` parts of the path have correct case.'''
-    return (
-        (not sys.flags.ignore_environment and "PYTHONCASEOK" in os.environ)
-        or (
-            # check the case of the name by listing its parent directory
-            path.as_posix() in (p.as_posix() for p in path.parent.iterdir())
-            # check the case of the next n - 1 components the same way
-            and all(
-                part.as_posix() in (p.as_posix() for p in part.parent.iterdir())
-                for part in list(path.parents)[:last_n - 1]
-            )
-        )
-    )
 
 
 def install():
