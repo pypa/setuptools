@@ -744,7 +744,7 @@ class _NamespaceInstaller(namespaces.Installer):
 
 _FINDER_TEMPLATE = """\
 import sys
-from importlib.machinery import ModuleSpec
+from importlib.machinery import ModuleSpec, PathFinder
 from importlib.machinery import all_suffixes as module_suffixes
 from importlib.util import spec_from_file_location
 from itertools import chain
@@ -758,10 +758,15 @@ PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 class _EditableFinder:  # MetaPathFinder
     @classmethod
     def find_spec(cls, fullname, path=None, target=None):
+        # Top-level packages and modules (we know these exist in the FS)
+        if fullname in MAPPING:
+            pkg_path = MAPPING[fullname]
+            return cls._find_spec(fullname, Path(pkg_path))
+
+        # Nested modules (apparently required for namespaces to work)
         for pkg, pkg_path in reversed(list(MAPPING.items())):
-            if fullname == pkg or fullname.startswith(f"{{pkg}}."):
-                rest = fullname.replace(pkg, "", 1).strip(".").split(".")
-                return cls._find_spec(fullname, Path(pkg_path, *rest))
+            if fullname.startswith(f"{{pkg}}."):
+                return cls._find_nested_spec(fullname, pkg, pkg_path)
 
         return None
 
@@ -772,6 +777,20 @@ class _EditableFinder:  # MetaPathFinder
         for candidate in chain([init], candidates):
             if candidate.exists():
                 return spec_from_file_location(fullname, candidate)
+
+    @classmethod
+    def _find_nested_spec(cls, fullname, parent, parent_path):
+        '''
+        To avoid problems with case sensitivity in the file system we delegate to the
+        importlib.machinery implementation.
+        '''
+        rest = fullname.replace(parent, "", 1).strip(".")
+        nested = PathFinder.find_spec(rest, path=[parent_path])
+        return nested and spec_from_file_location(
+            fullname,
+            nested.origin,
+            submodule_search_locations=nested.submodule_search_locations
+        )
 
 
 class _EditableNamespaceFinder:  # PathEntryFinder
