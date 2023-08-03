@@ -261,6 +261,12 @@ class build_ext(_build_ext):
         pkg = '.'.join(ext._full_name.split('.')[:-1] + [''])
         return any(pkg + libname in libnames for libname in ext.libraries)
 
+    def get_source_files(self):
+        filenames = _build_ext.get_source_files(self)
+        for ext in self.extensions:
+            filenames.extend(ext.depends)
+        return filenames
+
     def get_outputs(self) -> List[str]:
         if self.inplace:
             return list(self.get_output_mapping().keys())
