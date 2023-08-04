@@ -1,0 +1,1 @@
+Fixed an issue where the files listed in ``Extension.depends`` were not included in manifests and sdists -- by :user:`RuRo`
