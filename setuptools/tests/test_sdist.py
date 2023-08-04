@@ -19,6 +19,7 @@ from setuptools import SetuptoolsDeprecationWarning
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
+from setuptools.extension import Extension
 from setuptools.tests import fail_on_ascii
 from .text import Filenames
 
@@ -40,6 +41,12 @@ from setuptools import setup
 setup(**%r)
 """
     % SETUP_ATTRS
+)
+
+EXTENSION = Extension(
+    name="sdist_test.f",
+    sources=[os.path.join("sdist_test", "f.c")],
+    depends=[os.path.join("sdist_test", "f.h")],
 )
 
 
@@ -119,6 +126,10 @@ class TestSdistTest:
         for fname in ['__init__.py', 'a.txt', 'b.txt', 'c.rst']:
             touch(test_pkg / fname)
         touch(data_folder / 'e.dat')
+        # C sources are not included by default, but they will be,
+        # if an extension module uses them as sources or depends
+        for fname in ['f.c', 'f.h']:
+            touch(test_pkg / fname)
 
         with tmpdir.as_cwd():
             yield
@@ -129,6 +140,11 @@ class TestSdistTest:
         assert os.path.join('sdist_test', 'b.txt') in manifest
         assert os.path.join('sdist_test', 'c.rst') not in manifest
         assert os.path.join('d', 'e.dat') in manifest
+
+    def assert_extension_sources_in_manifest(self, cmd):
+        manifest = cmd.filelist.files
+        assert os.path.join('sdist_test', 'f.c') in manifest
+        assert os.path.join('sdist_test', 'f.h') in manifest
 
     def test_package_data_in_sdist(self):
         """Regression test for pull request #4: ensures that files listed in
@@ -163,6 +179,24 @@ class TestSdistTest:
             cmd.run()
 
         self.assert_package_data_in_manifest(cmd)
+
+    def test_extension_sources_in_sdist(self):
+        """
+        Ensure that the files listed in Extension.sources and Extension.depends
+        are automatically included in the manifest.
+        """
+        setup_attrs = {**SETUP_ATTRS, 'ext_modules': [EXTENSION]}
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        self.assert_package_data_in_manifest(cmd)
+        self.assert_extension_sources_in_manifest(cmd)
 
     def test_custom_build_py(self):
         """
