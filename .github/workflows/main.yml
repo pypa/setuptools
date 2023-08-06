@@ -58,6 +58,7 @@ jobs:
             gcc-core,
             gcc-g++,
             ncompress
+            git
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: tox
