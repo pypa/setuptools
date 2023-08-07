@@ -218,37 +218,6 @@ defns = [
     },
 ]
 
-sys_exit_defns = [
-    {  # simple setup.py script
-        'setup.py': DALS(
-            """
-            __import__('setuptools').setup(
-                name='foo',
-                version='0.0.0',
-                py_modules=['hello'],
-                setup_requires=['six'],
-            )
-            import sys
-            sys.exit(0)
-            """
-        ),
-        'hello.py': DALS(
-            """
-            def run():
-                print('hello')
-            """
-        ),
-    },
-    {  # simple setup.py script
-        'setup.py': DALS(
-            """
-            import sys
-            sys.exit(1)
-            """
-        ),
-    },
-]
-
 
 class TestBuildMetaBackend:
     backend_name = 'setuptools.build_meta'
