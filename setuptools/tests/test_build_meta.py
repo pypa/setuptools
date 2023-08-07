@@ -9,7 +9,6 @@ from concurrent import futures
 import re
 from zipfile import ZipFile
 from pathlib import Path
-from subprocess import CalledProcessError
 
 import pytest
 from jaraco import path
