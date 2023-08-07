@@ -292,29 +292,26 @@ class TestBuildMetaBackend:
         modules = [f for f in python_scripts if not f.endswith('setup.py')]
         assert len(modules) == 1
 
-    @pytest.fixture(params=sys_exit_defns)
-    def sys_exit_build_backend(self, tmpdir, request):
-        path.build(request.param, prefix=str(tmpdir))
-        with tmpdir.as_cwd():
-            yield self.get_build_backend()
+    @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
+    def test_sys_exit_0_in_setuppy(self, monkeypatch, tmp_path):
+        """Setuptools should be resilent to setup.py with ``sys.exit(0)`` (#3973)."""
+        monkeypatch.chdir(tmp_path)
+        setuppy = """
+            import sys, setuptools
+            setuptools.setup(name='foo', version='0.0.0')
+            sys.exit(0)
+            """
+        (tmp_path / "setup.py").write_text(DALS(setuppy), encoding="utf-8")
+        backend = self.get_build_backend()
+        assert backend.get_requires_for_build_wheel() == ["wheel"]
 
-    def test_get_requires_for_build_wheel_with_sys_exit(self, sys_exit_build_backend):
-        try:
-            actual = sys_exit_build_backend.get_requires_for_build_wheel()
-            expected = ['six', 'wheel']
-            assert sorted(actual) == sorted(expected)
-        except CalledProcessError as e:
-            assert e.returncode == 1
-            assert e.cmd == "setup.py"
-
-    def test_get_requires_for_build_sdist_with_sys_exit(self, sys_exit_build_backend):
-        try:
-            actual = sys_exit_build_backend.get_requires_for_build_sdist()
-            expected = ['six']
-            assert sorted(actual) == sorted(expected)
-        except CalledProcessError as e:
-            assert e.returncode == 1
-            assert e.cmd == "setup.py"
+    def test_system_exit_in_setuppy(self, monkeypatch, tmp_path):
+        monkeypatch.chdir(tmp_path)
+        setuppy = "import sys; sys.exit('some error')"
+        (tmp_path / "setup.py").write_text(setuppy, encoding="utf-8")
+        with pytest.raises(SystemExit, match="some error"):
+            backend = self.get_build_backend()
+            backend.get_requires_for_build_wheel()
 
     @pytest.mark.parametrize('build_type', ('wheel', 'sdist'))
     def test_build_with_existing_file_present(self, build_type, tmpdir_cwd):
