@@ -219,6 +219,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
         "documentation",
         "manpages",
         "news",
+        "newsfragments",
         "changelog",
         "test",
         "tests",
