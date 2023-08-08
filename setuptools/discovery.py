@@ -213,6 +213,7 @@ class FlatLayoutPackageFinder(PEP420PackageFinder):
     _EXCLUDE = (
         "ci",
         "bin",
+        "debian",
         "doc",
         "docs",
         "documentation",
