@@ -1,0 +1,1 @@
+Ignore ``newsfragments`` directories in the source tree when performing automatic discovery of packages.
