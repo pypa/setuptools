@@ -263,8 +263,60 @@ class build_ext(_build_ext):
 
     def get_source_files(self):
         filenames = _build_ext.get_source_files(self)
+        root = os.path.abspath(self.distribution.src_root or os.curdir)
+
+        def coerce_dep_path(d):
+            try:
+                # Normalize the path
+                # Note: relative paths are relative to the project root!
+                d = os.path.normpath(d)
+                is_absolute = os.path.isabs(d)
+                if is_absolute:
+                    d_abs = d
+                    d_rel = os.path.relpath(d, start=root)
+                else:
+                    d_abs = os.path.abspath(os.path.join(root, d))
+                    d_rel = d
+
+                # Check that the path is contained inside the project root
+                # If not, exclude it from the manifest/source distribution
+                is_excluded = os.path.commonpath([d_abs, root]) != root
+                return is_absolute, is_excluded, d_rel
+
+            except ValueError:
+                # Most likely the root and the dependency path
+                # refer to different drives (on Windows)
+                return False, True, d
+
         for ext in self.extensions:
-            filenames.extend(ext.depends)
+            for dep in ext.depends:
+                is_abs, is_exc, dep_rel = coerce_dep_path(dep)
+                if is_abs:
+                    log.warn(
+                        "An absolute path was specified in Extension.depends:\n"
+                        "\n"
+                        "    %s\n"
+                        "\n"
+                        "Absolute paths in Extension.depends are allowed only "
+                        "for backwards compatibility and should be avoided.\n",
+                        dep,
+                    )
+                if is_exc:
+                    log.warn(
+                        "A path specified in Extension.depends refers to a "
+                        "file located outside of the project root:\n"
+                        "\n"
+                        "    %s\n"
+                        "\n"
+                        "This path will not be automatically included in the "
+                        "source distribution of this project. "
+                        "Extension.depends paths outside the project root are "
+                        "only allowed for backwards compatibility and should "
+                        "be avoided.\n",
+                        dep,
+                    )
+                    continue
+                filenames.append(dep_rel)
         return filenames
 
     def get_outputs(self) -> List[str]:
