@@ -11,6 +11,7 @@ from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
 from distutils import log
 
+from setuptools import _path
 from setuptools.errors import BaseError
 from setuptools.extension import Extension, Library
 
@@ -271,9 +272,7 @@ class build_ext(_build_ext):
         depends = (dep for ext in self.extensions for dep in ext.depends)
         for dep in depends:
             try:
-                abs_path = (project_root / dep).resolve()
-                # if dep is absolute, Path will ignore project_root
-                yield abs_path.relative_to(project_root).as_posix()
+                yield _path.besteffort_internal_path(project_root, dep)
             except ValueError:
                 log.warn(f"ignoring {dep} for distribution: outside of project dir")
 
