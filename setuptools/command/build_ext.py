@@ -267,15 +267,13 @@ class build_ext(_build_ext):
 
     def _get_internal_depends(self) -> Iterator[str]:
         """Yield ``ext.depends`` that are contained by the project directory"""
-        project_root = os.path.abspath(self.distribution.src_root or os.curdir)
+        project_root = Path(self.distribution.src_root or os.curdir).resolve()
         depends = (dep for ext in self.extensions for dep in ext.depends)
         for dep in depends:
             try:
-                path = os.path.abspath(os.path.join(project_root, dep))
-                # if dep is absolute, os.path.join will ignore project_root
-                rel_path = Path(path).relative_to(project_root)
-                assert ".." not in rel_path.parts  # abspath should take care of that
-                yield rel_path.as_posix()  # POSIX-style relative paths
+                abs_path = (project_root / dep).resolve()
+                # if dep is absolute, Path will ignore project_root
+                yield abs_path.relative_to(project_root).as_posix()
             except ValueError:
                 log.warn(f"ignoring {dep} for distribution: outside of project dir")
 
