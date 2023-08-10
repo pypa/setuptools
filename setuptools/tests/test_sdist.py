@@ -198,6 +198,27 @@ class TestSdistTest:
         self.assert_package_data_in_manifest(cmd)
         self.assert_extension_sources_in_manifest(cmd)
 
+    def test_missing_extension_sources(self):
+        """
+        Similar to test_extension_sources_in_sdist but the referenced files don't exist.
+        Missing files should not be included in distribution (with no error raised).
+        """
+        os.remove(os.path.join("sdist_test", "f.h"))
+        setup_attrs = {**SETUP_ATTRS, 'ext_modules': [EXTENSION]}
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        self.assert_package_data_in_manifest(cmd)
+        manifest = cmd.filelist.files
+        assert os.path.join('sdist_test', 'f.c') in manifest
+        assert os.path.join('sdist_test', 'f.h') not in manifest
+
     def test_custom_build_py(self):
         """
         Ensure projects defining custom build_py don't break
