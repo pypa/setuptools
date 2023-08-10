@@ -271,10 +271,11 @@ class build_ext(_build_ext):
         depends = (dep for ext in self.extensions for dep in ext.depends)
         for dep in depends:
             try:
-                path = os.path.abspath(dep)
-                rel_path = str(Path(path).relative_to(project_root))
-                assert ".." not in rel_path  # abspath should have taken care of that
-                yield rel_path.replace(os.sep, "/")  # POSIX-style relative paths
+                path = os.path.abspath(os.path.join(project_root, dep))
+                # if dep is absolute, os.path.join will ignore project_root
+                rel_path = Path(path).relative_to(project_root)
+                assert ".." not in rel_path.parts  # abspath should take care of that
+                yield rel_path.as_posix()  # POSIX-style relative paths
             except ValueError:
                 log.warn(f"ignoring {dep} for distribution: outside of project dir")
 
