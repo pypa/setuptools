@@ -6,10 +6,13 @@ import tempfile
 import unicodedata
 import contextlib
 import io
+import tarfile
+from inspect import cleandoc
 from unittest import mock
 
 import pytest
 
+from distutils.core import run_setup
 from setuptools import Command
 from setuptools._importlib import metadata
 from setuptools import SetuptoolsDeprecationWarning
@@ -18,6 +21,8 @@ from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.tests import fail_on_ascii
 from .text import Filenames
+
+import jaraco.path
 
 
 SETUP_ATTRS = {
@@ -645,3 +650,113 @@ def test_default_revctrl():
     )
     res = ep.load()
     assert hasattr(res, '__iter__')
+
+
+class TestRegressions:
+    """
+    Can be removed/changed if the project decides to change how it handles symlinks
+    or external files.
+    """
+
+    @staticmethod
+    def files_for_symlink_in_extension_depends(tmp_path, dep_path):
+        return {
+            "external": {
+                "dir": {"file.h": ""},
+            },
+            "project": {
+                "setup.py": cleandoc(
+                    f"""
+                    from setuptools import Extension, setup
+                    setup(
+                        name="myproj",
+                        version="42",
+                        ext_modules=[
+                            Extension(
+                                "hello", sources=["hello.pyx"],
+                                depends=[{dep_path!r}]
+                            )
+                        ],
+                    )
+                    """
+                ),
+                "hello.pyx": "",
+                "MANIFEST.in": "global-include *.h",
+            },
+        }
+
+    @pytest.mark.parametrize(
+        "dep_path", ("myheaders/dir/file.h", "myheaders/dir/../dir/file.h")
+    )
+    def test_symlink_in_extension_depends(self, monkeypatch, tmp_path, dep_path):
+        # Given a project with a symlinked dir and a "depends" targeting that dir
+        files = self.files_for_symlink_in_extension_depends(tmp_path, dep_path)
+        jaraco.path.build(files, prefix=str(tmp_path))
+
+        try:
+            os.symlink(tmp_path / "external", tmp_path / "project/myheaders")
+        except (OSError, NotImplementedError):
+            pytest.skip("symlink not supported in OS")
+
+        # When `sdist` runs, there should be no error
+        members = run_sdist(monkeypatch, tmp_path / "project")
+        # and the sdist should contain the symlinked files
+        for expected in (
+            "myproj-42/hello.pyx",
+            "myproj-42/myheaders/dir/file.h",
+        ):
+            assert expected in members
+
+    @staticmethod
+    def files_for_external_path_in_extension_depends(tmp_path, dep_path):
+        head, _, tail = dep_path.partition("$tmp_path$/")
+        dep_path = tmp_path / tail if tail else head
+
+        return {
+            "external": {
+                "dir": {"file.h": ""},
+            },
+            "project": {
+                "setup.py": cleandoc(
+                    f"""
+                    from setuptools import Extension, setup
+                    setup(
+                        name="myproj",
+                        version="42",
+                        ext_modules=[
+                            Extension(
+                                "hello", sources=["hello.pyx"],
+                                depends=[{str(dep_path)!r}]
+                            )
+                        ],
+                    )
+                    """
+                ),
+                "hello.pyx": "",
+                "MANIFEST.in": "global-include *.h",
+            },
+        }
+
+    @pytest.mark.parametrize(
+        "dep_path", ("$tmp_path$/external/dir/file.h", "../external/dir/file.h")
+    )
+    def test_external_path_in_extension_depends(self, monkeypatch, tmp_path, dep_path):
+        # Given a project with a "depends" targeting an external dir
+        files = self.files_for_external_path_in_extension_depends(tmp_path, dep_path)
+        jaraco.path.build(files, prefix=str(tmp_path))
+        # When `sdist` runs, there should be no error
+        members = run_sdist(monkeypatch, tmp_path / "project")
+        # and the sdist should not contain the external file
+        for name in members:
+            assert "file.h" not in name
+
+
+def run_sdist(monkeypatch, project):
+    """Given a project directory, run the sdist and return its contents"""
+    monkeypatch.chdir(project)
+    with quiet():
+        run_setup("setup.py", ["sdist"])
+
+    archive = next((project / "dist").glob("*.tar.gz"))
+    with tarfile.open(str(archive)) as tar:
+        return set(tar.getnames())
