@@ -794,3 +794,29 @@ def run_sdist(monkeypatch, project):
     archive = next((project / "dist").glob("*.tar.gz"))
     with tarfile.open(str(archive)) as tar:
         return set(tar.getnames())
+
+
+@pytest.mark.parametrize(
+    "dep_path", ("myheaders/dir/file.h", "myheaders/dir/../dir/file.h")
+)
+def test_auto_include_symlinked_depends(monkeypatch, tmp_path, dep_path):
+    """Similar to TestRegressions.test_relative_to_symlink_in_extension_depends
+    but does not contain a ``MANIFEST.in``.
+    """
+    files = TestRegressions.files_for_symlink_in_extension_depends(tmp_path, dep_path)
+    files["project"].pop("MANIFEST.in")
+    jaraco.path.build(files, prefix=str(tmp_path))
+
+    try:
+        os.symlink(tmp_path / "external", tmp_path / "project/myheaders")
+    except (OSError, NotImplementedError):
+        pytest.skip("symlink not supported in OS")
+
+    # When `sdist` runs, there should be no error
+    members = run_sdist(monkeypatch, tmp_path / "project")
+    # and the sdist should contain the symlinked files
+    for expected in (
+        "myproj-42/hello.pyx",
+        "myproj-42/myheaders/dir/file.h",
+    ):
+        assert expected in members
