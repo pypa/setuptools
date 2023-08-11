@@ -1,0 +1,2 @@
+Detects (and complain about) ``scripts`` and ``gui-scripts`` set via ``setup.py``
+when ``pyproject.toml`` does not include them in ``dynamic``.
