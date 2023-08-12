@@ -7,6 +7,7 @@ import unicodedata
 import contextlib
 import io
 import tarfile
+import logging
 from inspect import cleandoc
 from pathlib import Path
 from unittest import mock
@@ -251,6 +252,68 @@ class TestSdistTest:
             assert path in manifest
         for path in symlinked:
             assert path not in manifest
+
+    _INVALID_PATHS = {
+        "must be relative": lambda: (
+            os.path.abspath(os.path.join("sdist_test", "f.h"))
+        ),
+        "can't have `..` segments": lambda: (
+            os.path.join("sdist_test", "..", "sdist_test", "f.h")
+        ),
+        "doesn't exist": lambda: (
+            os.path.join("sdist_test", "this_file_does_not_exist.h")
+        ),
+        "must be inside the project root": lambda: (
+            symlink_or_skip_test(
+                touch(os.path.join("..", "outside_of_project_root.h")),
+                "symlink.h",
+            )
+        ),
+    }
+
+    @pytest.mark.parametrize("reason", _INVALID_PATHS.keys())
+    def test_invalid_extension_depends(self, reason, caplog):
+        """
+        Due to backwards compatibility reasons, `Extension.depends` should accept
+        invalid/weird paths, but then ignore them when building a sdist.
+
+        This test verifies that the source distribution is still built
+        successfully with such paths, but that instead of adding these paths to
+        the manifest, we emit an informational message, notifying the user that
+        the invalid path won't be automatically included.
+        """
+        invalid_path = self._INVALID_PATHS[reason]()
+        extension = Extension(
+            name="sdist_test.f",
+            sources=[],
+            depends=[invalid_path],
+        )
+        setup_attrs = {**SETUP_ATTRS, 'ext_modules': [extension]}
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet(), caplog.at_level(logging.INFO):
+            cmd.run()
+
+        self.assert_package_data_in_manifest(cmd)
+        manifest = cmd.filelist.files
+        assert invalid_path not in manifest
+
+        expected_message = [
+            message
+            for (logger, level, message) in caplog.record_tuples
+            if (
+                logger == "root"  #
+                and level == logging.INFO  #
+                and invalid_path in message  #
+            )
+        ]
+        assert len(expected_message) == 1
+        (expected_message,) = expected_message
+        assert reason in expected_message
 
     def test_custom_build_py(self):
         """
