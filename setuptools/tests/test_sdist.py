@@ -48,6 +48,7 @@ EXTENSION = Extension(
     sources=[os.path.join("sdist_test", "f.c")],
     depends=[os.path.join("sdist_test", "f.h")],
 )
+EXTENSION_SOURCES = EXTENSION.sources + EXTENSION.depends
 
 
 @contextlib.contextmanager
@@ -128,8 +129,8 @@ class TestSdistTest:
         touch(data_folder / 'e.dat')
         # C sources are not included by default, but they will be,
         # if an extension module uses them as sources or depends
-        for fname in ['f.c', 'f.h']:
-            touch(test_pkg / fname)
+        for fname in EXTENSION_SOURCES:
+            touch(tmpdir / fname)
 
         with tmpdir.as_cwd():
             yield
@@ -141,10 +142,18 @@ class TestSdistTest:
         assert os.path.join('sdist_test', 'c.rst') not in manifest
         assert os.path.join('d', 'e.dat') in manifest
 
-    def assert_extension_sources_in_manifest(self, cmd):
-        manifest = cmd.filelist.files
-        assert os.path.join('sdist_test', 'f.c') in manifest
-        assert os.path.join('sdist_test', 'f.h') in manifest
+    def setup_with_extension(self):
+        setup_attrs = {**SETUP_ATTRS, 'ext_modules': [EXTENSION]}
+
+        dist = Distribution(setup_attrs)
+        dist.script_name = 'setup.py'
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+
+        with quiet():
+            cmd.run()
+
+        return cmd
 
     def test_package_data_in_sdist(self):
         """Regression test for pull request #4: ensures that files listed in
@@ -185,39 +194,25 @@ class TestSdistTest:
         Ensure that the files listed in Extension.sources and Extension.depends
         are automatically included in the manifest.
         """
-        setup_attrs = {**SETUP_ATTRS, 'ext_modules': [EXTENSION]}
-
-        dist = Distribution(setup_attrs)
-        dist.script_name = 'setup.py'
-        cmd = sdist(dist)
-        cmd.ensure_finalized()
-
-        with quiet():
-            cmd.run()
-
+        cmd = self.setup_with_extension()
         self.assert_package_data_in_manifest(cmd)
-        self.assert_extension_sources_in_manifest(cmd)
+        manifest = cmd.filelist.files
+        for path in EXTENSION_SOURCES:
+            assert path in manifest
 
     def test_missing_extension_sources(self):
         """
         Similar to test_extension_sources_in_sdist but the referenced files don't exist.
         Missing files should not be included in distribution (with no error raised).
         """
-        os.remove(os.path.join("sdist_test", "f.h"))
-        setup_attrs = {**SETUP_ATTRS, 'ext_modules': [EXTENSION]}
+        for path in EXTENSION_SOURCES:
+            os.remove(path)
 
-        dist = Distribution(setup_attrs)
-        dist.script_name = 'setup.py'
-        cmd = sdist(dist)
-        cmd.ensure_finalized()
-
-        with quiet():
-            cmd.run()
-
+        cmd = self.setup_with_extension()
         self.assert_package_data_in_manifest(cmd)
         manifest = cmd.filelist.files
-        assert os.path.join('sdist_test', 'f.c') in manifest
-        assert os.path.join('sdist_test', 'f.h') not in manifest
+        for path in EXTENSION_SOURCES:
+            assert path not in manifest
 
     def test_custom_build_py(self):
         """
