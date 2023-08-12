@@ -115,6 +115,9 @@ def touch(path):
 class TestSdistTest:
     @pytest.fixture(autouse=True)
     def source_dir(self, tmpdir):
+        tmpdir = tmpdir / "project_root"
+        tmpdir.mkdir()
+
         (tmpdir / 'setup.py').write_text(SETUP_PY, encoding='utf-8')
 
         # Set up the rest of the test package
@@ -133,7 +136,7 @@ class TestSdistTest:
             touch(tmpdir / fname)
 
         with tmpdir.as_cwd():
-            yield
+            yield tmpdir
 
     def assert_package_data_in_manifest(self, cmd):
         manifest = cmd.filelist.files
@@ -293,14 +296,14 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert 'setup.py' not in manifest
 
-    def test_defaults_case_sensitivity(self, tmpdir):
+    def test_defaults_case_sensitivity(self, source_dir):
         """
         Make sure default files (README.*, etc.) are added in a case-sensitive
         way to avoid problems with packages built on Windows.
         """
 
-        touch(tmpdir / 'readme.rst')
-        touch(tmpdir / 'SETUP.cfg')
+        touch(source_dir / 'readme.rst')
+        touch(source_dir / 'SETUP.cfg')
 
         dist = Distribution(SETUP_ATTRS)
         # the extension deliberately capitalized for this test
@@ -582,15 +585,15 @@ class TestSdistTest:
     }
 
     @pytest.mark.parametrize("config", _EXAMPLE_DIRECTIVES.keys())
-    def test_add_files_referenced_by_config_directives(self, tmp_path, config):
+    def test_add_files_referenced_by_config_directives(self, source_dir, config):
         config_file, _, _ = config.partition(" - ")
         config_text = self._EXAMPLE_DIRECTIVES[config]
-        (tmp_path / 'src').mkdir()
-        (tmp_path / 'src/VERSION.txt').write_text("0.42", encoding="utf-8")
-        (tmp_path / 'README.rst').write_text("hello world!", encoding="utf-8")
-        (tmp_path / 'USAGE.rst').write_text("hello world!", encoding="utf-8")
-        (tmp_path / 'DOWHATYOUWANT').write_text("hello world!", encoding="utf-8")
-        (tmp_path / config_file).write_text(config_text, encoding="utf-8")
+        (source_dir / 'src').mkdir()
+        (source_dir / 'src/VERSION.txt').write_text("0.42", encoding="utf-8")
+        (source_dir / 'README.rst').write_text("hello world!", encoding="utf-8")
+        (source_dir / 'USAGE.rst').write_text("hello world!", encoding="utf-8")
+        (source_dir / 'DOWHATYOUWANT').write_text("hello world!", encoding="utf-8")
+        (source_dir / config_file).write_text(config_text, encoding="utf-8")
 
         dist = Distribution({"packages": []})
         dist.script_name = 'setup.py'
@@ -610,11 +613,11 @@ class TestSdistTest:
         assert '/' not in cmd.filelist.files
         assert '\\' not in cmd.filelist.files
 
-    def test_pyproject_toml_in_sdist(self, tmpdir):
+    def test_pyproject_toml_in_sdist(self, source_dir):
         """
         Check if pyproject.toml is included in source distribution if present
         """
-        touch(tmpdir / 'pyproject.toml')
+        touch(source_dir / 'pyproject.toml')
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
         cmd = sdist(dist)
@@ -624,11 +627,11 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert 'pyproject.toml' in manifest
 
-    def test_pyproject_toml_excluded(self, tmpdir):
+    def test_pyproject_toml_excluded(self, source_dir):
         """
         Check that pyproject.toml can excluded even if present
         """
-        touch(tmpdir / 'pyproject.toml')
+        touch(source_dir / 'pyproject.toml')
         with open('MANIFEST.in', 'w') as mts:
             print('exclude pyproject.toml', file=mts)
         dist = Distribution(SETUP_ATTRS)
@@ -640,8 +643,8 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert 'pyproject.toml' not in manifest
 
-    def test_build_subcommand_source_files(self, tmpdir):
-        touch(tmpdir / '.myfile~')
+    def test_build_subcommand_source_files(self, source_dir):
+        touch(source_dir / '.myfile~')
 
         # Sanity check: without custom commands file list should not be affected
         dist = Distribution({**SETUP_ATTRS, "script_name": "setup.py"})
