@@ -116,6 +116,14 @@ def touch(path):
     return path
 
 
+def symlink_or_skip_test(src, dst):
+    try:
+        os.symlink(src, dst)
+        return dst
+    except (OSError, NotImplementedError):
+        pytest.skip("symlink not supported in OS")
+
+
 class TestSdistTest:
     @pytest.fixture(autouse=True)
     def source_dir(self, tmpdir):
@@ -219,6 +227,29 @@ class TestSdistTest:
         self.assert_package_data_in_manifest(cmd)
         manifest = cmd.filelist.files
         for path in EXTENSION_SOURCES:
+            assert path not in manifest
+
+    def test_symlinked_extension_sources(self):
+        """
+        Similar to test_extension_sources_in_sdist but the referenced files are
+        instead symbolic links to project-local files. Referenced file paths
+        should be included. Symlink targets themselves should NOT be included.
+        """
+        symlinked = []
+        for path in EXTENSION_SOURCES:
+            base, ext = os.path.splitext(path)
+            target = base + "_target." + ext
+
+            os.rename(path, target)
+            symlink_or_skip_test(os.path.basename(target), path)
+            symlinked.append(target)
+
+        cmd = self.setup_with_extension()
+        self.assert_package_data_in_manifest(cmd)
+        manifest = cmd.filelist.files
+        for path in EXTENSION_SOURCES:
+            assert path in manifest
+        for path in symlinked:
             assert path not in manifest
 
     def test_custom_build_py(self):
