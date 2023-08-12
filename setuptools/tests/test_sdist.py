@@ -8,6 +8,7 @@ import contextlib
 import io
 import tarfile
 from inspect import cleandoc
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -109,7 +110,10 @@ skip_under_xdist = pytest.mark.skipif(
 
 
 def touch(path):
+    if isinstance(path, str):
+        path = Path(path)
     path.write_text('', encoding='utf-8')
+    return path
 
 
 class TestSdistTest:
