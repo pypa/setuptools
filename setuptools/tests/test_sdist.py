@@ -8,6 +8,7 @@ import contextlib
 import io
 import tarfile
 import logging
+import distutils
 from inspect import cleandoc
 from pathlib import Path
 from unittest import mock
@@ -107,6 +108,10 @@ fail_on_latin1_encoded_filenames = pytest.mark.xfail(
 skip_under_xdist = pytest.mark.skipif(
     "os.environ.get('PYTEST_XDIST_WORKER')",
     reason="pytest-dev/pytest-xdist#843",
+)
+skip_under_stdlib_distutils = pytest.mark.skipif(
+    not distutils.__package__.startswith('setuptools'),
+    reason="the test is not supported with stdlib distutils",
 )
 
 
@@ -271,6 +276,7 @@ class TestSdistTest:
         ),
     }
 
+    @skip_under_stdlib_distutils
     @pytest.mark.parametrize("reason", _INVALID_PATHS.keys())
     def test_invalid_extension_depends(self, reason, caplog):
         """
