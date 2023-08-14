@@ -295,7 +295,9 @@ class build_ext(_build_ext):
                 skip(dep, "doesn't exist")
                 continue
 
-            if not resolved.is_relative_to(project_root):
+            try:
+                resolved.relative_to(project_root)
+            except ValueError:
                 skip(dep, "must be inside the project root")
                 continue
 
