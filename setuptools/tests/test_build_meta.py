@@ -958,3 +958,26 @@ def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
     cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
     output = str(venv.run(cmd, cwd=tmpdir, env=env), "utf-8").lower()
     assert "running setup.py develop for myproj" in output
+
+
+@pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
+def test_sys_exit_0_in_setuppy(monkeypatch, tmp_path):
+    """Setuptools should be resilent to setup.py with ``sys.exit(0)`` (#3973)."""
+    monkeypatch.chdir(tmp_path)
+    setuppy = """
+        import sys, setuptools
+        setuptools.setup(name='foo', version='0.0.0')
+        sys.exit(0)
+        """
+    (tmp_path / "setup.py").write_text(DALS(setuppy), encoding="utf-8")
+    backend = BuildBackend(backend_name="setuptools.build_meta")
+    assert backend.get_requires_for_build_wheel() == ["wheel"]
+
+
+def test_system_exit_in_setuppy(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    setuppy = "import sys; sys.exit('some error')"
+    (tmp_path / "setup.py").write_text(setuppy, encoding="utf-8")
+    with pytest.raises(SystemExit, match="some error"):
+        backend = BuildBackend(backend_name="setuptools.build_meta")
+        backend.get_requires_for_build_wheel()
