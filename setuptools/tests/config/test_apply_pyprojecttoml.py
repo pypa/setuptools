@@ -330,6 +330,8 @@ class TestPresetField:
         [
             ("install_requires", "dependencies", ["six"]),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
+            ("entry_points", "scripts", {"console_scripts": ["foobar=foobar:main"]}),
+            ("entry_points", "gui-scripts", {"gui_scripts": ["bazquux=bazquux:main"]}),
         ],
     )
     def test_not_listed_in_dynamic(self, tmp_path, attr, field, value):
