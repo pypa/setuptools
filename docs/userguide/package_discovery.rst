@@ -444,7 +444,7 @@ distribution, then you will need to specify:
         )
 
     When you use ``find_packages()``, all directories without an
-    ``__init__.py`` file will be disconsidered.
+    ``__init__.py`` file will be ignored.
     On the other hand, ``find_namespace_packages()`` will scan all
     directories.
 
