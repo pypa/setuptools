@@ -89,22 +89,23 @@ Key                       Value Type (TOML)           Notes
 ========================= =========================== =========================
 ``py-modules``            array                       See tip below.
 ``packages``              array or ``find`` directive See tip below.
-``package-dir``           table/inline-table          Used when explicitly listing ``packages``.
+``package-dir``           table/inline-table          Used when explicitly/manually listing ``packages``.
+                                                      Automatically derived when the ``find`` directive is used for ``packages``
 ------------------------- --------------------------- -------------------------
 ``package-data``          table/inline-table          See :doc:`/userguide/datafiles`.
-``include-package-data``  boolean                     ``True`` by default. See :doc:`/userguide/datafiles`.
+``include-package-data``  boolean                     ``True`` by default (only when using ``pyproject.toml`` project metadata/config).
+                                                      See :doc:`/userguide/datafiles`.
 ``exclude-package-data``  table/inline-table          Empty by default. See :doc:`/userguide/datafiles`.
 ------------------------- --------------------------- -------------------------
 ``license-files``         array of glob patterns      **Provisional** - likely to change with :pep:`639`
                                                       (by default: ``['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']``)
 ``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`.
+                                                      Whenever possible, consider using data files inside the package directories.
 ``script-files``          array                       **Discouraged** - equivalent to the ``script`` keyword in ``setup.py``.
                                                       Whenever possible, please use ``project.scripts`` instead.
 ------------------------- --------------------------- -------------------------
-``provides``              array                       Sets the ``Provides-Dist`` :doc:`core-metadata <PyPUG:specifications/core-metadata>` field
-                                                      (*ignored by pip when installing packages*).
-``obsoletes``             array                       Sets the ``Obsoletes-Dist`` :doc:`core-metadata <PyPUG:specifications/core-metadata>` field
-                                                      (*ignored by pip when installing packages*).
+``provides``              array                       *ignored by pip when installing packages*
+``obsoletes``             array                       *ignored by pip when installing packages*
 ``platforms``             array                       Sets the ``Platform`` :doc:`core-metadata <PyPUG:specifications/core-metadata>` field
                                                       (*ignored by pip when installing packages*).
 ------------------------- --------------------------- -------------------------
