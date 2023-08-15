@@ -15,6 +15,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set, Union
 
 from ..errors import FileError, OptionError
+from ..warnings import SetuptoolsWarning
 from . import expand as _expand
 from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _WouldIgnoreField
 from ._apply_pyprojecttoml import apply as _apply
@@ -104,6 +105,9 @@ def read_configuration(
     setuptools_table = tool_table.get("setuptools", {})
     if not asdict or not (project_table or setuptools_table):
         return {}  # User is not using pyproject to configure setuptools
+
+    if "distutils" in tool_table:
+        _ExperimentalConfiguration.emit(subject="[tool.distutils]")
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
@@ -429,3 +433,9 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         self._setuptools_cfg.setdefault("py-modules", self._dist.py_modules)
         return super().__exit__(exc_type, exc_value, traceback)
 
+
+class _ExperimentalConfiguration(SetuptoolsWarning):
+    _SUMMARY = (
+        "`{subject}` in `pyproject.toml` is still *experimental* "
+        "and likely to change in future releases."
+    )
