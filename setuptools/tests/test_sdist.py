@@ -849,11 +849,7 @@ class TestRegressions:
         # Given a project with a symlinked dir and a "depends" targeting that dir
         files = self.files_for_symlink_in_extension_depends(tmp_path, dep_path)
         jaraco.path.build(files, prefix=str(tmp_path))
-
-        try:
-            os.symlink(tmp_path / "external", tmp_path / "project/myheaders")
-        except (OSError, NotImplementedError):
-            pytest.skip("symlink not supported in OS")
+        symlink_or_skip_test(tmp_path / "external", tmp_path / "project/myheaders")
 
         # When `sdist` runs, there should be no error
         members = run_sdist(monkeypatch, tmp_path / "project")
