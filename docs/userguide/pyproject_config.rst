@@ -90,7 +90,6 @@ Key                       Value Type (TOML)           Notes
 ``py-modules``            array                       See tip below.
 ``packages``              array or ``find`` directive See tip below.
 ``package-dir``           table/inline-table          Used when explicitly/manually listing ``packages``.
-                                                      Automatically derived when the ``find`` directive is used for ``packages``
 ------------------------- --------------------------- -------------------------
 ``package-data``          table/inline-table          See :doc:`/userguide/datafiles`.
 ``include-package-data``  boolean                     ``True`` by default (only when using ``pyproject.toml`` project metadata/config).
