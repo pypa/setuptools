@@ -1,0 +1,2 @@
+Automatically add files listed in ``Extension.depends`` to sdists,
+as long as they are contained in the project directory -- by :user:`RuRo`
