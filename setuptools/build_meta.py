@@ -230,7 +230,7 @@ class _ConfigSettingsTranslator:
 
         .. warning::
            We cannot use this yet as it requires the ``sdist`` and ``bdist_wheel``
-           commands run in ``build_sdist`` and ``build_wheel`` to re-use the egg-info
+           commands run in ``build_sdist`` and ``build_wheel`` to reuse the egg-info
            directory created in ``prepare_metadata_for_build_wheel``.
 
         >>> fn = _ConfigSettingsTranslator()._ConfigSettingsTranslator__dist_info_args
