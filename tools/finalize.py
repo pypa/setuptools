@@ -36,7 +36,7 @@ def _repair_changelog():
     """
     Workaround for #2666
     """
-    changelog_fn = pathlib.Path('CHANGES.rst')
+    changelog_fn = pathlib.Path('NEWS.rst')
     changelog = changelog_fn.read_text(encoding='utf-8')
     fixed = re.sub(r'^(v[0-9.]+)v[0-9.]+$', r'\1', changelog, flags=re.M)
     changelog_fn.write_text(fixed, encoding='utf-8')
