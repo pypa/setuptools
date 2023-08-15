@@ -16,3 +16,4 @@ include msvc-build-launcher.cmd
 include pytest.ini
 include tox.ini
 include setuptools/tests/config/setupcfg_examples.txt
+global-exclude *.py[cod] __pycache__
