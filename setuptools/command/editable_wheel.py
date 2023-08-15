@@ -11,6 +11,7 @@ Create a wheel that, when installed, will make the source package 'editable'
 """
 
 import logging
+import io
 import os
 import shutil
 import sys
@@ -401,7 +402,7 @@ class _StaticPth:
 
     def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
         entries = "\n".join((str(p.resolve()) for p in self.path_entries))
-        contents = bytes(f"{entries}\n", "utf-8")
+        contents = _encode_pth(f"{entries}\n")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
 
     def __enter__(self):
@@ -509,7 +510,7 @@ class _TopLevelFinder:
         content = bytes(_finder_template(name, roots, namespaces_), "utf-8")
         wheel.writestr(f"{finder}.py", content)
 
-        content = bytes(f"import {finder}; {finder}.install()", "utf-8")
+        content = _encode_pth(f"import {finder}; {finder}.install()")
         wheel.writestr(f"__editable__.{self.name}.pth", content)
 
     def __enter__(self):
@@ -523,6 +524,24 @@ class _TopLevelFinder:
         name as your package as they may take precedence during imports.
         """
         InformationOnly.emit("Editable installation.", msg)
+
+
+def _encode_pth(content: str) -> bytes:
+    """.pth files are always read with 'locale' encoding, the recommendation
+    from the cpython core developers is to write them as ``open(path, "w")``
+    and ignore warnings (see python/cpython#77102, pypa/setuptools#3937).
+    This function tries to simulate this behaviour without having to create an
+    actual file, in a way that supports a range of active Python versions.
+    (There seems to be some variety in the way different version of Python handle
+    ``encoding=None``, not all of them use ``locale.getpreferredencoding(False)``).
+    """
+    encoding = "locale" if sys.version_info >= (3, 10) else None
+    with io.BytesIO() as buffer:
+        wrapper = io.TextIOWrapper(buffer, encoding)
+        wrapper.write(content)
+        wrapper.flush()
+        buffer.seek(0)
+        return buffer.read()
 
 
 def _can_symlink_files(base_dir: Path) -> bool:

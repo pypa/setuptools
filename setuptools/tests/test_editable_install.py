@@ -22,6 +22,7 @@ from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
     _DebuggingTips,
     _LinkTree,
+    _encode_pth,
     _find_virtual_namespaces,
     _find_namespaces,
     _find_package_roots,
@@ -1105,6 +1106,13 @@ def test_debugging_tips(tmpdir_cwd, monkeypatch):
     expected_msg = "following steps are recommended to help debugging"
     with pytest.raises(SimulatedErr), pytest.warns(_DebuggingTips, match=expected_msg):
         cmd.run()
+
+
+@pytest.mark.filterwarnings("error")
+def test_encode_pth():
+    """Ensure _encode_pth function does not produce encoding warnings"""
+    content = _encode_pth("tkmilan_ç_utf8")  # no warnings (would be turned into errors)
+    assert isinstance(content, bytes)
 
 
 def install_project(name, venv, tmp_path, files, *opts):
