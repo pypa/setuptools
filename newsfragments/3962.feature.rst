@@ -1,4 +1,0 @@
-Promote ``pyproject.toml``'s ``[tool.setuptools]`` out of beta.
-Note that some fields are still considered deprecated and/or obsolete,
-and these might be removed in future versions (i.e., there is no guarantee
-for long term support and backward compatibility on those fields).

@@ -1,3 +1,34 @@
+v68.1.0
+=======
+
+Features
+--------
+
+- Removed code referencing bdist_wininst in install_scripts. (#3525)
+- Promote ``pyproject.toml``'s ``[tool.setuptools]`` out of beta.
+  Note that some fields are still considered deprecated and/or obsolete,
+  and these might be removed in future versions (i.e., there is no guarantee
+  for long term support and backward compatibility on those fields). (#3962)
+- Automatically add files listed in ``Extension.depends`` to sdists,
+  as long as they are contained in the project directory -- by :user:`RuRo` (#4000)
+- Require Python 3.8 or later.
+
+
+Bugfixes
+--------
+
+- Made imports in editable installs case-sensitive on case-insensitive filesystems -- by :user:`aganders3` (#3995)
+- Use default encoding to create ``.pth`` files with ``editable_wheel``. (#4009)
+- Detects (and complain about) ``scripts`` and ``gui-scripts`` set via ``setup.py``
+  when ``pyproject.toml`` does not include them in ``dynamic``. (#4012)
+
+
+Misc
+----
+
+- #3833, #3960, #4001, #4007
+
+
 v68.0.0
 =======
 

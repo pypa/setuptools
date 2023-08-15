@@ -1,1 +1,0 @@
-Ignore ``debian`` directories in the source tree when performing automatic discovery of packages.

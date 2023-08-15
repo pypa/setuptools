@@ -1,1 +1,0 @@
-Use default encoding to create ``.pth`` files with ``editable_wheel``.
