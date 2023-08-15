@@ -56,7 +56,7 @@ and you supply this configuration:
         include_package_data=True
     )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -137,7 +137,7 @@ data files:
             package_data={"mypkg": ["*.txt", "*.rst"]}
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -210,7 +210,7 @@ use the ``package_data`` option, the following configuration will work:
             package_data={"": ["*.txt"], "mypkg1": ["data1.rst"]},
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -280,7 +280,7 @@ use the ``exclude_package_data`` option:
             exclude_package_data={"mypkg": [".gitattributes"]},
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -357,7 +357,7 @@ the configuration might look like this:
             }
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -404,7 +404,7 @@ scanning of namespace packages in the ``src`` directory and the rest is handled 
             include_package_data=True,
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -530,10 +530,6 @@ run time be included **inside the package**.
 
 
 ----
-
-.. [#beta]
-   Support for adding build configuration options via the ``[tool.setuptools]``
-   table in the ``pyproject.toml`` file. See :doc:`/userguide/pyproject_config`.
 
 .. [#system-dirs] These locations can be discovered with the help of
    third-party libraries such as :pypi:`platformdirs`.

@@ -75,11 +75,6 @@ The ``project`` table contains metadata fields as described by
 Setuptools-specific configuration
 =================================
 
-.. warning::
-   Support for declaring configurations not standardized by :pep:`621`
-   (i.e.  the ``[tool.setuptools]`` table),
-   is still in **beta** stage and might change in future releases.
-
 While the standard ``project`` table in the ``pyproject.toml`` file covers most
 of the metadata used during the packaging process, there are still some
 ``setuptools``-specific configurations that can be set by users that require
@@ -92,34 +87,43 @@ file, and can be set via the ``tool.setuptools`` table:
 ========================= =========================== =========================
 Key                       Value Type (TOML)           Notes
 ========================= =========================== =========================
-``platforms``             array
-``zip-safe``              boolean                     If not specified, ``setuptools`` will try to guess
-                                                      a reasonable default for the package
-``eager-resources``       array
-``py-modules``            array                       See tip below
-``packages``              array or ``find`` directive See tip below
-``package-dir``           table/inline-table          Used when explicitly listing ``packages``
-``namespace-packages``    array                       **Deprecated** - Use implicit namespaces instead (:pep:`420`)
-``package-data``          table/inline-table          See :doc:`/userguide/datafiles`
-``include-package-data``  boolean                     ``True`` by default
-``exclude-package-data``  table/inline-table
+``py-modules``            array                       See tip below.
+``packages``              array or ``find`` directive See tip below.
+``package-dir``           table/inline-table          Used when explicitly/manually listing ``packages``.
+------------------------- --------------------------- -------------------------
+``package-data``          table/inline-table          See :doc:`/userguide/datafiles`.
+``include-package-data``  boolean                     ``True`` by default (only when using ``pyproject.toml`` project metadata/config).
+                                                      See :doc:`/userguide/datafiles`.
+``exclude-package-data``  table/inline-table          Empty by default. See :doc:`/userguide/datafiles`.
+------------------------- --------------------------- -------------------------
 ``license-files``         array of glob patterns      **Provisional** - likely to change with :pep:`639`
                                                       (by default: ``['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']``)
-``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`
-``script-files``          array                       **Deprecated** - equivalent to the ``script`` keyword in ``setup.py``
-                                                      (should be avoided in favour of ``project.scripts``)
-``provides``              array                       **Ignored by pip**
-``obsoletes``             array                       **Ignored by pip**
+``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`.
+                                                      Whenever possible, consider using data files inside the package directories.
+``script-files``          array                       **Discouraged** - equivalent to the ``script`` keyword in ``setup.py``.
+                                                      Whenever possible, please use ``project.scripts`` instead.
+------------------------- --------------------------- -------------------------
+``provides``              array                       *ignored by pip when installing packages*
+``obsoletes``             array                       *ignored by pip when installing packages*
+``platforms``             array                       Sets the ``Platform`` :doc:`core-metadata <PyPUG:specifications/core-metadata>` field
+                                                      (*ignored by pip when installing packages*).
+------------------------- --------------------------- -------------------------
+``zip-safe``              boolean                     **Obsolete** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
+                                                      in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
+``eager-resources``       array                       **Obsolete** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
+                                                      in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
+``namespace-packages``    array                       **Deprecated** - use implicit namespaces instead (:pep:`420`).
 ========================= =========================== =========================
 
 .. note::
    The `TOML value types`_ ``array`` and ``table/inline-table`` are roughly
    equivalent to the Python's :obj:`list` and :obj:`dict` data types, respectively.
 
-Please note that some of these configurations are deprecated or at least
+Please note that some of these configurations are deprecated, obsolete or at least
 discouraged, but they are made available to ensure portability.
-New packages should avoid relying on deprecated/discouraged fields, and
-existing packages should consider alternatives.
+Deprecated and obsolete configurations may be removed in future versions of ``setuptools``.
+New packages should avoid relying on discouraged fields if possible, and
+existing packages should consider migrating to alternatives.
 
 .. tip::
    When both ``py-modules`` and ``packages`` are left unspecified,
@@ -151,6 +155,15 @@ existing packages should consider alternatives.
 
       [tool.setuptools]
       packages = ["my_package"]
+
+   If you want to publish a distribution that does not include any Python module
+   (e.g. a "meta-distribution" that just aggregate dependencies), please
+   consider something like the following:
+
+   .. code-block:: toml
+
+      [tool.setuptools]
+      packages = []
 
 
 .. _dynamic-pyproject-config:

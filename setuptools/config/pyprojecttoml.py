@@ -106,9 +106,8 @@ def read_configuration(
     if not asdict or not (project_table or setuptools_table):
         return {}  # User is not using pyproject to configure setuptools
 
-    if setuptools_table:
-        # TODO: Remove the following once the feature stabilizes:
-        _BetaConfiguration.emit()
+    if "distutils" in tool_table:
+        _ExperimentalConfiguration.emit(subject="[tool.distutils]")
 
     # There is an overall sense in the community that making include_package_data=True
     # the default would be an improvement.
@@ -435,5 +434,8 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         return super().__exit__(exc_type, exc_value, traceback)
 
 
-class _BetaConfiguration(SetuptoolsWarning):
-    _SUMMARY = "Support for `[tool.setuptools]` in `pyproject.toml` is still *beta*."
+class _ExperimentalConfiguration(SetuptoolsWarning):
+    _SUMMARY = (
+        "`{subject}` in `pyproject.toml` is still *experimental* "
+        "and likely to change in future releases."
+    )
