@@ -1,0 +1,1 @@
+Remove ``sphinx`` from the list of distributions for integration tests.
