@@ -305,15 +305,13 @@ class build_py(orig.build_py):
     def get_source_files(self):
         py_files = [module[-1] for module in self.find_all_modules()]
 
-        possible_stub_files = set(os.path.splitext(f)[0] + ".pyi" for f in py_files)
+        possible_stub_files = (os.path.splitext(f)[0] + ".pyi" for f in py_files)
         stub_files = [f for f in possible_stub_files if os.path.isfile(f)]
 
-        possible_py_typed_files = set(
-            os.path.join(os.path.dirname(f), "py.typed") for f in py_files
-        )
-        py_typed_files = [f for f in possible_py_typed_files if os.path.isfile(f)]
+        possible_py_typed_files = (os.path.join(os.path.dirname(f), "py.typed") for f in py_files)
+        py_typed_files = set(f for f in possible_py_typed_files if os.path.isfile(f))
 
-        return py_files + stub_files + py_typed_files
+        return py_files + stub_files + list(py_typed_files)
 
 
 def assert_relative(path):
