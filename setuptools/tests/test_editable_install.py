@@ -660,6 +660,50 @@ class TestFinderTemplate:
             with pytest.raises(ImportError, match="\'ns\\.othername\\.foo\\.BAR\\'"):
                 import_module("ns.othername.foo.BAR")
 
+    def test_intermediate_packages(self, tmp_path):
+        """
+        The finder should not import ``fullname`` if the intermediate segments
+        don't exist (see pypa/setuptools#4019).
+        """
+        files = {
+            "src": {
+                "mypkg": {
+                    "__init__.py": "",
+                    "config.py": "a = 13",
+                    "helloworld.py": "b = 13",
+                    "components": {
+                        "config.py": "a = 37",
+                    },
+                },
+            }
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {"mypkg": str(tmp_path / "src/mypkg")}
+        template = _finder_template(str(uuid4()), mapping, {})
+
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in (
+                "mypkg",
+                "mypkg.config",
+                "mypkg.helloworld",
+                "mypkg.components",
+                "mypkg.components.config",
+                "mypkg.components.helloworld",
+            ):
+                sys.modules.pop(mod, None)
+
+            self.install_finder(template)
+
+            config = import_module("mypkg.components.config")
+            assert config.a == 37
+
+            helloworld = import_module("mypkg.helloworld")
+            assert helloworld.b == 13
+
+            with pytest.raises(ImportError):
+                import_module("mypkg.components.helloworld")
+
 
 def test_pkg_roots(tmp_path):
     """This test focus in getting a particular implementation detail right.
