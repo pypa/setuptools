@@ -1,60 +1,56 @@
 __all__ = ['Distribution']
 
+
 import io
-import sys
-import re
-import os
-import numbers
-import distutils.log
-import distutils.core
-import distutils.cmd
-import distutils.dist
-import distutils.command
-from distutils.util import strtobool
-from distutils.debug import DEBUG
-from distutils.fancy_getopt import translate_longopt
-from glob import iglob
 import itertools
+import numbers
+import os
+import re
+import sys
 import textwrap
-from contextlib import suppress
-from typing import List, Optional, Set, TYPE_CHECKING
-from pathlib import Path
-
 from collections import defaultdict
+from contextlib import suppress
 from email import message_from_file
+from glob import iglob
+from pathlib import Path
+from typing import TYPE_CHECKING, List, Optional, Set
 
+import distutils.cmd
+import distutils.command
+import distutils.core
+import distutils.dist
+import distutils.log
+from distutils.debug import DEBUG
 from distutils.errors import DistutilsOptionError, DistutilsSetupError
+from distutils.fancy_getopt import translate_longopt
 from distutils.util import rfc822_escape
+from distutils.util import strtobool
 
-from setuptools.extern import packaging
-from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen, partition
+from .extern.more_itertools import partition, unique_everseen
+from .extern.ordered_set import OrderedSet
+from .extern.packaging.markers import InvalidMarker, Marker
+from .extern.packaging.specifiers import InvalidSpecifier, SpecifierSet
+from .extern.packaging.version import InvalidVersion, Version
 
-import setuptools
-import setuptools.command
-from setuptools import windows_support
-from setuptools.monkey import get_unpatched
-from setuptools.config import setupcfg, pyprojecttoml
-from setuptools.discovery import ConfigDiscovery
-
-from setuptools.extern.packaging import version
-from . import _reqs
 from . import _entry_points
 from . import _normalization
+from . import _reqs
+from . import command as _  # noqa  -- imported for side-effects
 from ._importlib import metadata
+from .config import setupcfg, pyprojecttoml
+from .discovery import ConfigDiscovery
+from .monkey import get_unpatched
 from .warnings import InformationOnly, SetuptoolsDeprecationWarning
+
 
 if TYPE_CHECKING:
     from email.message import Message
-
-__import__('setuptools.extern.packaging.specifiers')
-__import__('setuptools.extern.packaging.version')
 
 
 def get_metadata_version(self):
     mv = getattr(self, 'metadata_version', None)
     if mv is None:
-        mv = version.Version('2.1')
+        mv = Version('2.1')
         self.metadata_version = mv
     return mv
 
@@ -102,7 +98,7 @@ def read_pkg_file(self, file):
     """Reads the metadata values from a file object."""
     msg = message_from_file(file)
 
-    self.metadata_version = version.Version(msg['metadata-version'])
+    self.metadata_version = Version(msg['metadata-version'])
     self.name = _read_field_from_msg(msg, 'name')
     self.version = _read_field_from_msg(msg, 'version')
     self.description = _read_field_from_msg(msg, 'summary')
@@ -116,9 +112,7 @@ def read_pkg_file(self, file):
     self.license = _read_field_unescaped_from_msg(msg, 'license')
 
     self.long_description = _read_field_unescaped_from_msg(msg, 'description')
-    if self.long_description is None and self.metadata_version >= version.Version(
-        '2.1'
-    ):
+    if self.long_description is None and self.metadata_version >= Version('2.1'):
         self.long_description = _read_payload_from_msg(msg)
     self.description = _read_field_from_msg(msg, 'summary')
 
@@ -129,7 +123,7 @@ def read_pkg_file(self, file):
     self.classifiers = _read_list_from_msg(msg, 'classifier')
 
     # PEP 314 - these fields only exist in 1.1
-    if self.metadata_version == version.Version('1.1'):
+    if self.metadata_version == Version('1.1'):
         self.requires = _read_list_from_msg(msg, 'requires')
         self.provides = _read_list_from_msg(msg, 'provides')
         self.obsoletes = _read_list_from_msg(msg, 'obsoletes')
@@ -299,7 +293,7 @@ def _check_extra(extra, reqs):
     name, sep, marker = extra.partition(':')
     try:
         _check_marker(marker)
-    except packaging.markers.InvalidMarker:
+    except InvalidMarker:
         msg = f"Invalid environment marker: {marker} ({extra!r})"
         raise DistutilsSetupError(msg) from None
     list(_reqs.parse(reqs))
@@ -308,7 +302,7 @@ def _check_extra(extra, reqs):
 def _check_marker(marker):
     if not marker:
         return
-    m = packaging.markers.Marker(marker)
+    m = Marker(marker)
     m.evaluate()
 
 
@@ -344,8 +338,8 @@ def check_requirements(dist, attr, value):
 def check_specifier(dist, attr, value):
     """Verify that value is a valid version specifier"""
     try:
-        packaging.specifiers.SpecifierSet(value)
-    except (packaging.specifiers.InvalidSpecifier, AttributeError) as error:
+        SpecifierSet(value)
+    except (InvalidSpecifier, AttributeError) as error:
         tmpl = (
             "{attr!r} must be a string " "containing valid version specifiers; {error}"
         )
@@ -448,7 +442,7 @@ class Distribution(_Distribution):
     _DISTUTILS_UNSUPPORTED_METADATA = {
         'long_description_content_type': lambda: None,
         'project_urls': dict,
-        'provides_extras': ordered_set.OrderedSet,
+        'provides_extras': OrderedSet,
         'license_file': lambda: None,
         'license_files': lambda: None,
     }
@@ -499,7 +493,7 @@ class Distribution(_Distribution):
         # Save the original dependencies before they are processed into the egg format
         self._orig_extras_require = {}
         self._orig_install_requires = []
-        self._tmp_extras_require = defaultdict(ordered_set.OrderedSet)
+        self._tmp_extras_require = defaultdict(OrderedSet)
 
         self.set_defaults = ConfigDiscovery(self)
 
@@ -535,10 +529,12 @@ class Distribution(_Distribution):
 
     @staticmethod
     def _normalize_version(version):
-        if isinstance(version, setuptools.sic) or version is None:
+        from . import sic
+
+        if isinstance(version, sic) or version is None:
             return version
 
-        normalized = str(packaging.version.Version(version))
+        normalized = str(Version(version))
         if version != normalized:
             InformationOnly.emit(f"Normalizing '{version}' to '{normalized}'")
             return normalized
@@ -552,8 +548,10 @@ class Distribution(_Distribution):
 
         if version is not None:
             try:
-                packaging.version.Version(version)
-            except (packaging.version.InvalidVersion, TypeError):
+                Version(version)
+            except (InvalidVersion, TypeError):
+                from . import sic
+
                 SetuptoolsDeprecationWarning.emit(
                     f"Invalid version: {version!r}.",
                     """
@@ -566,7 +564,7 @@ class Distribution(_Distribution):
                     # Warning initially introduced in 26 Sept 2014
                     # pypa/packaging already removed legacy versions.
                 )
-                return setuptools.sic(version)
+                return sic(version)
         return version
 
     def _finalize_requires(self):
@@ -602,7 +600,7 @@ class Distribution(_Distribution):
         `"extra:{marker}": ["barbazquux"]`.
         """
         spec_ext_reqs = getattr(self, 'extras_require', None) or {}
-        tmp = defaultdict(ordered_set.OrderedSet)
+        tmp = defaultdict(OrderedSet)
         self._tmp_extras_require = getattr(self, '_tmp_extras_require', tmp)
         for section, v in spec_ext_reqs.items():
             # Do not strip empty sections.
@@ -903,7 +901,7 @@ class Distribution(_Distribution):
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
-        from setuptools.installer import _fetch_build_eggs
+        from .installer import _fetch_build_eggs
 
         return _fetch_build_eggs(self, requires)
 
@@ -946,6 +944,8 @@ class Distribution(_Distribution):
                 ep.load()(self, ep.name, value)
 
     def get_egg_cache_dir(self):
+        from . import windows_support
+
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
         if not os.path.exists(egg_cache_dir):
             os.mkdir(egg_cache_dir)
@@ -966,7 +966,7 @@ class Distribution(_Distribution):
 
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""
-        from setuptools.installer import fetch_build_egg
+        from .installer import fetch_build_egg
 
         return fetch_build_egg(self, req)
 
