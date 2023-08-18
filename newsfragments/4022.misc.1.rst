@@ -1,1 +1,0 @@
-Bump Python version for integration tests to 3.10.
