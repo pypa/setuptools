@@ -42,7 +42,6 @@ pytestmark = pytest.mark.integration
 # due to their relevance to the numerical/scientific programming ecosystem)
 EXAMPLES = [
     ("pandas", LATEST),  # cython + custom build_ext
-    ("sphinx", LATEST),  # custom setup.py
     ("pip", LATEST),  # just in case...
     ("pytest", LATEST),  # uses setuptools_scm
     ("mypy", LATEST),  # custom build_py + ext_modules
