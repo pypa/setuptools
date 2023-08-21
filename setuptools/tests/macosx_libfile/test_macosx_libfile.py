@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import os
-import sys
+import struct
 import sysconfig
+
+import pytest
 
 from wheel.bdist_wheel import get_platform
 from wheel.macosx_libfile import extract_macosx_min_system_version
@@ -214,7 +216,11 @@ class TestGetPlatformMacosx:
         assert get_platform(dylib_dir) == "macosx_11_0_x86_64"
 
 
-def test_get_platform_linux(monkeypatch):
-    monkeypatch.setattr(sysconfig, "get_platform", return_factory("linux-x86_64"))
-    monkeypatch.setattr(sys, "maxsize", 2147483647)
-    assert get_platform(None) == "linux_i686"
+@pytest.mark.parametrize(
+    "reported,expected",
+    [("linux-x86_64", "linux_i686"), ("linux-aarch64", "linux_armv7l")],
+)
+def test_get_platform_linux32(reported, expected, monkeypatch):
+    monkeypatch.setattr(sysconfig, "get_platform", return_factory(reported))
+    monkeypatch.setattr(struct, "calcsize", lambda x: 4)
+    assert get_platform(None) == expected
