@@ -55,7 +55,7 @@ EXAMPLES = [
 
 # Some packages have "optional" dependencies that modify their build behaviour
 # and are not listed in pyproject.toml, others still use `setup_requires`
-EXTRA_BUILD_DEPS = {"sphinx": ("babel>=1.3",), "kiwisolver": ("cppy>=1.1.0",)}
+EXTRA_BUILD_DEPS = {}
 
 
 VIRTUALENV = (sys.executable, "-m", "virtualenv")
