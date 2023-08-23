@@ -22,13 +22,15 @@ class install(orig.install):
             None,
             "used by system package builders to create 'flat' eggs",
         ),
+        ('skip-egg-info', None, "*TRANSITIONAL* will be removed in the future"),
     ]
     boolean_options = orig.install.boolean_options + [
         'old-and-unmanageable',
         'single-version-externally-managed',
+        'skip-egg-info',
     ]
     new_commands = [
-        ('install_egg_info', lambda self: True),
+        ('install_egg_info', lambda self: not self.skip_egg_info),
         ('install_scripts', lambda self: True),
     ]
     _nc = dict(new_commands)
@@ -50,6 +52,7 @@ class install(orig.install):
         orig.install.initialize_options(self)
         self.old_and_unmanageable = None
         self.single_version_externally_managed = None
+        self.skip_egg_info = False
 
     def finalize_options(self):
         orig.install.finalize_options(self)
