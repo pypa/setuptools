@@ -46,8 +46,11 @@ EXAMPLES = [
     ("mypy", LATEST),  # custom build_py + ext_modules
     # --- Popular packages: https://hugovk.github.io/top-pypi-packages/ ---
     ("botocore", LATEST),
-    ("kiwisolver", "1.3.2"),  # build_ext, version pinned due to setup_requires
+    ("kiwisolver", LATEST),  # build_ext
     ("brotli", LATEST),  # not in the list but used by urllib3
+    ("pyyaml", LATEST),  # cython + custom build_ext + custom distclass
+    ("charset-normalizer", LATEST),  # uses mypyc, used by aiohttp
+    ("protobuf", LATEST),
     # When adding packages to this list, make sure they expose a `__version__`
     # attribute, or modify the tests below
 ]
@@ -55,7 +58,19 @@ EXAMPLES = [
 
 # Some packages have "optional" dependencies that modify their build behaviour
 # and are not listed in pyproject.toml, others still use `setup_requires`
-EXTRA_BUILD_DEPS = {}
+EXTRA_BUILD_DEPS = {
+    "pyyaml": ("Cython<3.0",),  # constraint to avoid errors
+    "charset-normalizer": ("mypy>=1.4.1",),  # no pyproject.toml available
+}
+
+EXTRA_ENV_VARS = {
+    "charset-normalizer": {"CHARSET_NORMALIZER_USE_MYPYC": "1"},
+}
+
+PKG_NAME = {
+    "pyyaml": "yaml",
+    "protobuf": "google.protobuf",
+}
 
 
 VIRTUALENV = (sys.executable, "-m", "virtualenv")
@@ -102,9 +117,6 @@ def _prepare(tmp_path, venv_python, monkeypatch, request):
     request.addfinalizer(_debug_info)
 
 
-ALREADY_LOADED = ("pytest", "mypy")  # loaded by pytest/pytest-enabler
-
-
 @pytest.mark.parametrize('package, version', EXAMPLES)
 @pytest.mark.uses_network
 def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel):
@@ -118,12 +130,14 @@ def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel
 
     # Use a virtualenv to simulate PEP 517 isolation
     # but install fresh setuptools wheel to ensure the version under development
-    run([*venv_pip, "install", "-I", setuptools_wheel])
+    run([*venv_pip, "install", "wheel", "-I", setuptools_wheel])
     run([*venv_pip, "install", *INSTALL_OPTIONS, sdist])
 
     # Execute a simple script to make sure the package was installed correctly
-    script = f"import {package}; print(getattr({package}, '__version__', 0))"
-    run([venv_python, "-c", script])
+    env = EXTRA_ENV_VARS.get(package, {})
+    pkg = PKG_NAME.get(package, package).replace("-", "_")
+    script = f"import {pkg}; print(getattr({pkg}, '__version__', 0))"
+    run([venv_python, "-c", script], env)
 
 
 # ---- Helper Functions ----

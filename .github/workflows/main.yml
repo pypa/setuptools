@@ -212,7 +212,7 @@ jobs:
       - name: Install OS-level dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install build-essential gfortran libopenblas-dev
+          sudo apt-get install build-essential gfortran libopenblas-dev libyaml
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
