@@ -1,0 +1,1 @@
+Hash-pinned all workflow GitHub Actions, will be kept up-to-date with Dependabot
