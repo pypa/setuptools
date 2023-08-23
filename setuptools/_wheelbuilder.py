@@ -15,7 +15,7 @@ from .discovery import _Filter
 
 _Path = Union[str, Path]
 _Timestamp = Tuple[int, int, int, int, int, int]
-_StrOrIter = Union[str, Iterable[str]]
+_TextOrIter = Union[str, bytes, Iterable[str], Iterable[bytes]]
 
 _HASH_ALG = "sha256"
 _HASH_BUF_SIZE = 65536
@@ -121,7 +121,7 @@ class WheelBuilder:
                     arcname = os.path.join(prefix, arcname)
                 self.add_existing_file(arcname, file)
 
-    def new_file(self, arcname: str, contents: _StrOrIter, permissions: int = 0o664):
+    def new_file(self, arcname: str, contents: _TextOrIter, permissions: int = 0o664):
         """
         Create a new entry in the wheel named ``arcname`` that contains
         the UTF-8 text specified by ``contents``.
@@ -131,10 +131,10 @@ class WheelBuilder:
         zipinfo.compress_type = self._compression
         hashsum = hashlib.new(_HASH_ALG)
         file_size = 0
-        iter_contents = [contents] if isinstance(contents, str) else contents
+        iter_contents = [contents] if isinstance(contents, (str, bytes)) else contents
         with self._zip.open(zipinfo, "w") as fp:
             for part in iter_contents:
-                bpart = bytes(part, "utf-8")
+                bpart = bytes(part, "utf-8") if isinstance(part, str) else part
                 file_size += fp.write(bpart)
                 hashsum.update(bpart)
         hash_digest = urlsafe_b64encode(hashsum.digest()).decode('ascii').rstrip('=')
