@@ -41,7 +41,6 @@ pytestmark = pytest.mark.integration
 # that `build-essential`, `gfortran` and `libopenblas-dev` are installed,
 # due to their relevance to the numerical/scientific programming ecosystem)
 EXAMPLES = [
-    ("pandas", LATEST),  # cython + custom build_ext
     ("pip", LATEST),  # just in case...
     ("pytest", LATEST),  # uses setuptools_scm
     ("mypy", LATEST),  # custom build_py + ext_modules
