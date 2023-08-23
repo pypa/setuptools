@@ -1,0 +1,1 @@
+Added ``pyyaml``, ``charset-normalizer`` and ``protobuf`` to integration tests.
