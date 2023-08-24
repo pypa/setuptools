@@ -67,7 +67,7 @@ EXTRA_ENV_VARS = {
     "charset-normalizer": {"CHARSET_NORMALIZER_USE_MYPYC": "1"},
 }
 
-PKG_NAME = {
+IMPORT_NAME = {
     "pyyaml": "yaml",
     "protobuf": "google.protobuf",
 }
@@ -135,7 +135,7 @@ def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel
 
     # Execute a simple script to make sure the package was installed correctly
     env = EXTRA_ENV_VARS.get(package, {})
-    pkg = PKG_NAME.get(package, package).replace("-", "_")
+    pkg = IMPORT_NAME.get(package, package).replace("-", "_")
     script = f"import {pkg}; print(getattr({pkg}, '__version__', 0))"
     run([venv_python, "-c", script], env)
 
