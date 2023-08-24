@@ -64,6 +64,7 @@ EXTRA_BUILD_DEPS = {
 }
 
 EXTRA_ENV_VARS = {
+    "pyyaml": {"PYYAML_FORCE_CYTHON": "1"},
     "charset-normalizer": {"CHARSET_NORMALIZER_USE_MYPYC": "1"},
 }
 
