@@ -1,0 +1,1 @@
+Removed ``pandas`` from integration tests.
