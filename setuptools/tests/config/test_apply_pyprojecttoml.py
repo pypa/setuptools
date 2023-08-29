@@ -45,6 +45,7 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
 
     dist_toml = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject_example)
     dist_cfg = setupcfg.apply_configuration(makedist(tmp_path), setupcfg_example)
+    _port_tests_require(dist_cfg)
 
     pkg_info_toml = core_metadata(dist_toml)
     pkg_info_cfg = core_metadata(dist_cfg)
@@ -388,12 +389,12 @@ class TestPresetField:
         dist = makedist(tmp_path, install_requires=install_req)
         dist = pyprojecttoml.apply_configuration(dist, pyproject)
         assert "foo" in dist.extras_require
-        assert ':python_version < "3.7"' in dist.extras_require
         egg_info = dist.get_command_obj("egg_info")
         write_requirements(egg_info, tmp_path, tmp_path / "requires.txt")
         reqs = (tmp_path / "requires.txt").read_text(encoding="utf-8")
         assert "importlib-resources" in reqs
         assert "bar" in reqs
+        assert ':python_version < "3.7"' in reqs
 
     @pytest.mark.parametrize(
         "field,group", [("scripts", "console_scripts"), ("gui-scripts", "gui_scripts")]
@@ -448,3 +449,15 @@ def core_metadata(dist) -> str:
         result.append(line + "\n")
 
     return "".join(result)
+
+
+def _port_tests_require(dist):
+    """
+    ``ini2toml`` "forward fix" deprecated tests_require definitions by moving
+    them into an extra called ``testing``.
+    """
+    tests_require = getattr(dist, "tests_require", None) or []
+    if tests_require:
+        dist.tests_require = []
+        dist.extras_require.setdefault("testing", []).extend(tests_require)
+        dist._finalize_requires()
