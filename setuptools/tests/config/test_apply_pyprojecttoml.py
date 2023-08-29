@@ -13,6 +13,7 @@ from zipfile import ZipFile
 
 import pytest
 from ini2toml.api import Translator
+from packaging.metadata import Metadata
 
 import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
@@ -427,6 +428,9 @@ def core_metadata(dist) -> str:
     with io.StringIO() as buffer:
         dist.metadata.write_pkg_file(buffer)
         pkg_file_txt = buffer.getvalue()
+
+    # Make sure core metadata is valid
+    Metadata.from_email(pkg_file_txt, validate=True)  # can raise exceptions
 
     skip_prefixes = ()
     skip_lines = set()
