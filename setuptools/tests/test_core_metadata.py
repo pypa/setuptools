@@ -5,6 +5,8 @@ from email import message_from_string
 
 import pytest
 
+from packaging.metadata import Metadata
+
 from setuptools import sic, _reqs
 from setuptools.dist import Distribution
 from setuptools._core_metadata import rfc822_escape, rfc822_unescape
@@ -166,6 +168,9 @@ def test_read_metadata(name, attrs):
     PKG_INFO = io.StringIO()
 
     metadata_out.write_pkg_file(PKG_INFO)
+    PKG_INFO.seek(0)
+    pkg_info = PKG_INFO.read()
+    assert _valid_metadata(pkg_info)
 
     PKG_INFO.seek(0)
     metadata_in = dist_class()
@@ -281,9 +286,12 @@ def test_maintainer_author(name, attrs, tmpdir):
     dist.metadata.write_pkg_info(fn_s)
 
     with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
-        raw_pkg_lines = f.readlines()
+        pkg_info = f.read()
+
+    assert _valid_metadata(pkg_info)
 
     # Drop blank lines and strip lines from default description
+    raw_pkg_lines = pkg_info.splitlines()
     pkg_lines = list(filter(None, raw_pkg_lines[:-2]))
 
     pkg_lines_set = set(pkg_lines)
@@ -333,6 +341,8 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
         dist.metadata.write_pkg_file(fp)
         pkg_info = fp.getvalue()
 
+    assert _valid_metadata(pkg_info)
+
     # Ensure Requires-Dist is present
     expected = [
         'Metadata-Version:',
@@ -378,3 +388,8 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
     assert metadata_msg.as_string() == pkg_info_msg.as_string()
     assert metadata_deps == pkg_info_deps
     assert metadata_extras == pkg_info_extras
+
+
+def _valid_metadata(text: str) -> bool:
+    metadata = Metadata.from_email(text, validate=True)  # can raise exceptions
+    return metadata is not None
