@@ -32,10 +32,6 @@ env:
   PIP_NO_PYTHON_VERSION_WARNING: 'true'
   PIP_NO_WARN_SCRIPT_LOCATION: 'true'
 
-  # Disable the spinner, noise in GHA; TODO(webknjaz): Fix this upstream
-  # Must be "1".
-  TOX_PARALLEL_NO_SPINNER: 1
-
   # Ensure tests can sense settings about the environment
   TOX_OVERRIDE: >-
     testenv.pass_env+=GITHUB_*
