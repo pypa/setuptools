@@ -36,6 +36,10 @@ env:
   # Must be "1".
   TOX_PARALLEL_NO_SPINNER: 1
 
+  # Ensure tests can sense settings about the environment
+  TOX_OVERRIDE: >-
+    testenv.pass_env+=GITHUB_*
+
 
 jobs:
   test:
