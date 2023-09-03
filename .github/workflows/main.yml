@@ -73,7 +73,7 @@ jobs:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils || 'local' }}
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: jaraco/checkout@v3
       - name: Setup Python
         id: python-install
         uses: actions/setup-python@v4
@@ -115,7 +115,7 @@ jobs:
     env:
       TOXENV: docs
     steps:
-      - uses: actions/checkout@v3
+      - uses: jaraco/checkout@v3
       - name: Setup Python
         uses: actions/setup-python@v4
       - name: Install tox
@@ -152,7 +152,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: jaraco/checkout@v3
       - name: Install Cygwin with Python
         uses: cygwin/cygwin-install-action@v2
         with:
@@ -208,7 +208,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: jaraco/checkout@v3
       - name: Install OS-level dependencies
         run: |
           sudo apt-get update
@@ -233,7 +233,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: jaraco/checkout@v3
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
