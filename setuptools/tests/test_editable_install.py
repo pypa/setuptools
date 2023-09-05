@@ -261,7 +261,8 @@ class TestLegacyNamespaces:
         files = list(installation_dir.glob("*-nspkg.pth"))
         assert len(files) == len(examples)
 
-    def test_namespace_package_importable(self, venv, tmp_path, editable_opts):
+    @pytest.mark.parametrize("ns", ("myns.n",))
+    def test_namespace_package_importable(self, venv, tmp_path, ns, editable_opts):
         """
         Installing two packages sharing the same namespace, one installed
         naturally using pip or `--single-version-externally-managed`
@@ -274,8 +275,8 @@ class TestLegacyNamespaces:
         requires = ["setuptools"]
         build-backend = "setuptools.build_meta"
         """
-        pkg_A = namespaces.build_namespace_package(tmp_path, 'myns.pkgA')
-        pkg_B = namespaces.build_namespace_package(tmp_path, 'myns.pkgB')
+        pkg_A = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgA")
+        pkg_B = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgB")
         (pkg_A / "pyproject.toml").write_text(build_system, encoding="utf-8")
         (pkg_B / "pyproject.toml").write_text(build_system, encoding="utf-8")
         # use pip to install to the target directory
@@ -283,7 +284,7 @@ class TestLegacyNamespaces:
         opts.append("--no-build-isolation")  # force current version of setuptools
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
-        venv.run(["python", "-c", "import myns.pkgA; import myns.pkgB"])
+        venv.run(["python", "-c", f"import {ns}.pkgA; import {ns}.pkgB"])
         # additionally ensure that pkg_resources import works
         venv.run(["python", "-c", "import pkg_resources"])
 
