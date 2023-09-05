@@ -341,7 +341,7 @@ class editable_wheel(Command):
         with unpacked_wheel as unpacked, build_lib as lib, build_tmp as tmp:
             unpacked_dist_info = Path(unpacked, Path(self.dist_info_dir).name)
             shutil.copytree(self.dist_info_dir, unpacked_dist_info)
-            self._install_namespaces(unpacked, dist_info.name)
+            self._install_namespaces(unpacked, dist_name)
             files, mapping = self._run_build_commands(dist_name, unpacked, lib, tmp)
             strategy = self._select_strategy(dist_name, tag, lib)
             with strategy, WheelFile(wheel_path, "w") as wheel_obj:
@@ -752,9 +752,9 @@ class _NamespaceInstaller(namespaces.Installer):
         self.outputs = []
         self.dry_run = False
 
-    def _get_target(self):
+    def _get_nspkg_file(self):
         """Installation target."""
-        return os.path.join(self.installation_dir, self.editable_name)
+        return os.path.join(self.installation_dir, self.editable_name + self.nspkg_ext)
 
     def _get_root(self):
         """Where the modules/packages should be loaded from."""
