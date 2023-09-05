@@ -7,7 +7,7 @@ def iter_namespace_pkgs(namespace):
         yield ".".join(parts[:i+1])
 
 
-def build_namespace_package(tmpdir, name):
+def build_namespace_package(tmpdir, name, version="1.0"):
     src_dir = tmpdir / name
     src_dir.mkdir()
     setup_py = src_dir / 'setup.py'
@@ -18,7 +18,7 @@ def build_namespace_package(tmpdir, name):
         import setuptools
         setuptools.setup(
             name={name!r},
-            version="1.0",
+            version={version!r},
             namespace_packages={namespaces!r},
             packages={namespaces!r},
         )
