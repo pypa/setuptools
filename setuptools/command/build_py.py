@@ -116,6 +116,7 @@ class build_py(orig.build_py):
             self.package_data,
             package,
             src_dir,
+            extra_patterns=['*.pyi', 'py.typed'],
         )
         globs_expanded = map(partial(glob, recursive=True), patterns)
         # flatten the expanded globs into an iterable of matches
@@ -285,7 +286,7 @@ class build_py(orig.build_py):
         return list(unique_everseen(keepers))
 
     @staticmethod
-    def _get_platform_patterns(spec, package, src_dir):
+    def _get_platform_patterns(spec, package, src_dir, extra_patterns=[]):
         """
         yield platform-specific path patterns (suitable for glob
         or fn_match) from a glob-based spec (such as
@@ -293,6 +294,7 @@ class build_py(orig.build_py):
         matching package in src_dir.
         """
         raw_patterns = itertools.chain(
+            extra_patterns,
             spec.get('', []),
             spec.get(package, []),
         )
