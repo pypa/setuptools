@@ -1,0 +1,2 @@
+Fix the name given to the ``*-nspkg.pth`` files in editable installs,
+ensuring they are unique per distribution.
