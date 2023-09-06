@@ -984,7 +984,7 @@ def test_system_exit_in_setuppy(monkeypatch, tmp_path):
         backend.get_requires_for_build_wheel()
 
 
-class TestTypeInformationIncludedByDefault():
+class TestTypeInformationIncludedByDefault:
     dont_include_package_data = """
     [project]
     name = "foo"
@@ -1020,7 +1020,7 @@ class TestTypeInformationIncludedByDefault():
                 "foo.pyi": "",
             },
             "__init__.pyi": "",
-            "py.typed": ""
+            "py.typed": "",
         }
     }
 
@@ -1037,7 +1037,9 @@ class TestTypeInformationIncludedByDefault():
                 if self.is_type_information_file(key):
                     output.add(key)
             else:
-                output.update(key + "/" + f for f in self.get_type_files(file_spec[key]))
+                output.update(
+                    key + "/" + f for f in self.get_type_files(file_spec[key])
+                )
         return output
 
     @pytest.fixture(params=itertools.product(packages_to_test, [True, False]))
@@ -1055,7 +1057,9 @@ class TestTypeInformationIncludedByDefault():
 
         yield file_spec, expected
 
-    def test_type_information_always_included(self, monkeypatch, tmp_path, file_spec_and_expected):
+    def test_type_information_always_included(
+        self, monkeypatch, tmp_path, file_spec_and_expected
+    ):
         """Setuptools should include type information in the wheel (py.typed, *.pyi)."""
         file_spec, expected = file_spec_and_expected
         monkeypatch.chdir(tmp_path)
@@ -1069,6 +1073,8 @@ class TestTypeInformationIncludedByDefault():
         assert os.path.isfile(wheel_file)
 
         with ZipFile(wheel_file) as zipfile:
-            wheel_contents = set(filter(self.is_type_information_file, zipfile.namelist()))
+            wheel_contents = set(
+                filter(self.is_type_information_file, zipfile.namelist())
+            )
 
         assert wheel_contents == expected
