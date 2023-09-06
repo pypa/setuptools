@@ -261,8 +261,17 @@ class TestLegacyNamespaces:
         files = list(installation_dir.glob("*-nspkg.pth"))
         assert len(files) == len(examples)
 
+    @pytest.mark.parametrize(
+        "impl",
+        (
+            "pkg_resources",
+            #  "pkgutil",  => does not work
+        )
+    )
     @pytest.mark.parametrize("ns", ("myns.n",))
-    def test_namespace_package_importable(self, venv, tmp_path, ns, editable_opts):
+    def test_namespace_package_importable(
+        self, venv, tmp_path, ns, impl, editable_opts
+    ):
         """
         Installing two packages sharing the same namespace, one installed
         naturally using pip or `--single-version-externally-managed`
@@ -275,8 +284,8 @@ class TestLegacyNamespaces:
         requires = ["setuptools"]
         build-backend = "setuptools.build_meta"
         """
-        pkg_A = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgA")
-        pkg_B = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgB")
+        pkg_A = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgA", impl=impl)
+        pkg_B = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgB", impl=impl)
         (pkg_A / "pyproject.toml").write_text(build_system, encoding="utf-8")
         (pkg_B / "pyproject.toml").write_text(build_system, encoding="utf-8")
         # use pip to install to the target directory
