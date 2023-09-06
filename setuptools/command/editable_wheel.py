@@ -505,9 +505,19 @@ class _TopLevelFinder:
             )
         )
 
+        legacy_namespaces = {
+            pkg: find_package_path(pkg, roots, self.dist.src_root or "")
+            for pkg in self.dist.namespace_packages or []
+        }
+
+        mapping = {**roots, **legacy_namespaces}
+        # ^-- We need to explicitly add the legacy_namespaces to the mapping to be
+        #     able to import their modules even if another package sharing the same
+        #     namespace is installed in a conventional (non-editable) way.
+
         name = f"__editable__.{self.name}.finder"
         finder = _normalization.safe_identifier(name)
-        content = bytes(_finder_template(name, roots, namespaces_), "utf-8")
+        content = bytes(_finder_template(name, mapping, namespaces_), "utf-8")
         wheel.writestr(f"{finder}.py", content)
 
         content = _encode_pth(f"import {finder}; {finder}.install()")
