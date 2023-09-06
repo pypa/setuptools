@@ -266,7 +266,7 @@ class TestLegacyNamespaces:
         (
             "pkg_resources",
             #  "pkgutil",  => does not work
-        )
+        ),
     )
     @pytest.mark.parametrize("ns", ("myns.n",))
     def test_namespace_package_importable(

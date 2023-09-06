@@ -7,7 +7,7 @@ from pathlib import Path
 def iter_namespace_pkgs(namespace):
     parts = namespace.split(".")
     for i in range(len(parts)):
-        yield ".".join(parts[:i+1])
+        yield ".".join(parts[: i + 1])
 
 
 def build_namespace_package(tmpdir, name, version="1.0", impl="pkg_resources"):
