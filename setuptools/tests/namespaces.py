@@ -1,6 +1,7 @@
 import ast
 import json
 import textwrap
+from pathlib import Path
 
 
 def iter_namespace_pkgs(namespace):
@@ -41,7 +42,7 @@ def build_namespace_package(tmpdir, name, version="1.0", impl="pkg_resources"):
     ).format(args=args)
     setup_py.write_text(script, encoding='utf-8')
 
-    ns_pkg_dir = src_dir / namespace.replace(".", "/")
+    ns_pkg_dir = Path(src_dir, namespace.replace(".", "/"))
     ns_pkg_dir.mkdir(parents=True)
 
     for ns in namespaces:
@@ -69,7 +70,7 @@ def build_pep420_namespace_package(tmpdir, name):
         version = "3.14159"
         """
     pyproject.write_text(textwrap.dedent(script), encoding='utf-8')
-    ns_pkg_dir = src_dir / namespace.replace(".", "/")
+    ns_pkg_dir = Path(src_dir, namespace.replace(".", "/"))
     ns_pkg_dir.mkdir(parents=True)
     pkg_mod = ns_pkg_dir / (rest + ".py")
     some_functionality = f"name = {rest!r}"
