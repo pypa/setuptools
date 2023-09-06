@@ -777,6 +777,8 @@ PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 class _EditableFinder:  # MetaPathFinder
     @classmethod
     def find_spec(cls, fullname, path=None, target=None):
+        extra_path = []
+
         # Top-level packages and modules (we know these exist in the FS)
         if fullname in MAPPING:
             pkg_path = MAPPING[fullname]
@@ -787,7 +789,7 @@ class _EditableFinder:  # MetaPathFinder
         # to the importlib.machinery implementation.
         parent, _, child = fullname.rpartition(".")
         if parent and parent in MAPPING:
-            return PathFinder.find_spec(fullname, path=[MAPPING[parent]])
+            return PathFinder.find_spec(fullname, path=[MAPPING[parent], *extra_path])
 
         # Other levels of nesting should be handled automatically by importlib
         # using the parent path.
