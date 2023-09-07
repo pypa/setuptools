@@ -1,3 +1,0 @@
-Improve the generated ``PKG-INFO`` files, by adding ``Requires-Dist`` fields.
-Previously, these fields would be omitted in favour of a non-standard
-``*.egg-info/requires.txt`` file (which is still generated for the time being).

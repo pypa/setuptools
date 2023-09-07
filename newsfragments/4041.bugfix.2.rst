@@ -1,2 +1,0 @@
-Workaround some limitations on ``pkg_resources``-style legacy namespaces in
-the meta path finder for editable installations.

@@ -1,2 +1,0 @@
-Improve atomicity when writing ``PKG-INFO`` files to avoid race
-conditions with ``importlib.metadata``.

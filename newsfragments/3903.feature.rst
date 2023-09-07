@@ -1,2 +1,0 @@
-Rework how ``setuptools`` internally handles ``dependencies/install_requires``
-and ``optional-dependencies/extras_require``.

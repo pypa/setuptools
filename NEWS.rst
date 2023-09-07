@@ -1,3 +1,33 @@
+v68.2.0
+=======
+
+Features
+--------
+
+- Rework how ``setuptools`` internally handles ``dependencies/install_requires``
+  and ``optional-dependencies/extras_require``. (#3903)
+- Improve the generated ``PKG-INFO`` files, by adding ``Requires-Dist`` fields.
+  Previously, these fields would be omitted in favour of a non-standard
+  ``*.egg-info/requires.txt`` file (which is still generated for the time being). (#3904)
+- Improve atomicity when writing ``PKG-INFO`` files to avoid race
+  conditions with ``importlib.metadata``. (#3904)
+
+
+Bugfixes
+--------
+
+- Fix the name given to the ``*-nspkg.pth`` files in editable installs,
+  ensuring they are unique per distribution. (#4041)
+- Workaround some limitations on ``pkg_resources``-style legacy namespaces in
+  the meta path finder for editable installations. (#4041)
+
+
+Misc
+----
+
+- #4023, #4027, #4027
+
+
 v68.1.2
 =======
 

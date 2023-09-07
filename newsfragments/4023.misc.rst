@@ -1,2 +1,0 @@
-Avoid circular imports (particularly between ``setuptools/{__init__,dist,monkey}.py``),
-or at least delay them, so tools like ``sphinx`` don't have problems analysing the codebase.
