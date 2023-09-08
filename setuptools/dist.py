@@ -296,14 +296,11 @@ class Distribution(_Distribution):
         self.setup_requires = attrs.pop('setup_requires', [])
         for ep in metadata.entry_points(group='distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
-        _Distribution.__init__(
-            self,
-            {
-                k: v
-                for k, v in attrs.items()
-                if k not in self._DISTUTILS_UNSUPPORTED_METADATA
-            },
-        )
+
+        metadata_only = set(self._DISTUTILS_UNSUPPORTED_METADATA)
+        metadata_only -= {"install_requires", "extras_require"}
+        dist_attrs = {k: v for k, v in attrs.items() if k not in metadata_only}
+        _Distribution.__init__(self, dist_attrs)
 
         # Private API (setuptools-use only, not restricted to Distribution)
         # Stores files that are referenced by the configuration and need to be in the
