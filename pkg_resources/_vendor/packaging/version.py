@@ -451,7 +451,7 @@ class Version(_BaseVersion):
 
 
 def _parse_letter_version(
-    letter: str, number: Union[str, bytes, SupportsInt]
+    letter: Optional[str], number: Union[str, bytes, SupportsInt, None]
 ) -> Optional[Tuple[str, int]]:
 
     if letter:
@@ -489,7 +489,7 @@ def _parse_letter_version(
 _local_version_separators = re.compile(r"[\._-]")
 
 
-def _parse_local_version(local: str) -> Optional[LocalType]:
+def _parse_local_version(local: Optional[str]) -> Optional[LocalType]:
     """
     Takes a string like abc.1.twelve and turns it into ("abc", 1, "twelve").
     """
