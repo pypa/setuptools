@@ -13,7 +13,9 @@ from zipfile import ZipFile
 
 import pytest
 from ini2toml.api import Translator
-from packaging.metadata import Metadata
+
+# TODO: replace with `from packaging.metadata import Metadata` in future versions
+from .._packaging_compat import Metadata
 
 import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution

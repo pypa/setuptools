@@ -5,7 +5,8 @@ from email import message_from_string
 
 import pytest
 
-from packaging.metadata import Metadata
+# TODO: replace with `from packaging.metadata import Metadata` in future versions:
+from ._packaging_compat import Metadata
 
 from setuptools import sic, _reqs
 from setuptools.dist import Distribution

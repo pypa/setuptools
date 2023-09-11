@@ -1,0 +1,2 @@
+Update test dependency on ``build==1.0.3`` and
+add fallback for ``packaging==23.1`` (regarding ``Metadata`` validation).
