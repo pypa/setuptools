@@ -1,3 +1,21 @@
+v68.2.1
+=======
+
+Bugfixes
+--------
+
+- Avoid using caching attributes in ``Distribution.metadata`` for requirements.
+  This is done for backwards compatibility with customizations that attempt to
+  modify ``install_requires`` or ``extras_require`` at a late point (still not
+  recommended). (#4043)
+
+
+Misc
+----
+
+- #4045
+
+
 v68.2.0
 =======
 
