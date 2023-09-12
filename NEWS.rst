@@ -1,3 +1,12 @@
+v68.2.2
+=======
+
+Bugfixes
+--------
+
+- Improve backwards compatibility with deprecated CLI practices. (#4048)
+
+
 v68.2.1
 =======
 
