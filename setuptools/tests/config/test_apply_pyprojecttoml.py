@@ -423,6 +423,25 @@ class TestMeta:
             assert not any(name.endswith(EXAMPLES_FILE) for name in zipfile.namelist())
 
 
+class TestInteropCommandLineParsing:
+    def test_version(self, tmp_path, monkeypatch, capsys):
+        # See pypa/setuptools#4047
+        # This test can be removed once the CLI interface of setup.py is removed
+        monkeypatch.chdir(tmp_path)
+        toml_config = """
+        [project]
+        name = "test"
+        version = "42.0"
+        """
+        pyproject = Path(tmp_path, "pyproject.toml")
+        pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
+        opts = {"script_args": ["--version"]}
+        dist = pyprojecttoml.apply_configuration(Distribution(opts), pyproject)
+        dist.parse_command_line()  # <-- there should be no exception here.
+        captured = capsys.readouterr()
+        assert "42.0" in captured.out
+
+
 # --- Auxiliary Functions ---
 
 
