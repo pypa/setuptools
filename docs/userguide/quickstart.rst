@@ -229,7 +229,7 @@ found, as shown in the example below:
 
     .. code-block:: python
 
-        from setuptools import find_packages  # or find_namespace_packages
+        from setuptools import setup, find_packages  # or find_namespace_packages
 
         setup(
             # ...
