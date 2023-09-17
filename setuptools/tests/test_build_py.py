@@ -319,3 +319,155 @@ def test_get_outputs(tmpdir_cwd):
         f"{build_lib}/mypkg/sub2/nested/__init__.py": "other/__init__.py",
         f"{build_lib}/mypkg/sub2/nested/mod3.py": "other/mod3.py",
     }
+
+
+PYPROJECTS_FOR_TYPE_INFO_TEST = {
+    "default_pyproject": DALS(
+        """
+        [project]
+        name = "foo"
+        version = "1"
+        """
+    ),
+    "dont_include_package_data": DALS(
+        """
+        [project]
+        name = "foo"
+        version = "1"
+
+        [tools.setuptools]
+        include-package-data = false
+        """
+    ),
+    "exclude_type_info": DALS(
+        """
+        [project]
+        name = "foo"
+        version = "1"
+
+        [tools.setuptools]
+        include-package-data = false
+
+        [tool.setuptools.exclude-package-data]
+        "*" = ["py.typed", "*.pyi"]
+        """
+    ),
+}
+
+EXAMPLES_FOR_TYPE_INFO_TEST = {
+    "simple_namespace": {
+        "directory_structure": {
+            "foo": {
+                "bar.pyi": "",
+                "py.typed": "",
+                "__init__.py": "",
+            }
+        },
+        "expected_type_files": {"foo/bar.pyi", "foo/py.typed"},
+    },
+    "nested_inside_namespace": {
+        "directory_structure": {
+            "foo": {
+                "bar": {
+                    "py.typed": "",
+                    "mod.pyi": "",
+                }
+            }
+        },
+        "expected_type_files": {"foo/bar/mod.pyi", "foo/bar/py.typed"},
+    },
+    "namespace_nested_inside_regular": {
+        "directory_structure": {
+            "foo": {
+                "namespace": {
+                    "foo.pyi": "",
+                },
+                "__init__.pyi": "",
+                "py.typed": "",
+            }
+        },
+        "expected_type_files": {
+            "foo/namespace/foo.pyi",
+            "foo/__init__.pyi",
+            "foo/py.typed",
+        },
+    },
+}
+
+
+@pytest.mark.parametrize(
+    "pyproject", ["default_pyproject", "dont_include_package_data"]
+)
+@pytest.mark.parametrize("example", EXAMPLES_FOR_TYPE_INFO_TEST.keys())
+def test_type_files_included_by_default(tmpdir_cwd, pyproject, example):
+    structure = EXAMPLES_FOR_TYPE_INFO_TEST[example]["directory_structure"]
+    expected_type_files = EXAMPLES_FOR_TYPE_INFO_TEST[example]["expected_type_files"]
+    jaraco.path.build(structure)
+    pyproject_contents = PYPROJECTS_FOR_TYPE_INFO_TEST[pyproject]
+    with open("pyproject.toml", "w") as pyproject_file:
+        pyproject_file.write(pyproject_contents)
+
+    dist = Distribution({"script_name": "%PEP 517%"})
+    dist.parse_config_files()
+    build_py = dist.get_command_obj("build_py")
+    build_py.finalize_options()
+    build_py.run()
+
+    build_dir = Path(dist.get_command_obj("build_py").build_lib)
+    outputs = {
+        os.path.relpath(x.replace(os.sep, "/"), build_dir)
+        for x in build_py.get_outputs()
+    }
+    assert expected_type_files <= outputs
+
+
+@pytest.mark.parametrize("pyproject", ["exclude_type_info"])
+@pytest.mark.parametrize("example", EXAMPLES_FOR_TYPE_INFO_TEST.keys())
+def test_type_files_can_be_excluded(tmpdir_cwd, pyproject, example):
+    structure = EXAMPLES_FOR_TYPE_INFO_TEST[example]["directory_structure"]
+    expected_type_files = EXAMPLES_FOR_TYPE_INFO_TEST[example]["expected_type_files"]
+    jaraco.path.build(structure)
+    pyproject_contents = PYPROJECTS_FOR_TYPE_INFO_TEST[pyproject]
+    with open("pyproject.toml", "w") as pyproject_file:
+        pyproject_file.write(pyproject_contents)
+
+    dist = Distribution({"script_name": "%PEP 517%"})
+    dist.parse_config_files()
+    build_py = dist.get_command_obj("build_py")
+    build_py.finalize_options()
+    build_py.run()
+
+    build_dir = Path(dist.get_command_obj("build_py").build_lib)
+    outputs = {
+        os.path.relpath(x.replace(os.sep, "/"), build_dir)
+        for x in build_py.get_outputs()
+    }
+    assert expected_type_files.isdisjoint(outputs)
+
+
+def test_stub_only_package(tmpdir_cwd):
+    structure = {"foo-stubs": {"__init__.pyi": "", "bar.pyi": ""}}
+    expected_type_files = {"foo-stubs/__init__.pyi", "foo-stubs/bar.pyi"}
+    jaraco.path.build(structure)
+    pyproject_contents = DALS(
+        """
+        [project]
+        name = "foo-stubs"
+        version = "1"
+        """
+    )
+    with open("pyproject.toml", "w") as pyproject_file:
+        pyproject_file.write(pyproject_contents)
+
+    dist = Distribution({"script_name": "%PEP 517%"})
+    dist.parse_config_files()
+    build_py = dist.get_command_obj("build_py")
+    build_py.finalize_options()
+    build_py.run()
+
+    build_dir = Path(dist.get_command_obj("build_py").build_lib)
+    outputs = {
+        os.path.relpath(x.replace(os.sep, "/"), build_dir)
+        for x in build_py.get_outputs()
+    }
+    assert expected_type_files <= outputs

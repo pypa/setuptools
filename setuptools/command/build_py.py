@@ -16,6 +16,9 @@ from ..extern.more_itertools import unique_everseen
 from ..warnings import SetuptoolsDeprecationWarning
 
 
+_IMPLICIT_DATA_FILES = ('*.pyi', 'py.typed')
+
+
 def make_writable(target):
     os.chmod(target, os.stat(target).st_mode | stat.S_IWRITE)
 
@@ -116,7 +119,7 @@ class build_py(orig.build_py):
             self.package_data,
             package,
             src_dir,
-            extra_patterns=['*.pyi', 'py.typed'],
+            extra_patterns=_IMPLICIT_DATA_FILES,
         )
         globs_expanded = map(partial(glob, recursive=True), patterns)
         # flatten the expanded globs into an iterable of matches

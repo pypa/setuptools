@@ -4,7 +4,6 @@ import shutil
 import signal
 import tarfile
 import importlib
-import itertools
 import contextlib
 from concurrent import futures
 import re
@@ -373,8 +372,10 @@ class TestBuildMetaBackend:
             "src": {
                 "foo": {
                     "__init__.py": "__version__ = '0.1'",
+                    "__init__.pyi": "__version__: str",
                     "cli.py": "def main(): print('hello world')",
                     "data.txt": "def main(): print('hello world')",
+                    "py.typed": "",
                 }
             },
         }
@@ -407,8 +408,10 @@ class TestBuildMetaBackend:
             'foo-0.1/src',
             'foo-0.1/src/foo',
             'foo-0.1/src/foo/__init__.py',
+            'foo-0.1/src/foo/__init__.pyi',
             'foo-0.1/src/foo/cli.py',
             'foo-0.1/src/foo/data.txt',
+            'foo-0.1/src/foo/py.typed',
             'foo-0.1/src/foo.egg-info',
             'foo-0.1/src/foo.egg-info/PKG-INFO',
             'foo-0.1/src/foo.egg-info/SOURCES.txt',
@@ -420,8 +423,10 @@ class TestBuildMetaBackend:
         }
         assert wheel_contents == {
             "foo/__init__.py",
+            "foo/__init__.pyi",  # include type information by default
             "foo/cli.py",
             "foo/data.txt",  # include_package_data defaults to True
+            "foo/py.typed",  # include type information by default
             "foo-0.1.dist-info/LICENSE.txt",
             "foo-0.1.dist-info/METADATA",
             "foo-0.1.dist-info/WHEEL",
@@ -982,99 +987,3 @@ def test_system_exit_in_setuppy(monkeypatch, tmp_path):
     with pytest.raises(SystemExit, match="some error"):
         backend = BuildBackend(backend_name="setuptools.build_meta")
         backend.get_requires_for_build_wheel()
-
-
-class TestTypeInformationIncludedByDefault:
-    dont_include_package_data = """
-    [project]
-    name = "foo"
-    version = "1"
-    [tools.setuptools]
-    include-package-data = false
-    """
-
-    exclude_type_info = """
-    [tool.setuptools.exclude-package-data]
-    "*" = ["py.typed", "*.pyi"]
-    """
-
-    package_1 = {
-        "foo": {
-            "bar.pyi": "",
-            "py.typed": "",
-        }
-    }
-
-    package_2 = {
-        "foo": {
-            "bar": {
-                "py.typed": "",
-                "mod.pyi": "",
-            }
-        }
-    }
-
-    package_3 = {
-        "foo": {
-            "namespace": {
-                "foo.pyi": "",
-            },
-            "__init__.pyi": "",
-            "py.typed": "",
-        }
-    }
-
-    packages_to_test = [package_1, package_2, package_3]
-
-    def is_type_information_file(self, filename):
-        basename = os.path.basename(filename)
-        return basename.endswith(".pyi") or basename == "py.typed"
-
-    def get_type_files(self, file_spec):
-        output = set()
-        for key in file_spec.keys():
-            if isinstance(file_spec[key], str):
-                if self.is_type_information_file(key):
-                    output.add(key)
-            else:
-                output.update(
-                    key + "/" + f for f in self.get_type_files(file_spec[key])
-                )
-        return output
-
-    @pytest.fixture(params=itertools.product(packages_to_test, [True, False]))
-    def file_spec_and_expected(self, request):
-        file_spec, exclude_type_information = request.param
-        pyproject = self.dont_include_package_data
-        if exclude_type_information:
-            pyproject += self.exclude_type_info
-        file_spec["pyproject.toml"] = pyproject
-
-        if exclude_type_information:
-            expected = set()
-        else:
-            expected = self.get_type_files(file_spec)
-
-        yield file_spec, expected
-
-    def test_type_information_always_included(
-        self, monkeypatch, tmp_path, file_spec_and_expected
-    ):
-        """Setuptools should include type information in the wheel (py.typed, *.pyi)."""
-        file_spec, expected = file_spec_and_expected
-        monkeypatch.chdir(tmp_path)
-        dist_dir = os.path.abspath('pip-wheel')
-        os.makedirs(dist_dir)
-        path.build(file_spec)
-        build_backend = BuildBackend(backend_name="setuptools.build_meta")
-        wheel_name = build_backend.build_wheel(dist_dir)
-
-        wheel_file = os.path.join(dist_dir, wheel_name)
-        assert os.path.isfile(wheel_file)
-
-        with ZipFile(wheel_file) as zipfile:
-            wheel_contents = set(
-                filter(self.is_type_information_file, zipfile.namelist())
-            )
-
-        assert wheel_contents == expected
