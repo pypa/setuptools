@@ -415,7 +415,7 @@ def test_type_files_included_by_default(tmpdir_cwd, pyproject, example):
 
     build_dir = Path(dist.get_command_obj("build_py").build_lib)
     outputs = {
-        os.path.relpath(x.replace(os.sep, "/"), build_dir)
+        os.path.relpath(x, build_dir).replace(os.sep, "/")
         for x in build_py.get_outputs()
     }
     assert expected_type_files <= outputs
@@ -439,7 +439,7 @@ def test_type_files_can_be_excluded(tmpdir_cwd, pyproject, example):
 
     build_dir = Path(dist.get_command_obj("build_py").build_lib)
     outputs = {
-        os.path.relpath(x.replace(os.sep, "/"), build_dir)
+        os.path.relpath(x, build_dir).replace(os.sep, "/")
         for x in build_py.get_outputs()
     }
     assert expected_type_files.isdisjoint(outputs)
@@ -467,7 +467,7 @@ def test_stub_only_package(tmpdir_cwd):
 
     build_dir = Path(dist.get_command_obj("build_py").build_lib)
     outputs = {
-        os.path.relpath(x.replace(os.sep, "/"), build_dir)
+        os.path.relpath(x, build_dir).replace(os.sep, "/")
         for x in build_py.get_outputs()
     }
     assert expected_type_files <= outputs
