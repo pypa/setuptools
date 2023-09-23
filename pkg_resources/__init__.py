@@ -1874,7 +1874,7 @@ class ZipProvider(EggProvider):
         timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
 
         if not WRITE_SUPPORT:
-            raise IOError(
+            raise OSError(
                 '"os.rename" and "os.unlink" are not supported ' 'on this platform'
             )
         try:
@@ -3243,7 +3243,7 @@ def ensure_directory(path):
 def _bypass_ensure_directory(path):
     """Sandbox-bypassing version of ensure_directory()"""
     if not WRITE_SUPPORT:
-        raise IOError('"os.mkdir" not supported on this platform.')
+        raise OSError('"os.mkdir" not supported on this platform.')
     dirname, filename = split(path)
     if dirname and filename and not isdir(dirname):
         _bypass_ensure_directory(dirname)
