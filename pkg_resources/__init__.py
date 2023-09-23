@@ -2095,8 +2095,7 @@ def find_eggs_in_zip(importer, path_item, only=False):
         if _is_egg_path(subitem):
             subpath = os.path.join(path_item, subitem)
             dists = find_eggs_in_zip(zipimport.zipimporter(subpath), subpath)
-            for dist in dists:
-                yield dist
+            yield from dists
         elif subitem.lower().endswith(('.dist-info', '.egg-info')):
             subpath = os.path.join(path_item, subitem)
             submeta = EggMetadata(zipimport.zipimporter(subpath))
@@ -2131,8 +2130,7 @@ def find_on_path(importer, path_item, only=False):
     for entry in sorted(entries):
         fullpath = os.path.join(path_item, entry)
         factory = dist_factory(path_item, entry, only)
-        for dist in factory(fullpath):
-            yield dist
+        yield from factory(fullpath)
 
 
 def dist_factory(path_item, entry, only):
@@ -2850,8 +2848,7 @@ class Distribution:
 
     def _get_metadata(self, name):
         if self.has_metadata(name):
-            for line in self.get_metadata_lines(name):
-                yield line
+            yield from self.get_metadata_lines(name)
 
     def _get_version(self):
         lines = self._get_metadata(self.PKG_INFO)
