@@ -86,7 +86,7 @@ def decompose(path):
 
 
 def read_all_bytes(filename):
-    with io.open(filename, 'rb') as fp:
+    with open(filename, 'rb') as fp:
         return fp.read()
 
 

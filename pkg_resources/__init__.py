@@ -2001,7 +2001,7 @@ class FileMetadata(EmptyProvider):
         if name != 'PKG-INFO':
             raise KeyError("No metadata except PKG-INFO is available")
 
-        with io.open(self.path, encoding='utf-8', errors="replace") as f:
+        with open(self.path, encoding='utf-8', errors="replace") as f:
             metadata = f.read()
         self._warn_on_replacement(metadata)
         return metadata

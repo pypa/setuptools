@@ -1995,7 +1995,7 @@ def is_python(text, filename='<string>'):
 def is_sh(executable):
     """Determine if the specified executable is a .sh (contains a #! line)"""
     try:
-        with io.open(executable, encoding='latin-1') as fp:
+        with open(executable, encoding='latin-1') as fp:
             magic = fp.read(2)
     except (OSError, IOError):
         return executable

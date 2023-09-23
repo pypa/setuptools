@@ -482,7 +482,7 @@ class Distribution(_Distribution):
         parser = ConfigParser()
         parser.optionxform = str
         for filename in filenames:
-            with io.open(filename, encoding='utf-8') as reader:
+            with open(filename, encoding='utf-8') as reader:
                 if DEBUG:
                     self.announce("  reading {filename}".format(**locals()))
                 parser.read_file(reader)
