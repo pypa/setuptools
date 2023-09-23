@@ -357,7 +357,7 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
     for line in expected:
         assert line in pkg_info
 
-    # Generate a METADATA file using pypa/wheel for comparisson
+    # Generate a METADATA file using pypa/wheel for comparison
     wheel_metadata = importlib.import_module("wheel.metadata")
     pkginfo_to_metadata = getattr(wheel_metadata, "pkginfo_to_metadata", None)
 
