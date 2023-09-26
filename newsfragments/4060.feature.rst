@@ -1,0 +1,1 @@
+Pass more common `-Wl,--enable-new-dtags -Wl,-rpath,<path>` flags instead of `-Wl,--enable-new-dtags,-R<path>` to compilers with GNU linkers -- by :user:`haampie`
