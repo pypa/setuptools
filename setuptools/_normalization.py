@@ -42,6 +42,8 @@ def safe_name(component: str) -> str:
 
 def safe_version(version: str) -> str:
     """Convert an arbitrary string into a valid version string.
+    Can still raise an ``InvalidVersion`` exception.
+    To avoid exceptions use ``best_effort_version``.
     >>> safe_version("1988 12 25")
     '1988.12.25'
     >>> safe_version("v0.2.1")
