@@ -706,25 +706,6 @@ class TestBuildMetaBackend:
         for file in files:
             assert file.is_symlink() or os.stat(file).st_nlink > 0
 
-    @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
-    # Since the backend is running via a process pool, in some operating systems
-    # we may have problems to make assertions based on warnings/stdout/stderr...
-    # So the best is to ignore them for the time being.
-    def test_editable_with_global_option_still_works(self, tmpdir_cwd):
-        """The usage of --global-option is now discouraged in favour of --build-option.
-        This is required to make more sense of the provided scape hatch and align with
-        previous pip behaviour. See pypa/setuptools#1928.
-        """
-        path.build({**self._simple_pyproject_example, '_meta': {}})
-        build_backend = self.get_build_backend()
-        assert not Path("build").exists()
-
-        cfg = {"--global-option": ["--mode", "strict"]}
-        build_backend.prepare_metadata_for_build_editable("_meta", cfg)
-        build_backend.build_editable("temp", cfg, "_meta")
-
-        self._assert_link_tree(next(Path("build").glob("__editable__.*")))
-
     def test_editable_without_config_settings(self, tmpdir_cwd):
         """
         Sanity check to ensure tests with --mode=strict are different from the ones

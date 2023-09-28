@@ -284,10 +284,9 @@ class _ConfigSettingsTranslator:
         ['foo']
         >>> list(fn({'--build-option': 'foo bar'}))
         ['foo', 'bar']
-        >>> warnings.simplefilter('error', SetuptoolsDeprecationWarning)
         >>> list(fn({'--global-option': 'foo'}))  # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
-        SetuptoolsDeprecationWarning: ...arguments given via `--global-option`...
+        ValueError: Incompatible .config_settings. ...'foo'...
         """
         args = self._get_config("--global-option", config_settings)
         global_opts = self._valid_global_options()
@@ -301,15 +300,8 @@ class _ConfigSettingsTranslator:
         yield from self._get_config("--build-option", config_settings)
 
         if bad_args:
-            SetuptoolsDeprecationWarning.emit(
-                "Incompatible `config_settings` passed to build backend.",
-                f"""
-                The arguments {bad_args!r} were given via `--global-option`.
-                Please use `--build-option` instead,
-                `--global-option` is reserved for flags like `--verbose` or `--quiet`.
-                """,
-                due_date=(2023, 9, 26),  # Warning introduced in v64.0.1, 11/Aug/2022.
-            )
+            msg = f"Incompatible `config_settings`: {bad_args!r} ({config_settings!r})"
+            raise ValueError(msg)
 
 
 class _BuildMetaBackend(_ConfigSettingsTranslator):
