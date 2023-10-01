@@ -1,3 +1,111 @@
+v68.2.2
+=======
+
+Bugfixes
+--------
+
+- Improve backwards compatibility with deprecated CLI practices. (#4048)
+
+
+v68.2.1
+=======
+
+Bugfixes
+--------
+
+- Avoid using caching attributes in ``Distribution.metadata`` for requirements.
+  This is done for backwards compatibility with customizations that attempt to
+  modify ``install_requires`` or ``extras_require`` at a late point (still not
+  recommended). (#4043)
+
+
+Misc
+----
+
+- #4045
+
+
+v68.2.0
+=======
+
+Features
+--------
+
+- Rework how ``setuptools`` internally handles ``dependencies/install_requires``
+  and ``optional-dependencies/extras_require``. (#3903)
+- Improve the generated ``PKG-INFO`` files, by adding ``Requires-Dist`` fields.
+  Previously, these fields would be omitted in favour of a non-standard
+  ``*.egg-info/requires.txt`` file (which is still generated for the time being). (#3904)
+- Improve atomicity when writing ``PKG-INFO`` files to avoid race
+  conditions with ``importlib.metadata``. (#3904)
+
+
+Bugfixes
+--------
+
+- Fix the name given to the ``*-nspkg.pth`` files in editable installs,
+  ensuring they are unique per distribution. (#4041)
+- Workaround some limitations on ``pkg_resources``-style legacy namespaces in
+  the meta path finder for editable installations. (#4041)
+
+
+Misc
+----
+
+- #4023, #4027, #4027
+
+
+v68.1.2
+=======
+
+Misc
+----
+
+- #4022, #4022
+
+
+v68.1.1
+=======
+
+Bugfixes
+--------
+
+- Fix editable install finder handling of nested packages, by only handling 1
+  level of nesting and relying on ``importlib.machinery`` to find the remaining
+  modules based on the parent package path. (#4020)
+
+
+v68.1.0
+=======
+
+Features
+--------
+
+- Removed code referencing bdist_wininst in install_scripts. (#3525)
+- Promote ``pyproject.toml``'s ``[tool.setuptools]`` out of beta.
+  Note that some fields are still considered deprecated and/or obsolete,
+  and these might be removed in future versions (i.e., there is no guarantee
+  for long term support and backward compatibility on those fields). (#3962)
+- Automatically add files listed in ``Extension.depends`` to sdists,
+  as long as they are contained in the project directory -- by :user:`RuRo` (#4000)
+- Require Python 3.8 or later.
+
+
+Bugfixes
+--------
+
+- Made imports in editable installs case-sensitive on case-insensitive filesystems -- by :user:`aganders3` (#3995)
+- Use default encoding to create ``.pth`` files with ``editable_wheel``. (#4009)
+- Detects (and complain about) ``scripts`` and ``gui-scripts`` set via ``setup.py``
+  when ``pyproject.toml`` does not include them in ``dynamic``. (#4012)
+
+
+Misc
+----
+
+- #3833, #3960, #4001, #4007
+
+
 v68.0.0
 =======
 

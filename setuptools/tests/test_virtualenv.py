@@ -96,7 +96,7 @@ def test_pip_upgrade_from_source(
     Check pip can upgrade setuptools from source.
     """
     # Install pip/wheel, in a venv without setuptools (as it
-    # should not be needed for bootstraping from source)
+    # should not be needed for bootstrapping from source)
     venv = venv_without_setuptools
     venv.run(["pip", "install", "-U", "wheel"])
     if pip_version is not None:

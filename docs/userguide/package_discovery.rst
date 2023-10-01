@@ -39,7 +39,7 @@ Normally, you would specify the packages to be included manually in the followin
             packages=['mypkg', 'mypkg.subpkg1', 'mypkg.subpkg2']
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -92,7 +92,7 @@ exactly to the directory structure, you also need to configure ``package_dir``:
                 # ...
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -126,9 +126,6 @@ the following sections.
 
 Automatic discovery
 ===================
-
-.. warning:: Automatic discovery is a **beta** feature and might change in the future.
-   See :ref:`custom-discovery` for other methods of discovery.
 
 By default ``setuptools`` will consider 2 popular project layouts, each one with
 its own set of advantages and disadvantages [#layout1]_ [#layout2]_ as
@@ -271,7 +268,7 @@ the provided tools for package discovery:
         # or
         from setuptools import find_namespace_packages
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -343,7 +340,7 @@ in ``src`` that start with the name ``pkg`` and not ``additional``:
         ``pkg.namespace`` is ignored by ``find_packages()``
         (see ``find_namespace_packages()`` below).
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -447,11 +444,11 @@ distribution, then you will need to specify:
         )
 
     When you use ``find_packages()``, all directories without an
-    ``__init__.py`` file will be disconsidered.
+    ``__init__.py`` file will be ignored.
     On the other hand, ``find_namespace_packages()`` will scan all
     directories.
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -578,10 +575,6 @@ The project layout remains the same and ``pyproject.toml/setup.cfg`` remains the
 ----
 
 
-.. [#beta]
-   Support for adding build configuration options via the ``[tool.setuptools]``
-   table in the ``pyproject.toml`` file is still in **beta** stage.
-   See :doc:`/userguide/pyproject_config`.
 .. [#layout1] https://blog.ionelmc.ro/2014/05/25/python-packaging/#the-structure
 .. [#layout2] https://blog.ionelmc.ro/2017/09/25/rehashing-the-src-layout/
 

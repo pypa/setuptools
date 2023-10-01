@@ -228,10 +228,10 @@ affected distribution is activated. For example::
 Basic ``WorkingSet`` Methods
 ----------------------------
 
-The following methods of ``WorkingSet`` objects are also available as module-
-level functions in ``pkg_resources`` that apply to the default ``working_set``
-instance.  Thus, you can use e.g. ``pkg_resources.require()`` as an
-abbreviation for ``pkg_resources.working_set.require()``:
+The following methods of ``WorkingSet`` objects are also available as
+module-level functions in ``pkg_resources`` that apply to the default
+``working_set`` instance.  Thus, you can use e.g. ``pkg_resources.require()``
+as an abbreviation for ``pkg_resources.working_set.require()``:
 
 
 ``require(*requirements)``
@@ -1552,11 +1552,11 @@ Parsing Utilities
 .. _yield_lines():
 
 ``yield_lines(strs)``
-    Yield non-empty/non-comment lines from a string/unicode or a possibly-
-    nested sequence thereof.  If ``strs`` is an instance of ``basestring``, it
-    is split into lines, and each non-blank, non-comment line is yielded after
-    stripping leading and trailing whitespace.  (Lines whose first non-blank
-    character is ``#`` are considered comment lines.)
+    Yield non-empty/non-comment lines from a string/unicode or a
+    possibly-nested sequence thereof.  If ``strs`` is an instance of
+    ``basestring``, it is split into lines, and each non-blank, non-comment
+    line is yielded after stripping leading and trailing whitespace.  (Lines
+    whose first non-blank character is ``#`` are considered comment lines.)
 
     If ``strs`` is not an instance of ``basestring``, it is iterated over, and
     each item is passed recursively to ``yield_lines()``, so that an arbitrarily
@@ -1887,8 +1887,8 @@ History
  * Fixed a bug in resource extraction from nested packages in a zipped egg.
 
 0.5a12
- * Updated extraction/cache mechanism for zipped resources to avoid inter-
-   process and inter-thread races during extraction.  The default cache
+ * Updated extraction/cache mechanism for zipped resources to avoid
+   inter-process and inter-thread races during extraction.  The default cache
    location can now be set via the ``PYTHON_EGGS_CACHE`` environment variable,
    and the default Windows cache is now a ``Python-Eggs`` subdirectory of the
    current user's "Application Data" directory, if the ``PYTHON_EGGS_CACHE``

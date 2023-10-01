@@ -94,7 +94,7 @@ jobs:
       - name: Install tox
         run: |
           python -m pip install tox
-      - name: Run tests
+      - name: Run
         run: tox
       - name: Create coverage report
         if: hashFiles('.coverage') != ''  # Rudimentary `file.exists()`
@@ -121,7 +121,7 @@ jobs:
       - name: Install tox
         run: |
           python -m pip install tox
-      - name: Run tests
+      - name: Run
         run: tox
 
   check:  # This job does nothing and is only used for the branch protection
@@ -212,12 +212,12 @@ jobs:
       - name: Install OS-level dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install build-essential gfortran libopenblas-dev
+          sudo apt-get install build-essential gfortran libopenblas-dev libyaml-dev
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           # Use a release that is not very new but still have a long life:
-          python-version: "3.8"
+          python-version: "3.10"
       - name: Install tox
         run: |
           python -m pip install tox
@@ -241,7 +241,7 @@ jobs:
       - name: Install tox
         run: |
           python -m pip install tox
-      - name: Release
+      - name: Run
         run: tox -e release
         env:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

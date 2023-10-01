@@ -1,1 +1,0 @@
-Improve token permissions on ``ci-sage.yml`` -- by :user:`joycebrum`

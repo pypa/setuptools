@@ -56,7 +56,7 @@ and you supply this configuration:
         include_package_data=True
     )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -137,7 +137,7 @@ data files:
             package_data={"mypkg": ["*.txt", "*.rst"]}
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -210,7 +210,7 @@ use the ``package_data`` option, the following configuration will work:
             package_data={"": ["*.txt"], "mypkg1": ["data1.rst"]},
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -232,14 +232,6 @@ we specify that ``data1.rst`` from ``mypkg1`` alone should be captured as well.
     When building an ``sdist``, the datafiles are also drawn from the
     ``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
     the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
-
-.. note::
-   If using the ``include_package_data`` argument, files specified by
-   ``package_data`` will *not* be automatically added to the manifest unless
-   they are listed in the |MANIFEST.in|_ file or by a plugin like
-   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
-
-.. https://docs.python.org/3/distutils/setupscript.html#installing-package-data
 
 exclude_package_data
 ====================
@@ -288,7 +280,7 @@ use the ``exclude_package_data`` option:
             exclude_package_data={"mypkg": [".gitattributes"]},
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -365,7 +357,7 @@ the configuration might look like this:
             }
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -412,7 +404,7 @@ scanning of namespace packages in the ``src`` directory and the rest is handled 
             include_package_data=True,
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
    .. code-block:: toml
 
@@ -538,10 +530,6 @@ run time be included **inside the package**.
 
 
 ----
-
-.. [#beta]
-   Support for adding build configuration options via the ``[tool.setuptools]``
-   table in the ``pyproject.toml`` file. See :doc:`/userguide/pyproject_config`.
 
 .. [#system-dirs] These locations can be discovered with the help of
    third-party libraries such as :pypi:`platformdirs`.

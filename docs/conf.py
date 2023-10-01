@@ -114,19 +114,6 @@ intersphinx_mapping.update(
     }
 )
 
-# Support tooltips on references
-extensions += ['hoverxref.extension']
-hoverxref_auto_ref = True
-hoverxref_intersphinx = [
-    'python',
-    'pip',
-    'build',
-    'PyPUG',
-    'packaging',
-    'twine',
-    'importlib-resources',
-]
-
 # Add support for linking usernames
 github_url = 'https://github.com'
 github_repo_org = 'pypa'

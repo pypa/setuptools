@@ -11,12 +11,12 @@ from zipfile import ZipFile
 
 import pytest
 
-from setuptools.extern.packaging import version
-
 import setuptools
 import setuptools.dist
 import setuptools.depends as dep
 from setuptools.depends import Require
+
+from setuptools.extern.packaging.version import Version
 
 
 @pytest.fixture(autouse=True)
@@ -94,7 +94,7 @@ class TestDepends:
 
         assert req.name == 'Json'
         assert req.module == 'json'
-        assert req.requested_version == version.Version('1.0.3')
+        assert req.requested_version == Version('1.0.3')
         assert req.attribute == '__version__'
         assert req.full_name() == 'Json-1.0.3'
 

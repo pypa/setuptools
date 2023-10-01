@@ -230,7 +230,7 @@ class _ConfigSettingsTranslator:
 
         .. warning::
            We cannot use this yet as it requires the ``sdist`` and ``bdist_wheel``
-           commands run in ``build_sdist`` and ``build_wheel`` to re-use the egg-info
+           commands run in ``build_sdist`` and ``build_wheel`` to reuse the egg-info
            directory created in ``prepare_metadata_for_build_wheel``.
 
         >>> fn = _ConfigSettingsTranslator()._ConfigSettingsTranslator__dist_info_args
@@ -337,7 +337,19 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         with _open_setup_script(__file__) as f:
             code = f.read().replace(r'\r\n', r'\n')
 
-        exec(code, locals())
+        try:
+            exec(code, locals())
+        except SystemExit as e:
+            if e.code:
+                raise
+            # We ignore exit code indicating success
+            SetuptoolsDeprecationWarning.emit(
+                "Running `setup.py` directly as CLI tool is deprecated.",
+                "Please avoid using `sys.exit(0)` or similar statements "
+                "that don't fit in the paradigm of a configuration file.",
+                see_url="https://blog.ganssle.io/articles/2021/10/"
+                "setup-py-deprecated.html",
+            )
 
     def get_requires_for_build_wheel(self, config_settings=None):
         return self._get_build_requires(config_settings, requirements=['wheel'])

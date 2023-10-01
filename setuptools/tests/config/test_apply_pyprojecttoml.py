@@ -15,6 +15,9 @@ from zipfile import ZipFile
 import pytest
 from ini2toml.api import Translator
 
+# TODO: replace with `from packaging.metadata import Metadata` in future versions
+from .._packaging_compat import Metadata
+
 import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
@@ -46,6 +49,7 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
 
     dist_toml = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject_example)
     dist_cfg = setupcfg.apply_configuration(makedist(tmp_path), setupcfg_example)
+    _port_tests_require(dist_cfg)
 
     pkg_info_toml = core_metadata(dist_toml)
     pkg_info_cfg = core_metadata(dist_cfg)
@@ -331,6 +335,8 @@ class TestPresetField:
         [
             ("install_requires", "dependencies", ["six"]),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
+            ("entry_points", "scripts", {"console_scripts": ["foobar=foobar:main"]}),
+            ("entry_points", "gui-scripts", {"gui_scripts": ["bazquux=bazquux:main"]}),
         ],
     )
     def test_not_listed_in_dynamic(self, tmp_path, attr, field, value):
@@ -387,12 +393,12 @@ class TestPresetField:
         dist = makedist(tmp_path, install_requires=install_req)
         dist = pyprojecttoml.apply_configuration(dist, pyproject)
         assert "foo" in dist.extras_require
-        assert ':python_version < "3.7"' in dist.extras_require
         egg_info = dist.get_command_obj("egg_info")
         write_requirements(egg_info, tmp_path, tmp_path / "requires.txt")
         reqs = (tmp_path / "requires.txt").read_text(encoding="utf-8")
         assert "importlib-resources" in reqs
         assert "bar" in reqs
+        assert ':python_version < "3.7"' in reqs
 
     @pytest.mark.parametrize(
         "field,group", [("scripts", "console_scripts"), ("gui-scripts", "gui_scripts")]
@@ -418,6 +424,25 @@ class TestMeta:
             assert not any(name.endswith(EXAMPLES_FILE) for name in zipfile.namelist())
 
 
+class TestInteropCommandLineParsing:
+    def test_version(self, tmp_path, monkeypatch, capsys):
+        # See pypa/setuptools#4047
+        # This test can be removed once the CLI interface of setup.py is removed
+        monkeypatch.chdir(tmp_path)
+        toml_config = """
+        [project]
+        name = "test"
+        version = "42.0"
+        """
+        pyproject = Path(tmp_path, "pyproject.toml")
+        pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
+        opts = {"script_args": ["--version"]}
+        dist = pyprojecttoml.apply_configuration(Distribution(opts), pyproject)
+        dist.parse_command_line()  # <-- there should be no exception here.
+        captured = capsys.readouterr()
+        assert "42.0" in captured.out
+
+
 # --- Auxiliary Functions ---
 
 
@@ -425,6 +450,9 @@ def core_metadata(dist) -> str:
     with io.StringIO() as buffer:
         dist.metadata.write_pkg_file(buffer)
         pkg_file_txt = buffer.getvalue()
+
+    # Make sure core metadata is valid
+    Metadata.from_email(pkg_file_txt, validate=True)  # can raise exceptions
 
     skip_prefixes: Tuple[str, ...] = ()
     skip_lines = set()
@@ -447,3 +475,15 @@ def core_metadata(dist) -> str:
         result.append(line + "\n")
 
     return "".join(result)
+
+
+def _port_tests_require(dist):
+    """
+    ``ini2toml`` "forward fix" deprecated tests_require definitions by moving
+    them into an extra called ``testing``.
+    """
+    tests_require = getattr(dist, "tests_require", None) or []
+    if tests_require:
+        dist.tests_require = []
+        dist.extras_require.setdefault("testing", []).extend(tests_require)
+        dist._finalize_requires()
