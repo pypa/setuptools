@@ -1,4 +1,8 @@
-from distutils.dep_util import newer_group
+from distutils.dep_util import (
+    newer as newer,
+    newer_pairwise as newer_pairwise,
+    newer_group as newer_group,
+)
 
 
 # yes, this is was almost entirely copy-pasted from
