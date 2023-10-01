@@ -1,0 +1,1 @@
+Exported `distutils.dep_util` through `setuptools.dep_util` -- by :user:`github-username`
