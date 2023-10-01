@@ -24,6 +24,7 @@ ignore_missing_imports = true
 explicit_package_bases = true
 exclude = [
 	"^build/",
+	"^.tox/",
 	# Duplicate module name
 	"^pkg_resources/tests/data/my-test-package-source/setup.py$",
 	# Vendored
