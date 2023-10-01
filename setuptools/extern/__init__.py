@@ -86,6 +86,7 @@ VendorImporter(__name__, names, 'setuptools._vendor').install()
 
 if TYPE_CHECKING:
     import packaging as packaging
+    import packaging.version
     import ordered_set as ordered_set
     import more_itertools as more_itertools
     import importlib_metadata as importlib_metadata

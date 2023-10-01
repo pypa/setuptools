@@ -474,7 +474,7 @@ class ConfigHandler(Generic[Target]):
                 # Keep silent for a new option may appear anytime.
                 self[name] = value
 
-    def parse(self):
+    def parse(self) -> None:
         """Parses configuration file items from one
         or more related sections.
 

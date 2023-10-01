@@ -272,7 +272,7 @@ class editable_wheel(Command):
         self._run_install("data")
         return files, mapping
 
-    def _run_build_subcommands(self):
+    def _run_build_subcommands(self) -> None:
         """
         Issue #3501 indicates that some plugins/customizations might rely on:
 
