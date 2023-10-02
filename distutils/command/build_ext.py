@@ -236,8 +236,15 @@ class build_ext(Command):
         # See Issues: #1600860, #4366
         if sysconfig.get_config_var('Py_ENABLE_SHARED'):
             if not sysconfig.python_build:
-                # building third party extensions
-                self.library_dirs.append(sysconfig.get_config_var('LIBDIR'))
+                if sys.platform == 'zos':
+                    # On z/OS, a user is not required to install Python to
+                    # a predetermined path, but can use Python portably
+                    installed_dir = sysconfig.get_config_var('base')
+                    lib_dir = sysconfig.get_config_var('platlibdir')
+                    self.library_dirs.append(os.path.join(installed_dir, lib_dir))
+                else:
+                    # building third party extensions
+                    self.library_dirs.append(sysconfig.get_config_var('LIBDIR'))
             else:
                 # building python standard extensions
                 self.library_dirs.append('.')

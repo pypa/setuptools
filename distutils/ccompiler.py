@@ -1060,6 +1060,7 @@ _default_compilers = (
     # on a cygwin built python we can use gcc like an ordinary UNIXish
     # compiler
     ('cygwin.*', 'unix'),
+    ('zos', 'zos'),
     # OS name mappings
     ('posix', 'unix'),
     ('nt', 'msvc'),
@@ -1107,6 +1108,7 @@ compiler_class = {
         "Mingw32 port of GNU C Compiler for Win32",
     ),
     'bcpp': ('bcppcompiler', 'BCPPCompiler', "Borland C++ Compiler"),
+    'zos': ('zosccompiler', 'zOSCCompiler', 'IBM XL C/C++ Compilers'),
 }
 
 
