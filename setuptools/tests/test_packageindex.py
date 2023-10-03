@@ -1,7 +1,5 @@
 import sys
-import os
 import distutils.errors
-import platform
 import urllib.request
 import urllib.error
 import http.client
@@ -267,8 +265,8 @@ class TestContentCheckers:
 
 
 class TestPyPIConfig:
-    def test_percent_in_password(self, alt_home):
-        pypirc = alt_home / '.pypirc'
+    def test_percent_in_password(self, tmp_home_dir):
+        pypirc = tmp_home_dir / '.pypirc'
         pypirc.write_text(
             DALS(
                 """
