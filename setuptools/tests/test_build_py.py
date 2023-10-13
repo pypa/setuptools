@@ -405,7 +405,7 @@ class TestTypeInfoFiles:
         structure["pyproject.toml"] = self.PYPROJECTS[pyproject]
         jaraco.path.build(structure)
 
-        build_py = run_build_py()
+        build_py = get_finalized_build_py()
         outputs = get_outputs(build_py)
         assert expected_type_files <= outputs
 
@@ -417,7 +417,7 @@ class TestTypeInfoFiles:
         structure["pyproject.toml"] = self.PYPROJECTS[pyproject]
         jaraco.path.build(structure)
 
-        build_py = run_build_py()
+        build_py = get_finalized_build_py()
         outputs = get_outputs(build_py)
         assert expected_type_files.isdisjoint(outputs)
 
@@ -435,17 +435,16 @@ class TestTypeInfoFiles:
         expected_type_files = {"foo-stubs/__init__.pyi", "foo-stubs/bar.pyi"}
         jaraco.path.build(structure)
 
-        build_py = run_build_py()
+        build_py = get_finalized_build_py()
         outputs = get_outputs(build_py)
         assert expected_type_files <= outputs
 
 
-def run_build_py(script_name="%build_meta%"):
+def get_finalized_build_py(script_name="%build_py-test%"):
     dist = Distribution({"script_name": script_name})
     dist.parse_config_files()
     build_py = dist.get_command_obj("build_py")
     build_py.finalize_options()
-    build_py.run()
     return build_py
 
 
