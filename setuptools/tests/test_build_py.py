@@ -400,9 +400,11 @@ class TestTypeInfoFiles:
     )
     @pytest.mark.parametrize("example", EXAMPLES.keys())
     def test_type_files_included_by_default(self, tmpdir_cwd, pyproject, example):
-        structure = self.EXAMPLES[example]["directory_structure"]
+        structure = {
+            **self.EXAMPLES[example]["directory_structure"],
+            "pyproject.toml": self.PYPROJECTS[pyproject],
+        }
         expected_type_files = self.EXAMPLES[example]["expected_type_files"]
-        structure["pyproject.toml"] = self.PYPROJECTS[pyproject]
         jaraco.path.build(structure)
 
         build_py = get_finalized_build_py()
@@ -412,9 +414,11 @@ class TestTypeInfoFiles:
     @pytest.mark.parametrize("pyproject", ["exclude_type_info"])
     @pytest.mark.parametrize("example", EXAMPLES.keys())
     def test_type_files_can_be_excluded(self, tmpdir_cwd, pyproject, example):
-        structure = self.EXAMPLES[example]["directory_structure"]
+        structure = {
+            **self.EXAMPLES[example]["directory_structure"],
+            "pyproject.toml": self.PYPROJECTS[pyproject],
+        }
         expected_type_files = self.EXAMPLES[example]["expected_type_files"]
-        structure["pyproject.toml"] = self.PYPROJECTS[pyproject]
         jaraco.path.build(structure)
 
         build_py = get_finalized_build_py()
