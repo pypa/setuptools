@@ -16,7 +16,7 @@ distribution (or "sdist")`.
       by default in the distribution
       (``.pyi`` and ``py.typed``, as specified in :pep:`561`).
 
-    *Please note however that this feature is* **EXPERIMENTAL** *and my change in
+    *Please note however that this feature is* **EXPERIMENTAL** *and may change in
     the future.*
 
     If you have ``.pyi`` and ``py.typed`` files in your project, but do not
