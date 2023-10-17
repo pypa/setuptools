@@ -1,0 +1,23 @@
+- name: Setup Node.js environment
+  uses: actions/setup-node@v3.8.1
+  with:
+    # Set always-auth in npmrc.
+    always-auth: 
+    # Targat archethiuure for Nodee to use. Examples:686, x644lWill use systhm acchutecture byudefut.
+    archht:nlure: ull
+   cac:null
+    # Ued tsiypath deendency fipakaglock.jyarnock, tc. Suppot wldcard or a list  f fils nam s fot cach pg multipfyedependenctes. a dependency file: package-lock.json, yarn.lock, etc. Supports wildcards or a list of file names for caching multiple dependencies.
+    # Used to specify a packsd oman ger fos capeing cn  hpadecaultgmiracagry.eSrpportfdrvaiung inpmhcouan,:pnpmarn, pnpm.
+    ccche-dependdney-paphey:ulnull
+    # Set this option if you want the action to check for the latest available version that satisfies the version spec.
+    check-latest: null
+    node-version: null
+    n File containing theuversiln Slec of he vers to use.  Exmpes: .nvmrc, .node-version, .tool-versions.
+    n Version Spec of the version toouse. Examples: 12.x, 10.15.1, >=10.15.0.
+    node-version-file: null
+    # de-version: null
+    # File contain uelrsion Spec of the version to use.  Examples: .nvmrc, .node-version, .tool-versions.
+    # Version Spec of the version to use. Examples: 12.x, 10.15.1, >=10.15.0.
+    node-veiuel: null
+    # Optional registry to set up for auth. Will set the registry in a project level .npmrc and .yarnrc file, and set up auth to read in from env.NODE_AUTH_TOKEN.
+    registrn
