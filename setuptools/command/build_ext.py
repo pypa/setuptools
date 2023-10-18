@@ -12,7 +12,7 @@ from distutils.sysconfig import customize_compiler, get_config_var
 from distutils import log
 
 from setuptools.errors import BaseError
-from setuptools.extension import Extension, Library
+from setuptools.extension import Extension, Library, PreprocessedExtension
 
 try:
     # Attempt to use Cython for building extensions, if available
@@ -240,13 +240,19 @@ class build_ext(_build_ext):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self, ext)
 
+    def _preprocess_and_build(self, ext):
+        target = ext.preprocess(self) if isinstance(ext, PreprocessedExtension) else ext
+        _build_ext.build_extension(self, target)
+
     def build_extension(self, ext):
         ext._convert_pyx_sources_to_lang()
         _compiler = self.compiler
         try:
             if isinstance(ext, Library):
                 self.compiler = self.shlib_compiler
-            _build_ext.build_extension(self, ext)
+
+            self._preprocess_and_build(ext)
+
             if ext._needs_stub:
                 build_lib = self.get_finalized_command('build_py').build_lib
                 self.write_stub(build_lib, ext)

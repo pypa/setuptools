@@ -1,10 +1,18 @@
+from __future__ import annotations
+
 import re
 import functools
+from typing import TYPE_CHECKING
+
 import distutils.core
 import distutils.errors
 import distutils.extension
 
 from .monkey import get_unpatched
+
+
+if TYPE_CHECKING:
+    from .command.build_ext import build_ext as BuildExt
 
 
 def _have_cython():
@@ -142,6 +150,29 @@ class Extension(_Extension):
         target_ext = '.cpp' if lang.lower() == 'c++' else '.c'
         sub = functools.partial(re.sub, '.pyx$', target_ext)
         self.sources = list(map(sub, self.sources))
+
+
+class PreprocessedExtension(Extension):
+    """
+    Similar to ``Extension``, but allows creating temporary files needed for the build,
+    before the final compilation.
+    Particularly useful when "transpiling" other languages to C.
+    """
+
+    def preprocess(self, build_ext: BuildExt) -> Extension:
+        """
+        The returned ``Extension`` object will be used instead of the
+        ``PreprocessedExtension`` object when ``build_ext.build_extension`` runs
+        (so that ``sources`` and ``dependencies`` can be augmented/replaced with
+        temporary pre-processed files).
+        Note that 2 objects **SHOULD** be consistent with each other.
+
+        If necessary, a temporary directory **name** can be accessed via
+        ``build_ext.build_temp`` (this directory might not have been created yet).
+        You can also access other attributes like ``build_ext.inplace`` or
+        ``build_ext.editable_mode``.
+        """
+        raise NotImplementedError  # needs to be implemented by the relevant plugin.
 
 
 class Library(Extension):
