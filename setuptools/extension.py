@@ -11,7 +11,7 @@ import distutils.extension
 from .monkey import get_unpatched
 
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from .command.build_ext import build_ext as BuildExt
 
 
@@ -159,7 +159,7 @@ class PreprocessedExtension(Extension):
     Particularly useful when "transpiling" other languages to C.
     """
 
-    def preprocess(self, build_ext: BuildExt) -> Extension:
+    def preprocess(self, build_ext: BuildExt) -> Extension:  # pragma: no cover
         """
         The returned ``Extension`` object will be used instead of the
         ``PreprocessedExtension`` object when ``build_ext.build_extension`` runs
