@@ -3,6 +3,8 @@ import sys
 import distutils.command.build_ext as orig
 from distutils.sysconfig import get_config_var
 from importlib.util import cache_from_source as _compiled_file_name
+from importlib.machinery import EXTENSION_SUFFIXES
+from pathlib import Path
 
 from jaraco import path
 
@@ -301,8 +303,8 @@ class TestExtensionAttrPatches:
             assert os.curdir in ext.runtime_library_dirs
 
 
-def test_build_ext_config_handling(tmpdir_cwd):
-    files = {
+class TestBuildExamples:
+    SIMPLE_FOO = {
         'setup.py': DALS(
             """
             from setuptools import Extension, setup
@@ -363,9 +365,38 @@ def test_build_ext_config_handling(tmpdir_cwd):
             """
         ),
     }
-    path.build(files)
-    code, output = environment.run_setup_py(
-        cmd=['build'],
-        data_stream=(0, 2),
-    )
-    assert code == 0, '\nSTDOUT:\n%s\nSTDERR:\n%s' % output
+
+    PREPROCESSED_FOO = {
+        **SIMPLE_FOO,
+        "foo.c": "#include <xxx-generate-compilation-error-if-not-preprocessed-xxx>\n",
+        "foo.template": SIMPLE_FOO["foo.c"],
+        "setup.py": DALS(
+            """
+            import os, shutil
+            from setuptools import setup
+            from setuptools.extension import Extension, PreprocessedExtension
+
+            class MyExtension(PreprocessedExtension):
+                def preprocess(self, build_ext):
+                    os.makedirs(build_ext.build_temp, exist_ok=False)
+                    temp_file = os.path.join(build_ext.build_temp, "foo.c")
+                    shutil.copy("foo.template", temp_file)  # simulate preprocessing
+                    assert os.path.exists(temp_file)
+                    return Extension(self.name, [temp_file])
+
+            setup(ext_modules=[MyExtension('foo', ['foo.c'])])
+            """
+        ),
+    }
+
+    @pytest.mark.parametrize("example", ["SIMPLE_FOO", "PREPROCESSED_FOO"])
+    def test_build_ext_config_handling(self, tmpdir_cwd, example):
+        path.build(getattr(self, example))
+        code, output = environment.run_setup_py(
+            cmd=['build'],
+            data_stream=(0, 2),
+        )
+        assert code == 0, '\nSTDOUT:\n%s\nSTDERR:\n%s' % output
+
+        genfiles = Path("foo_build").rglob("foo.*")
+        assert any(str(f).endswith(s) for f in genfiles for s in EXTENSION_SUFFIXES)
