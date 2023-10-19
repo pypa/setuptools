@@ -253,10 +253,10 @@ class build_ext(_build_ext):
 
     def _preprocess_and_build(self, ext):
         if isinstance(ext, PreprocessedExtension):
-            target = ext.preprocess(self)
+            target = ext.preprocess(self)  # may be missing build info
             updates = self._update_ext_info(target)
             target.__dict__.update(updates)
-            ext.__dict__.update(updates)
+            ext.__dict__.update(updates)  # ... for the sake of consistency ...
         else:
             target = ext
 

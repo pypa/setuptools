@@ -161,7 +161,7 @@ class PreprocessedExtension(Extension):
 
     def preprocess(self, build_ext: BuildExt) -> Extension:  # pragma: no cover
         """
-        The returned ``Extension`` object will be used instead of the
+        The returned ``Extension`` object will be used instead of the original
         ``PreprocessedExtension`` object when ``build_ext.build_extension`` runs
         (so that ``sources`` and ``dependencies`` can be augmented/replaced with
         temporary pre-processed files).
