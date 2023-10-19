@@ -169,8 +169,8 @@ class PreprocessedExtension(Extension):
 
         If necessary, a temporary directory **name** can be accessed via
         ``build_ext.build_temp`` (this directory might not have been created yet).
-        You can also access other attributes like ``build_ext.inplace`` or
-        ``build_ext.editable_mode``.
+        You can also access other attributes like ``build_ext.parallel``,
+        ``build_ext.inplace`` or ``build_ext.editable_mode``.
         """
         raise NotImplementedError  # needs to be implemented by the relevant plugin.
 

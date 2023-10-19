@@ -251,16 +251,22 @@ class build_ext(_build_ext):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self, ext)
 
-    def _preprocess_and_build(self, ext):
+    def _preprocess(self, ext):
         if isinstance(ext, PreprocessedExtension):
             target = ext.preprocess(self)  # may be missing build info
             updates = self._update_ext_info(target)
             target.__dict__.update(updates)
             ext.__dict__.update(updates)  # ... for the sake of consistency ...
-        else:
-            target = ext
+            return target
 
-        _build_ext.build_extension(self, target)
+        return ext
+
+    def build_extensions(self):
+        self.extensions[:] = [self._preprocess(ext) for ext in self.extensions]
+        # ^-- We may have to pre-process all the extensions first, before proceeding
+        #     to the compilation step, since they may generate files that depend
+        #     at at other during compile-time (e.g. headers).
+        super().build_extensions()
 
     def build_extension(self, ext):
         ext._convert_pyx_sources_to_lang()
@@ -268,9 +274,7 @@ class build_ext(_build_ext):
         try:
             if isinstance(ext, Library):
                 self.compiler = self.shlib_compiler
-
-            self._preprocess_and_build(ext)
-
+            _build_ext.build_extension(self, ext)
             if ext._needs_stub:
                 build_lib = self.get_finalized_command('build_py').build_lib
                 self.write_stub(build_lib, ext)
