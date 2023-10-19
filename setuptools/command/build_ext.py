@@ -184,9 +184,9 @@ class build_ext(_build_ext):
         self.shlibs = [ext for ext in self.extensions if isinstance(ext, Library)]
         if self.shlibs:
             self.setup_shlib_compiler()
+
         for ext in self.extensions:
-            ext._full_name = self.get_ext_fullname(ext.name)
-        for ext in self.extensions:
+            ext.__dict__.update(self._update_ext_info(ext))
             fullname = ext._full_name
             self.ext_map[fullname] = ext
 
@@ -194,19 +194,30 @@ class build_ext(_build_ext):
             # XXX what to do with conflicts?
             self.ext_map[fullname.split('.')[-1]] = ext
 
-            ltd = self.shlibs and self.links_to_dynamic(ext) or False
-            ns = ltd and use_stubs and not isinstance(ext, Library)
-            ext._links_to_dynamic = ltd
-            ext._needs_stub = ns
-            filename = ext._file_name = self.get_ext_filename(fullname)
-            libdir = os.path.dirname(os.path.join(self.build_lib, filename))
-            if ltd and libdir not in ext.library_dirs:
-                ext.library_dirs.append(libdir)
-            if ltd and use_stubs and os.curdir not in ext.runtime_library_dirs:
-                ext.runtime_library_dirs.append(os.curdir)
-
         if self.editable_mode:
             self.inplace = True
+
+    def _update_ext_info(self, ext: Extension) -> dict:
+        """Setuptools needs to add extra attributes to build extension objects"""
+        full_name = self.get_ext_fullname(ext.name)
+        file_name = self.get_ext_filename(full_name)
+        ltd = self.shlibs and self.links_to_dynamic(ext) or False
+        ns = ltd and use_stubs and not isinstance(ext, Library)
+        libdir = os.path.dirname(os.path.join(self.build_lib, file_name))
+
+        updates = {
+            "_file_name": file_name,
+            "_full_name": full_name,
+            "_links_to_dynamic": ltd,
+            "_needs_stub": ns,
+        }
+
+        if ltd and libdir not in ext.library_dirs:
+            updates["library_dirs"] = [*ext.library_dirs, libdir]
+        if ltd and use_stubs and os.curdir not in ext.runtime_library_dirs:
+            updates["runtime_library_dirs"] = [*ext.runtime_library_dirs, os.curdir]
+
+        return updates
 
     def setup_shlib_compiler(self):
         compiler = self.shlib_compiler = new_compiler(
@@ -241,7 +252,14 @@ class build_ext(_build_ext):
         return _build_ext.get_export_symbols(self, ext)
 
     def _preprocess_and_build(self, ext):
-        target = ext.preprocess(self) if isinstance(ext, PreprocessedExtension) else ext
+        if isinstance(ext, PreprocessedExtension):
+            target = ext.preprocess(self)
+            updates = self._update_ext_info(target)
+            target.__dict__.update(updates)
+            ext.__dict__.update(updates)
+        else:
+            target = ext
+
         _build_ext.build_extension(self, target)
 
     def build_extension(self, ext):
@@ -261,11 +279,14 @@ class build_ext(_build_ext):
 
     def links_to_dynamic(self, ext):
         """Return true if 'ext' links to a dynamic lib in the same package"""
+        if not (ext.libraries and self.shlibs):
+            return False  # avoid calculations if not necessary
+
         # XXX this should check to ensure the lib is actually being built
         # XXX as dynamic, and not just using a locally-found version or a
         # XXX static-compiled version
-        libnames = dict.fromkeys([lib._full_name for lib in self.shlibs])
-        pkg = '.'.join(ext._full_name.split('.')[:-1] + [''])
+        libnames = {self.get_ext_fullname(lib.name) for lib in self.shlibs}
+        pkg = '.'.join(self.get_ext_fullname(ext.name).split('.')[:-1] + [''])
         return any(pkg + libname in libnames for libname in ext.libraries)
 
     def get_source_files(self) -> List[str]:
