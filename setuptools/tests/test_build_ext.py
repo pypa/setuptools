@@ -257,6 +257,50 @@ class TestLinksToDynamic:
         assert cmd.links_to_dynamic(ext) is True
 
 
+class TestExtensionAttrPatches:
+    """
+    Regression tests for the extra information ``setuptools`` adds to
+    the extension objects when ``build_ext`` runs.
+    """
+
+    @pytest.mark.parametrize(
+        "ext_package, ext_name, expected_full_name",
+        [
+            (None, "helloworld", "helloworld"),
+            (None, "hello.world", "hello.world"),
+            ("hello", "world", "hello.world"),
+            ("hello", "wor.ld", "hello.wor.ld"),
+        ],
+    )
+    def test_names(self, ext_package, ext_name, expected_full_name):
+        ext = Extension(ext_name, [f"{ext_name}.c"])
+        dist = Distribution({"ext_package": ext_package, "ext_modules": [ext]})
+        cmd = build_ext(dist)
+        cmd.ensure_finalized()
+        assert ext._full_name == expected_full_name
+        file_name = ext._file_name.replace(os.sep, "/")
+        assert expected_full_name.replace(".", "/") in file_name
+
+    @pytest.fixture(params=[True, False], ids=["use_stubs", "dont_use_stubs"])
+    def use_stubs(self, monkeypatch, request):
+        monkeypatch.setattr("setuptools.command.build_ext.use_stubs", request.param)
+        yield request.param
+
+    def test_links_to_dynamic(self, use_stubs):
+        local_libs = ["glob", "tar"]
+        ext = Extension("name", ["source.c"], libraries=local_libs)
+        shlibs = [Library(name, [f"{name}.c"]) for name in local_libs]
+
+        dist = Distribution({"ext_modules": [ext, *shlibs]})
+        cmd = build_ext(dist)
+        cmd.ensure_finalized()
+        assert ext._links_to_dynamic is True
+        assert ext._needs_stub is use_stubs
+        assert cmd.build_lib in ext.library_dirs
+        if use_stubs:
+            assert os.curdir in ext.runtime_library_dirs
+
+
 def test_build_ext_config_handling(tmpdir_cwd):
     files = {
         'setup.py': DALS(
