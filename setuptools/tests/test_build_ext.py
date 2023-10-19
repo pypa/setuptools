@@ -8,7 +8,7 @@ from jaraco import path
 
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
-from setuptools.extension import Extension
+from setuptools.extension import Extension, Library
 from setuptools.errors import CompileError
 
 from . import environment
@@ -223,6 +223,38 @@ class TestBuildExtInplace:
         cmd = self.get_build_ext_cmd(optional=False, inplace=True)
         with pytest.raises(CompileError):
             cmd.run()
+
+
+class TestLinksToDynamic:
+    """Regression tests for ``links_to_dynamic``."""
+
+    @pytest.mark.parametrize("libraries", [[], ["glob", "tar"]])
+    def test_links_to_dynamic_no_shlib(self, libraries):
+        ext = Extension("name", ["source.c"], libraries=libraries)
+        dist = Distribution({"ext_modules": [ext]})
+        cmd = build_ext(dist)
+        cmd.finalize_options()
+        assert cmd.links_to_dynamic(ext) is False
+
+    @pytest.mark.parametrize("shlib", [[], ["glob", "tar"]])
+    def test_links_to_dynamic_no_libraries(self, shlib):
+        ext = Extension("name", ["source.c"])
+        shlibs = [Library(name, [f"{name}.c"]) for name in shlib]
+        dist = Distribution({"ext_modules": [ext, *shlibs]})
+        cmd = build_ext(dist)
+        cmd.finalize_options()
+        assert cmd.links_to_dynamic(ext) is False
+
+    def test_links_to_dynamic_local_libraries(self):
+        dist = Distribution()
+        local_libs = ["glob", "tar"]
+
+        ext = Extension("name", ["source.c"], libraries=local_libs)
+        shlibs = [Library(name, [f"{name}.c"]) for name in local_libs]
+        dist = Distribution({"ext_modules": [ext, *shlibs]})
+        cmd = build_ext(dist)
+        cmd.finalize_options()
+        assert cmd.links_to_dynamic(ext) is True
 
 
 def test_build_ext_config_handling(tmpdir_cwd):
