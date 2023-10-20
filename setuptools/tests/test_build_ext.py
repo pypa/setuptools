@@ -304,7 +304,7 @@ class TestExtensionAttrPatches:
 
 
 class TestBuildExamples:
-    SIMPLE_FOO = {
+    SIMPLE = {
         'setup.py': DALS(
             """
             from setuptools import Extension, setup
@@ -366,10 +366,10 @@ class TestBuildExamples:
         ),
     }
 
-    PREPROCESSED_FOO = {
-        **SIMPLE_FOO,
+    PREPROCESSED = {
+        **SIMPLE,
         "foo.c": "#include <xxx-generate-compilation-error-if-not-preprocessed-xxx>\n",
-        "foo.template": SIMPLE_FOO["foo.c"],
+        "foo.template": SIMPLE["foo.c"],
         "setup.py": DALS(
             """
             import os, shutil
@@ -389,7 +389,52 @@ class TestBuildExamples:
         ),
     }
 
-    @pytest.mark.parametrize("example", ["SIMPLE_FOO", "PREPROCESSED_FOO"])
+    PREPROCESSED_SHARED_FILES = {
+        **SIMPLE,
+        "foo.c": "#include <xxx-generate-compilation-error-if-not-preprocessed-xxx>\n",
+        "fooc.template": SIMPLE["foo.c"],
+        "fooh.template": "#define HELLO_WORLD 1\n",
+        "bar.c": '#include "foo.h"\n',
+        "setup.py": DALS(
+            """
+            import os, shutil
+            from setuptools import setup
+            from setuptools.extension import Extension, PreprocessedExtension
+
+            class FooExtension(PreprocessedExtension):
+                shared_files_created = False  # test attribute
+
+                def create_shared_files(self, build_ext):
+                    os.makedirs(build_ext.build_temp, exist_ok=False)
+                    fooh_file = os.path.join(build_ext.build_temp, "foo.h")
+                    shutil.copy("fooh.template", fooh_file)
+                    assert os.path.exists(fooh_file)
+                    self.shared_files_created = True
+
+                def preprocess(self, build_ext):
+                    fooc_file = os.path.join(build_ext.build_temp, "foo.c")
+                    shutil.copy("fooc.template", fooc_file)  # simulate preprocessing
+                    assert os.path.exists(fooc_file)
+                    return Extension(self.name, [fooc_file])
+
+            foo = FooExtension('foo', ['foo.c'])
+
+            class BarExtension(PreprocessedExtension):
+                def preprocess(self, build_ext):
+                    assert foo.shared_files_created is True
+                    self.include_dirs.append(build_ext.build_temp)
+                    return self
+
+            bar = BarExtension('bar', ['bar.c'], depends=['foo.h'])
+
+            setup(ext_modules=[bar, foo])
+            """
+        ),
+    }
+
+    @pytest.mark.parametrize(
+        "example", ["SIMPLE", "PREPROCESSED", "PREPROCESSED_SHARED_FILES"]
+    )
     def test_build_ext_config_handling(self, tmpdir_cwd, example):
         path.build(getattr(self, example))
         code, output = environment.run_setup_py(

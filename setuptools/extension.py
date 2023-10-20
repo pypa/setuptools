@@ -157,10 +157,28 @@ class PreprocessedExtension(Extension):
     Similar to ``Extension``, but allows creating temporary files needed for the build,
     before the final compilation.
     Particularly useful when "transpiling" other languages to C.
+
+    .. note::
+       It is important to add to the original ``source``/``depends`` attributes
+       all files that are necessary for pre-processing so that ``setuptools``
+       automatically adds them to the ``sdist``.
+       Temporary files generated during pre-processing on the other hand
+       should be part of the ``source``/``depends`` attributes of the
+       extension object returned by the ``preprocess`` method.
     """
 
-    def preprocess(self, build_ext: BuildExt) -> Extension:  # pragma: no cover
+    def create_shared_files(self, build_ext: BuildExt) -> None:
+        """*(Optional abstract method)*
+        Generate files that work as build-time dependencies for other extension
+        modules (e.g. headers).
+
+        .. important::
+           ``setuptools`` will call ``create_static_lib`` sequentially
+           (even during a parallel build).
         """
+
+    def preprocess(self, build_ext: BuildExt) -> Extension:  # pragma: no cover
+        """*(Required abstract method)*
         The returned ``Extension`` object will be used instead of the original
         ``PreprocessedExtension`` object when ``build_ext.build_extension`` runs
         (so that ``sources`` and ``dependencies`` can be augmented/replaced with
@@ -171,6 +189,13 @@ class PreprocessedExtension(Extension):
         ``build_ext.build_temp`` (this directory might not have been created yet).
         You can also access other attributes like ``build_ext.parallel``,
         ``build_ext.inplace`` or ``build_ext.editable_mode``.
+
+        .. important::
+           For each extension module ``preprocess`` is called just before
+           compiling (in a single step).
+           If your extension module needs to produce files that are necessary
+           for the compilation of another extension module, please use
+           ``create_shared_files``.
         """
         raise NotImplementedError  # needs to be implemented by the relevant plugin.
 

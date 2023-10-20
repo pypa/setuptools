@@ -251,35 +251,39 @@ class build_ext(_build_ext):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self, ext)
 
-    def _preprocess(self, ext):
-        if isinstance(ext, PreprocessedExtension):
-            target = ext.preprocess(self)  # may be missing build info
-            updates = self._update_ext_info(target)
-            target.__dict__.update(updates)
-            ext.__dict__.update(updates)  # ... for the sake of consistency ...
-            return target
-
-        return ext
-
-    def build_extensions(self):
-        self.extensions[:] = [self._preprocess(ext) for ext in self.extensions]
-        # ^-- We may have to pre-process all the extensions first, before proceeding
-        #     to the compilation step, since they may generate files that depend
-        #     at at other during compile-time (e.g. headers).
-        super().build_extensions()
-
     def build_extension(self, ext):
         ext._convert_pyx_sources_to_lang()
         _compiler = self.compiler
         try:
             if isinstance(ext, Library):
                 self.compiler = self.shlib_compiler
-            _build_ext.build_extension(self, ext)
+            _build_ext.build_extension(self, self._preprocess(ext))
             if ext._needs_stub:
                 build_lib = self.get_finalized_command('build_py').build_lib
                 self.write_stub(build_lib, ext)
         finally:
             self.compiler = _compiler
+
+    def build_extensions(self):
+        self._create_shared_files()
+        super().build_extensions()
+
+    def _create_shared_files(self):
+        for ext in self.extensions:
+            if isinstance(ext, PreprocessedExtension):
+                log.debug(f"creating shared files for {ext._full_name!r}")
+                ext.create_shared_files(self)
+
+    def _preprocess(self, ext: Extension) -> Extension:
+        if not isinstance(ext, PreprocessedExtension):
+            return ext
+
+        log.debug(f"preprocessing extension {ext._full_name!r}")
+        target = ext.preprocess(self)  # may be missing build info
+        updates = self._update_ext_info(target)
+        target.__dict__.update(updates)  # update build info
+        ext.__dict__.update(updates)  # ... for consistency ...
+        return target
 
     def links_to_dynamic(self, ext):
         """Return true if 'ext' links to a dynamic lib in the same package"""
