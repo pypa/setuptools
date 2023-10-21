@@ -16,6 +16,9 @@ from ..extern.more_itertools import unique_everseen
 from ..warnings import SetuptoolsDeprecationWarning
 
 
+_IMPLICIT_DATA_FILES = ('*.pyi', 'py.typed')
+
+
 def make_writable(target):
     os.chmod(target, os.stat(target).st_mode | stat.S_IWRITE)
 
@@ -116,6 +119,7 @@ class build_py(orig.build_py):
             self.package_data,
             package,
             src_dir,
+            extra_patterns=_IMPLICIT_DATA_FILES,
         )
         globs_expanded = map(partial(glob, recursive=True), patterns)
         # flatten the expanded globs into an iterable of matches
@@ -285,7 +289,7 @@ class build_py(orig.build_py):
         return list(unique_everseen(keepers))
 
     @staticmethod
-    def _get_platform_patterns(spec, package, src_dir):
+    def _get_platform_patterns(spec, package, src_dir, extra_patterns=[]):
         """
         yield platform-specific path patterns (suitable for glob
         or fn_match) from a glob-based spec (such as
@@ -293,6 +297,7 @@ class build_py(orig.build_py):
         matching package in src_dir.
         """
         raw_patterns = itertools.chain(
+            extra_patterns,
             spec.get('', []),
             spec.get(package, []),
         )
