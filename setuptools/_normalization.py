@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Union
 
-from .extern import packaging
+from .extern import packaging  # type: ignore[attr-defined]
 from .warnings import SetuptoolsDeprecationWarning
 
 _Path = Union[str, Path]

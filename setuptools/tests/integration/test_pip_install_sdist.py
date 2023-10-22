@@ -1,3 +1,5 @@
+# https://github.com/python/mypy/issues/8009#issuecomment-558335186
+# mypy: disable-error-code="has-type"
 """Integration tests for setuptools that focus on building packages via pip.
 
 The idea behind these tests is not to exhaustively check all the possible
@@ -17,7 +19,6 @@ import sys
 from enum import Enum
 from glob import glob
 from hashlib import md5
-from typing_extensions import reveal_type
 from urllib.request import urlopen
 
 import pytest
@@ -25,15 +26,10 @@ from packaging.requirements import Requirement
 
 from .helpers import Archive, run
 
-
 pytestmark = pytest.mark.integration
 
 
-class v(Enum):
-    LATEST = 1
-
-
-(LATEST,) = v
+(LATEST,) = Enum("v", "LATEST")  # type: ignore[misc] # https://github.com/python/mypy/issues/8009#issuecomment-558335186
 """Default version to be checked"""
 # There are positive and negative aspects of checking the latest version of the
 # packages.

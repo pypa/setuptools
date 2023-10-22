@@ -47,7 +47,7 @@ class Test:
         assert re.match(r'foo-0.0.0-py[23].\d+.egg$', content)
 
     @pytest.mark.xfail(
-        os.environ.get('PYTHONDONTWRITEBYTECODE', False),
+        os.environ.get('PYTHONDONTWRITEBYTECODE'),  # type: ignore[arg-type] # https://github.com/pytest-dev/pytest/issues/10094
         reason="Byte code disabled",
     )
     def test_exclude_source_files(self, setup_context, user_override):

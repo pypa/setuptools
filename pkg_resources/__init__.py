@@ -65,16 +65,13 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
-importlib_machinery: Optional[types.ModuleType]
 try:
-    import importlib.machinery
-
-    importlib_machinery = importlib.machinery
+    import importlib.machinery as importlib_machinery
 
     # access attribute to force import under delayed import mechanisms.
     importlib_machinery.__name__
 except ImportError:
-    importlib_machinery = None
+    importlib_machinery: Optional[types.ModuleType] = None  # type: ignore[no-redef] # https://github.com/python/mypy/issues/1393
 
 from pkg_resources.extern.jaraco.text import (
     yield_lines,
@@ -82,8 +79,8 @@ from pkg_resources.extern.jaraco.text import (
     join_continuation,
 )
 
-from pkg_resources.extern import platformdirs
-from pkg_resources.extern import packaging
+from pkg_resources.extern import platformdirs  # type: ignore[attr-defined]
+from pkg_resources.extern import packaging  # type: ignore[attr-defined]
 
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
@@ -2231,8 +2228,9 @@ def resolve_egg_link(path):
 if hasattr(pkgutil, 'ImpImporter'):
     register_finder(pkgutil.ImpImporter, find_on_path)
 
-if importlib_machinery:
-    register_finder(importlib_machinery.FileFinder, find_on_path)
+# TODO: If importlib_machinery import fails, this will also fail. This should be fixed.
+# https://github.com/pypa/setuptools/pull/3979/files#r1367959803
+register_finder(importlib_machinery.FileFinder, find_on_path)  # type: ignore[no-untyped-call]
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})

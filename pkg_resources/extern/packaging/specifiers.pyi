@@ -1,1 +1,0 @@
-from packaging.specifiers import *

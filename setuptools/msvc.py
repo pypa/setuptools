@@ -21,22 +21,21 @@ import platform
 import itertools
 import subprocess
 import distutils.errors
-import sys
 from setuptools.extern.more_itertools import unique_everseen
 
-if sys.platform == "win32":
+if platform.system() == 'Windows':
     import winreg
     from os import environ
 else:
     # Mock winreg and environ so the module can be imported on this platform.
 
-    class winreg:
+    class winreg:  # type: ignore[no-redef] # https://github.com/python/mypy/issues/8166
         HKEY_USERS = None
         HKEY_CURRENT_USER = None
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
 
-    environ = dict()
+    environ = dict()  # type: ignore[assignment] # https://github.com/python/mypy/issues/8166
 
 
 def _msvc14_find_vc2015():
@@ -408,10 +407,10 @@ class RegistryInfo:
     """
 
     HKEYS = (
-        winreg.HKEY_USERS,
-        winreg.HKEY_CURRENT_USER,
-        winreg.HKEY_LOCAL_MACHINE,
-        winreg.HKEY_CLASSES_ROOT,
+        winreg.HKEY_USERS,  # type: ignore[attr-defined]
+        winreg.HKEY_CURRENT_USER,  # type: ignore[attr-defined]
+        winreg.HKEY_LOCAL_MACHINE,  # type: ignore[attr-defined]
+        winreg.HKEY_CLASSES_ROOT,  # type: ignore[attr-defined]
     )
 
     def __init__(self, platform_info):
