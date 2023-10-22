@@ -2397,8 +2397,9 @@ if hasattr(pkgutil, 'ImpImporter'):
     register_namespace_handler(pkgutil.ImpImporter, file_ns_handler)
 
 register_namespace_handler(zipimport.zipimporter, file_ns_handler)
-if importlib_machinery:
-    register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
+# TODO: If importlib_machinery import fails, this will also fail. This should be fixed.
+# https://github.com/pypa/setuptools/pull/3979/files#r1367959803
+register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
 
 
 def null_ns_handler(importer, path_item, packageName, module):
