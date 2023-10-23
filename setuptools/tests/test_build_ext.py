@@ -394,7 +394,7 @@ class TestBuildExamples:
         "foo.c": "#include <xxx-generate-compilation-error-if-not-preprocessed-xxx>\n",
         "fooc.template": SIMPLE["foo.c"],
         "fooh.template": "#define HELLO_WORLD 1\n",
-        "bar.c": '#include "foo.h"\n',
+        "bar.c": '#include "foo.h"\n' + SIMPLE["foo.c"].replace("foo", "bar"),
         "setup.py": DALS(
             """
             import os, shutil
