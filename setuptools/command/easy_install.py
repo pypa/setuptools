@@ -1717,7 +1717,7 @@ class PthDistributions(Environment):
             dist.location not in self.sitedirs
             or
             # account for '.' being in PYTHONPATH
-            dist.location == os.getcwd()
+            dist.location == normalize_path(os.getcwd())
         )
         if new_path:
             self.paths.append(dist.location)
