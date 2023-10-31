@@ -1247,17 +1247,20 @@ class easy_install(Command):
         if self.pth_file is None:
             return
 
+        dist_location = normalize_path(dist.location)
+
         for d in self.pth_file[dist.key]:  # drop old entries
-            if not self.multi_version and d.location == dist.location:
+            d_location = normalize_path(d.location)
+            if not self.multi_version and d_location == dist_location:
                 continue
 
             log.info("Removing %s from easy-install.pth file", d)
             self.pth_file.remove(d)
-            if d.location in self.shadow_path:
-                self.shadow_path.remove(d.location)
+            if d_location in self.shadow_path:
+                self.shadow_path.remove(d_location)
 
         if not self.multi_version:
-            if dist.location in self.pth_file.paths:
+            if dist_location in self.pth_file.paths:
                 log.info(
                     "%s is already the active version in easy-install.pth",
                     dist,
@@ -1265,8 +1268,8 @@ class easy_install(Command):
             else:
                 log.info("Adding %s to easy-install.pth file", dist)
                 self.pth_file.add(dist)  # add new entry
-                if dist.location not in self.shadow_path:
-                    self.shadow_path.append(dist.location)
+                if dist_location not in self.shadow_path:
+                    self.shadow_path.append(dist_location)
 
         if self.dry_run:
             return
@@ -1282,7 +1285,7 @@ class easy_install(Command):
         if os.path.islink(filename):
             os.unlink(filename)
         with open(filename, 'wt') as f:
-            f.write(self.pth_file.make_relative(dist.location) + '\n')
+            f.write(self.pth_file.make_relative(dist_location) + '\n')
 
     def unpack_progress(self, src, dst):
         # Progress filter for unpacking
@@ -1713,21 +1716,23 @@ class PthDistributions(Environment):
 
     def add(self, dist):
         """Add `dist` to the distribution map"""
-        new_path = dist.location not in self.paths and (
-            dist.location not in self.sitedirs
+        dist_location = normalize_path(dist.location)
+        new_path = dist_location not in self.paths and (
+            dist_location not in self.sitedirs
             or
             # account for '.' being in PYTHONPATH
-            dist.location == normalize_path(os.getcwd())
+            dist_location == normalize_path(os.getcwd())
         )
         if new_path:
-            self.paths.append(dist.location)
+            self.paths.append(dist_location)
             self.dirty = True
         super().add(dist)
 
     def remove(self, dist):
         """Remove `dist` from the distribution map"""
-        while dist.location in self.paths:
-            self.paths.remove(dist.location)
+        dist_location = normalize_path(dist.location)
+        while dist_location in self.paths:
+            self.paths.remove(dist_location)
             self.dirty = True
         super().remove(dist)
 
