@@ -298,6 +298,7 @@ class AbstractSandbox:
         with self:
             return func()
 
+    @staticmethod
     def _mk_dual_path_wrapper(name):
         original = getattr(_os, name)
 
@@ -312,6 +313,7 @@ class AbstractSandbox:
         if hasattr(_os, name):
             locals()[name] = _mk_dual_path_wrapper(name)
 
+    @staticmethod
     def _mk_single_path_wrapper(name, original=None):
         original = original or getattr(_os, name)
 
@@ -349,6 +351,7 @@ class AbstractSandbox:
         if hasattr(_os, name):
             locals()[name] = _mk_single_path_wrapper(name)
 
+    @staticmethod
     def _mk_single_with_return(name):
         original = getattr(_os, name)
 
@@ -364,6 +367,7 @@ class AbstractSandbox:
         if hasattr(_os, name):
             locals()[name] = _mk_single_with_return(name)
 
+    @staticmethod
     def _mk_query(name):
         original = getattr(_os, name)
 
