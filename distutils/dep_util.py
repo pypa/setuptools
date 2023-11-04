@@ -1,7 +1,6 @@
 """Timestamp comparison of files and groups of files."""
 
 import os.path
-import stat
 
 from .errors import DistutilsFileError
 
@@ -10,10 +9,7 @@ def _newer(source, target):
     if not os.path.exists(target):
         return True
 
-    mtime1 = os.stat(source)[stat.ST_MTIME]
-    mtime2 = os.stat(target)[stat.ST_MTIME]
-
-    return mtime1 > mtime2
+    return os.path.getmtime(source) > os.path.getmtime(target)
 
 
 def newer(source, target):
