@@ -6,10 +6,9 @@ from .errors import DistutilsFileError
 
 
 def _newer(source, target):
-    if not os.path.exists(target):
-        return True
-
-    return os.path.getmtime(source) > os.path.getmtime(target)
+    return not os.path.exists(target) or (
+        os.path.getmtime(source) > os.path.getmtime(target)
+    )
 
 
 def newer(source, target):
