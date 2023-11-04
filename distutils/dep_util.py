@@ -3,6 +3,7 @@
 import os.path
 
 from .errors import DistutilsFileError
+from .py39compat import zip_strict
 
 
 def _newer(source, target):
@@ -30,18 +31,16 @@ def newer_pairwise(sources, targets):
     """
     Filter filenames where sources are newer than targets.
 
-    Walk two filename lists in parallel, testing if each source is newer
+    Walk two filename iterables in parallel, testing if each source is newer
     than its corresponding target.  Returns a pair of lists (sources,
     targets) where source is newer than target, according to the semantics
     of 'newer()'.
     """
-    if len(sources) != len(targets):
-        raise ValueError("'sources' and 'targets' must be same length")
 
     def newer_pair(pair):
         return newer(*pair)
 
-    newer_pairs = filter(newer_pair, zip(sources, targets))
+    newer_pairs = filter(newer_pair, zip_strict(sources, targets))
     return tuple(map(list, zip(*newer_pairs)))
 
 
