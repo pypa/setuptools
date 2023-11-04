@@ -27,7 +27,7 @@ class TestDepUtil(support.TempdirManager):
         # than 'new_file'.
         assert not newer(old_file, new_file)
 
-    def test_newer_pairwise(self):
+    def _setup_1234(self):
         tmpdir = self.mkdtemp()
         sources = os.path.join(tmpdir, 'sources')
         targets = os.path.join(tmpdir, 'targets')
@@ -40,8 +40,21 @@ class TestDepUtil(support.TempdirManager):
         self.write_file(one)
         self.write_file(two)
         self.write_file(four)
+        return one, two, three, four
+
+    def test_newer_pairwise(self):
+        one, two, three, four = self._setup_1234()
 
         assert newer_pairwise([one, two], [three, four]) == ([one], [three])
+
+    def test_newer_pairwise_mismatch(self):
+        one, two, three, four = self._setup_1234()
+
+        with pytest.raises(ValueError):
+            newer_pairwise([one], [three, four])
+
+        with pytest.raises(ValueError):
+            newer_pairwise([one, two], [three])
 
     def test_newer_group(self):
         tmpdir = self.mkdtemp()
