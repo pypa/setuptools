@@ -38,15 +38,11 @@ def newer_pairwise(sources, targets):
     if len(sources) != len(targets):
         raise ValueError("'sources' and 'targets' must be same length")
 
-    # build a pair of lists (sources, targets) where source is newer
-    n_sources = []
-    n_targets = []
-    for i in range(len(sources)):
-        if newer(sources[i], targets[i]):
-            n_sources.append(sources[i])
-            n_targets.append(targets[i])
+    def newer_pair(pair):
+        return newer(*pair)
 
-    return (n_sources, n_targets)
+    newer_pairs = filter(newer_pair, zip(sources, targets))
+    return tuple(map(list, zip(*newer_pairs)))
 
 
 def newer_group(sources, target, missing='error'):
