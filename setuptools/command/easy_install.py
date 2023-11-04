@@ -1256,7 +1256,7 @@ class easy_install(Command):
 
             log.info("Removing %s from easy-install.pth file", d)
             self.pth_file.remove(d)
-            if d_location in self.shadow_path:
+            if d_location in map(normalize_path, self.shadow_path):
                 self.shadow_path.remove(d_location)
 
         if not self.multi_version:
@@ -1268,7 +1268,7 @@ class easy_install(Command):
             else:
                 log.info("Adding %s to easy-install.pth file", dist)
                 self.pth_file.add(dist)  # add new entry
-                if dist_location not in self.shadow_path:
+                if dist_location not in map(normalize_path, self.shadow_path):
                     self.shadow_path.append(dist_location)
 
         if self.dry_run:
@@ -1717,8 +1717,8 @@ class PthDistributions(Environment):
     def add(self, dist):
         """Add `dist` to the distribution map"""
         dist_location = normalize_path(dist.location)
-        new_path = dist_location not in self.paths and (
-            dist_location not in self.sitedirs
+        new_path = dist_location not in map(normalize_path, self.paths) and (
+            dist_location not in map(normalize_path, self.sitedirs)
             or
             # account for '.' being in PYTHONPATH
             dist_location == normalize_path(os.getcwd())
@@ -1731,7 +1731,7 @@ class PthDistributions(Environment):
     def remove(self, dist):
         """Remove `dist` from the distribution map"""
         dist_location = normalize_path(dist.location)
-        while dist_location in self.paths:
+        while dist_location in map(normalize_path, self.paths):
             self.paths.remove(dist_location)
             self.dirty = True
         super().remove(dist)

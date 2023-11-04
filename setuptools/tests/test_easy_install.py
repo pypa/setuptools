@@ -321,7 +321,10 @@ class TestPTHFileWriter:
         In windows, path is not case sensitive, 
         This is test when the distiribution path is cwd and normalized.
         """
-        path_org = 'C:/Location/package'
+        if sys.platform.startswith('win'):
+            path_org = 'C:/Location/package'
+        else:
+            path_org = '/Location/package'
         path_norm = pkg_resources.normalize_path(path_org)
 
         pth = PthDistributions('test-package', [path_org])
