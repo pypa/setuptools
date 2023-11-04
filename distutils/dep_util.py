@@ -27,6 +27,13 @@ def newer(source, target):
     return _newer(source, target)
 
 
+def _starfilter(pred, iterables):
+    """
+    Like itertools.starmap but for filter.
+    """
+    return filter(lambda x: pred(*x), iterables)
+
+
 def newer_pairwise(sources, targets):
     """
     Filter filenames where sources are newer than targets.
@@ -36,11 +43,7 @@ def newer_pairwise(sources, targets):
     targets) where source is newer than target, according to the semantics
     of 'newer()'.
     """
-
-    def newer_pair(pair):
-        return newer(*pair)
-
-    newer_pairs = filter(newer_pair, zip_strict(sources, targets))
+    newer_pairs = _starfilter(newer, zip_strict(sources, targets))
     return tuple(map(list, zip(*newer_pairs)))
 
 
