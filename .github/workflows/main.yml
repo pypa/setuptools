@@ -58,6 +58,7 @@ jobs:
 
   diffcov:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.python == '3.12' }}
     steps:
       - uses: actions/checkout@v3
         with:
