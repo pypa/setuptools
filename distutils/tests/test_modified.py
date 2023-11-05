@@ -1,7 +1,7 @@
-"""Tests for distutils.dep_util."""
+"""Tests for distutils._modified."""
 import os
 
-from distutils.dep_util import newer, newer_pairwise, newer_group
+from distutils._modified import newer, newer_pairwise, newer_group
 from distutils.errors import DistutilsFileError
 from distutils.tests import support
 import pytest
