@@ -1,10 +1,12 @@
 """Tests for distutils._modified."""
 import os
+import types
+
+import pytest
 
 from distutils._modified import newer, newer_pairwise, newer_group, newer_pairwise_group
 from distutils.errors import DistutilsFileError
 from distutils.tests import support
-import pytest
 
 
 class TestDepUtil(support.TempdirManager):
@@ -92,27 +94,26 @@ class TestDepUtil(support.TempdirManager):
 
 
 @pytest.fixture
-def groups_target(tmpdir):
-    """Sets up some older sources, a target and newer sources.
-    Returns a 3-tuple in this order.
+def groups_target(tmp_path):
     """
-    creation_order = ['older.c', 'older.h', 'target.o', 'newer.c', 'newer.h']
-    mtime = 0
+    Set up some older sources, a target, and newer sources.
 
-    for i in range(len(creation_order)):
-        creation_order[i] = os.path.join(str(tmpdir), creation_order[i])
-        with open(creation_order[i], 'w'):
-            pass
+    Returns a simple namespace with these values.
+    """
+    filenames = ['older.c', 'older.h', 'target.o', 'newer.c', 'newer.h']
+    paths = [tmp_path / name for name in filenames]
+
+    for mtime, path in enumerate(paths):
+        path.write_text('', encoding='utf-8')
 
         # make sure modification times are sequential
-        os.utime(creation_order[i], (mtime, mtime))
-        mtime += 1
+        os.utime(path, (mtime, mtime))
 
-    return creation_order[:2], creation_order[2], creation_order[3:]
+    return types.SimpleNamespace(older=paths[:2], target=paths[2], newer=paths[3:])
 
 
 def test_newer_pairwise_group(groups_target):
-    older = newer_pairwise_group([groups_target[0]], [groups_target[1]])
-    newer = newer_pairwise_group([groups_target[2]], [groups_target[1]])
+    older = newer_pairwise_group([groups_target.older], [groups_target.target])
+    newer = newer_pairwise_group([groups_target.newer], [groups_target.target])
     assert older == ([], [])
-    assert newer == ([groups_target[2]], [groups_target[1]])
+    assert newer == ([groups_target.newer], [groups_target.target])
