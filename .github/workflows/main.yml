@@ -89,6 +89,8 @@ jobs:
         run: tox
 
   test_cygwin:
+    # disabled due to lack of Rust support pypa/setuptools#3921
+    if: ${{ false }}
     strategy:
       matrix:
         python:
