@@ -1,5 +1,6 @@
 """Timestamp comparison of files and groups of files."""
 
+import functools
 import os.path
 
 from .errors import DistutilsFileError
@@ -28,7 +29,7 @@ def newer(source, target):
     return _newer(source, target)
 
 
-def newer_pairwise(sources, targets):
+def newer_pairwise(sources, targets, newer=newer):
     """
     Filter filenames where sources are newer than targets.
 
@@ -66,3 +67,6 @@ def newer_group(sources, target, missing='error'):
         missing_as_newer(source) or _newer(source, target)
         for source in filter(ignored, sources)
     )
+
+
+newer_pairwise_group = functools.partial(newer_pairwise, newer=newer_group)
