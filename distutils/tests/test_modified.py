@@ -56,6 +56,14 @@ class TestDepUtil(support.TempdirManager):
         with pytest.raises(ValueError):
             newer_pairwise([one, two], [three])
 
+    def test_newer_pairwise_empty(self):
+        assert newer_pairwise([], []) == ([], [])
+
+    def test_newer_pairwise_fresh(self):
+        one, two, three, four = self._setup_1234()
+
+        assert newer_pairwise([one, three], [two, four]) == ([], [])
+
     def test_newer_group(self):
         tmpdir = self.mkdtemp()
         sources = os.path.join(tmpdir, 'sources')
