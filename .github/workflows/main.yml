@@ -2,6 +2,13 @@ name: tests
 
 on: [push, pull_request]
 
+concurrency:
+  group: >-
+    ${{ github.workflow }}-
+    ${{ github.ref_type }}-
+    ${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -17,10 +24,6 @@ env:
   # Ensure tests can sense settings about the environment
   TOX_OVERRIDE: >-
     testenv.pass_env+=GITHUB_*,FORCE_COLOR
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: true
 
 jobs:
   test:
