@@ -56,6 +56,7 @@ The ``project`` table contains metadata fields as described by
    ]
    dependencies = [
        "requests",
+       'importlib-metadata; python_version<"3.10"',
    ]
    dynamic = ["version"]
 

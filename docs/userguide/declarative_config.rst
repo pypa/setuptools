@@ -42,6 +42,7 @@ boilerplate code in some cases.
     python_requires = >=3.8
     install_requires =
         requests
+        importlib-metadata; python_version<"3.10"
 
     [options.package_data]
     * = *.txt, *.rst
@@ -258,11 +259,11 @@ data_files               section                              40.6.0          [#
 
       [options]
       install_requires =
-          requests
+          importlib-metadata; python_version<"3.10"
 
       [options.extras_require]
       all =
-          requests
+          importlib-metadata; python_version<"3.10"
 
 .. [#opt-3] The ``find:`` and ``find_namespace:`` directive can be further configured
    in a dedicated subsection ``options.packages.find``. This subsection accepts the
