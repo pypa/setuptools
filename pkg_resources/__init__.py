@@ -69,10 +69,6 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
-
-# access attribute to force import under delayed import mechanisms.
-importlib.machinery.__name__
-
 from pkg_resources.extern.jaraco.text import (
     yield_lines,
     drop_comment,
