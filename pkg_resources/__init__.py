@@ -18,6 +18,10 @@ This module is deprecated. Users are directed to :mod:`importlib.resources`,
 """
 
 import sys
+
+if sys.version_info < (3, 8):
+    raise RuntimeError("Python 3.8 or later is required")
+
 import os
 import io
 import time
@@ -43,16 +47,7 @@ import posixpath
 import importlib
 from pkgutil import get_importer
 
-try:
-    import _imp
-except ImportError:
-    # Python 3.2 compatibility
-    import imp as _imp
-
-try:
-    FileExistsError
-except NameError:
-    FileExistsError = OSError
+import _imp
 
 # capture these to bypass sandboxing
 from os import utime
@@ -90,9 +85,6 @@ __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 __import__('pkg_resources.extern.packaging.utils')
-
-if sys.version_info < (3, 5):
-    raise RuntimeError("Python 3.5 or later is required")
 
 # declare some globals that will be defined later to
 # satisfy the linters.

@@ -22,17 +22,6 @@ import pytest
 import pkg_resources
 
 
-def timestamp(dt):
-    """
-    Return a timestamp for a local, naive datetime instance.
-    """
-    try:
-        return dt.timestamp()
-    except AttributeError:
-        # Python 3.2 and earlier
-        return time.mktime(dt.timetuple())
-
-
 class EggRemover(str):
     def __call__(self):
         if self in sys.path:
@@ -123,7 +112,7 @@ class TestZipProvider:
         f = open(filename, 'w')
         f.write('hello, world?')
         f.close()
-        ts = timestamp(self.ref_time)
+        ts = self.ref_time.timestamp()
         os.utime(filename, (ts, ts))
         filename = zp.get_resource_filename(manager, 'data.dat')
         with open(filename) as f:
@@ -240,9 +229,6 @@ def make_distribution_no_version(tmpdir, basename):
     # Make the directory non-empty so distributions_from_metadata()
     # will detect it and yield it.
     dist_dir.join('temp.txt').ensure()
-
-    if sys.version_info < (3, 6):
-        dist_dir = str(dist_dir)
 
     dists = list(pkg_resources.distributions_from_metadata(dist_dir))
     assert len(dists) == 1

@@ -1,17 +1,11 @@
 import sys
 import subprocess
 
-import pytest
-
 from . import namespaces
 from setuptools.command import test
 
 
 class TestNamespaces:
-    @pytest.mark.skipif(
-        sys.version_info < (3, 5),
-        reason="Requires importlib.util.module_from_spec",
-    )
     def test_mixed_site_and_non_site(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed

@@ -47,7 +47,7 @@ The ``project`` table contains metadata fields as described by
    ]
    description = "My package description"
    readme = "README.rst"
-   requires-python = ">=3.7"
+   requires-python = ">=3.8"
    keywords = ["one", "two"]
    license = {text = "BSD-3-Clause"}
    classifiers = [
@@ -56,7 +56,6 @@ The ``project`` table contains metadata fields as described by
    ]
    dependencies = [
        "requests",
-       'importlib-metadata; python_version<"3.8"',
    ]
    dynamic = ["version"]
 
