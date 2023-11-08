@@ -1,1 +1,1 @@
-Exported `distutils.dep_util` through ``setuptools.dep_util`` -- by :user:`Avasam`
+Exported ``distutils.dep_util`` and ``setuptools.dep_util`` through ``setuptools.modified`` -- by :user:`Avasam`

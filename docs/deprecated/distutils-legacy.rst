@@ -28,7 +28,7 @@ As Distutils is deprecated, any usage of functions or objects from distutils is 
 
 ``distutils.command.{build_clib,build_ext,build_py,sdist}`` → ``setuptools.command.*``
 
-``distutils.dep_util`` → ``setuptools.dep_util``
+``distutils.dep_util`` → ``setuptools.modified``
 
 ``distutils.log`` → :mod:`logging` (standard library)
 
