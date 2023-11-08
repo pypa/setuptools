@@ -16,6 +16,7 @@ from distutils.command.install import INSTALL_SCHEMES
 from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
+from distutils.util import is_mingw
 
 from distutils.tests import support, missing_compiler_executable
 
@@ -120,7 +121,7 @@ class TestInstall(
         assert 'usersite' in cmd.config_vars
 
         actual_headers = os.path.relpath(cmd.install_headers, site.USER_BASE)
-        if os.name == 'nt':
+        if os.name == 'nt' and not is_mingw():
             site_path = os.path.relpath(os.path.dirname(orig_site), orig_base)
             include = os.path.join(site_path, 'Include')
         else:
