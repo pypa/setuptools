@@ -8,7 +8,7 @@ import pathlib
 import pytest
 import jaraco.envs
 import path
-from jaraco.text import trim
+from textwrap import dedent
 
 import distutils
 from distutils import sysconfig
@@ -17,6 +17,10 @@ from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
 
 from . import py37compat
+
+
+def trim(s):
+    return dedent(s).strip()
 
 
 @pytest.mark.usefixtures('save_env')
