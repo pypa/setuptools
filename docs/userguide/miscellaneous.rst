@@ -10,6 +10,19 @@ These include all :term:`pure Python modules <Pure Module>` in the
 headers) listed as part of extensions when creating a :term:`source
 distribution (or "sdist")`.
 
+.. note::
+   .. versionadded:: v68.3.0
+      ``setuptools`` will attempt to include type information files
+      by default in the distribution
+      (``.pyi`` and ``py.typed``, as specified in :pep:`561`).
+
+    *Please note however that this feature is* **EXPERIMENTAL** *and may change in
+    the future.*
+
+    If you have ``.pyi`` and ``py.typed`` files in your project, but do not
+    wish to distribute them, you can opt out by setting
+    :doc:`exclude-package-data </userguide/datafiles>` to remove them.
+
 However, when building more complex packages (e.g. packages that include
 non-Python files, or that need to use custom C headers), you might find that
 not all files present in your project folder are included in package

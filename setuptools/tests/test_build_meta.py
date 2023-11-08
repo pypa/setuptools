@@ -372,8 +372,10 @@ class TestBuildMetaBackend:
             "src": {
                 "foo": {
                     "__init__.py": "__version__ = '0.1'",
+                    "__init__.pyi": "__version__: str",
                     "cli.py": "def main(): print('hello world')",
                     "data.txt": "def main(): print('hello world')",
+                    "py.typed": "",
                 }
             },
         }
@@ -406,8 +408,10 @@ class TestBuildMetaBackend:
             'foo-0.1/src',
             'foo-0.1/src/foo',
             'foo-0.1/src/foo/__init__.py',
+            'foo-0.1/src/foo/__init__.pyi',
             'foo-0.1/src/foo/cli.py',
             'foo-0.1/src/foo/data.txt',
+            'foo-0.1/src/foo/py.typed',
             'foo-0.1/src/foo.egg-info',
             'foo-0.1/src/foo.egg-info/PKG-INFO',
             'foo-0.1/src/foo.egg-info/SOURCES.txt',
@@ -419,8 +423,10 @@ class TestBuildMetaBackend:
         }
         assert wheel_contents == {
             "foo/__init__.py",
+            "foo/__init__.pyi",  # include type information by default
             "foo/cli.py",
             "foo/data.txt",  # include_package_data defaults to True
+            "foo/py.typed",  # include type information by default
             "foo-0.1.dist-info/LICENSE.txt",
             "foo-0.1.dist-info/METADATA",
             "foo-0.1.dist-info/WHEEL",
