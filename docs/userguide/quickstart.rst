@@ -101,7 +101,7 @@ The following example demonstrates a minimum configuration
         [options]
         install_requires =
             requests
-           importlib-metadata; python_version<"3.10"
+            importlib-metadata; python_version<"3.10"
 
 
     See :doc:`/userguide/declarative_config` for more information.
