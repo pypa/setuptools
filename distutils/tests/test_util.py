@@ -109,6 +109,7 @@ class TestUtil:
 
         # windows
         os.name = 'nt'
+        os.sep = '\\'
 
         def _isabs(path):
             return path.startswith('c:\\')
