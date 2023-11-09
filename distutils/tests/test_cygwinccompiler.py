@@ -114,3 +114,10 @@ class TestCygwinCCompiler(support.TempdirManager):
         )
         with pytest.raises(ValueError):
             get_msvcr()
+
+    @pytest.mark.skipif('sys.platform != "cygwin"')
+    def test_dll_libraries_not_none(self):
+        from distutils.cygwinccompiler import CygwinCCompiler
+
+        compiler = CygwinCCompiler()
+        assert compiler.dll_libraries is not None
