@@ -7,25 +7,28 @@ For the most common use cases, ``setuptools`` will automatically find out which
 files are necessary for distributing the package. More precisely, the following
 files are included in a source distribution by default:
 
-- All Python source files implied by the ``py_modules`` and ``packages``
-  ``setup()`` arguments
+- All Python source files implied by the ``py-modules`` and ``packages``
+  configuration parameters in ``pyproject.toml`` and/or equivalent
+  in ``setup.cfg``/``setup.py``;
 - All C source files mentioned in the ``ext_modules`` or ``libraries``
-  ``setup()`` arguments
-- Scripts specified by the ``scripts`` ``setup()`` argument
-- All files specified by the ``package_data`` and ``data_files``
-  ``setup()`` arguments
-- The file specified by the ``license_file`` option in ``setup.cfg``
-  (setuptools 40.8.0+)
-- All files specified by the ``license_files`` option in ``setup.cfg``
-  (setuptools 42.0.0+)
-- All files matching the pattern ``test/test*.py``
-- ``setup.py`` (or whatever you called your setup script)
-- ``setup.cfg``
-- ``README``
-- ``README.txt``
-- ``README.rst`` (Python 3.7+ or setuptools 0.6.27+)
-- ``README.md`` (setuptools 36.4.0+)
-- ``pyproject.toml`` (setuptools 43.0.0+)
+  ``setup()`` arguments;
+- Files that match the following glob patterns: ``tests/test*.py``,
+  ``test/test*.py``;
+- Scripts specified by the ``scripts-files`` configuration parameter
+  in ``pyproject.toml`` or ``scripts`` in ``setup.py``/``setup.cfg``;
+- All files specified by the ``package-data`` and ``data-files``
+  configuration parameters in ``pyproject.toml`` and/or equivalent
+  in ``setup.cfg``/``setup.py``;
+- The file specified by the ``license_file`` option in ``setup.cfg``;
+- All files specified by the ``license-files`` configuration parameter
+  in ``pyproject.toml`` and/or equivalent in ``setup.cfg``/``setup.py``;
+  note that if you don't explicitly set this parameter, ``setuptools``
+  will include any files that match the following glob patterns:
+  ``LICENSE*``, ``LICENCE*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS**``;
+- ``pyproject.toml``;
+- ``setup.cfg``;
+- ``setup.py``;
+- ``README``, ``README.txt``, ``README.rst`` or ``README.md``;
 - ``MANIFEST.in``
 
 
