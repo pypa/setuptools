@@ -4,11 +4,30 @@ Controlling files in the distribution
 =====================================
 
 For the most common use cases, ``setuptools`` will automatically find out which
-files are necessary for distributing the package.
-These include all :term:`pure Python modules <Pure Module>` in the
-``py_modules`` or ``packages`` configuration, and the C sources (but not C
-headers) listed as part of extensions when creating a :term:`source
-distribution (or "sdist")`.
+files are necessary for distributing the package. More precisely, the following
+files are included in a source distribution by default:
+
+- All Python source files implied by the ``py_modules`` and ``packages``
+  ``setup()`` arguments
+- All C source files mentioned in the ``ext_modules`` or ``libraries``
+  ``setup()`` arguments
+- Scripts specified by the ``scripts`` ``setup()`` argument
+- All files specified by the ``package_data`` and ``data_files``
+  ``setup()`` arguments
+- The file specified by the ``license_file`` option in ``setup.cfg``
+  (setuptools 40.8.0+)
+- All files specified by the ``license_files`` option in ``setup.cfg``
+  (setuptools 42.0.0+)
+- All files matching the pattern ``test/test*.py``
+- ``setup.py`` (or whatever you called your setup script)
+- ``setup.cfg``
+- ``README``
+- ``README.txt``
+- ``README.rst`` (Python 3.7+ or setuptools 0.6.27+)
+- ``README.md`` (setuptools 36.4.0+)
+- ``pyproject.toml`` (setuptools 43.0.0+)
+- ``MANIFEST.in``
+
 
 .. note::
    .. versionadded:: v68.3.0
