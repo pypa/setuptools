@@ -7,10 +7,10 @@ For the most common use cases, ``setuptools`` will automatically find out which
 files are necessary for distributing the package. More precisely, the following
 files are included in a source distribution by default:
 
-- All Python source files implied by the ``py-modules`` and ``packages``
+- :term:`pure Python module <Pure Module>` files implied by the ``py-modules`` and ``packages``
   configuration parameters in ``pyproject.toml`` and/or equivalent
   in ``setup.cfg``/``setup.py``;
-- All C source files mentioned in the ``ext_modules`` or ``libraries``
+- C source files mentioned in the ``ext_modules`` or ``libraries``
   ``setup()`` arguments;
 - Files that match the following glob patterns: ``tests/test*.py``,
   ``test/test*.py``;
