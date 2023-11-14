@@ -31,6 +31,8 @@ files are included in a source distribution by default:
 - ``README``, ``README.txt``, ``README.rst`` or ``README.md``;
 - ``MANIFEST.in``
 
+Please note that the list above is guaranteed to work with the last stable version
+of ``setuptools``. The behavior of older versions might differ.
 
 .. note::
    .. versionadded:: v68.3.0
