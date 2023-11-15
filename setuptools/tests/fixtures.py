@@ -102,18 +102,25 @@ def setuptools_wheel(tmp_path_factory, request):
         if dist:
             return dist
 
-        subprocess.check_call(
-            [
-                sys.executable,
-                "-m",
-                "build",
-                "--wheel",
-                "--outdir",
-                str(tmp),
-                str(request.config.rootdir),
-            ]
-        )
-        return next(tmp.glob("*.whl"))
+        try:
+            subprocess.check_call(
+                [
+                    sys.executable,
+                    "-m",
+                    "build",
+                    "--wheel",
+                    "--outdir",
+                    str(tmp),
+                    str(request.config.rootdir),
+                ]
+            )
+            return next(tmp.glob("*.whl"))
+        except subprocess.CalledProcessError as ex:
+            print(f"{ex.cmd=}", file=sys.stderr)
+            print(f"{ex.stdout=}", file=sys.stderr)
+            print(f"{ex.stderr=}", file=sys.stderr)
+            print(f"{ex.returncode=}", file=sys.stderr)
+            raise
 
 
 @pytest.fixture
