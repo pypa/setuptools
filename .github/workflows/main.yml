@@ -48,12 +48,15 @@ jobs:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
       - name: Install tox
-        run: |
-          python -m pip install tox
+        run: python -m pip install tox
       - name: Run
         run: tox
 
-  diffcov:
+  collateral:
+    strategy:
+      fail-fast: false
+      matrix:
+        job: [diffcov, docs]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -64,33 +67,16 @@ jobs:
         with:
           python-version: 3.x
       - name: Install tox
-        run: |
-          python -m pip install tox
-      - name: Evaluate coverage
-        run: tox
-        env:
-          TOXENV: diffcov
-
-  docs:
-    runs-on: ubuntu-latest
-    env:
-      TOXENV: docs
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v4
-      - name: Install tox
-        run: |
-          python -m pip install tox
-      - name: Run
-        run: tox
+        run: python -m pip install tox
+      - name: Eval ${{ matrix.job }}
+        run: tox -e ${{ matrix.job }}
 
   check:  # This job does nothing and is only used for the branch protection
     if: always()
 
     needs:
     - test
-    - docs
+    - collateral
 
     runs-on: ubuntu-latest
 
@@ -115,8 +101,7 @@ jobs:
         with:
           python-version: 3.x
       - name: Install tox
-        run: |
-          python -m pip install tox
+        run: python -m pip install tox
       - name: Run
         run: tox -e release
         env:
