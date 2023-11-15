@@ -942,7 +942,7 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
         build_backend.build_sdist("temp")
 
 
-def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
+def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd, _debug_venv):
     pyproject = """
     [build-system]
     requires = ["setuptools"]

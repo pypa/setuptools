@@ -41,6 +41,16 @@ def find_distutils(venv, imports='distutils', env=None, **kwargs):
     return popen_text(venv.run)(cmd, env=win_sr(env), **kwargs)
 
 
+def _debug_find_distutils(venv, imports='distutils', env=None, **kwargs):
+    from pprint import pprint
+
+    print(f"find_distutils: {venv.root=}, {kwargs=}", file=sys.stderr)
+    pprint(env, stream=sys.stderr, indent=4)
+    loc = find_distutils(venv, imports, env, **kwargs)
+    print(f"    {loc=}", file=sys.stderr)
+    return loc
+
+
 def count_meta_path(venv, env=None):
     py_cmd = textwrap.dedent(
         """
@@ -69,24 +79,24 @@ def test_distutils_stdlib(venv):
     assert count_meta_path(venv, env=env) == 0
 
 
-def test_distutils_local_with_setuptools(venv):
+def test_distutils_local_with_setuptools(venv, _debug_venv):
     """
     Ensure local distutils is used when appropriate.
     """
     env = dict(SETUPTOOLS_USE_DISTUTILS='local')
-    loc = find_distutils(venv, imports='setuptools, distutils', env=env)
+    loc = _debug_find_distutils(venv, imports='setuptools, distutils', env=env)
     assert venv.name in loc.split(os.sep)
     assert count_meta_path(venv, env=env) <= 1
 
 
 @pytest.mark.xfail('IS_PYPY', reason='pypy imports distutils on startup')
-def test_distutils_local(venv):
+def test_distutils_local(venv, _debug_venv):
     """
     Even without importing, the setuptools-local copy of distutils is
     preferred.
     """
     env = dict(SETUPTOOLS_USE_DISTUTILS='local')
-    assert venv.name in find_distutils(venv, env=env).split(os.sep)
+    assert venv.name in _debug_find_distutils(venv, env=env).split(os.sep)
     assert count_meta_path(venv, env=env) <= 1
 
 

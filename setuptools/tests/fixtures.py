@@ -156,3 +156,22 @@ def bare_venv(tmp_path):
     env.create_opts = ['--no-setuptools', '--no-pip', '--no-wheel', '--no-seed']
     env.ensure_env()
     return env
+
+
+@pytest.fixture
+def _debug_venv(venv, setuptools_wheel):
+    try:
+        yield
+    except Exception:
+        from pprint import pprint
+        from zipfile import ZipFile
+
+        print(f"{setuptools_wheel=}", file=sys.stderr)
+        with ZipFile(setuptools_wheel) as zipfile:
+            pprint(set(zipfile.namelist()), stream=sys.stderr, indent=4)
+
+        venv_lib = next(Path(venv.root).rglob("site-packages/"))
+        pprint(f"{venv.root=}", stream=sys.stderr)
+        pprint(list(venv_lib.iterdir()), stream=sys.stderr, indent=4)
+
+        raise
