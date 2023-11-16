@@ -67,12 +67,12 @@ def sample_project(tmp_path):
 @pytest.fixture(scope="session")
 def setuptools_sdist(tmp_path_factory, request):
     prebuilt = os.getenv("PRE_BUILT_SETUPTOOLS_SDIST")
-    if prebuilt and os.path.exists(prebuilt):
+    if prebuilt and os.path.exists(prebuilt):  # pragma: no cover
         return Path(prebuilt).resolve()
 
     with contexts.session_locked_tmp_dir(
         request, tmp_path_factory, "sdist_build"
-    ) as tmp:
+    ) as tmp:  # pragma: no cover
         dist = next(tmp.glob("*.tar.gz"), None)
         if dist:
             return dist
@@ -94,12 +94,12 @@ def setuptools_sdist(tmp_path_factory, request):
 @pytest.fixture(scope="session")
 def setuptools_wheel(tmp_path_factory, request):
     prebuilt = os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL")
-    if prebuilt and os.path.exists(prebuilt):
+    if prebuilt and os.path.exists(prebuilt):  # pragma: no cover
         return Path(prebuilt).resolve()
 
     with contexts.session_locked_tmp_dir(
         request, tmp_path_factory, "wheel_build"
-    ) as tmp:
+    ) as tmp:  # pragma: no cover
         dist = next(tmp.glob("*.whl"), None)
         if dist:
             return dist
