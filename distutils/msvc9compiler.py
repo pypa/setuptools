@@ -698,8 +698,8 @@ class MSVCCompiler(CCompiler):
     def manifest_setup_ldargs(self, output_filename, build_temp, ld_args):
         # If we need a manifest at all, an embedded manifest is recommended.
         # See MSDN article titled
-        # "How to: Embed a Manifest Inside a C/C++ Application"
-        # (currently at http://msdn2.microsoft.com/en-us/library/ms235591(VS.80).aspx)
+        # "Understanding manifest generation for C/C++ programs"
+        # (currently at https://learn.microsoft.com/en-us/cpp/build/understanding-manifest-generation-for-c-cpp-programs)
         # Ask the linker to generate the manifest in the temp dir, so
         # we can check it, and possibly embed it, later.
         temp_manifest = os.path.join(
@@ -710,7 +710,7 @@ class MSVCCompiler(CCompiler):
     def manifest_get_embed_info(self, target_desc, ld_args):
         # If a manifest should be embedded, return a tuple of
         # (manifest_filename, resource_id).  Returns None if no manifest
-        # should be embedded.  See http://bugs.python.org/issue7833 for why
+        # should be embedded.  See https://bugs.python.org/issue7833 for why
         # we want to avoid any manifest for extension modules if we can)
         for arg in ld_args:
             if arg.startswith("/MANIFESTFILE:"):

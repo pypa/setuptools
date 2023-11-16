@@ -162,7 +162,7 @@ class TestSDist(BasePyPIRCCommandTestCase):
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_add_defaults(self):
-        # http://bugs.python.org/issue2279
+        # https://bugs.python.org/issue2279
 
         # add_default should also include
         # data_files and package_data

@@ -435,7 +435,7 @@ class bdist_rpm(Command):
         fixed = "brp-python-bytecompile %{__python} \\\n"
         fixed_hook = vendor_hook.replace(problem, fixed)
         if fixed_hook != vendor_hook:
-            spec_file.append('# Workaround for http://bugs.python.org/issue14443')
+            spec_file.append('# Workaround for https://bugs.python.org/issue14443')
             spec_file.append('%define __os_install_post ' + fixed_hook + '\n')
 
         # put locale summaries into spec file
