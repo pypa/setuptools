@@ -65,7 +65,7 @@ def sample_project(tmp_path):
 
 
 @pytest.fixture(scope="session")
-def setuptools_sdist(tmp_path_factory, request, _debug_subprocess):
+def setuptools_sdist(tmp_path_factory, request):
     prebuilt = os.getenv("PRE_BUILT_SETUPTOOLS_SDIST")
     if prebuilt and os.path.exists(prebuilt):
         return Path(prebuilt).resolve()
@@ -92,7 +92,7 @@ def setuptools_sdist(tmp_path_factory, request, _debug_subprocess):
 
 
 @pytest.fixture(scope="session")
-def setuptools_wheel(tmp_path_factory, request, _debug_subprocess):
+def setuptools_wheel(tmp_path_factory, request):
     prebuilt = os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL")
     if prebuilt and os.path.exists(prebuilt):
         return Path(prebuilt).resolve()
@@ -176,16 +176,4 @@ def _debug_venv(venv, setuptools_wheel):
         pprint(f"{venv.root=}", stream=sys.stderr)
         pprint(list(venv_lib.iterdir()), stream=sys.stderr, indent=4)
 
-        raise
-
-
-@pytest.fixture
-def _debug_subprocess():
-    try:
-        yield
-    except subprocess.CalledProcessError as ex:
-        print(f"{ex.cmd=}", file=sys.stderr)
-        print(f"{ex.stdout=}", file=sys.stderr)
-        print(f"{ex.stderr=}", file=sys.stderr)
-        print(f"{ex.returncode=}", file=sys.stderr)
         raise
