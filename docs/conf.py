@@ -45,15 +45,15 @@ link_files = {
             ),
             dict(
                 pattern=r'Old Setuptools #(?P<old_setuptools>\d+)',
-                url='http://bugs.python.org/setuptools/issue{old_setuptools}',
+                url='https://bugs.python.org/setuptools/issue{old_setuptools}',
             ),
             dict(
                 pattern=r'Jython #(?P<jython>\d+)',
-                url='http://bugs.jython.org/issue{jython}',
+                url='https://bugs.jython.org/issue{jython}',
             ),
             dict(
                 pattern=r'(Python #|bpo-)(?P<python>\d+)',
-                url='http://bugs.python.org/issue{python}',
+                url='https://bugs.python.org/issue{python}',
             ),
             dict(
                 pattern=r'Interop #(?P<interop>\d+)',

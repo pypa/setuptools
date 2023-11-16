@@ -109,7 +109,7 @@ To build the docs locally, use tox::
 
     $ tox -e docs
 
-.. _Sphinx: http://www.sphinx-doc.org/en/master/
+.. _Sphinx: https://www.sphinx-doc.org/en/master/
 .. _published documentation: https://setuptools.pypa.io/en/latest/
 
 ---------------------
