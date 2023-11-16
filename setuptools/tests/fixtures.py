@@ -65,9 +65,10 @@ def sample_project(tmp_path):
 
 
 @pytest.fixture(scope="session")
-def setuptools_sdist(tmp_path_factory, request):
-    if os.getenv("PRE_BUILT_SETUPTOOLS_SDIST"):
-        return Path(os.getenv("PRE_BUILT_SETUPTOOLS_SDIST")).resolve()
+def setuptools_sdist(tmp_path_factory, request, _debug_subprocess):
+    prebuilt = os.getenv("PRE_BUILT_SETUPTOOLS_SDIST")
+    if prebuilt and os.path.exists(prebuilt):
+        return Path(prebuilt).resolve()
 
     with contexts.session_locked_tmp_dir(
         request, tmp_path_factory, "sdist_build"
@@ -76,7 +77,7 @@ def setuptools_sdist(tmp_path_factory, request):
         if dist:
             return dist
 
-        subprocess.check_call(
+        subprocess.check_output(
             [
                 sys.executable,
                 "-m",
@@ -91,9 +92,10 @@ def setuptools_sdist(tmp_path_factory, request):
 
 
 @pytest.fixture(scope="session")
-def setuptools_wheel(tmp_path_factory, request):
-    if os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL"):
-        return Path(os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL")).resolve()
+def setuptools_wheel(tmp_path_factory, request, _debug_subprocess):
+    prebuilt = os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL")
+    if prebuilt and os.path.exists(prebuilt):
+        return Path(prebuilt).resolve()
 
     with contexts.session_locked_tmp_dir(
         request, tmp_path_factory, "wheel_build"
@@ -102,25 +104,18 @@ def setuptools_wheel(tmp_path_factory, request):
         if dist:
             return dist
 
-        try:
-            subprocess.check_call(
-                [
-                    sys.executable,
-                    "-m",
-                    "build",
-                    "--wheel",
-                    "--outdir",
-                    str(tmp),
-                    str(request.config.rootdir),
-                ]
-            )
-            return next(tmp.glob("*.whl"))
-        except subprocess.CalledProcessError as ex:
-            print(f"{ex.cmd=}", file=sys.stderr)
-            print(f"{ex.stdout=}", file=sys.stderr)
-            print(f"{ex.stderr=}", file=sys.stderr)
-            print(f"{ex.returncode=}", file=sys.stderr)
-            raise
+        subprocess.check_output(
+            [
+                sys.executable,
+                "-m",
+                "build",
+                "--wheel",
+                "--outdir",
+                str(tmp),
+                str(request.config.rootdir),
+            ]
+        )
+        return next(tmp.glob("*.whl"))
 
 
 @pytest.fixture
@@ -181,4 +176,16 @@ def _debug_venv(venv, setuptools_wheel):
         pprint(f"{venv.root=}", stream=sys.stderr)
         pprint(list(venv_lib.iterdir()), stream=sys.stderr, indent=4)
 
+        raise
+
+
+@pytest.fixture
+def _debug_subprocess():
+    try:
+        yield
+    except subprocess.CalledProcessError as ex:
+        print(f"{ex.cmd=}", file=sys.stderr)
+        print(f"{ex.stdout=}", file=sys.stderr)
+        print(f"{ex.stderr=}", file=sys.stderr)
+        print(f"{ex.returncode=}", file=sys.stderr)
         raise
