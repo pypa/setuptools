@@ -204,7 +204,7 @@ intersphinx_mapping.update(
     python=('https://docs.python.org/3.11/', None),
     # ^-- Python 3.11 is required because it still contains `distutils`.
     #     Just leaving it as `3` would imply 3.12+, but that causes an
-    #     error with the cross references to disutils functions.
+    #     error with the cross references to distutils functions.
     #     Inventory cache may cause errors, deleting it solves the problem.
 )
 
