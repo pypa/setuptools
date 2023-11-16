@@ -129,7 +129,7 @@ SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
         EXAMPLE,  # No setup.py script
     ],
 )
-def test_editable_with_pyproject(tmp_path, venv, files, editable_opts, _debug_venv):
+def test_editable_with_pyproject(tmp_path, venv, files, editable_opts):
     project = tmp_path / "mypkg"
     project.mkdir()
     jaraco.path.build(files, prefix=project)
@@ -861,7 +861,7 @@ class TestOverallBehaviour:
     }
 
     @pytest.mark.parametrize("layout", EXAMPLES.keys())
-    def test_editable_install(self, tmp_path, venv, layout, editable_opts, _debug_venv):
+    def test_editable_install(self, tmp_path, venv, layout, editable_opts):
         project, _ = install_project(
             "mypkg", venv, tmp_path, self.EXAMPLES[layout], *editable_opts
         )
