@@ -30,7 +30,7 @@ from typing import (
 )
 
 from ..errors import RemovedConfigError
-from ..warnings import SetuptoolsWarning, SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
     from setuptools._importlib import metadata  # noqa
