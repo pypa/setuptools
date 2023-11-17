@@ -1,4 +1,4 @@
-Remove deprecated ``egg_base`` option from ``dist_info``.
+Removed deprecated ``egg_base`` option from ``dist_info``.
 Note that the ``dist_info`` command is considered internal to the way
 ``setuptools`` build backend works and not intended for
 public usage.
