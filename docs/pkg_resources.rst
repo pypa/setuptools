@@ -108,7 +108,7 @@ eggs
 (For more information about these terms and concepts, see also this
 `architectural overview`_ of ``pkg_resources`` and Python Eggs in general.)
 
-.. _architectural overview: http://mail.python.org/pipermail/distutils-sig/2005-June/004652.html
+.. _architectural overview: https://mail.python.org/pipermail/distutils-sig/2005-June/004652.html
 
 
 .. -----------------
