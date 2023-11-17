@@ -72,7 +72,8 @@ and you supply this configuration:
 then all the ``.txt`` and ``.rst`` files will be automatically installed with
 your package, provided:
 
-1. These files are included via the |MANIFEST.in|_ file, like so::
+1. These files are included via the :ref:`MANIFEST.in <Using MANIFEST.in>` file,
+   like so::
 
         include src/mypkg/*.txt
         include src/mypkg/*.rst
@@ -149,8 +150,8 @@ data files:
 
 The ``package_data`` argument is a dictionary that maps from package names to
 lists of glob patterns. Note that the data files specified using the ``package_data``
-option neither require to be included within a |MANIFEST.in|_ file, nor
-require to be added by a revision control system plugin.
+option neither require to be included within a :ref:`MANIFEST.in <Using MANIFEST.in>`
+file, nor require to be added by a revision control system plugin.
 
 .. note::
         If your glob patterns use paths, you *must* use a forward slash (``/``) as
@@ -426,13 +427,14 @@ Summary
 In summary, the three options allow you to:
 
 ``include_package_data``
-    Accept all data files and directories matched by |MANIFEST.in|_ or added by
+    Accept all data files and directories matched by
+    :ref:`MANIFEST.in <Using MANIFEST.in>` or added by
     a :ref:`plugin <Adding Support for Revision Control Systems>`.
 
 ``package_data``
     Specify additional patterns to match files that may or may
-    not be matched by |MANIFEST.in|_ or added by
-    a :ref:`plugin <Adding Support for Revision Control Systems>`.
+    not be matched by :ref:`MANIFEST.in <Using MANIFEST.in>`
+    or added by a :ref:`plugin <Adding Support for Revision Control Systems>`.
 
 ``exclude_package_data``
     Specify patterns for data files and directories that should *not* be
@@ -537,7 +539,3 @@ run time be included **inside the package**.
 .. [#files_api] Reference: https://importlib-resources.readthedocs.io/en/latest/using.html#migrating-from-legacy
 
 .. [#namespace_support] Reference: https://github.com/python/importlib_resources/pull/196#issuecomment-734520374
-
-
-.. |MANIFEST.in| replace:: ``MANIFEST.in``
-.. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/

@@ -60,7 +60,7 @@ EXAMPLE = {
             "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers"
         ]
-        urls = {Homepage = "http://github.com"}
+        urls = {Homepage = "https://github.com"}
         dependencies = ['importlib-metadata; python_version<"3.8"']
 
         [tool.setuptools]

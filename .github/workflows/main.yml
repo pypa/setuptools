@@ -73,6 +73,14 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: setuptools/tests/config
         run: python -m downloads.preload setupcfg_examples.txt
+      - name: Pre-build distributions for test
+        shell: bash
+        run: |
+          rm -rf dist
+          pipx run build
+          echo "PRE_BUILT_SETUPTOOLS_SDIST=$(ls dist/*.tar.gz)" >> $GITHUB_ENV
+          echo "PRE_BUILT_SETUPTOOLS_WHEEL=$(ls dist/*.whl)" >> $GITHUB_ENV
+          rm -rf setuptools.egg-info  # Avoid interfering with the other tests
       - name: Install tox
         run: |
           python -m pip install tox
