@@ -23,7 +23,7 @@ from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.command.egg_info import write_requirements
-from setuptools.warnings import SetuptoolsDeprecationWarning
+from setuptools.errors import RemovedConfigError
 
 from .downloads import retrieve_file, urls_from_file
 
@@ -316,7 +316,7 @@ class TestDeprecatedFields:
         namespace-packages = ["myproj.pkg"]
         """
         pyproject.write_text(cleandoc(config), encoding="utf-8")
-        with pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages"):
+        with pytest.raises(RemovedConfigError, match="namespace-packages"):
             pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
 

@@ -12,6 +12,7 @@ import os
 from collections.abc import Mapping
 from email.headerregistry import Address
 from functools import partial, reduce
+from inspect import cleandoc
 from itertools import chain
 from types import MappingProxyType
 from typing import (
@@ -28,6 +29,7 @@ from typing import (
     cast,
 )
 
+from ..errors import RemovedConfigError
 from ..warnings import SetuptoolsWarning, SetuptoolsDeprecationWarning
 
 if TYPE_CHECKING:
@@ -90,12 +92,13 @@ def _apply_tool_table(dist: "Distribution", config: dict, filename: _Path):
     for field, value in tool_table.items():
         norm_key = json_compatible_key(field)
 
-        if norm_key in TOOL_TABLE_DEPRECATIONS:
-            suggestion, kwargs = TOOL_TABLE_DEPRECATIONS[norm_key]
-            msg = f"The parameter `{norm_key}` is deprecated, {suggestion}"
-            SetuptoolsDeprecationWarning.emit(
-                "Deprecated config", msg, **kwargs  # type: ignore
-            )
+        if norm_key in TOOL_TABLE_REMOVALS:
+            suggestion = cleandoc(TOOL_TABLE_REMOVALS[norm_key])
+            msg = f"""
+            The parameter `tool.setuptools.{field}` was long deprecated
+            and has been removed from `pyproject.toml`.
+            """
+            raise RemovedConfigError("\n".join([cleandoc(msg), suggestion]))
 
         norm_key = TOOL_TABLE_RENAMES.get(norm_key, norm_key)
         _set_config(dist, norm_key, value)
@@ -357,11 +360,11 @@ PYPROJECT_CORRESPONDENCE: Dict[str, _Correspondence] = {
 }
 
 TOOL_TABLE_RENAMES = {"script_files": "scripts"}
-TOOL_TABLE_DEPRECATIONS = {
-    "namespace_packages": (
-        "consider using implicit namespaces instead (PEP 420).",
-        {"due_date": (2023, 10, 30)},  # warning introduced in May 2022
-    )
+TOOL_TABLE_REMOVALS = {
+    "namespace_packages": """
+        Please migrate to implicit native namespaces instead.
+        See https://packaging.python.org/en/latest/guides/packaging-namespace-packages/.
+        """,
 }
 
 SETUPTOOLS_PATCHES = {
