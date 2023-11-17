@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set, Union
 from ..errors import FileError, OptionError
 from ..warnings import SetuptoolsWarning
 from . import expand as _expand
-from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _WouldIgnoreField
+from ._apply_pyprojecttoml import _PREVIOUSLY_DEFINED, _MissingDynamic
 from ._apply_pyprojecttoml import apply as _apply
 
 if TYPE_CHECKING:
@@ -330,9 +330,7 @@ class _ConfigExpander:
             if group in groups:
                 value = groups.pop(group)
                 if field not in self.dynamic:
-                    _WouldIgnoreField.emit(field=field, value=value)
-                # TODO: Don't set field when support for pyproject.toml stabilizes
-                #       instead raise an error as specified in PEP 621
+                    raise OptionError(_MissingDynamic.details(field, value))
                 expanded[field] = value
 
         _set_scripts("scripts", "console_scripts")
