@@ -81,6 +81,9 @@ jobs:
           echo "PRE_BUILT_SETUPTOOLS_SDIST=$(ls dist/*.tar.gz)" >> $GITHUB_ENV
           echo "PRE_BUILT_SETUPTOOLS_WHEEL=$(ls dist/*.whl)" >> $GITHUB_ENV
           rm -rf setuptools.egg-info  # Avoid interfering with the other tests
+      - name: Workaround for unreleased PyNaCl (pyca/pynacl#805)
+        if: contains(matrix.python, 'pypy')
+        run: echo "SETUPTOOLS_ENFORCE_DEPRECATION=0" >> $GITHUB_ENV
       - name: Install tox
         run: |
           python -m pip install tox
