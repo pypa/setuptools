@@ -968,7 +968,7 @@ def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
 
 @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
 def test_sys_exit_0_in_setuppy(monkeypatch, tmp_path):
-    """Setuptools should be resilent to setup.py with ``sys.exit(0)`` (#3973)."""
+    """Setuptools should be resilient to setup.py with ``sys.exit(0)`` (#3973)."""
     monkeypatch.chdir(tmp_path)
     setuppy = """
         import sys, setuptools
