@@ -1,10 +1,12 @@
-"""Tests for distutils.dep_util."""
+"""Tests for distutils._modified."""
 import os
+import types
 
-from distutils.dep_util import newer, newer_pairwise, newer_group
+import pytest
+
+from distutils._modified import newer, newer_pairwise, newer_group, newer_pairwise_group
 from distutils.errors import DistutilsFileError
 from distutils.tests import support
-import pytest
 
 
 class TestDepUtil(support.TempdirManager):
@@ -27,7 +29,7 @@ class TestDepUtil(support.TempdirManager):
         # than 'new_file'.
         assert not newer(old_file, new_file)
 
-    def test_newer_pairwise(self):
+    def _setup_1234(self):
         tmpdir = self.mkdtemp()
         sources = os.path.join(tmpdir, 'sources')
         targets = os.path.join(tmpdir, 'targets')
@@ -40,8 +42,29 @@ class TestDepUtil(support.TempdirManager):
         self.write_file(one)
         self.write_file(two)
         self.write_file(four)
+        return one, two, three, four
+
+    def test_newer_pairwise(self):
+        one, two, three, four = self._setup_1234()
 
         assert newer_pairwise([one, two], [three, four]) == ([one], [three])
+
+    def test_newer_pairwise_mismatch(self):
+        one, two, three, four = self._setup_1234()
+
+        with pytest.raises(ValueError):
+            newer_pairwise([one], [three, four])
+
+        with pytest.raises(ValueError):
+            newer_pairwise([one, two], [three])
+
+    def test_newer_pairwise_empty(self):
+        assert newer_pairwise([], []) == ([], [])
+
+    def test_newer_pairwise_fresh(self):
+        one, two, three, four = self._setup_1234()
+
+        assert newer_pairwise([one, three], [two, four]) == ([], [])
 
     def test_newer_group(self):
         tmpdir = self.mkdtemp()
@@ -68,3 +91,29 @@ class TestDepUtil(support.TempdirManager):
         assert not newer_group([one, two, old_file], three, missing='ignore')
 
         assert newer_group([one, two, old_file], three, missing='newer')
+
+
+@pytest.fixture
+def groups_target(tmp_path):
+    """
+    Set up some older sources, a target, and newer sources.
+
+    Returns a simple namespace with these values.
+    """
+    filenames = ['older.c', 'older.h', 'target.o', 'newer.c', 'newer.h']
+    paths = [tmp_path / name for name in filenames]
+
+    for mtime, path in enumerate(paths):
+        path.write_text('', encoding='utf-8')
+
+        # make sure modification times are sequential
+        os.utime(path, (mtime, mtime))
+
+    return types.SimpleNamespace(older=paths[:2], target=paths[2], newer=paths[3:])
+
+
+def test_newer_pairwise_group(groups_target):
+    older = newer_pairwise_group([groups_target.older], [groups_target.target])
+    newer = newer_pairwise_group([groups_target.newer], [groups_target.target])
+    assert older == ([], [])
+    assert newer == ([groups_target.newer], [groups_target.target])
