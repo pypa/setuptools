@@ -1,7 +1,7 @@
+import functools
 import inspect
 import logging
 import sys
-from contextlib import contextmanager
 
 import pytest
 
@@ -42,15 +42,18 @@ def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
     assert log_level_name == expected_level
 
 
-@contextmanager
 def flaky_on_pypy(func):
-    try:
-        func()
-    except AssertionError:  # pragma: no cover
-        if IS_PYPY:
-            msg = "Flaky monkeypatch on PyPy (#4124)"
-            pytest.xfail(f"{msg}. Original discussion in #3707, #3709.")
-        raise
+    @functools.wraps(func)
+    def _func():
+        try:
+            func()
+        except AssertionError:  # pragma: no cover
+            if IS_PYPY:
+                msg = "Flaky monkeypatch on PyPy (#4124)"
+                pytest.xfail(f"{msg}. Original discussion in #3707, #3709.")
+            raise
+
+    return _func
 
 
 @flaky_on_pypy
