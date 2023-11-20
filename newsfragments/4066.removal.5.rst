@@ -1,0 +1,4 @@
+Removed deprecated ``namespace-packages`` from ``pyproject.toml``.
+Users are asked to use
+:doc:`implicit namespace packages <PyPUG:guides/packaging-namespace-packages>`
+(as defined in :pep:`420`).

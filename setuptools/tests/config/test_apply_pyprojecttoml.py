@@ -21,9 +21,9 @@ import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
-from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField, _some_attrgetter
+from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.command.egg_info import write_requirements
-from setuptools.warnings import SetuptoolsDeprecationWarning
+from setuptools.errors import RemovedConfigError
 
 from .downloads import retrieve_file, urls_from_file
 
@@ -316,7 +316,7 @@ class TestDeprecatedFields:
         namespace-packages = ["myproj.pkg"]
         """
         pyproject.write_text(cleandoc(config), encoding="utf-8")
-        with pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages"):
+        with pytest.raises(RemovedConfigError, match="namespace-packages"):
             pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
 
@@ -339,18 +339,15 @@ class TestPresetField:
         ],
     )
     def test_not_listed_in_dynamic(self, tmp_path, attr, field, value):
-        """For the time being we just warn if the user pre-set values (e.g. via
-        ``setup.py``) but do not include them in ``dynamic``.
-        """
+        """Setuptools cannot set a field if not listed in ``dynamic``"""
         pyproject = self.pyproject(tmp_path, [])
         dist = makedist(tmp_path, **{attr: value})
         msg = re.compile(f"defined outside of `pyproject.toml`:.*{field}", re.S)
-        with pytest.warns(_WouldIgnoreField, match=msg):
+        with pytest.warns(_MissingDynamic, match=msg):
             dist = pyprojecttoml.apply_configuration(dist, pyproject)
 
-        # TODO: Once support for pyproject.toml config stabilizes attr should be None
         dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
-        assert dist_value == value
+        assert not dist_value
 
     @pytest.mark.parametrize(
         "attr, field, value",

@@ -185,11 +185,6 @@ class _ConfigSettingsTranslator:
         opts = cfg.get(key) or []
         return shlex.split(opts) if isinstance(opts, str) else opts
 
-    def _valid_global_options(self):
-        """Global options accepted by setuptools (e.g. quiet or verbose)."""
-        options = (opt[:2] for opt in setuptools.dist.Distribution.global_options)
-        return {flag for long_and_short in options for flag in long_and_short if flag}
-
     def _global_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
         Let the user specify ``verbose`` or ``quiet`` + escape hatch via
@@ -220,9 +215,7 @@ class _ConfigSettingsTranslator:
             level = str(cfg.get("quiet") or cfg.get("--quiet") or "1")
             yield ("-v" if level.lower() in falsey else "-q")
 
-        valid = self._valid_global_options()
-        args = self._get_config("--global-option", config_settings)
-        yield from (arg for arg in args if arg.strip("-") in valid)
+        yield from self._get_config("--global-option", config_settings)
 
     def __dist_info_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
@@ -284,32 +277,10 @@ class _ConfigSettingsTranslator:
         ['foo']
         >>> list(fn({'--build-option': 'foo bar'}))
         ['foo', 'bar']
-        >>> warnings.simplefilter('error', SetuptoolsDeprecationWarning)
-        >>> list(fn({'--global-option': 'foo'}))  # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        SetuptoolsDeprecationWarning: ...arguments given via `--global-option`...
+        >>> list(fn({'--global-option': 'foo'}))
+        []
         """
-        args = self._get_config("--global-option", config_settings)
-        global_opts = self._valid_global_options()
-        bad_args = []
-
-        for arg in args:
-            if arg.strip("-") not in global_opts:
-                bad_args.append(arg)
-                yield arg
-
         yield from self._get_config("--build-option", config_settings)
-
-        if bad_args:
-            SetuptoolsDeprecationWarning.emit(
-                "Incompatible `config_settings` passed to build backend.",
-                f"""
-                The arguments {bad_args!r} were given via `--global-option`.
-                Please use `--build-option` instead,
-                `--global-option` is reserved for flags like `--verbose` or `--quiet`.
-                """,
-                due_date=(2023, 9, 26),  # Warning introduced in v64.0.1, 11/Aug/2022.
-            )
 
 
 class _BuildMetaBackend(_ConfigSettingsTranslator):

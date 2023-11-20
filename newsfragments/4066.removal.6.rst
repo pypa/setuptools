@@ -1,0 +1,4 @@
+Added strict enforcement for ``project.dynamic`` in ``pyproject.toml``.
+This removes the transitional ability of users configuring certain parameters
+via ``setup.py`` without making the necessary changes to ``pyproject.toml``
+(as mandated by :pep:`612`).

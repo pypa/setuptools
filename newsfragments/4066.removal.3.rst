@@ -1,0 +1,4 @@
+The parsing of the deprecated ``metadata.license_file`` and
+``metadata.requires`` fields in ``setup.cfg`` is no longer supported.
+Users are expected to move to ``metadata.license_files`` and
+``options.install_requires`` (respectively).
