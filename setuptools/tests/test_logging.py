@@ -45,7 +45,7 @@ def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
 def _flaky_on_pypy(func):
     try:
         func()
-    except AssertionError:
+    except AssertionError:  # pragma: no cover
         if IS_PYPY:
             msg = "Flaky monkeypatch on PyPy"
             pytest.xfail(f"{msg}. Original discussion in #3707, #3709.")
