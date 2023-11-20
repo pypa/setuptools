@@ -514,7 +514,7 @@ class PackageIndex(Environment):
             if dist in requirement:
                 return dist
             self.debug("%s does not match %s", requirement, dist)
-        return super(PackageIndex, self).obtain(requirement, installer)
+        return super().obtain(requirement, installer)
 
     def check_hash(self, checker, filename, tfp):
         """
