@@ -242,6 +242,20 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
    .. versionchanged:: 66.1.0
       Newer versions of ``setuptools`` will automatically add these files to the ``sdist``.
 
+It is advisable to use literal values together with ``attr`` (e.g. ``str``,
+``tuple[str]``, see :func:`ast.literal_eval`). This is recommend
+in order to support the common case of a literal value assigned to a variable
+in a module containing (directly or indirectly) third-party imports.
+
+``attr`` first tries to read the value from the module by examining the
+module's AST. If that fails, ``attr`` falls back to importing the module,
+using :func:`importlib.util.spec_from_file_location` recommended recipe
+(see :ref:`example on Python docs <python:importlib-examples>`
+about "Importing a source file directly").
+Note however that importing the module is error prone since your package is
+not installed yet. You may also need to manually add the project directory to
+``sys.path`` (via ``setup.py``) in order to be able to do that.
+
 ----
 
 .. rubric:: Notes
