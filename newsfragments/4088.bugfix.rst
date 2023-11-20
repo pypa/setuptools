@@ -1,0 +1,4 @@
+Fixed path comparison in ``easy_install`` via normalization.
+(This affects only deprecated calls to ``python setup.py install/develop``,
+users are still encouraged to use ``python -m build`` or ``pip install -e .``
+with build isolation).
