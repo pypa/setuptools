@@ -720,13 +720,7 @@ class TestBuildMetaBackend:
         build_backend.build_editable("temp")
         assert not Path("build").exists()
 
-    @pytest.mark.parametrize(
-        "config_settings",
-        [
-            {"--build-option": ["--mode", "strict"]},
-            {"editable-mode": "strict"},
-        ],
-    )
+    @pytest.mark.parametrize("config_settings", [{"editable-mode": "strict"}])
     def test_editable_with_config_settings(self, tmpdir_cwd, config_settings):
         path.build({**self._simple_pyproject_example, '_meta': {}})
         assert not Path("build").exists()
