@@ -14,8 +14,7 @@ _default_revctrl = list
 def walk_revctrl(dirname=''):
     """Find all files under revision control"""
     for ep in metadata.entry_points(group='setuptools.file_finders'):
-        for item in ep.load()(dirname):
-            yield item
+        yield from ep.load()(dirname)
 
 
 class sdist(orig.sdist):
