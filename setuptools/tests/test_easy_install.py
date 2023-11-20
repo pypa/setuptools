@@ -321,7 +321,7 @@ class TestPTHFileWriter:
         In windows, path is not case sensitive,
         This is test when the distribution path is cwd and normalized.
         """
-        if sys.platform.startswith('win'):
+        if sys.platform.startswith('win'):  # pragma: no cover
             path_org = 'C:/Location/package'
         else:
             path_org = '/Location/package'
