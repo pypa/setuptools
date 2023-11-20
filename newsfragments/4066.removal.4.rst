@@ -1,2 +1,0 @@
-Passing ``config_settings`` to ``setuptools.build_meta`` with
-deprecated values for ``--global-option`` is no longer allowed.

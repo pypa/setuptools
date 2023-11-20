@@ -1,3 +1,51 @@
+v69.0.0
+=======
+
+Features
+--------
+
+- Include type information (``py.typed``, ``*.pyi``) by default (#3136) -- by :user:`Danie-1`,
+  **EXPERIMENTAL**. (#3136)
+- Exported ``distutils.dep_util`` and ``setuptools.dep_util`` through ``setuptools.modified`` -- by :user:`Avasam` (#4069)
+- Merged with pypa/distutils@7a04cbda0fc714.
+
+
+Bugfixes
+--------
+
+- Replaced hardcoded numeric values with :obj:`dis.opmap`,
+  fixing problem with 3.13.0a1. (#4094)
+
+
+Deprecations and Removals
+-------------------------
+
+- Configuring project ``version`` and ``egg_info.tag_*`` in such a way that
+  results in invalid version strings (according to :pep:`440`) is no longer permitted. (#4066)
+- Removed deprecated ``egg_base`` option from ``dist_info``.
+  Note that the ``dist_info`` command is considered internal to the way
+  ``setuptools`` build backend works and not intended for
+  public usage. (#4066)
+- The parsing of the deprecated ``metadata.license_file`` and
+  ``metadata.requires`` fields in ``setup.cfg`` is no longer supported.
+  Users are expected to move to ``metadata.license_files`` and
+  ``options.install_requires`` (respectively). (#4066)
+- Passing ``config_settings`` to ``setuptools.build_meta`` with
+  deprecated values for ``--global-option`` is no longer allowed. (#4066)
+- Removed deprecated ``namespace-packages`` from ``pyproject.toml``.
+  Users are asked to use
+  :doc:`implicit namespace packages <PyPUG:guides/packaging-namespace-packages>`
+  (as defined in :pep:`420`). (#4066)
+- Added strict enforcement for ``project.dynamic`` in ``pyproject.toml``.
+  This removes the transitional ability of users configuring certain parameters
+  via ``setup.py`` without making the necessary changes to ``pyproject.toml``
+  (as mandated by :pep:`612`). (#4066)
+- Removed handling of ``--config-settings["--build-option"]`` in ``setuptools.build_meta``
+  from build-backend API hooks *other than* ``build_wheel``.
+  This was motivate by `errors caused when passing this option
+  <https://github.com/pypa/setuptools/issues/2491#issuecomment-1742859314>`_. (#4079)
+
+
 v68.2.2
 =======
 

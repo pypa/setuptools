@@ -1,2 +1,0 @@
-Replaced hardcoded numeric values with :obj:`dis.opmap`,
-fixing problem with 3.13.0a1.

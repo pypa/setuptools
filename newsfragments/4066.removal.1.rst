@@ -1,2 +1,0 @@
-Configuring project ``version`` and ``egg_info.tag_*`` in such a way that
-results in invalid version strings (according to :pep:`440`) is no longer permitted.
