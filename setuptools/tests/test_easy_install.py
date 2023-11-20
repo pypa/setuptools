@@ -318,8 +318,8 @@ class TestPTHFileWriter:
 
     def test_add_remove_for_normalized_path(self):
         """
-        In windows, path is not case sensitive, 
-        This is test when the distiribution path is cwd and normalized.
+        In windows, path is not case sensitive,
+        This is test when the distribution path is cwd and normalized.
         """
         if sys.platform.startswith('win'):
             path_org = 'C:/Location/package'
