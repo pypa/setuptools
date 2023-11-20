@@ -548,6 +548,20 @@ See :doc:`importlib-resources:using` for detailed instructions.
    pre-existing file is found.
 
 
+Data Files from Plugins and Extensions
+======================================
+
+You can resort to a :doc:`native/implicit namespace package
+<PyPUG:guides/packaging-namespace-packages>` (as a container for files)
+if you want plugins and extensions to your package to contribute with package data files.
+This way, all files will be listed during runtime
+when :doc:`using importlib.resources <importlib-resources:using>`.
+Note that, although not strictly guaranteed, mainstream Python package managers,
+like :pypi:`pip` and derived tools, will install files belong to multiple distributions
+that share a same namespace into the same directory in the file system.
+This means that the overhead for :mod:`importlib.resources` will be minimum.
+
+
 Non-Package Data Files
 ======================
 
