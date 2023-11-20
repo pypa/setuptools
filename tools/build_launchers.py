@@ -86,7 +86,7 @@ def build_cmake_project_with_msbuild(build_arena, msbuild_parameters):
     subprocess.check_call(cmd, cwd=build_arena)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_cmake():
     """Find CMake using registry."""
     import winreg
@@ -96,7 +96,7 @@ def get_cmake():
     return root / 'bin\\CMake.exe'
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_msbuild():
     """Use VSWhere to find MSBuild."""
     vswhere = pathlib.Path(
