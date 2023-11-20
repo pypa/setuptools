@@ -901,7 +901,8 @@ class TestBuildMetaBackend:
         files = {'setup.py': ''}
         path.build(files)
 
-        with pytest.raises(ValueError, match=re.escape('No distribution was found.')):
+        msg = re.escape('No distribution was found.')
+        with pytest.raises(ValueError, match=msg):
             getattr(build_backend, build_hook)("temp")
 
 

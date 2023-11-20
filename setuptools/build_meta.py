@@ -301,7 +301,7 @@ class _ConfigSettingsTranslator:
 
         if bad_args:
             msg = f"Incompatible `config_settings`: {bad_args!r} ({config_settings!r})"
-            raise ValueError(msg)
+            raise errors.InvalidConfigError(msg)
 
 
 class _BuildMetaBackend(_ConfigSettingsTranslator):
