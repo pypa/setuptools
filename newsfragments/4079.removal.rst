@@ -1,0 +1,4 @@
+Removed handling of ``--config-settings["--build-option"]`` in ``setuptools.build_meta``
+from build-backend API hooks *other than* ``build_wheel``.
+This was motivate by `errors caused when passing this option
+<https://github.com/pypa/setuptools/issues/2491#issuecomment-1742859314>`_.
