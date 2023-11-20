@@ -284,24 +284,10 @@ class _ConfigSettingsTranslator:
         ['foo']
         >>> list(fn({'--build-option': 'foo bar'}))
         ['foo', 'bar']
-        >>> list(fn({'--global-option': 'foo'}))  # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        ValueError: Incompatible .config_settings. ...'foo'...
+        >>> list(fn({'--global-option': 'foo'}))
+        []
         """
-        args = self._get_config("--global-option", config_settings)
-        global_opts = self._valid_global_options()
-        bad_args = []
-
-        for arg in args:
-            if arg.strip("-") not in global_opts:
-                bad_args.append(arg)
-                yield arg
-
         yield from self._get_config("--build-option", config_settings)
-
-        if bad_args:
-            msg = f"Incompatible `config_settings`: {bad_args!r} ({config_settings!r})"
-            raise errors.InvalidConfigError(msg)
 
 
 class _BuildMetaBackend(_ConfigSettingsTranslator):
