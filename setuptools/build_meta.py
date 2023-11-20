@@ -185,11 +185,6 @@ class _ConfigSettingsTranslator:
         opts = cfg.get(key) or []
         return shlex.split(opts) if isinstance(opts, str) else opts
 
-    def _valid_global_options(self):
-        """Global options accepted by setuptools (e.g. quiet or verbose)."""
-        options = (opt[:2] for opt in setuptools.dist.Distribution.global_options)
-        return {flag for long_and_short in options for flag in long_and_short if flag}
-
     def _global_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
         Let the user specify ``verbose`` or ``quiet`` + escape hatch via
@@ -220,9 +215,7 @@ class _ConfigSettingsTranslator:
             level = str(cfg.get("quiet") or cfg.get("--quiet") or "1")
             yield ("-v" if level.lower() in falsey else "-q")
 
-        valid = self._valid_global_options()
-        args = self._get_config("--global-option", config_settings)
-        yield from (arg for arg in args if arg.strip("-") in valid)
+        yield from self._get_config("--global-option", config_settings)
 
     def __dist_info_args(self, config_settings: _ConfigSettings) -> Iterator[str]:
         """
