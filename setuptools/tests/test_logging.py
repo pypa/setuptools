@@ -1,6 +1,7 @@
 import inspect
 import logging
 import sys
+from contextlib import contextmanager
 
 import pytest
 
@@ -41,7 +42,8 @@ def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
     assert log_level_name == expected_level
 
 
-def _flaky_on_pypy(func):
+@contextmanager
+def flaky_on_pypy(func):
     try:
         func()
     except AssertionError:  # pragma: no cover
@@ -51,7 +53,7 @@ def _flaky_on_pypy(func):
         raise
 
 
-@_flaky_on_pypy
+@flaky_on_pypy
 def test_patching_does_not_cause_problems():
     # Ensure `dist.log` is only patched if necessary
 
