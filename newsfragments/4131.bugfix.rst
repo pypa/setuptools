@@ -1,0 +1,1 @@
+Added missing estimated date for removing ``setuptools.dep_util`` (deprecated in v69.0.0).
