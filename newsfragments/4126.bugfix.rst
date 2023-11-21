@@ -1,2 +1,0 @@
-Fixed imports of ``setuptools.dep_util.newer_group``.
-A deprecation warning is issued instead of a hard failure.

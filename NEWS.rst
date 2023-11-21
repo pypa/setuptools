@@ -1,3 +1,13 @@
+v69.0.1
+=======
+
+Bugfixes
+--------
+
+- Fixed imports of ``setuptools.dep_util.newer_group``.
+  A deprecation warning is issued instead of a hard failure. (#4126)
+
+
 v69.0.0
 =======
 
