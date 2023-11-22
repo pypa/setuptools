@@ -9,7 +9,7 @@ designed to facilitate packaging Python projects.
 
 It helps developers to easily share reusable code (in the form of a library)
 and programs (e.g., CLI/GUI tools implemented in Python), that can be installed
-with :pypi:`pip` and uploaded to `PyPI <http://pypi.org>`_.
+with :pypi:`pip` and uploaded to `PyPI <https://pypi.org>`_.
 
 .. sidebar-links::
    :home:

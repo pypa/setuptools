@@ -155,13 +155,25 @@ Type names used below:
 
 Special directives:
 
-* ``attr:`` - Value is read from a module attribute.  ``attr:`` supports
+* ``attr:`` - Value is read from a module attribute.
+
+  It is advisable to use literal values together with ``attr:`` (e.g. ``str``,
+  ``tuple[str]``, see :func:`ast.literal_eval`). This is recommend
+  in order to support the common case of a literal value assigned to a variable
+  in a module containing (directly or indirectly) third-party imports.
+
+  ``attr:`` first tries to read the value from the module by examining the
+  module's AST.  If that fails, ``attr:`` falls back to importing the module,
+  using :func:`importlib.util.spec_from_file_location` recommended recipe
+  (see :ref:`example on Python docs <python:importlib-examples>`
+  about "Importing a source file directly").
+  Note however that importing the module is error prone since your package is
+  not installed yet. You may also need to manually add the project directory to
+  ``sys.path`` (via ``setup.py``) in order to be able to do that.
+
+  When the module is imported, ``attr:`` supports
   callables and iterables; unsupported types are cast using ``str()``.
 
-  In order to support the common case of a literal value assigned to a variable
-  in a module containing (directly or indirectly) third-party imports,
-  ``attr:`` first tries to read the value from the module by examining the
-  module's AST.  If that fails, ``attr:`` falls back to importing the module.
 
 * ``file:`` - Value is read from a list of files and then concatenated
 

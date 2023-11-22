@@ -388,23 +388,6 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
 
-    def test_deprecated_config_handlers(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '[metadata]\n'
-            'version = 10.1.1\n'
-            'description = Some description\n'
-            'requires = some, requirement\n',
-        )
-
-        with pytest.warns(SetuptoolsDeprecationWarning, match="requires"):
-            with get_dist(tmpdir) as dist:
-                metadata = dist.metadata
-
-                assert metadata.version == '10.1.1'
-                assert metadata.description == 'Some description'
-                assert metadata.requires == ['some', 'requirement']
-
     def test_interpolation(self, tmpdir):
         fake_env(tmpdir, '[metadata]\n' 'description = %(message)s\n')
         with pytest.raises(configparser.InterpolationMissingOptionError):

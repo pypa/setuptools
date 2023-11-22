@@ -143,7 +143,10 @@ your ``pyproject.toml``:
 .. code-block:: toml
 
     [build-system]
-    requires = [..., "cython"]
+    requires = [
+        # ...,
+        "cython",
+    ]
 
 Alternatively, you can include the ``.c`` code that is pre-compiled by Cython
 into your source distribution, alongside the original ``.pyx`` files (this

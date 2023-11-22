@@ -1871,7 +1871,7 @@ class ZipProvider(EggProvider):
         timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
 
         if not WRITE_SUPPORT:
-            raise IOError(
+            raise OSError(
                 '"os.rename" and "os.unlink" are not supported ' 'on this platform'
             )
         try:
@@ -1998,7 +1998,7 @@ class FileMetadata(EmptyProvider):
         if name != 'PKG-INFO':
             raise KeyError("No metadata except PKG-INFO is available")
 
-        with io.open(self.path, encoding='utf-8', errors="replace") as f:
+        with open(self.path, encoding='utf-8', errors="replace") as f:
             metadata = f.read()
         self._warn_on_replacement(metadata)
         return metadata
@@ -2092,8 +2092,7 @@ def find_eggs_in_zip(importer, path_item, only=False):
         if _is_egg_path(subitem):
             subpath = os.path.join(path_item, subitem)
             dists = find_eggs_in_zip(zipimport.zipimporter(subpath), subpath)
-            for dist in dists:
-                yield dist
+            yield from dists
         elif subitem.lower().endswith(('.dist-info', '.egg-info')):
             subpath = os.path.join(path_item, subitem)
             submeta = EggMetadata(zipimport.zipimporter(subpath))
@@ -2128,8 +2127,7 @@ def find_on_path(importer, path_item, only=False):
     for entry in sorted(entries):
         fullpath = os.path.join(path_item, entry)
         factory = dist_factory(path_item, entry, only)
-        for dist in factory(fullpath):
-            yield dist
+        yield from factory(fullpath)
 
 
 def dist_factory(path_item, entry, only):
@@ -2851,8 +2849,7 @@ class Distribution:
 
     def _get_metadata(self, name):
         if self.has_metadata(name):
-            for line in self.get_metadata_lines(name):
-                yield line
+            yield from self.get_metadata_lines(name)
 
     def _get_version(self):
         lines = self._get_metadata(self.PKG_INFO)
@@ -3244,7 +3241,7 @@ def ensure_directory(path):
 def _bypass_ensure_directory(path):
     """Sandbox-bypassing version of ensure_directory()"""
     if not WRITE_SUPPORT:
-        raise IOError('"os.mkdir" not supported on this platform.')
+        raise OSError('"os.mkdir" not supported on this platform.')
     dirname, filename = split(path)
     if dirname and filename and not isdir(dirname):
         _bypass_ensure_directory(dirname)
