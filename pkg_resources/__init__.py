@@ -23,7 +23,7 @@ import io
 import time
 import re
 import types
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 import zipfile
 import zipimport
 import warnings
