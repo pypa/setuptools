@@ -262,6 +262,47 @@ def run_setup(setup_script, args):
                 raise
             # Normal exit, just return
 
+def _mk_dual_path_wrapper(name):
+    original = getattr(_os, name)
+
+    def wrap(self, src, dst, *args, **kw):
+        if self._active:
+            src, dst = self._remap_pair(name, src, dst, *args, **kw)
+        return original(src, dst, *args, **kw)
+
+    return wrap
+
+def _mk_single_path_wrapper(name, original=None):
+    original = original or getattr(_os, name)
+
+    def wrap(self, path, *args, **kw):
+        if self._active:
+            path = self._remap_input(name, path, *args, **kw)
+        return original(path, *args, **kw)
+
+    return wrap
+
+def _mk_single_with_return(name):
+    original = getattr(_os, name)
+
+    def wrap(self, path, *args, **kw):
+        if self._active:
+            path = self._remap_input(name, path, *args, **kw)
+            return self._remap_output(name, original(path, *args, **kw))
+        return original(path, *args, **kw)
+
+    return wrap
+
+def _mk_query(name):
+    original = getattr(_os, name)
+
+    def wrap(self, *args, **kw):
+        retval = original(*args, **kw)
+        if self._active:
+            return self._remap_output(name, retval)
+        return retval
+
+    return wrap
 
 class AbstractSandbox:
     """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""
@@ -298,31 +339,9 @@ class AbstractSandbox:
         with self:
             return func()
 
-    @staticmethod
-    def _mk_dual_path_wrapper(name):
-        original = getattr(_os, name)
-
-        def wrap(self, src, dst, *args, **kw):
-            if self._active:
-                src, dst = self._remap_pair(name, src, dst, *args, **kw)
-            return original(src, dst, *args, **kw)
-
-        return wrap
-
     for name in ["rename", "link", "symlink"]:
         if hasattr(_os, name):
             locals()[name] = _mk_dual_path_wrapper(name)
-
-    @staticmethod
-    def _mk_single_path_wrapper(name, original=None):
-        original = original or getattr(_os, name)
-
-        def wrap(self, path, *args, **kw):
-            if self._active:
-                path = self._remap_input(name, path, *args, **kw)
-            return original(path, *args, **kw)
-
-        return wrap
 
     if _file:
         _file = _mk_single_path_wrapper('file', _file)
@@ -350,34 +369,9 @@ class AbstractSandbox:
     ]:
         if hasattr(_os, name):
             locals()[name] = _mk_single_path_wrapper(name)
-
-    @staticmethod
-    def _mk_single_with_return(name):
-        original = getattr(_os, name)
-
-        def wrap(self, path, *args, **kw):
-            if self._active:
-                path = self._remap_input(name, path, *args, **kw)
-                return self._remap_output(name, original(path, *args, **kw))
-            return original(path, *args, **kw)
-
-        return wrap
-
     for name in ['readlink', 'tempnam']:
         if hasattr(_os, name):
             locals()[name] = _mk_single_with_return(name)
-
-    @staticmethod
-    def _mk_query(name):
-        original = getattr(_os, name)
-
-        def wrap(self, *args, **kw):
-            retval = original(*args, **kw)
-            if self._active:
-                return self._remap_output(name, retval)
-            return retval
-
-        return wrap
 
     for name in ['getcwd', 'tmpnam']:
         if hasattr(_os, name):
