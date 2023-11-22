@@ -79,7 +79,8 @@ from .. import py312compat
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
 
-_FileDescriptorOrPath = Union[int, str, bytes, os.PathLike[str], os.PathLike[bytes]]
+if TYPE_CHECKING:
+    _FileDescriptorOrPath = Union[int, str, bytes, os.PathLike[str], os.PathLike[bytes]]
 
 
 # Turn on PEP440Warnings
@@ -2028,7 +2029,7 @@ try:
 except ImportError:
     # Jython compatibility
     def _chmod(
-        path: _FileDescriptorOrPath,
+        path: "_FileDescriptorOrPath",
         mode: int,
         *,
         dir_fd: Optional[int] = None,
