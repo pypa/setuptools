@@ -1895,7 +1895,7 @@ class ZipProvider(EggProvider):
             try:
                 rename(tmpnam, real_path)
 
-            except os.error:
+            except OSError:
                 if os.path.isfile(real_path):
                     if self._is_current(real_path, zip_path):
                         # the file became current since it was checked above,
@@ -1908,7 +1908,7 @@ class ZipProvider(EggProvider):
                         return real_path
                 raise
 
-        except os.error:
+        except OSError:
             # report a user-friendly error
             manager.extraction_error()
 

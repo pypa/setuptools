@@ -125,7 +125,7 @@ def _rlistdir(dirname):
             dirname = os.curdir
     try:
         names = os.listdir(dirname)
-    except os.error:
+    except OSError:
         return
     for x in names:
         yield x

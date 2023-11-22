@@ -2023,7 +2023,7 @@ def chmod(path, mode):
     log.debug("changing mode of %s to %o", path, mode)
     try:
         _chmod(path, mode)
-    except os.error as e:
+    except OSError as e:
         log.debug("chmod failed: %s", e)
 
 
