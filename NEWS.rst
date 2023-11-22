@@ -58,7 +58,7 @@ Deprecations and Removals
 - Added strict enforcement for ``project.dynamic`` in ``pyproject.toml``.
   This removes the transitional ability of users configuring certain parameters
   via ``setup.py`` without making the necessary changes to ``pyproject.toml``
-  (as mandated by :pep:`612`). (#4066)
+  (as mandated by :pep:`621`). (#4066)
 - Removed handling of ``--config-settings["--build-option"]`` in ``setuptools.build_meta``
   from build-backend API hooks *other than* ``build_wheel``.
   This was motivate by `errors caused when passing this option
