@@ -390,8 +390,8 @@ For the simplest use, you can simply use the ``include_package_data`` keyword:
         )
 
 This tells setuptools to install any data files it finds in your packages.
-The data files must be specified via the |MANIFEST.in|_ file
-or automatically added by a :ref:`Revision Control System plugin
+The data files must be specified via the :ref:`MANIFEST.in <Using MANIFEST.in>`
+file or automatically added by a :ref:`Revision Control System plugin
 <Adding Support for Revision Control Systems>`.
 For more details, see :doc:`datafiles`.
 
@@ -458,9 +458,6 @@ Packaging in Python can be hard and is constantly evolving.
 `Python Packaging User Guide <https://packaging.python.org>`_ has tutorials and
 up-to-date references that can help you when it is time to distribute your work.
 
-
-.. |MANIFEST.in| replace:: ``MANIFEST.in``
-.. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/
 
 
 ----

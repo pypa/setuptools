@@ -1,7 +1,6 @@
 """install_scripts tests
 """
 
-import io
 import sys
 
 import pytest
@@ -43,7 +42,7 @@ class TestInstallScripts:
         monkeypatch.setattr('sys.executable', self.unix_exe)
         with tmpdir.as_cwd():
             self._run_install_scripts(str(tmpdir))
-            with io.open(str(tmpdir.join('foo')), 'r') as f:
+            with open(str(tmpdir.join('foo')), 'r') as f:
                 actual = f.readline()
         assert actual == expected
 
@@ -57,7 +56,7 @@ class TestInstallScripts:
         monkeypatch.setattr('sys.executable', self.win32_exe)
         with tmpdir.as_cwd():
             self._run_install_scripts(str(tmpdir))
-            with io.open(str(tmpdir.join('foo-script.py')), 'r') as f:
+            with open(str(tmpdir.join('foo-script.py')), 'r') as f:
                 actual = f.readline()
         assert actual == expected
 
@@ -71,7 +70,7 @@ class TestInstallScripts:
         expected = '#!%s\n' % self.unix_spaces_exe
         with tmpdir.as_cwd():
             self._run_install_scripts(str(tmpdir), self.unix_spaces_exe)
-            with io.open(str(tmpdir.join('foo')), 'r') as f:
+            with open(str(tmpdir.join('foo')), 'r') as f:
                 actual = f.readline()
         assert actual == expected
 
@@ -85,6 +84,6 @@ class TestInstallScripts:
         expected = '#!"%s"\n' % self.win32_exe
         with tmpdir.as_cwd():
             self._run_install_scripts(str(tmpdir), '"' + self.win32_exe + '"')
-            with io.open(str(tmpdir.join('foo-script.py')), 'r') as f:
+            with open(str(tmpdir.join('foo-script.py')), 'r') as f:
                 actual = f.readline()
         assert actual == expected

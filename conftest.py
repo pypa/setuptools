@@ -37,6 +37,7 @@ collect_ignore = [
     'setuptools/_vendor',
     'pkg_resources/_vendor',
     'setuptools/config/_validate_pyproject',
+    'setuptools/modified.py',
 ]
 
 
