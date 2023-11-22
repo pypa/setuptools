@@ -2227,8 +2227,7 @@ if hasattr(pkgutil, 'ImpImporter'):
     register_finder(pkgutil.ImpImporter, find_on_path)
 
 # TODO: If importlib_machinery import fails, this will also fail. This should be fixed.
-# https://github.com/pypa/setuptools/pull/3979/files#r1367959803
-register_finder(importlib_machinery.FileFinder, find_on_path)  # type: ignore[no-untyped-call]
+register_finder(importlib_machinery.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})

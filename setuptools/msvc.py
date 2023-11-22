@@ -21,21 +21,23 @@ import platform
 import itertools
 import subprocess
 import distutils.errors
+from typing import Dict, TYPE_CHECKING
 from setuptools.extern.more_itertools import unique_everseen
 
-if platform.system() == 'Windows':
+# https://github.com/python/mypy/issues/8166
+if not TYPE_CHECKING and platform.system() == 'Windows':
     import winreg
     from os import environ
 else:
     # Mock winreg and environ so the module can be imported on this platform.
 
-    class winreg:  # type: ignore[no-redef] # https://github.com/python/mypy/issues/8166
+    class winreg:
         HKEY_USERS = None
         HKEY_CURRENT_USER = None
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
 
-    environ = dict()  # type: ignore[assignment] # https://github.com/python/mypy/issues/8166
+    environ: Dict[str, str] = dict()
 
 
 def _msvc14_find_vc2015():
@@ -407,10 +409,10 @@ class RegistryInfo:
     """
 
     HKEYS = (
-        winreg.HKEY_USERS,  # type: ignore[attr-defined]
-        winreg.HKEY_CURRENT_USER,  # type: ignore[attr-defined]
-        winreg.HKEY_LOCAL_MACHINE,  # type: ignore[attr-defined]
-        winreg.HKEY_CLASSES_ROOT,  # type: ignore[attr-defined]
+        winreg.HKEY_USERS,
+        winreg.HKEY_CURRENT_USER,
+        winreg.HKEY_LOCAL_MACHINE,
+        winreg.HKEY_CLASSES_ROOT,
     )
 
     def __init__(self, platform_info):

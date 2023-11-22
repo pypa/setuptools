@@ -125,7 +125,7 @@ SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
 @pytest.mark.parametrize(
     "files",
     [
-        {**EXAMPLE, "setup.py": SETUP_SCRIPT_STUB},  # type: ignore
+        {**EXAMPLE, "setup.py": SETUP_SCRIPT_STUB},
         EXAMPLE,  # No setup.py script
     ],
 )
