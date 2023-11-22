@@ -6,7 +6,6 @@ import pytest
 import tomli_w
 from path import Path as _Path
 
-from setuptools.config._apply_pyprojecttoml import _WouldIgnoreField
 from setuptools.config.pyprojecttoml import (
     read_configuration,
     expand_configuration,
@@ -200,14 +199,8 @@ class TestEntryPoints:
         dynamic = {"scripts", "gui-scripts", "entry-points"} - {missing_dynamic}
 
         msg = f"defined outside of `pyproject.toml`:.*{missing_dynamic}"
-        with pytest.warns(_WouldIgnoreField, match=re.compile(msg, re.S)):
-            expanded = expand_configuration(self.pyproject(dynamic), tmp_path)
-
-        expanded_project = expanded["project"]
-        assert dynamic < set(expanded_project)
-        assert len(expanded_project["entry-points"]) == 1
-        # TODO: Test the following when pyproject.toml support stabilizes:
-        # >>> assert missing_dynamic not in expanded_project
+        with pytest.raises(OptionError, match=re.compile(msg, re.S)):
+            expand_configuration(self.pyproject(dynamic), tmp_path)
 
 
 class TestClassifiers:

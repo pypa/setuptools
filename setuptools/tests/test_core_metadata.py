@@ -286,7 +286,7 @@ def test_maintainer_author(name, attrs, tmpdir):
 
     dist.metadata.write_pkg_info(fn_s)
 
-    with io.open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
+    with open(str(fn.join('PKG-INFO')), 'r', encoding='utf-8') as f:
         pkg_info = f.read()
 
     assert _valid_metadata(pkg_info)
