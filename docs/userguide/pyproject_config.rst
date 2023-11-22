@@ -29,8 +29,8 @@ be used with ``setuptools``. It contains two TOML tables (identified by the
 The ``build-system`` table is used to tell the build frontend (e.g.
 :pypi:`build` or :pypi:`pip`) to use ``setuptools`` and any other plugins (e.g.
 ``setuptools-scm``) to build the package.
-The ``project`` table contains metadata fields as described by
-:doc:`PyPUG:specifications/declaring-project-metadata` guide.
+The ``project`` table contains metadata fields as described by the
+:doc:`PyPUG:guides/writing-pyproject-toml` guide.
 
 .. _example-pyproject-config:
 
@@ -67,8 +67,8 @@ The ``project`` table contains metadata fields as described by
    [project.scripts]
    my-script = "my_package.module:function"
 
-   # ... other project metadata fields as specified in:
-   #     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+   # ... other project metadata fields as listed in:
+   #     https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 
 .. _setuptools-table:
 
@@ -241,6 +241,20 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
 
    .. versionchanged:: 66.1.0
       Newer versions of ``setuptools`` will automatically add these files to the ``sdist``.
+
+It is advisable to use literal values together with ``attr`` (e.g. ``str``,
+``tuple[str]``, see :func:`ast.literal_eval`). This is recommend
+in order to support the common case of a literal value assigned to a variable
+in a module containing (directly or indirectly) third-party imports.
+
+``attr`` first tries to read the value from the module by examining the
+module's AST. If that fails, ``attr`` falls back to importing the module,
+using :func:`importlib.util.spec_from_file_location` recommended recipe
+(see :ref:`example on Python docs <python:importlib-examples>`
+about "Importing a source file directly").
+Note however that importing the module is error prone since your package is
+not installed yet. You may also need to manually add the project directory to
+``sys.path`` (via ``setup.py``) in order to be able to do that.
 
 ----
 

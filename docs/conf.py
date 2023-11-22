@@ -45,15 +45,15 @@ link_files = {
             ),
             dict(
                 pattern=r'Old Setuptools #(?P<old_setuptools>\d+)',
-                url='http://bugs.python.org/setuptools/issue{old_setuptools}',
+                url='https://bugs.python.org/setuptools/issue{old_setuptools}',
             ),
             dict(
                 pattern=r'Jython #(?P<jython>\d+)',
-                url='http://bugs.jython.org/issue{jython}',
+                url='https://bugs.jython.org/issue{jython}',
             ),
             dict(
                 pattern=r'(Python #|bpo-)(?P<python>\d+)',
-                url='http://bugs.python.org/issue{python}',
+                url='https://bugs.python.org/issue{python}',
             ),
             dict(
                 pattern=r'Interop #(?P<interop>\d+)',
@@ -204,7 +204,7 @@ intersphinx_mapping.update(
     python=('https://docs.python.org/3.11/', None),
     # ^-- Python 3.11 is required because it still contains `distutils`.
     #     Just leaving it as `3` would imply 3.12+, but that causes an
-    #     error with the cross references to disutils functions.
+    #     error with the cross references to distutils functions.
     #     Inventory cache may cause errors, deleting it solves the problem.
 )
 
