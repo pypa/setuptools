@@ -1,2 +1,0 @@
-Include type information (``py.typed``, ``*.pyi``) by default (#3136) -- by :user:`Danie-1`,
-**EXPERIMENTAL**.

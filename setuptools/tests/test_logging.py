@@ -1,8 +1,12 @@
+import functools
 import inspect
 import logging
-import os
+import sys
 
 import pytest
+
+
+IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 
 setup_py = """\
@@ -38,16 +42,33 @@ def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
     assert log_level_name == expected_level
 
 
+def flaky_on_pypy(func):
+    @functools.wraps(func)
+    def _func():
+        try:
+            func()
+        except AssertionError:  # pragma: no cover
+            if IS_PYPY:
+                msg = "Flaky monkeypatch on PyPy (#4124)"
+                pytest.xfail(f"{msg}. Original discussion in #3707, #3709.")
+            raise
+
+    return _func
+
+
+@flaky_on_pypy
 def test_patching_does_not_cause_problems():
     # Ensure `dist.log` is only patched if necessary
 
+    import _distutils_hack
     import setuptools.logging
     from distutils import dist
 
     setuptools.logging.configure()
 
-    if os.getenv("SETUPTOOLS_USE_DISTUTILS", "local").lower() == "local":
+    if _distutils_hack.enabled():
         # Modern logging infra, no problematic patching.
+        assert dist.__file__ is None or "setuptools" in dist.__file__
         assert isinstance(dist.log, logging.Logger)
     else:
         assert inspect.ismodule(dist.log)
