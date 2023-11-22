@@ -3,7 +3,6 @@ import tempfile
 import os
 import zipfile
 import datetime
-import time
 import subprocess
 import stat
 import distutils.dist

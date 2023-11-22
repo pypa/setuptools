@@ -5,7 +5,6 @@ As defined in the wheel specification
 
 import os
 import shutil
-import sys
 from contextlib import contextmanager
 from distutils import log
 from distutils.core import Command

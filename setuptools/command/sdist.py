@@ -1,7 +1,6 @@
 from distutils import log
 import distutils.command.sdist as orig
 import os
-import sys
 import contextlib
 from itertools import chain
 
