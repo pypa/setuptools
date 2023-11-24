@@ -30,7 +30,11 @@ def clear_distutils():
         return
     import warnings
 
-    warnings.warn("Setuptools is replacing distutils.")
+    warnings.warn(
+        "Setuptools is replacing distutils. Support for replacing "
+        "an already imported distutils is deprecated. In the future, "
+        "this condition will fail.",
+    )
     mods = [
         name
         for name in sys.modules
