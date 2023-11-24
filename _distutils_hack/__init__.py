@@ -45,6 +45,15 @@ def enabled():
     Allow selection of distutils by environment variable.
     """
     which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'local')
+    if which == 'stdlib':
+        import warnings
+
+        warnings.warn(
+            "Reliance on distutils from stdlib is deprecated. Users "
+            "must rely on setuptools to provide the distutils module. "
+            "Avoid importing distutils or import setuptools first, "
+            "and avoid setting SETUPTOOLS_USE_DISTUTILS=stdlib."
+        )
     return which == 'local'
 
 
