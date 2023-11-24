@@ -30,6 +30,7 @@ from typing import (
     List,
     Mapping,
     Optional,
+    Protocol,
     Tuple,
     TypeVar,
     Union,
@@ -53,13 +54,6 @@ from .build_py import build_py as build_py_cls
 
 if TYPE_CHECKING:
     from wheel.wheelfile import WheelFile  # noqa
-
-if sys.version_info >= (3, 8):
-    from typing import Protocol
-elif TYPE_CHECKING:
-    from typing_extensions import Protocol
-else:
-    from abc import ABC as Protocol
 
 _Path = Union[str, Path]
 _P = TypeVar("_P", bound=_Path)

@@ -77,7 +77,7 @@ class dist_info(Command):
         if requires_bkp:
             bkp_name = f"{dir_path}.__bkp__"
             _rm(bkp_name, ignore_errors=True)
-            _copy(dir_path, bkp_name, dirs_exist_ok=True, symlinks=True)
+            shutil.copytree(dir_path, bkp_name, dirs_exist_ok=True, symlinks=True)
             try:
                 yield
             finally:
@@ -103,9 +103,3 @@ class dist_info(Command):
 def _rm(dir_name, **opts):
     if os.path.isdir(dir_name):
         shutil.rmtree(dir_name, **opts)
-
-
-def _copy(src, dst, **opts):
-    if sys.version_info < (3, 8):
-        opts.pop("dirs_exist_ok", None)
-    shutil.copytree(src, dst, **opts)

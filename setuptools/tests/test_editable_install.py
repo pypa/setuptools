@@ -61,7 +61,6 @@ EXAMPLE = {
             "Intended Audience :: Developers"
         ]
         urls = {Homepage = "https://github.com"}
-        dependencies = ['importlib-metadata; python_version<"3.8"']
 
         [tool.setuptools]
         package-dir = {"" = "src"}
@@ -89,12 +88,7 @@ EXAMPLE = {
         "mypkg": {
             "__init__.py": dedent(
                 """\
-                import sys
-
-                if sys.version_info[:2] >= (3, 8):
-                    from importlib.metadata import PackageNotFoundError, version
-                else:
-                    from importlib_metadata import PackageNotFoundError, version
+                from importlib.metadata import PackageNotFoundError, version
 
                 try:
                     __version__ = version(__name__)
