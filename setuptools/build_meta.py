@@ -306,6 +306,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
         with _open_setup_script(__file__) as f:
             code = f.read().replace(r'\r\n', r'\n')
+            code = compile(code, __file__, 'exec')
 
         try:
             exec(code, locals())
