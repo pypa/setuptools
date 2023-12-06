@@ -529,7 +529,7 @@ v65.5.1
 Misc
 ----
 * #3638: Drop a test dependency on the ``mock`` package, always use :external+python:py:mod:`unittest.mock` -- by :user:`hroncok`
-* #3659: Fixed REDoS vector in package_index.
+* #3659: Fixed REDoS vector in package_index -- by :user:`SCH227`
 
 
 v65.5.0
