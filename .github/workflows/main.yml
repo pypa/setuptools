@@ -61,7 +61,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job: [diffcov, docs]
+        job:
+        - diffcov
+        - docs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
