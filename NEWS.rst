@@ -1,3 +1,12 @@
+v69.0.3
+=======
+
+Bugfixes
+--------
+
+- Retain valid names with underscores in egg_info.
+
+
 v69.0.2
 =======
 
