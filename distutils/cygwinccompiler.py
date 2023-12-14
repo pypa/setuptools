@@ -101,14 +101,19 @@ class CygwinCCompiler(UnixCCompiler):
         self.cxx = os.environ.get('CXX', 'g++')
 
         self.linker_dll = self.cc
+        self.linker_dll_cxx = self.cxx
         shared_option = "-shared"
 
         self.set_executables(
             compiler='%s -mcygwin -O -Wall' % self.cc,
             compiler_so='%s -mcygwin -mdll -O -Wall' % self.cc,
             compiler_cxx='%s -mcygwin -O -Wall' % self.cxx,
+            compiler_so_cxx='%s -mcygwin -mdll -O -Wall' % self.cxx,
             linker_exe='%s -mcygwin' % self.cc,
             linker_so=('{} -mcygwin {}'.format(self.linker_dll, shared_option)),
+            linker_exe_cxx='%s -mcygwin' % self.cxx,
+            linker_so_cxx=('%s -mcygwin %s' %
+                (self.linker_dll_cxx, shared_option)),
         )
 
         # Include the appropriate MSVC runtime library if Python was built
@@ -140,9 +145,12 @@ class CygwinCCompiler(UnixCCompiler):
                 raise CompileError(msg)
         else:  # for other files use the C-compiler
             try:
-                self.spawn(
-                    self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs
-                )
+                if self.detect_language(src) == 'c++':
+                    self.spawn(self.compiler_so_cxx + cc_args + [src, '-o', obj] +
+                                   extra_postargs)
+                else:
+                    self.spawn(
+                        self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs)
             except DistutilsExecError as msg:
                 raise CompileError(msg)
 
@@ -278,9 +286,12 @@ class Mingw32CCompiler(CygwinCCompiler):
         self.set_executables(
             compiler='%s -O -Wall' % self.cc,
             compiler_so='%s -mdll -O -Wall' % self.cc,
+            compiler_so_cxx='%s -mdll -O -Wall' % self.cxx,
             compiler_cxx='%s -O -Wall' % self.cxx,
             linker_exe='%s' % self.cc,
             linker_so='{} {}'.format(self.linker_dll, shared_option),
+            linker_exe_cxx='%s' % self.cxx,
+            linker_so_cxx='%s %s' % (self.linker_dll_cxx, shared_option)
         )
 
     def runtime_library_dir_option(self, dir):
