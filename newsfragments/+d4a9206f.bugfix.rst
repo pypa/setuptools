@@ -1,0 +1,1 @@
+Retain valid names with underscores in egg_info.
