@@ -307,6 +307,12 @@ int run(int argc, char **argv, int is_gui) {
 
     /* printf("Python executable: %s\n", ptr); */
 
+    if (access(ptr, F_OK) != 0) {
+        ptr = "python.exe";
+    }
+
+    /* printf("Final python executable: %s\n", ptr); */
+
     /* Argument array needs to be
        parsedargc + argc, plus 1 for null sentinel */
 
