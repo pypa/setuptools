@@ -360,14 +360,7 @@ def customize_compiler(compiler):  # noqa: C901
 
 def get_config_h_filename():
     """Return full pathname of installed pyconfig.h file."""
-    if python_build:
-        if os.name == "nt":
-            inc_dir = os.path.join(_sys_home or project_base, "PC")
-        else:
-            inc_dir = _sys_home or project_base
-        return os.path.join(inc_dir, 'pyconfig.h')
-    else:
-        return sysconfig.get_config_h_filename()
+    return sysconfig.get_config_h_filename()
 
 
 def get_makefile_filename():
