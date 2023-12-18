@@ -335,8 +335,8 @@ def extract_macosx_min_system_version(path_to_lib):
 
 def read_mach_header(lib_file, seek=None):
     """
-    This funcition parse mach-O header and extract
-    information about minimal system version
+    This function parses a Mach-O header and extracts
+    information about the minimal macOS version.
 
     :param lib_file: reference to opened library file with pointer
     """
