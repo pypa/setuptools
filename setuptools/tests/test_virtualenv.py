@@ -155,22 +155,20 @@ def _check_test_command_install_requirements(venv, tmpdir):
                     """,
                 }}
             )
-            '''.format(
-                    dependency_links=dependency_links
-                )
+            '''.format(dependency_links=dependency_links)
             )
         )
     with tmpdir.join('test.py').open('w') as fp:
         fp.write(
             DALS(
-                '''
+                """
             import foobar
             import bits
             import bobs
             import pieces
 
             open('success', 'w').close()
-            '''
+            """
             )
         )
 

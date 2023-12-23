@@ -98,13 +98,11 @@ class TestBuildExt:
         ext3 = Extension("ext3", ["c-extension/ext3.c"])
 
         path.build(files)
-        dist = Distribution(
-            {
-                "script_name": "%test%",
-                "ext_modules": [ext1, ext2, ext3],
-                "package_dir": {"": "src"},
-            }
-        )
+        dist = Distribution({
+            "script_name": "%test%",
+            "ext_modules": [ext1, ext2, ext3],
+            "package_dir": {"": "src"},
+        })
         return dist
 
     def test_get_outputs(self, tmpdir_cwd, monkeypatch):

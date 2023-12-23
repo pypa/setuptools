@@ -93,21 +93,17 @@ def _msvc14_find_vc2017():
         # Workaround for `-requiresAny` (only available on VS 2017 > 15.6)
         with contextlib.suppress(CalledProcessError, OSError, UnicodeDecodeError):
             path = (
-                subprocess.check_output(
-                    [
-                        join(
-                            root, "Microsoft Visual Studio", "Installer", "vswhere.exe"
-                        ),
-                        "-latest",
-                        "-prerelease",
-                        "-requires",
-                        component,
-                        "-property",
-                        "installationPath",
-                        "-products",
-                        "*",
-                    ]
-                )
+                subprocess.check_output([
+                    join(root, "Microsoft Visual Studio", "Installer", "vswhere.exe"),
+                    "-latest",
+                    "-prerelease",
+                    "-requires",
+                    component,
+                    "-property",
+                    "installationPath",
+                    "-products",
+                    "*",
+                ])
                 .decode(encoding="mbcs", errors="strict")
                 .strip()
             )
@@ -694,9 +690,9 @@ class SystemInfo:
                 listdir(join(vs_path, r'VC\Tools\MSVC'))
 
                 # Store version and path
-                vs_versions[
-                    self._as_float_version(state['installationVersion'])
-                ] = vs_path
+                vs_versions[self._as_float_version(state['installationVersion'])] = (
+                    vs_path
+                )
 
             except (OSError, KeyError):
                 # Skip if "state.json" file is missing or bad format

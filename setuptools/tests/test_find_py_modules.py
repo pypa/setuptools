@@ -1,4 +1,5 @@
 """Tests for automatic discovery of modules"""
+
 import os
 
 import pytest

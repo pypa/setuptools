@@ -10,6 +10,7 @@ The number of tested packages is purposefully kept small, to minimise duration
 and the associated maintenance cost (changes in the way these packages define
 their build process may require changes in the tests).
 """
+
 import json
 import os
 import shutil

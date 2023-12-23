@@ -232,9 +232,11 @@ class bdist_egg(Command):
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
 
         # Add to 'Distribution.dist_files' so that the "upload" command works
-        getattr(self.distribution, 'dist_files', []).append(
-            ('bdist_egg', get_python_version(), self.egg_output)
-        )
+        getattr(self.distribution, 'dist_files', []).append((
+            'bdist_egg',
+            get_python_version(),
+            self.egg_output,
+        ))
 
     def zap_pyfiles(self):
         log.info("Removing .py files from temporary directory")

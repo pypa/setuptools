@@ -408,23 +408,21 @@ else:
 class DirectorySandbox(AbstractSandbox):
     """Restrict operations to a single subdirectory - pseudo-chroot"""
 
-    write_ops = dict.fromkeys(
-        [
-            "open",
-            "chmod",
-            "chown",
-            "mkdir",
-            "remove",
-            "unlink",
-            "rmdir",
-            "utime",
-            "lchown",
-            "chroot",
-            "mkfifo",
-            "mknod",
-            "tempnam",
-        ]
-    )
+    write_ops = dict.fromkeys([
+        "open",
+        "chmod",
+        "chown",
+        "mkdir",
+        "remove",
+        "unlink",
+        "rmdir",
+        "utime",
+        "lchown",
+        "chroot",
+        "mkfifo",
+        "mknod",
+        "tempnam",
+    ])
 
     _exception_patterns = []
     "exempt writing to paths that match the pattern"
