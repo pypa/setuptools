@@ -1,6 +1,11 @@
 name: tests
 
-on: [push, pull_request]
+on:
+  merge_group:
+  push:
+    branches-ignore:
+    - gh-readonly-queue/**  # Temporary merge queue-related GH-made branches
+  pull_request:
 
 concurrency:
   group: >-
@@ -62,7 +67,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job: [diffcov, docs]
+        job:
+        - diffcov
+        - docs
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.python == '3.12' }}
     steps:
