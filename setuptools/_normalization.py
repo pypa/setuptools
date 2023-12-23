@@ -2,6 +2,7 @@
 Helpers for normalization as expected in wheel/sdist/module file names
 and core metadata
 """
+
 import re
 from pathlib import Path
 from typing import Union

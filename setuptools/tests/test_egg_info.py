@@ -37,19 +37,17 @@ def env():
         subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
         env.paths = dict((dirname, os.path.join(env_dir, dirname)) for dirname in subs)
         list(map(os.mkdir, env.paths.values()))
-        path.build(
-            {
-                env.paths['home']: {
-                    '.pydistutils.cfg': DALS(
-                        """
+        path.build({
+            env.paths['home']: {
+                '.pydistutils.cfg': DALS(
+                    """
                 [egg_info]
                 egg-base = %(egg-base)s
                 """
-                        % env.paths
-                    )
-                }
+                    % env.paths
+                )
             }
-        )
+        })
         yield env
 
 
@@ -68,17 +66,15 @@ class TestEggInfo:
     )
 
     def _create_project(self):
-        path.build(
-            {
-                'setup.py': self.setup_script,
-                'hello.py': DALS(
-                    """
+        path.build({
+            'setup.py': self.setup_script,
+            'hello.py': DALS(
+                """
                 def run():
                     print('hello')
                 """
-                ),
-            }
-        )
+            ),
+        })
 
     @staticmethod
     def _extract_mv_version(pkg_info_lines: List[str]) -> Tuple[int, int]:
@@ -128,17 +124,15 @@ class TestEggInfo:
         the file should remain unchanged.
         """
         setup_cfg = os.path.join(env.paths['home'], 'setup.cfg')
-        path.build(
-            {
-                setup_cfg: DALS(
-                    """
+        path.build({
+            setup_cfg: DALS(
+                """
             [egg_info]
             tag_build =
             tag_date = 0
             """
-                ),
-            }
-        )
+            ),
+        })
         dist = Distribution()
         ei = egg_info(dist)
         ei.initialize_options()
@@ -207,12 +201,10 @@ class TestEggInfo:
             """
         )
 
-        path.build(
-            {
-                'setup.py': setup_script,
-                'setup.cfg': setup_config,
-            }
-        )
+        path.build({
+            'setup.py': setup_script,
+            'setup.cfg': setup_config,
+        })
 
         # This command should fail with a ValueError, but because it's
         # currently configured to use a subprocess, the actual traceback
@@ -245,18 +237,16 @@ class TestEggInfo:
 
     def test_manifest_template_is_read(self, tmpdir_cwd, env):
         self._create_project()
-        path.build(
-            {
-                'MANIFEST.in': DALS(
-                    """
+        path.build({
+            'MANIFEST.in': DALS(
+                """
                 recursive-include docs *.rst
             """
-                ),
-                'docs': {
-                    'usage.rst': "Run 'hi'",
-                },
-            }
-        )
+            ),
+            'docs': {
+                'usage.rst': "Run 'hi'",
+            },
+        })
         self._run_egg_info_command(tmpdir_cwd, env)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
@@ -264,23 +254,18 @@ class TestEggInfo:
             assert 'docs/usage.rst' in f.read().split('\n')
 
     def _setup_script_with_requires(self, requires, use_setup_cfg=False):
-        setup_script = (
-            DALS(
-                '''
+        setup_script = DALS(
+            """
             from setuptools import setup
 
             setup(name='foo', zip_safe=False, %s)
-            '''
-            )
-            % ('' if use_setup_cfg else requires)
-        )
+            """
+        ) % ('' if use_setup_cfg else requires)
         setup_config = requires if use_setup_cfg else ''
-        path.build(
-            {
-                'setup.py': setup_script,
-                'setup.cfg': setup_config,
-            }
-        )
+        path.build({
+            'setup.py': setup_script,
+            'setup.cfg': setup_config,
+        })
 
     mismatch_marker = "python_version<'{this_ver}'".format(
         this_ver=sys.version_info[0],
@@ -343,7 +328,7 @@ class TestEggInfo:
         # requires block (when used in setup.cfg)
         #
         # expected contents of requires.txt
-        '''
+        """
         install_requires_deterministic
 
         install_requires=["wheel>=0.5", "pytest"]
@@ -355,8 +340,8 @@ class TestEggInfo:
 
         wheel>=0.5
         pytest
-        ''',
-        '''
+        """,
+        """
         install_requires_ordered
 
         install_requires=["pytest>=3.0.2,!=10.9999"]
@@ -366,8 +351,8 @@ class TestEggInfo:
             pytest>=3.0.2,!=10.9999
 
         pytest!=10.9999,>=3.0.2
-        ''',
-        '''
+        """,
+        """
         install_requires_with_marker
 
         install_requires=["barbazquux;{mismatch_marker}"],
@@ -378,8 +363,8 @@ class TestEggInfo:
 
         [:{mismatch_marker_alternate}]
         barbazquux
-        ''',
-        '''
+        """,
+        """
         install_requires_with_extra
         {'cmd': ['egg_info']}
 
@@ -390,8 +375,8 @@ class TestEggInfo:
             barbazquux [test]
 
         barbazquux[test]
-        ''',
-        '''
+        """,
+        """
         install_requires_with_extra_and_marker
 
         install_requires=["barbazquux [test]; {mismatch_marker}"],
@@ -402,8 +387,8 @@ class TestEggInfo:
 
         [:{mismatch_marker_alternate}]
         barbazquux[test]
-        ''',
-        '''
+        """,
+        """
         setup_requires_with_markers
 
         setup_requires=["barbazquux;{mismatch_marker}"],
@@ -412,8 +397,8 @@ class TestEggInfo:
         setup_requires =
             barbazquux; {mismatch_marker}
 
-        ''',
-        '''
+        """,
+        """
         tests_require_with_markers
         {'cmd': ['test'], 'output': "Ran 0 tests in"}
 
@@ -423,8 +408,8 @@ class TestEggInfo:
         tests_require =
             barbazquux; {mismatch_marker}
 
-        ''',
-        '''
+        """,
+        """
         extras_require_with_extra
         {'cmd': ['egg_info']}
 
@@ -435,8 +420,8 @@ class TestEggInfo:
 
         [extra]
         barbazquux[test]
-        ''',
-        '''
+        """,
+        """
         extras_require_with_extra_and_marker_in_req
 
         extras_require={{"extra": ["barbazquux [test]; {mismatch_marker}"]}},
@@ -449,9 +434,9 @@ class TestEggInfo:
 
         [extra:{mismatch_marker_alternate}]
         barbazquux[test]
-        ''',
+        """,
         # FIXME: ConfigParser does not allow : in key names!
-        '''
+        """
         extras_require_with_marker
 
         extras_require={{":{mismatch_marker}": ["barbazquux"]}},
@@ -462,8 +447,8 @@ class TestEggInfo:
 
         [:{mismatch_marker}]
         barbazquux
-        ''',
-        '''
+        """,
+        """
         extras_require_with_marker_in_req
 
         extras_require={{"extra": ["barbazquux; {mismatch_marker}"]}},
@@ -476,8 +461,8 @@ class TestEggInfo:
 
         [extra:{mismatch_marker_alternate}]
         barbazquux
-        ''',
-        '''
+        """,
+        """
         extras_require_with_empty_section
 
         extras_require={{"empty": []}},
@@ -486,7 +471,7 @@ class TestEggInfo:
         empty =
 
         [empty]
-        ''',
+        """,
         # Format arguments.
         invalid_marker=invalid_marker,
         mismatch_marker=mismatch_marker,
@@ -559,7 +544,7 @@ class TestEggInfo:
 
     def test_doesnt_provides_extra(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
-            '''install_requires=["spam ; python_version<'3.6'"]'''
+            """install_requires=["spam ; python_version<'3.6'"]"""
         )
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
@@ -788,7 +773,7 @@ class TestEggInfo:
                     ),
                     'MANIFEST.in': "exclude LICENSE-XYZ",
                     'LICENSE-ABC': "ABC license",
-                    'LICENSE-XYZ': "XYZ license"
+                    'LICENSE-XYZ': "XYZ license",
                     # manifest is overwritten by license_files
                 },
                 ['LICENSE-ABC', 'LICENSE-XYZ'],
@@ -901,7 +886,7 @@ class TestEggInfo:
                               """
                     ),
                     'LICENSE-ABC': "ABC license",
-                    'LICENSE-XYZ': "XYZ license"
+                    'LICENSE-XYZ': "XYZ license",
                     # license_file is still singular
                 },
                 [],
@@ -939,7 +924,7 @@ class TestEggInfo:
                     ),
                     'LICENSE-ABC': "ABC license",
                     'LICENSE-PQR': "PQR license",
-                    'LICENSE-XYZ': "XYZ license"
+                    'LICENSE-XYZ': "XYZ license",
                     # duplicate license
                 },
                 ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'],
@@ -957,7 +942,7 @@ class TestEggInfo:
                     ),
                     'LICENSE-ABC': "ABC license",
                     'LICENSE-PQR': "PQR license",
-                    'LICENSE-XYZ': "XYZ license"
+                    'LICENSE-XYZ': "XYZ license",
                     # combined subset
                 },
                 ['LICENSE-ABC', 'LICENSE-XYZ'],
@@ -974,7 +959,7 @@ class TestEggInfo:
                                   LICENSE-PQR
                               """
                     ),
-                    'LICENSE-PQR': "Test license"
+                    'LICENSE-PQR': "Test license",
                     # with invalid licenses
                 },
                 ['LICENSE-PQR'],
@@ -994,7 +979,7 @@ class TestEggInfo:
                     'MANIFEST.in': "exclude LICENSE-ABC\nexclude LICENSE-PQR",
                     'LICENSE-ABC': "ABC license",
                     'LICENSE-PQR': "PQR license",
-                    'LICENSE-XYZ': "XYZ license"
+                    'LICENSE-XYZ': "XYZ license",
                     # manifest is overwritten
                 },
                 ['LICENSE-ABC', 'LICENSE-PQR', 'LICENSE-XYZ'],
@@ -1059,22 +1044,20 @@ class TestEggInfo:
     def test_license_file_attr_pkg_info(self, tmpdir_cwd, env):
         """All matched license files should have a corresponding License-File."""
         self._create_project()
-        path.build(
-            {
-                "setup.cfg": DALS(
-                    """
+        path.build({
+            "setup.cfg": DALS(
+                """
                               [metadata]
                               license_files =
                                   NOTICE*
                                   LICENSE*
                               """
-                ),
-                "LICENSE-ABC": "ABC license",
-                "LICENSE-XYZ": "XYZ license",
-                "NOTICE": "included",
-                "IGNORE": "not include",
-            }
-        )
+            ),
+            "LICENSE-ABC": "ABC license",
+            "LICENSE-XYZ": "XYZ license",
+            "NOTICE": "included",
+            "IGNORE": "not include",
+        })
 
         environment.run_setup_py(
             cmd=['egg_info'],
@@ -1281,18 +1264,16 @@ class TestEggInfo:
 
     def test_egg_info_tag_only_once(self, tmpdir_cwd, env):
         self._create_project()
-        path.build(
-            {
-                'setup.cfg': DALS(
-                    """
+        path.build({
+            'setup.cfg': DALS(
+                """
                               [egg_info]
                               tag_build = dev
                               tag_date = 0
                               tag_svn_revision = 0
                               """
-                ),
-            }
-        )
+            ),
+        })
         self._run_egg_info_command(tmpdir_cwd, env)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:

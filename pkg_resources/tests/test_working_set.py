@@ -19,7 +19,7 @@ def strip_comments(s):
 
 
 def parse_distributions(s):
-    '''
+    """
     Parse a series of distribution specs of the form:
     {project_name}-{version}
        [optional, indented requirements specification]
@@ -36,7 +36,7 @@ def parse_distributions(s):
         - project_name=foo, version=0.2
         - project_name=bar, version=1.0,
           requires=['foo>=3.0', 'baz; extra=="feature"']
-    '''
+    """
     s = s.strip()
     for spec in re.split(r'\n(?=[^\s])', s):
         if not spec:
@@ -113,7 +113,7 @@ def parametrize_test_working_set_resolve(*test_list):
 
 
 @parametrize_test_working_set_resolve(
-    '''
+    """
     # id
     noop
 
@@ -126,8 +126,8 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved
 
     # resolved [replace conflicting]
-    ''',
-    '''
+    """,
+    """
     # id
     already_installed
 
@@ -144,8 +144,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     foo-3.0
-    ''',
-    '''
+    """,
+    """
     # id
     installable_not_installed
 
@@ -163,8 +163,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     foo-3.0
-    ''',
-    '''
+    """,
+    """
     # id
     not_installable
 
@@ -180,8 +180,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     DistributionNotFound
-    ''',
-    '''
+    """,
+    """
     # id
     no_matching_version
 
@@ -198,8 +198,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     DistributionNotFound
-    ''',
-    '''
+    """,
+    """
     # id
     installable_with_installed_conflict
 
@@ -217,8 +217,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     foo-3.5
-    ''',
-    '''
+    """,
+    """
     # id
     not_installable_with_installed_conflict
 
@@ -235,8 +235,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     DistributionNotFound
-    ''',
-    '''
+    """,
+    """
     # id
     installed_with_installed_require
 
@@ -257,8 +257,8 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     foo-3.9
     baz-0.1
-    ''',
-    '''
+    """,
+    """
     # id
     installed_with_conflicting_installed_require
 
@@ -277,8 +277,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     DistributionNotFound
-    ''',
-    '''
+    """,
+    """
     # id
     installed_with_installable_conflicting_require
 
@@ -299,8 +299,8 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     baz-0.1
     foo-2.9
-    ''',
-    '''
+    """,
+    """
     # id
     installed_with_installable_require
 
@@ -321,8 +321,8 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     foo-3.9
     baz-0.1
-    ''',
-    '''
+    """,
+    """
     # id
     installable_with_installed_require
 
@@ -343,8 +343,8 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     foo-3.9
     baz-0.1
-    ''',
-    '''
+    """,
+    """
     # id
     installable_with_installable_require
 
@@ -365,8 +365,8 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     foo-3.9
     baz-0.1
-    ''',
-    '''
+    """,
+    """
     # id
     installable_with_conflicting_installable_require
 
@@ -387,8 +387,8 @@ def parametrize_test_working_set_resolve(*test_list):
     # resolved [replace conflicting]
     baz-0.1
     foo-2.9
-    ''',
-    '''
+    """,
+    """
     # id
     conflicting_installables
 
@@ -407,8 +407,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     VersionConflict
-    ''',
-    '''
+    """,
+    """
     # id
     installables_with_conflicting_requires
 
@@ -431,8 +431,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     VersionConflict
-    ''',
-    '''
+    """,
+    """
     # id
     installables_with_conflicting_nested_requires
 
@@ -459,8 +459,8 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     VersionConflict
-    ''',
-    '''
+    """,
+    """
     # id
     wanted_normalized_name_installed_canonical
 
@@ -477,7 +477,7 @@ def parametrize_test_working_set_resolve(*test_list):
 
     # resolved [replace conflicting]
     foo.bar-3.6
-    ''',
+    """,
 )
 def test_working_set_resolve(
     installed_dists,
