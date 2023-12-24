@@ -8,6 +8,7 @@ To read project metadata, consider using
 For simple scenarios, you can also try parsing the file directly
 with the help of ``configparser``.
 """
+
 import contextlib
 import functools
 import os
@@ -694,9 +695,9 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
 
         valid_keys = ['where', 'include', 'exclude']
 
-        find_kwargs = dict(
-            [(k, v) for k, v in section_data.items() if k in valid_keys and v]
-        )
+        find_kwargs = dict([
+            (k, v) for k, v in section_data.items() if k in valid_keys and v
+        ])
 
         where = find_kwargs.get('where')
         if where is not None:

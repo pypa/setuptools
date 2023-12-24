@@ -31,11 +31,11 @@ def test_dist_fetch_build_egg(tmpdir):
         with dist_dir.join('index.html').open('w') as fp:
             fp.write(
                 DALS(
-                    '''
+                    """
                 <!DOCTYPE html><html><body>
                 <a href="{dist_sdist}" rel="internal">{dist_sdist}</a><br/>
                 </body></html>
-                '''
+                """
                 ).format(dist_sdist=dist_sdist)
             )
 
@@ -44,16 +44,16 @@ def test_dist_fetch_build_egg(tmpdir):
     with tmpdir.join('setup.cfg').open('w') as fp:
         fp.write(
             DALS(
-                '''
+                """
             [easy_install]
             index_url = {index_url}
-            '''
+            """
             ).format(index_url=index_url)
         )
-    reqs = '''
+    reqs = """
     barbazquux-runner
     barbazquux
-    '''.split()
+    """.split()
     with tmpdir.as_cwd():
         dist = Distribution()
         dist.parse_config_files()

@@ -37,9 +37,9 @@ def _customize_compiler_for_shlib(compiler):
         tmp = _CONFIG_VARS.copy()
         try:
             # XXX Help!  I don't have any idea whether these are right...
-            _CONFIG_VARS[
-                'LDSHARED'
-            ] = "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
+            _CONFIG_VARS['LDSHARED'] = (
+                "gcc -Wl,-x -dynamiclib -undefined dynamic_lookup"
+            )
             _CONFIG_VARS['CCSHARED'] = " -dynamiclib"
             _CONFIG_VARS['SO'] = ".dylib"
             customize_compiler(compiler)
@@ -341,33 +341,30 @@ class build_ext(_build_ext):
         if not self.dry_run:
             f = open(stub_file, 'w')
             f.write(
-                '\n'.join(
-                    [
-                        "def __bootstrap__():",
-                        "   global __bootstrap__, __file__, __loader__",
-                        "   import sys, os, pkg_resources, importlib.util"
-                        + if_dl(", dl"),
-                        "   __file__ = pkg_resources.resource_filename"
-                        "(__name__,%r)" % os.path.basename(ext._file_name),
-                        "   del __bootstrap__",
-                        "   if '__loader__' in globals():",
-                        "       del __loader__",
-                        if_dl("   old_flags = sys.getdlopenflags()"),
-                        "   old_dir = os.getcwd()",
-                        "   try:",
-                        "     os.chdir(os.path.dirname(__file__))",
-                        if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
-                        "     spec = importlib.util.spec_from_file_location(",
-                        "                __name__, __file__)",
-                        "     mod = importlib.util.module_from_spec(spec)",
-                        "     spec.loader.exec_module(mod)",
-                        "   finally:",
-                        if_dl("     sys.setdlopenflags(old_flags)"),
-                        "     os.chdir(old_dir)",
-                        "__bootstrap__()",
-                        "",  # terminal \n
-                    ]
-                )
+                '\n'.join([
+                    "def __bootstrap__():",
+                    "   global __bootstrap__, __file__, __loader__",
+                    "   import sys, os, pkg_resources, importlib.util" + if_dl(", dl"),
+                    "   __file__ = pkg_resources.resource_filename"
+                    "(__name__,%r)" % os.path.basename(ext._file_name),
+                    "   del __bootstrap__",
+                    "   if '__loader__' in globals():",
+                    "       del __loader__",
+                    if_dl("   old_flags = sys.getdlopenflags()"),
+                    "   old_dir = os.getcwd()",
+                    "   try:",
+                    "     os.chdir(os.path.dirname(__file__))",
+                    if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
+                    "     spec = importlib.util.spec_from_file_location(",
+                    "                __name__, __file__)",
+                    "     mod = importlib.util.module_from_spec(spec)",
+                    "     spec.loader.exec_module(mod)",
+                    "   finally:",
+                    if_dl("     sys.setdlopenflags(old_flags)"),
+                    "     os.chdir(old_dir)",
+                    "__bootstrap__()",
+                    "",  # terminal \n
+                ])
             )
             f.close()
         if compile:
