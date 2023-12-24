@@ -1,4 +1,5 @@
 """Tests for automatic package discovery"""
+
 import os
 import shutil
 import tempfile

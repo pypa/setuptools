@@ -77,17 +77,15 @@ def setuptools_sdist(tmp_path_factory, request):
         if dist:
             return dist
 
-        subprocess.check_output(
-            [
-                sys.executable,
-                "-m",
-                "build",
-                "--sdist",
-                "--outdir",
-                str(tmp),
-                str(request.config.rootdir),
-            ]
-        )
+        subprocess.check_output([
+            sys.executable,
+            "-m",
+            "build",
+            "--sdist",
+            "--outdir",
+            str(tmp),
+            str(request.config.rootdir),
+        ])
         return next(tmp.glob("*.tar.gz"))
 
 
@@ -104,17 +102,15 @@ def setuptools_wheel(tmp_path_factory, request):
         if dist:
             return dist
 
-        subprocess.check_output(
-            [
-                sys.executable,
-                "-m",
-                "build",
-                "--wheel",
-                "--outdir",
-                str(tmp),
-                str(request.config.rootdir),
-            ]
-        )
+        subprocess.check_output([
+            sys.executable,
+            "-m",
+            "build",
+            "--wheel",
+            "--outdir",
+            str(tmp),
+            str(request.config.rootdir),
+        ])
         return next(tmp.glob("*.whl"))
 
 

@@ -87,7 +87,7 @@ def check_nsp(dist, attr, value):
         SetuptoolsDeprecationWarning.emit(
             "The namespace_packages parameter is deprecated.",
             "Please replace its usage with implicit namespaces (PEP 420).",
-            see_docs="references/keywords.html#keyword-namespace-packages"
+            see_docs="references/keywords.html#keyword-namespace-packages",
             # TODO: define due_date, it may break old packages that are no longer
             # maintained (e.g. sphinxcontrib extensions) when installed from source.
             # Warning officially introduced in May 2022, however the deprecation

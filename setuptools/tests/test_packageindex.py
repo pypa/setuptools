@@ -21,9 +21,7 @@ class TestPackageIndex:
             <a href="http://some_url">Name</a>
             (<a title="MD5 hash"
             href="{hash_url}">md5</a>)
-        """.lstrip().format(
-            **locals()
-        )
+        """.lstrip().format(**locals())
         assert setuptools.package_index.PYPI_MD5.match(doc)
 
     def test_bad_url_bad_port(self):

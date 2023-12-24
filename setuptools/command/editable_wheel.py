@@ -378,14 +378,13 @@ class editable_wheel(Command):
 
 
 class EditableStrategy(Protocol):
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
-        ...
+    def __call__(
+        self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]
+    ): ...
 
-    def __enter__(self):
-        ...
+    def __enter__(self): ...
 
-    def __exit__(self, _exc_type, _exc_value, _traceback):
-        ...
+    def __exit__(self, _exc_type, _exc_value, _traceback): ...
 
 
 class _StaticPth:
@@ -407,8 +406,7 @@ class _StaticPth:
         _logger.warning(msg + _LENIENT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback):
-        ...
+    def __exit__(self, _exc_type, _exc_value, _traceback): ...
 
 
 class _LinkTree(_StaticPth):

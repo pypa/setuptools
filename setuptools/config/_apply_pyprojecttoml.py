@@ -7,6 +7,7 @@ need to be processed before being applied.
 
 **PRIVATE MODULE**: API reserved for setuptools internal usage only.
 """
+
 import logging
 import os
 from collections.abc import Mapping
