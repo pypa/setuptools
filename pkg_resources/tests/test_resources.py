@@ -255,12 +255,10 @@ class TestDistro:
         ws = WorkingSet([])
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.dist-info",
-            metadata=Metadata(
-                (
-                    "METADATA",
-                    "Provides-Extra: baz\n" "Requires-Dist: quux; extra=='baz'",
-                )
-            ),
+            metadata=Metadata((
+                "METADATA",
+                "Provides-Extra: baz\n" "Requires-Dist: quux; extra=='baz'",
+            )),
         )
         ad.add(Foo)
         assert list(ws.resolve(parse_requirements("Foo"), ad)) == [Foo]
@@ -275,13 +273,11 @@ class TestDistro:
         ws = WorkingSet([])
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.dist-info",
-            metadata=Metadata(
-                (
-                    "METADATA",
-                    "Provides-Extra: baz-lightyear\n"
-                    "Requires-Dist: quux; extra=='baz-lightyear'",
-                )
-            ),
+            metadata=Metadata((
+                "METADATA",
+                "Provides-Extra: baz-lightyear\n"
+                "Requires-Dist: quux; extra=='baz-lightyear'",
+            )),
         )
         ad.add(Foo)
         assert list(ws.resolve(parse_requirements("Foo"), ad)) == [Foo]
@@ -295,15 +291,13 @@ class TestDistro:
         ws = WorkingSet([])
         Foo = Distribution.from_filename(
             "/foo_dir/Foo-1.2.dist-info",
-            metadata=Metadata(
-                (
-                    "METADATA",
-                    "Provides-Extra: baz\n"
-                    "Requires-Dist: quux; extra=='baz'\n"
-                    "Provides-Extra: bar\n"
-                    "Requires-Dist: fred; extra=='bar'\n",
-                )
-            ),
+            metadata=Metadata((
+                "METADATA",
+                "Provides-Extra: baz\n"
+                "Requires-Dist: quux; extra=='baz'\n"
+                "Provides-Extra: bar\n"
+                "Requires-Dist: fred; extra=='bar'\n",
+            )),
         )
         ad.add(Foo)
         quux = Distribution.from_filename("/foo_dir/quux-1.0.dist-info")
@@ -326,15 +320,13 @@ class TestDistro:
         )
         c = Distribution.from_filename(
             "/foo_dir/c-1.0.dist-info",
-            metadata=Metadata(
-                (
-                    "METADATA",
-                    "Provides-Extra: a\n"
-                    "Requires-Dist: b;extra=='a'\n"
-                    "Provides-Extra: b\n"
-                    "Requires-Dist: foo;extra=='b'",
-                )
-            ),
+            metadata=Metadata((
+                "METADATA",
+                "Provides-Extra: a\n"
+                "Requires-Dist: b;extra=='a'\n"
+                "Provides-Extra: b\n"
+                "Requires-Dist: foo;extra=='b'",
+            )),
         )
         foo = Distribution.from_filename("/foo_dir/foo-0.1.dist-info")
         for dist in (a, b, c, foo):
@@ -572,26 +564,22 @@ class TestRequirements:
         assert set(r1.extras) == set(("foo", "bar"))
         assert set(r2.extras) == set(("foo", "bar"))
         assert hash(r1) == hash(r2)
-        assert hash(r1) == hash(
-            (
-                "twisted",
-                None,
-                packaging.specifiers.SpecifierSet(">=1.2"),
-                frozenset(["foo", "bar"]),
-                None,
-            )
-        )
+        assert hash(r1) == hash((
+            "twisted",
+            None,
+            packaging.specifiers.SpecifierSet(">=1.2"),
+            frozenset(["foo", "bar"]),
+            None,
+        ))
         assert hash(
             Requirement.parse("Twisted @ https://localhost/twisted.zip")
-        ) == hash(
-            (
-                "twisted",
-                "https://localhost/twisted.zip",
-                packaging.specifiers.SpecifierSet(),
-                frozenset(),
-                None,
-            )
-        )
+        ) == hash((
+            "twisted",
+            "https://localhost/twisted.zip",
+            packaging.specifiers.SpecifierSet(),
+            frozenset(),
+            None,
+        ))
 
     def testVersionEquality(self):
         r1 = Requirement.parse("foo==0.3a2")

@@ -249,31 +249,25 @@ class easy_install(Command):
 
         self.config_vars = dict(sysconfig.get_config_vars())
 
-        self.config_vars.update(
-            {
-                'dist_name': self.distribution.get_name(),
-                'dist_version': self.distribution.get_version(),
-                'dist_fullname': self.distribution.get_fullname(),
-                'py_version': py_version,
-                'py_version_short': (
-                    f'{sys.version_info.major}.{sys.version_info.minor}'
-                ),
-                'py_version_nodot': f'{sys.version_info.major}{sys.version_info.minor}',
-                'sys_prefix': self.config_vars['prefix'],
-                'sys_exec_prefix': self.config_vars['exec_prefix'],
-                # Only python 3.2+ has abiflags
-                'abiflags': getattr(sys, 'abiflags', ''),
-                'platlibdir': getattr(sys, 'platlibdir', 'lib'),
-            }
-        )
+        self.config_vars.update({
+            'dist_name': self.distribution.get_name(),
+            'dist_version': self.distribution.get_version(),
+            'dist_fullname': self.distribution.get_fullname(),
+            'py_version': py_version,
+            'py_version_short': (f'{sys.version_info.major}.{sys.version_info.minor}'),
+            'py_version_nodot': f'{sys.version_info.major}{sys.version_info.minor}',
+            'sys_prefix': self.config_vars['prefix'],
+            'sys_exec_prefix': self.config_vars['exec_prefix'],
+            # Only python 3.2+ has abiflags
+            'abiflags': getattr(sys, 'abiflags', ''),
+            'platlibdir': getattr(sys, 'platlibdir', 'lib'),
+        })
         with contextlib.suppress(AttributeError):
             # only for distutils outside stdlib
-            self.config_vars.update(
-                {
-                    'implementation_lower': install._get_implementation().lower(),
-                    'implementation': install._get_implementation(),
-                }
-            )
+            self.config_vars.update({
+                'implementation_lower': install._get_implementation().lower(),
+                'implementation': install._get_implementation(),
+            })
 
         # pypa/distutils#113 Python 3.9 compat
         self.config_vars.setdefault(
@@ -672,7 +666,7 @@ class easy_install(Command):
 
     @contextlib.contextmanager
     def _tmpdir(self):
-        tmpdir = tempfile.mkdtemp(prefix=u"easy_install-")
+        tmpdir = tempfile.mkdtemp(prefix="easy_install-")
         try:
             # cast to str as workaround for #709 and #710 and #712
             yield str(tmpdir)
@@ -1032,9 +1026,9 @@ class easy_install(Command):
             f.close()
         script_dir = os.path.join(_egg_info, 'scripts')
         # delete entry-point scripts to avoid duping
-        self.delete_blockers(
-            [os.path.join(script_dir, args[0]) for args in ScriptWriter.get_args(dist)]
-        )
+        self.delete_blockers([
+            os.path.join(script_dir, args[0]) for args in ScriptWriter.get_args(dist)
+        ])
         # Build .egg file from tmpdir
         bdist_egg.make_zipfile(
             egg_path,
@@ -1437,24 +1431,20 @@ def get_site_dirs():
         if sys.platform in ('os2emx', 'riscos'):
             sitedirs.append(os.path.join(prefix, "Lib", "site-packages"))
         elif os.sep == '/':
-            sitedirs.extend(
-                [
-                    os.path.join(
-                        prefix,
-                        "lib",
-                        "python{}.{}".format(*sys.version_info),
-                        "site-packages",
-                    ),
-                    os.path.join(prefix, "lib", "site-python"),
-                ]
-            )
-        else:
-            sitedirs.extend(
-                [
+            sitedirs.extend([
+                os.path.join(
                     prefix,
-                    os.path.join(prefix, "lib", "site-packages"),
-                ]
-            )
+                    "lib",
+                    "python{}.{}".format(*sys.version_info),
+                    "site-packages",
+                ),
+                os.path.join(prefix, "lib", "site-python"),
+            ])
+        else:
+            sitedirs.extend([
+                prefix,
+                os.path.join(prefix, "lib", "site-packages"),
+            ])
         if sys.platform != 'darwin':
             continue
 
@@ -1682,9 +1672,11 @@ class PthDistributions(Environment):
                 last_paths.remove(path)
         # also, re-check that all paths are still valid before saving them
         for path in self.paths[:]:
-            if path not in last_paths and not path.startswith(
-                ('import ', 'from ', '#')
-            ):
+            if path not in last_paths and not path.startswith((
+                'import ',
+                'from ',
+                '#',
+            )):
                 absolute_path = os.path.join(self.basedir, path)
                 if not os.path.exists(absolute_path):
                     self.paths.remove(path)

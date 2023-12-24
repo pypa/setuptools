@@ -8,6 +8,7 @@ To read project metadata, consider using
 For simple scenarios, you can also try parsing the file directly
 with the help of ``tomllib`` or ``tomli``.
 """
+
 import logging
 import os
 from contextlib import contextmanager

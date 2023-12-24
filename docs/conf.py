@@ -100,19 +100,17 @@ intersphinx_mapping = {
 # Preserve authored syntax for defaults
 autodoc_preserve_defaults = True
 
-intersphinx_mapping.update(
-    {
-        'pip': ('https://pip.pypa.io/en/latest', None),
-        'build': ('https://pypa-build.readthedocs.io/en/latest', None),
-        'PyPUG': ('https://packaging.python.org/en/latest/', None),
-        'packaging': ('https://packaging.pypa.io/en/latest/', None),
-        'twine': ('https://twine.readthedocs.io/en/stable/', None),
-        'importlib-resources': (
-            'https://importlib-resources.readthedocs.io/en/latest',
-            None,
-        ),
-    }
-)
+intersphinx_mapping.update({
+    'pip': ('https://pip.pypa.io/en/latest', None),
+    'build': ('https://pypa-build.readthedocs.io/en/latest', None),
+    'PyPUG': ('https://packaging.python.org/en/latest/', None),
+    'packaging': ('https://packaging.pypa.io/en/latest/', None),
+    'twine': ('https://twine.readthedocs.io/en/stable/', None),
+    'importlib-resources': (
+        'https://importlib-resources.readthedocs.io/en/latest',
+        None,
+    ),
+})
 
 # Add support for linking usernames
 github_url = 'https://github.com'

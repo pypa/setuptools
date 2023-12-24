@@ -10,7 +10,7 @@ from setuptools.glob import glob
         ('', b'', []),
         ('', '', []),
         (
-            '''
+            """
      appveyor.yml
      CHANGES.rst
      LICENSE
@@ -19,12 +19,12 @@ from setuptools.glob import glob
      README.rst
      setup.cfg
      setup.py
-     ''',
+     """,
             '*.rst',
             ('CHANGES.rst', 'README.rst'),
         ),
         (
-            '''
+            """
      appveyor.yml
      CHANGES.rst
      LICENSE
@@ -33,7 +33,7 @@ from setuptools.glob import glob
      README.rst
      setup.cfg
      setup.py
-     ''',
+     """,
             b'*.rst',
             (b'CHANGES.rst', b'README.rst'),
         ),
