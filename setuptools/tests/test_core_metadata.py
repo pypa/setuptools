@@ -334,7 +334,7 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
                 ini2toml[lite]>=0.9
                 """,
             "other": [],
-        }
+        },
     )
     # Generate a PKG-INFO file using setuptools
     dist = Distribution(attrs)

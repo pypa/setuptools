@@ -11,6 +11,7 @@ wrapper programs are used by copying them to the directory containing
 the script they are to wrap and with the same name as the script they
 are to wrap.
 """
+
 import pathlib
 import sys
 import platform

@@ -3,17 +3,13 @@
 
 .. image:: https://img.shields.io/pypi/pyversions/setuptools.svg
 
-.. image:: https://github.com/pypa/setuptools/workflows/tests/badge.svg
+.. image:: https://github.com/pypa/setuptools/actions/workflows/main.yml/badge.svg
    :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22
    :alt: tests
 
 .. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json
     :target: https://github.com/astral-sh/ruff
     :alt: Ruff
-
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
-   :alt: Code style: Black
 
 .. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
     :target: https://setuptools.pypa.io

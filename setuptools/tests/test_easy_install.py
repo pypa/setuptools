@@ -294,9 +294,9 @@ class TestEasyInstallTest:
 @pytest.mark.filterwarnings('ignore:Unbuilt egg')
 class TestPTHFileWriter:
     def test_add_from_cwd_site_sets_dirty(self):
-        '''a pth file manager should set dirty
+        """a pth file manager should set dirty
         if a distribution is in site but also the cwd
-        '''
+        """
         pth = PthDistributions('does-not_exist', [os.getcwd()])
         assert not pth.dirty
         pth.add(PRDistribution(os.getcwd()))
@@ -742,9 +742,7 @@ class TestSetupRequires:
                         version={version!r},
                         py_modules=[{name!r}],
                     )
-                    """.format(
-                            name=distname, version=version
-                        )
+                    """.format(name=distname, version=version)
                     ),
                 ),
                 (
@@ -790,10 +788,10 @@ class TestSetupRequires:
                 with open(test_setup_cfg, 'w') as fp:
                     fp.write(
                         DALS(
-                            '''
+                            """
                         [easy_install]
                         index_url = https://pypi.org/legacy/
-                        '''
+                        """
                         )
                     )
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
@@ -823,20 +821,20 @@ class TestSetupRequires:
         assert len(mock_index.requests) == 0
 
     def test_setup_requires_with_allow_hosts(self, mock_index):
-        '''The `allow-hosts` option in not supported anymore.'''
+        """The `allow-hosts` option in not supported anymore."""
         files = {
             'test_pkg': {
                 'setup.py': DALS(
-                    '''
+                    """
                     from setuptools import setup
                     setup(setup_requires='python-xlib')
-                    '''
+                    """
                 ),
                 'setup.cfg': DALS(
-                    '''
+                    """
                     [easy_install]
                     allow_hosts = *
-                    '''
+                    """
                 ),
             }
         }
@@ -849,7 +847,7 @@ class TestSetupRequires:
         assert len(mock_index.requests) == 0
 
     def test_setup_requires_with_python_requires(self, monkeypatch, tmpdir):
-        '''Check `python_requires` is honored.'''
+        """Check `python_requires` is honored."""
         monkeypatch.setenv(str('PIP_RETRIES'), str('0'))
         monkeypatch.setenv(str('PIP_TIMEOUT'), str('0'))
         monkeypatch.setenv(str('PIP_NO_INDEX'), str('1'))
@@ -869,7 +867,7 @@ class TestSetupRequires:
         index = tmpdir / 'index.html'
         index.write_text(
             DALS(
-                '''
+                """
             <!DOCTYPE html>
             <html><head><title>Links for dep</title></head>
             <body>
@@ -880,7 +878,7 @@ data-requires-python="{dep_1_0_python_requires}">{dep_1_0_sdist}</a><br/>
 data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
             </body>
             </html>
-            '''
+            """
             ).format(
                 dep_1_0_url=dep_1_0_url,
                 dep_1_0_sdist=dep_1_0_sdist,
@@ -928,21 +926,21 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                         dependency_links = []
                     fp.write(
                         DALS(
-                            '''
+                            """
                         from setuptools import installer, setup
                         setup(setup_requires='python-xlib==42',
                         dependency_links={dependency_links!r})
-                        '''
+                        """
                         ).format(dependency_links=dependency_links)
                     )
                 with open(test_setup_cfg, 'w') as fp:
                     fp.write(
                         DALS(
-                            '''
+                            """
                         [easy_install]
                         index_url = {index_url}
                         find_links = {find_links}
-                        '''
+                        """
                         ).format(
                             index_url=os.path.join(temp_dir, 'index'),
                             find_links=temp_dir,
@@ -951,11 +949,11 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 run_setup(test_setup_py, [str('--version')])
 
     def test_setup_requires_with_transitive_extra_dependency(self, monkeypatch):
-        '''
+        """
         Use case: installing a package with a build dependency on
         an already installed `dep[extra]`, which in turn depends
         on `extra_dep` (whose is not already installed).
-        '''
+        """
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
                 # Create source distribution for `extra_dep`.
@@ -990,10 +988,10 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 with open(test_setup_py, 'w') as fp:
                     fp.write(
                         DALS(
-                            '''
+                            """
                         from setuptools import installer, setup
                         setup(setup_requires='dep[extra]')
-                        '''
+                        """
                         )
                     )
                 # Check...
@@ -1004,10 +1002,10 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 run_setup(test_setup_py, [str('--version')])
 
     def test_setup_requires_with_distutils_command_dep(self, monkeypatch):
-        '''
+        """
         Use case: ensure build requirements' extras
         are properly installed and activated.
-        '''
+        """
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
                 # Create source distribution for `extra_dep`.
@@ -1074,10 +1072,10 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 with open(test_setup_py, 'w') as fp:
                     fp.write(
                         DALS(
-                            '''
+                            """
                         from setuptools import installer, setup
                         setup(setup_requires='dep[extra]')
-                        '''
+                        """
                         )
                     )
                 # Check...
@@ -1395,7 +1393,7 @@ def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
 
 
 def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path):
-    '''`setup.py develop` should honor `--user` even under build isolation'''
+    """`setup.py develop` should honor `--user` even under build isolation"""
 
     # == Arrange ==
     # Pretend that build isolation was enabled
