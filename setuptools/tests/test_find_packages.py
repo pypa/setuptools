@@ -1,4 +1,5 @@
 """Tests for automatic package discovery"""
+
 import os
 import sys
 import shutil
@@ -30,8 +31,7 @@ def can_symlink():
 def has_symlink():
     bad_symlink = (
         # Windows symlink directory detection is broken on Python 3.2
-        platform.system() == 'Windows'
-        and sys.version_info[:2] == (3, 2)
+        platform.system() == 'Windows' and sys.version_info[:2] == (3, 2)
     )
     return can_symlink() and not bad_symlink
 

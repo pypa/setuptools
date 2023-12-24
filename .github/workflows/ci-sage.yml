@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out ${{ env.SPKG }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: build/pkgs/${{ env.SPKG }}/src
       - name: Install prerequisites
@@ -80,8 +80,7 @@ jobs:
 
   linux:
     # https://github.com/sagemath/sage/blob/develop/.github/workflows/docker.yml
-    # Use branch of ticket https://trac.sagemath.org/ticket/33288
-    uses: sagemath/sagetrac-mirror/.github/workflows/docker.yml@u/mkoeppe/setuptools_ci_target
+    uses: sagemath/sage/.github/workflows/docker.yml@develop
     with:
       # Sage distribution packages to build
       targets: setuptools pyzmq
@@ -89,11 +88,6 @@ jobs:
       sage_repo: sagemath/sage
       sage_ref: develop
       upstream_artifact: upstream
-      sage_trac_git: https://github.com/sagemath/sagetrac-mirror.git
-      # Test with the branch from https://trac.sagemath.org/ticket/33288
-      # This may provide hotfixes for the CI that have not been merged into
-      # the sage develop branch yet.
-      sage_trac_ticket: 33288
       # We prefix the image name with the SPKG name ("setuptools-") to avoid the error
       # 'Package "sage-docker-..." is already associated with another repository.'
       docker_push_repository: ghcr.io/${{ github.repository }}/setuptools-
