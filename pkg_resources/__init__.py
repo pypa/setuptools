@@ -2832,9 +2832,7 @@ class Distribution:
 
     def _get_version(self):
         lines = self._get_metadata(self.PKG_INFO)
-        version = _version_from_file(lines)
-
-        return version
+        return _version_from_file(lines)
 
     def activate(self, path=None, replace=False):
         """Ensure distribution is importable on `path` (default=sys.path)"""

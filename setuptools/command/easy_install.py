@@ -1474,9 +1474,7 @@ def get_site_dirs():
     with contextlib.suppress(AttributeError):
         sitedirs.extend(site.getsitepackages())
 
-    sitedirs = list(map(normalize_path, sitedirs))
-
-    return sitedirs
+    return list(map(normalize_path, sitedirs))
 
 
 def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME

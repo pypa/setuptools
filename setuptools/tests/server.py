@@ -84,5 +84,4 @@ def path_to_url(path, authority=None):
     base = 'file:'
     if authority is not None:
         base += '//' + authority
-    url = urllib.parse.urljoin(base, urllib.request.pathname2url(path))
-    return url
+    return urllib.parse.urljoin(base, urllib.request.pathname2url(path))
