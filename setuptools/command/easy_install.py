@@ -741,6 +741,7 @@ class easy_install(Command):
             for dist in dists:
                 if dist in spec:
                     return dist
+        return None
 
     def select_scheme(self, name):
         try:

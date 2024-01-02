@@ -1127,8 +1127,7 @@ class Environment:
         None is returned instead.  This method is a hook that allows subclasses
         to attempt other ways of obtaining a distribution before falling back
         to the `installer` argument."""
-        if installer is not None:
-            return installer(requirement)
+        return installer(requirement) if installer else None
 
     def __iter__(self):
         """Yield the unique project names of the available distributions"""
@@ -3210,6 +3209,7 @@ def _find_adapter(registry, ob):
     for t in types:
         if t in registry:
             return registry[t]
+    return None
 
 
 def ensure_directory(path):
