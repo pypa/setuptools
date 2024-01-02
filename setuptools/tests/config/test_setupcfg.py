@@ -964,7 +964,6 @@ class TestExternalSetters:
             'Link One': 'https://example.com/one/',
             'Link Two': 'https://example.com/two/',
         }
-        return None
 
     @patch.object(_Distribution, '__init__', autospec=True)
     def test_external_setters(self, mock_parent_init, tmpdir):
