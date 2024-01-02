@@ -115,7 +115,7 @@ class UnpickleableException(Exception):
 
 class ExceptionSaver:
     """
-    A Context Manager that will save an exception, serialized, and restore it
+    A Context Manager that will save an exception, serialize, and restore it
     later.
     """
 
@@ -124,7 +124,7 @@ class ExceptionSaver:
 
     def __exit__(self, type, exc, tb):
         if not exc:
-            return
+            return False
 
         # dump the exception
         self._saved = UnpickleableException.dump(type, exc)

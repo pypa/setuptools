@@ -16,9 +16,7 @@ def win_sr(env):
     > Fatal Python error: _Py_HashRandomization_Init: failed to
     > get random numbers to initialize Python
     """
-    if env is None:
-        return
-    if platform.system() == 'Windows':
+    if env and platform.system() == 'Windows':
         env['SYSTEMROOT'] = os.environ['SYSTEMROOT']
     return env
 

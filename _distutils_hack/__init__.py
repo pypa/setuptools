@@ -83,7 +83,7 @@ class DistutilsMetaFinder:
         # optimization: only consider top level modules and those
         # found in the CPython test suite.
         if path is not None and not fullname.startswith('test.'):
-            return
+            return None
 
         method_name = 'spec_for_{fullname}'.format(**locals())
         method = getattr(self, method_name, lambda: None)
@@ -91,7 +91,7 @@ class DistutilsMetaFinder:
 
     def spec_for_distutils(self):
         if self.is_cpython():
-            return
+            return None
 
         import importlib
         import importlib.abc
@@ -108,7 +108,7 @@ class DistutilsMetaFinder:
             #   setuptools from the path but only after the hook
             #   has been loaded. Ref #2980.
             # In either case, fall back to stdlib behavior.
-            return
+            return None
 
         class DistutilsLoader(importlib.abc.Loader):
             def create_module(self, spec):

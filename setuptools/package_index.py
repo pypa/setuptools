@@ -319,7 +319,7 @@ class PackageIndex(Environment):
         try:
             parse_version(dist.version)
         except Exception:
-            return
+            return None
         return super().add(dist)
 
     # FIXME: 'PackageIndex.process_url' is too complex (14)
