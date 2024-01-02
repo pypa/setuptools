@@ -384,10 +384,10 @@ class FileList(_FileList):
 
         try:
             process_action = action_map[action]
-        except KeyError:
+        except KeyError as e:
             raise DistutilsInternalError(
                 "this cannot happen: invalid action '{action!s}'".format(action=action),
-            )
+            ) from e
 
         # OK, now we know that the action is valid and we have the
         # right number of words on the line for that action -- so we
