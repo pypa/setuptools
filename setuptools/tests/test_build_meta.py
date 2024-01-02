@@ -30,9 +30,9 @@ pytestmark = pytest.mark.skipif(
 
 
 class BuildBackendBase:
-    def __init__(self, cwd='.', env={}, backend_name='setuptools.build_meta'):
+    def __init__(self, cwd='.', env=None, backend_name='setuptools.build_meta'):
         self.cwd = cwd
-        self.env = env
+        self.env = env or {}
         self.backend_name = backend_name
 
 

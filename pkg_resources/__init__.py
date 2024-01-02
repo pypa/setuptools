@@ -407,7 +407,7 @@ def get_provider(moduleOrReq):
     return _find_adapter(_provider_factories, loader)(module)
 
 
-def _macos_vers(_cache=[]):
+def _macos_vers(_cache=None):
     if not _cache:
         version = platform.mac_ver()[0]
         # fallback for MacPorts
@@ -419,7 +419,7 @@ def _macos_vers(_cache=[]):
                 if 'ProductVersion' in plist_content:
                     version = plist_content['ProductVersion']
 
-        _cache.append(version.split('.'))
+        _cache = [version.split('.')]
     return _cache[0]
 
 
@@ -2422,7 +2422,8 @@ def _cygwin_patch(filename):  # pragma: nocover
     return os.path.abspath(filename) if sys.platform == 'cygwin' else filename
 
 
-def _normalize_cached(filename, _cache={}):
+def _normalize_cached(filename, _cache=None):
+    _cache = _cache or {}
     try:
         return _cache[filename]
     except KeyError:

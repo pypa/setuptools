@@ -1195,7 +1195,7 @@ def create_setup_requires_package(
     version='0.1',
     make_package=make_trivial_sdist,
     setup_py_template=None,
-    setup_attrs={},
+    setup_attrs=None,
     use_setup_cfg=(),
 ):
     """Creates a source tree under path for a trivial test package that has a
@@ -1213,7 +1213,8 @@ def create_setup_requires_package(
         'setup_requires': ['%s==%s' % (distname, version)],
         'dependency_links': [os.path.abspath(path)],
     }
-    test_setup_attrs.update(setup_attrs)
+    if setup_attrs:
+        test_setup_attrs.update(setup_attrs)
 
     test_pkg = os.path.join(path, 'test_pkg')
     os.mkdir(test_pkg)
