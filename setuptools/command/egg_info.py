@@ -386,7 +386,7 @@ class FileList(_FileList):
             process_action = action_map[action]
         except KeyError as e:
             raise DistutilsInternalError(
-                "this cannot happen: invalid action '{action!s}'".format(action=action),
+                f"Invalid MANIFEST.in: unknow action {action!r} in {line!r}"
             ) from e
 
         # OK, now we know that the action is valid and we have the
