@@ -407,20 +407,18 @@ def get_provider(moduleOrReq):
     return _find_adapter(_provider_factories, loader)(module)
 
 
-def _macos_vers(_cache=None):
-    if not _cache:
-        version = platform.mac_ver()[0]
-        # fallback for MacPorts
-        if version == '':
-            plist = '/System/Library/CoreServices/SystemVersion.plist'
-            if os.path.exists(plist):
-                with open(plist, 'rb') as fh:
-                    plist_content = plistlib.load(fh)
-                if 'ProductVersion' in plist_content:
-                    version = plist_content['ProductVersion']
-
-        _cache = [version.split('.')]
-    return _cache[0]
+@functools.cache
+def _macos_vers():
+    version = platform.mac_ver()[0]
+    # fallback for MacPorts
+    if version == '':
+        plist = '/System/Library/CoreServices/SystemVersion.plist'
+        if os.path.exists(plist):
+            with open(plist, 'rb') as fh:
+                plist_content = plistlib.load(fh)
+            if 'ProductVersion' in plist_content:
+                version = plist_content['ProductVersion']
+    return version.split('.')
 
 
 def _macos_arch(machine):
@@ -2422,13 +2420,9 @@ def _cygwin_patch(filename):  # pragma: nocover
     return os.path.abspath(filename) if sys.platform == 'cygwin' else filename
 
 
-def _normalize_cached(filename, _cache=None):
-    _cache = _cache or {}
-    try:
-        return _cache[filename]
-    except KeyError:
-        _cache[filename] = result = normalize_path(filename)
-        return result
+@functools.cache
+def _normalize_cached(filename):
+    return normalize_path(filename)
 
 
 def _is_egg_path(path):
