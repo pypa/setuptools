@@ -325,8 +325,6 @@ def test_dist_info_is_not_dir(tmp_path, only):
     assert not pkg_resources.dist_factory(str(tmp_path), str(dist_info), only)
 
 
-@pytest.mark.skipif(sys.version_info >= (3, 9), reason="requires Python < 3.9")
-@pytest.mark.filterwarnings("ignore::DeprecationWarning")
 def test_macos_vers_fallback(monkeypatch, tmp_path):
     """Regression test for pkg_resources._macos_vers"""
     orig_open = builtins.open
