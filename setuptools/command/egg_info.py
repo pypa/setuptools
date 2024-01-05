@@ -384,10 +384,9 @@ class FileList(_FileList):
 
         try:
             process_action = action_map[action]
-        except KeyError as e:
-            raise DistutilsInternalError(
-                f"Invalid MANIFEST.in: unknow action {action!r} in {line!r}"
-            ) from e
+        except KeyError:
+            msg = f"Invalid MANIFEST.in: unknown action {action!r} in {line!r}"
+            raise DistutilsInternalError(msg) from None
 
         # OK, now we know that the action is valid and we have the
         # right number of words on the line for that action -- so we

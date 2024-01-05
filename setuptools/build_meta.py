@@ -117,11 +117,11 @@ def _file_with_extension(directory, extension):
     matching = (f for f in os.listdir(directory) if f.endswith(extension))
     try:
         (file,) = matching
-    except ValueError as e:
+    except ValueError:
         raise ValueError(
             'No distribution was found. Ensure that `setup.py` '
             'is not empty and that it calls `setup()`.'
-        ) from e
+        ) from None
     return file
 
 
