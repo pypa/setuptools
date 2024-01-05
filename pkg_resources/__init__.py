@@ -414,10 +414,10 @@ def _macos_vers(_cache=[]):
         if version == '':
             plist = '/System/Library/CoreServices/SystemVersion.plist'
             if os.path.exists(plist):
-                if hasattr(plistlib, 'readPlist'):
-                    plist_content = plistlib.readPlist(plist)
-                    if 'ProductVersion' in plist_content:
-                        version = plist_content['ProductVersion']
+                with open(plist, 'rb') as fh:
+                    plist_content = plistlib.load(fh)
+                if 'ProductVersion' in plist_content:
+                    version = plist_content['ProductVersion']
 
         _cache.append(version.split('.'))
     return _cache[0]
