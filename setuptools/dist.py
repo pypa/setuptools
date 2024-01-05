@@ -912,11 +912,9 @@ class Distribution(_Distribution):
     def iter_distribution_names(self):
         """Yield all packages, modules, and extension names in distribution"""
 
-        for pkg in self.packages or ():
-            yield pkg
+        yield from self.packages or ()
 
-        for module in self.py_modules or ():
-            yield module
+        yield from self.py_modules or ()
 
         for ext in self.ext_modules or ():
             if isinstance(ext, tuple):

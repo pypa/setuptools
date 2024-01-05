@@ -400,7 +400,7 @@ class _StaticPth:
         self.path_entries = path_entries
 
     def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
-        entries = "\n".join((str(p.resolve()) for p in self.path_entries))
+        entries = "\n".join(str(p.resolve()) for p in self.path_entries)
         contents = _encode_pth(f"{entries}\n")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
 

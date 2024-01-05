@@ -1895,7 +1895,7 @@ class ZipProvider(EggProvider):
             try:
                 rename(tmpnam, real_path)
 
-            except os.error:
+            except OSError:
                 if os.path.isfile(real_path):
                     if self._is_current(real_path, zip_path):
                         # the file became current since it was checked above,
@@ -1908,7 +1908,7 @@ class ZipProvider(EggProvider):
                         return real_path
                 raise
 
-        except os.error:
+        except OSError:
             # report a user-friendly error
             manager.extraction_error()
 
@@ -2901,7 +2901,7 @@ class Distribution:
 
     def __dir__(self):
         return list(
-            set(super(Distribution, self).__dir__())
+            set(super().__dir__())
             | set(attr for attr in self._provider.__dir__() if not attr.startswith('_'))
         )
 
@@ -3168,7 +3168,7 @@ class RequirementParseError(packaging.requirements.InvalidRequirement):
 class Requirement(packaging.requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
-        super(Requirement, self).__init__(requirement_string)
+        super().__init__(requirement_string)
         self.unsafe_name = self.name
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()

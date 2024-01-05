@@ -40,7 +40,7 @@ class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
 
     def __init__(self, *args, **kwargs):
-        super(BuildBackend, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
     def __getattr__(self, name):
@@ -73,7 +73,7 @@ class BuildBackend(BuildBackendBase):
 
 class BuildBackendCaller(BuildBackendBase):
     def __init__(self, *args, **kwargs):
-        super(BuildBackendCaller, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         (self.backend_name, _, self.backend_obj) = self.backend_name.partition(':')
 
