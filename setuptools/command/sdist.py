@@ -105,7 +105,7 @@ class sdist(orig.sdist):
             yield
         finally:
             if orig_val is not NoValue:
-                setattr(os, 'link', orig_val)
+                os.link = orig_val
 
     def add_defaults(self):
         super().add_defaults()

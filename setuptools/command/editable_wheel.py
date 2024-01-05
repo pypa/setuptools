@@ -19,7 +19,7 @@ import traceback
 from contextlib import suppress
 from enum import Enum
 from inspect import cleandoc
-from itertools import chain
+from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import (
@@ -606,7 +606,7 @@ def _simple_layout(
     layout = {pkg: find_package_path(pkg, package_dir, project_dir) for pkg in packages}
     if not layout:
         return set(package_dir) in ({}, {""})
-    parent = os.path.commonpath([_parent_path(k, v) for k, v in layout.items()])
+    parent = os.path.commonpath(starmap(_parent_path, layout.items()))
     return all(
         _path.same_path(Path(parent, *key.split('.')), value)
         for key, value in layout.items()

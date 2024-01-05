@@ -344,7 +344,9 @@ def test_macos_vers_fallback(monkeypatch, tmp_path):
 
     # Ensure that the _macos_vers works correctly
     with mock.patch('builtins.open', mock.Mock(side_effect=fake_open)) as m:
-        assert pkg_resources._macos_vers([]) == ["11", "4"]
+        pkg_resources._macos_vers.cache_clear()
+        assert pkg_resources._macos_vers() == ["11", "4"]
+        pkg_resources._macos_vers.cache_clear()
 
     m.assert_called()
 
