@@ -29,12 +29,14 @@ extend-ignore = [
 extend-exclude = [
 	"**/_vendor",
 	"setuptools/_distutils",
+	"setuptools/config/_validate_pyproject",
 ]
 
 [format]
 extend-exclude = [
 	"**/_vendor",
 	"setuptools/_distutils",
+	"setuptools/config/_validate_pyproject",
 ]
 # https://docs.astral.sh/ruff/settings/#format-quote-style
 quote-style = "preserve"
