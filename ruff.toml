@@ -26,14 +26,14 @@ extend-ignore = [
 	"UP032",  # temporarily disabled
 	"UP036",  # temporarily disabled
 ]
-extend-exclude = [
+exclude = [
 	"**/_vendor",
 	"setuptools/_distutils",
 	"setuptools/config/_validate_pyproject",
 ]
 
 [format]
-extend-exclude = [
+exclude = [
 	"**/_vendor",
 	"setuptools/_distutils",
 	"setuptools/config/_validate_pyproject",
