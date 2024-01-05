@@ -407,7 +407,7 @@ def get_provider(moduleOrReq):
     return _find_adapter(_provider_factories, loader)(module)
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def _macos_vers():
     version = platform.mac_ver()[0]
     # fallback for MacPorts
@@ -2420,7 +2420,7 @@ def _cygwin_patch(filename):  # pragma: nocover
     return os.path.abspath(filename) if sys.platform == 'cygwin' else filename
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def _normalize_cached(filename):
     return normalize_path(filename)
 
