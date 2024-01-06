@@ -1,12 +1,11 @@
 """Tests for distutils.command.config."""
 import os
 import sys
-from test.support import missing_compiler_executable
 
 import pytest
 
 from distutils.command.config import dump_file, config
-from distutils.tests import support
+from distutils.tests import support, missing_compiler_executable
 from distutils._log import log
 
 

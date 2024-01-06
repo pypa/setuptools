@@ -17,8 +17,7 @@ from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
 
-from distutils.tests import support
-from test import support as test_support
+from distutils.tests import support, missing_compiler_executable
 
 
 def _make_ext_name(modname):
@@ -213,7 +212,7 @@ class TestInstall(
         assert found == expected
 
     def test_record_extensions(self):
-        cmd = test_support.missing_compiler_executable()
+        cmd = missing_compiler_executable()
         if cmd is not None:
             pytest.skip('The %r command is not found' % cmd)
         install_dir = self.mkdtemp()
