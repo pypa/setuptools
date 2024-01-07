@@ -7,7 +7,7 @@ distutils.command.tests package, since command identification is done
 by import rather than matching pre-defined names.
 """
 
-def missing_compiler_executable(cmd_names=[]):
+def missing_compiler_executable(cmd_names=[]):  # pragma: no cover
     """Check if the compiler components used to build the interpreter exist.
 
     Check for the existence of the compiler executables whose names are listed
