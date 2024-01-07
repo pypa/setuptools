@@ -16,6 +16,7 @@ import pytest
 from distutils.core import Distribution
 from distutils.command.build_ext import build_ext
 from distutils import sysconfig
+from distutils.tests import missing_compiler_executable
 from distutils.tests.support import (
     TempdirManager,
     copy_xxmodule_c,
@@ -89,7 +90,7 @@ class TestBuildExt(TempdirManager):
         return build_ext(*args, **kwargs)
 
     def test_build_ext(self):
-        cmd = support.missing_compiler_executable()
+        missing_compiler_executable()
         copy_xxmodule_c(self.tmp_dir)
         xx_c = os.path.join(self.tmp_dir, 'xxmodule.c')
         xx_ext = Extension('xx', [xx_c])
@@ -359,7 +360,7 @@ class TestBuildExt(TempdirManager):
         assert cmd.compiler == 'unix'
 
     def test_get_outputs(self):
-        cmd = support.missing_compiler_executable()
+        missing_compiler_executable()
         tmp_dir = self.mkdtemp()
         c_file = os.path.join(tmp_dir, 'foo.c')
         self.write_file(c_file, 'void PyInit_foo(void) {}\n')
