@@ -1,6 +1,9 @@
 """Tests for distutils.dist."""
 import os
 import io
+import email
+import email.policy
+import email.generator
 import sys
 import warnings
 import textwrap
@@ -510,3 +513,41 @@ class TestMetadata(support.TempdirManager):
         assert metadata.platforms is None
         assert metadata.obsoletes is None
         assert metadata.requires == ['foo']
+
+    def test_round_trip_through_email_generator(self):
+        """
+        In pypa/setuptools#4033, it was shown that once PKG-INFO is
+        re-generated using ``email.generator.Generator``, some control
+        characters might cause problems.
+        """
+        # Given a PKG-INFO file ...
+        attrs = {
+            "name": "package",
+            "version": "1.0",
+            "long_description": "hello\x0b\nworld\n",
+        }
+        dist = Distribution(attrs)
+        metadata = dist.metadata
+
+        with io.StringIO() as buffer:
+            metadata.write_pkg_file(buffer)
+            msg = buffer.getvalue()
+
+        # ... when it is read and re-written using stdlib's email library,
+        orig = email.message_from_string(msg)
+        policy = email.policy.EmailPolicy(
+            utf8=True,
+            mangle_from_=False,
+            max_line_length=0,
+        )
+        with io.StringIO() as buffer:
+            email.generator.Generator(buffer, policy=policy).flatten(orig)
+
+            buffer.seek(0)
+            regen = email.message_from_file(buffer)
+
+        # ... then it should be the same as the original
+        # (except for the specific line break characters)
+        orig_desc = set(orig["Description"].splitlines())
+        regen_desc = set(regen["Description"].splitlines())
+        assert regen_desc == orig_desc
