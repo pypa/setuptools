@@ -159,7 +159,8 @@ jobs:
     needs:
     - test
     - collateral
-    - test_cygwin
+    # disabled due to disabled job
+    # - test_cygwin
 
     runs-on: ubuntu-latest
 
