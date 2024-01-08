@@ -112,15 +112,13 @@ def egg_info_for_url(url):
 def distros_for_url(url, metadata=None):
     """Yield egg or source distribution objects that might be found at a URL"""
     base, fragment = egg_info_for_url(url)
-    for dist in distros_for_location(url, base, metadata):
-        yield dist
+    yield from distros_for_location(url, base, metadata)
     if fragment:
         match = EGG_FRAGMENT.match(fragment)
         if match:
-            for dist in interpret_distro_name(
+            yield from interpret_distro_name(
                 url, match.group(1), metadata, precedence=CHECKOUT_DIST
-            ):
-                yield dist
+            )
 
 
 def distros_for_location(location, basename, metadata=None):
@@ -516,7 +514,7 @@ class PackageIndex(Environment):
             if dist in requirement:
                 return dist
             self.debug("%s does not match %s", requirement, dist)
-        return super(PackageIndex, self).obtain(requirement, installer)
+        return super().obtain(requirement, installer)
 
     def check_hash(self, checker, filename, tfp):
         """

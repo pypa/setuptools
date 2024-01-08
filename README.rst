@@ -27,10 +27,9 @@
    :target: https://discord.com/channels/803025117553754132/815945031150993468
    :alt: Discord
 
-See the `Installation Instructions
-<https://packaging.python.org/installing/>`_ in the Python Packaging
-User's Guide for instructions on installing, upgrading, and uninstalling
-Setuptools.
+See the `Quickstart <https://setuptools.pypa.io/en/latest/userguide/quickstart.html>`_
+and the `User's Guide <https://setuptools.pypa.io/en/latest/userguide/>`_ for
+instructions on how to use Setuptools.
 
 Questions and comments should be directed to `GitHub Discussions
 <https://github.com/pypa/setuptools/discussions>`_.

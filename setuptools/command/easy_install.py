@@ -1744,8 +1744,7 @@ class RewritePthDistributions(PthDistributions):
     @classmethod
     def _wrap_lines(cls, lines):
         yield cls.prelude
-        for line in lines:
-            yield line
+        yield from lines
         yield cls.postlude
 
     prelude = _one_liner(
@@ -2025,7 +2024,7 @@ def chmod(path, mode):
     log.debug("changing mode of %s to %o", path, mode)
     try:
         _chmod(path, mode)
-    except os.error as e:
+    except OSError as e:
         log.debug("chmod failed: %s", e)
 
 
@@ -2181,8 +2180,7 @@ class ScriptWriter:
                 cls._ensure_safe_name(name)
                 script_text = cls.template % locals()
                 args = cls._get_script_args(type_, name, header, script_text)
-                for res in args:
-                    yield res
+                yield from args
 
     @staticmethod
     def _ensure_safe_name(name):

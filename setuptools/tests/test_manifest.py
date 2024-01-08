@@ -171,7 +171,7 @@ class TempDirTestCase:
 
 class TestManifestTest(TempDirTestCase):
     def setup_method(self, method):
-        super(TestManifestTest, self).setup_method(method)
+        super().setup_method(method)
 
         f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
         f.write(SETUP_PY)
