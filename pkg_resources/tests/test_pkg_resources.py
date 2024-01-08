@@ -4,6 +4,7 @@ import tempfile
 import os
 import zipfile
 import datetime
+import plistlib
 import subprocess
 import stat
 import distutils.dist
