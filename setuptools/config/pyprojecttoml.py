@@ -11,7 +11,6 @@ with the help of ``tomllib`` or ``tomli``.
 
 import logging
 import os
-import sys
 from contextlib import contextmanager
 from functools import partial
 from typing import TYPE_CHECKING, Callable, Dict, Mapping, Optional, Set, Union
@@ -30,10 +29,7 @@ _logger = logging.getLogger(__name__)
 
 
 def load_file(filepath: _Path) -> dict:
-    if sys.version_info >= (3, 11):
-        import tomllib
-    else: # pragma: no cover
-        from setuptools.extern import tomli as tomllib
+    from ..py311compat import tomllib
 
     with open(filepath, "rb") as file:
         return tomllib.load(file)
