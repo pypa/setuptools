@@ -1,6 +1,12 @@
 name: tests
 
-on: [push, pull_request]
+on:
+  merge_group:
+  push:
+    branches-ignore:
+    # disabled for jaraco/skeleton#103
+    # - gh-readonly-queue/**  # Temporary merge queue-related GH-made branches
+  pull_request:
 
 concurrency:
   group: >-
@@ -62,7 +68,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job: [diffcov, docs]
+        job:
+        - diffcov
+        - docs
     runs-on: ubuntu-latest
     continue-on-error: ${{ matrix.python == '3.12' }}
     steps:
@@ -102,6 +110,7 @@ jobs:
             gcc-core,
             gcc-g++,
             ncompress
+            git
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: tox
@@ -151,7 +160,8 @@ jobs:
     needs:
     - test
     - collateral
-    - test_cygwin
+    # disabled due to disabled job
+    # - test_cygwin
 
     runs-on: ubuntu-latest
 

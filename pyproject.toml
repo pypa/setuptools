@@ -2,7 +2,4 @@
 requires = ["setuptools>=56", "setuptools_scm[toml]>=3.4.1"]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-skip-string-normalization = true
-
 [tool.setuptools_scm]
