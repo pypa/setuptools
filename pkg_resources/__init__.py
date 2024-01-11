@@ -407,20 +407,18 @@ def get_provider(moduleOrReq):
     return _find_adapter(_provider_factories, loader)(module)
 
 
-def _macos_vers(_cache=[]):
-    if not _cache:
-        version = platform.mac_ver()[0]
-        # fallback for MacPorts
-        if version == '':
-            plist = '/System/Library/CoreServices/SystemVersion.plist'
-            if os.path.exists(plist):
-                if hasattr(plistlib, 'readPlist'):
-                    plist_content = plistlib.readPlist(plist)
-                    if 'ProductVersion' in plist_content:
-                        version = plist_content['ProductVersion']
-
-        _cache.append(version.split('.'))
-    return _cache[0]
+@functools.lru_cache(maxsize=None)
+def _macos_vers():
+    version = platform.mac_ver()[0]
+    # fallback for MacPorts
+    if version == '':
+        plist = '/System/Library/CoreServices/SystemVersion.plist'
+        if os.path.exists(plist):
+            with open(plist, 'rb') as fh:
+                plist_content = plistlib.load(fh)
+            if 'ProductVersion' in plist_content:
+                version = plist_content['ProductVersion']
+    return version.split('.')
 
 
 def _macos_arch(machine):
@@ -1874,7 +1872,7 @@ class ZipProvider(EggProvider):
         timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
 
         if not WRITE_SUPPORT:
-            raise IOError(
+            raise OSError(
                 '"os.rename" and "os.unlink" are not supported ' 'on this platform'
             )
         try:
@@ -1895,7 +1893,7 @@ class ZipProvider(EggProvider):
             try:
                 rename(tmpnam, real_path)
 
-            except os.error:
+            except OSError:
                 if os.path.isfile(real_path):
                     if self._is_current(real_path, zip_path):
                         # the file became current since it was checked above,
@@ -1908,7 +1906,7 @@ class ZipProvider(EggProvider):
                         return real_path
                 raise
 
-        except os.error:
+        except OSError:
             # report a user-friendly error
             manager.extraction_error()
 
@@ -2001,7 +1999,7 @@ class FileMetadata(EmptyProvider):
         if name != 'PKG-INFO':
             raise KeyError("No metadata except PKG-INFO is available")
 
-        with io.open(self.path, encoding='utf-8', errors="replace") as f:
+        with open(self.path, encoding='utf-8', errors="replace") as f:
             metadata = f.read()
         self._warn_on_replacement(metadata)
         return metadata
@@ -2095,8 +2093,7 @@ def find_eggs_in_zip(importer, path_item, only=False):
         if _is_egg_path(subitem):
             subpath = os.path.join(path_item, subitem)
             dists = find_eggs_in_zip(zipimport.zipimporter(subpath), subpath)
-            for dist in dists:
-                yield dist
+            yield from dists
         elif subitem.lower().endswith(('.dist-info', '.egg-info')):
             subpath = os.path.join(path_item, subitem)
             submeta = EggMetadata(zipimport.zipimporter(subpath))
@@ -2131,8 +2128,7 @@ def find_on_path(importer, path_item, only=False):
     for entry in sorted(entries):
         fullpath = os.path.join(path_item, entry)
         factory = dist_factory(path_item, entry, only)
-        for dist in factory(fullpath):
-            yield dist
+        yield from factory(fullpath)
 
 
 def dist_factory(path_item, entry, only):
@@ -2424,12 +2420,9 @@ def _cygwin_patch(filename):  # pragma: nocover
     return os.path.abspath(filename) if sys.platform == 'cygwin' else filename
 
 
-def _normalize_cached(filename, _cache={}):
-    try:
-        return _cache[filename]
-    except KeyError:
-        _cache[filename] = result = normalize_path(filename)
-        return result
+@functools.lru_cache(maxsize=None)
+def _normalize_cached(filename):
+    return normalize_path(filename)
 
 
 def _is_egg_path(path):
@@ -2850,8 +2843,7 @@ class Distribution:
 
     def _get_metadata(self, name):
         if self.has_metadata(name):
-            for line in self.get_metadata_lines(name):
-                yield line
+            yield from self.get_metadata_lines(name)
 
     def _get_version(self):
         lines = self._get_metadata(self.PKG_INFO)
@@ -2904,7 +2896,7 @@ class Distribution:
 
     def __dir__(self):
         return list(
-            set(super(Distribution, self).__dir__())
+            set(super().__dir__())
             | set(attr for attr in self._provider.__dir__() if not attr.startswith('_'))
         )
 
@@ -3171,7 +3163,7 @@ class RequirementParseError(packaging.requirements.InvalidRequirement):
 class Requirement(packaging.requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
-        super(Requirement, self).__init__(requirement_string)
+        super().__init__(requirement_string)
         self.unsafe_name = self.name
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()
@@ -3243,7 +3235,7 @@ def ensure_directory(path):
 def _bypass_ensure_directory(path):
     """Sandbox-bypassing version of ensure_directory()"""
     if not WRITE_SUPPORT:
-        raise IOError('"os.mkdir" not supported on this platform.')
+        raise OSError('"os.mkdir" not supported on this platform.')
     dirname, filename = split(path)
     if dirname and filename and not isdir(dirname):
         _bypass_ensure_directory(dirname)

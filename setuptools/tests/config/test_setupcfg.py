@@ -357,13 +357,11 @@ class TestMetadata:
                 dist.parse_config_files()
 
     def test_classifiers(self, tmpdir):
-        expected = set(
-            [
-                'Framework :: Django',
-                'Programming Language :: Python :: 3',
-                'Programming Language :: Python :: 3.5',
-            ]
-        )
+        expected = set([
+            'Framework :: Django',
+            'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.5',
+        ])
 
         # From file.
         _, config = fake_env(tmpdir, '[metadata]\n' 'classifiers = file: classifiers\n')
@@ -387,23 +385,6 @@ class TestMetadata:
         )
         with get_dist(tmpdir) as dist:
             assert set(dist.metadata.classifiers) == expected
-
-    def test_deprecated_config_handlers(self, tmpdir):
-        fake_env(
-            tmpdir,
-            '[metadata]\n'
-            'version = 10.1.1\n'
-            'description = Some description\n'
-            'requires = some, requirement\n',
-        )
-
-        with pytest.warns(SetuptoolsDeprecationWarning, match="requires"):
-            with get_dist(tmpdir) as dist:
-                metadata = dist.metadata
-
-                assert metadata.version == '10.1.1'
-                assert metadata.description == 'Some description'
-                assert metadata.requires == ['some', 'requirement']
 
     def test_interpolation(self, tmpdir):
         fake_env(tmpdir, '[metadata]\n' 'description = %(message)s\n')
@@ -505,15 +486,20 @@ class TestOptions:
             assert dist.packages == ['pack_a', 'pack_b.subpack']
             assert dist.namespace_packages == ['pack1', 'pack2']
             assert dist.scripts == ['bin/one.py', 'bin/two.py']
-            assert dist.dependency_links == (
-                ['http://some.com/here/1', 'http://some.com/there/2']
-            )
-            assert dist.install_requires == (
-                ['docutils>=0.3', 'pack==1.1,==1.3', 'hey']
-            )
-            assert dist.setup_requires == (
-                ['docutils>=0.3', 'spack ==1.1, ==1.3', 'there']
-            )
+            assert dist.dependency_links == ([
+                'http://some.com/here/1',
+                'http://some.com/there/2',
+            ])
+            assert dist.install_requires == ([
+                'docutils>=0.3',
+                'pack==1.1,==1.3',
+                'hey',
+            ])
+            assert dist.setup_requires == ([
+                'docutils>=0.3',
+                'spack ==1.1, ==1.3',
+                'there',
+            ])
             assert dist.tests_require == ['mock==0.7.2', 'pytest']
             assert dist.python_requires == '>=1.0, !=2.8'
             assert dist.py_modules == ['module1', 'module2']
@@ -558,15 +544,20 @@ class TestOptions:
             assert dist.packages == ['pack_a', 'pack_b.subpack']
             assert dist.namespace_packages == ['pack1', 'pack2']
             assert dist.scripts == ['bin/one.py', 'bin/two.py']
-            assert dist.dependency_links == (
-                ['http://some.com/here/1', 'http://some.com/there/2']
-            )
-            assert dist.install_requires == (
-                ['docutils>=0.3', 'pack==1.1,==1.3', 'hey']
-            )
-            assert dist.setup_requires == (
-                ['docutils>=0.3', 'spack ==1.1, ==1.3', 'there']
-            )
+            assert dist.dependency_links == ([
+                'http://some.com/here/1',
+                'http://some.com/there/2',
+            ])
+            assert dist.install_requires == ([
+                'docutils>=0.3',
+                'pack==1.1,==1.3',
+                'hey',
+            ])
+            assert dist.setup_requires == ([
+                'docutils>=0.3',
+                'spack ==1.1, ==1.3',
+                'there',
+            ])
             assert dist.tests_require == ['mock==0.7.2', 'pytest']
 
     def test_package_dir_fail(self, tmpdir):
@@ -610,9 +601,11 @@ class TestOptions:
         dir_sub_two, _ = make_package_dir('sub_two', dir_package)
 
         with get_dist(tmpdir) as dist:
-            assert set(dist.packages) == set(
-                ['fake_package', 'fake_package.sub_two', 'fake_package.sub_one']
-            )
+            assert set(dist.packages) == set([
+                'fake_package',
+                'fake_package.sub_two',
+                'fake_package.sub_one',
+            ])
 
         config.write(
             '[options]\n'
@@ -964,17 +957,13 @@ class TestExternalSetters:
     # pbr or something else setting these values.
     def _fake_distribution_init(self, dist, attrs):
         saved_dist_init(dist, attrs)
-        # see self._DISTUTUILS_UNSUPPORTED_METADATA
-        setattr(dist.metadata, 'long_description_content_type', 'text/something')
+        # see self._DISTUTILS_UNSUPPORTED_METADATA
+        dist.metadata.long_description_content_type = 'text/something'
         # Test overwrite setup() args
-        setattr(
-            dist.metadata,
-            'project_urls',
-            {
-                'Link One': 'https://example.com/one/',
-                'Link Two': 'https://example.com/two/',
-            },
-        )
+        dist.metadata.project_urls = {
+            'Link One': 'https://example.com/one/',
+            'Link Two': 'https://example.com/two/',
+        }
         return None
 
     @patch.object(_Distribution, '__init__', autospec=True)

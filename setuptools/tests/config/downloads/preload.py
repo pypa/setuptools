@@ -7,6 +7,7 @@ For example you can use::
 
 to make sure the `setup.cfg` examples are downloaded before starting the tests.
 """
+
 import sys
 from pathlib import Path
 

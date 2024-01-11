@@ -86,7 +86,7 @@ def decompose(path):
 
 
 def read_all_bytes(filename):
-    with io.open(filename, 'rb') as fp:
+    with open(filename, 'rb') as fp:
         return fp.read()
 
 
@@ -658,7 +658,7 @@ class TestSdistTest:
         else:
             # The Latin-1 filename should have been skipped
             filename = filename.decode('latin-1')
-            filename not in cmd.filelist.files
+            assert filename not in cmd.filelist.files
 
     _EXAMPLE_DIRECTIVES = {
         "setup.cfg - long_description and version": """
@@ -765,14 +765,11 @@ class TestSdistTest:
         build.sub_commands = [*build.sub_commands, ("build_custom", None)]
 
         class build_custom(Command):
-            def initialize_options(self):
-                ...
+            def initialize_options(self): ...
 
-            def finalize_options(self):
-                ...
+            def finalize_options(self): ...
 
-            def run(self):
-                ...
+            def run(self): ...
 
             def get_source_files(self):
                 return ['.myfile~']

@@ -66,7 +66,7 @@ def run_setup_py(cmd, pypath=None, path=None, data_stream=0, env=None):
 
     cmd = [sys.executable, "setup.py"] + list(cmd)
 
-    # http://bugs.python.org/issue8557
+    # https://bugs.python.org/issue8557
     shell = sys.platform == 'win32'
 
     try:

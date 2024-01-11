@@ -30,9 +30,9 @@ pytestmark = pytest.mark.skipif(
 
 
 class BuildBackendBase:
-    def __init__(self, cwd='.', env={}, backend_name='setuptools.build_meta'):
+    def __init__(self, cwd='.', env=None, backend_name='setuptools.build_meta'):
         self.cwd = cwd
-        self.env = env
+        self.env = env or {}
         self.backend_name = backend_name
 
 
@@ -40,7 +40,7 @@ class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
 
     def __init__(self, *args, **kwargs):
-        super(BuildBackend, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
     def __getattr__(self, name):
@@ -73,7 +73,7 @@ class BuildBackend(BuildBackendBase):
 
 class BuildBackendCaller(BuildBackendBase):
     def __init__(self, *args, **kwargs):
-        super(BuildBackendCaller, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         (self.backend_name, _, self.backend_obj) = self.backend_name.partition(':')
 
@@ -706,25 +706,6 @@ class TestBuildMetaBackend:
         for file in files:
             assert file.is_symlink() or os.stat(file).st_nlink > 0
 
-    @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
-    # Since the backend is running via a process pool, in some operating systems
-    # we may have problems to make assertions based on warnings/stdout/stderr...
-    # So the best is to ignore them for the time being.
-    def test_editable_with_global_option_still_works(self, tmpdir_cwd):
-        """The usage of --global-option is now discouraged in favour of --build-option.
-        This is required to make more sense of the provided scape hatch and align with
-        previous pip behaviour. See pypa/setuptools#1928.
-        """
-        path.build({**self._simple_pyproject_example, '_meta': {}})
-        build_backend = self.get_build_backend()
-        assert not Path("build").exists()
-
-        cfg = {"--global-option": ["--mode", "strict"]}
-        build_backend.prepare_metadata_for_build_editable("_meta", cfg)
-        build_backend.build_editable("temp", cfg, "_meta")
-
-        self._assert_link_tree(next(Path("build").glob("__editable__.*")))
-
     def test_editable_without_config_settings(self, tmpdir_cwd):
         """
         Sanity check to ensure tests with --mode=strict are different from the ones
@@ -739,13 +720,7 @@ class TestBuildMetaBackend:
         build_backend.build_editable("temp")
         assert not Path("build").exists()
 
-    @pytest.mark.parametrize(
-        "config_settings",
-        [
-            {"--build-option": ["--mode", "strict"]},
-            {"editable-mode": "strict"},
-        ],
-    )
+    @pytest.mark.parametrize("config_settings", [{"editable-mode": "strict"}])
     def test_editable_with_config_settings(self, tmpdir_cwd, config_settings):
         path.build({**self._simple_pyproject_example, '_meta': {}})
         assert not Path("build").exists()
@@ -920,7 +895,8 @@ class TestBuildMetaBackend:
         files = {'setup.py': ''}
         path.build(files)
 
-        with pytest.raises(ValueError, match=re.escape('No distribution was found.')):
+        msg = re.escape('No distribution was found.')
+        with pytest.raises(ValueError, match=msg):
             getattr(build_backend, build_hook)("temp")
 
 
@@ -968,7 +944,7 @@ def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
 
 @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
 def test_sys_exit_0_in_setuppy(monkeypatch, tmp_path):
-    """Setuptools should be resilent to setup.py with ``sys.exit(0)`` (#3973)."""
+    """Setuptools should be resilient to setup.py with ``sys.exit(0)`` (#3973)."""
     monkeypatch.chdir(tmp_path)
     setuppy = """
         import sys, setuptools

@@ -69,7 +69,7 @@ def patch_all():
     has_issue_12885 = sys.version_info <= (3, 5, 3)
 
     if has_issue_12885:
-        # fix findall bug in distutils (http://bugs.python.org/issue12885)
+        # fix findall bug in distutils (https://bugs.python.org/issue12885)
         distutils.filelist.findall = setuptools.findall
 
     needs_warehouse = (3, 4) < sys.version_info < (3, 4, 6) or (
@@ -130,7 +130,7 @@ def patch_func(replacement, target_mod, func_name):
 
 
 def get_unpatched_function(candidate):
-    return getattr(candidate, 'unpatched')
+    return candidate.unpatched
 
 
 def patch_for_msvc_specialized_compiler():

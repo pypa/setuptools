@@ -5,7 +5,6 @@ import distutils.command.build_py as orig
 import os
 import fnmatch
 import textwrap
-import io
 import distutils.errors
 import itertools
 import stat
@@ -249,7 +248,7 @@ class build_py(orig.build_py):
         else:
             return init_py
 
-        with io.open(init_py, 'rb') as f:
+        with open(init_py, 'rb') as f:
             contents = f.read()
         if b'declare_namespace' not in contents:
             raise distutils.errors.DistutilsError(
@@ -289,7 +288,7 @@ class build_py(orig.build_py):
         return list(unique_everseen(keepers))
 
     @staticmethod
-    def _get_platform_patterns(spec, package, src_dir, extra_patterns=[]):
+    def _get_platform_patterns(spec, package, src_dir, extra_patterns=()):
         """
         yield platform-specific path patterns (suitable for glob
         or fn_match) from a glob-based spec (such as

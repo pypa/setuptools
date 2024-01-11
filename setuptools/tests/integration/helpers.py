@@ -4,6 +4,7 @@ For example ``Archive`` can be used to check the contents of distribution built
 with setuptools, and ``run`` will always try to be as verbose as possible to
 facilitate debugging.
 """
+
 import os
 import subprocess
 import tarfile
@@ -14,10 +15,9 @@ from pathlib import Path
 def run(cmd, env=None):
     r = subprocess.run(
         cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         universal_newlines=True,
-        env={**os.environ, **(env or {})}
+        env={**os.environ, **(env or {})},
         # ^-- allow overwriting instead of discarding the current env
     )
 

@@ -232,9 +232,11 @@ class bdist_egg(Command):
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
 
         # Add to 'Distribution.dist_files' so that the "upload" command works
-        getattr(self.distribution, 'dist_files', []).append(
-            ('bdist_egg', get_python_version(), self.egg_output)
-        )
+        getattr(self.distribution, 'dist_files', []).append((
+            'bdist_egg',
+            get_python_version(),
+            self.egg_output,
+        ))
 
     def zap_pyfiles(self):
         log.info("Removing .py files from temporary directory")
@@ -319,8 +321,7 @@ def walk_egg(egg_dir):
     if 'EGG-INFO' in dirs:
         dirs.remove('EGG-INFO')
     yield base, dirs, files
-    for bdf in walker:
-        yield bdf
+    yield from walker
 
 
 def analyze_egg(egg_dir, stubs):
@@ -404,14 +405,12 @@ def scan_module(egg_dir, base, name, stubs):
 
 def iter_symbols(code):
     """Yield names and strings used by `code` and its nested code objects"""
-    for name in code.co_names:
-        yield name
+    yield from code.co_names
     for const in code.co_consts:
         if isinstance(const, str):
             yield const
         elif isinstance(const, CodeType):
-            for name in iter_symbols(const):
-                yield name
+            yield from iter_symbols(const)
 
 
 def can_scan():
