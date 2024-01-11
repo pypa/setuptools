@@ -11,7 +11,7 @@ headers) listed as part of extensions when creating a :term:`source
 distribution (or "sdist")`.
 
 .. note::
-   .. versionadded:: v68.3.0
+   .. versionadded:: v69.0.0
       ``setuptools`` will attempt to include type information files
       by default in the distribution
       (``.pyi`` and ``py.typed``, as specified in :pep:`561`).
