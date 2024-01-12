@@ -19,7 +19,7 @@ import traceback
 from contextlib import suppress
 from enum import Enum
 from inspect import cleandoc
-from itertools import chain
+from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import (
@@ -400,7 +400,7 @@ class _StaticPth:
         self.path_entries = path_entries
 
     def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
-        entries = "\n".join((str(p.resolve()) for p in self.path_entries))
+        entries = "\n".join(str(p.resolve()) for p in self.path_entries)
         contents = _encode_pth(f"{entries}\n")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
 
@@ -606,7 +606,7 @@ def _simple_layout(
     layout = {pkg: find_package_path(pkg, package_dir, project_dir) for pkg in packages}
     if not layout:
         return set(package_dir) in ({}, {""})
-    parent = os.path.commonpath([_parent_path(k, v) for k, v in layout.items()])
+    parent = os.path.commonpath(starmap(_parent_path, layout.items()))
     return all(
         _path.same_path(Path(parent, *key.split('.')), value)
         for key, value in layout.items()

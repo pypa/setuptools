@@ -116,7 +116,7 @@ CHECK_PACKAGE_DATA_TESTS = (
     # Invalid value type.
     (
         {
-            'hello': str('*.msg'),
+            'hello': '*.msg',
         },
         (
             "\"values of 'package_data' dict\" "
@@ -142,7 +142,7 @@ def test_check_package_data(package_data, expected_message):
         assert check_package_data(None, 'package_data', package_data) is None
     else:
         with pytest.raises(DistutilsSetupError, match=re.escape(expected_message)):
-            check_package_data(None, str('package_data'), package_data)
+            check_package_data(None, 'package_data', package_data)
 
 
 def test_check_specifier():
