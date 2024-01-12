@@ -385,9 +385,8 @@ class FileList(_FileList):
         try:
             process_action = action_map[action]
         except KeyError:
-            raise DistutilsInternalError(
-                "this cannot happen: invalid action '{action!s}'".format(action=action),
-            )
+            msg = f"Invalid MANIFEST.in: unknown action {action!r} in {line!r}"
+            raise DistutilsInternalError(msg) from None
 
         # OK, now we know that the action is valid and we have the
         # right number of words on the line for that action -- so we

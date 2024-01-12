@@ -64,7 +64,7 @@ def install_context(request, tmpdir, monkeypatch):
     monkeypatch.setattr('site.USER_BASE', user_base.strpath)
     monkeypatch.setattr('site.USER_SITE', user_site.strpath)
     monkeypatch.setattr('sys.path', sys.path + [install_dir.strpath])
-    monkeypatch.setenv(str('PYTHONPATH'), str(os.path.pathsep.join(sys.path)))
+    monkeypatch.setenv('PYTHONPATH', str(os.path.pathsep.join(sys.path)))
 
     # Set up the command for performing the installation.
     dist = Distribution()

@@ -658,7 +658,7 @@ class TestSdistTest:
         else:
             # The Latin-1 filename should have been skipped
             filename = filename.decode('latin-1')
-            filename not in cmd.filelist.files
+            assert filename not in cmd.filelist.files
 
     _EXAMPLE_DIRECTIVES = {
         "setup.cfg - long_description and version": """
