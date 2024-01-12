@@ -957,17 +957,13 @@ class TestExternalSetters:
     # pbr or something else setting these values.
     def _fake_distribution_init(self, dist, attrs):
         saved_dist_init(dist, attrs)
-        # see self._DISTUTUILS_UNSUPPORTED_METADATA
-        setattr(dist.metadata, 'long_description_content_type', 'text/something')
+        # see self._DISTUTILS_UNSUPPORTED_METADATA
+        dist.metadata.long_description_content_type = 'text/something'
         # Test overwrite setup() args
-        setattr(
-            dist.metadata,
-            'project_urls',
-            {
-                'Link One': 'https://example.com/one/',
-                'Link Two': 'https://example.com/two/',
-            },
-        )
+        dist.metadata.project_urls = {
+            'Link One': 'https://example.com/one/',
+            'Link Two': 'https://example.com/two/',
+        }
         return None
 
     @patch.object(_Distribution, '__init__', autospec=True)

@@ -113,8 +113,7 @@ def glob0(dirname, basename):
 def glob2(dirname, pattern):
     assert _isrecursive(pattern)
     yield pattern[:0]
-    for x in _rlistdir(dirname):
-        yield x
+    yield from _rlistdir(dirname)
 
 
 # Recursively yields relative pathnames inside a literal directory.
@@ -126,7 +125,7 @@ def _rlistdir(dirname):
             dirname = os.curdir
     try:
         names = os.listdir(dirname)
-    except os.error:
+    except OSError:
         return
     for x in names:
         yield x

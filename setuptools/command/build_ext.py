@@ -157,7 +157,7 @@ class build_ext(_build_ext):
 
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
-            use_abi3 = getattr(ext, 'py_limited_api') and get_abi3_suffix()
+            use_abi3 = ext.py_limited_api and get_abi3_suffix()
             if use_abi3:
                 filename = filename[: -len(so_ext)]
                 so_ext = get_abi3_suffix()

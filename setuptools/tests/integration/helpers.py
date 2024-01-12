@@ -15,8 +15,7 @@ from pathlib import Path
 def run(cmd, env=None):
     r = subprocess.run(
         cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         universal_newlines=True,
         env={**os.environ, **(env or {})},
         # ^-- allow overwriting instead of discarding the current env

@@ -57,7 +57,7 @@ class TestMSVC14:
         # This function cannot be mocked, so pass it if we find VS 2017
         # and mark it skipped if we do not.
         version, path = _msvccompiler._msvc14_find_vc2017()
-        if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') in ['Visual Studio 2017']:
+        if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2017':
             assert version
         if version:
             assert version >= 15
