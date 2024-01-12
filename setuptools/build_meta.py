@@ -130,7 +130,7 @@ def _open_setup_script(setup_script):
         # Supply a default setup.py
         return io.StringIO("from setuptools import setup; setup()")
 
-    return getattr(tokenize, 'open', open)(setup_script)
+    return tokenize.open(setup_script)
 
 
 @contextlib.contextmanager
