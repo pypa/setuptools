@@ -118,8 +118,8 @@ def get_msbuild():
     ]
     try:
         return subprocess.check_output(cmd, encoding='utf-8', text=True).strip()
-    except subprocess.CalledProcessError:
-        raise SystemExit("Unable to find MSBuild; check Visual Studio install")
+    except subprocess.CalledProcessError as e:
+        raise SystemExit("Unable to find MSBuild; check Visual Studio install") from e
 
 
 def do_build(arena, platform, target):

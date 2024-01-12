@@ -130,7 +130,7 @@ def patch_func(replacement, target_mod, func_name):
 
 
 def get_unpatched_function(candidate):
-    return getattr(candidate, 'unpatched')
+    return candidate.unpatched
 
 
 def patch_for_msvc_specialized_compiler():

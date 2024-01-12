@@ -407,20 +407,18 @@ def get_provider(moduleOrReq):
     return _find_adapter(_provider_factories, loader)(module)
 
 
-def _macos_vers(_cache=[]):
-    if not _cache:
-        version = platform.mac_ver()[0]
-        # fallback for MacPorts
-        if version == '':
-            plist = '/System/Library/CoreServices/SystemVersion.plist'
-            if os.path.exists(plist):
-                if hasattr(plistlib, 'readPlist'):
-                    plist_content = plistlib.readPlist(plist)
-                    if 'ProductVersion' in plist_content:
-                        version = plist_content['ProductVersion']
-
-        _cache.append(version.split('.'))
-    return _cache[0]
+@functools.lru_cache(maxsize=None)
+def _macos_vers():
+    version = platform.mac_ver()[0]
+    # fallback for MacPorts
+    if version == '':
+        plist = '/System/Library/CoreServices/SystemVersion.plist'
+        if os.path.exists(plist):
+            with open(plist, 'rb') as fh:
+                plist_content = plistlib.load(fh)
+            if 'ProductVersion' in plist_content:
+                version = plist_content['ProductVersion']
+    return version.split('.')
 
 
 def _macos_arch(machine):
@@ -1895,7 +1893,7 @@ class ZipProvider(EggProvider):
             try:
                 rename(tmpnam, real_path)
 
-            except os.error:
+            except OSError:
                 if os.path.isfile(real_path):
                     if self._is_current(real_path, zip_path):
                         # the file became current since it was checked above,
@@ -1908,7 +1906,7 @@ class ZipProvider(EggProvider):
                         return real_path
                 raise
 
-        except os.error:
+        except OSError:
             # report a user-friendly error
             manager.extraction_error()
 
@@ -2422,12 +2420,9 @@ def _cygwin_patch(filename):  # pragma: nocover
     return os.path.abspath(filename) if sys.platform == 'cygwin' else filename
 
 
-def _normalize_cached(filename, _cache={}):
-    try:
-        return _cache[filename]
-    except KeyError:
-        _cache[filename] = result = normalize_path(filename)
-        return result
+@functools.lru_cache(maxsize=None)
+def _normalize_cached(filename):
+    return normalize_path(filename)
 
 
 def _is_egg_path(path):
@@ -2901,7 +2896,7 @@ class Distribution:
 
     def __dir__(self):
         return list(
-            set(super(Distribution, self).__dir__())
+            set(super().__dir__())
             | set(attr for attr in self._provider.__dir__() if not attr.startswith('_'))
         )
 
@@ -3168,7 +3163,7 @@ class RequirementParseError(packaging.requirements.InvalidRequirement):
 class Requirement(packaging.requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
-        super(Requirement, self).__init__(requirement_string)
+        super().__init__(requirement_string)
         self.unsafe_name = self.name
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()

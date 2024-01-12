@@ -29,10 +29,10 @@ _logger = logging.getLogger(__name__)
 
 
 def load_file(filepath: _Path) -> dict:
-    from setuptools.extern import tomli  # type: ignore
+    from ..py311compat import tomllib
 
     with open(filepath, "rb") as file:
-        return tomli.load(file)
+        return tomllib.load(file)
 
 
 def validate(config: dict, filepath: _Path) -> bool:
