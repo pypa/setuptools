@@ -409,7 +409,7 @@ _RESET_PREVIOUSLY_DEFINED: dict = {
     "scripts": {},
     "gui-scripts": {},
     "dependencies": [],
-    "optional-dependencies": [],
+    "optional-dependencies": {},
 }
 
 
