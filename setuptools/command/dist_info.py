@@ -5,13 +5,22 @@ As defined in the wheel specification
 
 import os
 import shutil
-import sys
-from contextlib import contextmanager
 from distutils import log
 from distutils.core import Command
+from distutils import dir_util  # prefer dir_util for log/cache consistency
 from pathlib import Path
 
 from .. import _normalization
+
+
+_IGNORE = {
+    "PKG-INFO",
+    "requires.txt",
+    "SOURCES.txt",
+    "not-zip-safe",
+    "dependency_links.txt",
+}
+# Files to be ignored when copying the egg-info into dist-info
 
 
 class dist_info(Command):
@@ -33,9 +42,10 @@ class dist_info(Command):
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
         ('no-date', 'D', "Don't include date stamp [default]"),
         ('keep-egg-info', None, "*TRANSITIONAL* will be removed in the future"),
+        ('use-cached', None, "*TRANSITIONAL* will be removed in the future"),
     ]
 
-    boolean_options = ['tag-date', 'keep-egg-info']
+    boolean_options = ['tag-date', 'keep-egg-info', 'use-cached']
     negative_opt = {'no-date': 'tag-date'}
 
     def initialize_options(self):
@@ -45,15 +55,25 @@ class dist_info(Command):
         self.tag_date = None
         self.tag_build = None
         self.keep_egg_info = False
+        self.use_cached = False
 
     def finalize_options(self):
         dist = self.distribution
         project_dir = dist.src_root or os.curdir
         self.output_dir = Path(self.output_dir or project_dir)
 
-        egg_info = self.reinitialize_command("egg_info")
+        egg_info = self.reinitialize_command("egg_info", reinit_subcommands=True)
         egg_info.egg_base = str(self.output_dir)
+        self._sync_tag_details(egg_info)
+        egg_info.finalize_options()
+        self.egg_info = egg_info
 
+        name = _normalization.safer_name(dist.get_name())
+        version = _normalization.safer_best_effort_version(dist.get_version())
+        self.name = f"{name}-{version}"
+        self.dist_info_dir = Path(self.output_dir, f"{self.name}.dist-info")
+
+    def _sync_tag_details(self, egg_info):
         if self.tag_date:
             egg_info.tag_date = self.tag_date
         else:
@@ -64,48 +84,35 @@ class dist_info(Command):
         else:
             self.tag_build = egg_info.tag_build
 
-        egg_info.finalize_options()
-        self.egg_info = egg_info
-
-        name = _normalization.safer_name(dist.get_name())
-        version = _normalization.safer_best_effort_version(dist.get_version())
-        self.name = f"{name}-{version}"
-        self.dist_info_dir = os.path.join(self.output_dir, f"{self.name}.dist-info")
-
-    @contextmanager
-    def _maybe_bkp_dir(self, dir_path: str, requires_bkp: bool):
-        if requires_bkp:
-            bkp_name = f"{dir_path}.__bkp__"
-            _rm(bkp_name, ignore_errors=True)
-            _copy(dir_path, bkp_name, dirs_exist_ok=True, symlinks=True)
-            try:
-                yield
-            finally:
-                _rm(dir_path, ignore_errors=True)
-                shutil.move(bkp_name, dir_path)
-        else:
-            yield
-
     def run(self):
-        self.output_dir.mkdir(parents=True, exist_ok=True)
+        if self.use_cached and (self.dist_info_dir / "METADATA").is_file():
+            return
+
+        self.mkpath(str(self.output_dir))
         self.egg_info.run()
-        egg_info_dir = self.egg_info.egg_info
-        assert os.path.isdir(egg_info_dir), ".egg-info dir should have been created"
+        egg_info_dir = Path(self.egg_info.egg_info)
+        dist_info_dir = self.dist_info_dir
 
-        log.info("creating '{}'".format(os.path.abspath(self.dist_info_dir)))
-        bdist_wheel = self.get_finalized_command('bdist_wheel')
+        assert egg_info_dir.is_dir(), ".egg-info dir should have been created"
+        log.info(f"creating {str(os.path.abspath(dist_info_dir))!r}")
 
-        # TODO: if bdist_wheel if merged into setuptools, just add "keep_egg_info" there
-        with self._maybe_bkp_dir(egg_info_dir, self.keep_egg_info):
-            bdist_wheel.egg2dist(egg_info_dir, self.dist_info_dir)
+        # The egg-info dir should now be basically equivalent to the dist-info dir
+        # If in the future we don't want to use egg_info, we have to create the files:
+        # METADATA, entry-points.txt
+        shutil.copytree(egg_info_dir, dist_info_dir, ignore=lambda _, __: _IGNORE)
+        metadata_file = dist_info_dir / "METADATA"
+        self.copy_file(egg_info_dir / "PKG-INFO", metadata_file)
+        if self.distribution.dependency_links:
+            self.copy_file(egg_info_dir / "dependency_links.txt", dist_info_dir)
 
+        for dest, orig in self._license_paths():
+            dest = dist_info_dir / dest
+            self.mkpath(str(dest.parent))
+            self.copy_file(orig, dest)
 
-def _rm(dir_name, **opts):
-    if os.path.isdir(dir_name):
-        shutil.rmtree(dir_name, **opts)
+        if not self.keep_egg_info:
+            dir_util.remove_tree(egg_info_dir, self.verbose, self.dry_run)
 
-
-def _copy(src, dst, **opts):
-    if sys.version_info < (3, 8):
-        opts.pop("dirs_exist_ok", None)
-    shutil.copytree(src, dst, **opts)
+    def _license_paths(self):
+        for file in self.distribution.metadata.license_files or ():
+            yield os.path.basename(file), file
