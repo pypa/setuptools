@@ -424,7 +424,7 @@ class _MissingDynamic(SetuptoolsWarning):
     According to the spec (see the link below), however, setuptools CANNOT
     consider this value unless `{field}` is listed as `dynamic`.
 
-    https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+    https://packaging.python.org/en/latest/specifications/pyproject-toml/#declaring-project-metadata-the-project-table
 
     To prevent this problem, you can list `{field}` under `dynamic` or alternatively
     remove the `[project]` table from your file and rely entirely on other means of
