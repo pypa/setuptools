@@ -61,7 +61,6 @@ EXAMPLE = {
             "Intended Audience :: Developers"
         ]
         urls = {Homepage = "https://github.com"}
-        dependencies = ['importlib-metadata; python_version<"3.8"']
 
         [tool.setuptools]
         package-dir = {"" = "src"}
@@ -90,11 +89,7 @@ EXAMPLE = {
             "__init__.py": dedent(
                 """\
                 import sys
-
-                if sys.version_info[:2] >= (3, 8):
-                    from importlib.metadata import PackageNotFoundError, version
-                else:
-                    from importlib_metadata import PackageNotFoundError, version
+                from importlib.metadata import PackageNotFoundError, version
 
                 try:
                     __version__ = version(__name__)
@@ -439,8 +434,6 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     # now run 'sample' with the prefix on the PYTHONPATH
     bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
     exe = prefix / bin / 'sample'
-    if sys.version_info < (3, 8) and platform.system() == 'Windows':
-        exe = str(exe)
     subprocess.check_call([exe], env=env)
 
 
@@ -638,19 +631,19 @@ class TestFinderTemplate:
             sys.modules.pop("foo", None)
 
             self.install_finder(template)
-            with pytest.raises(ImportError, match="\'FOO\'"):
+            with pytest.raises(ImportError, match="'FOO'"):
                 import_module("FOO")
 
-            with pytest.raises(ImportError, match="\'foo\\.LOWERCASE\'"):
+            with pytest.raises(ImportError, match="'foo\\.LOWERCASE'"):
                 import_module("foo.LOWERCASE")
 
-            with pytest.raises(ImportError, match="\'foo\\.bar\\.Lowercase\'"):
+            with pytest.raises(ImportError, match="'foo\\.bar\\.Lowercase'"):
                 import_module("foo.bar.Lowercase")
 
-            with pytest.raises(ImportError, match="\'foo\\.BAR\'"):
+            with pytest.raises(ImportError, match="'foo\\.BAR'"):
                 import_module("foo.BAR.lowercase")
 
-            with pytest.raises(ImportError, match="\'FOO\'"):
+            with pytest.raises(ImportError, match="'FOO'"):
                 import_module("FOO.bar.lowercase")
 
             mod = import_module("foo.lowercase")
@@ -691,13 +684,13 @@ class TestFinderTemplate:
             bar = import_module("ns.othername.foo.bar")
             assert bar.c == 42
 
-            with pytest.raises(ImportError, match="\'NS\'"):
+            with pytest.raises(ImportError, match="'NS'"):
                 import_module("NS.othername.foo")
 
-            with pytest.raises(ImportError, match="\'ns\\.othername\\.FOO\\'"):
+            with pytest.raises(ImportError, match="'ns\\.othername\\.FOO\\'"):
                 import_module("ns.othername.FOO")
 
-            with pytest.raises(ImportError, match="\'ns\\.othername\\.foo\\.BAR\\'"):
+            with pytest.raises(ImportError, match="'ns\\.othername\\.foo\\.BAR\\'"):
                 import_module("ns.othername.foo.BAR")
 
     def test_intermediate_packages(self, tmp_path):

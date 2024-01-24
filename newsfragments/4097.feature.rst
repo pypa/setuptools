@@ -1,0 +1,1 @@
+Updated `pkg_resources` to use stdlib `importlib.machinery` instead of ``importlib_machinery`` -- by :user:`Avasam`

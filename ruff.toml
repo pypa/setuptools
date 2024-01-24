@@ -1,0 +1,42 @@
+[lint]
+ignore = [
+	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+	"W191",
+	"E111",
+	"E114",
+	"E117",
+	"D206",
+	"D300",
+	"Q000",
+	"Q001",
+	"Q002",
+	"Q003",
+	"COM812",
+	"COM819",
+	"ISC001",
+	"ISC002",
+]
+extend-select = [
+	"UP",  # pyupgrade
+]
+extend-ignore = [
+	"UP015",  # redundant-open-modes, explicit is prefered
+	"UP030",  # temporarily disabled
+	"UP031",  # temporarily disabled
+	"UP032",  # temporarily disabled
+	"UP036",  # temporarily disabled
+]
+exclude = [
+	"**/_vendor",
+	"setuptools/_distutils",
+	"setuptools/config/_validate_pyproject",
+]
+
+[format]
+exclude = [
+	"**/_vendor",
+	"setuptools/_distutils",
+	"setuptools/config/_validate_pyproject",
+]
+# https://docs.astral.sh/ruff/settings/#format-quote-style
+quote-style = "preserve"

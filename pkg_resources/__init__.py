@@ -18,6 +18,10 @@ This module is deprecated. Users are directed to :mod:`importlib.resources`,
 """
 
 import sys
+
+if sys.version_info < (3, 8):
+    raise RuntimeError("Python 3.8 or later is required")
+
 import os
 import io
 import time
@@ -42,14 +46,10 @@ import inspect
 import ntpath
 import posixpath
 import importlib
+import importlib.machinery
 from pkgutil import get_importer
 
 import _imp
-
-try:
-    FileExistsError
-except NameError:
-    FileExistsError = OSError
 
 # capture these to bypass sandboxing
 from os import utime
@@ -65,14 +65,6 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
-try:
-    import importlib.machinery as importlib_machinery
-
-    # access attribute to force import under delayed import mechanisms.
-    importlib_machinery.__name__
-except ImportError:
-    importlib_machinery: Optional[types.ModuleType] = None  # type: ignore[no-redef] # https://github.com/python/mypy/issues/1393
-
 from pkg_resources.extern.jaraco.text import (
     yield_lines,
     drop_comment,
@@ -87,9 +79,6 @@ __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 __import__('pkg_resources.extern.packaging.utils')
-
-if sys.version_info < (3, 5):
-    raise RuntimeError("Python 3.5 or later is required")
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -404,20 +393,18 @@ def get_provider(moduleOrReq):
     return _find_adapter(_provider_factories, loader)(module)
 
 
-def _macos_vers(_cache=[]):
-    if not _cache:
-        version = platform.mac_ver()[0]
-        # fallback for MacPorts
-        if version == '':
-            plist = '/System/Library/CoreServices/SystemVersion.plist'
-            if os.path.exists(plist):
-                if hasattr(plistlib, 'readPlist'):
-                    plist_content = plistlib.readPlist(plist)
-                    if 'ProductVersion' in plist_content:
-                        version = plist_content['ProductVersion']
-
-        _cache.append(version.split('.'))
-    return _cache[0]
+@functools.lru_cache(maxsize=None)
+def _macos_vers():
+    version = platform.mac_ver()[0]
+    # fallback for MacPorts
+    if version == '':
+        plist = '/System/Library/CoreServices/SystemVersion.plist'
+        if os.path.exists(plist):
+            with open(plist, 'rb') as fh:
+                plist_content = plistlib.load(fh)
+            if 'ProductVersion' in plist_content:
+                version = plist_content['ProductVersion']
+    return version.split('.')
 
 
 def _macos_arch(machine):
@@ -1731,7 +1718,7 @@ class DefaultProvider(EggProvider):
             'SourcelessFileLoader',
         )
         for name in loader_names:
-            loader_cls = getattr(importlib_machinery, name, type(None))
+            loader_cls = getattr(importlib.machinery, name, type(None))
             register_loader_type(loader_cls, cls)
 
 
@@ -1892,7 +1879,7 @@ class ZipProvider(EggProvider):
             try:
                 rename(tmpnam, real_path)
 
-            except os.error:
+            except OSError:
                 if os.path.isfile(real_path):
                     if self._is_current(real_path, zip_path):
                         # the file became current since it was checked above,
@@ -1905,7 +1892,7 @@ class ZipProvider(EggProvider):
                         return real_path
                 raise
 
-        except os.error:
+        except OSError:
             # report a user-friendly error
             manager.extraction_error()
 
@@ -2226,8 +2213,7 @@ def resolve_egg_link(path):
 if hasattr(pkgutil, 'ImpImporter'):
     register_finder(pkgutil.ImpImporter, find_on_path)
 
-# TODO: If importlib_machinery import fails, this will also fail. This should be fixed.
-register_finder(importlib_machinery.FileFinder, find_on_path)
+register_finder(importlib.machinery.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})
@@ -2394,9 +2380,7 @@ if hasattr(pkgutil, 'ImpImporter'):
     register_namespace_handler(pkgutil.ImpImporter, file_ns_handler)
 
 register_namespace_handler(zipimport.zipimporter, file_ns_handler)
-# TODO: If importlib_machinery import fails, this will also fail. This should be fixed.
-# https://github.com/pypa/setuptools/pull/3979/files#r1367959803
-register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
+register_namespace_handler(importlib.machinery.FileFinder, file_ns_handler)
 
 
 def null_ns_handler(importer, path_item, packageName, module):
@@ -2422,12 +2406,9 @@ def _cygwin_patch(filename):  # pragma: nocover
     return os.path.abspath(filename) if sys.platform == 'cygwin' else filename
 
 
-def _normalize_cached(filename, _cache={}):
-    try:
-        return _cache[filename]
-    except KeyError:
-        _cache[filename] = result = normalize_path(filename)
-        return result
+@functools.lru_cache(maxsize=None)
+def _normalize_cached(filename):
+    return normalize_path(filename)
 
 
 def _is_egg_path(path):
@@ -2901,7 +2882,7 @@ class Distribution:
 
     def __dir__(self):
         return list(
-            set(super(Distribution, self).__dir__())
+            set(super().__dir__())
             | set(attr for attr in self._provider.__dir__() if not attr.startswith('_'))
         )
 
@@ -3168,7 +3149,7 @@ class RequirementParseError(packaging.requirements.InvalidRequirement):
 class Requirement(packaging.requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
-        super(Requirement, self).__init__(requirement_string)
+        super().__init__(requirement_string)
         self.unsafe_name = self.name
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()
