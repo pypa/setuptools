@@ -45,6 +45,7 @@ import inspect
 import ntpath
 import posixpath
 import importlib
+import importlib.machinery
 from pkgutil import get_importer
 
 import _imp
@@ -62,14 +63,6 @@ except ImportError:
 
 from os import open as os_open
 from os.path import isdir, split
-
-try:
-    import importlib.machinery as importlib_machinery
-
-    # access attribute to force import under delayed import mechanisms.
-    importlib_machinery.__name__
-except ImportError:
-    importlib_machinery = None
 
 from pkg_resources.extern.jaraco.text import (
     yield_lines,
@@ -1724,7 +1717,7 @@ class DefaultProvider(EggProvider):
             'SourcelessFileLoader',
         )
         for name in loader_names:
-            loader_cls = getattr(importlib_machinery, name, type(None))
+            loader_cls = getattr(importlib.machinery, name, type(None))
             register_loader_type(loader_cls, cls)
 
 
@@ -2219,7 +2212,7 @@ def resolve_egg_link(path):
 if hasattr(pkgutil, 'ImpImporter'):
     register_finder(pkgutil.ImpImporter, find_on_path)
 
-register_finder(importlib_machinery.FileFinder, find_on_path)
+register_finder(importlib.machinery.FileFinder, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})
@@ -2386,7 +2379,7 @@ if hasattr(pkgutil, 'ImpImporter'):
     register_namespace_handler(pkgutil.ImpImporter, file_ns_handler)
 
 register_namespace_handler(zipimport.zipimporter, file_ns_handler)
-register_namespace_handler(importlib_machinery.FileFinder, file_ns_handler)
+register_namespace_handler(importlib.machinery.FileFinder, file_ns_handler)
 
 
 def null_ns_handler(importer, path_item, packageName, module):
