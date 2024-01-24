@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import Optional
+from typing import Protocol
 import zipfile
 import zipimport
 import warnings
@@ -530,54 +530,54 @@ def get_entry_info(dist, group, name):
     return get_distribution(dist).get_entry_info(group, name)
 
 
-class IMetadataProvider:
-    def has_metadata(name):
+class IMetadataProvider(Protocol):
+    def has_metadata(self, name):
         """Does the package's distribution contain the named metadata?"""
 
-    def get_metadata(name):
+    def get_metadata(self, name):
         """The named metadata resource as a string"""
 
-    def get_metadata_lines(name):
+    def get_metadata_lines(self, name):
         """Yield named metadata resource as list of non-blank non-comment lines
 
         Leading and trailing whitespace is stripped from each line, and lines
         with ``#`` as the first non-blank character are omitted."""
 
-    def metadata_isdir(name):
+    def metadata_isdir(self, name):
         """Is the named metadata a directory?  (like ``os.path.isdir()``)"""
 
-    def metadata_listdir(name):
+    def metadata_listdir(self, name):
         """List of metadata names in the directory (like ``os.listdir()``)"""
 
-    def run_script(script_name, namespace):
+    def run_script(self, script_name, namespace):
         """Execute the named script in the supplied namespace dictionary"""
 
 
-class IResourceProvider(IMetadataProvider):
+class IResourceProvider(IMetadataProvider, Protocol):
     """An object that provides access to package resources"""
 
-    def get_resource_filename(manager, resource_name):
+    def get_resource_filename(self, manager, resource_name):
         """Return a true filesystem path for `resource_name`
 
         `manager` must be an ``IResourceManager``"""
 
-    def get_resource_stream(manager, resource_name):
+    def get_resource_stream(self, manager, resource_name):
         """Return a readable file-like object for `resource_name`
 
         `manager` must be an ``IResourceManager``"""
 
-    def get_resource_string(manager, resource_name):
+    def get_resource_string(self, manager, resource_name):
         """Return a string containing the contents of `resource_name`
 
         `manager` must be an ``IResourceManager``"""
 
-    def has_resource(resource_name):
+    def has_resource(self, resource_name):
         """Does the package contain the named resource?"""
 
-    def resource_isdir(resource_name):
+    def resource_isdir(self, resource_name):
         """Is the named resource a directory?  (like ``os.path.isdir()``)"""
 
-    def resource_listdir(resource_name):
+    def resource_listdir(self, resource_name):
         """List of resource names in the directory (like ``os.listdir()``)"""
 
 
