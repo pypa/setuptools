@@ -1,0 +1,1 @@
+In tests, rely on pytest-home for reusable fixture.
