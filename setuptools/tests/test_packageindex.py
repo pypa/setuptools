@@ -84,16 +84,6 @@ class TestPackageIndex:
             return
         raise RuntimeError("Did not raise")
 
-    def test_bad_url_screwy_href(self):
-        index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
-
-        # issue #160
-        if sys.version_info[0] == 2 and sys.version_info[1] == 7:
-            # this should not fail
-            url = 'http://example.com'
-            page = '<a href="http://www.famfamfam.com](' 'http://www.famfamfam.com/">'
-            index.process_index(url, page)
-
     def test_url_ok(self):
         index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
         url = 'file:///tmp/test_package_index'

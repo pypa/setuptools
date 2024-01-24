@@ -61,7 +61,6 @@ EXAMPLE = {
             "Intended Audience :: Developers"
         ]
         urls = {Homepage = "https://github.com"}
-        dependencies = ['importlib-metadata; python_version<"3.8"']
 
         [tool.setuptools]
         package-dir = {"" = "src"}
@@ -90,11 +89,7 @@ EXAMPLE = {
             "__init__.py": dedent(
                 """\
                 import sys
-
-                if sys.version_info[:2] >= (3, 8):
-                    from importlib.metadata import PackageNotFoundError, version
-                else:
-                    from importlib_metadata import PackageNotFoundError, version
+                from importlib.metadata import PackageNotFoundError, version
 
                 try:
                     __version__ = version(__name__)
@@ -439,8 +434,6 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     # now run 'sample' with the prefix on the PYTHONPATH
     bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
     exe = prefix / bin / 'sample'
-    if sys.version_info < (3, 8) and platform.system() == 'Windows':
-        exe = str(exe)
     subprocess.check_call([exe], env=env)
 
 

@@ -1,0 +1,1 @@
+Updated documentation referencing obsolete Python 3.7 code. -- by :user:`Avasam`
