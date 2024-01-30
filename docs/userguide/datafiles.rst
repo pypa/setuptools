@@ -12,6 +12,12 @@ Setuptools focuses on this most common type of data files and offers three ways
 of specifying which files should be included in your packages, as described in
 the following sections.
 
+The user may want to remove the automatically generated PKG-INFO, \*.egg-info,
+build, and dist folders when modifying the configuration files or doing
+structural changes in the directory/file structure. Failure to do so may result
+in an sdist that contains datafiles which are not in a simultaneously built
+wheel, and which will not be installed even if directly installing the sdist.
+
 include_package_data
 ====================
 
