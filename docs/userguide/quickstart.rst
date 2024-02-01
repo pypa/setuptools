@@ -433,6 +433,47 @@ See :doc:`development_mode` for more information.
     :doc:`pyproject.toml </userguide/pyproject_config>` and/or
     :doc:`setup.cfg </userguide/declarative_config>`
 
+.. note::
+
+    - Each of ``pip install -e .``, ``pip install .`` and ``python -m build`` create
+    a folder "src/PACKAGE_NAME.egg-info/" (path written assuming an :ref:`src-layout`)
+
+    - ``pip install .`` also creates a "build/" folder
+
+    - ``python -m build`` also creates a "dist/" folder
+    
+    .. note 1
+
+    These folders usually shouldn't be tracked in version control, so you can add such
+    `patterns <https://git-scm.com/docs/gitignore#_pattern_format>`_
+    for them in ``.gitignore``::
+
+        build/
+        dist/
+        *.egg-info/
+
+    These match:
+
+    - only directories (not files)
+    - at any sub-levels
+    - ``*`` means any name
+
+    .. note 2
+
+    These patterns are already included in the 
+    `python .gitignore template 
+    <https://github.com/github/gitignore/blob/main/Python.gitignore>`_
+   
+    .. note 3
+
+    Some developers simply ignore "PACKAGE_NAME.egg-info/" and "build/" folders, 
+    others delete them.
+
+    We suspect these 2 folders aren't needed after the command that created them 
+    has finished execution.
+    Maybe they are an "artifact from the past", but maybe not. 
+    If you know - add explanations, or help delete them automatically!
+
 
 Uploading your package to PyPI
 ------------------------------
