@@ -435,14 +435,15 @@ See :doc:`development_mode` for more information.
 
 .. note::
 
-    - Each of ``pip install -e .``, ``pip install .`` and ``python -m build`` create
-    a folder "src/PACKAGE_NAME.egg-info/" (path written assuming an :ref:`src-layout`)
+    - Currently, each of ``pip install -e .``, ``pip install .`` and ``python -m build`` 
+      creates a folder "src/PACKAGE_NAME.egg-info/" 
+      (the path is for the :ref:`src-layout`)
 
     - ``pip install .`` also creates a "build/" folder
 
     - ``python -m build`` also creates a "dist/" folder
     
-    .. note 1
+    .. note 1:
 
     These folders usually shouldn't be tracked in version control, so you can add such
     `patterns <https://git-scm.com/docs/gitignore#_pattern_format>`_
@@ -452,27 +453,28 @@ See :doc:`development_mode` for more information.
         dist/
         *.egg-info/
 
-    These match:
+    This will match:
 
     - only directories (not files)
     - at any sub-levels
     - ``*`` means any name
 
-    .. note 2
+    .. note 2:
 
-    These patterns are already included in the 
+    (These patterns are already included in the 
     `python .gitignore template 
-    <https://github.com/github/gitignore/blob/main/Python.gitignore>`_
+    <https://github.com/github/gitignore/blob/main/Python.gitignore>`_)
    
-    .. note 3
+    .. note 3:
 
-    Some developers simply ignore "PACKAGE_NAME.egg-info/" and "build/" folders, 
-    others delete them.
+    - Some developers simply ignore "PACKAGE_NAME.egg-info/" and "build/" folders, 
+      others delete them manually.
 
-    We suspect these 2 folders aren't needed after the command that created them 
-    has finished execution.
-    Maybe they are an "artifact from the past", but maybe not. 
-    If you know - add explanations, or help delete them automatically!
+    - We suspect these 2 folders aren't needed after the command that created them 
+      has finished execution - maybe they are "artifacts from the past", but we aren't
+      sure. If you know - please 
+      `contribute! <https://github.com/pypa/setuptools/issues/4198>`_ - 
+      you can add explanations or help write code to delete them automatically.
 
 
 Uploading your package to PyPI
