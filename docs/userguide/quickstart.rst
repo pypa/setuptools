@@ -450,7 +450,7 @@ declaratively - using ``setup.cfg`` or ``pyproject.toml``.
 
 To ease the challenges of transitioning, :doc:`here </userguide/declarative_config>`
 we provide a quick guide to understanding how ``setup.cfg`` is parsed by
-``setuptools``. Alternatively, :doc:`here <userguide/pyproject_config>` is the
+``setuptools``. Alternatively, :doc:`here </userguide/pyproject_config>` is the
 guide for ``pyproject.toml``.
 
 .. note::
