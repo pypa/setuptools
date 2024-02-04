@@ -442,14 +442,24 @@ distribution so others can use it. This functionality is provided by
 <PyPUG:tutorials/packaging-projects>`.
 
 
-Transitioning from ``setup.py`` to ``setup.cfg``
-------------------------------------------------
+Transitioning from ``setup.py`` to declarative config
+-----------------------------------------------------
 To avoid executing arbitrary scripts and boilerplate code, we are transitioning
-into a full-fledged ``setup.cfg`` to declare your package information instead
-of running ``setup()``. This inevitably brings challenges due to a different
-syntax. :doc:`Here </userguide/declarative_config>` we provide a quick guide to
-understanding how ``setup.cfg`` is parsed by ``setuptools`` to ease the pain of
-transition.
+from defining all your package information by running ``setup()`` to doing this
+declaratively - using ``setup.cfg`` or ``pyproject.toml``.
+
+To ease the challenges of transitioning, :doc:`here </userguide/declarative_config>`
+we provide a quick guide to understanding how ``setup.cfg`` is parsed by
+``setuptools``. Alternatively, :doc:`here <userguide/pyproject_config.html>`
+is the guide for ``pyproject.toml``.
+
+The approach ``setuptools`` would like to take is to eventually use a single
+declarative format (``pyproject.toml``) instead of maintaining 2
+(``pyproject.toml`` / ``setup.cfg``). Chances are, ``setup.cfg`` will
+continue to be maintained for a long time. Currently, ``pyproject.toml`` still
+has some `limitations <pypa/setuptools#3518>` for certain users.
+
+
 
 .. _packaging-resources:
 
