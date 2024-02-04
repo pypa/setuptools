@@ -450,15 +450,16 @@ declaratively - using ``setup.cfg`` or ``pyproject.toml``.
 
 To ease the challenges of transitioning, :doc:`here </userguide/declarative_config>`
 we provide a quick guide to understanding how ``setup.cfg`` is parsed by
-``setuptools``. Alternatively, :doc:`here <userguide/pyproject_config.html>`
-is the guide for ``pyproject.toml``.
+``setuptools``. Alternatively, :doc:`here <userguide/pyproject_config>` is the
+guide for ``pyproject.toml``.
 
-The approach ``setuptools`` would like to take is to eventually use a single
-declarative format (``pyproject.toml``) instead of maintaining 2
-(``pyproject.toml`` / ``setup.cfg``). Chances are, ``setup.cfg`` will
-continue to be maintained for a long time. Currently, ``pyproject.toml`` still
-has some `limitations <https://github.com/pypa/setuptools/issues/3683>`_.
+.. note::
 
+    The approach ``setuptools`` would like to take is to eventually use a single
+    declarative format (``pyproject.toml``) instead of maintaining 2
+    (``pyproject.toml`` / ``setup.cfg``). Chances are, ``setup.cfg`` will
+    continue to be maintained for a long time. Currently, ``pyproject.toml`` may 
+    still have some `limitations <https://github.com/pypa/setuptools/issues/3683>`_.
 
 .. _packaging-resources:
 
