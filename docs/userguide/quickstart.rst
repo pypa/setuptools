@@ -450,8 +450,8 @@ declaratively - by using ``pyproject.toml`` (or older ``setup.cfg``).
 
 To ease the challenges of transitioning, we provide a quick 
 :doc:`guide </userguide/pyproject_config>` to understanding how ``pyproject.toml``
-is parsed by ``setuptools``. (Alternatively, :doc:`here </userguide/declarative_config>`
-is the guide for ``setup.cfg``).
+is parsed by ``setuptools``. (Alternatively, here is the 
+:doc:`guide </userguide/declarative_config>` for ``setup.cfg``).
 
 .. note::
 
