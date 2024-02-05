@@ -337,9 +337,7 @@ class TestPresetField:
             ("entry_points", "scripts", {"console_scripts": ["foobar=foobar:main"]}),
             ("entry_points", "gui-scripts", {"gui_scripts": ["bazquux=bazquux:main"]}),
             pytest.param(
-                "install_requires",
-                "dependencies",
-                ["six"],
+                *("install_requires", "dependencies", ["six"]),
                 marks=[
                     pytest.mark.filterwarnings("ignore:.*install_requires. overwritten")
                 ],
