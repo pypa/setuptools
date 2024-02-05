@@ -457,7 +457,7 @@ is the guide for ``setup.cfg``).
 
     The approach ``setuptools`` would like to take is to eventually use a single
     declarative format (``pyproject.toml``) instead of maintaining 2
-    (``pyproject.toml`` / ``setup.cfg``). Yet chances are, ``setup.cfg`` will
+    (``pyproject.toml`` / ``setup.cfg``). Yet, chances are, ``setup.cfg`` will
     continue to be maintained for a long time.
 
 .. _packaging-resources:
