@@ -435,8 +435,8 @@ See :doc:`development_mode` for more information.
 
 .. note::
 
-    During the build process from source code (for example, by 
-    ``pip install -e .`` or ``python -m build``)
+    When building from source code (for example, by ``python -m build`` 
+    or ``pip install -e .``)
     some directories hosting build artefacts and cache files may be
     created, such as ``build``, ``dist``, ``*.egg-info`` [#cache]_.
     You can configure your version control system to ignore them
@@ -488,7 +488,7 @@ up-to-date references that can help you when it is time to distribute your work.
    See :ref:`note <setuppy_discouraged>`.
 
 .. [#cache]
-   If you feel that caching is causing problems to your build specially after changes in the
+   If you feel that caching is causing problems to your build, specially after changes in the
    configuration files, consider removing ``build``, ``dist``, ``*.egg-info`` before
    rebuilding or installing your project.
    
