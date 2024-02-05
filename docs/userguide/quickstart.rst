@@ -418,7 +418,7 @@ See :doc:`development_mode` for more information.
 
     If you have a version of ``pip`` older than v21.1 or is using a different
     packaging-related tool that does not support :pep:`660`, you might need to keep a
-    ``setup.py`` file in file in your repository if you want to use editable
+    ``setup.py`` file in your repository if you want to use editable
     installs.
 
     A simple script will suffice, for example:
@@ -435,46 +435,12 @@ See :doc:`development_mode` for more information.
 
 .. note::
 
-    - Currently, each of ``pip install -e .``, ``pip install .`` and ``python -m build`` 
-      creates a folder "src/PACKAGE_NAME.egg-info/" 
-      (the path is for the :ref:`src-layout`)
-
-    - ``pip install .`` also creates a "build/" folder
-
-    - ``python -m build`` also creates a "dist/" folder
-    
-    .. note 1:
-
-    These folders usually shouldn't be tracked in version control, so you can add such
-    `patterns <https://git-scm.com/docs/gitignore#_pattern_format>`_
-    for them in ``.gitignore``::
-
-        build/
-        dist/
-        *.egg-info/
-
-    This will match:
-
-    - only directories (not files)
-    - at any sub-levels
-    - ``*`` means any name
-
-    .. note 2:
-
-    (These patterns are already included in the 
-    `python .gitignore template 
-    <https://github.com/github/gitignore/blob/main/Python.gitignore>`_)
-   
-    .. note 3:
-
-    - Some developers simply ignore "PACKAGE_NAME.egg-info/" and "build/" folders, 
-      others delete them manually.
-
-    - We suspect these 2 folders aren't needed after the command that created them 
-      has finished execution - maybe they are "artifacts from the past", but we aren't
-      sure. If you know - please 
-      `contribute! <https://github.com/pypa/setuptools/issues/4198>`_ - 
-      you can add explanations or help write code to delete them automatically.
+   During the build process - which is also triggered when you install the project from source code,
+   e.g. ``pip install -e .`` - some directories hosting build artefacts and cache files may be
+   created, such as ``build``, ``dist``, ``*.egg-info`` [#cache]_.
+   You can configure your version control system to ignore them
+   (see `GitHub's .gitignore template <https://github.com/github/gitignore/blob/main/Python.gitignore>`_
+   for an example).
 
 
 Uploading your package to PyPI
@@ -519,4 +485,9 @@ up-to-date references that can help you when it is time to distribute your work.
    supported in those files (e.g. C extensions).
    See :ref:`note <setuppy_discouraged>`.
 
+.. [#cache]
+   If you feel that caching is causing problems to your build specially after changes in the
+   configuration files, consider removing ``build``, ``dist``, ``*.egg-info`` before
+   rebuilding or installing your project.
+   
 .. _PyPI: https://pypi.org
