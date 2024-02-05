@@ -446,12 +446,12 @@ Transitioning from ``setup.py`` to declarative config
 -----------------------------------------------------
 To avoid executing arbitrary scripts and boilerplate code, we are transitioning
 from defining all your package information by running ``setup()`` to doing this
-declaratively - using ``setup.cfg`` or ``pyproject.toml``.
+declaratively - using ``pyproject.toml`` (or older ``setup.cfg``).
 
-To ease the challenges of transitioning, :doc:`here </userguide/declarative_config>`
-we provide a quick guide to understanding how ``setup.cfg`` is parsed by
-``setuptools``. Alternatively, :doc:`here </userguide/pyproject_config>` is the
-guide for ``pyproject.toml``.
+To ease the challenges of transitioning, we provide a quick 
+:doc:`guide </userguide/pyproject_config>` to understanding how ``pyproject.toml``
+is parsed by ``setuptools``. (Alternatively, :doc:`here </userguide/declarative_config>`
+is the guide for ``setup.cfg``).
 
 .. note::
 
