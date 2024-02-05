@@ -11,7 +11,7 @@ Configuring setuptools using ``setup.cfg`` files
     build API) is desired, a ``setup.py`` file containing a ``setup()`` function
     call is still required even if your configuration resides in ``setup.cfg``.
 
-``Setuptools`` allows using configuration files (usually :file:`setup.cfg`)
+``Setuptools`` allows using configuration files (for example, :file:`setup.cfg`)
 to define a package’s metadata and other options that are normally supplied
 to the ``setup()`` function (declarative config).
 
