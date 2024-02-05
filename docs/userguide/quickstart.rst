@@ -418,7 +418,7 @@ See :doc:`development_mode` for more information.
 
     If you have a version of ``pip`` older than v21.1 or is using a different
     packaging-related tool that does not support :pep:`660`, you might need to keep a
-    ``setup.py`` file in file in your repository if you want to use editable
+    ``setup.py`` file in your repository if you want to use editable
     installs.
 
     A simple script will suffice, for example:
@@ -432,6 +432,17 @@ See :doc:`development_mode` for more information.
     You can still keep all the configuration in
     :doc:`pyproject.toml </userguide/pyproject_config>` and/or
     :doc:`setup.cfg </userguide/declarative_config>`
+
+.. note::
+
+    When building from source code (for example, by ``python -m build`` 
+    or ``pip install -e .``)
+    some directories hosting build artefacts and cache files may be
+    created, such as ``build``, ``dist``, ``*.egg-info`` [#cache]_.
+    You can configure your version control system to ignore them
+    (see `GitHub's .gitignore template 
+    <https://github.com/github/gitignore/blob/main/Python.gitignore>`_
+    for an example).
 
 
 Uploading your package to PyPI
@@ -485,4 +496,9 @@ up-to-date references that can help you when it is time to distribute your work.
    supported in those files (e.g. C extensions).
    See :ref:`note <setuppy_discouraged>`.
 
+.. [#cache]
+   If you feel that caching is causing problems to your build, specially after changes in the
+   configuration files, consider removing ``build``, ``dist``, ``*.egg-info`` before
+   rebuilding or installing your project.
+   
 .. _PyPI: https://pypi.org
