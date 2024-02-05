@@ -333,13 +333,19 @@ class TestPresetField:
     @pytest.mark.parametrize(
         "attr, field, value",
         [
-            ("install_requires", "dependencies", ["six"]),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
             ("entry_points", "scripts", {"console_scripts": ["foobar=foobar:main"]}),
             ("entry_points", "gui-scripts", {"gui_scripts": ["bazquux=bazquux:main"]}),
+            pytest.param(
+                "install_requires",
+                "dependencies",
+                ["six"],
+                marks=[
+                    pytest.mark.filterwarnings("ignore:.*install_requires. overwritten")
+                ],
+            ),
         ],
     )
-    @pytest.mark.filterwarnings("ignore:.*install_requires. overwritten")
     def test_not_listed_in_dynamic(self, tmp_path, attr, field, value):
         """Setuptools cannot set a field if not listed in ``dynamic``"""
         pyproject = self.pyproject(tmp_path, [])
