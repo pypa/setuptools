@@ -446,7 +446,7 @@ Transitioning from ``setup.py`` to declarative config
 -----------------------------------------------------
 To avoid executing arbitrary scripts and boilerplate code, we are transitioning
 from defining all your package information by running ``setup()`` to doing this
-declaratively - using ``pyproject.toml`` (or older ``setup.cfg``).
+declaratively - by using ``pyproject.toml`` (or older ``setup.cfg``).
 
 To ease the challenges of transitioning, we provide a quick 
 :doc:`guide </userguide/pyproject_config>` to understanding how ``pyproject.toml``
@@ -457,9 +457,8 @@ is the guide for ``setup.cfg``).
 
     The approach ``setuptools`` would like to take is to eventually use a single
     declarative format (``pyproject.toml``) instead of maintaining 2
-    (``pyproject.toml`` / ``setup.cfg``). Chances are, ``setup.cfg`` will
-    continue to be maintained for a long time. Currently, ``pyproject.toml`` may 
-    still have some `limitations <https://github.com/pypa/setuptools/issues/3683>`_.
+    (``pyproject.toml`` / ``setup.cfg``). Yet chances are, ``setup.cfg`` will
+    continue to be maintained for a long time.
 
 .. _packaging-resources:
 
