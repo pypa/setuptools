@@ -241,7 +241,7 @@ def _unify_entry_points(project_table: dict):
             if group  # now we can skip empty groups
         }
         # Sometimes this will set `project["entry-points"] = {}`, and that is
-        # intentional (for reseting configurations that are missing `dynamic`).
+        # intentional (for resetting configurations that are missing `dynamic`).
 
 
 def _copy_command_options(pyproject: dict, dist: "Distribution", filename: _Path):
