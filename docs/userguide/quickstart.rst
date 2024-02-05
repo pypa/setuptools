@@ -435,12 +435,14 @@ See :doc:`development_mode` for more information.
 
 .. note::
 
-   During the build process - which is also triggered when you install the project from source code,
-   e.g. ``pip install -e .`` - some directories hosting build artefacts and cache files may be
-   created, such as ``build``, ``dist``, ``*.egg-info`` [#cache]_.
-   You can configure your version control system to ignore them
-   (see `GitHub's .gitignore template <https://github.com/github/gitignore/blob/main/Python.gitignore>`_
-   for an example).
+    During the build process from source code (for example, by 
+    ``pip install -e .`` or ``python -m build``)
+    some directories hosting build artefacts and cache files may be
+    created, such as ``build``, ``dist``, ``*.egg-info`` [#cache]_.
+    You can configure your version control system to ignore them
+    (see `GitHub's .gitignore template 
+    <https://github.com/github/gitignore/blob/main/Python.gitignore>`_
+    for an example).
 
 
 Uploading your package to PyPI
