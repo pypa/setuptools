@@ -230,7 +230,7 @@ some of them dynamically.
 
 Also note that the file format for specifying dependencies resembles a ``requirements.txt`` file,
 however please keep in mind that all non-comment lines must conform with :pep:`508`
-(``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
+(``pip`` specific syntaxes, e.g. ``-c/-r/-e`` and other flags, are not supported).
 
 
 .. note::
