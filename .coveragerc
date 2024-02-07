@@ -7,3 +7,7 @@ disable_warnings =
 
 [report]
 show_missing = True
+exclude_also =
+	# jaraco/skeleton#97
+	@overload
+	if TYPE_CHECKING:
