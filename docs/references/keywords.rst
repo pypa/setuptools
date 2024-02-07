@@ -187,7 +187,7 @@ extensions).
         All files listed in ``data_files`` will be installed in paths relative to a directory
         decided by the package installer (e.g. `pip`),
         which usually results in nesting under a virtual environment.
-        See :doc:`userguide/datafiles` for an alternative placing inside the package directory.
+        See :doc:`/userguide/datafiles` for an alternative placing inside the package directory.
         Please do not use this setting for things like man-pages, application launchers or anything that requires system-wide installation.
 
     A sequence of (*directory*, *files*) pairs specifying the data files to install.
