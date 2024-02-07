@@ -183,8 +183,7 @@ extensions).
 
 ``data_files``
     .. warning::
-        ``data_files`` is deprecated. It does not work with wheels, so it
-        should be avoided.
+        ``data_files`` is deprecated.
 
     A list of strings specifying the data files to install.
 
