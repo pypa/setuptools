@@ -186,7 +186,7 @@ extensions).
         ``data_files`` is deprecated. It does not work with wheels, so it
         should be avoided.
 
-    A list of strings specifying the data files to install.
+    A sequence of (*directory*, *files*) pairs.
 
 .. _keyword/package_dir:
 
