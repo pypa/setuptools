@@ -185,7 +185,9 @@ extensions).
     .. warning::
         ``data_files`` is deprecated.
 
-    A list of strings specifying the data files to install.
+    A sequence of (*directory*, *files*) pairs specifying the data files to install.
+    *directory* is a str, *files* is a sequence of files.
+    Each (*directory*, *files*) pair in the sequence specifies the installation directory and the files to install there.
 
 .. _keyword/package_dir:
 
