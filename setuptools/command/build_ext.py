@@ -76,6 +76,7 @@ def get_abi3_suffix():
             return suffix
         elif suffix == '.pyd':  # Windows
             return suffix
+    return None
 
 
 class build_ext(_build_ext):

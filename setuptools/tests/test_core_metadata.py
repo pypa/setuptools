@@ -64,7 +64,7 @@ def __read_test_cases():
 
     params = functools.partial(dict, base)
 
-    test_cases = [
+    return [
         ('Metadata version 1.0', params()),
         (
             'Metadata Version 1.0: Short long description',
@@ -156,8 +156,6 @@ def __read_test_cases():
         ),
     ]
 
-    return test_cases
-
 
 @pytest.mark.parametrize('name,attrs', __read_test_cases())
 def test_read_metadata(name, attrs):
@@ -209,7 +207,7 @@ def __maintainer_test_cases():
 
         return d1
 
-    test_cases = [
+    return [
         ('No author, no maintainer', attrs.copy()),
         (
             'Author (no e-mail), no maintainer',
@@ -266,8 +264,6 @@ def __maintainer_test_cases():
         ('Author unicode', merge_dicts(attrs, {'author': '鉄沢寛'})),
         ('Maintainer unicode', merge_dicts(attrs, {'maintainer': 'Jan Łukasiewicz'})),
     ]
-
-    return test_cases
 
 
 @pytest.mark.parametrize('name,attrs', __maintainer_test_cases())
