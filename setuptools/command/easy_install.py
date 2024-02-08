@@ -74,7 +74,7 @@ from pkg_resources import (
     DEVELOP_DIST,
 )
 import pkg_resources
-from .. import py312compat
+from ..compat import py311
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
 
@@ -2329,7 +2329,7 @@ def load_launcher_manifest(name):
 
 
 def _rmtree(path, ignore_errors=False, onexc=auto_chmod):
-    return py312compat.shutil_rmtree(path, ignore_errors, onexc)
+    return py311.shutil_rmtree(path, ignore_errors, onexc)
 
 
 def current_umask():

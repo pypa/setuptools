@@ -29,7 +29,7 @@ _logger = logging.getLogger(__name__)
 
 
 def load_file(filepath: _Path) -> dict:
-    from ..py311compat import tomllib
+    from ..compat.py310 import tomllib
 
     with open(filepath, "rb") as file:
         return tomllib.load(file)
