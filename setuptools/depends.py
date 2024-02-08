@@ -161,6 +161,7 @@ def extract_constant(code, symbol, default=-1):
 
     return None
 
+
 def _update_globals():
     """
     Patch the globals to remove the objects not available on some platforms.
