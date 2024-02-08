@@ -191,7 +191,7 @@ extensions).
         We **STRONGLY ADVISE AGAINST** using this setting for things like
         application launchers, desktop files or anything that requires
         system-wide installation [#manpages]_, unless you have extensive
-        experience in Python packaging and has carefully considered all the
+        experience in Python packaging and have carefully considered all the
         drawbacks, limitations and problems of this method.
         Also note that this feature is provided *as is* with no plans of
         further changes.
