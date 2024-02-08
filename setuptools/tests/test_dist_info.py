@@ -1,5 +1,4 @@
-"""Test .dist-info style distributions.
-"""
+"""Test .dist-info style distributions."""
 
 import pathlib
 import re

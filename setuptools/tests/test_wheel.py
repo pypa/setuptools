@@ -1,5 +1,4 @@
-"""wheel tests
-"""
+"""wheel tests"""
 
 from distutils.sysconfig import get_config_var
 from distutils.util import get_platform

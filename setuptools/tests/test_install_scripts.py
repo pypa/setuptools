@@ -1,5 +1,4 @@
-"""install_scripts tests
-"""
+"""install_scripts tests"""
 
 import sys
 
