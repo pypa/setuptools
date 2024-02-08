@@ -1,5 +1,4 @@
-"""develop tests
-"""
+"""develop tests"""
 
 import os
 import types

@@ -1,5 +1,4 @@
-"""Basic http server for tests to simulate PyPI or custom indexes
-"""
+"""Basic http server for tests to simulate PyPI or custom indexes"""
 
 import os
 import time

@@ -1,4 +1,3 @@
-import sys
 import distutils.errors
 import urllib.request
 import urllib.error

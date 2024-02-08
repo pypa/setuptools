@@ -38,5 +38,7 @@ exclude = [
 	"setuptools/_distutils",
 	"setuptools/config/_validate_pyproject",
 ]
+# Enable preview, required for quote-style = "preserve"
+preview = true
 # https://docs.astral.sh/ruff/settings/#format-quote-style
 quote-style = "preserve"

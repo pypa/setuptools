@@ -1,5 +1,4 @@
-"""Easy install Tests
-"""
+"""Easy install Tests"""
 
 import sys
 import os
