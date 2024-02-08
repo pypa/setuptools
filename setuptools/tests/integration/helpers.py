@@ -16,7 +16,7 @@ def run(cmd, env=None):
     r = subprocess.run(
         cmd,
         capture_output=True,
-        universal_newlines=True,
+        text=True,
         env={**os.environ, **(env or {})},
         # ^-- allow overwriting instead of discarding the current env
     )
