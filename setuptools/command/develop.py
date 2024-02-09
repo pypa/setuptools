@@ -157,6 +157,8 @@ class develop(namespaces.DevelopInstaller, easy_install):
                 script_text = strm.read()
             self.install_script(dist, script_name, script_text, script_path)
 
+        return None
+
     def install_wrapper_scripts(self, dist):
         dist = VersionlessRequirement(dist)
         return easy_install.install_wrapper_scripts(self, dist)

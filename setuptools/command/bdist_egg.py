@@ -369,10 +369,7 @@ def scan_module(egg_dir, base, name, stubs):
         return True  # Extension module
     pkg = base[len(egg_dir) + 1 :].replace(os.sep, '.')
     module = pkg + (pkg and '.' or '') + os.path.splitext(name)[0]
-    if sys.version_info < (3, 7):
-        skip = 12  # skip magic & date & file size
-    else:
-        skip = 16  # skip magic & reserved? & date & file size
+    skip = 16  # skip magic & reserved? & date & file size
     f = open(filename, 'rb')
     f.read(skip)
     code = marshal.load(f)
@@ -422,6 +419,7 @@ def can_scan():
         "Please ask the author to include a 'zip_safe'"
         " setting (either True or False) in the package's setup.py"
     )
+    return False
 
 
 # Attribute names of options for commands that might need to be convinced to

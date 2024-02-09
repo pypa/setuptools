@@ -319,7 +319,7 @@ class PackageIndex(Environment):
         try:
             parse_version(dist.version)
         except Exception:
-            return
+            return None
         return super().add(dist)
 
     # FIXME: 'PackageIndex.process_url' is too complex (14)
@@ -406,6 +406,7 @@ class PackageIndex(Environment):
             raise DistutilsError(msg % url)
         else:
             self.warn(msg, url)
+            return False
 
     def scan_egg_links(self, search_path):
         dirs = filter(os.path.isdir, search_path)
@@ -648,6 +649,8 @@ class PackageIndex(Environment):
                     if os.path.exists(dist.download_location):
                         return dist
 
+            return None
+
         if force_scan:
             self.prescan()
             self.find_packages(requirement)
@@ -671,6 +674,7 @@ class PackageIndex(Environment):
                 (source and "a source distribution of " or ""),
                 requirement,
             )
+            return None
         else:
             self.info("Best match: %s", dist)
             return dist.clone(location=dist.download_location)
@@ -1034,6 +1038,7 @@ class PyPIConfig(configparser.RawConfigParser):
         for repository, cred in self.creds_by_repository.items():
             if url.startswith(repository):
                 return cred
+        return None
 
 
 def open_with_auth(url, opener=urllib.request.urlopen):

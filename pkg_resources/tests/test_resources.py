@@ -21,7 +21,7 @@ from pkg_resources import (
 )
 
 
-# from Python 3.6 docs.
+# from Python 3.6 docs. Available from itertools on Python 3.10
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = itertools.tee(iterable)

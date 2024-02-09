@@ -1,7 +1,4 @@
-import sys
-import os
 import distutils.errors
-import platform
 import urllib.request
 import urllib.error
 import http.client
@@ -85,16 +82,6 @@ class TestPackageIndex:
             )
             return
         raise RuntimeError("Did not raise")
-
-    def test_bad_url_screwy_href(self):
-        index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
-
-        # issue #160
-        if sys.version_info[0] == 2 and sys.version_info[1] == 7:
-            # this should not fail
-            url = 'http://example.com'
-            page = '<a href="http://www.famfamfam.com](' 'http://www.famfamfam.com/">'
-            index.process_index(url, page)
 
     def test_url_ok(self):
         index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
@@ -266,22 +253,10 @@ class TestContentCheckers:
         assert rep == 'My message about md5'
 
 
-@pytest.fixture
-def temp_home(tmpdir, monkeypatch):
-    key = (
-        'USERPROFILE'
-        if platform.system() == 'Windows' and sys.version_info > (3, 8)
-        else 'HOME'
-    )
-
-    monkeypatch.setitem(os.environ, key, str(tmpdir))
-    return tmpdir
-
-
 class TestPyPIConfig:
-    def test_percent_in_password(self, temp_home):
-        pypirc = temp_home / '.pypirc'
-        pypirc.write(
+    def test_percent_in_password(self, tmp_home_dir):
+        pypirc = tmp_home_dir / '.pypirc'
+        pypirc.write_text(
             DALS(
                 """
             [pypi]

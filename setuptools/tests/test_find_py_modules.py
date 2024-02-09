@@ -6,7 +6,7 @@ import pytest
 
 from setuptools.discovery import FlatLayoutModuleFinder, ModuleFinder
 
-from .test_find_packages import ensure_files, has_symlink
+from .test_find_packages import can_symlink, ensure_files
 
 
 class TestModuleFinder:
@@ -39,7 +39,7 @@ class TestModuleFinder:
         ensure_files(tmp_path, files)
         assert self.find(tmp_path, **kwargs) == set(expected_modules)
 
-    @pytest.mark.skipif(not has_symlink(), reason='Symlink support required')
+    @pytest.mark.skipif(not can_symlink(), reason='Symlink support required')
     def test_symlinked_packages_are_included(self, tmp_path):
         src = "_myfiles/file.py"
         ensure_files(tmp_path, [src])
