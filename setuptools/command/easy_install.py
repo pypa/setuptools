@@ -75,7 +75,7 @@ from pkg_resources import (
     DEVELOP_DIST,
 )
 import pkg_resources
-from .. import py312compat
+from ..compat import py311
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
 
@@ -745,6 +745,7 @@ class easy_install(Command):
             for dist in dists:
                 if dist in spec:
                     return dist
+        return None
 
     def select_scheme(self, name):
         try:
@@ -1477,9 +1478,7 @@ def get_site_dirs():
     with contextlib.suppress(AttributeError):
         sitedirs.extend(site.getsitepackages())
 
-    sitedirs = list(map(normalize_path, sitedirs))
-
-    return sitedirs
+    return list(map(normalize_path, sitedirs))
 
 
 def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
@@ -2340,7 +2339,7 @@ def load_launcher_manifest(name):
 
 
 def _rmtree(path, ignore_errors=False, onexc=auto_chmod):
-    return py312compat.shutil_rmtree(path, ignore_errors, onexc)
+    return py311.shutil_rmtree(path, ignore_errors, onexc)
 
 
 def current_umask():

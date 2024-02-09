@@ -778,6 +778,8 @@ class Distribution(_Distribution):  # type: ignore[valid-type, misc]  # https://
             if p == package or p.startswith(pfx):
                 return True
 
+        return False
+
     def _exclude_misc(self, name, value):
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
         if not isinstance(value, sequence):

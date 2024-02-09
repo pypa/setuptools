@@ -579,6 +579,7 @@ class RegistryInfo:
             finally:
                 if bkey:
                     closekey(bkey)
+        return None
 
 
 class SystemInfo:
@@ -825,6 +826,7 @@ class SystemInfo:
             return '8.1', '8.1a'
         elif self.vs_ver >= 14.0:
             return '10.0', '8.1'
+        return None
 
     @property
     def WindowsSdkLastVersion(self):
@@ -916,6 +918,8 @@ class SystemInfo:
             if execpath:
                 return execpath
 
+        return None
+
     @property
     def FSharpInstallDir(self):
         """
@@ -947,6 +951,8 @@ class SystemInfo:
             sdkdir = self.ri.lookup(self.ri.windows_kits_roots, 'kitsroot%s' % ver)
             if sdkdir:
                 return sdkdir or ''
+
+        return None
 
     @property
     def UniversalCRTSdkLastVersion(self):

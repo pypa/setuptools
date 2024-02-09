@@ -419,6 +419,7 @@ def can_scan():
         "Please ask the author to include a 'zip_safe'"
         " setting (either True or False) in the package's setup.py"
     )
+    return False
 
 
 # Attribute names of options for commands that might need to be convinced to

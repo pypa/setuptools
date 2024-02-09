@@ -418,7 +418,7 @@ See :doc:`development_mode` for more information.
 
     If you have a version of ``pip`` older than v21.1 or is using a different
     packaging-related tool that does not support :pep:`660`, you might need to keep a
-    ``setup.py`` file in file in your repository if you want to use editable
+    ``setup.py`` file in your repository if you want to use editable
     installs.
 
     A simple script will suffice, for example:
@@ -433,6 +433,17 @@ See :doc:`development_mode` for more information.
     :doc:`pyproject.toml </userguide/pyproject_config>` and/or
     :doc:`setup.cfg </userguide/declarative_config>`
 
+.. note::
+
+    When building from source code (for example, by ``python -m build``
+    or ``pip install -e .``)
+    some directories hosting build artefacts and cache files may be
+    created, such as ``build``, ``dist``, ``*.egg-info`` [#cache]_.
+    You can configure your version control system to ignore them
+    (see `GitHub's .gitignore template
+    <https://github.com/github/gitignore/blob/main/Python.gitignore>`_
+    for an example).
+
 
 Uploading your package to PyPI
 ------------------------------
@@ -442,14 +453,23 @@ distribution so others can use it. This functionality is provided by
 <PyPUG:tutorials/packaging-projects>`.
 
 
-Transitioning from ``setup.py`` to ``setup.cfg``
-------------------------------------------------
+Transitioning from ``setup.py`` to declarative config
+-----------------------------------------------------
 To avoid executing arbitrary scripts and boilerplate code, we are transitioning
-into a full-fledged ``setup.cfg`` to declare your package information instead
-of running ``setup()``. This inevitably brings challenges due to a different
-syntax. :doc:`Here </userguide/declarative_config>` we provide a quick guide to
-understanding how ``setup.cfg`` is parsed by ``setuptools`` to ease the pain of
-transition.
+from defining all your package information by running ``setup()`` to doing this
+declaratively - by using ``pyproject.toml`` (or older ``setup.cfg``).
+
+To ease the challenges of transitioning, we provide a quick
+:doc:`guide </userguide/pyproject_config>` to understanding how ``pyproject.toml``
+is parsed by ``setuptools``. (Alternatively, here is the
+:doc:`guide </userguide/declarative_config>` for ``setup.cfg``).
+
+.. note::
+
+    The approach ``setuptools`` would like to take is to eventually use a single
+    declarative format (``pyproject.toml``) instead of maintaining 2
+    (``pyproject.toml`` / ``setup.cfg``). Yet, chances are, ``setup.cfg`` will
+    continue to be maintained for a long time.
 
 .. _packaging-resources:
 
@@ -475,5 +495,10 @@ up-to-date references that can help you when it is time to distribute your work.
    <pyproject_config>` and use ``setup.py`` only for the parts not
    supported in those files (e.g. C extensions).
    See :ref:`note <setuppy_discouraged>`.
+
+.. [#cache]
+   If you feel that caching is causing problems to your build, specially after changes in the
+   configuration files, consider removing ``build``, ``dist``, ``*.egg-info`` before
+   rebuilding or installing your project.
 
 .. _PyPI: https://pypi.org

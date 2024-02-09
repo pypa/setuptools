@@ -182,11 +182,32 @@ extensions).
 .. _keyword/data_files:
 
 ``data_files``
-    .. warning::
-        ``data_files`` is deprecated. It does not work with wheels, so it
-        should be avoided.
+    .. attention::
+        **DISCOURAGED** - This is an advanced feature and it is
+        *not intended to work with absolute paths*.
+        All files listed in ``data_files`` will be installed in paths relative
+        to a directory decided by the package installer (e.g. `pip`).
+        This usually results in nesting under a virtual environment.
+        We **STRONGLY ADVISE AGAINST** using this setting for things like
+        application launchers, desktop files or anything that requires
+        system-wide installation [#manpages]_, unless you have extensive
+        experience in Python packaging and have carefully considered all the
+        drawbacks, limitations and problems of this method.
+        Also note that this feature is provided *as is* with no plans of
+        further changes.
 
-    A list of strings specifying the data files to install.
+    .. tip::
+        See :doc:`/userguide/datafiles` for an alternative method that uses the
+        package directory itself and works well with :mod:`importlib.resources`,
+        or consider using libraries such as :pypi:`platformdirs` for creating
+        and managing files at runtime (i.e., **not** during the installation).
+
+    A sequence of ``(directory, files)`` pairs specifying the data files to install
+    (``directory`` is a :class:`str`, ``files`` is a sequence of :class:`str`).
+    Each ``(directory, files)`` pair in the sequence specifies the installation directory
+    and the files to install there.
+
+.. _discussion in Python discourse: https://discuss.python.org/t/should-there-be-a-new-standard-for-installing-arbitrary-data-files/7853/63
 
 .. _keyword/package_dir:
 
@@ -499,3 +520,10 @@ extensions).
     An arbitrary map of URL names to hyperlinks, allowing more extensible
     documentation of where various resources can be found than the simple
     ``url`` and ``download_url`` options provide.
+
+
+.. [#manpages] It is common for developers to attempt using ``data_files`` for manpages.
+   Please note however that depending on the installation directory, this will
+   not work out of the box - often the final user is required to change the
+   ``MANPATH`` environment variable.
+   See the `discussion in Python discourse`_ for more details.

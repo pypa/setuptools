@@ -20,7 +20,7 @@ extend-select = [
 	"UP",  # pyupgrade
 ]
 extend-ignore = [
-	"UP015",  # redundant-open-modes, explicit is prefered
+	"UP015",  # redundant-open-modes, explicit is preferred
 	"UP030",  # temporarily disabled
 	"UP031",  # temporarily disabled
 	"UP032",  # temporarily disabled
@@ -38,5 +38,7 @@ exclude = [
 	"setuptools/_distutils",
 	"setuptools/config/_validate_pyproject",
 ]
+# Enable preview, required for quote-style = "preserve"
+preview = true
 # https://docs.astral.sh/ruff/settings/#format-quote-style
 quote-style = "preserve"
