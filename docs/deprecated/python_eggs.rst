@@ -133,10 +133,10 @@ egg filename is as follows::
 
 The "name" and "version" should be escaped using the ``to_filename()``
 function provided by ``pkg_resources``, after first processing them with
-``safe_name()`` and ``safe_version()`` respectively.  These latter two
-functions can also be used to later "unescape" these parts of the
-filename.  (For a detailed description of these transformations, please
-see the "Parsing Utilities" section of the ``pkg_resources`` manual.)
+``safe_name()`` and ``safe_version()`` respectively. Note that the escaping is
+irreversible and the original name can only be retrieved from the distribution
+metadata. For a detailed description of these transformations, please see the
+"Parsing Utilities" section of the ``pkg_resources`` manual.
 
 The "pyver" string is the Python major version, as found in the first
 3 characters of ``sys.version``.  "required_platform" is essentially
