@@ -1,0 +1,1 @@
+Restored expectation that egg-link files would be named with dash separators for compatibility with pip prior to version 24.
