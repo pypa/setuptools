@@ -193,6 +193,14 @@ Python version, or platform information is included.  When the runtime
 searches for available eggs, ``.egg-link`` files are opened and the
 actual egg file/directory name is read from them.
 
+Note: Due to `pypa/setuptools#4167
+<https://github.com/pypa/setuptools/issues/4167>`_, the name in the egg-link
+filename does not match the filename components used in similar files, but
+instead presents with dash separators instead of underscore separators. For
+compatibility with pip prior to version 24.0, these dash separators are
+retained. In a future release, pip 24 or later will be required and the
+underscore separators will be used.
+
 Each ``.egg-link`` file should contain a single file or directory name,
 with no newlines.  This filename should be the base location of one or
 more eggs.  That is, the name must either end in ``.egg``, or else it
