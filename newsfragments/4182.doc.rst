@@ -1,1 +1,0 @@
-Changed ``versionadded`` for "Type information included by default" feature from ``v68.3.0`` to ``v69.0.0`` -- by :user:Avasam`
