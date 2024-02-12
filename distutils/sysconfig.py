@@ -195,12 +195,11 @@ def _get_python_inc_posix_prefix(prefix):
 
 def _get_python_inc_nt(prefix, spec_prefix, plat_specific):
     if python_build:
-        # Include both the include and PC dir to ensure we can find
-        # pyconfig.h
+        # Include both include dirs to ensure we can find pyconfig.h
         return (
             os.path.join(prefix, "include")
             + os.path.pathsep
-            + os.path.join(prefix, "PC")
+            + os.path.dirname(sysconfig.get_config_h_filename())
         )
     return os.path.join(prefix, "include")
 
@@ -361,14 +360,7 @@ def customize_compiler(compiler):  # noqa: C901
 
 def get_config_h_filename():
     """Return full pathname of installed pyconfig.h file."""
-    if python_build:
-        if os.name == "nt":
-            inc_dir = os.path.join(_sys_home or project_base, "PC")
-        else:
-            inc_dir = _sys_home or project_base
-        return os.path.join(inc_dir, 'pyconfig.h')
-    else:
-        return sysconfig.get_config_h_filename()
+    return sysconfig.get_config_h_filename()
 
 
 def get_makefile_filename():
