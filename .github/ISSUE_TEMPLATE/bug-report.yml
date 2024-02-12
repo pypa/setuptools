@@ -45,9 +45,10 @@ body:
 - type: input
   attributes:
     label: setuptools version
-    placeholder: For example, setuptools===69.1.0
+    placeholder: For example, setuptools==69.1.0
     description: >-
       Please also test with the **latest version** of `setuptools`.
+      
       Typically, this involves modifying `requires` in `[build-system]` of
       [`pyproject.toml`](https://setuptools.pypa.io/en/latest/userguide/quickstart.html#basic-use),
       not just updating `setuptools` using `pip`.
