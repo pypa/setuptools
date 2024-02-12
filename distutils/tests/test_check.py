@@ -1,4 +1,5 @@
 """Tests for distutils.command.check."""
+
 import os
 import textwrap
 

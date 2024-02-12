@@ -38,16 +38,14 @@ class TestBuildDumb(
         self.write_file((pkg_dir, 'MANIFEST.in'), 'include foo.py')
         self.write_file((pkg_dir, 'README'), '')
 
-        dist = Distribution(
-            {
-                'name': 'foo',
-                'version': '0.1',
-                'py_modules': ['foo'],
-                'url': 'xxx',
-                'author': 'xxx',
-                'author_email': 'xxx',
-            }
-        )
+        dist = Distribution({
+            'name': 'foo',
+            'version': '0.1',
+            'py_modules': ['foo'],
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'xxx',
+        })
         dist.script_name = 'setup.py'
         os.chdir(pkg_dir)
 

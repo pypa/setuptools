@@ -1,4 +1,5 @@
 """Tests for distutils.dir_util."""
+
 import os
 import stat
 import unittest.mock as mock

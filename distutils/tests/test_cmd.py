@@ -1,4 +1,5 @@
 """Tests for distutils.cmd."""
+
 import os
 
 from distutils.cmd import Command

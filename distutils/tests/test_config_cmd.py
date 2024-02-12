@@ -1,4 +1,5 @@
 """Tests for distutils.command.config."""
+
 import os
 import sys
 

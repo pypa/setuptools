@@ -1,4 +1,5 @@
 """Tests for distutils.command.build_clib."""
+
 import os
 
 import pytest

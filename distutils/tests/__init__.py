@@ -7,6 +7,7 @@ distutils.command.tests package, since command identification is done
 by import rather than matching pre-defined names.
 """
 
+
 def missing_compiler_executable(cmd_names=[]):  # pragma: no cover
     """Check if the compiler components used to build the interpreter exist.
 
@@ -32,8 +33,7 @@ def missing_compiler_executable(cmd_names=[]):  # pragma: no cover
             continue
         cmd = getattr(compiler, name)
         if cmd_names:
-            assert cmd is not None, \
-                    "the '%s' executable is not configured" % name
+            assert cmd is not None, "the '%s' executable is not configured" % name
         elif not cmd:
             continue
         if spawn.find_executable(cmd[0]) is None:

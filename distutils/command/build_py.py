@@ -129,9 +129,9 @@ class build_py(Command):
                 os.path.join(glob.escape(src_dir), convert_path(pattern))
             )
             # Files that match more than one pattern are only added once
-            files.extend(
-                [fn for fn in filelist if fn not in files and os.path.isfile(fn)]
-            )
+            files.extend([
+                fn for fn in filelist if fn not in files and os.path.isfile(fn)
+            ])
         return files
 
     def build_package_data(self):

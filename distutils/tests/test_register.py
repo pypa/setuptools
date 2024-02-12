@@ -1,4 +1,5 @@
 """Tests for distutils.command.register."""
+
 import os
 import getpass
 import urllib

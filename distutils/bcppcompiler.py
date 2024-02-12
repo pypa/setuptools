@@ -11,7 +11,6 @@ for the Borland C++ compiler.
 # someone should sit down and factor out the common code as
 # WindowsCCompiler!  --GPW
 
-
 import os
 import warnings
 

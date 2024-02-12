@@ -1,4 +1,5 @@
 """Tests for distutils.util."""
+
 import email
 import email.policy
 import email.generator
@@ -155,9 +156,15 @@ class TestUtil:
         import pwd
 
         # only set pw_dir field, other fields are not used
-        result = pwd.struct_passwd(
-            (None, None, None, None, None, '/home/distutils', None)
-        )
+        result = pwd.struct_passwd((
+            None,
+            None,
+            None,
+            None,
+            None,
+            '/home/distutils',
+            None,
+        ))
         with mock.patch.object(pwd, 'getpwuid', return_value=result):
             check_environ()
             assert os.environ['HOME'] == '/home/distutils'

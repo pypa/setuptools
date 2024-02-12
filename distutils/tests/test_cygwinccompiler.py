@@ -1,4 +1,5 @@
 """Tests for distutils.cygwinccompiler."""
+
 import sys
 import os
 

@@ -1,4 +1,5 @@
 """Tests for distutils.command.build."""
+
 import os
 import sys
 

@@ -1004,7 +1004,11 @@ int main (int argc, char **argv) {
         return os.path.join(output_dir, basename + (self.exe_extension or ''))
 
     def library_filename(
-        self, libname, lib_type='static', strip_dir=0, output_dir=''  # or 'shared'
+        self,
+        libname,
+        lib_type='static',
+        strip_dir=0,
+        output_dir='',  # or 'shared'
     ):
         assert output_dir is not None
         expected = '"static", "shared", "dylib", "xcode_stub"'

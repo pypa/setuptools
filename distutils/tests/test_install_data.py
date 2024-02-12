@@ -1,4 +1,5 @@
 """Tests for distutils.command.install_data."""
+
 import os
 
 import pytest

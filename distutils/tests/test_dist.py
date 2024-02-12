@@ -1,4 +1,5 @@
 """Tests for distutils.dist."""
+
 import os
 import io
 import email
@@ -69,14 +70,12 @@ class TestDistributionBehavior(support.TempdirManager):
     def test_command_packages_cmdline(self, clear_argv):
         from distutils.tests.test_dist import test_dist
 
-        sys.argv.extend(
-            [
-                "--command-packages",
-                "foo.bar,distutils.tests",
-                "test_dist",
-                "-Ssometext",
-            ]
-        )
+        sys.argv.extend([
+            "--command-packages",
+            "foo.bar,distutils.tests",
+            "test_dist",
+            "-Ssometext",
+        ])
         d = self.create_distribution()
         # let's actually try to load our test command:
         assert d.get_command_packages() == [
@@ -98,9 +97,8 @@ class TestDistributionBehavior(support.TempdirManager):
 
         fakepath = '/somedir'
 
-        jaraco.path.build(
-            {
-                file: f"""
+        jaraco.path.build({
+            file: f"""
                     [install]
                     install-base = {fakepath}
                     install-platbase = {fakepath}
@@ -116,8 +114,7 @@ class TestDistributionBehavior(support.TempdirManager):
                     user = {fakepath}
                     root = {fakepath}
                     """,
-            }
-        )
+        })
 
         # Base case: Not in a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/a'):
@@ -158,14 +155,12 @@ class TestDistributionBehavior(support.TempdirManager):
     def test_command_packages_configfile(self, tmp_path, clear_argv):
         sys.argv.append("build")
         file = str(tmp_path / "file")
-        jaraco.path.build(
-            {
-                file: """
+        jaraco.path.build({
+            file: """
                     [global]
                     command_packages = foo.bar, splat
                     """,
-            }
-        )
+        })
 
         d = self.create_distribution([file])
         assert d.get_command_packages() == ["distutils.command", "foo.bar", "splat"]

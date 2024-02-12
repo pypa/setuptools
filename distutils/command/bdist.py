@@ -76,17 +76,15 @@ class bdist(Command):
     default_format = {'posix': 'gztar', 'nt': 'zip'}
 
     # Define commands in preferred order for the --help-formats option
-    format_commands = ListCompat(
-        {
-            'rpm': ('bdist_rpm', "RPM distribution"),
-            'gztar': ('bdist_dumb', "gzip'ed tar file"),
-            'bztar': ('bdist_dumb', "bzip2'ed tar file"),
-            'xztar': ('bdist_dumb', "xz'ed tar file"),
-            'ztar': ('bdist_dumb', "compressed tar file"),
-            'tar': ('bdist_dumb', "tar file"),
-            'zip': ('bdist_dumb', "ZIP file"),
-        }
-    )
+    format_commands = ListCompat({
+        'rpm': ('bdist_rpm', "RPM distribution"),
+        'gztar': ('bdist_dumb', "gzip'ed tar file"),
+        'bztar': ('bdist_dumb', "bzip2'ed tar file"),
+        'xztar': ('bdist_dumb', "xz'ed tar file"),
+        'ztar': ('bdist_dumb', "compressed tar file"),
+        'tar': ('bdist_dumb', "tar file"),
+        'zip': ('bdist_dumb', "ZIP file"),
+    })
 
     # for compatibility until consumers only reference format_commands
     format_command = format_commands

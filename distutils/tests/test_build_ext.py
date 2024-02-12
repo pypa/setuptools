@@ -501,7 +501,7 @@ class TestBuildExt(TempdirManager):
         with open(deptarget_c, 'w') as fp:
             fp.write(
                 textwrap.dedent(
-                    '''\
+                    """\
                 #include <AvailabilityMacros.h>
 
                 int dummy;
@@ -511,7 +511,7 @@ class TestBuildExt(TempdirManager):
                 #error "Unexpected target"
                 #endif
 
-            '''
+            """
                     % operator
                 )
             )

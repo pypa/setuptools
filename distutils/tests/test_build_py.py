@@ -69,13 +69,11 @@ class TestBuildPy(support.TempdirManager):
         open(os.path.join(testdir, "testfile"), "w").close()
 
         os.chdir(sources)
-        dist = Distribution(
-            {
-                "packages": ["pkg"],
-                "package_dir": {"pkg": ""},
-                "package_data": {"pkg": ["doc/*"]},
-            }
-        )
+        dist = Distribution({
+            "packages": ["pkg"],
+            "package_dir": {"pkg": ""},
+            "package_data": {"pkg": ["doc/*"]},
+        })
         # script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(sources, "setup.py")
         dist.script_args = ["build"]

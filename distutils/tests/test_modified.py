@@ -1,4 +1,5 @@
 """Tests for distutils._modified."""
+
 import os
 import types
 
