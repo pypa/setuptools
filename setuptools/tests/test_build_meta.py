@@ -742,6 +742,7 @@ class TestBuildMetaBackend:
     @pytest.mark.parametrize(
         "config_settings",
         [
+            {"--build-option": ["build_ext", "--inplace"]},
             {"--build-option": ["--mode", "strict"]},
             {"editable-mode": "strict"},
         ],

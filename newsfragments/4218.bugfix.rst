@@ -1,0 +1,2 @@
+Revert Only pass --build-option to bdist_wheel in build_meta
+change which broke ability to pass args to all commands.
