@@ -289,6 +289,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             *sys.argv[:1],
             *self._global_args(config_settings),
             "egg_info",
+            *self._arbitrary_args(config_settings),
         ]
         try:
             with Distribution.patch():
@@ -376,7 +377,6 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         # Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
         temp_opts = {"prefix": ".tmp-", "dir": result_directory}
-
         with tempfile.TemporaryDirectory(**temp_opts) as tmp_dist_dir:
             sys.argv = [
                 *sys.argv[:1],
@@ -384,6 +384,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
                 *setup_command,
                 "--dist-dir",
                 tmp_dist_dir,
+                *self._arbitrary_args(config_settings),
             ]
             with no_install_setup_requires():
                 self.run_setup()
@@ -402,10 +403,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
     ):
         with suppress_known_deprecation():
             return self._build_with_temp_dir(
-                ['bdist_wheel', *self._arbitrary_args(config_settings)],
-                '.whl',
-                wheel_directory,
-                config_settings,
+                ['bdist_wheel'], '.whl', wheel_directory, config_settings
             )
 
     def build_sdist(self, sdist_directory, config_settings=None):
