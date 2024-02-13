@@ -112,8 +112,7 @@ class CygwinCCompiler(UnixCCompiler):
             linker_exe='%s -mcygwin' % self.cc,
             linker_so=('{} -mcygwin {}'.format(self.linker_dll, shared_option)),
             linker_exe_cxx='%s -mcygwin' % self.cxx,
-            linker_so_cxx=('%s -mcygwin %s' %
-                (self.linker_dll_cxx, shared_option)),
+            linker_so_cxx=('%s -mcygwin %s' % (self.linker_dll_cxx, shared_option)),
         )
 
         # Include the appropriate MSVC runtime library if Python was built
@@ -146,11 +145,16 @@ class CygwinCCompiler(UnixCCompiler):
         else:  # for other files use the C-compiler
             try:
                 if self.detect_language(src) == 'c++':
-                    self.spawn(self.compiler_so_cxx + cc_args + [src, '-o', obj] +
-                                   extra_postargs)
+                    self.spawn(
+                        self.compiler_so_cxx
+                        + cc_args
+                        + [src, '-o', obj]
+                        + extra_postargs
+                    )
                 else:
                     self.spawn(
-                        self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs)
+                        self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs
+                    )
             except DistutilsExecError as msg:
                 raise CompileError(msg)
 
@@ -291,7 +295,7 @@ class Mingw32CCompiler(CygwinCCompiler):
             linker_exe='%s' % self.cc,
             linker_so='{} {}'.format(self.linker_dll, shared_option),
             linker_exe_cxx='%s' % self.cxx,
-            linker_so_cxx='%s %s' % (self.linker_dll_cxx, shared_option)
+            linker_so_cxx='%s %s' % (self.linker_dll_cxx, shared_option),
         )
 
     def runtime_library_dir_option(self, dir):

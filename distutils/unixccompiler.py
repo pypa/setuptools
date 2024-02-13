@@ -187,8 +187,9 @@ class UnixCCompiler(CCompiler):
         compiler_so_cxx = compiler_fixup(self.compiler_so_cxx, cc_args + extra_postargs)
         try:
             if self.detect_language(src) == 'c++':
-                self.spawn(compiler_so_cxx + cc_args + [ src, '-o', obj] +
-                               extra_postargs)
+                self.spawn(
+                    compiler_so_cxx + cc_args + [src, '-o', obj] + extra_postargs
+                )
             else:
                 self.spawn(compiler_so + cc_args + [src, '-o', obj] + extra_postargs)
         except DistutilsExecError as msg:
@@ -258,8 +259,13 @@ class UnixCCompiler(CCompiler):
                 # building an executable or linker_so (with shared options)
                 # when building a shared library.
                 building_exe = target_desc == CCompiler.EXECUTABLE
-                linker = (self.linker_exe if building_exe else (self.linker_so_cxx if
-                              target_lang == "c++" else self.linker_so))[:]
+                linker = (
+                    self.linker_exe
+                    if building_exe
+                    else (
+                        self.linker_so_cxx if target_lang == "c++" else self.linker_so
+                    )
+                )[:]
 
                 if target_lang == "c++" and self.compiler_cxx:
                     env, linker_ne = _split_env(linker)
