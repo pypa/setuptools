@@ -245,9 +245,11 @@ class install(Command):
     boolean_options = ['compile', 'force', 'skip-build']
 
     if HAS_USER_SITE:
-        user_options.append(
-            ('user', None, "install in user site-package '%s'" % USER_SITE)
-        )
+        user_options.append((
+            'user',
+            None,
+            "install in user site-package '%s'" % USER_SITE,
+        ))
         boolean_options.append('user')
 
     negative_opt = {'no-compile': 'compile'}
@@ -432,9 +434,12 @@ class install(Command):
             local_vars['userbase'] = self.install_userbase
             local_vars['usersite'] = self.install_usersite
 
-        self.config_vars = _collections.DictStack(
-            [fw.vars(), compat_vars, sysconfig.get_config_vars(), local_vars]
-        )
+        self.config_vars = _collections.DictStack([
+            fw.vars(),
+            compat_vars,
+            sysconfig.get_config_vars(),
+            local_vars,
+        ])
 
         self.expand_basedirs()
 
@@ -620,16 +625,14 @@ class install(Command):
 
     def expand_dirs(self):
         """Calls `os.path.expanduser` on install dirs."""
-        self._expand_attrs(
-            [
-                'install_purelib',
-                'install_platlib',
-                'install_lib',
-                'install_headers',
-                'install_scripts',
-                'install_data',
-            ]
-        )
+        self._expand_attrs([
+            'install_purelib',
+            'install_platlib',
+            'install_lib',
+            'install_headers',
+            'install_scripts',
+            'install_data',
+        ])
 
     def convert_paths(self, *names):
         """Call `convert_path` over `names`."""

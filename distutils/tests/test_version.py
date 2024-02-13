@@ -1,4 +1,5 @@
 """Tests for distutils.version."""
+
 import pytest
 
 import distutils

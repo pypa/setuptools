@@ -1,42 +1,94 @@
 name: tests
 
-on: [push, pull_request]
+on:
+  merge_group:
+  push:
+    branches-ignore:
+    # disabled for jaraco/skeleton#103
+    # - gh-readonly-queue/**  # Temporary merge queue-related GH-made branches
+  pull_request:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  group: >-
+    ${{ github.workflow }}-
+    ${{ github.ref_type }}-
+    ${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Environment variable to support color support (jaraco/skeleton#66)
+  FORCE_COLOR: 1
+
+  # Suppress noisy pip warnings
+  PIP_DISABLE_PIP_VERSION_CHECK: 'true'
+  PIP_NO_PYTHON_VERSION_WARNING: 'true'
+  PIP_NO_WARN_SCRIPT_LOCATION: 'true'
+
+  # Ensure tests can sense settings about the environment
+  TOX_OVERRIDE: >-
+    testenv.pass_env+=GITHUB_*,FORCE_COLOR
 
 jobs:
   test:
     strategy:
       matrix:
         python:
-        # Build on pre-releases until stable, then stable releases.
-        # actions/setup-python#213
-        - ~3.7.0-0
-        - ~3.10.0-0
-        - ~3.11.0-0
+        - "3.8"
+        - "3.11"
+        - "3.12"
         platform:
         - ubuntu-latest
         - macos-latest
         - windows-latest
         include:
-        - platform: ubuntu-latest
-          python: 'pypy3.9'
+        - python: "3.9"
+          platform: ubuntu-latest
+        - python: "3.10"
+          platform: ubuntu-latest
+        - python: pypy3.10
+          platform: ubuntu-latest
     runs-on: ${{ matrix.platform }}
+    continue-on-error: ${{ matrix.python == '3.13' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
+          allow-prereleases: true
       - name: Install tox
-        run: |
-          python -m pip install tox
-      - name: Run tests
+        run: python -m pip install tox
+      - name: Run
         run: tox
 
+  collateral:
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+        - diffcov
+        - docs
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.python == '3.12' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - name: Install tox
+        run: python -m pip install tox
+      - name: Eval ${{ matrix.job }}
+        run: tox -e ${{ matrix.job }}
+
   test_cygwin:
+    # disabled due to lack of Rust support pypa/setuptools#3921
+    if: ${{ false }}
     strategy:
       matrix:
         python:
@@ -58,12 +110,14 @@ jobs:
             gcc-core,
             gcc-g++,
             ncompress
+            git
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: tox
 
   ci_setuptools:
     # Integration testing with setuptools
+    if: ${{ false }}  # disabled for deprecation warnings
     strategy:
       matrix:
         python:
@@ -100,21 +154,40 @@ jobs:
         env:
           VIRTUALENV_NO_SETUPTOOLS: null
 
+  check:  # This job does nothing and is only used for the branch protection
+    if: always()
+
+    needs:
+    - test
+    - collateral
+    # disabled due to disabled job
+    # - test_cygwin
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Decide whether the needed jobs succeeded or failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        jobs: ${{ toJSON(needs) }}
+
   release:
-    needs: test
+    permissions:
+      contents: write
+    needs:
+    - check
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: 3.11-dev
       - name: Install tox
-        run: |
-          python -m pip install tox
-      - name: Release
+        run: python -m pip install tox
+      - name: Run
         run: tox -e release
         env:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

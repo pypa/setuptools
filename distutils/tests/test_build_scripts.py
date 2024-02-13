@@ -88,7 +88,7 @@ class TestBuildScripts(support.TempdirManager):
         )
         cmd.finalize_options()
 
-        # http://bugs.python.org/issue4524
+        # https://bugs.python.org/issue4524
         #
         # On linux-g++-32 with command line `./configure --enable-ipv6
         # --with-suffix=3`, python is compiled okay but the build scripts

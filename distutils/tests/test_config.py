@@ -1,4 +1,5 @@
 """Tests for distutils.pypirc.pypirc."""
+
 import os
 
 import pytest

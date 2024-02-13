@@ -1,4 +1,5 @@
 """Support code for distutils test cases."""
+
 import os
 import sys
 import shutil

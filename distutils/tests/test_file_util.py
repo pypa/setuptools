@@ -1,4 +1,5 @@
 """Tests for distutils.file_util."""
+
 import os
 import errno
 import unittest.mock as mock

@@ -1,4 +1,5 @@
 """Tests for distutils.command.upload."""
+
 import os
 import unittest.mock as mock
 from urllib.request import HTTPError

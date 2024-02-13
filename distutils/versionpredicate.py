@@ -1,5 +1,5 @@
-"""Module for parsing and testing package version predicate strings.
-"""
+"""Module for parsing and testing package version predicate strings."""
+
 import re
 from . import version
 import operator

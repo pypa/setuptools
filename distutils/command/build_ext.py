@@ -19,7 +19,7 @@ from ..errors import (
 )
 from ..sysconfig import customize_compiler, get_python_version
 from ..sysconfig import get_config_h_filename
-from ..dep_util import newer_group
+from .._modified import newer_group
 from ..extension import Extension
 from ..util import get_platform
 from distutils._log import log
@@ -130,6 +130,31 @@ class build_ext(Command):
         self.user = None
         self.parallel = None
 
+    @staticmethod
+    def _python_lib_dir(sysconfig):
+        """
+        Resolve Python's library directory for building extensions
+        that rely on a shared Python library.
+
+        See python/cpython#44264 and python/cpython#48686
+        """
+        if not sysconfig.get_config_var('Py_ENABLE_SHARED'):
+            return
+
+        if sysconfig.python_build:
+            yield '.'
+            return
+
+        if sys.platform == 'zos':
+            # On z/OS, a user is not required to install Python to
+            # a predetermined path, but can use Python portably
+            installed_dir = sysconfig.get_config_var('base')
+            lib_dir = sysconfig.get_config_var('platlibdir')
+            yield os.path.join(installed_dir, lib_dir)
+        else:
+            # building third party extensions
+            yield sysconfig.get_config_var('LIBDIR')
+
     def finalize_options(self):  # noqa: C901
         from distutils import sysconfig
 
@@ -231,16 +256,7 @@ class build_ext(Command):
                 # building python standard extensions
                 self.library_dirs.append('.')
 
-        # For building extensions with a shared Python library,
-        # Python's library directory must be appended to library_dirs
-        # See Issues: #1600860, #4366
-        if sysconfig.get_config_var('Py_ENABLE_SHARED'):
-            if not sysconfig.python_build:
-                # building third party extensions
-                self.library_dirs.append(sysconfig.get_config_var('LIBDIR'))
-            else:
-                # building python standard extensions
-                self.library_dirs.append('.')
+        self.library_dirs.extend(self._python_lib_dir(sysconfig))
 
         # The argument parsing will result in self.define being a string, but
         # it has to be a list of 2-tuples.  All the preprocessor symbols

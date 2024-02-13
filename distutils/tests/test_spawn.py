@@ -1,4 +1,5 @@
 """Tests for distutils.spawn."""
+
 import os
 import stat
 import sys

@@ -18,7 +18,7 @@ from .errors import (
 from .spawn import spawn
 from .file_util import move_file
 from .dir_util import mkpath
-from .dep_util import newer_group
+from ._modified import newer_group
 from .util import split_quoted, execute
 from ._log import log
 
@@ -1004,7 +1004,11 @@ int main (int argc, char **argv) {
         return os.path.join(output_dir, basename + (self.exe_extension or ''))
 
     def library_filename(
-        self, libname, lib_type='static', strip_dir=0, output_dir=''  # or 'shared'
+        self,
+        libname,
+        lib_type='static',
+        strip_dir=0,
+        output_dir='',  # or 'shared'
     ):
         assert output_dir is not None
         expected = '"static", "shared", "dylib", "xcode_stub"'
@@ -1056,6 +1060,7 @@ _default_compilers = (
     # on a cygwin built python we can use gcc like an ordinary UNIXish
     # compiler
     ('cygwin.*', 'unix'),
+    ('zos', 'zos'),
     # OS name mappings
     ('posix', 'unix'),
     ('nt', 'msvc'),
@@ -1103,6 +1108,7 @@ compiler_class = {
         "Mingw32 port of GNU C Compiler for Win32",
     ),
     'bcpp': ('bcppcompiler', 'BCPPCompiler', "Borland C++ Compiler"),
+    'zos': ('zosccompiler', 'zOSCCompiler', 'IBM XL C/C++ Compilers'),
 }
 
 

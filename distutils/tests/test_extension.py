@@ -1,4 +1,5 @@
 """Tests for distutils.extension."""
+
 import os
 import warnings
 

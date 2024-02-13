@@ -1,4 +1,5 @@
 """Tests for distutils.msvc9compiler."""
+
 import sys
 import os
 

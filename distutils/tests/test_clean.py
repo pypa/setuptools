@@ -1,4 +1,5 @@
 """Tests for distutils.command.clean."""
+
 import os
 
 from distutils.command.clean import clean

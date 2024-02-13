@@ -2,6 +2,7 @@
 
 Implements the Distutils 'check' command.
 """
+
 import contextlib
 
 from ..core import Command
@@ -144,8 +145,11 @@ class check(Command):
         try:
             parser.parse(data, document)
         except AttributeError as e:
-            reporter.messages.append(
-                (-1, 'Could not finish the parsing: %s.' % e, '', {})
-            )
+            reporter.messages.append((
+                -1,
+                'Could not finish the parsing: %s.' % e,
+                '',
+                {},
+            ))
 
         return reporter.messages

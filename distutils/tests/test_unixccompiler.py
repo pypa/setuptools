@@ -1,4 +1,5 @@
 """Tests for distutils.unixccompiler."""
+
 import os
 import sys
 import unittest.mock as mock

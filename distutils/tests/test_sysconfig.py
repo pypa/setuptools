@@ -1,4 +1,5 @@
 """Tests for distutils.sysconfig."""
+
 import contextlib
 import os
 import subprocess

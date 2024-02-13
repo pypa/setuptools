@@ -102,7 +102,7 @@ class Extension:
         depends=None,
         language=None,
         optional=None,
-        **kw  # To catch unknown keywords
+        **kw,  # To catch unknown keywords
     ):
         if not isinstance(name, str):
             raise AssertionError("'name' must be a string")

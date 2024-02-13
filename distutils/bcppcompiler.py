@@ -11,7 +11,6 @@ for the Borland C++ compiler.
 # someone should sit down and factor out the common code as
 # WindowsCCompiler!  --GPW
 
-
 import os
 import warnings
 
@@ -24,7 +23,7 @@ from .errors import (
 )
 from .ccompiler import CCompiler, gen_preprocess_options
 from .file_util import write_file
-from .dep_util import newer
+from ._modified import newer
 from ._log import log
 
 

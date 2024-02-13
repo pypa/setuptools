@@ -58,16 +58,14 @@ class TestBuildRpm(
         self.write_file((pkg_dir, 'MANIFEST.in'), 'include foo.py')
         self.write_file((pkg_dir, 'README'), '')
 
-        dist = Distribution(
-            {
-                'name': 'foo',
-                'version': '0.1',
-                'py_modules': ['foo'],
-                'url': 'xxx',
-                'author': 'xxx',
-                'author_email': 'xxx',
-            }
-        )
+        dist = Distribution({
+            'name': 'foo',
+            'version': '0.1',
+            'py_modules': ['foo'],
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'xxx',
+        })
         dist.script_name = 'setup.py'
         os.chdir(pkg_dir)
 
@@ -89,7 +87,7 @@ class TestBuildRpm(
 
     @mac_woes
     @requires_zlib()
-    # http://bugs.python.org/issue1533164
+    # https://bugs.python.org/issue1533164
     @pytest.mark.skipif("not find_executable('rpm')")
     @pytest.mark.skipif("not find_executable('rpmbuild')")
     def test_no_optimize_flag(self):
@@ -103,16 +101,14 @@ class TestBuildRpm(
         self.write_file((pkg_dir, 'MANIFEST.in'), 'include foo.py')
         self.write_file((pkg_dir, 'README'), '')
 
-        dist = Distribution(
-            {
-                'name': 'foo',
-                'version': '0.1',
-                'py_modules': ['foo'],
-                'url': 'xxx',
-                'author': 'xxx',
-                'author_email': 'xxx',
-            }
-        )
+        dist = Distribution({
+            'name': 'foo',
+            'version': '0.1',
+            'py_modules': ['foo'],
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'xxx',
+        })
         dist.script_name = 'setup.py'
         os.chdir(pkg_dir)
 

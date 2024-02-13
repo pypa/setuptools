@@ -1,4 +1,5 @@
 """Tests for distutils.command.install_headers."""
+
 import os
 
 import pytest

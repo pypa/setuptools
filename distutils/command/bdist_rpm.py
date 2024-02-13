@@ -401,9 +401,11 @@ class bdist_rpm(Command):
                     if os.path.exists(rpm):
                         self.move_file(rpm, self.dist_dir)
                         filename = os.path.join(self.dist_dir, os.path.basename(rpm))
-                        self.distribution.dist_files.append(
-                            ('bdist_rpm', pyversion, filename)
-                        )
+                        self.distribution.dist_files.append((
+                            'bdist_rpm',
+                            pyversion,
+                            filename,
+                        ))
 
     def _dist_path(self, path):
         return os.path.join(self.dist_dir, os.path.basename(path))
@@ -428,14 +430,14 @@ class bdist_rpm(Command):
         # Generate a potential replacement value for __os_install_post (whilst
         # normalizing the whitespace to simplify the test for whether the
         # invocation of brp-python-bytecompile passes in __python):
-        vendor_hook = '\n'.join(
-            ['  %s \\' % line.strip() for line in vendor_hook.splitlines()]
-        )
+        vendor_hook = '\n'.join([
+            '  %s \\' % line.strip() for line in vendor_hook.splitlines()
+        ])
         problem = "brp-python-bytecompile \\\n"
         fixed = "brp-python-bytecompile %{__python} \\\n"
         fixed_hook = vendor_hook.replace(problem, fixed)
         if fixed_hook != vendor_hook:
-            spec_file.append('# Workaround for http://bugs.python.org/issue14443')
+            spec_file.append('# Workaround for https://bugs.python.org/issue14443')
             spec_file.append('%define __os_install_post ' + fixed_hook + '\n')
 
         # put locale summaries into spec file
@@ -445,13 +447,11 @@ class bdist_rpm(Command):
         #    spec_file.append('Summary(%s): %s' % (locale,
         #                                          self.summaries[locale]))
 
-        spec_file.extend(
-            [
-                'Name: %{name}',
-                'Version: %{version}',
-                'Release: %{release}',
-            ]
-        )
+        spec_file.extend([
+            'Name: %{name}',
+            'Version: %{version}',
+            'Release: %{release}',
+        ])
 
         # XXX yuck! this filename is available from the "sdist" command,
         # but only after it has run: and we create the spec file before
@@ -461,14 +461,12 @@ class bdist_rpm(Command):
         else:
             spec_file.append('Source0: %{name}-%{unmangled_version}.tar.gz')
 
-        spec_file.extend(
-            [
-                'License: ' + (self.distribution.get_license() or "UNKNOWN"),
-                'Group: ' + self.group,
-                'BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot',
-                'Prefix: %{_prefix}',
-            ]
-        )
+        spec_file.extend([
+            'License: ' + (self.distribution.get_license() or "UNKNOWN"),
+            'Group: ' + self.group,
+            'BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot',
+            'Prefix: %{_prefix}',
+        ])
 
         if not self.force_arch:
             # noarch if no extension modules
@@ -506,13 +504,11 @@ class bdist_rpm(Command):
         if self.no_autoreq:
             spec_file.append('AutoReq: 0')
 
-        spec_file.extend(
-            [
-                '',
-                '%description',
-                self.distribution.get_long_description() or "",
-            ]
-        )
+        spec_file.extend([
+            '',
+            '%description',
+            self.distribution.get_long_description() or "",
+        ])
 
         # put locale descriptions into spec file
         # XXX again, suppressed because config file syntax doesn't
@@ -558,12 +554,10 @@ class bdist_rpm(Command):
             # use 'default' as contents of script
             val = getattr(self, attr)
             if val or default:
-                spec_file.extend(
-                    [
-                        '',
-                        '%' + rpm_opt,
-                    ]
-                )
+                spec_file.extend([
+                    '',
+                    '%' + rpm_opt,
+                ])
                 if val:
                     with open(val) as f:
                         spec_file.extend(f.read().split('\n'))
@@ -571,24 +565,20 @@ class bdist_rpm(Command):
                     spec_file.append(default)
 
         # files section
-        spec_file.extend(
-            [
-                '',
-                '%files -f INSTALLED_FILES',
-                '%defattr(-,root,root)',
-            ]
-        )
+        spec_file.extend([
+            '',
+            '%files -f INSTALLED_FILES',
+            '%defattr(-,root,root)',
+        ])
 
         if self.doc_files:
             spec_file.append('%doc ' + ' '.join(self.doc_files))
 
         if self.changelog:
-            spec_file.extend(
-                [
-                    '',
-                    '%changelog',
-                ]
-            )
+            spec_file.extend([
+                '',
+                '%changelog',
+            ])
             spec_file.extend(self.changelog)
 
         return spec_file
