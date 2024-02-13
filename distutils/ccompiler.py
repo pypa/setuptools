@@ -21,6 +21,7 @@ from .dir_util import mkpath
 from ._modified import newer_group
 from .util import split_quoted, execute
 from ._log import log
+from ._itertools import always_iterable
 
 
 class CCompiler:
@@ -1233,11 +1234,7 @@ def gen_lib_options(compiler, library_dirs, runtime_library_dirs, libraries):
         lib_opts.append(compiler.library_dir_option(dir))
 
     for dir in runtime_library_dirs:
-        opt = compiler.runtime_library_dir_option(dir)
-        if isinstance(opt, list):
-            lib_opts = lib_opts + opt
-        else:
-            lib_opts.append(opt)
+        lib_opts.extend(always_iterable(compiler.runtime_library_dir_option(dir)))
 
     # XXX it's important that we *not* remove redundant library mentions!
     # sometimes you really do have to say "-lfoo -lbar -lfoo" in order to
