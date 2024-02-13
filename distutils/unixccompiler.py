@@ -316,7 +316,7 @@ class UnixCCompiler(CCompiler):
             return [
                 # Force RUNPATH instead of RPATH
                 "-Wl,--enable-new-dtags",
-                "-Wl,-rpath," + dir
+                "-Wl,-rpath," + dir,
             ]
         else:
             return "-Wl,-R" + dir

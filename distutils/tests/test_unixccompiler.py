@@ -189,7 +189,7 @@ class TestUnixCCompiler(support.TempdirManager):
         sysconfig.get_config_var = gcv
         assert self.cc.rpath_foo() == [
             '-Wl,--enable-new-dtags',
-            '-Wl,-rpath,/foo'
+            '-Wl,-rpath,/foo',
         ]
 
         # non-GCC GNULD
