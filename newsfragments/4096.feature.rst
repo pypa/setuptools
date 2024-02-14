@@ -1,1 +1,0 @@
-Updated and removed obsolete Python < 3.8 code and comments. -- by :user:`Avasam`
