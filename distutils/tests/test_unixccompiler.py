@@ -260,9 +260,13 @@ class TestUnixCCompiler(support.TempdirManager):
         def gcv(v):
             if v == 'LDSHARED':
                 return 'gcc-4.2 -bundle -undefined dynamic_lookup '
+            elif v == 'LDCXXSHARED':
+                return 'g++-4.2 -bundle -undefined dynamic_lookup '
             elif v == 'CXX':
                 return 'g++-4.2'
-            return 'gcc-4.2'
+            elif v == 'CC':
+                return 'gcc-4.2'
+            return ''
 
         def gcvs(*args, _orig=sysconfig.get_config_vars):
             if args:

@@ -339,7 +339,7 @@ def customize_compiler(compiler):  # noqa: C901
             ldshared = ldshared + ' ' + os.environ['LDFLAGS']
             ldcxxshared = ldcxxshared + ' ' + os.environ['LDFLAGS']
         if 'CFLAGS' in os.environ:
-            cflags = os.environ['CFLAGS']
+            cflags = cflags + ' ' + os.environ['CFLAGS']
             ldshared = ldshared + ' ' + os.environ['CFLAGS']
         if 'CXXFLAGS' in os.environ:
             cxxflags = os.environ['CXXFLAGS']
