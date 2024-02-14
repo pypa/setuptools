@@ -132,7 +132,10 @@ class TestSysconfig:
         assert comp.exes['compiler_so'] == (
             'env_cc --sc-cflags ' '--env-cflags ' '--env-cppflags --sc-ccshared'
         )
-        assert comp.exes['compiler_cxx'] == 'env_cxx --env-cxx-flags --sc-cflags --env-cppflags'
+        assert (
+            comp.exes['compiler_cxx']
+            == 'env_cxx --env-cxx-flags --sc-cflags --env-cppflags'
+        )
         assert comp.exes['linker_exe'] == 'env_cc'
         assert comp.exes['linker_so'] == (
             'env_ldshared --env-ldflags --env-cflags' ' --env-cppflags'
