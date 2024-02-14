@@ -1,1 +1,0 @@
-Updated "Quickstart" to describe the current status of ``setup.cfg`` and ``pyproject.toml`` -- by :user:`VladimirFokow`
