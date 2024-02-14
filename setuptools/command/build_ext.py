@@ -382,7 +382,10 @@ class build_ext(_build_ext):
         optimize = self.get_finalized_command('install_lib').optimize  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
         if optimize > 0:
             byte_compile(
-                [stub_file], optimize=optimize, force=True, dry_run=self.dry_run  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
+                [stub_file],
+                optimize=optimize,
+                force=True,
+                dry_run=self.dry_run,  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
             )
         if os.path.exists(stub_file) and not self.dry_run:  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
             os.unlink(stub_file)
