@@ -133,7 +133,7 @@ class build_ext(_build_ext):
             return
 
         build_py = self.get_finalized_command('build_py')
-        opt = self.get_finalized_command('install_lib').optimize or ""  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
+        opt = self.get_finalized_command('install_lib').optimize or ""
 
         for ext in self.extensions:
             inplace_file, regular_file = self._get_inplace_equivalent(build_py, ext)
@@ -344,7 +344,7 @@ class build_ext(_build_ext):
         log.info("writing stub loader for %s to %s", ext._full_name, stub_file)
         if compile and os.path.exists(stub_file):
             raise BaseError(stub_file + " already exists! Please delete.")
-        if not self.dry_run:  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
+        if not self.dry_run:
             f = open(stub_file, 'w')
             f.write(
                 '\n'.join([
@@ -379,16 +379,16 @@ class build_ext(_build_ext):
     def _compile_and_remove_stub(self, stub_file: str):
         from distutils.util import byte_compile
 
-        byte_compile([stub_file], optimize=0, force=True, dry_run=self.dry_run)  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
-        optimize = self.get_finalized_command('install_lib').optimize  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
+        byte_compile([stub_file], optimize=0, force=True, dry_run=self.dry_run)
+        optimize = self.get_finalized_command('install_lib').optimize
         if optimize > 0:
             byte_compile(
                 [stub_file],
                 optimize=optimize,
                 force=True,
-                dry_run=self.dry_run,  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
+                dry_run=self.dry_run,
             )
-        if os.path.exists(stub_file) and not self.dry_run:  # type: ignore[attr-defined] # TODO: Fix in distutils stubs
+        if os.path.exists(stub_file) and not self.dry_run:
             os.unlink(stub_file)
 
 

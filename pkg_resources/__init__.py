@@ -71,8 +71,8 @@ from pkg_resources.extern.jaraco.text import (
     join_continuation,
 )
 
-from pkg_resources.extern import platformdirs  # type: ignore[attr-defined]
-from pkg_resources.extern import packaging  # type: ignore[attr-defined]
+from pkg_resources.extern import platformdirs
+from pkg_resources.extern import packaging
 
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')

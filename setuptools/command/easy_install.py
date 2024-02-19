@@ -80,6 +80,7 @@ from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
 
 if TYPE_CHECKING:
+    # Same as _typeshed.FileDescriptorOrPath
     _FileDescriptorOrPath = Union[int, str, bytes, os.PathLike[str], os.PathLike[bytes]]
 
 

@@ -295,7 +295,7 @@ class Distribution(_Distribution):  # type: ignore[valid-type, misc]  # https://
         self.dependency_links = attrs.pop('dependency_links', [])
         self.setup_requires = attrs.pop('setup_requires', [])
         for ep in metadata.entry_points(group='distutils.setup_keywords'):
-            vars(self).setdefault(ep.name, None)  # type: ignore[attr-defined]  # https://github.com/python/mypy/issues/14458
+            vars(self).setdefault(ep.name, None)
 
         metadata_only = set(self._DISTUTILS_UNSUPPORTED_METADATA)
         metadata_only -= {"install_requires", "extras_require"}

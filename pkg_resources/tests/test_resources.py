@@ -5,7 +5,7 @@ import platform
 import itertools
 
 import pytest
-from pkg_resources.extern import packaging  # type: ignore[attr-defined]
+from pkg_resources.extern import packaging
 
 import pkg_resources
 from pkg_resources import (

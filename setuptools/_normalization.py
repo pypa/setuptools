@@ -5,7 +5,7 @@ and core metadata
 
 import re
 
-from .extern import packaging  # type: ignore[attr-defined]
+from .extern import packaging
 
 
 # https://packaging.python.org/en/latest/specifications/core-metadata/#name
