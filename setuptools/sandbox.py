@@ -266,6 +266,8 @@ def run_setup(setup_script, args):
 class AbstractSandbox:
     """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""
 
+    # Note: Calling __func__ on staticmethod for backwards compatibility with Python 3.9
+
     _active = False
 
     def __init__(self):
@@ -298,6 +300,7 @@ class AbstractSandbox:
         with self:
             return func()
 
+    @staticmethod
     def _mk_dual_path_wrapper(name):
         original = getattr(_os, name)
 
@@ -310,8 +313,9 @@ class AbstractSandbox:
 
     for name in ["rename", "link", "symlink"]:
         if hasattr(_os, name):
-            locals()[name] = _mk_dual_path_wrapper(name)
+            locals()[name] = _mk_dual_path_wrapper.__func__(name)
 
+    @staticmethod
     def _mk_single_path_wrapper(name, original=None):
         original = original or getattr(_os, name)
 
@@ -323,8 +327,8 @@ class AbstractSandbox:
         return wrap
 
     if _file:
-        _file = _mk_single_path_wrapper('file', _file)
-    _open = _mk_single_path_wrapper('open', _open)
+        _file = _mk_single_path_wrapper.__func__('file', _file)
+    _open = _mk_single_path_wrapper.__func__('open', _open)
     for name in [
         "stat",
         "listdir",
@@ -347,8 +351,9 @@ class AbstractSandbox:
         "access",
     ]:
         if hasattr(_os, name):
-            locals()[name] = _mk_single_path_wrapper(name)
+            locals()[name] = _mk_single_path_wrapper.__func__(name)
 
+    @staticmethod
     def _mk_single_with_return(name):
         original = getattr(_os, name)
 
@@ -362,8 +367,9 @@ class AbstractSandbox:
 
     for name in ['readlink', 'tempnam']:
         if hasattr(_os, name):
-            locals()[name] = _mk_single_with_return(name)
+            locals()[name] = _mk_single_with_return.__func__(name)
 
+    @staticmethod
     def _mk_query(name):
         original = getattr(_os, name)
 
@@ -377,7 +383,7 @@ class AbstractSandbox:
 
     for name in ['getcwd', 'tmpnam']:
         if hasattr(_os, name):
-            locals()[name] = _mk_query(name)
+            locals()[name] = _mk_query.__func__(name)
 
     def _validate_path(self, path):
         """Called to remap or validate any path, whether input or output"""
