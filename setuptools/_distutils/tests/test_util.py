@@ -33,7 +33,7 @@ def environment(monkeypatch):
     monkeypatch.setattr(os.path, 'join', os.path.join)
     monkeypatch.setattr(os.path, 'isabs', os.path.isabs)
     monkeypatch.setattr(os.path, 'splitdrive', os.path.splitdrive)
-    monkeypatch.setattr(sysconfig, '_config_vars', copy(sysconfig._config_vars))
+    monkeypatch.setattr(sysconfig, 'get_config_vars', sysconfig.get_config_vars)
 
 
 @pytest.mark.usefixtures('save_env')

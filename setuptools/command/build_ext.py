@@ -8,7 +8,7 @@ from pathlib import Path
 
 from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.ccompiler import new_compiler
-from distutils.sysconfig import customize_compiler, get_config_var
+from distutils.sysconfig import customize_compiler, get_config_var, get_config_vars
 from distutils import log
 
 from setuptools.errors import BaseError
@@ -26,7 +26,8 @@ except ImportError:
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")
-from distutils.sysconfig import _config_vars as _CONFIG_VARS  # noqa
+
+_CONFIG_VARS = get_config_vars()
 
 
 def _customize_compiler_for_shlib(compiler):
