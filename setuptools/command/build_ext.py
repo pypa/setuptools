@@ -14,7 +14,6 @@ from setuptools.errors import BaseError
 from setuptools.extension import Extension, Library
 
 if TYPE_CHECKING:
-    from setuptools.dist import Distribution
     from distutils.command.build_ext import build_ext as _build_ext
 else:
     try:
@@ -85,8 +84,6 @@ def get_abi3_suffix():
 class build_ext(_build_ext):
     editable_mode: bool = False
     inplace: bool = False
-    # override distutils.dist.Distribution with setuptools'
-    distribution: "Distribution"
 
     def run(self):
         """Build extensions in build directory, then copy if --inplace"""
