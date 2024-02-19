@@ -24,9 +24,6 @@ try:
 except ImportError:
     _build_ext = _du_build_ext
 
-# make sure _config_vars is initialized
-get_config_var("LDSHARED")
-
 _CONFIG_VARS = get_config_vars()
 
 
