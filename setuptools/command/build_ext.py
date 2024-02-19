@@ -85,6 +85,7 @@ def get_abi3_suffix():
 class build_ext(_build_ext):
     editable_mode: bool = False
     inplace: bool = False
+    # override distutils.dist.Distribution with setuptools'
     distribution: "Distribution"
 
     def run(self):
