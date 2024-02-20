@@ -1,0 +1,1 @@
+Fixed distutils ``ModuleNotFoundError`` for ``setup.py bdist_wheel`` on Python 3.12 -- by :user:`christian-krieg`
