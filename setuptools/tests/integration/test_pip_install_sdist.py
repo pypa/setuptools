@@ -30,7 +30,7 @@ from .helpers import Archive, run
 pytestmark = pytest.mark.integration
 
 
-(LATEST,) = Enum("v", "LATEST")  # type: ignore[misc] # https://github.com/python/mypy/issues/8009#issuecomment-558335186
+(LATEST,) = Enum("v", "LATEST")  # type: ignore[misc] # https://github.com/python/mypy/issues/16936
 """Default version to be checked"""
 # There are positive and negative aspects of checking the latest version of the
 # packages.
