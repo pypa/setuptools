@@ -79,7 +79,7 @@ class TestEggInfo:
     @staticmethod
     def _extract_mv_version(pkg_info_lines: List[str]) -> Tuple[int, int]:
         version_str = pkg_info_lines[0].split(' ')[1]
-        major, minor, *_ = map(int, version_str.split('.'))
+        major, minor = map(int, version_str.split('.')[:2])
         return major, minor
 
     def test_egg_info_save_version_info_setup_empty(self, tmpdir_cwd, env):

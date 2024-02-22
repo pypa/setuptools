@@ -10,7 +10,7 @@ import sys
 from contextlib import suppress
 from glob import iglob
 from pathlib import Path
-from typing import Dict, List, MutableMapping, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Dict, List, MutableMapping, Optional, Set, Tuple
 
 import distutils.cmd
 import distutils.command
@@ -202,10 +202,14 @@ def check_packages(dist, attr, value):
             )
 
 
-_Distribution = get_unpatched(distutils.core.Distribution)
+if TYPE_CHECKING:
+    # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
+    _Distribution = distutils.core.Distribution
+else:
+    _Distribution = get_unpatched(distutils.core.Distribution)
 
 
-class Distribution(_Distribution):  # type: ignore[valid-type, misc]  # https://github.com/python/mypy/issues/14458
+class Distribution(_Distribution):
     """Distribution with support for tests and package data
 
     This is an enhanced version of 'distutils.dist.Distribution' that

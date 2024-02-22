@@ -25,7 +25,7 @@ from distutils.spawn import find_executable
 from distutils.command import install
 import sys
 import os
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Union
 import zipimport
 import shutil
 import tempfile
@@ -43,7 +43,6 @@ import shlex
 import io
 import configparser
 import sysconfig
-
 
 from sysconfig import get_path
 
@@ -2020,13 +2019,7 @@ try:
     from os import chmod as _chmod
 except ImportError:
     # Jython compatibility
-    def _chmod(
-        path: "_FileDescriptorOrPath",
-        mode: int,
-        *,
-        dir_fd: Optional[int] = None,
-        follow_symlinks: bool = True,
-    ) -> None:
+    def _chmod(*args: object, **kwargs: object) -> None:  # type: ignore[misc] # Mypy re-uses the imported definition anyway
         pass
 
 

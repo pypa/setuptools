@@ -3,9 +3,10 @@ import sys
 import itertools
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
-from typing import TYPE_CHECKING, Dict, Iterator, List, Tuple
+from typing import Dict, Iterator, List, Tuple
 from pathlib import Path
 
+from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
 from distutils import log
@@ -13,22 +14,19 @@ from distutils import log
 from setuptools.errors import BaseError
 from setuptools.extension import Extension, Library
 
-if TYPE_CHECKING:
-    from distutils.command.build_ext import build_ext as _build_ext
-else:
-    try:
-        # Attempt to use Cython for building extensions, if available
-        from Cython.Distutils.build_ext import build_ext as _build_ext
+try:
+    # Attempt to use Cython for building extensions, if available
+    from Cython.Distutils.build_ext import build_ext as _build_ext
 
-        # Additionally, assert that the compiler module will load
-        # also. Ref #1229.
-        __import__('Cython.Compiler.Main')
-    except ImportError:
-        from distutils.command.build_ext import build_ext as _build_ext
+    # Additionally, assert that the compiler module will load
+    # also. Ref #1229.
+    __import__('Cython.Compiler.Main')
+except ImportError:
+    _build_ext = _du_build_ext
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")
-from distutils.sysconfig import _config_vars as _CONFIG_VARS  # type: ignore # noqa # Not publicly exposed in distutils stubs
+from distutils.sysconfig import _config_vars as _CONFIG_VARS  # type: ignore # noqa # Not publicly exposed in typeshed distutils stubs
 
 
 def _customize_compiler_for_shlib(compiler):
@@ -60,7 +58,7 @@ if sys.platform == "darwin":
     use_stubs = True
 elif os.name != 'nt':
     try:
-        import dl
+        import dl  # type: ignore[import-not-found] # https://github.com/python/mypy/issues/13002
 
         use_stubs = have_rtld = hasattr(dl, 'RTLD_NOW')
     except ImportError:

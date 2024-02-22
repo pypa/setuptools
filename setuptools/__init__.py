@@ -3,6 +3,7 @@
 import functools
 import os
 import re
+from typing import TYPE_CHECKING
 
 import _distutils_hack.override  # noqa: F401
 import distutils.core
@@ -105,11 +106,14 @@ def setup(**attrs):
 
 setup.__doc__ = distutils.core.setup.__doc__
 
+if TYPE_CHECKING:
+    # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
+    _Command = distutils.core.Command
+else:
+    _Command = monkey.get_unpatched(distutils.core.Command)
 
-_Command = monkey.get_unpatched(distutils.core.Command)
 
-
-class Command(_Command):  # type: ignore[valid-type, misc]  # https://github.com/python/mypy/issues/14458
+class Command(_Command):
     """
     Setuptools internal actions are organized using a *command design pattern*.
     This means that each action (or group of closely related actions) executed during
@@ -165,8 +169,9 @@ class Command(_Command):  # type: ignore[valid-type, misc]  # https://github.com
     """
 
     command_consumes_arguments = False
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def __init__(self, dist, **kw):
+    def __init__(self, dist: Distribution, **kw):
         """
         Construct the command for dist, updating
         vars(self) with any keyword parameters.
