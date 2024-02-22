@@ -247,7 +247,8 @@ class editable_wheel(Command):
     def _set_editable_mode(self):
         """Set the ``editable_mode`` flag in the build sub-commands"""
         dist = self.distribution
-        build = cast(build_cls, dist.get_command_obj("build"))
+        build = dist.get_command_obj("build")
+        # TODO: Update typeshed distutils stubs to overload non-None return type by default
         for cmd_name in build.get_sub_commands():
             cmd = dist.get_command_obj(cmd_name)
             if hasattr(cmd, "editable_mode"):
