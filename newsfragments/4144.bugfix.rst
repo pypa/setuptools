@@ -1,1 +1,0 @@
-Explicitely marked as ``Protocol`` and fixed missing ``self`` argument in interfaces ``pkg_resources.IMetadataProvider`` and ``pkg_resources.IResourceProvider`` -- by :user:`Avasam`
