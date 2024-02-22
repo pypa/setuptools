@@ -173,7 +173,7 @@ def _is_compatible(name: str, arch: str, version: _GLibCVersion) -> bool:
         return False
     # Check for presence of _manylinux module.
     try:
-        import _manylinux
+        import _manylinux  # noqa
     except ImportError:
         return True
     if hasattr(_manylinux, "manylinux_compatible"):
