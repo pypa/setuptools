@@ -25,7 +25,7 @@ from distutils.spawn import find_executable
 from distutils.command import install
 import sys
 import os
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import Dict, List
 import zipimport
 import shutil
 import tempfile
@@ -77,10 +77,6 @@ import pkg_resources
 from ..compat import py311
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
-
-if TYPE_CHECKING:
-    # Same as _typeshed.FileDescriptorOrPath
-    _FileDescriptorOrPath = Union[int, str, bytes, os.PathLike[str], os.PathLike[bytes]]
 
 
 # Turn on PEP440Warnings
