@@ -58,6 +58,12 @@ body:
   attributes:
     label: Python version
     placeholder: For example, Python 3.10
+    description: >-
+      Please ensure you are using a [supported version of Python](https://devguide.python.org/versions/#supported-versions).
+      
+      Setuptools does not support versions that have reached [`end-of-life`](https://devguide.python.org/versions/#unsupported-versions).
+      
+      Support for versions of Python under development (i.e. without a stable release) is experimental.
   validations:
     required: true
 - type: input
