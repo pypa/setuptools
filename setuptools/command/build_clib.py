@@ -3,7 +3,7 @@ from distutils.errors import DistutilsSetupError
 from distutils import log
 
 # Using vendored version directly because distutils._modified doesn't exist in stdlib
-from .._distutils._modified import newer_pairwise_group
+from setuptools.modified import newer_pairwise_group
 
 
 class build_clib(orig.build_clib):
