@@ -26,7 +26,9 @@ except ImportError:
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")
-from distutils.sysconfig import _config_vars as _CONFIG_VARS  # type: ignore # noqa # Not publicly exposed in typeshed distutils stubs
+# Not publicly exposed in typeshed distutils stubs, but this is done on purpose
+# See https://github.com/pypa/setuptools/pull/4228#issuecomment-1959856400
+from distutils.sysconfig import _config_vars as _CONFIG_VARS  # type: ignore # noqa
 
 
 def _customize_compiler_for_shlib(compiler):

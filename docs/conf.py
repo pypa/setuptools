@@ -168,16 +168,17 @@ nitpick_ignore = [
     ('py:attr', 'CCompiler.language_map'),  # undocumented
     ('py:attr', 'CCompiler.language_order'),  # undocumented
     ('py:class', 'distutils.dist.Distribution'),  # undocumented
+    ('py:class', 'distutils.dist.DistributionMetadata'),  # undocumented
     ('py:class', 'distutils.extension.Extension'),  # undocumented
     ('py:class', 'BorlandCCompiler'),  # undocumented
     ('py:class', 'CCompiler'),  # undocumented
     ('py:class', 'CygwinCCompiler'),  # undocumented
-    ('py:class', 'distutils.dist.DistributionMetadata'),  # undocumented
     ('py:class', 'FileList'),  # undocumented
     ('py:class', 'IShellLink'),  # ref to MS docs
     ('py:class', 'MSVCCompiler'),  # undocumented
     ('py:class', 'OptionDummy'),  # undocumented
     ('py:class', 'UnixCCompiler'),  # undocumented
+    ('py:class', 'setuptools.dist.Distribution'),  # undocumented
     ('py:exc', 'CompileError'),  # undocumented
     ('py:exc', 'DistutilsExecError'),  # undocumented
     ('py:exc', 'DistutilsFileError'),  # undocumented
