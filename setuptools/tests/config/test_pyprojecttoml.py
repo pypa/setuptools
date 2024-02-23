@@ -18,6 +18,7 @@ from setuptools.errors import OptionError
 
 import setuptools  # noqa -- force distutils.core to be patched
 import distutils.core
+import locale
 
 EXAMPLE = """
 [project]
@@ -174,7 +175,11 @@ class TestEntryPoints:
     def write_entry_points(self, tmp_path):
         entry_points = ConfigParser()
         entry_points.read_dict(ENTRY_POINTS)
-        with open(tmp_path / "entry-points.txt", "w") as f:
+        with open(
+            tmp_path / "entry-points.txt",
+            "w",
+            encoding=locale.getpreferredencoding(False),
+        ) as f:
             entry_points.write(f)
 
     def pyproject(self, dynamic=None):

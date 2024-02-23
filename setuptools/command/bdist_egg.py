@@ -16,6 +16,7 @@ from setuptools import Command
 from .._path import ensure_directory
 
 from sysconfig import get_path, get_python_version
+import locale
 
 
 def _get_purelib():
@@ -54,7 +55,7 @@ def write_stub(resource, pyfile):
         __bootstrap__()
         """
     ).lstrip()
-    with open(pyfile, 'w') as f:
+    with open(pyfile, 'w', encoding=locale.getpreferredencoding(False)) as f:
         f.write(_stub_template % resource)
 
 
@@ -200,7 +201,9 @@ class bdist_egg(Command):
             log.info("writing %s", native_libs)
             if not self.dry_run:
                 ensure_directory(native_libs)
-                libs_file = open(native_libs, 'wt')
+                libs_file = open(
+                    native_libs, 'wt', encoding=locale.getpreferredencoding(False)
+                )
                 libs_file.write('\n'.join(all_outputs))
                 libs_file.write('\n')
                 libs_file.close()
@@ -350,7 +353,7 @@ def write_safety_flag(egg_dir, safe):
             if safe is None or bool(safe) != flag:
                 os.unlink(fn)
         elif safe is not None and bool(safe) == flag:
-            f = open(fn, 'wt')
+            f = open(fn, 'wt', encoding=locale.getpreferredencoding(False))
             f.write('\n')
             f.close()
 

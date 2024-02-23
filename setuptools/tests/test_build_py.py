@@ -11,6 +11,7 @@ from setuptools import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution
 
 from .textwrap import DALS
+import locale
 
 
 def test_directories_in_package_data_glob(tmpdir_cwd):
@@ -49,7 +50,9 @@ def test_recursive_in_package_data_glob(tmpdir_cwd):
         )
     )
     os.makedirs('path/subpath/subsubpath')
-    open('path/subpath/subsubpath/data', 'w').close()
+    open(
+        'path/subpath/subsubpath/data', 'w', encoding=locale.getpreferredencoding(False)
+    ).close()
 
     dist.parse_command_line()
     dist.run_commands()
@@ -77,8 +80,8 @@ def test_read_only(tmpdir_cwd):
         )
     )
     os.makedirs('pkg')
-    open('pkg/__init__.py', 'w').close()
-    open('pkg/data.dat', 'w').close()
+    open('pkg/__init__.py', 'w', encoding=locale.getpreferredencoding(False)).close()
+    open('pkg/data.dat', 'w', encoding=locale.getpreferredencoding(False)).close()
     os.chmod('pkg/__init__.py', stat.S_IREAD)
     os.chmod('pkg/data.dat', stat.S_IREAD)
     dist.parse_command_line()
@@ -108,8 +111,8 @@ def test_executable_data(tmpdir_cwd):
         )
     )
     os.makedirs('pkg')
-    open('pkg/__init__.py', 'w').close()
-    open('pkg/run-me', 'w').close()
+    open('pkg/__init__.py', 'w', encoding=locale.getpreferredencoding(False)).close()
+    open('pkg/run-me', 'w', encoding=locale.getpreferredencoding(False)).close()
     os.chmod('pkg/run-me', 0o700)
 
     dist.parse_command_line()

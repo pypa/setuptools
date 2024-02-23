@@ -39,6 +39,7 @@ from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
 from setuptools.extern.more_itertools import unique_everseen
+import locale
 
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
@@ -419,7 +420,9 @@ class PackageIndex(Environment):
         list(itertools.starmap(self.scan_egg_link, egg_links))
 
     def scan_egg_link(self, path, entry):
-        with open(os.path.join(path, entry)) as raw_lines:
+        with open(
+            os.path.join(path, entry), encoding=locale.getpreferredencoding(False)
+        ) as raw_lines:
             # filter non-empty lines
             lines = list(filter(None, map(str.strip, raw_lines)))
 
@@ -714,7 +717,11 @@ class PackageIndex(Environment):
                     shutil.copy2(filename, dst)
                     filename = dst
 
-            with open(os.path.join(tmpdir, 'setup.py'), 'w') as file:
+            with open(
+                os.path.join(tmpdir, 'setup.py'),
+                'w',
+                encoding=locale.getpreferredencoding(False),
+            ) as file:
                 file.write(
                     "from setuptools import setup\n"
                     "setup(name=%r, version=%r, py_modules=[%r])\n"
@@ -1114,7 +1121,9 @@ def local_open(url):
         for f in os.listdir(filename):
             filepath = os.path.join(filename, f)
             if f == 'index.html':
-                with open(filepath, 'r') as fp:
+                with open(
+                    filepath, 'r', encoding=locale.getpreferredencoding(False)
+                ) as fp:
                     body = fp.read()
                 break
             elif os.path.isdir(filepath):

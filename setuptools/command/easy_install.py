@@ -77,6 +77,7 @@ import pkg_resources
 from ..compat import py311
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
+import locale
 
 
 # Turn on PEP440Warnings
@@ -491,7 +492,7 @@ class easy_install(Command):
             try:
                 if test_exists:
                     os.unlink(testfile)
-                open(testfile, 'w').close()
+                open(testfile, 'w', encoding=locale.getpreferredencoding(False)).close()
                 os.unlink(testfile)
             except OSError:
                 self.cant_write_to_target()
@@ -588,7 +589,7 @@ class easy_install(Command):
                 os.unlink(ok_file)
             dirname = os.path.dirname(ok_file)
             os.makedirs(dirname, exist_ok=True)
-            f = open(pth_file, 'w')
+            f = open(pth_file, 'w', encoding=locale.getpreferredencoding(False))
         except OSError:
             self.cant_write_to_target()
         else:
@@ -1016,7 +1017,7 @@ class easy_install(Command):
 
         # Write EGG-INFO/PKG-INFO
         if not os.path.exists(pkg_inf):
-            f = open(pkg_inf, 'w')
+            f = open(pkg_inf, 'w', encoding=locale.getpreferredencoding(False))
             f.write('Metadata-Version: 1.0\n')
             for k, v in cfg.items('metadata'):
                 if k != 'target_version':
@@ -1087,7 +1088,7 @@ class easy_install(Command):
             if locals()[name]:
                 txt = os.path.join(egg_tmp, 'EGG-INFO', name + '.txt')
                 if not os.path.exists(txt):
-                    f = open(txt, 'w')
+                    f = open(txt, 'w', encoding=locale.getpreferredencoding(False))
                     f.write('\n'.join(locals()[name]) + '\n')
                     f.close()
 
@@ -1277,7 +1278,7 @@ class easy_install(Command):
         filename = os.path.join(self.install_dir, 'setuptools.pth')
         if os.path.islink(filename):
             os.unlink(filename)
-        with open(filename, 'wt') as f:
+        with open(filename, 'wt', encoding=locale.getpreferredencoding(False)) as f:
             f.write(self.pth_file.make_relative(dist.location) + '\n')
 
     def unpack_progress(self, src, dst):
@@ -1503,7 +1504,9 @@ def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
                 continue
 
             # Read the .pth file
-            f = open(os.path.join(dirname, name))
+            f = open(
+                os.path.join(dirname, name), encoding=locale.getpreferredencoding(False)
+            )
             lines = list(yield_lines(f))
             f.close()
 
@@ -1619,7 +1622,7 @@ class PthDistributions(Environment):
         paths = []
         dirty = saw_import = False
         seen = dict.fromkeys(self.sitedirs)
-        f = open(self.filename, 'rt')
+        f = open(self.filename, 'rt', encoding=locale.getpreferredencoding(False))
         for line in f:
             path = line.rstrip()
             # still keep imports and empty/commented lines for formatting
@@ -1690,7 +1693,9 @@ class PthDistributions(Environment):
             data = '\n'.join(lines) + '\n'
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
-            with open(self.filename, 'wt') as f:
+            with open(
+                self.filename, 'wt', encoding=locale.getpreferredencoding(False)
+            ) as f:
                 f.write(data)
         elif os.path.exists(self.filename):
             log.debug("Deleting empty %s", self.filename)

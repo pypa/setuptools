@@ -7,6 +7,7 @@ import pytest
 
 import pkg_resources
 import setuptools.sandbox
+import locale
 
 
 class TestSandbox:
@@ -17,7 +18,7 @@ class TestSandbox:
     @staticmethod
     def _file_writer(path):
         def do_write():
-            with open(path, 'w') as f:
+            with open(path, 'w', encoding=locale.getpreferredencoding(False)) as f:
                 f.write('xxx')
 
         return do_write
@@ -114,7 +115,7 @@ class TestExceptionSaver:
 
         def write_file():
             "Trigger a SandboxViolation by writing outside the sandbox"
-            with open('/etc/foo', 'w'):
+            with open('/etc/foo', 'w', encoding=locale.getpreferredencoding(False)):
                 pass
 
         with pytest.raises(setuptools.sandbox.SandboxViolation) as caught:

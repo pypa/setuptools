@@ -1,6 +1,7 @@
 import os
 import sys
 import itertools
+import locale
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
 from typing import Dict, Iterator, List, Tuple
@@ -340,7 +341,7 @@ class build_ext(_build_ext):
         if compile and os.path.exists(stub_file):
             raise BaseError(stub_file + " already exists! Please delete.")
         if not self.dry_run:
-            f = open(stub_file, 'w')
+            f = open(stub_file, 'w', encoding=locale.getpreferredencoding(False))
             f.write(
                 '\n'.join([
                     "def __bootstrap__():",

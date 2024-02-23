@@ -18,6 +18,7 @@ from path import Path as _Path
 from .contexts import quiet
 from .integration.helpers import get_sdist_members, get_wheel_members, run
 from .textwrap import DALS
+import locale
 
 
 class TestFindParentPackage:
@@ -591,7 +592,9 @@ def _write_setupcfg(root, options):
             setupcfg["options"][key] = "\n" + str_value
         else:
             setupcfg["options"][key] = str(value)
-    with open(root / "setup.cfg", "w") as f:
+    with open(
+        root / "setup.cfg", "w", encoding=locale.getpreferredencoding(False)
+    ) as f:
         setupcfg.write(f)
     print("~~~~~ setup.cfg ~~~~~")
     print((root / "setup.cfg").read_text())

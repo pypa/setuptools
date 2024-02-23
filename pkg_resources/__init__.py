@@ -73,6 +73,7 @@ from pkg_resources.extern.jaraco.text import (
 
 from pkg_resources.extern import platformdirs
 from pkg_resources.extern import packaging
+import locale
 
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
@@ -1538,7 +1539,9 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            with open(script_filename) as fid:
+            with open(
+                script_filename, encoding=locale.getpreferredencoding(False)
+            ) as fid:
                 source = fid.read()
             code = compile(source, script_filename, 'exec')
             exec(code, namespace, namespace)
@@ -2189,7 +2192,7 @@ def non_empty_lines(path):
     """
     Yield non-empty lines from file at path
     """
-    with open(path) as f:
+    with open(path, encoding=locale.getpreferredencoding(False)) as f:
         for line in f:
             line = line.strip()
             if line:

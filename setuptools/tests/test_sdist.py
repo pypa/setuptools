@@ -27,6 +27,7 @@ from setuptools.tests import fail_on_ascii
 from .text import Filenames
 
 import jaraco.path
+import locale
 
 
 SETUP_ATTRS = {
@@ -386,7 +387,9 @@ class TestSdistTest:
         assert 'setup.py' not in manifest
 
     def test_setup_py_excluded(self):
-        with open("MANIFEST.in", "w") as manifest_file:
+        with open(
+            "MANIFEST.in", "w", encoding=locale.getpreferredencoding(False)
+        ) as manifest_file:
             manifest_file.write("exclude setup.py")
 
         dist = Distribution(SETUP_ATTRS)
@@ -441,7 +444,7 @@ class TestSdistTest:
         filename = os.path.join('sdist_test', 'smörbröd.py')
 
         # Must create the file or it will get stripped.
-        open(filename, 'w').close()
+        open(filename, 'w', encoding=locale.getpreferredencoding(False)).close()
 
         # Add UTF-8 filename and write manifest
         with quiet():
@@ -469,7 +472,7 @@ class TestSdistTest:
         filename = os.path.join(b'sdist_test', Filenames.utf_8)
 
         # Must touch the file or risk removal
-        open(filename, "w").close()
+        open(filename, "w", encoding=locale.getpreferredencoding(False)).close()
 
         # Add filename and write manifest
         with quiet():
@@ -546,7 +549,7 @@ class TestSdistTest:
         manifest.close()
 
         # The file must exist to be included in the filelist
-        open(filename, 'w').close()
+        open(filename, 'w', encoding=locale.getpreferredencoding(False)).close()
 
         # Re-read manifest
         cmd.filelist.files = []
@@ -577,7 +580,7 @@ class TestSdistTest:
         manifest.close()
 
         # The file must exist to be included in the filelist
-        open(filename, 'w').close()
+        open(filename, 'w', encoding=locale.getpreferredencoding(False)).close()
 
         # Re-read manifest
         cmd.filelist.files = []
@@ -598,7 +601,7 @@ class TestSdistTest:
         cmd.ensure_finalized()
 
         filename = os.path.join(b'sdist_test', Filenames.utf_8)
-        open(filename, 'w').close()
+        open(filename, 'w', encoding=locale.getpreferredencoding(False)).close()
 
         with quiet():
             cmd.run()
@@ -639,7 +642,7 @@ class TestSdistTest:
 
         # Latin-1 filename
         filename = os.path.join(b'sdist_test', Filenames.latin_1)
-        open(filename, 'w').close()
+        open(filename, 'w', encoding=locale.getpreferredencoding(False)).close()
         assert os.path.isfile(filename)
 
         with quiet():
@@ -736,7 +739,9 @@ class TestSdistTest:
         Check that pyproject.toml can excluded even if present
         """
         touch(source_dir / 'pyproject.toml')
-        with open('MANIFEST.in', 'w') as mts:
+        with open(
+            'MANIFEST.in', 'w', encoding=locale.getpreferredencoding(False)
+        ) as mts:
             print('exclude pyproject.toml', file=mts)
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'

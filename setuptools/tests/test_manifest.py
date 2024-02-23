@@ -16,6 +16,7 @@ from setuptools.dist import Distribution
 from setuptools.tests.textwrap import DALS
 
 import pytest
+import locale
 
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
@@ -53,7 +54,7 @@ def quiet():
 
 
 def touch(filename):
-    open(filename, 'w').close()
+    open(filename, 'w', encoding=locale.getpreferredencoding(False)).close()
 
 
 # The set of files always in the manifest, including all files in the
@@ -173,7 +174,11 @@ class TestManifestTest(TempDirTestCase):
     def setup_method(self, method):
         super().setup_method(method)
 
-        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
+        f = open(
+            os.path.join(self.temp_dir, 'setup.py'),
+            'w',
+            encoding=locale.getpreferredencoding(False),
+        )
         f.write(SETUP_PY)
         f.close()
         """
@@ -211,7 +216,11 @@ class TestManifestTest(TempDirTestCase):
 
     def make_manifest(self, contents):
         """Write a MANIFEST.in."""
-        with open(os.path.join(self.temp_dir, 'MANIFEST.in'), 'w') as f:
+        with open(
+            os.path.join(self.temp_dir, 'MANIFEST.in'),
+            'w',
+            encoding=locale.getpreferredencoding(False),
+        ) as f:
             f.write(DALS(contents))
 
     def get_files(self):
@@ -368,7 +377,7 @@ class TestFileListTest(TempDirTestCase):
             file = os.path.join(self.temp_dir, file)
             dirname, basename = os.path.split(file)
             os.makedirs(dirname, exist_ok=True)
-            open(file, 'w').close()
+            open(file, 'w', encoding=locale.getpreferredencoding(False)).close()
 
     def test_process_template_line(self):
         # testing  all MANIFEST.in template patterns
