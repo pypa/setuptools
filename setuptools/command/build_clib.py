@@ -2,11 +2,8 @@ import distutils.command.build_clib as orig
 from distutils.errors import DistutilsSetupError
 from distutils import log
 
-try:
-    from distutils._modified import newer_pairwise_group
-except ImportError:
-    # fallback for SETUPTOOLS_USE_DISTUTILS=stdlib
-    from .._distutils._modified import newer_pairwise_group
+# Using vendored version directly because distutils._modified doesn't exist in stdlib
+from .._distutils._modified import newer_pairwise_group
 
 
 class build_clib(orig.build_clib):
