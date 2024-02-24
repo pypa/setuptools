@@ -98,11 +98,17 @@ def create_example(path, pkg_root):
         (path / file).parent.mkdir(exist_ok=True, parents=True)
         (path / file).touch()
 
-    pyproject.write_text(EXAMPLE)
-    (path / "README.md").write_text("hello world")
-    (path / f"{pkg_root}/pkg/mod.py").write_text("class CustomSdist: pass")
-    (path / f"{pkg_root}/pkg/__version__.py").write_text("VERSION = (3, 10)")
-    (path / f"{pkg_root}/pkg/__main__.py").write_text("def exec(): print('hello')")
+    pyproject.write_text(EXAMPLE, encoding=encoding_for_open)
+    (path / "README.md").write_text("hello world", encoding=encoding_for_open)
+    (path / f"{pkg_root}/pkg/mod.py").write_text(
+        "class CustomSdist: pass", encoding=encoding_for_open
+    )
+    (path / f"{pkg_root}/pkg/__version__.py").write_text(
+        "VERSION = (3, 10)", encoding=encoding_for_open
+    )
+    (path / f"{pkg_root}/pkg/__main__.py").write_text(
+        "def exec(): print('hello')", encoding=encoding_for_open
+    )
 
 
 def verify_example(config, path, pkg_root):
@@ -218,7 +224,9 @@ class TestClassifiers:
         Framework :: Flask
         Programming Language :: Haskell
         """
-        (tmp_path / "classifiers.txt").write_text(cleandoc(classifiers))
+        (tmp_path / "classifiers.txt").write_text(
+            cleandoc(classifiers), encoding=encoding_for_open
+        )
 
         pyproject = tmp_path / "pyproject.toml"
         config = read_configuration(pyproject, expand=False)
@@ -246,7 +254,7 @@ class TestClassifiers:
         """
 
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(cleandoc(config))
+        pyproject.write_text(cleandoc(config), encoding=encoding_for_open)
         with pytest.raises(OptionError, match="No configuration .* .classifiers."):
             read_configuration(pyproject)
 
@@ -258,7 +266,7 @@ class TestClassifiers:
         dynamic = ["readme"]
         """
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(cleandoc(config))
+        pyproject.write_text(cleandoc(config), encoding=encoding_for_open)
         dist = Distribution(attrs={"long_description": "42"})
         # No error should occur because of missing `readme`
         dist = apply_configuration(dist, pyproject)
@@ -276,7 +284,7 @@ class TestClassifiers:
         """
 
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(cleandoc(config))
+        pyproject.write_text(cleandoc(config), encoding=encoding_for_open)
         with pytest.warns(UserWarning, match="File .*classifiers.txt. cannot be found"):
             expanded = read_configuration(pyproject)
         assert "classifiers" not in expanded["project"]
@@ -297,7 +305,7 @@ class TestClassifiers:
 )
 def test_ignore_unrelated_config(tmp_path, example):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(cleandoc(example))
+    pyproject.write_text(cleandoc(example), encoding=encoding_for_open)
 
     # Make sure no error is raised due to 3rd party configs in pyproject.toml
     assert read_configuration(pyproject) is not None
@@ -319,7 +327,7 @@ def test_ignore_unrelated_config(tmp_path, example):
 )
 def test_invalid_example(tmp_path, example, error_msg):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(cleandoc(example))
+    pyproject.write_text(cleandoc(example), encoding=encoding_for_open)
 
     pattern = re.compile(f"invalid pyproject.toml.*{error_msg}.*", re.M | re.S)
     with pytest.raises(ValueError, match=pattern):
@@ -329,7 +337,7 @@ def test_invalid_example(tmp_path, example, error_msg):
 @pytest.mark.parametrize("config", ("", "[tool.something]\nvalue = 42"))
 def test_empty(tmp_path, config):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(config)
+    pyproject.write_text(config, encoding=encoding_for_open)
 
     # Make sure no error is raised
     assert read_configuration(pyproject) == {}
@@ -341,7 +349,7 @@ def test_include_package_data_by_default(tmp_path, config):
     default.
     """
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(config)
+    pyproject.write_text(config, encoding=encoding_for_open)
 
     config = read_configuration(pyproject)
     assert config["tool"]["setuptools"]["include-package-data"] is True
@@ -354,9 +362,14 @@ def test_include_package_data_in_setuppy(tmp_path):
     See https://github.com/pypa/setuptools/issues/3197#issuecomment-1079023889
     """
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text("[project]\nname = 'myproj'\nversion='42'\n")
+    pyproject.write_text(
+        "[project]\nname = 'myproj'\nversion='42'\n", encoding=encoding_for_open
+    )
     setuppy = tmp_path / "setup.py"
-    setuppy.write_text("__import__('setuptools').setup(include_package_data=False)")
+    setuppy.write_text(
+        "__import__('setuptools').setup(include_package_data=False)",
+        encoding=encoding_for_open,
+    )
 
     with _Path(tmp_path):
         dist = distutils.core.run_setup("setup.py", {}, stop_after="config")

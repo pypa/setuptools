@@ -7,6 +7,7 @@ from unittest import mock
 import pytest
 
 import setuptools.package_index
+from ..compat.encoding import encoding_for_open
 from .textwrap import DALS
 
 
@@ -257,14 +258,13 @@ class TestPyPIConfig:
     def test_percent_in_password(self, tmp_home_dir):
         pypirc = tmp_home_dir / '.pypirc'
         pypirc.write_text(
-            DALS(
-                """
+            DALS("""
             [pypi]
             repository=https://pypi.org
             username=jaraco
             password=pity%
-        """
-            )
+        """),
+            encoding=encoding_for_open,
         )
         cfg = setuptools.package_index.PyPIConfig()
         cred = cfg.creds_by_repository['https://pypi.org']

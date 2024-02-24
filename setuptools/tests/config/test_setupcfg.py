@@ -7,8 +7,9 @@ from unittest.mock import Mock, patch
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.dist import Distribution, _Distribution
+from setuptools.compat.encoding import encoding_for_open
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
+from setuptools.dist import Distribution, _Distribution
 from setuptools.extern.packaging.requirements import InvalidRequirement
 from setuptools.warnings import SetuptoolsDeprecationWarning
 from ..textwrap import DALS
@@ -904,7 +905,8 @@ class TestOptions:
         module_path = Path(tmpdir, "src/custom_build.py")  # auto discovery for src
         module_path.parent.mkdir(parents=True, exist_ok=True)
         module_path.write_text(
-            "from distutils.core import Command\n" "class CustomCmd(Command): pass\n"
+            "from distutils.core import Command\n" "class CustomCmd(Command): pass\n",
+            encoding=encoding_for_open,
         )
 
         setup_cfg = """

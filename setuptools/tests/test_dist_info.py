@@ -12,6 +12,7 @@ import pytest
 import pkg_resources
 from setuptools.archive_util import unpack_archive
 from .textwrap import DALS
+from ..compat.encoding import encoding_for_open
 
 
 read = partial(pathlib.Path.read_text, encoding="utf-8")
@@ -199,6 +200,7 @@ def run_command_inner(*cmd, **kwargs):
         "stdout": subprocess.PIPE,
         "text": True,
         'check': True,
+        "encoding": encoding_for_open,
         **kwargs,
     }
     cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *map(str, cmd)]

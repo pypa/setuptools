@@ -4,6 +4,7 @@ import os
 import sys
 
 from .._path import ensure_directory
+from ..compat.encoding import encoding_for_open
 
 
 class install_scripts(orig.install_scripts):
@@ -60,7 +61,7 @@ class install_scripts(orig.install_scripts):
         mask = current_umask()
         if not self.dry_run:
             ensure_directory(target)
-            f = open(target, "w" + mode)
+            f = open(target, "w" + mode, encoding=encoding_for_open)
             f.write(contents)
             f.close()
             chmod(target, 0o777 - mask)

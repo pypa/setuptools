@@ -10,6 +10,7 @@ import subprocess
 import tarfile
 from zipfile import ZipFile
 from pathlib import Path
+from setuptools.compat.encoding import encoding_for_open
 
 
 def run(cmd, env=None):
@@ -19,6 +20,7 @@ def run(cmd, env=None):
         text=True,
         env={**os.environ, **(env or {})},
         # ^-- allow overwriting instead of discarding the current env
+        encoding=encoding_for_open,
     )
 
     out = r.stdout + "\n" + r.stderr

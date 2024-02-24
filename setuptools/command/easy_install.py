@@ -872,7 +872,7 @@ class easy_install(Command):
         ensure_directory(target)
         if os.path.exists(target):
             os.unlink(target)
-        with open(target, "w" + mode) as f:
+        with open(target, "w" + mode, encoding=encoding_for_open) as f:
             f.write(contents)
         chmod(target, 0o777 - mask)
 

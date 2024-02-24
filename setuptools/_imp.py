@@ -8,6 +8,7 @@ import importlib.util
 import importlib.machinery
 
 from importlib.util import module_from_spec
+from .compat.encoding import encoding_for_open
 
 
 PY_SOURCE = 1
@@ -66,7 +67,7 @@ def find_module(module, paths=None):
             kind = C_EXTENSION
 
         if kind in {PY_SOURCE, PY_COMPILED}:
-            file = open(path, mode)
+            file = open(path, mode, encoding=encoding_for_open)
     else:
         path = None
         suffix = mode = ''

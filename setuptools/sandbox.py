@@ -13,6 +13,7 @@ import builtins
 import pkg_resources
 from distutils.errors import DistutilsError
 from pkg_resources import working_set
+from .compat.encoding import encoding_for_open
 
 if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
@@ -450,7 +451,7 @@ class DirectorySandbox(AbstractSandbox):
     def _open(self, path, mode='r', *args, **kw):
         if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
             self._violation("open", path, mode, *args, **kw)
-        return _open(path, mode, *args, **kw)
+        return _open(path, mode, *args, **kw, encoding=encoding_for_open)
 
     def tmpnam(self):
         self._violation("tmpnam")

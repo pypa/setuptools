@@ -19,6 +19,7 @@ from packaging.metadata import Metadata
 
 import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
+from setuptools.compat.encoding import encoding_for_open
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
@@ -176,9 +177,11 @@ def _pep621_example_project(
         text = text.replace(orig, subst)
     pyproject.write_text(text, encoding="utf-8")
 
-    (tmp_path / readme).write_text("hello world")
-    (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---")
-    (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT)
+    (tmp_path / readme).write_text("hello world", encoding=encoding_for_open)
+    (tmp_path / "LICENSE.txt").write_text(
+        "--- LICENSE stub ---", encoding=encoding_for_open
+    )
+    (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT, encoding=encoding_for_open)
     return pyproject
 
 

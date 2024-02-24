@@ -1,12 +1,15 @@
 import pytest
 
+from setuptools.compat.encoding import encoding_for_open
 from setuptools.config.pyprojecttoml import apply_configuration
 from setuptools.dist import Distribution
 from setuptools.tests.textwrap import DALS
 
 
 def test_dynamic_dependencies(tmp_path):
-    (tmp_path / "requirements.txt").write_text("six\n  # comment\n")
+    (tmp_path / "requirements.txt").write_text(
+        "six\n  # comment\n", encoding=encoding_for_open
+    )
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         DALS(
@@ -23,7 +26,8 @@ def test_dynamic_dependencies(tmp_path):
     [tool.setuptools.dynamic.dependencies]
     file = ["requirements.txt"]
     """
-        )
+        ),
+        encoding=encoding_for_open,
     )
     dist = Distribution()
     dist = apply_configuration(dist, pyproject)
@@ -31,11 +35,12 @@ def test_dynamic_dependencies(tmp_path):
 
 
 def test_dynamic_optional_dependencies(tmp_path):
-    (tmp_path / "requirements-docs.txt").write_text("sphinx\n  # comment\n")
+    (tmp_path / "requirements-docs.txt").write_text(
+        "sphinx\n  # comment\n", encoding=encoding_for_open
+    )
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        DALS(
-            """
+        DALS("""
     [project]
     name = "myproj"
     version = "1.0"
@@ -47,8 +52,8 @@ def test_dynamic_optional_dependencies(tmp_path):
     [build-system]
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
-    """
-        )
+    """),
+        encoding=encoding_for_open,
     )
     dist = Distribution()
     dist = apply_configuration(dist, pyproject)
@@ -61,11 +66,12 @@ def test_mixed_dynamic_optional_dependencies(tmp_path):
     configurations in the case of fields containing sub-fields (groups),
     things would work out.
     """
-    (tmp_path / "requirements-images.txt").write_text("pillow~=42.0\n  # comment\n")
+    (tmp_path / "requirements-images.txt").write_text(
+        "pillow~=42.0\n  # comment\n", encoding=encoding_for_open
+    )
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        DALS(
-            """
+        DALS("""
     [project]
     name = "myproj"
     version = "1.0"
@@ -80,8 +86,8 @@ def test_mixed_dynamic_optional_dependencies(tmp_path):
     [build-system]
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
-    """
-        )
+    """),
+        encoding=encoding_for_open,
     )
     # Test that the mix-and-match doesn't currently validate.
     with pytest.raises(ValueError, match="project.optional-dependencies"):

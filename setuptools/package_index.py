@@ -1016,7 +1016,7 @@ class PyPIConfig(configparser.RawConfigParser):
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
-            self.read(rc)
+            self.read(rc, encoding=encoding_for_open)
 
     @property
     def creds_by_repository(self):
