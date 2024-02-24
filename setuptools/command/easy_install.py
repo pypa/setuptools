@@ -75,7 +75,7 @@ from pkg_resources import (
 )
 import pkg_resources
 from ..compat import py311
-from ..compat.encoding import encoding_for_open
+from ..compat.encoding import encoding_for_open, encoding_for_open_for_mode
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
 
@@ -872,7 +872,7 @@ class easy_install(Command):
         ensure_directory(target)
         if os.path.exists(target):
             os.unlink(target)
-        with open(target, "w" + mode, encoding=encoding_for_open) as f:
+        with open(target, "w" + mode, encoding=encoding_for_open_for_mode(mode)) as f:
             f.write(contents)
         chmod(target, 0o777 - mask)
 
