@@ -22,6 +22,7 @@ from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
 
+
 from .extern.more_itertools import partition, unique_everseen
 from .extern.ordered_set import OrderedSet
 from .extern.packaging.markers import InvalidMarker, Marker
@@ -34,10 +35,10 @@ from . import _reqs
 from . import command as _  # noqa  -- imported for side-effects
 from ._importlib import metadata
 from .config import setupcfg, pyprojecttoml
+from .compat.encoding import encoding_for_open
 from .discovery import ConfigDiscovery
 from .monkey import get_unpatched
 from .warnings import InformationOnly, SetuptoolsDeprecationWarning
-import locale
 
 
 sequence = tuple, list
@@ -682,9 +683,7 @@ class Distribution(_Distribution):
             os.mkdir(egg_cache_dir)
             windows_support.hide_file(egg_cache_dir)
             readme_txt_filename = os.path.join(egg_cache_dir, 'README.txt')
-            with open(
-                readme_txt_filename, 'w', encoding=locale.getpreferredencoding(False)
-            ) as f:
+            with open(readme_txt_filename, 'w', encoding=encoding_for_open) as f:
                 f.write(
                     'This directory contains eggs that were downloaded '
                     'by setuptools to build, test, and run plug-ins.\n\n'

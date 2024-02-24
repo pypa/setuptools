@@ -12,13 +12,14 @@ from setuptools.config.pyprojecttoml import (
     apply_configuration,
     validate,
 )
+from setuptools.compat.encoding import encoding_for_open
 from setuptools.dist import Distribution
 from setuptools.errors import OptionError
 
 
 import setuptools  # noqa -- force distutils.core to be patched
 import distutils.core
-import locale
+
 
 EXAMPLE = """
 [project]
@@ -178,7 +179,7 @@ class TestEntryPoints:
         with open(
             tmp_path / "entry-points.txt",
             "w",
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as f:
             entry_points.write(f)
 

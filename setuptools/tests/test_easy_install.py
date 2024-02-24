@@ -26,6 +26,7 @@ from jaraco import path
 from setuptools import sandbox
 from setuptools.sandbox import run_setup
 import setuptools.command.easy_install as ei
+from setuptools.compat.encoding import encoding_for_open
 from setuptools.command.easy_install import PthDistributions
 from setuptools.dist import Distribution
 from pkg_resources import normalize_path, working_set
@@ -36,7 +37,6 @@ import pkg_resources
 
 from . import contexts
 from .textwrap import DALS
-import locale
 
 
 @pytest.fixture(autouse=True)
@@ -468,7 +468,7 @@ def distutils_package():
         'from distutils.core import setup',
     )
     with contexts.tempdir(cd=os.chdir):
-        with open('setup.py', 'w', encoding=locale.getpreferredencoding(False)) as f:
+        with open('setup.py', 'w', encoding=encoding_for_open) as f:
             f.write(distutils_setup_py)
         yield
 
@@ -785,9 +785,7 @@ class TestSetupRequires:
                     setup_attrs=dict(dependency_links=[]),
                 )
                 test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
-                with open(
-                    test_setup_cfg, 'w', encoding=locale.getpreferredencoding(False)
-                ) as fp:
+                with open(test_setup_cfg, 'w', encoding=encoding_for_open) as fp:
                     fp.write(
                         DALS(
                             """
@@ -921,9 +919,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
                 os.mkdir(test_pkg)
-                with open(
-                    test_setup_py, 'w', encoding=locale.getpreferredencoding(False)
-                ) as fp:
+                with open(test_setup_py, 'w', encoding=encoding_for_open) as fp:
                     if with_dependency_links_in_setup_py:
                         dependency_links = [os.path.join(temp_dir, 'links')]
                     else:
@@ -937,9 +933,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                         """
                         ).format(dependency_links=dependency_links)
                     )
-                with open(
-                    test_setup_cfg, 'w', encoding=locale.getpreferredencoding(False)
-                ) as fp:
+                with open(test_setup_cfg, 'w', encoding=encoding_for_open) as fp:
                     fp.write(
                         DALS(
                             """
@@ -991,9 +985,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 test_pkg = os.path.join(temp_dir, 'test_pkg')
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 os.mkdir(test_pkg)
-                with open(
-                    test_setup_py, 'w', encoding=locale.getpreferredencoding(False)
-                ) as fp:
+                with open(test_setup_py, 'w', encoding=encoding_for_open) as fp:
                     fp.write(
                         DALS(
                             """
@@ -1077,9 +1069,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 test_pkg = os.path.join(temp_dir, 'test_pkg')
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 os.mkdir(test_pkg)
-                with open(
-                    test_setup_py, 'w', encoding=locale.getpreferredencoding(False)
-                ) as fp:
+                with open(test_setup_py, 'w', encoding=encoding_for_open) as fp:
                     fp.write(
                         DALS(
                             """
@@ -1258,7 +1248,7 @@ def create_setup_requires_package(
     with open(
         os.path.join(test_pkg, 'setup.cfg'),
         'w',
-        encoding=locale.getpreferredencoding(False),
+        encoding=encoding_for_open,
     ) as f:
         f.write(test_setup_cfg_contents)
 
@@ -1273,7 +1263,7 @@ def create_setup_requires_package(
     with open(
         os.path.join(test_pkg, 'setup.py'),
         'w',
-        encoding=locale.getpreferredencoding(False),
+        encoding=encoding_for_open,
     ) as f:
         f.write(setup_py_template % test_setup_attrs)
 

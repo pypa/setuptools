@@ -27,6 +27,8 @@ import io
 import time
 import re
 import types
+import locale
+import sys
 from typing import Protocol
 import zipfile
 import zipimport
@@ -48,7 +50,6 @@ import posixpath
 import importlib
 import importlib.machinery
 from pkgutil import get_importer
-
 import _imp
 
 # capture these to bypass sandboxing
@@ -73,13 +74,21 @@ from pkg_resources.extern.jaraco.text import (
 
 from pkg_resources.extern import platformdirs
 from pkg_resources.extern import packaging
-import locale
 
 __import__('pkg_resources.extern.packaging.version')
 __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 __import__('pkg_resources.extern.packaging.utils')
+
+encoding_for_open = (
+    "locale" if sys.version_info >= (3, 10) else locale.getpreferredencoding(False)
+)
+"""
+This variable exists to centralize calls to `getpreferredencoding`
+to reduce the amount of `EncodingWarning` in tests logs.
+"""
+
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -1539,9 +1548,7 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            with open(
-                script_filename, encoding=locale.getpreferredencoding(False)
-            ) as fid:
+            with open(script_filename, encoding=encoding_for_open) as fid:
                 source = fid.read()
             code = compile(source, script_filename, 'exec')
             exec(code, namespace, namespace)
@@ -2192,7 +2199,7 @@ def non_empty_lines(path):
     """
     Yield non-empty lines from file at path
     """
-    with open(path, encoding=locale.getpreferredencoding(False)) as f:
+    with open(path, encoding=encoding_for_open) as f:
         for line in f:
             line = line.strip()
             if line:

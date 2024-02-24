@@ -13,6 +13,7 @@ import pytest
 from jaraco import path
 
 from setuptools import errors
+from setuptools.compat.encoding import encoding_for_open
 from setuptools.command.egg_info import (
     egg_info,
     manifest_maker,
@@ -20,10 +21,8 @@ from setuptools.command.egg_info import (
 )
 from setuptools.dist import Distribution
 
-from . import environment
+from . import contexts, environment
 from .textwrap import DALS
-from . import contexts
-import locale
 
 
 class Environment(str):
@@ -94,7 +93,7 @@ class TestEggInfo:
         ei.initialize_options()
         ei.save_version_info(setup_cfg)
 
-        with open(setup_cfg, 'r', encoding=locale.getpreferredencoding(False)) as f:
+        with open(setup_cfg, 'r', encoding=encoding_for_open) as f:
             content = f.read()
 
         assert '[egg_info]' in content
@@ -139,7 +138,7 @@ class TestEggInfo:
         ei.initialize_options()
         ei.save_version_info(setup_cfg)
 
-        with open(setup_cfg, 'r', encoding=locale.getpreferredencoding(False)) as f:
+        with open(setup_cfg, 'r', encoding=encoding_for_open) as f:
             content = f.read()
 
         assert '[egg_info]' in content
@@ -251,7 +250,7 @@ class TestEggInfo:
         self._run_egg_info_command(tmpdir_cwd, env)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
-        with open(sources_txt, encoding=locale.getpreferredencoding(False)) as f:
+        with open(sources_txt, encoding=encoding_for_open) as f:
             assert 'docs/usage.rst' in f.read().split('\n')
 
     def _setup_script_with_requires(self, requires, use_setup_cfg=False):
@@ -492,7 +491,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         requires_txt = os.path.join(egg_info_dir, 'requires.txt')
         if os.path.exists(requires_txt):
-            with open(requires_txt, encoding=locale.getpreferredencoding(False)) as fp:
+            with open(requires_txt, encoding=encoding_for_open) as fp:
                 install_requires = fp.read()
         else:
             install_requires = ''
@@ -540,7 +539,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Provides-Extra: foobar' in pkg_info_lines
@@ -562,7 +561,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_text = pkginfo_file.read()
         assert 'Provides-Extra:' not in pkg_info_text
@@ -644,7 +643,7 @@ class TestEggInfo:
 
         with open(
             os.path.join(egg_info_dir, 'SOURCES.txt'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as sources_file:
             sources_text = sources_file.read()
 
@@ -860,7 +859,7 @@ class TestEggInfo:
 
         with open(
             os.path.join(egg_info_dir, 'SOURCES.txt'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as sources_file:
             sources_lines = list(line.strip() for line in sources_file)
 
@@ -1047,7 +1046,7 @@ class TestEggInfo:
 
         with open(
             os.path.join(egg_info_dir, 'SOURCES.txt'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as sources_file:
             sources_lines = list(line.strip() for line in sources_file)
 
@@ -1082,7 +1081,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         license_file_lines = [
@@ -1106,7 +1105,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         # Update metadata version if changed
@@ -1135,7 +1134,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         expected_line = 'Description-Content-Type: text/markdown'
@@ -1159,7 +1158,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Metadata-Version: 2.1' in pkg_info_lines
@@ -1194,7 +1193,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         expected_line = 'Project-URL: Link One, https://example.com/one/'
@@ -1214,7 +1213,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'License: MIT' in pkg_info_lines
@@ -1232,7 +1231,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
 
@@ -1254,7 +1253,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Requires-Python: >=2.7.12' in pkg_info_lines
@@ -1281,7 +1280,7 @@ class TestEggInfo:
 
         with open(
             egg_info_instance.egg_info + "/SOURCES.txt",
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as f:
             sources = f.read().split('\n')
             assert 'setup.py' in sources
@@ -1321,7 +1320,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(
             os.path.join(egg_info_dir, 'PKG-INFO'),
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Version: 0.0.0.dev0' in pkg_info_lines

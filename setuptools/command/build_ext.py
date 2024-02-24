@@ -1,7 +1,6 @@
 import os
 import sys
 import itertools
-import locale
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
 from typing import Dict, Iterator, List, Tuple
@@ -14,6 +13,8 @@ from distutils import log
 
 from setuptools.errors import BaseError
 from setuptools.extension import Extension, Library
+
+from ..compat.encoding import encoding_for_open
 
 try:
     # Attempt to use Cython for building extensions, if available
@@ -341,7 +342,7 @@ class build_ext(_build_ext):
         if compile and os.path.exists(stub_file):
             raise BaseError(stub_file + " already exists! Please delete.")
         if not self.dry_run:
-            f = open(stub_file, 'w', encoding=locale.getpreferredencoding(False))
+            f = open(stub_file, 'w', encoding=encoding_for_open)
             f.write(
                 '\n'.join([
                     "def __bootstrap__():",

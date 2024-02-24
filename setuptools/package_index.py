@@ -39,8 +39,8 @@ from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
 from setuptools.extern.more_itertools import unique_everseen
-import locale
 
+from .compat.encoding import encoding_for_open
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -420,9 +420,7 @@ class PackageIndex(Environment):
         list(itertools.starmap(self.scan_egg_link, egg_links))
 
     def scan_egg_link(self, path, entry):
-        with open(
-            os.path.join(path, entry), encoding=locale.getpreferredencoding(False)
-        ) as raw_lines:
+        with open(os.path.join(path, entry), encoding=encoding_for_open) as raw_lines:
             # filter non-empty lines
             lines = list(filter(None, map(str.strip, raw_lines)))
 
@@ -720,7 +718,7 @@ class PackageIndex(Environment):
             with open(
                 os.path.join(tmpdir, 'setup.py'),
                 'w',
-                encoding=locale.getpreferredencoding(False),
+                encoding=encoding_for_open,
             ) as file:
                 file.write(
                     "from setuptools import setup\n"
@@ -1121,9 +1119,7 @@ def local_open(url):
         for f in os.listdir(filename):
             filepath = os.path.join(filename, f)
             if f == 'index.html':
-                with open(
-                    filepath, 'r', encoding=locale.getpreferredencoding(False)
-                ) as fp:
+                with open(filepath, 'r', encoding=encoding_for_open) as fp:
                     body = fp.read()
                 break
             elif os.path.isdir(filepath):

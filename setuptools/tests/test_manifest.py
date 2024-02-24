@@ -11,12 +11,12 @@ import logging
 from distutils import log
 from distutils.errors import DistutilsTemplateError
 
+from setuptools.compat.encoding import encoding_for_open
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
 from setuptools.tests.textwrap import DALS
 
 import pytest
-import locale
 
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
@@ -54,7 +54,7 @@ def quiet():
 
 
 def touch(filename):
-    open(filename, 'w', encoding=locale.getpreferredencoding(False)).close()
+    open(filename, 'w', encoding=encoding_for_open).close()
 
 
 # The set of files always in the manifest, including all files in the
@@ -177,7 +177,7 @@ class TestManifestTest(TempDirTestCase):
         f = open(
             os.path.join(self.temp_dir, 'setup.py'),
             'w',
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         )
         f.write(SETUP_PY)
         f.close()
@@ -219,7 +219,7 @@ class TestManifestTest(TempDirTestCase):
         with open(
             os.path.join(self.temp_dir, 'MANIFEST.in'),
             'w',
-            encoding=locale.getpreferredencoding(False),
+            encoding=encoding_for_open,
         ) as f:
             f.write(DALS(contents))
 
@@ -377,7 +377,7 @@ class TestFileListTest(TempDirTestCase):
             file = os.path.join(self.temp_dir, file)
             dirname, basename = os.path.split(file)
             os.makedirs(dirname, exist_ok=True)
-            open(file, 'w', encoding=locale.getpreferredencoding(False)).close()
+            open(file, 'w', encoding=encoding_for_open).close()
 
     def test_process_template_line(self):
         # testing  all MANIFEST.in template patterns

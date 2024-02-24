@@ -6,7 +6,8 @@ import os
 import configparser
 
 from setuptools import Command
-import locale
+
+from ..compat.encoding import encoding_for_open
 
 __all__ = ['config_file', 'edit_config', 'option_base', 'setopt']
 
@@ -63,7 +64,7 @@ def edit_config(filename, settings, dry_run=False):
 
     log.info("Writing %s", filename)
     if not dry_run:
-        with open(filename, 'w', encoding=locale.getpreferredencoding(False)) as f:
+        with open(filename, 'w', encoding=encoding_for_open) as f:
             opts.write(f)
 
 

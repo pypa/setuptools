@@ -4,10 +4,10 @@ import sys
 
 import pytest
 
+from setuptools.compat.encoding import encoding_for_open
 from setuptools.command.install_scripts import install_scripts
 from setuptools.dist import Distribution
 from . import contexts
-import locale
 
 
 class TestInstallScripts:
@@ -45,7 +45,7 @@ class TestInstallScripts:
             with open(
                 str(tmpdir.join('foo')),
                 'r',
-                encoding=locale.getpreferredencoding(False),
+                encoding=encoding_for_open,
             ) as f:
                 actual = f.readline()
         assert actual == expected
@@ -63,7 +63,7 @@ class TestInstallScripts:
             with open(
                 str(tmpdir.join('foo-script.py')),
                 'r',
-                encoding=locale.getpreferredencoding(False),
+                encoding=encoding_for_open,
             ) as f:
                 actual = f.readline()
         assert actual == expected
@@ -81,7 +81,7 @@ class TestInstallScripts:
             with open(
                 str(tmpdir.join('foo')),
                 'r',
-                encoding=locale.getpreferredencoding(False),
+                encoding=encoding_for_open,
             ) as f:
                 actual = f.readline()
         assert actual == expected
@@ -99,7 +99,7 @@ class TestInstallScripts:
             with open(
                 str(tmpdir.join('foo-script.py')),
                 'r',
-                encoding=locale.getpreferredencoding(False),
+                encoding=encoding_for_open,
             ) as f:
                 actual = f.readline()
         assert actual == expected

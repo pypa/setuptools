@@ -7,7 +7,8 @@ import pytest
 
 import pkg_resources
 import setuptools.sandbox
-import locale
+
+from setuptools.compat.encoding import encoding_for_open
 
 
 class TestSandbox:
@@ -18,7 +19,7 @@ class TestSandbox:
     @staticmethod
     def _file_writer(path):
         def do_write():
-            with open(path, 'w', encoding=locale.getpreferredencoding(False)) as f:
+            with open(path, 'w', encoding=encoding_for_open) as f:
                 f.write('xxx')
 
         return do_write
@@ -115,7 +116,7 @@ class TestExceptionSaver:
 
         def write_file():
             "Trigger a SandboxViolation by writing outside the sandbox"
-            with open('/etc/foo', 'w', encoding=locale.getpreferredencoding(False)):
+            with open('/etc/foo', 'w', encoding=encoding_for_open):
                 pass
 
         with pytest.raises(setuptools.sandbox.SandboxViolation) as caught:
@@ -127,7 +128,7 @@ class TestExceptionSaver:
         cmd, args, kwargs = caught.value.args
         assert cmd == 'open'
         assert args == ('/etc/foo', 'w')
-        assert kwargs == {"encoding": locale.getpreferredencoding(False)}
+        assert kwargs == {"encoding": encoding_for_open}
 
         msg = str(caught.value)
         assert 'open' in msg

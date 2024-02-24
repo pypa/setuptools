@@ -1,8 +1,8 @@
 import os
 from distutils import log
 import itertools
-import locale
 
+from .compat.encoding import encoding_for_open
 
 flatten = itertools.chain.from_iterable
 
@@ -24,7 +24,7 @@ class Installer:
             list(lines)
             return
 
-        with open(filename, 'wt', encoding=locale.getpreferredencoding(False)) as f:
+        with open(filename, 'wt', encoding=encoding_for_open) as f:
             f.writelines(lines)
 
     def uninstall_namespaces(self):

@@ -8,8 +8,8 @@ import pytest
 
 from setuptools import find_packages
 from setuptools import find_namespace_packages
+from setuptools.compat.encoding import encoding_for_open
 from setuptools.discovery import FlatLayoutPackageFinder
-import locale
 
 
 # modeled after CPython's test.support.can_symlink
@@ -73,7 +73,7 @@ class TestFindPackages:
     def _touch(self, path, dir_=None):
         if dir_:
             path = os.path.join(dir_, path)
-        fp = open(path, 'w', encoding=locale.getpreferredencoding(False))
+        fp = open(path, 'w', encoding=encoding_for_open)
         fp.close()
         return path
 
