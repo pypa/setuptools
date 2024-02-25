@@ -1,3 +1,19 @@
+v69.1.1
+=======
+
+Bugfixes
+--------
+
+- Fix argument order of ``--config-settings["--build-option"]`` arguments.
+  This was broken by <https://github.com/pypa/setuptools/pull/4079>`. (#4217)
+
+
+Misc
+----
+
+- #4231
+
+
 v69.1.0
 =======
 

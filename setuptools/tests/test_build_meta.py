@@ -720,6 +720,16 @@ class TestBuildMetaBackend:
         build_backend.build_editable("temp")
         assert not Path("build").exists()
 
+    def test_build_wheel_inplace(self, tmpdir_cwd):
+        config_settings = {"--build-option": ["build_ext", "--inplace"]}
+        path.build(self._simple_pyproject_example)
+        build_backend = self.get_build_backend()
+        assert not Path("build").exists()
+        Path("build").mkdir()
+        build_backend.prepare_metadata_for_build_wheel("build", config_settings)
+        build_backend.build_wheel("build", config_settings)
+        assert Path("build/proj-42-py3-none-any.whl").exists()
+
     @pytest.mark.parametrize("config_settings", [{"editable-mode": "strict"}])
     def test_editable_with_config_settings(self, tmpdir_cwd, config_settings):
         path.build({**self._simple_pyproject_example, '_meta': {}})
