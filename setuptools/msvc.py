@@ -774,6 +774,19 @@ class SystemInfo:
 
         guess_vc = join(vs_dir, r'VC\Tools\MSVC')
 
+        # Try to see if Tools version default file exists, and use that for version
+        # https://devblogs.microsoft.com/cppblog/finding-the-visual-c-compiler-tools-in-visual-studio-2017/#identifying-the-vc-compiler-tools-version
+        try:
+            default_file = join(vs_dir, r'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt')
+            with open(default_file) as f:
+                default_version = f.read().strip()
+            vc_ver_folder = join(guess_vc, default_version)
+            if isdir(vc_ver_folder):
+                self.vc_ver = self._as_float_version(default_version)
+                return vc_ver_folder
+        except:
+            pass
+
         # Subdir with VC exact version as name
         try:
             # Update the VC version with real one instead of VS version
