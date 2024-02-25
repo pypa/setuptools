@@ -8,7 +8,7 @@ import importlib.util
 import importlib.machinery
 
 from importlib.util import module_from_spec
-from .compat.encoding import locale_encoding
+from .compat.encoding import locale_encoding_for_mode
 
 
 PY_SOURCE = 1
@@ -67,7 +67,7 @@ def find_module(module, paths=None):
             kind = C_EXTENSION
 
         if kind in {PY_SOURCE, PY_COMPILED}:
-            file = open(path, mode, encoding=locale_encoding)
+            file = open(path, mode, encoding=locale_encoding_for_mode(mode))
     else:
         path = None
         suffix = mode = ''

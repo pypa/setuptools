@@ -12,8 +12,7 @@ def test_dynamic_dependencies(tmp_path):
     )
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        DALS(
-            """
+        DALS("""
     [project]
     name = "myproj"
     version = "1.0"
@@ -25,8 +24,7 @@ def test_dynamic_dependencies(tmp_path):
 
     [tool.setuptools.dynamic.dependencies]
     file = ["requirements.txt"]
-    """
-        ),
+    """),
         encoding=locale_encoding,
     )
     dist = Distribution()
