@@ -19,7 +19,7 @@ import pytest
 from path import Path as _Path
 
 from . import contexts, namespaces
-from ..compat.encoding import encoding_for_open
+from ..compat.encoding import locale_encoding
 
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
@@ -145,8 +145,8 @@ def test_editable_with_pyproject(tmp_path, venv, files, editable_opts):
     cmd = [venv.exe(), "-m", "mypkg"]
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 Hello World"
 
-    (project / "src/mypkg/data.txt").write_text("foobar", encoding=encoding_for_open)
-    (project / "src/mypkg/mod.py").write_text("x = 42", encoding=encoding_for_open)
+    (project / "src/mypkg/data.txt").write_text("foobar", encoding=locale_encoding)
+    (project / "src/mypkg/mod.py").write_text("x = 42", encoding=locale_encoding)
     assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
 
 

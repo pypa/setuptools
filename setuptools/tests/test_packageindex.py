@@ -7,7 +7,7 @@ from unittest import mock
 import pytest
 
 import setuptools.package_index
-from ..compat.encoding import encoding_for_open
+from ..compat.encoding import locale_encoding
 from .textwrap import DALS
 
 
@@ -264,7 +264,7 @@ class TestPyPIConfig:
             username=jaraco
             password=pity%
         """),
-            encoding=encoding_for_open,
+            encoding=locale_encoding,
         )
         cfg = setuptools.package_index.PyPIConfig()
         cred = cfg.creds_by_repository['https://pypi.org']

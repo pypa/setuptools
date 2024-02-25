@@ -27,7 +27,6 @@ import io
 import time
 import re
 import types
-import locale
 import sys
 from typing import Protocol
 import zipfile
@@ -81,12 +80,14 @@ __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 __import__('pkg_resources.extern.packaging.utils')
 
-encoding_for_open = (
-    "locale" if sys.version_info >= (3, 10) else locale.getpreferredencoding(False)
-)
+locale_encoding = "locale" if sys.version_info >= (3, 10) else None
 """
-This variable exists to centralize calls to `getpreferredencoding`
-to reduce the amount of `EncodingWarning` in tests logs.
+Use this variable to explicitly set encoding to avoid `EncodingWarning` in tests logs: ``encoding=locale_encoding``.
+
+Python <= 3.10, `None` and ``locale.getpreferredencoding(False)`` are equivalent.
+Python >= 3.11, using ``getpreferredencoding`` in  leads to ``EncodingWarning: UTF-8 Mode affects \
+locale.getpreferredencoding(). Consider locale.getencoding() instead.``.
+So let's avoid using `locale.getpreferredencoding` at all for simplicity.
 """
 
 
@@ -1548,7 +1549,7 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            with open(script_filename, encoding=encoding_for_open) as fid:
+            with open(script_filename, encoding=locale_encoding) as fid:
                 source = fid.read()
             code = compile(source, script_filename, 'exec')
             exec(code, namespace, namespace)
@@ -2199,7 +2200,7 @@ def non_empty_lines(path):
     """
     Yield non-empty lines from file at path
     """
-    with open(path, encoding=encoding_for_open) as f:
+    with open(path, encoding=locale_encoding) as f:
         for line in f:
             line = line.strip()
             if line:

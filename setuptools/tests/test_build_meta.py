@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 from jaraco import path
 
-from setuptools.compat.encoding import encoding_for_open
+from setuptools.compat.encoding import locale_encoding
 from .textwrap import DALS
 
 SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
@@ -297,7 +297,7 @@ class TestBuildMetaBackend:
         first_result = build_method(dist_dir)
 
         # Change version.
-        with open("VERSION", "wt", encoding=encoding_for_open) as version_file:
+        with open("VERSION", "wt", encoding=locale_encoding) as version_file:
             version_file.write("0.0.2")
 
         # Build a *second* sdist/wheel.
@@ -310,7 +310,7 @@ class TestBuildMetaBackend:
         open(
             os.path.join(dist_dir, second_result),
             'w',
-            encoding=encoding_for_open,
+            encoding=locale_encoding,
         ).close()
         third_result = build_method(dist_dir)
         assert third_result == second_result
@@ -573,9 +573,9 @@ class TestBuildMetaBackend:
         if not os.path.exists(setup_loc):
             setup_loc = os.path.abspath("setup.cfg")
 
-        with open(setup_loc, 'rt', encoding=encoding_for_open) as file_handler:
+        with open(setup_loc, 'rt', encoding=locale_encoding) as file_handler:
             content = file_handler.read()
-        with open(setup_loc, 'wt', encoding=encoding_for_open) as file_handler:
+        with open(setup_loc, 'wt', encoding=locale_encoding) as file_handler:
             file_handler.write(content.replace("version='0.0.0'", "version='0.0.1'"))
 
         shutil.rmtree(sdist_into_directory)

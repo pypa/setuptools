@@ -10,7 +10,7 @@ from setuptools import _path
 from setuptools import namespaces
 import setuptools
 
-from ..compat.encoding import encoding_for_open
+from ..compat.encoding import locale_encoding
 
 
 class develop(namespaces.DevelopInstaller, easy_install):
@@ -121,7 +121,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         # create an .egg-link in the installation dir, pointing to our egg
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
         if not self.dry_run:
-            with open(self.egg_link, "w", encoding=encoding_for_open) as f:
+            with open(self.egg_link, "w", encoding=locale_encoding) as f:
                 f.write(self.egg_path + "\n" + self.setup_path)
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
@@ -130,7 +130,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
     def uninstall_link(self):
         if os.path.exists(self.egg_link):
             log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
-            egg_link_file = open(self.egg_link, encoding=encoding_for_open)
+            egg_link_file = open(self.egg_link, encoding=locale_encoding)
             contents = [line.rstrip() for line in egg_link_file]
             egg_link_file.close()
             if contents not in ([self.egg_path], [self.egg_path, self.setup_path]):
@@ -158,7 +158,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         for script_name in self.distribution.scripts or []:
             script_path = os.path.abspath(convert_path(script_name))
             script_name = os.path.basename(script_path)
-            with open(script_path, encoding=encoding_for_open) as strm:
+            with open(script_path, encoding=locale_encoding) as strm:
                 script_text = strm.read()
             self.install_script(dist, script_name, script_text, script_path)
 

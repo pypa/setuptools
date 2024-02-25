@@ -1,1 +1,1 @@
-Fixed a ton of ``EncodingWarning: 'encoding' argument not specified`` by explicitly setting ``encoding=locale.getpreferredencoding(False)`` -- by :user:`Avasam`
+Fixed a ton of ``EncodingWarning: 'encoding' argument not specified`` by explicitly setting encoding -- by :user:`Avasam`

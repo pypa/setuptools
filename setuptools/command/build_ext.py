@@ -14,7 +14,7 @@ from distutils import log
 from setuptools.errors import BaseError
 from setuptools.extension import Extension, Library
 
-from ..compat.encoding import encoding_for_open
+from ..compat.encoding import locale_encoding
 
 try:
     # Attempt to use Cython for building extensions, if available
@@ -342,7 +342,7 @@ class build_ext(_build_ext):
         if compile and os.path.exists(stub_file):
             raise BaseError(stub_file + " already exists! Please delete.")
         if not self.dry_run:
-            f = open(stub_file, 'w', encoding=encoding_for_open)
+            f = open(stub_file, 'w', encoding=locale_encoding)
             f.write(
                 '\n'.join([
                     "def __bootstrap__():",

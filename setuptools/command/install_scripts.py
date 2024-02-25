@@ -4,7 +4,7 @@ import os
 import sys
 
 from .._path import ensure_directory
-from ..compat.encoding import encoding_for_open_for_mode
+from ..compat.encoding import locale_encoding_for_mode
 
 
 class install_scripts(orig.install_scripts):
@@ -61,7 +61,7 @@ class install_scripts(orig.install_scripts):
         mask = current_umask()
         if not self.dry_run:
             ensure_directory(target)
-            f = open(target, "w" + mode, encoding=encoding_for_open_for_mode(mode))
+            f = open(target, "w" + mode, encoding=locale_encoding_for_mode(mode))
             f.write(contents)
             f.close()
             chmod(target, 0o777 - mask)

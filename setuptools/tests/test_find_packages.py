@@ -8,7 +8,7 @@ import pytest
 
 from setuptools import find_packages
 from setuptools import find_namespace_packages
-from setuptools.compat.encoding import encoding_for_open
+from setuptools.compat.encoding import locale_encoding
 from setuptools.discovery import FlatLayoutPackageFinder
 
 
@@ -73,7 +73,7 @@ class TestFindPackages:
     def _touch(self, path, dir_=None):
         if dir_:
             path = os.path.join(dir_, path)
-        fp = open(path, 'w', encoding=encoding_for_open)
+        fp = open(path, 'w', encoding=locale_encoding)
         fp.close()
         return path
 

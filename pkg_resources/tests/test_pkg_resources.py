@@ -16,7 +16,7 @@ from pkg_resources import (
     DistInfoDistribution,
     Distribution,
     EggInfoDistribution,
-    encoding_for_open,
+    locale_encoding,
 )
 
 import pytest
@@ -111,13 +111,13 @@ class TestZipProvider:
         filename = zp.get_resource_filename(manager, 'data.dat')
         actual = datetime.datetime.fromtimestamp(os.stat(filename).st_mtime)
         assert actual == self.ref_time
-        f = open(filename, 'w', encoding=encoding_for_open)
+        f = open(filename, 'w', encoding=locale_encoding)
         f.write('hello, world?')
         f.close()
         ts = self.ref_time.timestamp()
         os.utime(filename, (ts, ts))
         filename = zp.get_resource_filename(manager, 'data.dat')
-        with open(filename, encoding=encoding_for_open) as f:
+        with open(filename, encoding=locale_encoding) as f:
             assert f.read() == 'hello, world!'
         manager.cleanup_resources()
 

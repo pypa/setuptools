@@ -4,7 +4,7 @@ import logging
 import sys
 
 import pytest
-from setuptools.compat.encoding import encoding_for_open
+from setuptools.compat.encoding import locale_encoding
 
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
@@ -34,7 +34,7 @@ def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
     assert logging.getLevelName(unset_log_level) == "NOTSET"
 
     setup_script = tmp_path / "setup.py"
-    setup_script.write_text(setup_py, encoding=encoding_for_open)
+    setup_script.write_text(setup_py, encoding=locale_encoding)
     dist = distutils.core.run_setup(setup_script, stop_after="init")
     dist.script_args = [flag, "sdist"]
     dist.parse_command_line()  # <- where the log level is set

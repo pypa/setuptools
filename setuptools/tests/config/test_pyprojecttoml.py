@@ -12,7 +12,7 @@ from setuptools.config.pyprojecttoml import (
     apply_configuration,
     validate,
 )
-from setuptools.compat.encoding import encoding_for_open
+from setuptools.compat.encoding import locale_encoding
 from setuptools.dist import Distribution
 from setuptools.errors import OptionError
 
@@ -98,16 +98,16 @@ def create_example(path, pkg_root):
         (path / file).parent.mkdir(exist_ok=True, parents=True)
         (path / file).touch()
 
-    pyproject.write_text(EXAMPLE, encoding=encoding_for_open)
-    (path / "README.md").write_text("hello world", encoding=encoding_for_open)
+    pyproject.write_text(EXAMPLE, encoding=locale_encoding)
+    (path / "README.md").write_text("hello world", encoding=locale_encoding)
     (path / f"{pkg_root}/pkg/mod.py").write_text(
-        "class CustomSdist: pass", encoding=encoding_for_open
+        "class CustomSdist: pass", encoding=locale_encoding
     )
     (path / f"{pkg_root}/pkg/__version__.py").write_text(
-        "VERSION = (3, 10)", encoding=encoding_for_open
+        "VERSION = (3, 10)", encoding=locale_encoding
     )
     (path / f"{pkg_root}/pkg/__main__.py").write_text(
-        "def exec(): print('hello')", encoding=encoding_for_open
+        "def exec(): print('hello')", encoding=locale_encoding
     )
 
 
@@ -185,7 +185,7 @@ class TestEntryPoints:
         with open(
             tmp_path / "entry-points.txt",
             "w",
-            encoding=encoding_for_open,
+            encoding=locale_encoding,
         ) as f:
             entry_points.write(f)
 
@@ -225,7 +225,7 @@ class TestClassifiers:
         Programming Language :: Haskell
         """
         (tmp_path / "classifiers.txt").write_text(
-            cleandoc(classifiers), encoding=encoding_for_open
+            cleandoc(classifiers), encoding=locale_encoding
         )
 
         pyproject = tmp_path / "pyproject.toml"
@@ -254,7 +254,7 @@ class TestClassifiers:
         """
 
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(cleandoc(config), encoding=encoding_for_open)
+        pyproject.write_text(cleandoc(config), encoding=locale_encoding)
         with pytest.raises(OptionError, match="No configuration .* .classifiers."):
             read_configuration(pyproject)
 
@@ -266,7 +266,7 @@ class TestClassifiers:
         dynamic = ["readme"]
         """
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(cleandoc(config), encoding=encoding_for_open)
+        pyproject.write_text(cleandoc(config), encoding=locale_encoding)
         dist = Distribution(attrs={"long_description": "42"})
         # No error should occur because of missing `readme`
         dist = apply_configuration(dist, pyproject)
@@ -284,7 +284,7 @@ class TestClassifiers:
         """
 
         pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text(cleandoc(config), encoding=encoding_for_open)
+        pyproject.write_text(cleandoc(config), encoding=locale_encoding)
         with pytest.warns(UserWarning, match="File .*classifiers.txt. cannot be found"):
             expanded = read_configuration(pyproject)
         assert "classifiers" not in expanded["project"]
@@ -305,7 +305,7 @@ class TestClassifiers:
 )
 def test_ignore_unrelated_config(tmp_path, example):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(cleandoc(example), encoding=encoding_for_open)
+    pyproject.write_text(cleandoc(example), encoding=locale_encoding)
 
     # Make sure no error is raised due to 3rd party configs in pyproject.toml
     assert read_configuration(pyproject) is not None
@@ -327,7 +327,7 @@ def test_ignore_unrelated_config(tmp_path, example):
 )
 def test_invalid_example(tmp_path, example, error_msg):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(cleandoc(example), encoding=encoding_for_open)
+    pyproject.write_text(cleandoc(example), encoding=locale_encoding)
 
     pattern = re.compile(f"invalid pyproject.toml.*{error_msg}.*", re.M | re.S)
     with pytest.raises(ValueError, match=pattern):
@@ -337,7 +337,7 @@ def test_invalid_example(tmp_path, example, error_msg):
 @pytest.mark.parametrize("config", ("", "[tool.something]\nvalue = 42"))
 def test_empty(tmp_path, config):
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(config, encoding=encoding_for_open)
+    pyproject.write_text(config, encoding=locale_encoding)
 
     # Make sure no error is raised
     assert read_configuration(pyproject) == {}
@@ -349,7 +349,7 @@ def test_include_package_data_by_default(tmp_path, config):
     default.
     """
     pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(config, encoding=encoding_for_open)
+    pyproject.write_text(config, encoding=locale_encoding)
 
     config = read_configuration(pyproject)
     assert config["tool"]["setuptools"]["include-package-data"] is True
@@ -363,12 +363,12 @@ def test_include_package_data_in_setuppy(tmp_path):
     """
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
-        "[project]\nname = 'myproj'\nversion='42'\n", encoding=encoding_for_open
+        "[project]\nname = 'myproj'\nversion='42'\n", encoding=locale_encoding
     )
     setuppy = tmp_path / "setup.py"
     setuppy.write_text(
         "__import__('setuptools').setup(include_package_data=False)",
-        encoding=encoding_for_open,
+        encoding=locale_encoding,
     )
 
     with _Path(tmp_path):

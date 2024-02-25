@@ -1,6 +1,6 @@
 import pytest
 
-from setuptools.compat.encoding import encoding_for_open
+from setuptools.compat.encoding import locale_encoding
 from setuptools.config.pyprojecttoml import apply_configuration
 from setuptools.dist import Distribution
 from setuptools.tests.textwrap import DALS
@@ -8,7 +8,7 @@ from setuptools.tests.textwrap import DALS
 
 def test_dynamic_dependencies(tmp_path):
     (tmp_path / "requirements.txt").write_text(
-        "six\n  # comment\n", encoding=encoding_for_open
+        "six\n  # comment\n", encoding=locale_encoding
     )
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
@@ -27,7 +27,7 @@ def test_dynamic_dependencies(tmp_path):
     file = ["requirements.txt"]
     """
         ),
-        encoding=encoding_for_open,
+        encoding=locale_encoding,
     )
     dist = Distribution()
     dist = apply_configuration(dist, pyproject)
@@ -36,7 +36,7 @@ def test_dynamic_dependencies(tmp_path):
 
 def test_dynamic_optional_dependencies(tmp_path):
     (tmp_path / "requirements-docs.txt").write_text(
-        "sphinx\n  # comment\n", encoding=encoding_for_open
+        "sphinx\n  # comment\n", encoding=locale_encoding
     )
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
@@ -53,7 +53,7 @@ def test_dynamic_optional_dependencies(tmp_path):
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
     """),
-        encoding=encoding_for_open,
+        encoding=locale_encoding,
     )
     dist = Distribution()
     dist = apply_configuration(dist, pyproject)
@@ -67,7 +67,7 @@ def test_mixed_dynamic_optional_dependencies(tmp_path):
     things would work out.
     """
     (tmp_path / "requirements-images.txt").write_text(
-        "pillow~=42.0\n  # comment\n", encoding=encoding_for_open
+        "pillow~=42.0\n  # comment\n", encoding=locale_encoding
     )
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
@@ -87,7 +87,7 @@ def test_mixed_dynamic_optional_dependencies(tmp_path):
     requires = ["setuptools", "wheel"]
     build-backend = "setuptools.build_meta"
     """),
-        encoding=encoding_for_open,
+        encoding=locale_encoding,
     )
     # Test that the mix-and-match doesn't currently validate.
     with pytest.raises(ValueError, match="project.optional-dependencies"):
