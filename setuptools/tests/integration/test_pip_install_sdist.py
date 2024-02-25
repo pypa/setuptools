@@ -1,3 +1,5 @@
+# https://github.com/python/mypy/issues/16936
+# mypy: disable-error-code="has-type"
 """Integration tests for setuptools that focus on building packages via pip.
 
 The idea behind these tests is not to exhaustively check all the possible
