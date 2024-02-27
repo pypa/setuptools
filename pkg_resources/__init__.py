@@ -27,8 +27,8 @@ import io
 import time
 import re
 import types
-from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol
+from collections.abc import Callable, Iterator
 import zipfile
 import zipimport
 import warnings
@@ -66,20 +66,44 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
-from pkg_resources.extern.jaraco.text import (
-    yield_lines,
-    drop_comment,
-    join_continuation,
-)
+if not TYPE_CHECKING:
+    from pkg_resources.extern.jaraco.text import (
+        yield_lines,
+        drop_comment,
+        join_continuation,
+    )
 
-from pkg_resources.extern import platformdirs
-from pkg_resources.extern import packaging
+    from pkg_resources.extern import platformdirs
+    from pkg_resources.extern import packaging
 
-__import__('pkg_resources.extern.packaging.version')
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.requirements')
-__import__('pkg_resources.extern.packaging.markers')
-__import__('pkg_resources.extern.packaging.utils')
+    __import__('pkg_resources.extern.packaging.version')
+    __import__('pkg_resources.extern.packaging.specifiers')
+    __import__('pkg_resources.extern.packaging.requirements')
+    __import__('pkg_resources.extern.packaging.markers')
+    __import__('pkg_resources.extern.packaging.utils')
+else:
+    # Replicates the imports above in a way that can be understood by type-checkers
+    from jaraco.text import (
+        yield_lines,
+        drop_comment,
+        join_continuation,
+    )
+    import platformdirs
+    import packaging
+    import packaging.version
+    import packaging.specifiers
+    import packaging.requirements
+    import packaging.markers
+    import packaging.utils
+
+    # Declare some globals that will be defined by calls to _declare_state so checkers know they exist and their type
+    _distribution_finders: Dict[
+        type, Callable[[Any, str, bool], Iterator["Distribution"]]
+    ] = {}
+    _namespace_handlers: Dict[
+        type, Callable[[Any, str, str, types.ModuleType], Optional[str]]
+    ] = {}
+    _namespace_packages: Dict[Optional[str], List[str]] = {}
 
 
 warnings.warn(
@@ -2008,9 +2032,6 @@ class EggMetadata(ZipProvider):
         self._setup_prefix()
 
 
-_distribution_finders: Dict[
-    type, Callable[[Any, str, bool], Iterator["Distribution"]]
-] = {}
 _declare_state('dict', _distribution_finders={})
 
 
@@ -2185,11 +2206,7 @@ if hasattr(pkgutil, 'ImpImporter'):
 
 register_finder(importlib.machinery.FileFinder, find_on_path)
 
-_namespace_handlers: Dict[
-    type, Callable[[Any, str, str, types.ModuleType], Optional[str]]
-] = {}
 _declare_state('dict', _namespace_handlers={})
-_namespace_packages: Dict[Optional[str], List[str]] = {}
 _declare_state('dict', _namespace_packages={})
 
 
@@ -3312,9 +3329,8 @@ def _initialize_master_working_set():
     globals().update(locals())
 
 
-# All of these are set by the @_call_aside methods above
-# Declaring the variables to satisfy checkers so they know these exist
 if TYPE_CHECKING:
+    # All of these are set by the @_call_aside methods above
     __resource_manager: ResourceManager = ...  # Won't exist at runtime
     resource_exists = __resource_manager.resource_exists
     resource_isdir = __resource_manager.resource_isdir
