@@ -27,7 +27,8 @@ import io
 import time
 import re
 import types
-from typing import Protocol
+from collections.abc import Callable, Iterator
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol
 import zipfile
 import zipimport
 import warnings
@@ -79,26 +80,6 @@ __import__('pkg_resources.extern.packaging.specifiers')
 __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 __import__('pkg_resources.extern.packaging.utils')
-
-# declare some globals that will be defined later to
-# satisfy the linters.
-require = None
-working_set = None
-add_activation_listener = None
-resources_stream = None
-cleanup_resources = None
-resource_dir = None
-resource_stream = None
-set_extraction_path = None
-resource_isdir = None
-resource_string = None
-iter_entry_points = None
-resource_listdir = None
-resource_filename = None
-resource_exists = None
-_distribution_finders = None
-_namespace_handlers = None
-_namespace_packages = None
 
 
 warnings.warn(
@@ -489,19 +470,6 @@ def compatible_platforms(provided, required):
 
     # XXX Linux and other platforms' special cases should go here
     return False
-
-
-def run_script(dist_spec, script_name):
-    """Locate distribution `dist_spec` and run its `script_name` script"""
-    ns = sys._getframe(1).f_globals
-    name = ns['__name__']
-    ns.clear()
-    ns['__name__'] = name
-    require(dist_spec)[0].run_script(script_name, ns)
-
-
-# backward compatibility
-run_main = run_script
 
 
 def get_distribution(dist):
@@ -2040,6 +2008,9 @@ class EggMetadata(ZipProvider):
         self._setup_prefix()
 
 
+_distribution_finders: Dict[
+    type, Callable[[Any, str, bool], Iterator["Distribution"]]
+] = {}
 _declare_state('dict', _distribution_finders={})
 
 
@@ -2214,7 +2185,11 @@ if hasattr(pkgutil, 'ImpImporter'):
 
 register_finder(importlib.machinery.FileFinder, find_on_path)
 
+_namespace_handlers: Dict[
+    type, Callable[[Any, str, str, types.ModuleType], Optional[str]]
+] = {}
 _declare_state('dict', _namespace_handlers={})
+_namespace_packages: Dict[Optional[str], List[str]] = {}
 _declare_state('dict', _namespace_packages={})
 
 
@@ -3273,6 +3248,15 @@ def _mkstemp(*args, **kw):
 warnings.filterwarnings("ignore", category=PEP440Warning, append=True)
 
 
+class PkgResourcesDeprecationWarning(Warning):
+    """
+    Base class for warning about deprecations in ``pkg_resources``
+
+    This class is not derived from ``DeprecationWarning``, and as such is
+    visible by default.
+    """
+
+
 # from jaraco.functools 1.3
 def _call_aside(f, *args, **kwargs):
     f(*args, **kwargs)
@@ -3289,15 +3273,6 @@ def _initialize(g=globals()):
         for name in dir(manager)
         if not name.startswith('_')
     )
-
-
-class PkgResourcesDeprecationWarning(Warning):
-    """
-    Base class for warning about deprecations in ``pkg_resources``
-
-    This class is not derived from ``DeprecationWarning``, and as such is
-    visible by default.
-    """
 
 
 @_call_aside
@@ -3335,3 +3310,24 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+
+# All of these are set by the @_call_aside methods above
+# Declaring the variables to satisfy checkers so they know these exist
+if TYPE_CHECKING:
+    __resource_manager: ResourceManager = ...  # Won't exist at runtime
+    resource_exists = __resource_manager.resource_exists
+    resource_isdir = __resource_manager.resource_isdir
+    resource_filename = __resource_manager.resource_filename
+    resource_stream = __resource_manager.resource_stream
+    resource_string = __resource_manager.resource_string
+    resource_listdir = __resource_manager.resource_listdir
+    set_extraction_path = __resource_manager.set_extraction_path
+    cleanup_resources = __resource_manager.cleanup_resources
+
+    working_set: WorkingSet = ...
+    require = working_set.require
+    iter_entry_points = working_set.iter_entry_points
+    add_activation_listener = working_set.subscribe
+    run_script = working_set.run_script
+    run_main = run_script
