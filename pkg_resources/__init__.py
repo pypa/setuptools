@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import Protocol
+from typing import List, Protocol
 import zipfile
 import zipimport
 import warnings
@@ -1339,7 +1339,7 @@ class ResourceManager:
 
         self.extraction_path = path
 
-    def cleanup_resources(self, force=False) -> list[str]:
+    def cleanup_resources(self, force=False) -> List[str]:
         """
         Delete all extracted resource files and directories, returning a list
         of the file and directory names that could not be successfully removed.
