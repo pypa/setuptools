@@ -1339,7 +1339,7 @@ class ResourceManager:
 
         self.extraction_path = path
 
-    def cleanup_resources(self, force=False):
+    def cleanup_resources(self, force=False) -> list[str]:
         """
         Delete all extracted resource files and directories, returning a list
         of the file and directory names that could not be successfully removed.
@@ -1351,6 +1351,7 @@ class ResourceManager:
         directory used for extractions.
         """
         # XXX
+        return []
 
 
 def get_default_cache():
