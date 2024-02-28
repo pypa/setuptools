@@ -9,6 +9,7 @@ import subprocess
 import stat
 import distutils.dist
 import distutils.command.install_egg_info
+from typing import List
 
 from unittest import mock
 
@@ -32,7 +33,7 @@ class EggRemover(str):
 
 
 class TestZipProvider:
-    finalizers = []
+    finalizers: List[EggRemover] = []
 
     ref_time = datetime.datetime(2013, 5, 12, 13, 25, 0)
     "A reference time for a file modification"
