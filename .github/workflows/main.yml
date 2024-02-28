@@ -100,7 +100,7 @@ jobs:
         run: pipx run coverage xml --ignore-errors
       - name: Publish coverage
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
@@ -190,7 +190,7 @@ jobs:
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
       - name: Publish coverage
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
