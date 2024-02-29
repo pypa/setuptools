@@ -2,6 +2,7 @@
 
 import os
 import warnings
+from pathlib import Path
 
 from distutils.extension import read_setup_file, Extension
 
@@ -68,12 +69,14 @@ class TestExtension:
         assert ext.name == 'name'
 
         # the second argument, which is the list of files, must
-        # be a list of strings
+        # be a list of strings or PathLike objects
         with pytest.raises(AssertionError):
             Extension('name', 'file')
         with pytest.raises(AssertionError):
             Extension('name', ['file', 1])
         ext = Extension('name', ['file1', 'file2'])
+        assert ext.sources == ['file1', 'file2']
+        ext = Extension('name', [Path('file1'), Path('file2')])
         assert ext.sources == ['file1', 'file2']
 
         # others arguments have defaults
