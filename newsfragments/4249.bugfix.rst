@@ -1,0 +1,1 @@
+Ensured ``pkg_resources.find_distributions`` always returns a `Generator` as per its docstring by making ``pkg_resources.find_nothing`` yield nothing rather than returning an empty `tuple` -- by :user:`Avasam`

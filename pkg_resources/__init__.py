@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import Protocol
+from typing import Generator, Protocol
 import zipfile
 import zipimport
 import warnings
@@ -2089,8 +2089,11 @@ def find_eggs_in_zip(importer, path_item, only=False):
 register_finder(zipimport.zipimporter, find_eggs_in_zip)
 
 
-def find_nothing(importer, path_item, only=False):
-    return ()
+def find_nothing(
+    importer, path_item, only=False
+) -> Generator["Distribution", None, None]:
+    return
+    yield
 
 
 register_finder(object, find_nothing)
