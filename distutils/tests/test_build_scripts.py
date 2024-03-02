@@ -1,6 +1,9 @@
 """Tests for distutils.command.build_scripts."""
 
 import os
+import textwrap
+
+import jaraco.path
 
 from distutils.command.build_scripts import build_scripts
 from distutils.core import Distribution
@@ -46,37 +49,25 @@ class TestBuildScripts(support.TempdirManager):
         return build_scripts(dist)
 
     def write_sample_scripts(self, dir):
-        expected = []
-        expected.append("script1.py")
-        self.write_script(
-            dir,
-            "script1.py",
-            (
-                "#! /usr/bin/env python2.3\n"
-                "# bogus script w/ Python sh-bang\n"
-                "pass\n"
-            ),
-        )
-        expected.append("script2.py")
-        self.write_script(
-            dir,
-            "script2.py",
-            ("#!/usr/bin/python\n" "# bogus script w/ Python sh-bang\n" "pass\n"),
-        )
-        expected.append("shell.sh")
-        self.write_script(
-            dir,
-            "shell.sh",
-            ("#!/bin/sh\n" "# bogus shell script w/ sh-bang\n" "exit 0\n"),
-        )
-        return expected
-
-    def write_script(self, dir, name, text):
-        f = open(os.path.join(dir, name), "w")
-        try:
-            f.write(text)
-        finally:
-            f.close()
+        spec = {
+            'script1.py': textwrap.dedent("""
+                #! /usr/bin/env python2.3
+                # bogus script w/ Python sh-bang
+                pass
+                """).lstrip(),
+            'script2.py': textwrap.dedent("""
+                #!/usr/bin/python
+                # bogus script w/ Python sh-bang
+                pass
+                """).lstrip(),
+            'shell.sh': textwrap.dedent("""
+                #!/bin/sh
+                # bogus shell script w/ sh-bang
+                exit 0
+                """).lstrip(),
+        }
+        jaraco.path.build(spec, dir)
+        return list(spec)
 
     def test_version_int(self):
         source = self.mkdtemp()
