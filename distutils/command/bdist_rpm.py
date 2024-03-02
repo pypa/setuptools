@@ -487,7 +487,7 @@ class bdist_rpm(Command):
             if isinstance(val, list):
                 spec_file.append('{}: {}'.format(field, ' '.join(val)))
             elif val is not None:
-                spec_file.append('{}: {}'.format(field, val))
+                spec_file.append(f'{field}: {val}')
 
         if self.distribution.get_url():
             spec_file.append('Url: ' + self.distribution.get_url())
@@ -522,7 +522,7 @@ class bdist_rpm(Command):
 
         # rpm scripts
         # figure out default build script
-        def_setup_call = "{} {}".format(self.python, os.path.basename(sys.argv[0]))
+        def_setup_call = f"{self.python} {os.path.basename(sys.argv[0])}"
         def_build = "%s build" % def_setup_call
         if self.use_rpm_opt_flags:
             def_build = 'env CFLAGS="$RPM_OPT_FLAGS" ' + def_build

@@ -75,7 +75,7 @@ class TestDirUtil(support.TempdirManager):
         with open(a_file, 'w') as f:
             f.write('some content')
 
-        wanted = ['copying {} -> {}'.format(a_file, self.target2)]
+        wanted = [f'copying {a_file} -> {self.target2}']
         copy_tree(self.target, self.target2, verbose=1)
         assert caplog.messages == wanted
 

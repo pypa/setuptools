@@ -35,7 +35,7 @@ class TestFileUtil(support.TempdirManager):
         move_file(self.target, self.source, verbose=0)
 
         move_file(self.source, self.target, verbose=1)
-        wanted = ['moving {} -> {}'.format(self.source, self.target)]
+        wanted = [f'moving {self.source} -> {self.target}']
         assert caplog.messages == wanted
 
         # back to original state
@@ -45,7 +45,7 @@ class TestFileUtil(support.TempdirManager):
         # now the target is a dir
         os.mkdir(self.target_dir)
         move_file(self.source, self.target_dir, verbose=1)
-        wanted = ['moving {} -> {}'.format(self.source, self.target_dir)]
+        wanted = [f'moving {self.source} -> {self.target_dir}']
         assert caplog.messages == wanted
 
     def test_move_file_exception_unpacking_rename(self):

@@ -363,9 +363,9 @@ def translate_pattern(pattern, anchor=1, prefix=None, is_regex=0):
         if os.sep == '\\':
             sep = r'\\'
         pattern_re = pattern_re[len(start) : len(pattern_re) - len(end)]
-        pattern_re = r'{}\A{}{}.*{}{}'.format(start, prefix_re, sep, pattern_re, end)
+        pattern_re = rf'{start}\A{prefix_re}{sep}.*{pattern_re}{end}'
     else:  # no prefix -- respect anchor flag
         if anchor:
-            pattern_re = r'{}\A{}'.format(start, pattern_re[len(start) :])
+            pattern_re = rf'{start}\A{pattern_re[len(start) :]}'
 
     return re.compile(pattern_re)

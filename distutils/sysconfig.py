@@ -267,7 +267,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         )
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _customize_macos():
     """
     Perform first-time customization of compiler-related

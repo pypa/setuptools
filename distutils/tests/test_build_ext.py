@@ -535,7 +535,7 @@ class TestBuildExt(TempdirManager):
         deptarget_ext = Extension(
             'deptarget',
             [deptarget_c],
-            extra_compile_args=['-DTARGET={}'.format(target)],
+            extra_compile_args=[f'-DTARGET={target}'],
         )
         dist = Distribution({'name': 'deptarget', 'ext_modules': [deptarget_ext]})
         dist.package_dir = self.tmp_dir

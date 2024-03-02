@@ -515,7 +515,7 @@ class build_ext(Command):
         except (CCompilerError, DistutilsError, CompileError) as e:
             if not ext.optional:
                 raise
-            self.warn('building extension "{}" failed: {}'.format(ext.name, e))
+            self.warn(f'building extension "{ext.name}" failed: {e}')
 
     def build_extension(self, ext):
         sources = ext.sources

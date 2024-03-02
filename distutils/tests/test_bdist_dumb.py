@@ -61,7 +61,7 @@ class TestBuildDumb(
 
         # see what we have
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
-        base = "{}.{}.zip".format(dist.get_fullname(), cmd.plat_name)
+        base = f"{dist.get_fullname()}.{cmd.plat_name}.zip"
 
         assert dist_created == [base]
 
