@@ -34,7 +34,7 @@ class TempdirManager:
 
         path can be a string or a sequence.
         """
-        pathlib.Path(*always_iterable(path)).write_text(content)
+        pathlib.Path(*always_iterable(path)).write_text(content, encoding='utf-8')
 
     def create_dist(self, pkg_name='foo', **kw):
         """Will generate a test environment.
