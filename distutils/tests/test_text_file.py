@@ -1,6 +1,8 @@
 """Tests for distutils.text_file."""
 
-import os
+import jaraco.path
+import path
+
 from distutils.text_file import TextFile
 from distutils.tests import support
 
@@ -53,13 +55,9 @@ class TestTextFile(support.TempdirManager):
             result = file.readlines()
             assert result == expected_result
 
-        tmpdir = self.mkdtemp()
-        filename = os.path.join(tmpdir, "test.txt")
-        out_file = open(filename, "w")
-        try:
-            out_file.write(TEST_DATA)
-        finally:
-            out_file.close()
+        tmp_path = path.Path(self.mkdtemp())
+        filename = tmp_path / 'test.txt'
+        jaraco.path.build({filename.name: TEST_DATA}, tmp_path)
 
         in_file = TextFile(
             filename, strip_comments=0, skip_blanks=0, lstrip_ws=0, rstrip_ws=0
