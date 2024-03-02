@@ -395,7 +395,7 @@ Common commands: (see '--help-commands' for more)
         for filename in filenames:
             if DEBUG:
                 self.announce("  reading %s" % filename)
-            parser.read(filename)
+            parser.read(filename, encoding='utf-8')
             for section in parser.sections():
                 options = parser.options(section)
                 opt_dict = self.get_option_dict(section)
