@@ -5,7 +5,6 @@ import errno
 import unittest.mock as mock
 
 import jaraco.path
-import path
 import pytest
 
 from distutils.file_util import move_file, copy_file
@@ -17,10 +16,9 @@ from .py38compat import unlink
 @pytest.fixture(autouse=True)
 def stuff(request, tmp_path):
     self = request.instance
-    tmp_dir = path.Path(tmp_path)
-    self.source = tmp_dir / 'f1'
-    self.target = tmp_dir / 'f2'
-    self.target_dir = tmp_dir / 'd1'
+    self.source = tmp_path / 'f1'
+    self.target = tmp_path / 'f2'
+    self.target_dir = tmp_path / 'd1'
 
 
 class TestFileUtil:
@@ -70,7 +68,7 @@ class TestFileUtil:
         # Check first that copy_file() will not fall back on copying the file
         # instead of creating the hard link.
         try:
-            self.source.link(self.target)
+            os.link(self.source, self.target)
         except OSError as e:
             self.skipTest('os.link: %s' % e)
         else:
