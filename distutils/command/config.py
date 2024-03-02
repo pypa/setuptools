@@ -10,6 +10,7 @@ this header file lives".
 """
 
 import os
+import pathlib
 import re
 
 from ..core import Command
@@ -102,7 +103,7 @@ class config(Command):
 
     def _gen_temp_sourcefile(self, body, headers, lang):
         filename = "_configtest" + LANG_EXT[lang]
-        with open(filename, "w") as file:
+        with open(filename, "w", encoding='utf-8') as file:
             if headers:
                 for header in headers:
                     file.write("#include <%s>\n" % header)
@@ -199,15 +200,8 @@ class config(Command):
         if isinstance(pattern, str):
             pattern = re.compile(pattern)
 
-        with open(out) as file:
-            match = False
-            while True:
-                line = file.readline()
-                if line == '':
-                    break
-                if pattern.search(line):
-                    match = True
-                    break
+        with open(out, encoding='utf-8') as file:
+            match = any(pattern.search(line) for line in file)
 
         self._clean()
         return match
@@ -369,8 +363,4 @@ def dump_file(filename, head=None):
         log.info('%s', filename)
     else:
         log.info(head)
-    file = open(filename)
-    try:
-        log.info(file.read())
-    finally:
-        file.close()
+    log.info(pathlib.Path(filename).read_text(encoding='utf-8'))
