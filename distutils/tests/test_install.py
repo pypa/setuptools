@@ -196,13 +196,9 @@ class TestInstall(
         cmd.ensure_finalized()
         cmd.run()
 
-        f = open(cmd.record)
-        try:
-            content = f.read()
-        finally:
-            f.close()
+        content = pathlib.Path(cmd.record).read_text(encoding='utf-8')
 
-        found = [os.path.basename(line) for line in content.splitlines()]
+        found = [pathlib.Path(line).name for line in content.splitlines()]
         expected = [
             'hello.py',
             'hello.%s.pyc' % sys.implementation.cache_tag,
@@ -234,9 +230,9 @@ class TestInstall(
         cmd.ensure_finalized()
         cmd.run()
 
-        content = pathlib.Path(cmd.record).read_text()
+        content = pathlib.Path(cmd.record).read_text(encoding='utf-8')
 
-        found = [os.path.basename(line) for line in content.splitlines()]
+        found = [pathlib.Path(line).name for line in content.splitlines()]
         expected = [
             _make_ext_name('xx'),
             'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2],

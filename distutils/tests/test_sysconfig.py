@@ -20,6 +20,11 @@ from test.support import swap_item
 from . import py37compat
 
 
+def _gen_makefile(root, contents):
+    jaraco.path.build({'Makefile': trim(contents)}, root)
+    return root / 'Makefile'
+
+
 @pytest.mark.usefixtures('save_env')
 class TestSysconfig:
     def test_get_config_h_filename(self):
@@ -167,29 +172,25 @@ class TestSysconfig:
         assert 'ranlib' not in comp.exes
 
     def test_parse_makefile_base(self, tmp_path):
-        makefile = tmp_path / 'Makefile'
-        makefile.write_text(
-            trim(
-                """
-                CONFIG_ARGS=  '--arg1=optarg1' 'ENV=LIB'
-                VAR=$OTHER
-                OTHER=foo
-                """
-            )
+        makefile = _gen_makefile(
+            tmp_path,
+            """
+            CONFIG_ARGS=  '--arg1=optarg1' 'ENV=LIB'
+            VAR=$OTHER
+            OTHER=foo
+            """,
         )
         d = sysconfig.parse_makefile(makefile)
         assert d == {'CONFIG_ARGS': "'--arg1=optarg1' 'ENV=LIB'", 'OTHER': 'foo'}
 
     def test_parse_makefile_literal_dollar(self, tmp_path):
-        makefile = tmp_path / 'Makefile'
-        makefile.write_text(
-            trim(
-                """
-                CONFIG_ARGS=  '--arg1=optarg1' 'ENV=\\$$LIB'
-                VAR=$OTHER
-                OTHER=foo
-                """
-            )
+        makefile = _gen_makefile(
+            tmp_path,
+            """
+            CONFIG_ARGS=  '--arg1=optarg1' 'ENV=\\$$LIB'
+            VAR=$OTHER
+            OTHER=foo
+            """,
         )
         d = sysconfig.parse_makefile(makefile)
         assert d == {'CONFIG_ARGS': r"'--arg1=optarg1' 'ENV=\$LIB'", 'OTHER': 'foo'}
@@ -238,23 +239,24 @@ class TestSysconfig:
         # Issue #21923: test that a Distribution compiler
         # instance can be called without an explicit call to
         # get_config_vars().
-        file = tmp_path / 'file'
-        file.write_text(
-            trim(
-                """
-                from distutils.core import Distribution
-                config = Distribution().get_command_obj('config')
-                # try_compile may pass or it may fail if no compiler
-                # is found but it should not raise an exception.
-                rc = config.try_compile('int x;')
-                """
-            )
+        jaraco.path.build(
+            {
+                'file': trim("""
+                    from distutils.core import Distribution
+                    config = Distribution().get_command_obj('config')
+                    # try_compile may pass or it may fail if no compiler
+                    # is found but it should not raise an exception.
+                    rc = config.try_compile('int x;')
+                    """)
+            },
+            tmp_path,
         )
         p = subprocess.Popen(
-            py37compat.subprocess_args(sys.executable, file),
+            py37compat.subprocess_args(sys.executable, tmp_path / 'file'),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
+            encoding='utf-8',
         )
         outs, errs = p.communicate()
         assert 0 == p.returncode, "Subprocess failed: " + outs

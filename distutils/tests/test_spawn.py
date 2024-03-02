@@ -54,7 +54,7 @@ class TestSpawn(support.TempdirManager):
         program = program_noeext + ".exe"
 
         program_path = tmp_path / program
-        program_path.write_text("")
+        program_path.write_text("", encoding='utf-8')
         program_path.chmod(stat.S_IXUSR)
         filename = str(program_path)
         tmp_dir = path.Path(tmp_path)
