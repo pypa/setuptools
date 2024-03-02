@@ -70,20 +70,20 @@ class TestCore:
     def test_run_setup_provides_file(self, temp_file):
         # Make sure the script can use __file__; if that's missing, the test
         # setup.py script will raise NameError.
-        temp_file.write_text(setup_using___file__)
+        temp_file.write_text(setup_using___file__, encoding='utf-8')
         distutils.core.run_setup(temp_file)
 
     def test_run_setup_preserves_sys_argv(self, temp_file):
         # Make sure run_setup does not clobber sys.argv
         argv_copy = sys.argv.copy()
-        temp_file.write_text(setup_does_nothing)
+        temp_file.write_text(setup_does_nothing, encoding='utf-8')
         distutils.core.run_setup(temp_file)
         assert sys.argv == argv_copy
 
     def test_run_setup_defines_subclass(self, temp_file):
         # Make sure the script can use __file__; if that's missing, the test
         # setup.py script will raise NameError.
-        temp_file.write_text(setup_defines_subclass)
+        temp_file.write_text(setup_defines_subclass, encoding='utf-8')
         dist = distutils.core.run_setup(temp_file)
         install = dist.get_command_obj('install')
         assert 'cmd' in install.sub_commands
@@ -98,7 +98,7 @@ class TestCore:
 
         # Create a directory and write the setup.py file there:
         setup_py = tmp_path / 'setup.py'
-        setup_py.write_text(setup_prints_cwd)
+        setup_py.write_text(setup_prints_cwd, encoding='utf-8')
         distutils.core.run_setup(setup_py)
 
         output = sys.stdout.getvalue()
@@ -107,14 +107,14 @@ class TestCore:
         assert cwd == output
 
     def test_run_setup_within_if_main(self, temp_file):
-        temp_file.write_text(setup_within_if_main)
+        temp_file.write_text(setup_within_if_main, encoding='utf-8')
         dist = distutils.core.run_setup(temp_file, stop_after="config")
         assert isinstance(dist, Distribution)
         assert dist.get_name() == "setup_within_if_main"
 
     def test_run_commands(self, temp_file):
         sys.argv = ['setup.py', 'build']
-        temp_file.write_text(setup_within_if_main)
+        temp_file.write_text(setup_within_if_main, encoding='utf-8')
         dist = distutils.core.run_setup(temp_file, stop_after="commandline")
         assert 'build' not in dist.have_run
         distutils.core.run_commands(dist)
