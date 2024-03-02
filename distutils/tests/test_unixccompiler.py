@@ -248,6 +248,7 @@ class TestUnixCCompiler(support.TempdirManager):
         assert self.cc.linker_so[0] == 'my_cc'
 
     @pytest.mark.skipif('platform.system == "Windows"')
+    @pytest.mark.usefixtures('disable_macos_customization')
     def test_cc_overrides_ldshared_for_cxx_correctly(self):
         """
         Ensure that setting CC env variable also changes default linker
