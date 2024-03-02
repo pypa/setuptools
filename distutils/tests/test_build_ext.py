@@ -4,7 +4,6 @@ from io import StringIO
 import textwrap
 import site
 import contextlib
-import pathlib
 import platform
 import tempfile
 import importlib
