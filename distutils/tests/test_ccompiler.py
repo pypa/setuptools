@@ -36,7 +36,7 @@ def c_file(tmp_path):
         .lstrip()
         .replace('#headers', headers)
     )
-    c_file.write_text(payload)
+    c_file.write_text(payload, encoding='utf-8')
     return c_file
 
 

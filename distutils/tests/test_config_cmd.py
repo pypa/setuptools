@@ -3,6 +3,8 @@
 import os
 import sys
 
+import more_itertools
+import path
 import pytest
 
 from distutils.command.config import dump_file, config
@@ -24,12 +26,9 @@ class TestConfig(support.TempdirManager):
             self._logs.append(line)
 
     def test_dump_file(self):
-        this_file = os.path.splitext(__file__)[0] + '.py'
-        f = open(this_file)
-        try:
-            numlines = len(f.readlines())
-        finally:
-            f.close()
+        this_file = path.Path(__file__).with_suffix('.py')
+        with this_file.open(encoding='utf-8') as f:
+            numlines = more_itertools.ilen(f)
 
         dump_file(this_file, 'I am the header')
         assert len(self._logs) == numlines + 1
