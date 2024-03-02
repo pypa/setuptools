@@ -479,7 +479,7 @@ class TestBuildExt(TempdirManager):
 
     @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
-    def test_deployment_target_higher_ok(self):
+    def test_deployment_target_higher_ok(self):  # pragma: no cover
         # Issue 9516: Test that an extension module can be compiled with a
         # deployment target higher than that of the interpreter: the ext
         # module may depend on some newer OS feature.
@@ -491,7 +491,7 @@ class TestBuildExt(TempdirManager):
             deptarget = '.'.join(str(i) for i in deptarget)
             self._try_compile_deployment_target('<', deptarget)
 
-    def _try_compile_deployment_target(self, operator, target):
+    def _try_compile_deployment_target(self, operator, target):  # pragma: no cover
         if target is None:
             if os.environ.get('MACOSX_DEPLOYMENT_TARGET'):
                 del os.environ['MACOSX_DEPLOYMENT_TARGET']
