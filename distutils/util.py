@@ -172,7 +172,7 @@ def change_root(new_root, pathname):
     raise DistutilsPlatformError(f"nothing known about platform '{os.name}'")
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def check_environ():
     """Ensure that 'os.environ' has all the environment variables we
     guarantee that users can use in config files, command-line options,
@@ -328,7 +328,7 @@ def execute(func, args, msg=None, verbose=0, dry_run=0):
     print.
     """
     if msg is None:
-        msg = "{}{!r}".format(func.__name__, args)
+        msg = f"{func.__name__}{args!r}"
         if msg[-2:] == ',)':  # correct for singleton tuple
             msg = msg[0:-2] + ')'
 
@@ -350,7 +350,7 @@ def strtobool(val):
     elif val in ('n', 'no', 'f', 'false', 'off', '0'):
         return 0
     else:
-        raise ValueError("invalid truth value {!r}".format(val))
+        raise ValueError(f"invalid truth value {val!r}")
 
 
 def byte_compile(  # noqa: C901

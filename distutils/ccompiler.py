@@ -973,9 +973,7 @@ int main (int argc, char **argv) {
         try:
             new_ext = self.out_extensions[ext]
         except LookupError:
-            raise UnknownFileError(
-                "unknown file type '{}' (from '{}')".format(ext, src_name)
-            )
+            raise UnknownFileError(f"unknown file type '{ext}' (from '{src_name}')")
         if strip_dir:
             base = os.path.basename(base)
         return os.path.join(output_dir, base + new_ext)

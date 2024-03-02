@@ -78,7 +78,7 @@ class build(Command):
                     "using './configure --help' on your platform)"
                 )
 
-        plat_specifier = ".{}-{}".format(self.plat_name, sys.implementation.cache_tag)
+        plat_specifier = f".{self.plat_name}-{sys.implementation.cache_tag}"
 
         # Make it so Python 2.x and Python 2.x with --with-pydebug don't
         # share the same build directories. Doing so confuses the build

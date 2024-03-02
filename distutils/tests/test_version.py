@@ -62,7 +62,7 @@ class TestVersion:
             res = StrictVersion(v1)._cmp(object())
             assert (
                 res is NotImplemented
-            ), 'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)
+            ), f'cmp({v1}, {v2}) should be NotImplemented, got {res}'
 
     def test_cmp(self):
         versions = (
@@ -88,4 +88,4 @@ class TestVersion:
             res = LooseVersion(v1)._cmp(object())
             assert (
                 res is NotImplemented
-            ), 'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)
+            ), f'cmp({v1}, {v2}) should be NotImplemented, got {res}'

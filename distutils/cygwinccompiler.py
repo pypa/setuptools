@@ -87,9 +87,7 @@ class CygwinCCompiler(UnixCCompiler):
         super().__init__(verbose, dry_run, force)
 
         status, details = check_config_h()
-        self.debug_print(
-            "Python's GCC status: {} (details: {})".format(status, details)
-        )
+        self.debug_print(f"Python's GCC status: {status} (details: {details})")
         if status is not CONFIG_H_OK:
             self.warn(
                 "Python's pyconfig.h doesn't seem to support your compiler. "
@@ -108,7 +106,7 @@ class CygwinCCompiler(UnixCCompiler):
             compiler_so='%s -mcygwin -mdll -O -Wall' % self.cc,
             compiler_cxx='%s -mcygwin -O -Wall' % self.cxx,
             linker_exe='%s -mcygwin' % self.cc,
-            linker_so=('{} -mcygwin {}'.format(self.linker_dll, shared_option)),
+            linker_so=(f'{self.linker_dll} -mcygwin {shared_option}'),
         )
 
         # Include the appropriate MSVC runtime library if Python was built
@@ -280,7 +278,7 @@ class Mingw32CCompiler(CygwinCCompiler):
             compiler_so='%s -mdll -O -Wall' % self.cc,
             compiler_cxx='%s -O -Wall' % self.cxx,
             linker_exe='%s' % self.cc,
-            linker_so='{} {}'.format(self.linker_dll, shared_option),
+            linker_so=f'{self.linker_dll} {shared_option}',
         )
 
     def runtime_library_dir_option(self, dir):
@@ -340,7 +338,7 @@ def check_config_h():
         finally:
             config_h.close()
     except OSError as exc:
-        return (CONFIG_H_UNCERTAIN, "couldn't read '{}': {}".format(fn, exc.strerror))
+        return (CONFIG_H_UNCERTAIN, f"couldn't read '{fn}': {exc.strerror}")
 
 
 def is_cygwincc(cc):

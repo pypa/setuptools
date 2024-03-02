@@ -174,7 +174,7 @@ Your selection [default 1]: """,
             auth.add_password(self.realm, host, username, password)
             # send the info to the server and report the result
             code, result = self.post_to_server(self.build_post_data('submit'), auth)
-            self.announce('Server response ({}): {}'.format(code, result), logging.INFO)
+            self.announce(f'Server response ({code}): {result}', logging.INFO)
 
             # possibly save the login
             if code == 200:

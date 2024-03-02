@@ -175,7 +175,7 @@ you can try compiling with MingW32, by passing "-c mingw32" to setup.py."""
                 except RegError:
                     continue
                 key = RegEnumKey(h, 0)
-                d = Reg.get_value(base, r"{}\{}".format(p, key))
+                d = Reg.get_value(base, rf"{p}\{key}")
                 self.macros["$(FrameworkVersion)"] = d["version"]
 
     def sub(self, s):
@@ -281,7 +281,7 @@ def query_vcvarsall(version, arch="x86"):
         raise DistutilsPlatformError("Unable to find vcvarsall.bat")
     log.debug("Calling 'vcvarsall.bat %s' (version=%s)", arch, version)
     popen = subprocess.Popen(
-        '"{}" {} & set'.format(vcvarsall, arch),
+        f'"{vcvarsall}" {arch} & set',
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -370,9 +370,7 @@ class MSVCCompiler(CCompiler):
         # sanity check for platforms to prevent obscure errors later.
         ok_plats = 'win32', 'win-amd64'
         if plat_name not in ok_plats:
-            raise DistutilsPlatformError(
-                "--plat-name must be one of {}".format(ok_plats)
-            )
+            raise DistutilsPlatformError(f"--plat-name must be one of {ok_plats}")
 
         if (
             "DISTUTILS_USE_SDK" in os.environ
@@ -564,9 +562,7 @@ class MSVCCompiler(CCompiler):
                 continue
             else:
                 # how to handle this file?
-                raise CompileError(
-                    "Don't know how to compile {} to {}".format(src, obj)
-                )
+                raise CompileError(f"Don't know how to compile {src} to {obj}")
 
             output_opt = "/Fo" + obj
             try:
@@ -687,7 +683,7 @@ class MSVCCompiler(CCompiler):
             mfinfo = self.manifest_get_embed_info(target_desc, ld_args)
             if mfinfo is not None:
                 mffilename, mfid = mfinfo
-                out_arg = '-outputresource:{};{}'.format(output_filename, mfid)
+                out_arg = f'-outputresource:{output_filename};{mfid}'
                 try:
                     self.spawn(['mt.exe', '-nologo', '-manifest', mffilename, out_arg])
                 except DistutilsExecError as msg:

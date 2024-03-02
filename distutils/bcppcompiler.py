@@ -238,7 +238,7 @@ class BCPPCompiler(CCompiler):
                 def_file = os.path.join(temp_dir, '%s.def' % modname)
                 contents = ['EXPORTS']
                 for sym in export_symbols or []:
-                    contents.append('  {}=_{}'.format(sym, sym))
+                    contents.append(f'  {sym}=_{sym}')
                 self.execute(write_file, (def_file, contents), "writing %s" % def_file)
 
             # Borland C++ has problems with '/' in paths
@@ -348,9 +348,7 @@ class BCPPCompiler(CCompiler):
             # use normcase to make sure '.rc' is really '.rc' and not '.RC'
             (base, ext) = os.path.splitext(os.path.normcase(src_name))
             if ext not in (self.src_extensions + ['.rc', '.res']):
-                raise UnknownFileError(
-                    "unknown file type '{}' (from '{}')".format(ext, src_name)
-                )
+                raise UnknownFileError(f"unknown file type '{ext}' (from '{src_name}')")
             if strip_dir:
                 base = os.path.basename(base)
             if ext == '.res':
