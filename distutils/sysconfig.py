@@ -10,6 +10,7 @@ Email:        <fdrake@acm.org>
 """
 
 import os
+import functools
 import re
 import sys
 import sysconfig
@@ -266,6 +267,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         )
 
 
+@functools.lru_cache()
 def _customize_macos():
     """
     Perform first-time customization of compiler-related
@@ -278,16 +280,9 @@ def _customize_macos():
     of CPU architectures for universal builds.
     """
 
-    if sys.platform != "darwin":
-        return
-
-    global _config_vars
-    # Use get_config_var() to ensure _config_vars is initialized.
-    if not get_config_var('CUSTOMIZED_OSX_COMPILER'):
-        import _osx_support
-
-        _osx_support.customize_compiler(_config_vars)
-        _config_vars['CUSTOMIZED_OSX_COMPILER'] = 'True'
+    sys.platform == "darwin" and __import__('_osx_support').customize_compiler(
+        get_config_vars()
+    )
 
 
 def customize_compiler(compiler):  # noqa: C901
