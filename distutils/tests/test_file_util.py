@@ -15,15 +15,15 @@ from .py38compat import unlink
 
 
 @pytest.fixture(autouse=True)
-def stuff(request, monkeypatch, distutils_managed_tempdir):
+def stuff(request, tmp_path):
     self = request.instance
-    tmp_dir = path.Path(self.mkdtemp())
+    tmp_dir = path.Path(tmp_path)
     self.source = tmp_dir / 'f1'
     self.target = tmp_dir / 'f2'
     self.target_dir = tmp_dir / 'd1'
 
 
-class TestFileUtil(support.TempdirManager):
+class TestFileUtil:
     def test_move_file_verbosity(self, caplog):
         jaraco.path.build({self.source: 'some content'})
 
