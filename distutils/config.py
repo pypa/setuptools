@@ -42,7 +42,8 @@ class PyPIRCCommand(Command):
     def _store_pypirc(self, username, password):
         """Creates a default .pypirc file."""
         rc = self._get_rc_file()
-        with os.fdopen(os.open(rc, os.O_CREAT | os.O_WRONLY, 0o600), 'w') as f:
+        raw = os.open(rc, os.O_CREAT | os.O_WRONLY, 0o600)
+        with os.fdopen(raw, 'w', encoding='utf-8') as f:
             f.write(DEFAULT_PYPIRC % (username, password))
 
     def _read_pypirc(self):  # noqa: C901
@@ -53,7 +54,7 @@ class PyPIRCCommand(Command):
             repository = self.repository or self.DEFAULT_REPOSITORY
 
             config = RawConfigParser()
-            config.read(rc)
+            config.read(rc, encoding='utf-8')
             sections = config.sections()
             if 'distutils' in sections:
                 # let's get the list of servers
