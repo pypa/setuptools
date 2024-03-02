@@ -267,17 +267,20 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
 
 
 def _customize_macos():
+    """
+    Perform first-time customization of compiler-related
+    config vars on macOS. Use after a compiler is known
+    to be needed. This customization exists primarily to support Pythons
+    from binary installers. The kind and paths to build tools on
+    the user system may vary significantly from the system
+    that Python itself was built on.  Also the user OS
+    version and build tools may not support the same set
+    of CPU architectures for universal builds.
+    """
+
     if sys.platform != "darwin":
         return
 
-    # Perform first-time customization of compiler-related
-    # config vars on OS X now that we know we need a compiler.
-    # This is primarily to support Pythons from binary
-    # installers.  The kind and paths to build tools on
-    # the user system may vary significantly from the system
-    # that Python itself was built on.  Also the user OS
-    # version and build tools may not support the same set
-    # of CPU architectures for universal builds.
     global _config_vars
     # Use get_config_var() to ensure _config_vars is initialized.
     if not get_config_var('CUSTOMIZED_OSX_COMPILER'):
