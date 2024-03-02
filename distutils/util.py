@@ -424,7 +424,7 @@ def byte_compile(  # noqa: C901
         if not dry_run:
             if script_fd is not None:
                 script = os.fdopen(script_fd, "w", encoding='utf-8')
-            else:
+            else:  # pragma: no cover
                 script = open(script_name, "w", encoding='utf-8')
 
             with script:
