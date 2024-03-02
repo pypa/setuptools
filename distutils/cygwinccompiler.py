@@ -7,6 +7,7 @@ cygwin in no-cygwin mode).
 """
 
 import os
+import pathlib
 import re
 import sys
 import copy
@@ -329,14 +330,15 @@ def check_config_h():
     # let's see if __GNUC__ is mentioned in python.h
     fn = sysconfig.get_config_h_filename()
     try:
-        config_h = open(fn)
-        try:
-            if "__GNUC__" in config_h.read():
-                return CONFIG_H_OK, "'%s' mentions '__GNUC__'" % fn
-            else:
-                return CONFIG_H_NOTOK, "'%s' does not mention '__GNUC__'" % fn
-        finally:
-            config_h.close()
+        config_h = pathlib.Path(fn).read_text(encoding='utf-8')
+        substring = '__GNUC__'
+        if substring in config_h:
+            code = CONFIG_H_OK
+            mention_inflected = 'mentions'
+        else:
+            code = CONFIG_H_NOTOK
+            mention_inflected = 'does not mention'
+        return code, f"{fn!r} {mention_inflected} {substring!r}"
     except OSError as exc:
         return (CONFIG_H_UNCERTAIN, f"couldn't read '{fn}': {exc.strerror}")
 
