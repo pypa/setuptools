@@ -98,8 +98,6 @@ class TestSysconfig:
             'CCSHARED': '--sc-ccshared',
             'LDSHARED': 'sc_ldshared',
             'SHLIB_SUFFIX': 'sc_shutil_suffix',
-            # On macOS, disable _osx_support.customize_compiler()
-            'CUSTOMIZED_OSX_COMPILER': 'True',
         }
 
         comp = compiler()
@@ -111,6 +109,7 @@ class TestSysconfig:
         return comp
 
     @pytest.mark.skipif("get_default_compiler() != 'unix'")
+    @pytest.mark.usefixtures('disable_macos_customization')
     def test_customize_compiler(self):
         # Make sure that sysconfig._config_vars is initialized
         sysconfig.get_config_vars()

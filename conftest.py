@@ -152,3 +152,10 @@ def temp_home(tmp_path, monkeypatch):
 def fake_home(fs, monkeypatch):
     home = fs.create_dir('/fakehome')
     return _set_home(monkeypatch, pathlib.Path(home.path))
+
+
+@pytest.fixture
+def disable_macos_customization(monkeypatch):
+    from distutils import sysconfig
+
+    monkeypatch.setattr(sysconfig, '_customize_macos', lambda: None)
