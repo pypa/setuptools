@@ -48,7 +48,8 @@ class TestBuildScripts(support.TempdirManager):
         )
         return build_scripts(dist)
 
-    def write_sample_scripts(self, dir):
+    @staticmethod
+    def write_sample_scripts(dir):
         spec = {
             'script1.py': textwrap.dedent("""
                 #! /usr/bin/env python2.3
