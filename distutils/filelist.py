@@ -251,7 +251,7 @@ class FileList:
         pattern_re = translate_pattern(pattern, anchor, prefix, is_regex)
         self.debug_print("exclude_pattern: applying regex r'%s'" % pattern_re.pattern)
         for i in range(len(self.files) - 1, -1, -1):
-            if pattern_re.search(self.files[i]):
+            if pattern_re.search(str(self.files[i])):
                 self.debug_print(" removing " + self.files[i])
                 del self.files[i]
                 files_found = True
