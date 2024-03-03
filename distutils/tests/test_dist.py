@@ -257,7 +257,7 @@ class TestDistributionBehavior(support.TempdirManager):
         """
         Finding config files should not fail when directory is inaccessible.
         """
-        fake_home.joinpath(pydistutils_cfg).write_text('')
+        fake_home.joinpath(pydistutils_cfg).write_text('', encoding='utf-8')
         fake_home.chmod(0o000)
         Distribution().find_config_files()
 
