@@ -26,7 +26,7 @@ def missing_compiler_executable(cmd_names=[]):  # pragma: no cover
         # MSVC has no executables, so check whether initialization succeeds
         try:
             compiler.initialize()
-        except errors.PlatformError:
+        except errors.DistutilsPlatformError:
             return "msvc"
     for name in compiler.executables:
         if cmd_names and name not in cmd_names:
