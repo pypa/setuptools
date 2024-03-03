@@ -1,3 +1,4 @@
+import pathlib
 import unicodedata
 import sys
 
@@ -21,7 +22,7 @@ def filesys_decode(path):
     ``None`` when no expected encoding works
     """
 
-    if isinstance(path, str):
+    if isinstance(path, (str, pathlib.Path)):
         return path
 
     fs_enc = sys.getfilesystemencoding() or 'utf-8'

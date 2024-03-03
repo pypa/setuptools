@@ -14,6 +14,7 @@ import re
 import sys
 import time
 import collections
+import pathlib
 
 from .._importlib import metadata
 from .. import _entry_points, _normalization
@@ -414,7 +415,7 @@ class FileList(_FileList):
         """
         found = False
         for i in range(len(self.files) - 1, -1, -1):
-            if predicate(self.files[i]):
+            if predicate(str(self.files[i])):
                 self.debug_print(" removing " + self.files[i])
                 del self.files[i]
                 found = True
@@ -503,6 +504,9 @@ class FileList(_FileList):
         self.files = list(filter(self._safe_path, self.files))
 
     def _safe_path(self, path):
+        if isinstance(path, pathlib.Path):
+            return self._safe_path_pathlib(path)
+
         enc_warn = "'%s' not %s encodable -- skipping"
 
         # To avoid accidental trans-codings errors, first to unicode
@@ -528,6 +532,12 @@ class FileList(_FileList):
         # this will catch any encode errors decoding u_path
         except UnicodeEncodeError:
             log.warn(enc_warn, path, sys.getfilesystemencoding())
+
+    def _safe_path_pathlib(self, path):
+        is_egg_info = str(path).endswith('.egg-info')
+        if self.ignore_egg_info_dir and is_egg_info:
+            return False
+        return path.exists()
 
 
 class manifest_maker(sdist):

@@ -254,7 +254,7 @@ class TestSdistTest:
         self.assert_package_data_in_manifest(cmd)
         manifest = cmd.filelist.files
         for path in EXTENSION_SOURCES:
-            assert path in manifest
+            assert str(path) in manifest
         for path in symlinked:
             assert path not in manifest
 

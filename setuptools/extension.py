@@ -1,5 +1,7 @@
 import re
 import functools
+import pathlib
+
 import distutils.core
 import distutils.errors
 import distutils.extension
@@ -141,7 +143,7 @@ class Extension(_Extension):
         lang = self.language or ''
         target_ext = '.cpp' if lang.lower() == 'c++' else '.c'
         sub = functools.partial(re.sub, '.pyx$', target_ext)
-        self.sources = list(map(sub, self.sources))
+        self.sources = list(map(pathlib.Path, map(sub, map(str, self.sources))))
 
 
 class Library(Extension):
