@@ -486,8 +486,7 @@ class FileList(_FileList):
             item = item[:-1]
         path = convert_path(item)
 
-        if self._safe_path(path):
-            self.files.append(path)
+        self.extend([path])
 
     def extend(self, paths):
         self.files.extend(filter(self._safe_path, paths))
