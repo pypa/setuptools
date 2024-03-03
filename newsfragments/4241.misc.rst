@@ -1,0 +1,1 @@
+Improvements to `Path`-related type annotations when it could be ``str | PathLike`` -- by :user:`Avasam`

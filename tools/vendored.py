@@ -105,7 +105,8 @@ def clean(vendor):
     Remove all files out of the vendor directory except the meta
     data (as pip uninstall doesn't support -t).
     """
-    remove_all(path for path in vendor.glob('*') if path.basename() != 'vendored.txt')
+    ignored = ['vendored.txt', 'ruff.toml']
+    remove_all(path for path in vendor.glob('*') if path.basename() not in ignored)
 
 
 def install(vendor):
