@@ -17,6 +17,7 @@ import collections
 
 from .._importlib import metadata
 from .. import _entry_points, _normalization
+from .._path import StrPath
 from . import _requirestxt
 
 from setuptools import Command
@@ -501,32 +502,25 @@ class FileList(_FileList):
         """
         self.files = list(filter(self._safe_path, self.files))
 
-    def _safe_path(self, path):
-        enc_warn = "'%s' not %s encodable -- skipping"
+    def _safe_path(self, path: StrPath):
+        return (
+            self._encodeable(path)
+            and not self._ignored_egg_info(path)
+            and os.path.exists(path)
+        )
 
-        # To avoid accidental trans-codings errors, first to unicode
-        u_path = unicode_utils.filesys_decode(path)
-        if u_path is None:
-            log.warn("'%s' in unexpected encoding -- skipping" % path)
-            return False
-
-        # Must ensure utf-8 encodability
-        utf8_path = unicode_utils.try_encode(u_path, "utf-8")
-        if utf8_path is None:
-            log.warn(enc_warn, path, 'utf-8')
-            return False
-
+    @staticmethod
+    def _encodeable(path):
+        if isinstance(path, bytes):
+            raise ValueError(f"Paths as bytes are no longer supported (got {path})")
         try:
-            # ignore egg-info paths
-            is_egg_info = ".egg-info" in u_path or b".egg-info" in utf8_path
-            if self.ignore_egg_info_dir and is_egg_info:
-                return False
-            # accept is either way checks out
-            if os.path.exists(u_path) or os.path.exists(utf8_path):
-                return True
-        # this will catch any encode errors decoding u_path
+            return str(path).encode(sys.getfilesystemencoding())
         except UnicodeEncodeError:
+            enc_warn = "'%s' not %s encodable -- skipping"
             log.warn(enc_warn, path, sys.getfilesystemencoding())
+
+    def _ignored_egg_info(self, path):
+        return self.ignore_egg_info_dir and '.egg-info' in str(path)
 
 
 class manifest_maker(sdist):
