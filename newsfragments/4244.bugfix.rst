@@ -1,0 +1,1 @@
+Return an empty `list` by default in ``pkg_resources.ResourceManager.cleanup_resources`` -- by :user:`Avasam`
