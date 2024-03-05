@@ -4,7 +4,7 @@ from inspect import cleandoc
 
 import pytest
 import tomli_w
-from path import Path as _Path
+from path import Path
 
 from setuptools.config.pyprojecttoml import (
     read_configuration,
@@ -352,7 +352,7 @@ def test_include_package_data_in_setuppy(tmp_path):
     setuppy = tmp_path / "setup.py"
     setuppy.write_text("__import__('setuptools').setup(include_package_data=False)")
 
-    with _Path(tmp_path):
+    with Path(tmp_path):
         dist = distutils.core.run_setup("setup.py", {}, stop_after="config")
 
     assert dist.get_name() == "myproj"

@@ -1,4 +1,5 @@
 # syntax: glob
+# See https://blog.jaraco.com/skeleton/#ignoring-artifacts before modifying.
 bin
 build
 dist
@@ -17,6 +18,5 @@ setuptools.egg-info
 *~
 .hg*
 .cache
-.idea/
 .pytest_cache/
 .mypy_cache/
