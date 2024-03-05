@@ -35,7 +35,7 @@ class Metadata(pkg_resources.EmptyProvider):
     def __init__(self, *pairs):
         self.metadata = dict(pairs)
 
-    def has_metadata(self, name):
+    def has_metadata(self, name) -> bool:
         return name in self.metadata
 
     def get_metadata(self, name):
