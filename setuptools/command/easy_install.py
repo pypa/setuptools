@@ -25,6 +25,7 @@ from distutils.spawn import find_executable
 from distutils.command import install
 import sys
 import os
+from typing import Dict, List
 import zipimport
 import shutil
 import tempfile
@@ -42,7 +43,6 @@ import shlex
 import io
 import configparser
 import sysconfig
-
 
 from sysconfig import get_path
 
@@ -1765,7 +1765,7 @@ class RewritePthDistributions(PthDistributions):
 
 
 if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'raw') == 'rewrite':
-    PthDistributions = RewritePthDistributions
+    PthDistributions = RewritePthDistributions  # type: ignore[misc]  # Overwriting type
 
 
 def _first_line_re():
@@ -2015,7 +2015,7 @@ try:
     from os import chmod as _chmod
 except ImportError:
     # Jython compatibility
-    def _chmod(*args):
+    def _chmod(*args: object, **kwargs: object) -> None:  # type: ignore[misc] # Mypy re-uses the imported definition anyway
         pass
 
 
@@ -2033,8 +2033,8 @@ class CommandSpec(list):
     those passed to Popen.
     """
 
-    options = []
-    split_args = dict()
+    options: List[str] = []
+    split_args: Dict[str, bool] = dict()
 
     @classmethod
     def best(cls):

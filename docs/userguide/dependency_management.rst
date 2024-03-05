@@ -19,7 +19,7 @@ Build system requirement
 
 After organizing all the scripts and files and getting ready for packaging,
 there needs to be a way to specify what programs and libraries are actually needed
-do the packaging (in our case, ``setuptools`` of course).
+to do the packaging (in our case, ``setuptools`` of course).
 This needs to be specified in your ``pyproject.toml`` file
 (if you have forgot what this is, go to :doc:`/userguide/quickstart` or :doc:`/build_meta`):
 

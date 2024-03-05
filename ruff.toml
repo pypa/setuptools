@@ -18,6 +18,7 @@ ignore = [
 ]
 extend-select = [
 	"UP",  # pyupgrade
+	"YTT",  # flake8-2020
 ]
 extend-ignore = [
 	"UP015",  # redundant-open-modes, explicit is preferred

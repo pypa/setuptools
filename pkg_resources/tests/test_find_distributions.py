@@ -1,9 +1,10 @@
-import py
+from pathlib import Path
+import shutil
 import pytest
 import pkg_resources
 
 
-TESTS_DATA_DIR = py.path.local(__file__).dirpath('data')
+TESTS_DATA_DIR = Path(__file__).parent / 'data'
 
 
 class TestFindDistributions:
@@ -19,21 +20,31 @@ class TestFindDistributions:
         assert not list(dists)
 
     def test_standalone_egg_directory(self, target_dir):
-        (TESTS_DATA_DIR / 'my-test-package_unpacked-egg').copy(target_dir)
+        shutil.copytree(
+            TESTS_DATA_DIR / 'my-test-package_unpacked-egg',
+            target_dir,
+            dirs_exist_ok=True,
+        )
         dists = pkg_resources.find_distributions(str(target_dir))
         assert [dist.project_name for dist in dists] == ['my-test-package']
         dists = pkg_resources.find_distributions(str(target_dir), only=True)
         assert not list(dists)
 
     def test_zipped_egg(self, target_dir):
-        (TESTS_DATA_DIR / 'my-test-package_zipped-egg').copy(target_dir)
+        shutil.copytree(
+            TESTS_DATA_DIR / 'my-test-package_zipped-egg',
+            target_dir,
+            dirs_exist_ok=True,
+        )
         dists = pkg_resources.find_distributions(str(target_dir))
         assert [dist.project_name for dist in dists] == ['my-test-package']
         dists = pkg_resources.find_distributions(str(target_dir), only=True)
         assert not list(dists)
 
     def test_zipped_sdist_one_level_removed(self, target_dir):
-        (TESTS_DATA_DIR / 'my-test-package-zip').copy(target_dir)
+        shutil.copytree(
+            TESTS_DATA_DIR / 'my-test-package-zip', target_dir, dirs_exist_ok=True
+        )
         dists = pkg_resources.find_distributions(
             str(target_dir / "my-test-package.zip")
         )

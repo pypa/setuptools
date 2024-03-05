@@ -10,12 +10,19 @@ by including the data files **inside the package directory**.
 
 Setuptools focuses on this most common type of data files and offers three ways
 of specifying which files should be included in your packages, as described in
-the following sections.
+the following section.
+
+
+Configuration Options
+=====================
+
+
+.. _include-package-data:
 
 include_package_data
-====================
+--------------------
 
-First, you can simply use the ``include_package_data`` keyword.
+First, you can use the ``include_package_data`` keyword.
 For example, if the package tree looks like this::
 
     project_root_directory
@@ -92,8 +99,10 @@ your package, provided:
       (where ``include_package_data=False`` by default), which was not changed
       to ensure backwards compatibility with existing projects.
 
+.. _package-data:
+
 package_data
-============
+------------
 
 By default, ``include_package_data`` considers **all** non ``.py`` files found inside
 the package directory (``src/mypkg`` in this case) as data files, and includes those that
@@ -260,8 +269,10 @@ we specify that ``data1.rst`` from ``mypkg1`` alone should be captured as well.
    Please check :ref:`section subdirectories <subdir-data-files>` below.
 
 
+.. _exclude-package-data:
+
 exclude_package_data
-====================
+--------------------
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included. For example,
@@ -327,6 +338,38 @@ even if they were listed in ``package_data`` or were included as a result of usi
 ``include_package_data``.
 
 
+Summary
+-------
+
+In summary, the three options allow you to:
+
+``include_package_data``
+    Accept all data files and directories matched by
+    :ref:`MANIFEST.in <Using MANIFEST.in>` or added by
+    a :ref:`plugin <Adding Support for Revision Control Systems>`.
+
+``package_data``
+    Specify additional patterns to match files that may or may
+    not be matched by :ref:`MANIFEST.in <Using MANIFEST.in>`
+    or added by a :ref:`plugin <Adding Support for Revision Control Systems>`.
+
+``exclude_package_data``
+    Specify patterns for data files and directories that should *not* be
+    included when a package is installed, even if they would otherwise have
+    been included due to the use of the preceding options.
+
+.. note::
+    Due to the way the build process works, a data file that you
+    include in your project and then stop including may be "orphaned" in your
+    project's build directories, requiring you to manually deleting them.
+    This may also be important for your users and contributors
+    if they track intermediate revisions of your project using Subversion; be sure
+    to let them know when you make changes that remove files from inclusion so they
+    can also manually delete them.
+
+    See also troubleshooting information in :ref:`Caching and Troubleshooting`.
+
+
 .. _subdir-data-files:
 
 Subdirectory for Data Files
@@ -350,8 +393,13 @@ Here, the ``.rst`` files are placed under a ``data`` subdirectory inside ``mypkg
 while the ``.txt`` files are directly under ``mypkg``.
 
 In this case, the recommended approach is to treat ``data`` as a namespace package
-(refer :pep:`420`). With ``package_data``,
-the configuration might look like this:
+(refer :pep:`420`). This way, you can rely on the same methods described above,
+using either :ref:`package-data` or :ref:`include-package-data`.
+For the sake of completeness, we include below configuration examples
+for the subdirectory structure, but please refer to the detailed
+information in the previous sections of this document.
+
+With :ref:`package-data`, the configuration might look like this:
 
 .. tab:: pyproject.toml
 
@@ -407,8 +455,9 @@ which enables the ``data`` directory to be identified, and then, we separately s
 files for the root package ``mypkg``, and the namespace package ``data`` under the package
 ``mypkg``.
 
-With ``include_package_data`` the configuration is simpler: you simply need to enable
-scanning of namespace packages in the ``src`` directory and the rest is handled by Setuptools.
+Alternatively, you can also rely on :ref:`include-package-data`.
+Note that this is the default behaviour in ``pyproject.toml``, but you need to
+manually enable scanning of namespace packages in ``setup.cfg`` or ``setup.py``:
 
 .. tab:: pyproject.toml
 
@@ -422,7 +471,7 @@ scanning of namespace packages in the ``src`` directory and the rest is handled 
 
         [tool.setuptools.packages.find]
         # scanning for namespace packages is true by default in pyproject.toml, so
-        # you need NOT include the following line.
+        # you need NOT include this configuration.
         namespaces = true
         where = ["src"]
 
@@ -451,34 +500,9 @@ scanning of namespace packages in the ``src`` directory and the rest is handled 
             include_package_data=True,
         )
 
-Summary
-=======
-
-In summary, the three options allow you to:
-
-``include_package_data``
-    Accept all data files and directories matched by
-    :ref:`MANIFEST.in <Using MANIFEST.in>` or added by
-    a :ref:`plugin <Adding Support for Revision Control Systems>`.
-
-``package_data``
-    Specify additional patterns to match files that may or may
-    not be matched by :ref:`MANIFEST.in <Using MANIFEST.in>`
-    or added by a :ref:`plugin <Adding Support for Revision Control Systems>`.
-
-``exclude_package_data``
-    Specify patterns for data files and directories that should *not* be
-    included when a package is installed, even if they would otherwise have
-    been included due to the use of the preceding options.
-
-.. note::
-    Due to the way the build process works, a data file that you
-    include in your project and then stop including may be "orphaned" in your
-    project's build directories, requiring you to manually deleting them.
-    This may also be important for your users and contributors
-    if they track intermediate revisions of your project using Subversion; be sure
-    to let them know when you make changes that remove files from inclusion so they
-    can also manually delete them.
+To avoid common mistakes with :ref:`include-package-data`,
+please ensure :ref:`MANIFEST.in <Using MANIFEST.in>` is properly set
+or use a revision control system plugin (see :doc:`/userguide/miscellaneous`).
 
 
 .. _Accessing Data Files at Runtime:

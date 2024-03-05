@@ -323,9 +323,9 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
             "testing": """
                 pytest >= 6
                 pytest-checkdocs >= 2.4
-                pytest-flake8 ; \\
-                        # workaround for tholo/pytest-flake8#87
-                        python_version < "3.12"
+                tomli ; \\
+                        # Using stdlib when possible
+                        python_version < "3.11"
                 ini2toml[lite]>=0.9
                 """,
             "other": [],
@@ -345,7 +345,7 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
         'Requires-Python: >=3.8',
         'Provides-Extra: other',
         'Provides-Extra: testing',
-        'Requires-Dist: pytest-flake8; python_version < "3.12" and extra == "testing"',
+        'Requires-Dist: tomli; python_version < "3.11" and extra == "testing"',
         'Requires-Dist: more-itertools==8.8.0; extra == "other"',
         'Requires-Dist: ini2toml[lite]>=0.9; extra == "testing"',
     ]

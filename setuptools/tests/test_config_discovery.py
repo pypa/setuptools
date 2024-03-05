@@ -13,7 +13,7 @@ import distutils.core
 
 import pytest
 import jaraco.path
-from path import Path as _Path
+from path import Path
 
 from .contexts import quiet
 from .integration.helpers import get_sdist_members, get_wheel_members, run
@@ -304,7 +304,7 @@ class TestWithAttrDirective:
         assert dist.package_dir
         package_path = find_package_path("pkg", dist.package_dir, tmp_path)
         assert os.path.exists(package_path)
-        assert folder in _Path(package_path).parts()
+        assert folder in Path(package_path).parts()
 
         _run_build(tmp_path, "--sdist")
         dist_file = tmp_path / "dist/pkg-42.tar.gz"
@@ -607,14 +607,14 @@ def _get_dist(dist_path, attrs):
 
     script = dist_path / 'setup.py'
     if script.exists():
-        with _Path(dist_path):
+        with Path(dist_path):
             dist = distutils.core.run_setup("setup.py", {}, stop_after="init")
     else:
         dist = Distribution(attrs)
 
     dist.src_root = root
     dist.script_name = "setup.py"
-    with _Path(dist_path):
+    with Path(dist_path):
         dist.parse_config_files()
 
     dist.set_defaults()
@@ -627,7 +627,7 @@ def _run_sdist_programatically(dist_path, attrs):
     cmd.ensure_finalized()
     assert cmd.distribution.packages or cmd.distribution.py_modules
 
-    with quiet(), _Path(dist_path):
+    with quiet(), Path(dist_path):
         cmd.run()
 
     return dist, cmd
