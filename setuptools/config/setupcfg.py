@@ -108,7 +108,7 @@ def _apply(
     filenames = [*other_files, filepath]
 
     try:
-        _Distribution.parse_config_files(dist, filenames=filenames)
+        _Distribution.parse_config_files(dist, filenames=filenames)  # type: ignore[arg-type] # TODO: fix in disutils stubs
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )
@@ -475,7 +475,7 @@ class ConfigHandler(Generic[Target]):
                 # Keep silent for a new option may appear anytime.
                 self[name] = value
 
-    def parse(self):
+    def parse(self) -> None:
         """Parses configuration file items from one
         or more related sections.
 
