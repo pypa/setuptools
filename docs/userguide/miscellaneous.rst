@@ -168,6 +168,20 @@ binary extensions during the build process, or included in the final
 
    See :doc:`/userguide/datafiles` for more information.
 
+
+.. _Caching and Troubleshooting:
+
+Caching and Troubleshooting
+===========================
+
+Setuptools automatically creates a few directories to host build artefacts and
+cache files, such as ``build``, ``dist``, ``*.egg-info``.  While cache is
+useful to speed up incremental builds, in some edge cases it might become
+stale.  If you feel that caching is causing problems to your build, specially
+after changes in configuration or in the directory/file structure., consider
+removing ``build``, ``dist``, ``*.egg-info`` [#PKG-INFO]_ before rebuilding or
+reinstalling your project.
+
 ----
 
 .. [#build-process]
@@ -182,6 +196,10 @@ binary extensions during the build process, or included in the final
    and is ready to be unpacked into a running installation of Python or
    :term:`Virtual Environment`.
    Therefore it only contains items that are required during runtime.
+
+.. [#PKG-INFO]
+   When working from an extracted sdist (e.g. for patching), you might also consider removing
+   the ``PKG-INFO`` file to force its recreation.
 
 .. _git: https://git-scm.com
 .. _mercurial: https://www.mercurial-scm.org
