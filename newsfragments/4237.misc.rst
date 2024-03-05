@@ -1,0 +1,1 @@
+Drop dependency on `py`. Bump ``pytest-xdist`` to ``>=3`` and use `pathlib` instead in tests -- by :user:`Avasam`
