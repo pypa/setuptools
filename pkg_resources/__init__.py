@@ -567,7 +567,7 @@ class IResourceProvider(IMetadataProvider, Protocol):
         `manager` must be an ``IResourceManager``"""
 
     def get_resource_string(self, manager, resource_name) -> bytes:
-        """Return a bytes string containing the contents of `resource_name`
+        """Return the contents of `resource_name` as :obj:`bytes`
 
         `manager` must be an ``IResourceManager``"""
 
@@ -1204,7 +1204,7 @@ class ResourceManager:
         )
 
     def resource_string(self, package_or_requirement, resource_name) -> bytes:
-        """Return specified resource as a bytes string"""
+        """Return specified resource as :obj:`bytes`"""
         return get_provider(package_or_requirement).get_resource_string(
             self, resource_name
         )
