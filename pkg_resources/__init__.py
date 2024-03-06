@@ -1,3 +1,6 @@
+# TODO: Add Generic type annotations to initialized collections.
+# For now we'd simply use implicit Any/Unknown which would add redundant annotations
+# mypy: disable-error-code="var-annotated"
 """
 Package resource API
 --------------------
@@ -31,18 +34,20 @@ from typing import (
     Any,
     Callable,
     Dict,
-    IO,
     Iterable,
     List,
     Mapping,
+    MutableSequence,
     NamedTuple,
     Optional,
     Protocol,
     Sequence,
+    Set,
     TYPE_CHECKING,
     Tuple,
     Type,
     Union,
+    cast,
 )
 import zipfile
 import zipimport
@@ -99,8 +104,8 @@ __import__('pkg_resources.extern.packaging.utils')
 
 # declare some globals that will be defined later to
 # satisfy the linters.
-require = None
-working_set = None
+require = cast("Callable[..., Any]", None)
+working_set = cast("WorkingSet", None)
 add_activation_listener = None
 resources_stream = None
 cleanup_resources = None
@@ -333,7 +338,7 @@ class VersionConflict(ResolutionError):
     def report(self):
         return self._template.format(**locals())
 
-    def with_context(self, required_by: "set[Union[Distribution, str]]"):
+    def with_context(self, required_by: Set[Union["Distribution", str]]):
         """
         If required_by is non-empty, return a version of self that is a
         ContextualVersionConflict.
@@ -620,7 +625,7 @@ class WorkingSet:
 
     def __init__(self, entries: Optional[Iterable[str]] = None):
         """Create working set from list of path entries (default=sys.path)"""
-        self.entries: list[str] = []
+        self.entries: List[str] = []
         self.entry_keys = {}
         self.by_key = {}
         self.normalized_to_canonical_keys = {}
@@ -870,7 +875,7 @@ class WorkingSet:
 
     def _resolve_dist(
         self, req, best, replace_conflicting, env, installer, required_by, to_activate
-    ):
+    ) -> "Distribution":
         dist = best.get(req.key)
         if dist is None:
             # Find the best distribution and add it to the map
@@ -1749,6 +1754,9 @@ def _parents(path):
 class EggProvider(NullProvider):
     """Provider based on a virtual filesystem"""
 
+    egg_name: str
+    egg_info: str
+
     def __init__(self, module: _ModuleLike):
         super().__init__(module)
         self._setup_prefix()
@@ -1824,8 +1832,9 @@ class ZipManifests(Dict[str, "MemoizedZipManifests.manifest_mod"]):
     zip manifest builder
     """
 
+    # `path` could be `Union["StrPath", IO[bytes]]` but that violates the LSP for `MemoizedZipManifests.load`
     @classmethod
-    def build(cls, path: Union["StrPath", IO[bytes]]):
+    def build(cls, path: str):
         """
         Build a dictionary similar to the zipimport directory
         caches, except instead of tuples, store ZipInfo objects.
@@ -1855,7 +1864,7 @@ class MemoizedZipManifests(ZipManifests):
         manifest: Dict[str, zipfile.ZipInfo]
         mtime: float
 
-    def load(self, path: str):
+    def load(self, path: str):  # type: ignore[override] # ZipManifests.load is a classmethod
         """
         Load a manifest at path or return a suitable manifest already loaded.
         """
@@ -2407,7 +2416,7 @@ def declare_namespace(packageName: str):
         if packageName in _namespace_packages:
             return
 
-        path = sys.path
+        path: MutableSequence[str] = sys.path
         parent, _, _ = packageName.rpartition('.')
 
         if parent:
@@ -2557,8 +2566,8 @@ class EntryPoint:
         self,
         name: str,
         module_name: str,
-        attrs: Tuple[str, ...] = (),
-        extras: Tuple[str, ...] = (),
+        attrs: Iterable[str] = (),
+        extras: Iterable[str] = (),
         dist: Optional["Distribution"] = None,
     ):
         if not MODULE(module_name):
@@ -2688,7 +2697,7 @@ class EntryPoint:
     @classmethod
     def parse_map(
         cls,
-        data: Union[_NestedStr, Dict[str, _NestedStr]],
+        data: Union[str, Iterable[str], Dict[str, Union[str, Iterable[str]]]],
         dist: Optional["Distribution"] = None,
     ):
         """Parse a map of entry point groups"""
@@ -3017,7 +3026,11 @@ class Distribution:
         **kw: Optional[Union[str, int]],
     ):
         return cls.from_location(
-            _normalize_cached(filename), os.path.basename(filename), metadata, **kw
+            _normalize_cached(filename),
+            os.path.basename(filename),
+            metadata,
+            # We could set `precedence` explicitly, but keeping `**kw` for full backwards compatibility
+            **kw,  # type:ignore[arg-type]
         )
 
     def as_requirement(self):
@@ -3055,7 +3068,7 @@ class Distribution:
     # FIXME: 'Distribution.insert_on' is too complex (13)
     def insert_on(
         self,
-        path: Union[List[str], List["os.PathLike[str]"]],
+        path: List[str],
         loc=None,
         replace: bool = False,
     ):  # noqa: C901
@@ -3163,13 +3176,14 @@ class Distribution:
             return False
         return True
 
-    def clone(self, **kw: Optional[Union[str, int]]):
+    def clone(self, **kw: Optional[Union[str, int, IResourceProvider]]):
         """Copy this distribution, substituting in any changed keyword args"""
         names = 'project_name version py_version platform location precedence'
         for attr in names.split():
             kw.setdefault(attr, getattr(self, attr, None))
         kw.setdefault('metadata', self._provider)
-        return self.__class__(**kw)
+        # Unsafely unpacking. But keeping **kw for backwards and subclassing compatibility
+        return self.__class__(**kw)  # type:ignore[arg-type]
 
     @property
     def extras(self):
@@ -3266,7 +3280,7 @@ def issue_warning(*args, **kw):
     warnings.warn(stacklevel=level + 1, *args, **kw)
 
 
-def parse_requirements(strs: Union[str, Iterable[str]]):
+def parse_requirements(strs: _NestedStr):
     """
     Yield ``Requirement`` objects for each specification in `strs`.
 
@@ -3287,7 +3301,8 @@ class Requirement(packaging.requirements.Requirement):
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()
         self.specs = [(spec.operator, spec.version) for spec in self.specifier]
-        self.extras = tuple(map(safe_extra, self.extras))
+        # packaging.requirements.Requirement uses a set for its extras. We use a variable-length tuple
+        self.extras: Tuple[str] = tuple(map(safe_extra, self.extras))
         self.hashCmp = (
             self.key,
             self.url,
