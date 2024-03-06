@@ -126,8 +126,9 @@ class TestExceptionSaver:
         cmd, args, kwargs = caught.value.args
         assert cmd == 'open'
         assert args == ('/etc/foo', 'w')
-        assert kwargs == {}
+        assert kwargs == {"encoding": "utf-8"}
 
         msg = str(caught.value)
         assert 'open' in msg
         assert "('/etc/foo', 'w')" in msg
+        assert "{'encoding': 'utf-8'}" in msg
