@@ -561,8 +561,8 @@ class IResourceProvider(IMetadataProvider, Protocol):
 
         `manager` must be an ``IResourceManager``"""
 
-    def get_resource_string(self, manager, resource_name):
-        """Return a string containing the contents of `resource_name`
+    def get_resource_string(self, manager, resource_name) -> bytes:
+        """Return the contents of `resource_name` as :obj:`bytes`
 
         `manager` must be an ``IResourceManager``"""
 
@@ -1198,8 +1198,8 @@ class ResourceManager:
             self, resource_name
         )
 
-    def resource_string(self, package_or_requirement, resource_name):
-        """Return specified resource as a string"""
+    def resource_string(self, package_or_requirement, resource_name) -> bytes:
+        """Return specified resource as :obj:`bytes`"""
         return get_provider(package_or_requirement).get_resource_string(
             self, resource_name
         )
@@ -1475,7 +1475,7 @@ class NullProvider:
     def get_resource_stream(self, manager, resource_name):
         return io.BytesIO(self.get_resource_string(manager, resource_name))
 
-    def get_resource_string(self, manager, resource_name):
+    def get_resource_string(self, manager, resource_name) -> bytes:
         return self._get(self._fn(self.module_path, resource_name))
 
     def has_resource(self, resource_name):
@@ -1645,7 +1645,7 @@ is not allowed.
             DeprecationWarning,
         )
 
-    def _get(self, path):
+    def _get(self, path) -> bytes:
         if hasattr(self.loader, 'get_data'):
             return self.loader.get_data(path)
         raise NotImplementedError(
@@ -1702,7 +1702,7 @@ class DefaultProvider(EggProvider):
     def get_resource_stream(self, manager, resource_name):
         return open(self._fn(self.module_path, resource_name), 'rb')
 
-    def _get(self, path):
+    def _get(self, path) -> bytes:
         with open(path, 'rb') as stream:
             return stream.read()
 
@@ -1727,8 +1727,8 @@ class EmptyProvider(NullProvider):
 
     _isdir = _has = lambda self, path: False
 
-    def _get(self, path):
-        return ''
+    def _get(self, path) -> bytes:
+        return b''
 
     def _listdir(self, path):
         return []
