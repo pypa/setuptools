@@ -27,8 +27,7 @@ import io
 import time
 import re
 import types
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol
-from collections.abc import Callable, Iterator
+from typing import TYPE_CHECKING, Callable, Dict, Iterable, List, Optional, Protocol
 import zipfile
 import zipimport
 import warnings
@@ -66,7 +65,21 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
-if not TYPE_CHECKING:
+if TYPE_CHECKING:
+    # Replicates the imports below in a way that can be understood by type-checkers
+    from jaraco.text import (
+        yield_lines,
+        drop_comment,
+        join_continuation,
+    )
+    import platformdirs
+    import packaging
+    import packaging.version
+    import packaging.specifiers
+    import packaging.requirements
+    import packaging.markers
+    import packaging.utils
+else:
     from pkg_resources.extern.jaraco.text import (
         yield_lines,
         drop_comment,
@@ -81,29 +94,6 @@ if not TYPE_CHECKING:
     __import__('pkg_resources.extern.packaging.requirements')
     __import__('pkg_resources.extern.packaging.markers')
     __import__('pkg_resources.extern.packaging.utils')
-else:
-    # Replicates the imports above in a way that can be understood by type-checkers
-    from jaraco.text import (
-        yield_lines,
-        drop_comment,
-        join_continuation,
-    )
-    import platformdirs
-    import packaging
-    import packaging.version
-    import packaging.specifiers
-    import packaging.requirements
-    import packaging.markers
-    import packaging.utils
-
-    # Declare some globals that will be defined by calls to _declare_state so checkers know they exist and their type
-    _distribution_finders: Dict[
-        type, Callable[[Any, str, bool], Iterator["Distribution"]]
-    ] = {}
-    _namespace_handlers: Dict[
-        type, Callable[[Any, str, str, types.ModuleType], Optional[str]]
-    ] = {}
-    _namespace_packages: Dict[Optional[str], List[str]] = {}
 
 
 warnings.warn(
@@ -494,6 +484,19 @@ def compatible_platforms(provided, required):
 
     # XXX Linux and other platforms' special cases should go here
     return False
+
+
+def run_script(dist_spec, script_name):
+    """Locate distribution `dist_spec` and run its `script_name` script"""
+    ns = sys._getframe(1).f_globals
+    name = ns['__name__']
+    ns.clear()
+    ns['__name__'] = name
+    require(dist_spec)[0].run_script(script_name, ns)
+
+
+# backward compatibility
+run_main = run_script
 
 
 def get_distribution(dist):
@@ -2033,6 +2036,9 @@ class EggMetadata(ZipProvider):
         self._setup_prefix()
 
 
+_distribution_finders: Dict[
+    type, Callable[[object, str, bool], Iterable["Distribution"]]
+] = {}
 _declare_state('dict', _distribution_finders={})
 
 
@@ -2207,7 +2213,11 @@ if hasattr(pkgutil, 'ImpImporter'):
 
 register_finder(importlib.machinery.FileFinder, find_on_path)
 
+_namespace_handlers: Dict[
+    type, Callable[[object, str, str, types.ModuleType], Optional[str]]
+] = {}
 _declare_state('dict', _namespace_handlers={})
+_namespace_packages: Dict[Optional[str], List[str]] = {}
 _declare_state('dict', _namespace_packages={})
 
 
