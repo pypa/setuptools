@@ -2,10 +2,10 @@ import re
 from configparser import ConfigParser
 from inspect import cleandoc
 
+import jaraco.path
 import pytest
 import tomli_w
 from path import Path
-from jaraco.path import build as path_build
 
 from setuptools.config.pyprojecttoml import (
     read_configuration,
@@ -108,7 +108,7 @@ def create_example(path, pkg_root):
         # Use this opportunity to ensure namespaces are discovered
         files[pkg_root] = {**packages, "other": {"nested": {"__init__.py": ""}}}
 
-    path_build(files, prefix=path)
+    jaraco.path.build(files, prefix=path)
 
 
 def verify_example(config, path, pkg_root):
@@ -361,7 +361,7 @@ def test_include_package_data_in_setuppy(tmp_path):
         "pyproject.toml": "[project]\nname = 'myproj'\nversion='42'\n",
         "setup.py": "__import__('setuptools').setup(include_package_data=False)",
     }
-    path_build(files, prefix=tmp_path)
+    jaraco.path.build(files, prefix=tmp_path)
 
     with Path(tmp_path):
         dist = distutils.core.run_setup("setup.py", {}, stop_after="config")
