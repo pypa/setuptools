@@ -107,9 +107,7 @@ __import__('pkg_resources.extern.packaging.utils')
 require = cast("Callable[..., Any]", None)
 working_set = cast("WorkingSet", None)
 add_activation_listener = None
-resources_stream = None
 cleanup_resources = None
-resource_dir = None
 resource_stream = None
 set_extraction_path = None
 resource_isdir = None
@@ -526,19 +524,6 @@ def compatible_platforms(provided: Optional[str], required: Optional[str]):
 
     # XXX Linux and other platforms' special cases should go here
     return False
-
-
-def run_script(dist_spec, script_name):
-    """Locate distribution `dist_spec` and run its `script_name` script"""
-    ns = sys._getframe(1).f_globals
-    name = ns['__name__']
-    ns.clear()
-    ns['__name__'] = name
-    require(dist_spec)[0].run_script(script_name, ns)
-
-
-# backward compatibility
-run_main = run_script
 
 
 def get_distribution(dist: _EPDistType):
