@@ -10,7 +10,6 @@ import tarfile
 import logging
 import distutils
 from inspect import cleandoc
-from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -117,7 +116,7 @@ skip_under_stdlib_distutils = pytest.mark.skipif(
 
 def touch(path):
     open(path, 'wb').close()
-    return Path(path)
+    return path
 
 
 def symlink_or_skip_test(src, dst):
