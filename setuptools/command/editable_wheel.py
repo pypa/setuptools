@@ -59,7 +59,7 @@ from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
 
 if TYPE_CHECKING:
-    from wheel.wheelfile import WheelFile  # noqa
+    from wheel.wheelfile import WheelFile  # type:ignore[import-untyped] # noqa
 
 _P = TypeVar("_P", bound=StrPath)
 _logger = logging.getLogger(__name__)
