@@ -16,7 +16,7 @@ from setuptools.extension import Extension, Library
 
 try:
     # Attempt to use Cython for building extensions, if available
-    from Cython.Distutils.build_ext import build_ext as _build_ext
+    from Cython.Distutils.build_ext import build_ext as _build_ext  # type: ignore[import-not-found] # Cython not installed on CI tests
 
     # Additionally, assert that the compiler module will load
     # also. Ref #1229.
