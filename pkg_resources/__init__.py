@@ -486,19 +486,6 @@ def compatible_platforms(provided, required):
     return False
 
 
-def run_script(dist_spec, script_name):
-    """Locate distribution `dist_spec` and run its `script_name` script"""
-    ns = sys._getframe(1).f_globals
-    name = ns['__name__']
-    ns.clear()
-    ns['__name__'] = name
-    require(dist_spec)[0].run_script(script_name, ns)
-
-
-# backward compatibility
-run_main = run_script
-
-
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
     if isinstance(dist, str):
