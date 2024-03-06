@@ -3344,7 +3344,7 @@ def _initialize_master_working_set():
 
 if TYPE_CHECKING:
     # All of these are set by the @_call_aside methods above
-    __resource_manager: ResourceManager = ...  # Won't exist at runtime
+    __resource_manager: ResourceManager = ResourceManager()  # Won't exist at runtime
     resource_exists = __resource_manager.resource_exists
     resource_isdir = __resource_manager.resource_isdir
     resource_filename = __resource_manager.resource_filename
@@ -3354,7 +3354,7 @@ if TYPE_CHECKING:
     set_extraction_path = __resource_manager.set_extraction_path
     cleanup_resources = __resource_manager.cleanup_resources
 
-    working_set: WorkingSet = ...
+    working_set: WorkingSet = WorkingSet()
     require = working_set.require
     iter_entry_points = working_set.iter_entry_points
     add_activation_listener = working_set.subscribe
