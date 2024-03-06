@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import Any, Dict, List, Protocol
+from typing import Any, Callable, Dict, Iterable, List, Protocol, Optional
 import zipfile
 import zipimport
 import warnings
@@ -2021,7 +2021,9 @@ class EggMetadata(ZipProvider):
         self._setup_prefix()
 
 
-_distribution_finders = {}
+_distribution_finders: Dict[
+    type, Callable[[object, str, bool], Iterable["Distribution"]]
+] = {}
 _declare_state('dict', _distribution_finders=_distribution_finders)
 
 
@@ -2195,9 +2197,11 @@ if hasattr(pkgutil, 'ImpImporter'):
 
 register_finder(importlib.machinery.FileFinder, find_on_path)
 
-_namespace_handlers = {}
+_namespace_handlers: Dict[
+    type, Callable[[object, str, str, types.ModuleType], Optional[str]]
+] = {}
 _declare_state('dict', _namespace_handlers=_namespace_handlers)
-_namespace_packages = {}
+_namespace_packages: Dict[Optional[str], List[str]] = {}
 _declare_state('dict', _namespace_packages=_namespace_packages)
 
 
