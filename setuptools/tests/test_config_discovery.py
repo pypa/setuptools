@@ -591,7 +591,7 @@ def _write_setupcfg(root, options):
             setupcfg["options"][key] = "\n" + str_value
         else:
             setupcfg["options"][key] = str(value)
-    with open(root / "setup.cfg", "w") as f:
+    with open(root / "setup.cfg", "w", encoding="utf-8") as f:
         setupcfg.write(f)
     print("~~~~~ setup.cfg ~~~~~")
     print((root / "setup.cfg").read_text())

@@ -94,7 +94,7 @@ class TestEggInfo:
         ei.initialize_options()
         ei.save_version_info(setup_cfg)
 
-        with open(setup_cfg, 'r') as f:
+        with open(setup_cfg, 'r', encoding="utf-8") as f:
             content = f.read()
 
         assert '[egg_info]' in content
@@ -139,7 +139,7 @@ class TestEggInfo:
         ei.initialize_options()
         ei.save_version_info(setup_cfg)
 
-        with open(setup_cfg, 'r') as f:
+        with open(setup_cfg, 'r', encoding="utf-8") as f:
             content = f.read()
 
         assert '[egg_info]' in content
@@ -251,7 +251,7 @@ class TestEggInfo:
         self._run_egg_info_command(tmpdir_cwd, env)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         sources_txt = os.path.join(egg_info_dir, 'SOURCES.txt')
-        with open(sources_txt) as f:
+        with open(sources_txt, encoding="utf-8") as f:
             assert 'docs/usage.rst' in f.read().split('\n')
 
     def _setup_script_with_requires(self, requires, use_setup_cfg=False):
@@ -492,7 +492,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         requires_txt = os.path.join(egg_info_dir, 'requires.txt')
         if os.path.exists(requires_txt):
-            with open(requires_txt) as fp:
+            with open(requires_txt, encoding="utf-8") as fp:
                 install_requires = fp.read()
         else:
             install_requires = ''
@@ -538,7 +538,7 @@ class TestEggInfo:
             env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Provides-Extra: foobar' in pkg_info_lines
         assert 'Metadata-Version: 2.1' in pkg_info_lines
@@ -557,7 +557,7 @@ class TestEggInfo:
             env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_text = pkginfo_file.read()
         assert 'Provides-Extra:' not in pkg_info_text
 
@@ -636,7 +636,7 @@ class TestEggInfo:
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
 
-        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
+        with open(os.path.join(egg_info_dir, 'SOURCES.txt'), encoding="utf-8") as sources_file:
             sources_text = sources_file.read()
 
         if license_in_sources:
@@ -849,7 +849,7 @@ class TestEggInfo:
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
 
-        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
+        with open(os.path.join(egg_info_dir, 'SOURCES.txt'), encoding="utf-8") as sources_file:
             sources_lines = list(line.strip() for line in sources_file)
 
         for lf in incl_licenses:
@@ -1033,7 +1033,7 @@ class TestEggInfo:
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
 
-        with open(os.path.join(egg_info_dir, 'SOURCES.txt')) as sources_file:
+        with open(os.path.join(egg_info_dir, 'SOURCES.txt'), encoding="utf-8") as sources_file:
             sources_lines = list(line.strip() for line in sources_file)
 
         for lf in incl_licenses:
@@ -1065,7 +1065,7 @@ class TestEggInfo:
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         license_file_lines = [
             line for line in pkg_info_lines if line.startswith('License-File:')
@@ -1086,7 +1086,7 @@ class TestEggInfo:
             data_stream=1,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         # Update metadata version if changed
         assert self._extract_mv_version(pkg_info_lines) == (2, 1)
@@ -1112,7 +1112,7 @@ class TestEggInfo:
             env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         expected_line = 'Description-Content-Type: text/markdown'
         assert expected_line in pkg_info_lines
@@ -1133,7 +1133,7 @@ class TestEggInfo:
             data_stream=1,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Metadata-Version: 2.1' in pkg_info_lines
         assert '' == pkg_info_lines[-1]  # last line should be empty
@@ -1165,7 +1165,7 @@ class TestEggInfo:
             env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         expected_line = 'Project-URL: Link One, https://example.com/one/'
         assert expected_line in pkg_info_lines
@@ -1182,7 +1182,7 @@ class TestEggInfo:
             data_stream=1,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'License: MIT' in pkg_info_lines
 
@@ -1197,7 +1197,7 @@ class TestEggInfo:
             data_stream=1,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
 
         assert 'License: This is a long license text ' in pkg_info_lines
@@ -1216,7 +1216,7 @@ class TestEggInfo:
             env=environ,
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Requires-Python: >=2.7.12' in pkg_info_lines
         assert self._extract_mv_version(pkg_info_lines) >= (1, 2)
@@ -1240,7 +1240,7 @@ class TestEggInfo:
 
         assert 'setup.py' in egg_info_instance.filelist.files
 
-        with open(egg_info_instance.egg_info + "/SOURCES.txt") as f:
+        with open(egg_info_instance.egg_info + "/SOURCES.txt", encoding="utf-8") as f:
             sources = f.read().split('\n')
             assert 'setup.py' in sources
 
@@ -1277,7 +1277,7 @@ class TestEggInfo:
         })
         self._run_egg_info_command(tmpdir_cwd, env)
         egg_info_dir = os.path.join('.', 'foo.egg-info')
-        with open(os.path.join(egg_info_dir, 'PKG-INFO')) as pkginfo_file:
+        with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as pkginfo_file:
             pkg_info_lines = pkginfo_file.read().split('\n')
         assert 'Version: 0.0.0.dev0' in pkg_info_lines
 

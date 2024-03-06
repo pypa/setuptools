@@ -54,7 +54,7 @@ def quiet():
 
 
 def touch(filename):
-    open(filename, 'w').close()
+    open(filename, 'wb').close()
 
 
 # The set of files always in the manifest, including all files in the
@@ -174,7 +174,7 @@ class TestManifestTest(TempDirTestCase):
     def setup_method(self, method):
         super().setup_method(method)
 
-        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
+        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w', encoding="utf-8")
         f.write(SETUP_PY)
         f.close()
         """
@@ -212,7 +212,7 @@ class TestManifestTest(TempDirTestCase):
 
     def make_manifest(self, contents):
         """Write a MANIFEST.in."""
-        with open(os.path.join(self.temp_dir, 'MANIFEST.in'), 'w') as f:
+        with open(os.path.join(self.temp_dir, 'MANIFEST.in'), 'w', encoding="utf-8") as f:
             f.write(DALS(contents))
 
     def get_files(self):
@@ -369,7 +369,7 @@ class TestFileListTest(TempDirTestCase):
             file = os.path.join(self.temp_dir, file)
             dirname, basename = os.path.split(file)
             os.makedirs(dirname, exist_ok=True)
-            open(file, 'w').close()
+            touch(file)
 
     def test_process_template_line(self):
         # testing  all MANIFEST.in template patterns

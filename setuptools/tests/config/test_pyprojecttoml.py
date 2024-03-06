@@ -174,7 +174,7 @@ class TestEntryPoints:
     def write_entry_points(self, tmp_path):
         entry_points = ConfigParser()
         entry_points.read_dict(ENTRY_POINTS)
-        with open(tmp_path / "entry-points.txt", "w") as f:
+        with open(tmp_path / "entry-points.txt", "w", encoding="utf-8") as f:
             entry_points.write(f)
 
     def pyproject(self, dynamic=None):
