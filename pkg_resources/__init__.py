@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import List, Protocol
+from typing import Dict, List, Protocol
 import zipfile
 import zipimport
 import warnings
@@ -920,10 +920,10 @@ class WorkingSet:
                     # success, no need to try any more versions of this project
                     break
 
-        distributions = list(distributions)
-        distributions.sort()
+        sorted_distributions = list(distributions)
+        sorted_distributions.sort()
 
-        return distributions, error_info
+        return sorted_distributions, error_info
 
     def require(self, *requirements):
         """Ensure that distributions matching `requirements` are activated
@@ -1636,7 +1636,7 @@ is not allowed.
         )
 
     def _get(self, path) -> bytes:
-        if hasattr(self.loader, 'get_data'):
+        if self.loader and hasattr(self.loader, 'get_data'):
             return self.loader.get_data(path)
         raise NotImplementedError(
             "Can't perform this operation for loaders without 'get_data()'"
@@ -2492,7 +2492,7 @@ class EntryPoint:
             raise ImportError(str(exc)) from exc
 
     def require(self, env=None, installer=None):
-        if self.extras and not self.dist:
+        if not self.dist:
             raise UnknownExtra("Can't require() without a distribution", self)
 
         # Get the requirements for this entry point with all its extras and
@@ -2559,11 +2559,11 @@ class EntryPoint:
     def parse_map(cls, data, dist=None):
         """Parse a map of entry point groups"""
         if isinstance(data, dict):
-            data = data.items()
+            _data = data.items()
         else:
-            data = split_sections(data)
-        maps = {}
-        for group, lines in data:
+            _data = split_sections(data)
+        maps: Dict[str, Dict[str, "EntryPoint"]] = {}
+        for group, lines in _data:
             if group is None:
                 if not lines:
                     continue
@@ -2825,7 +2825,7 @@ class Distribution:
         if path is None:
             path = sys.path
         self.insert_on(path, replace=replace)
-        if path is sys.path:
+        if path is sys.path and self.location:
             fixup_namespace_packages(self.location)
             for pkg in self._get_metadata('namespace_packages.txt'):
                 if pkg in sys.modules:
@@ -2893,15 +2893,13 @@ class Distribution:
 
     def get_entry_map(self, group=None):
         """Return the entry point map for `group`, or the full entry map"""
-        try:
-            ep_map = self._ep_map
-        except AttributeError:
-            ep_map = self._ep_map = EntryPoint.parse_map(
+        if not hasattr(self, "_ep_map"):
+            self._ep_map = EntryPoint.parse_map(
                 self._get_metadata('entry_points.txt'), self
             )
         if group is not None:
-            return ep_map.get(group, {})
-        return ep_map
+            return self._ep_map.get(group, {})
+        return self._ep_map
 
     def get_entry_info(self, group, name):
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
