@@ -4,6 +4,3 @@ build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
 [tool.setuptools_scm]
-
-[tool.pytest-enabler.mypy]
-# disabled
