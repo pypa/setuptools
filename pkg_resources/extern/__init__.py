@@ -70,7 +70,8 @@ class VendorImporter:
     ):
         """Return a module spec for vendored names."""
         return (
-            importlib.util.spec_from_loader(fullname, self)
+            # FIXME: VendorImporter doesn't subclass importlib.abc.Loader
+            importlib.util.spec_from_loader(fullname, self)  # type: ignore[arg-type]
             if self._module_matches_namespace(fullname)
             else None
         )
