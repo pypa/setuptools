@@ -212,7 +212,8 @@ class TestManifestTest(TempDirTestCase):
 
     def make_manifest(self, contents):
         """Write a MANIFEST.in."""
-        with open(os.path.join(self.temp_dir, 'MANIFEST.in'), 'w', encoding="utf-8") as f:
+        manifest = os.path.join(self.temp_dir, 'MANIFEST.in')
+        with open(manifest, 'w', encoding="utf-8") as f:
             f.write(DALS(contents))
 
     def get_files(self):
