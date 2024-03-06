@@ -5,6 +5,7 @@ from inspect import cleandoc
 import pytest
 import tomli_w
 from path import Path
+from jaraco.path import build as path_build
 
 from setuptools.config.pyprojecttoml import (
     read_configuration,
@@ -82,25 +83,32 @@ universal = true
 
 
 def create_example(path, pkg_root):
-    pyproject = path / "pyproject.toml"
+    files = {
+        "pyproject.toml": EXAMPLE,
+        "README.md": "hello world",
+        "_files": {
+            "file.txt": "",
+        },
+    }
+    packages = {
+        "pkg": {
+            "__init__.py": "",
+            "mod.py": "class CustomSdist: pass",
+            "__version__.py": "VERSION = (3, 10)",
+            "__main__.py": "def exec(): print('hello')",
+        },
+    }
 
-    files = [
-        f"{pkg_root}/pkg/__init__.py",
-        "_files/file.txt",
-    ]
-    if pkg_root != ".":  # flat-layout will raise error for multi-package dist
-        # Ensure namespaces are discovered
-        files.append(f"{pkg_root}/other/nested/__init__.py")
+    assert pkg_root  # Meta-test: cannot be empty string.
 
-    for file in files:
-        (path / file).parent.mkdir(exist_ok=True, parents=True)
-        (path / file).touch()
+    if pkg_root == ".":
+        files = {**files, **packages}
+        # skip other files: flat-layout will raise error for multi-package dist
+    else:
+        # Use this opportunity to ensure namespaces are discovered
+        files[pkg_root] = {**packages, "other": {"nested": {"__init__.py": ""}}}
 
-    pyproject.write_text(EXAMPLE)
-    (path / "README.md").write_text("hello world")
-    (path / f"{pkg_root}/pkg/mod.py").write_text("class CustomSdist: pass")
-    (path / f"{pkg_root}/pkg/__version__.py").write_text("VERSION = (3, 10)")
-    (path / f"{pkg_root}/pkg/__main__.py").write_text("def exec(): print('hello')")
+    path_build(files, prefix=path)
 
 
 def verify_example(config, path, pkg_root):
