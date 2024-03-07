@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import Dict, List, Protocol
+from typing import List, Protocol
 import zipfile
 import zipimport
 import warnings
@@ -2562,7 +2562,7 @@ class EntryPoint:
             _data = data.items()
         else:
             _data = split_sections(data)
-        maps: Dict[str, Dict[str, "EntryPoint"]] = {}
+        maps = {}
         for group, lines in _data:
             if group is None:
                 if not lines:
