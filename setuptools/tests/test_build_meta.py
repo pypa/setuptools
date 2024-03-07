@@ -306,7 +306,7 @@ class TestBuildMetaBackend:
         assert first_result != second_result
 
         # And if rebuilding the exact same sdist/wheel?
-        open(os.path.join(dist_dir, second_result), 'w', encoding="utf-8").close()
+        open(os.path.join(dist_dir, second_result), 'wb').close()
         third_result = build_method(dist_dir)
         assert third_result == second_result
         assert os.path.getsize(os.path.join(dist_dir, third_result)) > 0
