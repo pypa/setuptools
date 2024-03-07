@@ -2,12 +2,12 @@ import distutils.errors
 import urllib.request
 import urllib.error
 import http.client
+from inspect import cleandoc
 from unittest import mock
 
 import pytest
 
 import setuptools.package_index
-from .textwrap import DALS
 
 
 class TestPackageIndex:
@@ -257,14 +257,15 @@ class TestPyPIConfig:
     def test_percent_in_password(self, tmp_home_dir):
         pypirc = tmp_home_dir / '.pypirc'
         pypirc.write_text(
-            DALS(
+            cleandoc(
                 """
-            [pypi]
-            repository=https://pypi.org
-            username=jaraco
-            password=pity%
-        """
-            )
+                [pypi]
+                repository=https://pypi.org
+                username=jaraco
+                password=pity%
+                """
+            ),
+            encoding="utf-8",
         )
         cfg = setuptools.package_index.PyPIConfig()
         cred = cfg.creds_by_repository['https://pypi.org']

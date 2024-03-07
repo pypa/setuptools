@@ -272,14 +272,14 @@ class TestBuildMetaBackend:
                 [metadata]
                 name = foo
                 version = file: VERSION
-            """
+                """
             ),
             'pyproject.toml': DALS(
                 """
                 [build-system]
                 requires = ["setuptools", "wheel"]
                 build-backend = "setuptools.build_meta"
-            """
+                """
             ),
         }
 
@@ -296,7 +296,7 @@ class TestBuildMetaBackend:
         first_result = build_method(dist_dir)
 
         # Change version.
-        with open("VERSION", "wt") as version_file:
+        with open("VERSION", "wt", encoding="utf-8") as version_file:
             version_file.write("0.0.2")
 
         # Build a *second* sdist/wheel.
@@ -306,7 +306,7 @@ class TestBuildMetaBackend:
         assert first_result != second_result
 
         # And if rebuilding the exact same sdist/wheel?
-        open(os.path.join(dist_dir, second_result), 'w').close()
+        open(os.path.join(dist_dir, second_result), 'wb').close()
         third_result = build_method(dist_dir)
         assert third_result == second_result
         assert os.path.getsize(os.path.join(dist_dir, third_result)) > 0
@@ -568,9 +568,9 @@ class TestBuildMetaBackend:
         if not os.path.exists(setup_loc):
             setup_loc = os.path.abspath("setup.cfg")
 
-        with open(setup_loc, 'rt') as file_handler:
+        with open(setup_loc, 'rt', encoding="utf-8") as file_handler:
             content = file_handler.read()
-        with open(setup_loc, 'wt') as file_handler:
+        with open(setup_loc, 'wt', encoding="utf-8") as file_handler:
             file_handler.write(content.replace("version='0.0.0'", "version='0.0.1'"))
 
         shutil.rmtree(sdist_into_directory)
