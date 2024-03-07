@@ -530,6 +530,7 @@ class TestInstallRequires:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
         )
         assert cp.returncode != 0
         try:
