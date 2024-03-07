@@ -10,7 +10,6 @@ import tarfile
 import logging
 import distutils
 from inspect import cleandoc
-from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -116,9 +115,7 @@ skip_under_stdlib_distutils = pytest.mark.skipif(
 
 
 def touch(path):
-    if isinstance(path, str):
-        path = Path(path)
-    path.write_text('', encoding='utf-8')
+    open(path, 'wb').close()
     return path
 
 
@@ -386,7 +383,7 @@ class TestSdistTest:
         assert 'setup.py' not in manifest
 
     def test_setup_py_excluded(self):
-        with open("MANIFEST.in", "w") as manifest_file:
+        with open("MANIFEST.in", "w", encoding="utf-8") as manifest_file:
             manifest_file.write("exclude setup.py")
 
         dist = Distribution(SETUP_ATTRS)
@@ -441,7 +438,7 @@ class TestSdistTest:
         filename = os.path.join('sdist_test', 'smörbröd.py')
 
         # Must create the file or it will get stripped.
-        open(filename, 'w').close()
+        touch(filename)
 
         # Add UTF-8 filename and write manifest
         with quiet():
@@ -469,7 +466,7 @@ class TestSdistTest:
         filename = os.path.join(b'sdist_test', Filenames.utf_8)
 
         # Must touch the file or risk removal
-        open(filename, "w").close()
+        touch(filename)
 
         # Add filename and write manifest
         with quiet():
@@ -546,7 +543,7 @@ class TestSdistTest:
         manifest.close()
 
         # The file must exist to be included in the filelist
-        open(filename, 'w').close()
+        touch(filename)
 
         # Re-read manifest
         cmd.filelist.files = []
@@ -577,7 +574,7 @@ class TestSdistTest:
         manifest.close()
 
         # The file must exist to be included in the filelist
-        open(filename, 'w').close()
+        touch(filename)
 
         # Re-read manifest
         cmd.filelist.files = []
@@ -598,7 +595,7 @@ class TestSdistTest:
         cmd.ensure_finalized()
 
         filename = os.path.join(b'sdist_test', Filenames.utf_8)
-        open(filename, 'w').close()
+        touch(filename)
 
         with quiet():
             cmd.run()
@@ -639,7 +636,7 @@ class TestSdistTest:
 
         # Latin-1 filename
         filename = os.path.join(b'sdist_test', Filenames.latin_1)
-        open(filename, 'w').close()
+        touch(filename)
         assert os.path.isfile(filename)
 
         with quiet():
@@ -736,7 +733,7 @@ class TestSdistTest:
         Check that pyproject.toml can excluded even if present
         """
         touch(source_dir / 'pyproject.toml')
-        with open('MANIFEST.in', 'w') as mts:
+        with open('MANIFEST.in', 'w', encoding="utf-8") as mts:
             print('exclude pyproject.toml', file=mts)
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
