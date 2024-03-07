@@ -873,7 +873,7 @@ class easy_install(Command):
         ensure_directory(target)
         if os.path.exists(target):
             os.unlink(target)
-        with open(target, "w" + mode) as f:  # TODO: is it safe to use "utf-8"?
+        with open(target, "w" + mode) as f:  # TODO: is it safe to use utf-8?
             f.write(contents)
         chmod(target, 0o777 - mask)
 
@@ -1017,7 +1017,7 @@ class easy_install(Command):
 
         # Write EGG-INFO/PKG-INFO
         if not os.path.exists(pkg_inf):
-            f = open(pkg_inf, 'w')  # TODO: probably it is safe to use "utf-8"
+            f = open(pkg_inf, 'w')  # TODO: probably it is safe to use utf-8
             f.write('Metadata-Version: 1.0\n')
             for k, v in cfg.items('metadata'):
                 if k != 'target_version':
@@ -1088,7 +1088,7 @@ class easy_install(Command):
             if locals()[name]:
                 txt = os.path.join(egg_tmp, 'EGG-INFO', name + '.txt')
                 if not os.path.exists(txt):
-                    f = open(txt, 'w')
+                    f = open(txt, 'w')  # TODO: probably it is safe to use utf-8
                     f.write('\n'.join(locals()[name]) + '\n')
                     f.close()
 
