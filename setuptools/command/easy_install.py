@@ -74,7 +74,7 @@ from pkg_resources import (
     DEVELOP_DIST,
 )
 import pkg_resources
-from ..compat import py311
+from ..compat import py39, py311
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
 
@@ -491,7 +491,7 @@ class easy_install(Command):
             try:
                 if test_exists:
                     os.unlink(testfile)
-                open(testfile, 'w').close()
+                open(testfile, 'wb').close()
                 os.unlink(testfile)
             except OSError:
                 self.cant_write_to_target()
@@ -576,7 +576,7 @@ class easy_install(Command):
             _one_liner(
                 """
             import os
-            f = open({ok_file!r}, 'w')
+            f = open({ok_file!r}, 'w', encoding="utf-8")
             f.write('OK')
             f.close()
             """
@@ -588,7 +588,8 @@ class easy_install(Command):
                 os.unlink(ok_file)
             dirname = os.path.dirname(ok_file)
             os.makedirs(dirname, exist_ok=True)
-            f = open(pth_file, 'w')
+            f = open(pth_file, 'w', encoding=py39.LOCALE_ENCODING)
+            # ^-- Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
         except OSError:
             self.cant_write_to_target()
         else:
@@ -872,7 +873,7 @@ class easy_install(Command):
         ensure_directory(target)
         if os.path.exists(target):
             os.unlink(target)
-        with open(target, "w" + mode) as f:
+        with open(target, "w" + mode) as f:  # TODO: is it safe to use "utf-8"?
             f.write(contents)
         chmod(target, 0o777 - mask)
 
@@ -1016,7 +1017,7 @@ class easy_install(Command):
 
         # Write EGG-INFO/PKG-INFO
         if not os.path.exists(pkg_inf):
-            f = open(pkg_inf, 'w')
+            f = open(pkg_inf, 'w')  # TODO: probably it is safe to use "utf-8"
             f.write('Metadata-Version: 1.0\n')
             for k, v in cfg.items('metadata'):
                 if k != 'target_version':
@@ -1277,7 +1278,9 @@ class easy_install(Command):
         filename = os.path.join(self.install_dir, 'setuptools.pth')
         if os.path.islink(filename):
             os.unlink(filename)
-        with open(filename, 'wt') as f:
+
+        with open(filename, 'wt', encoding=py39.LOCALE_ENCODING) as f:
+            # Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
             f.write(self.pth_file.make_relative(dist.location) + '\n')
 
     def unpack_progress(self, src, dst):
@@ -1503,9 +1506,9 @@ def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
                 continue
 
             # Read the .pth file
-            f = open(os.path.join(dirname, name))
-            lines = list(yield_lines(f))
-            f.close()
+            with open(os.path.join(dirname, name), encoding=py39.LOCALE_ENCODING) as f:
+                # Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
+                lines = list(yield_lines(f))
 
             # Yield existing non-dupe, non-import directory lines from it
             for line in lines:
@@ -1619,7 +1622,8 @@ class PthDistributions(Environment):
         paths = []
         dirty = saw_import = False
         seen = dict.fromkeys(self.sitedirs)
-        f = open(self.filename, 'rt')
+        f = open(self.filename, 'rt', encoding=py39.LOCALE_ENCODING)
+        # ^-- Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
         for line in f:
             path = line.rstrip()
             # still keep imports and empty/commented lines for formatting
@@ -1690,7 +1694,8 @@ class PthDistributions(Environment):
             data = '\n'.join(lines) + '\n'
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
-            with open(self.filename, 'wt') as f:
+            with open(self.filename, 'wt', encoding=py39.LOCALE_ENCODING) as f:
+                # Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
                 f.write(data)
         elif os.path.exists(self.filename):
             log.debug("Deleting empty %s", self.filename)
