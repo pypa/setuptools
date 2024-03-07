@@ -272,14 +272,14 @@ class TestBuildMetaBackend:
                 [metadata]
                 name = foo
                 version = file: VERSION
-            """
+                """
             ),
             'pyproject.toml': DALS(
                 """
                 [build-system]
                 requires = ["setuptools", "wheel"]
                 build-backend = "setuptools.build_meta"
-            """
+                """
             ),
         }
 
