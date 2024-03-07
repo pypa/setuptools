@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 
 from distutils.errors import DistutilsOptionError
-from setuptools.compat.encoding import locale_encoding
 from setuptools.config import expand
 from setuptools.discovery import find_package_path
 
@@ -13,7 +12,7 @@ def write_files(files, root_dir):
     for file, content in files.items():
         path = root_dir / file
         path.parent.mkdir(exist_ok=True, parents=True)
-        path.write_text(content, encoding=locale_encoding)
+        path.write_text(content, encoding="utf-8")
 
 
 def test_glob_relative(tmp_path, monkeypatch):

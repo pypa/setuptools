@@ -9,6 +9,7 @@ import re
 import tarfile
 from inspect import cleandoc
 from pathlib import Path
+from typing import Tuple
 from unittest.mock import Mock
 from zipfile import ZipFile
 
@@ -19,7 +20,6 @@ from packaging.metadata import Metadata
 
 import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
-from setuptools.compat.encoding import locale_encoding
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
@@ -44,8 +44,9 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
     monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.0.1"))
     setupcfg_example = retrieve_file(url)
     pyproject_example = Path(tmp_path, "pyproject.toml")
-    toml_config = Translator().translate(setupcfg_example.read_text(), "setup.cfg")
-    pyproject_example.write_text(toml_config)
+    setupcfg_text = setupcfg_example.read_text(encoding="utf-8")
+    toml_config = Translator().translate(setupcfg_text, "setup.cfg")
+    pyproject_example.write_text(toml_config, encoding="utf-8")
 
     dist_toml = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject_example)
     dist_cfg = setupcfg.apply_configuration(makedist(tmp_path), setupcfg_example)
@@ -177,11 +178,9 @@ def _pep621_example_project(
         text = text.replace(orig, subst)
     pyproject.write_text(text, encoding="utf-8")
 
-    (tmp_path / readme).write_text("hello world", encoding=locale_encoding)
-    (tmp_path / "LICENSE.txt").write_text(
-        "--- LICENSE stub ---", encoding=locale_encoding
-    )
-    (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT, encoding=locale_encoding)
+    (tmp_path / readme).write_text("hello world", encoding="utf-8")
+    (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---", encoding="utf-8")
+    (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT, encoding="utf-8")
     return pyproject
 
 
@@ -458,7 +457,7 @@ def core_metadata(dist) -> str:
     # Make sure core metadata is valid
     Metadata.from_email(pkg_file_txt, validate=True)  # can raise exceptions
 
-    skip_prefixes = ()
+    skip_prefixes: Tuple[str, ...] = ()
     skip_lines = set()
     # ---- DIFF NORMALISATION ----
     # PEP 621 is very particular about author/maintainer metadata conversion, so skip

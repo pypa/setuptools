@@ -24,6 +24,7 @@ from ._apply_pyprojecttoml import apply as _apply
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
+    from typing_extensions import Self
 
 _logger = logging.getLogger(__name__)
 
@@ -271,7 +272,7 @@ class _ConfigExpander:
     def _expand_directive(
         self, specifier: str, directive, package_dir: Mapping[str, str]
     ):
-        from setuptools.extern.more_itertools import always_iterable  # type: ignore
+        from setuptools.extern.more_itertools import always_iterable
 
         with _ignore_errors(self.ignore_option_errors):
             root_dir = self.root_dir
@@ -401,7 +402,7 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
         self._project_cfg = project_cfg
         self._setuptools_cfg = setuptools_cfg
 
-    def __enter__(self):
+    def __enter__(self) -> "Self":
         """When entering the context, the values of ``packages``, ``py_modules`` and
         ``package_dir`` that are missing in ``dist`` are copied from ``setuptools_cfg``.
         """

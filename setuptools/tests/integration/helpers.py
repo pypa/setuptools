@@ -18,6 +18,7 @@ def run(cmd, env=None):
         cmd,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         env={**os.environ, **(env or {})},
         # ^-- allow overwriting instead of discarding the current env
         encoding=locale_encoding,

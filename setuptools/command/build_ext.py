@@ -18,7 +18,7 @@ from ..compat.encoding import locale_encoding
 
 try:
     # Attempt to use Cython for building extensions, if available
-    from Cython.Distutils.build_ext import build_ext as _build_ext
+    from Cython.Distutils.build_ext import build_ext as _build_ext  # type: ignore[import-not-found] # Cython not installed on CI tests
 
     # Additionally, assert that the compiler module will load
     # also. Ref #1229.
@@ -28,7 +28,9 @@ except ImportError:
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")
-from distutils.sysconfig import _config_vars as _CONFIG_VARS  # noqa
+# Not publicly exposed in typeshed distutils stubs, but this is done on purpose
+# See https://github.com/pypa/setuptools/pull/4228#issuecomment-1959856400
+from distutils.sysconfig import _config_vars as _CONFIG_VARS  # type: ignore # noqa
 
 
 def _customize_compiler_for_shlib(compiler):
@@ -60,7 +62,7 @@ if sys.platform == "darwin":
     use_stubs = True
 elif os.name != 'nt':
     try:
-        import dl
+        import dl  # type: ignore[import-not-found] # https://github.com/python/mypy/issues/13002
 
         use_stubs = have_rtld = hasattr(dl, 'RTLD_NOW')
     except ImportError:
@@ -380,7 +382,10 @@ class build_ext(_build_ext):
         optimize = self.get_finalized_command('install_lib').optimize
         if optimize > 0:
             byte_compile(
-                [stub_file], optimize=optimize, force=True, dry_run=self.dry_run
+                [stub_file],
+                optimize=optimize,
+                force=True,
+                dry_run=self.dry_run,
             )
         if os.path.exists(stub_file) and not self.dry_run:
             os.unlink(stub_file)

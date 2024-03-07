@@ -34,6 +34,7 @@ from ..errors import RemovedConfigError
 from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
+    from distutils.dist import _OptionsList
     from setuptools._importlib import metadata  # noqa
     from setuptools.dist import Distribution  # noqa
 
@@ -293,7 +294,7 @@ def _normalise_cmd_option_key(name: str) -> str:
     return json_compatible_key(name).strip("_=")
 
 
-def _normalise_cmd_options(desc: List[Tuple[str, Optional[str], str]]) -> Set[str]:
+def _normalise_cmd_options(desc: "_OptionsList") -> Set[str]:
     return {_normalise_cmd_option_key(fancy_option[0]) for fancy_option in desc}
 
 

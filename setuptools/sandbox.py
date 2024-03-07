@@ -9,6 +9,7 @@ import contextlib
 import pickle
 import textwrap
 import builtins
+from typing import Union, List
 
 import pkg_resources
 from distutils.errors import DistutilsError
@@ -20,7 +21,7 @@ if sys.platform.startswith('java'):
 else:
     _os = sys.modules[os.name]
 try:
-    _file = file
+    _file = file  # type: ignore[name-defined] # Check for global variable
 except NameError:
     _file = None
 _open = open
@@ -299,7 +300,7 @@ class AbstractSandbox:
         with self:
             return func()
 
-    def _mk_dual_path_wrapper(name):
+    def _mk_dual_path_wrapper(name: str):  # type: ignore[misc] # https://github.com/pypa/setuptools/pull/4099
         original = getattr(_os, name)
 
         def wrap(self, src, dst, *args, **kw):
@@ -313,7 +314,7 @@ class AbstractSandbox:
         if hasattr(_os, name):
             locals()[name] = _mk_dual_path_wrapper(name)
 
-    def _mk_single_path_wrapper(name, original=None):
+    def _mk_single_path_wrapper(name: str, original=None):  # type: ignore[misc] # https://github.com/pypa/setuptools/pull/4099
         original = original or getattr(_os, name)
 
         def wrap(self, path, *args, **kw):
@@ -350,7 +351,7 @@ class AbstractSandbox:
         if hasattr(_os, name):
             locals()[name] = _mk_single_path_wrapper(name)
 
-    def _mk_single_with_return(name):
+    def _mk_single_with_return(name: str):  # type: ignore[misc] # https://github.com/pypa/setuptools/pull/4099
         original = getattr(_os, name)
 
         def wrap(self, path, *args, **kw):
@@ -365,7 +366,7 @@ class AbstractSandbox:
         if hasattr(_os, name):
             locals()[name] = _mk_single_with_return(name)
 
-    def _mk_query(name):
+    def _mk_query(name: str):  # type: ignore[misc] # https://github.com/pypa/setuptools/pull/4099
         original = getattr(_os, name)
 
         def wrap(self, *args, **kw):
@@ -425,7 +426,7 @@ class DirectorySandbox(AbstractSandbox):
         "tempnam",
     ])
 
-    _exception_patterns = []
+    _exception_patterns: List[Union[str, re.Pattern]] = []
     "exempt writing to paths that match the pattern"
 
     def __init__(self, sandbox, exceptions=_EXCEPTIONS):

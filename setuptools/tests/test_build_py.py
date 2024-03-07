@@ -8,7 +8,6 @@ import pytest
 import jaraco.path
 
 from setuptools import SetuptoolsDeprecationWarning
-from setuptools.compat.encoding import locale_encoding
 from setuptools.dist import Distribution
 
 from .textwrap import DALS
@@ -50,7 +49,7 @@ def test_recursive_in_package_data_glob(tmpdir_cwd):
         )
     )
     os.makedirs('path/subpath/subsubpath')
-    open('path/subpath/subsubpath/data', 'w', encoding=locale_encoding).close()
+    open('path/subpath/subsubpath/data', 'wb').close()
 
     dist.parse_command_line()
     dist.run_commands()
@@ -78,8 +77,8 @@ def test_read_only(tmpdir_cwd):
         )
     )
     os.makedirs('pkg')
-    open('pkg/__init__.py', 'w', encoding=locale_encoding).close()
-    open('pkg/data.dat', 'w', encoding=locale_encoding).close()
+    open('pkg/__init__.py', 'wb').close()
+    open('pkg/data.dat', 'wb').close()
     os.chmod('pkg/__init__.py', stat.S_IREAD)
     os.chmod('pkg/data.dat', stat.S_IREAD)
     dist.parse_command_line()
@@ -109,8 +108,8 @@ def test_executable_data(tmpdir_cwd):
         )
     )
     os.makedirs('pkg')
-    open('pkg/__init__.py', 'w', encoding=locale_encoding).close()
-    open('pkg/run-me', 'w', encoding=locale_encoding).close()
+    open('pkg/__init__.py', 'wb').close()
+    open('pkg/run-me', 'wb').close()
     os.chmod('pkg/run-me', 0o700)
 
     dist.parse_command_line()

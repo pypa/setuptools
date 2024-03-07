@@ -10,8 +10,8 @@ import io
 import logging
 from distutils import log
 from distutils.errors import DistutilsTemplateError
+from typing import List, Tuple
 
-from setuptools.compat.encoding import locale_encoding
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
 from setuptools.tests.textwrap import DALS
@@ -54,7 +54,7 @@ def quiet():
 
 
 def touch(filename):
-    open(filename, 'w', encoding=locale_encoding).close()
+    open(filename, 'wb').close()
 
 
 # The set of files always in the manifest, including all files in the
@@ -76,7 +76,7 @@ default_files = frozenset(
 )
 
 
-translate_specs = [
+translate_specs: List[Tuple[str, List[str], List[str]]] = [
     ('foo', ['foo'], ['bar', 'foobar']),
     ('foo/bar', ['foo/bar'], ['foo/bar/baz', './foo/bar', 'foo']),
     # Glob matching
@@ -174,11 +174,7 @@ class TestManifestTest(TempDirTestCase):
     def setup_method(self, method):
         super().setup_method(method)
 
-        f = open(
-            os.path.join(self.temp_dir, 'setup.py'),
-            'w',
-            encoding=locale_encoding,
-        )
+        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w', encoding="utf-8")
         f.write(SETUP_PY)
         f.close()
         """
@@ -216,11 +212,8 @@ class TestManifestTest(TempDirTestCase):
 
     def make_manifest(self, contents):
         """Write a MANIFEST.in."""
-        with open(
-            os.path.join(self.temp_dir, 'MANIFEST.in'),
-            'w',
-            encoding=locale_encoding,
-        ) as f:
+        manifest = os.path.join(self.temp_dir, 'MANIFEST.in')
+        with open(manifest, 'w', encoding="utf-8") as f:
             f.write(DALS(contents))
 
     def get_files(self):
@@ -377,7 +370,7 @@ class TestFileListTest(TempDirTestCase):
             file = os.path.join(self.temp_dir, file)
             dirname, basename = os.path.split(file)
             os.makedirs(dirname, exist_ok=True)
-            open(file, 'w', encoding=locale_encoding).close()
+            touch(file)
 
     def test_process_template_line(self):
         # testing  all MANIFEST.in template patterns

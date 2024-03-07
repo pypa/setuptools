@@ -8,6 +8,8 @@ import pytest
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
+_TEXT_KWARGS = {"text": True, "encoding": "utf-8"}  # For subprocess.run
+
 
 def win_sr(env):
     """
@@ -24,7 +26,7 @@ def win_sr(env):
 def find_distutils(venv, imports='distutils', env=None, **kwargs):
     py_cmd = 'import {imports}; print(distutils.__file__)'.format(**locals())
     cmd = ['python', '-c', py_cmd]
-    return venv.run(cmd, env=win_sr(env), text=True, **kwargs)
+    return venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS, **kwargs)
 
 
 def count_meta_path(venv, env=None):
@@ -36,7 +38,7 @@ def count_meta_path(venv, env=None):
         """
     )
     cmd = ['python', '-c', py_cmd]
-    return int(venv.run(cmd, env=win_sr(env), text=True))
+    return int(venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS))
 
 
 skip_without_stdlib_distutils = pytest.mark.skipif(
@@ -82,7 +84,7 @@ def test_pip_import(venv):
     Regression test for #3002.
     """
     cmd = ['python', '-c', 'import pip']
-    venv.run(cmd, text=True)
+    venv.run(cmd, **_TEXT_KWARGS)
 
 
 def test_distutils_has_origin():
@@ -130,7 +132,7 @@ def test_modules_are_not_duplicated_on_import(
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
     script = ENSURE_IMPORTS_ARE_NOT_DUPLICATED.format(imported_module=imported_module)
     cmd = ['python', '-c', script]
-    output = venv.run(cmd, env=win_sr(env), text=True).strip()
+    output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
     assert output == "success"
 
 
@@ -154,5 +156,5 @@ print("success")
 def test_log_module_is_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
     cmd = ['python', '-c', ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED]
-    output = venv.run(cmd, env=win_sr(env), text=True).strip()
+    output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
     assert output == "success"

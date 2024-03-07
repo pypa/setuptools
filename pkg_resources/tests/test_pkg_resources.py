@@ -9,6 +9,7 @@ import subprocess
 import stat
 import distutils.dist
 import distutils.command.install_egg_info
+from typing import List
 
 from unittest import mock
 
@@ -16,7 +17,6 @@ from pkg_resources import (
     DistInfoDistribution,
     Distribution,
     EggInfoDistribution,
-    locale_encoding,
 )
 
 import pytest
@@ -33,7 +33,7 @@ class EggRemover(str):
 
 
 class TestZipProvider:
-    finalizers = []
+    finalizers: List[EggRemover] = []
 
     ref_time = datetime.datetime(2013, 5, 12, 13, 25, 0)
     "A reference time for a file modification"
@@ -111,13 +111,13 @@ class TestZipProvider:
         filename = zp.get_resource_filename(manager, 'data.dat')
         actual = datetime.datetime.fromtimestamp(os.stat(filename).st_mtime)
         assert actual == self.ref_time
-        f = open(filename, 'w', encoding=locale_encoding)
+        f = open(filename, 'w', encoding="utf-8")
         f.write('hello, world?')
         f.close()
         ts = self.ref_time.timestamp()
         os.utime(filename, (ts, ts))
         filename = zp.get_resource_filename(manager, 'data.dat')
-        with open(filename, encoding=locale_encoding) as f:
+        with open(filename, encoding="utf-8") as f:
             assert f.read() == 'hello, world!'
         manager.cleanup_resources()
 

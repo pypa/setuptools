@@ -7,7 +7,6 @@ from unittest.mock import Mock, patch
 import pytest
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.compat.encoding import locale_encoding
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
 from setuptools.dist import Distribution, _Distribution
 from setuptools.extern.packaging.requirements import InvalidRequirement
@@ -906,7 +905,7 @@ class TestOptions:
         module_path.parent.mkdir(parents=True, exist_ok=True)
         module_path.write_text(
             "from distutils.core import Command\n" "class CustomCmd(Command): pass\n",
-            encoding=locale_encoding,
+            encoding="utf-8",
         )
 
         setup_cfg = """
