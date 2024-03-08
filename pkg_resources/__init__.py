@@ -1636,7 +1636,7 @@ is not allowed.
         )
 
     def _get(self, path) -> bytes:
-        if self.loader and hasattr(self.loader, 'get_data'):
+        if hasattr(self.loader, 'get_data') and self.loader:
             return self.loader.get_data(path)
         raise NotImplementedError(
             "Can't perform this operation for loaders without 'get_data()'"
@@ -2493,7 +2493,8 @@ class EntryPoint:
 
     def require(self, env=None, installer=None):
         if not self.dist:
-            raise UnknownExtra("Can't require() without a distribution", self)
+            error_cls = UnknownExtra if self.extras else AttributeError
+            raise error_cls("Can't require() without a distribution", self)
 
         # Get the requirements for this entry point with all its extras and
         # then resolve them. We have to pass `extras` along when resolving so
@@ -2825,7 +2826,7 @@ class Distribution:
         if path is None:
             path = sys.path
         self.insert_on(path, replace=replace)
-        if path is sys.path and self.location:
+        if path is sys.path:
             fixup_namespace_packages(self.location)
             for pkg in self._get_metadata('namespace_packages.txt'):
                 if pkg in sys.modules:
