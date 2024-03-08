@@ -16,8 +16,8 @@ import pytest
 
 from distutils.core import run_setup
 from setuptools import Command
-from setuptools import SetuptoolsDeprecationWarning
 from setuptools._importlib import metadata
+from setuptools import SetuptoolsDeprecationWarning
 from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution

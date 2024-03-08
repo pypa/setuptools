@@ -29,9 +29,9 @@ from typing import (
     List,
     Mapping,
     Optional,
+    Protocol,
     Tuple,
     TypeVar,
-    Protocol,
     cast,
 )
 

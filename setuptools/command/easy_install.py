@@ -74,10 +74,10 @@ from pkg_resources import (
     DEVELOP_DIST,
 )
 import pkg_resources
-from ..compat import py311
-from ..compat import py39
+from ..compat import py39, py311
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
+
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)

@@ -20,8 +20,9 @@ from setuptools.command.egg_info import (
 )
 from setuptools.dist import Distribution
 
-from . import contexts, environment
+from . import environment
 from .textwrap import DALS
+from . import contexts
 
 
 class Environment(str):

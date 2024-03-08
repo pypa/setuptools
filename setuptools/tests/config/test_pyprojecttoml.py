@@ -20,7 +20,6 @@ from setuptools.errors import OptionError
 import setuptools  # noqa -- force distutils.core to be patched
 import distutils.core
 
-
 EXAMPLE = """
 [project]
 name = "myproj"
