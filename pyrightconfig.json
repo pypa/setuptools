@@ -15,13 +15,14 @@
 	// For now we don't mind if mypy's `type: ignore` comments accidentally suppresses pyright issues
 	"enableTypeIgnoreComments": true,
 	"typeCheckingMode": "basic",
-	// For now, align with mypy's default of skipping unannotated functions, only care about public API which should be annotated
-	"analyzeUnannotatedFunctions": false,
 	// Avoid raising issues when importing from "extern" modules, as those are added to path dynamically.
 	// https://github.com/pypa/setuptools/pull/3979#discussion_r1367968993
 	"reportMissingImports": "none",
 	// Too many issues caused by vendoring and dynamic patching, still worth fixing when we can
 	"reportAttributeAccessIssue": "warning",
+	// Dynamically defined module-level variables declared as None in pkg_resources lead to a lot of false-positives
+	// TODO: Fix how these variables are typed
+	"reportOptionalCall": "warning",
 	// Deferred initialization (initialize_options/finalize_options) causes many "potentially None" issues
 	// TODO: Fix with type-guards or by changing how it's initialized
 	"reportCallIssue": "warning",
