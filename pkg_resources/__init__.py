@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import List, Protocol
+from typing import TYPE_CHECKING, List, Protocol
 import zipfile
 import zipimport
 import warnings
@@ -82,18 +82,6 @@ __import__('pkg_resources.extern.packaging.utils')
 
 # declare some globals that will be defined later to
 # satisfy the linters.
-require = None
-working_set = None
-add_activation_listener = None
-cleanup_resources = None
-resource_stream = None
-set_extraction_path = None
-resource_isdir = None
-resource_string = None
-iter_entry_points = None
-resource_listdir = None
-resource_filename = None
-resource_exists = None
 _distribution_finders = None
 _namespace_handlers = None
 _namespace_packages = None
@@ -3261,6 +3249,15 @@ def _mkstemp(*args, **kw):
 warnings.filterwarnings("ignore", category=PEP440Warning, append=True)
 
 
+class PkgResourcesDeprecationWarning(Warning):
+    """
+    Base class for warning about deprecations in ``pkg_resources``
+
+    This class is not derived from ``DeprecationWarning``, and as such is
+    visible by default.
+    """
+
+
 # from jaraco.functools 1.3
 def _call_aside(f, *args, **kwargs):
     f(*args, **kwargs)
@@ -3277,15 +3274,6 @@ def _initialize(g=globals()):
         for name in dir(manager)
         if not name.startswith('_')
     )
-
-
-class PkgResourcesDeprecationWarning(Warning):
-    """
-    Base class for warning about deprecations in ``pkg_resources``
-
-    This class is not derived from ``DeprecationWarning``, and as such is
-    visible by default.
-    """
 
 
 @_call_aside
@@ -3323,3 +3311,23 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+
+if TYPE_CHECKING:
+    # All of these are set by the @_call_aside methods above
+    __resource_manager = ResourceManager()  # Won't exist at runtime
+    resource_exists = __resource_manager.resource_exists
+    resource_isdir = __resource_manager.resource_isdir
+    resource_filename = __resource_manager.resource_filename
+    resource_stream = __resource_manager.resource_stream
+    resource_string = __resource_manager.resource_string
+    resource_listdir = __resource_manager.resource_listdir
+    set_extraction_path = __resource_manager.set_extraction_path
+    cleanup_resources = __resource_manager.cleanup_resources
+
+    working_set = WorkingSet()
+    require = working_set.require
+    iter_entry_points = working_set.iter_entry_points
+    add_activation_listener = working_set.subscribe
+    run_script = working_set.run_script
+    run_main = run_script
