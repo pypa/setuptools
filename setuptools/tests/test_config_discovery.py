@@ -176,11 +176,11 @@ class TestDiscoverPackagesAndPyModules:
         else:
             # Make sure build works with or without setup.cfg
             pyproject = self.PURPOSEFULLY_EMPY["template-pyproject.toml"]
-            (tmp_path / "pyproject.toml").write_text(pyproject)
+            (tmp_path / "pyproject.toml").write_text(pyproject, encoding="utf-8")
             template_param = param
 
         config = self.PURPOSEFULLY_EMPY[config_file].format(param=template_param)
-        (tmp_path / config_file).write_text(config)
+        (tmp_path / config_file).write_text(config, encoding="utf-8")
 
         dist = _get_dist(tmp_path, {})
         # When either parameter package or py_modules is an empty list,
@@ -292,11 +292,13 @@ class TestWithAttrDirective:
     def test_setupcfg_metadata(self, tmp_path, folder, opts):
         files = [f"{folder}/pkg/__init__.py", "setup.cfg"]
         _populate_project_dir(tmp_path, files, opts)
-        (tmp_path / folder / "pkg/__init__.py").write_text("version = 42")
-        (tmp_path / "setup.cfg").write_text(
-            "[metadata]\nversion = attr: pkg.version\n"
-            + (tmp_path / "setup.cfg").read_text()
-        )
+
+        config = (tmp_path / "setup.cfg").read_text(encoding="utf-8")
+        overwrite = {
+            folder: {"pkg": {"__init__.py": "version = 42"}},
+            "setup.cfg": "[metadata]\nversion = attr: pkg.version\n" + config,
+        }
+        jaraco.path.build(overwrite, prefix=tmp_path)
 
         dist = _get_dist(tmp_path, {})
         assert dist.get_name() == "pkg"
@@ -312,11 +314,16 @@ class TestWithAttrDirective:
 
     def test_pyproject_metadata(self, tmp_path):
         _populate_project_dir(tmp_path, ["src/pkg/__init__.py"], {})
-        (tmp_path / "src/pkg/__init__.py").write_text("version = 42")
-        (tmp_path / "pyproject.toml").write_text(
-            "[project]\nname = 'pkg'\ndynamic = ['version']\n"
-            "[tool.setuptools.dynamic]\nversion = {attr = 'pkg.version'}\n"
-        )
+
+        overwrite = {
+            "src": {"pkg": {"__init__.py": "version = 42"}},
+            "pyproject.toml": (
+                "[project]\nname = 'pkg'\ndynamic = ['version']\n"
+                "[tool.setuptools.dynamic]\nversion = {attr = 'pkg.version'}\n"
+            ),
+        }
+        jaraco.path.build(overwrite, prefix=tmp_path)
+
         dist = _get_dist(tmp_path, {})
         assert dist.get_version() == "42"
         assert dist.package_dir == {"": "src"}
@@ -354,7 +361,7 @@ class TestWithCExtension:
             ]
             setup(ext_modules=ext_modules)
         """
-        (tmp_path / "setup.py").write_text(DALS(setup_script))
+        (tmp_path / "setup.py").write_text(DALS(setup_script), encoding="utf-8")
 
     def test_skip_discovery_with_setupcfg_metadata(self, tmp_path):
         """Ensure that auto-discovery is not triggered when the project is based on
@@ -367,14 +374,14 @@ class TestWithCExtension:
             requires = []
             build-backend = 'setuptools.build_meta'
         """
-        (tmp_path / "pyproject.toml").write_text(DALS(pyproject))
+        (tmp_path / "pyproject.toml").write_text(DALS(pyproject), encoding="utf-8")
 
         setupcfg = """
             [metadata]
             name = proj
             version = 42
         """
-        (tmp_path / "setup.cfg").write_text(DALS(setupcfg))
+        (tmp_path / "setup.cfg").write_text(DALS(setupcfg), encoding="utf-8")
 
         dist = _get_dist(tmp_path, {})
         assert dist.get_name() == "proj"
@@ -399,7 +406,7 @@ class TestWithCExtension:
             name = 'proj'
             version = '42'
         """
-        (tmp_path / "pyproject.toml").write_text(DALS(pyproject))
+        (tmp_path / "pyproject.toml").write_text(DALS(pyproject), encoding="utf-8")
         with pytest.raises(PackageDiscoveryError, match="multiple (packages|modules)"):
             _get_dist(tmp_path, {})
 
@@ -416,7 +423,7 @@ class TestWithPackageData:
         manifest = """
             global-include *.py *.txt
         """
-        (tmp_path / "MANIFEST.in").write_text(DALS(manifest))
+        (tmp_path / "MANIFEST.in").write_text(DALS(manifest), encoding="utf-8")
 
     EXAMPLE_SETUPCFG = """
     [metadata]
@@ -564,9 +571,12 @@ def _populate_project_dir(root, files, options):
     # NOTE: Currently pypa/build will refuse to build the project if no
     # `pyproject.toml` or `setup.py` is found. So it is impossible to do
     # completely "config-less" projects.
-    (root / "setup.py").write_text("import setuptools\nsetuptools.setup()")
-    (root / "README.md").write_text("# Example Package")
-    (root / "LICENSE").write_text("Copyright (c) 2018")
+    basic = {
+        "setup.py": "import setuptools\nsetuptools.setup()",
+        "README.md": "# Example Package",
+        "LICENSE": "Copyright (c) 2018",
+    }
+    jaraco.path.build(basic, prefix=root)
     _write_setupcfg(root, options)
     paths = (root / f for f in files)
     for path in paths:
@@ -591,10 +601,10 @@ def _write_setupcfg(root, options):
             setupcfg["options"][key] = "\n" + str_value
         else:
             setupcfg["options"][key] = str(value)
-    with open(root / "setup.cfg", "w") as f:
+    with open(root / "setup.cfg", "w", encoding="utf-8") as f:
         setupcfg.write(f)
     print("~~~~~ setup.cfg ~~~~~")
-    print((root / "setup.cfg").read_text())
+    print((root / "setup.cfg").read_text(encoding="utf-8"))
 
 
 def _run_build(path, *flags):
