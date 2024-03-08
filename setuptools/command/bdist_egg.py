@@ -14,7 +14,7 @@ import marshal
 from setuptools.extension import Library
 from setuptools import Command
 from .._path import ensure_directory
-from ..compat.encoding import locale_encoding
+from ..compat import py39
 
 from sysconfig import get_path, get_python_version
 
@@ -55,7 +55,7 @@ def write_stub(resource, pyfile):
         __bootstrap__()
         """
     ).lstrip()
-    with open(pyfile, 'w', encoding=locale_encoding) as f:
+    with open(pyfile, 'w', encoding=py39.LOCALE_ENCODING) as f:
         f.write(_stub_template % resource)
 
 
@@ -201,7 +201,7 @@ class bdist_egg(Command):
             log.info("writing %s", native_libs)
             if not self.dry_run:
                 ensure_directory(native_libs)
-                libs_file = open(native_libs, 'wt', encoding=locale_encoding)
+                libs_file = open(native_libs, 'wt', encoding=py39.LOCALE_ENCODING)
                 libs_file.write('\n'.join(all_outputs))
                 libs_file.write('\n')
                 libs_file.close()
@@ -351,7 +351,7 @@ def write_safety_flag(egg_dir, safe):
             if safe is None or bool(safe) != flag:
                 os.unlink(fn)
         elif safe is not None and bool(safe) == flag:
-            f = open(fn, 'wt', encoding=locale_encoding)
+            f = open(fn, 'wt', encoding=py39.LOCALE_ENCODING)
             f.write('\n')
             f.close()
 

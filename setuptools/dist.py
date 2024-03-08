@@ -35,7 +35,7 @@ from . import _reqs
 from . import command as _  # noqa  -- imported for side-effects
 from ._importlib import metadata
 from .config import setupcfg, pyprojecttoml
-from .compat.encoding import locale_encoding
+from .compat import py39
 from .discovery import ConfigDiscovery
 from .monkey import get_unpatched
 from .warnings import InformationOnly, SetuptoolsDeprecationWarning
@@ -687,7 +687,7 @@ class Distribution(_Distribution):
             os.mkdir(egg_cache_dir)
             windows_support.hide_file(egg_cache_dir)
             readme_txt_filename = os.path.join(egg_cache_dir, 'README.txt')
-            with open(readme_txt_filename, 'w', encoding=locale_encoding) as f:
+            with open(readme_txt_filename, 'w', encoding=py39.LOCALE_ENCODING) as f:
                 f.write(
                     'This directory contains eggs that were downloaded '
                     'by setuptools to build, test, and run plug-ins.\n\n'

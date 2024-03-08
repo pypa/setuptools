@@ -80,14 +80,16 @@ __import__('pkg_resources.extern.packaging.requirements')
 __import__('pkg_resources.extern.packaging.markers')
 __import__('pkg_resources.extern.packaging.utils')
 
-locale_encoding = "locale" if sys.version_info >= (3, 10) else None
+LOCALE_ENCODING = "locale" if sys.version_info >= (3, 10) else None
 """
-Use this variable to explicitly set encoding to avoid `EncodingWarning` in tests logs: ``encoding=locale_encoding``.
+Use this variable to explicitly set encoding to avoid `EncodingWarning` in tests logs: ``encoding=LOCALE_ENCODING``.
 
-Python <= 3.10, `None` and ``locale.getpreferredencoding(False)`` are equivalent.
-Python >= 3.11, using ``getpreferredencoding`` in  leads to ``EncodingWarning: UTF-8 Mode affects \
-locale.getpreferredencoding(). Consider locale.getencoding() instead.``.
-So let's avoid using `locale.getpreferredencoding` at all for simplicity.
+Explicitly use the ``"locale"`` encoding in versions that support it,
+otherwise just rely on the implicit handling of ``encoding=None``.
+Since all platforms that support ``EncodingWarning`` also support
+``encoding="locale"``, this can be used to suppress the warning.
+However, please try to use UTF-8 when possible
+(.pth files are the notorious exception: python/cpython#77102, pypa/setuptools#3937).
 """
 
 
@@ -1535,7 +1537,7 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            with open(script_filename, encoding=locale_encoding) as fid:
+            with open(script_filename, encoding=LOCALE_ENCODING) as fid:
                 source = fid.read()
             code = compile(source, script_filename, 'exec')
             exec(code, namespace, namespace)
@@ -2186,7 +2188,7 @@ def non_empty_lines(path):
     """
     Yield non-empty lines from file at path
     """
-    with open(path, encoding=locale_encoding) as f:
+    with open(path, encoding=LOCALE_ENCODING) as f:
         for line in f:
             line = line.strip()
             if line:

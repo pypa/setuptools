@@ -40,7 +40,7 @@ from fnmatch import translate
 from setuptools.wheel import Wheel
 from setuptools.extern.more_itertools import unique_everseen
 
-from .compat.encoding import locale_encoding
+from .compat import py39
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -420,7 +420,9 @@ class PackageIndex(Environment):
         list(itertools.starmap(self.scan_egg_link, egg_links))
 
     def scan_egg_link(self, path, entry):
-        with open(os.path.join(path, entry), encoding=locale_encoding) as raw_lines:
+        with open(
+            os.path.join(path, entry), encoding=py39.LOCALE_ENCODING
+        ) as raw_lines:
             # filter non-empty lines
             lines = list(filter(None, map(str.strip, raw_lines)))
 
@@ -718,7 +720,7 @@ class PackageIndex(Environment):
             with open(
                 os.path.join(tmpdir, 'setup.py'),
                 'w',
-                encoding=locale_encoding,
+                encoding=py39.LOCALE_ENCODING,
             ) as file:
                 file.write(
                     "from setuptools import setup\n"
@@ -1016,7 +1018,7 @@ class PyPIConfig(configparser.RawConfigParser):
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
-            self.read(rc, encoding=locale_encoding)
+            self.read(rc, encoding=py39.LOCALE_ENCODING)
 
     @property
     def creds_by_repository(self):
@@ -1119,7 +1121,7 @@ def local_open(url):
         for f in os.listdir(filename):
             filepath = os.path.join(filename, f)
             if f == 'index.html':
-                with open(filepath, 'r', encoding=locale_encoding) as fp:
+                with open(filepath, 'r', encoding=py39.LOCALE_ENCODING) as fp:
                     body = fp.read()
                 break
             elif os.path.isdir(filepath):

@@ -75,10 +75,6 @@ from pkg_resources import (
 )
 import pkg_resources
 from ..compat import py311
-from ..compat.encoding import (
-    locale_encoding_for_mode,
-    locale_encoding,
-)
 from ..compat import py39
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
@@ -878,7 +874,7 @@ class easy_install(Command):
         if os.path.exists(target):
             os.unlink(target)
         with open(
-            target, "w" + mode, encoding=locale_encoding_for_mode(mode)
+            target, "w" + mode, encoding=py39.locale_encoding_for_mode(mode)
         ) as f:  # TODO: is it safe to use utf-8?
             f.write(contents)
         chmod(target, 0o777 - mask)
@@ -1024,7 +1020,7 @@ class easy_install(Command):
         # Write EGG-INFO/PKG-INFO
         if not os.path.exists(pkg_inf):
             f = open(
-                pkg_inf, 'w', encoding=locale_encoding
+                pkg_inf, 'w', encoding=py39.LOCALE_ENCODING
             )  # TODO: probably it is safe to use utf-8
             f.write('Metadata-Version: 1.0\n')
             for k, v in cfg.items('metadata'):
@@ -1097,7 +1093,7 @@ class easy_install(Command):
                 txt = os.path.join(egg_tmp, 'EGG-INFO', name + '.txt')
                 if not os.path.exists(txt):
                     f = open(
-                        txt, 'w', encoding=locale_encoding
+                        txt, 'w', encoding=py39.LOCALE_ENCODING
                     )  # TODO: probably it is safe to use utf-8
                     f.write('\n'.join(locals()[name]) + '\n')
                     f.close()

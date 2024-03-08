@@ -10,7 +10,7 @@ import subprocess
 import tarfile
 from zipfile import ZipFile
 from pathlib import Path
-from setuptools.compat.encoding import locale_encoding
+from setuptools.compat import py39
 
 
 def run(cmd, env=None):
@@ -21,7 +21,7 @@ def run(cmd, env=None):
         encoding="utf-8",
         env={**os.environ, **(env or {})},
         # ^-- allow overwriting instead of discarding the current env
-        encoding=locale_encoding,
+        encoding=py39.LOCALE_ENCODING,
     )
 
     out = r.stdout + "\n" + r.stderr

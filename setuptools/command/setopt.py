@@ -7,7 +7,7 @@ import configparser
 
 from setuptools import Command
 
-from ..compat.encoding import locale_encoding
+from ..compat import py39
 
 __all__ = ['config_file', 'edit_config', 'option_base', 'setopt']
 
@@ -38,7 +38,7 @@ def edit_config(filename, settings, dry_run=False):
     log.debug("Reading configuration from %s", filename)
     opts = configparser.RawConfigParser()
     opts.optionxform = lambda x: x
-    opts.read([filename], encoding=locale_encoding)
+    opts.read([filename], encoding=py39.LOCALE_ENCODING)
     for section, options in settings.items():
         if options is None:
             log.info("Deleting section [%s] from %s", section, filename)
@@ -64,7 +64,7 @@ def edit_config(filename, settings, dry_run=False):
 
     log.info("Writing %s", filename)
     if not dry_run:
-        with open(filename, 'w', encoding=locale_encoding) as f:
+        with open(filename, 'w', encoding=py39.LOCALE_ENCODING) as f:
             opts.write(f)
 
 

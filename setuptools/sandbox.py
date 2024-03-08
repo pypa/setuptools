@@ -14,7 +14,7 @@ from typing import Union, List
 import pkg_resources
 from distutils.errors import DistutilsError
 from pkg_resources import working_set
-from .compat.encoding import locale_encoding_for_mode
+from .compat import py39
 
 if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
@@ -452,7 +452,7 @@ class DirectorySandbox(AbstractSandbox):
     def _open(self, path, mode='r', *args, **kw):
         if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
             self._violation("open", path, mode, *args, **kw)
-        kw.setdefault("encoding", locale_encoding_for_mode(mode))
+        kw.setdefault("encoding", py39.locale_encoding_for_mode(mode))
         return _open(path, mode, *args, **kw)
 
     def tmpnam(self):
