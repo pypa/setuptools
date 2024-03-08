@@ -1739,9 +1739,6 @@ def _parents(path):
 class EggProvider(NullProvider):
     """Provider based on a virtual filesystem"""
 
-    egg_name: str
-    egg_info: str
-
     def __init__(self, module: _ModuleLike):
         super().__init__(module)
         self._setup_prefix()
