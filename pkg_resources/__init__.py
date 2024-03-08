@@ -2748,7 +2748,7 @@ class Distribution:
         location: str,
         basename: str,
         metadata: _MetadataType = None,
-        **kw: int,  # We could set `precedence` explicitly, but keeping this as `**kw` for full backwards compatibility
+        **kw: int,  # We could set `precedence` explicitly, but keeping this as `**kw` for full backwards and subclassing compatibility
     ):
         project_name, version, py_version, platform = [None] * 4
         basename, ext = os.path.splitext(basename)
@@ -3008,14 +3008,10 @@ class Distribution:
         cls,
         filename: str,
         metadata: _MetadataType = None,
-        **kw: Optional[Union[str, int]],
+        **kw: int,  # We could set `precedence` explicitly, but keeping this as `**kw` for full backwards and subclassing compatibility
     ):
         return cls.from_location(
-            _normalize_cached(filename),
-            os.path.basename(filename),
-            metadata,
-            # We could set `precedence` explicitly, but keeping `**kw` for full backwards compatibility
-            **kw,  # type:ignore[arg-type]
+            _normalize_cached(filename), os.path.basename(filename), metadata, **kw
         )
 
     def as_requirement(self):
