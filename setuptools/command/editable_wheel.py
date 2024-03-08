@@ -43,7 +43,7 @@ from .. import (
     namespaces,
 )
 from .._path import StrPath
-from ..compat.encoding import locale_encoding
+from ..compat import py39
 from ..discovery import find_package_path
 from ..dist import Distribution
 from ..warnings import (
@@ -560,7 +560,7 @@ def _encode_pth(content: str) -> bytes:
     or ``locale.getencoding()``).
     """
     with io.BytesIO() as buffer:
-        wrapper = io.TextIOWrapper(buffer, locale_encoding)
+        wrapper = io.TextIOWrapper(buffer, encoding=py39.LOCALE_ENCODING)
         wrapper.write(content)
         wrapper.flush()
         buffer.seek(0)
