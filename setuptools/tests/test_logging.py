@@ -33,7 +33,7 @@ def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
     assert logging.getLevelName(unset_log_level) == "NOTSET"
 
     setup_script = tmp_path / "setup.py"
-    setup_script.write_text(setup_py)
+    setup_script.write_text(setup_py, encoding="utf-8")
     dist = distutils.core.run_setup(setup_script, stop_after="init")
     dist.script_args = [flag, "sdist"]
     dist.parse_command_line()  # <- where the log level is set

@@ -14,7 +14,6 @@ import logging
 import io
 import os
 import shutil
-import sys
 import traceback
 from contextlib import suppress
 from enum import Enum
@@ -44,6 +43,7 @@ from .. import (
     namespaces,
 )
 from .._path import StrPath
+from ..compat import py39
 from ..discovery import find_package_path
 from ..dist import Distribution
 from ..warnings import (
@@ -558,9 +558,8 @@ def _encode_pth(content: str) -> bytes:
     (There seems to be some variety in the way different version of Python handle
     ``encoding=None``, not all of them use ``locale.getpreferredencoding(False)``).
     """
-    encoding = "locale" if sys.version_info >= (3, 10) else None
     with io.BytesIO() as buffer:
-        wrapper = io.TextIOWrapper(buffer, encoding)
+        wrapper = io.TextIOWrapper(buffer, encoding=py39.LOCALE_ENCODING)
         wrapper.write(content)
         wrapper.flush()
         buffer.seek(0)
@@ -621,8 +620,7 @@ def _simple_layout(
     layout = {pkg: find_package_path(pkg, package_dir, project_dir) for pkg in packages}
     if not layout:
         return set(package_dir) in ({}, {""})
-    # TODO: has been fixed upstream, waiting for new mypy release https://github.com/python/typeshed/pull/11310
-    parent = os.path.commonpath(starmap(_parent_path, layout.items()))  # type: ignore[call-overload]
+    parent = os.path.commonpath(starmap(_parent_path, layout.items()))
     return all(
         _path.same_path(Path(parent, *key.split('.')), value)
         for key, value in layout.items()

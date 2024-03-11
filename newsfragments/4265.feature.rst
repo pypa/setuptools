@@ -1,0 +1,3 @@
+Explicitly use ``encoding="locale"`` for ``.pth`` files whenever possible,
+to  reduce ``EncodingWarnings``.
+This avoid errors with UTF-8 (see discussion in python/cpython#77102).
