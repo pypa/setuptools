@@ -56,6 +56,10 @@ link_files = {
                 url='https://bugs.python.org/issue{python}',
             ),
             dict(
+                pattern=r'\bpython/cpython#(?P<cpython>\d+)',
+                url='{GH}/python/cpython/issues/{cpython}',
+            ),
+            dict(
                 pattern=r'Interop #(?P<interop>\d+)',
                 url='{GH}/pypa/interoperability-peps/issues/{interop}',
             ),

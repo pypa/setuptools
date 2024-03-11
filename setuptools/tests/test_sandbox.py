@@ -17,7 +17,7 @@ class TestSandbox:
     @staticmethod
     def _file_writer(path):
         def do_write():
-            with open(path, 'w') as f:
+            with open(path, 'w', encoding="utf-8") as f:
                 f.write('xxx')
 
         return do_write
@@ -114,7 +114,7 @@ class TestExceptionSaver:
 
         def write_file():
             "Trigger a SandboxViolation by writing outside the sandbox"
-            with open('/etc/foo', 'w'):
+            with open('/etc/foo', 'w', encoding="utf-8"):
                 pass
 
         with pytest.raises(setuptools.sandbox.SandboxViolation) as caught:
@@ -126,8 +126,9 @@ class TestExceptionSaver:
         cmd, args, kwargs = caught.value.args
         assert cmd == 'open'
         assert args == ('/etc/foo', 'w')
-        assert kwargs == {}
+        assert kwargs == {"encoding": "utf-8"}
 
         msg = str(caught.value)
         assert 'open' in msg
         assert "('/etc/foo', 'w')" in msg
+        assert "{'encoding': 'utf-8'}" in msg
