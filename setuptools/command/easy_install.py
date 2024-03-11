@@ -1786,7 +1786,7 @@ def auto_chmod(func, arg, exc):
         return func(arg)
     et, ev, _ = sys.exc_info()
     # TODO: This code doesn't make sense. What is it trying to do?
-    raise (ev[0], ev[1] + (" %s %s" % (func, arg)))  # pyright: ignore[reportOptionalSubscript]
+    raise (ev[0], ev[1] + (" %s %s" % (func, arg)))  # pyright: ignore[reportOptionalSubscript, reportIndexIssue]
 
 
 def update_dist_caches(dist_path, fix_zipimporter_caches):

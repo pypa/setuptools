@@ -23,6 +23,8 @@
 	// Dynamically defined module-level variables declared as None in pkg_resources lead to a lot of false-positives
 	// TODO: Fix how these variables are typed
 	"reportOptionalCall": "warning",
+	// FIXME: A handful of reportOperatorIssue spread throughout the codebase
+	"reportOperatorIssue": "warning",
 	// Deferred initialization (initialize_options/finalize_options) causes many "potentially None" issues
 	// TODO: Fix with type-guards or by changing how it's initialized
 	"reportCallIssue": "warning",
