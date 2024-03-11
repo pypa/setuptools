@@ -620,8 +620,7 @@ def _simple_layout(
     layout = {pkg: find_package_path(pkg, package_dir, project_dir) for pkg in packages}
     if not layout:
         return set(package_dir) in ({}, {""})
-    # TODO: has been fixed upstream, waiting for new mypy release https://github.com/python/typeshed/pull/11310
-    parent = os.path.commonpath(starmap(_parent_path, layout.items()))  # type: ignore[call-overload]
+    parent = os.path.commonpath(starmap(_parent_path, layout.items()))
     return all(
         _path.same_path(Path(parent, *key.split('.')), value)
         for key, value in layout.items()
