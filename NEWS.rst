@@ -1,3 +1,28 @@
+v69.2.0
+=======
+
+Features
+--------
+
+- Explicitly use ``encoding="locale"`` for ``.pth`` files whenever possible,
+  to  reduce ``EncodingWarnings``.
+  This avoid errors with UTF-8 (see discussion in python/cpython#77102). (#4265)
+
+
+Bugfixes
+--------
+
+- Clarify some `pkg_resources` methods return `bytes`, not `str`. Also return an empty `bytes` in ``EmptyProvider._get`` -- by :user:`Avasam` (#4243)
+- Return an empty `list` by default in ``pkg_resources.ResourceManager.cleanup_resources`` -- by :user:`Avasam` (#4244)
+- Made ``pkg_resoursces.NullProvider``'s ``has_metadata`` and ``metadata_isdir`` methods return actual booleans like all other Providers. -- by :user:`Avasam` (#4254)
+
+
+Misc
+----
+
+- #4237, #4238, #4241, #4260, #4261, #4263
+
+
 v69.1.1
 =======
 

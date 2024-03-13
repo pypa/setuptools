@@ -158,9 +158,9 @@ jobs:
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Cygwin with Python
-        uses: cygwin/cygwin-install-action@v2
+        uses: cygwin/cygwin-install-action@v4
         with:
           platform: x86_64
           packages: >-
@@ -214,7 +214,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install OS-level dependencies
         run: |
           sudo apt-get update
