@@ -311,13 +311,14 @@ class UnixCCompiler(CCompiler):
                 "-L" + dir,
             ]
 
-        # For all compilers, `-Wl` is the presumed way to
-        # pass a compiler option to the linker and `-R` is
-        # the way to pass an RPATH.
+        # For all compilers, `-Wl` is the presumed way to pass a
+        # compiler option to the linker
         if sysconfig.get_config_var("GNULD") == "yes":
-            # GNU ld needs an extra option to get a RUNPATH
-            # instead of just an RPATH.
-            return "-Wl,--enable-new-dtags,-R" + dir
+            return [
+                # Force RUNPATH instead of RPATH
+                "-Wl,--enable-new-dtags",
+                "-Wl,-rpath," + dir
+            ]
         else:
             return "-Wl,-R" + dir
 
