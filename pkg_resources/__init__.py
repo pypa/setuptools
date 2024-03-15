@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import List, Protocol
+from typing import TYPE_CHECKING, List, Protocol
 import zipfile
 import zipimport
 import warnings
@@ -65,20 +65,35 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
-from pkg_resources.extern.jaraco.text import (
-    yield_lines,
-    drop_comment,
-    join_continuation,
-)
+if TYPE_CHECKING:
+    # Replicates the imports below in a way that can be understood by type-checkers
+    from jaraco.text import (
+        yield_lines,
+        drop_comment,
+        join_continuation,
+    )
+    import platformdirs
+    import packaging
+    import packaging.version
+    import packaging.specifiers
+    import packaging.requirements
+    import packaging.markers
+    import packaging.utils
+else:
+    from pkg_resources.extern.jaraco.text import (
+        yield_lines,
+        drop_comment,
+        join_continuation,
+    )
 
-from pkg_resources.extern import platformdirs
-from pkg_resources.extern import packaging
+    from pkg_resources.extern import platformdirs
+    from pkg_resources.extern import packaging
 
-__import__('pkg_resources.extern.packaging.version')
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.requirements')
-__import__('pkg_resources.extern.packaging.markers')
-__import__('pkg_resources.extern.packaging.utils')
+    __import__('pkg_resources.extern.packaging.version')
+    __import__('pkg_resources.extern.packaging.specifiers')
+    __import__('pkg_resources.extern.packaging.requirements')
+    __import__('pkg_resources.extern.packaging.markers')
+    __import__('pkg_resources.extern.packaging.utils')
 
 # declare some globals that will be defined later to
 # satisfy the linters.
