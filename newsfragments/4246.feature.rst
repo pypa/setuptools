@@ -1,0 +1,2 @@
+Added variables and parameter type annotations to be nearly on par with typeshed.\* -- by :user:`Avasam`
+\* Excluding ``TypeVar``, ``overload``, and return types are currently inferred. 
