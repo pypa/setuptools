@@ -23,6 +23,7 @@ from .errors import (
     DistutilsArgError,
     DistutilsClassError,
 )
+from setuptools.extern.packaging.utils import canonicalize_name, canonicalize_version
 from .fancy_getopt import FancyGetopt, translate_longopt
 from .util import check_environ, strtobool, rfc822_escape
 from ._log import log
@@ -1189,7 +1190,9 @@ class DistributionMetadata:
         return self.version or "0.0.0"
 
     def get_fullname(self):
-        return "{}-{}".format(self.get_name(), self.get_version())
+        return "{}-{}".format(
+            canonicalize_name(self.get_name()), canonicalize_version(self.get_version())
+        )
 
     def get_author(self):
         return self.author
