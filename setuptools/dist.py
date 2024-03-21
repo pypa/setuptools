@@ -989,6 +989,7 @@ class Distribution(_Distribution):
             if orig_val is not NoValue:
                 self.get_fullname = orig_val
 
+
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):
     """Class for warning about deprecations in dist in
     setuptools. Not ignored by default, unlike DeprecationWarning."""
