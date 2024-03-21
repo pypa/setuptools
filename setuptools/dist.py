@@ -7,6 +7,7 @@ import numbers
 import os
 import re
 import sys
+import contextlib
 from contextlib import suppress
 from glob import iglob
 from pathlib import Path
@@ -26,6 +27,7 @@ from .extern.more_itertools import partition, unique_everseen
 from .extern.ordered_set import OrderedSet
 from .extern.packaging.markers import InvalidMarker, Marker
 from .extern.packaging.specifiers import InvalidSpecifier, SpecifierSet
+from .extern.packaging.utils import canonicalize_name, canonicalize_version
 from .extern.packaging.version import Version
 
 from . import _entry_points
@@ -964,8 +966,28 @@ class Distribution(_Distribution):
         # Postpone defaults until all explicit configuration is considered
         # (setup() args, config files, command line and plugins)
 
-        super().run_command(command)
+        with self._override_get_fullname():
+            super().run_command(command)
 
+    @contextlib.contextmanager
+    def _override_get_fullname(self):
+        def _get_fullname_canonicalized(self):
+            return "{}-{}".format(
+                canonicalize_name(self.get_name()),
+                canonicalize_version(self.get_version()),
+            )
+
+        class NoValue:
+            pass
+
+        orig_val = getattr(self, 'get_fullname', NoValue)
+        self.get_fullname = _get_fullname_canonicalized.__get__(self)
+
+        try:
+            yield
+        finally:
+            if orig_val is not NoValue:
+                self.get_fullname = orig_val
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):
     """Class for warning about deprecations in dist in
