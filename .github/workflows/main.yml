@@ -34,7 +34,6 @@ jobs:
       matrix:
         python:
         - "3.8"
-        - "3.11"
         - "3.12"
         platform:
         - ubuntu-latest
@@ -44,6 +43,8 @@ jobs:
         - python: "3.9"
           platform: ubuntu-latest
         - python: "3.10"
+          platform: ubuntu-latest
+        - python: "3.11"
           platform: ubuntu-latest
         - python: pypy3.10
           platform: ubuntu-latest
