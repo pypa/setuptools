@@ -4,8 +4,11 @@ on:
   merge_group:
   push:
     branches-ignore:
-    # disabled for jaraco/skeleton#103
-    # - gh-readonly-queue/**  # Temporary merge queue-related GH-made branches
+    # temporary GH branches relating to merge queues (jaraco/skeleton#93)
+    - gh-readonly-queue/**
+    tags:
+    # required if branches-ignore is supplied (jaraco/skeleton#103)
+    - '**'
   pull_request:
   workflow_dispatch:
 
@@ -39,7 +42,6 @@ jobs:
       matrix:
         python:
         - "3.8"
-        - "3.11"
         - "3.12"
         platform:
         - ubuntu-latest
@@ -49,6 +51,8 @@ jobs:
         - python: "3.9"
           platform: ubuntu-latest
         - python: "3.10"
+          platform: ubuntu-latest
+        - python: "3.11"
           platform: ubuntu-latest
         - python: pypy3.10
           platform: ubuntu-latest
