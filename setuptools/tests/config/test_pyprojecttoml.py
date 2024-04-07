@@ -394,4 +394,4 @@ def test_warn_tools_typo(tmp_path):
     pyproject.write_text(cleandoc(config), encoding="utf-8")
 
     with pytest.warns(_ToolsTypoInMetadata):
-        expanded = read_configuration(pyproject)
+        read_configuration(pyproject)
