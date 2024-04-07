@@ -349,7 +349,7 @@ class TestTypeInfoFiles:
             name = "foo"
             version = "1"
 
-            [tools.setuptools]
+            [tool.setuptools]
             include-package-data = false
             """
         ),
@@ -359,7 +359,7 @@ class TestTypeInfoFiles:
             name = "foo"
             version = "1"
 
-            [tools.setuptools]
+            [tool.setuptools]
             include-package-data = false
 
             [tool.setuptools.exclude-package-data]
