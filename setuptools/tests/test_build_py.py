@@ -421,6 +421,7 @@ class TestTypeInfoFiles:
         jaraco.path.build(structure)
 
         build_py = get_finalized_build_py()
+        build_py.run_command("build")
         outputs = get_outputs(build_py)
         assert expected_type_files <= outputs
 
