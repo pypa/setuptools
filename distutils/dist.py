@@ -12,7 +12,7 @@ import contextlib
 import logging
 from email import message_from_file
 
-from packaging.utils import canonicalize_name, canonicalize_version
+from ._vendor.packaging.utils import canonicalize_name, canonicalize_version
 
 try:
     import warnings
