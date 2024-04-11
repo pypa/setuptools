@@ -973,7 +973,7 @@ class Distribution(_Distribution):
     def _override_get_fullname(self):
         def _get_fullname_canonicalized(self):
             return "{}-{}".format(
-                canonicalize_name(self.get_name()),
+                canonicalize_name(self.get_name()).replace('-', '_'),
                 canonicalize_version(self.get_version()),
             )
 
