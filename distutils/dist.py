@@ -1192,7 +1192,8 @@ class DistributionMetadata:
 
     def get_fullname(self):
         return "{}-{}".format(
-            canonicalize_name(self.get_name()), canonicalize_version(self.get_version())
+            canonicalize_name(self.get_name()).replace('-', '_'),
+            canonicalize_version(self.get_version()),
         )
 
     def get_author(self):
