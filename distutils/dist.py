@@ -12,6 +12,8 @@ import contextlib
 import logging
 from email import message_from_file
 
+from packaging.utils import canonicalize_name, canonicalize_version
+
 try:
     import warnings
 except ImportError:
@@ -23,7 +25,6 @@ from .errors import (
     DistutilsArgError,
     DistutilsClassError,
 )
-from setuptools.extern.packaging.utils import canonicalize_name, canonicalize_version
 from .fancy_getopt import FancyGetopt, translate_longopt
 from .util import check_environ, strtobool, rfc822_escape
 from ._log import log
