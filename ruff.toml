@@ -1,8 +1,4 @@
 [lint]
-extend-select = [
-	"C901",
-	"W",
-]
 ignore = [
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
@@ -21,6 +17,8 @@ ignore = [
 	"ISC002",
 ]
 extend-select = [
+	"C901",
+	"W",
 	"UP",  # pyupgrade
 	"YTT",  # flake8-2020
 ]
