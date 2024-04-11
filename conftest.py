@@ -17,6 +17,11 @@ if platform.system() != 'Windows':
     ])
 
 
+collect_ignore_glob = [
+    'distutils/_vendor/**/*',
+]
+
+
 @pytest.fixture
 def save_env():
     orig = os.environ.copy()
