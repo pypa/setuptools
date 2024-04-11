@@ -2,6 +2,10 @@
 extend-select = [
 	"C901",
 	"W",
+
+	# local
+	"UP",  # pyupgrade
+	"YTT",  # flake8-2020
 ]
 ignore = [
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
@@ -19,10 +23,6 @@ ignore = [
 	"COM819",
 	"ISC001",
 	"ISC002",
-]
-extend-select = [
-	"UP",  # pyupgrade
-	"YTT",  # flake8-2020
 ]
 extend-ignore = [
 	"UP015",  # redundant-open-modes, explicit is preferred
