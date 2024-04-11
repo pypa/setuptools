@@ -1189,7 +1189,10 @@ class DistributionMetadata:
         return self.version or "0.0.0"
 
     def get_fullname(self):
-        return "{}-{}".format(self.get_name(), self.get_version())
+        from setuptools.extern.packaging.utils import canonicalize_name, canonicalize_version
+        name = canonicalize_name(self.get_name())
+        version = canonicalize_version(self.get_version())
+        return f"{name}-{version}"
 
     def get_author(self):
         return self.author
