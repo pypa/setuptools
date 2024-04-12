@@ -28,7 +28,7 @@ class bdist_dumb(Command):
         (
             'format=',
             'f',
-            "archive format to create (tar, gztar, bztar, xztar, " "ztar, zip)",
+            "archive format to create (tar, gztar, bztar, xztar, ztar, zip)",
         ),
         (
             'keep-temp',
@@ -41,17 +41,17 @@ class bdist_dumb(Command):
         (
             'relative',
             None,
-            "build the archive using relative paths " "(default: false)",
+            "build the archive using relative paths (default: false)",
         ),
         (
             'owner=',
             'u',
-            "Owner name used when creating a tar file" " [default: current user]",
+            "Owner name used when creating a tar file [default: current user]",
         ),
         (
             'group=',
             'g',
-            "Group name used when creating a tar file" " [default: current group]",
+            "Group name used when creating a tar file [default: current group]",
         ),
     ]
 

@@ -161,8 +161,7 @@ class FancyGetopt:
             # Type- and value-check the option names
             if not isinstance(long, str) or len(long) < 2:
                 raise DistutilsGetoptError(
-                    ("invalid long option '%s': " "must be a string of length >= 2")
-                    % long
+                    ("invalid long option '%s': must be a string of length >= 2") % long
                 )
 
             if not ((short is None) or (isinstance(short, str) and len(short) == 1)):

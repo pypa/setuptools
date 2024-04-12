@@ -220,7 +220,7 @@ class TextFile:
             if self.join_lines and buildup_line:
                 # oops: end of file
                 if line is None:
-                    self.warn("continuation line immediately precedes " "end-of-file")
+                    self.warn("continuation line immediately precedes end-of-file")
                     return buildup_line
 
                 if self.collapse_join:

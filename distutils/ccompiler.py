@@ -465,7 +465,7 @@ class CCompiler:
             )
         else:
             raise TypeError(
-                "'runtime_library_dirs' (if supplied) " "must be a list of strings"
+                "'runtime_library_dirs' (if supplied) must be a list of strings"
             )
 
         return (libraries, library_dirs, runtime_library_dirs)
@@ -1245,7 +1245,7 @@ def gen_lib_options(compiler, library_dirs, runtime_library_dirs, libraries):
                 lib_opts.append(lib_file)
             else:
                 compiler.warn(
-                    "no library file corresponding to " "'%s' found (skipping)" % lib
+                    "no library file corresponding to '%s' found (skipping)" % lib
                 )
         else:
             lib_opts.append(compiler.library_option(lib))

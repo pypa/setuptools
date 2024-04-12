@@ -34,7 +34,7 @@ class bdist_rpm(Command):
         (
             'dist-dir=',
             'd',
-            "directory to put final RPM files in " "(and .spec files if --spec-only)",
+            "directory to put final RPM files in (and .spec files if --spec-only)",
         ),
         (
             'python=',
@@ -75,7 +75,7 @@ class bdist_rpm(Command):
         (
             'packager=',
             None,
-            "RPM packager (eg. \"Jane Doe <jane@example.net>\") " "[default: vendor]",
+            "RPM packager (eg. \"Jane Doe <jane@example.net>\") [default: vendor]",
         ),
         ('doc-files=', None, "list of documentation files (space or comma-separated)"),
         ('changelog=', None, "RPM changelog"),
@@ -214,7 +214,7 @@ class bdist_rpm(Command):
 
         if os.name != 'posix':
             raise DistutilsPlatformError(
-                "don't know how to create RPM " "distributions on platform %s" % os.name
+                "don't know how to create RPM distributions on platform %s" % os.name
             )
         if self.binary_only and self.source_only:
             raise DistutilsOptionError(

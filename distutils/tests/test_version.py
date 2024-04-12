@@ -48,9 +48,7 @@ class TestVersion:
                 if wanted is ValueError:
                     continue
                 else:
-                    raise AssertionError(
-                        f"cmp({v1}, {v2}) " "shouldn't raise ValueError"
-                    )
+                    raise AssertionError(f"cmp({v1}, {v2}) shouldn't raise ValueError")
             assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = StrictVersion(v1)._cmp(v2)
             assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'

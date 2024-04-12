@@ -701,7 +701,7 @@ class install(Command):
             # internally, and not to sys.path, so we don't check the platform
             # matches what we are running.
             if self.warn_dir and build_plat != get_platform():
-                raise DistutilsPlatformError("Can't install when " "cross-compiling")
+                raise DistutilsPlatformError("Can't install when cross-compiling")
 
         # Run all sub-commands (at least those that need to be run)
         for cmd_name in self.get_sub_commands():

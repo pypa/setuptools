@@ -253,7 +253,7 @@ class MSVCCompiler(CCompiler):
         vc_env = _get_vc_env(plat_spec)
         if not vc_env:
             raise DistutilsPlatformError(
-                "Unable to find a compatible " "Visual Studio installation."
+                "Unable to find a compatible Visual Studio installation."
             )
         self._configure(vc_env)
 
