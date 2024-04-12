@@ -24,7 +24,6 @@ from ..errors import (
 from ..extension import Extension
 from ..sysconfig import customize_compiler, get_config_h_filename, get_python_version
 from ..util import get_platform
-from . import py37compat
 
 # An extension name is just a dot-separated list of Python NAMEs (ie.
 # the same as a fully-qualified module name).
@@ -798,4 +797,4 @@ class build_ext(Command):
                 ldversion = get_config_var('LDVERSION')
                 return ext.libraries + ['python' + ldversion]
 
-        return ext.libraries + py37compat.pythonlib()
+        return ext.libraries
