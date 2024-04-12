@@ -50,7 +50,7 @@ class TestVersion:
                     continue
                 else:
                     raise AssertionError(
-                        ("cmp(%s, %s) " "shouldn't raise ValueError") % (v1, v2)
+                        f"cmp({v1}, {v2}) " "shouldn't raise ValueError"
                     )
             assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = StrictVersion(v1)._cmp(v2)

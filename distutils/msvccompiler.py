@@ -638,8 +638,8 @@ class MSVCCompiler(CCompiler):
             key = rf"{self.__root}\{self.__version:0.1f}\VC\VC_OBJECTS_PLATFORM_INFO\Win32\Directories"
         else:
             key = (
-                r"%s\6.0\Build System\Components\Platforms"
-                r"\Win32 (%s)\Directories" % (self.__root, platform)
+                rf"{self.__root}\6.0\Build System\Components\Platforms"
+                rf"\Win32 ({platform})\Directories"
             )
 
         for base in HKEYS:

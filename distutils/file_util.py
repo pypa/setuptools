@@ -220,8 +220,8 @@ def move_file(src, dst, verbose=1, dry_run=0):  # noqa: C901
             except OSError:
                 pass
             raise DistutilsFileError(
-                "couldn't move '%s' to '%s' by copy/delete: "
-                "delete '%s' failed: %s" % (src, dst, src, msg)
+                f"couldn't move '{src}' to '{dst}' by copy/delete: "
+                f"delete '{src}' failed: {msg}"
             )
     return dst
 

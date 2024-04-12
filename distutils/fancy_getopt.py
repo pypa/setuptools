@@ -116,13 +116,11 @@ class FancyGetopt:
         for alias, opt in aliases.items():
             if alias not in self.option_index:
                 raise DistutilsGetoptError(
-                    ("invalid %s '%s': " "option '%s' not defined")
-                    % (what, alias, alias)
+                    f"invalid {what} '{alias}': " f"option '{alias}' not defined"
                 )
             if opt not in self.option_index:
                 raise DistutilsGetoptError(
-                    ("invalid %s '%s': " "aliased option '%s' not defined")
-                    % (what, alias, opt)
+                    f"invalid {what} '{alias}': " f"aliased option '{opt}' not defined"
                 )
 
     def set_aliases(self, alias):
@@ -187,8 +185,8 @@ class FancyGetopt:
                 if alias_to is not None:
                     if self.takes_arg[alias_to]:
                         raise DistutilsGetoptError(
-                            "invalid negative alias '%s': "
-                            "aliased option '%s' takes a value" % (long, alias_to)
+                            f"invalid negative alias '{long}': "
+                            f"aliased option '{alias_to}' takes a value"
                         )
 
                     self.long_opts[-1] = long  # XXX redundant?!
@@ -200,9 +198,9 @@ class FancyGetopt:
             if alias_to is not None:
                 if self.takes_arg[long] != self.takes_arg[alias_to]:
                     raise DistutilsGetoptError(
-                        "invalid alias '%s': inconsistent with "
-                        "aliased option '%s' (one of them takes a value, "
-                        "the other doesn't" % (long, alias_to)
+                        f"invalid alias '{long}': inconsistent with "
+                        f"aliased option '{alias_to}' (one of them takes a value, "
+                        "the other doesn't"
                     )
 
             # Now enforce some bondage on the long option name, so we can

@@ -109,8 +109,7 @@ class build_scripts(Command):
                 else:
                     executable = os.path.join(
                         sysconfig.get_config_var("BINDIR"),
-                        "python%s%s"
-                        % (
+                        "python{}{}".format(
                             sysconfig.get_config_var("VERSION"),
                             sysconfig.get_config_var("EXE"),
                         ),

@@ -232,8 +232,7 @@ class bdist_rpm(Command):
         self.ensure_string('group', "Development/Libraries")
         self.ensure_string(
             'vendor',
-            "%s <%s>"
-            % (self.distribution.get_contact(), self.distribution.get_contact_email()),
+            f"{self.distribution.get_contact()} <{self.distribution.get_contact_email()}>",
         )
         self.ensure_string('packager')
         self.ensure_string_list('doc_files')

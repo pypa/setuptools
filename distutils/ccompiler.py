@@ -169,8 +169,7 @@ class CCompiler:
         for key in kwargs:
             if key not in self.executables:
                 raise ValueError(
-                    "unknown executable '%s' for class %s"
-                    % (key, self.__class__.__name__)
+                    f"unknown executable '{key}' for class {self.__class__.__name__}"
                 )
             self.set_executable(key, kwargs[key])
 
@@ -1162,8 +1161,8 @@ def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
         )
     except KeyError:
         raise DistutilsModuleError(
-            "can't compile C/C++ code: unable to find class '%s' "
-            "in module '%s'" % (class_name, module_name)
+            f"can't compile C/C++ code: unable to find class '{class_name}' "
+            f"in module '{module_name}'"
         )
 
     # XXX The None is necessary to preserve backwards compatibility
@@ -1210,7 +1209,7 @@ def gen_preprocess_options(macros, include_dirs):
                 # XXX *don't* need to be clever about quoting the
                 # macro value here, because we're going to avoid the
                 # shell at all costs when we spawn the command!
-                pp_opts.append("-D%s=%s" % macro)
+                pp_opts.append("-D{}={}".format(*macro))
 
     for dir in include_dirs:
         pp_opts.append("-I%s" % dir)

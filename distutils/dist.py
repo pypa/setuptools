@@ -592,9 +592,8 @@ Common commands: (see '--help-commands' for more)
                         func()
                     else:
                         raise DistutilsClassError(
-                            "invalid help function %r for help option '%s': "
+                            f"invalid help function {func!r} for help option '{help_option}': "
                             "must be a callable object (function, etc.)"
-                            % (func, help_option)
                         )
 
             if help_option_found:
@@ -834,8 +833,7 @@ Common commands: (see '--help-commands' for more)
                 klass = getattr(module, klass_name)
             except AttributeError:
                 raise DistutilsModuleError(
-                    "invalid command '%s' (no class '%s' in module '%s')"
-                    % (command, klass_name, module_name)
+                    f"invalid command '{command}' (no class '{klass_name}' in module '{module_name}')"
                 )
 
             self.cmdclass[command] = klass
@@ -909,8 +907,7 @@ Common commands: (see '--help-commands' for more)
                     setattr(command_obj, option, value)
                 else:
                     raise DistutilsOptionError(
-                        "error in %s: command '%s' has no such option '%s'"
-                        % (source, command_name, option)
+                        f"error in {source}: command '{command_name}' has no such option '{option}'"
                     )
             except ValueError as msg:
                 raise DistutilsOptionError(msg)
