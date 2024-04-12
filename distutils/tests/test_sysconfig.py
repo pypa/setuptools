@@ -202,22 +202,21 @@ class TestSysconfig:
             'LDFLAGS'
         )
 
+    # On macOS, binary installers support extension module building on
+    # various levels of the operating system with differing Xcode
+    # configurations, requiring customization of some of the
+    # compiler configuration directives to suit the environment on
+    # the installed machine. Some of these customizations may require
+    # running external programs and are thus deferred until needed by
+    # the first extension module build. Only
+    # the Distutils version of sysconfig is used for extension module
+    # builds, which happens earlier in the Distutils tests. This may
+    # cause the following tests to fail since no tests have caused
+    # the global version of sysconfig to call the customization yet.
+    # The solution for now is to simply skip this test in this case.
+    # The longer-term solution is to only have one version of sysconfig.
     @pytest.mark.skipif("sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER')")
     def test_sysconfig_compiler_vars(self):
-        # On OS X, binary installers support extension module building on
-        # various levels of the operating system with differing Xcode
-        # configurations.  This requires customization of some of the
-        # compiler configuration directives to suit the environment on
-        # the installed machine.  Some of these customizations may require
-        # running external programs and, so, are deferred until needed by
-        # the first extension module build.  With Python 3.3, only
-        # the Distutils version of sysconfig is used for extension module
-        # builds, which happens earlier in the Distutils tests.  This may
-        # cause the following tests to fail since no tests have caused
-        # the global version of sysconfig to call the customization yet.
-        # The solution for now is to simply skip this test in this case.
-        # The longer-term solution is to only have one version of sysconfig.
-
         import sysconfig as global_sysconfig
 
         if sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER'):
