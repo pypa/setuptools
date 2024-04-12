@@ -33,7 +33,7 @@ with contextlib.suppress(ImportError):
         def system_message(self, level, message, *children, **kwargs):
             self.messages.append((level, message, children, kwargs))
             return docutils.nodes.system_message(
-                message, level=level, type=self.levels[level], *children, **kwargs
+                message, *children, level=level, type=self.levels[level], **kwargs
             )
 
 
