@@ -13,6 +13,7 @@ import urllib.request
 from distutils._log import log
 from warnings import warn
 
+from .._itertools import always_iterable
 from ..core import PyPIRCCommand
 
 
@@ -273,12 +274,8 @@ Your selection [default 1]: """,
         sep_boundary = '\n--' + boundary
         end_boundary = sep_boundary + '--'
         body = io.StringIO()
-        for key, value in data.items():
-            # handle multiple entries for the same name
-            if type(value) not in (type([]), type(())):
-                value = [value]
-            for value in value:
-                value = str(value)
+        for key, values in data.items():
+            for value in map(str, make_iterable(values)):
                 body.write(sep_boundary)
                 body.write('\nContent-Disposition: form-data; name="%s"' % key)
                 body.write("\n\n")
@@ -318,3 +315,9 @@ Your selection [default 1]: """,
             msg = '\n'.join(('-' * 75, data, '-' * 75))
             self.announce(msg, logging.INFO)
         return result
+
+
+def make_iterable(values):
+    if values is None:
+        return [None]
+    return always_iterable(values)

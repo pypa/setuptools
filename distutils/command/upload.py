@@ -13,6 +13,7 @@ from base64 import standard_b64encode
 from urllib.parse import urlparse
 from urllib.request import HTTPError, Request, urlopen
 
+from .._itertools import always_iterable
 from ..core import PyPIRCCommand
 from ..errors import DistutilsError, DistutilsOptionError
 from ..spawn import spawn
@@ -151,12 +152,9 @@ class upload(PyPIRCCommand):
         sep_boundary = b'\r\n--' + boundary.encode('ascii')
         end_boundary = sep_boundary + b'--\r\n'
         body = io.BytesIO()
-        for key, value in data.items():
+        for key, values in data.items():
             title = '\r\nContent-Disposition: form-data; name="%s"' % key
-            # handle multiple entries for the same name
-            if not isinstance(value, list):
-                value = [value]
-            for value in value:
+            for value in make_iterable(values):
                 if type(value) is tuple:
                     title += '; filename="%s"' % value[0]
                     value = value[1]
@@ -202,3 +200,9 @@ class upload(PyPIRCCommand):
             msg = f'Upload failed ({status}): {reason}'
             self.announce(msg, logging.ERROR)
             raise DistutilsError(msg)
+
+
+def make_iterable(values):
+    if values is None:
+        return [None]
+    return always_iterable(values, base_type=(bytes, str, tuple))
