@@ -30,7 +30,6 @@ def get_host_platform():
     # even with older Python versions when distutils was split out.
     # Now it delegates to stdlib sysconfig, but maintains compatibility.
 
-
     if sys.version_info < (3, 9):
         if os.name == "posix" and hasattr(os, 'uname'):
             osname, host, release, version, machine = os.uname()
