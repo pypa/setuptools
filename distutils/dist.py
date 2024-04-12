@@ -414,7 +414,7 @@ Common commands: (see '--help-commands' for more)
         # to set Distribution options.
 
         if 'global' in self.command_options:
-            for opt, (src, val) in self.command_options['global'].items():
+            for opt, (_src, val) in self.command_options['global'].items():
                 alias = self.negative_opt.get(opt)
                 try:
                     if alias:
@@ -585,7 +585,7 @@ Common commands: (see '--help-commands' for more)
             cmd_class.help_options, list
         ):
             help_option_found = 0
-            for help_option, short, desc, func in cmd_class.help_options:
+            for help_option, _short, _desc, func in cmd_class.help_options:
                 if hasattr(opts, parser.get_attr_name(help_option)):
                     help_option_found = 1
                     if callable(func):

@@ -308,7 +308,7 @@ class sdist(Command):
 
         # getting package_data files
         # (computed in build_py.data_files by build_py.finalize_options)
-        for pkg, src_dir, build_dir, filenames in build_py.data_files:
+        for _pkg, src_dir, _build_dir, filenames in build_py.data_files:
             for filename in filenames:
                 self.filelist.append(os.path.join(src_dir, filename))
 

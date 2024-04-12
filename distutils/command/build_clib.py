@@ -155,7 +155,7 @@ class build_clib(Command):
             return None
 
         lib_names = []
-        for lib_name, build_info in self.libraries:
+        for lib_name, _build_info in self.libraries:
             lib_names.append(lib_name)
         return lib_names
 
