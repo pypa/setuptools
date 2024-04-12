@@ -1,3 +1,12 @@
+v69.3.0
+=======
+
+Features
+--------
+
+- Support PEP 625 by canonicalizing package name and version in filenames. (#3593)
+
+
 v69.2.0
 =======
 
