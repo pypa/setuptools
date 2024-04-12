@@ -635,10 +635,7 @@ class MSVCCompiler(CCompiler):
 
         path = path + " dirs"
         if self.__version >= 7:
-            key = r"{}\{:0.1f}\VC\VC_OBJECTS_PLATFORM_INFO\Win32\Directories".format(
-                self.__root,
-                self.__version,
-            )
+            key = rf"{self.__root}\{self.__version:0.1f}\VC\VC_OBJECTS_PLATFORM_INFO\Win32\Directories"
         else:
             key = (
                 r"%s\6.0\Build System\Components\Platforms"

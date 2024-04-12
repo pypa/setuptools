@@ -352,11 +352,7 @@ class bdist_rpm(Command):
         nvr_string = "%{name}-%{version}-%{release}"
         src_rpm = nvr_string + ".src.rpm"
         non_src_rpm = "%{arch}/" + nvr_string + ".%{arch}.rpm"
-        q_cmd = r"rpm -q --qf '{} {}\n' --specfile '{}'".format(
-            src_rpm,
-            non_src_rpm,
-            spec_path,
-        )
+        q_cmd = rf"rpm -q --qf '{src_rpm} {non_src_rpm}\n' --specfile '{spec_path}'"
 
         out = os.popen(q_cmd)
         try:

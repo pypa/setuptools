@@ -73,10 +73,7 @@ class TestUnixCCompiler(support.TempdirManager):
 
         def do_darwin_test(syscfg_macosx_ver, env_macosx_ver, expected_flag):
             env = os.environ
-            msg = "macOS version = (sysconfig={!r}, env={!r})".format(
-                syscfg_macosx_ver,
-                env_macosx_ver,
-            )
+            msg = f"macOS version = (sysconfig={syscfg_macosx_ver!r}, env={env_macosx_ver!r})"
 
             # Save
             old_gcv = sysconfig.get_config_var

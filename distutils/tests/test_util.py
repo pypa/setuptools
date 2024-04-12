@@ -259,6 +259,6 @@ class TestUtil:
 
     def test_grok_environment_error(self):
         # test obsolete function to ensure backward compat (#4931)
-        exc = IOError("Unable to find batch file")
+        exc = OSError("Unable to find batch file")
         msg = grok_environment_error(exc)
         assert msg == "error: Unable to find batch file"

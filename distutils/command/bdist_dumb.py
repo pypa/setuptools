@@ -104,9 +104,7 @@ class bdist_dumb(Command):
 
         # And make an archive relative to the root of the
         # pseudo-installation tree.
-        archive_basename = "{}.{}".format(
-            self.distribution.get_fullname(), self.plat_name
-        )
+        archive_basename = f"{self.distribution.get_fullname()}.{self.plat_name}"
 
         pseudoinstall_root = os.path.join(self.dist_dir, archive_basename)
         if not self.relative:

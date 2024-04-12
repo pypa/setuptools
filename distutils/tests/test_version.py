@@ -52,13 +52,9 @@ class TestVersion:
                     raise AssertionError(
                         ("cmp(%s, %s) " "shouldn't raise ValueError") % (v1, v2)
                     )
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
-                v1, v2, wanted, res
-            )
+            assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = StrictVersion(v1)._cmp(v2)
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
-                v1, v2, wanted, res
-            )
+            assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = StrictVersion(v1)._cmp(object())
             assert (
                 res is NotImplemented
@@ -78,13 +74,9 @@ class TestVersion:
 
         for v1, v2, wanted in versions:
             res = LooseVersion(v1)._cmp(LooseVersion(v2))
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
-                v1, v2, wanted, res
-            )
+            assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = LooseVersion(v1)._cmp(v2)
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
-                v1, v2, wanted, res
-            )
+            assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = LooseVersion(v1)._cmp(object())
             assert (
                 res is NotImplemented
