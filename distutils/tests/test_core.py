@@ -123,7 +123,7 @@ class TestCore:
         # this covers the code called when DEBUG is set
         sys.argv = ['setup.py', '--name']
         distutils.core.setup(name='bar')
-        capsys.readouterr().out == 'bar\n'
+        assert capsys.readouterr().out == 'bar\n'
         monkeypatch.setattr(distutils.core, 'DEBUG', True)
         distutils.core.setup(name='bar')
         wanted = "options (after parsing config files):\n"
