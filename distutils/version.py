@@ -193,14 +193,11 @@ class StrictVersion(Version):
 
     def _cmp_prerelease(self, other):
         """
-        case 1: neither has prerelease; they're equal
-        case 2: self has prerelease, other doesn't; other is greater
-        case 3: self doesn't have prerelease, other does: self is greater
-        case 4: both have prerelease: must compare them!
+        case 1: self has prerelease, other doesn't; other is greater
+        case 2: self doesn't have prerelease, other does: self is greater
+        case 3: both or neither have prerelease: compare them!
         """
-        if not self.prerelease and not other.prerelease:
-            return 0
-        elif self.prerelease and not other.prerelease:
+        if self.prerelease and not other.prerelease:
             return -1
         elif not self.prerelease and other.prerelease:
             return 1
