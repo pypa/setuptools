@@ -36,7 +36,7 @@ class TestClean(support.TempdirManager):
         cmd.run()
 
         # make sure the files where removed
-        for name, path in dirs:
+        for _name, path in dirs:
             assert not os.path.exists(path), '%s was not removed' % path
 
         # let's run the command again (should spit warnings but succeed)

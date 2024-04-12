@@ -212,8 +212,6 @@ class StrictVersion(Version):
                 return -1
             else:
                 return 1
-        else:
-            assert False, "never get here"
 
 
 # end class StrictVersion
