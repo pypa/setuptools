@@ -1,18 +1,18 @@
 """Tests for distutils.cygwinccompiler."""
-import sys
+
 import os
-
-import pytest
-
+import sys
+from distutils import sysconfig
 from distutils.cygwinccompiler import (
-    check_config_h,
-    CONFIG_H_OK,
     CONFIG_H_NOTOK,
+    CONFIG_H_OK,
     CONFIG_H_UNCERTAIN,
+    check_config_h,
     get_msvcr,
 )
 from distutils.tests import support
-from distutils import sysconfig
+
+import pytest
 
 
 @pytest.fixture(autouse=True)

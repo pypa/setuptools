@@ -1,15 +1,14 @@
 """Tests for distutils._msvccompiler."""
-import sys
+
 import os
+import sys
 import threading
 import unittest.mock as mock
-
-import pytest
-
+from distutils import _msvccompiler
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
-from distutils import _msvccompiler
 
+import pytest
 
 needs_winreg = pytest.mark.skipif('not hasattr(_msvccompiler, "winreg")')
 

@@ -1,31 +1,26 @@
 """Tests for distutils.file_util."""
-import os
-import errno
-import unittest.mock as mock
 
-from distutils.file_util import move_file, copy_file
-from distutils.tests import support
+import errno
+import os
+import unittest.mock as mock
 from distutils.errors import DistutilsFileError
-from .py38compat import unlink
+from distutils.file_util import copy_file, move_file
+
+import jaraco.path
 import pytest
 
 
 @pytest.fixture(autouse=True)
-def stuff(request, monkeypatch, distutils_managed_tempdir):
+def stuff(request, tmp_path):
     self = request.instance
-    tmp_dir = self.mkdtemp()
-    self.source = os.path.join(tmp_dir, 'f1')
-    self.target = os.path.join(tmp_dir, 'f2')
-    self.target_dir = os.path.join(tmp_dir, 'd1')
+    self.source = tmp_path / 'f1'
+    self.target = tmp_path / 'f2'
+    self.target_dir = tmp_path / 'd1'
 
 
-class TestFileUtil(support.TempdirManager):
+class TestFileUtil:
     def test_move_file_verbosity(self, caplog):
-        f = open(self.source, 'w')
-        try:
-            f.write('some content')
-        finally:
-            f.close()
+        jaraco.path.build({self.source: 'some content'})
 
         move_file(self.source, self.target, verbose=0)
         assert not caplog.messages
@@ -34,7 +29,7 @@ class TestFileUtil(support.TempdirManager):
         move_file(self.target, self.source, verbose=0)
 
         move_file(self.source, self.target, verbose=1)
-        wanted = ['moving {} -> {}'.format(self.source, self.target)]
+        wanted = [f'moving {self.source} -> {self.target}']
         assert caplog.messages == wanted
 
         # back to original state
@@ -44,7 +39,7 @@ class TestFileUtil(support.TempdirManager):
         # now the target is a dir
         os.mkdir(self.target_dir)
         move_file(self.source, self.target_dir, verbose=1)
-        wanted = ['moving {} -> {}'.format(self.source, self.target_dir)]
+        wanted = [f'moving {self.source} -> {self.target_dir}']
         assert caplog.messages == wanted
 
     def test_move_file_exception_unpacking_rename(self):
@@ -52,8 +47,7 @@ class TestFileUtil(support.TempdirManager):
         with mock.patch("os.rename", side_effect=OSError("wrong", 1)), pytest.raises(
             DistutilsFileError
         ):
-            with open(self.source, 'w') as fobj:
-                fobj.write('spam eggs')
+            jaraco.path.build({self.source: 'spam eggs'})
             move_file(self.source, self.target, verbose=0)
 
     def test_move_file_exception_unpacking_unlink(self):
@@ -63,13 +57,11 @@ class TestFileUtil(support.TempdirManager):
         ), mock.patch("os.unlink", side_effect=OSError("wrong", 1)), pytest.raises(
             DistutilsFileError
         ):
-            with open(self.source, 'w') as fobj:
-                fobj.write('spam eggs')
+            jaraco.path.build({self.source: 'spam eggs'})
             move_file(self.source, self.target, verbose=0)
 
     def test_copy_file_hard_link(self):
-        with open(self.source, 'w') as f:
-            f.write('some content')
+        jaraco.path.build({self.source: 'some content'})
         # Check first that copy_file() will not fall back on copying the file
         # instead of creating the hard link.
         try:
@@ -77,22 +69,20 @@ class TestFileUtil(support.TempdirManager):
         except OSError as e:
             self.skipTest('os.link: %s' % e)
         else:
-            unlink(self.target)
+            self.target.unlink()
         st = os.stat(self.source)
         copy_file(self.source, self.target, link='hard')
         st2 = os.stat(self.source)
         st3 = os.stat(self.target)
         assert os.path.samestat(st, st2), (st, st2)
         assert os.path.samestat(st2, st3), (st2, st3)
-        with open(self.source) as f:
-            assert f.read() == 'some content'
+        assert self.source.read_text(encoding='utf-8') == 'some content'
 
     def test_copy_file_hard_link_failure(self):
         # If hard linking fails, copy_file() falls back on copying file
         # (some special filesystems don't support hard linking even under
         #  Unix, see issue #8876).
-        with open(self.source, 'w') as f:
-            f.write('some content')
+        jaraco.path.build({self.source: 'some content'})
         st = os.stat(self.source)
         with mock.patch("os.link", side_effect=OSError(0, "linking unsupported")):
             copy_file(self.source, self.target, link='hard')
@@ -101,5 +91,4 @@ class TestFileUtil(support.TempdirManager):
         assert os.path.samestat(st, st2), (st, st2)
         assert not os.path.samestat(st2, st3), (st2, st3)
         for fn in (self.source, self.target):
-            with open(fn) as f:
-                assert f.read() == 'some content'
+            assert fn.read_text(encoding='utf-8') == 'some content'

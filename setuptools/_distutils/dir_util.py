@@ -2,10 +2,11 @@
 
 Utility functions for manipulating directories and directory trees."""
 
-import os
 import errno
-from .errors import DistutilsInternalError, DistutilsFileError
+import os
+
 from ._log import log
+from .errors import DistutilsFileError, DistutilsInternalError
 
 # cache for by mkpath() -- in addition to cheapening redundant calls,
 # eliminates redundant "creating /foo/bar/baz" messages in dry-run mode
@@ -33,9 +34,7 @@ def mkpath(name, mode=0o777, verbose=1, dry_run=0):  # noqa: C901
 
     # Detect a common bug -- name is None
     if not isinstance(name, str):
-        raise DistutilsInternalError(
-            "mkpath: 'name' must be a string (got {!r})".format(name)
-        )
+        raise DistutilsInternalError(f"mkpath: 'name' must be a string (got {name!r})")
 
     # XXX what's the better way to handle verbosity? print as we create
     # each directory in the path (the current behaviour), or only announce
@@ -76,7 +75,7 @@ def mkpath(name, mode=0o777, verbose=1, dry_run=0):  # noqa: C901
             except OSError as exc:
                 if not (exc.errno == errno.EEXIST and os.path.isdir(head)):
                     raise DistutilsFileError(
-                        "could not create '{}': {}".format(head, exc.args[-1])
+                        f"could not create '{head}': {exc.args[-1]}"
                     )
             created_dirs.append(head)
 
@@ -143,9 +142,7 @@ def copy_tree(  # noqa: C901
         if dry_run:
             names = []
         else:
-            raise DistutilsFileError(
-                "error listing files in '{}': {}".format(src, e.strerror)
-            )
+            raise DistutilsFileError(f"error listing files in '{src}': {e.strerror}")
 
     if not dry_run:
         mkpath(dst, verbose=verbose)

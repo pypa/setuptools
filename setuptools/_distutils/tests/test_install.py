@@ -1,24 +1,20 @@
 """Tests for distutils.command.install."""
 
-import os
-import sys
-import site
-import pathlib
 import logging
-
-import pytest
-
+import os
+import pathlib
+import site
+import sys
 from distutils import sysconfig
-from distutils.command.install import install
 from distutils.command import install as install_module
 from distutils.command.build_ext import build_ext
-from distutils.command.install import INSTALL_SCHEMES
+from distutils.command.install import INSTALL_SCHEMES, install
 from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
+from distutils.tests import missing_compiler_executable, support
 
-from distutils.tests import support
-from test import support as test_support
+import pytest
 
 
 def _make_ext_name(modname):
@@ -197,23 +193,19 @@ class TestInstall(
         cmd.ensure_finalized()
         cmd.run()
 
-        f = open(cmd.record)
-        try:
-            content = f.read()
-        finally:
-            f.close()
+        content = pathlib.Path(cmd.record).read_text(encoding='utf-8')
 
-        found = [os.path.basename(line) for line in content.splitlines()]
+        found = [pathlib.Path(line).name for line in content.splitlines()]
         expected = [
             'hello.py',
             'hello.%s.pyc' % sys.implementation.cache_tag,
             'sayhi',
-            'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2],
+            'UNKNOWN-0.0.0-py{}.{}.egg-info'.format(*sys.version_info[:2]),
         ]
         assert found == expected
 
     def test_record_extensions(self):
-        cmd = test_support.missing_compiler_executable()
+        cmd = missing_compiler_executable()
         if cmd is not None:
             pytest.skip('The %r command is not found' % cmd)
         install_dir = self.mkdtemp()
@@ -235,12 +227,12 @@ class TestInstall(
         cmd.ensure_finalized()
         cmd.run()
 
-        content = pathlib.Path(cmd.record).read_text()
+        content = pathlib.Path(cmd.record).read_text(encoding='utf-8')
 
-        found = [os.path.basename(line) for line in content.splitlines()]
+        found = [pathlib.Path(line).name for line in content.splitlines()]
         expected = [
             _make_ext_name('xx'),
-            'UNKNOWN-0.0.0-py%s.%s.egg-info' % sys.version_info[:2],
+            'UNKNOWN-0.0.0-py{}.{}.egg-info'.format(*sys.version_info[:2]),
         ]
         assert found == expected
 

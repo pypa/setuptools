@@ -1,30 +1,30 @@
 """Tests for distutils.archive_util."""
-import os
-import sys
-import tarfile
-from os.path import splitdrive
-import warnings
+
 import functools
 import operator
+import os
 import pathlib
-
-import pytest
-import path
-
+import sys
+import tarfile
+import warnings
 from distutils import archive_util
 from distutils.archive_util import (
+    ARCHIVE_FORMATS,
     check_archive_formats,
+    make_archive,
     make_tarball,
     make_zipfile,
-    make_archive,
-    ARCHIVE_FORMATS,
 )
 from distutils.spawn import spawn
 from distutils.tests import support
+from os.path import splitdrive
 from test.support import patch
-from .unix_compat import require_unix_id, require_uid_0, grp, pwd, UID_0_SUPPORT
+
+import path
+import pytest
 
 from .py38compat import check_warnings
+from .unix_compat import UID_0_SUPPORT, grp, pwd, require_uid_0, require_unix_id
 
 
 def can_fs_encode(filename):
