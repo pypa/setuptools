@@ -1,4 +1,4 @@
-packaging==23.1
+packaging==24
 
 platformdirs==2.6.2
 # required for platformdirs on Python < 3.8
