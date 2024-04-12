@@ -1,12 +1,11 @@
-import os
-import sys
-import platform
-import pathlib
 import logging
+import os
+import pathlib
+import platform
+import sys
 
-import pytest
 import path
-
+import pytest
 
 collect_ignore = []
 
@@ -93,8 +92,7 @@ def temp_cwd(tmp_path):
 
 @pytest.fixture
 def pypirc(request, save_env, distutils_managed_tempdir):
-    from distutils.core import PyPIRCCommand
-    from distutils.core import Distribution
+    from distutils.core import Distribution, PyPIRCCommand
 
     self = request.instance
     self.tmp_dir = self.mkdtemp()

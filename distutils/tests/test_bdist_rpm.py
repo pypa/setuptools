@@ -1,17 +1,15 @@
 """Tests for distutils.command.bdist_rpm."""
 
-import sys
 import os
+import sys
+from distutils.command.bdist_rpm import bdist_rpm
+from distutils.core import Distribution
+from distutils.spawn import find_executable  # noqa: F401
+from distutils.tests import support
 
 import pytest
 
-from distutils.core import Distribution
-from distutils.command.bdist_rpm import bdist_rpm
-from distutils.tests import support
-from distutils.spawn import find_executable  # noqa: F401
-
 from .py38compat import requires_zlib
-
 
 SETUP_PY = """\
 from distutils.core import setup

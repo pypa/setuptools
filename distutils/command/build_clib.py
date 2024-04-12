@@ -15,10 +15,11 @@ module."""
 # cut 'n paste.  Sigh.
 
 import os
+from distutils._log import log
+
 from ..core import Command
 from ..errors import DistutilsSetupError
 from ..sysconfig import customize_compiler
-from distutils._log import log
 
 
 def show_compilers():

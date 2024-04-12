@@ -3,16 +3,15 @@
 import os
 import sys
 import unittest.mock as mock
-
-from .py38compat import EnvironmentVarGuard
-
 from distutils import sysconfig
 from distutils.errors import DistutilsPlatformError
 from distutils.unixccompiler import UnixCCompiler
 from distutils.util import _clear_cached_macosx_ver
 
-from . import support
 import pytest
+
+from . import support
+from .py38compat import EnvironmentVarGuard
 
 
 @pytest.fixture(autouse=True)

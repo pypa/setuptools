@@ -8,24 +8,23 @@ import contextlib
 import os
 import re
 import sys
+from distutils._log import log
+from site import USER_BASE
+
+from .._modified import newer_group
 from ..core import Command
 from ..errors import (
-    DistutilsOptionError,
-    DistutilsSetupError,
     CCompilerError,
-    DistutilsError,
     CompileError,
+    DistutilsError,
+    DistutilsOptionError,
     DistutilsPlatformError,
+    DistutilsSetupError,
 )
-from ..sysconfig import customize_compiler, get_python_version
-from ..sysconfig import get_config_h_filename
-from .._modified import newer_group
 from ..extension import Extension
+from ..sysconfig import customize_compiler, get_config_h_filename, get_python_version
 from ..util import get_platform
-from distutils._log import log
 from . import py37compat
-
-from site import USER_BASE
 
 # An extension name is just a dot-separated list of Python NAMEs (ie.
 # the same as a fully-qualified module name).

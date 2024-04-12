@@ -8,11 +8,12 @@ additional features:
   * options set attributes of a passed-in object
 """
 
-import sys
-import string
-import re
 import getopt
-from .errors import DistutilsGetoptError, DistutilsArgError
+import re
+import string
+import sys
+
+from .errors import DistutilsArgError, DistutilsGetoptError
 
 # Much like command_re in distutils.core, this is close to but not quite
 # the same as a Python NAME -- except, in the spirit of most GNU

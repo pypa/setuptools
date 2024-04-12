@@ -1,14 +1,13 @@
 """Tests for distutils.file_util."""
 
-import os
 import errno
+import os
 import unittest.mock as mock
+from distutils.errors import DistutilsFileError
+from distutils.file_util import copy_file, move_file
 
 import jaraco.path
 import pytest
-
-from distutils.file_util import move_file, copy_file
-from distutils.errors import DistutilsFileError
 
 
 @pytest.fixture(autouse=True)

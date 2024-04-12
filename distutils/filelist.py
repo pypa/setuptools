@@ -4,14 +4,14 @@ Provides the FileList class, used for poking about the filesystem
 and building lists of files.
 """
 
-import os
-import re
 import fnmatch
 import functools
+import os
+import re
 
-from .util import convert_path
-from .errors import DistutilsTemplateError, DistutilsInternalError
 from ._log import log
+from .errors import DistutilsInternalError, DistutilsTemplateError
+from .util import convert_path
 
 
 class FileList:

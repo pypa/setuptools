@@ -14,18 +14,17 @@ for the Borland C++ compiler.
 import os
 import warnings
 
+from ._log import log
+from ._modified import newer
+from .ccompiler import CCompiler, gen_preprocess_options
 from .errors import (
-    DistutilsExecError,
     CompileError,
+    DistutilsExecError,
     LibError,
     LinkError,
     UnknownFileError,
 )
-from .ccompiler import CCompiler, gen_preprocess_options
 from .file_util import write_file
-from ._modified import newer
-from ._log import log
-
 
 warnings.warn(
     "bcppcompiler is deprecated and slated to be removed "

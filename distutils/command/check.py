@@ -9,10 +9,10 @@ from ..core import Command
 from ..errors import DistutilsSetupError
 
 with contextlib.suppress(ImportError):
-    import docutils.utils
-    import docutils.parsers.rst
     import docutils.frontend
     import docutils.nodes
+    import docutils.parsers.rst
+    import docutils.utils
 
     class SilentReporter(docutils.utils.Reporter):
         def __init__(

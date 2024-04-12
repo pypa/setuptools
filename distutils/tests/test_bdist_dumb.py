@@ -3,12 +3,11 @@
 import os
 import sys
 import zipfile
+from distutils.command.bdist_dumb import bdist_dumb
+from distutils.core import Distribution
+from distutils.tests import support
 
 import pytest
-
-from distutils.core import Distribution
-from distutils.command.bdist_dumb import bdist_dumb
-from distutils.tests import support
 
 SETUP_PY = """\
 from distutils.core import setup

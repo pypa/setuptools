@@ -4,12 +4,11 @@ import getpass
 import os
 import pathlib
 import urllib
-
 from distutils.command import register as register_module
 from distutils.command.register import register
 from distutils.errors import DistutilsSetupError
-
 from distutils.tests.test_config import BasePyPIRCCommandTestCase
+
 import pytest
 
 try:

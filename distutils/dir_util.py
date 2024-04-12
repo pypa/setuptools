@@ -2,10 +2,11 @@
 
 Utility functions for manipulating directories and directory trees."""
 
-import os
 import errno
-from .errors import DistutilsInternalError, DistutilsFileError
+import os
+
 from ._log import log
+from .errors import DistutilsFileError, DistutilsInternalError
 
 # cache for by mkpath() -- in addition to cheapening redundant calls,
 # eliminates redundant "creating /foo/bar/baz" messages in dry-run mode

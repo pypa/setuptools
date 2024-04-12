@@ -12,11 +12,11 @@ this header file lives".
 import os
 import pathlib
 import re
+from distutils._log import log
 
 from ..core import Command
 from ..errors import DistutilsExecError
 from ..sysconfig import customize_compiler
-from distutils._log import log
 
 LANG_EXT = {"c": ".c", "c++": ".cxx"}
 

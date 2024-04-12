@@ -10,10 +10,10 @@ import io
 import logging
 import urllib.parse
 import urllib.request
+from distutils._log import log
 from warnings import warn
 
 from ..core import PyPIRCCommand
-from distutils._log import log
 
 
 class register(PyPIRCCommand):

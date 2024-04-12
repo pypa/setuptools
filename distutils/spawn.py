@@ -6,13 +6,13 @@ Also provides the 'find_executable()' to search the path for a given
 executable name.
 """
 
-import sys
 import os
 import subprocess
+import sys
 
-from .errors import DistutilsExecError
-from .debug import DEBUG
 from ._log import log
+from .debug import DEBUG
+from .errors import DistutilsExecError
 
 
 def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):  # noqa: C901

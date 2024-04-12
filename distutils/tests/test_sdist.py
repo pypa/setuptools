@@ -5,24 +5,23 @@ import pathlib
 import tarfile
 import warnings
 import zipfile
+from distutils.archive_util import ARCHIVE_FORMATS
+from distutils.command.sdist import sdist, show_formats
+from distutils.core import Distribution
+from distutils.errors import DistutilsOptionError
+from distutils.filelist import FileList
+from distutils.spawn import find_executable  # noqa: F401
+from distutils.tests.test_config import BasePyPIRCCommandTestCase
 from os.path import join
 from textwrap import dedent
-from .unix_compat import require_unix_id, require_uid_0, pwd, grp
 
-import pytest
-import path
 import jaraco.path
+import path
+import pytest
 from more_itertools import ilen
 
 from .py38compat import check_warnings
-
-from distutils.command.sdist import sdist, show_formats
-from distutils.core import Distribution
-from distutils.tests.test_config import BasePyPIRCCommandTestCase
-from distutils.errors import DistutilsOptionError
-from distutils.spawn import find_executable  # noqa: F401
-from distutils.filelist import FileList
-from distutils.archive_util import ARCHIVE_FORMATS
+from .unix_compat import grp, pwd, require_uid_0, require_unix_id
 
 SETUP_PY = """
 from distutils.core import setup

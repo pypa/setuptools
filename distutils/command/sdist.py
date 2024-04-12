@@ -4,27 +4,25 @@ Implements the Distutils 'sdist' command (create a source distribution)."""
 
 import os
 import sys
+from distutils import archive_util, dir_util, file_util
+from distutils._log import log
 from glob import glob
-from warnings import warn
 from itertools import filterfalse
+from warnings import warn
 
 from ..core import Command
-from distutils import dir_util
-from distutils import file_util
-from distutils import archive_util
-from ..text_file import TextFile
-from ..filelist import FileList
-from distutils._log import log
-from ..util import convert_path
 from ..errors import DistutilsOptionError, DistutilsTemplateError
+from ..filelist import FileList
+from ..text_file import TextFile
+from ..util import convert_path
 
 
 def show_formats():
     """Print all possible values for the 'formats' option (used by
     the "--help-formats" command-line option).
     """
-    from ..fancy_getopt import FancyGetopt
     from ..archive_util import ARCHIVE_FORMATS
+    from ..fancy_getopt import FancyGetopt
 
     formats = []
     for format in ARCHIVE_FORMATS.keys():

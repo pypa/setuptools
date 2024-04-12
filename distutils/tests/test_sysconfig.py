@@ -1,21 +1,20 @@
 """Tests for distutils.sysconfig."""
 
 import contextlib
+import distutils
 import os
+import pathlib
 import subprocess
 import sys
-import pathlib
-
-import pytest
-import jaraco.envs
-import path
-from jaraco.text import trim
-
-import distutils
 from distutils import sysconfig
 from distutils.ccompiler import get_default_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
+
+import jaraco.envs
+import path
+import pytest
+from jaraco.text import trim
 
 from . import py37compat
 

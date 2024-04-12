@@ -4,12 +4,12 @@ Provides the Distribution class, which represents the module distribution
 being built/installed/distributed.
 """
 
-import sys
-import os
-import re
-import pathlib
 import contextlib
 import logging
+import os
+import pathlib
+import re
+import sys
 from email import message_from_file
 
 try:
@@ -17,16 +17,16 @@ try:
 except ImportError:
     warnings = None
 
-from .errors import (
-    DistutilsOptionError,
-    DistutilsModuleError,
-    DistutilsArgError,
-    DistutilsClassError,
-)
-from .fancy_getopt import FancyGetopt, translate_longopt
-from .util import check_environ, strtobool, rfc822_escape
 from ._log import log
 from .debug import DEBUG
+from .errors import (
+    DistutilsArgError,
+    DistutilsClassError,
+    DistutilsModuleError,
+    DistutilsOptionError,
+)
+from .fancy_getopt import FancyGetopt, translate_longopt
+from .util import check_environ, rfc822_escape, strtobool
 
 # Regex to define acceptable Distutils command names.  This is not *quite*
 # the same as a Python NAME -- I don't allow leading underscores.  The fact
@@ -634,8 +634,8 @@ Common commands: (see '--help-commands' for more)
         in 'commands'.
         """
         # late import because of mutual dependence between these modules
-        from distutils.core import gen_usage
         from distutils.cmd import Command
+        from distutils.core import gen_usage
 
         if global_options:
             if display_options:

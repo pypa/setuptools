@@ -1,23 +1,20 @@
 """Tests for distutils.command.install."""
 
-import os
-import sys
-import site
-import pathlib
 import logging
-
-import pytest
-
+import os
+import pathlib
+import site
+import sys
 from distutils import sysconfig
-from distutils.command.install import install
 from distutils.command import install as install_module
 from distutils.command.build_ext import build_ext
-from distutils.command.install import INSTALL_SCHEMES
+from distutils.command.install import INSTALL_SCHEMES, install
 from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
+from distutils.tests import missing_compiler_executable, support
 
-from distutils.tests import support, missing_compiler_executable
+import pytest
 
 
 def _make_ext_name(modname):

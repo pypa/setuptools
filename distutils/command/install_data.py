@@ -6,6 +6,7 @@ platform-independent data files."""
 # contributed by Bastian Kleineidam
 
 import os
+
 from ..core import Command
 from ..util import change_root, convert_path
 

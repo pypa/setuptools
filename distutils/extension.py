@@ -139,8 +139,7 @@ class Extension:
 
 def read_setup_file(filename):  # noqa: C901
     """Reads a Setup file and returns Extension instances."""
-    from distutils.sysconfig import parse_makefile, expand_makefile_vars, _variable_rx
-
+    from distutils.sysconfig import _variable_rx, expand_makefile_vars, parse_makefile
     from distutils.text_file import TextFile
     from distutils.util import split_quoted
 

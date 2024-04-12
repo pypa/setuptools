@@ -2,25 +2,22 @@
 
 Implements the Distutils 'install' command."""
 
-import sys
-import os
 import contextlib
-import sysconfig
 import itertools
-
+import os
+import sys
+import sysconfig
 from distutils._log import log
+from site import USER_BASE, USER_SITE
+
+from .. import _collections
 from ..core import Command
 from ..debug import DEBUG
-from ..sysconfig import get_config_vars
-from ..file_util import write_file
-from ..util import convert_path, subst_vars, change_root
-from ..util import get_platform
 from ..errors import DistutilsOptionError, DistutilsPlatformError
+from ..file_util import write_file
+from ..sysconfig import get_config_vars
+from ..util import change_root, convert_path, get_platform, subst_vars
 from . import _framework_compat as fw
-from .. import _collections
-
-from site import USER_BASE
-from site import USER_SITE
 
 HAS_USER_SITE = True
 

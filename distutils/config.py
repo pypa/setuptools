@@ -4,8 +4,8 @@ Provides the PyPIRCCommand class, the base class for the command classes
 that uses .pypirc in the distutils.command package.
 """
 
-import os
 import email.message
+import os
 from configparser import RawConfigParser
 
 from .cmd import Command

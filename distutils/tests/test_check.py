@@ -2,12 +2,11 @@
 
 import os
 import textwrap
+from distutils.command.check import check
+from distutils.errors import DistutilsSetupError
+from distutils.tests import support
 
 import pytest
-
-from distutils.command.check import check
-from distutils.tests import support
-from distutils.errors import DistutilsSetupError
 
 try:
     import pygments

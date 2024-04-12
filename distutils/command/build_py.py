@@ -2,15 +2,15 @@
 
 Implements the Distutils 'build_py' command."""
 
-import os
-import importlib.util
-import sys
 import glob
+import importlib.util
+import os
+import sys
+from distutils._log import log
 
 from ..core import Command
-from ..errors import DistutilsOptionError, DistutilsFileError
+from ..errors import DistutilsFileError, DistutilsOptionError
 from ..util import convert_path
-from distutils._log import log
 
 
 class build_py(Command):

@@ -9,16 +9,16 @@ Written by:   Fred L. Drake, Jr.
 Email:        <fdrake@acm.org>
 """
 
-import os
 import functools
+import os
+import pathlib
 import re
 import sys
 import sysconfig
-import pathlib
 
-from .errors import DistutilsPlatformError
 from . import py39compat
 from ._functools import pass_none
+from .errors import DistutilsPlatformError
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 

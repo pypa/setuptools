@@ -5,17 +5,17 @@ Implements the Distutils 'upload' subcommand (upload package to a package
 index).
 """
 
-import os
-import io
 import hashlib
+import io
 import logging
+import os
 from base64 import standard_b64encode
-from urllib.request import urlopen, Request, HTTPError
 from urllib.parse import urlparse
-from ..errors import DistutilsError, DistutilsOptionError
-from ..core import PyPIRCCommand
-from ..spawn import spawn
+from urllib.request import HTTPError, Request, urlopen
 
+from ..core import PyPIRCCommand
+from ..errors import DistutilsError, DistutilsOptionError
+from ..spawn import spawn
 
 # PyPI Warehouse supports MD5, SHA256, and Blake2 (blake2-256)
 # https://bugs.python.org/issue40698

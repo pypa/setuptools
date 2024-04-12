@@ -1,10 +1,10 @@
 """Tests for distutils.msvc9compiler."""
 
-import sys
 import os
-
+import sys
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
+
 import pytest
 
 # A manifest with the only assembly reference being the msvcrt assembly, so

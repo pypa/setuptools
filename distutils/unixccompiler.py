@@ -13,18 +13,18 @@ the "typical" Unix-style command-line C compiler:
   * link shared library handled by 'cc -shared'
 """
 
+import itertools
 import os
-import sys
 import re
 import shlex
-import itertools
+import sys
 
 from . import sysconfig
-from ._modified import newer
-from .ccompiler import CCompiler, gen_preprocess_options, gen_lib_options
-from .errors import DistutilsExecError, CompileError, LibError, LinkError
 from ._log import log
 from ._macos_compat import compiler_fixup
+from ._modified import newer
+from .ccompiler import CCompiler, gen_lib_options, gen_preprocess_options
+from .errors import CompileError, DistutilsExecError, LibError, LinkError
 
 # XXX Things not currently handled:
 #   * optimization/debug/warning flags; we just use whatever's in Python's

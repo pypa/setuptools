@@ -1,37 +1,36 @@
-import sys
-import os
-from io import StringIO
-import textwrap
-import site
 import contextlib
-import platform
-import tempfile
 import importlib
-import shutil
+import os
+import platform
 import re
-
-import path
-import pytest
-import jaraco.path
-
-from distutils.core import Distribution
-from distutils.command.build_ext import build_ext
+import shutil
+import site
+import sys
+import tempfile
+import textwrap
 from distutils import sysconfig
-from distutils.tests import missing_compiler_executable
-from distutils.tests.support import (
-    TempdirManager,
-    copy_xxmodule_c,
-    fixup_build_ext,
-)
-from distutils.extension import Extension
+from distutils.command.build_ext import build_ext
+from distutils.core import Distribution
 from distutils.errors import (
     CompileError,
     DistutilsPlatformError,
     DistutilsSetupError,
     UnknownFileError,
 )
-
+from distutils.extension import Extension
+from distutils.tests import missing_compiler_executable
+from distutils.tests.support import (
+    TempdirManager,
+    copy_xxmodule_c,
+    fixup_build_ext,
+)
+from io import StringIO
 from test import support
+
+import jaraco.path
+import path
+import pytest
+
 from . import py38compat as import_helper
 
 

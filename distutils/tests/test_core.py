@@ -1,13 +1,12 @@
 """Tests for distutils.core."""
 
-import io
 import distutils.core
+import io
 import os
 import sys
+from distutils.dist import Distribution
 
 import pytest
-
-from distutils.dist import Distribution
 
 # setup script that uses __file__
 setup_using___file__ = """\

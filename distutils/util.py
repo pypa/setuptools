@@ -4,6 +4,7 @@ Miscellaneous utility functions -- anything that doesn't fit into
 one of the other *util.py modules.
 """
 
+import functools
 import importlib.util
 import os
 import re
@@ -11,12 +12,11 @@ import string
 import subprocess
 import sys
 import sysconfig
-import functools
 
-from .errors import DistutilsPlatformError, DistutilsByteCompileError
-from ._modified import newer
-from .spawn import spawn
 from ._log import log
+from ._modified import newer
+from .errors import DistutilsByteCompileError, DistutilsPlatformError
+from .spawn import spawn
 
 
 def get_host_platform():

@@ -17,8 +17,7 @@ def missing_compiler_executable(cmd_names=[]):  # pragma: no cover
     missing.
 
     """
-    from distutils import ccompiler, sysconfig, spawn
-    from distutils import errors
+    from distutils import ccompiler, errors, spawn, sysconfig
 
     compiler = ccompiler.new_compiler()
     sysconfig.customize_compiler(compiler)

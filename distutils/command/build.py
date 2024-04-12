@@ -2,8 +2,9 @@
 
 Implements the Distutils 'build' command."""
 
-import sys
 import os
+import sys
+
 from ..core import Command
 from ..errors import DistutilsOptionError
 from ..util import get_platform

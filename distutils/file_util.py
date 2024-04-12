@@ -4,8 +4,9 @@ Utility functions for operating on single files.
 """
 
 import os
-from .errors import DistutilsFileError
+
 from ._log import log
+from .errors import DistutilsFileError
 
 # for generating verbose output in 'copy_file()'
 _copy_action = {None: 'copying', 'hard': 'hard linking', 'sym': 'symbolically linking'}
@@ -101,7 +102,7 @@ def copy_file(  # noqa: C901
     # (not update) and (src newer than dst).
 
     from distutils._modified import newer
-    from stat import ST_ATIME, ST_MTIME, ST_MODE, S_IMODE
+    from stat import S_IMODE, ST_ATIME, ST_MODE, ST_MTIME
 
     if not os.path.isfile(src):
         raise DistutilsFileError(
@@ -175,8 +176,8 @@ def move_file(src, dst, verbose=1, dry_run=0):  # noqa: C901
     Handles cross-device moves on Unix using 'copy_file()'.  What about
     other systems???
     """
-    from os.path import exists, isfile, isdir, basename, dirname
     import errno
+    from os.path import basename, dirname, exists, isdir, isfile
 
     if verbose >= 1:
         log.info("moving %s -> %s", src, dst)

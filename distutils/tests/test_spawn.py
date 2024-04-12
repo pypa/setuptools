@@ -4,18 +4,15 @@ import os
 import stat
 import sys
 import unittest.mock as mock
-
+from distutils.errors import DistutilsExecError
+from distutils.spawn import find_executable, spawn
+from distutils.tests import support
 from test.support import unix_shell
 
 import path
+import pytest
 
 from . import py38compat as os_helper
-
-from distutils.spawn import find_executable
-from distutils.spawn import spawn
-from distutils.errors import DistutilsExecError
-from distutils.tests import support
-import pytest
 
 
 class TestSpawn(support.TempdirManager):

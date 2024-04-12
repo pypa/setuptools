@@ -4,13 +4,14 @@ Implements the Distutils 'build_scripts' command."""
 
 import os
 import re
-from stat import ST_MODE
-from distutils import sysconfig
-from ..core import Command
-from .._modified import newer
-from ..util import convert_path
-from distutils._log import log
 import tokenize
+from distutils import sysconfig
+from distutils._log import log
+from stat import ST_MODE
+
+from .._modified import newer
+from ..core import Command
+from ..util import convert_path
 
 shebang_pattern = re.compile('^#!.*python[0-9.]*([ \t].*)?$')
 """

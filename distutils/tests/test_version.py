@@ -1,10 +1,9 @@
 """Tests for distutils.version."""
 
-import pytest
-
 import distutils
-from distutils.version import LooseVersion
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion, StrictVersion
+
+import pytest
 
 
 @pytest.fixture(autouse=True)

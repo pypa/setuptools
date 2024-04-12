@@ -13,23 +13,22 @@ for older versions of VS in distutils.msvccompiler.
 # ported to VS2005 and VS 2008 by Christian Heimes
 
 import os
+import re
 import subprocess
 import sys
-import re
 import warnings
+import winreg
 
+from ._log import log
+from .ccompiler import CCompiler, gen_lib_options
 from .errors import (
+    CompileError,
     DistutilsExecError,
     DistutilsPlatformError,
-    CompileError,
     LibError,
     LinkError,
 )
-from .ccompiler import CCompiler, gen_lib_options
-from ._log import log
 from .util import get_platform
-
-import winreg
 
 warnings.warn(
     "msvc9compiler is deprecated and slated to be removed "

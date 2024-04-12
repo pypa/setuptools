@@ -7,7 +7,7 @@ import os
 import warnings
 
 from ..core import Command
-from ..errors import DistutilsPlatformError, DistutilsOptionError
+from ..errors import DistutilsOptionError, DistutilsPlatformError
 from ..util import get_platform
 
 
