@@ -16,8 +16,6 @@ import path
 import pytest
 from jaraco.text import trim
 
-from . import py37compat
-
 
 def _gen_makefile(root, contents):
     jaraco.path.build({'Makefile': trim(contents)}, root)
@@ -251,7 +249,7 @@ class TestSysconfig:
             tmp_path,
         )
         p = subprocess.Popen(
-            py37compat.subprocess_args(sys.executable, tmp_path / 'file'),
+            [sys.executable, tmp_path / 'file'],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
