@@ -185,15 +185,11 @@ class StrictVersion(Version):
         elif not isinstance(other, StrictVersion):
             return NotImplemented
 
-        if self.version != other.version:
-            # numeric versions don't match
-            # prerelease stuff doesn't matter
-            if self.version < other.version:
-                return -1
-            else:
-                return 1
+        if self.version == other.version:
+            # versions match; pre-release drives the comparison
+            return self._cmp_prerelease(other)
 
-        return self._cmp_prerelease(other)
+        return -1 if self.version < other.version else 1
 
     def _cmp_prerelease(self, other):
         """
