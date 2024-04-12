@@ -1,3 +1,12 @@
+v69.4.0
+=======
+
+Features
+--------
+
+- Merged with pypa/distutils@55982565e, including interoperability improvements for rfc822_escape (pypa/distutils#213), dynamic resolution of config_h_filename for Python 3.13 compatibility (pypa/distutils#219), added support for the z/OS compiler (pypa/distutils#216), modernized compiler options in unixcompiler (pypa/distutils#214), fixed accumulating flags bug after compile/link (pypa/distutils#207), fixed enconding warnings (pypa/distutils#236), and general quality improvements (pypa/distutils#234). (#4298)
+
+
 v69.3.0
 =======
 
