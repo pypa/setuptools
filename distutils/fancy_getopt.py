@@ -12,6 +12,7 @@ import getopt
 import re
 import string
 import sys
+from typing import Any, Sequence
 
 from .errors import DistutilsArgError, DistutilsGetoptError
 
@@ -448,7 +449,7 @@ class OptionDummy:
     """Dummy class just used as a place to hold command-line option
     values as instance attributes."""
 
-    def __init__(self, options=[]):
+    def __init__(self, options: Sequence[Any] = []):
         """Create a new OptionDummy instance.  The attributes listed in
         'options' will be initialized to None."""
         for opt in options:

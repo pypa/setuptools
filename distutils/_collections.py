@@ -4,7 +4,6 @@ import collections
 import functools
 import itertools
 import operator
-
 from collections.abc import Mapping
 from typing import Any
 

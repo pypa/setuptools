@@ -10,6 +10,7 @@ import os
 import pathlib
 import re
 import sys
+from collections.abc import Iterable
 from email import message_from_file
 
 try:
@@ -620,7 +621,9 @@ Common commands: (see '--help-commands' for more)
                 value = [elm.strip() for elm in value.split(',')]
                 setattr(self.metadata, attr, value)
 
-    def _show_help(self, parser, global_options=1, display_options=1, commands=[]):
+    def _show_help(
+        self, parser, global_options=1, display_options=1, commands: Iterable = ()
+    ):
         """Show help for the setup script command-line in the form of
         several lists of command-line options.  'parser' should be a
         FancyGetopt instance; do not expect it to be returned in the

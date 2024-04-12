@@ -9,9 +9,12 @@ configure-like tasks: "try to compile this C code", or "figure out where
 this header file lives".
 """
 
+from __future__ import annotations
+
 import os
 import pathlib
 import re
+from collections.abc import Sequence
 from distutils._log import log
 
 from ..core import Command
@@ -325,7 +328,7 @@ class config(Command):
         library_dirs=None,
         headers=None,
         include_dirs=None,
-        other_libraries=[],
+        other_libraries: Sequence[str] = [],
     ):
         """Determine if 'library' is available to be linked against,
         without actually checking that any particular symbols are provided
@@ -340,7 +343,7 @@ class config(Command):
             "int main (void) { }",
             headers,
             include_dirs,
-            [library] + other_libraries,
+            [library] + list(other_libraries),
             library_dirs,
         )
 
