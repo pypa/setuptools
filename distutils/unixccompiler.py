@@ -13,6 +13,8 @@ the "typical" Unix-style command-line C compiler:
   * link shared library handled by 'cc -shared'
 """
 
+from __future__ import annotations
+
 import itertools
 import os
 import re
@@ -281,7 +283,7 @@ class UnixCCompiler(CCompiler):
         compiler = os.path.basename(shlex.split(cc_var)[0])
         return "gcc" in compiler or "g++" in compiler
 
-    def runtime_library_dir_option(self, dir):
+    def runtime_library_dir_option(self, dir: str) -> str | list[str]:
         # XXX Hackish, at the very least.  See Python bug #445902:
         # https://bugs.python.org/issue445902
         # Linkers on different platforms need different options to
