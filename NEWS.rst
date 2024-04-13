@@ -1,3 +1,18 @@
+v69.4.1
+=======
+
+No significant changes.
+
+
+v69.3.1
+=======
+
+Bugfixes
+--------
+
+- Remove attempt to canonicalize the version. It's already canonical enough. (#4302)
+
+
 v69.4.0
 =======
 
