@@ -4,6 +4,7 @@ import os
 import sys
 import unittest.mock as mock
 from distutils import sysconfig
+from distutils.compat import consolidate_linker_args
 from distutils.errors import DistutilsPlatformError
 from distutils.unixccompiler import UnixCCompiler
 from distutils.util import _clear_cached_macosx_ver
@@ -149,10 +150,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == [
+        assert self.cc.rpath_foo() == consolidate_linker_args([
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ]
+        ])
 
         def gcv(v):
             if v == 'CC':
@@ -161,10 +162,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == [
+        assert self.cc.rpath_foo() == consolidate_linker_args([
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ]
+        ])
 
         # GCC non-GNULD
         sys.platform = 'bar'
@@ -189,10 +190,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == [
+        assert self.cc.rpath_foo() == consolidate_linker_args([
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ]
+        ])
 
         # non-GCC GNULD
         sys.platform = 'bar'
@@ -204,10 +205,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == [
+        assert self.cc.rpath_foo() == consolidate_linker_args([
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ]
+        ])
 
         # non-GCC non-GNULD
         sys.platform = 'bar'
