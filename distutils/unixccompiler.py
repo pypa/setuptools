@@ -22,6 +22,7 @@ import shlex
 import sys
 
 from . import sysconfig
+from .compat import consolidate_linker_args
 from ._log import log
 from ._macos_compat import compiler_fixup
 from ._modified import newer
@@ -315,11 +316,11 @@ class UnixCCompiler(CCompiler):
         # For all compilers, `-Wl` is the presumed way to pass a
         # compiler option to the linker
         if sysconfig.get_config_var("GNULD") == "yes":
-            return [
+            return consolidate_linker_args([
                 # Force RUNPATH instead of RPATH
                 "-Wl,--enable-new-dtags",
                 "-Wl,-rpath," + dir,
-            ]
+            ])
         else:
             return "-Wl,-R" + dir
 
