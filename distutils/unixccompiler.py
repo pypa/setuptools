@@ -389,10 +389,7 @@ class UnixCCompiler(CCompiler):
 
         roots = map(self._library_root, dirs)
 
-        searched = (
-            os.path.join(root, lib_name)
-            for root, lib_name in itertools.product(roots, lib_names)
-        )
+        searched = itertools.starmap(os.path.join, itertools.product(roots, lib_names))
 
         found = filter(os.path.exists, searched)
 
