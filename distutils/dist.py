@@ -12,7 +12,7 @@ import contextlib
 import logging
 from email import message_from_file
 
-from ._vendor.packaging.utils import canonicalize_name, canonicalize_version
+from ._vendor.packaging.utils import canonicalize_name
 
 try:
     import warnings
@@ -1193,7 +1193,7 @@ class DistributionMetadata:
     def get_fullname(self):
         return "{}-{}".format(
             canonicalize_name(self.get_name()).replace('-', '_'),
-            canonicalize_version(self.get_version()),
+            self.get_version(),
         )
 
     def get_author(self):
