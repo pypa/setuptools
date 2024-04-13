@@ -17,7 +17,7 @@ from distutils.util import rfc822_escape
 from . import _normalization, _reqs
 from .extern.packaging.markers import Marker
 from .extern.packaging.requirements import Requirement
-from .extern.packaging.utils import canonicalize_name, canonicalize_version
+from .extern.packaging.utils import canonicalize_name
 from .extern.packaging.version import Version
 from .warnings import SetuptoolsDeprecationWarning
 
@@ -264,5 +264,5 @@ def _write_provides_extra(file, processed_extras, safe, unsafe):
 def get_fullname(self):
     return "{}-{}".format(
         canonicalize_name(self.get_name()).replace('-', '_'),
-        canonicalize_version(self.get_version()),
+        self.get_version(),
     )

@@ -255,7 +255,7 @@ class TestDiscoverPackagesAndPyModules:
 
 
 class TestNoConfig:
-    CANONICAL_DEFAULT_VERSION = "0"  # Canonical default version given by setuptools
+    DEFAULT_VERSION = "0.0.0"  # Default version given by setuptools
 
     EXAMPLES = {
         "pkg1": ["src/pkg1.py"],
@@ -277,9 +277,7 @@ class TestNoConfig:
         _populate_project_dir(tmp_path, files, {})
         _run_build(tmp_path, "--sdist")
         # Expected distribution file
-        dist_file = (
-            tmp_path / f"dist/ns_nested_pkg-{self.CANONICAL_DEFAULT_VERSION}.tar.gz"
-        )
+        dist_file = tmp_path / f"dist/ns_nested_pkg-{self.DEFAULT_VERSION}.tar.gz"
         assert dist_file.is_file()
 
 
