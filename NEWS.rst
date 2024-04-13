@@ -1,3 +1,12 @@
+v69.4.2
+=======
+
+Bugfixes
+--------
+
+- Merged bugfix for pypa/distutils#246 (#27489545)
+
+
 v69.4.1
 =======
 
