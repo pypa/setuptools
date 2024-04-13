@@ -1,3 +1,13 @@
+v69.5.0
+=======
+
+Features
+--------
+
+- Refresh unpinned vendored dependencies. (#4253)
+- Updated vendored packaging to version 24.0. (#4301)
+
+
 v69.4.1
 =======
 
