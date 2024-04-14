@@ -5,7 +5,7 @@ import os.path
 
 from ._functools import splat
 from .errors import DistutilsFileError
-from .py39compat import zip_strict
+from .compat.py39 import zip_strict
 
 
 def _newer(source, target):

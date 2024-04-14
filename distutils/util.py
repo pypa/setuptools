@@ -34,7 +34,7 @@ def get_host_platform():
         if os.name == "posix" and hasattr(os, 'uname'):
             osname, host, release, version, machine = os.uname()
             if osname[:3] == "aix":
-                from .py38compat import aix_platform
+                from .compat.py38 import aix_platform
 
                 return aix_platform(osname, version, release)
 
