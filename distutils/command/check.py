@@ -9,10 +9,10 @@ from ..core import Command
 from ..errors import DistutilsSetupError
 
 with contextlib.suppress(ImportError):
-    import docutils.utils
-    import docutils.parsers.rst
     import docutils.frontend
     import docutils.nodes
+    import docutils.parsers.rst
+    import docutils.utils
 
     class SilentReporter(docutils.utils.Reporter):
         def __init__(
@@ -33,7 +33,7 @@ with contextlib.suppress(ImportError):
         def system_message(self, level, message, *children, **kwargs):
             self.messages.append((level, message, children, kwargs))
             return docutils.nodes.system_message(
-                message, level=level, type=self.levels[level], *children, **kwargs
+                message, *children, level=level, type=self.levels[level], **kwargs
             )
 
 
@@ -116,7 +116,7 @@ class check(Command):
             if line is None:
                 warning = warning[1]
             else:
-                warning = '{} (line {})'.format(warning[1], line)
+                warning = f'{warning[1]} (line {line})'
             self.warn(warning)
 
     def _check_rst_data(self, data):

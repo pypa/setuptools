@@ -19,12 +19,9 @@
 
 Python Module Distribution Utilities extracted from the Python Standard Library
 
-Synchronizing
-=============
+This package is unsupported except as integrated into and exposed by Setuptools.
 
-This project is no longer kept in sync with the code still in stdlib, which is deprecated and scheduled for removal.
-
-To Setuptools
--------------
+Integration
+-----------
 
 Simply merge the changes directly into setuptools' repo.

@@ -3,25 +3,25 @@
 Contains CCompiler, an abstract base class that defines the interface
 for the Distutils compiler abstraction model."""
 
-import sys
 import os
 import re
+import sys
 import warnings
 
+from ._itertools import always_iterable
+from ._log import log
+from ._modified import newer_group
+from .dir_util import mkpath
 from .errors import (
     CompileError,
+    DistutilsModuleError,
+    DistutilsPlatformError,
     LinkError,
     UnknownFileError,
-    DistutilsPlatformError,
-    DistutilsModuleError,
 )
-from .spawn import spawn
 from .file_util import move_file
-from .dir_util import mkpath
-from ._modified import newer_group
-from .util import split_quoted, execute
-from ._log import log
-from ._itertools import always_iterable
+from .spawn import spawn
+from .util import execute, split_quoted
 
 
 class CCompiler:
@@ -169,8 +169,7 @@ class CCompiler:
         for key in kwargs:
             if key not in self.executables:
                 raise ValueError(
-                    "unknown executable '%s' for class %s"
-                    % (key, self.__class__.__name__)
+                    f"unknown executable '{key}' for class {self.__class__.__name__}"
                 )
             self.set_executable(key, kwargs[key])
 
@@ -466,7 +465,7 @@ class CCompiler:
             )
         else:
             raise TypeError(
-                "'runtime_library_dirs' (if supplied) " "must be a list of strings"
+                "'runtime_library_dirs' (if supplied) must be a list of strings"
             )
 
         return (libraries, library_dirs, runtime_library_dirs)
@@ -858,8 +857,7 @@ class CCompiler:
         if library_dirs is None:
             library_dirs = []
         fd, fname = tempfile.mkstemp(".c", funcname, text=True)
-        f = os.fdopen(fd, "w")
-        try:
+        with os.fdopen(fd, "w", encoding='utf-8') as f:
             for incl in includes:
                 f.write("""#include "%s"\n""" % incl)
             if not includes:
@@ -888,8 +886,7 @@ int main (int argc, char **argv) {
 """
                 % funcname
             )
-        finally:
-            f.close()
+
         try:
             objects = self.compile([fname], include_dirs=include_dirs)
         except CompileError:
@@ -973,9 +970,7 @@ int main (int argc, char **argv) {
         try:
             new_ext = self.out_extensions[ext]
         except LookupError:
-            raise UnknownFileError(
-                "unknown file type '{}' (from '{}')".format(ext, src_name)
-            )
+            raise UnknownFileError(f"unknown file type '{ext}' (from '{src_name}')")
         if strip_dir:
             base = os.path.basename(base)
         return os.path.join(output_dir, base + new_ext)
@@ -1166,8 +1161,8 @@ def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
         )
     except KeyError:
         raise DistutilsModuleError(
-            "can't compile C/C++ code: unable to find class '%s' "
-            "in module '%s'" % (class_name, module_name)
+            f"can't compile C/C++ code: unable to find class '{class_name}' "
+            f"in module '{module_name}'"
         )
 
     # XXX The None is necessary to preserve backwards compatibility
@@ -1214,7 +1209,7 @@ def gen_preprocess_options(macros, include_dirs):
                 # XXX *don't* need to be clever about quoting the
                 # macro value here, because we're going to avoid the
                 # shell at all costs when we spawn the command!
-                pp_opts.append("-D%s=%s" % macro)
+                pp_opts.append("-D{}={}".format(*macro))
 
     for dir in include_dirs:
         pp_opts.append("-I%s" % dir)
@@ -1250,7 +1245,7 @@ def gen_lib_options(compiler, library_dirs, runtime_library_dirs, libraries):
                 lib_opts.append(lib_file)
             else:
                 compiler.warn(
-                    "no library file corresponding to " "'%s' found (skipping)" % lib
+                    "no library file corresponding to '%s' found (skipping)" % lib
                 )
         else:
             lib_opts.append(compiler.library_option(lib))

@@ -9,16 +9,16 @@ Written by:   Fred L. Drake, Jr.
 Email:        <fdrake@acm.org>
 """
 
-import os
 import functools
+import os
+import pathlib
 import re
 import sys
 import sysconfig
-import pathlib
 
-from .errors import DistutilsPlatformError
 from . import py39compat
 from ._functools import pass_none
+from .errors import DistutilsPlatformError
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -267,7 +267,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
         )
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _customize_macos():
     """
     Perform first-time customization of compiler-related

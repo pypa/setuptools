@@ -7,7 +7,7 @@ import os
 import warnings
 
 from ..core import Command
-from ..errors import DistutilsPlatformError, DistutilsOptionError
+from ..errors import DistutilsOptionError, DistutilsPlatformError
 from ..util import get_platform
 
 
@@ -47,18 +47,18 @@ class bdist(Command):
         (
             'dist-dir=',
             'd',
-            "directory to put final built distributions in " "[default: dist]",
+            "directory to put final built distributions in [default: dist]",
         ),
         ('skip-build', None, "skip rebuilding everything (for testing/debugging)"),
         (
             'owner=',
             'u',
-            "Owner name used when creating a tar file" " [default: current user]",
+            "Owner name used when creating a tar file [default: current user]",
         ),
         (
             'group=',
             'g',
-            "Group name used when creating a tar file" " [default: current group]",
+            "Group name used when creating a tar file [default: current group]",
         ),
     ]
 

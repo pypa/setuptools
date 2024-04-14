@@ -8,24 +8,22 @@ import contextlib
 import os
 import re
 import sys
+from distutils._log import log
+from site import USER_BASE
+
+from .._modified import newer_group
 from ..core import Command
 from ..errors import (
-    DistutilsOptionError,
-    DistutilsSetupError,
     CCompilerError,
-    DistutilsError,
     CompileError,
+    DistutilsError,
+    DistutilsOptionError,
     DistutilsPlatformError,
+    DistutilsSetupError,
 )
-from ..sysconfig import customize_compiler, get_python_version
-from ..sysconfig import get_config_h_filename
-from .._modified import newer_group
 from ..extension import Extension
+from ..sysconfig import customize_compiler, get_config_h_filename, get_python_version
 from ..util import get_platform
-from distutils._log import log
-from . import py37compat
-
-from site import USER_BASE
 
 # An extension name is just a dot-separated list of Python NAMEs (ie.
 # the same as a fully-qualified module name).
@@ -428,9 +426,7 @@ class build_ext(Command):
             # Medium-easy stuff: same syntax/semantics, different names.
             ext.runtime_library_dirs = build_info.get('rpath')
             if 'def_file' in build_info:
-                log.warning(
-                    "'def_file' element of build info dict " "no longer supported"
-                )
+                log.warning("'def_file' element of build info dict no longer supported")
 
             # Non-trivial stuff: 'macros' split into 'define_macros'
             # and 'undef_macros'.
@@ -515,7 +511,7 @@ class build_ext(Command):
         except (CCompilerError, DistutilsError, CompileError) as e:
             if not ext.optional:
                 raise
-            self.warn('building extension "{}" failed: {}'.format(ext.name, e))
+            self.warn(f'building extension "{ext.name}" failed: {e}')
 
     def build_extension(self, ext):
         sources = ext.sources
@@ -801,4 +797,4 @@ class build_ext(Command):
                 ldversion = get_config_var('LDVERSION')
                 return ext.libraries + ['python' + ldversion]
 
-        return ext.libraries + py37compat.pythonlib()
+        return ext.libraries

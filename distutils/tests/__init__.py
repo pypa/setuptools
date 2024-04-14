@@ -7,8 +7,10 @@ distutils.command.tests package, since command identification is done
 by import rather than matching pre-defined names.
 """
 
+from typing import Sequence
 
-def missing_compiler_executable(cmd_names=[]):  # pragma: no cover
+
+def missing_compiler_executable(cmd_names: Sequence[str] = []):  # pragma: no cover
     """Check if the compiler components used to build the interpreter exist.
 
     Check for the existence of the compiler executables whose names are listed
@@ -17,8 +19,7 @@ def missing_compiler_executable(cmd_names=[]):  # pragma: no cover
     missing.
 
     """
-    from distutils import ccompiler, sysconfig, spawn
-    from distutils import errors
+    from distutils import ccompiler, errors, spawn, sysconfig
 
     compiler = ccompiler.new_compiler()
     sysconfig.customize_compiler(compiler)
@@ -26,7 +27,7 @@ def missing_compiler_executable(cmd_names=[]):  # pragma: no cover
         # MSVC has no executables, so check whether initialization succeeds
         try:
             compiler.initialize()
-        except errors.PlatformError:
+        except errors.DistutilsPlatformError:
             return "msvc"
     for name in compiler.executables:
         if cmd_names and name not in cmd_names:
