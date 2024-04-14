@@ -22,11 +22,11 @@ import shlex
 import sys
 
 from . import sysconfig
-from .compat import consolidate_linker_args
 from ._log import log
 from ._macos_compat import compiler_fixup
 from ._modified import newer
 from .ccompiler import CCompiler, gen_lib_options, gen_preprocess_options
+from .compat import consolidate_linker_args
 from .errors import CompileError, DistutilsExecError, LibError, LinkError
 
 # XXX Things not currently handled:
