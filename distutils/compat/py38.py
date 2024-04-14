@@ -25,7 +25,7 @@ else:
 
 def aix_platform(osname, version, release):
     try:
-        import _aix_support
+        import _aix_support  # type: ignore
 
         return _aix_support.aix_platform()
     except ImportError:
