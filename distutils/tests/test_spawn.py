@@ -12,7 +12,7 @@ from test.support import unix_shell
 import path
 import pytest
 
-from . import py38compat as os_helper
+from .compat import py38 as os_helper
 
 
 class TestSpawn(support.TempdirManager):

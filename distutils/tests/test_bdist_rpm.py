@@ -9,7 +9,7 @@ from distutils.tests import support
 
 import pytest
 
-from .py38compat import requires_zlib
+from .compat.py38 import requires_zlib
 
 SETUP_PY = """\
 from distutils.core import setup

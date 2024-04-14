@@ -20,7 +20,7 @@ import path
 import pytest
 from more_itertools import ilen
 
-from .py38compat import check_warnings
+from .compat.py38 import check_warnings
 from .unix_compat import grp, pwd, require_uid_0, require_unix_id
 
 SETUP_PY = """

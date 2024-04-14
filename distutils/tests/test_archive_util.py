@@ -23,7 +23,7 @@ from test.support import patch
 import path
 import pytest
 
-from .py38compat import check_warnings
+from .compat.py38 import check_warnings
 from .unix_compat import UID_0_SUPPORT, grp, pwd, require_uid_0, require_unix_id
 
 
