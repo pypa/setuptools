@@ -3,7 +3,7 @@ from __future__ import annotations
 from .py38 import removeprefix
 
 
-def consolidate_linker_args(args: list[str]) -> str:
+def consolidate_linker_args(args: list[str]) -> list[str] | str:
     """
     Ensure the return value is a string for backward compatibility.
 
