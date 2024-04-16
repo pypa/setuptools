@@ -505,7 +505,7 @@ class _TopLevelFinder:
         self.dist = dist
         self.name = name
 
-    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+    def template_vars(self) -> Tuple[str, str, Dict[str, str], Dict[str, List[str]]]:
         src_root = self.dist.src_root or os.curdir
         top_level = chain(_find_packages(self.dist), _find_top_level_modules(self.dist))
         package_dir = self.dist.package_dir or {}
@@ -519,7 +519,7 @@ class _TopLevelFinder:
         )
 
         legacy_namespaces = {
-            pkg: find_package_path(pkg, roots, self.dist.src_root or "")
+            cast(str, pkg): find_package_path(pkg, roots, self.dist.src_root or "")
             for pkg in self.dist.namespace_packages or []
         }
 
@@ -530,11 +530,20 @@ class _TopLevelFinder:
 
         name = f"__editable__.{self.name}.finder"
         finder = _normalization.safe_identifier(name)
+        return finder, name, mapping, namespaces_
+
+    def get_implementation(self) -> Iterator[Tuple[str, bytes]]:
+        finder, name, mapping, namespaces_ = self.template_vars()
+
         content = bytes(_finder_template(name, mapping, namespaces_), "utf-8")
-        wheel.writestr(f"{finder}.py", content)
+        yield (f"{finder}.py", content)
 
         content = _encode_pth(f"import {finder}; {finder}.install()")
-        wheel.writestr(f"__editable__.{self.name}.pth", content)
+        yield (f"__editable__.{self.name}.pth", content)
+
+    def __call__(self, wheel: "WheelFile", files: List[str], mapping: Dict[str, str]):
+        for file, content in self.get_implementation():
+            wheel.writestr(file, content)
 
     def __enter__(self):
         msg = "Editable install will be performed using a meta path finder.\n"
