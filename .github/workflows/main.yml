@@ -105,7 +105,7 @@ jobs:
         run: pipx run coverage xml --ignore-errors
       - name: Publish coverage
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
@@ -113,6 +113,7 @@ jobs:
             OS-${{ runner.os }},
             VM-${{ matrix.platform }},
             Py-${{ steps.python-install.outputs.python-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   collateral:
     strategy:
@@ -195,7 +196,7 @@ jobs:
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
       - name: Publish coverage
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: >-
             ${{ github.workspace }}\coverage.xml
@@ -205,6 +206,7 @@ jobs:
             OS-${{ runner.os }},
             VM-${{ matrix.platform }},
             Py-${{ steps.python-install.outputs.python-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   integration-test:
     needs: test
