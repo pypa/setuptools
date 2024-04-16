@@ -77,6 +77,10 @@ def setuptools_sdist(tmp_path_factory, request):
         if dist:
             return dist
 
+        # Sanity check
+        # Building should not create recursive `setuptools/build/lib/build/lib/...`
+        assert not Path(request.config.rootdir, "build/lib/build").exists()
+
         subprocess.check_output([
             sys.executable,
             "-m",
@@ -86,6 +90,11 @@ def setuptools_sdist(tmp_path_factory, request):
             str(tmp),
             str(request.config.rootdir),
         ])
+
+        # Sanity check
+        # Building should not create recursive `setuptools/build/lib/build/lib/...`
+        assert not Path(request.config.rootdir, "build/lib/build").exists()
+
         return next(tmp.glob("*.tar.gz"))
 
 
@@ -102,6 +111,10 @@ def setuptools_wheel(tmp_path_factory, request):
         if dist:
             return dist
 
+        # Sanity check
+        # Building should not create recursive `setuptools/build/lib/build/lib/...`
+        assert not Path(request.config.rootdir, "build/lib/build").exists()
+
         subprocess.check_output([
             sys.executable,
             "-m",
@@ -111,6 +124,11 @@ def setuptools_wheel(tmp_path_factory, request):
             str(tmp),
             str(request.config.rootdir),
         ])
+
+        # Sanity check
+        # Building should not create recursive `setuptools/build/lib/build/lib/...`
+        assert not Path(request.config.rootdir, "build/lib/build").exists()
+
         return next(tmp.glob("*.whl"))
 
 
