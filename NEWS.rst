@@ -20,7 +20,7 @@ v69.4.2
 Bugfixes
 --------
 
-- Merged bugfix for pypa/distutils#246 (pypa/setuptools@608de826)
+- Merged bugfix for pypa/distutils#246.
 
 
 v69.4.1
