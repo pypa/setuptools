@@ -4,15 +4,6 @@ v69.5.1
 No significant changes.
 
 
-v69.4.2
-=======
-
-Bugfixes
---------
-
-- Merged bugfix for pypa/distutils#246 (#27489545)
-
-
 v69.5.0
 =======
 
@@ -23,19 +14,19 @@ Features
 - Updated vendored packaging to version 24.0. (#4301)
 
 
-v69.4.1
-=======
-
-No significant changes.
-
-
-v69.3.1
+v69.4.2
 =======
 
 Bugfixes
 --------
 
-- Remove attempt to canonicalize the version. It's already canonical enough. (#4302)
+- Merged bugfix for pypa/distutils#246 (#27489545)
+
+
+v69.4.1
+=======
+
+No significant changes.
 
 
 v69.4.0
@@ -45,6 +36,15 @@ Features
 --------
 
 - Merged with pypa/distutils@55982565e, including interoperability improvements for rfc822_escape (pypa/distutils#213), dynamic resolution of config_h_filename for Python 3.13 compatibility (pypa/distutils#219), added support for the z/OS compiler (pypa/distutils#216), modernized compiler options in unixcompiler (pypa/distutils#214), fixed accumulating flags bug after compile/link (pypa/distutils#207), fixed enconding warnings (pypa/distutils#236), and general quality improvements (pypa/distutils#234). (#4298)
+
+
+v69.3.1
+=======
+
+Bugfixes
+--------
+
+- Remove attempt to canonicalize the version. It's already canonical enough. (#4302)
 
 
 v69.3.0
