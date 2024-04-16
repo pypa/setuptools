@@ -43,7 +43,7 @@ from .. import (
     namespaces,
 )
 from .._path import StrPath
-from ..compat import py39
+from ..compat import py312
 from ..discovery import find_package_path
 from ..dist import Distribution
 from ..warnings import (
@@ -559,7 +559,9 @@ class _TopLevelFinder:
 
 
 def _encode_pth(content: str) -> bytes:
-    """.pth files are always read with 'locale' encoding, the recommendation
+    """
+    Prior to Python 3.13 (see https://github.com/python/cpython/issues/77102),
+    .pth files are always read with 'locale' encoding, the recommendation
     from the cpython core developers is to write them as ``open(path, "w")``
     and ignore warnings (see python/cpython#77102, pypa/setuptools#3937).
     This function tries to simulate this behaviour without having to create an
@@ -569,7 +571,8 @@ def _encode_pth(content: str) -> bytes:
     or ``locale.getencoding()``).
     """
     with io.BytesIO() as buffer:
-        wrapper = io.TextIOWrapper(buffer, encoding=py39.LOCALE_ENCODING)
+        wrapper = io.TextIOWrapper(buffer, encoding=py312.PTH_ENCODING)
+        # TODO: Python 3.13 replace the whole function with `bytes(content, "utf-8")`
         wrapper.write(content)
         wrapper.flush()
         buffer.seek(0)

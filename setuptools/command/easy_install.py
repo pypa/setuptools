@@ -74,7 +74,7 @@ from pkg_resources import (
     DEVELOP_DIST,
 )
 import pkg_resources
-from ..compat import py39, py311
+from ..compat import py39, py311, py312
 from .._path import ensure_directory
 from ..extern.jaraco.text import yield_lines
 
@@ -588,8 +588,9 @@ class easy_install(Command):
                 os.unlink(ok_file)
             dirname = os.path.dirname(ok_file)
             os.makedirs(dirname, exist_ok=True)
-            f = open(pth_file, 'w', encoding=py39.LOCALE_ENCODING)
-            # ^-- Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
+            f = open(pth_file, 'w', encoding=py312.PTH_ENCODING)
+            # ^-- Python<3.13 require encoding="locale" instead of "utf-8",
+            #     see python/cpython#77102.
         except OSError:
             self.cant_write_to_target()
         else:
@@ -1279,8 +1280,9 @@ class easy_install(Command):
         if os.path.islink(filename):
             os.unlink(filename)
 
-        with open(filename, 'wt', encoding=py39.LOCALE_ENCODING) as f:
-            # Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
+        with open(filename, 'wt', encoding=py312.PTH_ENCODING) as f:
+            # ^-- Python<3.13 require encoding="locale" instead of "utf-8",
+            #     see python/cpython#77102.
             f.write(self.pth_file.make_relative(dist.location) + '\n')
 
     def unpack_progress(self, src, dst):
@@ -1506,9 +1508,8 @@ def expand_paths(inputs):  # noqa: C901  # is too complex (11)  # FIXME
                 continue
 
             # Read the .pth file
-            with open(os.path.join(dirname, name), encoding=py39.LOCALE_ENCODING) as f:
-                # Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
-                lines = list(yield_lines(f))
+            content = _read_pth(os.path.join(dirname, name))
+            lines = list(yield_lines(content))
 
             # Yield existing non-dupe, non-import directory lines from it
             for line in lines:
@@ -1622,9 +1623,8 @@ class PthDistributions(Environment):
         paths = []
         dirty = saw_import = False
         seen = dict.fromkeys(self.sitedirs)
-        f = open(self.filename, 'rt', encoding=py39.LOCALE_ENCODING)
-        # ^-- Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
-        for line in f:
+        content = _read_pth(self.filename)
+        for line in content.splitlines():
             path = line.rstrip()
             # still keep imports and empty/commented lines for formatting
             paths.append(path)
@@ -1643,7 +1643,6 @@ class PthDistributions(Environment):
                 paths.pop()
                 continue
             seen[normalized_path] = 1
-        f.close()
         # remove any trailing empty/blank line
         while paths and not paths[-1].strip():
             paths.pop()
@@ -1694,8 +1693,9 @@ class PthDistributions(Environment):
             data = '\n'.join(lines) + '\n'
             if os.path.islink(self.filename):
                 os.unlink(self.filename)
-            with open(self.filename, 'wt', encoding=py39.LOCALE_ENCODING) as f:
-                # Requires encoding="locale" instead of "utf-8" (python/cpython#77102).
+            with open(self.filename, 'wt', encoding=py312.PTH_ENCODING) as f:
+                # ^-- Python<3.13 require encoding="locale" instead of "utf-8",
+                #     see python/cpython#77102.
                 f.write(data)
         elif os.path.exists(self.filename):
             log.debug("Deleting empty %s", self.filename)
@@ -2348,6 +2348,26 @@ def only_strs(values):
     Exclude non-str values. Ref #3063.
     """
     return filter(lambda val: isinstance(val, str), values)
+
+
+def _read_pth(fullname: str) -> str:
+    # Python<3.13 require encoding="locale" instead of "utf-8", see python/cpython#77102
+    # In the case old versions of setuptools are producing `pth` files with
+    # different encodings that might be problematic... So we fallback to "locale".
+
+    try:
+        with open(fullname, encoding=py312.PTH_ENCODING) as f:
+            return f.read()
+    except UnicodeDecodeError:  # pragma: no cover
+        # This error may only happen for Python >= 3.13
+        # TODO: Possible deprecation warnings to be added in the future:
+        #       ``.pth file {fullname!r} is not UTF-8.``
+        #       Your environment contain {fullname!r} that cannot be read as UTF-8.
+        #       This is likely to have been produced with an old version of setuptools.
+        #       Please be mindful that this is deprecated and in the future, non-utf8
+        #       .pth files may cause setuptools to fail.
+        with open(fullname, encoding=py39.LOCALE_ENCODING) as f:
+            return f.read()
 
 
 class EasyInstallDeprecationWarning(SetuptoolsDeprecationWarning):
