@@ -10,7 +10,7 @@ from setuptools import _path
 from setuptools import namespaces
 import setuptools
 
-from ..compat import py39
+from ..unicode_utils import read_utf8_with_fallback
 
 
 class develop(namespaces.DevelopInstaller, easy_install):
@@ -131,14 +131,10 @@ class develop(namespaces.DevelopInstaller, easy_install):
         if os.path.exists(self.egg_link):
             log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
 
-            try:
-                with open(self.egg_link, encoding="utf-8") as egg_link_file:
-                    contents = [line.rstrip() for line in egg_link_file]
-            except UnicodeDecodeError:  # pragma: no cover
-                with open(
-                    self.egg_link, encoding=py39.LOCALE_ENCODING
-                ) as egg_link_file:
-                    contents = [line.rstrip() for line in egg_link_file]
+            contents = [
+                line.rstrip()
+                for line in read_utf8_with_fallback(self.egg_link).splitlines()
+            ]
 
             if contents not in ([self.egg_path], [self.egg_path, self.setup_path]):
                 log.warn("Link points to %s: uninstall aborted", contents)
@@ -165,14 +161,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         for script_name in self.distribution.scripts or []:
             script_path = os.path.abspath(convert_path(script_name))
             script_name = os.path.basename(script_path)
-
-            try:
-                with open(script_path, encoding="utf-8") as strm:
-                    script_text = strm.read()
-            except UnicodeDecodeError:  # pragma: no cover
-                with open(script_path, encoding=py39.LOCALE_ENCODING) as strm:
-                    script_text = strm.read()
-
+            script_text = read_utf8_with_fallback(script_path)
             self.install_script(dist, script_name, script_text, script_path)
 
         return None

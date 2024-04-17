@@ -1,6 +1,8 @@
 import unicodedata
 import sys
 
+from .compat import py39
+
 
 # HFS Plus uses decomposed UTF-8
 def decompose(path):
@@ -42,3 +44,18 @@ def try_encode(string, enc):
         return string.encode(enc)
     except UnicodeEncodeError:
         return None
+
+
+def read_utf8_with_fallback(file: str, fallback_encoding=py39.LOCALE_ENCODING) -> str:
+    """
+    First try to read the file with UTF-8, if there is an error fallback to a
+    different encoding ("locale" by default). Returns the content of the file.
+    Also useful when reading files that might have been produced by an older version of
+    setuptools.
+    """
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            return f.read()
+    except UnicodeDecodeError:  # pragma: no cover
+        with open(file, "r", encoding=fallback_encoding) as f:
+            return f.read()

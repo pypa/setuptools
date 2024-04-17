@@ -18,7 +18,7 @@ from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.command.egg_info import write_requirements, _egg_basename
 from setuptools.archive_util import _unpack_zipfile_obj
 
-from .compat import py39
+from .unicode_utils import read_utf8_with_fallback
 
 
 WHEEL_NAME = re.compile(
@@ -224,12 +224,7 @@ class Wheel:
     def _fix_namespace_packages(egg_info, destination_eggdir):
         namespace_packages = os.path.join(egg_info, 'namespace_packages.txt')
         if os.path.exists(namespace_packages):
-            try:
-                with open(namespace_packages, encoding="utf-8") as fp:
-                    namespace_packages = fp.read().split()
-            except UnicodeDecodeError:  # pragma: no cover
-                with open(namespace_packages, encoding=py39.LOCALE_ENCODING) as fp:
-                    namespace_packages = fp.read().split()
+            namespace_packages = read_utf8_with_fallback(namespace_packages).split()
 
             for mod in namespace_packages:
                 mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
