@@ -17,7 +17,7 @@ class VirtualEnv(jaraco.envs.VirtualEnv):
 
     def run(self, cmd, *args, **kwargs):
         cmd = [self.exe(cmd[0])] + cmd[1:]
-        kwargs = {"cwd": self.root, **kwargs}  # Allow overriding
+        kwargs = {"cwd": self.root, "encoding": "utf-8", **kwargs}  # Allow overriding
         # In some environments (eg. downstream distro packaging), where:
         # - tox isn't used to run tests and
         # - PYTHONPATH is set to point to a specific setuptools codebase and
