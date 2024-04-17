@@ -76,6 +76,7 @@ def run_setup_py(cmd, pypath=None, path=None, data_stream=0, env=None):
             stderr=_PIPE,
             shell=shell,
             env=env,
+            encoding="utf-8",
         )
 
         if isinstance(data_stream, tuple):
