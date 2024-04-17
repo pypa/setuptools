@@ -69,7 +69,7 @@ def edit_config(filename, settings, dry_run=False):
 
     log.info("Writing %s", filename)
     if not dry_run:
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding="utf-8") as f:
             opts.write(f)
 
 
