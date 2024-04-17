@@ -10,6 +10,8 @@ from setuptools import _path
 from setuptools import namespaces
 import setuptools
 
+from ..compat import py39
+
 
 class develop(namespaces.DevelopInstaller, easy_install):
     """Set up package for development"""
@@ -119,7 +121,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         # create an .egg-link in the installation dir, pointing to our egg
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
         if not self.dry_run:
-            with open(self.egg_link, "w") as f:
+            with open(self.egg_link, "w", encoding="utf-8") as f:
                 f.write(self.egg_path + "\n" + self.setup_path)
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
@@ -128,9 +130,16 @@ class develop(namespaces.DevelopInstaller, easy_install):
     def uninstall_link(self):
         if os.path.exists(self.egg_link):
             log.info("Removing %s (link to %s)", self.egg_link, self.egg_base)
-            egg_link_file = open(self.egg_link)
-            contents = [line.rstrip() for line in egg_link_file]
-            egg_link_file.close()
+
+            try:
+                with open(self.egg_link, encoding="utf-8") as egg_link_file:
+                    contents = [line.rstrip() for line in egg_link_file]
+            except UnicodeDecodeError:  # pragma: no cover
+                with open(
+                    self.egg_link, encoding=py39.LOCALE_ENCODING
+                ) as egg_link_file:
+                    contents = [line.rstrip() for line in egg_link_file]
+
             if contents not in ([self.egg_path], [self.egg_path, self.setup_path]):
                 log.warn("Link points to %s: uninstall aborted", contents)
                 return
@@ -156,8 +165,14 @@ class develop(namespaces.DevelopInstaller, easy_install):
         for script_name in self.distribution.scripts or []:
             script_path = os.path.abspath(convert_path(script_name))
             script_name = os.path.basename(script_path)
-            with open(script_path) as strm:
-                script_text = strm.read()
+
+            try:
+                with open(script_path, encoding="utf-8") as strm:
+                    script_text = strm.read()
+            except UnicodeDecodeError:  # pragma: no cover
+                with open(script_path, encoding=py39.LOCALE_ENCODING) as strm:
+                    script_text = strm.read()
+
             self.install_script(dist, script_name, script_text, script_path)
 
         return None
