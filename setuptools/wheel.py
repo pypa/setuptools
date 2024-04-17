@@ -237,5 +237,5 @@ class Wheel:
                 if not os.path.exists(mod_dir):
                     os.mkdir(mod_dir)
                 if not os.path.exists(mod_init):
-                    with open(mod_init, 'w') as fp:
+                    with open(mod_init, 'w', encoding="utf-8") as fp:
                         fp.write(NAMESPACE_PACKAGE_INIT)
