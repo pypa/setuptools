@@ -873,7 +873,13 @@ class easy_install(Command):
         ensure_directory(target)
         if os.path.exists(target):
             os.unlink(target)
-        with open(target, "w" + mode) as f:  # TODO: is it safe to use utf-8?
+
+        if "b" not in mode and isinstance(contents, str):
+            kw = {"encoding": "utf-8"}
+        else:
+            kw = {}
+
+        with open(target, "w" + mode, **kw) as f:
             f.write(contents)
         chmod(target, 0o777 - mask)
 
