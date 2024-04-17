@@ -40,6 +40,8 @@ from fnmatch import translate
 from setuptools.wheel import Wheel
 from setuptools.extern.more_itertools import unique_everseen
 
+from .compat import py39
+
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -1011,7 +1013,11 @@ class PyPIConfig(configparser.RawConfigParser):
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
-            self.read(rc)
+            try:
+                self.read(rc, encoding="utf-8")
+            except UnicodeDecodeError:  # pragma: no cover
+                self.clean()
+                self.read(rc, encoding=py39.LOCALE_ENCODING)
 
     @property
     def creds_by_repository(self):
@@ -1114,8 +1120,12 @@ def local_open(url):
         for f in os.listdir(filename):
             filepath = os.path.join(filename, f)
             if f == 'index.html':
-                with open(filepath, 'r') as fp:
-                    body = fp.read()
+                try:
+                    with open(filepath, 'r', encoding="utf-8") as fp:
+                        body = fp.read()
+                except UnicodeDecodeError:  # pragma: no cover
+                    with open(filepath, 'r', encoding=py39.LOCALE_ENCODING) as fp:
+                        body = fp.read()
                 break
             elif os.path.isdir(filepath):
                 f += '/'

@@ -5,7 +5,8 @@ import distutils
 import os
 import configparser
 
-from setuptools import Command
+from .. import Command
+from ..compat import py39
 
 __all__ = ['config_file', 'edit_config', 'option_base', 'setopt']
 
@@ -36,7 +37,13 @@ def edit_config(filename, settings, dry_run=False):
     log.debug("Reading configuration from %s", filename)
     opts = configparser.RawConfigParser()
     opts.optionxform = lambda x: x
-    opts.read([filename])
+
+    try:
+        opts.read([filename], encoding="utf-8")
+    except UnicodeDecodeError:  # pragma: no cover
+        opts.clear()
+        opts.read([filename], encoding=py39.LOCALE_ENCODING)
+
     for section, options in settings.items():
         if options is None:
             log.info("Deleting section [%s] from %s", section, filename)
