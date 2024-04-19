@@ -1,0 +1,1 @@
+Uses RST substitution to put badges in 1 line.
