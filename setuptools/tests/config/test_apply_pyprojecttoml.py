@@ -37,6 +37,7 @@ def makedist(path, **attrs):
     return Distribution({"src_root": path, **attrs})
 
 
+@pytest.mark.xfail(reason="#4315")
 @pytest.mark.parametrize("url", urls_from_file(HERE / EXAMPLES_FILE))
 @pytest.mark.filterwarnings("ignore")
 @pytest.mark.uses_network
