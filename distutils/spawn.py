@@ -83,14 +83,13 @@ def find_executable(executable, path=None):
 
     if path is None:
         path = os.environ.get('PATH', None)
+        # bpo-35755: Don't fall through if PATH is the empty string
         if path is None:
             try:
                 path = os.confstr("CS_PATH")
             except (AttributeError, ValueError):
                 # os.confstr() or CS_PATH is not available
                 path = os.defpath
-        # bpo-35755: Don't use os.defpath if the PATH environment variable is
-        # set to an empty string
 
     # PATH='' doesn't match, whereas PATH=':' looks in the current directory
     if not path:
