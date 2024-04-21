@@ -46,7 +46,7 @@ def try_encode(string, enc):
         return None
 
 
-def read_utf8_with_fallback(file: str, fallback_encoding=py39.LOCALE_ENCODING) -> str:
+def _read_utf8_with_fallback(file: str, fallback_encoding=py39.LOCALE_ENCODING) -> str:
     """
     First try to read the file with UTF-8, if there is an error fallback to a
     different encoding ("locale" by default). Returns the content of the file.

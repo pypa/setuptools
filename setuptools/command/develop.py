@@ -10,7 +10,7 @@ from setuptools import _path
 from setuptools import namespaces
 import setuptools
 
-from ..unicode_utils import read_utf8_with_fallback
+from ..unicode_utils import _read_utf8_with_fallback
 
 
 class develop(namespaces.DevelopInstaller, easy_install):
@@ -133,7 +133,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
 
             contents = [
                 line.rstrip()
-                for line in read_utf8_with_fallback(self.egg_link).splitlines()
+                for line in _read_utf8_with_fallback(self.egg_link).splitlines()
             ]
 
             if contents not in ([self.egg_path], [self.egg_path, self.setup_path]):
@@ -161,7 +161,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         for script_name in self.distribution.scripts or []:
             script_path = os.path.abspath(convert_path(script_name))
             script_name = os.path.basename(script_path)
-            script_text = read_utf8_with_fallback(script_path)
+            script_text = _read_utf8_with_fallback(script_path)
             self.install_script(dist, script_name, script_text, script_path)
 
         return None

@@ -41,7 +41,7 @@ from setuptools.wheel import Wheel
 from setuptools.extern.more_itertools import unique_everseen
 
 from .compat import py39
-from .unicode_utils import read_utf8_with_fallback
+from .unicode_utils import _read_utf8_with_fallback
 
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
@@ -1121,7 +1121,7 @@ def local_open(url):
         for f in os.listdir(filename):
             filepath = os.path.join(filename, f)
             if f == 'index.html':
-                body = read_utf8_with_fallback(filepath)
+                body = _read_utf8_with_fallback(filepath)
                 break
             elif os.path.isdir(filepath):
                 f += '/'

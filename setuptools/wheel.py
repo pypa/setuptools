@@ -18,7 +18,7 @@ from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.command.egg_info import write_requirements, _egg_basename
 from setuptools.archive_util import _unpack_zipfile_obj
 
-from .unicode_utils import read_utf8_with_fallback
+from .unicode_utils import _read_utf8_with_fallback
 
 
 WHEEL_NAME = re.compile(
@@ -224,7 +224,7 @@ class Wheel:
     def _fix_namespace_packages(egg_info, destination_eggdir):
         namespace_packages = os.path.join(egg_info, 'namespace_packages.txt')
         if os.path.exists(namespace_packages):
-            namespace_packages = read_utf8_with_fallback(namespace_packages).split()
+            namespace_packages = _read_utf8_with_fallback(namespace_packages).split()
 
             for mod in namespace_packages:
                 mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
