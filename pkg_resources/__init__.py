@@ -1524,8 +1524,7 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            with open(script_filename) as fid:
-                source = fid.read()
+            source = _read_utf8_with_fallback(script_filename)
             code = compile(source, script_filename, 'exec')
             exec(code, namespace, namespace)
         else:
@@ -2175,11 +2174,10 @@ def non_empty_lines(path):
     """
     Yield non-empty lines from file at path
     """
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                yield line
+    for line in _read_utf8_with_fallback(path).splitlines():
+        line = line.strip()
+        if line:
+            yield line
 
 
 def resolve_egg_link(path):
@@ -3323,3 +3321,16 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+
+#  ---- Ported from ``setuptools`` to avoid introducing dependencies ----
+LOCALE_ENCODING = "locale" if sys.version_info >= (3, 10) else None
+
+
+def _read_utf8_with_fallback(file: str, fallback_encoding=LOCALE_ENCODING) -> str:
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            return f.read()
+    except UnicodeDecodeError:  # pragma: no cover
+        with open(file, "r", encoding=fallback_encoding) as f:
+            return f.read()
