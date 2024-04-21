@@ -31,10 +31,6 @@ def spawn(cmd, search_path=1, verbose=0, dry_run=0, env=None):
     Raise DistutilsExecError if running the program fails in any way; just
     return on success.
     """
-    # cmd is documented as a list, but just in case some code passes a tuple
-    # in, protect our %-formatting code against horrible death
-    cmd = list(cmd)
-
     log.info(subprocess.list2cmdline(cmd))
     if dry_run:
         return
