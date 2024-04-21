@@ -1,4 +1,4 @@
-packaging==23.1
+packaging==24
 
 platformdirs==2.6.2
 # required for platformdirs on Python < 3.8
@@ -9,3 +9,5 @@ jaraco.text==3.7.0
 importlib_resources==5.10.2
 # required for importlib_resources on older Pythons
 zipp==3.7.0
+# required for jaraco.context on older Pythons
+backports.tarfile

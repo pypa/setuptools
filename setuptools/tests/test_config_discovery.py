@@ -277,7 +277,7 @@ class TestNoConfig:
         _populate_project_dir(tmp_path, files, {})
         _run_build(tmp_path, "--sdist")
         # Expected distribution file
-        dist_file = tmp_path / f"dist/ns.nested.pkg-{self.DEFAULT_VERSION}.tar.gz"
+        dist_file = tmp_path / f"dist/ns_nested_pkg-{self.DEFAULT_VERSION}.tar.gz"
         assert dist_file.is_file()
 
 

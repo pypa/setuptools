@@ -1,15 +1,14 @@
 """Tests for distutils.command.upload."""
+
 import os
 import unittest.mock as mock
-from urllib.request import HTTPError
-
-
 from distutils.command import upload as upload_mod
 from distutils.command.upload import upload
 from distutils.core import Distribution
 from distutils.errors import DistutilsError
-
 from distutils.tests.test_config import PYPIRC, BasePyPIRCCommandTestCase
+from urllib.request import HTTPError
+
 import pytest
 
 PYPIRC_LONG_PASSWORD = """\

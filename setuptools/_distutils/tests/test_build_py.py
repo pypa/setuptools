@@ -2,30 +2,26 @@
 
 import os
 import sys
-
-import pytest
-
 from distutils.command.build_py import build_py
 from distutils.core import Distribution
 from distutils.errors import DistutilsFileError
-
 from distutils.tests import support
+
+import jaraco.path
+import pytest
 
 
 @support.combine_markers
 class TestBuildPy(support.TempdirManager):
     def test_package_data(self):
         sources = self.mkdtemp()
-        f = open(os.path.join(sources, "__init__.py"), "w")
-        try:
-            f.write("# Pretend this is a package.")
-        finally:
-            f.close()
-        f = open(os.path.join(sources, "README.txt"), "w")
-        try:
-            f.write("Info about this package")
-        finally:
-            f.close()
+        jaraco.path.build(
+            {
+                '__init__.py': "# Pretend this is a package.",
+                'README.txt': 'Info about this package',
+            },
+            sources,
+        )
 
         destination = self.mkdtemp()
 
@@ -62,20 +58,14 @@ class TestBuildPy(support.TempdirManager):
     def test_empty_package_dir(self):
         # See bugs #1668596/#1720897
         sources = self.mkdtemp()
-        open(os.path.join(sources, "__init__.py"), "w").close()
-
-        testdir = os.path.join(sources, "doc")
-        os.mkdir(testdir)
-        open(os.path.join(testdir, "testfile"), "w").close()
+        jaraco.path.build({'__init__.py': '', 'doc': {'testfile': ''}}, sources)
 
         os.chdir(sources)
-        dist = Distribution(
-            {
-                "packages": ["pkg"],
-                "package_dir": {"pkg": ""},
-                "package_data": {"pkg": ["doc/*"]},
-            }
-        )
+        dist = Distribution({
+            "packages": ["pkg"],
+            "package_dir": {"pkg": ""},
+            "package_data": {"pkg": ["doc/*"]},
+        })
         # script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(sources, "setup.py")
         dist.script_args = ["build"]
@@ -126,17 +116,19 @@ class TestBuildPy(support.TempdirManager):
         """
         # See bug 19286
         sources = self.mkdtemp()
-        pkg_dir = os.path.join(sources, "pkg")
-
-        os.mkdir(pkg_dir)
-        open(os.path.join(pkg_dir, "__init__.py"), "w").close()
-
-        docdir = os.path.join(pkg_dir, "doc")
-        os.mkdir(docdir)
-        open(os.path.join(docdir, "testfile"), "w").close()
-
-        # create the directory that could be incorrectly detected as a file
-        os.mkdir(os.path.join(docdir, 'otherdir'))
+        jaraco.path.build(
+            {
+                'pkg': {
+                    '__init__.py': '',
+                    'doc': {
+                        'testfile': '',
+                        # create a directory that could be incorrectly detected as a file
+                        'otherdir': {},
+                    },
+                }
+            },
+            sources,
+        )
 
         os.chdir(sources)
         dist = Distribution({"packages": ["pkg"], "package_data": {"pkg": ["doc/*"]}})
@@ -176,9 +168,8 @@ class TestBuildPy(support.TempdirManager):
         """
         # Create a fake project structure with a package namespace:
         tmp = self.mkdtemp()
+        jaraco.path.build({'ns': {'pkg': {'module.py': ''}}}, tmp)
         os.chdir(tmp)
-        os.makedirs("ns/pkg")
-        open("ns/pkg/module.py", "w").close()
 
         # Configure the package:
         attrs = {
