@@ -874,12 +874,8 @@ class easy_install(Command):
         if os.path.exists(target):
             os.unlink(target)
 
-        if "b" not in mode and isinstance(contents, str):
-            kw = {"encoding": "utf-8"}
-        else:
-            kw = {}
-
-        with open(target, "w" + mode, **kw) as f:
+        encoding = None if "b" in mode else "utf-8"
+        with open(target, "w" + mode, encoding=encoding) as f:
             f.write(contents)
         chmod(target, 0o777 - mask)
 
