@@ -24,6 +24,7 @@ from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
     _DebuggingTips,
     _LinkTree,
+    _TopLevelFinder,
     _encode_pth,
     _find_virtual_namespaces,
     _find_namespaces,
@@ -528,6 +529,49 @@ class TestFinderTemplate:
             expected = str((tmp_path / "src1/ns/pkg1").resolve())
             assert_path(pkgA, expected)
             assert pkgA.a == 13
+            assert mod2.b == 37
+
+    def test_combine_namespaces_nested(self, tmp_path):
+        """
+        Users may attempt to combine namespace packages in a nested way via
+        ``package_dir`` as shown in pypa/setuptools#4248.
+        """
+
+        files = {
+            "src": {"my_package": {"my_module.py": "a = 13"}},
+            "src2": {"my_package2": {"my_module2.py": "b = 37"}},
+        }
+
+        stack = jaraco.path.DirectoryStack()
+        with stack.context(tmp_path):
+            jaraco.path.build(files)
+            attrs = {
+                "script_name": "%PEP 517%",
+                "package_dir": {
+                    "different_name": "src/my_package",
+                    "different_name.subpkg": "src2/my_package2",
+                },
+                "packages": ["different_name", "different_name.subpkg"],
+            }
+            dist = Distribution(attrs)
+            finder = _TopLevelFinder(dist, str(uuid4()))
+            code = next(v for k, v in finder.get_implementation() if k.endswith(".py"))
+
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in attrs["packages"]:
+                sys.modules.pop(mod, None)
+
+            self.install_finder(code)
+            mod1 = import_module("different_name.my_module")
+            mod2 = import_module("different_name.subpkg.my_module2")
+
+            expected = str((tmp_path / "src/my_package/my_module.py").resolve())
+            assert str(Path(mod1.__file__).resolve()) == expected
+
+            expected = str((tmp_path / "src2/my_package2/my_module2.py").resolve())
+            assert str(Path(mod2.__file__).resolve()) == expected
+
+            assert mod1.a == 13
             assert mod2.b == 37
 
     def test_dynamic_path_computation(self, tmp_path):
