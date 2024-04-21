@@ -2826,7 +2826,7 @@ class Distribution:
         if path is None:
             path = sys.path
         self.insert_on(path, replace=replace)
-        if path is sys.path:
+        if path is sys.path and self.location is not None:
             fixup_namespace_packages(self.location)
             for pkg in self._get_metadata('namespace_packages.txt'):
                 if pkg in sys.modules:
