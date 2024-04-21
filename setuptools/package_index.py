@@ -422,9 +422,9 @@ class PackageIndex(Environment):
         list(itertools.starmap(self.scan_egg_link, egg_links))
 
     def scan_egg_link(self, path, entry):
-        with open(os.path.join(path, entry)) as raw_lines:
-            # filter non-empty lines
-            lines = list(filter(None, map(str.strip, raw_lines)))
+        content = _read_utf8_with_fallback(os.path.join(path, entry))
+        # filter non-empty lines
+        lines = list(filter(None, map(str.strip, content.splitlines())))
 
         if len(lines) != 2:
             # format is not recognized; punt
