@@ -16,8 +16,8 @@ import re
 import sys
 import sysconfig
 
-from .compat import py39
 from ._functools import pass_none
+from .compat import py39
 from .errors import DistutilsPlatformError
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names

@@ -12,7 +12,6 @@ import os
 import platform
 import subprocess
 import sys
-
 from typing import Mapping
 
 from ._log import log

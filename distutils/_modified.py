@@ -4,8 +4,8 @@ import functools
 import os.path
 
 from ._functools import splat
-from .errors import DistutilsFileError
 from .compat.py39 import zip_strict
+from .errors import DistutilsFileError
 
 
 def _newer(source, target):
