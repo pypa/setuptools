@@ -6,9 +6,14 @@ Also provides the 'find_executable()' to search the path for a given
 executable name.
 """
 
+from __future__ import annotations
+
 import os
+import platform
 import subprocess
 import sys
+
+from typing import Mapping
 
 from ._log import log
 from .debug import DEBUG
@@ -20,6 +25,21 @@ def _debug(cmd):
     Render a subprocess command differently depending on DEBUG.
     """
     return cmd if DEBUG else cmd[0]
+
+
+def _inject_macos_ver(env: Mapping[str:str] | None) -> Mapping[str:str] | None:
+    if platform.system() != 'Darwin':
+        return env
+
+    from distutils.util import MACOSX_VERSION_VAR, get_macosx_target_ver
+
+    target_ver = get_macosx_target_ver()
+    update = {MACOSX_VERSION_VAR: target_ver} if target_ver else {}
+    return {**_resolve(env), **update}
+
+
+def _resolve(env: Mapping[str:str] | None) -> Mapping[str:str]:
+    return os.environ if env is None else env
 
 
 def spawn(cmd, search_path=True, verbose=False, dry_run=False, env=None):
@@ -47,17 +67,8 @@ def spawn(cmd, search_path=True, verbose=False, dry_run=False, env=None):
         if executable is not None:
             cmd[0] = executable
 
-    env = env if env is not None else dict(os.environ)
-
-    if sys.platform == 'darwin':
-        from distutils.util import MACOSX_VERSION_VAR, get_macosx_target_ver
-
-        macosx_target_ver = get_macosx_target_ver()
-        if macosx_target_ver:
-            env[MACOSX_VERSION_VAR] = macosx_target_ver
-
     try:
-        subprocess.check_call(cmd, env=env)
+        subprocess.check_call(cmd, env=_inject_macos_ver(env))
     except OSError as exc:
         raise DistutilsExecError(
             f"command {_debug(cmd)!r} failed: {exc.args[-1]}"
