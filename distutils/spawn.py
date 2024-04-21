@@ -50,18 +50,17 @@ def spawn(cmd, search_path=True, verbose=False, dry_run=False, env=None):
             env[MACOSX_VERSION_VAR] = macosx_target_ver
 
     try:
-        proc = subprocess.Popen(cmd, env=env)
-        proc.wait()
-        exitcode = proc.returncode
+        subprocess.check_call(cmd, env=env)
     except OSError as exc:
         if not DEBUG:
             cmd = cmd[0]
         raise DistutilsExecError(f"command {cmd!r} failed: {exc.args[-1]}") from exc
-
-    if exitcode:
+    except subprocess.CalledProcessError as err:
         if not DEBUG:
             cmd = cmd[0]
-        raise DistutilsExecError(f"command {cmd!r} failed with exit code {exitcode}")
+        raise DistutilsExecError(
+            f"command {cmd!r} failed with exit code {err.returncode}"
+        ) from err
 
 
 def find_executable(executable, path=None):
