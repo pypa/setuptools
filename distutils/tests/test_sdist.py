@@ -2,6 +2,7 @@
 
 import os
 import pathlib
+import shutil  # noqa: F401
 import tarfile
 import warnings
 import zipfile
@@ -10,7 +11,6 @@ from distutils.command.sdist import sdist, show_formats
 from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
 from distutils.filelist import FileList
-from distutils.spawn import find_executable  # noqa: F401
 from distutils.tests.test_config import BasePyPIRCCommandTestCase
 from os.path import join
 from textwrap import dedent
@@ -137,8 +137,8 @@ class TestSDist(BasePyPIRCCommandTestCase):
         assert sorted(content) == ['fake-1.0/' + x for x in expected]
 
     @pytest.mark.usefixtures('needs_zlib')
-    @pytest.mark.skipif("not find_executable('tar')")
-    @pytest.mark.skipif("not find_executable('gzip')")
+    @pytest.mark.skipif("not shutil.which('tar')")
+    @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
@@ -434,8 +434,8 @@ class TestSDist(BasePyPIRCCommandTestCase):
     @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id
     @require_uid_0
-    @pytest.mark.skipif("not find_executable('tar')")
-    @pytest.mark.skipif("not find_executable('gzip')")
+    @pytest.mark.skipif("not shutil.which('tar')")
+    @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution_owner_group(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
