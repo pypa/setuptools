@@ -1,12 +1,11 @@
 import os
-import sys
 import platform
-import textwrap
+import sys
 import sysconfig
+import textwrap
+from distutils import ccompiler
 
 import pytest
-
-from distutils import ccompiler
 
 
 def _make_strs(paths):
@@ -36,7 +35,7 @@ def c_file(tmp_path):
         .lstrip()
         .replace('#headers', headers)
     )
-    c_file.write_text(payload)
+    c_file.write_text(payload, encoding='utf-8')
     return c_file
 
 

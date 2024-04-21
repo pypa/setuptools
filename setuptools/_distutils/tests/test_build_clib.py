@@ -1,13 +1,11 @@
 """Tests for distutils.command.build_clib."""
+
 import os
-
-from test.support import missing_compiler_executable
-
-import pytest
-
 from distutils.command.build_clib import build_clib
 from distutils.errors import DistutilsSetupError
-from distutils.tests import support
+from distutils.tests import missing_compiler_executable, support
+
+import pytest
 
 
 class TestBuildCLib(support.TempdirManager):

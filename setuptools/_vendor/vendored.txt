@@ -1,4 +1,4 @@
-packaging==23.1
+packaging==24
 ordered-set==3.1.1
 more_itertools==8.8.0
 jaraco.text==3.7.0
@@ -9,3 +9,5 @@ typing_extensions==4.0.1
 # required for importlib_resources and _metadata on older Pythons
 zipp==3.7.0
 tomli==2.0.1
+# required for jaraco.context on older Pythons
+backports.tarfile
