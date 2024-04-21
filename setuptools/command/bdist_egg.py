@@ -200,10 +200,9 @@ class bdist_egg(Command):
             log.info("writing %s", native_libs)
             if not self.dry_run:
                 ensure_directory(native_libs)
-                libs_file = open(native_libs, 'wt')
-                libs_file.write('\n'.join(all_outputs))
-                libs_file.write('\n')
-                libs_file.close()
+                with open(native_libs, 'wt', encoding="utf-8") as libs_file:
+                    libs_file.write('\n'.join(all_outputs))
+                    libs_file.write('\n')
         elif os.path.isfile(native_libs):
             log.info("removing %s", native_libs)
             if not self.dry_run:
