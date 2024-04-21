@@ -54,7 +54,7 @@ def write_stub(resource, pyfile):
         __bootstrap__()
         """
     ).lstrip()
-    with open(pyfile, 'w') as f:
+    with open(pyfile, 'w', encoding="utf-8") as f:
         f.write(_stub_template % resource)
 
 

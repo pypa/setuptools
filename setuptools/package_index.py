@@ -717,7 +717,7 @@ class PackageIndex(Environment):
                     shutil.copy2(filename, dst)
                     filename = dst
 
-            with open(os.path.join(tmpdir, 'setup.py'), 'w') as file:
+            with open(os.path.join(tmpdir, 'setup.py'), 'w', encoding="utf-8") as file:
                 file.write(
                     "from setuptools import setup\n"
                     "setup(name=%r, version=%r, py_modules=[%r])\n"

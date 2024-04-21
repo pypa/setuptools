@@ -342,8 +342,7 @@ class build_ext(_build_ext):
         if compile and os.path.exists(stub_file):
             raise BaseError(stub_file + " already exists! Please delete.")
         if not self.dry_run:
-            f = open(stub_file, 'w')
-            f.write(
+            content = (
                 '\n'.join([
                     "def __bootstrap__():",
                     "   global __bootstrap__, __file__, __loader__",
@@ -369,7 +368,8 @@ class build_ext(_build_ext):
                     "",  # terminal \n
                 ])
             )
-            f.close()
+            with open(stub_file, 'w', encoding="utf-8") as f:
+                f.write(content)
         if compile:
             self._compile_and_remove_stub(stub_file)
 
