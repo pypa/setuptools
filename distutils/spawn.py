@@ -15,6 +15,13 @@ from .debug import DEBUG
 from .errors import DistutilsExecError
 
 
+def _debug(cmd):
+    """
+    Render a subprocess command differently depending on DEBUG.
+    """
+    return cmd if DEBUG else cmd[0]
+
+
 def spawn(cmd, search_path=True, verbose=False, dry_run=False, env=None):
     """Run another program, specified as a command list 'cmd', in a new process.
 
@@ -52,14 +59,12 @@ def spawn(cmd, search_path=True, verbose=False, dry_run=False, env=None):
     try:
         subprocess.check_call(cmd, env=env)
     except OSError as exc:
-        if not DEBUG:
-            cmd = cmd[0]
-        raise DistutilsExecError(f"command {cmd!r} failed: {exc.args[-1]}") from exc
-    except subprocess.CalledProcessError as err:
-        if not DEBUG:
-            cmd = cmd[0]
         raise DistutilsExecError(
-            f"command {cmd!r} failed with exit code {err.returncode}"
+            f"command {_debug(cmd)!r} failed: {exc.args[-1]}"
+        ) from exc
+    except subprocess.CalledProcessError as err:
+        raise DistutilsExecError(
+            f"command {_debug(cmd)!r} failed with exit code {err.returncode}"
         ) from err
 
 
