@@ -6,7 +6,7 @@ import os
 import configparser
 
 from .. import Command
-from ..compat import py39
+from ..unicode_utils import _cfg_read_utf8_with_fallback
 
 __all__ = ['config_file', 'edit_config', 'option_base', 'setopt']
 
@@ -37,12 +37,7 @@ def edit_config(filename, settings, dry_run=False):
     log.debug("Reading configuration from %s", filename)
     opts = configparser.RawConfigParser()
     opts.optionxform = lambda x: x
-
-    try:
-        opts.read([filename], encoding="utf-8")
-    except UnicodeDecodeError:  # pragma: no cover
-        opts.clear()
-        opts.read([filename], encoding=py39.LOCALE_ENCODING)
+    _cfg_read_utf8_with_fallback(opts, filename)
 
     for section, options in settings.items():
         if options is None:

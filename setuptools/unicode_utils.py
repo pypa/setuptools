@@ -1,7 +1,9 @@
 import unicodedata
 import sys
+from configparser import ConfigParser
 
 from .compat import py39
+from .warnings import SetuptoolsDeprecationWarning
 
 
 # HFS Plus uses decomposed UTF-8
@@ -57,5 +59,44 @@ def _read_utf8_with_fallback(file: str, fallback_encoding=py39.LOCALE_ENCODING) 
         with open(file, "r", encoding="utf-8") as f:
             return f.read()
     except UnicodeDecodeError:  # pragma: no cover
+        _Utf8EncodingNeeded.emit(file=file, fallback_encoding=fallback_encoding)
         with open(file, "r", encoding=fallback_encoding) as f:
             return f.read()
+
+
+def _cfg_read_utf8_with_fallback(
+    cfg: ConfigParser, file: str, fallback_encoding=py39.LOCALE_ENCODING
+) -> str:
+    """Same idea as :func:`_read_utf8_with_fallback`, but for the
+    :meth:`ConfigParser.read` method.
+
+    This method may call ``cfg.clear()``.
+    """
+    try:
+        cfg.read(file, encoding="utf-8")
+    except UnicodeDecodeError:  # pragma: no cover
+        _Utf8EncodingNeeded.emit(file=file, fallback_encoding=fallback_encoding)
+        cfg.clear()
+        cfg.read(file, encoding=fallback_encoding)
+
+
+class _Utf8EncodingNeeded(SetuptoolsDeprecationWarning):
+    _SUMMARY = """
+    `encoding="utf-8"` fails with {file!r}, trying `encoding={fallback_encoding!r}`.
+    """
+
+    _DETAILS = """
+    Fallback behaviour for UTF-8 is considered **deprecated** and future versions of
+    `setuptools` may not implement it.
+
+    Please encode {file!r} with "utf-8" to ensure future builds will succeed.
+
+    If this file was produced by `setuptools` itself, cleaning up the cached files
+    and re-building/re-installing the package with a newer version of `setuptools`
+    (e.g. by updating `build-system.requires` in its `pyproject.toml`)
+    might solve the problem.
+    """
+    # TODO: Add a deadline?
+    #       Will we be able to remove this?
+    #       The question comes to mind mainly because of sdists that have been produced
+    #       by old versions of setuptools and published to PyPI...

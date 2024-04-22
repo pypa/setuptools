@@ -40,8 +40,7 @@ from fnmatch import translate
 from setuptools.wheel import Wheel
 from setuptools.extern.more_itertools import unique_everseen
 
-from .compat import py39
-from .unicode_utils import _read_utf8_with_fallback
+from .unicode_utils import _read_utf8_with_fallback, _cfg_read_utf8_with_fallback
 
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
@@ -1014,11 +1013,7 @@ class PyPIConfig(configparser.RawConfigParser):
 
         rc = os.path.join(os.path.expanduser('~'), '.pypirc')
         if os.path.exists(rc):
-            try:
-                self.read(rc, encoding="utf-8")
-            except UnicodeDecodeError:  # pragma: no cover
-                self.clean()
-                self.read(rc, encoding=py39.LOCALE_ENCODING)
+            _cfg_read_utf8_with_fallback(self, rc)
 
     @property
     def creds_by_repository(self):
