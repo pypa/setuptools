@@ -160,7 +160,7 @@ defns = [
             # to obtain a distribution object first, and then run the distutils
             # commands later, because these files will be removed in the meantime.
 
-            with open('world.py', 'w') as f:
+            with open('world.py', 'w', encoding="utf-8") as f:
                 f.write('x = 42')
 
             try:
