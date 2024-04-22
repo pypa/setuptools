@@ -168,8 +168,9 @@ def update_setuptools():
 
 def yield_root_package(name):
     """Useful when defining the MetaPathFinder
-    >>> set(yield_root_package("setuptools")) & {"jaraco", "backports"}
-    {'jaraco', 'backports'}
+    >>> examples = set(yield_root_package("setuptools")) & {"jaraco", "backports"}
+    >>> list(sorted(examples))
+    ['backports', 'jaraco']
     """
     vendored = Path(f"{name}/_vendor/vendored.txt")
     yield from (
