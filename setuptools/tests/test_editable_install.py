@@ -131,7 +131,7 @@ def test_editable_with_pyproject(tmp_path, venv, files, editable_opts):
     jaraco.path.build(files, prefix=project)
 
     cmd = [
-        venv.exe(),
+        "python",
         "-m",
         "pip",
         "install",
@@ -140,14 +140,14 @@ def test_editable_with_pyproject(tmp_path, venv, files, editable_opts):
         str(project),
         *editable_opts,
     ]
-    print(str(subprocess.check_output(cmd), "utf-8"))
+    print(venv.run(cmd))
 
-    cmd = [venv.exe(), "-m", "mypkg"]
-    assert subprocess.check_output(cmd).strip() == b"3.14159.post0 Hello World"
+    cmd = ["python", "-m", "mypkg"]
+    assert venv.run(cmd).strip() == "3.14159.post0 Hello World"
 
     (project / "src/mypkg/data.txt").write_text("foobar", encoding="utf-8")
     (project / "src/mypkg/mod.py").write_text("x = 42", encoding="utf-8")
-    assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
+    assert venv.run(cmd).strip() == "3.14159.post0 foobar 42"
 
 
 def test_editable_with_flat_layout(tmp_path, venv, editable_opts):
@@ -176,7 +176,7 @@ def test_editable_with_flat_layout(tmp_path, venv, editable_opts):
     project = tmp_path / "mypkg"
 
     cmd = [
-        venv.exe(),
+        "python",
         "-m",
         "pip",
         "install",
@@ -185,9 +185,9 @@ def test_editable_with_flat_layout(tmp_path, venv, editable_opts):
         str(project),
         *editable_opts,
     ]
-    print(str(subprocess.check_output(cmd), "utf-8"))
-    cmd = [venv.exe(), "-c", "import pkg, mod; print(pkg.a, mod.b)"]
-    assert subprocess.check_output(cmd).strip() == b"4 2"
+    print(venv.run(cmd))
+    cmd = ["python", "-c", "import pkg, mod; print(pkg.a, mod.b)"]
+    assert venv.run(cmd).strip() == "4 2"
 
 
 def test_editable_with_single_module(tmp_path, venv, editable_opts):
@@ -214,7 +214,7 @@ def test_editable_with_single_module(tmp_path, venv, editable_opts):
     project = tmp_path / "mypkg"
 
     cmd = [
-        venv.exe(),
+        "python",
         "-m",
         "pip",
         "install",
@@ -223,9 +223,9 @@ def test_editable_with_single_module(tmp_path, venv, editable_opts):
         str(project),
         *editable_opts,
     ]
-    print(str(subprocess.check_output(cmd), "utf-8"))
-    cmd = [venv.exe(), "-c", "import mod; print(mod.b)"]
-    assert subprocess.check_output(cmd).strip() == b"2"
+    print(venv.run(cmd))
+    cmd = ["python", "-c", "import mod; print(mod.b)"]
+    assert venv.run(cmd).strip() == "2"
 
 
 class TestLegacyNamespaces:
@@ -384,7 +384,7 @@ class TestPep420Namespaces:
         opts = ["--no-build-isolation"]  # force current version of setuptools
         venv.run(["python", "-m", "pip", "-v", "install", "-e", str(pkg_A), *opts])
         out = venv.run(["python", "-c", "from mypkg.n import pkgA; print(pkgA.a)"])
-        assert str(out, "utf-8").strip() == "1"
+        assert out.strip() == "1"
         cmd = """\
         try:
             import mypkg.other
@@ -392,7 +392,7 @@ class TestPep420Namespaces:
             print("mypkg.other not defined")
         """
         out = venv.run(["python", "-c", dedent(cmd)])
-        assert "mypkg.other not defined" in str(out, "utf-8")
+        assert "mypkg.other not defined" in out
 
 
 # Moved here from test_develop:
@@ -911,7 +911,7 @@ class TestOverallBehaviour:
             print(ex)
         """
         out = venv.run(["python", "-c", dedent(cmd_import_error)])
-        assert b"No module named 'otherfile'" in out
+        assert "No module named 'otherfile'" in out
 
         # Ensure the modules are importable
         cmd_get_vars = """\
@@ -919,7 +919,7 @@ class TestOverallBehaviour:
         print(mypkg.mod1.var, mypkg.subpackage.mod2.var)
         """
         out = venv.run(["python", "-c", dedent(cmd_get_vars)])
-        assert b"42 13" in out
+        assert "42 13" in out
 
         # Ensure resources are reachable
         cmd_get_resource = """\
@@ -929,7 +929,7 @@ class TestOverallBehaviour:
         print(text.read_text(encoding="utf-8"))
         """
         out = venv.run(["python", "-c", dedent(cmd_get_resource)])
-        assert b"resource 39" in out
+        assert "resource 39" in out
 
         # Ensure files are editable
         mod1 = next(project.glob("**/mod1.py"))
@@ -941,12 +941,12 @@ class TestOverallBehaviour:
         resource_file.write_text("resource 374", encoding="utf-8")
 
         out = venv.run(["python", "-c", dedent(cmd_get_vars)])
-        assert b"42 13" not in out
-        assert b"17 781" in out
+        assert "42 13" not in out
+        assert "17 781" in out
 
         out = venv.run(["python", "-c", dedent(cmd_get_resource)])
-        assert b"resource 39" not in out
-        assert b"resource 374" in out
+        assert "resource 39" not in out
+        assert "resource 374" in out
 
 
 class TestLinkTree:
@@ -1005,7 +1005,7 @@ class TestLinkTree:
         install_project("mypkg", venv, tmp_path, self.FILES, *opts)
 
         out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
-        assert b"42" in out
+        assert "42" in out
 
         # Ensure packages excluded from distribution are not importable
         cmd_import_error = """\
@@ -1015,7 +1015,7 @@ class TestLinkTree:
             print(ex)
         """
         out = venv.run(["python", "-c", dedent(cmd_import_error)])
-        assert b"cannot import name 'subpackage'" in out
+        assert "cannot import name 'subpackage'" in out
 
         # Ensure resource files excluded from distribution are not reachable
         cmd_get_resource = """\
@@ -1028,8 +1028,8 @@ class TestLinkTree:
             print(ex)
         """
         out = venv.run(["python", "-c", dedent(cmd_get_resource)])
-        assert b"No such file or directory" in out
-        assert b"resource.not_in_manifest" in out
+        assert "No such file or directory" in out
+        assert "resource.not_in_manifest" in out
 
 
 @pytest.mark.filterwarnings("ignore:.*compat.*:setuptools.SetuptoolsDeprecationWarning")
@@ -1040,7 +1040,7 @@ def test_compat_install(tmp_path, venv):
     install_project("mypkg", venv, tmp_path, files, *opts)
 
     out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
-    assert b"42" in out
+    assert "42" in out
 
     expected_path = comparable_path(str(tmp_path))
 
@@ -1051,7 +1051,7 @@ def test_compat_install(tmp_path, venv):
         "import other; print(other)",
         "import mypkg; print(mypkg)",
     ):
-        out = comparable_path(str(venv.run(["python", "-c", cmd]), "utf-8"))
+        out = comparable_path(venv.run(["python", "-c", cmd]))
         assert expected_path in out
 
     # Compatible behaviour will not consider custom mappings
@@ -1061,7 +1061,7 @@ def test_compat_install(tmp_path, venv):
     except ImportError as ex:
         print(ex)
     """
-    out = str(venv.run(["python", "-c", dedent(cmd)]), "utf-8")
+    out = venv.run(["python", "-c", dedent(cmd)])
     assert "cannot import name 'subpackage'" in out
 
 
@@ -1105,7 +1105,7 @@ def test_pbr_integration(tmp_path, venv, editable_opts):
         install_project("mypkg", venv, tmp_path, files, *editable_opts)
 
     out = venv.run(["python", "-c", "import mypkg.hello"])
-    assert b"Hello world!" in out
+    assert "Hello world!" in out
 
 
 class TestCustomBuildPy:
@@ -1143,11 +1143,11 @@ class TestCustomBuildPy:
         """Ensure that errors in custom build_py are reported as warnings"""
         # Warnings should show up
         _, out = install_project("mypkg", venv, tmp_path, self.FILES)
-        assert b"SetuptoolsDeprecationWarning" in out
-        assert b"ValueError: TEST_RAISE" in out
+        assert "SetuptoolsDeprecationWarning" in out
+        assert "ValueError: TEST_RAISE" in out
         # but installation should be successful
         out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
-        assert b"42" in out
+        assert "42" in out
 
 
 class TestCustomBuildWheel:

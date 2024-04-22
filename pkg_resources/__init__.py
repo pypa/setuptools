@@ -1524,8 +1524,7 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            with open(script_filename) as fid:
-                source = fid.read()
+            source = _read_utf8_with_fallback(script_filename)
             code = compile(source, script_filename, 'exec')
             exec(code, namespace, namespace)
         else:
@@ -2175,11 +2174,10 @@ def non_empty_lines(path):
     """
     Yield non-empty lines from file at path
     """
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                yield line
+    for line in _read_utf8_with_fallback(path).splitlines():
+        line = line.strip()
+        if line:
+            yield line
 
 
 def resolve_egg_link(path):
@@ -3323,3 +3321,35 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+
+#  ---- Ported from ``setuptools`` to avoid introducing an import inter-dependency ----
+LOCALE_ENCODING = "locale" if sys.version_info >= (3, 10) else None
+
+
+def _read_utf8_with_fallback(file: str, fallback_encoding=LOCALE_ENCODING) -> str:
+    """See setuptools.unicode_utils._read_utf8_with_fallback"""
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            return f.read()
+    except UnicodeDecodeError:  # pragma: no cover
+        msg = f"""\
+        ********************************************************************************
+        `encoding="utf-8"` fails with {file!r}, trying `encoding={fallback_encoding!r}`.
+
+        This fallback behaviour is considered **deprecated** and future versions of
+        `setuptools/pkg_resources` may not implement it.
+
+        Please encode {file!r} with "utf-8" to ensure future builds will succeed.
+
+        If this file was produced by `setuptools` itself, cleaning up the cached files
+        and re-building/re-installing the package with a newer version of `setuptools`
+        (e.g. by updating `build-system.requires` in its `pyproject.toml`)
+        might solve the problem.
+        ********************************************************************************
+        """
+        # TODO: Add a deadline?
+        #       See comment in setuptools.unicode_utils._Utf8EncodingNeeded
+        warnings.warns(msg, PkgResourcesDeprecationWarning, stacklevel=2)
+        with open(file, "r", encoding=fallback_encoding) as f:
+            return f.read()

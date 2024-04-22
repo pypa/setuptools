@@ -941,14 +941,14 @@ def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
 
     # First: sanity check
     cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = str(venv.run(cmd, cwd=tmpdir), "utf-8").lower()
+    output = venv.run(cmd, cwd=tmpdir).lower()
     assert "running setup.py develop for myproj" not in output
     assert "created wheel for myproj" in output
 
     # Then: real test
     env = {**os.environ, "SETUPTOOLS_ENABLE_FEATURES": "legacy-editable"}
     cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = str(venv.run(cmd, cwd=tmpdir, env=env), "utf-8").lower()
+    output = venv.run(cmd, cwd=tmpdir, env=env).lower()
     assert "running setup.py develop for myproj" in output
 
 
