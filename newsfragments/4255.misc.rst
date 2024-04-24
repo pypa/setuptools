@@ -1,0 +1,1 @@
+Treat `EncodingWarning`s as an errors in tests. -- by :user:`Avasam`
