@@ -118,6 +118,7 @@ EXAMPLE = {
 SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
 
 
+@pytest.mark.xfail(sys.platform == "darwin", reason="pypa/setuptools#4328")
 @pytest.mark.parametrize(
     "files",
     [
@@ -897,6 +898,7 @@ class TestOverallBehaviour:
         },
     }
 
+    @pytest.mark.xfail(sys.platform == "darwin", reason="pypa/setuptools#4328")
     @pytest.mark.parametrize("layout", EXAMPLES.keys())
     def test_editable_install(self, tmp_path, venv, layout, editable_opts):
         project, _ = install_project(
