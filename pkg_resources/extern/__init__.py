@@ -70,12 +70,21 @@ class VendorImporter:
             sys.meta_path.append(self)
 
 
+# [[[cog
+# import cog
+# from tools.vendored import yield_root_package
+# names = "\n".join(f"    {x!r}," for x in yield_root_package('pkg_resources'))
+# cog.outl(f"names = (\n{names}\n)")
+# ]]]
 names = (
     'packaging',
     'platformdirs',
+    'typing_extensions',
     'jaraco',
     'importlib_resources',
+    'zipp',
     'more_itertools',
     'backports',
 )
+# [[[end]]]
 VendorImporter(__name__, names).install()
