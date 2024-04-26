@@ -74,7 +74,7 @@ class TestZipProvider:
             finalizer()
 
     def test_resource_listdir(self):
-        import mod
+        import mod  # type: ignore[import-not-found]
 
         zp = pkg_resources.ZipProvider(mod)
 
@@ -88,7 +88,7 @@ class TestZipProvider:
         assert zp.resource_listdir('nonexistent') == []
         assert zp.resource_listdir('nonexistent/') == []
 
-        import mod2
+        import mod2  # type: ignore[import-not-found]
 
         zp2 = pkg_resources.ZipProvider(mod2)
 

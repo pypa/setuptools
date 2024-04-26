@@ -71,8 +71,13 @@ from pkg_resources._vendor.jaraco.text import (
     join_continuation,
 )
 
-from pkg_resources._vendor import platformdirs
-from pkg_resources._vendor import packaging
+from ._vendor import platformdirs
+from ._vendor import packaging
+from ._vendor.packaging.requirements import (
+    # These imports are explicit only to avoid mypy error
+    InvalidRequirement as _packaging_InvalidRequirement,
+    Requirement as _packaging_Requirement,
+)
 
 __import__('pkg_resources._vendor.packaging.version')
 __import__('pkg_resources._vendor.packaging.specifiers')
@@ -3123,11 +3128,11 @@ def parse_requirements(strs):
     return map(Requirement, join_continuation(map(drop_comment, yield_lines(strs))))
 
 
-class RequirementParseError(packaging.requirements.InvalidRequirement):
+class RequirementParseError(_packaging_InvalidRequirement):
     "Compatibility wrapper for InvalidRequirement"
 
 
-class Requirement(packaging.requirements.Requirement):
+class Requirement(_packaging_Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         super().__init__(requirement_string)
