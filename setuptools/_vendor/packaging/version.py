@@ -4,7 +4,7 @@
 """
 .. testsetup::
 
-    from packaging.version import parse, Version
+    from setuptools._vendor.packaging.version import parse, Version
 """
 
 import itertools

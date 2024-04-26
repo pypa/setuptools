@@ -1,9 +1,9 @@
 import io
 import unittest
 
-import importlib_resources as resources
+from pkg_resources._vendor import importlib_resources as resources
 
-from importlib_resources._adapters import (
+from pkg_resources._vendor.importlib_resources._adapters import (
     CompatibilityFiles,
     wrap_spec,
 )

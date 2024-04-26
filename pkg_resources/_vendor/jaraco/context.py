@@ -14,7 +14,7 @@ from typing import Iterator
 
 
 if sys.version_info < (3, 12):
-    from pkg_resources.extern.backports import tarfile
+    from pkg_resources._vendor.backports import tarfile
 else:
     import tarfile
 

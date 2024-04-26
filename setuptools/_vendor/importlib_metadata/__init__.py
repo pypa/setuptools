@@ -3,7 +3,7 @@ import re
 import abc
 import csv
 import sys
-from .. import zipp
+from setuptools._vendor import zipp
 import email
 import pathlib
 import operator

@@ -6,10 +6,10 @@ import functools
 try:
     from importlib.resources import files  # type: ignore
 except ImportError:  # pragma: nocover
-    from setuptools.extern.importlib_resources import files  # type: ignore
+    from setuptools._vendor.importlib_resources import files  # type: ignore
 
-from setuptools.extern.jaraco.functools import compose, method_cache
-from setuptools.extern.jaraco.context import ExceptionTrap
+from setuptools._vendor.jaraco.functools import compose, method_cache
+from setuptools._vendor.jaraco.context import ExceptionTrap
 
 
 def substitution(old, new):

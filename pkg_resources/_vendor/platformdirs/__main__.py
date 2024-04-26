@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from platformdirs import PlatformDirs, __version__
+from pkg_resources._vendor.platformdirs import PlatformDirs, __version__
 
 PROPS = (
     "user_data_dir",

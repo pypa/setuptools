@@ -1,5 +1,5 @@
 import unittest
-import importlib_resources as resources
+from pkg_resources._vendor import importlib_resources as resources
 
 from . import data01
 from . import util

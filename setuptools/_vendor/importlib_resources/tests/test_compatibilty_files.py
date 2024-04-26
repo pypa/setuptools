@@ -1,9 +1,9 @@
 import io
 import unittest
 
-import importlib_resources as resources
+from setuptools._vendor import importlib_resources as resources
 
-from importlib_resources._adapters import (
+from setuptools._vendor.importlib_resources._adapters import (
     CompatibilityFiles,
     wrap_spec,
 )
