@@ -16,7 +16,7 @@ import setuptools.dist
 import setuptools.depends as dep
 from setuptools.depends import Require
 
-from setuptools.extern.packaging.version import Version
+from setuptools._vendor.packaging.version import Version
 
 
 @pytest.fixture(autouse=True)

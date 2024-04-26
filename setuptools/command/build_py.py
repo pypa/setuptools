@@ -11,7 +11,7 @@ import stat
 from pathlib import Path
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
-from ..extern.more_itertools import unique_everseen
+from .._vendor.more_itertools import unique_everseen
 from ..warnings import SetuptoolsDeprecationWarning
 
 

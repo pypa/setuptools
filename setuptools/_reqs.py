@@ -1,8 +1,8 @@
 from functools import lru_cache
 from typing import Callable, Iterable, Iterator, TypeVar, Union, overload
 
-import setuptools.extern.jaraco.text as text
-from setuptools.extern.packaging.requirements import Requirement
+from ._vendor.jaraco import text
+from ._vendor.packaging.requirements import Requirement
 
 _T = TypeVar("_T")
 _StrOrIter = Union[str, Iterable[str]]

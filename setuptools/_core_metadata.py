@@ -15,10 +15,10 @@ from typing import Optional, List
 from distutils.util import rfc822_escape
 
 from . import _normalization, _reqs
-from .extern.packaging.markers import Marker
-from .extern.packaging.requirements import Requirement
-from .extern.packaging.utils import canonicalize_name
-from .extern.packaging.version import Version
+from ._vendor.packaging.markers import Marker
+from ._vendor.packaging.requirements import Requirement
+from ._vendor.packaging.utils import canonicalize_name
+from ._vendor.packaging.version import Version
 from .warnings import SetuptoolsDeprecationWarning
 
 

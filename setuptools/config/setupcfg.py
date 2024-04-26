@@ -31,11 +31,11 @@ from typing import (
 )
 
 from .._path import StrPath
+from .._vendor.packaging.markers import default_environment as marker_env
+from .._vendor.packaging.requirements import InvalidRequirement, Requirement
+from .._vendor.packaging.specifiers import SpecifierSet
+from .._vendor.packaging.version import InvalidVersion, Version
 from ..errors import FileError, OptionError
-from ..extern.packaging.markers import default_environment as marker_env
-from ..extern.packaging.requirements import InvalidRequirement, Requirement
-from ..extern.packaging.specifiers import SpecifierSet
-from ..extern.packaging.version import InvalidVersion, Version
 from ..warnings import SetuptoolsDeprecationWarning
 from . import expand
 

@@ -126,7 +126,7 @@ def read_files(filepaths: Union[str, bytes, Iterable[StrPath]], root_dir=None) -
 
     (By default ``root_dir`` is the current directory).
     """
-    from setuptools.extern.more_itertools import always_iterable
+    from .._vendor.more_itertools import always_iterable
 
     root_dir = os.path.abspath(root_dir or os.getcwd())
     _filepaths = (os.path.join(root_dir, path) for path in always_iterable(filepaths))
@@ -301,13 +301,13 @@ def find_packages(
 
     :rtype: list
     """
-    from setuptools.discovery import construct_package_dir
-    from setuptools.extern.more_itertools import unique_everseen, always_iterable
+    from ..discovery import construct_package_dir
+    from .._vendor.more_itertools import unique_everseen, always_iterable
 
     if namespaces:
-        from setuptools.discovery import PEP420PackageFinder as PackageFinder
+        from ..discovery import PEP420PackageFinder as PackageFinder
     else:
-        from setuptools.discovery import PackageFinder  # type: ignore
+        from ..discovery import PackageFinder  # type: ignore
 
     root_dir = root_dir or os.curdir
     where = kwargs.pop('where', ['.'])

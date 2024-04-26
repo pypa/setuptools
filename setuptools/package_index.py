@@ -37,10 +37,10 @@ from pkg_resources import (
 from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
-from setuptools.wheel import Wheel
-from setuptools.extern.more_itertools import unique_everseen
 
+from ._vendor.more_itertools import unique_everseen
 from .unicode_utils import _read_utf8_with_fallback, _cfg_read_utf8_with_fallback
+from .wheel import Wheel
 
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')

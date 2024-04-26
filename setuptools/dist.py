@@ -22,11 +22,11 @@ from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
 
-from .extern.more_itertools import partition, unique_everseen
-from .extern.ordered_set import OrderedSet
-from .extern.packaging.markers import InvalidMarker, Marker
-from .extern.packaging.specifiers import InvalidSpecifier, SpecifierSet
-from .extern.packaging.version import Version
+from ._vendor.more_itertools import partition, unique_everseen
+from ._vendor.ordered_set import OrderedSet
+from ._vendor.packaging.markers import InvalidMarker, Marker
+from ._vendor.packaging.specifiers import InvalidSpecifier, SpecifierSet
+from ._vendor.packaging.version import Version
 
 from . import _entry_points
 from . import _normalization

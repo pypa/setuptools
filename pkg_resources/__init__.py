@@ -65,20 +65,20 @@ except ImportError:
 from os import open as os_open
 from os.path import isdir, split
 
-from pkg_resources.extern.jaraco.text import (
+from pkg_resources._vendor.jaraco.text import (
     yield_lines,
     drop_comment,
     join_continuation,
 )
 
-from pkg_resources.extern import platformdirs
-from pkg_resources.extern import packaging
+from pkg_resources._vendor import platformdirs
+from pkg_resources._vendor import packaging
 
-__import__('pkg_resources.extern.packaging.version')
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.requirements')
-__import__('pkg_resources.extern.packaging.markers')
-__import__('pkg_resources.extern.packaging.utils')
+__import__('pkg_resources._vendor.packaging.version')
+__import__('pkg_resources._vendor.packaging.specifiers')
+__import__('pkg_resources._vendor.packaging.requirements')
+__import__('pkg_resources._vendor.packaging.markers')
+__import__('pkg_resources._vendor.packaging.utils')
 
 # declare some globals that will be defined later to
 # satisfy the linters.

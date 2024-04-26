@@ -2,10 +2,10 @@ import importlib
 import pickle
 
 from setuptools import Distribution
-from setuptools.extern import ordered_set
+from setuptools._vendor import ordered_set
 
 
-def test_reimport_extern():
+def test_reimport():
     ordered_set2 = importlib.import_module(ordered_set.__name__)
     assert ordered_set is ordered_set2
 

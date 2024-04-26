@@ -6,7 +6,7 @@ import dis
 
 from . import _imp
 from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
-from .extern.packaging.version import Version
+from ._vendor.packaging.version import Version
 
 
 __all__ = ['Require', 'find_module', 'get_module_constant', 'extract_constant']
