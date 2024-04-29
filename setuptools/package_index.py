@@ -1,5 +1,6 @@
 """PyPI and direct package downloading."""
 
+import contextlib
 import sys
 import os
 import re
@@ -587,7 +588,7 @@ class PackageIndex(Environment):
             scheme = URL_SCHEME(spec)
             if scheme:
                 # It's a url, download it to tmpdir
-                found = self._download_url(scheme.group(1), spec, tmpdir)
+                found = self._download_url(spec, tmpdir)
                 base, fragment = egg_info_for_url(spec)
                 if base.endswith('.py'):
                     found = self.gen_setup(found, fragment, tmpdir)
@@ -816,7 +817,7 @@ class PackageIndex(Environment):
             else:
                 raise DistutilsError("Download error for %s: %s" % (url, v)) from v
 
-    def _download_url(self, scheme, url, tmpdir):
+    def _download_url(self, url, tmpdir):
         # Determine download filename
         #
         name, fragment = egg_info_for_url(url)
@@ -833,14 +834,29 @@ class PackageIndex(Environment):
 
         return self._download_vcs(url, filename) or self._download_other(url, filename)
 
-    def _download_vcs(self, url, filename):
+    @staticmethod
+    def _resolve_vcs(url):
+        """
+        >>> rvcs = PackageIndex._resolve_vcs
+        >>> rvcs('git+http://foo/bar')
+        'git'
+        >>> rvcs('hg+https://foo/bar')
+        'hg'
+        >>> rvcs('git:myhost')
+        'git'
+        >>> rvcs('hg:myhost')
+        >>> rvcs('http://foo/bar')
+        """
         scheme = urllib.parse.urlsplit(url).scheme
-        if scheme == 'svn' or scheme.startswith('svn+'):
-            return self._download_svn(url, filename)
-        elif scheme == 'git' or scheme.startswith('git+'):
-            return self._download_git(url, filename)
-        elif scheme.startswith('hg+'):
-            return self._download_hg(url, filename)
+        pre, sep, post = scheme.partition('+')
+        # svn and git have their own protocol; hg does not
+        allowed = set(['svn', 'git'] + ['hg'] * bool(sep))
+        return next(iter({pre} & allowed), None)
+
+    def _download_vcs(self, url, filename):
+        vcs = self._resolve_vcs(url)
+        with contextlib.suppress(AttributeError):
+            return getattr(self, f'_download_{vcs}')(url, filename)
 
     def _download_other(self, url, filename):
         scheme = urllib.parse.urlsplit(url).scheme
