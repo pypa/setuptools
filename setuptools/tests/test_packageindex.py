@@ -170,11 +170,11 @@ class TestPackageIndex:
             assert dists[0].version == ''
             assert dists[1].version == vc
 
-    def test_download_git_with_rev(self, tmpdir, fp):
+    def test_download_git_with_rev(self, tmp_path, fp):
         url = 'git+https://github.example/group/project@master#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
-        expected_dir = str(tmpdir / 'project@master')
+        expected_dir = tmp_path / 'project@master'
         fp.register([
             'git',
             'clone',
@@ -184,16 +184,16 @@ class TestPackageIndex:
         ])
         fp.register(['git', '-C', expected_dir, 'checkout', '--quiet', 'master'])
 
-        result = index.download(url, str(tmpdir))
+        result = index.download(url, tmp_path)
 
-        assert result == expected_dir
+        assert result == str(expected_dir)
         assert len(fp.calls) == 2
 
-    def test_download_git_no_rev(self, tmpdir, fp):
+    def test_download_git_no_rev(self, tmp_path, fp):
         url = 'git+https://github.example/group/project#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
-        expected_dir = str(tmpdir / 'project')
+        expected_dir = tmp_path / 'project'
         fp.register([
             'git',
             'clone',
@@ -201,15 +201,15 @@ class TestPackageIndex:
             'https://github.example/group/project',
             expected_dir,
         ])
-        index.download(url, str(tmpdir))
+        index.download(url, tmp_path)
 
-    def test_download_svn(self, tmpdir):
+    def test_download_svn(self, tmp_path):
         url = 'svn+https://svn.example/project#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
         msg = r".*SVN download is not supported.*"
         with pytest.raises(distutils.errors.DistutilsError, match=msg):
-            index.download(url, str(tmpdir))
+            index.download(url, tmp_path)
 
 
 class TestContentCheckers:
