@@ -1,6 +1,5 @@
 """PyPI and direct package downloading."""
 
-import contextlib
 import sys
 import os
 import re
@@ -853,10 +852,30 @@ class PackageIndex(Environment):
         allowed = set(['svn', 'git'] + ['hg'] * bool(sep))
         return next(iter({pre} & allowed), None)
 
-    def _download_vcs(self, url, filename):
+    def _download_vcs(self, url, spec_filename):
         vcs = self._resolve_vcs(url)
-        with contextlib.suppress(AttributeError):
-            return getattr(self, f'_download_{vcs}')(url, filename)
+        if not vcs:
+            return
+        if vcs == 'svn':
+            raise DistutilsError(
+                f"Invalid config, SVN download is not supported: {url}"
+            )
+
+        filename, _, _ = spec_filename.partition('#')
+        url, rev = self._vcs_split_rev_from_url(url)
+
+        self.info(f"Doing {vcs} clone from {url} to {filename}")
+        os.system(f"{vcs} clone --quiet {url} {filename}")
+
+        co_commands = dict(
+            git=f"git -C {filename} checkout --quiet {rev}",
+            hg=f"hg --cwd {filename} up -C -r {rev} -q",
+        )
+        if rev is not None:
+            self.info(f"Checking out {rev}")
+            os.system(co_commands[vcs])
+
+        return filename
 
     def _download_other(self, url, filename):
         scheme = urllib.parse.urlsplit(url).scheme
@@ -879,9 +898,6 @@ class PackageIndex(Environment):
     def _invalid_download_html(self, url, headers, filename):
         os.unlink(filename)
         raise DistutilsError(f"Unexpected HTML page found at {url}")
-
-    def _download_svn(self, url, _filename):
-        raise DistutilsError(f"Invalid config, SVN download is not supported: {url}")
 
     @staticmethod
     def _vcs_split_rev_from_url(url):
@@ -914,44 +930,6 @@ class PackageIndex(Environment):
         ).geturl()
 
         return resolved, rev
-
-    def _download_git(self, url, filename):
-        filename = filename.split('#', 1)[0]
-        url, rev = self._vcs_split_rev_from_url(url)
-
-        self.info("Doing git clone from %s to %s", url, filename)
-        os.system("git clone --quiet %s %s" % (url, filename))
-
-        if rev is not None:
-            self.info("Checking out %s", rev)
-            os.system(
-                "git -C %s checkout --quiet %s"
-                % (
-                    filename,
-                    rev,
-                )
-            )
-
-        return filename
-
-    def _download_hg(self, url, filename):
-        filename = filename.split('#', 1)[0]
-        url, rev = self._vcs_split_rev_from_url(url)
-
-        self.info("Doing hg clone from %s to %s", url, filename)
-        os.system("hg clone --quiet %s %s" % (url, filename))
-
-        if rev is not None:
-            self.info("Updating to %s", rev)
-            os.system(
-                "hg --cwd %s up -C -r %s -q"
-                % (
-                    filename,
-                    rev,
-                )
-            )
-
-        return filename
 
     def debug(self, msg, *args):
         log.debug(msg, *args)
