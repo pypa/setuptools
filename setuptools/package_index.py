@@ -880,7 +880,7 @@ class PackageIndex(Environment):
 
     def _download_other(self, url, filename):
         scheme = urllib.parse.urlsplit(url).scheme
-        if scheme == 'file':
+        if scheme == 'file':  # pragma: no cover
             return urllib.request.url2pathname(urllib.parse.urlparse(url).path)
         # raise error if not allowed
         self.url_ok(url, True)
