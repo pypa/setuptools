@@ -831,19 +831,24 @@ class PackageIndex(Environment):
 
         filename = os.path.join(tmpdir, name)
 
-        # Download the file
-        #
+        return self._download_vcs(url, filename) or self._download_other(url, filename)
+
+    def _download_vcs(self, url, filename):
+        scheme = urllib.parse.urlsplit(url).scheme
         if scheme == 'svn' or scheme.startswith('svn+'):
             return self._download_svn(url, filename)
         elif scheme == 'git' or scheme.startswith('git+'):
             return self._download_git(url, filename)
         elif scheme.startswith('hg+'):
             return self._download_hg(url, filename)
-        elif scheme == 'file':
-            return urllib.request.url2pathname(urllib.parse.urlparse(url)[2])
-        else:
-            self.url_ok(url, True)  # raises error if not allowed
-            return self._attempt_download(url, filename)
+
+    def _download_other(self, url, filename):
+        scheme = urllib.parse.urlsplit(url).scheme
+        if scheme == 'file':
+            return urllib.request.url2pathname(urllib.parse.urlparse(url).path)
+        # raise error if not allowed
+        self.url_ok(url, True)
+        return self._attempt_download(url, filename)
 
     def scan_url(self, url):
         self.process_url(url, True)
