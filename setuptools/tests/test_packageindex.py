@@ -3,7 +3,6 @@ import urllib.request
 import urllib.error
 import http.client
 from inspect import cleandoc
-from unittest import mock
 
 import pytest
 
@@ -171,41 +170,38 @@ class TestPackageIndex:
             assert dists[0].version == ''
             assert dists[1].version == vc
 
-    def test_download_git_with_rev(self, tmpdir):
+    def test_download_git_with_rev(self, tmpdir, fp):
         url = 'git+https://github.example/group/project@master#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
-        with mock.patch("os.system") as os_system_mock:
-            result = index.download(url, str(tmpdir))
-
-        os_system_mock.assert_called()
-
         expected_dir = str(tmpdir / 'project@master')
-        expected = (
-            'git clone --quiet ' 'https://github.example/group/project {expected_dir}'
-        ).format(**locals())
-        first_call_args = os_system_mock.call_args_list[0][0]
-        assert first_call_args == (expected,)
+        fp.register([
+            'git',
+            'clone',
+            '--quiet',
+            'https://github.example/group/project',
+            expected_dir,
+        ])
+        fp.register(['git', '-C', expected_dir, 'checkout', '--quiet', 'master'])
 
-        tmpl = 'git -C {expected_dir} checkout --quiet master'
-        expected = tmpl.format(**locals())
-        assert os_system_mock.call_args_list[1][0] == (expected,)
+        result = index.download(url, str(tmpdir))
+
         assert result == expected_dir
+        assert len(fp.calls) == 2
 
-    def test_download_git_no_rev(self, tmpdir):
+    def test_download_git_no_rev(self, tmpdir, fp):
         url = 'git+https://github.example/group/project#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
-        with mock.patch("os.system") as os_system_mock:
-            result = index.download(url, str(tmpdir))
-
-        os_system_mock.assert_called()
-
         expected_dir = str(tmpdir / 'project')
-        expected = (
-            'git clone --quiet ' 'https://github.example/group/project {expected_dir}'
-        ).format(**locals())
-        os_system_mock.assert_called_once_with(expected)
+        fp.register([
+            'git',
+            'clone',
+            '--quiet',
+            'https://github.example/group/project',
+            expected_dir,
+        ])
+        index.download(url, str(tmpdir))
 
     def test_download_svn(self, tmpdir):
         url = 'svn+https://svn.example/project#egg=foo'

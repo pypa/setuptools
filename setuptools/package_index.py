@@ -1,6 +1,7 @@
 """PyPI and direct package downloading."""
 
 import sys
+import subprocess
 import os
 import re
 import io
@@ -865,15 +866,15 @@ class PackageIndex(Environment):
         url, rev = self._vcs_split_rev_from_url(url)
 
         self.info(f"Doing {vcs} clone from {url} to {filename}")
-        os.system(f"{vcs} clone --quiet {url} {filename}")
+        subprocess.check_call([vcs, 'clone', '--quiet', url, filename])
 
         co_commands = dict(
-            git=f"git -C {filename} checkout --quiet {rev}",
-            hg=f"hg --cwd {filename} up -C -r {rev} -q",
+            git=[vcs, '-C', filename, 'checkout', '--quiet', rev],
+            hg=[vcs, '--cwd', filename, 'up', '-C', '-r', rev, '-q'],
         )
         if rev is not None:
             self.info(f"Checking out {rev}")
-            os.system(co_commands[vcs])
+            subprocess.check_call(co_commands[vcs])
 
         return filename
 
