@@ -863,7 +863,7 @@ class PackageIndex(Environment):
         raise DistutilsError(f"Invalid config, SVN download is not supported: {url}")
 
     @staticmethod
-    def _vcs_split_rev_from_url(url, pop_prefix=False):
+    def _vcs_split_rev_from_url(url):
         scheme, netloc, path, query, frag = urllib.parse.urlsplit(url)
 
         scheme = scheme.split('+', 1)[-1]
@@ -882,7 +882,7 @@ class PackageIndex(Environment):
 
     def _download_git(self, url, filename):
         filename = filename.split('#', 1)[0]
-        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
+        url, rev = self._vcs_split_rev_from_url(url)
 
         self.info("Doing git clone from %s to %s", url, filename)
         os.system("git clone --quiet %s %s" % (url, filename))
@@ -901,7 +901,7 @@ class PackageIndex(Environment):
 
     def _download_hg(self, url, filename):
         filename = filename.split('#', 1)[0]
-        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
+        url, rev = self._vcs_split_rev_from_url(url)
 
         self.info("Doing hg clone from %s to %s", url, filename)
         os.system("hg clone --quiet %s %s" % (url, filename))
