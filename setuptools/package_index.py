@@ -864,6 +864,15 @@ class PackageIndex(Environment):
 
     @staticmethod
     def _vcs_split_rev_from_url(url):
+        """
+        >>> vsrfu = PackageIndex._vcs_split_rev_from_url
+        >>> vsrfu('git+https://github.com/pypa/setuptools@v69.0.0#egg-info=setuptools')
+        ('https://github.com/pypa/setuptools', 'v69.0.0')
+        >>> vsrfu('git+https://github.com/pypa/setuptools#egg-info=setuptools')
+        ('https://github.com/pypa/setuptools', None)
+        >>> vsrfu('http://foo/bar')
+        ('http://foo/bar', None)
+        """
         scheme, netloc, path, query, frag = urllib.parse.urlsplit(url)
 
         scheme = scheme.split('+', 1)[-1]
