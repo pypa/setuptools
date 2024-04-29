@@ -865,6 +865,8 @@ class PackageIndex(Environment):
     @staticmethod
     def _vcs_split_rev_from_url(url):
         """
+        Given a possible VCS URL, return a clean URL and resolved revision if any.
+
         >>> vsrfu = PackageIndex._vcs_split_rev_from_url
         >>> vsrfu('git+https://github.com/pypa/setuptools@v69.0.0#egg-info=setuptools')
         ('https://github.com/pypa/setuptools', 'v69.0.0')
@@ -873,21 +875,24 @@ class PackageIndex(Environment):
         >>> vsrfu('http://foo/bar')
         ('http://foo/bar', None)
         """
-        scheme, netloc, path, query, frag = urllib.parse.urlsplit(url)
+        parts = urllib.parse.urlsplit(url)
 
-        scheme = scheme.split('+', 1)[-1]
+        clean_scheme = parts.scheme.split('+', 1)[-1]
 
         # Some fragment identification fails
-        path = path.split('#', 1)[0]
+        no_fragment_path, _, _ = parts.path.partition('#')
 
-        rev = None
-        if '@' in path:
-            path, rev = path.rsplit('@', 1)
+        pre, sep, post = no_fragment_path.rpartition('@')
+        clean_path, rev = (pre, post) if sep else (post, None)
 
-        # Also, discard fragment
-        url = urllib.parse.urlunsplit((scheme, netloc, path, query, ''))
+        resolved = parts._replace(
+            scheme=clean_scheme,
+            path=clean_path,
+            # discard the fragment
+            fragment='',
+        ).geturl()
 
-        return url, rev
+        return resolved, rev
 
     def _download_git(self, url, filename):
         filename = filename.split('#', 1)[0]
