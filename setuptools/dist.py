@@ -535,7 +535,8 @@ class Distribution(_Distribution):
 
     def _setuptools_commands(self):
         try:
-            return metadata.distribution('setuptools').entry_points.names
+            entry_points = metadata.distribution('setuptools').entry_points
+            return {ep.name for ep in entry_points}  # Avoid newer API for compatibility
         except metadata.PackageNotFoundError:
             # during bootstrapping, distribution doesn't exist
             return []
