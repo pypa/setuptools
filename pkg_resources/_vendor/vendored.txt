@@ -9,5 +9,7 @@ jaraco.text==3.7.0
 importlib_resources==5.10.2
 # required for importlib_resources on older Pythons
 zipp==3.7.0
+# required for jaraco.functools
+more_itertools==10.2.0
 # required for jaraco.context on older Pythons
 backports.tarfile

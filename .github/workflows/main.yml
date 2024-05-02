@@ -61,6 +61,12 @@ jobs:
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
+        # Python 3.8, 3.9 are on macos-13 but not macos-latest (macos-14-arm64)
+        # https://github.com/actions/setup-python/issues/850
+        # https://github.com/actions/setup-python/issues/696#issuecomment-1637587760
+        - {python: "3.8", platform: "macos-13"}
+        exclude:
+        - {python: "3.8", platform: "macos-latest"}
     runs-on: ${{ matrix.platform }}
     continue-on-error: ${{ matrix.python == '3.13' }}
     env:
@@ -89,7 +95,8 @@ jobs:
         shell: bash
         run: |
           rm -rf dist
-          pipx run build
+          # workaround for pypa/setuptools#4333
+          pipx run --pip-args 'pyproject-hooks!=1.1' build
           echo "PRE_BUILT_SETUPTOOLS_SDIST=$(ls dist/*.tar.gz)" >> $GITHUB_ENV
           echo "PRE_BUILT_SETUPTOOLS_WHEEL=$(ls dist/*.whl)" >> $GITHUB_ENV
           rm -rf setuptools.egg-info  # Avoid interfering with the other tests
@@ -122,6 +129,7 @@ jobs:
         job:
         - diffcov
         - docs
+        - check-extern
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

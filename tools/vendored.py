@@ -166,4 +166,18 @@ def update_setuptools():
     rewrite_more_itertools(vendor / "more_itertools")
 
 
+def yield_root_package(name):
+    """Useful when defining the MetaPathFinder
+    >>> examples = set(yield_root_package("setuptools")) & {"jaraco", "backports"}
+    >>> list(sorted(examples))
+    ['backports', 'jaraco']
+    """
+    vendored = Path(f"{name}/_vendor/vendored.txt")
+    yield from (
+        line.partition("=")[0].partition(".")[0].replace("-", "_")
+        for line in vendored.read_text(encoding="utf-8").splitlines()
+        if line and not line.startswith("#")
+    )
+
+
 __name__ == '__main__' and update_vendored()
