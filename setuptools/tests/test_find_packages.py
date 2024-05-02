@@ -72,8 +72,7 @@ class TestFindPackages:
     def _touch(self, path, dir_=None):
         if dir_:
             path = os.path.join(dir_, path)
-        fp = open(path, 'w')
-        fp.close()
+        open(path, 'wb').close()
         return path
 
     def test_regular_package(self):

@@ -1,0 +1,9 @@
+backports.tarfile-1.0.0.dist-info/INSTALLER,sha256=zuuue4knoyJ-UwPPXg8fezS7VCrXJQrAP7zeNuwvFQg,4
+backports.tarfile-1.0.0.dist-info/LICENSE,sha256=htoPAa6uRjSKPD1GUZXcHOzN55956HdppkuNoEsqR0E,1023
+backports.tarfile-1.0.0.dist-info/METADATA,sha256=XlT7JAFR04zDMIjs-EFhqc0CkkVyeh-SiVUoKXONXJ0,1876
+backports.tarfile-1.0.0.dist-info/RECORD,,
+backports.tarfile-1.0.0.dist-info/REQUESTED,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
+backports.tarfile-1.0.0.dist-info/WHEEL,sha256=GJ7t_kWBFywbagK5eo9IoUwLW6oyOeTKmQ-9iHFVNxQ,92
+backports.tarfile-1.0.0.dist-info/top_level.txt,sha256=cGjaLMOoBR1FK0ApojtzWVmViTtJ7JGIK_HwXiEsvtU,10
+backports/__pycache__/tarfile.cpython-312.pyc,,
+backports/tarfile.py,sha256=IO3YX_ZYqn13VOi-3QLM0lnktn102U4d9wUrHc230LY,106920

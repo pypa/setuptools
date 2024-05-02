@@ -904,7 +904,8 @@ class TestOptions:
         module_path = Path(tmpdir, "src/custom_build.py")  # auto discovery for src
         module_path.parent.mkdir(parents=True, exist_ok=True)
         module_path.write_text(
-            "from distutils.core import Command\n" "class CustomCmd(Command): pass\n"
+            "from distutils.core import Command\n" "class CustomCmd(Command): pass\n",
+            encoding="utf-8",
         )
 
         setup_cfg = """
