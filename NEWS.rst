@@ -119,7 +119,7 @@ Improved Documentation
 ----------------------
 
 - Updated documentation referencing obsolete Python 3.7 code. -- by :user:`Avasam` (#4096)
-- Changed ``versionadded`` for "Type information included by default" feature from ``v68.3.0`` to ``v69.0.0`` -- by :user:Avasam` (#4182)
+- Changed ``versionadded`` for "Type information included by default" feature from ``v68.3.0`` to ``v69.0.0`` -- by :user:`Avasam` (#4182)
 - Described the auto-generated files -- by :user:`VladimirFokow` (#4198)
 - Updated "Quickstart" to describe the current status of ``setup.cfg`` and ``pyproject.toml`` -- by :user:`VladimirFokow` (#4200)
 

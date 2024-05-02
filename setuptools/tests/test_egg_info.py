@@ -213,13 +213,9 @@ class TestEggInfo:
         with pytest.raises(AssertionError) as exc:
             self._run_egg_info_command(tmpdir_cwd, env)
 
-        # Hopefully this is not too fragile: the only argument to the
-        # assertion error should be a traceback, ending with:
-        #     ValueError: ....
-        #
-        #     assert not 1
-        tb = exc.value.args[0].split('\n')
-        assert tb[-3].lstrip().startswith('ValueError')
+        # The only argument to the assertion error should be a traceback
+        # containing a ValueError
+        assert 'ValueError' in exc.value.args[0]
 
     def test_rebuilt(self, tmpdir_cwd, env):
         """Ensure timestamps are updated when the command is re-run."""
