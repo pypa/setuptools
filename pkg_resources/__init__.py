@@ -117,11 +117,11 @@ class PEP440Warning(RuntimeWarning):
 parse_version = packaging.version.Version
 
 
-_state_vars: Dict[str, Any] = {}
+_state_vars: Dict[str, str] = {}
 
 
-def _declare_state(vartype: str, **kw: object) -> None:
-    _state_vars.update(dict.fromkeys(kw, vartype))
+def _declare_state(vartype: str, varname: str) -> None:
+    _state_vars[varname] = vartype
 
 
 def __getstate__():
@@ -2024,7 +2024,7 @@ class EggMetadata(ZipProvider):
 _distribution_finders: Dict[
     type, Callable[[object, str, bool], Iterable["Distribution"]]
 ] = {}
-_declare_state('dict', _distribution_finders=_distribution_finders)
+_declare_state('dict', '_distribution_finders')
 
 
 def register_finder(importer_type, distribution_finder):
@@ -2200,9 +2200,9 @@ register_finder(importlib.machinery.FileFinder, find_on_path)
 _namespace_handlers: Dict[
     type, Callable[[object, str, str, types.ModuleType], Optional[str]]
 ] = {}
-_declare_state('dict', _namespace_handlers=_namespace_handlers)
+_declare_state('dict', '_namespace_handlers')
 _namespace_packages: Dict[Optional[str], List[str]] = {}
-_declare_state('dict', _namespace_packages=_namespace_packages)
+_declare_state('dict', '_namespace_packages')
 
 
 def register_namespace_handler(importer_type, namespace_handler):
@@ -3302,7 +3302,7 @@ def _initialize_master_working_set():
     at their own risk.
     """
     working_set = WorkingSet._build_master()
-    _declare_state('object', working_set=working_set)
+    _declare_state('object', 'working_set')
 
     require = working_set.require
     iter_entry_points = working_set.iter_entry_points
