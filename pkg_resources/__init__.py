@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import Any, Callable, Dict, Iterable, List, Protocol, Optional, TypeVar
+from typing import Callable, Dict, Iterable, List, Protocol, Optional, TypeVar
 import zipfile
 import zipimport
 import warnings
