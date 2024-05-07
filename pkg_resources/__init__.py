@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import List, Protocol
+from typing import Any, Callable, Dict, Iterable, List, Protocol, Optional
 import zipfile
 import zipimport
 import warnings
@@ -94,9 +94,6 @@ iter_entry_points = None
 resource_listdir = None
 resource_filename = None
 resource_exists = None
-_distribution_finders = None
-_namespace_handlers = None
-_namespace_packages = None
 
 
 warnings.warn(
@@ -120,11 +117,10 @@ class PEP440Warning(RuntimeWarning):
 parse_version = packaging.version.Version
 
 
-_state_vars = {}
+_state_vars: Dict[str, Any] = {}
 
 
-def _declare_state(vartype, **kw):
-    globals().update(kw)
+def _declare_state(vartype: str, **kw: object) -> None:
     _state_vars.update(dict.fromkeys(kw, vartype))
 
 
@@ -2025,7 +2021,10 @@ class EggMetadata(ZipProvider):
         self._setup_prefix()
 
 
-_declare_state('dict', _distribution_finders={})
+_distribution_finders: Dict[
+    type, Callable[[object, str, bool], Iterable["Distribution"]]
+] = {}
+_declare_state('dict', _distribution_finders=_distribution_finders)
 
 
 def register_finder(importer_type, distribution_finder):
@@ -2198,8 +2197,12 @@ if hasattr(pkgutil, 'ImpImporter'):
 
 register_finder(importlib.machinery.FileFinder, find_on_path)
 
-_declare_state('dict', _namespace_handlers={})
-_declare_state('dict', _namespace_packages={})
+_namespace_handlers: Dict[
+    type, Callable[[object, str, str, types.ModuleType], Optional[str]]
+] = {}
+_declare_state('dict', _namespace_handlers=_namespace_handlers)
+_namespace_packages: Dict[Optional[str], List[str]] = {}
+_declare_state('dict', _namespace_packages=_namespace_packages)
 
 
 def register_namespace_handler(importer_type, namespace_handler):
