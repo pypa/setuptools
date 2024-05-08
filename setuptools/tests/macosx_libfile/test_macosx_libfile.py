@@ -5,7 +5,6 @@ import struct
 import sysconfig
 
 import pytest
-
 from wheel.bdist_wheel import get_platform
 from wheel.macosx_libfile import extract_macosx_min_system_version
 
