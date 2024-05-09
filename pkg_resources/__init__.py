@@ -70,15 +70,11 @@ from pkg_resources.extern.jaraco.text import (
     drop_comment,
     join_continuation,
 )
-
-from pkg_resources.extern import platformdirs
-from pkg_resources.extern import packaging
-
-__import__('pkg_resources.extern.packaging.version')
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.requirements')
-__import__('pkg_resources.extern.packaging.markers')
-__import__('pkg_resources.extern.packaging.utils')
+from pkg_resources.extern.packaging import markers as _packaging_markers
+from pkg_resources.extern.packaging import requirements as _packaging_requirements
+from pkg_resources.extern.packaging import utils as _packaging_utils
+from pkg_resources.extern.packaging import version as _packaging_version
+from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -116,7 +112,7 @@ class PEP440Warning(RuntimeWarning):
     """
 
 
-parse_version = packaging.version.Version
+parse_version = _packaging_version.Version
 
 
 _state_vars: Dict[str, str] = {}
@@ -730,7 +726,7 @@ class WorkingSet:
             return
 
         self.by_key[dist.key] = dist
-        normalized_name = packaging.utils.canonicalize_name(dist.key)
+        normalized_name = _packaging_utils.canonicalize_name(dist.key)
         self.normalized_to_canonical_keys[normalized_name] = dist.key
         if dist.key not in keys:
             keys.append(dist.key)
@@ -1344,9 +1340,7 @@ def get_default_cache():
     or a platform-relevant user cache dir for an app
     named "Python-Eggs".
     """
-    return os.environ.get('PYTHON_EGG_CACHE') or platformdirs.user_cache_dir(
-        appname='Python-Eggs'
-    )
+    return os.environ.get('PYTHON_EGG_CACHE') or _user_cache_dir(appname='Python-Eggs')
 
 
 def safe_name(name):
@@ -1363,8 +1357,8 @@ def safe_version(version):
     """
     try:
         # normalize the version
-        return str(packaging.version.Version(version))
-    except packaging.version.InvalidVersion:
+        return str(_packaging_version.Version(version))
+    except _packaging_version.InvalidVersion:
         version = version.replace(' ', '.')
         return re.sub('[^A-Za-z0-9.]+', '-', version)
 
@@ -1441,9 +1435,9 @@ def evaluate_marker(text, extra=None):
     This implementation uses the 'pyparsing' module.
     """
     try:
-        marker = packaging.markers.Marker(text)
+        marker = _packaging_markers.Marker(text)
         return marker.evaluate()
-    except packaging.markers.InvalidMarker as e:
+    except _packaging_markers.InvalidMarker as e:
         raise SyntaxError(e) from e
 
 
@@ -2695,12 +2689,12 @@ class Distribution:
         if not hasattr(self, "_parsed_version"):
             try:
                 self._parsed_version = parse_version(self.version)
-            except packaging.version.InvalidVersion as ex:
+            except _packaging_version.InvalidVersion as ex:
                 info = f"(package: {self.project_name})"
                 if hasattr(ex, "add_note"):
                     ex.add_note(info)  # PEP 678
                     raise
-                raise packaging.version.InvalidVersion(f"{str(ex)} {info}") from None
+                raise _packaging_version.InvalidVersion(f"{str(ex)} {info}") from None
 
         return self._parsed_version
 
@@ -2708,7 +2702,7 @@ class Distribution:
     def _forgiving_parsed_version(self):
         try:
             return self.parsed_version
-        except packaging.version.InvalidVersion as ex:
+        except _packaging_version.InvalidVersion as ex:
             self._parsed_version = parse_version(_forgiving_version(self.version))
 
             notes = "\n".join(getattr(ex, "__notes__", []))  # PEP 678
@@ -2881,7 +2875,7 @@ class Distribution:
 
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
-        if isinstance(self.parsed_version, packaging.version.Version):
+        if isinstance(self.parsed_version, _packaging_version.Version):
             spec = "%s==%s" % (self.project_name, self.parsed_version)
         else:
             spec = "%s===%s" % (self.project_name, self.parsed_version)
@@ -3127,11 +3121,11 @@ def parse_requirements(strs):
     return map(Requirement, join_continuation(map(drop_comment, yield_lines(strs))))
 
 
-class RequirementParseError(packaging.requirements.InvalidRequirement):
+class RequirementParseError(_packaging_requirements.InvalidRequirement):
     "Compatibility wrapper for InvalidRequirement"
 
 
-class Requirement(packaging.requirements.Requirement):
+class Requirement(_packaging_requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         super().__init__(requirement_string)
@@ -3353,6 +3347,6 @@ def _read_utf8_with_fallback(file: str, fallback_encoding=LOCALE_ENCODING) -> st
         """
         # TODO: Add a deadline?
         #       See comment in setuptools.unicode_utils._Utf8EncodingNeeded
-        warnings.warns(msg, PkgResourcesDeprecationWarning, stacklevel=2)
+        warnings.warn(msg, PkgResourcesDeprecationWarning, stacklevel=2)
         with open(file, "r", encoding=fallback_encoding) as f:
             return f.read()
