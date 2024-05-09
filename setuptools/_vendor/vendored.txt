@@ -27,7 +27,7 @@ jaraco-text==3.7.0
     # via
     #   -c pkg_resources/_vendor/vendored.txt
     #   -r setuptools/_vendor/vendored.in
-more-itertools==8.8.0
+more-itertools==10.2.0
     # via
     #   -c pkg_resources/_vendor/vendored.txt
     #   -r setuptools/_vendor/vendored.in
