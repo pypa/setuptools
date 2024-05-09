@@ -74,7 +74,7 @@ from pkg_resources.extern.packaging import markers as _packaging_markers
 from pkg_resources.extern.packaging import requirements as _packaging_requirements
 from pkg_resources.extern.packaging import utils as _packaging_utils
 from pkg_resources.extern.packaging import version as _packaging_version
-from pkg_resources.extern.platformdirs import user_cache_dir
+from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -1340,7 +1340,7 @@ def get_default_cache():
     or a platform-relevant user cache dir for an app
     named "Python-Eggs".
     """
-    return os.environ.get('PYTHON_EGG_CACHE') or user_cache_dir(appname='Python-Eggs')
+    return os.environ.get('PYTHON_EGG_CACHE') or _user_cache_dir(appname='Python-Eggs')
 
 
 def safe_name(name):
