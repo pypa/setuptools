@@ -13,6 +13,7 @@ include MANIFEST.in
 include LICENSE
 include launcher.c
 include msvc-build-launcher.cmd
+include mypy.ini
 include pytest.ini
 include tox.ini
 include setuptools/tests/config/setupcfg_examples.txt

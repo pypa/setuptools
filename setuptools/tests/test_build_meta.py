@@ -160,7 +160,7 @@ defns = [
             # to obtain a distribution object first, and then run the distutils
             # commands later, because these files will be removed in the meantime.
 
-            with open('world.py', 'w') as f:
+            with open('world.py', 'w', encoding="utf-8") as f:
                 f.write('x = 42')
 
             try:
@@ -941,14 +941,14 @@ def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
 
     # First: sanity check
     cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = str(venv.run(cmd, cwd=tmpdir), "utf-8").lower()
+    output = venv.run(cmd, cwd=tmpdir).lower()
     assert "running setup.py develop for myproj" not in output
     assert "created wheel for myproj" in output
 
     # Then: real test
     env = {**os.environ, "SETUPTOOLS_ENABLE_FEATURES": "legacy-editable"}
     cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = str(venv.run(cmd, cwd=tmpdir, env=env), "utf-8").lower()
+    output = venv.run(cmd, cwd=tmpdir, env=env).lower()
     assert "running setup.py develop for myproj" in output
 
 

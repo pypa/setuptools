@@ -1,14 +1,14 @@
 """Tests for distutils.command.install_data."""
-import sys
-import os
+
 import importlib.util
-
-import pytest
-
+import os
+import sys
 from distutils.command.install_lib import install_lib
+from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
 from distutils.tests import support
-from distutils.errors import DistutilsOptionError
+
+import pytest
 
 
 @support.combine_markers

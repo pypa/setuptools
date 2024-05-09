@@ -5,7 +5,7 @@ import platform
 import itertools
 
 import pytest
-from pkg_resources.extern import packaging
+from pkg_resources.extern.packaging.specifiers import SpecifierSet
 
 import pkg_resources
 from pkg_resources import (
@@ -567,7 +567,7 @@ class TestRequirements:
         assert hash(r1) == hash((
             "twisted",
             None,
-            packaging.specifiers.SpecifierSet(">=1.2"),
+            SpecifierSet(">=1.2"),
             frozenset(["foo", "bar"]),
             None,
         ))
@@ -576,7 +576,7 @@ class TestRequirements:
         ) == hash((
             "twisted",
             "https://localhost/twisted.zip",
-            packaging.specifiers.SpecifierSet(),
+            SpecifierSet(),
             frozenset(),
             None,
         ))

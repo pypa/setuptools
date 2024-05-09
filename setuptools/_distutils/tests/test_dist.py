@@ -1,20 +1,21 @@
 """Tests for distutils.dist."""
-import os
-import io
-import sys
-import warnings
-import textwrap
+
+import email
+import email.generator
+import email.policy
 import functools
+import io
+import os
+import sys
+import textwrap
 import unittest.mock as mock
-
-import pytest
-import jaraco.path
-
-from distutils.dist import Distribution, fix_help_options
+import warnings
 from distutils.cmd import Command
-
+from distutils.dist import Distribution, fix_help_options
 from distutils.tests import support
 
+import jaraco.path
+import pytest
 
 pydistutils_cfg = '.' * (os.name == 'posix') + 'pydistutils.cfg'
 
@@ -66,14 +67,12 @@ class TestDistributionBehavior(support.TempdirManager):
     def test_command_packages_cmdline(self, clear_argv):
         from distutils.tests.test_dist import test_dist
 
-        sys.argv.extend(
-            [
-                "--command-packages",
-                "foo.bar,distutils.tests",
-                "test_dist",
-                "-Ssometext",
-            ]
-        )
+        sys.argv.extend([
+            "--command-packages",
+            "foo.bar,distutils.tests",
+            "test_dist",
+            "-Ssometext",
+        ])
         d = self.create_distribution()
         # let's actually try to load our test command:
         assert d.get_command_packages() == [
@@ -95,9 +94,8 @@ class TestDistributionBehavior(support.TempdirManager):
 
         fakepath = '/somedir'
 
-        jaraco.path.build(
-            {
-                file: f"""
+        jaraco.path.build({
+            file: f"""
                     [install]
                     install-base = {fakepath}
                     install-platbase = {fakepath}
@@ -113,8 +111,7 @@ class TestDistributionBehavior(support.TempdirManager):
                     user = {fakepath}
                     root = {fakepath}
                     """,
-            }
-        )
+        })
 
         # Base case: Not in a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/a'):
@@ -155,14 +152,12 @@ class TestDistributionBehavior(support.TempdirManager):
     def test_command_packages_configfile(self, tmp_path, clear_argv):
         sys.argv.append("build")
         file = str(tmp_path / "file")
-        jaraco.path.build(
-            {
-                file: """
+        jaraco.path.build({
+            file: """
                     [global]
                     command_packages = foo.bar, splat
                     """,
-            }
-        )
+        })
 
         d = self.create_distribution([file])
         assert d.get_command_packages() == ["distutils.command", "foo.bar", "splat"]
@@ -259,7 +254,7 @@ class TestDistributionBehavior(support.TempdirManager):
         """
         Finding config files should not fail when directory is inaccessible.
         """
-        fake_home.joinpath(pydistutils_cfg).write_text('')
+        fake_home.joinpath(pydistutils_cfg).write_text('', encoding='utf-8')
         fake_home.chmod(0o000)
         Distribution().find_config_files()
 
@@ -510,3 +505,41 @@ class TestMetadata(support.TempdirManager):
         assert metadata.platforms is None
         assert metadata.obsoletes is None
         assert metadata.requires == ['foo']
+
+    def test_round_trip_through_email_generator(self):
+        """
+        In pypa/setuptools#4033, it was shown that once PKG-INFO is
+        re-generated using ``email.generator.Generator``, some control
+        characters might cause problems.
+        """
+        # Given a PKG-INFO file ...
+        attrs = {
+            "name": "package",
+            "version": "1.0",
+            "long_description": "hello\x0b\nworld\n",
+        }
+        dist = Distribution(attrs)
+        metadata = dist.metadata
+
+        with io.StringIO() as buffer:
+            metadata.write_pkg_file(buffer)
+            msg = buffer.getvalue()
+
+        # ... when it is read and re-written using stdlib's email library,
+        orig = email.message_from_string(msg)
+        policy = email.policy.EmailPolicy(
+            utf8=True,
+            mangle_from_=False,
+            max_line_length=0,
+        )
+        with io.StringIO() as buffer:
+            email.generator.Generator(buffer, policy=policy).flatten(orig)
+
+            buffer.seek(0)
+            regen = email.message_from_file(buffer)
+
+        # ... then it should be the same as the original
+        # (except for the specific line break characters)
+        orig_desc = set(orig["Description"].splitlines())
+        regen_desc = set(regen["Description"].splitlines())
+        assert regen_desc == orig_desc

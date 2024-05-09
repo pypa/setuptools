@@ -1,0 +1,3 @@
+Remove fallback for customisations of ``distutils``' ``build.sub_command`` after long
+deprecated period.
+Users are advised to import ``build`` directly from ``setuptools.command.build``.

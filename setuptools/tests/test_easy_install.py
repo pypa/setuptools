@@ -361,7 +361,7 @@ class TestPTHFileWriter:
 
 @pytest.fixture
 def setup_context(tmpdir):
-    with (tmpdir / 'setup.py').open('w') as f:
+    with (tmpdir / 'setup.py').open('w', encoding="utf-8") as f:
         f.write(SETUP_PY)
     with tmpdir.as_cwd():
         yield tmpdir

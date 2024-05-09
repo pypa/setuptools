@@ -1,10 +1,10 @@
 """Tests for distutils.command.install_headers."""
+
 import os
-
-import pytest
-
 from distutils.command.install_headers import install_headers
 from distutils.tests import support
+
+import pytest
 
 
 @pytest.mark.usefixtures('save_env')

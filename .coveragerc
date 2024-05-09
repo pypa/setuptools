@@ -2,6 +2,12 @@
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
 	*/.tox/*
+
+	# local
+	*/_vendor/*
+	*/tools/*
+	*/setuptools/_distutils/*
+
 disable_warnings =
 	couldnt-parse
 

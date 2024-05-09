@@ -1,1 +1,0 @@
-Remove unused ``resources_stream`` ``resource_dir`` and shadowed functions from `pkg_resources` -- by :user:`Avasam`

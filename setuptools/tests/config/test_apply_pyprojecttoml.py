@@ -14,7 +14,7 @@ from unittest.mock import Mock
 from zipfile import ZipFile
 
 import pytest
-from ini2toml.api import Translator
+from ini2toml.api import LiteTranslator
 
 from packaging.metadata import Metadata
 
@@ -45,7 +45,7 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
     setupcfg_example = retrieve_file(url)
     pyproject_example = Path(tmp_path, "pyproject.toml")
     setupcfg_text = setupcfg_example.read_text(encoding="utf-8")
-    toml_config = Translator().translate(setupcfg_text, "setup.cfg")
+    toml_config = LiteTranslator().translate(setupcfg_text, "setup.cfg")
     pyproject_example.write_text(toml_config, encoding="utf-8")
 
     dist_toml = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject_example)

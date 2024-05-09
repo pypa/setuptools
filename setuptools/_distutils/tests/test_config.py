@@ -1,9 +1,9 @@
 """Tests for distutils.pypirc.pypirc."""
+
 import os
+from distutils.tests import support
 
 import pytest
-
-from distutils.tests import support
 
 PYPIRC = """\
 [distutils]

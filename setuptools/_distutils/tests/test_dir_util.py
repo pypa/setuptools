@@ -1,18 +1,20 @@
 """Tests for distutils.dir_util."""
+
 import os
 import stat
 import unittest.mock as mock
-
 from distutils import dir_util, errors
 from distutils.dir_util import (
+    copy_tree,
+    create_tree,
+    ensure_relative,
     mkpath,
     remove_tree,
-    create_tree,
-    copy_tree,
-    ensure_relative,
 )
-
 from distutils.tests import support
+
+import jaraco.path
+import path
 import pytest
 
 
@@ -70,11 +72,10 @@ class TestDirUtil(support.TempdirManager):
         remove_tree(self.root_target, verbose=0)
 
         mkpath(self.target, verbose=0)
-        a_file = os.path.join(self.target, 'ok.txt')
-        with open(a_file, 'w') as f:
-            f.write('some content')
+        a_file = path.Path(self.target) / 'ok.txt'
+        jaraco.path.build({'ok.txt': 'some content'}, self.target)
 
-        wanted = ['copying {} -> {}'.format(a_file, self.target2)]
+        wanted = [f'copying {a_file} -> {self.target2}']
         copy_tree(self.target, self.target2, verbose=1)
         assert caplog.messages == wanted
 
@@ -84,11 +85,7 @@ class TestDirUtil(support.TempdirManager):
     def test_copy_tree_skips_nfs_temp_files(self):
         mkpath(self.target, verbose=0)
 
-        a_file = os.path.join(self.target, 'ok.txt')
-        nfs_file = os.path.join(self.target, '.nfs123abc')
-        for f in a_file, nfs_file:
-            with open(f, 'w') as fh:
-                fh.write('some content')
+        jaraco.path.build({'ok.txt': 'some content', '.nfs123abc': ''}, self.target)
 
         copy_tree(self.target, self.target2)
         assert os.listdir(self.target2) == ['ok.txt']

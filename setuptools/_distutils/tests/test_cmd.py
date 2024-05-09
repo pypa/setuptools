@@ -1,10 +1,11 @@
 """Tests for distutils.cmd."""
-import os
 
+import os
+from distutils import debug
 from distutils.cmd import Command
 from distutils.dist import Distribution
 from distutils.errors import DistutilsOptionError
-from distutils import debug
+
 import pytest
 
 

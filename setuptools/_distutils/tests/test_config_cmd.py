@@ -1,13 +1,14 @@
 """Tests for distutils.command.config."""
+
 import os
 import sys
-from test.support import missing_compiler_executable
-
-import pytest
-
-from distutils.command.config import dump_file, config
-from distutils.tests import support
 from distutils._log import log
+from distutils.command.config import config, dump_file
+from distutils.tests import missing_compiler_executable, support
+
+import more_itertools
+import path
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -24,12 +25,9 @@ class TestConfig(support.TempdirManager):
             self._logs.append(line)
 
     def test_dump_file(self):
-        this_file = os.path.splitext(__file__)[0] + '.py'
-        f = open(this_file)
-        try:
-            numlines = len(f.readlines())
-        finally:
-            f.close()
+        this_file = path.Path(__file__).with_suffix('.py')
+        with this_file.open(encoding='utf-8') as f:
+            numlines = more_itertools.ilen(f)
 
         dump_file(this_file, 'I am the header')
         assert len(self._logs) == numlines + 1

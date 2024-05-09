@@ -1,4 +1,5 @@
 """Tests for distutils.command.bdist."""
+
 from distutils.command.bdist import bdist
 from distutils.tests import support
 

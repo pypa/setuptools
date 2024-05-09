@@ -110,7 +110,11 @@ class TestCLI(WrapperTester):
             'arg5 a\\\\b',
         ]
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True
+            cmd,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
         )
         stdout, stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
@@ -143,7 +147,11 @@ class TestCLI(WrapperTester):
             'arg5 a\\\\b',
         ]
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True
+            cmd,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
         )
         stdout, stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
@@ -191,6 +199,7 @@ class TestCLI(WrapperTester):
             stdin=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
         )
         stdout, stderr = proc.communicate()
         actual = stdout.replace('\r\n', '\n')
@@ -240,6 +249,7 @@ class TestGUI(WrapperTester):
             stdin=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
         )
         stdout, stderr = proc.communicate()
         assert not stdout

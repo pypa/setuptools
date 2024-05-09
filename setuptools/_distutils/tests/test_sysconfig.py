@@ -1,22 +1,25 @@
 """Tests for distutils.sysconfig."""
+
 import contextlib
+import distutils
 import os
+import pathlib
 import subprocess
 import sys
-import pathlib
-
-import pytest
-import jaraco.envs
-import path
-from jaraco.text import trim
-
-import distutils
 from distutils import sysconfig
 from distutils.ccompiler import get_default_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
 
-from . import py37compat
+import jaraco.envs
+import path
+import pytest
+from jaraco.text import trim
+
+
+def _gen_makefile(root, contents):
+    jaraco.path.build({'Makefile': trim(contents)}, root)
+    return root / 'Makefile'
 
 
 @pytest.mark.usefixtures('save_env')
@@ -97,8 +100,6 @@ class TestSysconfig:
             'CCSHARED': '--sc-ccshared',
             'LDSHARED': 'sc_ldshared',
             'SHLIB_SUFFIX': 'sc_shutil_suffix',
-            # On macOS, disable _osx_support.customize_compiler()
-            'CUSTOMIZED_OSX_COMPILER': 'True',
         }
 
         comp = compiler()
@@ -110,6 +111,7 @@ class TestSysconfig:
         return comp
 
     @pytest.mark.skipif("get_default_compiler() != 'unix'")
+    @pytest.mark.usefixtures('disable_macos_customization')
     def test_customize_compiler(self):
         # Make sure that sysconfig._config_vars is initialized
         sysconfig.get_config_vars()
@@ -167,29 +169,25 @@ class TestSysconfig:
         assert 'ranlib' not in comp.exes
 
     def test_parse_makefile_base(self, tmp_path):
-        makefile = tmp_path / 'Makefile'
-        makefile.write_text(
-            trim(
-                """
-                CONFIG_ARGS=  '--arg1=optarg1' 'ENV=LIB'
-                VAR=$OTHER
-                OTHER=foo
-                """
-            )
+        makefile = _gen_makefile(
+            tmp_path,
+            """
+            CONFIG_ARGS=  '--arg1=optarg1' 'ENV=LIB'
+            VAR=$OTHER
+            OTHER=foo
+            """,
         )
         d = sysconfig.parse_makefile(makefile)
         assert d == {'CONFIG_ARGS': "'--arg1=optarg1' 'ENV=LIB'", 'OTHER': 'foo'}
 
     def test_parse_makefile_literal_dollar(self, tmp_path):
-        makefile = tmp_path / 'Makefile'
-        makefile.write_text(
-            trim(
-                """
-                CONFIG_ARGS=  '--arg1=optarg1' 'ENV=\\$$LIB'
-                VAR=$OTHER
-                OTHER=foo
-                """
-            )
+        makefile = _gen_makefile(
+            tmp_path,
+            """
+            CONFIG_ARGS=  '--arg1=optarg1' 'ENV=\\$$LIB'
+            VAR=$OTHER
+            OTHER=foo
+            """,
         )
         d = sysconfig.parse_makefile(makefile)
         assert d == {'CONFIG_ARGS': r"'--arg1=optarg1' 'ENV=\$LIB'", 'OTHER': 'foo'}
@@ -204,22 +202,21 @@ class TestSysconfig:
             'LDFLAGS'
         )
 
+    # On macOS, binary installers support extension module building on
+    # various levels of the operating system with differing Xcode
+    # configurations, requiring customization of some of the
+    # compiler configuration directives to suit the environment on
+    # the installed machine. Some of these customizations may require
+    # running external programs and are thus deferred until needed by
+    # the first extension module build. Only
+    # the Distutils version of sysconfig is used for extension module
+    # builds, which happens earlier in the Distutils tests. This may
+    # cause the following tests to fail since no tests have caused
+    # the global version of sysconfig to call the customization yet.
+    # The solution for now is to simply skip this test in this case.
+    # The longer-term solution is to only have one version of sysconfig.
     @pytest.mark.skipif("sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER')")
     def test_sysconfig_compiler_vars(self):
-        # On OS X, binary installers support extension module building on
-        # various levels of the operating system with differing Xcode
-        # configurations.  This requires customization of some of the
-        # compiler configuration directives to suit the environment on
-        # the installed machine.  Some of these customizations may require
-        # running external programs and, so, are deferred until needed by
-        # the first extension module build.  With Python 3.3, only
-        # the Distutils version of sysconfig is used for extension module
-        # builds, which happens earlier in the Distutils tests.  This may
-        # cause the following tests to fail since no tests have caused
-        # the global version of sysconfig to call the customization yet.
-        # The solution for now is to simply skip this test in this case.
-        # The longer-term solution is to only have one version of sysconfig.
-
         import sysconfig as global_sysconfig
 
         if sysconfig.get_config_var('CUSTOMIZED_OSX_COMPILER'):
@@ -238,23 +235,24 @@ class TestSysconfig:
         # Issue #21923: test that a Distribution compiler
         # instance can be called without an explicit call to
         # get_config_vars().
-        file = tmp_path / 'file'
-        file.write_text(
-            trim(
-                """
-                from distutils.core import Distribution
-                config = Distribution().get_command_obj('config')
-                # try_compile may pass or it may fail if no compiler
-                # is found but it should not raise an exception.
-                rc = config.try_compile('int x;')
-                """
-            )
+        jaraco.path.build(
+            {
+                'file': trim("""
+                    from distutils.core import Distribution
+                    config = Distribution().get_command_obj('config')
+                    # try_compile may pass or it may fail if no compiler
+                    # is found but it should not raise an exception.
+                    rc = config.try_compile('int x;')
+                    """)
+            },
+            tmp_path,
         )
         p = subprocess.Popen(
-            py37compat.subprocess_args(sys.executable, file),
+            [sys.executable, tmp_path / 'file'],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
+            encoding='utf-8',
         )
         outs, errs = p.communicate()
         assert 0 == p.returncode, "Subprocess failed: " + outs

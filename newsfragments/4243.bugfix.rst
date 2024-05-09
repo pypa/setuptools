@@ -1,1 +1,0 @@
-Clarify some `pkg_resources` methods return `bytes`, not `str`. Also return an empty `bytes` in ``EmptyProvider._get`` -- by :user:`Avasam`

@@ -1,9 +1,10 @@
 """Tests for distutils.msvc9compiler."""
-import sys
-import os
 
+import os
+import sys
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
+
 import pytest
 
 # A manifest with the only assembly reference being the msvcrt assembly, so
@@ -160,7 +161,7 @@ class Testmsvc9compiler(support.TempdirManager):
         f = open(manifest)
         try:
             # removing trailing spaces
-            content = '\n'.join([line.rstrip() for line in f.readlines()])
+            content = '\n'.join([line.rstrip() for line in f])
         finally:
             f.close()
 

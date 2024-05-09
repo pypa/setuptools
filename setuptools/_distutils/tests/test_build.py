@@ -1,7 +1,7 @@
 """Tests for distutils.command.build."""
+
 import os
 import sys
-
 from distutils.command.build import build
 from distutils.tests import support
 from sysconfig import get_platform
@@ -23,7 +23,7 @@ class TestBuild(support.TempdirManager):
         # build_platlib is 'build/lib.platform-cache_tag[-pydebug]'
         # examples:
         #   build/lib.macosx-10.3-i386-cpython39
-        plat_spec = '.{}-{}'.format(cmd.plat_name, sys.implementation.cache_tag)
+        plat_spec = f'.{cmd.plat_name}-{sys.implementation.cache_tag}'
         if hasattr(sys, 'gettotalrefcount'):
             assert cmd.build_platlib.endswith('-pydebug')
             plat_spec += '-pydebug'

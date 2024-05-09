@@ -1,3 +1,86 @@
+v69.5.1
+=======
+
+No significant changes.
+
+
+v69.5.0
+=======
+
+Features
+--------
+
+- Refresh unpinned vendored dependencies. (#4253)
+- Updated vendored packaging to version 24.0. (#4301)
+
+
+v69.4.2
+=======
+
+Bugfixes
+--------
+
+- Merged bugfix for pypa/distutils#246.
+
+
+v69.4.1
+=======
+
+No significant changes.
+
+
+v69.4.0
+=======
+
+Features
+--------
+
+- Merged with pypa/distutils@55982565e, including interoperability improvements for rfc822_escape (pypa/distutils#213), dynamic resolution of config_h_filename for Python 3.13 compatibility (pypa/distutils#219), added support for the z/OS compiler (pypa/distutils#216), modernized compiler options in unixcompiler (pypa/distutils#214), fixed accumulating flags bug after compile/link (pypa/distutils#207), fixed enconding warnings (pypa/distutils#236), and general quality improvements (pypa/distutils#234). (#4298)
+
+
+v69.3.1
+=======
+
+Bugfixes
+--------
+
+- Remove attempt to canonicalize the version. It's already canonical enough. (#4302)
+
+
+v69.3.0
+=======
+
+Features
+--------
+
+- Support PEP 625 by canonicalizing package name and version in filenames. (#3593)
+
+
+v69.2.0
+=======
+
+Features
+--------
+
+- Explicitly use ``encoding="locale"`` for ``.pth`` files whenever possible,
+  to  reduce ``EncodingWarnings``.
+  This avoid errors with UTF-8 (see discussion in python/cpython#77102). (#4265)
+
+
+Bugfixes
+--------
+
+- Clarify some `pkg_resources` methods return `bytes`, not `str`. Also return an empty `bytes` in ``EmptyProvider._get`` -- by :user:`Avasam` (#4243)
+- Return an empty `list` by default in ``pkg_resources.ResourceManager.cleanup_resources`` -- by :user:`Avasam` (#4244)
+- Made ``pkg_resoursces.NullProvider``'s ``has_metadata`` and ``metadata_isdir`` methods return actual booleans like all other Providers. -- by :user:`Avasam` (#4254)
+
+
+Misc
+----
+
+- #4237, #4238, #4241, #4260, #4261, #4263
+
+
 v69.1.1
 =======
 
@@ -36,7 +119,7 @@ Improved Documentation
 ----------------------
 
 - Updated documentation referencing obsolete Python 3.7 code. -- by :user:`Avasam` (#4096)
-- Changed ``versionadded`` for "Type information included by default" feature from ``v68.3.0`` to ``v69.0.0`` -- by :user:Avasam` (#4182)
+- Changed ``versionadded`` for "Type information included by default" feature from ``v68.3.0`` to ``v69.0.0`` -- by :user:`Avasam` (#4182)
 - Described the auto-generated files -- by :user:`VladimirFokow` (#4198)
 - Updated "Quickstart" to describe the current status of ``setup.cfg`` and ``pyproject.toml`` -- by :user:`VladimirFokow` (#4200)
 

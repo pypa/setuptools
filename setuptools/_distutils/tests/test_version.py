@@ -1,9 +1,9 @@
 """Tests for distutils.version."""
-import pytest
 
 import distutils
-from distutils.version import LooseVersion
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion, StrictVersion
+
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -48,20 +48,14 @@ class TestVersion:
                 if wanted is ValueError:
                     continue
                 else:
-                    raise AssertionError(
-                        ("cmp(%s, %s) " "shouldn't raise ValueError") % (v1, v2)
-                    )
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
-                v1, v2, wanted, res
-            )
+                    raise AssertionError(f"cmp({v1}, {v2}) shouldn't raise ValueError")
+            assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = StrictVersion(v1)._cmp(v2)
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
-                v1, v2, wanted, res
-            )
+            assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = StrictVersion(v1)._cmp(object())
             assert (
                 res is NotImplemented
-            ), 'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)
+            ), f'cmp({v1}, {v2}) should be NotImplemented, got {res}'
 
     def test_cmp(self):
         versions = (
@@ -77,14 +71,10 @@ class TestVersion:
 
         for v1, v2, wanted in versions:
             res = LooseVersion(v1)._cmp(LooseVersion(v2))
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
-                v1, v2, wanted, res
-            )
+            assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = LooseVersion(v1)._cmp(v2)
-            assert res == wanted, 'cmp({}, {}) should be {}, got {}'.format(
-                v1, v2, wanted, res
-            )
+            assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = LooseVersion(v1)._cmp(object())
             assert (
                 res is NotImplemented
-            ), 'cmp({}, {}) should be NotImplemented, got {}'.format(v1, v2, res)
+            ), f'cmp({v1}, {v2}) should be NotImplemented, got {res}'

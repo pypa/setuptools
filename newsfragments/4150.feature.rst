@@ -1,0 +1,1 @@
+Emit a warning when ``[tools.setuptools]`` is present in ``pyproject.toml`` and will be ignored. -- by :user:`SnoopJ`

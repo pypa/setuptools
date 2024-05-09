@@ -307,8 +307,3 @@ def test_its_own_wheel_does_not_contain_tests(setuptools_wheel):
 
     for member in contents:
         assert '/tests/' not in member
-
-
-def test_convert_path_deprecated():
-    with pytest.warns(setuptools.SetuptoolsDeprecationWarning):
-        setuptools.convert_path('setuptools/tests')

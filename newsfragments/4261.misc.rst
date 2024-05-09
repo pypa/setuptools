@@ -1,1 +1,0 @@
-Avoid implicit ``encoding`` parameter in ``setuptools/tests``.

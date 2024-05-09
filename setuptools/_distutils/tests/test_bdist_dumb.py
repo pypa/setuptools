@@ -3,12 +3,11 @@
 import os
 import sys
 import zipfile
+from distutils.command.bdist_dumb import bdist_dumb
+from distutils.core import Distribution
+from distutils.tests import support
 
 import pytest
-
-from distutils.core import Distribution
-from distutils.command.bdist_dumb import bdist_dumb
-from distutils.tests import support
 
 SETUP_PY = """\
 from distutils.core import setup
@@ -38,16 +37,14 @@ class TestBuildDumb(
         self.write_file((pkg_dir, 'MANIFEST.in'), 'include foo.py')
         self.write_file((pkg_dir, 'README'), '')
 
-        dist = Distribution(
-            {
-                'name': 'foo',
-                'version': '0.1',
-                'py_modules': ['foo'],
-                'url': 'xxx',
-                'author': 'xxx',
-                'author_email': 'xxx',
-            }
-        )
+        dist = Distribution({
+            'name': 'foo',
+            'version': '0.1',
+            'py_modules': ['foo'],
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'xxx',
+        })
         dist.script_name = 'setup.py'
         os.chdir(pkg_dir)
 
@@ -63,7 +60,7 @@ class TestBuildDumb(
 
         # see what we have
         dist_created = os.listdir(os.path.join(pkg_dir, 'dist'))
-        base = "{}.{}.zip".format(dist.get_fullname(), cmd.plat_name)
+        base = f"{dist.get_fullname()}.{cmd.plat_name}.zip"
 
         assert dist_created == [base]
 
@@ -75,7 +72,7 @@ class TestBuildDumb(
             fp.close()
 
         contents = sorted(filter(None, map(os.path.basename, contents)))
-        wanted = ['foo-0.1-py%s.%s.egg-info' % sys.version_info[:2], 'foo.py']
+        wanted = ['foo-0.1-py{}.{}.egg-info'.format(*sys.version_info[:2]), 'foo.py']
         if not sys.dont_write_bytecode:
             wanted.append('foo.%s.pyc' % sys.implementation.cache_tag)
         assert contents == sorted(wanted)

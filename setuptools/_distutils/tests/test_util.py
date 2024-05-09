@@ -1,27 +1,30 @@
 """Tests for distutils.util."""
+
+import email
+import email.generator
+import email.policy
+import io
 import os
 import sys
 import sysconfig as stdlib_sysconfig
 import unittest.mock as mock
 from copy import copy
-
-import pytest
-
+from distutils import sysconfig, util
+from distutils.errors import DistutilsByteCompileError, DistutilsPlatformError
 from distutils.util import (
-    get_platform,
-    convert_path,
+    byte_compile,
     change_root,
     check_environ,
+    convert_path,
+    get_host_platform,
+    get_platform,
+    grok_environment_error,
+    rfc822_escape,
     split_quoted,
     strtobool,
-    rfc822_escape,
-    byte_compile,
-    grok_environment_error,
-    get_host_platform,
 )
-from distutils import util
-from distutils import sysconfig
-from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
+
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -151,9 +154,15 @@ class TestUtil:
         import pwd
 
         # only set pw_dir field, other fields are not used
-        result = pwd.struct_passwd(
-            (None, None, None, None, None, '/home/distutils', None)
-        )
+        result = pwd.struct_passwd((
+            None,
+            None,
+            None,
+            None,
+            None,
+            '/home/distutils',
+            None,
+        ))
         with mock.patch.object(pwd, 'getpwuid', return_value=result):
             check_environ()
             assert os.environ['HOME'] == '/home/distutils'
@@ -184,12 +193,55 @@ class TestUtil:
         for n in no:
             assert not strtobool(n)
 
-    def test_rfc822_escape(self):
-        header = 'I am a\npoor\nlonesome\nheader\n'
-        res = rfc822_escape(header)
-        wanted = ('I am a%(8s)spoor%(8s)slonesome%(8s)s' 'header%(8s)s') % {
-            '8s': '\n' + 8 * ' '
-        }
+    indent = 8 * ' '
+
+    @pytest.mark.parametrize(
+        "given,wanted",
+        [
+            # 0x0b, 0x0c, ..., etc are also considered a line break by Python
+            ("hello\x0b\nworld\n", f"hello\x0b{indent}\n{indent}world\n{indent}"),
+            ("hello\x1eworld", f"hello\x1e{indent}world"),
+            ("", ""),
+            (
+                "I am a\npoor\nlonesome\nheader\n",
+                f"I am a\n{indent}poor\n{indent}lonesome\n{indent}header\n{indent}",
+            ),
+        ],
+    )
+    def test_rfc822_escape(self, given, wanted):
+        """
+        We want to ensure a multi-line header parses correctly.
+
+        For interoperability, the escaped value should also "round-trip" over
+        `email.generator.Generator.flatten` and `email.message_from_*`
+        (see pypa/setuptools#4033).
+
+        The main issue is that internally `email.policy.EmailPolicy` uses
+        `splitlines` which will split on some control chars. If all the new lines
+        are not prefixed with spaces, the parser will interrupt reading
+        the current header and produce an incomplete value, while
+        incorrectly interpreting the rest of the headers as part of the payload.
+        """
+        res = rfc822_escape(given)
+
+        policy = email.policy.EmailPolicy(
+            utf8=True,
+            mangle_from_=False,
+            max_line_length=0,
+        )
+        with io.StringIO() as buffer:
+            raw = f"header: {res}\nother-header: 42\n\npayload\n"
+            orig = email.message_from_string(raw)
+            email.generator.Generator(buffer, policy=policy).flatten(orig)
+            buffer.seek(0)
+            regen = email.message_from_file(buffer)
+
+        for msg in (orig, regen):
+            assert msg.get_payload() == "payload\n"
+            assert msg["other-header"] == "42"
+            # Generator may replace control chars with `\n`
+            assert set(msg["header"].splitlines()) == set(res.splitlines())
+
         assert res == wanted
 
     def test_dont_write_bytecode(self):
@@ -205,6 +257,6 @@ class TestUtil:
 
     def test_grok_environment_error(self):
         # test obsolete function to ensure backward compat (#4931)
-        exc = IOError("Unable to find batch file")
+        exc = OSError("Unable to find batch file")
         msg = grok_environment_error(exc)
         assert msg == "error: Unable to find batch file"

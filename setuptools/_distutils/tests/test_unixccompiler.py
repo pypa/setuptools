@@ -1,17 +1,18 @@
 """Tests for distutils.unixccompiler."""
+
 import os
 import sys
 import unittest.mock as mock
-
-from .py38compat import EnvironmentVarGuard
-
 from distutils import sysconfig
+from distutils.compat import consolidate_linker_args
 from distutils.errors import DistutilsPlatformError
 from distutils.unixccompiler import UnixCCompiler
 from distutils.util import _clear_cached_macosx_ver
 
-from . import support
 import pytest
+
+from . import support
+from .py38compat import EnvironmentVarGuard
 
 
 @pytest.fixture(autouse=True)
@@ -72,10 +73,7 @@ class TestUnixCCompiler(support.TempdirManager):
 
         def do_darwin_test(syscfg_macosx_ver, env_macosx_ver, expected_flag):
             env = os.environ
-            msg = "macOS version = (sysconfig={!r}, env={!r})".format(
-                syscfg_macosx_ver,
-                env_macosx_ver,
-            )
+            msg = f"macOS version = (sysconfig={syscfg_macosx_ver!r}, env={env_macosx_ver!r})"
 
             # Save
             old_gcv = sysconfig.get_config_var
@@ -152,7 +150,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
+        assert self.cc.rpath_foo() == consolidate_linker_args([
+            '-Wl,--enable-new-dtags',
+            '-Wl,-rpath,/foo',
+        ])
 
         def gcv(v):
             if v == 'CC':
@@ -161,7 +162,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
+        assert self.cc.rpath_foo() == consolidate_linker_args([
+            '-Wl,--enable-new-dtags',
+            '-Wl,-rpath,/foo',
+        ])
 
         # GCC non-GNULD
         sys.platform = 'bar'
@@ -186,7 +190,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
+        assert self.cc.rpath_foo() == consolidate_linker_args([
+            '-Wl,--enable-new-dtags',
+            '-Wl,-rpath,/foo',
+        ])
 
         # non-GCC GNULD
         sys.platform = 'bar'
@@ -198,7 +205,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == '-Wl,--enable-new-dtags,-R/foo'
+        assert self.cc.rpath_foo() == consolidate_linker_args([
+            '-Wl,--enable-new-dtags',
+            '-Wl,-rpath,/foo',
+        ])
 
         # non-GCC non-GNULD
         sys.platform = 'bar'
@@ -235,6 +245,7 @@ class TestUnixCCompiler(support.TempdirManager):
         assert self.cc.linker_so[0] == 'my_cc'
 
     @pytest.mark.skipif('platform.system == "Windows"')
+    @pytest.mark.usefixtures('disable_macos_customization')
     def test_cc_overrides_ldshared_for_cxx_correctly(self):
         """
         Ensure that setting CC env variable also changes default linker
