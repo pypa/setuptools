@@ -1,6 +1,6 @@
 import sys
 import unittest
-import importlib_resources as resources
+from setuptools.extern import importlib_resources as resources
 import uuid
 import pathlib
 

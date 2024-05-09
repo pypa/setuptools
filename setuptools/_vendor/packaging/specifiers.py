@@ -4,8 +4,8 @@
 """
 .. testsetup::
 
-    from packaging.specifiers import Specifier, SpecifierSet, InvalidSpecifier
-    from packaging.version import Version
+    from setuptools.extern.packaging.specifiers import Specifier, SpecifierSet, InvalidSpecifier
+    from setuptools.extern.packaging.version import Version
 """
 
 import abc

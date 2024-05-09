@@ -5,7 +5,7 @@ import warnings
 import importlib
 import contextlib
 
-import importlib_resources as resources
+from pkg_resources.extern import importlib_resources as resources
 from ..abc import Traversable
 from . import data01
 from . import util
@@ -97,7 +97,7 @@ class ImplicitContextFilesTests(SiteDir, unittest.TestCase):
             'somepkg': {
                 '__init__.py': textwrap.dedent(
                     """
-                    import importlib_resources as res
+                    from pkg_resources.extern import importlib_resources as res
                     val = res.files().joinpath('res.txt').read_text()
                     """
                 ),
