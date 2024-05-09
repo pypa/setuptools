@@ -1,0 +1,8 @@
+# Direct dependencies of setuptools
+packaging==24
+ordered-set==3.1.1
+more_itertools==8.8.0
+jaraco.text==3.7.0
+importlib_resources==5.10.2
+importlib_metadata==6.0.0
+tomli==2.0.1

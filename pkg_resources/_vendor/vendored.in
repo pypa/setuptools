@@ -1,0 +1,4 @@
+# Direct dependencies of pkg_resources
+packaging==24
+platformdirs==2.6.2
+jaraco.text==3.7.0
