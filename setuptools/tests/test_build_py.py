@@ -409,7 +409,14 @@ class TestTypeInfoFiles:
     }
 
     @pytest.mark.parametrize(
-        "pyproject", ["default_pyproject", "dont_include_package_data"]
+        "pyproject",
+        [
+            "default_pyproject",
+            pytest.param(
+                "dont_include_package_data",
+                marks=pytest.mark.xfail(reason="pypa/setuptools#4350"),
+            ),
+        ],
     )
     @pytest.mark.parametrize("example", EXAMPLES.keys())
     def test_type_files_included_by_default(self, tmpdir_cwd, pyproject, example):
@@ -421,7 +428,6 @@ class TestTypeInfoFiles:
         jaraco.path.build(structure)
 
         build_py = get_finalized_build_py()
-        build_py.run_command("build")
         outputs = get_outputs(build_py)
         assert expected_type_files <= outputs
 
