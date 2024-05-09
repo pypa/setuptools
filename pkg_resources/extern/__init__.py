@@ -79,7 +79,6 @@ class VendorImporter:
 names = (
     'packaging',
     'platformdirs',
-    'typing_extensions',
     'jaraco',
     'importlib_resources',
     'zipp',
