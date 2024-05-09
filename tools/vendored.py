@@ -82,7 +82,7 @@ def rewrite_importlib_metadata(pkg_files, new_root):
     Rewrite imports in importlib_metadata to redirect to vendored copies.
     """
     for file in pkg_files.glob('*.py'):
-        text = file.read_text().replace('typing_extensions', '..typing_extensions')
+        text = file.read_text()
         text = text.replace('import zipp', 'from .. import zipp')
         file.write_text(text)
 
@@ -109,7 +109,6 @@ def rewrite_platformdirs(pkg_files: Path):
     init = pkg_files.joinpath('__init__.py')
     text = init.read_text()
     text = text.replace('from platformdirs.', 'from .')
-    text = text.replace('from typing_extensions', 'from ..typing_extensions')
     init.write_text(text)
 
 
