@@ -72,8 +72,8 @@ class VendorImporter:
 
 # [[[cog
 # import cog
-# from tools.vendored import yield_root_package
-# names = "\n".join(f"    {x!r}," for x in yield_root_package('pkg_resources'))
+# from tools.vendored import yield_top_level
+# names = "\n".join(f"    {x!r}," for x in yield_top_level('pkg_resources'))
 # cog.outl(f"names = (\n{names}\n)")
 # ]]]
 names = (
