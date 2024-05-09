@@ -7,7 +7,7 @@ from path import Path
 
 def remove_all(paths):
     for path in paths:
-        path.rmtree() if path.isdir() else path.remove()
+        path.rmtree() if path.is_dir() else path.remove()
 
 
 def update_vendored():
