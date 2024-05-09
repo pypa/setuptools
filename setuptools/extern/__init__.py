@@ -83,7 +83,6 @@ names = (
     'jaraco',
     'importlib_resources',
     'importlib_metadata',
-    'typing_extensions',
     'zipp',
     'tomli',
     'backports',

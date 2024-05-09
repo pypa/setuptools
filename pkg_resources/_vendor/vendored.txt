@@ -1,8 +1,6 @@
 packaging==24
 
 platformdirs==2.6.2
-# required for platformdirs on Python < 3.8
-typing_extensions==4.4.0
 
 jaraco.text==3.7.0
 # required for jaraco.text on older Pythons
