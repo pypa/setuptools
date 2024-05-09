@@ -31,7 +31,6 @@ from typing import (
     TYPE_CHECKING,
     List,
     Protocol,
-    Any,
     Callable,
     Dict,
     Iterable,
