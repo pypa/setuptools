@@ -18,6 +18,8 @@ from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.command.egg_info import write_requirements, _egg_basename
 from setuptools.archive_util import _unpack_zipfile_obj
 
+from .unicode_utils import _read_utf8_with_fallback
+
 
 WHEEL_NAME = re.compile(
     r"""^(?P<project_name>.+?)-(?P<version>\d.*?)
@@ -38,7 +40,7 @@ def _get_supported_tags():
 
 
 def unpack(src_dir, dst_dir):
-    '''Move everything under `src_dir` to `dst_dir`, and delete the former.'''
+    """Move everything under `src_dir` to `dst_dir`, and delete the former."""
     for dirpath, dirnames, filenames in os.walk(src_dir):
         subdir = os.path.relpath(dirpath, src_dir)
         for f in filenames:
@@ -83,7 +85,7 @@ class Wheel:
             setattr(self, k, v)
 
     def tags(self):
-        '''List tags (py_version, abi, platform) supported by this wheel.'''
+        """List tags (py_version, abi, platform) supported by this wheel."""
         return itertools.product(
             self.py_version.split('.'),
             self.abi.split('.'),
@@ -91,7 +93,7 @@ class Wheel:
         )
 
     def is_compatible(self):
-        '''Is the wheel compatible with the current platform?'''
+        """Is the wheel compatible with the current platform?"""
         return next((True for t in self.tags() if t in _get_supported_tags()), False)
 
     def egg_name(self):
@@ -115,7 +117,7 @@ class Wheel:
         raise ValueError("unsupported wheel format. .dist-info not found")
 
     def install_as_egg(self, destination_eggdir):
-        '''Install wheel as an egg directory.'''
+        """Install wheel as an egg directory."""
         with zipfile.ZipFile(self.filename) as zf:
             self._install_as_egg(destination_eggdir, zf)
 
@@ -222,13 +224,13 @@ class Wheel:
     def _fix_namespace_packages(egg_info, destination_eggdir):
         namespace_packages = os.path.join(egg_info, 'namespace_packages.txt')
         if os.path.exists(namespace_packages):
-            with open(namespace_packages) as fp:
-                namespace_packages = fp.read().split()
+            namespace_packages = _read_utf8_with_fallback(namespace_packages).split()
+
             for mod in namespace_packages:
                 mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
                 mod_init = os.path.join(mod_dir, '__init__.py')
                 if not os.path.exists(mod_dir):
                     os.mkdir(mod_dir)
                 if not os.path.exists(mod_init):
-                    with open(mod_init, 'w') as fp:
+                    with open(mod_init, 'w', encoding="utf-8") as fp:
                         fp.write(NAMESPACE_PACKAGE_INIT)

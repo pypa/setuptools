@@ -11,6 +11,7 @@ wrapper programs are used by copying them to the directory containing
 the script they are to wrap and with the same name as the script they
 are to wrap.
 """
+
 import pathlib
 import sys
 import platform
@@ -109,7 +110,11 @@ class TestCLI(WrapperTester):
             'arg5 a\\\\b',
         ]
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True
+            cmd,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
         )
         stdout, stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
@@ -142,7 +147,11 @@ class TestCLI(WrapperTester):
             'arg5 a\\\\b',
         ]
         proc = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, text=True
+            cmd,
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            text=True,
+            encoding="utf-8",
         )
         stdout, stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
@@ -190,6 +199,7 @@ class TestCLI(WrapperTester):
             stdin=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
         )
         stdout, stderr = proc.communicate()
         actual = stdout.replace('\r\n', '\n')
@@ -239,6 +249,7 @@ class TestGUI(WrapperTester):
             stdin=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
         )
         stdout, stderr = proc.communicate()
         assert not stdout

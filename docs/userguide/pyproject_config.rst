@@ -47,7 +47,7 @@ The ``project`` table contains metadata fields as described by the
    ]
    description = "My package description"
    readme = "README.rst"
-   requires-python = ">=3.7"
+   requires-python = ">=3.8"
    keywords = ["one", "two"]
    license = {text = "BSD-3-Clause"}
    classifiers = [
@@ -56,7 +56,7 @@ The ``project`` table contains metadata fields as described by the
    ]
    dependencies = [
        "requests",
-       'importlib-metadata; python_version<"3.8"',
+       'importlib-metadata; python_version<"3.10"',
    ]
    dynamic = ["version"]
 
@@ -230,7 +230,7 @@ some of them dynamically.
 
 Also note that the file format for specifying dependencies resembles a ``requirements.txt`` file,
 however please keep in mind that all non-comment lines must conform with :pep:`508`
-(``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
+(``pip`` specific syntaxes, e.g. ``-c/-r/-e`` and other flags, are not supported).
 
 
 .. note::

@@ -7,7 +7,7 @@ from path import Path
 
 def remove_all(paths):
     for path in paths:
-        path.rmtree() if path.isdir() else path.remove()
+        path.rmtree() if path.is_dir() else path.remove()
 
 
 def update_vendored():
@@ -42,7 +42,12 @@ def rewrite_jaraco_text(pkg_files, new_root):
         file.write_text(text)
 
 
-def rewrite_jaraco(pkg_files, new_root):
+def repair_namespace(pkg_files):
+    # required for zip-packaged setuptools #3084
+    pkg_files.joinpath('__init__.py').write_text('')
+
+
+def rewrite_jaraco_functools(pkg_files, new_root):
     """
     Rewrite imports in jaraco.functools to redirect to vendored copies.
     """
@@ -50,8 +55,16 @@ def rewrite_jaraco(pkg_files, new_root):
         text = file.read_text()
         text = re.sub(r' (more_itertools)', rf' {new_root}.\1', text)
         file.write_text(text)
-    # required for zip-packaged setuptools #3084
-    pkg_files.joinpath('__init__.py').write_text('')
+
+
+def rewrite_jaraco_context(pkg_files, new_root):
+    """
+    Rewrite imports in jaraco.context to redirect to vendored copies.
+    """
+    for file in pkg_files.glob('context.py'):
+        text = file.read_text()
+        text = re.sub(r' (backports)', rf' {new_root}.\1', text)
+        file.write_text(text)
 
 
 def rewrite_importlib_resources(pkg_files, new_root):
@@ -69,7 +82,7 @@ def rewrite_importlib_metadata(pkg_files, new_root):
     Rewrite imports in importlib_metadata to redirect to vendored copies.
     """
     for file in pkg_files.glob('*.py'):
-        text = file.read_text().replace('typing_extensions', '..typing_extensions')
+        text = file.read_text()
         text = text.replace('import zipp', 'from .. import zipp')
         file.write_text(text)
 
@@ -96,7 +109,6 @@ def rewrite_platformdirs(pkg_files: Path):
     init = pkg_files.joinpath('__init__.py')
     text = init.read_text()
     text = text.replace('from platformdirs.', 'from .')
-    text = text.replace('from typing_extensions', 'from ..typing_extensions')
     init.write_text(text)
 
 
@@ -105,7 +117,8 @@ def clean(vendor):
     Remove all files out of the vendor directory except the meta
     data (as pip uninstall doesn't support -t).
     """
-    remove_all(path for path in vendor.glob('*') if path.basename() != 'vendored.txt')
+    ignored = ['vendored.txt', 'ruff.toml']
+    remove_all(path for path in vendor.glob('*') if path.basename() not in ignored)
 
 
 def install(vendor):
@@ -128,8 +141,11 @@ def update_pkg_resources():
     vendor = Path('pkg_resources/_vendor')
     install(vendor)
     rewrite_packaging(vendor / 'packaging', 'pkg_resources.extern')
+    repair_namespace(vendor / 'jaraco')
+    repair_namespace(vendor / 'backports')
     rewrite_jaraco_text(vendor / 'jaraco/text', 'pkg_resources.extern')
-    rewrite_jaraco(vendor / 'jaraco', 'pkg_resources.extern')
+    rewrite_jaraco_functools(vendor / 'jaraco/functools', 'pkg_resources.extern')
+    rewrite_jaraco_context(vendor / 'jaraco', 'pkg_resources.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'pkg_resources.extern')
     rewrite_more_itertools(vendor / "more_itertools")
     rewrite_platformdirs(vendor / "platformdirs")
@@ -139,11 +155,33 @@ def update_setuptools():
     vendor = Path('setuptools/_vendor')
     install(vendor)
     rewrite_packaging(vendor / 'packaging', 'setuptools.extern')
+    repair_namespace(vendor / 'jaraco')
+    repair_namespace(vendor / 'backports')
     rewrite_jaraco_text(vendor / 'jaraco/text', 'setuptools.extern')
-    rewrite_jaraco(vendor / 'jaraco', 'setuptools.extern')
+    rewrite_jaraco_functools(vendor / 'jaraco/functools', 'setuptools.extern')
+    rewrite_jaraco_context(vendor / 'jaraco', 'setuptools.extern')
     rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
     rewrite_importlib_metadata(vendor / 'importlib_metadata', 'setuptools.extern')
     rewrite_more_itertools(vendor / "more_itertools")
+
+
+def yield_top_level(name):
+    """Iterate over all modules and (top level) packages vendored
+    >>> roots = set(yield_top_level("setuptools"))
+    >>> examples = roots & {"jaraco", "backports", "zipp"}
+    >>> list(sorted(examples))
+    ['backports', 'jaraco', 'zipp']
+    """
+    vendor = Path(f"{name}/_vendor")
+    ignore = {"__pycache__", "__init__.py", ".ruff_cache"}
+
+    for item in sorted(vendor.iterdir()):
+        if item.name in ignore:
+            continue
+        if item.is_dir() and item.suffix != ".dist-info":
+            yield str(item.name)
+        if item.is_file() and item.suffix == ".py":
+            yield str(item.stem)
 
 
 __name__ == '__main__' and update_vendored()

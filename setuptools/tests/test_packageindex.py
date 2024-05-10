@@ -1,16 +1,12 @@
-import sys
-import os
 import distutils.errors
-import platform
 import urllib.request
 import urllib.error
 import http.client
-from unittest import mock
+from inspect import cleandoc
 
 import pytest
 
 import setuptools.package_index
-from .textwrap import DALS
 
 
 class TestPackageIndex:
@@ -21,9 +17,7 @@ class TestPackageIndex:
             <a href="http://some_url">Name</a>
             (<a title="MD5 hash"
             href="{hash_url}">md5</a>)
-        """.lstrip().format(
-            **locals()
-        )
+        """.lstrip().format(**locals())
         assert setuptools.package_index.PYPI_MD5.match(doc)
 
     def test_bad_url_bad_port(self):
@@ -87,16 +81,6 @@ class TestPackageIndex:
             )
             return
         raise RuntimeError("Did not raise")
-
-    def test_bad_url_screwy_href(self):
-        index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
-
-        # issue #160
-        if sys.version_info[0] == 2 and sys.version_info[1] == 7:
-            # this should not fail
-            url = 'http://example.com'
-            page = '<a href="http://www.famfamfam.com](' 'http://www.famfamfam.com/">'
-            index.process_index(url, page)
 
     def test_url_ok(self):
         index = setuptools.package_index.PackageIndex(hosts=('www.example.com',))
@@ -186,49 +170,46 @@ class TestPackageIndex:
             assert dists[0].version == ''
             assert dists[1].version == vc
 
-    def test_download_git_with_rev(self, tmpdir):
+    def test_download_git_with_rev(self, tmp_path, fp):
         url = 'git+https://github.example/group/project@master#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
-        with mock.patch("os.system") as os_system_mock:
-            result = index.download(url, str(tmpdir))
+        expected_dir = tmp_path / 'project@master'
+        fp.register([
+            'git',
+            'clone',
+            '--quiet',
+            'https://github.example/group/project',
+            expected_dir,
+        ])
+        fp.register(['git', '-C', expected_dir, 'checkout', '--quiet', 'master'])
 
-        os_system_mock.assert_called()
+        result = index.download(url, tmp_path)
 
-        expected_dir = str(tmpdir / 'project@master')
-        expected = (
-            'git clone --quiet ' 'https://github.example/group/project {expected_dir}'
-        ).format(**locals())
-        first_call_args = os_system_mock.call_args_list[0][0]
-        assert first_call_args == (expected,)
+        assert result == str(expected_dir)
+        assert len(fp.calls) == 2
 
-        tmpl = 'git -C {expected_dir} checkout --quiet master'
-        expected = tmpl.format(**locals())
-        assert os_system_mock.call_args_list[1][0] == (expected,)
-        assert result == expected_dir
-
-    def test_download_git_no_rev(self, tmpdir):
+    def test_download_git_no_rev(self, tmp_path, fp):
         url = 'git+https://github.example/group/project#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
-        with mock.patch("os.system") as os_system_mock:
-            result = index.download(url, str(tmpdir))
+        expected_dir = tmp_path / 'project'
+        fp.register([
+            'git',
+            'clone',
+            '--quiet',
+            'https://github.example/group/project',
+            expected_dir,
+        ])
+        index.download(url, tmp_path)
 
-        os_system_mock.assert_called()
-
-        expected_dir = str(tmpdir / 'project')
-        expected = (
-            'git clone --quiet ' 'https://github.example/group/project {expected_dir}'
-        ).format(**locals())
-        os_system_mock.assert_called_once_with(expected)
-
-    def test_download_svn(self, tmpdir):
+    def test_download_svn(self, tmp_path):
         url = 'svn+https://svn.example/project#egg=foo'
         index = setuptools.package_index.PackageIndex()
 
         msg = r".*SVN download is not supported.*"
         with pytest.raises(distutils.errors.DistutilsError, match=msg):
-            index.download(url, str(tmpdir))
+            index.download(url, tmp_path)
 
 
 class TestContentCheckers:
@@ -268,30 +249,19 @@ class TestContentCheckers:
         assert rep == 'My message about md5'
 
 
-@pytest.fixture
-def temp_home(tmpdir, monkeypatch):
-    key = (
-        'USERPROFILE'
-        if platform.system() == 'Windows' and sys.version_info > (3, 8)
-        else 'HOME'
-    )
-
-    monkeypatch.setitem(os.environ, key, str(tmpdir))
-    return tmpdir
-
-
 class TestPyPIConfig:
-    def test_percent_in_password(self, temp_home):
-        pypirc = temp_home / '.pypirc'
-        pypirc.write(
-            DALS(
+    def test_percent_in_password(self, tmp_home_dir):
+        pypirc = tmp_home_dir / '.pypirc'
+        pypirc.write_text(
+            cleandoc(
                 """
-            [pypi]
-            repository=https://pypi.org
-            username=jaraco
-            password=pity%
-        """
-            )
+                [pypi]
+                repository=https://pypi.org
+                username=jaraco
+                password=pity%
+                """
+            ),
+            encoding="utf-8",
         )
         cfg = setuptools.package_index.PyPIConfig()
         cred = cfg.creds_by_repository['https://pypi.org']

@@ -1,0 +1,2 @@
+Fix ``setuptools_wheel`` fixture and avoid the recursive creation of
+``build/lib/build/lib/build/...`` directories in the project root during tests.

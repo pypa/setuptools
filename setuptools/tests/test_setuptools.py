@@ -61,13 +61,13 @@ class TestDepends:
         assert dep.extract_constant(fc, 'q', -1) is None
 
         # constant assigned
-        dep.extract_constant(fc, 'x', -1) == "test"
+        assert dep.extract_constant(fc, 'x', -1) == "test"
 
         # expression assigned
-        dep.extract_constant(fc, 'y', -1) == -1
+        assert dep.extract_constant(fc, 'y', -1) == -1
 
         # recognized name, not assigned
-        dep.extract_constant(fc, 'z', -1) is None
+        assert dep.extract_constant(fc, 'z', -1) is None
 
     def testFindModule(self):
         with pytest.raises(ImportError):
@@ -307,8 +307,3 @@ def test_its_own_wheel_does_not_contain_tests(setuptools_wheel):
 
     for member in contents:
         assert '/tests/' not in member
-
-
-def test_convert_path_deprecated():
-    with pytest.warns(setuptools.SetuptoolsDeprecationWarning):
-        setuptools.convert_path('setuptools/tests')

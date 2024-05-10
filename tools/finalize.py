@@ -23,7 +23,7 @@ bump_version_command = [
 
 def get_version():
     cmd = bump_version_command + ['--dry-run', '--verbose']
-    out = subprocess.check_output(cmd, text=True)
+    out = subprocess.check_output(cmd, text=True, encoding='utf-8')
     return re.search('^new_version=(.*)', out, re.MULTILINE).group(1)
 
 

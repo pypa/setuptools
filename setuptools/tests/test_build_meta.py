@@ -30,9 +30,9 @@ pytestmark = pytest.mark.skipif(
 
 
 class BuildBackendBase:
-    def __init__(self, cwd='.', env={}, backend_name='setuptools.build_meta'):
+    def __init__(self, cwd='.', env=None, backend_name='setuptools.build_meta'):
         self.cwd = cwd
-        self.env = env
+        self.env = env or {}
         self.backend_name = backend_name
 
 
@@ -40,7 +40,7 @@ class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
 
     def __init__(self, *args, **kwargs):
-        super(BuildBackend, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
     def __getattr__(self, name):
@@ -73,7 +73,7 @@ class BuildBackend(BuildBackendBase):
 
 class BuildBackendCaller(BuildBackendBase):
     def __init__(self, *args, **kwargs):
-        super(BuildBackendCaller, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         (self.backend_name, _, self.backend_obj) = self.backend_name.partition(':')
 
@@ -160,7 +160,7 @@ defns = [
             # to obtain a distribution object first, and then run the distutils
             # commands later, because these files will be removed in the meantime.
 
-            with open('world.py', 'w') as f:
+            with open('world.py', 'w', encoding="utf-8") as f:
                 f.write('x = 42')
 
             try:
@@ -272,14 +272,14 @@ class TestBuildMetaBackend:
                 [metadata]
                 name = foo
                 version = file: VERSION
-            """
+                """
             ),
             'pyproject.toml': DALS(
                 """
                 [build-system]
                 requires = ["setuptools", "wheel"]
                 build-backend = "setuptools.build_meta"
-            """
+                """
             ),
         }
 
@@ -296,7 +296,7 @@ class TestBuildMetaBackend:
         first_result = build_method(dist_dir)
 
         # Change version.
-        with open("VERSION", "wt") as version_file:
+        with open("VERSION", "wt", encoding="utf-8") as version_file:
             version_file.write("0.0.2")
 
         # Build a *second* sdist/wheel.
@@ -306,7 +306,7 @@ class TestBuildMetaBackend:
         assert first_result != second_result
 
         # And if rebuilding the exact same sdist/wheel?
-        open(os.path.join(dist_dir, second_result), 'w').close()
+        open(os.path.join(dist_dir, second_result), 'wb').close()
         third_result = build_method(dist_dir)
         assert third_result == second_result
         assert os.path.getsize(os.path.join(dist_dir, third_result)) > 0
@@ -568,9 +568,9 @@ class TestBuildMetaBackend:
         if not os.path.exists(setup_loc):
             setup_loc = os.path.abspath("setup.cfg")
 
-        with open(setup_loc, 'rt') as file_handler:
+        with open(setup_loc, 'rt', encoding="utf-8") as file_handler:
             content = file_handler.read()
-        with open(setup_loc, 'wt') as file_handler:
+        with open(setup_loc, 'wt', encoding="utf-8") as file_handler:
             file_handler.write(content.replace("version='0.0.0'", "version='0.0.1'"))
 
         shutil.rmtree(sdist_into_directory)
@@ -719,6 +719,16 @@ class TestBuildMetaBackend:
         assert not Path("build").exists()
         build_backend.build_editable("temp")
         assert not Path("build").exists()
+
+    def test_build_wheel_inplace(self, tmpdir_cwd):
+        config_settings = {"--build-option": ["build_ext", "--inplace"]}
+        path.build(self._simple_pyproject_example)
+        build_backend = self.get_build_backend()
+        assert not Path("build").exists()
+        Path("build").mkdir()
+        build_backend.prepare_metadata_for_build_wheel("build", config_settings)
+        build_backend.build_wheel("build", config_settings)
+        assert Path("build/proj-42-py3-none-any.whl").exists()
 
     @pytest.mark.parametrize("config_settings", [{"editable-mode": "strict"}])
     def test_editable_with_config_settings(self, tmpdir_cwd, config_settings):
@@ -931,14 +941,14 @@ def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
 
     # First: sanity check
     cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = str(venv.run(cmd, cwd=tmpdir), "utf-8").lower()
+    output = venv.run(cmd, cwd=tmpdir).lower()
     assert "running setup.py develop for myproj" not in output
     assert "created wheel for myproj" in output
 
     # Then: real test
     env = {**os.environ, "SETUPTOOLS_ENABLE_FEATURES": "legacy-editable"}
     cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = str(venv.run(cmd, cwd=tmpdir, env=env), "utf-8").lower()
+    output = venv.run(cmd, cwd=tmpdir, env=env).lower()
     assert "running setup.py develop for myproj" in output
 
 

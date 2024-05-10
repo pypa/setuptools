@@ -1,5 +1,5 @@
-"""Test .dist-info style distributions.
-"""
+"""Test .dist-info style distributions."""
+
 import pathlib
 import re
 import shutil
@@ -198,7 +198,8 @@ def run_command_inner(*cmd, **kwargs):
         "stderr": subprocess.STDOUT,
         "stdout": subprocess.PIPE,
         "text": True,
-        'check': True,
+        "encoding": "utf-8",
+        "check": True,
         **kwargs,
     }
     cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *map(str, cmd)]

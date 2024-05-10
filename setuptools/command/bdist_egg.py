@@ -54,7 +54,7 @@ def write_stub(resource, pyfile):
         __bootstrap__()
         """
     ).lstrip()
-    with open(pyfile, 'w') as f:
+    with open(pyfile, 'w', encoding="utf-8") as f:
         f.write(_stub_template % resource)
 
 
@@ -200,10 +200,9 @@ class bdist_egg(Command):
             log.info("writing %s", native_libs)
             if not self.dry_run:
                 ensure_directory(native_libs)
-                libs_file = open(native_libs, 'wt')
-                libs_file.write('\n'.join(all_outputs))
-                libs_file.write('\n')
-                libs_file.close()
+                with open(native_libs, 'wt', encoding="utf-8") as libs_file:
+                    libs_file.write('\n'.join(all_outputs))
+                    libs_file.write('\n')
         elif os.path.isfile(native_libs):
             log.info("removing %s", native_libs)
             if not self.dry_run:
@@ -232,9 +231,11 @@ class bdist_egg(Command):
             remove_tree(self.bdist_dir, dry_run=self.dry_run)
 
         # Add to 'Distribution.dist_files' so that the "upload" command works
-        getattr(self.distribution, 'dist_files', []).append(
-            ('bdist_egg', get_python_version(), self.egg_output)
-        )
+        getattr(self.distribution, 'dist_files', []).append((
+            'bdist_egg',
+            get_python_version(),
+            self.egg_output,
+        ))
 
     def zap_pyfiles(self):
         log.info("Removing .py files from temporary directory")
@@ -319,8 +320,7 @@ def walk_egg(egg_dir):
     if 'EGG-INFO' in dirs:
         dirs.remove('EGG-INFO')
     yield base, dirs, files
-    for bdf in walker:
-        yield bdf
+    yield from walker
 
 
 def analyze_egg(egg_dir, stubs):
@@ -349,9 +349,8 @@ def write_safety_flag(egg_dir, safe):
             if safe is None or bool(safe) != flag:
                 os.unlink(fn)
         elif safe is not None and bool(safe) == flag:
-            f = open(fn, 'wt')
-            f.write('\n')
-            f.close()
+            with open(fn, 'wt', encoding="utf-8") as f:
+                f.write('\n')
 
 
 safety_flags = {
@@ -368,10 +367,7 @@ def scan_module(egg_dir, base, name, stubs):
         return True  # Extension module
     pkg = base[len(egg_dir) + 1 :].replace(os.sep, '.')
     module = pkg + (pkg and '.' or '') + os.path.splitext(name)[0]
-    if sys.version_info < (3, 7):
-        skip = 12  # skip magic & date & file size
-    else:
-        skip = 16  # skip magic & reserved? & date & file size
+    skip = 16  # skip magic & reserved? & date & file size
     f = open(filename, 'rb')
     f.read(skip)
     code = marshal.load(f)
@@ -404,14 +400,12 @@ def scan_module(egg_dir, base, name, stubs):
 
 def iter_symbols(code):
     """Yield names and strings used by `code` and its nested code objects"""
-    for name in code.co_names:
-        yield name
+    yield from code.co_names
     for const in code.co_consts:
         if isinstance(const, str):
             yield const
         elif isinstance(const, CodeType):
-            for name in iter_symbols(const):
-                yield name
+            yield from iter_symbols(const)
 
 
 def can_scan():
@@ -423,6 +417,7 @@ def can_scan():
         "Please ask the author to include a 'zip_safe'"
         " setting (either True or False) in the package's setup.py"
     )
+    return False
 
 
 # Attribute names of options for commands that might need to be convinced to

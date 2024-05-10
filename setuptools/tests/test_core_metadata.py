@@ -5,8 +5,7 @@ from email import message_from_string
 
 import pytest
 
-# TODO: replace with `from packaging.metadata import Metadata` in future versions:
-from ._packaging_compat import Metadata
+from packaging.metadata import Metadata
 
 from setuptools import sic, _reqs
 from setuptools.dist import Distribution
@@ -64,7 +63,7 @@ def __read_test_cases():
 
     params = functools.partial(dict, base)
 
-    test_cases = [
+    return [
         ('Metadata version 1.0', params()),
         (
             'Metadata Version 1.0: Short long description',
@@ -156,8 +155,6 @@ def __read_test_cases():
         ),
     ]
 
-    return test_cases
-
 
 @pytest.mark.parametrize('name,attrs', __read_test_cases())
 def test_read_metadata(name, attrs):
@@ -209,7 +206,7 @@ def __maintainer_test_cases():
 
         return d1
 
-    test_cases = [
+    return [
         ('No author, no maintainer', attrs.copy()),
         (
             'Author (no e-mail), no maintainer',
@@ -267,8 +264,6 @@ def __maintainer_test_cases():
         ('Maintainer unicode', merge_dicts(attrs, {'maintainer': 'Jan Łukasiewicz'})),
     ]
 
-    return test_cases
-
 
 @pytest.mark.parametrize('name,attrs', __maintainer_test_cases())
 def test_maintainer_author(name, attrs, tmpdir):
@@ -316,7 +311,7 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
         # Example with complex requirement definition
         python_requires=">=3.8",
         install_requires="""
-        packaging==23.0
+        packaging==23.2
         ordered-set==3.1.1
         more-itertools==8.8.0; extra == "other"
         jaraco.text==3.7.0
@@ -328,13 +323,13 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
             "testing": """
                 pytest >= 6
                 pytest-checkdocs >= 2.4
-                pytest-flake8 ; \\
-                        # workaround for tholo/pytest-flake8#87
-                        python_version < "3.12"
+                tomli ; \\
+                        # Using stdlib when possible
+                        python_version < "3.11"
                 ini2toml[lite]>=0.9
                 """,
             "other": [],
-        }
+        },
     )
     # Generate a PKG-INFO file using setuptools
     dist = Distribution(attrs)
@@ -350,7 +345,7 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
         'Requires-Python: >=3.8',
         'Provides-Extra: other',
         'Provides-Extra: testing',
-        'Requires-Dist: pytest-flake8; python_version < "3.12" and extra == "testing"',
+        'Requires-Dist: tomli; python_version < "3.11" and extra == "testing"',
         'Requires-Dist: more-itertools==8.8.0; extra == "other"',
         'Requires-Dist: ini2toml[lite]>=0.9; extra == "testing"',
     ]

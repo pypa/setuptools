@@ -1,9 +1,8 @@
 """Tests for automatic package discovery"""
+
 import os
-import sys
 import shutil
 import tempfile
-import platform
 
 import pytest
 
@@ -25,15 +24,6 @@ def can_symlink():
         os.remove(symlink_path)
     globals().update(can_symlink=lambda: can)
     return can
-
-
-def has_symlink():
-    bad_symlink = (
-        # Windows symlink directory detection is broken on Python 3.2
-        platform.system() == 'Windows'
-        and sys.version_info[:2] == (3, 2)
-    )
-    return can_symlink() and not bad_symlink
 
 
 class TestFindPackages:
@@ -82,8 +72,7 @@ class TestFindPackages:
     def _touch(self, path, dir_=None):
         if dir_:
             path = os.path.join(dir_, path)
-        fp = open(path, 'w')
-        fp.close()
+        open(path, 'wb').close()
         return path
 
     def test_regular_package(self):
@@ -134,7 +123,7 @@ class TestFindPackages:
         packages = find_packages(self.dist_dir)
         assert 'build.pkg' not in packages
 
-    @pytest.mark.skipif(not has_symlink(), reason='Symlink support required')
+    @pytest.mark.skipif(not can_symlink(), reason='Symlink support required')
     def test_symlinked_packages_are_included(self):
         """
         A symbolically-linked directory should be treated like any other

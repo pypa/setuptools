@@ -3,11 +3,4 @@ requires = []
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
-[tool.black]
-skip-string-normalization = true
-extend_exclude = "_vendor"
-
 [tool.setuptools_scm]
-
-[tool.pytest-enabler.mypy]
-# disabled

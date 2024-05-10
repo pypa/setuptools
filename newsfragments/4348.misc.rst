@@ -1,0 +1,1 @@
+Update dynamic module imports in ``pkg_resources`` to private alias static imports. Enabled ``attr-defined`` checks in mypy for ``pkg_resources`` -- by :user:`Avasam`

@@ -88,5 +88,6 @@ setup_params = dict(
 
 if __name__ == '__main__':
     # allow setup.py to run from another directory
-    here and os.chdir(here)
+    # TODO: Use a proper conditional statement here
+    here and os.chdir(here)  # type: ignore[func-returns-value]
     dist = setuptools.setup(**setup_params)

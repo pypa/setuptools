@@ -3,6 +3,7 @@ Handling of Core Metadata for Python packages (including reading and writing).
 
 See: https://packaging.python.org/en/latest/specifications/core-metadata/
 """
+
 import os
 import stat
 import textwrap
@@ -16,6 +17,7 @@ from distutils.util import rfc822_escape
 from . import _normalization, _reqs
 from .extern.packaging.markers import Marker
 from .extern.packaging.requirements import Requirement
+from .extern.packaging.utils import canonicalize_name
 from .extern.packaging.version import Version
 from .warnings import SetuptoolsDeprecationWarning
 
@@ -61,7 +63,7 @@ def _read_list_from_msg(msg: Message, field: str) -> Optional[List[str]]:
 
 
 def _read_payload_from_msg(msg: Message) -> Optional[str]:
-    value = msg.get_payload().strip()
+    value = str(msg.get_payload()).strip()
     if value == 'UNKNOWN' or not value:
         return None
     return value
@@ -256,3 +258,11 @@ def _write_provides_extra(file, processed_extras, safe, unsafe):
     else:
         processed_extras[safe] = unsafe
         file.write(f"Provides-Extra: {safe}\n")
+
+
+# from pypa/distutils#244; needed only until that logic is always available
+def get_fullname(self):
+    return "{}-{}".format(
+        canonicalize_name(self.get_name()).replace('-', '_'),
+        self.get_version(),
+    )

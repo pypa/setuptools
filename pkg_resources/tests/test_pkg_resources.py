@@ -1,13 +1,15 @@
+import builtins
 import sys
 import tempfile
 import os
 import zipfile
 import datetime
-import time
+import plistlib
 import subprocess
 import stat
 import distutils.dist
 import distutils.command.install_egg_info
+from typing import List
 
 from unittest import mock
 
@@ -22,17 +24,6 @@ import pytest
 import pkg_resources
 
 
-def timestamp(dt):
-    """
-    Return a timestamp for a local, naive datetime instance.
-    """
-    try:
-        return dt.timestamp()
-    except AttributeError:
-        # Python 3.2 and earlier
-        return time.mktime(dt.timetuple())
-
-
 class EggRemover(str):
     def __call__(self):
         if self in sys.path:
@@ -42,7 +33,7 @@ class EggRemover(str):
 
 
 class TestZipProvider:
-    finalizers = []
+    finalizers: List[EggRemover] = []
 
     ref_time = datetime.datetime(2013, 5, 12, 13, 25, 0)
     "A reference time for a file modification"
@@ -120,13 +111,13 @@ class TestZipProvider:
         filename = zp.get_resource_filename(manager, 'data.dat')
         actual = datetime.datetime.fromtimestamp(os.stat(filename).st_mtime)
         assert actual == self.ref_time
-        f = open(filename, 'w')
+        f = open(filename, 'w', encoding="utf-8")
         f.write('hello, world?')
         f.close()
-        ts = timestamp(self.ref_time)
+        ts = self.ref_time.timestamp()
         os.utime(filename, (ts, ts))
         filename = zp.get_resource_filename(manager, 'data.dat')
-        with open(filename) as f:
+        with open(filename, encoding="utf-8") as f:
             assert f.read() == 'hello, world!'
         manager.cleanup_resources()
 
@@ -241,9 +232,6 @@ def make_distribution_no_version(tmpdir, basename):
     # will detect it and yield it.
     dist_dir.join('temp.txt').ensure()
 
-    if sys.version_info < (3, 6):
-        dist_dir = str(dist_dir)
-
     dists = list(pkg_resources.distributions_from_metadata(dist_dir))
     assert len(dists) == 1
     (dist,) = dists
@@ -321,6 +309,32 @@ def test_dist_info_is_not_dir(tmp_path, only):
     dist_info = tmp_path / 'foobar.dist-info'
     dist_info.touch()
     assert not pkg_resources.dist_factory(str(tmp_path), str(dist_info), only)
+
+
+def test_macos_vers_fallback(monkeypatch, tmp_path):
+    """Regression test for pkg_resources._macos_vers"""
+    orig_open = builtins.open
+
+    # Pretend we need to use the plist file
+    monkeypatch.setattr('platform.mac_ver', mock.Mock(return_value=('', (), '')))
+
+    # Create fake content for the fake plist file
+    with open(tmp_path / 'fake.plist', 'wb') as fake_file:
+        plistlib.dump({"ProductVersion": "11.4"}, fake_file)
+
+    # Pretend the fake file exists
+    monkeypatch.setattr('os.path.exists', mock.Mock(return_value=True))
+
+    def fake_open(file, *args, **kwargs):
+        return orig_open(tmp_path / 'fake.plist', *args, **kwargs)
+
+    # Ensure that the _macos_vers works correctly
+    with mock.patch('builtins.open', mock.Mock(side_effect=fake_open)) as m:
+        pkg_resources._macos_vers.cache_clear()
+        assert pkg_resources._macos_vers() == ["11", "4"]
+        pkg_resources._macos_vers.cache_clear()
+
+    m.assert_called()
 
 
 class TestDeepVersionLookupDistutils:

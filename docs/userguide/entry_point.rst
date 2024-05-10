@@ -486,9 +486,10 @@ entry points remains the same as for console/GUI scripts, and is discussed in th
 .. tip::
     The recommended approach for loading and importing entry points is the
     :mod:`importlib.metadata` module,
-    which is a part of the standard library since Python 3.8. For older versions of
-    Python, its backport :pypi:`importlib_metadata` should be used. While using the
-    backport, the only change that has to be made is to replace ``importlib.metadata``
+    which is a part of the standard library since Python 3.8 and is non-provisional
+    since Python 3.10. For older versions of Python, its backport
+    :pypi:`importlib_metadata` should be used. While using the backport, the only
+    change that has to be made is to replace ``importlib.metadata``
     with ``importlib_metadata``, i.e.
 
     .. code-block:: python

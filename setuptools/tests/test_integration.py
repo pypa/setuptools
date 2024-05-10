@@ -64,7 +64,7 @@ def install_context(request, tmpdir, monkeypatch):
     monkeypatch.setattr('site.USER_BASE', user_base.strpath)
     monkeypatch.setattr('site.USER_SITE', user_site.strpath)
     monkeypatch.setattr('sys.path', sys.path + [install_dir.strpath])
-    monkeypatch.setenv(str('PYTHONPATH'), str(os.path.pathsep.join(sys.path)))
+    monkeypatch.setenv('PYTHONPATH', str(os.path.pathsep.join(sys.path)))
 
     # Set up the command for performing the installation.
     dist = Distribution()
@@ -99,6 +99,11 @@ def test_pbr(install_context):
 
 
 @pytest.mark.xfail
+@pytest.mark.filterwarnings("ignore:'encoding' argument not specified")
+# ^-- Dependency chain: `python-novaclient` < `oslo-utils` < `netifaces==0.11.0`
+#     netifaces' setup.py uses `open` without `encoding="utf-8"` which is hijacked by
+#     `setuptools.sandbox._open` and triggers the EncodingWarning.
+#     Can't use EncodingWarning in the filter, as it does not exist on Python < 3.10.
 def test_python_novaclient(install_context):
     _install_one('python-novaclient', install_context, 'novaclient', 'base.py')
 

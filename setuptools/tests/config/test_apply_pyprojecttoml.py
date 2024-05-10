@@ -3,19 +3,20 @@ applying a similar configuration from setup.cfg
 
 To run these tests offline, please have a look on ``./downloads/preload.py``
 """
+
 import io
 import re
 import tarfile
 from inspect import cleandoc
 from pathlib import Path
+from typing import Tuple
 from unittest.mock import Mock
 from zipfile import ZipFile
 
 import pytest
-from ini2toml.api import Translator
+from ini2toml.api import LiteTranslator
 
-# TODO: replace with `from packaging.metadata import Metadata` in future versions
-from .._packaging_compat import Metadata
+from packaging.metadata import Metadata
 
 import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
@@ -43,8 +44,9 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
     monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.0.1"))
     setupcfg_example = retrieve_file(url)
     pyproject_example = Path(tmp_path, "pyproject.toml")
-    toml_config = Translator().translate(setupcfg_example.read_text(), "setup.cfg")
-    pyproject_example.write_text(toml_config)
+    setupcfg_text = setupcfg_example.read_text(encoding="utf-8")
+    toml_config = LiteTranslator().translate(setupcfg_text, "setup.cfg")
+    pyproject_example.write_text(toml_config, encoding="utf-8")
 
     dist_toml = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject_example)
     dist_cfg = setupcfg.apply_configuration(makedist(tmp_path), setupcfg_example)
@@ -176,9 +178,9 @@ def _pep621_example_project(
         text = text.replace(orig, subst)
     pyproject.write_text(text, encoding="utf-8")
 
-    (tmp_path / readme).write_text("hello world")
-    (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---")
-    (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT)
+    (tmp_path / readme).write_text("hello world", encoding="utf-8")
+    (tmp_path / "LICENSE.txt").write_text("--- LICENSE stub ---", encoding="utf-8")
+    (tmp_path / "spam.py").write_text(PEP621_EXAMPLE_SCRIPT, encoding="utf-8")
     return pyproject
 
 
@@ -332,10 +334,15 @@ class TestPresetField:
     @pytest.mark.parametrize(
         "attr, field, value",
         [
-            ("install_requires", "dependencies", ["six"]),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
             ("entry_points", "scripts", {"console_scripts": ["foobar=foobar:main"]}),
             ("entry_points", "gui-scripts", {"gui_scripts": ["bazquux=bazquux:main"]}),
+            pytest.param(
+                *("install_requires", "dependencies", ["six"]),
+                marks=[
+                    pytest.mark.filterwarnings("ignore:.*install_requires. overwritten")
+                ],
+            ),
         ],
     )
     def test_not_listed_in_dynamic(self, tmp_path, attr, field, value):
@@ -450,7 +457,7 @@ def core_metadata(dist) -> str:
     # Make sure core metadata is valid
     Metadata.from_email(pkg_file_txt, validate=True)  # can raise exceptions
 
-    skip_prefixes = ()
+    skip_prefixes: Tuple[str, ...] = ()
     skip_lines = set()
     # ---- DIFF NORMALISATION ----
     # PEP 621 is very particular about author/maintainer metadata conversion, so skip

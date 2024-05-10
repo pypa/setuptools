@@ -10,6 +10,7 @@ import io
 import logging
 from distutils import log
 from distutils.errors import DistutilsTemplateError
+from typing import List, Tuple
 
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
@@ -53,7 +54,7 @@ def quiet():
 
 
 def touch(filename):
-    open(filename, 'w').close()
+    open(filename, 'wb').close()
 
 
 # The set of files always in the manifest, including all files in the
@@ -75,7 +76,7 @@ default_files = frozenset(
 )
 
 
-translate_specs = [
+translate_specs: List[Tuple[str, List[str], List[str]]] = [
     ('foo', ['foo'], ['bar', 'foobar']),
     ('foo/bar', ['foo/bar'], ['foo/bar/baz', './foo/bar', 'foo']),
     # Glob matching
@@ -171,9 +172,9 @@ class TempDirTestCase:
 
 class TestManifestTest(TempDirTestCase):
     def setup_method(self, method):
-        super(TestManifestTest, self).setup_method(method)
+        super().setup_method(method)
 
-        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
+        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w', encoding="utf-8")
         f.write(SETUP_PY)
         f.close()
         """
@@ -211,7 +212,8 @@ class TestManifestTest(TempDirTestCase):
 
     def make_manifest(self, contents):
         """Write a MANIFEST.in."""
-        with open(os.path.join(self.temp_dir, 'MANIFEST.in'), 'w') as f:
+        manifest = os.path.join(self.temp_dir, 'MANIFEST.in')
+        with open(manifest, 'w', encoding="utf-8") as f:
             f.write(DALS(contents))
 
     def get_files(self):
@@ -256,44 +258,38 @@ class TestManifestTest(TempDirTestCase):
         """Include with multiple patterns."""
         ml = make_local_path
         self.make_manifest("include app/*.txt app/static/*")
-        files = default_files | set(
-            [
-                ml('app/a.txt'),
-                ml('app/b.txt'),
-                ml('app/static/app.js'),
-                ml('app/static/app.js.map'),
-                ml('app/static/app.css'),
-                ml('app/static/app.css.map'),
-            ]
-        )
+        files = default_files | set([
+            ml('app/a.txt'),
+            ml('app/b.txt'),
+            ml('app/static/app.js'),
+            ml('app/static/app.js.map'),
+            ml('app/static/app.css'),
+            ml('app/static/app.css.map'),
+        ])
         assert files == self.get_files()
 
     def test_graft(self):
         """Include the whole app/static/ directory."""
         ml = make_local_path
         self.make_manifest("graft app/static")
-        files = default_files | set(
-            [
-                ml('app/static/app.js'),
-                ml('app/static/app.js.map'),
-                ml('app/static/app.css'),
-                ml('app/static/app.css.map'),
-            ]
-        )
+        files = default_files | set([
+            ml('app/static/app.js'),
+            ml('app/static/app.js.map'),
+            ml('app/static/app.css'),
+            ml('app/static/app.css.map'),
+        ])
         assert files == self.get_files()
 
     def test_graft_glob_syntax(self):
         """Include the whole app/static/ directory."""
         ml = make_local_path
         self.make_manifest("graft */static")
-        files = default_files | set(
-            [
-                ml('app/static/app.js'),
-                ml('app/static/app.js.map'),
-                ml('app/static/app.css'),
-                ml('app/static/app.css.map'),
-            ]
-        )
+        files = default_files | set([
+            ml('app/static/app.js'),
+            ml('app/static/app.js.map'),
+            ml('app/static/app.css'),
+            ml('app/static/app.css.map'),
+        ])
         assert files == self.get_files()
 
     def test_graft_global_exclude(self):
@@ -316,15 +312,13 @@ class TestManifestTest(TempDirTestCase):
             global-include *.rst *.js *.css
             """
         )
-        files = default_files | set(
-            [
-                '.hidden.rst',
-                'testing.rst',
-                ml('app/c.rst'),
-                ml('app/static/app.js'),
-                ml('app/static/app.css'),
-            ]
-        )
+        files = default_files | set([
+            '.hidden.rst',
+            'testing.rst',
+            ml('app/c.rst'),
+            ml('app/static/app.js'),
+            ml('app/static/app.css'),
+        ])
         assert files == self.get_files()
 
     def test_graft_prune(self):
@@ -376,7 +370,7 @@ class TestFileListTest(TempDirTestCase):
             file = os.path.join(self.temp_dir, file)
             dirname, basename = os.path.split(file)
             os.makedirs(dirname, exist_ok=True)
-            open(file, 'w').close()
+            touch(file)
 
     def test_process_template_line(self):
         # testing  all MANIFEST.in template patterns
@@ -384,27 +378,25 @@ class TestFileListTest(TempDirTestCase):
         ml = make_local_path
 
         # simulated file list
-        self.make_files(
-            [
-                'foo.tmp',
-                'ok',
-                'xo',
-                'four.txt',
-                'buildout.cfg',
-                # filelist does not filter out VCS directories,
-                # it's sdist that does
-                ml('.hg/last-message.txt'),
-                ml('global/one.txt'),
-                ml('global/two.txt'),
-                ml('global/files.x'),
-                ml('global/here.tmp'),
-                ml('f/o/f.oo'),
-                ml('dir/graft-one'),
-                ml('dir/dir2/graft2'),
-                ml('dir3/ok'),
-                ml('dir3/sub/ok.txt'),
-            ]
-        )
+        self.make_files([
+            'foo.tmp',
+            'ok',
+            'xo',
+            'four.txt',
+            'buildout.cfg',
+            # filelist does not filter out VCS directories,
+            # it's sdist that does
+            ml('.hg/last-message.txt'),
+            ml('global/one.txt'),
+            ml('global/two.txt'),
+            ml('global/files.x'),
+            ml('global/here.tmp'),
+            ml('f/o/f.oo'),
+            ml('dir/graft-one'),
+            ml('dir/dir2/graft2'),
+            ml('dir3/ok'),
+            ml('dir3/sub/ok.txt'),
+        ])
 
         MANIFEST_IN = DALS(
             """\

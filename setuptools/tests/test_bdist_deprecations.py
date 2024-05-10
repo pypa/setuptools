@@ -1,5 +1,5 @@
-"""develop tests
-"""
+"""develop tests"""
+
 import sys
 from unittest import mock
 

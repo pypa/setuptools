@@ -1,9 +1,9 @@
-"""develop tests
-"""
+"""develop tests"""
 
 import os
 import sys
 import subprocess
+import pathlib
 import platform
 
 from setuptools.command import test
@@ -82,6 +82,18 @@ class TestDevelop:
         cmd.install_dir = tmpdir
         cmd.run()
         # assert '0.0' not in foocmd_text
+
+    @pytest.mark.xfail(reason="legacy behavior retained for compatibility #4167")
+    def test_egg_link_filename(self):
+        settings = dict(
+            name='Foo $$$ Bar_baz-bing',
+        )
+        dist = Distribution(settings)
+        cmd = develop(dist)
+        cmd.ensure_finalized()
+        link = pathlib.Path(cmd.egg_link)
+        assert link.suffix == '.egg-link'
+        assert link.stem == 'Foo_Bar_baz_bing'
 
 
 class TestResolver:

@@ -7,6 +7,10 @@ python:
 
 # required boilerplate readthedocs/readthedocs.org#10401
 build:
-  os: ubuntu-22.04
+  os: ubuntu-lts-latest
   tools:
-    python: "3"
+    python: latest
+  # post-checkout job to ensure the clone isn't shallow jaraco/skeleton#114
+  jobs:
+    post_checkout:
+    - git fetch --unshallow || true

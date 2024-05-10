@@ -31,11 +31,11 @@ def test_dist_fetch_build_egg(tmpdir):
         with dist_dir.join('index.html').open('w') as fp:
             fp.write(
                 DALS(
-                    '''
+                    """
                 <!DOCTYPE html><html><body>
                 <a href="{dist_sdist}" rel="internal">{dist_sdist}</a><br/>
                 </body></html>
-                '''
+                """
                 ).format(dist_sdist=dist_sdist)
             )
 
@@ -44,16 +44,16 @@ def test_dist_fetch_build_egg(tmpdir):
     with tmpdir.join('setup.cfg').open('w') as fp:
         fp.write(
             DALS(
-                '''
+                """
             [easy_install]
             index_url = {index_url}
-            '''
+            """
             ).format(index_url=index_url)
         )
-    reqs = '''
+    reqs = """
     barbazquux-runner
     barbazquux
-    '''.split()
+    """.split()
     with tmpdir.as_cwd():
         dist = Distribution()
         dist.parse_config_files()
@@ -116,7 +116,7 @@ CHECK_PACKAGE_DATA_TESTS = (
     # Invalid value type.
     (
         {
-            'hello': str('*.msg'),
+            'hello': '*.msg',
         },
         (
             "\"values of 'package_data' dict\" "
@@ -142,7 +142,7 @@ def test_check_package_data(package_data, expected_message):
         assert check_package_data(None, 'package_data', package_data) is None
     else:
         with pytest.raises(DistutilsSetupError, match=re.escape(expected_message)):
-            check_package_data(None, str('package_data'), package_data)
+            check_package_data(None, 'package_data', package_data)
 
 
 def test_check_specifier():

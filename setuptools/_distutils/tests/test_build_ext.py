@@ -1,35 +1,36 @@
-import sys
-import os
-from io import StringIO
-import textwrap
-import site
 import contextlib
-import platform
-import tempfile
 import importlib
-import shutil
+import os
+import platform
 import re
-
-import path
-import pytest
-
-from distutils.core import Distribution
-from distutils.command.build_ext import build_ext
+import shutil
+import site
+import sys
+import tempfile
+import textwrap
 from distutils import sysconfig
-from distutils.tests.support import (
-    TempdirManager,
-    copy_xxmodule_c,
-    fixup_build_ext,
-)
-from distutils.extension import Extension
+from distutils.command.build_ext import build_ext
+from distutils.core import Distribution
 from distutils.errors import (
     CompileError,
     DistutilsPlatformError,
     DistutilsSetupError,
     UnknownFileError,
 )
-
+from distutils.extension import Extension
+from distutils.tests import missing_compiler_executable
+from distutils.tests.support import (
+    TempdirManager,
+    copy_xxmodule_c,
+    fixup_build_ext,
+)
+from io import StringIO
 from test import support
+
+import jaraco.path
+import path
+import pytest
+
 from . import py38compat as import_helper
 
 
@@ -37,6 +38,7 @@ from . import py38compat as import_helper
 def user_site_dir(request):
     self = request.instance
     self.tmp_dir = self.mkdtemp()
+    self.tmp_path = path.Path(self.tmp_dir)
     from distutils.command import build_ext
 
     orig_user_base = site.USER_BASE
@@ -47,7 +49,7 @@ def user_site_dir(request):
     # bpo-30132: On Windows, a .pdb file may be created in the current
     # working directory. Create a temporary working directory to cleanup
     # everything at the end of the test.
-    with path.Path(self.tmp_dir):
+    with self.tmp_path:
         yield
 
     site.USER_BASE = orig_user_base
@@ -89,7 +91,7 @@ class TestBuildExt(TempdirManager):
         return build_ext(*args, **kwargs)
 
     def test_build_ext(self):
-        cmd = support.missing_compiler_executable()
+        missing_compiler_executable()
         copy_xxmodule_c(self.tmp_dir)
         xx_c = os.path.join(self.tmp_dir, 'xxmodule.c')
         xx_ext = Extension('xx', [xx_c])
@@ -359,7 +361,7 @@ class TestBuildExt(TempdirManager):
         assert cmd.compiler == 'unix'
 
     def test_get_outputs(self):
-        cmd = support.missing_compiler_executable()
+        missing_compiler_executable()
         tmp_dir = self.mkdtemp()
         c_file = os.path.join(tmp_dir, 'foo.c')
         self.write_file(c_file, 'void PyInit_foo(void) {}\n')
@@ -476,7 +478,7 @@ class TestBuildExt(TempdirManager):
 
     @pytest.mark.skipif('platform.system() != "Darwin"')
     @pytest.mark.usefixtures('save_env')
-    def test_deployment_target_higher_ok(self):
+    def test_deployment_target_higher_ok(self):  # pragma: no cover
         # Issue 9516: Test that an extension module can be compiled with a
         # deployment target higher than that of the interpreter: the ext
         # module may depend on some newer OS feature.
@@ -488,32 +490,29 @@ class TestBuildExt(TempdirManager):
             deptarget = '.'.join(str(i) for i in deptarget)
             self._try_compile_deployment_target('<', deptarget)
 
-    def _try_compile_deployment_target(self, operator, target):
+    def _try_compile_deployment_target(self, operator, target):  # pragma: no cover
         if target is None:
             if os.environ.get('MACOSX_DEPLOYMENT_TARGET'):
                 del os.environ['MACOSX_DEPLOYMENT_TARGET']
         else:
             os.environ['MACOSX_DEPLOYMENT_TARGET'] = target
 
-        deptarget_c = os.path.join(self.tmp_dir, 'deptargetmodule.c')
+        jaraco.path.build(
+            {
+                'deptargetmodule.c': textwrap.dedent(f"""\
+                    #include <AvailabilityMacros.h>
 
-        with open(deptarget_c, 'w') as fp:
-            fp.write(
-                textwrap.dedent(
-                    '''\
-                #include <AvailabilityMacros.h>
+                    int dummy;
 
-                int dummy;
+                    #if TARGET {operator} MAC_OS_X_VERSION_MIN_REQUIRED
+                    #else
+                    #error "Unexpected target"
+                    #endif
 
-                #if TARGET %s MAC_OS_X_VERSION_MIN_REQUIRED
-                #else
-                #error "Unexpected target"
-                #endif
-
-            '''
-                    % operator
-                )
-            )
+                    """),
+            },
+            self.tmp_path,
+        )
 
         # get the deployment target that the interpreter was built with
         target = sysconfig.get_config_var('MACOSX_DEPLOYMENT_TARGET')
@@ -533,8 +532,8 @@ class TestBuildExt(TempdirManager):
                 target = '%02d0000' % target
         deptarget_ext = Extension(
             'deptarget',
-            [deptarget_c],
-            extra_compile_args=['-DTARGET={}'.format(target)],
+            [self.tmp_path / 'deptargetmodule.c'],
+            extra_compile_args=[f'-DTARGET={target}'],
         )
         dist = Distribution({'name': 'deptarget', 'ext_modules': [deptarget_ext]})
         dist.package_dir = self.tmp_dir

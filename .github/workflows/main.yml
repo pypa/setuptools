@@ -1,6 +1,16 @@
 name: tests
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  merge_group:
+  push:
+    branches-ignore:
+    # temporary GH branches relating to merge queues (jaraco/skeleton#93)
+    - gh-readonly-queue/**
+    tags:
+    # required if branches-ignore is supplied (jaraco/skeleton#103)
+    - '**'
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: >-
@@ -29,10 +39,10 @@ env:
 jobs:
   test:
     strategy:
+      # https://blog.jaraco.com/efficient-use-of-ci-resources/
       matrix:
         python:
         - "3.8"
-        - "3.11"
         - "3.12"
         platform:
         - ubuntu-latest
@@ -43,26 +53,34 @@ jobs:
           platform: ubuntu-latest
         - python: "3.10"
           platform: ubuntu-latest
-        - python: pypy3.9
+        - python: "3.11"
+          platform: ubuntu-latest
+        - python: pypy3.10
           platform: ubuntu-latest
           distutils: stdlib
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
+        # Python 3.8, 3.9 are on macos-13 but not macos-latest (macos-14-arm64)
+        # https://github.com/actions/setup-python/issues/850
+        # https://github.com/actions/setup-python/issues/696#issuecomment-1637587760
+        - {python: "3.8", platform: "macos-13"}
+        exclude:
+        - {python: "3.8", platform: "macos-latest"}
     runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.python == '3.12' }}
+    continue-on-error: ${{ matrix.python == '3.13' }}
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils || 'local' }}
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Python
         id: python-install
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cache
         with:
           path: setuptools/tests/config/downloads/*.cfg
@@ -77,7 +95,8 @@ jobs:
         shell: bash
         run: |
           rm -rf dist
-          pipx run build
+          # workaround for pypa/setuptools#4333
+          pipx run --pip-args 'pyproject-hooks!=1.1' build
           echo "PRE_BUILT_SETUPTOOLS_SDIST=$(ls dist/*.tar.gz)" >> $GITHUB_ENV
           echo "PRE_BUILT_SETUPTOOLS_WHEEL=$(ls dist/*.whl)" >> $GITHUB_ENV
           rm -rf setuptools.egg-info  # Avoid interfering with the other tests
@@ -85,8 +104,7 @@ jobs:
         if: contains(matrix.python, 'pypy')
         run: echo "SETUPTOOLS_ENFORCE_DEPRECATION=0" >> $GITHUB_ENV
       - name: Install tox
-        run: |
-          python -m pip install tox
+        run: python -m pip install tox
       - name: Run
         run: tox
       - name: Create coverage report
@@ -94,7 +112,7 @@ jobs:
         run: pipx run coverage xml --ignore-errors
       - name: Publish coverage
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
@@ -102,38 +120,29 @@ jobs:
             OS-${{ runner.os }},
             VM-${{ matrix.platform }},
             Py-${{ steps.python-install.outputs.python-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-  diffcov:
+  collateral:
+    strategy:
+      fail-fast: false
+      matrix:
+        job:
+        - diffcov
+        - docs
+        - check-extern
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Install tox
-        run: |
-          python -m pip install tox
-      - name: Evaluate coverage
-        run: tox
-        env:
-          TOXENV: diffcov
-
-  docs:
-    runs-on: ubuntu-latest
-    env:
-      TOXENV: docs
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
-        uses: actions/setup-python@v4
-      - name: Install tox
-        run: |
-          python -m pip install tox
-      - name: Run
-        run: tox
+        run: python -m pip install tox
+      - name: Eval ${{ matrix.job }}
+        run: tox -e ${{ matrix.job }}
 
   check:  # This job does nothing and is only used for the branch protection
     if: always()
@@ -141,7 +150,7 @@ jobs:
     needs:
     - integration-test
     - test
-    - docs
+    - collateral
     - test_cygwin
 
     runs-on: ubuntu-latest
@@ -163,9 +172,9 @@ jobs:
     runs-on: ${{ matrix.platform }}
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Cygwin with Python
-        uses: cygwin/cygwin-install-action@v2
+        uses: cygwin/cygwin-install-action@v4
         with:
           platform: x86_64
           packages: >-
@@ -176,7 +185,7 @@ jobs:
             git,
       - name: Record the currently selected Python version
         id: python-install
-        # NOTE: This roughly emulates what `actions/setup-python@v4` provides
+        # NOTE: This roughly emulates what `actions/setup-python` provides
         # NOTE: except the action gets the version from the installation path
         # NOTE: on disk and we get it from runtime.
         run: |
@@ -195,7 +204,7 @@ jobs:
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
       - name: Publish coverage
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           files: >-
             ${{ github.workspace }}\coverage.xml
@@ -205,6 +214,7 @@ jobs:
             OS-${{ runner.os }},
             VM-${{ matrix.platform }},
             Py-${{ steps.python-install.outputs.python-version }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   integration-test:
     needs: test
@@ -219,13 +229,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install OS-level dependencies
         run: |
           sudo apt-get update
           sudo apt-get install build-essential gfortran libopenblas-dev libyaml-dev
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           # Use a release that is not very new but still have a long life:
           python-version: "3.10"
@@ -244,14 +254,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
       - name: Install tox
-        run: |
-          python -m pip install tox
+        run: python -m pip install tox
       - name: Run
         run: tox -e release
         env:
