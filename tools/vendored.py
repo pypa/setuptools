@@ -175,7 +175,7 @@ def yield_top_level(name):
     vendor = Path(f"{name}/_vendor")
     ignore = {"__pycache__", "__init__.py", ".ruff_cache"}
 
-    for item in vendor.iterdir():
+    for item in sorted(vendor.iterdir()):
         if item.name in ignore:
             continue
         if item.is_dir() and item.suffix != ".dist-info":
