@@ -27,7 +27,7 @@ import io
 import time
 import re
 import types
-from typing import List, Protocol
+from typing import Callable, Dict, Iterable, List, Protocol, Optional, TypeVar
 import zipfile
 import zipimport
 import warnings
@@ -70,15 +70,11 @@ from pkg_resources.extern.jaraco.text import (
     drop_comment,
     join_continuation,
 )
-
-from pkg_resources.extern import platformdirs
-from pkg_resources.extern import packaging
-
-__import__('pkg_resources.extern.packaging.version')
-__import__('pkg_resources.extern.packaging.specifiers')
-__import__('pkg_resources.extern.packaging.requirements')
-__import__('pkg_resources.extern.packaging.markers')
-__import__('pkg_resources.extern.packaging.utils')
+from pkg_resources.extern.packaging import markers as _packaging_markers
+from pkg_resources.extern.packaging import requirements as _packaging_requirements
+from pkg_resources.extern.packaging import utils as _packaging_utils
+from pkg_resources.extern.packaging import version as _packaging_version
+from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
 
 # declare some globals that will be defined later to
 # satisfy the linters.
@@ -94,9 +90,6 @@ iter_entry_points = None
 resource_listdir = None
 resource_filename = None
 resource_exists = None
-_distribution_finders = None
-_namespace_handlers = None
-_namespace_packages = None
 
 
 warnings.warn(
@@ -105,6 +98,8 @@ warnings.warn(
     DeprecationWarning,
     stacklevel=2,
 )
+
+T = TypeVar("T")
 
 
 _PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
@@ -117,15 +112,15 @@ class PEP440Warning(RuntimeWarning):
     """
 
 
-parse_version = packaging.version.Version
+parse_version = _packaging_version.Version
 
 
-_state_vars = {}
+_state_vars: Dict[str, str] = {}
 
 
-def _declare_state(vartype, **kw):
-    globals().update(kw)
-    _state_vars.update(dict.fromkeys(kw, vartype))
+def _declare_state(vartype: str, varname: str, initial_value: T) -> T:
+    _state_vars[varname] = vartype
+    return initial_value
 
 
 def __getstate__():
@@ -731,7 +726,7 @@ class WorkingSet:
             return
 
         self.by_key[dist.key] = dist
-        normalized_name = packaging.utils.canonicalize_name(dist.key)
+        normalized_name = _packaging_utils.canonicalize_name(dist.key)
         self.normalized_to_canonical_keys[normalized_name] = dist.key
         if dist.key not in keys:
             keys.append(dist.key)
@@ -920,10 +915,10 @@ class WorkingSet:
                     # success, no need to try any more versions of this project
                     break
 
-        distributions = list(distributions)
-        distributions.sort()
+        sorted_distributions = list(distributions)
+        sorted_distributions.sort()
 
-        return distributions, error_info
+        return sorted_distributions, error_info
 
     def require(self, *requirements):
         """Ensure that distributions matching `requirements` are activated
@@ -1345,9 +1340,7 @@ def get_default_cache():
     or a platform-relevant user cache dir for an app
     named "Python-Eggs".
     """
-    return os.environ.get('PYTHON_EGG_CACHE') or platformdirs.user_cache_dir(
-        appname='Python-Eggs'
-    )
+    return os.environ.get('PYTHON_EGG_CACHE') or _user_cache_dir(appname='Python-Eggs')
 
 
 def safe_name(name):
@@ -1364,8 +1357,8 @@ def safe_version(version):
     """
     try:
         # normalize the version
-        return str(packaging.version.Version(version))
-    except packaging.version.InvalidVersion:
+        return str(_packaging_version.Version(version))
+    except _packaging_version.InvalidVersion:
         version = version.replace(' ', '.')
         return re.sub('[^A-Za-z0-9.]+', '-', version)
 
@@ -1442,9 +1435,9 @@ def evaluate_marker(text, extra=None):
     This implementation uses the 'pyparsing' module.
     """
     try:
-        marker = packaging.markers.Marker(text)
+        marker = _packaging_markers.Marker(text)
         return marker.evaluate()
-    except packaging.markers.InvalidMarker as e:
+    except _packaging_markers.InvalidMarker as e:
         raise SyntaxError(e) from e
 
 
@@ -1524,8 +1517,7 @@ class NullProvider:
         script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
-            with open(script_filename) as fid:
-                source = fid.read()
+            source = _read_utf8_with_fallback(script_filename)
             code = compile(source, script_filename, 'exec')
             exec(code, namespace, namespace)
         else:
@@ -1636,7 +1628,7 @@ is not allowed.
         )
 
     def _get(self, path) -> bytes:
-        if hasattr(self.loader, 'get_data'):
+        if hasattr(self.loader, 'get_data') and self.loader:
             return self.loader.get_data(path)
         raise NotImplementedError(
             "Can't perform this operation for loaders without 'get_data()'"
@@ -2026,7 +2018,9 @@ class EggMetadata(ZipProvider):
         self._setup_prefix()
 
 
-_declare_state('dict', _distribution_finders={})
+_distribution_finders: Dict[
+    type, Callable[[object, str, bool], Iterable["Distribution"]]
+] = _declare_state('dict', '_distribution_finders', {})
 
 
 def register_finder(importer_type, distribution_finder):
@@ -2175,11 +2169,10 @@ def non_empty_lines(path):
     """
     Yield non-empty lines from file at path
     """
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                yield line
+    for line in _read_utf8_with_fallback(path).splitlines():
+        line = line.strip()
+        if line:
+            yield line
 
 
 def resolve_egg_link(path):
@@ -2200,8 +2193,12 @@ if hasattr(pkgutil, 'ImpImporter'):
 
 register_finder(importlib.machinery.FileFinder, find_on_path)
 
-_declare_state('dict', _namespace_handlers={})
-_declare_state('dict', _namespace_packages={})
+_namespace_handlers: Dict[
+    type, Callable[[object, str, str, types.ModuleType], Optional[str]]
+] = _declare_state('dict', '_namespace_handlers', {})
+_namespace_packages: Dict[Optional[str], List[str]] = _declare_state(
+    'dict', '_namespace_packages', {}
+)
 
 
 def register_namespace_handler(importer_type, namespace_handler):
@@ -2492,8 +2489,9 @@ class EntryPoint:
             raise ImportError(str(exc)) from exc
 
     def require(self, env=None, installer=None):
-        if self.extras and not self.dist:
-            raise UnknownExtra("Can't require() without a distribution", self)
+        if not self.dist:
+            error_cls = UnknownExtra if self.extras else AttributeError
+            raise error_cls("Can't require() without a distribution", self)
 
         # Get the requirements for this entry point with all its extras and
         # then resolve them. We have to pass `extras` along when resolving so
@@ -2559,11 +2557,11 @@ class EntryPoint:
     def parse_map(cls, data, dist=None):
         """Parse a map of entry point groups"""
         if isinstance(data, dict):
-            data = data.items()
+            _data = data.items()
         else:
-            data = split_sections(data)
+            _data = split_sections(data)
         maps = {}
-        for group, lines in data:
+        for group, lines in _data:
             if group is None:
                 if not lines:
                     continue
@@ -2691,12 +2689,12 @@ class Distribution:
         if not hasattr(self, "_parsed_version"):
             try:
                 self._parsed_version = parse_version(self.version)
-            except packaging.version.InvalidVersion as ex:
+            except _packaging_version.InvalidVersion as ex:
                 info = f"(package: {self.project_name})"
                 if hasattr(ex, "add_note"):
                     ex.add_note(info)  # PEP 678
                     raise
-                raise packaging.version.InvalidVersion(f"{str(ex)} {info}") from None
+                raise _packaging_version.InvalidVersion(f"{str(ex)} {info}") from None
 
         return self._parsed_version
 
@@ -2704,7 +2702,7 @@ class Distribution:
     def _forgiving_parsed_version(self):
         try:
             return self.parsed_version
-        except packaging.version.InvalidVersion as ex:
+        except _packaging_version.InvalidVersion as ex:
             self._parsed_version = parse_version(_forgiving_version(self.version))
 
             notes = "\n".join(getattr(ex, "__notes__", []))  # PEP 678
@@ -2825,7 +2823,7 @@ class Distribution:
         if path is None:
             path = sys.path
         self.insert_on(path, replace=replace)
-        if path is sys.path:
+        if path is sys.path and self.location is not None:
             fixup_namespace_packages(self.location)
             for pkg in self._get_metadata('namespace_packages.txt'):
                 if pkg in sys.modules:
@@ -2877,7 +2875,7 @@ class Distribution:
 
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
-        if isinstance(self.parsed_version, packaging.version.Version):
+        if isinstance(self.parsed_version, _packaging_version.Version):
             spec = "%s==%s" % (self.project_name, self.parsed_version)
         else:
             spec = "%s===%s" % (self.project_name, self.parsed_version)
@@ -2893,15 +2891,13 @@ class Distribution:
 
     def get_entry_map(self, group=None):
         """Return the entry point map for `group`, or the full entry map"""
-        try:
-            ep_map = self._ep_map
-        except AttributeError:
-            ep_map = self._ep_map = EntryPoint.parse_map(
+        if not hasattr(self, "_ep_map"):
+            self._ep_map = EntryPoint.parse_map(
                 self._get_metadata('entry_points.txt'), self
             )
         if group is not None:
-            return ep_map.get(group, {})
-        return ep_map
+            return self._ep_map.get(group, {})
+        return self._ep_map
 
     def get_entry_info(self, group, name):
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
@@ -3125,11 +3121,11 @@ def parse_requirements(strs):
     return map(Requirement, join_continuation(map(drop_comment, yield_lines(strs))))
 
 
-class RequirementParseError(packaging.requirements.InvalidRequirement):
+class RequirementParseError(_packaging_requirements.InvalidRequirement):
     "Compatibility wrapper for InvalidRequirement"
 
 
-class Requirement(packaging.requirements.Requirement):
+class Requirement(_packaging_requirements.Requirement):
     def __init__(self, requirement_string):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         super().__init__(requirement_string)
@@ -3301,8 +3297,7 @@ def _initialize_master_working_set():
     Invocation by other packages is unsupported and done
     at their own risk.
     """
-    working_set = WorkingSet._build_master()
-    _declare_state('object', working_set=working_set)
+    working_set = _declare_state('object', 'working_set', WorkingSet._build_master())
 
     require = working_set.require
     iter_entry_points = working_set.iter_entry_points
@@ -3323,3 +3318,35 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+
+#  ---- Ported from ``setuptools`` to avoid introducing an import inter-dependency ----
+LOCALE_ENCODING = "locale" if sys.version_info >= (3, 10) else None
+
+
+def _read_utf8_with_fallback(file: str, fallback_encoding=LOCALE_ENCODING) -> str:
+    """See setuptools.unicode_utils._read_utf8_with_fallback"""
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            return f.read()
+    except UnicodeDecodeError:  # pragma: no cover
+        msg = f"""\
+        ********************************************************************************
+        `encoding="utf-8"` fails with {file!r}, trying `encoding={fallback_encoding!r}`.
+
+        This fallback behaviour is considered **deprecated** and future versions of
+        `setuptools/pkg_resources` may not implement it.
+
+        Please encode {file!r} with "utf-8" to ensure future builds will succeed.
+
+        If this file was produced by `setuptools` itself, cleaning up the cached files
+        and re-building/re-installing the package with a newer version of `setuptools`
+        (e.g. by updating `build-system.requires` in its `pyproject.toml`)
+        might solve the problem.
+        ********************************************************************************
+        """
+        # TODO: Add a deadline?
+        #       See comment in setuptools.unicode_utils._Utf8EncodingNeeded
+        warnings.warn(msg, PkgResourcesDeprecationWarning, stacklevel=2)
+        with open(file, "r", encoding=fallback_encoding) as f:
+            return f.read()

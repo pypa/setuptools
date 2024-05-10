@@ -99,6 +99,11 @@ def test_pbr(install_context):
 
 
 @pytest.mark.xfail
+@pytest.mark.filterwarnings("ignore:'encoding' argument not specified")
+# ^-- Dependency chain: `python-novaclient` < `oslo-utils` < `netifaces==0.11.0`
+#     netifaces' setup.py uses `open` without `encoding="utf-8"` which is hijacked by
+#     `setuptools.sandbox._open` and triggers the EncodingWarning.
+#     Can't use EncodingWarning in the filter, as it does not exist on Python < 3.10.
 def test_python_novaclient(install_context):
     _install_one('python-novaclient', install_context, 'novaclient', 'base.py')
 

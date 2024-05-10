@@ -52,7 +52,7 @@ testing = [
 	"jaraco.path>=3.2.0",
 	"build[virtualenv]>=1.0.3",
 	"filelock>=3.4.0",
-	"ini2toml[lite]>=0.9",
+	"ini2toml[lite]>=0.14",
 	"tomli-w>=1.0.0",
 	"pytest-timeout",
 	'pytest-perf; sys_platform != "cygwin"', # workaround for jaraco/inflect#195, pydantic/pydantic-core#773 (see #3986)
@@ -64,6 +64,10 @@ testing = [
 	"tomli",
 	# No Python 3.12 dependencies require importlib_metadata, but needed for type-checking since we import it directly
 	"importlib_metadata",
+	"pytest-subprocess",
+
+	# workaround for pypa/setuptools#4333
+	"pyproject-hooks!=1.1",
 ]
 docs = [
 	# upstream
@@ -83,6 +87,9 @@ docs = [
 	"sphinx-reredirects",
 	"sphinxcontrib-towncrier",
 	"sphinx-notfound-page >=1,<2",
+
+	# workaround for pypa/setuptools#4333
+	"pyproject-hooks!=1.1",
 ]
 ssl = []
 certs = []

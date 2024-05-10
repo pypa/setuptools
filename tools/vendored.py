@@ -7,7 +7,7 @@ from path import Path
 
 def remove_all(paths):
     for path in paths:
-        path.rmtree() if path.isdir() else path.remove()
+        path.rmtree() if path.is_dir() else path.remove()
 
 
 def update_vendored():
@@ -82,7 +82,7 @@ def rewrite_importlib_metadata(pkg_files, new_root):
     Rewrite imports in importlib_metadata to redirect to vendored copies.
     """
     for file in pkg_files.glob('*.py'):
-        text = file.read_text().replace('typing_extensions', '..typing_extensions')
+        text = file.read_text()
         text = text.replace('import zipp', 'from .. import zipp')
         file.write_text(text)
 
@@ -109,7 +109,6 @@ def rewrite_platformdirs(pkg_files: Path):
     init = pkg_files.joinpath('__init__.py')
     text = init.read_text()
     text = text.replace('from platformdirs.', 'from .')
-    text = text.replace('from typing_extensions', 'from ..typing_extensions')
     init.write_text(text)
 
 
@@ -164,6 +163,25 @@ def update_setuptools():
     rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
     rewrite_importlib_metadata(vendor / 'importlib_metadata', 'setuptools.extern')
     rewrite_more_itertools(vendor / "more_itertools")
+
+
+def yield_top_level(name):
+    """Iterate over all modules and (top level) packages vendored
+    >>> roots = set(yield_top_level("setuptools"))
+    >>> examples = roots & {"jaraco", "backports", "zipp"}
+    >>> list(sorted(examples))
+    ['backports', 'jaraco', 'zipp']
+    """
+    vendor = Path(f"{name}/_vendor")
+    ignore = {"__pycache__", "__init__.py", ".ruff_cache"}
+
+    for item in sorted(vendor.iterdir()):
+        if item.name in ignore:
+            continue
+        if item.is_dir() and item.suffix != ".dist-info":
+            yield str(item.name)
+        if item.is_file() and item.suffix == ".py":
+            yield str(item.stem)
 
 
 __name__ == '__main__' and update_vendored()

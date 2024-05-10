@@ -1,0 +1,2 @@
+Fix finder template for lenient editable installs of implicit nested namespaces
+constructed by using ``package_dir`` to reorganise directory structure.
