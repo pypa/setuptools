@@ -77,15 +77,15 @@ class VendorImporter:
 # cog.outl(f"names = (\n{names}\n)")
 # ]]]
 names = (
-    'packaging',
-    'ordered_set',
-    'more_itertools',
-    'jaraco',
-    'importlib_resources',
-    'importlib_metadata',
-    'zipp',
-    'tomli',
     'backports',
+    'importlib_metadata',
+    'importlib_resources',
+    'jaraco',
+    'more_itertools',
+    'ordered_set',
+    'packaging',
+    'tomli',
+    'zipp',
 )
 # [[[end]]]
 VendorImporter(__name__, names, 'setuptools._vendor').install()

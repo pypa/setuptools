@@ -77,13 +77,13 @@ class VendorImporter:
 # cog.outl(f"names = (\n{names}\n)")
 # ]]]
 names = (
+    'backports',
+    'importlib_resources',
+    'jaraco',
+    'more_itertools',
     'packaging',
     'platformdirs',
-    'jaraco',
-    'importlib_resources',
     'zipp',
-    'more_itertools',
-    'backports',
 )
 # [[[end]]]
 VendorImporter(__name__, names).install()
