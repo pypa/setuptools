@@ -1,0 +1,2 @@
+Remove deprecated ``setuptools.dep_util``.
+The provided alternative is ``setuptools.modified``.
