@@ -145,6 +145,10 @@ class UnixCCompiler(CCompiler):
     if sys.platform == "cygwin":
         exe_extension = ".exe"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.compile_commands = []
+
     def preprocess(
         self,
         source,
@@ -185,7 +189,11 @@ class UnixCCompiler(CCompiler):
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         compiler_so = compiler_fixup(self.compiler_so, cc_args + extra_postargs)
         try:
-            self.spawn(compiler_so + cc_args + [src, '-o', obj] + extra_postargs)
+            cmd = compiler_so + cc_args + [src, '-o', obj] + extra_postargs
+            self.spawn(cmd)
+            self.compile_commands.append(
+                {"directory": os.getcwd(), "arguments": cmd, "file": src}
+            )
         except DistutilsExecError as msg:
             raise CompileError(msg)
 

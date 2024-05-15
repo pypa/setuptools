@@ -1,0 +1,1 @@
+A ``compile_commands.json`` is now written to the ``build/`` directory when building extension modules.

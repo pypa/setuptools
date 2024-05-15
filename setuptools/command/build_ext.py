@@ -1,9 +1,10 @@
+import json
 import os
 import sys
 import itertools
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
-from typing import Dict, Iterator, List, Tuple
+from typing import Any, Dict, Iterator, List, Tuple
 from pathlib import Path
 
 from distutils.command.build_ext import build_ext as _du_build_ext
@@ -89,9 +90,30 @@ class build_ext(_build_ext):
         """Build extensions in build directory, then copy if --inplace"""
         old_inplace, self.inplace = self.inplace, 0
         _build_ext.run(self)
+        self._update_compilation_database(
+            getattr(self.compiler, "compile_commands", [])
+        )
         self.inplace = old_inplace
         if old_inplace:
             self.copy_extensions_to_source()
+
+    def _update_compilation_database(self, commands: List[Dict[str, Any]]) -> None:
+        build_base = Path(self.get_finalized_command('build').build_base)
+        build_base.mkdir(exist_ok=True)
+
+        db_file = build_base / "compile_commands.json"
+        try:
+            database = json.loads(db_file.read_text(encoding="utf-8"))
+        except OSError:
+            database = []
+
+        # Drop existing entries for newly built files
+        built_files = {command["file"] for command in commands}
+        database = [obj for obj in database if obj.get("file") not in built_files]
+
+        database.extend(commands)
+        output = json.dumps(database, allow_nan=False, indent=4, sort_keys=True)
+        db_file.write_text(output, encoding="utf-8")
 
     def _get_inplace_equivalent(self, build_py, ext: Extension) -> Tuple[str, str]:
         fullname = self.get_ext_fullname(ext.name)
