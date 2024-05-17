@@ -694,12 +694,12 @@ Common commands: (see '--help-commands' for more)
         # display that metadata in the order in which the user supplied the
         # metadata options.
         any_display_options = 0
-        is_display_option = {}
+        is_display_option = set()
         for option in self.display_options:
-            is_display_option[option[0]] = 1
+            is_display_option.add(option[0])
 
         for opt, val in option_order:
-            if val and is_display_option.get(opt):
+            if val and opt in is_display_option:
                 opt = translate_longopt(opt)
                 value = getattr(self.metadata, "get_" + opt)()
                 if opt in ('keywords', 'platforms'):
@@ -740,13 +740,13 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = {}
+        is_std = set()
         for cmd in std_commands:
-            is_std[cmd] = 1
+            is_std.add(cmd)
 
         extra_commands = []
         for cmd in self.cmdclass.keys():
-            if not is_std.get(cmd):
+            if cmd not in is_std:
                 extra_commands.append(cmd)
 
         max_length = 0
@@ -771,13 +771,13 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = {}
+        is_std = set()
         for cmd in std_commands:
-            is_std[cmd] = 1
+            is_std.add(cmd)
 
         extra_commands = []
         for cmd in self.cmdclass.keys():
-            if not is_std.get(cmd):
+            if cmd not in is_std:
                 extra_commands.append(cmd)
 
         rv = []
