@@ -44,7 +44,13 @@ class build_py(orig.build_py):
         self.__updated_files = []
 
     def copy_file(
-        self, infile, outfile, preserve_mode=1, preserve_times=1, link=None, level=1
+        self,
+        infile,
+        outfile,
+        preserve_mode=True,
+        preserve_times=True,
+        link=None,
+        level=1,
     ):
         # Overwrite base class to allow using links
         if link:
@@ -68,7 +74,7 @@ class build_py(orig.build_py):
 
         # Only compile actual .py files, using our base class' idea of what our
         # output files are.
-        self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=0))
+        self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=False))
 
     def __getattr__(self, attr):
         "lazily compute data files"
@@ -130,7 +136,7 @@ class build_py(orig.build_py):
         )
         return self.exclude_data_files(package, src_dir, files)
 
-    def get_outputs(self, include_bytecode=1) -> List[str]:
+    def get_outputs(self, include_bytecode=True) -> List[str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         if self.editable_mode:
             return list(self.get_output_mapping().keys())
