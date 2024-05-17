@@ -96,7 +96,7 @@ configuration file for this distribution:
 .. code-block:: ini
 
    [build_ext]
-   inplace=1
+   inplace=true
 
 This will affect all builds of this module distribution, whether or not you
 explicitly specify :command:`build_ext`.  If you include :file:`setup.cfg` in

@@ -41,7 +41,7 @@ class upload(PyPIRCCommand):
         PyPIRCCommand.initialize_options(self)
         self.username = ''
         self.password = ''
-        self.show_response = 0
+        self.show_response = False
         self.sign = False
         self.identity = None
 

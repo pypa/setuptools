@@ -62,7 +62,7 @@ class build(Command):
         self.compiler = None
         self.plat_name = None
         self.debug = None
-        self.force = 0
+        self.force = False
         self.executable = None
         self.parallel = None
 

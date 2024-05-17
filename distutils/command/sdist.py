@@ -125,14 +125,14 @@ class sdist(Command):
 
         # 'use_defaults': if true, we will include the default file set
         # in the manifest
-        self.use_defaults = 1
-        self.prune = 1
+        self.use_defaults = True
+        self.prune = True
 
-        self.manifest_only = 0
-        self.force_manifest = 0
+        self.manifest_only = False
+        self.force_manifest = False
 
         self.formats = ['gztar']
-        self.keep_temp = 0
+        self.keep_temp = False
         self.dist_dir = None
 
         self.archive_files = None
@@ -353,12 +353,12 @@ class sdist(Command):
         log.info("reading manifest template '%s'", self.template)
         template = TextFile(
             self.template,
-            strip_comments=1,
-            skip_blanks=1,
-            join_lines=1,
-            lstrip_ws=1,
-            rstrip_ws=1,
-            collapse_join=1,
+            strip_comments=True,
+            skip_blanks=True,
+            join_lines=True,
+            lstrip_ws=True,
+            rstrip_ws=True,
+            collapse_join=True,
         )
 
         try:
@@ -401,7 +401,7 @@ class sdist(Command):
 
         vcs_dirs = ['RCS', 'CVS', r'\.svn', r'\.hg', r'\.git', r'\.bzr', '_darcs']
         vcs_ptrn = r'(^|{})({})({}).*'.format(seps, '|'.join(vcs_dirs), seps)
-        self.filelist.exclude_pattern(vcs_ptrn, is_regex=1)
+        self.filelist.exclude_pattern(vcs_ptrn, is_regex=True)
 
     def write_manifest(self):
         """Write the file list in 'self.filelist' (presumably as filled in

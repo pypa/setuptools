@@ -119,13 +119,13 @@ class FileList:
         if action == 'include':
             self.debug_print("include " + ' '.join(patterns))
             for pattern in patterns:
-                if not self.include_pattern(pattern, anchor=1):
+                if not self.include_pattern(pattern, anchor=True):
                     log.warning("warning: no files found matching '%s'", pattern)
 
         elif action == 'exclude':
             self.debug_print("exclude " + ' '.join(patterns))
             for pattern in patterns:
-                if not self.exclude_pattern(pattern, anchor=1):
+                if not self.exclude_pattern(pattern, anchor=True):
                     log.warning(
                         (
                             "warning: no previously-included files "
@@ -137,7 +137,7 @@ class FileList:
         elif action == 'global-include':
             self.debug_print("global-include " + ' '.join(patterns))
             for pattern in patterns:
-                if not self.include_pattern(pattern, anchor=0):
+                if not self.include_pattern(pattern, anchor=False):
                     log.warning(
                         (
                             "warning: no files found matching '%s' "
@@ -149,7 +149,7 @@ class FileList:
         elif action == 'global-exclude':
             self.debug_print("global-exclude " + ' '.join(patterns))
             for pattern in patterns:
-                if not self.exclude_pattern(pattern, anchor=0):
+                if not self.exclude_pattern(pattern, anchor=False):
                     log.warning(
                         (
                             "warning: no previously-included files matching "
@@ -197,7 +197,7 @@ class FileList:
 
     # Filtering/selection methods
 
-    def include_pattern(self, pattern, anchor=1, prefix=None, is_regex=0):
+    def include_pattern(self, pattern, anchor=True, prefix=None, is_regex=False):
         """Select strings (presumably filenames) from 'self.files' that
         match 'pattern', a Unix-style wildcard (glob) pattern.  Patterns
         are not quite the same as implemented by the 'fnmatch' module: '*'
@@ -238,7 +238,7 @@ class FileList:
                 files_found = True
         return files_found
 
-    def exclude_pattern(self, pattern, anchor=1, prefix=None, is_regex=0):
+    def exclude_pattern(self, pattern, anchor=True, prefix=None, is_regex=False):
         """Remove strings (presumably filenames) from 'files' that match
         'pattern'.  Other parameters are the same as for
         'include_pattern()', above.
@@ -332,7 +332,7 @@ def glob_to_re(pattern):
     return pattern_re
 
 
-def translate_pattern(pattern, anchor=1, prefix=None, is_regex=0):
+def translate_pattern(pattern, anchor=True, prefix=None, is_regex=False):
     """Translate a shell-like wildcard pattern to a compiled regular
     expression.  Return the compiled regex.  If 'is_regex' true,
     then 'pattern' is directly compiled to a regex (if it's a string)

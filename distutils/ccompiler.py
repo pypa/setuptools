@@ -104,7 +104,7 @@ class CCompiler:
     library dirs specific to this compiler class
     """
 
-    def __init__(self, verbose=0, dry_run=0, force=0):
+    def __init__(self, verbose=False, dry_run=False, force=False):
         self.dry_run = dry_run
         self.force = force
         self.verbose = verbose
@@ -342,7 +342,7 @@ class CCompiler:
             extra = []
 
         # Get the list of expected output (object) files
-        objects = self.object_filenames(sources, strip_dir=0, output_dir=outdir)
+        objects = self.object_filenames(sources, strip_dir=False, output_dir=outdir)
         assert len(objects) == len(sources)
 
         pp_opts = gen_preprocess_options(macros, incdirs)
@@ -532,7 +532,7 @@ class CCompiler:
         output_dir=None,
         macros=None,
         include_dirs=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         depends=None,
@@ -609,7 +609,7 @@ class CCompiler:
         pass
 
     def create_static_lib(
-        self, objects, output_libname, output_dir=None, debug=0, target_lang=None
+        self, objects, output_libname, output_dir=None, debug=False, target_lang=None
     ):
         """Link a bunch of stuff together to create a static library file.
         The "bunch of stuff" consists of the list of object files supplied
@@ -650,7 +650,7 @@ class CCompiler:
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -712,7 +712,7 @@ class CCompiler:
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -743,7 +743,7 @@ class CCompiler:
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -773,7 +773,7 @@ class CCompiler:
         libraries=None,
         library_dirs=None,
         runtime_library_dirs=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         target_lang=None,
@@ -909,7 +909,7 @@ int main (int argc, char **argv) {
                 os.remove(fn)
         return True
 
-    def find_library_file(self, dirs, lib, debug=0):
+    def find_library_file(self, dirs, lib, debug=False):
         """Search the specified list of directories for a static or shared
         library file 'lib' and return the full path to that file.  If
         'debug' true, look for a debugging version (if that makes sense on
@@ -952,7 +952,7 @@ int main (int argc, char **argv) {
     #   * exe_extension -
     #     extension for executable files, eg. '' or '.exe'
 
-    def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
+    def object_filenames(self, source_filenames, strip_dir=False, output_dir=''):
         if output_dir is None:
             output_dir = ''
         return list(
@@ -987,13 +987,13 @@ int main (int argc, char **argv) {
         # If abs, chop off leading /
         return no_drive[os.path.isabs(no_drive) :]
 
-    def shared_object_filename(self, basename, strip_dir=0, output_dir=''):
+    def shared_object_filename(self, basename, strip_dir=False, output_dir=''):
         assert output_dir is not None
         if strip_dir:
             basename = os.path.basename(basename)
         return os.path.join(output_dir, basename + self.shared_lib_extension)
 
-    def executable_filename(self, basename, strip_dir=0, output_dir=''):
+    def executable_filename(self, basename, strip_dir=False, output_dir=''):
         assert output_dir is not None
         if strip_dir:
             basename = os.path.basename(basename)
@@ -1003,7 +1003,7 @@ int main (int argc, char **argv) {
         self,
         libname,
         lib_type='static',
-        strip_dir=0,
+        strip_dir=False,
         output_dir='',  # or 'shared'
     ):
         assert output_dir is not None
@@ -1125,7 +1125,7 @@ def show_compilers():
     pretty_printer.print_help("List of available compilers:")
 
 
-def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
+def new_compiler(plat=None, compiler=None, verbose=False, dry_run=False, force=False):
     """Generate an instance of some CCompiler subclass for the supplied
     platform/compiler combination.  'plat' defaults to 'os.name'
     (eg. 'posix', 'nt'), and 'compiler' defaults to the default compiler

@@ -13,7 +13,7 @@ from .errors import DistutilsFileError, DistutilsInternalError
 _path_created = {}
 
 
-def mkpath(name, mode=0o777, verbose=1, dry_run=0):  # noqa: C901
+def mkpath(name, mode=0o777, verbose=True, dry_run=False):  # noqa: C901
     """Create a directory and any missing ancestor directories.
 
     If the directory already exists (or if 'name' is the empty string, which
@@ -79,11 +79,11 @@ def mkpath(name, mode=0o777, verbose=1, dry_run=0):  # noqa: C901
                     )
             created_dirs.append(head)
 
-        _path_created[abs_head] = 1
+        _path_created[abs_head] = True
     return created_dirs
 
 
-def create_tree(base_dir, files, mode=0o777, verbose=1, dry_run=0):
+def create_tree(base_dir, files, mode=0o777, verbose=True, dry_run=False):
     """Create all the empty directories under 'base_dir' needed to put 'files'
     there.
 
@@ -104,12 +104,12 @@ def create_tree(base_dir, files, mode=0o777, verbose=1, dry_run=0):
 def copy_tree(  # noqa: C901
     src,
     dst,
-    preserve_mode=1,
-    preserve_times=1,
-    preserve_symlinks=0,
-    update=0,
-    verbose=1,
-    dry_run=0,
+    preserve_mode=True,
+    preserve_times=True,
+    preserve_symlinks=False,
+    update=False,
+    verbose=True,
+    dry_run=False,
 ):
     """Copy an entire directory tree 'src' to a new location 'dst'.
 
@@ -202,7 +202,7 @@ def _build_cmdtuple(path, cmdtuples):
     cmdtuples.append((os.rmdir, path))
 
 
-def remove_tree(directory, verbose=1, dry_run=0):
+def remove_tree(directory, verbose=True, dry_run=False):
     """Recursively remove an entire directory tree.
 
     Any errors are ignored (apart from being reported to stdout if 'verbose'

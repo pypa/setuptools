@@ -109,7 +109,7 @@ class build_ext(Command):
         self.build_lib = None
         self.plat_name = None
         self.build_temp = None
-        self.inplace = 0
+        self.inplace = False
         self.package = None
 
         self.include_dirs = None
@@ -175,7 +175,7 @@ class build_ext(Command):
         # Make sure Python's include directories (for Python.h, pyconfig.h,
         # etc.) are in the include search path.
         py_include = sysconfig.get_python_inc()
-        plat_py_include = sysconfig.get_python_inc(plat_specific=1)
+        plat_py_include = sysconfig.get_python_inc(plat_specific=True)
         if self.include_dirs is None:
             self.include_dirs = self.distribution.include_dirs or []
         if isinstance(self.include_dirs, str):

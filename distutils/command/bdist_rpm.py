@@ -187,13 +187,13 @@ class bdist_rpm(Command):
         self.build_requires = None
         self.obsoletes = None
 
-        self.keep_temp = 0
-        self.use_rpm_opt_flags = 1
-        self.rpm3_mode = 1
-        self.no_autoreq = 0
+        self.keep_temp = False
+        self.use_rpm_opt_flags = True
+        self.rpm3_mode = True
+        self.no_autoreq = False
 
         self.force_arch = None
-        self.quiet = 0
+        self.quiet = False
 
     def finalize_options(self):
         self.set_undefined_options('bdist', ('bdist_base', 'bdist_base'))
@@ -223,7 +223,7 @@ class bdist_rpm(Command):
 
         # don't pass CFLAGS to pure python distributions
         if not self.distribution.has_ext_modules():
-            self.use_rpm_opt_flags = 0
+            self.use_rpm_opt_flags = False
 
         self.set_undefined_options('bdist', ('dist_dir', 'dist_dir'))
         self.finalize_package_data()

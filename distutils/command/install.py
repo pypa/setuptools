@@ -258,7 +258,7 @@ class install(Command):
         self.prefix = None
         self.exec_prefix = None
         self.home = None
-        self.user = 0
+        self.user = False
 
         # These select only the installation base; it's up to the user to
         # specify the installation scheme (currently, that means supplying
@@ -293,7 +293,7 @@ class install(Command):
         # 'install_path_file' is always true unless some outsider meddles
         # with it.
         self.extra_path = None
-        self.install_path_file = 1
+        self.install_path_file = True
 
         # 'force' forces installation, even if target files are not
         # out-of-date.  'skip_build' skips running the "build" command,
@@ -301,9 +301,9 @@ class install(Command):
         # a user option, it's just there so the bdist_* commands can turn
         # it off) determines whether we warn about installing to a
         # directory not in sys.path.
-        self.force = 0
-        self.skip_build = 0
-        self.warn_dir = 1
+        self.force = False
+        self.skip_build = False
+        self.warn_dir = True
 
         # These are only here as a conduit from the 'build' command to the
         # 'install_*' commands that do the real work.  ('build_base' isn't

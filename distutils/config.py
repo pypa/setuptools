@@ -129,7 +129,7 @@ class PyPIRCCommand(Command):
         """Initialize options."""
         self.repository = None
         self.realm = None
-        self.show_response = 0
+        self.show_response = False
 
     def finalize_options(self):
         """Finalizes options."""

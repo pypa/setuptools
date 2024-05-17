@@ -253,7 +253,7 @@ class MSVCCompiler(CCompiler):
     static_lib_format = shared_lib_format = '%s%s'
     exe_extension = '.exe'
 
-    def __init__(self, verbose=0, dry_run=0, force=0):
+    def __init__(self, verbose=False, dry_run=False, force=False):
         super().__init__(verbose, dry_run, force)
         self.__version = get_build_version()
         self.__arch = get_build_architecture()
@@ -354,7 +354,7 @@ class MSVCCompiler(CCompiler):
 
     # -- Worker methods ------------------------------------------------
 
-    def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
+    def object_filenames(self, source_filenames, strip_dir=False, output_dir=''):
         # Copied from ccompiler.py, extended to return .res as 'object'-file
         # for .rc input file
         if output_dir is None:
@@ -385,7 +385,7 @@ class MSVCCompiler(CCompiler):
         output_dir=None,
         macros=None,
         include_dirs=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         depends=None,
@@ -472,7 +472,7 @@ class MSVCCompiler(CCompiler):
         return objects
 
     def create_static_lib(
-        self, objects, output_libname, output_dir=None, debug=0, target_lang=None
+        self, objects, output_libname, output_dir=None, debug=False, target_lang=None
     ):
         if not self.initialized:
             self.initialize()
@@ -500,7 +500,7 @@ class MSVCCompiler(CCompiler):
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -585,7 +585,7 @@ class MSVCCompiler(CCompiler):
     def library_option(self, lib):
         return self.library_filename(lib)
 
-    def find_library_file(self, dirs, lib, debug=0):
+    def find_library_file(self, dirs, lib, debug=False):
         # Prefer a debugging library if found (and requested), but deal
         # with it if we don't have one.
         if debug:

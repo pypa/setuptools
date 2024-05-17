@@ -72,7 +72,7 @@ class TestBuildRpm(
         cmd.fix_python = True
 
         # running in quiet mode
-        cmd.quiet = 1
+        cmd.quiet = True
         cmd.ensure_finalized()
         cmd.run()
 
@@ -114,7 +114,7 @@ class TestBuildRpm(
         cmd = bdist_rpm(dist)
         cmd.fix_python = True
 
-        cmd.quiet = 1
+        cmd.quiet = True
         cmd.ensure_finalized()
         cmd.run()
 

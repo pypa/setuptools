@@ -28,13 +28,15 @@ class TestBuildPy(support.TempdirManager):
         dist = Distribution({"packages": ["pkg"], "package_dir": {"pkg": sources}})
         # script_name need not exist, it just need to be initialized
         dist.script_name = os.path.join(sources, "setup.py")
-        dist.command_obj["build"] = support.DummyCommand(force=0, build_lib=destination)
+        dist.command_obj["build"] = support.DummyCommand(
+            force=False, build_lib=destination
+        )
         dist.packages = ["pkg"]
         dist.package_data = {"pkg": ["README.txt"]}
         dist.package_dir = {"pkg": sources}
 
         cmd = build_py(dist)
-        cmd.compile = 1
+        cmd.compile = True
         cmd.ensure_finalized()
         assert cmd.package_data == dist.package_data
 
@@ -82,7 +84,7 @@ class TestBuildPy(support.TempdirManager):
         os.chdir(project_dir)
         self.write_file('boiledeggs.py', 'import antigravity')
         cmd = build_py(dist)
-        cmd.compile = 1
+        cmd.compile = True
         cmd.build_lib = 'here'
         cmd.finalize_options()
         cmd.run()
@@ -98,7 +100,7 @@ class TestBuildPy(support.TempdirManager):
         os.chdir(project_dir)
         self.write_file('boiledeggs.py', 'import antigravity')
         cmd = build_py(dist)
-        cmd.compile = 0
+        cmd.compile = False
         cmd.optimize = 1
         cmd.build_lib = 'here'
         cmd.finalize_options()
@@ -146,7 +148,7 @@ class TestBuildPy(support.TempdirManager):
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = build_py(dist)
-        cmd.compile = 1
+        cmd.compile = True
         cmd.optimize = 1
 
         old_dont_write_bytecode = sys.dont_write_bytecode
