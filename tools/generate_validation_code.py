@@ -1,16 +1,17 @@
-from os import PathLike
+import itertools
 import subprocess
 import sys
 
 from pathlib import Path
-from typing import Union
+from typing import TYPE_CHECKING
 
 
-def generate_pyproject_validation(dest: Union[str, PathLike]):
+def generate_pyproject_validation(dest: Path, schemas: Path):
     """
     Generates validation code for ``pyproject.toml`` based on JSON schemas and the
     ``validate-pyproject`` library.
     """
+    schema_args = (("-t", f"{f.name.partition('.')[0]}={f}") for f in schemas)
     cmd = [
         sys.executable,
         "-m",
@@ -20,13 +21,17 @@ def generate_pyproject_validation(dest: Union[str, PathLike]):
         "setuptools",
         "distutils",
         "--very-verbose",
+        *itertools.chain.from_iterable(schema_args),
     ]
     subprocess.check_call(cmd)
     print(f"Validation code generated at: {dest}")
 
 
 def main():
-    generate_pyproject_validation(Path("setuptools/config/_validate_pyproject"))
+    generate_pyproject_validation(
+        Path("setuptools/config/_validate_pyproject"),
+        schemas=Path("setuptools/config").glob("*.schema.json"),
+    )
 
 
 __name__ == '__main__' and main()
