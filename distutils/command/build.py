@@ -26,8 +26,7 @@ class build(Command):
         (
             'build-lib=',
             None,
-            "build directory for all distribution (defaults to either "
-            + "build-purelib or build-platlib",
+            "build directory for all distribution (defaults to either build-purelib or build-platlib",
         ),
         ('build-scripts=', None, "build directory for scripts"),
         ('build-temp=', 't', "temporary build directory"),

@@ -71,7 +71,7 @@ class build_ext(Command):
             'inplace',
             'i',
             "ignore build-lib and put compiled extensions into the source "
-            + "directory alongside your pure Python modules",
+            "directory alongside your pure Python modules",
         ),
         (
             'include-dirs=',

@@ -33,8 +33,7 @@ class bdist_dumb(Command):
         (
             'keep-temp',
             'k',
-            "keep the pseudo-installation tree around after "
-            + "creating the distribution archive",
+            "keep the pseudo-installation tree around after creating the distribution archive",
         ),
         ('dist-dir=', 'd', "directory to put final built distributions in"),
         ('skip-build', None, "skip rebuilding everything (for testing/debugging)"),

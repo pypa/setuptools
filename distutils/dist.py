@@ -652,8 +652,7 @@ Common commands: (see '--help-commands' for more)
         if display_options:
             parser.set_option_table(self.display_options)
             parser.print_help(
-                "Information display options (just display "
-                + "information, ignore any commands)"
+                "Information display options (just display information, ignore any commands)"
             )
             print()
 
