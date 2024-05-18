@@ -160,11 +160,9 @@ def make_zipfile(base_name, base_dir, verbose=0, dry_run=0):  # noqa: C901
             # XXX really should distinguish between "couldn't find
             # external 'zip' command" and "zip failed".
             raise DistutilsExecError(
-
-                    f"unable to create zip file '{zip_filename}': "
-                    "could neither import the 'zipfile' module nor "
-                    "find a standalone zip utility"
-
+                f"unable to create zip file '{zip_filename}': "
+                "could neither import the 'zipfile' module nor "
+                "find a standalone zip utility"
             )
 
     else:

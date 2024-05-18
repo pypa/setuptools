@@ -34,8 +34,7 @@ class build(Command):
         (
             'plat-name=',
             'p',
-            "platform name to build for, if supported "
-            f"(default: {get_platform()})",
+            f"platform name to build for, if supported (default: {get_platform()})",
         ),
         ('compiler=', 'c', "specify the compiler type"),
         ('parallel=', 'j', "number of parallel build jobs"),

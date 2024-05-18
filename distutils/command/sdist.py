@@ -410,8 +410,7 @@ class sdist(Command):
         """
         if self._manifest_is_not_generated():
             log.info(
-                "not writing to manually maintained "
-                f"manifest file '{self.manifest}'"
+                f"not writing to manually maintained manifest file '{self.manifest}'"
             )
             return
 
