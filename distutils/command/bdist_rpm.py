@@ -370,7 +370,7 @@ class bdist_rpm(Command):
 
             status = out.close()
             if status:
-                raise DistutilsExecError("Failed to execute: %s" % repr(q_cmd))
+                raise DistutilsExecError("Failed to execute: %r" % q_cmd)
 
         finally:
             out.close()
