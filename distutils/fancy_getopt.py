@@ -118,11 +118,11 @@ class FancyGetopt:
         for alias, opt in aliases.items():
             if alias not in self.option_index:
                 raise DistutilsGetoptError(
-                    f"invalid {what} '{alias}': " f"option '{alias}' not defined"
+                    f"invalid {what} '{alias}': option '{alias}' not defined"
                 )
             if opt not in self.option_index:
                 raise DistutilsGetoptError(
-                    f"invalid {what} '{alias}': " f"aliased option '{opt}' not defined"
+                    f"invalid {what} '{alias}': aliased option '{opt}' not defined"
                 )
 
     def set_aliases(self, alias):

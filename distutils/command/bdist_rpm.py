@@ -529,7 +529,7 @@ class bdist_rpm(Command):
         # are just text that we drop in as-is.  Hmmm.
 
         install_cmd = (
-            '%s install -O1 --root=$RPM_BUILD_ROOT ' '--record=INSTALLED_FILES'
+            '%s install -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES'
         ) % def_setup_call
 
         script_options = [
