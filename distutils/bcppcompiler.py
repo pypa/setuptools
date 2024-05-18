@@ -84,7 +84,7 @@ class BCPPCompiler(CCompiler):
 
     # -- Worker methods ------------------------------------------------
 
-    def compile(  # noqa: C901
+    def compile(
         self,
         sources,
         output_dir=None,
