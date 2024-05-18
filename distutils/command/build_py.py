@@ -191,12 +191,12 @@ class build_py(Command):
         if package_dir != "":
             if not os.path.exists(package_dir):
                 raise DistutilsFileError(
-                    "package directory '%s' does not exist" % package_dir
+                    f"package directory '{package_dir}' does not exist"
                 )
             if not os.path.isdir(package_dir):
                 raise DistutilsFileError(
-                    "supposed package directory '%s' exists, "
-                    "but is not a directory" % package_dir
+                    f"supposed package directory '{package_dir}' exists, "
+                    "but is not a directory"
                 )
 
         # Directories without __init__.py are namespace packages (PEP 420).
@@ -228,7 +228,7 @@ class build_py(Command):
                 module = os.path.splitext(os.path.basename(f))[0]
                 modules.append((package, module, f))
             else:
-                self.debug_print("excluding %s" % setup_script)
+                self.debug_print(f"excluding {setup_script}")
         return modules
 
     def find_modules(self):

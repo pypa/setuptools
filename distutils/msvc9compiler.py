@@ -144,7 +144,7 @@ class MacroExpander:
         self.load_macros(version)
 
     def set_macro(self, macro, path, key):
-        self.macros["$(%s)" % macro] = Reg.get_value(path, key)
+        self.macros[f"$({macro})"] = Reg.get_value(path, key)
 
     def load_macros(self, version):
         self.set_macro("VCInstallDir", self.vsbase + r"\Setup\VC", "productdir")
@@ -243,23 +243,23 @@ def find_vcvarsall(version):
     """
     vsbase = VS_BASE % version
     try:
-        productdir = Reg.get_value(r"%s\Setup\VC" % vsbase, "productdir")
+        productdir = Reg.get_value(rf"{vsbase}\Setup\VC", "productdir")
     except KeyError:
         log.debug("Unable to find productdir in registry")
         productdir = None
 
     if not productdir or not os.path.isdir(productdir):
-        toolskey = "VS%0.f0COMNTOOLS" % version
+        toolskey = f"VS{version:0.0f}0COMNTOOLS"
         toolsdir = os.environ.get(toolskey, None)
 
         if toolsdir and os.path.isdir(toolsdir):
             productdir = os.path.join(toolsdir, os.pardir, os.pardir, "VC")
             productdir = os.path.abspath(productdir)
             if not os.path.isdir(productdir):
-                log.debug("%s is not a valid directory" % productdir)
+                log.debug(f"{productdir} is not a valid directory")
                 return None
         else:
-            log.debug("Env var %s is not set or invalid" % toolskey)
+            log.debug(f"Env var {toolskey} is not set or invalid")
     if not productdir:
         log.debug("No productdir found")
         return None
@@ -362,7 +362,7 @@ class MSVCCompiler(CCompiler):
         assert not self.initialized, "don't init multiple times"
         if self.__version < 8.0:
             raise DistutilsPlatformError(
-                "VC %0.1f is not supported by this module" % self.__version
+                f"VC {self.__version:0.1f} is not supported by this module"
             )
         if plat_name is None:
             plat_name = get_platform()
@@ -405,9 +405,9 @@ class MSVCCompiler(CCompiler):
 
             if len(self.__paths) == 0:
                 raise DistutilsPlatformError(
-                    "Python was built with %s, "
+                    f"Python was built with {self.__product}, "
                     "and extensions need to be built with the same "
-                    "version of the compiler, but it isn't installed." % self.__product
+                    "version of the compiler, but it isn't installed."
                 )
 
             self.cc = self.find_exe("cl.exe")
@@ -474,7 +474,7 @@ class MSVCCompiler(CCompiler):
                 # Better to raise an exception instead of silently continuing
                 # and later complain about sources and targets having
                 # different lengths
-                raise CompileError("Don't know how to compile %s" % src_name)
+                raise CompileError(f"Don't know how to compile {src_name}")
             if strip_dir:
                 base = os.path.basename(base)
             if ext in self._rc_extensions:

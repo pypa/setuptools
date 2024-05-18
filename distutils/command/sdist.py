@@ -150,7 +150,7 @@ class sdist(Command):
 
         bad_format = archive_util.check_archive_formats(self.formats)
         if bad_format:
-            raise DistutilsOptionError("unknown archive format '%s'" % bad_format)
+            raise DistutilsOptionError(f"unknown archive format '{bad_format}'")
 
         if self.dist_dir is None:
             self.dist_dir = "dist"
@@ -288,7 +288,7 @@ class sdist(Command):
                 if self._cs_path_exists(fn):
                     self.filelist.append(fn)
                 else:
-                    self.warn("standard file '%s' not found" % fn)
+                    self.warn(f"standard file '{fn}' not found")
 
     def _add_defaults_optional(self):
         optional = ['tests/test*.py', 'test/test*.py', 'setup.cfg']
@@ -411,7 +411,7 @@ class sdist(Command):
         if self._manifest_is_not_generated():
             log.info(
                 "not writing to manually maintained "
-                "manifest file '%s'" % self.manifest
+                f"manifest file '{self.manifest}'"
             )
             return
 
@@ -420,7 +420,7 @@ class sdist(Command):
         self.execute(
             file_util.write_file,
             (self.manifest, content),
-            "writing manifest file '%s'" % self.manifest,
+            f"writing manifest file '{self.manifest}'",
         )
 
     def _manifest_is_not_generated(self):
@@ -468,10 +468,10 @@ class sdist(Command):
 
         if hasattr(os, 'link'):  # can make hard links on this system
             link = 'hard'
-            msg = "making hard links in %s..." % base_dir
+            msg = f"making hard links in {base_dir}..."
         else:  # nope, have to copy
             link = None
-            msg = "copying files to %s..." % base_dir
+            msg = f"copying files to {base_dir}..."
 
         if not files:
             log.warning("no files to distribute -- empty manifest?")

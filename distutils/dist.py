@@ -262,7 +262,7 @@ Common commands: (see '--help-commands' for more)
                 elif hasattr(self, key):
                     setattr(self, key, val)
                 else:
-                    msg = "Unknown distribution option: %s" % repr(key)
+                    msg = f"Unknown distribution option: {repr(key)}"
                     warnings.warn(msg)
 
         # no-user-cfg is handled before other command line args
@@ -311,9 +311,9 @@ Common commands: (see '--help-commands' for more)
         for cmd_name in commands:
             opt_dict = self.command_options.get(cmd_name)
             if opt_dict is None:
-                self.announce(indent + "no option dict for '%s' command" % cmd_name)
+                self.announce(indent + f"no option dict for '{cmd_name}' command")
             else:
-                self.announce(indent + "option dict for '%s' command:" % cmd_name)
+                self.announce(indent + f"option dict for '{cmd_name}' command:")
                 out = pformat(opt_dict)
                 for line in out.split('\n'):
                     self.announce(indent + "  " + line)
@@ -339,7 +339,7 @@ Common commands: (see '--help-commands' for more)
         files = [str(path) for path in self._gen_paths() if os.path.isfile(path)]
 
         if DEBUG:
-            self.announce("using config files: %s" % ', '.join(files))
+            self.announce("using config files: {}".format(', '.join(files)))
 
         return files
 
@@ -395,7 +395,7 @@ Common commands: (see '--help-commands' for more)
         parser = ConfigParser()
         for filename in filenames:
             if DEBUG:
-                self.announce("  reading %s" % filename)
+                self.announce(f"  reading {filename}")
             parser.read(filename, encoding='utf-8')
             for section in parser.sections():
                 options = parser.options(section)
@@ -525,7 +525,7 @@ Common commands: (see '--help-commands' for more)
         # Pull the current command from the head of the command line
         command = args[0]
         if not command_re.match(command):
-            raise SystemExit("invalid command name '%s'" % command)
+            raise SystemExit(f"invalid command name '{command}'")
         self.commands.append(command)
 
         # Dig up the command class that implements this command, so we
@@ -540,7 +540,7 @@ Common commands: (see '--help-commands' for more)
         # to be sure that the basic "command" interface is implemented.
         if not issubclass(cmd_class, Command):
             raise DistutilsClassError(
-                "command class %s must subclass Command" % cmd_class
+                f"command class {cmd_class} must subclass Command"
             )
 
         # Also make sure that the command object provides a list of its
@@ -668,7 +668,7 @@ Common commands: (see '--help-commands' for more)
                 )
             else:
                 parser.set_option_table(klass.user_options)
-            parser.print_help("Options for '%s' command:" % klass.__name__)
+            parser.print_help(f"Options for '{klass.__name__}' command:")
             print()
 
         print(gen_usage(self.script_name))
@@ -842,7 +842,7 @@ Common commands: (see '--help-commands' for more)
             self.cmdclass[command] = klass
             return klass
 
-        raise DistutilsModuleError("invalid command '%s'" % command)
+        raise DistutilsModuleError(f"invalid command '{command}'")
 
     def get_command_obj(self, command, create=1):
         """Return the command object for 'command'.  Normally this object
@@ -855,7 +855,7 @@ Common commands: (see '--help-commands' for more)
             if DEBUG:
                 self.announce(
                     "Distribution.get_command_obj(): "
-                    "creating '%s' command object" % command
+                    f"creating '{command}' command object"
                 )
 
             klass = self.get_command_class(command)
@@ -887,7 +887,7 @@ Common commands: (see '--help-commands' for more)
             option_dict = self.get_option_dict(command_name)
 
         if DEBUG:
-            self.announce("  setting options for '%s' command:" % command_name)
+            self.announce(f"  setting options for '{command_name}' command:")
         for option, (source, value) in option_dict.items():
             if DEBUG:
                 self.announce(f"    {option} = {value} (from {source})")
@@ -1149,9 +1149,9 @@ class DistributionMetadata:
             version = '1.1'
 
         # required fields
-        file.write('Metadata-Version: %s\n' % version)
-        file.write('Name: %s\n' % self.get_name())
-        file.write('Version: %s\n' % self.get_version())
+        file.write(f'Metadata-Version: {version}\n')
+        file.write(f'Name: {self.get_name()}\n')
+        file.write(f'Version: {self.get_version()}\n')
 
         def maybe_write(header, val):
             if val:
