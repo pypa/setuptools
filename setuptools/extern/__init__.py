@@ -78,6 +78,7 @@ class VendorImporter:
 # ]]]
 names = (
     'backports',
+    'bin',
     'importlib_metadata',
     'importlib_resources',
     'jaraco',
@@ -85,6 +86,7 @@ names = (
     'ordered_set',
     'packaging',
     'tomli',
+    'wheel',
     'zipp',
 )
 # [[[end]]]
