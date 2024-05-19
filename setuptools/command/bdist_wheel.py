@@ -22,14 +22,11 @@ from shutil import rmtree
 from typing import TYPE_CHECKING, Callable, Iterable, Literal, Sequence, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
-import setuptools
-from setuptools import Command
-
-from .. import __version__
-from .._vendor.wheel.metadata import pkginfo_to_metadata
-from .._vendor.packaging import tags
-from .._vendor.packaging import version as _packaging_version
-from .._vendor.wheel.wheelfile import WheelFile
+from .. import Command, __version__
+from ..extern.wheel.metadata import pkginfo_to_metadata
+from ..extern.packaging import tags
+from ..extern.packaging import version as _packaging_version
+from ..extern.wheel.wheelfile import WheelFile
 
 if TYPE_CHECKING:
     import types
@@ -54,7 +51,7 @@ def safe_version(version: str) -> str:
         return re.sub("[^A-Za-z0-9.]+", "-", version)
 
 
-setuptools_major_version = int(setuptools.__version__.split(".")[0])
+setuptools_major_version = int(__version__.split(".")[0])
 
 PY_LIMITED_API_PATTERN = r"cp3\d"
 
