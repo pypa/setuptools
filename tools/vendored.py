@@ -171,6 +171,8 @@ def yield_top_level(name):
     >>> examples = roots & {"jaraco", "backports", "zipp"}
     >>> list(sorted(examples))
     ['backports', 'jaraco', 'zipp']
+    >>> 'bin' in examples
+    False
     """
     vendor = Path(f"{name}/_vendor")
     ignore = {"__pycache__", "__init__.py", ".ruff_cache", "bin"}
