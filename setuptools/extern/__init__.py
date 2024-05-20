@@ -78,7 +78,6 @@ class VendorImporter:
 # ]]]
 names = (
     'backports',
-    'bin',
     'importlib_metadata',
     'importlib_resources',
     'jaraco',
