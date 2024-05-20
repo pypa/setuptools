@@ -10,7 +10,7 @@ recursive-include newsfragments *
 include *.py
 include *.rst
 include MANIFEST.in
-include LICENSE
+global-include LICEN[CS]E* COPYING* NOTICE* AUTHORS*
 include launcher.c
 include msvc-build-launcher.cmd
 include mypy.ini
