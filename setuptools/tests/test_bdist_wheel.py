@@ -455,6 +455,6 @@ def test_no_ctypes(monkeypatch) -> None:
         if module.startswith("wheel"):
             monkeypatch.delitem(sys.modules, module)
 
-    from setuptools.extern.wheel import bdist_wheel
+    from setuptools.command import bdist_wheel
 
     assert bdist_wheel
