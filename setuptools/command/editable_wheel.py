@@ -335,7 +335,7 @@ class editable_wheel(Command):
             )
 
     def _create_wheel_file(self, bdist_wheel):
-        from .._vendor.wheel.wheelfile import WheelFile
+        from ..extern.wheel.wheelfile import WheelFile
 
         dist_info = self.get_finalized_command("dist_info")
         dist_name = dist_info.name
