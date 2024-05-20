@@ -10,6 +10,7 @@ import struct
 import subprocess
 import sys
 import sysconfig
+from functools import partial
 from inspect import cleandoc
 from unittest.mock import Mock
 from zipfile import ZipFile
@@ -55,6 +56,40 @@ setup(
     version='1.0',
 )
 """
+
+
+@pytest.fixture(scope="module")
+def wheel_paths(request, tmp_path_factory):
+    test_distributions = (
+        "complex-dist",
+        "simple.dist",
+        "headers.dist",
+        "commasinfilenames.dist",
+        "unicode.dist",
+    )
+
+    if sys.platform != "win32":
+        # ABI3 extensions don't really work on Windows
+        test_distributions += ("abi3extension.dist",)
+
+    pwd = os.path.abspath(os.curdir)
+    request.addfinalizer(partial(os.chdir, pwd))
+    this_dir = os.path.dirname(__file__)
+    build_dir = tmp_path_factory.mktemp("build")
+    dist_dir = tmp_path_factory.mktemp("dist")
+    for dist in test_distributions:
+        os.chdir(os.path.join(this_dir, "bdist_wheel_testdata", dist))
+        subprocess.check_call([
+            sys.executable,
+            "setup.py",
+            "bdist_wheel",
+            "-b",
+            str(build_dir),
+            "-d",
+            str(dist_dir),
+        ])
+
+    return sorted(str(fname) for fname in dist_dir.iterdir() if fname.suffix == ".whl")
 
 
 @pytest.fixture
@@ -227,7 +262,7 @@ def test_build_number(dummy_dist, monkeypatch, tmp_path):
 def test_limited_abi(monkeypatch, tmp_path):
     """Test that building a binary wheel with the limited ABI works."""
     this_dir = os.path.dirname(__file__)
-    source_dir = os.path.join(this_dir, "testdata", "extension.dist")
+    source_dir = os.path.join(this_dir, "bdist_wheel_testdata", "extension.dist")
     build_dir = tmp_path.joinpath("build")
     dist_dir = tmp_path.joinpath("dist")
     monkeypatch.chdir(source_dir)

@@ -230,8 +230,8 @@ class bdist_wheel(Command):
 
     boolean_options = ["keep-temp", "skip-build", "relative", "universal"]
 
-    def initialize_options(self):
-        self.bdist_dir: str = None
+    def initialize_options(self) -> None:
+        self.bdist_dir: str | None = None
         self.data_dir = None
         self.plat_name: str | None = None
         self.plat_tag = None
