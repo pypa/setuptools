@@ -22,8 +22,8 @@ from setuptools.command.bdist_wheel import (
     remove_readonly,
     remove_readonly_exc,
 )
-from setuptools._vendor.packaging import tags
-from setuptools._vendor.wheel.wheelfile import WheelFile
+from setuptools.extern.packaging import tags
+from setuptools.extern.wheel.wheelfile import WheelFile
 
 DEFAULT_FILES = {
     "dummy_dist-1.0.dist-info/top_level.txt",
@@ -455,6 +455,6 @@ def test_no_ctypes(monkeypatch) -> None:
         if module.startswith("wheel"):
             monkeypatch.delitem(sys.modules, module)
 
-    from wheel import bdist_wheel
+    from setuptools.extern.wheel import bdist_wheel
 
     assert bdist_wheel
