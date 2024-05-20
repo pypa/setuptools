@@ -10,9 +10,10 @@ from setuptools.command.install import install
 here = os.path.dirname(__file__)
 
 
-package_data = dict(
-    setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
-)
+package_data = {
+    "": ["LICEN[CS]E*", "COPYING*", "NOTICE*", "AUTHORS*"],
+    "setuptools": ['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
+}
 
 force_windows_specific_files = os.environ.get(
     "SETUPTOOLS_INSTALL_WINDOWS_SPECIFIC_FILES", "1"
