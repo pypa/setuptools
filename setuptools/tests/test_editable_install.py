@@ -396,11 +396,6 @@ class TestPep420Namespaces:
         assert "mypkg.other not defined" in out
 
 
-# Moved here from test_develop:
-@pytest.mark.xfail(
-    platform.python_implementation() == 'PyPy',
-    reason="Workaround fails on PyPy (why?)",
-)
 def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     """
     Editable install to a prefix should be discoverable.
