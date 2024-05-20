@@ -173,7 +173,7 @@ def yield_top_level(name):
     ['backports', 'jaraco', 'zipp']
     """
     vendor = Path(f"{name}/_vendor")
-    ignore = {"__pycache__", "__init__.py", ".ruff_cache"}
+    ignore = {"__pycache__", "__init__.py", ".ruff_cache", "bin"}
 
     for item in sorted(vendor.iterdir()):
         if item.name in ignore:
