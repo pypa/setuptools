@@ -1318,7 +1318,7 @@ class TestCannotTagStaticVersion:
             ),
         ],
     )
-    def test_egg_info_tag(self, tmp_path, config_files, script_args):
+    def test_cannot_tag(self, tmp_path, config_files, script_args):
         stack = path.DirectoryStack()
         with stack.context(tmp_path):
             path.build(config_files)
@@ -1328,6 +1328,61 @@ class TestCannotTagStaticVersion:
             ei = dist.get_command_obj("egg_info")
             with pytest.warns(_CannotTagStaticVersion):
                 ei.finalize_options()
+
+    DYNAMIC_VERSION = DALS(
+        """
+        [project]
+        name = "test"
+        dynamic = ["version"]
+        """
+    )
+
+    @pytest.mark.parametrize(
+        "config_files, script_args",
+        [
+            ({"pyproject.toml": DYNAMIC_VERSION}, ["egg_info", "--tag-build", ".post"]),
+            (
+                {
+                    "pyproject.toml": DYNAMIC_VERSION,
+                    "setup.cfg": DALS(
+                        """
+                        [metadata]
+                        version = 42
+                        [egg_info]
+                        tag_date = 1
+                        """
+                    ),
+                },
+                ["egg_info"],
+            ),
+            (
+                {
+                    "pyproject.toml": DYNAMIC_VERSION
+                    + "\n"
+                    + DALS(
+                        """
+                        [tool.distutils.egg-info]
+                        tag-build = ".post"
+                        """
+                    )
+                },
+                ["egg_info"],
+            ),
+        ],
+    )
+    def test_allowed_tag(self, tmp_path, config_files, script_args, monkeypatch):
+        reproducible_date = '22220101'
+
+        stack = path.DirectoryStack()
+        with stack.context(tmp_path):
+            path.build(config_files)
+            dist = Distribution({"script_args": script_args, "script_name": "test.py"})
+            dist.parse_config_files()
+            dist.parse_command_line()
+            ei = dist.get_command_obj("egg_info")
+            monkeypatch.setattr(ei, '_get_date', lambda *_: reproducible_date)
+            ei.finalize_options()
+            assert ".post" in ei.egg_version or reproducible_date in ei.egg_version
 
 
 class TestWriteEntries:

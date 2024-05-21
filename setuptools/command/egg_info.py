@@ -158,8 +158,12 @@ class InfoCommon:
         if self.tag_build:
             version += self.tag_build
         if self.tag_date:
-            version += time.strftime("%Y%m%d")
+            version += self._get_date()
         return version
+
+    def _get_date(self):
+        # Separate method => easier to patch in test for determinism
+        return time.strftime("%Y%m%d")
 
     vtags = property(tags)
 
