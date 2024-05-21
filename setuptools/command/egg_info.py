@@ -28,7 +28,7 @@ import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
 from setuptools.extern import packaging
-from ..warnings import SetuptoolsWarning, SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsDeprecationWarning
 
 
 PY_MAJOR = '{}.{}'.format(*sys.version_info)
@@ -755,7 +755,7 @@ class EggInfoDeprecationWarning(SetuptoolsDeprecationWarning):
     """Deprecated behavior warning for EggInfo, bypassing suppression."""
 
 
-class _CannotTagStaticVersion(SetuptoolsWarning):
+class _CannotTagStaticVersion(SetuptoolsDeprecationWarning):
     _SUMMARY = "Cannot modify `project.version` statically defined in `pyproject.toml`."
 
     _DETAILS = """
@@ -772,5 +772,5 @@ class _CannotTagStaticVersion(SetuptoolsWarning):
         "https://packaging.python.org/en/latest/specifications/pyproject-toml/#dynamic"
     )
 
-    _DUE_DATE = (2025, 5, 21)  # Introduced in (2024, 5, 21)
+    _DUE_DATE = (2025, 1, 21)  # Introduced in (2024, 5, 21)
     # TODO: Bump for 6 months before converting to error, see #4372 for detailed plan.
