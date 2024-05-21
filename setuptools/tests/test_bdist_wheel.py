@@ -10,6 +10,7 @@ import struct
 import subprocess
 import sys
 import sysconfig
+from contextlib import suppress
 from functools import partial
 from inspect import cleandoc
 from unittest.mock import Mock
@@ -482,14 +483,16 @@ def test_no_ctypes(monkeypatch) -> None:
 
         return importlib.__import__(name, *args, **kwargs)
 
+    with suppress(KeyError):
+        monkeypatch.delitem(sys.modules, "setuptools.extern.wheel.macosx_libfile")
+
     # Install an importer shim that refuses to load ctypes
     monkeypatch.setattr(builtins, "__import__", _fake_import)
+    with pytest.raises(ModuleNotFoundError, match="No module named ctypes"):
+        import setuptools.extern.wheel.macosx_libfile
 
-    # Unload all wheel modules
-    for module in list(sys.modules):
-        if module.startswith("wheel"):
-            monkeypatch.delitem(sys.modules, module)
+    # Unload and reimport the bdist_wheel command module to make sure it won't try to
+    # import ctypes
+    monkeypatch.delitem(sys.modules, "setuptools.command.bdist_wheel")
 
-    from setuptools.command import bdist_wheel
-
-    assert bdist_wheel
+    import setuptools.command.bdist_wheel  # noqa: F401
