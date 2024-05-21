@@ -1,0 +1,6 @@
+Started the process to improve compliance of ``egg_info.tag_date`` and
+``egg_info.tag_build`` with the restrictions about dynamic versions in
+the :doc:`packaging:specifications/pyproject-toml`.
+The first step implemented is to issue a warning when ``tag_data/tag_info``
+are used together with static versions.
+In future releases after the grade period, this warning will be converted to an error.
