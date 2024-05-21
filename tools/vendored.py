@@ -4,7 +4,7 @@ import sys
 import subprocess
 from textwrap import dedent
 
-from pathlib import Path
+from path import Path
 
 
 def remove_all(paths):
@@ -117,7 +117,7 @@ def rewrite_wheel(pkg_files: Path):
 
     # Rewrite vendored imports to use setuptools's own vendored libraries
     for path in pkg_files.iterdir():
-        if path.suffix == '.py':
+        if path.suffix == '.py':  # type: ignore[attr-defined]
             code = path.read_text()
             if path.name == 'wheelfile.py':
                 code = re.sub(
@@ -155,7 +155,7 @@ def rewrite_wheel(pkg_files: Path):
                     flags=re.MULTILINE,
                 )
 
-            path.write_text(code)
+            path.write_text(code)  # type: ignore[attr-defined]
 
 
 def rewrite_platformdirs(pkg_files: Path):
