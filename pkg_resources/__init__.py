@@ -1678,6 +1678,7 @@ is not allowed.
             os.path.pardir in path.split(posixpath.sep)
             or posixpath.isabs(path)
             or ntpath.isabs(path)
+            or path.startswith("\\")
         )
         if not invalid:
             return
@@ -1685,7 +1686,7 @@ is not allowed.
         msg = "Use of .. or absolute path in a resource path is not allowed."
 
         # Aggressively disallow Windows absolute paths
-        if ntpath.isabs(path) and not posixpath.isabs(path):
+        if (path.startswith("\\") or ntpath.isabs(path)) and not posixpath.isabs(path):
             raise ValueError(msg)
 
         # for compatibility, warn; in future

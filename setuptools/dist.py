@@ -409,8 +409,8 @@ class Distribution(_Distribution):
         """
         >>> list(Distribution._expand_patterns(['LICENSE']))
         ['LICENSE']
-        >>> list(Distribution._expand_patterns(['setup.cfg', 'LIC*']))
-        ['setup.cfg', 'LICENSE']
+        >>> list(Distribution._expand_patterns(['pyproject.toml', 'LIC*']))
+        ['pyproject.toml', 'LICENSE']
         """
         return (
             path
