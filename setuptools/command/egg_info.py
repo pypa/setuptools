@@ -228,7 +228,7 @@ class egg_info(InfoCommon, Command):
         if "version" not in pyproject_metadata:
             return  # version is dynamic, everything is fine.
 
-        # TODO: after 1st warning period, use `pop` instead of `get`, so options are ignored
+        # TODO: after 1st warning period, reset values to None.
         if self.tag_build or self.tag_date:
             # TODO: after 2nd warning period raise error instead of warning. See #4372
             _CannotTagStaticVersion.emit()
