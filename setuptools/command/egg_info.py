@@ -764,7 +764,7 @@ class _CannotTagStaticVersion(SetuptoolsDeprecationWarning):
 
     You should avoid `project.version` and instead use `project.dynamic` if you want the
     version to be dynamically modified during build time. See dynamic configuration
-    options for setuptools are described in:
+    options for setuptools described in:
     https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata.
     """
 
