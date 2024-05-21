@@ -4,7 +4,7 @@ import sys
 import subprocess
 from textwrap import dedent
 
-from path import Path
+from pathlib import Path
 
 
 def remove_all(paths):
