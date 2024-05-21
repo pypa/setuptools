@@ -169,10 +169,6 @@ exclude = [
 ]
 namespaces = true
 
-[tool.distutils.egg_info]
-tag-build = ".post"
-tag-date = 1
-
 [tool.distutils.sdist]
 formats = "zip"
 
