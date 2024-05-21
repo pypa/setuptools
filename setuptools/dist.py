@@ -10,7 +10,7 @@ import sys
 from contextlib import suppress
 from glob import iglob
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, MutableMapping, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, MutableMapping, Optional, Set, Tuple
 
 import distutils.cmd
 import distutils.command
@@ -306,10 +306,17 @@ class Distribution(_Distribution):
         dist_attrs = {k: v for k, v in attrs.items() if k not in metadata_only}
         _Distribution.__init__(self, dist_attrs)
 
-        # Private API (setuptools-use only, not restricted to Distribution)
+        # --- Private API (setuptools-use only, not restricted to Distribution) ---
+
         # Stores files that are referenced by the configuration and need to be in the
         # sdist (e.g. `version = file: VERSION.txt`)
         self._referenced_files: Set[str] = set()
+
+        # Stores a copy of the information that is consumed during configuration
+        # but that is still needed for commands to run (e.g. `dynamic` for `egg-info`)
+        self._config_info: Dict[str, Any] = {}
+
+        # --- ---
 
         self.set_defaults = ConfigDiscovery(self)
 

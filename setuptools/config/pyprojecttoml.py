@@ -9,6 +9,7 @@ For simple scenarios, you can also try parsing the file directly
 with the help of ``tomllib`` or ``tomli``.
 """
 
+import copy
 import logging
 import os
 from contextlib import contextmanager
@@ -196,6 +197,7 @@ class _ConfigExpander:
         return _expand.canonic_package_data(package_data)
 
     def expand(self):
+        pyproject_metadata = copy.deepcopy(self.project_cfg)
         self._expand_packages()
         self._canonic_package_data()
         self._canonic_package_data("exclude-package-data")
@@ -210,6 +212,7 @@ class _ConfigExpander:
             self._expand_all_dynamic(dist, package_dir)
 
         dist._referenced_files.update(self._referenced_files)
+        dist._config_info.update(pyproject_metadata=pyproject_metadata)
         return self.config
 
     def _expand_packages(self):

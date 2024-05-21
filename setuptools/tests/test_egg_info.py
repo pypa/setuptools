@@ -14,6 +14,7 @@ from jaraco import path
 
 from setuptools import errors
 from setuptools.command.egg_info import (
+    _CannotTagStaticVersion,
     egg_info,
     manifest_maker,
     write_entries,
@@ -1275,6 +1276,58 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as fp:
             pkg_info_lines = fp.read().split('\n')
         assert 'Version: 0.0.0.dev0' in pkg_info_lines
+
+
+class TestCannotTagStaticVersion:
+    STATIC_VERSION = DALS(
+        """
+        [project]
+        name = "test"
+        version = "42"
+        """
+    )
+
+    @pytest.mark.parametrize(
+        "config_files, script_args",
+        [
+            ({"pyproject.toml": STATIC_VERSION}, ["egg_info", "--tag-date"]),
+            (
+                {
+                    "pyproject.toml": STATIC_VERSION,
+                    "setup.cfg": DALS(
+                        """
+                        [egg_info]
+                        tag_build = .post
+                        """
+                    ),
+                },
+                ["egg_info"],
+            ),
+            (
+                {
+                    "pyproject.toml": STATIC_VERSION
+                    + "\n"
+                    + DALS(
+                        """
+                        [tool.distutils.egg-info]
+                        tag-date = 1
+                        """
+                    )
+                },
+                ["egg_info"],
+            ),
+        ],
+    )
+    def test_egg_info_tag(self, tmp_path, config_files, script_args):
+        stack = path.DirectoryStack()
+        with stack.context(tmp_path):
+            path.build(config_files)
+            dist = Distribution({"script_args": script_args, "script_name": "test.py"})
+            dist.parse_config_files()
+            dist.parse_command_line()
+            ei = dist.get_command_obj("egg_info")
+            with pytest.warns(_CannotTagStaticVersion):
+                ei.finalize_options()
 
 
 class TestWriteEntries:

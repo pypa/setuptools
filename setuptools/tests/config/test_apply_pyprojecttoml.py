@@ -14,7 +14,6 @@ from unittest.mock import Mock
 from zipfile import ZipFile
 
 import pytest
-import jaraco.path
 from ini2toml.api import LiteTranslator
 
 from packaging.metadata import Metadata
@@ -23,11 +22,7 @@ import setuptools  # noqa ensure monkey patch to metadata
 from setuptools.dist import Distribution
 from setuptools.config import setupcfg, pyprojecttoml
 from setuptools.config import expand
-from setuptools.config._apply_pyprojecttoml import (
-    _CannotTagStaticVersion,
-    _MissingDynamic,
-    _some_attrgetter,
-)
+from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.command.egg_info import write_requirements
 from setuptools.errors import RemovedConfigError
 
@@ -449,56 +444,6 @@ class TestInteropCommandLineParsing:
         dist.parse_command_line()  # <-- there should be no exception here.
         captured = capsys.readouterr()
         assert "42.0" in captured.out
-
-
-class TestCannotTagStaticVersion:
-    STATIC_VERSION = cleandoc(
-        """
-        [project]
-        name = "test"
-        version = "42"
-        """
-    )
-
-    @pytest.mark.parametrize(
-        "config_files, script_args",
-        [
-            ({"pyproject.toml": STATIC_VERSION}, ["egg_info", "--tag-date"]),
-            (
-                {
-                    "pyproject.toml": STATIC_VERSION,
-                    "setup.cfg": cleandoc(
-                        """
-                        [egg_info]
-                        tag_build = .post
-                        """
-                    ),
-                },
-                ["sdist"],
-            ),
-            (
-                {
-                    "pyproject.toml": STATIC_VERSION
-                    + "\n"
-                    + cleandoc(
-                        """
-                        [tool.distutils.egg-info]
-                        tag-date = 1
-                        """
-                    )
-                },
-                ["sdist"],
-            ),
-        ],
-    )
-    def test_egg_info_tag(self, tmp_path, config_files, script_args):
-        stack = jaraco.path.DirectoryStack()
-        with stack.context(tmp_path):
-            jaraco.path.build(config_files)
-            dist = makedist(".", script_args=script_args, script_name="test.py")
-            with pytest.warns(_CannotTagStaticVersion):
-                dist.parse_config_files()
-                dist.parse_command_line()
 
 
 # --- Auxiliary Functions ---

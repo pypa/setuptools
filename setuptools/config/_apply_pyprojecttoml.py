@@ -105,7 +105,6 @@ def _apply_tool_table(dist: "Distribution", config: dict, filename: StrPath):
         _set_config(dist, norm_key, value)
 
     _copy_command_options(config, dist, filename)
-    _avoid_tagging_static_version(config, dist)
 
 
 def _handle_missing_dynamic(dist: "Distribution", project_table: dict):
@@ -281,19 +280,6 @@ def _valid_command_options(cmdclass: Mapping = EMPTY) -> Dict[str, Set[str]]:
     return valid_options
 
 
-def _avoid_tagging_static_version(pyproject: dict, dist: "Distribution") -> None:
-    if not pyproject.get("project", {}).get("version"):
-        return  # version is not static, everything is fine.
-
-    # TODO: after 1st warning period, use `pop` instead of `get`, so options are ignored
-    opts = dist.command_options.get("egg_info", {})
-    tag_build = opts.get("tag_build", (None, None))[1]
-    tag_date = opts.get("tag_date", (None, None))[1]
-    if tag_build or tag_date:
-        # TODO: after 2nd warning period raise error instead of warning
-        _CannotTagStaticVersion.emit()
-
-
 def _load_ep(ep: "metadata.EntryPoint") -> Optional[Tuple[str, Type]]:
     # Ignore all the errors
     try:
@@ -451,24 +437,3 @@ class _MissingDynamic(SetuptoolsWarning):
     @classmethod
     def details(cls, field: str, value: Any) -> str:
         return cls._DETAILS.format(field=field, value=value)
-
-
-class _CannotTagStaticVersion(SetuptoolsWarning):
-    _SUMMARY = "Cannot modify `project.version` statically defined in `pyproject.toml`."
-
-    _DETAILS = """
-    Setuptools cannot apply `tag_build` or `tag_date` options when
-    `version` is defined in the `[project]` table.
-
-    You should avoid `project.version` and instead use `project.dynamic` if you want the
-    version to be dynamically modified during build time. See dynamic configuration
-    options for setuptools are described in:
-    https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata.
-    """
-
-    _SEE_URL = (
-        "https://packaging.python.org/en/latest/specifications/pyproject-toml/#dynamic"
-    )
-
-    _DUE_DATE = (2025, 5, 21)  # Introduced in (2024, 5, 21)
-    # TODO: Bump for 6 months before converting to error, see # for detailed plan.

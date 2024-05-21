@@ -28,7 +28,7 @@ import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
 from setuptools.extern import packaging
-from ..warnings import SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsWarning, SetuptoolsDeprecationWarning
 
 
 PY_MAJOR = '{}.{}'.format(*sys.version_info)
@@ -217,12 +217,25 @@ class egg_info(InfoCommon, Command):
         egg_info['tag_date'] = 0
         edit_config(filename, dict(egg_info=egg_info))
 
+    def _avoid_tagging_static_version(self) -> None:
+        config_info = getattr(self.distribution, "_config_info", None) or {}
+        pyproject_metadata = config_info.get("pyproject_metadata") or {}
+        if "version" not in pyproject_metadata:
+            return  # version is not static, everything is fine.
+
+        # TODO: after 1st warning period, use `pop` instead of `get`, so options are ignored
+        if self.tag_build or self.tag_date:
+            # TODO: after 2nd warning period raise error instead of warning
+            _CannotTagStaticVersion.emit()
+
     def finalize_options(self):
         # Note: we need to capture the current value returned
         # by `self.tagged_version()`, so we can later update
         # `self.distribution.metadata.version` without
         # repercussions.
         self.egg_name = self.name
+
+        self._avoid_tagging_static_version()
         self.egg_version = self.tagged_version()
         parsed_version = packaging.version.Version(self.egg_version)
 
@@ -735,3 +748,24 @@ def _egg_basename(egg_name, egg_version, py_version=None, platform=None):
 
 class EggInfoDeprecationWarning(SetuptoolsDeprecationWarning):
     """Deprecated behavior warning for EggInfo, bypassing suppression."""
+
+
+class _CannotTagStaticVersion(SetuptoolsWarning):
+    _SUMMARY = "Cannot modify `project.version` statically defined in `pyproject.toml`."
+
+    _DETAILS = """
+    Setuptools cannot apply `tag_build` or `tag_date` options when
+    `version` is defined in the `[project]` table.
+
+    You should avoid `project.version` and instead use `project.dynamic` if you want the
+    version to be dynamically modified during build time. See dynamic configuration
+    options for setuptools are described in:
+    https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata.
+    """
+
+    _SEE_URL = (
+        "https://packaging.python.org/en/latest/specifications/pyproject-toml/#dynamic"
+    )
+
+    _DUE_DATE = (2025, 5, 21)  # Introduced in (2024, 5, 21)
+    # TODO: Bump for 6 months before converting to error, see # for detailed plan.
