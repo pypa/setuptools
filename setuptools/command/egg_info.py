@@ -223,13 +223,14 @@ class egg_info(InfoCommon, Command):
 
     def _avoid_tagging_static_version(self) -> None:
         config_info = getattr(self.distribution, "_config_info", None) or {}
+        # ^-- fallback if dist comes from distutils or is a custom class
         pyproject_metadata = config_info.get("pyproject_metadata") or {}
         if "version" not in pyproject_metadata:
-            return  # version is not static, everything is fine.
+            return  # version is dynamic, everything is fine.
 
         # TODO: after 1st warning period, use `pop` instead of `get`, so options are ignored
         if self.tag_build or self.tag_date:
-            # TODO: after 2nd warning period raise error instead of warning
+            # TODO: after 2nd warning period raise error instead of warning. See #4372
             _CannotTagStaticVersion.emit()
 
     def finalize_options(self):
@@ -772,4 +773,4 @@ class _CannotTagStaticVersion(SetuptoolsWarning):
     )
 
     _DUE_DATE = (2025, 5, 21)  # Introduced in (2024, 5, 21)
-    # TODO: Bump for 6 months before converting to error, see # for detailed plan.
+    # TODO: Bump for 6 months before converting to error, see #4372 for detailed plan.
