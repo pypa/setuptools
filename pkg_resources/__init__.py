@@ -22,7 +22,7 @@ This module is deprecated. Users are directed to :mod:`importlib.resources`,
 
 import sys
 
-if sys.version_info < (3, 8):
+if sys.version_info < (3, 8):  # noqa: UP036 # Check for unsupported versions
     raise RuntimeError("Python 3.8 or later is required")
 
 import os
