@@ -39,6 +39,7 @@ collect_ignore = [
     'pkg_resources/_vendor',
     'setuptools/config/_validate_pyproject',
     'setuptools/modified.py',
+    'setuptools/tests/bdist_wheel_testdata',
 ]
 
 
