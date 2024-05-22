@@ -9,3 +9,4 @@ zipp==3.7.0
 tomli==2.0.1
 # required for jaraco.context on older Pythons
 backports.tarfile
+wheel==0.43.0

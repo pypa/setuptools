@@ -349,7 +349,7 @@ class TestTypeInfoFiles:
             name = "foo"
             version = "1"
 
-            [tools.setuptools]
+            [tool.setuptools]
             include-package-data = false
             """
         ),
@@ -359,7 +359,7 @@ class TestTypeInfoFiles:
             name = "foo"
             version = "1"
 
-            [tools.setuptools]
+            [tool.setuptools]
             include-package-data = false
 
             [tool.setuptools.exclude-package-data]
@@ -409,7 +409,14 @@ class TestTypeInfoFiles:
     }
 
     @pytest.mark.parametrize(
-        "pyproject", ["default_pyproject", "dont_include_package_data"]
+        "pyproject",
+        [
+            "default_pyproject",
+            pytest.param(
+                "dont_include_package_data",
+                marks=pytest.mark.xfail(reason="pypa/setuptools#4350"),
+            ),
+        ],
     )
     @pytest.mark.parametrize("example", EXAMPLES.keys())
     def test_type_files_included_by_default(self, tmpdir_cwd, pyproject, example):

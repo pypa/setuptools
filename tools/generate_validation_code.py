@@ -14,7 +14,7 @@ def generate_pyproject_validation(dest: Union[str, PathLike]):
     cmd = [
         sys.executable,
         "-m",
-        "validate_pyproject.vendoring",
+        "validate_pyproject.pre_compile",
         f"--output-dir={dest}",
         "--enable-plugins",
         "setuptools",

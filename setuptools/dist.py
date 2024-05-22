@@ -409,8 +409,8 @@ class Distribution(_Distribution):
         """
         >>> list(Distribution._expand_patterns(['LICENSE']))
         ['LICENSE']
-        >>> list(Distribution._expand_patterns(['setup.cfg', 'LIC*']))
-        ['setup.cfg', 'LICENSE']
+        >>> list(Distribution._expand_patterns(['pyproject.toml', 'LIC*']))
+        ['pyproject.toml', 'LICENSE']
         """
         return (
             path
@@ -709,6 +709,12 @@ class Distribution(_Distribution):
         """Pluggable version of get_command_class()"""
         if command in self.cmdclass:
             return self.cmdclass[command]
+
+        # Special case bdist_wheel so it's never loaded from "wheel"
+        if command == 'bdist_wheel':
+            from .command.bdist_wheel import bdist_wheel
+
+            return bdist_wheel
 
         eps = metadata.entry_points(group='distutils.commands', name=command)
         for ep in eps:

@@ -1,3 +1,59 @@
+v70.0.0
+=======
+
+Features
+--------
+
+- Emit a warning when ``[tools.setuptools]`` is present in ``pyproject.toml`` and will be ignored. -- by :user:`SnoopJ` (#4150)
+- Improved `AttributeError` error message if ``pkg_resources.EntryPoint.require`` is called without extras or distribution
+  Gracefully "do nothing" when trying to activate a ``pkg_resources.Distribution`` with a `None` location, rather than raising a `TypeError`
+  -- by :user:`Avasam` (#4262)
+- Typed the dynamically defined variables from `pkg_resources` -- by :user:`Avasam` (#4267)
+- Modernized and refactored VCS handling in package_index. (#4332)
+
+
+Bugfixes
+--------
+
+- In install command, use super to call the superclass methods. Avoids race conditions when monkeypatching from _distutils_system_mod occurs late. (#4136)
+- Fix finder template for lenient editable installs of implicit nested namespaces
+  constructed by using ``package_dir`` to reorganise directory structure. (#4278)
+- Fix an error with `UnicodeDecodeError` handling in ``pkg_resources`` when trying to read files in UTF-8 with a fallback -- by :user:`Avasam` (#4348)
+
+
+Improved Documentation
+----------------------
+
+- Uses RST substitution to put badges in 1 line. (#4312)
+
+
+Deprecations and Removals
+-------------------------
+
+- Further adoption of UTF-8 in ``setuptools``.
+  This change regards mostly files produced and consumed during the build process
+  (e.g. metadata files, script wrappers, automatically updated config files, etc..)
+  Although precautions were taken to minimize disruptions, some edge cases might
+  be subject to backwards incompatibility.
+
+  Support for ``"locale"`` encoding is now **deprecated**. (#4309)
+- Remove ``setuptools.convert_path`` after long deprecation period.
+  This function was never defined by ``setuptools`` itself, but rather a
+  side-effect of an import for internal usage. (#4322)
+- Remove fallback for customisations of ``distutils``' ``build.sub_command`` after long
+  deprecated period.
+  Users are advised to import ``build`` directly from ``setuptools.command.build``. (#4322)
+- Removed ``typing_extensions`` from vendored dependencies -- by :user:`Avasam` (#4324)
+- Remove deprecated ``setuptools.dep_util``.
+  The provided alternative is ``setuptools.modified``. (#4360)
+
+
+Misc
+----
+
+- #4255, #4280, #4282, #4308, #4348
+
+
 v69.5.1
 =======
 

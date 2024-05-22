@@ -322,7 +322,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             )
 
     def get_requires_for_build_wheel(self, config_settings=None):
-        return self._get_build_requires(config_settings, requirements=['wheel'])
+        return self._get_build_requires(config_settings, requirements=[])
 
     def get_requires_for_build_sdist(self, config_settings=None):
         return self._get_build_requires(config_settings, requirements=[])

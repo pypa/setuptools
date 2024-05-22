@@ -1,1 +1,0 @@
-Removed ``typing_extensions`` from vendored dependencies -- by :user:`Avasam`

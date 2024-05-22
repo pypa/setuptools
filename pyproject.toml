@@ -3,4 +3,174 @@ requires = []
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
+[project]
+name = "setuptools"
+version = "70.0.0"
+authors = [
+	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
+]
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+readme = "README.rst"
+classifiers = [
+	"Development Status :: 5 - Production/Stable",
+	"Intended Audience :: Developers",
+	"License :: OSI Approved :: MIT License",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3 :: Only",
+	"Topic :: Software Development :: Libraries :: Python Modules",
+	"Topic :: System :: Archiving :: Packaging",
+	"Topic :: System :: Systems Administration",
+	"Topic :: Utilities",
+]
+keywords = ["CPAN PyPI distutils eggs package management"]
+requires-python = ">=3.8"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/pypa/setuptools"
+Documentation = "https://setuptools.pypa.io/"
+Changelog = "https://setuptools.pypa.io/en/stable/history.html"
+
+[project.optional-dependencies]
+testing = [
+	# upstream
+	"pytest >= 6, != 8.1.1",
+	"pytest-checkdocs >= 2.4",
+	'pytest-cov; python_implementation != "PyPy"', # coverage seems to make PyPy extremely slow
+	"pytest-mypy",
+	"pytest-enabler >= 2.2",
+	# workaround for pypa/setuptools#3921
+	'pytest-ruff >= 0.2.1; sys_platform != "cygwin"',
+
+	# local
+	"virtualenv>=13.0.0",
+	"wheel",
+	"pip>=19.1", # For proper file:// URLs support.
+	"packaging>=23.2",
+	"jaraco.envs>=2.2",
+	"pytest-xdist>=3", # Dropped dependency on pytest-fork and py
+	"jaraco.path>=3.2.0",
+	"build[virtualenv]>=1.0.3",
+	"filelock>=3.4.0",
+	"ini2toml[lite]>=0.14",
+	"tomli-w>=1.0.0",
+	"pytest-timeout",
+	'pytest-perf; sys_platform != "cygwin"', # workaround for jaraco/inflect#195, pydantic/pydantic-core#773 (see #3986)
+	# for tools/finalize.py
+	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
+	"pytest-home >= 0.5",
+	"mypy==1.10.0", # pin mypy version so a new version doesn't suddenly cause the CI to fail
+	# No Python 3.11 dependencies require tomli, but needed for type-checking since we import it directly
+	"tomli",
+	# No Python 3.12 dependencies require importlib_metadata, but needed for type-checking since we import it directly
+	"importlib_metadata",
+	"pytest-subprocess",
+
+	# workaround for pypa/setuptools#4333
+	"pyproject-hooks!=1.1",
+]
+docs = [
+	# upstream
+	"sphinx >= 3.5",
+	"jaraco.packaging >= 9.3",
+	"rst.linker >= 1.9",
+	"furo",
+	"sphinx-lint",
+
+	# tidelift
+	"jaraco.tidelift >= 1.4",
+
+	# local
+	"pygments-github-lexers==0.0.5",
+	"sphinx-favicon",
+	"sphinx-inline-tabs",
+	"sphinx-reredirects",
+	"sphinxcontrib-towncrier",
+	"sphinx-notfound-page >=1,<2",
+
+	# workaround for pypa/setuptools#4333
+	"pyproject-hooks!=1.1",
+]
+ssl = []
+certs = []
+
+[project.entry-points."distutils.commands"]
+alias = "setuptools.command.alias:alias"
+bdist_egg = "setuptools.command.bdist_egg:bdist_egg"
+bdist_rpm = "setuptools.command.bdist_rpm:bdist_rpm"
+bdist_wheel = "setuptools.command.bdist_wheel:bdist_wheel"
+build = "setuptools.command.build:build"
+build_clib = "setuptools.command.build_clib:build_clib"
+build_ext = "setuptools.command.build_ext:build_ext"
+build_py = "setuptools.command.build_py:build_py"
+develop = "setuptools.command.develop:develop"
+dist_info = "setuptools.command.dist_info:dist_info"
+easy_install = "setuptools.command.easy_install:easy_install"
+editable_wheel = "setuptools.command.editable_wheel:editable_wheel"
+egg_info = "setuptools.command.egg_info:egg_info"
+install = "setuptools.command.install:install"
+install_egg_info = "setuptools.command.install_egg_info:install_egg_info"
+install_lib = "setuptools.command.install_lib:install_lib"
+install_scripts = "setuptools.command.install_scripts:install_scripts"
+rotate = "setuptools.command.rotate:rotate"
+saveopts = "setuptools.command.saveopts:saveopts"
+sdist = "setuptools.command.sdist:sdist"
+setopt = "setuptools.command.setopt:setopt"
+test = "setuptools.command.test:test"
+upload_docs = "setuptools.command.upload_docs:upload_docs"
+
+[project.entry-points."setuptools.finalize_distribution_options"]
+parent_finalize = "setuptools.dist:_Distribution.finalize_options"
+keywords = "setuptools.dist:Distribution._finalize_setup_keywords"
+
+[project.entry-points."distutils.setup_keywords"]
+eager_resources = "setuptools.dist:assert_string_list"
+namespace_packages = "setuptools.dist:check_nsp"
+extras_require = "setuptools.dist:check_extras"
+install_requires = "setuptools.dist:check_requirements"
+tests_require = "setuptools.dist:check_requirements"
+setup_requires = "setuptools.dist:check_requirements"
+python_requires = "setuptools.dist:check_specifier"
+entry_points = "setuptools.dist:check_entry_points"
+test_suite = "setuptools.dist:check_test_suite"
+zip_safe = "setuptools.dist:assert_bool"
+package_data = "setuptools.dist:check_package_data"
+exclude_package_data = "setuptools.dist:check_package_data"
+include_package_data = "setuptools.dist:assert_bool"
+packages = "setuptools.dist:check_packages"
+dependency_links = "setuptools.dist:assert_string_list"
+test_loader = "setuptools.dist:check_importable"
+test_runner = "setuptools.dist:check_importable"
+use_2to3 = "setuptools.dist:invalid_unless_false"
+
+[project.entry-points."egg_info.writers"]
+PKG-INFO = "setuptools.command.egg_info:write_pkg_info"
+"requires.txt" = "setuptools.command.egg_info:write_requirements"
+"entry_points.txt" = "setuptools.command.egg_info:write_entries"
+"eager_resources.txt" = "setuptools.command.egg_info:overwrite_arg"
+"namespace_packages.txt" = "setuptools.command.egg_info:overwrite_arg"
+"top_level.txt" = "setuptools.command.egg_info:write_toplevel_names"
+"dependency_links.txt" = "setuptools.command.egg_info:overwrite_arg"
+
+[tool.setuptools]
+# disabled as it causes tests to be included #2505
+# include_package_data = true
+include-package-data = false
+
+[tool.setuptools.packages.find]
+exclude = [
+	"*.tests",
+	"*.tests.*",
+	"tools*",
+	"debian*",
+	"launcher*",
+	"newsfragments*",
+	"docs",
+	"docs.*",
+]
+namespaces = true
+
+[tool.distutils.sdist]
+formats = "zip"
+
 [tool.setuptools_scm]

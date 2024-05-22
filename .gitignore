@@ -8,6 +8,7 @@ include
 lib
 distribute.egg-info
 setuptools.egg-info
+setuptools/tests/bdist_wheel_testdata/*/*.egg-info/
 .coverage
 .eggs
 .tox
