@@ -44,5 +44,8 @@ def test_bootstrap_sourcetree(tmp_path, bare_venv, setuptools_sourcetree):
     assert not (target / "setuptools/tests").is_dir()
     assert not (target / "pkg_resources/tests").is_dir()
 
+    # Avoid errors on Windows by copying env before modifying
+    # https://stackoverflow.com/questions/58997105
+    env = {**os.environ, "PYTHONPATH": str(target)}
     test = ["python", "-c", "print(__import__('setuptools').__version__)"]
-    bare_venv.run(test, env={"PYTHONPATH": str(target)})
+    bare_venv.run(test, env=env)
