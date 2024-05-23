@@ -44,7 +44,8 @@ def _cli() -> None:
         description="**EXPERIMENTAL** bootstrapping script for setuptools. "
         "Note that this script will perform a **simplified** procedure and may not "
         "provide all the guarantees of full-blown Python build-frontend.\n"
-        "To install the created wheel, please extract it into the relevant directory."
+        "To install the created wheel, please extract it into the relevant directory.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--output-dir",
