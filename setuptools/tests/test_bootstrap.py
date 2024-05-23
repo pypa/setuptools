@@ -8,23 +8,6 @@ from setuptools.archive_util import unpack_archive
 CMD = ["python", "-m", "setuptools._bootstrap"]
 
 
-def bootstrap_run(venv, tmp_path, options=(), **kwargs):
-    target = tmp_path / "target"
-    target.mkdir()
-    venv.run([*CMD, *options, "--install-dir", str(target)], **kwargs)
-    return target
-
-
-def verify_install(target):
-    # Included in wheel:
-    assert (target / "distutils-precedence.pth").is_file()
-    assert (target / "setuptools/__init__.py").is_file()
-    assert (target / "pkg_resources/__init__.py").is_file()
-    # Excluded from wheel:
-    assert not (target / "setuptools/tests").is_dir()
-    assert not (target / "pkg_resources/tests").is_dir()
-
-
 @pytest.fixture
 def setuptools_sourcetree(tmp_path, setuptools_sdist, request):
     """
@@ -45,16 +28,21 @@ def setuptools_sourcetree(tmp_path, setuptools_sdist, request):
 
 
 def test_bootstrap_sourcetree(tmp_path, bare_venv, setuptools_sourcetree):
-    target = bootstrap_run(bare_venv, tmp_path, cwd=str(setuptools_sourcetree))
-    verify_install(target)
+    bare_venv.run(CMD, cwd=str(setuptools_sourcetree))
+    wheel = next((setuptools_sourcetree / "dist").glob("*.whl"))
+    assert wheel.name.startswith("setuptools")
 
+    target = tmp_path / "target"
+    target.mkdir()
+    bare_venv.run(["python", "-m", "zipfile", "-e", str(wheel), str(target)])
 
-def test_bootstrap_pythonpath(tmp_path, setuptools_wheel, bare_venv):
-    env = {"PYTHONPATH": str(setuptools_wheel)}
-    if use_distutils := os.getenv("SETUPTOOLS_USE_DISTUTILS", ""):
-        env["SETUPTOOLS_USE_DISTUTILS"] = use_distutils
+    # Included in wheel:
+    assert (target / "distutils-precedence.pth").is_file()
+    assert (target / "setuptools/__init__.py").is_file()
+    assert (target / "pkg_resources/__init__.py").is_file()
+    # Excluded from wheel:
+    assert not (target / "setuptools/tests").is_dir()
+    assert not (target / "pkg_resources/tests").is_dir()
 
-    target = bootstrap_run(
-        bare_venv, tmp_path, ["--wheel-in-path"], env=env, cwd=str(tmp_path)
-    )
-    verify_install(target)
+    test = ["python", "-c", "print(__import__('setuptools').__version__)"]
+    bare_venv.run(test, env={"PYTHONPATH": str(target)})
