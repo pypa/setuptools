@@ -6,9 +6,7 @@ import importlib
 import json
 import subprocess
 import sys
-import tarfile
 import tempfile
-import zipfile
 from functools import partial
 from pathlib import Path
 
@@ -17,9 +15,7 @@ __all__: list[str] = []  # No public function, only CLI is provided.
 
 def _install(wheel: Path, target_dir: Path) -> Path:
     print(f"Installing {wheel} into {target_dir}")
-    with zipfile.ZipFile(wheel) as archive:
-        archive.extractall(target_dir)
-
+    subprocess.run([sys.executable, "-m", "zipfile", "-e", str(wheel), str(target_dir)])
     dist_info = _find_or_halt(target_dir, "setuptools*.dist-info", "Error installing")
     _finalize_install(wheel, dist_info)
     return dist_info
@@ -57,10 +53,7 @@ def _build(output_dir: Path) -> Path:
     # Call build_wheel hook (PEP 517)
     kw1 = {"ignore_cleanup_errors": True} if sys.version_info >= (3, 10) else {}
     with tempfile.TemporaryDirectory(**kw1) as tmp:  # type: ignore[call-overload]
-        with tarfile.open(sdist) as tar:
-            kw2 = {"filter": "data"} if sys.version_info >= (3, 12) else {}
-            tar.extractall(path=tmp, **kw2)  # type: ignore[arg-type]
-
+        subprocess.run([sys.executable, "-m", "tarfile", "-e", str(sdist), tmp])
         root = _find_or_halt(Path(tmp), "setuptools-*", "Error finding sdist root")
         _find_or_halt(root, "pyproject.toml", "Error extracting sdist")
         subprocess.run([*cmd, "_private", "build_wheel", store_dir], cwd=str(root))
