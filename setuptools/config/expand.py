@@ -119,7 +119,9 @@ def glob_relative(
     return expanded_values
 
 
-def read_files(filepaths: Union[str, bytes, Iterable[StrPath]], root_dir=None) -> str:
+def read_files(
+    filepaths: Union[StrPath, Iterable[StrPath]], root_dir: Optional[StrPath] = None
+) -> str:
     """Return the content of the files concatenated using ``\n`` as str
 
     This function is sandboxed and won't reach anything outside ``root_dir``
