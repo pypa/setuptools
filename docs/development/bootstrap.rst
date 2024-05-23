@@ -41,10 +41,17 @@ Notes
 This procedure assumes that you have access to a fully functional Python
 installation, including the standard library.
 
-The ``setuptools._bootstrap`` tools is still experimental
-and it is named with a ``_`` character because it is not intended for general
-use, only in the cases when developers (or downstream packaging consumers)
-need to deploy ``setuptools`` from scratch.
+The ``setuptools._bootstrap`` tool is a modest bare-bones implementation
+that follows the :pep:`PyPA's build-system spec <517>`,
+simplified and stripped down to only support the ``setuptools`` package.
 
-This is a CLI-only tool, with no API provided.
+This procedure is not intended for other packages, it will not
+provide the same guarantees as a proper Python package installer
+or build-frontend tool, and it is still experimental.
+
+The naming intentionally uses a ``_`` character to discourage
+regular users, as the tool is only provided for developers (or downstream packaging
+consumers) that need to deploy ``setuptools`` from scratch.
+
+This is a CLI-only implementation, with no API provided.
 Users interested in API usage are invited to follow :pep:`PyPA's build-system spec <517>`.
