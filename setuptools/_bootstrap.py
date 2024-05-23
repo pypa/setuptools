@@ -9,6 +9,8 @@ from pathlib import Path
 
 __all__: list[str] = []  # No public function, only CLI is provided.
 
+_PRIVATE = "_private._dont_call_directly"
+
 
 def _build(output_dir: Path) -> None:
     """Emulate as close as possible the way a build frontend would work."""
@@ -16,7 +18,7 @@ def _build(output_dir: Path) -> None:
     store_dir = str(output_dir.absolute())
 
     # Call build_sdist hook
-    subprocess.run([*cmd, "_private", "build_sdist", store_dir])
+    subprocess.run([*cmd, _PRIVATE, "build_sdist", store_dir])
     sdist = _find_or_halt(output_dir, "setuptools*.tar.gz", "Error building sdist")
     print(f"**** sdist created in `{sdist}` ****")
 
@@ -25,7 +27,7 @@ def _build(output_dir: Path) -> None:
         subprocess.run([sys.executable, "-m", "tarfile", "-e", str(sdist), tmp])
 
         root = _find_or_halt(Path(tmp), "setuptools-*", "Error finding sdist root")
-        subprocess.run([*cmd, "_private", "build_wheel", store_dir], cwd=str(root))
+        subprocess.run([*cmd, _PRIVATE, "build_wheel", store_dir], cwd=str(root))
 
     wheel = _find_or_halt(output_dir, "setuptools*.whl", "Error building wheel")
     print(f"**** wheel created in `{wheel}` ****")
@@ -57,7 +59,7 @@ def _cli() -> None:
     _build(params.output_dir)
 
 
-def _private(guard: str = "_private") -> None:
+def _private(guard: str = _PRIVATE) -> None:
     """Private CLI that only calls a build hook in the simplest way possible."""
     parser = argparse.ArgumentParser()
     private = parser.add_subparsers().add_parser(guard)
@@ -69,4 +71,4 @@ def _private(guard: str = "_private") -> None:
 
 
 if __name__ == "__main__":
-    _private() if "_private" in sys.argv else _cli()
+    _private() if _PRIVATE in sys.argv else _cli()
