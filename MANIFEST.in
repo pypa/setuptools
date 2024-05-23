@@ -19,3 +19,5 @@ include tox.ini
 include setuptools/tests/config/setupcfg_examples.txt
 include setuptools/config/*.schema.json
 global-exclude *.py[cod] __pycache__
+prune dist
+prune build
