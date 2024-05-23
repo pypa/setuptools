@@ -32,3 +32,4 @@ setuptools changes.  You have been warned.
 
    developer-guide
    releases
+   bootstrap
