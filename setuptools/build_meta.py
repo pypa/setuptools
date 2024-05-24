@@ -26,6 +26,8 @@ bug reports or API stability):
 Again, this is not a formal definition! Just a "taste" of the module.
 """
 
+from __future__ import annotations
+
 import io
 import os
 import shlex
@@ -163,7 +165,7 @@ class _ConfigSettingsTranslator:
 
     # See pypa/setuptools#1928 pypa/setuptools#2491
 
-    def _get_config(self, key: str, config_settings: _ConfigSettings) -> List[str]:
+    def _get_config(self, key: str, config_settings: _ConfigSettings) -> list[str]:
         """
         Get the value of a specific key in ``config_settings`` as a list of strings.
 
@@ -420,7 +422,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             ['sdist', '--formats', 'gztar'], '.tar.gz', sdist_directory, config_settings
         )
 
-    def _get_dist_info_dir(self, metadata_directory: Optional[str]) -> Optional[str]:
+    def _get_dist_info_dir(self, metadata_directory: str | None) -> str | None:
         if not metadata_directory:
             return None
         dist_info_candidates = list(Path(metadata_directory).glob("*.dist-info"))

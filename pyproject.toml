@@ -40,7 +40,7 @@ testing = [
 	"pytest-mypy",
 	"pytest-enabler >= 2.2",
 	# workaround for pypa/setuptools#3921
-	'pytest-ruff >= 0.2.1; sys_platform != "cygwin"',
+	'pytest-ruff >= 0.3.2; sys_platform != "cygwin"',
 
 	# local
 	"virtualenv>=13.0.0",

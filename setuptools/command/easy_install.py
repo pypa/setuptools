@@ -10,6 +10,8 @@ __ https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
 """
 
+from __future__ import annotations
+
 from glob import glob
 from distutils.util import get_platform
 from distutils.util import convert_path, subst_vars
@@ -25,7 +27,6 @@ from distutils.spawn import find_executable
 from distutils.command import install
 import sys
 import os
-from typing import Dict, List
 import zipimport
 import shutil
 import tempfile
@@ -2038,8 +2039,8 @@ class CommandSpec(list):
     those passed to Popen.
     """
 
-    options: List[str] = []
-    split_args: Dict[str, bool] = dict()
+    options: list[str] = []
+    split_args: dict[str, bool] = dict()
 
     @classmethod
     def best(cls):
