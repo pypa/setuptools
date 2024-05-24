@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import importlib
 import subprocess
 import sys
 import tempfile
@@ -9,16 +8,11 @@ from pathlib import Path
 
 __all__: list[str] = []  # No public function, only CLI is provided.
 
-_PRIVATE = "_private._dont_call_directly"
-
 
 def _build(output_dir: Path) -> None:
     """Emulate as close as possible the way a build frontend would work."""
-    cmd = [sys.executable, "-m", "setuptools._bootstrap"]
-    store_dir = str(output_dir.absolute())
-
-    # Call build_sdist hook
-    subprocess.run([*cmd, _PRIVATE, "build_sdist", store_dir])
+    # Call build_wheel hook from CWD
+    _hook("build_sdist", Path.cwd(), output_dir)
     sdist = _find_or_halt(output_dir, "setuptools*.tar.gz", "Error building sdist")
     print(f"**** sdist created in `{sdist}` ****")
 
@@ -27,7 +21,7 @@ def _build(output_dir: Path) -> None:
         subprocess.run([sys.executable, "-m", "tarfile", "-e", str(sdist), tmp])
 
         root = _find_or_halt(Path(tmp), "setuptools-*", "Error finding sdist root")
-        subprocess.run([*cmd, _PRIVATE, "build_wheel", store_dir], cwd=str(root))
+        _hook("build_wheel", root, output_dir)
 
     wheel = _find_or_halt(output_dir, "setuptools*.whl", "Error building wheel")
     print(f"**** wheel created in `{wheel}` ****")
@@ -37,6 +31,13 @@ def _find_or_halt(parent: Path, pattern: str, error: str) -> Path:
     if file := next(parent.glob(pattern), None):
         return file
     raise SystemExit(f"{error}. Cannot find `{parent / pattern}`")
+
+
+def _hook(name: str, source_dir: Path, output_dir: Path) -> None:
+    # Call each hook in a fresh subprocess as required by PEP 517
+    out = str(output_dir.absolute())
+    script = f"from setuptools.build_meta import {name}; {name}({out!r})"
+    subprocess.run([sys.executable, "-c", script], cwd=source_dir)
 
 
 def _cli() -> None:
@@ -60,16 +61,5 @@ def _cli() -> None:
     _build(params.output_dir)
 
 
-def _private(guard: str = _PRIVATE) -> None:
-    """Private CLI that only calls a build hook in the simplest way possible."""
-    parser = argparse.ArgumentParser()
-    private = parser.add_subparsers().add_parser(guard)
-    private.add_argument("hook", choices=["build_sdist", "build_wheel"])
-    private.add_argument("output_dir", type=Path)
-    params = parser.parse_args()
-    hook = getattr(importlib.import_module("setuptools.build_meta"), params.hook)
-    hook(params.output_dir)
-
-
 if __name__ == "__main__":
-    _private() if _PRIVATE in sys.argv else _cli()
+    _cli()
