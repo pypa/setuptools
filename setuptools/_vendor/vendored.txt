@@ -39,7 +39,11 @@ packaging==24.0
     #   -c pkg_resources/_vendor/vendored.txt
     #   -r setuptools/_vendor/vendored.in
 tomli==2.0.1
+    # via -r setuptools/_vendor/vendored.in
 wheel==0.43.0
+    # via -r setuptools/_vendor/vendored.in
+zipp==3.7.0
     # via
     #   -c pkg_resources/_vendor/vendored.txt
-    #   -r setuptools/_vendor/vendored.in
+    #   importlib-metadata
+    #   importlib-resources
