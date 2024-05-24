@@ -89,7 +89,7 @@ def rewrite_wheel(pkg_files: Path):
     Remove parts of wheel not needed by bdist_wheel, and rewrite imports to use
     setuptools's own code or vendored dependencies.
     """
-    if not pkg_files.exist():
+    if not pkg_files.exists():
         return
 
     shutil.rmtree(pkg_files / 'cli')
