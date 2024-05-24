@@ -2680,7 +2680,7 @@ class EntryPoint:
             _data = data.items()
         else:
             _data = split_sections(data)
-        maps: Dict[str, Dict[str, "EntryPoint"]] = {}
+        maps: Dict[str, Dict[str, EntryPoint]] = {}
         for group, lines in _data:
             if group is None:
                 if not lines:
