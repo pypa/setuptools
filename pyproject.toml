@@ -68,6 +68,8 @@ testing = [
 
 	# workaround for pypa/setuptools#4333
 	"pyproject-hooks!=1.1",
+
+	"jaraco.test",
 ]
 docs = [
 	# upstream
