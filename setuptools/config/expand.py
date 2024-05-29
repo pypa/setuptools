@@ -252,19 +252,23 @@ def _find_module(
     parent_path = root_dir
     module_parts = module_name.split('.')
     if package_dir:
-        if module_parts[0] in package_dir:
-            # A custom path was specified for the module we want to import
-            custom_path = package_dir[module_parts[0]]
-            parts = custom_path.rsplit('/', 1)
-            if len(parts) > 1:
-                parent_path = os.path.join(root_dir, parts[0])
-                parent_module = parts[1]
-            else:
-                parent_module = custom_path
-            module_name = ".".join([parent_module, *module_parts[1:]])
-        elif '' in package_dir:
-            # A custom parent directory was specified for all root modules
-            parent_path = os.path.join(root_dir, package_dir[''])
+        for i in range(len(module_parts), 0, -1):
+            parent = ".".join(module_parts[:i])
+            if parent in package_dir:
+                # A custom path was specified for the module we want to import
+                custom_path = package_dir[parent]
+                parts = custom_path.rsplit('/', 1)
+                if len(parts) > 1:
+                    parent_path = os.path.join(root_dir, parts[0])
+                    parent_module = parts[1]
+                else:
+                    parent_module = custom_path
+                module_name = ".".join([parent_module, *module_parts[i:]])
+                break
+        else:
+            if '' in package_dir:
+                # A custom parent directory was specified for all root modules
+                parent_path = os.path.join(root_dir, package_dir[''])
 
     path_start = os.path.join(parent_path, *module_name.split("."))
     candidates = chain(
