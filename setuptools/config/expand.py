@@ -223,6 +223,31 @@ def _find_module(
     after the build is complete), find the path to the parent directory where
     it is contained and the canonical name that could be used to import it
     considering the ``package_dir`` in the build configuration and ``root_dir``
+
+    >>> import pytest
+    >>> if os.sep != "/": pytest.skip("require UNIX path separator")
+    >>> tmp = getfixture('tmpdir')
+    >>> _ = tmp.ensure("a/b/c.py")
+    >>> _ = tmp.ensure("a/b/d/__init__.py")
+    >>> cwd = tmp.as_cwd()
+    >>> _ = cwd.__enter__()
+    >>> _find_module("a.b.c", None, ".")
+    ('.', './a/b/c.py', 'a.b.c')
+    >>> _find_module("a.b.d", None, ".")
+    ('.', './a/b/d/__init__.py', 'a.b.d')
+    >>> _find_module("ab.c", {"ab": "a/b"}, "")
+    ('a', 'a/b/c.py', 'b.c')
+    >>> _find_module("b.c", {"": "a"}, "")
+    ('a', 'a/b/c.py', 'b.c')
+    >>> [str(x).replace(str(tmp), ".") for x in  _find_module("a.b.c", None, tmp)]
+    ['.', './a/b/c.py', 'a.b.c']
+    >>> _find_module("f.c", {"f": "a/b"}, "")
+    ('a', 'a/b/c.py', 'b.c')
+    >>> _find_module("f.g.c", {"f.g": "a/b"}, "")
+    ('a', 'a/b/c.py', 'b.c')
+    >>> _find_module("f.g.h", {"": "1", "f": "2", "f.g": "3", "f.g.h": "a/b/d"}, "")
+    ('a/b', 'a/b/d/__init__.py', 'd')
+    >>> _ = cwd.__exit__(None, None, None)
     """
     parent_path = root_dir
     module_parts = module_name.split('.')
