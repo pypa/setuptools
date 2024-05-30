@@ -54,7 +54,8 @@ class install_data(Command):
                         "setup script did not provide a directory for "
                         f"'{f}' -- installing right in '{self.install_dir}'"
                     )
-                (out, _) = self.copy_file(f, self.install_dir)
+                dst = os.path.join(self.install_dir, os.path.basename(f))
+                (out, _) = self.copy_file(f, dst)
                 self.outfiles.append(out)
             else:
                 # it's a tuple with path to install to and a list of files
@@ -74,7 +75,8 @@ class install_data(Command):
                     # Copy files, adding them to the list of output files.
                     for data in f[1]:
                         data = convert_path(data)
-                        (out, _) = self.copy_file(data, dir)
+                        dst = os.path.join(dir, os.path.basename(data))
+                        (out, _) = self.copy_file(data, dst)
                         self.outfiles.append(out)
 
     def get_inputs(self):

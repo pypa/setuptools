@@ -3,6 +3,8 @@
 Implements the Distutils 'install_headers' command, to install C/C++ header
 files to the Python include directory."""
 
+import os
+
 from ..core import Command
 
 
@@ -34,7 +36,8 @@ class install_headers(Command):
 
         self.mkpath(self.install_dir)
         for header in headers:
-            (out, _) = self.copy_file(header, self.install_dir)
+            dst = os.path.join(self.install_dir, os.path.basename(header))
+            (out, _) = self.copy_file(header, dst)
             self.outfiles.append(out)
 
     def get_inputs(self):

@@ -70,9 +70,8 @@ def copy_file(  # noqa: C901
     verbose=1,
     dry_run=0,
 ):
-    """Copy a file 'src' to 'dst'.  If 'dst' is a directory, then 'src' is
-    copied there with the same name; otherwise, it must be a filename.  (If
-    the file exists, it will be ruthlessly clobbered.)  If 'preserve_mode'
+    """Copy a file 'src' to 'dst'.
+    (If the file exists, it will be ruthlessly clobbered.)  If 'preserve_mode'
     is true (the default), the file's mode (type and permission bits, or
     whatever is analogous on the current platform) is copied.  If
     'preserve_times' is true (the default), the last-modified and
@@ -109,12 +108,6 @@ def copy_file(  # noqa: C901
             "can't copy '%s': doesn't exist or not a regular file" % src
         )
 
-    if os.path.isdir(dst):
-        dir = dst
-        dst = os.path.join(dst, os.path.basename(src))
-    else:
-        dir = os.path.dirname(dst)
-
     if update and not newer(src, dst):
         if verbose >= 1:
             log.debug("not copying %s (output up-to-date)", src)
@@ -126,10 +119,7 @@ def copy_file(  # noqa: C901
         raise ValueError("invalid value '%s' for 'link' argument" % link)
 
     if verbose >= 1:
-        if os.path.basename(dst) == os.path.basename(src):
-            log.info("%s %s -> %s", action, src, dir)
-        else:
-            log.info("%s %s -> %s", action, src, dst)
+        log.info("%s %s -> %s", action, src, dst)
 
     if dry_run:
         return (dst, 1)
