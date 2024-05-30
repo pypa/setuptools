@@ -251,9 +251,9 @@ def _find_module(
     from ..discovery import find_package_path
 
     path_start = find_package_path(module_name, package_dir or {}, root_dir)
-    candidates = chain(
-        [os.path.join(path_start, "__init__.py")],
-        (f"{path_start}{ext}" for ext in all_suffixes()),
+    candidates = chain.from_iterable(
+        (f"{path_start}{ext}", os.path.join(path_start, f"__init__{ext}"))
+        for ext in all_suffixes()
     )
     return next((x for x in candidates if os.path.isfile(x)), None)
 
