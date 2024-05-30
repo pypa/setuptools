@@ -25,7 +25,7 @@ import pathlib
 import sys
 from glob import iglob
 from configparser import ConfigParser
-from importlib.machinery import ModuleSpec
+from importlib.machinery import ModuleSpec, all_suffixes
 from itertools import chain
 from typing import (
     TYPE_CHECKING,
@@ -47,6 +47,7 @@ from types import ModuleType
 from distutils.errors import DistutilsOptionError
 
 from .._path import same_path as _same_path, StrPath
+from ..discovery import find_package_path
 from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
@@ -247,9 +248,6 @@ def _find_module(
     'a/b/d/__init__.py'
     >>> _ = cwd.__exit__(None, None, None)
     """
-    from importlib.machinery import all_suffixes
-    from ..discovery import find_package_path
-
     path_start = find_package_path(module_name, package_dir or {}, root_dir)
     candidates = chain.from_iterable(
         (f"{path_start}{ext}", os.path.join(path_start, f"__init__{ext}"))
