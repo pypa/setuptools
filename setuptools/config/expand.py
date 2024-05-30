@@ -223,7 +223,7 @@ def _find_module(
     >>> tmp = getfixture('tmpdir')
     >>> _ = tmp.ensure("a/b/c.py")
     >>> _ = tmp.ensure("a/b/d/__init__.py")
-    >>> r = lambda x: x.replace(str(tmp), "tmp")
+    >>> r = lambda x: x.replace(str(tmp), "tmp").replace(os.sep, "/")
     >>> r(_find_module("a.b.c", None, tmp))
     'tmp/a/b/c.py'
     >>> r(_find_module("f.g.h", {"": "1", "f": "2", "f.g": "3", "f.g.h": "a/b/d"}, tmp))
