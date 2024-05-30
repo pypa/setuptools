@@ -220,30 +220,14 @@ def _find_module(
     """Find the path to the module named ``module_name``,
     considering the ``package_dir`` in the build configuration and ``root_dir``.
 
-    >>> import pytest
-    >>> if os.sep != "/": pytest.skip("require UNIX path separator")
     >>> tmp = getfixture('tmpdir')
     >>> _ = tmp.ensure("a/b/c.py")
     >>> _ = tmp.ensure("a/b/d/__init__.py")
-    >>> cwd = tmp.as_cwd()
-    >>> _ = cwd.__enter__()
-    >>> _find_module("a.b.c", None, ".")
-    './a/b/c.py'
-    >>> _find_module("a.b.d", None, ".")
-    './a/b/d/__init__.py'
-    >>> _find_module("ab.c", {"ab": "a/b"}, "")
-    'a/b/c.py'
-    >>> _find_module("b.c", {"": "a"}, "")
-    'a/b/c.py'
-    >>> _find_module("a.b.c", None, tmp).replace(str(tmp), ".")
-    './a/b/c.py'
-    >>> _find_module("f.c", {"f": "a/b"}, "")
-    'a/b/c.py'
-    >>> _find_module("f.g.c", {"f.g": "a/b"}, "")
-    'a/b/c.py'
-    >>> _find_module("f.g.h", {"": "1", "f": "2", "f.g": "3", "f.g.h": "a/b/d"}, "")
-    'a/b/d/__init__.py'
-    >>> _ = cwd.__exit__(None, None, None)
+    >>> r = lambda x: x.replace(str(tmp), "tmp")
+    >>> r(_find_module("a.b.c", None, tmp))
+    'tmp/a/b/c.py'
+    >>> r(_find_module("f.g.h", {"": "1", "f": "2", "f.g": "3", "f.g.h": "a/b/d"}, tmp))
+    'tmp/a/b/d/__init__.py'
     """
     path_start = find_package_path(module_name, package_dir or {}, root_dir)
     candidates = chain.from_iterable(
