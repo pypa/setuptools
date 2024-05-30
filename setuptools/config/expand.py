@@ -52,10 +52,7 @@ from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
-    from setuptools.discovery import ConfigDiscovery  # noqa
-    from distutils.dist import DistributionMetadata  # noqa
 
-chain_iter = chain.from_iterable
 _K = TypeVar("_K")
 _V = TypeVar("_V", covariant=True)
 
