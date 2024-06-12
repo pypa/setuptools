@@ -23,13 +23,14 @@ from typing import TYPE_CHECKING, Callable, Iterable, Literal, Sequence, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from .. import Command, __version__
+from .egg_info import egg_info as egg_info_cls
 from ..extern.wheel.metadata import pkginfo_to_metadata
 from ..extern.packaging import tags
 from ..extern.packaging import version as _packaging_version
 from ..extern.wheel.wheelfile import WheelFile
 
 if TYPE_CHECKING:
-    import types
+    from _typeshed import ExcInfo
 
 
 def safe_name(name: str) -> str:
@@ -152,12 +153,14 @@ def safer_version(version: str) -> str:
 def remove_readonly(
     func: Callable[..., object],
     path: str,
-    excinfo: tuple[type[Exception], Exception, types.TracebackType],
+    excinfo: ExcInfo,
 ) -> None:
     remove_readonly_exc(func, path, excinfo[1])
 
 
-def remove_readonly_exc(func: Callable[..., object], path: str, exc: Exception) -> None:
+def remove_readonly_exc(
+    func: Callable[..., object], path: str, exc: BaseException
+) -> None:
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
@@ -232,40 +235,47 @@ class bdist_wheel(Command):
 
     def initialize_options(self) -> None:
         self.bdist_dir: str | None = None
-        self.data_dir = None
+        self.data_dir: str | None = None
         self.plat_name: str | None = None
-        self.plat_tag = None
+        self.plat_tag: str | None = None
         self.format = "zip"
         self.keep_temp = False
         self.dist_dir: str | None = None
-        self.egginfo_dir = None
+        self.egginfo_dir: str | None = None
         self.root_is_pure: bool | None = None
-        self.skip_build = None
+        self.skip_build = False
         self.relative = False
         self.owner = None
         self.group = None
         self.universal: bool = False
-        self.compression: str | int = "deflated"
+        self.compression: int = ZIP_DEFLATED
         self.python_tag: str = python_tag()
         self.build_number: str | None = None
         self.py_limited_api: str | Literal[False] = False
         self.plat_name_supplied = False
 
-    def finalize_options(self):
-        if self.bdist_dir is None:
+    def finalize_options(self) -> None:
+        if not self.bdist_dir:
             bdist_base = self.get_finalized_command("bdist").bdist_base
             self.bdist_dir = os.path.join(bdist_base, "wheel")
 
-        egg_info = self.distribution.get_command_obj("egg_info")
+        egg_info = cast(egg_info_cls, self.distribution.get_command_obj("egg_info"))
         egg_info.ensure_finalized()  # needed for correct `wheel_dist_name`
 
         self.data_dir = self.wheel_dist_name + ".data"
-        self.plat_name_supplied = self.plat_name is not None
+        self.plat_name_supplied = bool(self.plat_name)
 
-        try:
-            self.compression = self.supported_compressions[self.compression]
-        except KeyError:
-            raise ValueError(f"Unsupported compression: {self.compression}") from None
+        # Handle compression not being an int or a supported value
+        if not (
+            isinstance(self.compression, int)
+            and self.compression in self.supported_compressions.values()
+        ):
+            try:
+                self.compression = self.supported_compressions[str(self.compression)]
+            except KeyError:
+                raise ValueError(
+                    f"Unsupported compression: {self.compression}"
+                ) from None
 
         need_options = ("dist_dir", "plat_name", "skip_build")
 
@@ -295,21 +305,21 @@ class bdist_wheel(Command):
             raise ValueError("Build tag (build-number) must start with a digit.")
 
     @property
-    def wheel_dist_name(self):
+    def wheel_dist_name(self) -> str:
         """Return distribution full name with - replaced with _"""
-        components = (
+        components = [
             safer_name(self.distribution.get_name()),
             safer_version(self.distribution.get_version()),
-        )
+        ]
         if self.build_number:
-            components += (self.build_number,)
+            components.append(self.build_number)
         return "-".join(components)
 
     def get_tag(self) -> tuple[str, str, str]:
         # bdist sets self.plat_name if unset, we should only use it for purepy
         # wheels if the user supplied it.
-        if self.plat_name_supplied:
-            plat_name = cast(str, self.plat_name)
+        if self.plat_name_supplied and self.plat_name:
+            plat_name = self.plat_name
         elif self.root_is_pure:
             plat_name = "any"
         else:
@@ -453,7 +463,7 @@ class bdist_wheel(Command):
 
     def write_wheelfile(
         self, wheelfile_base: str, generator: str = f"setuptools ({__version__})"
-    ):
+    ) -> None:
         from email.message import Message
 
         msg = Message()
@@ -527,7 +537,7 @@ class bdist_wheel(Command):
 
         return files
 
-    def egg2dist(self, egginfo_path: str, distinfo_path: str):
+    def egg2dist(self, egginfo_path: str, distinfo_path: str) -> None:
         """Convert an .egg-info directory into a .dist-info directory"""
 
         def adios(p: str) -> None:
