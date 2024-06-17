@@ -2,6 +2,7 @@ from distutils import log
 import distutils.command.install_scripts as orig
 import os
 import sys
+from typing import List
 
 from .._path import ensure_directory
 
@@ -13,12 +14,12 @@ class install_scripts(orig.install_scripts):
         orig.install_scripts.initialize_options(self)
         self.no_ep = False
 
-    def run(self):
+    def run(self) -> None:
         self.run_command("egg_info")
         if self.distribution.scripts:
             orig.install_scripts.run(self)  # run first to set up self.outfiles
         else:
-            self.outfiles = []
+            self.outfiles: List[str] = []
         if self.no_ep:
             # don't install entry point scripts into .egg file!
             return

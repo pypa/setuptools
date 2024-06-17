@@ -59,7 +59,7 @@ from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
 
 if TYPE_CHECKING:
-    from wheel.wheelfile import WheelFile  # type:ignore[import-untyped] # noqa
+    from .._vendor.wheel.wheelfile import WheelFile
 
 _P = TypeVar("_P", bound=StrPath)
 _logger = logging.getLogger(__name__)
@@ -335,7 +335,7 @@ class editable_wheel(Command):
             )
 
     def _create_wheel_file(self, bdist_wheel):
-        from wheel.wheelfile import WheelFile
+        from ..extern.wheel.wheelfile import WheelFile
 
         dist_info = self.get_finalized_command("dist_info")
         dist_name = dist_info.name

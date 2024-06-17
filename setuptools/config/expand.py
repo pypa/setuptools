@@ -25,7 +25,7 @@ import pathlib
 import sys
 from glob import iglob
 from configparser import ConfigParser
-from importlib.machinery import ModuleSpec
+from importlib.machinery import ModuleSpec, all_suffixes
 from itertools import chain
 from typing import (
     TYPE_CHECKING,
@@ -47,14 +47,12 @@ from types import ModuleType
 from distutils.errors import DistutilsOptionError
 
 from .._path import same_path as _same_path, StrPath
+from ..discovery import find_package_path
 from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
-    from setuptools.discovery import ConfigDiscovery  # noqa
-    from distutils.dist import DistributionMetadata  # noqa
 
-chain_iter = chain.from_iterable
 _K = TypeVar("_K")
 _V = TypeVar("_V", covariant=True)
 
@@ -119,7 +117,9 @@ def glob_relative(
     return expanded_values
 
 
-def read_files(filepaths: Union[str, bytes, Iterable[StrPath]], root_dir=None) -> str:
+def read_files(
+    filepaths: Union[StrPath, Iterable[StrPath]], root_dir: Optional[StrPath] = None
+) -> str:
     """Return the content of the files concatenated using ``\n`` as str
 
     This function is sandboxed and won't reach anything outside ``root_dir``
@@ -185,7 +185,7 @@ def read_attr(
     attr_name = attrs_path.pop()
     module_name = '.'.join(attrs_path)
     module_name = module_name or '__init__'
-    _parent_path, path, module_name = _find_module(module_name, package_dir, root_dir)
+    path = _find_module(module_name, package_dir, root_dir)
     spec = _find_spec(module_name, path)
 
     try:
@@ -218,36 +218,25 @@ def _load_spec(spec: ModuleSpec, module_name: str) -> ModuleType:
 
 def _find_module(
     module_name: str, package_dir: Optional[Mapping[str, str]], root_dir: StrPath
-) -> Tuple[StrPath, Optional[str], str]:
-    """Given a module (that could normally be imported by ``module_name``
-    after the build is complete), find the path to the parent directory where
-    it is contained and the canonical name that could be used to import it
-    considering the ``package_dir`` in the build configuration and ``root_dir``
-    """
-    parent_path = root_dir
-    module_parts = module_name.split('.')
-    if package_dir:
-        if module_parts[0] in package_dir:
-            # A custom path was specified for the module we want to import
-            custom_path = package_dir[module_parts[0]]
-            parts = custom_path.rsplit('/', 1)
-            if len(parts) > 1:
-                parent_path = os.path.join(root_dir, parts[0])
-                parent_module = parts[1]
-            else:
-                parent_module = custom_path
-            module_name = ".".join([parent_module, *module_parts[1:]])
-        elif '' in package_dir:
-            # A custom parent directory was specified for all root modules
-            parent_path = os.path.join(root_dir, package_dir[''])
+) -> Optional[str]:
+    """Find the path to the module named ``module_name``,
+    considering the ``package_dir`` in the build configuration and ``root_dir``.
 
-    path_start = os.path.join(parent_path, *module_name.split("."))
-    candidates = chain(
-        (f"{path_start}.py", os.path.join(path_start, "__init__.py")),
-        iglob(f"{path_start}.*"),
+    >>> tmp = getfixture('tmpdir')
+    >>> _ = tmp.ensure("a/b/c.py")
+    >>> _ = tmp.ensure("a/b/d/__init__.py")
+    >>> r = lambda x: x.replace(str(tmp), "tmp").replace(os.sep, "/")
+    >>> r(_find_module("a.b.c", None, tmp))
+    'tmp/a/b/c.py'
+    >>> r(_find_module("f.g.h", {"": "1", "f": "2", "f.g": "3", "f.g.h": "a/b/d"}, tmp))
+    'tmp/a/b/d/__init__.py'
+    """
+    path_start = find_package_path(module_name, package_dir or {}, root_dir)
+    candidates = chain.from_iterable(
+        (f"{path_start}{ext}", os.path.join(path_start, f"__init__{ext}"))
+        for ext in all_suffixes()
     )
-    module_path = next((x for x in candidates if os.path.isfile(x)), None)
-    return parent_path, module_path, module_name
+    return next((x for x in candidates if os.path.isfile(x)), None)
 
 
 def resolve_class(
@@ -261,8 +250,8 @@ def resolve_class(
     class_name = qualified_class_name[idx + 1 :]
     pkg_name = qualified_class_name[:idx]
 
-    _parent_path, path, module_name = _find_module(pkg_name, package_dir, root_dir)
-    module = _load_spec(_find_spec(module_name, path), module_name)
+    path = _find_module(pkg_name, package_dir, root_dir)
+    module = _load_spec(_find_spec(pkg_name, path), pkg_name)
     return getattr(module, class_name)
 
 

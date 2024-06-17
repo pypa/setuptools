@@ -710,6 +710,12 @@ class Distribution(_Distribution):
         if command in self.cmdclass:
             return self.cmdclass[command]
 
+        # Special case bdist_wheel so it's never loaded from "wheel"
+        if command == 'bdist_wheel':
+            from .command.bdist_wheel import bdist_wheel
+
+            return bdist_wheel
+
         eps = metadata.entry_points(group='distutils.commands', name=command)
         for ep in eps:
             self.cmdclass[command] = cmdclass = ep.load()

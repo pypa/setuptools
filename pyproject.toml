@@ -59,7 +59,7 @@ testing = [
 	# for tools/finalize.py
 	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
 	"pytest-home >= 0.5",
-	"mypy==1.9", # pin mypy version so a new version doesn't suddenly cause the CI to fail
+	"mypy==1.10.0", # pin mypy version so a new version doesn't suddenly cause the CI to fail
 	# No Python 3.11 dependencies require tomli, but needed for type-checking since we import it directly
 	"tomli",
 	# No Python 3.12 dependencies require importlib_metadata, but needed for type-checking since we import it directly
@@ -68,6 +68,8 @@ testing = [
 
 	# workaround for pypa/setuptools#4333
 	"pyproject-hooks!=1.1",
+
+	"jaraco.test",
 ]
 docs = [
 	# upstream
@@ -98,6 +100,7 @@ certs = []
 alias = "setuptools.command.alias:alias"
 bdist_egg = "setuptools.command.bdist_egg:bdist_egg"
 bdist_rpm = "setuptools.command.bdist_rpm:bdist_rpm"
+bdist_wheel = "setuptools.command.bdist_wheel:bdist_wheel"
 build = "setuptools.command.build:build"
 build_clib = "setuptools.command.build_clib:build_clib"
 build_ext = "setuptools.command.build_ext:build_ext"
