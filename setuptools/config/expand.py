@@ -36,8 +36,6 @@ from typing import (
     Iterator,
     Mapping,
     TypeVar,
-    Union,
-    cast,
 )
 from pathlib import Path
 from types import ModuleType
@@ -326,18 +324,13 @@ def version(value: Callable | Iterable[str | int] | str) -> str:
     """When getting the version directly from an attribute,
     it should be normalised to string.
     """
-    if callable(value):
-        value = value()
+    _value = value() if callable(value) else value
 
-    value = cast(Iterable[Union[str, int]], value)
-
-    if not isinstance(value, str):
-        if hasattr(value, '__iter__'):
-            value = '.'.join(map(str, value))
-        else:
-            value = '%s' % value
-
-    return value
+    if isinstance(_value, str):
+        return _value
+    if hasattr(_value, '__iter__'):
+        return '.'.join(map(str, _value))
+    return '%s' % _value
 
 
 def canonic_package_data(package_data: dict) -> dict:

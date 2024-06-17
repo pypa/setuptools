@@ -515,7 +515,7 @@ class _TopLevelFinder:
         )
 
         legacy_namespaces = {
-            cast(str, pkg): find_package_path(pkg, roots, self.dist.src_root or "")
+            pkg: find_package_path(pkg, roots, self.dist.src_root or "")
             for pkg in self.dist.namespace_packages or []
         }
 

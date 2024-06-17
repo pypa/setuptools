@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Mapping
 from email.headerregistry import Address
 from functools import partial, reduce
 from inspect import cleandoc
@@ -22,8 +21,9 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Dict,
+    Mapping,
     Union,
-    cast,
 )
 from .._path import StrPath
 from ..errors import RemovedConfigError
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from setuptools.dist import Distribution  # noqa
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
-_DictOrStr = Union[dict, str]
+_ProjectReadmeValue = Union[str, Dict[str, str]]
 _CorrespFn = Callable[["Distribution", Any, StrPath], None]
 _Correspondence = Union[str, _CorrespFn]
 
@@ -149,15 +149,16 @@ def _guess_content_type(file: str) -> str | None:
     raise ValueError(f"Undefined content type for {file}, {msg}")
 
 
-def _long_description(dist: Distribution, val: _DictOrStr, root_dir: StrPath):
+def _long_description(dist: Distribution, val: _ProjectReadmeValue, root_dir: StrPath):
     from setuptools.config import expand
 
+    file: str | tuple[()]
     if isinstance(val, str):
-        file: str | list = val
+        file = val
         text = expand.read_files(file, root_dir)
-        ctype = _guess_content_type(val)
+        ctype = _guess_content_type(file)
     else:
-        file = val.get("file") or []
+        file = val.get("file") or ()
         text = val.get("text") or expand.read_files(file, root_dir)
         ctype = val["content-type"]
 
@@ -167,7 +168,7 @@ def _long_description(dist: Distribution, val: _DictOrStr, root_dir: StrPath):
         _set_config(dist, "long_description_content_type", ctype)
 
     if file:
-        dist._referenced_files.add(cast(str, file))
+        dist._referenced_files.add(file)
 
 
 def _license(dist: Distribution, val: dict, root_dir: StrPath):
