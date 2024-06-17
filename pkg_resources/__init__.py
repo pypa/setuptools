@@ -122,8 +122,9 @@ _MetadataType = Union["IResourceProvider", None]
 _ResolvedEntryPoint = Any  # Can be any attribute in the module
 _ResourceStream = Any  # TODO / Incomplete: A readable file-like object
 # Any object works, but let's indicate we expect something like a module (optionally has __loader__ or __file__)
-_ModuleLike = Any
-_ProviderFactoryType = Callable[[_ModuleLike], "IResourceProvider"]
+_ModuleLike = Union[object, types.ModuleType]
+# Any: Should be _ModuleLike but we end up with issues where _ModuleLike doesn't have _ZipLoaderModule's __loader__
+_ProviderFactoryType = Callable[[Any], "IResourceProvider"]
 _DistFinderType = Callable[[_T, str, bool], Iterable["Distribution"]]
 _NSHandlerType = Callable[[_T, str, str, types.ModuleType], Union[str, None]]
 _AdapterT = TypeVar(
