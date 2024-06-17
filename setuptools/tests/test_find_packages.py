@@ -180,7 +180,8 @@ class TestFlatLayoutPackageFinder:
             [
                 "pkg/__init__.py",
                 "examples/__init__.py",
-                "examples/file.py" "example/other_file.py",
+                "examples/file.py",
+                "example/other_file.py",
                 # Sub-packages should always be fine
                 "pkg/example/__init__.py",
                 "pkg/examples/__init__.py",
