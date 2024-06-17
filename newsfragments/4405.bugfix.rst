@@ -1,0 +1,2 @@
+Improvement for ``attr:`` directives in configuration to handle
+more edge cases related to complex ``package_dir``.

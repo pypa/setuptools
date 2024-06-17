@@ -1,0 +1,1 @@
+Prevent a ``TypeError: 'NoneType' object is not callable`` when ``shutil_rmtree`` is called without an ``onexc`` parameter on Python<=3.11 -- by :user:`Avasam`

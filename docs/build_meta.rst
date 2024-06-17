@@ -60,10 +60,8 @@ being used to package your scripts and install from source). To use it with
     build-backend = "setuptools.build_meta"
 
 ``build_meta`` implements ``setuptools``' build system support.
-The ``setuptools`` package implements the ``build_sdist``
-command and the ``wheel`` package implements the ``build_wheel``
-command; the latter is a dependency of the former
-exposed via :pep:`517` hooks.
+The ``setuptools`` package implements the ``build_sdist`` and
+``build_wheel`` commands.
 
 Use ``setuptools``' :ref:`declarative config <declarative config>` to
 specify the package information in ``setup.cfg``::

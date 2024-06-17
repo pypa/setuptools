@@ -1,12 +1,13 @@
+from __future__ import annotations
+
 from os import PathLike
 import subprocess
 import sys
 
 from pathlib import Path
-from typing import Union
 
 
-def generate_pyproject_validation(dest: Union[str, PathLike]):
+def generate_pyproject_validation(dest: str | PathLike[str]):
     """
     Generates validation code for ``pyproject.toml`` based on JSON schemas and the
     ``validate-pyproject`` library.

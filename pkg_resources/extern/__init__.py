@@ -1,8 +1,9 @@
+from __future__ import annotations
 from importlib.machinery import ModuleSpec
 import importlib.util
 import sys
 from types import ModuleType
-from typing import Iterable, Optional, Sequence
+from typing import Iterable, Sequence
 
 
 class VendorImporter:
@@ -15,7 +16,7 @@ class VendorImporter:
         self,
         root_name: str,
         vendored_names: Iterable[str] = (),
-        vendor_pkg: Optional[str] = None,
+        vendor_pkg: str | None = None,
     ):
         self.root_name = root_name
         self.vendored_names = set(vendored_names)
@@ -65,8 +66,8 @@ class VendorImporter:
     def find_spec(
         self,
         fullname: str,
-        path: Optional[Sequence[str]] = None,
-        target: Optional[ModuleType] = None,
+        path: Sequence[str] | None = None,
+        target: ModuleType | None = None,
     ):
         """Return a module spec for vendored names."""
         return (

@@ -232,7 +232,7 @@ class TestBuildMetaBackend:
 
     def test_get_requires_for_build_wheel(self, build_backend):
         actual = build_backend.get_requires_for_build_wheel()
-        expected = ['six', 'wheel']
+        expected = ['six']
         assert sorted(actual) == sorted(expected)
 
     def test_get_requires_for_build_sdist(self, build_backend):
@@ -783,14 +783,12 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
 
         if use_wheel:
-            base_requirements = ['wheel']
             get_requires = build_backend.get_requires_for_build_wheel
         else:
-            base_requirements = []
             get_requires = build_backend.get_requires_for_build_sdist
 
         # Ensure that the build requirements are properly parsed
-        expected = sorted(base_requirements + requirements)
+        expected = sorted(requirements)
         actual = get_requires()
 
         assert expected == sorted(actual)
@@ -821,7 +819,7 @@ class TestBuildMetaBackend:
         path.build(files)
         build_backend = self.get_build_backend()
         setup_requires = build_backend.get_requires_for_build_wheel()
-        assert setup_requires == ["wheel", "foo"]
+        assert setup_requires == ["foo"]
 
     def test_dont_install_setup_requires(self, tmpdir_cwd):
         files = {
@@ -963,7 +961,7 @@ def test_sys_exit_0_in_setuppy(monkeypatch, tmp_path):
         """
     (tmp_path / "setup.py").write_text(DALS(setuppy), encoding="utf-8")
     backend = BuildBackend(backend_name="setuptools.build_meta")
-    assert backend.get_requires_for_build_wheel() == ["wheel"]
+    assert backend.get_requires_for_build_wheel() == []
 
 
 def test_system_exit_in_setuppy(monkeypatch, tmp_path):

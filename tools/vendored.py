@@ -1,6 +1,8 @@
 import re
+import shutil
 import sys
 import subprocess
+from textwrap import dedent
 
 from path import Path
 
@@ -102,6 +104,60 @@ def rewrite_more_itertools(pkg_files: Path):
     more_file.write_text(text)
 
 
+def rewrite_wheel(pkg_files: Path):
+    """
+    Remove parts of wheel not needed by bdist_wheel, and rewrite imports to use
+    setuptools's own code or vendored dependencies.
+    """
+    shutil.rmtree(pkg_files / 'cli')
+    shutil.rmtree(pkg_files / 'vendored')
+    pkg_files.joinpath('_setuptools_logging.py').unlink()
+    pkg_files.joinpath('__main__.py').unlink()
+    pkg_files.joinpath('bdist_wheel.py').unlink()
+
+    # Rewrite vendored imports to use setuptools's own vendored libraries
+    for path in pkg_files.iterdir():
+        if path.suffix == '.py':  # type: ignore[attr-defined]
+            code = path.read_text()
+            if path.name == 'wheelfile.py':
+                code = re.sub(
+                    r"^from wheel.util import ",
+                    r"from .util import ",
+                    code,
+                    flags=re.MULTILINE,
+                )
+
+                # No need to keep the wheel.cli package just for this trivial exception
+                code = re.sub(
+                    r"^from wheel.cli import WheelError\n",
+                    r"",
+                    code,
+                    flags=re.MULTILINE,
+                )
+                code += dedent(
+                    """
+
+                    class WheelError(Exception):
+                        pass
+                    """
+                )
+            else:
+                code = re.sub(
+                    r"^from \.vendored\.([\w.]+) import ",
+                    r"from ..\1 import ",
+                    code,
+                    flags=re.MULTILINE,
+                )
+                code = re.sub(
+                    r"^from \.util import log$",
+                    r"from distutils import log$",
+                    code,
+                    flags=re.MULTILINE,
+                )
+
+            path.write_text(code)  # type: ignore[attr-defined]
+
+
 def rewrite_platformdirs(pkg_files: Path):
     """
     Replace some absolute imports with relative ones.
@@ -163,6 +219,7 @@ def update_setuptools():
     rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
     rewrite_importlib_metadata(vendor / 'importlib_metadata', 'setuptools.extern')
     rewrite_more_itertools(vendor / "more_itertools")
+    rewrite_wheel(vendor / "wheel")
 
 
 def yield_top_level(name):

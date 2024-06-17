@@ -1,0 +1,1 @@
+Use actual boolean parameters and variables instead of 0-1 literals. -- by :user:`Avasam`
