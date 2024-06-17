@@ -26,6 +26,7 @@ from wheel.metadata import pkginfo_to_metadata
 from wheel.wheelfile import WheelFile
 
 from .. import Command, __version__
+from ..warnings import SetuptoolsWarning
 from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
@@ -278,6 +279,15 @@ class bdist_wheel(Command):
             PY_LIMITED_API_PATTERN, self.py_limited_api
         ):
             raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
+
+        if "t" in sys.abiflags:
+            SetuptoolsWarning.emit(
+                summary=f"Ignoring `py_limited_api={self.py_limited_api!r}`.",
+                details="`Py_LIMITED_API` is currently incompatible with "
+                f"`Py_GIL_DISABLED` ({sys.abiflags=!r}).",
+                see_url="https://github.com/python/cpython/issues/111506",
+            )
+            self.py_limited_api = False
 
         # Support legacy [wheel] section for setting universal
         wheel = self.distribution.get_option_dict("wheel")
