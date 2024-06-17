@@ -1,0 +1,33 @@
+{
+	"$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
+	"exclude": [
+		"build",
+		".tox",
+		".eggs",
+		"**/extern", // Vendored
+		"**/_vendor", // Vendored
+		"setuptools/_distutils", // Vendored
+		"**/tests", // Disabled as long as analyzeUnannotatedFunctions=false to reduce log spam
+		"**/_*", // Disabled as long as analyzeUnannotatedFunctions=false to reduce log spam
+	],
+	// Our testing setup doesn't allow passing CLI arguments, so local devs have to set this manually.
+	// "pythonVersion": "3.8",
+	// For now we don't mind if mypy's `type: ignore` comments accidentally suppresses pyright issues
+	"enableTypeIgnoreComments": true,
+	"typeCheckingMode": "basic",
+	// Avoid raising issues when importing from "extern" modules, as those are added to path dynamically.
+	// https://github.com/pypa/setuptools/pull/3979#discussion_r1367968993
+	"reportMissingImports": "none",
+	// Too many issues caused by vendoring and dynamic patching, still worth fixing when we can
+	"reportAttributeAccessIssue": "warning",
+	// FIXME: A handful of reportOperatorIssue spread throughout the codebase
+	"reportOperatorIssue": "warning",
+	// Deferred initialization (initialize_options/finalize_options) causes many "potentially None" issues
+	// TODO: Fix with type-guards or by changing how it's initialized
+	"reportCallIssue": "warning",
+	"reportArgumentType": "warning",
+	"reportOptionalIterable": "warning",
+	"reportOptionalMemberAccess": "warning",
+	"reportGeneralTypeIssues": "warning",
+	"reportOptionalOperand": "warning",
+}
