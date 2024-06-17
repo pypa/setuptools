@@ -10,20 +10,7 @@ from setuptools import find_packages
 from setuptools import find_namespace_packages
 from setuptools.discovery import FlatLayoutPackageFinder
 
-
-# modeled after CPython's test.support.can_symlink
-def can_symlink():
-    TESTFN = tempfile.mktemp()
-    symlink_path = TESTFN + "can_symlink"
-    try:
-        os.symlink(TESTFN, symlink_path)
-        can = True
-    except (OSError, NotImplementedError, AttributeError):
-        can = False
-    else:
-        os.remove(symlink_path)
-    globals().update(can_symlink=lambda: can)
-    return can
+from .compat.py39 import os_helper
 
 
 class TestFindPackages:
@@ -123,7 +110,7 @@ class TestFindPackages:
         packages = find_packages(self.dist_dir)
         assert 'build.pkg' not in packages
 
-    @pytest.mark.skipif(not can_symlink(), reason='Symlink support required')
+    @pytest.mark.skipif(not os_helper.can_symlink(), reason='Symlink support required')
     def test_symlinked_packages_are_included(self):
         """
         A symbolically-linked directory should be treated like any other
@@ -193,7 +180,8 @@ class TestFlatLayoutPackageFinder:
             [
                 "pkg/__init__.py",
                 "examples/__init__.py",
-                "examples/file.py" "example/other_file.py",
+                "examples/file.py",
+                "example/other_file.py",
                 # Sub-packages should always be fine
                 "pkg/example/__init__.py",
                 "pkg/examples/__init__.py",

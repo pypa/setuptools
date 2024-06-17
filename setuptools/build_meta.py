@@ -36,12 +36,12 @@ import contextlib
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Dict, Iterator, List, Optional, Tuple, Union, Iterable
 
 import setuptools
 import distutils
 from . import errors
-from ._path import same_path
+from ._path import same_path, StrPath
 from ._reqs import parse_strings
 from .warnings import SetuptoolsDeprecationWarning
 from distutils.util import strtobool
@@ -113,7 +113,7 @@ def _get_immediate_subdirectories(a_dir):
     ]
 
 
-def _file_with_extension(directory, extension):
+def _file_with_extension(directory: StrPath, extension: Union[str, Tuple[str, ...]]):
     matching = (f for f in os.listdir(directory) if f.endswith(extension))
     try:
         (file,) = matching
@@ -370,11 +370,11 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
     def _build_with_temp_dir(
         self,
-        setup_command,
-        result_extension,
-        result_directory,
-        config_settings,
-        arbitrary_args=(),
+        setup_command: Iterable[str],
+        result_extension: Union[str, Tuple[str, ...]],
+        result_directory: StrPath,
+        config_settings: _ConfigSettings,
+        arbitrary_args: Iterable[str] = (),
     ):
         result_directory = os.path.abspath(result_directory)
 
@@ -404,7 +404,10 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         return result_basename
 
     def build_wheel(
-        self, wheel_directory, config_settings=None, metadata_directory=None
+        self,
+        wheel_directory: StrPath,
+        config_settings: _ConfigSettings = None,
+        metadata_directory: Optional[StrPath] = None,
     ):
         with suppress_known_deprecation():
             return self._build_with_temp_dir(
@@ -415,12 +418,16 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
                 self._arbitrary_args(config_settings),
             )
 
-    def build_sdist(self, sdist_directory, config_settings=None):
+    def build_sdist(
+        self, sdist_directory: StrPath, config_settings: _ConfigSettings = None
+    ):
         return self._build_with_temp_dir(
             ['sdist', '--formats', 'gztar'], '.tar.gz', sdist_directory, config_settings
         )
 
-    def _get_dist_info_dir(self, metadata_directory: Optional[str]) -> Optional[str]:
+    def _get_dist_info_dir(
+        self, metadata_directory: Optional[StrPath]
+    ) -> Optional[str]:
         if not metadata_directory:
             return None
         dist_info_candidates = list(Path(metadata_directory).glob("*.dist-info"))
@@ -433,7 +440,10 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         # get_requires_for_build_editable
         # prepare_metadata_for_build_editable
         def build_editable(
-            self, wheel_directory, config_settings=None, metadata_directory=None
+            self,
+            wheel_directory: StrPath,
+            config_settings: _ConfigSettings = None,
+            metadata_directory: Optional[str] = None,
         ):
             # XXX can or should we hide our editable_wheel command normally?
             info_dir = self._get_dist_info_dir(metadata_directory)
