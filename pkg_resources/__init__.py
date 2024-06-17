@@ -731,7 +731,7 @@ class WorkingSet:
 
             for key in self.entry_keys[item]:
                 if key not in seen:
-                    seen[key] = 1
+                    seen[key] = True
                     yield self.by_key[key]
 
     def add(

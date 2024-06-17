@@ -88,9 +88,9 @@ class install_lib(orig.install_lib):
         self,
         infile: StrPath,
         outfile: str,
-        preserve_mode=1,
-        preserve_times=1,
-        preserve_symlinks=0,
+        preserve_mode=True,
+        preserve_times=True,
+        preserve_symlinks=False,
         level=1,
     ):
         assert preserve_mode and preserve_times and not preserve_symlinks
