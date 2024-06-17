@@ -12,7 +12,7 @@ extend-select = [
 	# local
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
-  "PYI", # flake8-pyi
+	"PYI", # flake8-pyi
 	"UP", # pyupgrade
 	"YTT", # flake8-2020
 ]
@@ -39,10 +39,6 @@ ignore = [
 	"ISC001",
 	"ISC002",
 ]
-
-[lint.per-file-ignores]
-# Auto-generated code
-"setuptools/config/_validate_pyproject/*" = ["FA100"]
 
 [format]
 # Enable preview to get hugged parenthesis unwrapping
