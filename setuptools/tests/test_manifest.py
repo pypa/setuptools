@@ -1,5 +1,7 @@
 """sdist tests"""
 
+from __future__ import annotations
+
 import contextlib
 import os
 import shutil
@@ -10,7 +12,6 @@ import io
 import logging
 from distutils import log
 from distutils.errors import DistutilsTemplateError
-from typing import List, Tuple
 
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
@@ -76,7 +77,7 @@ default_files = frozenset(
 )
 
 
-translate_specs: List[Tuple[str, List[str], List[str]]] = [
+translate_specs: list[tuple[str, list[str], list[str]]] = [
     ('foo', ['foo'], ['bar', 'foobar']),
     ('foo/bar', ['foo/bar'], ['foo/bar/baz', './foo/bar', 'foo']),
     # Glob matching
