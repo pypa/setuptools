@@ -36,7 +36,6 @@ from typing import (
     MutableSequence,
     NamedTuple,
     NoReturn,
-    Sequence,
     Set,
     Tuple,
     Type,
@@ -49,6 +48,7 @@ from typing import (
     Iterable,
     Optional,
     TypeVar,
+    overload,
 )
 import zipfile
 import zipimport
@@ -99,7 +99,7 @@ from pkg_resources.extern.packaging import version as _packaging_version
 from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
-    from _typeshed import StrPath
+    from _typeshed import StrPath, StrOrBytesPath, BytesPath
 
 warnings.warn(
     "pkg_resources is deprecated as an API. "
@@ -1046,7 +1046,7 @@ class Environment:
 
     def __init__(
         self,
-        search_path: Optional[Sequence[str]] = None,
+        search_path: Optional[Iterable[str]] = None,
         platform: Optional[str] = get_supported_platform(),
         python: Optional[str] = PY_MAJOR,
     ):
@@ -1089,7 +1089,7 @@ class Environment:
         """Remove `dist` from the environment"""
         self._distmap[dist.key].remove(dist)
 
-    def scan(self, search_path: Optional[Sequence[str]] = None):
+    def scan(self, search_path: Optional[Iterable[str]] = None):
         """Scan `search_path` for distributions usable in this environment
 
         Any distributions found are added to the environment.
@@ -1293,7 +1293,7 @@ class ResourceManager:
         err.original_error = old_exc
         raise err
 
-    def get_cache_path(self, archive_name: str, names: Iterable[str] = ()):
+    def get_cache_path(self, archive_name: str, names: Iterable["StrPath"] = ()):
         """Return absolute location in cache for `archive_name` and `names`
 
         The parent directory of the resulting path will be created if it does
@@ -1345,7 +1345,7 @@ class ResourceManager:
             ).format(**locals())
             warnings.warn(msg, UserWarning)
 
-    def postprocess(self, tempname: str, filename: str):
+    def postprocess(self, tempname: "StrOrBytesPath", filename: "StrOrBytesPath"):
         """Perform any platform-specific postprocessing of `tempname`
 
         This is where Mac header rewrites should be done; other platforms don't
@@ -2472,12 +2472,16 @@ def null_ns_handler(
 register_namespace_handler(object, null_ns_handler)
 
 
-def normalize_path(filename: "StrPath"):
+@overload
+def normalize_path(filename: "StrPath") -> str: ...
+@overload
+def normalize_path(filename: "BytesPath") -> bytes: ...
+def normalize_path(filename: "StrOrBytesPath"):
     """Normalize a file/dir name for comparison purposes"""
     return os.path.normcase(os.path.realpath(os.path.normpath(_cygwin_patch(filename))))
 
 
-def _cygwin_patch(filename: "StrPath"):  # pragma: nocover
+def _cygwin_patch(filename: "StrOrBytesPath"):  # pragma: nocover
     """
     Contrary to POSIX 2008, on Cygwin, getcwd (3) contains
     symlink components. Using
@@ -2488,9 +2492,19 @@ def _cygwin_patch(filename: "StrPath"):  # pragma: nocover
     return os.path.abspath(filename) if sys.platform == 'cygwin' else filename
 
 
-@functools.lru_cache(maxsize=None)
-def _normalize_cached(filename):
-    return normalize_path(filename)
+if TYPE_CHECKING:
+    # https://github.com/python/mypy/issues/16261
+    # https://github.com/python/typeshed/issues/6347
+    @overload
+    def _normalize_cached(filename: "StrPath") -> str: ...
+    @overload
+    def _normalize_cached(filename: "BytesPath") -> bytes: ...
+    def _normalize_cached(filename: "StrOrBytesPath") -> Union[str, bytes]: ...
+else:
+
+    @functools.lru_cache(maxsize=None)
+    def _normalize_cached(filename):
+        return normalize_path(filename)
 
 
 def _is_egg_path(path):
@@ -2743,7 +2757,7 @@ class Distribution:
     def from_location(
         cls,
         location: str,
-        basename: str,
+        basename: "StrPath",
         metadata: _MetadataType = None,
         **kw: int,  # We could set `precedence` explicitly, but keeping this as `**kw` for full backwards and subclassing compatibility
     ):
@@ -3003,7 +3017,7 @@ class Distribution:
     @classmethod
     def from_filename(
         cls,
-        filename: str,
+        filename: "StrPath",
         metadata: _MetadataType = None,
         **kw: int,  # We could set `precedence` explicitly, but keeping this as `**kw` for full backwards and subclassing compatibility
     ):
@@ -3339,7 +3353,7 @@ def _find_adapter(registry: Mapping[type, _AdapterT], ob: object) -> _AdapterT:
     raise TypeError(f"Could not find adapter for {registry} and {ob}")
 
 
-def ensure_directory(path: str):
+def ensure_directory(path: "StrOrBytesPath"):
     """Ensure that the parent directory of `path` exists"""
     dirname = os.path.dirname(path)
     os.makedirs(dirname, exist_ok=True)
