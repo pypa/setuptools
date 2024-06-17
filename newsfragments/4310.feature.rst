@@ -1,0 +1,1 @@
+Migrated Setuptools' own config to pyproject.toml

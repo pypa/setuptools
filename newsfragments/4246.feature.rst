@@ -1,0 +1,4 @@
+Improve error message when ``pkg_resources.ZipProvider`` tries to extract resources with a missing Egg -- by :user:`Avasam`
+
+Added variables and parameter type annotations to ``pkg_resources`` to be nearly on par with typeshed.\* -- by :user:`Avasam`
+\* Excluding ``TypeVar`` and ``overload``. Return types are currently inferred. 

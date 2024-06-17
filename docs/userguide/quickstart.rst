@@ -60,9 +60,9 @@ library will be used to actually do the packaging.
 
    Historically this documentation has unnecessarily listed ``wheel``
    in the ``requires`` list, and many projects still do that. This is
-   not recommended. The backend automatically adds ``wheel`` dependency
-   when it is required, and listing it explicitly causes it to be
-   unnecessarily required for source distribution builds.
+   not recommended, as the backend no longer requires the ``wheel``
+   package, and listing it explicitly causes it to be unnecessarily
+   required for source distribution builds.
    You should only include ``wheel`` in ``requires`` if you need to explicitly
    access it during build time (e.g. if your project needs a ``setup.py``
    script that imports ``wheel``).

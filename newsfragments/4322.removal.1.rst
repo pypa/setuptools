@@ -1,3 +1,0 @@
-Remove ``setuptools.convert_path`` after long deprecation period.
-This function was never defined by ``setuptools`` itself, but rather a
-side-effect of an import for internal usage.

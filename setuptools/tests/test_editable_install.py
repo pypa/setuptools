@@ -396,11 +396,6 @@ class TestPep420Namespaces:
         assert "mypkg.other not defined" in out
 
 
-# Moved here from test_develop:
-@pytest.mark.xfail(
-    platform.python_implementation() == 'PyPy',
-    reason="Workaround fails on PyPy (why?)",
-)
 def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     """
     Editable install to a prefix should be discoverable.
@@ -408,17 +403,19 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     prefix = tmp_path / 'prefix'
 
     # figure out where pip will likely install the package
-    site_packages = prefix / next(
-        Path(path).relative_to(sys.prefix)
+    site_packages_all = [
+        prefix / Path(path).relative_to(sys.prefix)
         for path in sys.path
         if 'site-packages' in path and path.startswith(sys.prefix)
-    )
-    site_packages.mkdir(parents=True)
+    ]
+
+    for sp in site_packages_all:
+        sp.mkdir(parents=True)
 
     # install workaround
-    _addsitedir(site_packages)
+    _addsitedirs(site_packages_all)
 
-    env = dict(os.environ, PYTHONPATH=str(site_packages))
+    env = dict(os.environ, PYTHONPATH=os.pathsep.join(map(str, site_packages_all)))
     cmd = [
         sys.executable,
         '-m',
@@ -1250,14 +1247,17 @@ def install_project(name, venv, tmp_path, files, *opts):
     return project, out
 
 
-def _addsitedir(new_dir: Path):
+def _addsitedirs(new_dirs):
     """To use this function, it is necessary to insert new_dir in front of sys.path.
     The Python process will try to import a ``sitecustomize`` module on startup.
     If we manipulate sys.path/PYTHONPATH, we can force it to run our code,
     which invokes ``addsitedir`` and ensure ``.pth`` files are loaded.
     """
-    file = f"import site; site.addsitedir({os.fspath(new_dir)!r})\n"
-    (new_dir / "sitecustomize.py").write_text(file, encoding="utf-8")
+    content = '\n'.join(
+        ("import site",)
+        + tuple(f"site.addsitedir({os.fspath(new_dir)!r})" for new_dir in new_dirs)
+    )
+    (new_dirs[0] / "sitecustomize.py").write_text(content, encoding="utf-8")
 
 
 # ---- Assertion Helpers ----

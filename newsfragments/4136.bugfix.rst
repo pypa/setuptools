@@ -1,1 +1,0 @@
-In install command, use super to call the superclass methods. Avoids race conditions when monkeypatching from _distutils_system_mod occurs late.

@@ -1,1 +1,0 @@
-Modernized and refactored VCS handling in package_index.

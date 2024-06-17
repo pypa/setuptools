@@ -1,7 +1,0 @@
-Further adoption of UTF-8 in ``setuptools``.
-This change regards mostly files produced and consumed during the build process
-(e.g. metadata files, script wrappers, automatically updated config files, etc..)
-Although precautions were taken to minimize disruptions, some edge cases might
-be subject to backwards incompatibility.
-
-Support for ``"locale"`` encoding is now **deprecated**.

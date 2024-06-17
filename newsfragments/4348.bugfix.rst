@@ -1,1 +1,0 @@
-Fix an error with `UnicodeDecodeError` handling in ``pkg_resources`` when trying to read files in UTF-8 with a fallback -- by :user:`Avasam`

@@ -1,1 +1,0 @@
-Avoid leaking loop variable ``name`` in ``AbstractSandbox`` -- by :user:`Avasam`
