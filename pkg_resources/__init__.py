@@ -34,6 +34,8 @@ import re
 import types
 from typing import (
     Any,
+    Dict,
+    Iterator,
     Mapping,
     MutableSequence,
     NamedTuple,
@@ -45,8 +47,6 @@ from typing import (
     Callable,
     Iterable,
     TypeVar,
-    Optional,
-    Dict,
     overload,
 )
 import zipfile
@@ -98,6 +98,7 @@ from pkg_resources.extern.packaging import version as _packaging_version
 from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
     from _typeshed import StrPath, StrOrBytesPath, BytesPath
 
 warnings.warn(
@@ -111,15 +112,15 @@ warnings.warn(
 _T = TypeVar("_T")
 # Type aliases
 _NestedStr = Union[str, Iterable[Union[str, Iterable["_NestedStr"]]]]
-_InstallerType = Callable[["Requirement"], Optional["Distribution"]]
+_InstallerType = Callable[["Requirement"], Union["Distribution", None]]
 _PkgReqType = Union[str, "Requirement"]
 _EPDistType = Union["Distribution", _PkgReqType]
-_MetadataType = Optional["IResourceProvider"]
+_MetadataType = Union["IResourceProvider", None]
 # Any object works, but let's indicate we expect something like a module (optionally has __loader__ or __file__)
 _ModuleLike = Union[object, types.ModuleType]
 _ProviderFactoryType = Callable[[_ModuleLike], "IResourceProvider"]
 _DistFinderType = Callable[[_T, str, bool], Iterable["Distribution"]]
-_NSHandlerType = Callable[[_T, str, str, types.ModuleType], Optional[str]]
+_NSHandlerType = Callable[[_T, str, str, types.ModuleType], Union[str, None]]
 _AdapterT = TypeVar(
     "_AdapterT", _DistFinderType[Any], _ProviderFactoryType, _NSHandlerType[Any]
 )
@@ -151,7 +152,7 @@ def _declare_state(vartype: str, varname: str, initial_value: _T) -> _T:
     return initial_value
 
 
-def __getstate__():
+def __getstate__() -> dict[str, Any]:
     state = {}
     g = globals()
     for k, v in _state_vars.items():
@@ -159,7 +160,7 @@ def __getstate__():
     return state
 
 
-def __setstate__(state):
+def __setstate__(state: dict[str, Any]) -> dict[str, Any]:
     g = globals()
     for k, v in state.items():
         g['_sset_' + _state_vars[k]](k, g[k], v)
@@ -314,11 +315,11 @@ class VersionConflict(ResolutionError):
     _template = "{self.dist} is installed but {self.req} is required"
 
     @property
-    def dist(self):
+    def dist(self) -> Distribution:
         return self.args[0]
 
     @property
-    def req(self):
+    def req(self) -> Requirement:
         return self.args[1]
 
     def report(self):
@@ -344,7 +345,7 @@ class ContextualVersionConflict(VersionConflict):
     _template = VersionConflict._template + ' by {self.required_by}'
 
     @property
-    def required_by(self):
+    def required_by(self) -> set[str]:
         return self.args[2]
 
 
@@ -357,11 +358,11 @@ class DistributionNotFound(ResolutionError):
     )
 
     @property
-    def req(self):
+    def req(self) -> Requirement:
         return self.args[0]
 
     @property
-    def requirers(self):
+    def requirers(self) -> set[str] | None:
         return self.args[1]
 
     @property
@@ -667,11 +668,11 @@ class WorkingSet:
         for dist in find_distributions(entry, True):
             self.add(dist, entry, False)
 
-    def __contains__(self, dist: Distribution):
+    def __contains__(self, dist: Distribution) -> bool:
         """True if `dist` is the active distribution for its project"""
         return self.by_key.get(dist.key) == dist
 
-    def find(self, req: Requirement):
+    def find(self, req: Requirement) -> Distribution | None:
         """Find a distribution matching requirement `req`
 
         If there is an active distribution for the requested project, this
@@ -717,7 +718,7 @@ class WorkingSet:
         ns['__name__'] = name
         self.require(requires)[0].run_script(script_name, ns)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Distribution]:
         """Yield distributions for non-duplicate projects in the working set
 
         The yield order is the order in which the items' path entries were
@@ -1101,7 +1102,7 @@ class Environment:
             for dist in find_distributions(item):
                 self.add(dist)
 
-    def __getitem__(self, project_name: str):
+    def __getitem__(self, project_name: str) -> list[Distribution]:
         """Return a newest-to-oldest list of distributions for `project_name`
 
         Uses case-insensitive `project_name` comparison, assuming all the
@@ -1168,7 +1169,7 @@ class Environment:
         to the `installer` argument."""
         return installer(requirement) if installer else None
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """Yield the unique project names of the available distributions"""
         for key in self._distmap.keys():
             if self[key]:
@@ -1401,7 +1402,7 @@ class ResourceManager:
         return []
 
 
-def get_default_cache():
+def get_default_cache() -> str:
     """
     Return the ``PYTHON_EGG_CACHE`` environment variable
     or a platform-relevant user cache dir for an app
@@ -1493,7 +1494,7 @@ def invalid_marker(text: str):
     return False
 
 
-def evaluate_marker(text: str, extra: str | None = None):
+def evaluate_marker(text: str, extra: str | None = None) -> bool:
     """
     Evaluate a PEP 508 environment marker.
     Return a boolean indicating the marker result in this environment.
@@ -1799,7 +1800,7 @@ class ZipManifests(Dict[str, "MemoizedZipManifests.manifest_mod"]):
     zip manifest builder
     """
 
-    # `path` could be `Union["StrPath", IO[bytes]]` but that violates the LSP for `MemoizedZipManifests.load`
+    # `path` could be `StrPath | IO[bytes]` but that violates the LSP for `MemoizedZipManifests.load`
     @classmethod
     def build(cls, path: str):
         """
@@ -1831,7 +1832,7 @@ class MemoizedZipManifests(ZipManifests):
         manifest: dict[str, zipfile.ZipInfo]
         mtime: float
 
-    def load(self, path: str):  # type: ignore[override] # ZipManifests.load is a classmethod
+    def load(self, path: str) -> dict[str, zipfile.ZipInfo]:  # type: ignore[override] # ZipManifests.load is a classmethod
         """
         Load a manifest at path or return a suitable manifest already loaded.
         """
@@ -2123,7 +2124,7 @@ def find_distributions(path_item: str, only: bool = False):
 
 def find_eggs_in_zip(
     importer: zipimport.zipimporter, path_item: str, only: bool = False
-):
+) -> Iterator[Distribution]:
     """
     Find eggs in zip files; possibly multiple nested eggs.
     """
@@ -2216,7 +2217,7 @@ class NoDists:
         return iter(())
 
 
-def safe_listdir(path):
+def safe_listdir(path: StrOrBytesPath):
     """
     Attempt to list contents of path, but suppress some exceptions.
     """
@@ -2232,13 +2233,13 @@ def safe_listdir(path):
     return ()
 
 
-def distributions_from_metadata(path):
+def distributions_from_metadata(path: str):
     root = os.path.dirname(path)
     if os.path.isdir(path):
         if len(os.listdir(path)) == 0:
             # empty metadata dir; skip
             return
-        metadata = PathMetadata(root, path)
+        metadata: _MetadataType = PathMetadata(root, path)
     else:
         metadata = FileMetadata(path)
     entry = os.path.basename(path)
@@ -2679,7 +2680,7 @@ class EntryPoint:
         """Parse an entry point group"""
         if not MODULE(group):
             raise ValueError("Invalid group name", group)
-        this = {}
+        this: dict[str, Self] = {}
         for line in yield_lines(lines):
             ep = cls.parse(line, dist)
             if ep.name in this:
@@ -2694,11 +2695,12 @@ class EntryPoint:
         dist: Distribution | None = None,
     ):
         """Parse a map of entry point groups"""
+        _data: Iterable[tuple[str | None, str | Iterable[str]]]
         if isinstance(data, dict):
             _data = data.items()
         else:
             _data = split_sections(data)
-        maps: dict[str, dict[str, EntryPoint]] = {}
+        maps: dict[str, dict[str, Self]] = {}
         for group, lines in _data:
             if group is None:
                 if not lines:
@@ -2757,7 +2759,7 @@ class Distribution:
         basename: StrPath,
         metadata: _MetadataType = None,
         **kw: int,  # We could set `precedence` explicitly, but keeping this as `**kw` for full backwards and subclassing compatibility
-    ):
+    ) -> Distribution:
         project_name, version, py_version, platform = [None] * 4
         basename, ext = os.path.splitext(basename)
         if ext.lower() in _distributionImpl:
@@ -2896,14 +2898,14 @@ class Distribution:
         return self.__dep_map
 
     @staticmethod
-    def _filter_extras(dm):
+    def _filter_extras(dm: dict[str | None, list[Requirement]]):
         """
         Given a mapping of extras to dependencies, strip off
         environment markers and filter out any dependencies
         not matching the markers.
         """
         for extra in list(filter(None, dm)):
-            new_extra = extra
+            new_extra: str | None = extra
             reqs = dm.pop(extra)
             new_extra, _, marker = extra.partition(':')
             fails_marker = marker and (
@@ -2926,7 +2928,7 @@ class Distribution:
     def requires(self, extras: Iterable[str] = ()):
         """List of Requirements needed for this distro if `extras` are used"""
         dm = self._dep_map
-        deps = []
+        deps: list[Requirement] = []
         deps.extend(dm.get(None, ()))
         for ext in extras:
             try:
@@ -3223,11 +3225,11 @@ class DistInfoDistribution(Distribution):
             self.__dep_map = self._compute_dependencies()
             return self.__dep_map
 
-    def _compute_dependencies(self):
+    def _compute_dependencies(self) -> dict[str | None, list[Requirement]]:
         """Recompute this distribution's dependencies."""
-        dm = self.__dep_map = {None: []}
+        self.__dep_map: dict[str | None, list[Requirement]] = {None: []}
 
-        reqs = []
+        reqs: list[Requirement] = []
         # Including any condition expressions
         for req in self._parsed_pkg_info.get_all('Requires-Dist') or []:
             reqs.extend(parse_requirements(req))
@@ -3238,13 +3240,15 @@ class DistInfoDistribution(Distribution):
                     yield req
 
         common = types.MappingProxyType(dict.fromkeys(reqs_for_extra(None)))
-        dm[None].extend(common)
+        self.__dep_map[None].extend(common)
 
         for extra in self._parsed_pkg_info.get_all('Provides-Extra') or []:
             s_extra = safe_extra(extra.strip())
-            dm[s_extra] = [r for r in reqs_for_extra(extra) if r not in common]
+            self.__dep_map[s_extra] = [
+                r for r in reqs_for_extra(extra) if r not in common
+            ]
 
-        return dm
+        return self.__dep_map
 
 
 _distributionImpl = {
@@ -3305,7 +3309,7 @@ class Requirement(_packaging_requirements.Requirement):
     def __ne__(self, other):
         return not self == other
 
-    def __contains__(self, item: Distribution | str | tuple[str, ...]):
+    def __contains__(self, item: Distribution | str | tuple[str, ...]) -> bool:
         if isinstance(item, Distribution):
             if item.key != self.key:
                 return False
@@ -3369,7 +3373,7 @@ def _bypass_ensure_directory(path):
             pass
 
 
-def split_sections(s: _NestedStr):
+def split_sections(s: _NestedStr) -> Iterator[tuple[str | None, list[str]]]:
     """Split a string or iterable thereof into (section, content) pairs
 
     Each ``section`` is a stripped version of the section header ("[section]")
