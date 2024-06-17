@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 from distutils import log
 import distutils.command.install_scripts as orig
 import os
 import sys
-from typing import List
 
 from .._path import ensure_directory
 
@@ -19,7 +20,7 @@ class install_scripts(orig.install_scripts):
         if self.distribution.scripts:
             orig.install_scripts.run(self)  # run first to set up self.outfiles
         else:
-            self.outfiles: List[str] = []
+            self.outfiles: list[str] = []
         if self.no_ep:
             # don't install entry point scripts into .egg file!
             return
