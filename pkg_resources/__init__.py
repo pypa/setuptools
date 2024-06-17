@@ -36,7 +36,6 @@ from typing import (
     MutableSequence,
     NamedTuple,
     NoReturn,
-    Sequence,
     Set,
     Tuple,
     Type,
@@ -49,6 +48,7 @@ from typing import (
     Iterable,
     Optional,
     TypeVar,
+    overload,
 )
 import zipfile
 import zipimport
@@ -99,7 +99,7 @@ from pkg_resources.extern.packaging import version as _packaging_version
 from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
-    from _typeshed import StrPath
+    from _typeshed import StrPath, StrOrBytesPath, BytesPath
 
 warnings.warn(
     "pkg_resources is deprecated as an API. "
@@ -109,7 +109,7 @@ warnings.warn(
 )
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 # Type aliases
 _NestedStr = Union[str, Iterable[Union[str, Iterable["_NestedStr"]]]]
 _InstallerType = Callable[["Requirement"], Optional["Distribution"]]
@@ -118,7 +118,12 @@ _EPDistType = Union["Distribution", _PkgReqType]
 _MetadataType = Optional["IResourceProvider"]
 # Any object works, but let's indicate we expect something like a module (optionally has __loader__ or __file__)
 _ModuleLike = Union[object, types.ModuleType]
-_AdapterType = Callable[..., Any]  # Incomplete
+_ProviderFactoryType = Callable[[_ModuleLike], "IResourceProvider"]
+_DistFinderType = Callable[[_T, str, bool], Iterable["Distribution"]]
+_NSHandlerType = Callable[[_T, str, str, types.ModuleType], Optional[str]]
+_AdapterT = TypeVar(
+    "_AdapterT", _DistFinderType[Any], _ProviderFactoryType, _NSHandlerType[Any]
+)
 
 
 # Use _typeshed.importlib.LoaderProtocol once available https://github.com/python/typeshed/pull/11890
@@ -142,7 +147,7 @@ parse_version = _packaging_version.Version
 _state_vars: Dict[str, str] = {}
 
 
-def _declare_state(vartype: str, varname: str, initial_value: T) -> T:
+def _declare_state(vartype: str, varname: str, initial_value: _T) -> _T:
     _state_vars[varname] = vartype
     return initial_value
 
@@ -377,7 +382,7 @@ class UnknownExtra(ResolutionError):
     """Distribution doesn't have an "extra feature" of the given name"""
 
 
-_provider_factories: Dict[Type[_ModuleLike], _AdapterType] = {}
+_provider_factories: Dict[Type[_ModuleLike], _ProviderFactoryType] = {}
 
 PY_MAJOR = '{}.{}'.format(*sys.version_info)
 EGG_DIST = 3
@@ -388,7 +393,7 @@ DEVELOP_DIST = -1
 
 
 def register_loader_type(
-    loader_type: Type[_ModuleLike], provider_factory: _AdapterType
+    loader_type: Type[_ModuleLike], provider_factory: _ProviderFactoryType
 ):
     """Register `provider_factory` to make providers for `loader_type`
 
@@ -1041,7 +1046,7 @@ class Environment:
 
     def __init__(
         self,
-        search_path: Optional[Sequence[str]] = None,
+        search_path: Optional[Iterable[str]] = None,
         platform: Optional[str] = get_supported_platform(),
         python: Optional[str] = PY_MAJOR,
     ):
@@ -1084,7 +1089,7 @@ class Environment:
         """Remove `dist` from the environment"""
         self._distmap[dist.key].remove(dist)
 
-    def scan(self, search_path: Optional[Sequence[str]] = None):
+    def scan(self, search_path: Optional[Iterable[str]] = None):
         """Scan `search_path` for distributions usable in this environment
 
         Any distributions found are added to the environment.
@@ -1288,7 +1293,7 @@ class ResourceManager:
         err.original_error = old_exc
         raise err
 
-    def get_cache_path(self, archive_name: str, names: Iterable[str] = ()):
+    def get_cache_path(self, archive_name: str, names: Iterable["StrPath"] = ()):
         """Return absolute location in cache for `archive_name` and `names`
 
         The parent directory of the resulting path will be created if it does
@@ -1340,7 +1345,7 @@ class ResourceManager:
             ).format(**locals())
             warnings.warn(msg, UserWarning)
 
-    def postprocess(self, tempname: str, filename: str):
+    def postprocess(self, tempname: "StrOrBytesPath", filename: "StrOrBytesPath"):
         """Perform any platform-specific postprocessing of `tempname`
 
         This is where Mac header rewrites should be done; other platforms don't
@@ -2097,12 +2102,12 @@ class EggMetadata(ZipProvider):
         self._setup_prefix()
 
 
-_distribution_finders: Dict[
-    type, Callable[[object, str, bool], Iterable["Distribution"]]
-] = _declare_state('dict', '_distribution_finders', {})
+_distribution_finders: Dict[type, _DistFinderType[Any]] = _declare_state(
+    'dict', '_distribution_finders', {}
+)
 
 
-def register_finder(importer_type: type, distribution_finder: _AdapterType):
+def register_finder(importer_type: Type[_T], distribution_finder: _DistFinderType[_T]):
     """Register `distribution_finder` to find distributions in sys.path items
 
     `importer_type` is the type or class of a PEP 302 "Importer" (sys.path item
@@ -2276,15 +2281,17 @@ if hasattr(pkgutil, 'ImpImporter'):
 
 register_finder(importlib.machinery.FileFinder, find_on_path)
 
-_namespace_handlers: Dict[
-    type, Callable[[object, str, str, types.ModuleType], Optional[str]]
-] = _declare_state('dict', '_namespace_handlers', {})
+_namespace_handlers: Dict[type, _NSHandlerType[Any]] = _declare_state(
+    'dict', '_namespace_handlers', {}
+)
 _namespace_packages: Dict[Optional[str], List[str]] = _declare_state(
     'dict', '_namespace_packages', {}
 )
 
 
-def register_namespace_handler(importer_type: type, namespace_handler: _AdapterType):
+def register_namespace_handler(
+    importer_type: Type[_T], namespace_handler: _NSHandlerType[_T]
+):
     """Register `namespace_handler` to declare namespace packages
 
     `importer_type` is the type or class of a PEP 302 "Importer" (sys.path item
@@ -2429,9 +2436,9 @@ def fixup_namespace_packages(path_item: str, parent: Optional[str] = None):
 
 
 def file_ns_handler(
-    importer: Optional[importlib.abc.PathEntryFinder],
-    path_item,
-    packageName,
+    importer: object,
+    path_item: "StrPath",
+    packageName: str,
     module: types.ModuleType,
 ):
     """Compute an ns-package subpath for a filesystem or zipfile importer"""
@@ -2454,7 +2461,7 @@ register_namespace_handler(importlib.machinery.FileFinder, file_ns_handler)
 
 
 def null_ns_handler(
-    importer: Optional[importlib.abc.PathEntryFinder],
+    importer: object,
     path_item: Optional[str],
     packageName: Optional[str],
     module: Optional[_ModuleLike],
@@ -2465,12 +2472,16 @@ def null_ns_handler(
 register_namespace_handler(object, null_ns_handler)
 
 
-def normalize_path(filename: "StrPath"):
+@overload
+def normalize_path(filename: "StrPath") -> str: ...
+@overload
+def normalize_path(filename: "BytesPath") -> bytes: ...
+def normalize_path(filename: "StrOrBytesPath"):
     """Normalize a file/dir name for comparison purposes"""
     return os.path.normcase(os.path.realpath(os.path.normpath(_cygwin_patch(filename))))
 
 
-def _cygwin_patch(filename: "StrPath"):  # pragma: nocover
+def _cygwin_patch(filename: "StrOrBytesPath"):  # pragma: nocover
     """
     Contrary to POSIX 2008, on Cygwin, getcwd (3) contains
     symlink components. Using
@@ -2481,9 +2492,19 @@ def _cygwin_patch(filename: "StrPath"):  # pragma: nocover
     return os.path.abspath(filename) if sys.platform == 'cygwin' else filename
 
 
-@functools.lru_cache(maxsize=None)
-def _normalize_cached(filename):
-    return normalize_path(filename)
+if TYPE_CHECKING:
+    # https://github.com/python/mypy/issues/16261
+    # https://github.com/python/typeshed/issues/6347
+    @overload
+    def _normalize_cached(filename: "StrPath") -> str: ...
+    @overload
+    def _normalize_cached(filename: "BytesPath") -> bytes: ...
+    def _normalize_cached(filename: "StrOrBytesPath") -> Union[str, bytes]: ...
+else:
+
+    @functools.lru_cache(maxsize=None)
+    def _normalize_cached(filename):
+        return normalize_path(filename)
 
 
 def _is_egg_path(path):
@@ -2680,7 +2701,7 @@ class EntryPoint:
             _data = data.items()
         else:
             _data = split_sections(data)
-        maps: Dict[str, Dict[str, "EntryPoint"]] = {}
+        maps: Dict[str, Dict[str, EntryPoint]] = {}
         for group, lines in _data:
             if group is None:
                 if not lines:
@@ -2736,7 +2757,7 @@ class Distribution:
     def from_location(
         cls,
         location: str,
-        basename: str,
+        basename: "StrPath",
         metadata: _MetadataType = None,
         **kw: int,  # We could set `precedence` explicitly, but keeping this as `**kw` for full backwards and subclassing compatibility
     ):
@@ -2996,7 +3017,7 @@ class Distribution:
     @classmethod
     def from_filename(
         cls,
-        filename: str,
+        filename: "StrPath",
         metadata: _MetadataType = None,
         **kw: int,  # We could set `precedence` explicitly, but keeping this as `**kw` for full backwards and subclassing compatibility
     ):
@@ -3321,7 +3342,7 @@ def _always_object(classes):
     return classes
 
 
-def _find_adapter(registry: Mapping[type, _AdapterType], ob: object):
+def _find_adapter(registry: Mapping[type, _AdapterT], ob: object) -> _AdapterT:
     """Return an adapter factory for `ob` from `registry`"""
     types = _always_object(inspect.getmro(getattr(ob, '__class__', type(ob))))
     for t in types:
@@ -3332,7 +3353,7 @@ def _find_adapter(registry: Mapping[type, _AdapterType], ob: object):
     raise TypeError(f"Could not find adapter for {registry} and {ob}")
 
 
-def ensure_directory(path: str):
+def ensure_directory(path: "StrOrBytesPath"):
     """Ensure that the parent directory of `path` exists"""
     dirname = os.path.dirname(path)
     os.makedirs(dirname, exist_ok=True)

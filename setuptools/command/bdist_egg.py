@@ -382,8 +382,9 @@ def scan_module(egg_dir, base, name, stubs):
         for bad in [
             'getsource',
             'getabsfile',
+            'getfile',
             'getsourcefile',
-            'getfile' 'getsourcelines',
+            'getsourcelines',
             'findsource',
             'getcomments',
             'getframeinfo',

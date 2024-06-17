@@ -2,6 +2,7 @@ import os
 import sys
 from itertools import product, starmap
 import distutils.command.install_lib as orig
+from .._path import StrPath
 
 
 class install_lib(orig.install_lib):
@@ -85,8 +86,8 @@ class install_lib(orig.install_lib):
 
     def copy_tree(
         self,
-        infile,
-        outfile,
+        infile: StrPath,
+        outfile: str,
         preserve_mode=1,
         preserve_times=1,
         preserve_symlinks=0,
@@ -96,7 +97,7 @@ class install_lib(orig.install_lib):
         exclude = self.get_exclusions()
 
         if not exclude:
-            return orig.install_lib.copy_tree(self, infile, outfile)
+            return orig.install_lib.copy_tree(self, infile, outfile)  # type: ignore[arg-type] # Fixed upstream
 
         # Exclude namespace package __init__.py* files from the output
 
