@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 import ast
 import os
@@ -5,7 +7,6 @@ import glob
 import re
 import stat
 import time
-from typing import List, Tuple
 from pathlib import Path
 from unittest import mock
 
@@ -77,7 +78,7 @@ class TestEggInfo:
         })
 
     @staticmethod
-    def _extract_mv_version(pkg_info_lines: List[str]) -> Tuple[int, int]:
+    def _extract_mv_version(pkg_info_lines: list[str]) -> tuple[int, int]:
         version_str = pkg_info_lines[0].split(' ')[1]
         major, minor = map(int, version_str.split('.')[:2])
         return major, minor
