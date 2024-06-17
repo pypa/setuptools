@@ -1,3 +1,9 @@
+exclude = [
+	"**/_vendor",
+	"setuptools/_distutils",
+	"setuptools/config/_validate_pyproject",
+]
+
 [lint]
 extend-select = [
 	"C901",
@@ -6,6 +12,7 @@ extend-select = [
 	# local
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
+  "PYI", # flake8-pyi
 	"UP", # pyupgrade
 	"YTT", # flake8-2020
 ]
@@ -32,23 +39,13 @@ ignore = [
 	"ISC001",
 	"ISC002",
 ]
-exclude = [
-	"**/_vendor",
-	"setuptools/_distutils",
-	"setuptools/config/_validate_pyproject",
-]
 
 [lint.per-file-ignores]
 # Auto-generated code
 "setuptools/config/_validate_pyproject/*" = ["FA100"]
 
 [format]
-exclude = [
-	"**/_vendor",
-	"setuptools/_distutils",
-	"setuptools/config/_validate_pyproject",
-]
-# Enable preview, required for quote-style = "preserve"
+# Enable preview to get hugged parenthesis unwrapping
 preview = true
 # https://docs.astral.sh/ruff/settings/#format-quote-style
 quote-style = "preserve"
