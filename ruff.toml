@@ -1,13 +1,28 @@
+exclude = [
+	"**/_vendor",
+	"setuptools/_distutils",
+	"setuptools/config/_validate_pyproject",
+]
+
 [lint]
 extend-select = [
 	"C901",
 	"W",
 
 	# local
-	"UP",  # pyupgrade
-	"YTT",  # flake8-2020
+	"FA", # flake8-future-annotations
+	"F404", # late-future-import
+  "PYI", # flake8-pyi
+	"UP", # pyupgrade
+	"YTT", # flake8-2020
 ]
 ignore = [
+	"UP015", # redundant-open-modes, explicit is preferred
+	"UP030", # temporarily disabled
+	"UP031", # temporarily disabled
+	"UP032", # temporarily disabled
+	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
+
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
 	"E111",
@@ -24,26 +39,13 @@ ignore = [
 	"ISC001",
 	"ISC002",
 ]
-extend-ignore = [
-	"UP015",  # redundant-open-modes, explicit is preferred
-	"UP030",  # temporarily disabled
-	"UP031",  # temporarily disabled
-	"UP032",  # temporarily disabled
-	"UP036",  # temporarily disabled
-]
-exclude = [
-	"**/_vendor",
-	"setuptools/_distutils",
-	"setuptools/config/_validate_pyproject",
-]
+
+[lint.per-file-ignores]
+# Auto-generated code
+"setuptools/config/_validate_pyproject/*" = ["FA100"]
 
 [format]
-exclude = [
-	"**/_vendor",
-	"setuptools/_distutils",
-	"setuptools/config/_validate_pyproject",
-]
-# Enable preview, required for quote-style = "preserve"
+# Enable preview to get hugged parenthesis unwrapping
 preview = true
 # https://docs.astral.sh/ruff/settings/#format-quote-style
 quote-style = "preserve"

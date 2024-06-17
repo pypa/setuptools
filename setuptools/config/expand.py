@@ -18,6 +18,8 @@ functions among several configuration file formats.
 **PRIVATE MODULE**: API reserved for setuptools internal usage only.
 """
 
+from __future__ import annotations
+
 import ast
 import importlib
 import os
@@ -30,16 +32,10 @@ from itertools import chain
 from typing import (
     TYPE_CHECKING,
     Callable,
-    Dict,
     Iterable,
     Iterator,
-    List,
     Mapping,
-    Optional,
-    Tuple,
     TypeVar,
-    Union,
-    cast,
 )
 from pathlib import Path
 from types import ModuleType
@@ -65,7 +61,7 @@ class StaticModule:
         vars(self).update(locals())
         del self.self
 
-    def _find_assignments(self) -> Iterator[Tuple[ast.AST, ast.AST]]:
+    def _find_assignments(self) -> Iterator[tuple[ast.AST, ast.AST]]:
         for statement in self.module.body:
             if isinstance(statement, ast.Assign):
                 yield from ((target, statement.value) for target in statement.targets)
@@ -85,8 +81,8 @@ class StaticModule:
 
 
 def glob_relative(
-    patterns: Iterable[str], root_dir: Optional[StrPath] = None
-) -> List[str]:
+    patterns: Iterable[str], root_dir: StrPath | None = None
+) -> list[str]:
     """Expand the list of glob patterns, but preserving relative paths.
 
     :param list[str] patterns: List of glob patterns
@@ -118,7 +114,7 @@ def glob_relative(
 
 
 def read_files(
-    filepaths: Union[StrPath, Iterable[StrPath]], root_dir: Optional[StrPath] = None
+    filepaths: StrPath | Iterable[StrPath], root_dir: StrPath | None = None
 ) -> str:
     """Return the content of the files concatenated using ``\n`` as str
 
@@ -145,7 +141,7 @@ def _filter_existing_files(filepaths: Iterable[StrPath]) -> Iterator[StrPath]:
             SetuptoolsWarning.emit(f"File {path!r} cannot be found")
 
 
-def _read_file(filepath: Union[bytes, StrPath]) -> str:
+def _read_file(filepath: bytes | StrPath) -> str:
     with open(filepath, encoding='utf-8') as f:
         return f.read()
 
@@ -160,8 +156,8 @@ def _assert_local(filepath: StrPath, root_dir: str):
 
 def read_attr(
     attr_desc: str,
-    package_dir: Optional[Mapping[str, str]] = None,
-    root_dir: Optional[StrPath] = None,
+    package_dir: Mapping[str, str] | None = None,
+    root_dir: StrPath | None = None,
 ):
     """Reads the value of an attribute from a module.
 
@@ -196,7 +192,7 @@ def read_attr(
         return getattr(module, attr_name)
 
 
-def _find_spec(module_name: str, module_path: Optional[StrPath]) -> ModuleSpec:
+def _find_spec(module_name: str, module_path: StrPath | None) -> ModuleSpec:
     spec = importlib.util.spec_from_file_location(module_name, module_path)
     spec = spec or importlib.util.find_spec(module_name)
 
@@ -217,8 +213,8 @@ def _load_spec(spec: ModuleSpec, module_name: str) -> ModuleType:
 
 
 def _find_module(
-    module_name: str, package_dir: Optional[Mapping[str, str]], root_dir: StrPath
-) -> Optional[str]:
+    module_name: str, package_dir: Mapping[str, str] | None, root_dir: StrPath
+) -> str | None:
     """Find the path to the module named ``module_name``,
     considering the ``package_dir`` in the build configuration and ``root_dir``.
 
@@ -241,8 +237,8 @@ def _find_module(
 
 def resolve_class(
     qualified_class_name: str,
-    package_dir: Optional[Mapping[str, str]] = None,
-    root_dir: Optional[StrPath] = None,
+    package_dir: Mapping[str, str] | None = None,
+    root_dir: StrPath | None = None,
 ) -> Callable:
     """Given a qualified class name, return the associated class object"""
     root_dir = root_dir or os.getcwd()
@@ -256,10 +252,10 @@ def resolve_class(
 
 
 def cmdclass(
-    values: Dict[str, str],
-    package_dir: Optional[Mapping[str, str]] = None,
-    root_dir: Optional[StrPath] = None,
-) -> Dict[str, Callable]:
+    values: dict[str, str],
+    package_dir: Mapping[str, str] | None = None,
+    root_dir: StrPath | None = None,
+) -> dict[str, Callable]:
     """Given a dictionary mapping command names to strings for qualified class
     names, apply :func:`resolve_class` to the dict values.
     """
@@ -269,10 +265,10 @@ def cmdclass(
 def find_packages(
     *,
     namespaces=True,
-    fill_package_dir: Optional[Dict[str, str]] = None,
-    root_dir: Optional[StrPath] = None,
+    fill_package_dir: dict[str, str] | None = None,
+    root_dir: StrPath | None = None,
     **kwargs,
-) -> List[str]:
+) -> list[str]:
     """Works similarly to :func:`setuptools.find_packages`, but with all
     arguments given as keyword arguments. Moreover, ``where`` can be given
     as a list (the results will be simply concatenated).
@@ -300,7 +296,7 @@ def find_packages(
 
     root_dir = root_dir or os.curdir
     where = kwargs.pop('where', ['.'])
-    packages: List[str] = []
+    packages: list[str] = []
     fill_package_dir = {} if fill_package_dir is None else fill_package_dir
     search = list(unique_everseen(always_iterable(where)))
 
@@ -324,22 +320,17 @@ def _nest_path(parent: StrPath, path: StrPath) -> str:
     return os.path.normpath(path)
 
 
-def version(value: Union[Callable, Iterable[Union[str, int]], str]) -> str:
+def version(value: Callable | Iterable[str | int] | str) -> str:
     """When getting the version directly from an attribute,
     it should be normalised to string.
     """
-    if callable(value):
-        value = value()
+    _value = value() if callable(value) else value
 
-    value = cast(Iterable[Union[str, int]], value)
-
-    if not isinstance(value, str):
-        if hasattr(value, '__iter__'):
-            value = '.'.join(map(str, value))
-        else:
-            value = '%s' % value
-
-    return value
+    if isinstance(_value, str):
+        return _value
+    if hasattr(_value, '__iter__'):
+        return '.'.join(map(str, _value))
+    return '%s' % _value
 
 
 def canonic_package_data(package_data: dict) -> dict:
@@ -349,8 +340,8 @@ def canonic_package_data(package_data: dict) -> dict:
 
 
 def canonic_data_files(
-    data_files: Union[list, dict], root_dir: Optional[StrPath] = None
-) -> List[Tuple[str, List[str]]]:
+    data_files: list | dict, root_dir: StrPath | None = None
+) -> list[tuple[str, list[str]]]:
     """For compatibility with ``setup.py``, ``data_files`` should be a list
     of pairs instead of a dict.
 
@@ -365,7 +356,7 @@ def canonic_data_files(
     ]
 
 
-def entry_points(text: str, text_source="entry-points") -> Dict[str, dict]:
+def entry_points(text: str, text_source="entry-points") -> dict[str, dict]:
     """Given the contents of entry-points file,
     process it into a 2-level dictionary (``dict[str, dict[str, str]]``).
     The first level keys are entry-point groups, the second level keys are
@@ -390,7 +381,7 @@ class EnsurePackagesDiscovered:
     and those might not have been processed yet.
     """
 
-    def __init__(self, distribution: "Distribution"):
+    def __init__(self, distribution: Distribution):
         self._dist = distribution
         self._called = False
 
@@ -434,7 +425,7 @@ class LazyMappingProxy(Mapping[_K, _V]):
 
     def __init__(self, obtain_mapping_value: Callable[[], Mapping[_K, _V]]):
         self._obtain = obtain_mapping_value
-        self._value: Optional[Mapping[_K, _V]] = None
+        self._value: Mapping[_K, _V] | None = None
 
     def _target(self) -> Mapping[_K, _V]:
         if self._value is None:
