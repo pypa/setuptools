@@ -272,6 +272,8 @@ class Distribution(_Distribution):
     }
 
     _patched_dist = None
+    # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
+    namespace_packages: list[str]  #: :meta private: DEPRECATED
 
     def patch_missing_pkg_info(self, attrs):
         # Fake up a replacement for the data that would normally come from
