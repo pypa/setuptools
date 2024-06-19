@@ -139,7 +139,19 @@ v69.3.0
 Features
 --------
 
-- Support PEP 625 by canonicalizing package name and version in filenames. (#3593)
+- Support PEP 625 by canonicalizing package name and version in filenames
+  per
+  `the spec <https://packaging.python.org/en/latest/specifications/source-distribution-format/#source-distribution-file-name>`_.
+  Projects whose names contain uppercase characters, dashes, or periods will
+  now see their sdist names normalized to match the standard and the format
+  previously seen in wheels. For example:
+
+  - ``zope.interface`` -> ``zope_interface``
+  - ``CherryPy`` -> ``cherrypy``
+  - ``foo-bar_baz`` -> ``foo_bar_baz``
+
+  Projects are encouraged to adopt this change to align with standards and
+  other backend build systems. (#3593)
 
 
 v69.2.0
