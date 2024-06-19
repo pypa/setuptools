@@ -7,6 +7,10 @@ import pytest
 pytestmark = pytest.mark.integration
 
 
+# For the sake of simplicity this test uses fixtures defined in
+# `setuptools.test.fixtures`,
+# and it also exercise conditions considered deprecated...
+# So if needed this test can be deleted.
 @pytest.mark.skipif(
     platform.system() != "Linux",
     reason="only demonstrated to fail on Linux in #4399",
