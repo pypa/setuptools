@@ -24,7 +24,7 @@ dynamic = ["version"]
 Homepage = "https://github.com/pypa/distutils"
 
 [project.optional-dependencies]
-testing = [
+test = [
 	# upstream
 	"pytest >= 6, != 8.1.*",
 	"pytest-checkdocs >= 2.4",
@@ -43,7 +43,7 @@ testing = [
 	"pyfakefs",
 	"more_itertools",
 ]
-docs = [
+doc = [
 	# upstream
 	"sphinx >= 3.5",
 	"jaraco.packaging >= 9.3",
