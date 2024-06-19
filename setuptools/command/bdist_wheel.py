@@ -280,7 +280,7 @@ class bdist_wheel(Command):
         ):
             raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
 
-        if "t" in sys.abiflags:
+        if sysconfig.get_config_var("Py_GIL_DISABLED"):
             SetuptoolsWarning.emit(
                 summary=f"Ignoring `py_limited_api={self.py_limited_api!r}`.",
                 details="`Py_LIMITED_API` is currently incompatible with "
