@@ -42,6 +42,9 @@ test = [
 	"docutils",
 	"pyfakefs",
 	"more_itertools",
+
+	# workaround for pytest-dev/pytest#12490
+	"pytest < 8.1; python_version < '3.12'",
 ]
 doc = [
 	# upstream
