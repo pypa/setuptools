@@ -1,3 +1,33 @@
+v70.1.0
+=======
+
+Features
+--------
+
+- Adopted the ``bdist_wheel`` command from the ``wheel`` project -- by :user:`agronholm` (#1386)
+- Improve error message when ``pkg_resources.ZipProvider`` tries to extract resources with a missing Egg -- by :user:`Avasam`
+
+  Added variables and parameter type annotations to ``pkg_resources`` to be nearly on par with typeshed.\* -- by :user:`Avasam`
+  \* Excluding ``TypeVar`` and ``overload``. Return types are currently inferred. (#4246)
+- Migrated Setuptools' own config to pyproject.toml (#4310)
+
+
+Bugfixes
+--------
+
+- Prevent a ``TypeError: 'NoneType' object is not callable`` when ``shutil_rmtree`` is called without an ``onexc`` parameter on Python<=3.11 -- by :user:`Avasam` (#4382)
+- Replace use of mktemp with can_symlink from the stdlib test suite. (#4403)
+- Improvement for ``attr:`` directives in configuration to handle
+  more edge cases related to complex ``package_dir``. (#4405)
+- Fix accidental implicit string concatenation. (#4411)
+
+
+Misc
+----
+
+- #4365, #4422
+
+
 v70.0.0
 =======
 

@@ -1,1 +1,0 @@
-Reorder code in ``pkg_resources/__init__.py`` to avoid definitions after ``@_call_aside``.
