@@ -1,21 +1,10 @@
 import platform
-import subprocess
-import sys
 from inspect import cleandoc
 
 import jaraco.path
 import pytest
 
 pytestmark = pytest.mark.integration
-
-VIRTUALENV = (sys.executable, "-m", "virtualenv")
-
-
-def run(cmd, **kwargs):
-    proc = subprocess.run(cmd, encoding="utf-8", capture_output=True, **kwargs)
-    if proc.returncode != 0:
-        pytest.fail(f"Command {cmd} failed with:\n{proc.stdout=!s}\n{proc.stderr=!s}")
-    return proc.stdout
 
 
 @pytest.mark.skipif(
@@ -55,7 +44,7 @@ def test_interop_pkg_resources_iter_entry_points(tmp_path, venv):
         }
     }
     jaraco.path.build(project, prefix=tmp_path)
-    cmd = [venv.exe("pip"), "install", "-e", ".", "--no-use-pep517"]
-    run(cmd, cwd=tmp_path / "pkg")
-    out = run([venv.exe("foo")])
+    cmd = ["pip", "install", "-e", ".", "--no-use-pep517"]
+    venv.run(cmd, cwd=tmp_path / "pkg")  # Needs this version of pkg_resources installed
+    out = venv.run(["foo"])
     assert "Print me if you can" in out
