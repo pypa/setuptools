@@ -160,15 +160,14 @@ PKG-INFO = "setuptools.command.egg_info:write_pkg_info"
 include-package-data = false
 
 [tool.setuptools.packages.find]
+include = [
+	"setuptools*",
+	"pkg_resources*",
+	"_distutils_hack*",
+]
 exclude = [
 	"*.tests",
 	"*.tests.*",
-	"tools*",
-	"debian*",
-	"launcher*",
-	"newsfragments*",
-	"docs",
-	"docs.*",
 ]
 namespaces = true
 
