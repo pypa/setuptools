@@ -25,7 +25,6 @@ from setuptools.command.bdist_wheel import (
     remove_readonly_exc,
 )
 from setuptools.extern.packaging import tags
-from setuptools.extern.wheel.wheelfile import WheelFile
 
 DEFAULT_FILES = {
     "dummy_dist-1.0.dist-info/top_level.txt",
@@ -170,7 +169,7 @@ def test_licenses_default(dummy_dist, monkeypatch, tmp_path):
         str(tmp_path),
         "--universal",
     ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         license_files = {
             "dummy_dist-1.0.dist-info/" + fname for fname in DEFAULT_LICENSE_FILES
         }
@@ -190,7 +189,7 @@ def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
         str(tmp_path),
         "--universal",
     ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         license_files = {"dummy_dist-1.0.dist-info/DUMMYFILE"}
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
 
@@ -219,7 +218,7 @@ def test_licenses_override(dummy_dist, monkeypatch, tmp_path, config_file, confi
         str(tmp_path),
         "--universal",
     ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         license_files = {
             "dummy_dist-1.0.dist-info/" + fname for fname in {"DUMMYFILE", "LICENSE"}
         }
@@ -239,7 +238,7 @@ def test_licenses_disabled(dummy_dist, monkeypatch, tmp_path):
         str(tmp_path),
         "--universal",
     ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         assert set(wf.namelist()) == DEFAULT_FILES
 
 
@@ -254,7 +253,7 @@ def test_build_number(dummy_dist, monkeypatch, tmp_path):
         "--universal",
         "--build-number=2",
     ])
-    with WheelFile("dist/dummy_dist-1.0-2-py2.py3-none-any.whl") as wf:
+    with ZipFile("dist/dummy_dist-1.0-2-py2.py3-none-any.whl") as wf:
         filenames = set(wf.namelist())
         assert "dummy_dist-1.0.dist-info/RECORD" in filenames
         assert "dummy_dist-1.0.dist-info/METADATA" in filenames
@@ -307,7 +306,7 @@ def test_compression(dummy_dist, monkeypatch, tmp_path, option, compress_type):
         "--universal",
         f"--compression={option}",
     ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         filenames = set(wf.namelist())
         assert "dummy_dist-1.0.dist-info/RECORD" in filenames
         assert "dummy_dist-1.0.dist-info/METADATA" in filenames
@@ -317,7 +316,7 @@ def test_compression(dummy_dist, monkeypatch, tmp_path, option, compress_type):
 
 def test_wheelfile_line_endings(wheel_paths):
     for path in wheel_paths:
-        with WheelFile(path) as wf:
+        with ZipFile(path) as wf:
             wheelfile = next(fn for fn in wf.filelist if fn.filename.endswith("WHEEL"))
             wheelfile_contents = wf.read(wheelfile)
             assert b"\r" not in wheelfile_contents
