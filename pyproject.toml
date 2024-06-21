@@ -27,16 +27,16 @@ requires-python = ">=3.8"
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/pypa/setuptools"
+Source = "https://github.com/pypa/setuptools"
 Documentation = "https://setuptools.pypa.io/"
 Changelog = "https://setuptools.pypa.io/en/stable/history.html"
 
 [project.optional-dependencies]
-testing = [
+test = [
 	# upstream
-	"pytest >= 6, != 8.1.1",
+	"pytest >= 6, != 8.1.*",
 	"pytest-checkdocs >= 2.4",
-	'pytest-cov; python_implementation != "PyPy"', # coverage seems to make PyPy extremely slow
+	"pytest-cov",
 	"pytest-mypy",
 	"pytest-enabler >= 2.2",
 	# workaround for pypa/setuptools#3921
@@ -71,7 +71,7 @@ testing = [
 
 	"jaraco.test",
 ]
-docs = [
+doc = [
 	# upstream
 	"sphinx >= 3.5",
 	"jaraco.packaging >= 9.3",
