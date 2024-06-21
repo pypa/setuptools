@@ -22,7 +22,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/PROJECT_PATH"
+Source = "https://github.com/PROJECT_PATH"
 
 [project.optional-dependencies]
 test = [
