@@ -1704,8 +1704,7 @@ class NullProvider:
                     **locals()
                 ),
             )
-        if not self.egg_info:
-            raise TypeError("Provider is missing egg_info", self.egg_info)
+
         script_text = self.get_metadata(script).replace('\r\n', '\n')
         script_text = script_text.replace('\r', '\n')
         script_filename = self._fn(self.egg_info, script)
@@ -1741,7 +1740,11 @@ class NullProvider:
             "Can't perform this operation for unregistered loader type"
         )
 
-    def _fn(self, base: str, resource_name: str):
+    def _fn(self, base: str | None, resource_name: str):
+        if base is None:
+            raise TypeError(
+                "`base` parameter in `_fn` is `None`. Either override this method or check the parameter first."
+            )
         self._validate_resource_path(resource_name)
         if resource_name:
             return os.path.join(base, *resource_name.split('/'))
