@@ -248,7 +248,7 @@ class bdist_wheel(Command):
         self.owner = None
         self.group = None
         self.universal: bool = False
-        self.compression: int = ZIP_DEFLATED
+        self.compression: int | str = "deflated"
         self.python_tag: str = python_tag()
         self.build_number: str | None = None
         self.py_limited_api: str | Literal[False] = False
@@ -264,18 +264,6 @@ class bdist_wheel(Command):
 
         self.data_dir = self.wheel_dist_name + ".data"
         self.plat_name_supplied = bool(self.plat_name)
-
-        # Handle compression not being an int or a supported value
-        if not (
-            isinstance(self.compression, int)
-            and self.compression in self.supported_compressions.values()
-        ):
-            try:
-                self.compression = self.supported_compressions[str(self.compression)]
-            except KeyError:
-                raise ValueError(
-                    f"Unsupported compression: {self.compression}"
-                ) from None
 
         need_options = ("dist_dir", "plat_name", "skip_build")
 
@@ -443,7 +431,7 @@ class bdist_wheel(Command):
             os.makedirs(self.dist_dir)
 
         wheel_path = os.path.join(self.dist_dir, archive_basename + ".whl")
-        with WheelFile(wheel_path, "w", self.compression) as wf:
+        with WheelFile(wheel_path, "w", self._zip_compression()) as wf:
             wf.write_files(archive_root)
 
         # Add to 'Distribution.dist_files' so that the "upload" command works
@@ -607,3 +595,18 @@ class bdist_wheel(Command):
             shutil.copy(license_path, os.path.join(distinfo_path, filename))
 
         adios(egginfo_path)
+
+    def _zip_compression(self) -> int:
+        if (
+            isinstance(self.compression, int)
+            and self.compression in self.supported_compressions.values()
+        ):
+            return self.compression
+
+        try:
+            if isinstance(self.compression, str):
+                return self.supported_compressions[self.compression]
+        except KeyError:
+            pass
+
+        raise ValueError(f"Unsupported compression: {self.compression!r}")
