@@ -1,3 +1,33 @@
+v70.1.0
+=======
+
+Features
+--------
+
+- Adopted the ``bdist_wheel`` command from the ``wheel`` project -- by :user:`agronholm` (#1386)
+- Improve error message when ``pkg_resources.ZipProvider`` tries to extract resources with a missing Egg -- by :user:`Avasam`
+
+  Added variables and parameter type annotations to ``pkg_resources`` to be nearly on par with typeshed.\* -- by :user:`Avasam`
+  \* Excluding ``TypeVar`` and ``overload``. Return types are currently inferred. (#4246)
+- Migrated Setuptools' own config to pyproject.toml (#4310)
+
+
+Bugfixes
+--------
+
+- Prevent a ``TypeError: 'NoneType' object is not callable`` when ``shutil_rmtree`` is called without an ``onexc`` parameter on Python<=3.11 -- by :user:`Avasam` (#4382)
+- Replace use of mktemp with can_symlink from the stdlib test suite. (#4403)
+- Improvement for ``attr:`` directives in configuration to handle
+  more edge cases related to complex ``package_dir``. (#4405)
+- Fix accidental implicit string concatenation. (#4411)
+
+
+Misc
+----
+
+- #4365, #4422
+
+
 v70.0.0
 =======
 
@@ -109,7 +139,19 @@ v69.3.0
 Features
 --------
 
-- Support PEP 625 by canonicalizing package name and version in filenames. (#3593)
+- Support PEP 625 by canonicalizing package name and version in filenames
+  per
+  `the spec <https://packaging.python.org/en/latest/specifications/source-distribution-format/#source-distribution-file-name>`_.
+  Projects whose names contain uppercase characters, dashes, or periods will
+  now see their sdist names normalized to match the standard and the format
+  previously seen in wheels. For example:
+
+  - ``zope.interface`` -> ``zope_interface``
+  - ``CherryPy`` -> ``cherrypy``
+  - ``foo-bar_baz`` -> ``foo_bar_baz``
+
+  Projects are encouraged to adopt this change to align with standards and
+  other backend build systems. (#3593)
 
 
 v69.2.0

@@ -284,9 +284,7 @@ class bdist_wheel(Command):
         wheel = self.distribution.get_option_dict("wheel")
         if "universal" in wheel:
             # please don't define this in your global configs
-            log.warning(
-                "The [wheel] section is deprecated. Use [bdist_wheel] instead.",
-            )
+            log.warn("The [wheel] section is deprecated. Use [bdist_wheel] instead.")
             val = wheel["universal"][1].strip()
             if val.lower() in ("1", "true", "yes"):
                 self.universal = True
