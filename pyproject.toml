@@ -21,7 +21,7 @@ dependencies = []
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/pypa/distutils"
+Source = "https://github.com/pypa/distutils"
 
 [project.optional-dependencies]
 test = [
