@@ -1,0 +1,3 @@
+Added return types to typed public functions -- by :user:`Avasam`
+
+Marked `pkg_resources` as ``py.typed`` -- by :user:`Avasam`

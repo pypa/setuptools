@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import sys
 from itertools import product, starmap
@@ -92,7 +93,7 @@ class install_lib(orig.install_lib):
         preserve_times=True,
         preserve_symlinks=False,
         level=1,
-    ):
+    ) -> list[str]:
         assert preserve_mode and preserve_times and not preserve_symlinks
         exclude = self.get_exclusions()
 
@@ -104,9 +105,9 @@ class install_lib(orig.install_lib):
         from setuptools.archive_util import unpack_directory
         from distutils import log
 
-        outfiles = []
+        outfiles: list[str] = []
 
-        def pf(src, dst):
+        def pf(src: str, dst: str):
             if dst in exclude:
                 log.warn("Skipping installation of %s (namespace package)", dst)
                 return False
