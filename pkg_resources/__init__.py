@@ -1347,7 +1347,7 @@ class ResourceManager:
     extraction_path: str | None = None
 
     def __init__(self):
-        self.cached_files = {}
+        self.cached_files = set()
 
     def resource_exists(self, package_or_requirement: _PkgReqType, resource_name: str):
         """Does the named resource exist?"""
@@ -1435,7 +1435,7 @@ class ResourceManager:
 
         self._warn_unsafe_extraction_path(extract_path)
 
-        self.cached_files[target_path] = True
+        self.cached_files.add(target_path)
         return target_path
 
     @staticmethod

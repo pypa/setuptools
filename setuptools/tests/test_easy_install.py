@@ -90,7 +90,7 @@ class TestEasyInstallTest:
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
         cmd.args = ['ok']
         cmd.ensure_finalized()
-        assert cmd.package_index.scanned_urls == {}
+        assert cmd.package_index.scanned_urls == set()
 
         # let's try without it (default behavior)
         cmd = ei.easy_install(dist)
@@ -99,7 +99,7 @@ class TestEasyInstallTest:
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
         cmd.args = ['ok']
         cmd.ensure_finalized()
-        keys = sorted(cmd.package_index.scanned_urls.keys())
+        keys = sorted(cmd.package_index.scanned_urls)
         assert keys == ['link1', 'link2']
 
     def test_write_exception(self):

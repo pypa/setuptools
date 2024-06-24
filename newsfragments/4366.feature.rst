@@ -1,0 +1,1 @@
+Use `set` instead of `True`-only `dict`. The following public names are now `set`s: ``pkg_resources.ResourceManager.cached_files``, ``setuptools.package_index.PackageIndex.package_pages``'s values, ``setuptools.package_index.PackageIndex.scanned_urls``, and ``setuptools.package_index.PackageIndex.fetched_urls`` -- by :user:`Avasam`

@@ -13,6 +13,7 @@ import itertools
 import configparser
 import html
 import http.client
+from typing import Dict, List, Optional, Set
 import urllib.parse
 import urllib.request
 import urllib.error
@@ -307,14 +308,14 @@ class PackageIndex(Environment):
         verify_ssl=True,
         *args,
         **kw,
-    ):
+    ) -> None:
         super().__init__(*args, **kw)
         self.index_url = index_url + "/"[: not index_url.endswith('/')]
-        self.scanned_urls = {}
-        self.fetched_urls = {}
-        self.package_pages = {}
+        self.scanned_urls: Set[str] = set()
+        self.fetched_urls: Set[str] = set()
+        self.package_pages: Dict[str, Set[str]] = {}
         self.allows = re.compile('|'.join(map(translate, hosts))).match
-        self.to_scan = []
+        self.to_scan: Optional[List[str]] = []
         self.opener = urllib.request.urlopen
 
     def add(self, dist):
@@ -330,7 +331,7 @@ class PackageIndex(Environment):
         """Evaluate a URL as a possible download, and maybe retrieve it"""
         if url in self.scanned_urls and not retrieve:
             return
-        self.scanned_urls[url] = True
+        self.scanned_urls.add(url)
         if not URL_SCHEME(url):
             self.process_filename(url)
             return
@@ -346,18 +347,18 @@ class PackageIndex(Environment):
             return  # don't need the actual page
 
         if not self.url_ok(url):
-            self.fetched_urls[url] = True
+            self.fetched_urls.add(url)
             return
 
         self.info("Reading %s", url)
-        self.fetched_urls[url] = True  # prevent multiple fetch attempts
+        self.fetched_urls.add(url)  # prevent multiple fetch attempts
         tmpl = "Download error on %s: %%s -- Some packages may not be found!"
         f = self.open_url(url, tmpl % url)
         if f is None:
             return
         if isinstance(f, urllib.error.HTTPError) and f.code == 401:
             self.info("Authentication error: %s" % f.msg)
-        self.fetched_urls[f.url] = True
+        self.fetched_urls.add(f.url)
         if 'html' not in f.headers.get('content-type', '').lower():
             f.close()  # not html, we can't process it
             return
@@ -450,7 +451,7 @@ class PackageIndex(Environment):
         # it's a package page, sanitize and index it
         pkg = safe_name(parts[0])
         ver = safe_version(parts[1])
-        self.package_pages.setdefault(pkg.lower(), {})[link] = True
+        self.package_pages.setdefault(pkg.lower(), set()).add(link)
         return to_filename(pkg), to_filename(ver)
 
     def process_index(self, url, page):
