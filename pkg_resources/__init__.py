@@ -724,7 +724,7 @@ class WorkingSet:
         The yield order is the order in which the items' path entries were
         added to the working set.
         """
-        seen = {}
+        seen = set()
         for item in self.entries:
             if item not in self.entry_keys:
                 # workaround a cache issue
@@ -732,7 +732,7 @@ class WorkingSet:
 
             for key in self.entry_keys[item]:
                 if key not in seen:
-                    seen[key] = True
+                    seen.add(key)
                     yield self.by_key[key]
 
     def add(
@@ -808,7 +808,7 @@ class WorkingSet:
         # set up the stack
         requirements = list(requirements)[::-1]
         # set of processed requirements
-        processed = {}
+        processed = set()
         # key -> dist
         best = {}
         to_activate = []
@@ -842,7 +842,7 @@ class WorkingSet:
                 required_by[new_requirement].add(req.project_name)
                 req_extras[new_requirement] = req.extras
 
-            processed[req] = True
+            processed.add(req)
 
         # return list of distros to activate
         return to_activate
@@ -1313,7 +1313,7 @@ class ResourceManager:
 
         self._warn_unsafe_extraction_path(extract_path)
 
-        self.cached_files[target_path] = 1
+        self.cached_files[target_path] = True
         return target_path
 
     @staticmethod
