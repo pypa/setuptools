@@ -18,7 +18,7 @@ from distutils.util import rfc822_escape
 from . import _normalization, _reqs
 from .extern.packaging.markers import Marker
 from .extern.packaging.requirements import Requirement
-from .extern.packaging.utils import canonicalize_name
+from .extern.packaging.utils import canonicalize_name, canonicalize_version
 from .extern.packaging.version import Version
 from .warnings import SetuptoolsDeprecationWarning
 
@@ -279,5 +279,5 @@ def _distribution_fullname(name: str, version: str) -> str:
     """
     return "{}-{}".format(
         canonicalize_name(name).replace('-', '_'),
-        version,
+        canonicalize_version(version, strip_trailing_zero=False),
     )
