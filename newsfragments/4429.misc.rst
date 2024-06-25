@@ -1,2 +1,0 @@
-Refactored ``test_bdist_wheel`` such that it creates examples in temporary
-folders and run the ``bdist_wheel`` command programmatically without subprocesses.
