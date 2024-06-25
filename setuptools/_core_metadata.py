@@ -263,7 +263,21 @@ def _write_provides_extra(file, processed_extras, safe, unsafe):
 
 # from pypa/distutils#244; needed only until that logic is always available
 def get_fullname(self):
+    return _distribution_fullname(self.get_name(), self.get_version())
+
+
+def _distribution_fullname(name: str, version: str) -> str:
+    """
+    >>> _distribution_fullname('setup.tools', '1.0-2')
+    'setup_tools-1.0.post2'
+    >>> _distribution_fullname('setup-tools', '1.2post2')
+    'setup_tools-1.2.post2'
+    >>> _distribution_fullname('setup-tools', '1.0-r2')
+    'setup_tools-1.0.post2'
+    >>> _distribution_fullname('setup.tools', '1.0.post')
+    'setup_tools-1.0.post0'
+    """
     return "{}-{}".format(
-        canonicalize_name(self.get_name()).replace('-', '_'),
-        self.get_version(),
+        canonicalize_name(name).replace('-', '_'),
+        version,
     )
