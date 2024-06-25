@@ -7,25 +7,26 @@ import platform
 import shutil
 import stat
 import struct
-import subprocess
 import sys
 import sysconfig
 from contextlib import suppress
-from functools import partial
 from inspect import cleandoc
 from unittest.mock import Mock
 from zipfile import ZipFile
 
+import jaraco.path
 import pytest
+
 import setuptools
+from distutils.core import run_setup
 from setuptools.command.bdist_wheel import (
     bdist_wheel,
     get_abi_tag,
     remove_readonly,
     remove_readonly_exc,
 )
+from setuptools.dist import Distribution
 from setuptools.extern.packaging import tags
-from setuptools.extern.wheel.wheelfile import WheelFile
 
 DEFAULT_FILES = {
     "dummy_dist-1.0.dist-info/top_level.txt",
@@ -59,51 +60,188 @@ setup(
 """
 
 
-@pytest.fixture(scope="module")
-def wheel_paths(request, tmp_path_factory):
-    test_distributions = (
-        "complex-dist",
-        "simple.dist",
-        "headers.dist",
-        "commasinfilenames.dist",
-        "unicode.dist",
+EXAMPLES = {
+    "dummy-dist": {
+        "setup.py": SETUPPY_EXAMPLE,
+        "licenses": {"DUMMYFILE": ""},
+        **dict.fromkeys(DEFAULT_LICENSE_FILES | OTHER_IGNORED_FILES, ""),
+    },
+    "simple-dist": {
+        "setup.py": cleandoc(
+            """
+            from setuptools import setup
+
+            setup(
+                name="simple.dist",
+                version="0.1",
+                description="A testing distribution \N{SNOWMAN}",
+                extras_require={"voting": ["beaglevote"]},
+            )
+            """
+        ),
+        "simpledist": "",
+    },
+    "complex-dist": {
+        "setup.py": cleandoc(
+            """
+            from setuptools import setup
+
+            setup(
+                name="complex-dist",
+                version="0.1",
+                description="Another testing distribution \N{SNOWMAN}",
+                long_description="Another testing distribution \N{SNOWMAN}",
+                author="Illustrious Author",
+                author_email="illustrious@example.org",
+                url="http://example.org/exemplary",
+                packages=["complexdist"],
+                setup_requires=["setuptools"],
+                install_requires=["quux", "splort"],
+                extras_require={"simple": ["simple.dist"]},
+                tests_require=["foo", "bar>=10.0.0"],
+                entry_points={
+                    "console_scripts": [
+                        "complex-dist=complexdist:main",
+                        "complex-dist2=complexdist:main",
+                    ],
+                },
+            )
+            """
+        ),
+        "complexdist": {"__init__.py": "def main(): return"},
+    },
+    "headers-dist": {
+        "setup.py": cleandoc(
+            """
+            from setuptools import setup
+
+            setup(
+                name="headers.dist",
+                version="0.1",
+                description="A distribution with headers",
+                headers=["header.h"],
+            )
+            """
+        ),
+        "setup.cfg": "[bdist_wheel]\nuniversal=1",
+        "headersdist.py": "",
+        "header.h": "",
+    },
+    "commasinfilenames-dist": {
+        "setup.py": cleandoc(
+            """
+            from setuptools import setup
+
+            setup(
+                name="testrepo",
+                version="0.1",
+                packages=["mypackage"],
+                description="A test package with commas in file names",
+                include_package_data=True,
+                package_data={"mypackage.data": ["*"]},
+            )
+            """
+        ),
+        "mypackage": {
+            "__init__.py": "",
+            "data": {"__init__.py": "", "1,2,3.txt": ""},
+        },
+        "testrepo-0.1.0": {
+            "mypackage": {"__init__.py": ""},
+        },
+    },
+    "unicode-dist": {
+        "setup.py": cleandoc(
+            """
+            from setuptools import setup
+
+            setup(
+                name="unicode.dist",
+                version="0.1",
+                description="A testing distribution \N{SNOWMAN}",
+                packages=["unicodedist"],
+                zip_safe=True,
+            )
+            """
+        ),
+        "unicodedist": {"__init__.py": "", "åäö_日本語.py": ""},
+    },
+    "utf8-metadata-dist": {
+        "setup.cfg": cleandoc(
+            """
+            [metadata]
+            name = utf8-metadata-dist
+            version = 42
+            author_email = "John X. Ãørçeč" <john@utf8.org>, Γαμα קּ 東 <gama@utf8.org>
+            long_description = file: README.rst
+            """
+        ),
+        "README.rst": "UTF-8 描述 説明",
+    },
+}
+
+
+if sys.platform != "win32":
+    # ABI3 extensions don't really work on Windows
+    EXAMPLES["abi3extension-dist"] = {
+        "setup.py": cleandoc(
+            """
+            from setuptools import Extension, setup
+
+            setup(
+                name="extension.dist",
+                version="0.1",
+                description="A testing distribution \N{SNOWMAN}",
+                ext_modules=[
+                    Extension(
+                        name="extension", sources=["extension.c"], py_limited_api=True
+                    )
+                ],
+            )
+            """
+        ),
+        "setup.cfg": "[bdist_wheel]\npy_limited_api=cp32",
+        "extension.c": "#define Py_LIMITED_API 0x03020000\n#include <Python.h>",
+    }
+
+
+def bdist_wheel_cmd(**kwargs):
+    """Run command in the same process so that it is easier to collect coverage"""
+    dist_obj = (
+        run_setup("setup.py", stop_after="init")
+        if os.path.exists("setup.py")
+        else Distribution({"script_name": "%%build_meta%%"})
     )
+    dist_obj.parse_config_files()
+    cmd = bdist_wheel(dist_obj)
+    for attr, value in kwargs.items():
+        setattr(cmd, attr, value)
+    cmd.finalize_options()
+    return cmd
 
-    if sys.platform != "win32":
-        # ABI3 extensions don't really work on Windows
-        test_distributions += ("abi3extension.dist",)
 
-    pwd = os.path.abspath(os.curdir)
-    request.addfinalizer(partial(os.chdir, pwd))
-    this_dir = os.path.dirname(__file__)
-    build_dir = tmp_path_factory.mktemp("build")
+def mkexample(tmp_path_factory, name):
+    basedir = tmp_path_factory.mktemp(name)
+    jaraco.path.build(EXAMPLES[name], prefix=str(basedir))
+    return basedir
+
+
+@pytest.fixture(scope="session")
+def wheel_paths(tmp_path_factory):
+    build_base = tmp_path_factory.mktemp("build")
     dist_dir = tmp_path_factory.mktemp("dist")
-    for dist in test_distributions:
-        os.chdir(os.path.join(this_dir, "bdist_wheel_testdata", dist))
-        subprocess.check_call([
-            sys.executable,
-            "setup.py",
-            "bdist_wheel",
-            "-b",
-            str(build_dir),
-            "-d",
-            str(dist_dir),
-        ])
+    for name in EXAMPLES:
+        example_dir = mkexample(tmp_path_factory, name)
+        build_dir = build_base / name
+        with jaraco.path.DirectoryStack().context(example_dir):
+            bdist_wheel_cmd(bdist_dir=str(build_dir), dist_dir=str(dist_dir)).run()
 
-    return sorted(str(fname) for fname in dist_dir.iterdir() if fname.suffix == ".whl")
+    return sorted(str(fname) for fname in dist_dir.glob("*.whl"))
 
 
 @pytest.fixture
 def dummy_dist(tmp_path_factory):
-    basedir = tmp_path_factory.mktemp("dummy_dist")
-    basedir.joinpath("setup.py").write_text(SETUPPY_EXAMPLE, encoding="utf-8")
-    for fname in DEFAULT_LICENSE_FILES | OTHER_IGNORED_FILES:
-        basedir.joinpath(fname).write_text("", encoding="utf-8")
-
-    licensedir = basedir.joinpath("licenses")
-    licensedir.mkdir()
-    licensedir.joinpath("DUMMYFILE").write_text("", encoding="utf-8")
-    return basedir
+    return mkexample(tmp_path_factory, "dummy-dist")
 
 
 def test_no_scripts(wheel_paths):
@@ -162,15 +300,8 @@ def test_preserve_unicode_metadata(monkeypatch, tmp_path):
 
 def test_licenses_default(dummy_dist, monkeypatch, tmp_path):
     monkeypatch.chdir(dummy_dist)
-    subprocess.check_call([
-        sys.executable,
-        "setup.py",
-        "bdist_wheel",
-        "-b",
-        str(tmp_path),
-        "--universal",
-    ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         license_files = {
             "dummy_dist-1.0.dist-info/" + fname for fname in DEFAULT_LICENSE_FILES
         }
@@ -182,15 +313,10 @@ def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
         "[metadata]\nlicense_file=licenses/DUMMYFILE", encoding="utf-8"
     )
     monkeypatch.chdir(dummy_dist)
-    subprocess.check_call([
-        sys.executable,
-        "setup.py",
-        "bdist_wheel",
-        "-b",
-        str(tmp_path),
-        "--universal",
-    ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
+
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         license_files = {"dummy_dist-1.0.dist-info/DUMMYFILE"}
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
 
@@ -211,15 +337,8 @@ def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
 def test_licenses_override(dummy_dist, monkeypatch, tmp_path, config_file, config):
     dummy_dist.joinpath(config_file).write_text(config, encoding="utf-8")
     monkeypatch.chdir(dummy_dist)
-    subprocess.check_call([
-        sys.executable,
-        "setup.py",
-        "bdist_wheel",
-        "-b",
-        str(tmp_path),
-        "--universal",
-    ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         license_files = {
             "dummy_dist-1.0.dist-info/" + fname for fname in {"DUMMYFILE", "LICENSE"}
         }
@@ -231,51 +350,65 @@ def test_licenses_disabled(dummy_dist, monkeypatch, tmp_path):
         "[metadata]\nlicense_files=\n", encoding="utf-8"
     )
     monkeypatch.chdir(dummy_dist)
-    subprocess.check_call([
-        sys.executable,
-        "setup.py",
-        "bdist_wheel",
-        "-b",
-        str(tmp_path),
-        "--universal",
-    ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         assert set(wf.namelist()) == DEFAULT_FILES
 
 
 def test_build_number(dummy_dist, monkeypatch, tmp_path):
     monkeypatch.chdir(dummy_dist)
-    subprocess.check_call([
-        sys.executable,
-        "setup.py",
-        "bdist_wheel",
-        "-b",
-        str(tmp_path),
-        "--universal",
-        "--build-number=2",
-    ])
-    with WheelFile("dist/dummy_dist-1.0-2-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), build_number="2", universal=True).run()
+    with ZipFile("dist/dummy_dist-1.0-2-py2.py3-none-any.whl") as wf:
         filenames = set(wf.namelist())
         assert "dummy_dist-1.0.dist-info/RECORD" in filenames
         assert "dummy_dist-1.0.dist-info/METADATA" in filenames
 
 
-def test_limited_abi(monkeypatch, tmp_path):
+EXTENSION_EXAMPLE = """\
+#include <Python.h>
+
+static PyMethodDef methods[] = {
+  { NULL, NULL, 0, NULL }
+};
+
+static struct PyModuleDef module_def = {
+  PyModuleDef_HEAD_INIT,
+  "extension",
+  "Dummy extension module",
+  -1,
+  methods
+};
+
+PyMODINIT_FUNC PyInit_extension(void) {
+  return PyModule_Create(&module_def);
+}
+"""
+EXTENSION_SETUPPY = """\
+from __future__ import annotations
+
+from setuptools import Extension, setup
+
+setup(
+    name="extension.dist",
+    version="0.1",
+    description="A testing distribution \N{SNOWMAN}",
+    ext_modules=[Extension(name="extension", sources=["extension.c"])],
+)
+"""
+
+
+@pytest.mark.filterwarnings(
+    "once:Config variable '.*' is unset.*, Python ABI tag may be incorrect"
+)
+def test_limited_abi(monkeypatch, tmp_path, tmp_path_factory):
     """Test that building a binary wheel with the limited ABI works."""
-    this_dir = os.path.dirname(__file__)
-    source_dir = os.path.join(this_dir, "bdist_wheel_testdata", "extension.dist")
+    source_dir = tmp_path_factory.mktemp("extension_dist")
+    (source_dir / "setup.py").write_text(EXTENSION_SETUPPY, encoding="utf-8")
+    (source_dir / "extension.c").write_text(EXTENSION_EXAMPLE, encoding="utf-8")
     build_dir = tmp_path.joinpath("build")
     dist_dir = tmp_path.joinpath("dist")
     monkeypatch.chdir(source_dir)
-    subprocess.check_call([
-        sys.executable,
-        "setup.py",
-        "bdist_wheel",
-        "-b",
-        str(build_dir),
-        "-d",
-        str(dist_dir),
-    ])
+    bdist_wheel_cmd(bdist_dir=str(build_dir), dist_dir=str(dist_dir)).run()
 
 
 def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
@@ -288,7 +421,7 @@ def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
         for fname in files:
             os.chmod(os.path.join(root, fname), stat.S_IREAD)
 
-    subprocess.check_call([sys.executable, "setup.py", "bdist_wheel"])
+    bdist_wheel_cmd().run()
 
 
 @pytest.mark.parametrize(
@@ -298,16 +431,8 @@ def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
 )
 def test_compression(dummy_dist, monkeypatch, tmp_path, option, compress_type):
     monkeypatch.chdir(dummy_dist)
-    subprocess.check_call([
-        sys.executable,
-        "setup.py",
-        "bdist_wheel",
-        "-b",
-        str(tmp_path),
-        "--universal",
-        f"--compression={option}",
-    ])
-    with WheelFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True, compression=option).run()
+    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
         filenames = set(wf.namelist())
         assert "dummy_dist-1.0.dist-info/RECORD" in filenames
         assert "dummy_dist-1.0.dist-info/METADATA" in filenames
@@ -317,7 +442,7 @@ def test_compression(dummy_dist, monkeypatch, tmp_path, option, compress_type):
 
 def test_wheelfile_line_endings(wheel_paths):
     for path in wheel_paths:
-        with WheelFile(path) as wf:
+        with ZipFile(path) as wf:
             wheelfile = next(fn for fn in wf.filelist if fn.filename.endswith("WHEEL"))
             wheelfile_contents = wf.read(wheelfile)
             assert b"\r" not in wheelfile_contents
@@ -326,15 +451,10 @@ def test_wheelfile_line_endings(wheel_paths):
 def test_unix_epoch_timestamps(dummy_dist, monkeypatch, tmp_path):
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "0")
     monkeypatch.chdir(dummy_dist)
-    subprocess.check_call([
-        sys.executable,
-        "setup.py",
-        "bdist_wheel",
-        "-b",
-        str(tmp_path),
-        "--universal",
-        "--build-number=2",
-    ])
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), build_number="2a", universal=True).run()
+    with ZipFile("dist/dummy_dist-1.0-2a-py2.py3-none-any.whl") as wf:
+        for zinfo in wf.filelist:
+            assert zinfo.date_time >= (1980, 1, 1, 0, 0, 0)  # min epoch is used
 
 
 def test_get_abi_tag_windows(monkeypatch):
@@ -372,13 +492,7 @@ def test_get_abi_tag_fallback(monkeypatch):
 def test_platform_with_space(dummy_dist, monkeypatch):
     """Ensure building on platforms with a space in the name succeed."""
     monkeypatch.chdir(dummy_dist)
-    subprocess.check_call([
-        sys.executable,
-        "setup.py",
-        "bdist_wheel",
-        "--plat-name",
-        "isilon onefs",
-    ])
+    bdist_wheel_cmd(plat_name="isilon onefs").run()
 
 
 def test_rmtree_readonly(monkeypatch, tmp_path):
@@ -436,7 +550,7 @@ def test_data_dir_with_tag_build(monkeypatch, tmp_path):
         with open(file, "w", encoding="utf-8") as fh:
             fh.write(cleandoc(content))
 
-    subprocess.check_call([sys.executable, "setup.py", "bdist_wheel"])
+    bdist_wheel_cmd().run()
 
     # Ensure .whl, .dist-info and .data contain the local segment
     wheel_path = "dist/test-1.0+what-py3-none-any.whl"
