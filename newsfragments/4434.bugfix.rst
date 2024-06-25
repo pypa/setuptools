@@ -1,0 +1,2 @@
+Fix distribution name normalisation (:pep:`625`) for valid versions that are
+not canonical (e.g. ``1.0-2``).
