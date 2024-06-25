@@ -276,6 +276,8 @@ def _distribution_fullname(name: str, version: str) -> str:
     'setup_tools-1.0.post2'
     >>> _distribution_fullname('setup.tools', '1.0.post')
     'setup_tools-1.0.post0'
+    >>> _distribution_fullname('setup.tools', '1.0+ubuntu-1')
+    'setup_tools-1.0+ubuntu.1'
     """
     return "{}-{}".format(
         canonicalize_name(name).replace('-', '_'),
