@@ -33,12 +33,43 @@ def clear_distutils():
         del sys.modules[name]
 
 
+def get_local_distutils():
+    import importlib
+
+    try:
+        return importlib.import_module('setuptools._distutils')
+    except Exception:
+        # There are a couple of cases where setuptools._distutils
+        # may not be present:
+        # - An older Setuptools without a local distutils is
+        #   taking precedence. Ref #2957.
+        # - Path manipulation during sitecustomize removes
+        #   setuptools from the path but only after the hook
+        #   has been loaded. Ref #2980.
+        # - setuptools._distutils has been removed, either by the user
+        #   or by packaging / distribution.
+        # In either case, fall back to stdlib behavior.
+        return None
+
+
 def enabled():
     """
     Allow selection of distutils by environment variable.
     """
     which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'local')
-    return which == 'local'
+    if which != 'local':
+        return False
+
+    if sys.version_info < (3, 12) and not get_local_distutils():
+        import warnings
+
+        warnings.warn(
+            "environment variable SETUPTOOLS_USE_DISTUTILS is set to 'local' or None, "
+            + "but `setuptools._distutils` could not be imported. Falling back to stdlib "
+            + "distutils. This will lead to an error in Python 3.12 and above."
+        )
+        return False
+    return True
 
 
 def ensure_local_distutils():
@@ -97,17 +128,8 @@ class DistutilsMetaFinder:
         import importlib.abc
         import importlib.util
 
-        try:
-            mod = importlib.import_module('setuptools._distutils')
-        except Exception:
-            # There are a couple of cases where setuptools._distutils
-            # may not be present:
-            # - An older Setuptools without a local distutils is
-            #   taking precedence. Ref #2957.
-            # - Path manipulation during sitecustomize removes
-            #   setuptools from the path but only after the hook
-            #   has been loaded. Ref #2980.
-            # In either case, fall back to stdlib behavior.
+        mod = get_local_distutils()
+        if not mod:
             return None
 
         class DistutilsLoader(importlib.abc.Loader):
