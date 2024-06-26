@@ -1,1 +1,1 @@
-On Python 3.11 or below, fallback to stdlib `distutils` if ``setuptools._distutils`` is missing, even with ``SETUPTOOLS_USE_DISTUTILS=local``. -- by :user:`Avasam`
+Added a fallback to stdlib `distutils` if ``setuptools._distutils`` is missing on Python 3.11 or below, even with ``SETUPTOOLS_USE_DISTUTILS=local``. -- by :user:`Avasam`
