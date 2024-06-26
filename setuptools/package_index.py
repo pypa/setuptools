@@ -1,5 +1,7 @@
 """PyPI and direct package downloading."""
 
+from __future__ import annotations
+
 import sys
 import subprocess
 import os
@@ -13,7 +15,6 @@ import itertools
 import configparser
 import html
 import http.client
-from typing import Dict, List, Optional, Set
 import urllib.parse
 import urllib.request
 import urllib.error
@@ -311,11 +312,11 @@ class PackageIndex(Environment):
     ) -> None:
         super().__init__(*args, **kw)
         self.index_url = index_url + "/"[: not index_url.endswith('/')]
-        self.scanned_urls: Set[str] = set()
-        self.fetched_urls: Set[str] = set()
-        self.package_pages: Dict[str, Set[str]] = {}
+        self.scanned_urls: set[str] = set()
+        self.fetched_urls: set[str] = set()
+        self.package_pages: dict[str, set[str]] = {}
         self.allows = re.compile('|'.join(map(translate, hosts))).match
-        self.to_scan: Optional[List[str]] = []
+        self.to_scan: list[str] | None = []
         self.opener = urllib.request.urlopen
 
     def add(self, dist):
