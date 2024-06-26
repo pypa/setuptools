@@ -20,3 +20,6 @@ exclude_also =
 	# jaraco/skeleton#97
 	@overload
 	if TYPE_CHECKING:
+	# Coverage is only run on the latest Python version
+	# these will never be considered covered and we aim for 100% coverage
+	if sys\.version_info <

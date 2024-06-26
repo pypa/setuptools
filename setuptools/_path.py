@@ -2,10 +2,10 @@ import os
 import sys
 from typing import Union
 
-if sys.version_info >= (3, 9):
-    StrPath = Union[str, os.PathLike[str]]  #  Same as _typeshed.StrPath
-else:
+if sys.version_info < (3, 9):
     StrPath = Union[str, os.PathLike]
+else:
+    StrPath = Union[str, os.PathLike[str]]  #  Same as _typeshed.StrPath
 
 
 def ensure_directory(path):
