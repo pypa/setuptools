@@ -188,23 +188,26 @@ class CCompiler:
         return None
 
     def _check_macro_definitions(self, definitions):
-        """Ensures that every element of 'definitions' is a valid macro
-        definition, ie. either (name,value) 2-tuple or a (name,) tuple.  Do
-        nothing if all definitions are OK, raise TypeError otherwise.
-        """
+        """Ensure that every element of 'definitions' is valid."""
         for defn in definitions:
-            if not (
-                isinstance(defn, tuple)
-                and (
-                    len(defn) in (1, 2)
-                    and (isinstance(defn[1], str) or defn[1] is None)
-                )
-                and isinstance(defn[0], str)
-            ):
-                raise TypeError(
-                    f"invalid macro definition '{defn}': "
-                    "must be tuple (string,), (string, string), or (string, None)"
-                )
+            self._check_macro_definition(defn)
+
+    def _check_macro_definition(self, defn):
+        """
+        Raise a TypeError if defn is not valid.
+
+        A valid definition is either a (name, value) 2-tuple or a (name,) tuple.
+        """
+        valid = (
+            isinstance(defn, tuple)
+            and (len(defn) in (1, 2) and (isinstance(defn[1], str) or defn[1] is None))
+            and isinstance(defn[0], str)
+        )
+        if not valid:
+            raise TypeError(
+                f"invalid macro definition '{defn}': "
+                "must be tuple (string,), (string, string), or (string, None)"
+            )
 
     # -- Bookkeeping methods -------------------------------------------
 
