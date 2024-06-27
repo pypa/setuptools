@@ -264,7 +264,7 @@ Common commands: (see '--help-commands' for more)
                 elif hasattr(self, key):
                     setattr(self, key, val)
                 else:
-                    msg = "Unknown distribution option: %s" % repr(key)
+                    msg = "Unknown distribution option: %r" % key
                     warnings.warn(msg)
 
         # no-user-cfg is handled before other command line args
