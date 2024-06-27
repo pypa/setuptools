@@ -12,6 +12,7 @@ import string
 import subprocess
 import sys
 import sysconfig
+import tempfile
 
 from ._log import log
 from ._modified import newer
@@ -129,9 +130,9 @@ def convert_path(pathname):
     if not pathname:
         return pathname
     if pathname[0] == '/':
-        raise ValueError("path '%s' cannot be absolute" % pathname)
+        raise ValueError(f"path '{pathname}' cannot be absolute")
     if pathname[-1] == '/':
-        raise ValueError("path '%s' cannot end with '/'" % pathname)
+        raise ValueError(f"path '{pathname}' cannot end with '/'")
 
     paths = pathname.split('/')
     while '.' in paths:
@@ -240,7 +241,7 @@ _wordchars_re = _squote_re = _dquote_re = None
 
 def _init_regex():
     global _wordchars_re, _squote_re, _dquote_re
-    _wordchars_re = re.compile(r'[^\\\'\"%s ]*' % string.whitespace)
+    _wordchars_re = re.compile(rf'[^\\\'\"{string.whitespace} ]*')
     _squote_re = re.compile(r"'(?:[^'\\]|\\.)*'")
     _dquote_re = re.compile(r'"(?:[^"\\]|\\.)*"')
 
@@ -295,7 +296,7 @@ def split_quoted(s):
                 raise RuntimeError("this can't happen (bad char '%c')" % s[end])
 
             if m is None:
-                raise ValueError("bad string (mismatched %s quotes?)" % s[end])
+                raise ValueError(f"bad string (mismatched {s[end]} quotes?)")
 
             (beg, end) = m.span()
             s = s[:beg] + s[beg + 1 : end - 1] + s[end:]
@@ -405,20 +406,10 @@ def byte_compile(  # noqa: C901
     # "Indirect" byte-compilation: write a temporary script and then
     # run it with the appropriate flags.
     if not direct:
-        try:
-            from tempfile import mkstemp
-
-            (script_fd, script_name) = mkstemp(".py")
-        except ImportError:
-            from tempfile import mktemp
-
-            (script_fd, script_name) = None, mktemp(".py")
+        (script_fd, script_name) = tempfile.mkstemp(".py")
         log.info("writing byte-compilation script '%s'", script_name)
         if not dry_run:
-            if script_fd is not None:
-                script = os.fdopen(script_fd, "w", encoding='utf-8')
-            else:  # pragma: no cover
-                script = open(script_name, "w", encoding='utf-8')
+            script = os.fdopen(script_fd, "w", encoding='utf-8')
 
             with script:
                 script.write(
@@ -452,7 +443,7 @@ byte_compile(files, optimize={optimize!r}, force={force!r},
         cmd.extend(subprocess._optim_args_from_interpreter_flags())
         cmd.append(script_name)
         spawn(cmd, dry_run=dry_run)
-        execute(os.remove, (script_name,), "removing %s" % script_name, dry_run=dry_run)
+        execute(os.remove, (script_name,), f"removing {script_name}", dry_run=dry_run)
 
     # "Direct" byte-compilation: use the py_compile module to compile
     # right here, right now.  Note that the script generated in indirect

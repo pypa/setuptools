@@ -55,7 +55,7 @@ class TestBuildPy(support.TempdirManager):
             assert not os.path.exists(pycache_dir)
         else:
             pyc_files = os.listdir(pycache_dir)
-            assert "__init__.%s.pyc" % sys.implementation.cache_tag in pyc_files
+            assert f"__init__.{sys.implementation.cache_tag}.pyc" in pyc_files
 
     def test_empty_package_dir(self):
         # See bugs #1668596/#1720897
@@ -92,7 +92,7 @@ class TestBuildPy(support.TempdirManager):
         found = os.listdir(cmd.build_lib)
         assert sorted(found) == ['__pycache__', 'boiledeggs.py']
         found = os.listdir(os.path.join(cmd.build_lib, '__pycache__'))
-        assert found == ['boiledeggs.%s.pyc' % sys.implementation.cache_tag]
+        assert found == [f'boiledeggs.{sys.implementation.cache_tag}.pyc']
 
     @pytest.mark.skipif('sys.dont_write_bytecode')
     def test_byte_compile_optimized(self):

@@ -130,7 +130,7 @@ class Extension:
         if len(kw) > 0:
             options = [repr(option) for option in kw]
             options = ', '.join(sorted(options))
-            msg = "Unknown Extension options: %s" % options
+            msg = f"Unknown Extension options: {options}"
             warnings.warn(msg)
 
     def __repr__(self):
@@ -167,7 +167,7 @@ def read_setup_file(filename):  # noqa: C901
                 continue
 
             if line[0] == line[-1] == "*":
-                file.warn("'%s' lines not handled yet" % line)
+                file.warn(f"'{line}' lines not handled yet")
                 continue
 
             line = expand_makefile_vars(line, vars)
@@ -233,7 +233,7 @@ def read_setup_file(filename):  # noqa: C901
                     # and append it to sources.  Hmmmm.
                     ext.extra_objects.append(word)
                 else:
-                    file.warn("unrecognized argument '%s'" % word)
+                    file.warn(f"unrecognized argument '{word}'")
 
             extensions.append(ext)
     finally:

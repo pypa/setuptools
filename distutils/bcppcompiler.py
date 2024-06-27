@@ -84,7 +84,7 @@ class BCPPCompiler(CCompiler):
 
     # -- Worker methods ------------------------------------------------
 
-    def compile(  # noqa: C901
+    def compile(
         self,
         sources,
         output_dir=None,
@@ -234,11 +234,11 @@ class BCPPCompiler(CCompiler):
                 head, tail = os.path.split(output_filename)
                 modname, ext = os.path.splitext(tail)
                 temp_dir = os.path.dirname(objects[0])  # preserve tree structure
-                def_file = os.path.join(temp_dir, '%s.def' % modname)
+                def_file = os.path.join(temp_dir, f'{modname}.def')
                 contents = ['EXPORTS']
                 for sym in export_symbols or []:
                     contents.append(f'  {sym}=_{sym}')
-                self.execute(write_file, (def_file, contents), "writing %s" % def_file)
+                self.execute(write_file, (def_file, contents), f"writing {def_file}")
 
             # Borland C++ has problems with '/' in paths
             objects2 = map(os.path.normpath, objects)
@@ -254,7 +254,7 @@ class BCPPCompiler(CCompiler):
                     objects.append(file)
 
             for ell in library_dirs:
-                ld_args.append("/L%s" % os.path.normpath(ell))
+                ld_args.append(f"/L{os.path.normpath(ell)}")
             ld_args.append("/L.")  # we sometimes use relative paths
 
             # list of object files

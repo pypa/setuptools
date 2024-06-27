@@ -245,7 +245,7 @@ class install(Command):
         user_options.append((
             'user',
             None,
-            "install in user site-package '%s'" % USER_SITE,
+            f"install in user site-package '{USER_SITE}'",
         ))
         boolean_options.append('user')
 
@@ -600,7 +600,7 @@ class install(Command):
                 self.select_scheme(os.name)
             except KeyError:
                 raise DistutilsPlatformError(
-                    "I don't know how to install stuff on '%s'" % os.name
+                    f"I don't know how to install stuff on '{os.name}'"
                 )
 
     def select_scheme(self, name):
@@ -685,7 +685,7 @@ class install(Command):
         home = convert_path(os.path.expanduser("~"))
         for _name, path in self.config_vars.items():
             if str(path).startswith(home) and not os.path.isdir(path):
-                self.debug_print("os.makedirs('%s', 0o700)" % path)
+                self.debug_print(f"os.makedirs('{path}', 0o700)")
                 os.makedirs(path, 0o700)
 
     # -- Command execution methods -------------------------------------
@@ -720,7 +720,7 @@ class install(Command):
             self.execute(
                 write_file,
                 (self.record, outputs),
-                "writing list of installed files to '%s'" % self.record,
+                f"writing list of installed files to '{self.record}'",
             )
 
         sys_path = map(os.path.normpath, sys.path)
@@ -745,10 +745,10 @@ class install(Command):
         filename = os.path.join(self.install_libbase, self.path_file + ".pth")
         if self.install_path_file:
             self.execute(
-                write_file, (filename, [self.extra_dirs]), "creating %s" % filename
+                write_file, (filename, [self.extra_dirs]), f"creating {filename}"
             )
         else:
-            self.warn("path file '%s' not created" % filename)
+            self.warn(f"path file '{filename}' not created")
 
     # -- Reporting methods ---------------------------------------------
 

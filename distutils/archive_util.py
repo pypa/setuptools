@@ -119,7 +119,7 @@ def make_tarball(
         return tarinfo
 
     if not dry_run:
-        tar = tarfile.open(archive_name, 'w|%s' % tar_compression[compress])
+        tar = tarfile.open(archive_name, f'w|{tar_compression[compress]}')
         try:
             tar.add(base_dir, filter=_set_uid_gid)
         finally:
@@ -166,12 +166,9 @@ def make_zipfile(base_name, base_dir, verbose=False, dry_run=False):  # noqa: C9
             # XXX really should distinguish between "couldn't find
             # external 'zip' command" and "zip failed".
             raise DistutilsExecError(
-                (
-                    "unable to create zip file '%s': "
-                    "could neither import the 'zipfile' module nor "
-                    "find a standalone zip utility"
-                )
-                % zip_filename
+                f"unable to create zip file '{zip_filename}': "
+                "could neither import the 'zipfile' module nor "
+                "find a standalone zip utility"
             )
 
     else:
@@ -266,7 +263,7 @@ def make_archive(
     try:
         format_info = ARCHIVE_FORMATS[format]
     except KeyError:
-        raise ValueError("unknown archive format '%s'" % format)
+        raise ValueError(f"unknown archive format '{format}'")
 
     func = format_info[0]
     for arg, val in format_info[1]:

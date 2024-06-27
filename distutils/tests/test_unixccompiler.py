@@ -32,7 +32,7 @@ def compiler_wrapper(request):
 
 
 class TestUnixCCompiler(support.TempdirManager):
-    @pytest.mark.skipif('platform.system == "Windows"')  # noqa: C901
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
         #

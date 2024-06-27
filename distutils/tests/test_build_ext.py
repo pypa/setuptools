@@ -223,7 +223,7 @@ class TestBuildExt(TempdirManager):
         # make sure cmd.library_dirs is turned into a list
         # if it's a string
         cmd = self.build_ext(dist)
-        cmd.library_dirs = 'my_lib_dir%sother_lib_dir' % os.pathsep
+        cmd.library_dirs = f'my_lib_dir{os.pathsep}other_lib_dir'
         cmd.finalize_options()
         assert 'my_lib_dir' in cmd.library_dirs
         assert 'other_lib_dir' in cmd.library_dirs
@@ -231,7 +231,7 @@ class TestBuildExt(TempdirManager):
         # make sure rpath is turned into a list
         # if it's a string
         cmd = self.build_ext(dist)
-        cmd.rpath = 'one%stwo' % os.pathsep
+        cmd.rpath = f'one{os.pathsep}two'
         cmd.finalize_options()
         assert cmd.rpath == ['one', 'two']
 

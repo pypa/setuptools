@@ -23,7 +23,7 @@ class bdist_dumb(Command):
             'plat-name=',
             'p',
             "platform name to embed in generated filenames "
-            "(default: %s)" % get_platform(),
+            f"(default: {get_platform()})",
         ),
         (
             'format=',
@@ -81,7 +81,7 @@ class bdist_dumb(Command):
             except KeyError:
                 raise DistutilsPlatformError(
                     "don't know how to create dumb built distributions "
-                    "on platform %s" % os.name
+                    f"on platform {os.name}"
                 )
 
         self.set_undefined_options(
@@ -116,7 +116,7 @@ class bdist_dumb(Command):
             ):
                 raise DistutilsPlatformError(
                     "can't make a dumb built distribution where "
-                    f"base and platbase are different ({repr(install.install_base)}, {repr(install.install_platbase)})"
+                    f"base and platbase are different ({install.install_base!r}, {install.install_platbase!r})"
                 )
             else:
                 archive_root = os.path.join(

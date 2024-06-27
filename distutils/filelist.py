@@ -84,24 +84,24 @@ class FileList:
         if action in ('include', 'exclude', 'global-include', 'global-exclude'):
             if len(words) < 2:
                 raise DistutilsTemplateError(
-                    "'%s' expects <pattern1> <pattern2> ..." % action
+                    f"'{action}' expects <pattern1> <pattern2> ..."
                 )
             patterns = [convert_path(w) for w in words[1:]]
         elif action in ('recursive-include', 'recursive-exclude'):
             if len(words) < 3:
                 raise DistutilsTemplateError(
-                    "'%s' expects <dir> <pattern1> <pattern2> ..." % action
+                    f"'{action}' expects <dir> <pattern1> <pattern2> ..."
                 )
             dir = convert_path(words[1])
             patterns = [convert_path(w) for w in words[2:]]
         elif action in ('graft', 'prune'):
             if len(words) != 2:
                 raise DistutilsTemplateError(
-                    "'%s' expects a single <dir_pattern>" % action
+                    f"'{action}' expects a single <dir_pattern>"
                 )
             dir_pattern = convert_path(words[1])
         else:
-            raise DistutilsTemplateError("unknown action '%s'" % action)
+            raise DistutilsTemplateError(f"unknown action '{action}'")
 
         return (action, patterns, dir, dir_pattern)
 
@@ -192,7 +192,7 @@ class FileList:
                 )
         else:
             raise DistutilsInternalError(
-                "this cannot happen: invalid action '%s'" % action
+                f"this cannot happen: invalid action '{action}'"
             )
 
     # Filtering/selection methods
@@ -225,7 +225,7 @@ class FileList:
         # XXX docstring lying about what the special chars are?
         files_found = False
         pattern_re = translate_pattern(pattern, anchor, prefix, is_regex)
-        self.debug_print("include_pattern: applying regex r'%s'" % pattern_re.pattern)
+        self.debug_print(f"include_pattern: applying regex r'{pattern_re.pattern}'")
 
         # delayed loading of allfiles list
         if self.allfiles is None:
@@ -247,7 +247,7 @@ class FileList:
         """
         files_found = False
         pattern_re = translate_pattern(pattern, anchor, prefix, is_regex)
-        self.debug_print("exclude_pattern: applying regex r'%s'" % pattern_re.pattern)
+        self.debug_print(f"exclude_pattern: applying regex r'{pattern_re.pattern}'")
         for i in range(len(self.files) - 1, -1, -1):
             if pattern_re.search(self.files[i]):
                 self.debug_print(" removing " + self.files[i])
@@ -327,7 +327,7 @@ def glob_to_re(pattern):
         # we're using a regex to manipulate a regex, so we need
         # to escape the backslash twice
         sep = r'\\\\'
-    escaped = r'\1[^%s]' % sep
+    escaped = rf'\1[^{sep}]'
     pattern_re = re.sub(r'((?<!\\)(\\\\)*)\.', escaped, pattern_re)
     return pattern_re
 

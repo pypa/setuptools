@@ -34,12 +34,12 @@ class TestDirUtil(support.TempdirManager):
         remove_tree(self.root_target, verbose=False)
 
         mkpath(self.target, verbose=True)
-        wanted = ['creating %s' % self.root_target, 'creating %s' % self.target]
+        wanted = [f'creating {self.root_target}', f'creating {self.target}']
         assert caplog.messages == wanted
         caplog.clear()
 
         remove_tree(self.root_target, verbose=True)
-        wanted = ["removing '%s' (and everything under it)" % self.root_target]
+        wanted = [f"removing '{self.root_target}' (and everything under it)"]
         assert caplog.messages == wanted
 
     @pytest.mark.skipif("platform.system() == 'Windows'")
@@ -57,7 +57,7 @@ class TestDirUtil(support.TempdirManager):
         assert caplog.messages == []
         remove_tree(self.root_target, verbose=False)
 
-        wanted = ['creating %s' % self.root_target]
+        wanted = [f'creating {self.root_target}']
         create_tree(self.root_target, ['one', 'two', 'three'], verbose=True)
         assert caplog.messages == wanted
 

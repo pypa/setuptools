@@ -13,6 +13,8 @@ import sys
 from collections.abc import Iterable
 from email import message_from_file
 
+from ._vendor.packaging.utils import canonicalize_name, canonicalize_version
+
 try:
     import warnings
 except ImportError:
@@ -262,7 +264,7 @@ Common commands: (see '--help-commands' for more)
                 elif hasattr(self, key):
                     setattr(self, key, val)
                 else:
-                    msg = "Unknown distribution option: %s" % repr(key)
+                    msg = f"Unknown distribution option: {key!r}"
                     warnings.warn(msg)
 
         # no-user-cfg is handled before other command line args
@@ -311,9 +313,9 @@ Common commands: (see '--help-commands' for more)
         for cmd_name in commands:
             opt_dict = self.command_options.get(cmd_name)
             if opt_dict is None:
-                self.announce(indent + "no option dict for '%s' command" % cmd_name)
+                self.announce(indent + f"no option dict for '{cmd_name}' command")
             else:
-                self.announce(indent + "option dict for '%s' command:" % cmd_name)
+                self.announce(indent + f"option dict for '{cmd_name}' command:")
                 out = pformat(opt_dict)
                 for line in out.split('\n'):
                     self.announce(indent + "  " + line)
@@ -339,7 +341,7 @@ Common commands: (see '--help-commands' for more)
         files = [str(path) for path in self._gen_paths() if os.path.isfile(path)]
 
         if DEBUG:
-            self.announce("using config files: %s" % ', '.join(files))
+            self.announce("using config files: {}".format(', '.join(files)))
 
         return files
 
@@ -395,7 +397,7 @@ Common commands: (see '--help-commands' for more)
         parser = ConfigParser()
         for filename in filenames:
             if DEBUG:
-                self.announce("  reading %s" % filename)
+                self.announce(f"  reading {filename}")
             parser.read(filename, encoding='utf-8')
             for section in parser.sections():
                 options = parser.options(section)
@@ -525,7 +527,7 @@ Common commands: (see '--help-commands' for more)
         # Pull the current command from the head of the command line
         command = args[0]
         if not command_re.match(command):
-            raise SystemExit("invalid command name '%s'" % command)
+            raise SystemExit(f"invalid command name '{command}'")
         self.commands.append(command)
 
         # Dig up the command class that implements this command, so we
@@ -540,7 +542,7 @@ Common commands: (see '--help-commands' for more)
         # to be sure that the basic "command" interface is implemented.
         if not issubclass(cmd_class, Command):
             raise DistutilsClassError(
-                "command class %s must subclass Command" % cmd_class
+                f"command class {cmd_class} must subclass Command"
             )
 
         # Also make sure that the command object provides a list of its
@@ -668,7 +670,7 @@ Common commands: (see '--help-commands' for more)
                 )
             else:
                 parser.set_option_table(klass.user_options)
-            parser.print_help("Options for '%s' command:" % klass.__name__)
+            parser.print_help(f"Options for '{klass.__name__}' command:")
             print()
 
         print(gen_usage(self.script_name))
@@ -694,12 +696,12 @@ Common commands: (see '--help-commands' for more)
         # display that metadata in the order in which the user supplied the
         # metadata options.
         any_display_options = 0
-        is_display_option = {}
+        is_display_option = set()
         for option in self.display_options:
-            is_display_option[option[0]] = True
+            is_display_option.add(option[0])
 
         for opt, val in option_order:
-            if val and is_display_option.get(opt):
+            if val and opt in is_display_option:
                 opt = translate_longopt(opt)
                 value = getattr(self.metadata, "get_" + opt)()
                 if opt in ('keywords', 'platforms'):
@@ -740,13 +742,13 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = {}
+        is_std = set()
         for cmd in std_commands:
-            is_std[cmd] = True
+            is_std.add(cmd)
 
         extra_commands = []
         for cmd in self.cmdclass.keys():
-            if not is_std.get(cmd):
+            if cmd not in is_std:
                 extra_commands.append(cmd)
 
         max_length = 0
@@ -771,13 +773,13 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = {}
+        is_std = set()
         for cmd in std_commands:
-            is_std[cmd] = True
+            is_std.add(cmd)
 
         extra_commands = []
         for cmd in self.cmdclass.keys():
-            if not is_std.get(cmd):
+            if cmd not in is_std:
                 extra_commands.append(cmd)
 
         rv = []
@@ -842,7 +844,7 @@ Common commands: (see '--help-commands' for more)
             self.cmdclass[command] = klass
             return klass
 
-        raise DistutilsModuleError("invalid command '%s'" % command)
+        raise DistutilsModuleError(f"invalid command '{command}'")
 
     def get_command_obj(self, command, create=True):
         """Return the command object for 'command'.  Normally this object
@@ -855,7 +857,7 @@ Common commands: (see '--help-commands' for more)
             if DEBUG:
                 self.announce(
                     "Distribution.get_command_obj(): "
-                    "creating '%s' command object" % command
+                    f"creating '{command}' command object"
                 )
 
             klass = self.get_command_class(command)
@@ -887,7 +889,7 @@ Common commands: (see '--help-commands' for more)
             option_dict = self.get_option_dict(command_name)
 
         if DEBUG:
-            self.announce("  setting options for '%s' command:" % command_name)
+            self.announce(f"  setting options for '{command_name}' command:")
         for option, (source, value) in option_dict.items():
             if DEBUG:
                 self.announce(f"    {option} = {value} (from {source})")
@@ -1149,9 +1151,9 @@ class DistributionMetadata:
             version = '1.1'
 
         # required fields
-        file.write('Metadata-Version: %s\n' % version)
-        file.write('Name: %s\n' % self.get_name())
-        file.write('Version: %s\n' % self.get_version())
+        file.write(f'Metadata-Version: {version}\n')
+        file.write(f'Name: {self.get_name()}\n')
+        file.write(f'Version: {self.get_version()}\n')
 
         def maybe_write(header, val):
             if val:
@@ -1189,7 +1191,26 @@ class DistributionMetadata:
         return self.version or "0.0.0"
 
     def get_fullname(self):
-        return f"{self.get_name()}-{self.get_version()}"
+        return self._fullname(self.get_name(), self.get_version())
+
+    @staticmethod
+    def _fullname(name: str, version: str) -> str:
+        """
+        >>> DistributionMetadata._fullname('setup.tools', '1.0-2')
+        'setup_tools-1.0.post2'
+        >>> DistributionMetadata._fullname('setup-tools', '1.2post2')
+        'setup_tools-1.2.post2'
+        >>> DistributionMetadata._fullname('setup-tools', '1.0-r2')
+        'setup_tools-1.0.post2'
+        >>> DistributionMetadata._fullname('setup.tools', '1.0.post')
+        'setup_tools-1.0.post0'
+        >>> DistributionMetadata._fullname('setup.tools', '1.0+ubuntu-1')
+        'setup_tools-1.0+ubuntu.1'
+        """
+        return "{}-{}".format(
+            canonicalize_name(name).replace('-', '_'),
+            canonicalize_version(version, strip_trailing_zero=False),
+        )
 
     def get_author(self):
         return self.author

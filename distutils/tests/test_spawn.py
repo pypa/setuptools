@@ -24,7 +24,7 @@ class TestSpawn(support.TempdirManager):
         # through the shell that returns 1
         if sys.platform != 'win32':
             exe = os.path.join(tmpdir, 'foo.sh')
-            self.write_file(exe, '#!%s\nexit 1' % unix_shell)
+            self.write_file(exe, f'#!{unix_shell}\nexit 1')
         else:
             exe = os.path.join(tmpdir, 'foo.bat')
             self.write_file(exe, 'exit 1')
@@ -36,7 +36,7 @@ class TestSpawn(support.TempdirManager):
         # now something that works
         if sys.platform != 'win32':
             exe = os.path.join(tmpdir, 'foo.sh')
-            self.write_file(exe, '#!%s\nexit 0' % unix_shell)
+            self.write_file(exe, f'#!{unix_shell}\nexit 0')
         else:
             exe = os.path.join(tmpdir, 'foo.bat')
             self.write_file(exe, 'exit 0')
