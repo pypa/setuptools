@@ -1,18 +1,18 @@
 """Tests for distutils.cygwinccompiler."""
-import sys
+
 import os
-
-import pytest
-
+import sys
+from distutils import sysconfig
 from distutils.cygwinccompiler import (
-    check_config_h,
-    CONFIG_H_OK,
     CONFIG_H_NOTOK,
+    CONFIG_H_OK,
     CONFIG_H_UNCERTAIN,
+    check_config_h,
     get_msvcr,
 )
 from distutils.tests import support
-from distutils import sysconfig
+
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -80,25 +80,25 @@ class TestCygwinCCompiler(support.TempdirManager):
 
         # MSVC 7.0
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.1300 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.1300 32 bits (Intel)]'
         )
         assert get_msvcr() == ['msvcr70']
 
         # MSVC 7.1
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.1310 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.1310 32 bits (Intel)]'
         )
         assert get_msvcr() == ['msvcr71']
 
         # VS2005 / MSVC 8.0
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.1400 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.1400 32 bits (Intel)]'
         )
         assert get_msvcr() == ['msvcr80']
 
         # VS2008 / MSVC 9.0
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.1500 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.1500 32 bits (Intel)]'
         )
         assert get_msvcr() == ['msvcr90']
 
@@ -110,7 +110,7 @@ class TestCygwinCCompiler(support.TempdirManager):
 
         # unknown
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.2000 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.2000 32 bits (Intel)]'
         )
         with pytest.raises(ValueError):
             get_msvcr()

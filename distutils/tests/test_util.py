@@ -1,31 +1,30 @@
 """Tests for distutils.util."""
+
 import email
-import email.policy
 import email.generator
+import email.policy
 import io
 import os
 import sys
 import sysconfig as stdlib_sysconfig
 import unittest.mock as mock
 from copy import copy
-
-import pytest
-
+from distutils import sysconfig, util
+from distutils.errors import DistutilsByteCompileError, DistutilsPlatformError
 from distutils.util import (
-    get_platform,
-    convert_path,
+    byte_compile,
     change_root,
     check_environ,
+    convert_path,
+    get_host_platform,
+    get_platform,
+    grok_environment_error,
+    rfc822_escape,
     split_quoted,
     strtobool,
-    rfc822_escape,
-    byte_compile,
-    grok_environment_error,
-    get_host_platform,
 )
-from distutils import util
-from distutils import sysconfig
-from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
+
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -156,9 +155,15 @@ class TestUtil:
         import pwd
 
         # only set pw_dir field, other fields are not used
-        result = pwd.struct_passwd(
-            (None, None, None, None, None, '/home/distutils', None)
-        )
+        result = pwd.struct_passwd((
+            None,
+            None,
+            None,
+            None,
+            None,
+            '/home/distutils',
+            None,
+        ))
         with mock.patch.object(pwd, 'getpwuid', return_value=result):
             check_environ()
             assert os.environ['HOME'] == '/home/distutils'
@@ -253,6 +258,6 @@ class TestUtil:
 
     def test_grok_environment_error(self):
         # test obsolete function to ensure backward compat (#4931)
-        exc = IOError("Unable to find batch file")
+        exc = OSError("Unable to find batch file")
         msg = grok_environment_error(exc)
         assert msg == "error: Unable to find batch file"

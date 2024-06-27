@@ -1,13 +1,14 @@
 """Tests for distutils.command.register."""
-import os
-import getpass
-import urllib
 
+import getpass
+import os
+import pathlib
+import urllib
 from distutils.command import register as register_module
 from distutils.command.register import register
 from distutils.errors import DistutilsSetupError
-
 from distutils.tests.test_config import BasePyPIRCCommandTestCase
+
 import pytest
 
 try:
@@ -125,16 +126,8 @@ class TestRegister(BasePyPIRCCommandTestCase):
         finally:
             del register_module.input
 
-        # we should have a brand new .pypirc file
-        assert os.path.exists(self.rc)
-
-        # with the content similar to WANTED_PYPIRC
-        f = open(self.rc)
-        try:
-            content = f.read()
-            assert content == WANTED_PYPIRC
-        finally:
-            f.close()
+        # A new .pypirc file should contain WANTED_PYPIRC
+        assert pathlib.Path(self.rc).read_text(encoding='utf-8') == WANTED_PYPIRC
 
         # now let's make sure the .pypirc file generated
         # really works : we shouldn't be asked anything
@@ -144,7 +137,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
 
         register_module.input = _no_way
 
-        cmd.show_response = 1
+        cmd.show_response = True
         cmd.run()
 
         # let's see what the server received : we should
@@ -215,7 +208,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
         # empty metadata
         cmd = self._get_cmd({})
         cmd.ensure_finalized()
-        cmd.strict = 1
+        cmd.strict = True
         with pytest.raises(DistutilsSetupError):
             cmd.run()
 
@@ -231,7 +224,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
 
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
-        cmd.strict = 1
+        cmd.strict = True
         with pytest.raises(DistutilsSetupError):
             cmd.run()
 
@@ -239,7 +232,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
         metadata['long_description'] = 'title\n=====\n\ntext'
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
-        cmd.strict = 1
+        cmd.strict = True
         inputs = Inputs('1', 'tarek', 'y')
         register_module.input = inputs.__call__
         # let's run the command
@@ -272,7 +265,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
 
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
-        cmd.strict = 1
+        cmd.strict = True
         inputs = Inputs('1', 'tarek', 'y')
         register_module.input = inputs.__call__
         # let's run the command
@@ -303,7 +296,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
 
     def test_list_classifiers(self, caplog):
         cmd = self._get_cmd()
-        cmd.list_classifiers = 1
+        cmd.list_classifiers = True
         cmd.run()
         assert caplog.messages == ['running check', 'xxx']
 
@@ -312,7 +305,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
         cmd = self._get_cmd()
         inputs = Inputs('1', 'tarek', 'y')
         register_module.input = inputs.__call__
-        cmd.show_response = 1
+        cmd.show_response = True
         try:
             cmd.run()
         finally:

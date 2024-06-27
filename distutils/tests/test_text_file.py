@@ -1,7 +1,10 @@
 """Tests for distutils.text_file."""
-import os
-from distutils.text_file import TextFile
+
 from distutils.tests import support
+from distutils.text_file import TextFile
+
+import jaraco.path
+import path
 
 TEST_DATA = """# test file
 
@@ -52,16 +55,16 @@ class TestTextFile(support.TempdirManager):
             result = file.readlines()
             assert result == expected_result
 
-        tmpdir = self.mkdtemp()
-        filename = os.path.join(tmpdir, "test.txt")
-        out_file = open(filename, "w")
-        try:
-            out_file.write(TEST_DATA)
-        finally:
-            out_file.close()
+        tmp_path = path.Path(self.mkdtemp())
+        filename = tmp_path / 'test.txt'
+        jaraco.path.build({filename.name: TEST_DATA}, tmp_path)
 
         in_file = TextFile(
-            filename, strip_comments=0, skip_blanks=0, lstrip_ws=0, rstrip_ws=0
+            filename,
+            strip_comments=False,
+            skip_blanks=False,
+            lstrip_ws=False,
+            rstrip_ws=False,
         )
         try:
             test_input(1, "no processing", in_file, result1)
@@ -69,7 +72,11 @@ class TestTextFile(support.TempdirManager):
             in_file.close()
 
         in_file = TextFile(
-            filename, strip_comments=1, skip_blanks=0, lstrip_ws=0, rstrip_ws=0
+            filename,
+            strip_comments=True,
+            skip_blanks=False,
+            lstrip_ws=False,
+            rstrip_ws=False,
         )
         try:
             test_input(2, "strip comments", in_file, result2)
@@ -77,7 +84,11 @@ class TestTextFile(support.TempdirManager):
             in_file.close()
 
         in_file = TextFile(
-            filename, strip_comments=0, skip_blanks=1, lstrip_ws=0, rstrip_ws=0
+            filename,
+            strip_comments=False,
+            skip_blanks=True,
+            lstrip_ws=False,
+            rstrip_ws=False,
         )
         try:
             test_input(3, "strip blanks", in_file, result3)
@@ -91,7 +102,11 @@ class TestTextFile(support.TempdirManager):
             in_file.close()
 
         in_file = TextFile(
-            filename, strip_comments=1, skip_blanks=1, join_lines=1, rstrip_ws=1
+            filename,
+            strip_comments=True,
+            skip_blanks=True,
+            join_lines=True,
+            rstrip_ws=True,
         )
         try:
             test_input(5, "join lines without collapsing", in_file, result5)
@@ -100,11 +115,11 @@ class TestTextFile(support.TempdirManager):
 
         in_file = TextFile(
             filename,
-            strip_comments=1,
-            skip_blanks=1,
-            join_lines=1,
-            rstrip_ws=1,
-            collapse_join=1,
+            strip_comments=True,
+            skip_blanks=True,
+            join_lines=True,
+            rstrip_ws=True,
+            collapse_join=True,
         )
         try:
             test_input(6, "join lines with collapsing", in_file, result6)

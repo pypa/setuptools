@@ -4,8 +4,11 @@ on:
   merge_group:
   push:
     branches-ignore:
-    # disabled for jaraco/skeleton#103
-    # - gh-readonly-queue/**  # Temporary merge queue-related GH-made branches
+    # temporary GH branches relating to merge queues (jaraco/skeleton#93)
+    - gh-readonly-queue/**
+    tags:
+    # required if branches-ignore is supplied (jaraco/skeleton#103)
+    - '**'
   pull_request:
 
 concurrency:
@@ -34,10 +37,10 @@ env:
 jobs:
   test:
     strategy:
+      # https://blog.jaraco.com/efficient-use-of-ci-resources/
       matrix:
         python:
         - "3.8"
-        - "3.11"
         - "3.12"
         platform:
         - ubuntu-latest
@@ -47,6 +50,8 @@ jobs:
         - python: "3.9"
           platform: ubuntu-latest
         - python: "3.10"
+          platform: ubuntu-latest
+        - python: "3.11"
           platform: ubuntu-latest
         - python: pypy3.10
           platform: ubuntu-latest
@@ -145,9 +150,9 @@ jobs:
           source venv/bin/activate
 
           # python-ruff doesn't work without rust
-          sed -i '/pytest-ruff/d' setup.cfg
+          sed -i '/pytest-ruff/d' pyproject.toml
 
-          pip install -e .[testing]
+          pip install -e .[test]
       - name: Run tests
         shell: msys2 {0}
         run: |
@@ -156,7 +161,6 @@ jobs:
 
   ci_setuptools:
     # Integration testing with setuptools
-    if: ${{ false }}  # disabled for deprecation warnings
     strategy:
       matrix:
         python:

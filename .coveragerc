@@ -2,8 +2,16 @@
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
 	*/.tox/*
+
+	# local
+	*/compat/*
+	*/distutils/_vendor/*
 disable_warnings =
 	couldnt-parse
 
 [report]
 show_missing = True
+exclude_also =
+	# jaraco/skeleton#97
+	@overload
+	if TYPE_CHECKING:
