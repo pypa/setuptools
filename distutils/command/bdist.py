@@ -41,7 +41,7 @@ class bdist(Command):
             'plat-name=',
             'p',
             "platform name to embed in generated filenames "
-            f"(default: {get_platform()})",
+            f"[default: {get_platform()}]",
         ),
         ('formats=', None, "formats for distribution (comma-separated list)"),
         (

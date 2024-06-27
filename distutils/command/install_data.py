@@ -19,7 +19,7 @@ class install_data(Command):
             'install-dir=',
             'd',
             "base directory for installing data files "
-            "(default: installation base dir)",
+            "[default: installation base dir]",
         ),
         ('root=', None, "install everything relative to this alternate root directory"),
         ('force', 'f', "force installation (overwrite existing files)"),
