@@ -178,7 +178,7 @@ class FancyGetopt:
                 if short:
                     short = short + ':'
                 long = long[0:-1]
-                self.takes_arg[long] = 1
+                self.takes_arg[long] = True
             else:
                 # Is option is a "negative alias" for some other option (eg.
                 # "quiet" == "!verbose")?
@@ -191,7 +191,7 @@ class FancyGetopt:
                         )
 
                     self.long_opts[-1] = long  # XXX redundant?!
-                self.takes_arg[long] = 0
+                self.takes_arg[long] = False
 
             # If this is an alias option, make sure its "takes arg" flag is
             # the same as the option it's aliased to.
@@ -268,7 +268,7 @@ class FancyGetopt:
 
             attr = self.attr_name[opt]
             # The only repeating option at the moment is 'verbose'.
-            # It has a negative option -q quiet, which should set verbose = 0.
+            # It has a negative option -q quiet, which should set verbose = False.
             if val and self.repeat.get(attr) is not None:
                 val = getattr(object, attr, 0) + 1
             setattr(object, attr, val)

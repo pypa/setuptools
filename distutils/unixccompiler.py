@@ -190,7 +190,7 @@ class UnixCCompiler(CCompiler):
             raise CompileError(msg)
 
     def create_static_lib(
-        self, objects, output_libname, output_dir=None, debug=0, target_lang=None
+        self, objects, output_libname, output_dir=None, debug=False, target_lang=None
     ):
         objects, output_dir = self._fix_object_args(objects, output_dir)
 
@@ -223,7 +223,7 @@ class UnixCCompiler(CCompiler):
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -362,7 +362,7 @@ class UnixCCompiler(CCompiler):
 
         return os.path.join(match.group(1), dir[1:]) if apply_root else dir
 
-    def find_library_file(self, dirs, lib, debug=0):
+    def find_library_file(self, dirs, lib, debug=False):
         r"""
         Second-guess the linker with not much hard
         data to go on: GCC seems to prefer the shared library, so

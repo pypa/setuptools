@@ -108,7 +108,7 @@ def get_python_version():
     return '%d.%d' % sys.version_info[:2]
 
 
-def get_python_inc(plat_specific=0, prefix=None):
+def get_python_inc(plat_specific=False, prefix=None):
     """Return the directory containing installed Python header files.
 
     If 'plat_specific' is false (the default), this is the path to the
@@ -213,7 +213,7 @@ def _posix_lib(standard_lib, libpython, early_prefix, prefix):
         return os.path.join(libpython, "site-packages")
 
 
-def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
+def get_python_lib(plat_specific=False, standard_lib=False, prefix=None):
     """Return the directory containing the Python library (standard or
     site additions).
 
@@ -398,7 +398,11 @@ def parse_makefile(fn, g=None):  # noqa: C901
     from distutils.text_file import TextFile
 
     fp = TextFile(
-        fn, strip_comments=1, skip_blanks=1, join_lines=1, errors="surrogateescape"
+        fn,
+        strip_comments=True,
+        skip_blanks=True,
+        join_lines=True,
+        errors="surrogateescape",
     )
 
     if g is None:

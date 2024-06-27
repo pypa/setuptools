@@ -57,7 +57,7 @@ class build_clib(Command):
         self.define = None
         self.undef = None
         self.debug = None
-        self.force = 0
+        self.force = False
         self.compiler = None
 
     def finalize_options(self):

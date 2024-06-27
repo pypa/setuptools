@@ -150,11 +150,11 @@ def read_setup_file(filename):  # noqa: C901
     #   <module> ... [<sourcefile> ...] [<cpparg> ...] [<library> ...]
     file = TextFile(
         filename,
-        strip_comments=1,
-        skip_blanks=1,
-        join_lines=1,
-        lstrip_ws=1,
-        rstrip_ws=1,
+        strip_comments=True,
+        skip_blanks=True,
+        join_lines=True,
+        lstrip_ws=True,
+        rstrip_ws=True,
     )
     try:
         extensions = []

@@ -94,7 +94,7 @@ class bdist(Command):
         self.plat_name = None
         self.formats = None
         self.dist_dir = None
-        self.skip_build = 0
+        self.skip_build = False
         self.group = None
         self.owner = None
 
@@ -150,5 +150,5 @@ class bdist(Command):
             # If we're going to need to run this command again, tell it to
             # keep its temporary files around so subsequent runs go faster.
             if cmd_name in commands[i + 1 :]:
-                sub_cmd.keep_temp = 1
+                sub_cmd.keep_temp = True
             self.run_command(cmd_name)

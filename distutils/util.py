@@ -312,7 +312,7 @@ def split_quoted(s):
 # split_quoted ()
 
 
-def execute(func, args, msg=None, verbose=0, dry_run=0):
+def execute(func, args, msg=None, verbose=False, dry_run=False):
     """Perform some action that affects the outside world (eg.  by
     writing to the filesystem).  Such actions are special because they
     are disabled by the 'dry_run' flag.  This method takes care of all
@@ -350,11 +350,11 @@ def strtobool(val):
 def byte_compile(  # noqa: C901
     py_files,
     optimize=0,
-    force=0,
+    force=False,
     prefix=None,
     base_dir=None,
-    verbose=1,
-    dry_run=0,
+    verbose=True,
+    dry_run=False,
     direct=None,
 ):
     """Byte-compile a collection of Python source files to .pyc
@@ -434,8 +434,8 @@ files = [
                     f"""
 byte_compile(files, optimize={optimize!r}, force={force!r},
              prefix={prefix!r}, base_dir={base_dir!r},
-             verbose={verbose!r}, dry_run=0,
-             direct=1)
+             verbose={verbose!r}, dry_run=False,
+             direct=True)
 """
                 )
 

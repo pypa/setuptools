@@ -100,7 +100,7 @@ class TestInstall(
         assert 'user' in options
 
         # setting a value
-        cmd.user = 1
+        cmd.user = True
 
         # user base and site shouldn't be created yet
         assert not os.path.exists(site.USER_BASE)

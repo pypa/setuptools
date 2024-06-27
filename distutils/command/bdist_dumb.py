@@ -63,10 +63,10 @@ class bdist_dumb(Command):
         self.bdist_dir = None
         self.plat_name = None
         self.format = None
-        self.keep_temp = 0
+        self.keep_temp = False
         self.dist_dir = None
         self.skip_build = None
-        self.relative = 0
+        self.relative = False
         self.owner = None
         self.group = None
 
@@ -95,10 +95,10 @@ class bdist_dumb(Command):
         if not self.skip_build:
             self.run_command('build')
 
-        install = self.reinitialize_command('install', reinit_subcommands=1)
+        install = self.reinitialize_command('install', reinit_subcommands=True)
         install.root = self.bdist_dir
         install.skip_build = self.skip_build
-        install.warn_dir = 0
+        install.warn_dir = False
 
         log.info("installing to %s", self.bdist_dir)
         self.run_command('install')

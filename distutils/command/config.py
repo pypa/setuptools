@@ -94,7 +94,7 @@ class config(Command):
 
         if not isinstance(self.compiler, CCompiler):
             self.compiler = new_compiler(
-                compiler=self.compiler, dry_run=self.dry_run, force=1
+                compiler=self.compiler, dry_run=self.dry_run, force=True
             )
             customize_compiler(self.compiler)
             if self.include_dirs:
@@ -292,8 +292,8 @@ class config(Command):
         include_dirs=None,
         libraries=None,
         library_dirs=None,
-        decl=0,
-        call=0,
+        decl=False,
+        call=False,
     ):
         """Determine if function 'func' is available by constructing a
         source file that refers to 'func', and compiles and links it.

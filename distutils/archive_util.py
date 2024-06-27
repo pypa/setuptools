@@ -56,7 +56,13 @@ def _get_uid(name):
 
 
 def make_tarball(
-    base_name, base_dir, compress="gzip", verbose=0, dry_run=0, owner=None, group=None
+    base_name,
+    base_dir,
+    compress="gzip",
+    verbose=False,
+    dry_run=False,
+    owner=None,
+    group=None,
 ):
     """Create a (possibly compressed) tar file from all the files under
     'base_dir'.
@@ -134,7 +140,7 @@ def make_tarball(
     return archive_name
 
 
-def make_zipfile(base_name, base_dir, verbose=0, dry_run=0):  # noqa: C901
+def make_zipfile(base_name, base_dir, verbose=False, dry_run=False):  # noqa: C901
     """Create a zip file from all the files under 'base_dir'.
 
     The output zip file will be named 'base_name' + ".zip".  Uses either the
@@ -221,8 +227,8 @@ def make_archive(
     format,
     root_dir=None,
     base_dir=None,
-    verbose=0,
-    dry_run=0,
+    verbose=False,
+    dry_run=False,
     owner=None,
     group=None,
 ):

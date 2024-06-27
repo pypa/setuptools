@@ -139,9 +139,9 @@ Common commands: (see '--help-commands' for more)
         """
 
         # Default values for our command-line options
-        self.verbose = 1
-        self.dry_run = 0
-        self.help = 0
+        self.verbose = True
+        self.dry_run = False
+        self.help = False
         for attr in self.display_option_names:
             setattr(self, attr, 0)
 
@@ -581,7 +581,7 @@ Common commands: (see '--help-commands' for more)
         parser.set_negative_aliases(negative_opt)
         (args, opts) = parser.getopt(args[1:])
         if hasattr(opts, 'help') and opts.help:
-            self._show_help(parser, display_options=0, commands=[cmd_class])
+            self._show_help(parser, display_options=False, commands=[cmd_class])
             return
 
         if hasattr(cmd_class, 'help_options') and isinstance(
@@ -624,7 +624,7 @@ Common commands: (see '--help-commands' for more)
                 setattr(self.metadata, attr, value)
 
     def _show_help(
-        self, parser, global_options=1, display_options=1, commands: Iterable = ()
+        self, parser, global_options=True, display_options=True, commands: Iterable = ()
     ):
         """Show help for the setup script command-line in the form of
         several lists of command-line options.  'parser' should be a
@@ -846,7 +846,7 @@ Common commands: (see '--help-commands' for more)
 
         raise DistutilsModuleError(f"invalid command '{command}'")
 
-    def get_command_obj(self, command, create=1):
+    def get_command_obj(self, command, create=True):
         """Return the command object for 'command'.  Normally this object
         is cached on a previous call to 'get_command_obj()'; if no command
         object for 'command' is in the cache, then we either create and
@@ -862,7 +862,7 @@ Common commands: (see '--help-commands' for more)
 
             klass = self.get_command_class(command)
             cmd_obj = self.command_obj[command] = klass(self)
-            self.have_run[command] = 0
+            self.have_run[command] = False
 
             # Set any options that were supplied in config files
             # or on the command line.  (NB. support for error
@@ -917,7 +917,7 @@ Common commands: (see '--help-commands' for more)
             except ValueError as msg:
                 raise DistutilsOptionError(msg)
 
-    def reinitialize_command(self, command, reinit_subcommands=0):
+    def reinitialize_command(self, command, reinit_subcommands=False):
         """Reinitializes a command to the state it was in when first
         returned by 'get_command_obj()': ie., initialized but not yet
         finalized.  This provides the opportunity to sneak option
@@ -947,8 +947,8 @@ Common commands: (see '--help-commands' for more)
         if not command.finalized:
             return command
         command.initialize_options()
-        command.finalized = 0
-        self.have_run[command_name] = 0
+        command.finalized = False
+        self.have_run[command_name] = False
         self._set_command_options(command)
 
         if reinit_subcommands:
@@ -988,7 +988,7 @@ Common commands: (see '--help-commands' for more)
         cmd_obj = self.get_command_obj(command)
         cmd_obj.ensure_finalized()
         cmd_obj.run()
-        self.have_run[command] = 1
+        self.have_run[command] = True
 
     # -- Distribution query methods ------------------------------------
 

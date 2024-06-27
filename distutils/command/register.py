@@ -37,8 +37,8 @@ class register(PyPIRCCommand):
 
     def initialize_options(self):
         PyPIRCCommand.initialize_options(self)
-        self.list_classifiers = 0
-        self.strict = 0
+        self.list_classifiers = False
+        self.strict = False
 
     def finalize_options(self):
         PyPIRCCommand.finalize_options(self)
@@ -74,7 +74,7 @@ class register(PyPIRCCommand):
         check = self.distribution.get_command_obj('check')
         check.ensure_finalized()
         check.strict = self.strict
-        check.restructuredtext = 1
+        check.restructuredtext = True
         check.run()
 
     def _set_config(self):

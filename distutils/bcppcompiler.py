@@ -61,7 +61,7 @@ class BCPPCompiler(CCompiler):
     static_lib_format = shared_lib_format = '%s%s'
     exe_extension = '.exe'
 
-    def __init__(self, verbose=0, dry_run=0, force=0):
+    def __init__(self, verbose=False, dry_run=False, force=False):
         super().__init__(verbose, dry_run, force)
 
         # These executables are assumed to all be in the path.
@@ -90,7 +90,7 @@ class BCPPCompiler(CCompiler):
         output_dir=None,
         macros=None,
         include_dirs=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         depends=None,
@@ -161,7 +161,7 @@ class BCPPCompiler(CCompiler):
     # compile ()
 
     def create_static_lib(
-        self, objects, output_libname, output_dir=None, debug=0, target_lang=None
+        self, objects, output_libname, output_dir=None, debug=False, target_lang=None
     ):
         (objects, output_dir) = self._fix_object_args(objects, output_dir)
         output_filename = self.library_filename(output_libname, output_dir=output_dir)
@@ -189,7 +189,7 @@ class BCPPCompiler(CCompiler):
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -313,7 +313,7 @@ class BCPPCompiler(CCompiler):
 
     # -- Miscellaneous methods -----------------------------------------
 
-    def find_library_file(self, dirs, lib, debug=0):
+    def find_library_file(self, dirs, lib, debug=False):
         # List of effective library names to try, in order of preference:
         # xxx_bcpp.lib is better than xxx.lib
         # and xxx_d.lib is better than xxx.lib if debug is set
@@ -339,7 +339,7 @@ class BCPPCompiler(CCompiler):
             return None
 
     # overwrite the one from CCompiler to support rc and res-files
-    def object_filenames(self, source_filenames, strip_dir=0, output_dir=''):
+    def object_filenames(self, source_filenames, strip_dir=False, output_dir=''):
         if output_dir is None:
             output_dir = ''
         obj_names = []
