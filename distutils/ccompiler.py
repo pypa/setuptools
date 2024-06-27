@@ -6,6 +6,7 @@ for the Distutils compiler abstraction model."""
 import os
 import re
 import sys
+import types
 import warnings
 
 from ._itertools import always_iterable
@@ -190,7 +191,7 @@ class CCompiler:
     def _check_macro_definitions(self, definitions):
         """Ensure that every element of 'definitions' is valid."""
         for defn in definitions:
-            self._check_macro_definition(defn)
+            self._check_macro_definition(*defn)
 
     def _check_macro_definition(self, defn):
         """
@@ -198,16 +199,18 @@ class CCompiler:
 
         A valid definition is either a (name, value) 2-tuple or a (name,) tuple.
         """
-        valid = (
-            isinstance(defn, tuple)
-            and (len(defn) in (1, 2) and (isinstance(defn[1], str) or defn[1] is None))
-            and isinstance(defn[0], str)
-        )
-        if not valid:
+        if not isinstance(defn, tuple) or not self._is_valid_macro(*defn):
             raise TypeError(
                 f"invalid macro definition '{defn}': "
                 "must be tuple (string,), (string, string), or (string, None)"
             )
+
+    @staticmethod
+    def _is_valid_macro(name, value=None):
+        """
+        A valid macro is a ``name : str`` and a ``value : str | None``.
+        """
+        return isinstance(name, str) and isinstance(value, (str, types.NoneType))
 
     # -- Bookkeeping methods -------------------------------------------
 
