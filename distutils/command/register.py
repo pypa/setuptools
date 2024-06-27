@@ -225,7 +225,7 @@ Your selection [default 1]: """,
                 log.info('Server response (%s): %s', code, result)
             else:
                 log.info('You will receive an email shortly.')
-                log.info('Follow the instructions in it to ' 'complete registration.')
+                log.info('Follow the instructions in it to complete registration.')
         elif choice == '3':
             data = {':action': 'password_reset'}
             data['email'] = ''

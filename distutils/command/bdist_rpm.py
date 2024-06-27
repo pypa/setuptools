@@ -528,10 +528,7 @@ class bdist_rpm(Command):
         # that we open and interpolate into the spec file, but the defaults
         # are just text that we drop in as-is.  Hmmm.
 
-        install_cmd = (
-            f'{def_setup_call} install -O1 --root=$RPM_BUILD_ROOT '
-            '--record=INSTALLED_FILES'
-        )
+        install_cmd = f'{def_setup_call} install -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES'
 
         script_options = [
             ('prep', 'prep_script', "%setup -n %{name}-%{unmangled_version}"),

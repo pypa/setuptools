@@ -193,8 +193,7 @@ class install(Command):
         (
             'install-platbase=',
             None,
-            "base installation directory for platform-specific files "
-            + "(instead of --exec-prefix or --home)",
+            "base installation directory for platform-specific files (instead of --exec-prefix or --home)",
         ),
         ('root=', None, "install everything relative to this alternate root directory"),
         # Or, explicitly set the installation scheme
@@ -211,8 +210,7 @@ class install(Command):
         (
             'install-lib=',
             None,
-            "installation directory for all module distributions "
-            + "(overrides --install-purelib and --install-platlib)",
+            "installation directory for all module distributions (overrides --install-purelib and --install-platlib)",
         ),
         ('install-headers=', None, "installation directory for C/C++ headers"),
         ('install-scripts=', None, "installation directory for Python scripts"),
@@ -348,8 +346,7 @@ class install(Command):
             self.install_base or self.install_platbase
         ):
             raise DistutilsOptionError(
-                "must supply either prefix/exec-prefix/home or "
-                + "install-base/install-platbase -- not both"
+                "must supply either prefix/exec-prefix/home or install-base/install-platbase -- not both"
             )
 
         if self.home and (self.prefix or self.exec_prefix):

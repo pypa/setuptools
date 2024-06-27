@@ -4,6 +4,7 @@ extend-select = [
 	"W",
 
 	# local
+	"ISC",
 	"RUF010",
 	"RUF100",
 	"UP",
