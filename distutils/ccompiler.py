@@ -203,8 +203,7 @@ class CCompiler:
             ):
                 raise TypeError(
                     f"invalid macro definition '{defn}': "
-                    "must be tuple (string,), (string, string), or "
-                    "(string, None)"
+                    "must be tuple (string,), (string, string), or (string, None)"
                 )
 
     # -- Bookkeeping methods -------------------------------------------
