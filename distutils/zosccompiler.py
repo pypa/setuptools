@@ -12,9 +12,10 @@ IBM z/OS XL C/C++
 """
 
 import os
-from .unixccompiler import UnixCCompiler
+
 from . import sysconfig
-from .errors import DistutilsExecError, CompileError
+from .errors import CompileError, DistutilsExecError
+from .unixccompiler import UnixCCompiler
 
 _cc_args = {
     'ibm-openxl': [

@@ -3,21 +3,21 @@
 Implements the Distutils 'bdist_rpm' command (create RPM source and binary
 distributions)."""
 
+import os
 import subprocess
 import sys
-import os
+from distutils._log import log
 
 from ..core import Command
 from ..debug import DEBUG
-from ..file_util import write_file
 from ..errors import (
+    DistutilsExecError,
+    DistutilsFileError,
     DistutilsOptionError,
     DistutilsPlatformError,
-    DistutilsFileError,
-    DistutilsExecError,
 )
+from ..file_util import write_file
 from ..sysconfig import get_python_version
-from distutils._log import log
 
 
 class bdist_rpm(Command):
@@ -34,7 +34,7 @@ class bdist_rpm(Command):
         (
             'dist-dir=',
             'd',
-            "directory to put final RPM files in " "(and .spec files if --spec-only)",
+            "directory to put final RPM files in (and .spec files if --spec-only)",
         ),
         (
             'python=',
@@ -75,7 +75,7 @@ class bdist_rpm(Command):
         (
             'packager=',
             None,
-            "RPM packager (eg. \"Jane Doe <jane@example.net>\") " "[default: vendor]",
+            "RPM packager (eg. \"Jane Doe <jane@example.net>\") [default: vendor]",
         ),
         ('doc-files=', None, "list of documentation files (space or comma-separated)"),
         ('changelog=', None, "RPM changelog"),
@@ -214,7 +214,7 @@ class bdist_rpm(Command):
 
         if os.name != 'posix':
             raise DistutilsPlatformError(
-                "don't know how to create RPM " "distributions on platform %s" % os.name
+                "don't know how to create RPM distributions on platform %s" % os.name
             )
         if self.binary_only and self.source_only:
             raise DistutilsOptionError(
@@ -232,8 +232,7 @@ class bdist_rpm(Command):
         self.ensure_string('group', "Development/Libraries")
         self.ensure_string(
             'vendor',
-            "%s <%s>"
-            % (self.distribution.get_contact(), self.distribution.get_contact_email()),
+            f"{self.distribution.get_contact()} <{self.distribution.get_contact_email()}>",
         )
         self.ensure_string('packager')
         self.ensure_string_list('doc_files')
@@ -352,11 +351,7 @@ class bdist_rpm(Command):
         nvr_string = "%{name}-%{version}-%{release}"
         src_rpm = nvr_string + ".src.rpm"
         non_src_rpm = "%{arch}/" + nvr_string + ".%{arch}.rpm"
-        q_cmd = r"rpm -q --qf '{} {}\n' --specfile '{}'".format(
-            src_rpm,
-            non_src_rpm,
-            spec_path,
-        )
+        q_cmd = rf"rpm -q --qf '{src_rpm} {non_src_rpm}\n' --specfile '{spec_path}'"
 
         out = os.popen(q_cmd)
         try:

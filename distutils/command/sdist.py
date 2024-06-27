@@ -4,27 +4,25 @@ Implements the Distutils 'sdist' command (create a source distribution)."""
 
 import os
 import sys
+from distutils import archive_util, dir_util, file_util
+from distutils._log import log
 from glob import glob
-from warnings import warn
 from itertools import filterfalse
+from warnings import warn
 
 from ..core import Command
-from distutils import dir_util
-from distutils import file_util
-from distutils import archive_util
-from ..text_file import TextFile
-from ..filelist import FileList
-from distutils._log import log
-from ..util import convert_path
 from ..errors import DistutilsOptionError, DistutilsTemplateError
+from ..filelist import FileList
+from ..text_file import TextFile
+from ..util import convert_path
 
 
 def show_formats():
     """Print all possible values for the 'formats' option (used by
     the "--help-formats" command-line option).
     """
-    from ..fancy_getopt import FancyGetopt
     from ..archive_util import ARCHIVE_FORMATS
+    from ..fancy_getopt import FancyGetopt
 
     formats = []
     for format in ARCHIVE_FORMATS.keys():
@@ -63,7 +61,7 @@ class sdist(Command):
         (
             'manifest-only',
             'o',
-            "just regenerate the manifest and then stop " "(implies --force-manifest)",
+            "just regenerate the manifest and then stop (implies --force-manifest)",
         ),
         (
             'force-manifest',
@@ -80,7 +78,7 @@ class sdist(Command):
         (
             'dist-dir=',
             'd',
-            "directory to put the source distribution archive(s) in " "[default: dist]",
+            "directory to put the source distribution archive(s) in [default: dist]",
         ),
         (
             'metadata-check',
@@ -310,7 +308,7 @@ class sdist(Command):
 
         # getting package_data files
         # (computed in build_py.data_files by build_py.finalize_options)
-        for pkg, src_dir, build_dir, filenames in build_py.data_files:
+        for _pkg, src_dir, _build_dir, filenames in build_py.data_files:
             for filename in filenames:
                 self.filelist.append(os.path.join(src_dir, filename))
 

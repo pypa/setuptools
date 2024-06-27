@@ -2,25 +2,22 @@
 
 Implements the Distutils 'install' command."""
 
-import sys
-import os
 import contextlib
-import sysconfig
 import itertools
-
+import os
+import sys
+import sysconfig
 from distutils._log import log
+from site import USER_BASE, USER_SITE
+
+from .. import _collections
 from ..core import Command
 from ..debug import DEBUG
-from ..sysconfig import get_config_vars
-from ..file_util import write_file
-from ..util import convert_path, subst_vars, change_root
-from ..util import get_platform
 from ..errors import DistutilsOptionError, DistutilsPlatformError
+from ..file_util import write_file
+from ..sysconfig import get_config_vars
+from ..util import change_root, convert_path, get_platform, subst_vars
 from . import _framework_compat as fw
-from .. import _collections
-
-from site import USER_BASE
-from site import USER_SITE
 
 HAS_USER_SITE = True
 
@@ -686,7 +683,7 @@ class install(Command):
         if not self.user:
             return
         home = convert_path(os.path.expanduser("~"))
-        for name, path in self.config_vars.items():
+        for _name, path in self.config_vars.items():
             if str(path).startswith(home) and not os.path.isdir(path):
                 self.debug_print("os.makedirs('%s', 0o700)" % path)
                 os.makedirs(path, 0o700)
@@ -704,7 +701,7 @@ class install(Command):
             # internally, and not to sys.path, so we don't check the platform
             # matches what we are running.
             if self.warn_dir and build_plat != get_platform():
-                raise DistutilsPlatformError("Can't install when " "cross-compiling")
+                raise DistutilsPlatformError("Can't install when cross-compiling")
 
         # Run all sub-commands (at least those that need to be run)
         for cmd_name in self.get_sub_commands():

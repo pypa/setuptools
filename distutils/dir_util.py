@@ -2,10 +2,11 @@
 
 Utility functions for manipulating directories and directory trees."""
 
-import os
 import errno
-from .errors import DistutilsInternalError, DistutilsFileError
+import os
+
 from ._log import log
+from .errors import DistutilsFileError, DistutilsInternalError
 
 # cache for by mkpath() -- in addition to cheapening redundant calls,
 # eliminates redundant "creating /foo/bar/baz" messages in dry-run mode
@@ -93,9 +94,7 @@ def create_tree(base_dir, files, mode=0o777, verbose=1, dry_run=0):
     'dry_run' flags are as for 'mkpath()'.
     """
     # First get the list of directories to create
-    need_dir = set()
-    for file in files:
-        need_dir.add(os.path.join(base_dir, os.path.dirname(file)))
+    need_dir = set(os.path.join(base_dir, os.path.dirname(file)) for file in files)
 
     # Now create them
     for dir in sorted(need_dir):

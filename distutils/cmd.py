@@ -4,14 +4,14 @@ Provides the Command class, the base class for the command classes
 in the distutils.command package.
 """
 
-import sys
+import logging
 import os
 import re
-import logging
+import sys
 
-from .errors import DistutilsOptionError
-from . import util, dir_util, file_util, archive_util, _modified
+from . import _modified, archive_util, dir_util, file_util, util
 from ._log import log
+from .errors import DistutilsOptionError
 
 
 class Command:

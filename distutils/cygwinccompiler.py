@@ -6,26 +6,25 @@ the Mingw32CCompiler class which handles the mingw32 port of GCC (same as
 cygwin in no-cygwin mode).
 """
 
+import copy
 import os
 import pathlib
 import re
-import sys
-import copy
 import shlex
+import sys
 import warnings
 from subprocess import check_output
 
-from .unixccompiler import UnixCCompiler
-from .file_util import write_file
+from ._collections import RangeMap
 from .errors import (
-    DistutilsExecError,
-    DistutilsPlatformError,
     CCompilerError,
     CompileError,
+    DistutilsExecError,
+    DistutilsPlatformError,
 )
+from .file_util import write_file
+from .unixccompiler import UnixCCompiler
 from .version import LooseVersion, suppress_known_deprecation
-from ._collections import RangeMap
-
 
 _msvcr_lookup = RangeMap.left(
     {

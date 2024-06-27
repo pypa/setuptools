@@ -4,6 +4,7 @@ Miscellaneous utility functions -- anything that doesn't fit into
 one of the other *util.py modules.
 """
 
+import functools
 import importlib.util
 import os
 import re
@@ -11,12 +12,12 @@ import string
 import subprocess
 import sys
 import sysconfig
-import functools
+import tempfile
 
-from .errors import DistutilsPlatformError, DistutilsByteCompileError
-from ._modified import newer
-from .spawn import spawn
 from ._log import log
+from ._modified import newer
+from .errors import DistutilsByteCompileError, DistutilsPlatformError
+from .spawn import spawn
 
 
 def get_host_platform():
@@ -30,18 +31,11 @@ def get_host_platform():
     # even with older Python versions when distutils was split out.
     # Now it delegates to stdlib sysconfig, but maintains compatibility.
 
-    if sys.version_info < (3, 8):
-        if os.name == 'nt':
-            if '(arm)' in sys.version.lower():
-                return 'win-arm32'
-            if '(arm64)' in sys.version.lower():
-                return 'win-arm64'
-
     if sys.version_info < (3, 9):
         if os.name == "posix" and hasattr(os, 'uname'):
             osname, host, release, version, machine = os.uname()
             if osname[:3] == "aix":
-                from .py38compat import aix_platform
+                from .compat.py38 import aix_platform
 
                 return aix_platform(osname, version, release)
 
@@ -109,8 +103,8 @@ def get_macosx_target_ver():
         ):
             my_msg = (
                 '$' + MACOSX_VERSION_VAR + ' mismatch: '
-                'now "%s" but "%s" during configure; '
-                'must use 10.3 or later' % (env_ver, syscfg_ver)
+                f'now "{env_ver}" but "{syscfg_ver}" during configure; '
+                'must use 10.3 or later'
             )
             raise DistutilsPlatformError(my_msg)
         return env_ver
@@ -412,20 +406,10 @@ def byte_compile(  # noqa: C901
     # "Indirect" byte-compilation: write a temporary script and then
     # run it with the appropriate flags.
     if not direct:
-        try:
-            from tempfile import mkstemp
-
-            (script_fd, script_name) = mkstemp(".py")
-        except ImportError:
-            from tempfile import mktemp
-
-            (script_fd, script_name) = None, mktemp(".py")
+        (script_fd, script_name) = tempfile.mkstemp(".py")
         log.info("writing byte-compilation script '%s'", script_name)
         if not dry_run:
-            if script_fd is not None:
-                script = os.fdopen(script_fd, "w", encoding='utf-8')
-            else:  # pragma: no cover
-                script = open(script_name, "w", encoding='utf-8')
+            script = os.fdopen(script_fd, "w", encoding='utf-8')
 
             with script:
                 script.write(
@@ -447,13 +431,12 @@ files = [
 
                 script.write(",\n".join(map(repr, py_files)) + "]\n")
                 script.write(
-                    """
-byte_compile(files, optimize=%r, force=%r,
-             prefix=%r, base_dir=%r,
-             verbose=%r, dry_run=0,
+                    f"""
+byte_compile(files, optimize={optimize!r}, force={force!r},
+             prefix={prefix!r}, base_dir={base_dir!r},
+             verbose={verbose!r}, dry_run=0,
              direct=1)
 """
-                    % (optimize, force, prefix, base_dir, verbose)
                 )
 
         cmd = [sys.executable]
@@ -487,8 +470,7 @@ byte_compile(files, optimize=%r, force=%r,
             if prefix:
                 if file[: len(prefix)] != prefix:
                     raise ValueError(
-                        "invalid prefix: filename %r doesn't start with %r"
-                        % (file, prefix)
+                        f"invalid prefix: filename {file!r} doesn't start with {prefix!r}"
                     )
                 dfile = dfile[len(prefix) :]
             if base_dir:

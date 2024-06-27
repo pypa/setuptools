@@ -2,27 +2,26 @@
 
 import os
 import pathlib
+import shutil  # noqa: F401
 import tarfile
 import warnings
 import zipfile
-from os.path import join
-from textwrap import dedent
-from .unix_compat import require_unix_id, require_uid_0, pwd, grp
-
-import pytest
-import path
-import jaraco.path
-from more_itertools import ilen
-
-from .py38compat import check_warnings
-
+from distutils.archive_util import ARCHIVE_FORMATS
 from distutils.command.sdist import sdist, show_formats
 from distutils.core import Distribution
-from distutils.tests.test_config import BasePyPIRCCommandTestCase
 from distutils.errors import DistutilsOptionError
-from distutils.spawn import find_executable  # noqa: F401
 from distutils.filelist import FileList
-from distutils.archive_util import ARCHIVE_FORMATS
+from distutils.tests.test_config import BasePyPIRCCommandTestCase
+from os.path import join
+from textwrap import dedent
+
+import jaraco.path
+import path
+import pytest
+from more_itertools import ilen
+
+from .compat.py38 import check_warnings
+from .unix_compat import grp, pwd, require_uid_0, require_unix_id
 
 SETUP_PY = """
 from distutils.core import setup
@@ -138,8 +137,8 @@ class TestSDist(BasePyPIRCCommandTestCase):
         assert sorted(content) == ['ns_fake_pkg-1.0/' + x for x in expected]
 
     @pytest.mark.usefixtures('needs_zlib')
-    @pytest.mark.skipif("not find_executable('tar')")
-    @pytest.mark.skipif("not find_executable('gzip')")
+    @pytest.mark.skipif("not shutil.which('tar')")
+    @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
@@ -435,8 +434,8 @@ class TestSDist(BasePyPIRCCommandTestCase):
     @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id
     @require_uid_0
-    @pytest.mark.skipif("not find_executable('tar')")
-    @pytest.mark.skipif("not find_executable('gzip')")
+    @pytest.mark.skipif("not shutil.which('tar')")
+    @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution_owner_group(self):
         # now building a sdist
         dist, cmd = self.get_cmd()

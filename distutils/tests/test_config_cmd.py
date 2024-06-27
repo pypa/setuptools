@@ -2,14 +2,13 @@
 
 import os
 import sys
+from distutils._log import log
+from distutils.command.config import config, dump_file
+from distutils.tests import missing_compiler_executable, support
 
 import more_itertools
 import path
 import pytest
-
-from distutils.command.config import dump_file, config
-from distutils.tests import support, missing_compiler_executable
-from distutils._log import log
 
 
 @pytest.fixture(autouse=True)

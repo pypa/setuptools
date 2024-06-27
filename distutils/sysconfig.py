@@ -9,16 +9,16 @@ Written by:   Fred L. Drake, Jr.
 Email:        <fdrake@acm.org>
 """
 
-import os
 import functools
+import os
+import pathlib
 import re
 import sys
 import sysconfig
-import pathlib
 
-from .errors import DistutilsPlatformError
-from . import py39compat
 from ._functools import pass_none
+from .compat import py39
+from .errors import DistutilsPlatformError
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -538,7 +538,7 @@ def get_config_vars(*args):
     global _config_vars
     if _config_vars is None:
         _config_vars = sysconfig.get_config_vars().copy()
-        py39compat.add_ext_suffix(_config_vars)
+        py39.add_ext_suffix(_config_vars)
 
     return [_config_vars.get(name) for name in args] if args else _config_vars
 

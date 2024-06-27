@@ -8,18 +8,19 @@ for the Microsoft Visual Studio.
 # hacked by Robin Becker and Thomas Heller to do a better job of
 #   finding DevStudio (through the registry)
 
-import sys
 import os
+import sys
 import warnings
+
+from ._log import log
+from .ccompiler import CCompiler, gen_lib_options
 from .errors import (
+    CompileError,
     DistutilsExecError,
     DistutilsPlatformError,
-    CompileError,
     LibError,
     LinkError,
 )
-from .ccompiler import CCompiler, gen_lib_options
-from ._log import log
 
 _can_read_reg = False
 try:
@@ -635,14 +636,11 @@ class MSVCCompiler(CCompiler):
 
         path = path + " dirs"
         if self.__version >= 7:
-            key = r"{}\{:0.1f}\VC\VC_OBJECTS_PLATFORM_INFO\Win32\Directories".format(
-                self.__root,
-                self.__version,
-            )
+            key = rf"{self.__root}\{self.__version:0.1f}\VC\VC_OBJECTS_PLATFORM_INFO\Win32\Directories"
         else:
             key = (
-                r"%s\6.0\Build System\Components\Platforms"
-                r"\Win32 (%s)\Directories" % (self.__root, platform)
+                rf"{self.__root}\6.0\Build System\Components\Platforms"
+                rf"\Win32 ({platform})\Directories"
             )
 
         for base in HKEYS:
@@ -684,7 +682,8 @@ class MSVCCompiler(CCompiler):
 if get_build_version() >= 8.0:
     log.debug("Importing new compiler from distutils.msvc9compiler")
     OldMSVCCompiler = MSVCCompiler
-    from distutils.msvc9compiler import MSVCCompiler
-
     # get_build_architecture not really relevant now we support cross-compile
-    from distutils.msvc9compiler import MacroExpander  # noqa: F811
+    from distutils.msvc9compiler import (
+        MacroExpander,  # noqa: F811
+        MSVCCompiler,
+    )

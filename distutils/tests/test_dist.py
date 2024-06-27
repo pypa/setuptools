@@ -1,24 +1,21 @@
 """Tests for distutils.dist."""
 
-import os
-import io
 import email
-import email.policy
 import email.generator
-import sys
-import warnings
-import textwrap
+import email.policy
 import functools
+import io
+import os
+import sys
+import textwrap
 import unittest.mock as mock
-
-import pytest
-import jaraco.path
-
-from distutils.dist import Distribution, fix_help_options
+import warnings
 from distutils.cmd import Command
-
+from distutils.dist import Distribution, fix_help_options
 from distutils.tests import support
 
+import jaraco.path
+import pytest
 
 pydistutils_cfg = '.' * (os.name == 'posix') + 'pydistutils.cfg'
 

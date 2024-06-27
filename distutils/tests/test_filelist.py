@@ -1,19 +1,16 @@
 """Tests for distutils.filelist."""
 
+import logging
 import os
 import re
-import logging
-
-from distutils import debug
+from distutils import debug, filelist
 from distutils.errors import DistutilsTemplateError
-from distutils.filelist import glob_to_re, translate_pattern, FileList
-from distutils import filelist
+from distutils.filelist import FileList, glob_to_re, translate_pattern
 
-import pytest
 import jaraco.path
+import pytest
 
-from . import py38compat as os_helper
-
+from .compat import py38 as os_helper
 
 MANIFEST_IN = """\
 include ok

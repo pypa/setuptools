@@ -3,12 +3,11 @@
 import os
 import sys
 import zipfile
+from distutils.command.bdist_dumb import bdist_dumb
+from distutils.core import Distribution
+from distutils.tests import support
 
 import pytest
-
-from distutils.core import Distribution
-from distutils.command.bdist_dumb import bdist_dumb
-from distutils.tests import support
 
 SETUP_PY = """\
 from distutils.core import setup
@@ -73,7 +72,7 @@ class TestBuildDumb(
             fp.close()
 
         contents = sorted(filter(None, map(os.path.basename, contents)))
-        wanted = ['foo-0.1-py%s.%s.egg-info' % sys.version_info[:2], 'foo.py']
+        wanted = ['foo-0.1-py{}.{}.egg-info'.format(*sys.version_info[:2]), 'foo.py']
         if not sys.dont_write_bytecode:
             wanted.append('foo.%s.pyc' % sys.implementation.cache_tag)
         assert contents == sorted(wanted)

@@ -3,21 +3,19 @@
 import os
 import stat
 import unittest.mock as mock
+from distutils import dir_util, errors
+from distutils.dir_util import (
+    copy_tree,
+    create_tree,
+    ensure_relative,
+    mkpath,
+    remove_tree,
+)
+from distutils.tests import support
 
 import jaraco.path
 import path
 import pytest
-
-from distutils import dir_util, errors
-from distutils.dir_util import (
-    mkpath,
-    remove_tree,
-    create_tree,
-    copy_tree,
-    ensure_relative,
-)
-
-from distutils.tests import support
 
 
 @pytest.fixture(autouse=True)

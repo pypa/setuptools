@@ -4,18 +4,15 @@ import os
 import stat
 import sys
 import unittest.mock as mock
-
+from distutils.errors import DistutilsExecError
+from distutils.spawn import find_executable, spawn
+from distutils.tests import support
 from test.support import unix_shell
 
 import path
-
-from . import py38compat as os_helper
-
-from distutils.spawn import find_executable
-from distutils.spawn import spawn
-from distutils.errors import DistutilsExecError
-from distutils.tests import support
 import pytest
+
+from .compat import py38 as os_helper
 
 
 class TestSpawn(support.TempdirManager):
@@ -48,14 +45,9 @@ class TestSpawn(support.TempdirManager):
         spawn([exe])  # should work without any error
 
     def test_find_executable(self, tmp_path):
-        program_noeext = 'program'
-        # Give the temporary program an ".exe" suffix for all.
-        # It's needed on Windows and not harmful on other platforms.
-        program = program_noeext + ".exe"
-
-        program_path = tmp_path / program
-        program_path.write_text("", encoding='utf-8')
-        program_path.chmod(stat.S_IXUSR)
+        program_path = self._make_executable(tmp_path, '.exe')
+        program = program_path.name
+        program_noeext = program_path.with_suffix('').name
         filename = str(program_path)
         tmp_dir = path.Path(tmp_path)
 
@@ -123,6 +115,15 @@ class TestSpawn(support.TempdirManager):
             ), mock.patch('distutils.spawn.os.defpath', ''):
                 rv = find_executable(program)
                 assert rv == filename
+
+    @staticmethod
+    def _make_executable(tmp_path, ext):
+        # Give the temporary program a suffix regardless of platform.
+        # It's needed on Windows and not harmful on others.
+        program = tmp_path.joinpath('program').with_suffix(ext)
+        program.write_text("", encoding='utf-8')
+        program.chmod(stat.S_IXUSR)
+        return program
 
     def test_spawn_missing_exe(self):
         with pytest.raises(DistutilsExecError) as ctx:
