@@ -24,7 +24,7 @@ def newer(source, target):
     Raises DistutilsFileError if 'source' does not exist.
     """
     if not os.path.exists(source):
-        raise DistutilsFileError("file '%s' does not exist" % os.path.abspath(source))
+        raise DistutilsFileError(f"file '{os.path.abspath(source)}' does not exist")
 
     return _newer(source, target)
 

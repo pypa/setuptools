@@ -126,7 +126,7 @@ def get_python_inc(plat_specific=0, prefix=None):
     except KeyError:
         raise DistutilsPlatformError(
             "I don't know where Python installs its C header files "
-            "on platform '%s'" % os.name
+            f"on platform '{os.name}'"
         )
     return getter(resolved_prefix, prefix, plat_specific)
 
@@ -262,8 +262,7 @@ def get_python_lib(plat_specific=0, standard_lib=0, prefix=None):
             return os.path.join(prefix, "Lib", "site-packages")
     else:
         raise DistutilsPlatformError(
-            "I don't know where Python installs its library "
-            "on platform '%s'" % os.name
+            f"I don't know where Python installs its library on platform '{os.name}'"
         )
 
 

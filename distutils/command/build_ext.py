@@ -57,7 +57,7 @@ class build_ext(Command):
     #     takes care of both command-line and client options
     #     in between initialize_options() and finalize_options())
 
-    sep_by = " (separated by '%s')" % os.pathsep
+    sep_by = f" (separated by '{os.pathsep}')"
     user_options = [
         ('build-lib=', 'b', "directory for compiled extension modules"),
         ('build-temp=', 't', "directory for temporary files (build by-products)"),
@@ -65,7 +65,7 @@ class build_ext(Command):
             'plat-name=',
             'p',
             "platform name to cross-compile for, if supported "
-            "(default: %s)" % get_platform(),
+            f"(default: {get_platform()})",
         ),
         (
             'inplace',
@@ -517,9 +517,9 @@ class build_ext(Command):
         sources = ext.sources
         if sources is None or not isinstance(sources, (list, tuple)):
             raise DistutilsSetupError(
-                "in 'ext_modules' option (extension '%s'), "
+                f"in 'ext_modules' option (extension '{ext.name}'), "
                 "'sources' must be present and must be "
-                "a list of source filenames" % ext.name
+                "a list of source filenames"
             )
         # sort to make the resulting .so file build reproducible
         sources = sorted(sources)
@@ -663,7 +663,7 @@ class build_ext(Command):
             # Windows (or so I presume!).  If we find it there, great;
             # if not, act like Unix and assume it's in the PATH.
             for vers in ("1.3", "1.2", "1.1"):
-                fn = os.path.join("c:\\swig%s" % vers, "swig.exe")
+                fn = os.path.join(f"c:\\swig{vers}", "swig.exe")
                 if os.path.isfile(fn):
                     return fn
             else:
@@ -671,7 +671,7 @@ class build_ext(Command):
         else:
             raise DistutilsPlatformError(
                 "I don't know how to find (much less run) SWIG "
-                "on platform '%s'" % os.name
+                f"on platform '{os.name}'"
             )
 
     # -- Name generators -----------------------------------------------

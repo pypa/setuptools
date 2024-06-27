@@ -135,7 +135,7 @@ class Command:
         This method must be implemented by all command classes.
         """
         raise RuntimeError(
-            "abstract method -- subclass %s must override" % self.__class__
+            f"abstract method -- subclass {self.__class__} must override"
         )
 
     def finalize_options(self):
@@ -150,14 +150,14 @@ class Command:
         This method must be implemented by all command classes.
         """
         raise RuntimeError(
-            "abstract method -- subclass %s must override" % self.__class__
+            f"abstract method -- subclass {self.__class__} must override"
         )
 
     def dump_options(self, header=None, indent=""):
         from distutils.fancy_getopt import longopt_xlate
 
         if header is None:
-            header = "command options for '%s':" % self.get_command_name()
+            header = f"command options for '{self.get_command_name()}':"
         self.announce(indent + header, level=logging.INFO)
         indent = indent + "  "
         for option, _, _ in self.user_options:
@@ -178,7 +178,7 @@ class Command:
         This method must be implemented by all command classes.
         """
         raise RuntimeError(
-            "abstract method -- subclass %s must override" % self.__class__
+            f"abstract method -- subclass {self.__class__} must override"
         )
 
     def announce(self, msg, level=logging.DEBUG):
@@ -412,7 +412,7 @@ class Command:
         timestamp checks.
         """
         if skip_msg is None:
-            skip_msg = "skipping %s (inputs unchanged)" % outfile
+            skip_msg = f"skipping {outfile} (inputs unchanged)"
 
         # Allow 'infiles' to be a single string
         if isinstance(infiles, str):

@@ -198,7 +198,7 @@ class TestInstall(
         found = [pathlib.Path(line).name for line in content.splitlines()]
         expected = [
             'hello.py',
-            'hello.%s.pyc' % sys.implementation.cache_tag,
+            f'hello.{sys.implementation.cache_tag}.pyc',
             'sayhi',
             'UNKNOWN-0.0.0-py{}.{}.egg-info'.format(*sys.version_info[:2]),
         ]
@@ -207,7 +207,7 @@ class TestInstall(
     def test_record_extensions(self):
         cmd = missing_compiler_executable()
         if cmd is not None:
-            pytest.skip('The %r command is not found' % cmd)
+            pytest.skip(f'The {cmd!r} command is not found')
         install_dir = self.mkdtemp()
         project_dir, dist = self.create_dist(
             ext_modules=[Extension('xx', ['xxmodule.c'])]

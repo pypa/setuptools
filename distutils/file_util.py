@@ -106,7 +106,7 @@ def copy_file(  # noqa: C901
 
     if not os.path.isfile(src):
         raise DistutilsFileError(
-            "can't copy '%s': doesn't exist or not a regular file" % src
+            f"can't copy '{src}': doesn't exist or not a regular file"
         )
 
     if os.path.isdir(dst):
@@ -123,7 +123,7 @@ def copy_file(  # noqa: C901
     try:
         action = _copy_action[link]
     except KeyError:
-        raise ValueError("invalid value '%s' for 'link' argument" % link)
+        raise ValueError(f"invalid value '{link}' for 'link' argument")
 
     if verbose >= 1:
         if os.path.basename(dst) == os.path.basename(src):
@@ -186,7 +186,7 @@ def move_file(src, dst, verbose=1, dry_run=0):  # noqa: C901
         return dst
 
     if not isfile(src):
-        raise DistutilsFileError("can't move '%s': not a regular file" % src)
+        raise DistutilsFileError(f"can't move '{src}': not a regular file")
 
     if isdir(dst):
         dst = os.path.join(dst, basename(src))

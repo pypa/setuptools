@@ -1,8 +1,13 @@
 [lint]
 extend-select = [
 	"C901",
-	"ISC",
 	"W",
+
+	# local
+	"ISC",
+	"RUF010",
+	"RUF100",
+	"UP",
 ]
 ignore = [
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules

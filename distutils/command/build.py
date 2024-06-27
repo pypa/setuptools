@@ -4,6 +4,7 @@ Implements the Distutils 'build' command."""
 
 import os
 import sys
+import sysconfig
 
 from ..core import Command
 from ..errors import DistutilsOptionError
@@ -33,8 +34,7 @@ class build(Command):
         (
             'plat-name=',
             'p',
-            "platform name to build for, if supported "
-            "(default: %s)" % get_platform(),
+            f"platform name to build for, if supported (default: {get_platform()})",
         ),
         ('compiler=', 'c', "specify the compiler type"),
         ('parallel=', 'j', "number of parallel build jobs"),
@@ -79,6 +79,10 @@ class build(Command):
                 )
 
         plat_specifier = f".{self.plat_name}-{sys.implementation.cache_tag}"
+
+        # Python 3.13+ with --disable-gil shouldn't share build directories
+        if sysconfig.get_config_var('Py_GIL_DISABLED'):
+            plat_specifier += 't'
 
         # Make it so Python 2.x and Python 2.x with --with-pydebug don't
         # share the same build directories. Doing so confuses the build
