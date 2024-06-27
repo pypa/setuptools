@@ -67,7 +67,7 @@ class TestFileUtil:
         try:
             os.link(self.source, self.target)
         except OSError as e:
-            self.skipTest('os.link: %s' % e)
+            self.skipTest(f'os.link: {e}')
         else:
             self.target.unlink()
         st = os.stat(self.source)

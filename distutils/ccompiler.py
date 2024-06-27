@@ -202,7 +202,7 @@ class CCompiler:
                 and isinstance(defn[0], str)
             ):
                 raise TypeError(
-                    ("invalid macro definition '%s': " % defn)
+                    (f"invalid macro definition '{defn}': ")
                     + "must be tuple (string,), (string, string), or "
                     + "(string, None)"
                 )
@@ -859,7 +859,7 @@ class CCompiler:
         fd, fname = tempfile.mkstemp(".c", funcname, text=True)
         with os.fdopen(fd, "w", encoding='utf-8') as f:
             for incl in includes:
-                f.write("""#include "%s"\n""" % incl)
+                f.write(f"""#include "{incl}"\n""")
             if not includes:
                 # Use "char func(void);" as the prototype to follow
                 # what autoconf does.  This prototype does not match
@@ -869,22 +869,20 @@ class CCompiler:
                 # know the exact argument types, and the has_function
                 # interface does not provide that level of information.
                 f.write(
-                    """\
+                    f"""\
 #ifdef __cplusplus
 extern "C"
 #endif
-char %s(void);
+char {funcname}(void);
 """
-                    % funcname
                 )
             f.write(
-                """\
-int main (int argc, char **argv) {
-    %s();
+                f"""\
+int main (int argc, char **argv) {{
+    {funcname}();
     return 0;
-}
+}}
 """
-                % funcname
             )
 
         try:
@@ -1032,7 +1030,7 @@ int main (int argc, char **argv) {
             print(msg)
 
     def warn(self, msg):
-        sys.stderr.write("warning: %s\n" % msg)
+        sys.stderr.write(f"warning: {msg}\n")
 
     def execute(self, func, args, msg=None, level=1):
         execute(func, args, msg, self.dry_run)
@@ -1145,9 +1143,9 @@ def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
 
         (module_name, class_name, long_description) = compiler_class[compiler]
     except KeyError:
-        msg = "don't know how to compile C/C++ code on platform '%s'" % plat
+        msg = f"don't know how to compile C/C++ code on platform '{plat}'"
         if compiler is not None:
-            msg = msg + " with '%s' compiler" % compiler
+            msg = msg + f" with '{compiler}' compiler"
         raise DistutilsPlatformError(msg)
 
     try:
@@ -1157,7 +1155,7 @@ def new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0):
         klass = vars(module)[class_name]
     except ImportError:
         raise DistutilsModuleError(
-            "can't compile C/C++ code: unable to load module '%s'" % module_name
+            f"can't compile C/C++ code: unable to load module '{module_name}'"
         )
     except KeyError:
         raise DistutilsModuleError(
@@ -1196,15 +1194,15 @@ def gen_preprocess_options(macros, include_dirs):
     for macro in macros:
         if not (isinstance(macro, tuple) and 1 <= len(macro) <= 2):
             raise TypeError(
-                "bad macro definition '%s': "
-                "each element of 'macros' list must be a 1- or 2-tuple" % macro
+                f"bad macro definition '{macro}': "
+                "each element of 'macros' list must be a 1- or 2-tuple"
             )
 
         if len(macro) == 1:  # undefine this macro
-            pp_opts.append("-U%s" % macro[0])
+            pp_opts.append(f"-U{macro[0]}")
         elif len(macro) == 2:
             if macro[1] is None:  # define with no explicit value
-                pp_opts.append("-D%s" % macro[0])
+                pp_opts.append(f"-D{macro[0]}")
             else:
                 # XXX *don't* need to be clever about quoting the
                 # macro value here, because we're going to avoid the
@@ -1212,7 +1210,7 @@ def gen_preprocess_options(macros, include_dirs):
                 pp_opts.append("-D{}={}".format(*macro))
 
     for dir in include_dirs:
-        pp_opts.append("-I%s" % dir)
+        pp_opts.append(f"-I{dir}")
     return pp_opts
 
 
@@ -1245,7 +1243,7 @@ def gen_lib_options(compiler, library_dirs, runtime_library_dirs, libraries):
                 lib_opts.append(lib_file)
             else:
                 compiler.warn(
-                    "no library file corresponding to '%s' found (skipping)" % lib
+                    f"no library file corresponding to '{lib}' found (skipping)"
                 )
         else:
             lib_opts.append(compiler.library_option(lib))

@@ -23,7 +23,7 @@ class bdist_dumb(Command):
             'plat-name=',
             'p',
             "platform name to embed in generated filenames "
-            "(default: %s)" % get_platform(),
+            f"(default: {get_platform()})",
         ),
         (
             'format=',
@@ -81,7 +81,7 @@ class bdist_dumb(Command):
             except KeyError:
                 raise DistutilsPlatformError(
                     "don't know how to create dumb built distributions "
-                    "on platform %s" % os.name
+                    f"on platform {os.name}"
                 )
 
         self.set_undefined_options(

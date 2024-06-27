@@ -133,7 +133,7 @@ def copy_tree(  # noqa: C901
     from distutils.file_util import copy_file
 
     if not dry_run and not os.path.isdir(src):
-        raise DistutilsFileError("cannot copy tree '%s': not a directory" % src)
+        raise DistutilsFileError(f"cannot copy tree '{src}': not a directory")
     try:
         names = os.listdir(src)
     except OSError as e:

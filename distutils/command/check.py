@@ -106,7 +106,7 @@ class check(Command):
                 missing.append(attr)
 
         if missing:
-            self.warn("missing required meta-data: %s" % ', '.join(missing))
+            self.warn("missing required meta-data: {}".format(', '.join(missing)))
 
     def check_restructuredtext(self):
         """Checks if the long string fields are reST-compliant."""
@@ -147,7 +147,7 @@ class check(Command):
         except AttributeError as e:
             reporter.messages.append((
                 -1,
-                'Could not finish the parsing: %s.' % e,
+                f'Could not finish the parsing: {e}.',
                 '',
                 {},
             ))

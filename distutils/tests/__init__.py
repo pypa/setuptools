@@ -35,7 +35,7 @@ def missing_compiler_executable(cmd_names: Sequence[str] = []):  # pragma: no co
             continue
         cmd = getattr(compiler, name)
         if cmd_names:
-            assert cmd is not None, "the '%s' executable is not configured" % name
+            assert cmd is not None, f"the '{name}' executable is not configured"
         elif not cmd:
             continue
         if shutil.which(cmd[0]) is None:

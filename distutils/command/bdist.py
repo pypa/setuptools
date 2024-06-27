@@ -41,7 +41,7 @@ class bdist(Command):
             'plat-name=',
             'p',
             "platform name to embed in generated filenames "
-            "(default: %s)" % get_platform(),
+            f"(default: {get_platform()})",
         ),
         ('formats=', None, "formats for distribution (comma-separated list)"),
         (
@@ -120,7 +120,7 @@ class bdist(Command):
             except KeyError:
                 raise DistutilsPlatformError(
                     "don't know how to create built distributions "
-                    "on platform %s" % os.name
+                    f"on platform {os.name}"
                 )
 
         if self.dist_dir is None:
@@ -133,7 +133,7 @@ class bdist(Command):
             try:
                 commands.append(self.format_commands[format][0])
             except KeyError:
-                raise DistutilsOptionError("invalid format '%s'" % format)
+                raise DistutilsOptionError(f"invalid format '{format}'")
 
         # Reinitialize and run each command.
         for i in range(len(self.formats)):
