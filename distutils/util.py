@@ -12,6 +12,7 @@ import string
 import subprocess
 import sys
 import sysconfig
+import tempfile
 
 from ._log import log
 from ._modified import newer
@@ -405,20 +406,10 @@ def byte_compile(  # noqa: C901
     # "Indirect" byte-compilation: write a temporary script and then
     # run it with the appropriate flags.
     if not direct:
-        try:
-            from tempfile import mkstemp
-
-            (script_fd, script_name) = mkstemp(".py")
-        except ImportError:
-            from tempfile import mktemp
-
-            (script_fd, script_name) = None, mktemp(".py")
+        (script_fd, script_name) = tempfile.mkstemp(".py")
         log.info("writing byte-compilation script '%s'", script_name)
         if not dry_run:
-            if script_fd is not None:
-                script = os.fdopen(script_fd, "w", encoding='utf-8')
-            else:  # pragma: no cover
-                script = open(script_name, "w", encoding='utf-8')
+            script = os.fdopen(script_fd, "w", encoding='utf-8')
 
             with script:
                 script.write(
