@@ -684,6 +684,6 @@ if get_build_version() >= 8.0:
     OldMSVCCompiler = MSVCCompiler
     # get_build_architecture not really relevant now we support cross-compile
     from distutils.msvc9compiler import (
-        MacroExpander,  # noqa: F811
+        MacroExpander,
         MSVCCompiler,
     )

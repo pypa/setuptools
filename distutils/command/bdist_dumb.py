@@ -116,7 +116,7 @@ class bdist_dumb(Command):
             ):
                 raise DistutilsPlatformError(
                     "can't make a dumb built distribution where "
-                    f"base and platbase are different ({repr(install.install_base)}, {repr(install.install_platbase)})"
+                    f"base and platbase are different ({install.install_base!r}, {install.install_platbase!r})"
                 )
             else:
                 archive_root = os.path.join(

@@ -2,16 +2,17 @@
 
 Provides the 'spawn()' function, a front-end to various platform-
 specific functions for launching another program in a sub-process.
-Also provides the 'find_executable()' to search the path for a given
-executable name.
 """
 
 from __future__ import annotations
 
 import os
 import platform
+import shutil
 import subprocess
 import sys
+import warnings
+
 from typing import Mapping
 
 from ._log import log
@@ -62,7 +63,7 @@ def spawn(cmd, search_path=True, verbose=False, dry_run=False, env=None):
         return
 
     if search_path:
-        executable = find_executable(cmd[0])
+        executable = shutil.which(cmd[0])
         if executable is not None:
             cmd[0] = executable
 
@@ -84,6 +85,9 @@ def find_executable(executable, path=None):
     A string listing directories separated by 'os.pathsep'; defaults to
     os.environ['PATH'].  Returns the complete filename or None if not found.
     """
+    warnings.warn(
+        'Use shutil.which instead of find_executable', DeprecationWarning, stacklevel=2
+    )
     _, ext = os.path.splitext(executable)
     if (sys.platform == 'win32') and (ext != '.exe'):
         executable = executable + '.exe'

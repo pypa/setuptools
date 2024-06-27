@@ -13,6 +13,8 @@ import sys
 from collections.abc import Iterable
 from email import message_from_file
 
+from ._vendor.packaging.utils import canonicalize_name, canonicalize_version
+
 try:
     import warnings
 except ImportError:
@@ -262,7 +264,7 @@ Common commands: (see '--help-commands' for more)
                 elif hasattr(self, key):
                     setattr(self, key, val)
                 else:
-                    msg = f"Unknown distribution option: {repr(key)}"
+                    msg = f"Unknown distribution option: {key!r}"
                     warnings.warn(msg)
 
         # no-user-cfg is handled before other command line args
@@ -1189,7 +1191,26 @@ class DistributionMetadata:
         return self.version or "0.0.0"
 
     def get_fullname(self):
-        return f"{self.get_name()}-{self.get_version()}"
+        return self._fullname(self.get_name(), self.get_version())
+
+    @staticmethod
+    def _fullname(name: str, version: str) -> str:
+        """
+        >>> DistributionMetadata._fullname('setup.tools', '1.0-2')
+        'setup_tools-1.0.post2'
+        >>> DistributionMetadata._fullname('setup-tools', '1.2post2')
+        'setup_tools-1.2.post2'
+        >>> DistributionMetadata._fullname('setup-tools', '1.0-r2')
+        'setup_tools-1.0.post2'
+        >>> DistributionMetadata._fullname('setup.tools', '1.0.post')
+        'setup_tools-1.0.post0'
+        >>> DistributionMetadata._fullname('setup.tools', '1.0+ubuntu-1')
+        'setup_tools-1.0+ubuntu.1'
+        """
+        return "{}-{}".format(
+            canonicalize_name(name).replace('-', '_'),
+            canonicalize_version(version, strip_trailing_zero=False),
+        )
 
     def get_author(self):
         return self.author
