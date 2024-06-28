@@ -277,15 +277,11 @@ class TestMetadata:
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1'
 
-        config.write(
-            '[metadata]\nversion = attr: fake_package.subpkg_a.mod.VERSION\n'
-        )
+        config.write('[metadata]\nversion = attr: fake_package.subpkg_a.mod.VERSION\n')
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
 
-        config.write(
-            '[metadata]\nversion = attr: fake_package.subpkg_b.mod.VERSION\n'
-        )
+        config.write('[metadata]\nversion = attr: fake_package.subpkg_b.mod.VERSION\n')
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
 
@@ -446,9 +442,7 @@ class TestMetadata:
     def test_make_option_lowercase(self, tmpdir):
         # remove this test and the method make_option_lowercase() in setuptools.dist
         # when no longer needed
-        fake_env(
-            tmpdir, '[metadata]\nName = foo\ndescription = Some description\n'
-        )
+        fake_env(tmpdir, '[metadata]\nName = foo\ndescription = Some description\n')
         msg = "Usage of uppercase key 'Name' in 'metadata' will not be supported"
         with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
             with get_dist(tmpdir) as dist:
