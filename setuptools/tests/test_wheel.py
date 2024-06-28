@@ -116,7 +116,10 @@ def build_wheel(extra_file_defs=None, **kwargs):
 def tree_set(root):
     contents = set()
     for dirpath, dirnames, filenames in os.walk(root):
-        contents.update(os.path.join(os.path.relpath(dirpath, root), filename) for filename in filenames)
+        contents.update(
+            os.path.join(os.path.relpath(dirpath, root), filename)
+            for filename in filenames
+        )
     return contents
 
 
