@@ -190,7 +190,7 @@ class Command(_Command):
             return default
         elif not isinstance(val, str):
             raise DistutilsOptionError(
-                "'%s' must be a %s (got `%s`)" % (option, what, val)
+                "'{}' must be a {} (got `{}`)".format(option, what, val)
             )
         return val
 
@@ -218,7 +218,7 @@ class Command(_Command):
                 ok = False
             if not ok:
                 raise DistutilsOptionError(
-                    "'%s' must be a list of strings (got %r)" % (option, val)
+                    "'{}' must be a list of strings (got {!r})".format(option, val)
                 )
 
     def reinitialize_command(self, command, reinit_subcommands=False, **kw):
