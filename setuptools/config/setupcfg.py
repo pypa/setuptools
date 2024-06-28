@@ -363,7 +363,7 @@ class ConfigHandler(Generic[Target]):
             exclude_directive = 'file:'
             if value.startswith(exclude_directive):
                 raise ValueError(
-                    'Only strings are accepted for the {0} field, '
+                    'Only strings are accepted for the {} field, '
                     'files are not accepted'.format(key)
                 )
             return value
