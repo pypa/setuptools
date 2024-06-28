@@ -393,7 +393,7 @@ class SystemInfo:
 
         vc_vers = set(reg_vc_vers)
         vc_vers.update(self.known_vs_paths)
-        return sorted(vc_vers)[-1]
+        return max(vc_vers)
 
     def find_reg_vs_vers(self):
         """
