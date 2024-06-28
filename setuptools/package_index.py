@@ -214,7 +214,9 @@ def unique_values(func):
     return wrapper
 
 
-REL = re.compile(r"""<([^>]*\srel\s{0,10}=\s{0,10}['"]?([^'" >]+)[^>]*)>""", re.IGNORECASE)
+REL = re.compile(
+    r"""<([^>]*\srel\s{0,10}=\s{0,10}['"]?([^'" >]+)[^>]*)>""", re.IGNORECASE
+)
 """
 Regex for an HTML tag with 'rel="val"' attributes.
 """
