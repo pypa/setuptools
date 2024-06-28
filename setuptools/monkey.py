@@ -60,7 +60,7 @@ def get_unpatched_class(cls):
     )
     base = next(external_bases)
     if not base.__module__.startswith('distutils'):
-        msg = "distutils has already been patched by {!r}".format(cls)
+        msg = f"distutils has already been patched by {cls!r}"
         raise AssertionError(msg)
     return base
 

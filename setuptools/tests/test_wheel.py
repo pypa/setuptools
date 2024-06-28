@@ -173,7 +173,7 @@ class Record:
         self._fields = kwargs
 
     def __repr__(self):
-        return '{}(**{!r})'.format(self._id, self._fields)
+        return f'{self._id}(**{self._fields!r})'
 
 
 WHEEL_INSTALL_TESTS = (
@@ -361,10 +361,10 @@ WHEEL_INSTALL_TESTS = (
     ),
     dict(
         id='requires2',
-        install_requires="""
+        install_requires=f"""
         bar
-        foo<=2.0; {!r} in sys_platform
-        """.format(sys.platform),
+        foo<=2.0; {sys.platform!r} in sys_platform
+        """,
         requires_txt=DALS(
             """
             bar
@@ -374,9 +374,9 @@ WHEEL_INSTALL_TESTS = (
     ),
     dict(
         id='requires3',
-        install_requires="""
-        bar; {!r} != sys_platform
-        """.format(sys.platform),
+        install_requires=f"""
+        bar; {sys.platform!r} != sys_platform
+        """,
     ),
     dict(
         id='requires4',
@@ -398,7 +398,7 @@ WHEEL_INSTALL_TESTS = (
     dict(
         id='requires5',
         extras_require={
-            'extra': 'foobar; {!r} != sys_platform'.format(sys.platform),
+            'extra': f'foobar; {sys.platform!r} != sys_platform',
         },
         requires_txt=DALS(
             """
@@ -591,7 +591,7 @@ def test_wheel_install_pep_503():
 def test_wheel_no_dist_dir():
     project_name = 'nodistinfo'
     version = '1.0'
-    wheel_name = '{}-{}-py2.py3-none-any.whl'.format(project_name, version)
+    wheel_name = f'{project_name}-{version}-py2.py3-none-any.whl'
     with tempdir() as source_dir:
         wheel_path = os.path.join(source_dir, wheel_name)
         # create an empty zip file

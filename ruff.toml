@@ -20,7 +20,6 @@ extend-select = [
 ignore = [
 	"TRY301", # raise-within-try, it's handy
 	"UP015", # redundant-open-modes, explicit is preferred
-	"UP032", # temporarily disabled
 	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
 
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
