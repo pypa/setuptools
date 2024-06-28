@@ -146,8 +146,8 @@ jobs:
         run: |
           export VIRTUALENV_NO_SETUPTOOLS=1
 
-          python -m virtualenv venv
-          source venv/bin/activate
+          python -m virtualenv /tmp/venv
+          source /tmp/venv/bin/activate
 
           # python-ruff doesn't work without rust
           sed -i '/pytest-ruff/d' pyproject.toml
@@ -156,8 +156,8 @@ jobs:
       - name: Run tests
         shell: msys2 {0}
         run: |
-          source venv/bin/activate
-          pytest distutils/tests
+          source /tmp/venv/bin/activate
+          pytest
 
   ci_setuptools:
     # Integration testing with setuptools
