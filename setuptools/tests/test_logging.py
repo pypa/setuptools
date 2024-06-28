@@ -27,7 +27,8 @@ def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
     import setuptools  # noqa: F401  # import setuptools to monkeypatch distutils
     import distutils  # <- load distutils after all the patches take place
 
-    logger = logging.Logger(__name__)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
     monkeypatch.setattr(logging, "root", logger)
     unset_log_level = logger.getEffectiveLevel()
     assert logging.getLevelName(unset_log_level) == "NOTSET"
