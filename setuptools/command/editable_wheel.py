@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import io
 import logging
+import operator
 import os
 import shutil
 import traceback
@@ -900,7 +901,7 @@ def _finder_template(
     """Create a string containing the code for the``MetaPathFinder`` and
     ``PathEntryFinder``.
     """
-    mapping = dict(sorted(mapping.items(), key=lambda p: p[0]))
+    mapping = dict(sorted(mapping.items(), key=operator.itemgetter(0)))
     return _FINDER_TEMPLATE.format(name=name, mapping=mapping, namespaces=namespaces)
 
 

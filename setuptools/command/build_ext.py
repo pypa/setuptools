@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+import operator
 import os
 import sys
 import textwrap
@@ -323,7 +324,7 @@ class build_ext(_build_ext):
     def get_output_mapping(self) -> dict[str, str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         mapping = self._get_output_mapping()
-        return dict(sorted(mapping, key=lambda x: x[0]))
+        return dict(sorted(mapping, key=operator.itemgetter(0)))
 
     def __get_stubs_outputs(self):
         # assemble the base name for each extension that needs a stub
