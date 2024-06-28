@@ -172,7 +172,7 @@ class egg_info(InfoCommon, Command):
             'egg-base=',
             'e',
             "directory containing .egg-info directories"
-            " (default: top of the source tree)",
+            " [default: top of the source tree]",
         ),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
