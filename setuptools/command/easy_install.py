@@ -1109,7 +1109,9 @@ class easy_install(Command):
             self.execute(
                 wheel.install_as_egg,
                 (destination,),
-                (f"Installing {os.path.basename(wheel_path)} to {os.path.dirname(destination)}"),
+                (
+                    f"Installing {os.path.basename(wheel_path)} to {os.path.dirname(destination)}"
+                ),
             )
         finally:
             update_dist_caches(destination, fix_zipimporter_caches=False)
