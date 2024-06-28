@@ -12,7 +12,9 @@ import packaging
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.IGNORECASE)
 _UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9._-]+", re.IGNORECASE)
 _NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.IGNORECASE)
-_PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.IGNORECASE)
+_PEP440_FALLBACK = re.compile(
+    r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.IGNORECASE
+)
 
 
 def safe_identifier(name: str) -> str:
