@@ -1,30 +1,30 @@
 """Tests for distutils.archive_util."""
-import os
-import sys
-import tarfile
-from os.path import splitdrive
-import warnings
+
 import functools
 import operator
+import os
 import pathlib
-
-import pytest
-import path
-
+import sys
+import tarfile
+import warnings
 from distutils import archive_util
 from distutils.archive_util import (
+    ARCHIVE_FORMATS,
     check_archive_formats,
+    make_archive,
     make_tarball,
     make_zipfile,
-    make_archive,
-    ARCHIVE_FORMATS,
 )
 from distutils.spawn import spawn
 from distutils.tests import support
+from os.path import splitdrive
 from test.support import patch
-from .unix_compat import require_unix_id, require_uid_0, grp, pwd, UID_0_SUPPORT
 
-from .py38compat import check_warnings
+import path
+import pytest
+
+from .compat.py38 import check_warnings
+from .unix_compat import UID_0_SUPPORT, grp, pwd, require_uid_0, require_unix_id
 
 
 def can_fs_encode(filename):
@@ -135,7 +135,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
         return tmpdir
 
     @pytest.mark.usefixtures('needs_zlib')
-    @pytest.mark.skipif("not (find_executable('tar') and find_executable('gzip'))")
+    @pytest.mark.skipif("not (shutil.which('tar') and shutil.which('gzip'))")
     def test_tarfile_vs_tar(self):
         tmpdir = self._create_files()
         tmpdir2 = self.mkdtemp()
@@ -190,7 +190,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
         tarball = base_name + '.tar'
         assert os.path.exists(tarball)
 
-    @pytest.mark.skipif("not find_executable('compress')")
+    @pytest.mark.skipif("not shutil.which('compress')")
     def test_compress_deprecated(self):
         tmpdir = self._create_files()
         base_name = os.path.join(self.mkdtemp(), 'archive')

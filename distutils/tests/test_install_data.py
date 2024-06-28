@@ -1,10 +1,10 @@
 """Tests for distutils.command.install_data."""
+
 import os
-
-import pytest
-
 from distutils.command.install_data import install_data
 from distutils.tests import support
+
+import pytest
 
 
 @pytest.mark.usefixtures('save_env')
@@ -41,7 +41,7 @@ class TestInstallData(
         cmd.outfiles = []
 
         # let's try with warn_dir one
-        cmd.warn_dir = 1
+        cmd.warn_dir = True
         cmd.ensure_finalized()
         cmd.run()
 

@@ -1,0 +1,16 @@
+version: 2
+python:
+  install:
+  - path: .
+    extra_requirements:
+      - doc
+
+# required boilerplate readthedocs/readthedocs.org#10401
+build:
+  os: ubuntu-lts-latest
+  tools:
+    python: latest
+  # post-checkout job to ensure the clone isn't shallow jaraco/skeleton#114
+  jobs:
+    post_checkout:
+    - git fetch --unshallow || true

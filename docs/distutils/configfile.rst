@@ -96,7 +96,7 @@ configuration file for this distribution:
 .. code-block:: ini
 
    [build_ext]
-   inplace=1
+   inplace=true
 
 This will affect all builds of this module distribution, whether or not you
 explicitly specify :command:`build_ext`.  If you include :file:`setup.cfg` in
@@ -129,13 +129,6 @@ own :file:`setup.cfg`:
 
 Note that the ``doc_files`` option is simply a whitespace-separated string
 split across multiple lines for readability.
-
-
-.. seealso::
-
-   :ref:`inst-config-syntax` in "Installing Python Modules"
-      More information on the configuration files is available in the manual for
-      system administrators.
 
 
 .. rubric:: Footnotes

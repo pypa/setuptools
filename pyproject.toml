@@ -1,11 +1,63 @@
-[tool.black]
-skip-string-normalization = true
+[build-system]
+requires = ["setuptools>=61.2", "setuptools_scm[toml]>=3.4.1"]
+build-backend = "setuptools.build_meta"
 
-[tool.pytest-enabler.black]
-addopts = "--black"
+[project]
+name = "distutils"
+authors = [
+	{ name = "Jason R. Coombs", email = "jaraco@jaraco.com" },
+]
+description = "Distribution utilities formerly from standard library"
+readme = "README.rst"
+classifiers = [
+	"Development Status :: 5 - Production/Stable",
+	"Intended Audience :: Developers",
+	"License :: OSI Approved :: MIT License",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3 :: Only",
+]
+requires-python = ">=3.8"
+dependencies = []
+dynamic = ["version"]
 
-[tool.pytest-enabler.flake8]
-addopts = "--flake8"
+[project.urls]
+Source = "https://github.com/pypa/distutils"
 
-[tool.pytest-enabler.cov]
-addopts = "--cov"
+[project.optional-dependencies]
+test = [
+	# upstream
+	"pytest >= 6, != 8.1.*",
+	"pytest-checkdocs >= 2.4",
+	"pytest-cov",
+	"pytest-mypy",
+	"pytest-enabler >= 2.2",
+	"pytest-ruff >= 0.2.1",
+
+	# local
+	"pytest >= 7.4.3", # 186
+	"jaraco.envs>=2.4",
+	"jaraco.path",
+	"jaraco.text",
+	"path >= 10.6",
+	"docutils",
+	"pyfakefs",
+	"more_itertools",
+
+	# workaround for pytest-dev/pytest#12490
+	"pytest < 8.1; python_version < '3.12'",
+]
+doc = [
+	# upstream
+	"sphinx >= 3.5",
+	"jaraco.packaging >= 9.3",
+	"rst.linker >= 1.9",
+	"furo",
+	"sphinx-lint",
+
+	# local
+]
+
+[tool.setuptools_scm]
+
+[tool.pytest-enabler.mypy]
+# disabled
