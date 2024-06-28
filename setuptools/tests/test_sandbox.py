@@ -100,7 +100,7 @@ class TestExceptionSaver:
         with pytest.raises(setuptools.sandbox.UnpickleableException) as caught:
             with setuptools.sandbox.save_modules():
                 setuptools.sandbox.hide_setuptools()
-                raise ExceptionUnderTest()
+                raise ExceptionUnderTest
 
         (msg,) = caught.value.args
         assert msg == 'ExceptionUnderTest()'
