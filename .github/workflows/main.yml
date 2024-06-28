@@ -124,10 +124,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - { sys: mingw64, env: x86_64 }
-          - { sys: mingw32, env: i686 }
-          - { sys: ucrt64,  env: ucrt-x86_64 }
-          - { sys: clang64, env: clang-x86_64 }
+          - { sys: mingw64, env: x86_64, cc: gcc, cxx: g++ }
+          - { sys: mingw32, env: i686, cc: gcc, cxx: g++ }
+          - { sys: ucrt64,  env: ucrt-x86_64, cc: gcc, cxx: g++ }
+          - { sys: clang64, env: clang-x86_64, cc: clang, cxx: clang++}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -155,6 +155,9 @@ jobs:
           pip install -e .[test]
       - name: Run tests
         shell: msys2 {0}
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
         run: |
           source /tmp/venv/bin/activate
           pytest
