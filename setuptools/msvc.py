@@ -952,9 +952,7 @@ class SystemInfo:
 
         # Find path of the more recent Kit
         for ver in vers:
-            sdkdir = self.ri.lookup(
-                self.ri.windows_kits_roots, f'kitsroot{ver}'
-            )
+            sdkdir = self.ri.lookup(self.ri.windows_kits_roots, f'kitsroot{ver}')
             if sdkdir:
                 return sdkdir or ''
 
