@@ -257,7 +257,7 @@ class TestDistro:
             "/foo_dir/Foo-1.2.dist-info",
             metadata=Metadata((
                 "METADATA",
-                "Provides-Extra: baz\n" "Requires-Dist: quux; extra=='baz'",
+                "Provides-Extra: baz\nRequires-Dist: quux; extra=='baz'",
             )),
         )
         ad.add(Foo)

@@ -84,7 +84,7 @@ class TestReadAttr:
             "pkg/__init__.py": "",
             "pkg/sub/__init__.py": "VERSION = '0.1.1'",
             "pkg/sub/mod.py": (
-                "VALUES = {'a': 0, 'b': {42}, 'c': (0, 1, 1)}\n" "raise SystemExit(1)"
+                "VALUES = {'a': 0, 'b': {42}, 'c': (0, 1, 1)}\nraise SystemExit(1)"
             ),
         }
         write_files(files, tmp_path)

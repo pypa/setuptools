@@ -159,7 +159,7 @@ def check_specifier(dist, attr, value):
         SpecifierSet(value)
     except (InvalidSpecifier, AttributeError) as error:
         tmpl = (
-            "{attr!r} must be a string " "containing valid version specifiers; {error}"
+            "{attr!r} must be a string containing valid version specifiers; {error}"
         )
         raise DistutilsSetupError(tmpl.format(attr=attr, error=error)) from error
 

@@ -363,16 +363,16 @@ class FileList(_FileList):
         }
         log_map = {
             'include': "warning: no files found matching '%s'",
-            'exclude': ("warning: no previously-included files found " "matching '%s'"),
+            'exclude': ("warning: no previously-included files found matching '%s'"),
             'global-include': (
-                "warning: no files found matching '%s' " "anywhere in distribution"
+                "warning: no files found matching '%s' anywhere in distribution"
             ),
             'global-exclude': (
                 "warning: no previously-included files matching "
                 "'%s' found anywhere in distribution"
             ),
             'recursive-include': (
-                "warning: no files found matching '%s' " "under directory '%s'"
+                "warning: no files found matching '%s' under directory '%s'"
             ),
             'recursive-exclude': (
                 "warning: no previously-included files matching "
