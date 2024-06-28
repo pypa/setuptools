@@ -117,7 +117,7 @@ def _check_test_command_install_requirements(venv, tmpdir):
     """
 
     def sdist(distname, version):
-        dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
+        dist_path = tmpdir.join('{}-{}.tar.gz'.format(distname, version))
         make_nspkg_sdist(str(dist_path), distname, version)
         return dist_path
 

@@ -173,7 +173,7 @@ class Record:
         self._fields = kwargs
 
     def __repr__(self):
-        return '%s(**%r)' % (self._id, self._fields)
+        return '{}(**{!r})'.format(self._id, self._fields)
 
 
 WHEEL_INSTALL_TESTS = (
@@ -363,9 +363,8 @@ WHEEL_INSTALL_TESTS = (
         id='requires2',
         install_requires="""
         bar
-        foo<=2.0; %r in sys_platform
-        """
-        % sys.platform,
+        foo<=2.0; {!r} in sys_platform
+        """.format(sys.platform),
         requires_txt=DALS(
             """
             bar
@@ -376,9 +375,8 @@ WHEEL_INSTALL_TESTS = (
     dict(
         id='requires3',
         install_requires="""
-        bar; %r != sys_platform
-        """
-        % sys.platform,
+        bar; {!r} != sys_platform
+        """.format(sys.platform),
     ),
     dict(
         id='requires4',
@@ -400,7 +398,7 @@ WHEEL_INSTALL_TESTS = (
     dict(
         id='requires5',
         extras_require={
-            'extra': 'foobar; %r != sys_platform' % sys.platform,
+            'extra': 'foobar; {!r} != sys_platform'.format(sys.platform),
         },
         requires_txt=DALS(
             """

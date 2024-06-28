@@ -149,7 +149,7 @@ class test(Command):
             sys.path.insert(0, project_path)
             working_set.__init__()
             add_activation_listener(lambda dist: dist.activate())
-            require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
+            require('{}=={}'.format(ei_cmd.egg_name, ei_cmd.egg_version))
             with self.paths_on_pythonpath([project_path]):
                 yield
         finally:
@@ -212,10 +212,10 @@ class test(Command):
 
         cmd = ' '.join(self._argv)
         if self.dry_run:
-            self.announce('skipping "%s" (dry run)' % cmd)
+            self.announce('skipping "{}" (dry run)'.format(cmd))
             return
 
-        self.announce('running "%s"' % cmd)
+        self.announce('running "{}"'.format(cmd))
 
         paths = map(operator.attrgetter('location'), installed_dists)
         with self.paths_on_pythonpath(paths):
@@ -232,7 +232,7 @@ class test(Command):
             exit=False,
         )
         if not test.result.wasSuccessful():
-            msg = 'Test failed: %s' % test.result
+            msg = 'Test failed: {}'.format(test.result)
             self.announce(msg, log.ERROR)
             raise DistutilsError(msg)
 
