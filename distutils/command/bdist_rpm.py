@@ -40,7 +40,7 @@ class bdist_rpm(Command):
             'python=',
             None,
             "path to Python interpreter to hard-code in the .spec file "
-            "(default: \"python\")",
+            "[default: \"python\"]",
         ),
         (
             'fix-python',

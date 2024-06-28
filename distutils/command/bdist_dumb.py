@@ -23,7 +23,7 @@ class bdist_dumb(Command):
             'plat-name=',
             'p',
             "platform name to embed in generated filenames "
-            f"(default: {get_platform()})",
+            f"[default: {get_platform()}]",
         ),
         (
             'format=',
@@ -40,7 +40,7 @@ class bdist_dumb(Command):
         (
             'relative',
             None,
-            "build the archive using relative paths (default: false)",
+            "build the archive using relative paths [default: false]",
         ),
         (
             'owner=',

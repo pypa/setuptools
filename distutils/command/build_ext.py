@@ -65,7 +65,7 @@ class build_ext(Command):
             'plat-name=',
             'p',
             "platform name to cross-compile for, if supported "
-            f"(default: {get_platform()})",
+            f"[default: {get_platform()}]",
         ),
         (
             'inplace',
