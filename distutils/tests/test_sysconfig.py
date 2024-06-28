@@ -7,7 +7,7 @@ import pathlib
 import subprocess
 import sys
 from distutils import sysconfig
-from distutils.ccompiler import get_default_compiler  # noqa: F401
+from distutils.ccompiler import new_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
 from test.support import swap_item
 
@@ -110,7 +110,7 @@ class TestSysconfig:
 
         return comp
 
-    @pytest.mark.skipif("get_default_compiler() != 'unix'")
+    @pytest.mark.skipif("not isinstance(new_compiler(), UnixCCompiler)")
     @pytest.mark.usefixtures('disable_macos_customization')
     def test_customize_compiler(self):
         # Make sure that sysconfig._config_vars is initialized

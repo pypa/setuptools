@@ -19,6 +19,7 @@ import sysconfig
 from ._functools import pass_none
 from .compat import py39
 from .errors import DistutilsPlatformError
+from .util import is_mingw
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -121,8 +122,10 @@ def get_python_inc(plat_specific=False, prefix=None):
     """
     default_prefix = BASE_EXEC_PREFIX if plat_specific else BASE_PREFIX
     resolved_prefix = prefix if prefix is not None else default_prefix
+    # MinGW imitates posix like layout, but os.name != posix
+    os_name = "posix" if is_mingw() else os.name
     try:
-        getter = globals()[f'_get_python_inc_{os.name}']
+        getter = globals()[f'_get_python_inc_{os_name}']
     except KeyError:
         raise DistutilsPlatformError(
             "I don't know where Python installs its C header files "
@@ -244,7 +247,7 @@ def get_python_lib(plat_specific=False, standard_lib=False, prefix=None):
         else:
             prefix = plat_specific and EXEC_PREFIX or PREFIX
 
-    if os.name == "posix":
+    if os.name == "posix" or is_mingw():
         if plat_specific or standard_lib:
             # Platform-specific modules (any module from a non-pure-Python
             # module distribution) or standard Python library modules.
@@ -290,7 +293,7 @@ def customize_compiler(compiler):  # noqa: C901
     Mainly needed on Unix, so we can plug in the information that
     varies across Unices and is stored in Python's Makefile.
     """
-    if compiler.compiler_type == "unix":
+    if compiler.compiler_type in ["unix", "cygwin", "mingw32"]:
         _customize_macos()
 
         (

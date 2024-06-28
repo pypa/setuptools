@@ -159,7 +159,7 @@ def change_root(new_root, pathname):
 
     elif os.name == 'nt':
         (drive, path) = os.path.splitdrive(pathname)
-        if path[0] == '\\':
+        if path[0] == os.sep:
             path = path[1:]
         return os.path.join(new_root, path)
 
@@ -499,3 +499,12 @@ def rfc822_escape(header):
     suffix = indent if ends_in_newline else ""
 
     return indent.join(lines) + suffix
+
+
+def is_mingw():
+    """Returns True if the current platform is mingw.
+
+    Python compiled with Mingw-w64 has sys.platform == 'win32' and
+    get_platform() starts with 'mingw'.
+    """
+    return sys.platform == 'win32' and get_platform().startswith('mingw')
