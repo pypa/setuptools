@@ -842,7 +842,7 @@ class SystemInfo:
         """
         return self._use_last_dir_name(join(self.WindowsSdkDir, 'lib'))
 
-    @property  # noqa: C901
+    @property
     def WindowsSdkDir(self):  # noqa: C901  # is too complex (12)  # FIXME
         """
         Microsoft Windows SDK directory.

@@ -467,7 +467,7 @@ class easy_install(Command):
     def warn_deprecated_options(self):
         pass
 
-    def check_site_dir(self):  # noqa: C901  # is too complex (12)  # FIXME
+    def check_site_dir(self):  # is too complex (12)  # FIXME
         """Verify that self.install_dir is .pth-capable dir, if needed"""
 
         instdir = normalize_path(self.install_dir)
@@ -526,7 +526,7 @@ class easy_install(Command):
 
             %s
         """
-    ).lstrip()  # noqa
+    ).lstrip()
 
     __not_exists_id = textwrap.dedent(
         """
@@ -534,7 +534,7 @@ class easy_install(Command):
         choose a different installation directory (using the -d or --install-dir
         option).
         """
-    ).lstrip()  # noqa
+    ).lstrip()
 
     __access_msg = textwrap.dedent(
         """
@@ -552,7 +552,7 @@ class easy_install(Command):
 
         Please make the appropriate changes for your system and try again.
         """
-    ).lstrip()  # noqa
+    ).lstrip()
 
     def cant_write_to_target(self):
         msg = self.__cant_write_msg % (
@@ -939,7 +939,7 @@ class easy_install(Command):
         return Distribution.from_filename(egg_path, metadata=metadata)
 
     # FIXME: 'easy_install.install_egg' is too complex (11)
-    def install_egg(self, egg_path, tmpdir):  # noqa: C901
+    def install_egg(self, egg_path, tmpdir):
         destination = os.path.join(
             self.install_dir,
             os.path.basename(egg_path),
@@ -1131,7 +1131,7 @@ class easy_install(Command):
             pkg_resources.require("%(name)s==%(version)s")  # this exact version
             pkg_resources.require("%(name)s>=%(version)s")  # this version or higher
         """
-    ).lstrip()  # noqa
+    ).lstrip()
 
     __id_warning = textwrap.dedent(
         """
@@ -1139,7 +1139,7 @@ class easy_install(Command):
         this to work.  (e.g. by being the application's script directory, by being on
         PYTHONPATH, or by being added to sys.path by your code.)
         """
-    )  # noqa
+    )
 
     def installation_report(self, req, dist, what="Installed"):
         """Helpful installation message for display to package users"""
@@ -1166,7 +1166,7 @@ class easy_install(Command):
 
         See the setuptools documentation for the "develop" command for more info.
         """
-    ).lstrip()  # noqa
+    ).lstrip()
 
     def report_editable(self, spec, setup_script):
         dirname = os.path.dirname(setup_script)
