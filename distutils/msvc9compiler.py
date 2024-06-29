@@ -154,7 +154,7 @@ class MacroExpander:
             if version >= 8.0:
                 self.set_macro("FrameworkSDKDir", NET_BASE, "sdkinstallrootv2.0")
             else:
-                raise KeyError("sdkinstallrootv2.0")
+                raise KeyError("sdkinstallrootv2.0")  # noqa: TRY301
         except KeyError:
             raise DistutilsPlatformError(
                 """Python was built with Visual Studio 2008;
