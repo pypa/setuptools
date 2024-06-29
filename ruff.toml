@@ -9,6 +9,7 @@ extend-select = [
 	"RUF010",
 	"RUF100",
 	"UP",
+	"YTT",
 ]
 ignore = [
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
