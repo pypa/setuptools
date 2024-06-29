@@ -3141,7 +3141,10 @@ class Distribution:
 
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""
-        filename = f"{to_filename(self.project_name)}-{to_filename(self.version)}-py{self.py_version or PY_MAJOR}"
+        name = to_filename(self.project_name)
+        version = to_filename(self.version)
+        py_version = self.py_version or PY_MAJOR
+        filename = f"{name}-{version}-py{py_version}"
 
         if self.platform:
             filename += '-' + self.platform

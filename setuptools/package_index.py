@@ -709,6 +709,9 @@ class PackageIndex(Environment):
 
         if len(dists) == 1:  # unambiguous ``#egg`` fragment
             basename = os.path.basename(filename)
+            name = dists[0].project_name
+            version = dists[0].version
+            py_modules = os.path.splitext(basename)[0]
 
             # Make sure the file has been downloaded to the temp dir.
             if os.path.dirname(filename) != tmpdir:
@@ -720,7 +723,7 @@ class PackageIndex(Environment):
             with open(os.path.join(tmpdir, 'setup.py'), 'w', encoding="utf-8") as file:
                 file.write(
                     "from setuptools import setup\n"
-                    f"setup(name={dists[0].project_name!r}, version={dists[0].version!r}, py_modules=[{os.path.splitext(basename)[0]!r}])\n"
+                    f"setup(name={name!r}, version={version!r}, py_modules=[{py_modules!r}])\n"
                 )
             return filename
 
