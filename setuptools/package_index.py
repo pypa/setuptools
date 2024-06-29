@@ -1004,7 +1004,7 @@ class Credential:
         yield self.password
 
     def __str__(self):
-        return '{username}:{password}'.format(**vars(self))
+        return f'{self.username}:{self.password}'
 
 
 class PyPIConfig(configparser.RawConfigParser):
