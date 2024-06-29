@@ -1136,9 +1136,7 @@ def local_open(url):
                 f += '/'
             files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
-            tmpl = (
-                "<html><head><title>{url}</title>" "</head><body>{files}</body></html>"
-            )
+            tmpl = "<html><head><title>{url}</title></head><body>{files}</body></html>"
             body = tmpl.format(url=url, files='\n'.join(files))
         status, message = 200, "OK"
     else:

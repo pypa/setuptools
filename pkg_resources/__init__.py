@@ -2041,7 +2041,7 @@ class ZipProvider(EggProvider):
 
         if not WRITE_SUPPORT:
             raise OSError(
-                '"os.rename" and "os.unlink" are not supported ' 'on this platform'
+                '"os.rename" and "os.unlink" are not supported on this platform'
             )
         try:
             if not self.egg_name:

@@ -35,7 +35,7 @@ def fake_env(
     tmpdir, setup_cfg, setup_py=None, encoding='ascii', package_path='fake_package'
 ):
     if setup_py is None:
-        setup_py = 'from setuptools import setup\n' 'setup()\n'
+        setup_py = 'from setuptools import setup\nsetup()\n'
 
     tmpdir.join('setup.py').write(setup_py)
     config = tmpdir.join('setup.cfg')
@@ -97,7 +97,7 @@ class TestConfigurationReader:
     def test_ignore_errors(self, tmpdir):
         _, config = fake_env(
             tmpdir,
-            '[metadata]\n' 'version = attr: none.VERSION\n' 'keywords = one, two\n',
+            '[metadata]\nversion = attr: none.VERSION\nkeywords = one, two\n',
         )
         with pytest.raises(ImportError):
             read_configuration('%s' % config)
@@ -171,7 +171,7 @@ class TestMetadata:
     def test_file_mixed(self, tmpdir):
         fake_env(
             tmpdir,
-            '[metadata]\n' 'long_description = file: README.rst, CHANGES.rst\n' '\n',
+            '[metadata]\nlong_description = file: README.rst, CHANGES.rst\n\n',
         )
 
         tmpdir.join('README.rst').write('readme contents\nline2')
@@ -179,14 +179,14 @@ class TestMetadata:
 
         with get_dist(tmpdir) as dist:
             assert dist.metadata.long_description == (
-                'readme contents\nline2\n' 'changelog contents\nand stuff'
+                'readme contents\nline2\nchangelog contents\nand stuff'
             )
 
     def test_file_sandboxed(self, tmpdir):
         tmpdir.ensure("README")
         project = tmpdir.join('depth1', 'depth2')
         project.ensure(dir=True)
-        fake_env(project, '[metadata]\n' 'long_description = file: ../../README\n')
+        fake_env(project, '[metadata]\nlong_description = file: ../../README\n')
 
         with get_dist(project, parse=False) as dist:
             with pytest.raises(DistutilsOptionError):
@@ -253,7 +253,7 @@ class TestMetadata:
 
     def test_version(self, tmpdir):
         package_dir, config = fake_env(
-            tmpdir, '[metadata]\n' 'version = attr: fake_package.VERSION\n'
+            tmpdir, '[metadata]\nversion = attr: fake_package.VERSION\n'
         )
 
         sub_a = package_dir.mkdir('subpkg_a')
@@ -263,35 +263,31 @@ class TestMetadata:
         sub_b = package_dir.mkdir('subpkg_b')
         sub_b.join('__init__.py').write('')
         sub_b.join('mod.py').write(
-            'import third_party_module\n' 'VERSION = (2016, 11, 26)'
+            'import third_party_module\nVERSION = (2016, 11, 26)'
         )
 
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1.2.3'
 
-        config.write('[metadata]\n' 'version = attr: fake_package.get_version\n')
+        config.write('[metadata]\nversion = attr: fake_package.get_version\n')
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '3.4.5.dev'
 
-        config.write('[metadata]\n' 'version = attr: fake_package.VERSION_MAJOR\n')
+        config.write('[metadata]\nversion = attr: fake_package.VERSION_MAJOR\n')
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '1'
 
-        config.write(
-            '[metadata]\n' 'version = attr: fake_package.subpkg_a.mod.VERSION\n'
-        )
+        config.write('[metadata]\nversion = attr: fake_package.subpkg_a.mod.VERSION\n')
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
 
-        config.write(
-            '[metadata]\n' 'version = attr: fake_package.subpkg_b.mod.VERSION\n'
-        )
+        config.write('[metadata]\nversion = attr: fake_package.subpkg_b.mod.VERSION\n')
         with get_dist(tmpdir) as dist:
             assert dist.metadata.version == '2016.11.26'
 
     def test_version_file(self, tmpdir):
         _, config = fake_env(
-            tmpdir, '[metadata]\n' 'version = file: fake_package/version.txt\n'
+            tmpdir, '[metadata]\nversion = file: fake_package/version.txt\n'
         )
         tmpdir.join('fake_package', 'version.txt').write('1.2.3\n')
 
@@ -346,12 +342,12 @@ class TestMetadata:
             assert dist.metadata.version == '1.2.3'
 
     def test_unknown_meta_item(self, tmpdir):
-        fake_env(tmpdir, '[metadata]\n' 'name = fake_name\n' 'unknown = some\n')
+        fake_env(tmpdir, '[metadata]\nname = fake_name\nunknown = some\n')
         with get_dist(tmpdir, parse=False) as dist:
             dist.parse_config_files()  # Skip unknown.
 
     def test_usupported_section(self, tmpdir):
-        fake_env(tmpdir, '[metadata.some]\n' 'key = val\n')
+        fake_env(tmpdir, '[metadata.some]\nkey = val\n')
         with get_dist(tmpdir, parse=False) as dist:
             with pytest.raises(DistutilsOptionError):
                 dist.parse_config_files()
@@ -364,7 +360,7 @@ class TestMetadata:
         ])
 
         # From file.
-        _, config = fake_env(tmpdir, '[metadata]\n' 'classifiers = file: classifiers\n')
+        _, config = fake_env(tmpdir, '[metadata]\nclassifiers = file: classifiers\n')
 
         tmpdir.join('classifiers').write(
             'Framework :: Django\n'
@@ -387,25 +383,25 @@ class TestMetadata:
             assert set(dist.metadata.classifiers) == expected
 
     def test_interpolation(self, tmpdir):
-        fake_env(tmpdir, '[metadata]\n' 'description = %(message)s\n')
+        fake_env(tmpdir, '[metadata]\ndescription = %(message)s\n')
         with pytest.raises(configparser.InterpolationMissingOptionError):
             with get_dist(tmpdir):
                 pass
 
     def test_non_ascii_1(self, tmpdir):
-        fake_env(tmpdir, '[metadata]\n' 'description = éàïôñ\n', encoding='utf-8')
+        fake_env(tmpdir, '[metadata]\ndescription = éàïôñ\n', encoding='utf-8')
         with get_dist(tmpdir):
             pass
 
     def test_non_ascii_3(self, tmpdir):
-        fake_env(tmpdir, '\n' '# -*- coding: invalid\n')
+        fake_env(tmpdir, '\n# -*- coding: invalid\n')
         with get_dist(tmpdir):
             pass
 
     def test_non_ascii_4(self, tmpdir):
         fake_env(
             tmpdir,
-            '# -*- coding: utf-8\n' '[metadata]\n' 'description = éàïôñ\n',
+            '# -*- coding: utf-8\n[metadata]\ndescription = éàïôñ\n',
             encoding='utf-8',
         )
         with get_dist(tmpdir) as dist:
@@ -446,9 +442,7 @@ class TestMetadata:
     def test_make_option_lowercase(self, tmpdir):
         # remove this test and the method make_option_lowercase() in setuptools.dist
         # when no longer needed
-        fake_env(
-            tmpdir, '[metadata]\n' 'Name = foo\n' 'description = Some description\n'
-        )
+        fake_env(tmpdir, '[metadata]\nName = foo\ndescription = Some description\n')
         msg = "Usage of uppercase key 'Name' in 'metadata' will not be supported"
         with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
             with get_dist(tmpdir) as dist:
@@ -561,7 +555,7 @@ class TestOptions:
             assert dist.tests_require == ['mock==0.7.2', 'pytest']
 
     def test_package_dir_fail(self, tmpdir):
-        fake_env(tmpdir, '[options]\n' 'package_dir = a b\n')
+        fake_env(tmpdir, '[options]\npackage_dir = a b\n')
         with get_dist(tmpdir, parse=False) as dist:
             with pytest.raises(DistutilsOptionError):
                 dist.parse_config_files()
@@ -589,13 +583,13 @@ class TestOptions:
             }
 
     def test_packages(self, tmpdir):
-        fake_env(tmpdir, '[options]\n' 'packages = find:\n')
+        fake_env(tmpdir, '[options]\npackages = find:\n')
 
         with get_dist(tmpdir) as dist:
             assert dist.packages == ['fake_package']
 
     def test_find_directive(self, tmpdir):
-        dir_package, config = fake_env(tmpdir, '[options]\n' 'packages = find:\n')
+        dir_package, config = fake_env(tmpdir, '[options]\npackages = find:\n')
 
         dir_sub_one, _ = make_package_dir('sub_one', dir_package)
         dir_sub_two, _ = make_package_dir('sub_two', dir_package)
@@ -633,7 +627,7 @@ class TestOptions:
 
     def test_find_namespace_directive(self, tmpdir):
         dir_package, config = fake_env(
-            tmpdir, '[options]\n' 'packages = find_namespace:\n'
+            tmpdir, '[options]\npackages = find_namespace:\n'
         )
 
         dir_sub_one, _ = make_package_dir('sub_one', dir_package)
@@ -754,7 +748,7 @@ class TestOptions:
         assert len(recwarn) == num_warnings
 
     def test_dash_preserved_extras_require(self, tmpdir):
-        fake_env(tmpdir, '[options.extras_require]\n' 'foo-a = foo\n' 'foo_b = test\n')
+        fake_env(tmpdir, '[options.extras_require]\nfoo-a = foo\nfoo_b = test\n')
 
         with get_dist(tmpdir) as dist:
             assert dist.extras_require == {'foo-a': ['foo'], 'foo_b': ['test']}
@@ -785,7 +779,7 @@ class TestOptions:
         tmpdir.join('entry_points').write(expected)
 
         # From file.
-        config.write('[options]\n' 'entry_points = file: entry_points\n')
+        config.write('[options]\nentry_points = file: entry_points\n')
 
         with get_dist(tmpdir) as dist:
             assert dist.entry_points == expected
@@ -904,7 +898,7 @@ class TestOptions:
         module_path = Path(tmpdir, "src/custom_build.py")  # auto discovery for src
         module_path.parent.mkdir(parents=True, exist_ok=True)
         module_path.write_text(
-            "from distutils.core import Command\n" "class CustomCmd(Command): pass\n",
+            "from distutils.core import Command\nclass CustomCmd(Command): pass\n",
             encoding="utf-8",
         )
 
