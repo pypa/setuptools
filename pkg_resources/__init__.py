@@ -2808,7 +2808,7 @@ class EntryPoint:
             return ()
         req = Requirement.parse('x' + extras_spec)
         if req.specs:
-            raise ValueError()
+            raise ValueError
         return req.extras
 
     @classmethod

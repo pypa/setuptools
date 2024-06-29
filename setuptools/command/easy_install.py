@@ -237,7 +237,7 @@ class easy_install(Command):
         dist = get_distribution('setuptools')
         tmpl = 'setuptools {dist.version} from {dist.location} (Python {ver})'
         print(tmpl.format(**locals()))
-        raise SystemExit()
+        raise SystemExit
 
     def finalize_options(self):  # noqa: C901  # is too complex (25)  # FIXME
         self.version and self._render_version()
