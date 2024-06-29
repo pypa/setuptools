@@ -14,9 +14,11 @@ extend-select = [
 	"F404", # late-future-import
 	"PYI", # flake8-pyi
 	"UP", # pyupgrade
+	"TRY",
 	"YTT", # flake8-2020
 ]
 ignore = [
+	"TRY301", # raise-within-try, it's handy
 	"UP015", # redundant-open-modes, explicit is preferred
 	"UP030", # temporarily disabled
 	"UP031", # temporarily disabled

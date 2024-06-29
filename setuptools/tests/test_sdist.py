@@ -122,9 +122,9 @@ def touch(path):
 def symlink_or_skip_test(src, dst):
     try:
         os.symlink(src, dst)
-        return dst
     except (OSError, NotImplementedError):
         pytest.skip("symlink not supported in OS")
+    return dst
 
 
 class TestSdistTest:
