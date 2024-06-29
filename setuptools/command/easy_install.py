@@ -102,9 +102,9 @@ def _to_bytes(s):
 def isascii(s):
     try:
         s.encode('ascii')
-        return True
     except UnicodeError:
         return False
+    return True
 
 
 def _one_liner(text):
