@@ -219,8 +219,8 @@ def test_get_metadata__bad_utf8(tmpdir):
         "codec can't decode byte 0xe9 in position 1: "
         'invalid continuation byte in METADATA file at path: '
     )
-    assert expected in actual, f'actual: {actual}'
-    assert actual.endswith(metadata_path), f'actual: {actual}'
+    assert expected in actual, f'{actual=}'
+    assert actual.endswith(metadata_path), f'{actual=}'
 
 
 def make_distribution_no_version(tmpdir, basename):
