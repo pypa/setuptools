@@ -92,7 +92,7 @@ class TestConfigurationReader:
 
     def test_no_config(self, tmpdir):
         with pytest.raises(DistutilsFileError):
-            read_configuration('{}'.format(tmpdir.join('setup.cfg')))
+            read_configuration(str(tmpdir.join('setup.cfg')))
 
     def test_ignore_errors(self, tmpdir):
         _, config = fake_env(
