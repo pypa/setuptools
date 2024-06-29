@@ -3287,8 +3287,7 @@ class Distribution:
             ):
                 continue
             issue_warning(
-                f"Module {modname} was already imported from {fn}, but {self.location} is being added"
-                " to sys.path",
+                f"Module {modname} was already imported from {fn}, but {self.location} is being added to sys.path",
             )
 
     def has_version(self):
