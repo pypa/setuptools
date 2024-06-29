@@ -870,7 +870,7 @@ class TestRegressions:
                         ext_modules=[
                             Extension(
                                 "hello", sources=["hello.pyx"],
-                                depends=[{str(dep_path)!r}]
+                                depends=["{dep_path}"]
                             )
                         ],
                     )

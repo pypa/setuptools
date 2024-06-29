@@ -2707,7 +2707,7 @@ class EntryPoint:
         return s
 
     def __repr__(self):
-        return f"EntryPoint.parse({str(self)!r})"
+        return f"EntryPoint.parse('{self}')"
 
     @overload
     def load(
@@ -2981,7 +2981,7 @@ class Distribution:
                 if hasattr(ex, "add_note"):
                     ex.add_note(info)  # PEP 678
                     raise
-                raise _packaging_version.InvalidVersion(f"{str(ex)} {info}") from None
+                raise _packaging_version.InvalidVersion(f"{ex} {info}") from None
 
         return self._parsed_version
 
@@ -2995,7 +2995,7 @@ class Distribution:
             notes = "\n".join(getattr(ex, "__notes__", []))  # PEP 678
             msg = f"""!!\n\n
             *************************************************************************
-            {str(ex)}\n{notes}
+            {ex}\n{notes}
 
             This is a long overdue deprecation.
             For the time being, `pkg_resources` will use `{self._parsed_version}`
@@ -3462,7 +3462,7 @@ class Requirement(_packaging_requirements.Requirement):
         return self.__hash
 
     def __repr__(self):
-        return f"Requirement.parse({str(self)!r})"
+        return f"Requirement.parse('{self}')"
 
     @staticmethod
     def parse(s: str | Iterable[str]):
