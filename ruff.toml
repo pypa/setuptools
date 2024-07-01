@@ -14,7 +14,9 @@ extend-select = [
 	"UP",
 ]
 ignore = [
+	# local
 	"PERF203",
+
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
 	"E111",
