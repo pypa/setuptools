@@ -38,7 +38,7 @@ import contextlib
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Union, Iterable
+from typing import TYPE_CHECKING, Dict, Iterator, List, Union, Iterable
 
 import setuptools
 import distutils
@@ -47,6 +47,9 @@ from ._path import same_path, StrPath
 from ._reqs import parse_strings
 from .warnings import SetuptoolsDeprecationWarning
 from distutils.util import strtobool
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 
 __all__ = [
@@ -142,7 +145,7 @@ def suppress_known_deprecation():
         yield
 
 
-_ConfigSettings = Optional[Dict[str, Union[str, List[str], None]]]
+_ConfigSettings: TypeAlias = Union[Dict[str, Union[str, List[str], None]], None]
 """
 Currently the user can run::
 
