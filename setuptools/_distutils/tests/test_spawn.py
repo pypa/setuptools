@@ -12,7 +12,7 @@ from test.support import unix_shell
 import path
 import pytest
 
-from . import py38compat as os_helper
+from .compat import py38 as os_helper
 
 
 class TestSpawn(support.TempdirManager):
@@ -24,7 +24,7 @@ class TestSpawn(support.TempdirManager):
         # through the shell that returns 1
         if sys.platform != 'win32':
             exe = os.path.join(tmpdir, 'foo.sh')
-            self.write_file(exe, '#!%s\nexit 1' % unix_shell)
+            self.write_file(exe, f'#!{unix_shell}\nexit 1')
         else:
             exe = os.path.join(tmpdir, 'foo.bat')
             self.write_file(exe, 'exit 1')
@@ -36,7 +36,7 @@ class TestSpawn(support.TempdirManager):
         # now something that works
         if sys.platform != 'win32':
             exe = os.path.join(tmpdir, 'foo.sh')
-            self.write_file(exe, '#!%s\nexit 0' % unix_shell)
+            self.write_file(exe, f'#!{unix_shell}\nexit 0')
         else:
             exe = os.path.join(tmpdir, 'foo.bat')
             self.write_file(exe, 'exit 0')
@@ -45,14 +45,9 @@ class TestSpawn(support.TempdirManager):
         spawn([exe])  # should work without any error
 
     def test_find_executable(self, tmp_path):
-        program_noeext = 'program'
-        # Give the temporary program an ".exe" suffix for all.
-        # It's needed on Windows and not harmful on other platforms.
-        program = program_noeext + ".exe"
-
-        program_path = tmp_path / program
-        program_path.write_text("", encoding='utf-8')
-        program_path.chmod(stat.S_IXUSR)
+        program_path = self._make_executable(tmp_path, '.exe')
+        program = program_path.name
+        program_noeext = program_path.with_suffix('').name
         filename = str(program_path)
         tmp_dir = path.Path(tmp_path)
 
@@ -120,6 +115,15 @@ class TestSpawn(support.TempdirManager):
             ), mock.patch('distutils.spawn.os.defpath', ''):
                 rv = find_executable(program)
                 assert rv == filename
+
+    @staticmethod
+    def _make_executable(tmp_path, ext):
+        # Give the temporary program a suffix regardless of platform.
+        # It's needed on Windows and not harmful on others.
+        program = tmp_path.joinpath('program').with_suffix(ext)
+        program.write_text("", encoding='utf-8')
+        program.chmod(stat.S_IXUSR)
+        return program
 
     def test_spawn_missing_exe(self):
         with pytest.raises(DistutilsExecError) as ctx:

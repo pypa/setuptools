@@ -23,7 +23,6 @@ from distutils.errors import (
 )
 from distutils import log, dir_util
 from distutils.command.build_scripts import first_line_re
-from distutils.spawn import find_executable
 from distutils.command import install
 import sys
 import os
@@ -2276,7 +2275,7 @@ class WindowsScriptWriter(ScriptWriter):
         to an executable on the system.
         """
         clean_header = new_header[2:-1].strip('"')
-        return sys.platform != 'win32' or find_executable(clean_header)
+        return sys.platform != 'win32' or shutil.which(clean_header)
 
 
 class WindowsExecutableLauncherWriter(WindowsScriptWriter):
