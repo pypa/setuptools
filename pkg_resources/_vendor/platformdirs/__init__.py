@@ -11,7 +11,7 @@ from pathlib import Path
 if sys.version_info >= (3, 8):  # pragma: no cover (py38+)
     from typing import Literal
 else:  # pragma: no cover (py38+)
-    from ..typing_extensions import Literal
+    from typing_extensions import Literal
 
 from .api import PlatformDirsABC
 from .version import __version__
@@ -20,21 +20,21 @@ from .version import __version_tuple__ as __version_info__
 
 def _set_platform_dir_class() -> type[PlatformDirsABC]:
     if sys.platform == "win32":
-        from .windows import Windows as Result
+        from pkg_resources.extern.platformdirs.windows import Windows as Result
     elif sys.platform == "darwin":
-        from .macos import MacOS as Result
+        from pkg_resources.extern.platformdirs.macos import MacOS as Result
     else:
-        from .unix import Unix as Result
+        from pkg_resources.extern.platformdirs.unix import Unix as Result
 
     if os.getenv("ANDROID_DATA") == "/data" and os.getenv("ANDROID_ROOT") == "/system":
 
         if os.getenv("SHELL") or os.getenv("PREFIX"):
             return Result
 
-        from .android import _android_folder
+        from pkg_resources.extern.platformdirs.android import _android_folder
 
         if _android_folder() is not None:
-            from .android import Android
+            from pkg_resources.extern.platformdirs.android import Android
 
             return Android  # return to avoid redefinition of result
 

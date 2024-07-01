@@ -11,7 +11,7 @@ from typing import Union
 if sys.version_info >= (3, 10):
     from zipfile import Path as ZipPath  # type: ignore
 else:
-    from ..zipp import Path as ZipPath  # type: ignore
+    from pkg_resources.extern.zipp import Path as ZipPath  # type: ignore
 
 
 try:
