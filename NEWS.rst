@@ -1,3 +1,19 @@
+v70.2.0
+=======
+
+Features
+--------
+
+- Updated distutils including significant changes to support Cygwin and mingw compilers. (#4444)
+
+
+Bugfixes
+--------
+
+- Fix distribution name normalisation (:pep:`625`) for valid versions that are
+  not canonical (e.g. ``1.0-2``). (#4434)
+
+
 v70.1.1
 =======
 
