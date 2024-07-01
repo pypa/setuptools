@@ -133,6 +133,24 @@ value associated with ``""`` in the ``package_dir`` dictionary.
    Please see :doc:`package discovery </userguide/package_discovery>` for more
    details.
 
+Interpolation
+=============
+
+Config files are parsed using :mod:`configparser` with
+`interpolation <https://docs.python.org/3/library/configparser.html#interpolation-of-values>`_
+enabled. As a result, one config value may reference another. This
+feature may be used, for example, in defining extras:
+
+.. code-block:: ini
+
+    [options.extras_require]
+    tester =
+        pytest==3.3.2
+        pytest-sugar
+    dev =
+        pytest-xdist
+        %(tester)s
+
 Specifying values
 =================
 
