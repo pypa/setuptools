@@ -12,11 +12,9 @@ Configuring setuptools using ``setup.cfg`` files
     call is still required even if your configuration resides in ``setup.cfg``.
 
 ``Setuptools`` allows using configuration files (for example, :file:`setup.cfg`)
-to define a package’s metadata and other options that are normally supplied
-to the ``setup()`` function (declarative config).
+to define a package’s metadata and other options (declarative config).
 
-This approach not only allows automation scenarios but also reduces
-boilerplate code in some cases.
+This approach allows automation scenarios and can reduce boilerplate code.
 
 .. _example-setup-config:
 
