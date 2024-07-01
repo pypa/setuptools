@@ -1,7 +1,7 @@
+from setuptools.errors import RemovedCommandError
+
 from distutils import log
 from distutils.command import upload as orig
-
-from setuptools.errors import RemovedCommandError
 
 
 class upload(orig.upload):

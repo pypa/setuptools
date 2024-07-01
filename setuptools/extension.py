@@ -1,9 +1,10 @@
-import re
 import functools
+import re
+from typing import TYPE_CHECKING
+
 import distutils.core
 import distutils.errors
 import distutils.extension
-from typing import TYPE_CHECKING
 
 from .monkey import get_unpatched
 

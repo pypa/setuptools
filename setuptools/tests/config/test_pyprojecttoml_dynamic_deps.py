@@ -2,7 +2,6 @@ from inspect import cleandoc
 
 import pytest
 from jaraco import path
-
 from setuptools.config.pyprojecttoml import apply_configuration
 from setuptools.dist import Distribution
 

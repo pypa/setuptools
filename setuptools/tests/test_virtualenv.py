@@ -1,16 +1,15 @@
 import os
-import sys
-import subprocess
-from urllib.request import urlopen
-from urllib.error import URLError
-
 import pathlib
+import subprocess
+import sys
+from urllib.error import URLError
+from urllib.request import urlopen
 
 import pytest
 
 from . import contexts
-from .textwrap import DALS
 from .test_easy_install import make_nspkg_sdist
+from .textwrap import DALS
 
 
 @pytest.fixture(autouse=True)

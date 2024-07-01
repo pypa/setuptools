@@ -1,25 +1,24 @@
 """Wheels support."""
 
+import contextlib
 import email
-import itertools
 import functools
+import itertools
 import os
 import posixpath
 import re
 import zipfile
-import contextlib
+
+import setuptools
+from setuptools.archive_util import _unpack_zipfile_obj
+from setuptools.command.egg_info import _egg_basename, write_requirements
+from setuptools.extern.packaging.tags import sys_tags
+from setuptools.extern.packaging.utils import canonicalize_name
+from setuptools.extern.packaging.version import Version as parse_version
 
 from distutils.util import get_platform
 
-import setuptools
-from setuptools.extern.packaging.version import Version as parse_version
-from setuptools.extern.packaging.tags import sys_tags
-from setuptools.extern.packaging.utils import canonicalize_name
-from setuptools.command.egg_info import write_requirements, _egg_basename
-from setuptools.archive_util import _unpack_zipfile_obj
-
 from .unicode_utils import _read_utf8_with_fallback
-
 
 WHEEL_NAME = re.compile(
     r"""^(?P<project_name>.+?)-(?P<version>\d.*?)

@@ -1,6 +1,6 @@
 # don't import any costly modules
-import sys
 import os
+import sys
 
 
 def warn_distutils_present():

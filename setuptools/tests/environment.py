@@ -1,8 +1,8 @@
 import os
-import sys
 import subprocess
+import sys
 import unicodedata
-from subprocess import Popen as _Popen, PIPE as _PIPE
+from subprocess import PIPE as _PIPE, Popen as _Popen
 
 import jaraco.envs
 

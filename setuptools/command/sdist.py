@@ -1,8 +1,9 @@
-from distutils import log
-import distutils.command.sdist as orig
-import os
 import contextlib
+import os
 from itertools import chain
+
+import distutils.command.sdist as orig
+from distutils import log
 
 from .._importlib import metadata
 from .build import _ORIGINAL_SUBCOMMANDS

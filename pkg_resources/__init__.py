@@ -27,57 +27,55 @@ import sys
 if sys.version_info < (3, 8):  # noqa: UP036 # Check for unsupported versions
     raise RuntimeError("Python 3.8 or later is required")
 
-import os
+import _imp
+import collections
+import email.parser
+import errno
+import functools
+import importlib
+import importlib.abc
+import importlib.machinery
+import inspect
 import io
-import time
+import ntpath
+import operator
+import os
+import pkgutil
+import platform
+import plistlib
+import posixpath
 import re
+import stat
+import tempfile
+import textwrap
+import time
 import types
+import warnings
+import zipfile
+import zipimport
+from pkgutil import get_importer
 from typing import (
+    TYPE_CHECKING,
     Any,
-    Literal,
+    Callable,
     Dict,
+    Iterable,
     Iterator,
+    Literal,
     Mapping,
     MutableSequence,
     NamedTuple,
     NoReturn,
-    Tuple,
-    Union,
-    TYPE_CHECKING,
     Protocol,
-    Callable,
-    Iterable,
+    Tuple,
     TypeVar,
+    Union,
     overload,
 )
-import zipfile
-import zipimport
-import warnings
-import stat
-import functools
-import pkgutil
-import operator
-import platform
-import collections
-import plistlib
-import email.parser
-import errno
-import tempfile
-import textwrap
-import inspect
-import ntpath
-import posixpath
-import importlib
-import importlib.abc
-import importlib.machinery
-from pkgutil import get_importer
-
-import _imp
 
 # capture these to bypass sandboxing
-from os import utime
-from os import open as os_open
-from os.path import isdir, split
+from os import open as os_open, utime  # isort: skip
+from os.path import isdir, split  # isort: skip
 
 try:
     from os import mkdir, rename, unlink
@@ -88,18 +86,20 @@ except ImportError:
     WRITE_SUPPORT = False
 
 from pkg_resources.extern.jaraco.text import (
-    yield_lines,
     drop_comment,
     join_continuation,
+    yield_lines,
 )
-from pkg_resources.extern.packaging import markers as _packaging_markers
-from pkg_resources.extern.packaging import requirements as _packaging_requirements
-from pkg_resources.extern.packaging import utils as _packaging_utils
-from pkg_resources.extern.packaging import version as _packaging_version
+from pkg_resources.extern.packaging import (
+    markers as _packaging_markers,
+    requirements as _packaging_requirements,
+    utils as _packaging_utils,
+    version as _packaging_version,
+)
 from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
-    from _typeshed import BytesPath, StrPath, StrOrBytesPath
+    from _typeshed import BytesPath, StrOrBytesPath, StrPath
     from typing_extensions import Self
 
 warnings.warn(

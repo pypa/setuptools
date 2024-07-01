@@ -5,12 +5,13 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-
-from distutils.errors import DistutilsOptionError, DistutilsFileError
-from setuptools.dist import Distribution, _Distribution
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
+from setuptools.dist import Distribution, _Distribution
 from setuptools.extern.packaging.requirements import InvalidRequirement
 from setuptools.warnings import SetuptoolsDeprecationWarning
+
+from distutils.errors import DistutilsFileError, DistutilsOptionError
+
 from ..textwrap import DALS
 
 

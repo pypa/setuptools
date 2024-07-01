@@ -1,26 +1,28 @@
-import os
-import operator
-import sys
 import contextlib
 import itertools
+import operator
+import os
+import sys
 import unittest
-from distutils.errors import DistutilsError, DistutilsOptionError
-from distutils import log
 from unittest import TestLoader
 
-from pkg_resources import (
-    resource_listdir,
-    resource_exists,
-    normalize_path,
-    working_set,
-    evaluate_marker,
-    add_activation_listener,
-    require,
-)
-from .._importlib import metadata
 from setuptools import Command
-from setuptools.extern.more_itertools import unique_everseen
 from setuptools.extern.jaraco.functools import pass_none
+from setuptools.extern.more_itertools import unique_everseen
+
+from distutils import log
+from distutils.errors import DistutilsError, DistutilsOptionError
+from pkg_resources import (
+    add_activation_listener,
+    evaluate_marker,
+    normalize_path,
+    require,
+    resource_exists,
+    resource_listdir,
+    working_set,
+)
+
+from .._importlib import metadata
 
 
 class ScanningLoader(TestLoader):
