@@ -51,8 +51,6 @@ split-on-trailing-comma = false
 # https://github.com/pypa/setuptools/issues/4137
 known-third-party = ["setuptools"]
 known-first-party = ["distutils"]
-# Once support is dropped, move distutils to first-party as setuptools repo now owns it
-# known-first-party = ["distutils"]
 
 [format]
 # Enable preview to get hugged parenthesis unwrapping
