@@ -21,3 +21,4 @@ setuptools/tests/bdist_wheel_testdata/*/*.egg-info/
 .cache
 .pytest_cache/
 .mypy_cache/
+__pycache__/
