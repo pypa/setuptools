@@ -1,11 +1,19 @@
+from __future__ import annotations
+
 import re
 import functools
+from typing import TYPE_CHECKING
+
 import distutils.core
 import distutils.errors
 import distutils.extension
 from typing import TYPE_CHECKING
 
 from .monkey import get_unpatched
+
+
+if TYPE_CHECKING:  # pragma: no cover
+    from .command.build_ext import build_ext as BuildExt
 
 
 def _have_cython():
@@ -145,6 +153,54 @@ class Extension(_Extension):
         target_ext = '.cpp' if lang.lower() == 'c++' else '.c'
         sub = functools.partial(re.sub, '.pyx$', target_ext)
         self.sources = list(map(sub, self.sources))
+
+
+class PreprocessedExtension(Extension):
+    """
+    Similar to ``Extension``, but allows creating temporary files needed for the build,
+    before the final compilation.
+    Particularly useful when "transpiling" other languages to C.
+
+    .. note::
+       It is important to add to the original ``source``/``depends`` attributes
+       all files that are necessary for pre-processing so that ``setuptools``
+       automatically adds them to the ``sdist``.
+       Temporary files generated during pre-processing on the other hand
+       should be part of the ``source``/``depends`` attributes of the
+       extension object returned by the ``preprocess`` method.
+    """
+
+    def create_shared_files(self, build_ext: BuildExt) -> None:
+        """*(Optional abstract method)*
+        Generate files that work as build-time dependencies for other extension
+        modules (e.g. headers).
+
+        .. important::
+           ``setuptools`` will call ``create_static_lib`` sequentially
+           (even during a parallel build).
+        """
+
+    def preprocess(self, build_ext: BuildExt) -> Extension:  # pragma: no cover
+        """*(Required abstract method)*
+        The returned ``Extension`` object will be used instead of the original
+        ``PreprocessedExtension`` object when ``build_ext.build_extension`` runs
+        (so that ``sources`` and ``dependencies`` can be augmented/replaced with
+        temporary pre-processed files).
+        Note that 2 objects **SHOULD** be consistent with each other.
+
+        If necessary, a temporary directory **name** can be accessed via
+        ``build_ext.build_temp`` (this directory might not have been created yet).
+        You can also access other attributes like ``build_ext.parallel``,
+        ``build_ext.inplace`` or ``build_ext.editable_mode``.
+
+        .. important::
+           For each extension module ``preprocess`` is called just before
+           compiling (in a single step).
+           If your extension module needs to produce files that are necessary
+           for the compilation of another extension module, please use
+           ``create_shared_files``.
+        """
+        raise NotImplementedError  # needs to be implemented by the relevant plugin.
 
 
 class Library(Extension):
