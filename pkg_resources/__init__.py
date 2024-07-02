@@ -100,7 +100,7 @@ from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrPath, StrOrBytesPath
-    from typing_extensions import Self
+    from typing_extensions import Self, TypeAlias
 
 warnings.warn(
     "pkg_resources is deprecated as an API. "
@@ -113,20 +113,20 @@ warnings.warn(
 _T = TypeVar("_T")
 _DistributionT = TypeVar("_DistributionT", bound="Distribution")
 # Type aliases
-_NestedStr = Union[str, Iterable[Union[str, Iterable["_NestedStr"]]]]
-_InstallerTypeT = Callable[["Requirement"], "_DistributionT"]
-_InstallerType = Callable[["Requirement"], Union["Distribution", None]]
-_PkgReqType = Union[str, "Requirement"]
-_EPDistType = Union["Distribution", _PkgReqType]
-_MetadataType = Union["IResourceProvider", None]
-_ResolvedEntryPoint = Any  # Can be any attribute in the module
-_ResourceStream = Any  # TODO / Incomplete: A readable file-like object
+_NestedStr: TypeAlias = Union[str, Iterable[Union[str, Iterable["_NestedStr"]]]]
+_StrictInstallerType: TypeAlias = Callable[["Requirement"], "_DistributionT"]
+_InstallerType: TypeAlias = Callable[["Requirement"], Union["Distribution", None]]
+_PkgReqType: TypeAlias = Union[str, "Requirement"]
+_EPDistType: TypeAlias = Union["Distribution", _PkgReqType]
+_MetadataType: TypeAlias = Union["IResourceProvider", None]
+_ResolvedEntryPoint: TypeAlias = Any  # Can be any attribute in the module
+_ResourceStream: TypeAlias = Any  # TODO / Incomplete: A readable file-like object
 # Any object works, but let's indicate we expect something like a module (optionally has __loader__ or __file__)
-_ModuleLike = Union[object, types.ModuleType]
+_ModuleLike: TypeAlias = Union[object, types.ModuleType]
 # Any: Should be _ModuleLike but we end up with issues where _ModuleLike doesn't have _ZipLoaderModule's __loader__
-_ProviderFactoryType = Callable[[Any], "IResourceProvider"]
-_DistFinderType = Callable[[_T, str, bool], Iterable["Distribution"]]
-_NSHandlerType = Callable[[_T, str, str, types.ModuleType], Union[str, None]]
+_ProviderFactoryType: TypeAlias = Callable[[Any], "IResourceProvider"]
+_DistFinderType: TypeAlias = Callable[[_T, str, bool], Iterable["Distribution"]]
+_NSHandlerType: TypeAlias = Callable[[_T, str, str, types.ModuleType], Union[str, None]]
 _AdapterT = TypeVar(
     "_AdapterT", _DistFinderType[Any], _ProviderFactoryType, _NSHandlerType[Any]
 )
@@ -807,7 +807,7 @@ class WorkingSet:
         self,
         requirements: Iterable[Requirement],
         env: Environment | None,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         replace_conflicting: bool = False,
         extras: tuple[str, ...] | None = None,
     ) -> list[_DistributionT]: ...
@@ -817,7 +817,7 @@ class WorkingSet:
         requirements: Iterable[Requirement],
         env: Environment | None = None,
         *,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         replace_conflicting: bool = False,
         extras: tuple[str, ...] | None = None,
     ) -> list[_DistributionT]: ...
@@ -834,7 +834,7 @@ class WorkingSet:
         self,
         requirements: Iterable[Requirement],
         env: Environment | None = None,
-        installer: _InstallerType | None | _InstallerTypeT[_DistributionT] = None,
+        installer: _InstallerType | None | _StrictInstallerType[_DistributionT] = None,
         replace_conflicting: bool = False,
         extras: tuple[str, ...] | None = None,
     ) -> list[Distribution] | list[_DistributionT]:
@@ -940,7 +940,7 @@ class WorkingSet:
         self,
         plugin_env: Environment,
         full_env: Environment | None,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         fallback: bool = True,
     ) -> tuple[list[_DistributionT], dict[Distribution, Exception]]: ...
     @overload
@@ -949,7 +949,7 @@ class WorkingSet:
         plugin_env: Environment,
         full_env: Environment | None = None,
         *,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         fallback: bool = True,
     ) -> tuple[list[_DistributionT], dict[Distribution, Exception]]: ...
     @overload
@@ -964,7 +964,7 @@ class WorkingSet:
         self,
         plugin_env: Environment,
         full_env: Environment | None = None,
-        installer: _InstallerType | None | _InstallerTypeT[_DistributionT] = None,
+        installer: _InstallerType | None | _StrictInstallerType[_DistributionT] = None,
         fallback: bool = True,
     ) -> tuple[
         list[Distribution] | list[_DistributionT],
@@ -1211,7 +1211,7 @@ class Environment:
         self,
         req: Requirement,
         working_set: WorkingSet,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         replace_conflicting: bool = False,
     ) -> _DistributionT: ...
     @overload
@@ -1226,7 +1226,7 @@ class Environment:
         self,
         req: Requirement,
         working_set: WorkingSet,
-        installer: _InstallerType | None | _InstallerTypeT[_DistributionT] = None,
+        installer: _InstallerType | None | _StrictInstallerType[_DistributionT] = None,
         replace_conflicting: bool = False,
     ) -> Distribution | None:
         """Find distribution best matching `req` and usable on `working_set`
@@ -1259,7 +1259,7 @@ class Environment:
     def obtain(
         self,
         requirement: Requirement,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
     ) -> _DistributionT: ...
     @overload
     def obtain(
@@ -1279,7 +1279,7 @@ class Environment:
         installer: Callable[[Requirement], None]
         | _InstallerType
         | None
-        | _InstallerTypeT[_DistributionT] = None,
+        | _StrictInstallerType[_DistributionT] = None,
     ) -> Distribution | None:
         """Obtain a distribution matching `requirement` (e.g. via download)
 
