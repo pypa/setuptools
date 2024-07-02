@@ -31,6 +31,7 @@ from importlib.machinery import ModuleSpec, all_suffixes
 from itertools import chain
 from typing import (
     TYPE_CHECKING,
+    Any,
     Callable,
     Iterable,
     Iterator,
@@ -158,7 +159,7 @@ def read_attr(
     attr_desc: str,
     package_dir: Mapping[str, str] | None = None,
     root_dir: StrPath | None = None,
-):
+) -> Any:
     """Reads the value of an attribute from a module.
 
     This function will try to read the attributed statically first

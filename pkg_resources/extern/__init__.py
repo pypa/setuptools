@@ -35,7 +35,7 @@ class VendorImporter:
         root, base, target = fullname.partition(self.root_name + '.')
         return not root and any(map(target.startswith, self.vendored_names))
 
-    def load_module(self, fullname: str):
+    def load_module(self, fullname: str) -> ModuleType:
         """
         Iterate over the search path to locate and load fullname.
         """
@@ -57,10 +57,10 @@ class VendorImporter:
                 "distribution.".format(**locals())
             )
 
-    def create_module(self, spec: ModuleSpec):
+    def create_module(self, spec: ModuleSpec) -> ModuleType:
         return self.load_module(spec.name)
 
-    def exec_module(self, module: ModuleType):
+    def exec_module(self, module: ModuleType) -> None:
         pass
 
     def find_spec(
@@ -68,7 +68,7 @@ class VendorImporter:
         fullname: str,
         path: Sequence[str] | None = None,
         target: ModuleType | None = None,
-    ):
+    ) -> ModuleSpec | None:
         """Return a module spec for vendored names."""
         return (
             # This should fix itself next mypy release https://github.com/python/typeshed/pull/11890
