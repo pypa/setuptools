@@ -31,6 +31,7 @@ get_config_var("LDSHARED")
 # Not publicly exposed in typeshed distutils stubs, but this is done on purpose
 # See https://github.com/pypa/setuptools/pull/4228#issuecomment-1959856400
 from distutils.sysconfig import _config_vars as _CONFIG_VARS  # type: ignore # noqa
+import operator
 
 
 def _customize_compiler_for_shlib(compiler):
@@ -316,7 +317,7 @@ class build_ext(_build_ext):
     def get_output_mapping(self) -> dict[str, str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         mapping = self._get_output_mapping()
-        return dict(sorted(mapping, key=lambda x: x[0]))
+        return dict(sorted(mapping, key=operator.itemgetter(0)))
 
     def __get_stubs_outputs(self):
         # assemble the base name for each extension that needs a stub
