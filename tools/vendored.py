@@ -4,6 +4,7 @@ import sys
 import subprocess
 from textwrap import dedent
 
+from jaraco.packaging import metadata
 from path import Path
 
 
@@ -13,7 +14,7 @@ def remove_all(paths):
 
 
 def update_vendored():
-    update_pkg_resources()
+    # update_pkg_resources()
     update_setuptools()
 
 
@@ -207,19 +208,37 @@ def update_pkg_resources():
     rewrite_platformdirs(vendor / "platformdirs")
 
 
+def load_deps():
+    """
+    Read the dependencies from `.`.
+    """
+    return metadata.load('.').get_all('Requires-Dist')
+
+
+def install_deps(deps, vendor):
+    """
+    Install the deps to vendor.
+    """
+    install_args = [
+        sys.executable,
+        '-m',
+        'pip',
+        'install',
+        '--target',
+        str(vendor),
+        '--python-version',
+        '3.8',
+        '--only-binary',
+        ':all:',
+    ] + list(deps)
+    subprocess.check_call(install_args)
+
+
 def update_setuptools():
     vendor = Path('setuptools/_vendor')
-    install(vendor)
-    rewrite_packaging(vendor / 'packaging', 'setuptools.extern')
-    repair_namespace(vendor / 'jaraco')
-    repair_namespace(vendor / 'backports')
-    rewrite_jaraco_text(vendor / 'jaraco/text', 'setuptools.extern')
-    rewrite_jaraco_functools(vendor / 'jaraco/functools', 'setuptools.extern')
-    rewrite_jaraco_context(vendor / 'jaraco', 'setuptools.extern')
-    rewrite_importlib_resources(vendor / 'importlib_resources', 'setuptools.extern')
-    rewrite_importlib_metadata(vendor / 'importlib_metadata', 'setuptools.extern')
-    rewrite_more_itertools(vendor / "more_itertools")
-    rewrite_wheel(vendor / "wheel")
+    deps = load_deps()
+    clean(vendor)
+    install_deps(deps, vendor)
 
 
 def yield_top_level(name):

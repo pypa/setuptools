@@ -77,14 +77,17 @@ class VendorImporter:
 # cog.outl(f"names = (\n{names}\n)")
 # ]]]
 names = (
-    'backports',
+    'autocommand',
     'importlib_metadata',
     'importlib_resources',
+    'inflect',
     'jaraco',
     'more_itertools',
     'ordered_set',
     'packaging',
     'tomli',
+    'typeguard',
+    'typing_extensions',
     'wheel',
     'zipp',
 )

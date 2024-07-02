@@ -24,7 +24,16 @@ classifiers = [
 ]
 keywords = ["CPAN PyPI distutils eggs package management"]
 requires-python = ">=3.8"
-dependencies = []
+dependencies = [
+	"packaging>=24",
+	"ordered-set>=3.1.1",
+	"more_itertools>=8.8",
+	"jaraco.text>=3.7",
+	"importlib_resources>=5.10.2",
+	"importlib_metadata>=6",
+	"tomli>=2.0.1",
+	"wheel>=0.43.0",
+]
 
 [project.urls]
 Source = "https://github.com/pypa/setuptools"
