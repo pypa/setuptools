@@ -117,7 +117,7 @@ def _check_test_command_install_requirements(venv, tmpdir):
     """
 
     def sdist(distname, version):
-        dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
+        dist_path = tmpdir.join(f'{distname}-{version}.tar.gz')
         make_nspkg_sdist(str(dist_path), distname, version)
         return dist_path
 
@@ -133,7 +133,7 @@ def _check_test_command_install_requirements(venv, tmpdir):
     with tmpdir.join('setup.py').open('w') as fp:
         fp.write(
             DALS(
-                '''
+                f'''
             from setuptools import setup
 
             setup(
@@ -155,7 +155,7 @@ def _check_test_command_install_requirements(venv, tmpdir):
                     """,
                 }}
             )
-            '''.format(dependency_links=dependency_links)
+            '''
             )
         )
     with tmpdir.join('test.py').open('w') as fp:
