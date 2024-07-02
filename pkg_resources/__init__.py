@@ -87,20 +87,32 @@ except ImportError:
     # no write support, probably under GAE
     WRITE_SUPPORT = False
 
-from pkg_resources.extern.jaraco.text import (
-    yield_lines,
-    drop_comment,
-    join_continuation,
-)
-from pkg_resources.extern.packaging import markers as _packaging_markers
-from pkg_resources.extern.packaging import requirements as _packaging_requirements
-from pkg_resources.extern.packaging import utils as _packaging_utils
-from pkg_resources.extern.packaging import version as _packaging_version
-from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
-
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrPath, StrOrBytesPath
     from typing_extensions import Self
+
+    # Replicates the imports below in a way that can be understood by type-checkers
+    from jaraco.text import (
+        yield_lines,
+        drop_comment,
+        join_continuation,
+    )
+    from packaging import markers as _packaging_markers
+    from packaging import requirements as _packaging_requirements
+    from packaging import utils as _packaging_utils
+    from packaging import version as _packaging_version
+    from platformdirs import user_cache_dir as _user_cache_dir
+else:
+    from pkg_resources.extern.jaraco.text import (
+        yield_lines,
+        drop_comment,
+        join_continuation,
+    )
+    from pkg_resources.extern.packaging import markers as _packaging_markers
+    from pkg_resources.extern.packaging import requirements as _packaging_requirements
+    from pkg_resources.extern.packaging import utils as _packaging_utils
+    from pkg_resources.extern.packaging import version as _packaging_version
+    from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
 
 warnings.warn(
     "pkg_resources is deprecated as an API. "
