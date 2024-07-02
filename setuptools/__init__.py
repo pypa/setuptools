@@ -9,8 +9,7 @@ import _distutils_hack.override  # noqa: F401
 import distutils.core
 from distutils.errors import DistutilsOptionError
 
-from . import logging, monkey
-from . import version as _version_module
+from . import logging, monkey, version as _version_module
 from .depends import Require
 from .discovery import PackageFinder, PEP420PackageFinder
 from .dist import Distribution

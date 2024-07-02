@@ -1,6 +1,5 @@
 import pytest
 from jaraco import path
-
 from setuptools.command.test import test
 from setuptools.dist import Distribution
 

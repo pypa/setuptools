@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-import os
-import sys
-import tempfile
-import operator
+import builtins
+import contextlib
 import functools
 import itertools
-import re
-import contextlib
+import operator
+import os
 import pickle
+import re
+import sys
+import tempfile
 import textwrap
-import builtins
 
 import pkg_resources
 from distutils.errors import DistutilsError

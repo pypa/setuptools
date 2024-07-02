@@ -1,9 +1,10 @@
-from distutils.util import convert_path
+import configparser
+import os
+
+import distutils
 from distutils import log
 from distutils.errors import DistutilsOptionError
-import distutils
-import os
-import configparser
+from distutils.util import convert_path
 
 from .. import Command
 from ..unicode_utils import _cfg_read_utf8_with_fallback

@@ -14,7 +14,6 @@ from typing import TypeVar
 
 import distutils.filelist
 
-
 _T = TypeVar("_T")
 
 __all__: list[str] = []

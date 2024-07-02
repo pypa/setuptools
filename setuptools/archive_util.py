@@ -1,11 +1,12 @@
 """Utilities for extracting common archive formats"""
 
-import zipfile
-import tarfile
-import os
-import shutil
-import posixpath
 import contextlib
+import os
+import posixpath
+import shutil
+import tarfile
+import zipfile
+
 from distutils.errors import DistutilsError
 
 from ._path import ensure_directory

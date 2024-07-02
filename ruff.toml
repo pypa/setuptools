@@ -12,6 +12,7 @@ extend-select = [
 	# local
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
+	"I", # isort
 	"PYI", # flake8-pyi
 	"UP", # pyupgrade
 	"TRY",
@@ -41,6 +42,15 @@ ignore = [
 	"ISC001",
 	"ISC002",
 ]
+
+[lint.isort]
+combine-as-imports = true
+split-on-trailing-comma = false
+# Force Ruff/isort to always import setuptools before distutils in tests as long as distutils_hack is supported
+# This also ensures _distutils_hack is imported before distutils
+# https://github.com/pypa/setuptools/issues/4137
+known-third-party = ["setuptools"]
+known-first-party = ["distutils"]
 
 [format]
 # Enable preview to get hugged parenthesis unwrapping

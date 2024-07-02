@@ -5,9 +5,7 @@ import shutil
 import tempfile
 
 import pytest
-
-from setuptools import find_packages
-from setuptools import find_namespace_packages
+from setuptools import find_namespace_packages, find_packages
 from setuptools.discovery import FlatLayoutPackageFinder
 
 from .compat.py39 import os_helper

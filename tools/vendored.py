@@ -1,7 +1,7 @@
 import re
 import shutil
-import sys
 import subprocess
+import sys
 from textwrap import dedent
 
 from path import Path

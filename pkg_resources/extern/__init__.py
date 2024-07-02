@@ -1,7 +1,8 @@
 from __future__ import annotations
-from importlib.machinery import ModuleSpec
+
 import importlib.util
 import sys
+from importlib.machinery import ModuleSpec
 from types import ModuleType
 from typing import Iterable, Sequence
 

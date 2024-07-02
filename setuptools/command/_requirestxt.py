@@ -18,7 +18,6 @@ from .. import _reqs
 from ..extern.jaraco.text import yield_lines
 from ..extern.packaging.requirements import Requirement
 
-
 # dict can work as an ordered set
 _T = TypeVar("_T")
 _Ordered = Dict[_T, None]

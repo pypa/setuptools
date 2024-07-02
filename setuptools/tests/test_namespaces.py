@@ -1,8 +1,9 @@
-import sys
 import subprocess
+import sys
+
+from setuptools.command import test
 
 from . import namespaces
-from setuptools.command import test
 
 
 class TestNamespaces:

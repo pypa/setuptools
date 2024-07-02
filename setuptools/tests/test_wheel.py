@@ -1,29 +1,28 @@
 """wheel tests"""
 
-from distutils.sysconfig import get_config_var
-from distutils.util import get_platform
 import contextlib
-import pathlib
-import stat
 import glob
 import inspect
 import os
+import pathlib
 import shutil
+import stat
 import subprocess
 import sys
 import zipfile
 
 import pytest
 from jaraco import path
-
-from pkg_resources import Distribution, PathMetadata, PY_MAJOR
-from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.extern.packaging.tags import parse_tag
+from setuptools.extern.packaging.utils import canonicalize_name
 from setuptools.wheel import Wheel
+
+from distutils.sysconfig import get_config_var
+from distutils.util import get_platform
+from pkg_resources import PY_MAJOR, Distribution, PathMetadata
 
 from .contexts import tempdir
 from .textwrap import DALS
-
 
 WHEEL_INFO_TESTS = (
     ('invalid.whl', ValueError),
