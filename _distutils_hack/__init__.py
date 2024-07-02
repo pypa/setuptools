@@ -5,7 +5,7 @@ import os
 
 report_url = (
     "https://github.com/pypa/setuptools/issues/new?"
-    "template=distutils-deprecation.yaml"
+    "template=distutils-deprecation.yml"
 )
 
 
