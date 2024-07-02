@@ -78,6 +78,7 @@ class VendorImporter:
 # ]]]
 names = (
     'autocommand',
+    'backports',
     'importlib_metadata',
     'importlib_resources',
     'inflect',
