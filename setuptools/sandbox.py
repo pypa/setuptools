@@ -447,7 +447,8 @@ class DirectorySandbox(AbstractSandbox):
         def _file(self, path, mode='r', *args, **kw):
             if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
                 self._violation("file", path, mode, *args, **kw)
-            return _file(path, mode, *args, **kw)
+            # Self-referential, can't be None
+            return _file(path, mode, *args, **kw)  # pyright: ignore[reportOptionalCall]
 
     def _open(self, path, mode='r', *args, **kw):
         if mode not in ('r', 'rt', 'rb', 'rU', 'U') and not self._ok(path):
