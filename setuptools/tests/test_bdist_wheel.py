@@ -26,7 +26,7 @@ from setuptools.command.bdist_wheel import (
     remove_readonly_exc,
 )
 from setuptools.dist import Distribution
-from setuptools.extern.packaging import tags
+from packaging import tags
 
 DEFAULT_FILES = {
     "dummy_dist-1.0.dist-info/top_level.txt",
@@ -598,12 +598,12 @@ def test_no_ctypes(monkeypatch) -> None:
         return importlib.__import__(name, *args, **kwargs)
 
     with suppress(KeyError):
-        monkeypatch.delitem(sys.modules, "setuptools.extern.wheel.macosx_libfile")
+        monkeypatch.delitem(sys.modules, "wheel.macosx_libfile")
 
     # Install an importer shim that refuses to load ctypes
     monkeypatch.setattr(builtins, "__import__", _fake_import)
     with pytest.raises(ModuleNotFoundError, match="No module named ctypes"):
-        import setuptools.extern.wheel.macosx_libfile
+        import wheel.macosx_libfile  # noqa: F401
 
     # Unload and reimport the bdist_wheel command module to make sure it won't try to
     # import ctypes

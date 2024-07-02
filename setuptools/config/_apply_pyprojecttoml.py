@@ -204,7 +204,7 @@ def _project_urls(dist: Distribution, val: dict, _root_dir):
 
 
 def _python_requires(dist: Distribution, val: dict, _root_dir):
-    from setuptools.extern.packaging.specifiers import SpecifierSet
+    from packaging.specifiers import SpecifierSet
 
     _set_config(dist, "python_requires", SpecifierSet(val))
 
