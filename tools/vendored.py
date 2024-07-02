@@ -117,6 +117,7 @@ def rewrite_wheel(pkg_files: Path):
 
     # Rewrite vendored imports to use setuptools's own vendored libraries
     for path in pkg_files.iterdir():
+        # Upstream issue: https://github.com/jaraco/path/issues/226
         if path.suffix == '.py':  # type: ignore[attr-defined]
             code = path.read_text()
             if path.name == 'wheelfile.py':
@@ -154,7 +155,7 @@ def rewrite_wheel(pkg_files: Path):
                     code,
                     flags=re.MULTILINE,
                 )
-
+            # Upstream issue: https://github.com/jaraco/path/issues/226
             path.write_text(code)  # type: ignore[attr-defined]
 
 
