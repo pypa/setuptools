@@ -67,7 +67,7 @@ def python_tag() -> str:
 def get_platform(archive_root: str | None) -> str:
     """Return our platform name 'win32', 'linux_x86_64'"""
     result = sysconfig.get_platform()
-    if result.startswith("macosx") and archive_root is not None:
+    if result.startswith("macosx") and archive_root is not None:  # pragma: no cover
         from wheel.macosx_libfile import calculate_macosx_platform_tag
 
         result = calculate_macosx_platform_tag(archive_root, result)
