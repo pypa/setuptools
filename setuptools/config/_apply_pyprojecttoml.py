@@ -203,7 +203,7 @@ def _project_urls(dist: Distribution, val: dict, _root_dir):
     _set_config(dist, "project_urls", val)
 
 
-def _python_requires(dist: Distribution, val: dict, _root_dir):
+def _python_requires(dist: Distribution, val: str, _root_dir):
     from packaging.specifiers import SpecifierSet
 
     _set_config(dist, "python_requires", SpecifierSet(val))
