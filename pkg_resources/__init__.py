@@ -540,8 +540,7 @@ def get_distribution(dist: Distribution | _PkgReqType) -> Distribution:
     if isinstance(dist, str):
         dist = Requirement.parse(dist)
     if isinstance(dist, Requirement):
-        # Bad type narrowing, dist has to be a Requirement here, so get_provider has to return Distribution
-        dist = get_provider(dist)  # type: ignore[assignment]
+        dist = get_provider(dist)
     if not isinstance(dist, Distribution):
         raise TypeError("Expected str, Requirement, or Distribution", dist)
     return dist
@@ -1120,7 +1119,7 @@ class _ReqExtras(Dict["Requirement", Tuple[str, ...]]):
         evaluation. Otherwise, return True.
         """
         extra_evals = (
-            req.marker.evaluate({'extra': extra})
+            req.marker.evaluate({'extra': extra})  # type: ignore
             for extra in self.get(req, ()) + (extras or (None,))
         )
         return not req.marker or any(extra_evals)
@@ -3432,6 +3431,10 @@ class RequirementParseError(_packaging_requirements.InvalidRequirement):
 
 
 class Requirement(_packaging_requirements.Requirement):
+    # prefer variable length tuple to set (as found in
+    # packaging.requirements.Requirement)
+    extras: tuple[str, ...]  # type: ignore[assignment]
+
     def __init__(self, requirement_string: str):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         super().__init__(requirement_string)
@@ -3439,8 +3442,7 @@ class Requirement(_packaging_requirements.Requirement):
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()
         self.specs = [(spec.operator, spec.version) for spec in self.specifier]
-        # packaging.requirements.Requirement uses a set for its extras. We use a variable-length tuple
-        self.extras: tuple[str] = tuple(map(safe_extra, self.extras))
+        self.extras = tuple(map(safe_extra, self.extras))
         self.hashCmp = (
             self.key,
             self.url,
@@ -3456,7 +3458,7 @@ class Requirement(_packaging_requirements.Requirement):
     def __ne__(self, other):
         return not self == other
 
-    def __contains__(self, item: Distribution | str | tuple[str, ...]) -> bool:
+    def __contains__(self, item: Distribution | str) -> bool:
         if isinstance(item, Distribution):
             if item.key != self.key:
                 return False
@@ -3466,7 +3468,10 @@ class Requirement(_packaging_requirements.Requirement):
         # Allow prereleases always in order to match the previous behavior of
         # this method. In the future this should be smarter and follow PEP 440
         # more accurately.
-        return self.specifier.contains(item, prereleases=True)
+        return self.specifier.contains(
+            item,  # type: ignore[arg-type]
+            prereleases=True,
+        )
 
     def __hash__(self):
         return self.__hash
