@@ -12,7 +12,6 @@ def remove_all(paths):
 
 
 def update_vendored():
-    update_pkg_resources()
     update_setuptools()
 
 
@@ -23,23 +22,6 @@ def clean(vendor):
     """
     ignored = ['ruff.toml']
     remove_all(path for path in vendor.glob('*') if path.basename() not in ignored)
-
-
-def update_pkg_resources():
-    deps = [
-        'packaging >= 24',
-        'platformdirs >= 2.6.2',
-        'jaraco.text >= 3.7',
-    ]
-    # workaround for https://github.com/pypa/pip/issues/12770
-    deps += [
-        'importlib_resources >= 5.10.2',
-        'zipp >= 3.7',
-        'backports.tarfile',
-    ]
-    vendor = Path('pkg_resources/_vendor')
-    clean(vendor)
-    install_deps(deps, vendor)
 
 
 @functools.cache

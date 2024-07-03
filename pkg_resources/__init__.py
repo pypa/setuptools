@@ -74,7 +74,7 @@ from pkgutil import get_importer
 
 import _imp
 
-sys.path.append(os.path.dirname(__file__) + '/_vendor')
+sys.path.append(os.path.dirname(__file__) + '/../setuptools/_vendor')
 
 # capture these to bypass sandboxing
 from os import utime
