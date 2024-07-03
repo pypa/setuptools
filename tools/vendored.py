@@ -14,7 +14,7 @@ def remove_all(paths):
 
 
 def update_vendored():
-    # update_pkg_resources()
+    update_pkg_resources()
     update_setuptools()
 
 
@@ -195,17 +195,20 @@ def install(vendor):
 
 
 def update_pkg_resources():
+    deps = [
+        'packaging >= 24',
+        'platformdirs >= 2.6.2',
+        'jaraco.text >= 3.7',
+    ]
+    # workaround for https://github.com/pypa/pip/issues/12770
+    deps += [
+        'importlib_resources >= 5.10.2',
+        'zipp >= 3.7',
+        'backports.tarfile',
+    ]
     vendor = Path('pkg_resources/_vendor')
-    install(vendor)
-    rewrite_packaging(vendor / 'packaging', 'pkg_resources.extern')
-    repair_namespace(vendor / 'jaraco')
-    repair_namespace(vendor / 'backports')
-    rewrite_jaraco_text(vendor / 'jaraco/text', 'pkg_resources.extern')
-    rewrite_jaraco_functools(vendor / 'jaraco/functools', 'pkg_resources.extern')
-    rewrite_jaraco_context(vendor / 'jaraco', 'pkg_resources.extern')
-    rewrite_importlib_resources(vendor / 'importlib_resources', 'pkg_resources.extern')
-    rewrite_more_itertools(vendor / "more_itertools")
-    rewrite_platformdirs(vendor / "platformdirs")
+    clean(vendor)
+    install_deps(deps, vendor)
 
 
 def load_deps():
