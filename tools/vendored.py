@@ -1,7 +1,8 @@
+import functools
 import sys
 import subprocess
 
-from jaraco.packaging import metadata
+import jaraco.packaging.metadata
 from path import Path
 
 
@@ -41,11 +42,20 @@ def update_pkg_resources():
     install_deps(deps, vendor)
 
 
+@functools.cache
+def metadata():
+    return jaraco.packaging.metadata.load('.')
+
+
 def load_deps():
     """
     Read the dependencies from `.`.
     """
-    return metadata.load('.').get_all('Requires-Dist')
+    return metadata().get_all('Requires-Dist')
+
+
+def min_python():
+    return metadata()['Requires-Python'].removeprefix('>=').strip()
 
 
 def install_deps(deps, vendor):
@@ -65,7 +75,7 @@ def install_deps(deps, vendor):
         '--target',
         str(vendor),
         '--python-version',
-        '3.8',
+        min_python(),
         '--only-binary',
         ':all:',
     ] + list(deps)
