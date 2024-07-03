@@ -74,6 +74,8 @@ from pkgutil import get_importer
 
 import _imp
 
+sys.path.append(os.path.dirname(__file__) + '/_vendor')
+
 # capture these to bypass sandboxing
 from os import utime
 from os import open as os_open
@@ -87,16 +89,16 @@ except ImportError:
     # no write support, probably under GAE
     WRITE_SUPPORT = False
 
-from pkg_resources.extern.jaraco.text import (
+from jaraco.text import (
     yield_lines,
     drop_comment,
     join_continuation,
 )
-from pkg_resources.extern.packaging import markers as _packaging_markers
-from pkg_resources.extern.packaging import requirements as _packaging_requirements
-from pkg_resources.extern.packaging import utils as _packaging_utils
-from pkg_resources.extern.packaging import version as _packaging_version
-from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
+from packaging import markers as _packaging_markers
+from packaging import requirements as _packaging_requirements
+from packaging import utils as _packaging_utils
+from packaging import version as _packaging_version
+from platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrPath, StrOrBytesPath
