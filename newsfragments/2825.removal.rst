@@ -1,1 +1,1 @@
-Now setuptools declares its own dependencies. Dependencies are still vendored for bootstrapping purposes, but installed dependencies are preferred. Downstream packagers can de-vendor by simply removing the ``setuptools/_vendor`` directory.
+Now setuptools declares its own dependencies in the ``core`` extra. Dependencies are still vendored for bootstrapping purposes, but installed dependencies are preferred. Downstream packagers can de-vendor by simply removing the ``setuptools/_vendor`` directory.

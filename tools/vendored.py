@@ -1,4 +1,5 @@
 import functools
+import re
 import sys
 import subprocess
 
@@ -29,11 +30,18 @@ def metadata():
     return jaraco.packaging.metadata.load('.')
 
 
+def upgrade_core(dep):
+    """
+    Remove 'extra == "core"' from any dependency.
+    """
+    return re.sub('''(;| and) extra == ['"]core['"]''', '', dep)
+
+
 def load_deps():
     """
-    Read the dependencies from `.`.
+    Read the dependencies from `.[core]`.
     """
-    return metadata().get_all('Requires-Dist')
+    return list(map(upgrade_core, metadata().get_all('Requires-Dist')))
 
 
 def min_python():
