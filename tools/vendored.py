@@ -24,7 +24,7 @@ def clean(vendor):
     remove_all(path for path in vendor.glob('*') if path.basename() not in ignored)
 
 
-@functools.cache
+@functools.lru_cache
 def metadata():
     return jaraco.packaging.metadata.load('.')
 
