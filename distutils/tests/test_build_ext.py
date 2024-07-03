@@ -166,6 +166,8 @@ class TestBuildExt(TempdirManager):
                 ["readelf", "-d", xx.__file__], universal_newlines=True
             )
             if not copy_so:
+                import pprint
+                pprint.pprint(so_headers)
                 # Linked against a library in /usr/lib{,64}
                 assert 'RPATH' not in so_headers and 'RUNPATH' not in so_headers
             else:
