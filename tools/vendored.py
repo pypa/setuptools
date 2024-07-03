@@ -246,25 +246,4 @@ def update_setuptools():
     install_deps(deps, vendor)
 
 
-def yield_top_level(name):
-    """Iterate over all modules and (top level) packages vendored
-    >>> roots = set(yield_top_level("setuptools"))
-    >>> examples = roots & {"jaraco", "backports", "zipp"}
-    >>> list(sorted(examples))
-    ['backports', 'jaraco', 'zipp']
-    >>> 'bin' in examples
-    False
-    """
-    vendor = Path(f"{name}/_vendor")
-    ignore = {"__pycache__", "__init__.py", ".ruff_cache", "bin"}
-
-    for item in sorted(vendor.iterdir()):
-        if item.name in ignore:
-            continue
-        if item.is_dir() and item.suffix != ".dist-info":
-            yield str(item.name)
-        if item.is_file() and item.suffix == ".py":
-            yield str(item.stem)
-
-
 __name__ == '__main__' and update_vendored()
