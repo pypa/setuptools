@@ -465,7 +465,6 @@ class TestOptions:
             'scripts = bin/one.py, bin/two.py\n'
             'eager_resources = bin/one.py, bin/two.py\n'
             'install_requires = docutils>=0.3; pack ==1.1, ==1.3; hey\n'
-            'tests_require = mock==0.7.2; pytest\n'
             'setup_requires = docutils>=0.3; spack ==1.1, ==1.3; there\n'
             'dependency_links = http://some.com/here/1, '
             'http://some.com/there/2\n'
@@ -494,7 +493,6 @@ class TestOptions:
                 'spack ==1.1, ==1.3',
                 'there',
             ])
-            assert dist.tests_require == ['mock==0.7.2', 'pytest']
             assert dist.python_requires == '>=1.0, !=2.8'
             assert dist.py_modules == ['module1', 'module2']
 
@@ -521,9 +519,6 @@ class TestOptions:
             '  docutils>=0.3\n'
             '  pack ==1.1, ==1.3\n'
             '  hey\n'
-            'tests_require = \n'
-            '  mock==0.7.2\n'
-            '  pytest\n'
             'setup_requires = \n'
             '  docutils>=0.3\n'
             '  spack ==1.1, ==1.3\n'
@@ -552,7 +547,6 @@ class TestOptions:
                 'spack ==1.1, ==1.3',
                 'there',
             ])
-            assert dist.tests_require == ['mock==0.7.2', 'pytest']
 
     def test_package_dir_fail(self, tmpdir):
         fake_env(tmpdir, '[options]\npackage_dir = a b\n')
