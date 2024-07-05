@@ -1,4 +1,3 @@
-import os
 import operator
 import sys
 import contextlib
@@ -18,8 +17,8 @@ from pkg_resources import (
     require,
 )
 from .._importlib import metadata
+from .._path import paths_on_pythonpath
 from setuptools import Command
-from setuptools.extern.more_itertools import unique_everseen
 from setuptools.extern.jaraco.functools import pass_none
 
 
@@ -150,39 +149,13 @@ class test(Command):
             working_set.__init__()
             add_activation_listener(lambda dist: dist.activate())
             require('%s==%s' % (ei_cmd.egg_name, ei_cmd.egg_version))
-            with self.paths_on_pythonpath([project_path]):
+            with paths_on_pythonpath([project_path]):
                 yield
         finally:
             sys.path[:] = old_path
             sys.modules.clear()
             sys.modules.update(old_modules)
             working_set.__init__()
-
-    @staticmethod
-    @contextlib.contextmanager
-    def paths_on_pythonpath(paths):
-        """
-        Add the indicated paths to the head of the PYTHONPATH environment
-        variable so that subprocesses will also see the packages at
-        these paths.
-
-        Do this in a context that restores the value on exit.
-        """
-        nothing = object()
-        orig_pythonpath = os.environ.get('PYTHONPATH', nothing)
-        current_pythonpath = os.environ.get('PYTHONPATH', '')
-        try:
-            prefix = os.pathsep.join(unique_everseen(paths))
-            to_join = filter(None, [prefix, current_pythonpath])
-            new_path = os.pathsep.join(to_join)
-            if new_path:
-                os.environ['PYTHONPATH'] = new_path
-            yield
-        finally:
-            if orig_pythonpath is nothing:
-                os.environ.pop('PYTHONPATH', None)
-            else:
-                os.environ['PYTHONPATH'] = orig_pythonpath
 
     @staticmethod
     def install_dists(dist):
@@ -218,7 +191,7 @@ class test(Command):
         self.announce('running "%s"' % cmd)
 
         paths = map(operator.attrgetter('location'), installed_dists)
-        with self.paths_on_pythonpath(paths):
+        with paths_on_pythonpath(paths):
             with self.project_on_sys_path():
                 self.run_tests()
 
