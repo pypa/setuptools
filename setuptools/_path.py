@@ -52,6 +52,18 @@ def paths_on_pythonpath(paths):
     these paths.
 
     Do this in a context that restores the value on exit.
+
+    >>> getfixture('monkeypatch').setenv('PYTHONPATH', 'anything')
+    >>> with paths_on_pythonpath(['foo', 'bar']):
+    ...     assert 'foo' in os.environ['PYTHONPATH']
+    ...     assert 'anything' in os.environ['PYTHONPATH']
+    >>> os.environ['PYTHONPATH']
+    'anything'
+
+    >>> getfixture('monkeypatch').delenv('PYTHONPATH')
+    >>> with paths_on_pythonpath(['foo', 'bar']):
+    ...     assert 'foo' in os.environ['PYTHONPATH']
+    >>> os.environ.get('PYTHONPATH')
     """
     nothing = object()
     orig_pythonpath = os.environ.get('PYTHONPATH', nothing)
