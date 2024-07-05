@@ -397,17 +397,6 @@ class TestEggInfo:
 
         """,
         """
-        tests_require_with_markers
-        {'cmd': ['test'], 'output': "Ran 0 tests in"}
-
-        tests_require=["barbazquux;{mismatch_marker}"],
-
-        [options]
-        tests_require =
-            barbazquux; {mismatch_marker}
-
-        """,
-        """
         extras_require_with_extra
         {'cmd': ['egg_info']}
 

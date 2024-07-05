@@ -118,7 +118,6 @@ rotate = "setuptools.command.rotate:rotate"
 saveopts = "setuptools.command.saveopts:saveopts"
 sdist = "setuptools.command.sdist:sdist"
 setopt = "setuptools.command.setopt:setopt"
-test = "setuptools.command.test:test"
 upload_docs = "setuptools.command.upload_docs:upload_docs"
 
 [project.entry-points."setuptools.finalize_distribution_options"]
