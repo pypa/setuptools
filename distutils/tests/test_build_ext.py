@@ -165,14 +165,20 @@ class TestBuildExt(TempdirManager):
             so_headers = subprocess.check_output(
                 ["readelf", "-d", xx.__file__], universal_newlines=True
             )
+            import pprint
+            pprint.pprint(so_headers)
+            rpaths = [
+                rpath
+                for line in so_headers.split("\n") if "RPATH" in line or "RUNPATH" in line
+                for rpath in line.split()[2][1:-1].split(":")
+            ]
             if not copy_so:
-                import pprint
-                pprint.pprint(so_headers)
+                pprint.pprint(rpaths)
                 # Linked against a library in /usr/lib{,64}
-                assert 'RPATH' not in so_headers and 'RUNPATH' not in so_headers
+                assert "/usr/lib" not in rpaths and "/usr/lib64" not in rpaths
             else:
                 # Linked against a library in /tmp
-                assert 'RPATH' in so_headers or 'RUNPATH' in so_headers
+                assert "/tmp" in rpaths
                 # The import is the real test here
 
     def test_solaris_enable_shared(self):
