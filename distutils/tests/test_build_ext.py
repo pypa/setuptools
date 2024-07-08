@@ -113,6 +113,7 @@ class TestBuildExt(TempdirManager):
                 )
             elif sys.platform == 'linux':
                 libz_so = glob.glob('/usr/lib*/libz.so*')
+                libz_so.sort(key=lambda lib_path: len(lib_path))
                 shutil.copyfile(libz_so[-1], '/tmp/libxx_z.so')
 
                 xx_ext = Extension(
