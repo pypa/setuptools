@@ -6,7 +6,7 @@ import re
 import sys
 from typing import TYPE_CHECKING
 
-sys.path.append(os.path.dirname(__file__) + '/_vendor')
+sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 
 import _distutils_hack.override  # noqa: F401
 import distutils.core

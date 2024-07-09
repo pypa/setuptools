@@ -74,7 +74,7 @@ from pkgutil import get_importer
 
 import _imp
 
-sys.path.append(os.path.dirname(__file__) + '/../setuptools/_vendor')
+sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 
 # capture these to bypass sandboxing
 from os import utime
