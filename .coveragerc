@@ -18,5 +18,6 @@ disable_warnings =
 show_missing = True
 exclude_also =
 	# jaraco/skeleton#97
-	@overload
+	# These are taken from https://coverage.readthedocs.io/en/latest/excluding.html#advanced-exclusion
+	class .*\bProtocol\):
 	if TYPE_CHECKING:

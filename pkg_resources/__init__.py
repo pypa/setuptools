@@ -134,7 +134,7 @@ _AdapterT = TypeVar(
 
 # Use _typeshed.importlib.LoaderProtocol once available https://github.com/python/typeshed/pull/11890
 class _LoaderProtocol(Protocol):
-    def load_module(self, fullname: str, /) -> types.ModuleType: ...
+    def load_module(self, fullname: str, /) -> types.ModuleType: ... # test
 
 
 class _ZipLoaderModule(Protocol):
@@ -415,7 +415,7 @@ def register_loader_type(
 
 
 @overload
-def get_provider(moduleOrReq: str) -> IResourceProvider: ...
+def get_provider(moduleOrReq: str) -> IResourceProvider: ... # test
 @overload
 def get_provider(moduleOrReq: Requirement) -> Distribution: ...
 def get_provider(moduleOrReq: str | Requirement) -> IResourceProvider | Distribution:
