@@ -1,7 +1,7 @@
 import contextlib
 import glob
 import importlib
-import os
+import os.path
 import platform
 import re
 import shutil
@@ -112,8 +112,8 @@ class TestBuildExt(TempdirManager):
                     runtime_library_dirs=['/usr/lib'],
                 )
             elif sys.platform == 'linux':
-                libz_so = glob.glob('/usr/lib*/libz.so*')
-                libz_so.sort(key=lambda lib_path: len(lib_path))
+                libz_so = {os.path.realpath(name) for name in glob.iglob('/usr/lib*/libz.so*')}
+                libz_so = sorted(libz_so, key=lambda lib_path: len(lib_path))
                 shutil.copyfile(libz_so[-1], '/tmp/libxx_z.so')
 
                 xx_ext = Extension(
