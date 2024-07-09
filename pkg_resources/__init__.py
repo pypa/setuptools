@@ -3465,13 +3465,15 @@ class Requirement(_packaging_requirements.Requirement):
             if item.key != self.key:
                 return False
 
-            item = item.version
+            version = item.version
+        else:
+            version = item
 
         # Allow prereleases always in order to match the previous behavior of
         # this method. In the future this should be smarter and follow PEP 440
         # more accurately.
         return self.specifier.contains(
-            item,  # type: ignore[arg-type]
+            version,
             prereleases=True,
         )
 
