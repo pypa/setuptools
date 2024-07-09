@@ -1,1 +1,0 @@
-Support for loading distutils from the standard library is now deprecated, including use of SETUPTOOLS_USE_DISTUTILS=stdlib and importing distutils before importing setuptools.

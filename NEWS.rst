@@ -1,3 +1,18 @@
+v70.3.0
+=======
+
+Features
+--------
+
+- Support for loading distutils from the standard library is now deprecated, including use of SETUPTOOLS_USE_DISTUTILS=stdlib and importing distutils before importing setuptools. (#4137)
+
+
+Bugfixes
+--------
+
+- Bugfix for building Cython extension on Windows (pypa/distutils#268).
+
+
 v70.2.0
 =======
 
