@@ -143,6 +143,9 @@ jobs:
             git
       - name: Install Dependencies
         shell: msys2 {0}
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
         run: |
           export VIRTUALENV_NO_SETUPTOOLS=1
 
