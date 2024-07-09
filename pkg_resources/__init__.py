@@ -89,6 +89,7 @@ except ImportError:
     # no write support, probably under GAE
     WRITE_SUPPORT = False
 
+import packaging.specifiers
 from jaraco.text import (
     yield_lines,
     drop_comment,
@@ -3457,7 +3458,9 @@ class Requirement(_packaging_requirements.Requirement):
     def __ne__(self, other):
         return not self == other
 
-    def __contains__(self, item: Distribution | str) -> bool:
+    def __contains__(
+        self, item: Distribution | packaging.specifiers.UnparsedVersion
+    ) -> bool:
         if isinstance(item, Distribution):
             if item.key != self.key:
                 return False
