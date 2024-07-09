@@ -1118,11 +1118,10 @@ class _ReqExtras(Dict["Requirement", Tuple[str, ...]]):
         Return False if the req has a marker and fails
         evaluation. Otherwise, return True.
         """
-        extra_evals = (
-            req.marker.evaluate({'extra': extra})  # type: ignore
-            for extra in self.get(req, ()) + (extras or (None,))
+        return not req.marker or any(
+            req.marker.evaluate({'extra': extra})
+            for extra in self.get(req, ()) + (extras or ("",))
         )
-        return not req.marker or any(extra_evals)
 
 
 class Environment:
