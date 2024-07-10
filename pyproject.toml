@@ -39,8 +39,7 @@ test = [
 	"pytest-cov",
 	"pytest-mypy",
 	"pytest-enabler >= 2.2",
-	# workaround for pypa/setuptools#3921
-	'pytest-ruff >= 0.3.2; sys_platform != "cygwin"',
+	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
 
 	# local
 	"virtualenv>=13.0.0",
@@ -65,6 +64,10 @@ test = [
 	# No Python 3.12 dependencies require importlib_metadata, but needed for type-checking since we import it directly
 	"importlib_metadata",
 	"pytest-subprocess",
+
+	# require newer pytest-ruff than upstream for pypa/setuptools#4368
+	# also exclude cygwin for pypa/setuptools#3921
+	'pytest-ruff >= 0.3.2; sys_platform != "cygwin"',
 
 	# workaround for pypa/setuptools#4333
 	"pyproject-hooks!=1.1",
