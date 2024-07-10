@@ -92,8 +92,6 @@ jobs:
         run: tox -e ${{ matrix.job }}
 
   test_cygwin:
-    # disabled due to lack of Rust support pypa/setuptools#3921
-    if: ${{ false }}
     strategy:
       matrix:
         python:
