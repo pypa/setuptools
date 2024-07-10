@@ -39,7 +39,7 @@ test = [
 	"pytest-cov",
 	"pytest-mypy",
 	"pytest-enabler >= 2.2",
-	"pytest-ruff >= 0.2.1",
+	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
 
 	# local
 	"virtualenv>=13.0.0",
