@@ -70,6 +70,9 @@ test = [
 	"pyproject-hooks!=1.1",
 
 	"jaraco.test",
+
+	# workaround for businho/pytest-ruff#28
+	'pytest-ruff < 0.4; platform_system == "Windows"',
 ]
 doc = [
 	# upstream
