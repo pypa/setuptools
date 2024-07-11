@@ -805,7 +805,7 @@ PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 
 class _EditableFinder:  # MetaPathFinder
     @classmethod
-    def find_spec(cls, fullname: str, _path=None, _target=None) -> ModuleSpec | None:
+    def find_spec(cls, fullname: str, path=None, target=None) -> ModuleSpec | None:  # type: ignore
         # Top-level packages and modules (we know these exist in the FS)
         if fullname in MAPPING:
             pkg_path = MAPPING[fullname]
@@ -851,7 +851,7 @@ class _EditableNamespaceFinder:  # PathEntryFinder
         return [*paths, PATH_PLACEHOLDER]
 
     @classmethod
-    def find_spec(cls, fullname: str, _target=None) -> ModuleSpec | None:
+    def find_spec(cls, fullname: str, target=None) -> ModuleSpec | None:  # type: ignore
         if fullname in NAMESPACES:
             spec = ModuleSpec(fullname, None, is_package=True)
             spec.submodule_search_locations = cls._paths(fullname)
