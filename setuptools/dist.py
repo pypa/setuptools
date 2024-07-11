@@ -331,6 +331,10 @@ class Distribution(_Distribution):
             msg = f"Required package metadata is missing: {missing}"
             raise DistutilsSetupError(msg)
 
+    def run_commands(self):
+        self._validate_metadata()
+        super().run_commands()
+
     def _set_metadata_defaults(self, attrs):
         """
         Fill-in missing metadata fields not supported by distutils.
