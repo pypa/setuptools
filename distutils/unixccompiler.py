@@ -371,22 +371,6 @@ class UnixCCompiler(CCompiler):
         data to go on: GCC seems to prefer the shared library, so
         assume that *all* Unix C compilers do,
         ignoring even GCC's "-static" option.
-
-        >>> compiler = UnixCCompiler()
-        >>> compiler._library_root = lambda dir: dir
-        >>> monkeypatch = getfixture('monkeypatch')
-        >>> monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
-        >>> dirs = ('/foo/bar/missing', '/foo/bar/existing')
-        >>> compiler.find_library_file(dirs, 'abc').replace('\\', '/')
-        '/foo/bar/existing/libabc.dylib'
-        >>> compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
-        '/foo/bar/existing/libabc.dylib'
-        >>> monkeypatch.setattr(os.path, 'exists',
-        ...     lambda d: 'existing' in d and '.a' in d)
-        >>> compiler.find_library_file(dirs, 'abc').replace('\\', '/')
-        '/foo/bar/existing/libabc.a'
-        >>> compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
-        '/foo/bar/existing/libabc.a'
         """
         lib_names = (
             self.library_filename(lib, lib_type=type)

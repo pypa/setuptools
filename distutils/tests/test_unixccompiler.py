@@ -315,3 +315,33 @@ class TestUnixCCompiler(support.TempdirManager):
         self.cc.output_dir = 'scratch'
         os.chdir(self.mkdtemp())
         self.cc.has_function('abort')
+
+    def test_find_library_file(self, monkeypatch):
+        compiler = UnixCCompiler()
+        compiler._library_root = lambda dir: dir
+        monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
+
+        dylibname = 'libabc.dylib' if sys.platform != 'cygwin' else 'cygabc.dll'
+        dirs = ('/foo/bar/missing', '/foo/bar/existing')
+        assert (
+            compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+            == '/foo/bar/existing/' + dylibname
+        )
+        assert (
+            compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+            == '/foo/bar/existing/' + dylibname
+        )
+
+        monkeypatch.setattr(
+            os.path,
+            'exists',
+            lambda d: 'existing' in d and '.a' in d and '.dll.a' not in d,
+        )
+        assert (
+            compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+            == '/foo/bar/existing/libabc.a'
+        )
+        assert (
+            compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+            == '/foo/bar/existing/libabc.a'
+        )
