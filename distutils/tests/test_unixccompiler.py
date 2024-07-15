@@ -321,15 +321,15 @@ class TestUnixCCompiler(support.TempdirManager):
         compiler._library_root = lambda dir: dir
         monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
 
-        dylibname = 'libabc.dylib' if sys.platform != 'cygwin' else 'cygabc.dll'
+        libname = 'libabc.dylib' if sys.platform != 'cygwin' else 'cygabc.dll'
         dirs = ('/foo/bar/missing', '/foo/bar/existing')
         assert (
             compiler.find_library_file(dirs, 'abc').replace('\\', '/')
-            == '/foo/bar/existing/' + dylibname
+            == f'/foo/bar/existing/{libname}'
         )
         assert (
             compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
-            == '/foo/bar/existing/' + dylibname
+            == f'/foo/bar/existing/{libname}'
         )
 
         monkeypatch.setattr(
