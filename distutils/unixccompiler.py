@@ -366,7 +366,7 @@ class UnixCCompiler(CCompiler):
         return os.path.join(match.group(1), dir[1:]) if apply_root else dir
 
     def find_library_file(self, dirs, lib, debug=False):
-        r"""
+        """
         Second-guess the linker with not much hard
         data to go on: GCC seems to prefer the shared library, so
         assume that *all* Unix C compilers do,
