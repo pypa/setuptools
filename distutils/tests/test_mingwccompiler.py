@@ -45,6 +45,7 @@ class TestMingw32CCompiler:
         with pytest.raises(CCompilerError):
             distutils.cygwinccompiler.Mingw32CCompiler()
 
+    @pytest.mark.skipif('sys.platform == "cygwin"')
     def test_customize_compiler_with_msvc_python(self):
         from distutils.cygwinccompiler import Mingw32CCompiler
 
