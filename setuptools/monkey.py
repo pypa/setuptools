@@ -41,7 +41,7 @@ def _get_mro(cls):
 
 
 @overload
-def get_unpatched(item: _UnpatchT) -> _UnpatchT: ...  # type: ignore[overload-overlap]
+def get_unpatched(item: _UnpatchT) -> _UnpatchT: ...
 @overload
 def get_unpatched(item: object) -> None: ...
 def get_unpatched(
