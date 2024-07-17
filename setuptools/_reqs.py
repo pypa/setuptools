@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from functools import lru_cache
 from typing import Callable, Iterable, Iterator, TypeVar, Union, overload, TYPE_CHECKING
-import setuptools.extern.jaraco.text as text
-from setuptools.extern.packaging.requirements import Requirement
+import jaraco.text as text
+from packaging.requirements import Requirement
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias

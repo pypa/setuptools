@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "70.2.0"
+version = "71.0.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -24,7 +24,8 @@ classifiers = [
 ]
 keywords = ["CPAN PyPI distutils eggs package management"]
 requires-python = ">=3.8"
-dependencies = []
+dependencies = [
+]
 
 [project.urls]
 Source = "https://github.com/pypa/setuptools"
@@ -39,8 +40,7 @@ test = [
 	"pytest-cov",
 	"pytest-mypy",
 	"pytest-enabler >= 2.2",
-	# workaround for pypa/setuptools#3921
-	'pytest-ruff >= 0.3.2; sys_platform != "cygwin"',
+	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
 
 	# local
 	"virtualenv>=13.0.0",
@@ -66,10 +66,17 @@ test = [
 	"importlib_metadata",
 	"pytest-subprocess",
 
+	# require newer pytest-ruff than upstream for pypa/setuptools#4368
+	# also exclude cygwin for pypa/setuptools#3921
+	'pytest-ruff >= 0.3.2; sys_platform != "cygwin"',
+
 	# workaround for pypa/setuptools#4333
 	"pyproject-hooks!=1.1",
 
 	"jaraco.test",
+
+	# workaround for businho/pytest-ruff#28
+	'pytest-ruff < 0.4; platform_system == "Windows"',
 ]
 doc = [
 	# upstream
@@ -95,6 +102,19 @@ doc = [
 ]
 ssl = []
 certs = []
+core = [
+	"packaging>=24",
+	"ordered-set>=3.1.1",
+	"more_itertools>=8.8",
+	"jaraco.text>=3.7",
+	"importlib_resources>=5.10.2",
+	"importlib_metadata>=6",
+	"tomli>=2.0.1",
+	"wheel>=0.43.0",
+
+	# pkg_resources
+	"platformdirs >= 2.6.2",
+]
 
 [project.entry-points."distutils.commands"]
 alias = "setuptools.command.alias:alias"
@@ -170,6 +190,10 @@ exclude = [
 	"*.tests.*",
 ]
 namespaces = true
+
+[tool.setuptools.package-data]
+# ensure that `setuptools/_vendor/jaraco/text/Lorem ipsum.txt` is installed
+"*" = ["*.txt"]
 
 [tool.distutils.sdist]
 formats = "zip"

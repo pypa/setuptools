@@ -1,3 +1,27 @@
+v71.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Now setuptools declares its own dependencies in the ``core`` extra. Dependencies are still vendored for bootstrapping purposes, but setuptools will prefer installed dependencies if present. The ``core`` extra is used for informational purposes and should *not* be declared in package metadata (e.g. ``build-requires``). Downstream packagers can de-vendor by simply removing the ``setuptools/_vendor`` directory. (#2825)
+
+
+v70.3.0
+=======
+
+Features
+--------
+
+- Support for loading distutils from the standard library is now deprecated, including use of SETUPTOOLS_USE_DISTUTILS=stdlib and importing distutils before importing setuptools. (#4137)
+
+
+Bugfixes
+--------
+
+- Bugfix for building Cython extension on Windows (pypa/distutils#268).
+
+
 v70.2.0
 =======
 

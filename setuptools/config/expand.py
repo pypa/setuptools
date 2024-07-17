@@ -122,7 +122,7 @@ def read_files(
 
     (By default ``root_dir`` is the current directory).
     """
-    from setuptools.extern.more_itertools import always_iterable
+    from more_itertools import always_iterable
 
     root_dir = os.path.abspath(root_dir or os.getcwd())
     _filepaths = (os.path.join(root_dir, path) for path in always_iterable(filepaths))
@@ -287,7 +287,7 @@ def find_packages(
     :rtype: list
     """
     from setuptools.discovery import construct_package_dir
-    from setuptools.extern.more_itertools import unique_everseen, always_iterable
+    from more_itertools import unique_everseen, always_iterable
 
     if namespaces:
         from setuptools.discovery import PEP420PackageFinder as PackageFinder
