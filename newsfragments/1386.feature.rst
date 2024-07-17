@@ -1,1 +1,0 @@
-Adopted the ``bdist_wheel`` command from the ``wheel`` project -- by :user:`agronholm`

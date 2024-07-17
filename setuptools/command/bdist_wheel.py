@@ -24,10 +24,10 @@ from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from .. import Command, __version__
 from .egg_info import egg_info as egg_info_cls
-from ..extern.wheel.metadata import pkginfo_to_metadata
-from ..extern.packaging import tags
-from ..extern.packaging import version as _packaging_version
-from ..extern.wheel.wheelfile import WheelFile
+from wheel.metadata import pkginfo_to_metadata
+from packaging import tags
+from packaging import version as _packaging_version
+from wheel.wheelfile import WheelFile
 
 if TYPE_CHECKING:
     from _typeshed import ExcInfo
@@ -68,8 +68,8 @@ def python_tag() -> str:
 def get_platform(archive_root: str | None) -> str:
     """Return our platform name 'win32', 'linux_x86_64'"""
     result = sysconfig.get_platform()
-    if result.startswith("macosx") and archive_root is not None:
-        from ..extern.wheel.macosx_libfile import calculate_macosx_platform_tag
+    if result.startswith("macosx") and archive_root is not None:  # pragma: no cover
+        from wheel.macosx_libfile import calculate_macosx_platform_tag
 
         result = calculate_macosx_platform_tag(archive_root, result)
     elif _is_32bit_interpreter():
@@ -179,7 +179,7 @@ class bdist_wheel(Command):
             "plat-name=",
             "p",
             "platform name to embed in generated filenames "
-            f"(default: {get_platform(None)})",
+            f"[default: {get_platform(None)}]",
         ),
         (
             "keep-temp",
@@ -192,7 +192,7 @@ class bdist_wheel(Command):
         (
             "relative",
             None,
-            "build the archive using relative paths (default: false)",
+            "build the archive using relative paths [default: false]",
         ),
         (
             "owner=",
@@ -204,18 +204,18 @@ class bdist_wheel(Command):
             "g",
             "Group name used when creating a tar file [default: current group]",
         ),
-        ("universal", None, "make a universal wheel (default: false)"),
+        ("universal", None, "make a universal wheel [default: false]"),
         (
             "compression=",
             None,
-            "zipfile compression (one of: {}) (default: 'deflated')".format(
+            "zipfile compression (one of: {}) [default: 'deflated']".format(
                 ", ".join(supported_compressions)
             ),
         ),
         (
             "python-tag=",
             None,
-            f"Python implementation compatibility tag (default: '{python_tag()}')",
+            f"Python implementation compatibility tag [default: '{python_tag()}']",
         ),
         (
             "build-number=",
@@ -227,7 +227,7 @@ class bdist_wheel(Command):
         (
             "py-limited-api=",
             None,
-            "Python tag (cp32|cp33|cpNN) for abi3 wheel tag (default: false)",
+            "Python tag (cp32|cp33|cpNN) for abi3 wheel tag [default: false]",
         ),
     ]
 
@@ -282,9 +282,7 @@ class bdist_wheel(Command):
         wheel = self.distribution.get_option_dict("wheel")
         if "universal" in wheel:
             # please don't define this in your global configs
-            log.warning(
-                "The [wheel] section is deprecated. Use [bdist_wheel] instead.",
-            )
+            log.warn("The [wheel] section is deprecated. Use [bdist_wheel] instead.")
             val = wheel["universal"][1].strip()
             if val.lower() in ("1", "true", "yes"):
                 self.universal = True

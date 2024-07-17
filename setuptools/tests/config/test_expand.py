@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -83,7 +84,7 @@ class TestReadAttr:
             "pkg/__init__.py": "",
             "pkg/sub/__init__.py": "VERSION = '0.1.1'",
             "pkg/sub/mod.py": (
-                "VALUES = {'a': 0, 'b': {42}, 'c': (0, 1, 1)}\n" "raise SystemExit(1)"
+                "VALUES = {'a': 0, 'b': {42}, 'c': (0, 1, 1)}\nraise SystemExit(1)"
             ),
         }
         write_files(files, tmp_path)
@@ -147,7 +148,8 @@ class TestReadAttr:
         ({}, "flat_layout/pkg.py", "flat_layout.pkg", 836),
     ],
 )
-def test_resolve_class(tmp_path, package_dir, file, module, return_value):
+def test_resolve_class(monkeypatch, tmp_path, package_dir, file, module, return_value):
+    monkeypatch.setattr(sys, "modules", {})  # reproducibility
     files = {file: f"class Custom:\n    def testing(self): return {return_value}"}
     write_files(files, tmp_path)
     cls = expand.resolve_class(f"{module}.Custom", package_dir, tmp_path)

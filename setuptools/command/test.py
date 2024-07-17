@@ -19,8 +19,8 @@ from pkg_resources import (
 )
 from .._importlib import metadata
 from setuptools import Command
-from setuptools.extern.more_itertools import unique_everseen
-from setuptools.extern.jaraco.functools import pass_none
+from more_itertools import unique_everseen
+from jaraco.functools import pass_none
 
 
 class ScanningLoader(TestLoader):
@@ -136,7 +136,7 @@ class test(Command):
         self.run_command('egg_info')
 
         # Build extensions in-place
-        self.reinitialize_command('build_ext', inplace=1)
+        self.reinitialize_command('build_ext', inplace=True)
         self.run_command('build_ext')
 
         ei_cmd = self.get_finalized_command("egg_info")

@@ -10,13 +10,13 @@ import logging
 import itertools
 import distutils.errors
 import io
+from typing import NamedTuple
 import zipfile
 import time
 import re
 import subprocess
 import pathlib
 import warnings
-from collections import namedtuple
 from pathlib import Path
 from unittest import mock
 
@@ -1344,7 +1344,12 @@ class TestWindowsScriptWriter:
         assert not hdr.startswith('\\"')
 
 
-VersionStub = namedtuple("VersionStub", "major, minor, micro, releaselevel, serial")
+class VersionStub(NamedTuple):
+    major: int
+    minor: int
+    micro: int
+    releaselevel: str
+    serial: int
 
 
 def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):

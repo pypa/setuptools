@@ -11,6 +11,8 @@ Microsoft Visual C++ 14.X:
 This may also support compilers shipped with compatible Visual Studio versions.
 """
 
+from __future__ import annotations
+
 import json
 from os import listdir, pathsep
 from os.path import join, isfile, isdir, dirname
@@ -20,8 +22,9 @@ import platform
 import itertools
 import subprocess
 import distutils.errors
-from typing import Dict, TYPE_CHECKING
-from setuptools.extern.more_itertools import unique_everseen
+from typing import TYPE_CHECKING
+
+from more_itertools import unique_everseen
 
 # https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':
@@ -36,7 +39,7 @@ else:
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
 
-    environ: Dict[str, str] = dict()
+    environ: dict[str, str] = dict()
 
 
 def _msvc14_find_vc2015():
@@ -840,7 +843,7 @@ class SystemInfo:
         """
         return self._use_last_dir_name(join(self.WindowsSdkDir, 'lib'))
 
-    @property  # noqa: C901
+    @property
     def WindowsSdkDir(self):  # noqa: C901  # is too complex (12)  # FIXME
         """
         Microsoft Windows SDK directory.
@@ -1085,6 +1088,7 @@ class SystemInfo:
             return 'v3.5', 'v2.0.50727'
         elif self.vs_ver == 8.0:
             return 'v3.0', 'v2.0.50727'
+        return None
 
     @staticmethod
     def _use_last_dir_name(path, prefix=''):
@@ -1646,6 +1650,7 @@ class EnvironmentInfo:
             path = join(prefix, arch_subdir, crt_dir, vcruntime)
             if isfile(path):
                 return path
+        return None
 
     def return_env(self, exists=True):
         """

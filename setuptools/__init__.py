@@ -3,7 +3,10 @@
 import functools
 import os
 import re
+import sys
 from typing import TYPE_CHECKING
+
+sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 
 import _distutils_hack.override  # noqa: F401
 import distutils.core
@@ -57,9 +60,9 @@ def _install_setup_requires(attrs):
             """Ignore ``pyproject.toml``, they are not related to setup_requires"""
             try:
                 cfg, toml = super()._split_standard_project_metadata(filenames)
-                return cfg, ()
             except Exception:
                 return filenames, ()
+            return cfg, ()
 
         def finalize_options(self):
             """
@@ -216,7 +219,7 @@ class Command(_Command):
                     "'%s' must be a list of strings (got %r)" % (option, val)
                 )
 
-    def reinitialize_command(self, command, reinit_subcommands=0, **kw):
+    def reinitialize_command(self, command, reinit_subcommands=False, **kw):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
         return cmd

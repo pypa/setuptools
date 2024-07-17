@@ -274,7 +274,7 @@ search path, though, you can find that directory using the Distutils
 :mod:`distutils.sysconfig` module::
 
     from distutils.sysconfig import get_python_inc
-    incdir = os.path.join(get_python_inc(plat_specific=1), 'Numerical')
+    incdir = os.path.join(get_python_inc(plat_specific=True), 'Numerical')
     setup(...,
           Extension(..., include_dirs=[incdir]),
           )

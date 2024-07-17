@@ -122,7 +122,7 @@ class TestDistInfo:
         run_command("dist_info", "--output-dir", out, *opts, cwd=tmp_path)
         assert len(list(out.glob("*.dist-info"))) == 1
         assert len(list(tmp_path.glob("*.dist-info"))) == 0
-        expected_egg_info = 1 if keep_egg_info else 0
+        expected_egg_info = int(keep_egg_info)
         assert len(list(out.glob("*.egg-info"))) == expected_egg_info
         assert len(list(tmp_path.glob("*.egg-info"))) == 0
         assert len(list(out.glob("*.__bkp__"))) == 0
