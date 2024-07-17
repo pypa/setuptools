@@ -194,10 +194,6 @@ exclude = [
 ]
 namespaces = true
 
-[tool.setuptools.package-data]
-# ensure that `setuptools/_vendor/jaraco/text/Lorem ipsum.txt` is installed
-"*" = ["*.txt"]
-
 [tool.distutils.sdist]
 formats = "zip"
 
