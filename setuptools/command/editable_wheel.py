@@ -299,7 +299,7 @@ class editable_wheel(Command):
         build = self.get_finalized_command("build")
         for name in build.get_sub_commands():
             cmd = self.get_finalized_command(name)
-            if name == "build_py" and type(cmd) != build_py_cls:
+            if name == "build_py" and type(cmd) is not build_py_cls:
                 self._safely_run(name)
             else:
                 self.run_command(name)
