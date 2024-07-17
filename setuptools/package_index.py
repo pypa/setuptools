@@ -39,7 +39,8 @@ from distutils import log
 from distutils.errors import DistutilsError
 from fnmatch import translate
 from setuptools.wheel import Wheel
-from setuptools.extern.more_itertools import unique_everseen
+
+from more_itertools import unique_everseen
 
 from .unicode_utils import _read_utf8_with_fallback, _cfg_read_utf8_with_fallback
 
@@ -856,7 +857,7 @@ class PackageIndex(Environment):
     def _download_vcs(self, url, spec_filename):
         vcs = self._resolve_vcs(url)
         if not vcs:
-            return
+            return None
         if vcs == 'svn':
             raise DistutilsError(
                 f"Invalid config, SVN download is not supported: {url}"
@@ -1136,9 +1137,7 @@ def local_open(url):
                 f += '/'
             files.append('<a href="{name}">{name}</a>'.format(name=f))
         else:
-            tmpl = (
-                "<html><head><title>{url}</title>" "</head><body>{files}</body></html>"
-            )
+            tmpl = "<html><head><title>{url}</title></head><body>{files}</body></html>"
             body = tmpl.format(url=url, files='\n'.join(files))
         status, message = 200, "OK"
     else:

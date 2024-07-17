@@ -6,7 +6,7 @@ import dis
 
 from . import _imp
 from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
-from .extern.packaging.version import Version
+from packaging.version import Version
 
 
 __all__ = ['Require', 'find_module']
@@ -58,11 +58,11 @@ class Require:
         if self.attribute is None:
             try:
                 f, p, i = find_module(self.module, paths)
-                if f:
-                    f.close()
-                return default
             except ImportError:
                 return None
+            if f:
+                f.close()
+            return default
 
         v = get_module_constant(self.module, self.attribute, default, paths)
 

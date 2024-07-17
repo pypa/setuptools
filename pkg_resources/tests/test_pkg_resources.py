@@ -171,7 +171,7 @@ class TestResourceManager:
         lines = (
             'import pkg_resources',
             'import sys',
-            ('assert "setuptools" not in sys.modules, ' '"setuptools was imported"'),
+            ('assert "setuptools" not in sys.modules, "setuptools was imported"'),
         )
         cmd = [sys.executable, '-c', '; '.join(lines)]
         subprocess.check_call(cmd)
@@ -279,7 +279,7 @@ def test_distribution_version_missing(
     assert expected_text in msg
     # Check that the message portion contains the path.
     assert metadata_path in msg, str((metadata_path, msg))
-    assert type(dist) == expected_dist_type
+    assert type(dist) is expected_dist_type
 
 
 @pytest.mark.xfail(
@@ -299,7 +299,7 @@ def test_distribution_version_missing_undetected_path():
 
     msg, dist = excinfo.value.args
     expected = (
-        "Missing 'Version:' header and/or PKG-INFO file at path: " '[could not detect]'
+        "Missing 'Version:' header and/or PKG-INFO file at path: [could not detect]"
     )
     assert msg == expected
 

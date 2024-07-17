@@ -31,8 +31,8 @@ from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
     from distutils.dist import _OptionsList
-    from setuptools._importlib import metadata  # noqa
-    from setuptools.dist import Distribution  # noqa
+    from setuptools._importlib import metadata
+    from setuptools.dist import Distribution
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
 _ProjectReadmeValue = Union[str, Dict[str, str]]
@@ -203,8 +203,8 @@ def _project_urls(dist: Distribution, val: dict, _root_dir):
     _set_config(dist, "project_urls", val)
 
 
-def _python_requires(dist: Distribution, val: dict, _root_dir):
-    from setuptools.extern.packaging.specifiers import SpecifierSet
+def _python_requires(dist: Distribution, val: str, _root_dir):
+    from packaging.specifiers import SpecifierSet
 
     _set_config(dist, "python_requires", SpecifierSet(val))
 

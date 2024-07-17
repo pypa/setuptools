@@ -74,5 +74,5 @@ class TestBuildDumb(
         contents = sorted(filter(None, map(os.path.basename, contents)))
         wanted = ['foo-0.1-py{}.{}.egg-info'.format(*sys.version_info[:2]), 'foo.py']
         if not sys.dont_write_bytecode:
-            wanted.append('foo.%s.pyc' % sys.implementation.cache_tag)
+            wanted.append(f'foo.{sys.implementation.cache_tag}.pyc')
         assert contents == sorted(wanted)

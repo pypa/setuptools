@@ -21,11 +21,11 @@ from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
 
-from .extern.more_itertools import partition, unique_everseen
-from .extern.ordered_set import OrderedSet
-from .extern.packaging.markers import InvalidMarker, Marker
-from .extern.packaging.specifiers import InvalidSpecifier, SpecifierSet
-from .extern.packaging.version import Version
+from more_itertools import partition, unique_everseen
+from ordered_set import OrderedSet
+from packaging.markers import InvalidMarker, Marker
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.version import Version
 
 from . import _entry_points
 from . import _normalization
@@ -158,9 +158,7 @@ def check_specifier(dist, attr, value):
     try:
         SpecifierSet(value)
     except (InvalidSpecifier, AttributeError) as error:
-        tmpl = (
-            "{attr!r} must be a string " "containing valid version specifiers; {error}"
-        )
+        tmpl = "{attr!r} must be a string containing valid version specifiers; {error}"
         raise DistutilsSetupError(tmpl.format(attr=attr, error=error)) from error
 
 

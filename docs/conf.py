@@ -106,7 +106,7 @@ autodoc_preserve_defaults = True
 
 intersphinx_mapping.update({
     'pip': ('https://pip.pypa.io/en/latest', None),
-    'build': ('https://pypa-build.readthedocs.io/en/latest', None),
+    'build': ('https://build.pypa.io/en/latest', None),
     'PyPUG': ('https://packaging.python.org/en/latest/', None),
     'packaging': ('https://packaging.pypa.io/en/latest/', None),
     'twine': ('https://twine.readthedocs.io/en/stable/', None),
@@ -124,9 +124,9 @@ github_repo_slug = f'{github_repo_org}/{github_repo_name}'
 github_repo_url = f'{github_url}/{github_repo_slug}'
 github_sponsors_url = f'{github_url}/sponsors'
 extlinks = {
-    'user': (f'{github_sponsors_url}/%s', '@%s'),  # noqa: WPS323
-    'pypi': ('https://pypi.org/project/%s', '%s'),  # noqa: WPS323
-    'wiki': ('https://wikipedia.org/wiki/%s', '%s'),  # noqa: WPS323
+    'user': (f'{github_sponsors_url}/%s', '@%s'),
+    'pypi': ('https://pypi.org/project/%s', '%s'),
+    'wiki': ('https://wikipedia.org/wiki/%s', '%s'),
 }
 extensions += ['sphinx.ext.extlinks']
 

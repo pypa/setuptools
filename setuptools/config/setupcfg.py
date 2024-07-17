@@ -32,17 +32,17 @@ from typing import (
 
 from .._path import StrPath
 from ..errors import FileError, OptionError
-from ..extern.packaging.markers import default_environment as marker_env
-from ..extern.packaging.requirements import InvalidRequirement, Requirement
-from ..extern.packaging.specifiers import SpecifierSet
-from ..extern.packaging.version import InvalidVersion, Version
+from packaging.markers import default_environment as marker_env
+from packaging.requirements import InvalidRequirement, Requirement
+from packaging.specifiers import SpecifierSet
+from packaging.version import InvalidVersion, Version
 from ..warnings import SetuptoolsDeprecationWarning
 from . import expand
 
 if TYPE_CHECKING:
-    from distutils.dist import DistributionMetadata  # noqa
+    from distutils.dist import DistributionMetadata
 
-    from setuptools.dist import Distribution  # noqa
+    from setuptools.dist import Distribution
 
 SingleCommandOptions = Dict["str", Tuple["str", Any]]
 """Dict that associate the name of the options of a particular command to a
