@@ -278,7 +278,7 @@ class _ConfigExpander:
     def _expand_directive(
         self, specifier: str, directive, package_dir: Mapping[str, str]
     ):
-        from setuptools.extern.more_itertools import always_iterable
+        from more_itertools import always_iterable
 
         with _ignore_errors(self.ignore_option_errors):
             root_dir = self.root_dir

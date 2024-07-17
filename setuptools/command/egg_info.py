@@ -27,7 +27,7 @@ from setuptools.command import bdist_egg
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
-from setuptools.extern import packaging
+import packaging
 from ..warnings import SetuptoolsDeprecationWarning
 
 

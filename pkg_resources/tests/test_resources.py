@@ -5,7 +5,7 @@ import platform
 import itertools
 
 import pytest
-from pkg_resources.extern.packaging.specifiers import SpecifierSet
+from packaging.specifiers import SpecifierSet
 
 import pkg_resources
 from pkg_resources import (

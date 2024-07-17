@@ -24,7 +24,8 @@ classifiers = [
 ]
 keywords = ["CPAN PyPI distutils eggs package management"]
 requires-python = ">=3.8"
-dependencies = []
+dependencies = [
+]
 
 [project.urls]
 Source = "https://github.com/pypa/setuptools"
@@ -101,6 +102,19 @@ doc = [
 ]
 ssl = []
 certs = []
+core = [
+	"packaging>=24",
+	"ordered-set>=3.1.1",
+	"more_itertools>=8.8",
+	"jaraco.text>=3.7",
+	"importlib_resources>=5.10.2",
+	"importlib_metadata>=6",
+	"tomli>=2.0.1",
+	"wheel>=0.43.0",
+
+	# pkg_resources
+	"platformdirs >= 2.6.2",
+]
 
 [project.entry-points."distutils.commands"]
 alias = "setuptools.command.alias:alias"
@@ -176,6 +190,10 @@ exclude = [
 	"*.tests.*",
 ]
 namespaces = true
+
+[tool.setuptools.package-data]
+# ensure that `setuptools/_vendor/jaraco/text/Lorem ipsum.txt` is installed
+"*" = ["*.txt"]
 
 [tool.distutils.sdist]
 formats = "zip"
