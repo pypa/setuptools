@@ -16,7 +16,7 @@ from setuptools.dist import Distribution
 
 
 pytestmark = pytest.mark.skipif(
-    'platform.python_implementation() == "PyPy" and ' 'platform.system() == "Windows"',
+    'platform.python_implementation() == "PyPy" and platform.system() == "Windows"',
     reason="pypa/setuptools#2496",
 )
 

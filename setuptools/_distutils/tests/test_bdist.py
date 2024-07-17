@@ -31,7 +31,7 @@ class TestBuild(support.TempdirManager):
         # bug #10946: bdist --skip-build should trickle down to subcommands
         dist = self.create_dist()[1]
         cmd = bdist(dist)
-        cmd.skip_build = 1
+        cmd.skip_build = True
         cmd.ensure_finalized()
         dist.command_obj['bdist'] = cmd
 
@@ -44,4 +44,4 @@ class TestBuild(support.TempdirManager):
             if getattr(subcmd, '_unsupported', False):
                 # command is not supported on this build
                 continue
-            assert subcmd.skip_build, '%s should take --skip-build from bdist' % name
+            assert subcmd.skip_build, f'{name} should take --skip-build from bdist'

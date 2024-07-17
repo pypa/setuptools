@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Mapping
 from email.headerregistry import Address
 from functools import partial, reduce
 from inspect import cleandoc
@@ -22,8 +21,9 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Dict,
+    Mapping,
     Union,
-    cast,
 )
 from .._path import StrPath
 from ..errors import RemovedConfigError
@@ -31,11 +31,11 @@ from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
     from distutils.dist import _OptionsList
-    from setuptools._importlib import metadata  # noqa
-    from setuptools.dist import Distribution  # noqa
+    from setuptools._importlib import metadata
+    from setuptools.dist import Distribution
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
-_DictOrStr = Union[dict, str]
+_ProjectReadmeValue = Union[str, Dict[str, str]]
 _CorrespFn = Callable[["Distribution", Any, StrPath], None]
 _Correspondence = Union[str, _CorrespFn]
 
@@ -149,15 +149,16 @@ def _guess_content_type(file: str) -> str | None:
     raise ValueError(f"Undefined content type for {file}, {msg}")
 
 
-def _long_description(dist: Distribution, val: _DictOrStr, root_dir: StrPath):
+def _long_description(dist: Distribution, val: _ProjectReadmeValue, root_dir: StrPath):
     from setuptools.config import expand
 
+    file: str | tuple[()]
     if isinstance(val, str):
-        file: str | list = val
+        file = val
         text = expand.read_files(file, root_dir)
-        ctype = _guess_content_type(val)
+        ctype = _guess_content_type(file)
     else:
-        file = val.get("file") or []
+        file = val.get("file") or ()
         text = val.get("text") or expand.read_files(file, root_dir)
         ctype = val["content-type"]
 
@@ -167,7 +168,7 @@ def _long_description(dist: Distribution, val: _DictOrStr, root_dir: StrPath):
         _set_config(dist, "long_description_content_type", ctype)
 
     if file:
-        dist._referenced_files.add(cast(str, file))
+        dist._referenced_files.add(file)
 
 
 def _license(dist: Distribution, val: dict, root_dir: StrPath):
@@ -202,8 +203,8 @@ def _project_urls(dist: Distribution, val: dict, _root_dir):
     _set_config(dist, "project_urls", val)
 
 
-def _python_requires(dist: Distribution, val: dict, _root_dir):
-    from setuptools.extern.packaging.specifiers import SpecifierSet
+def _python_requires(dist: Distribution, val: str, _root_dir):
+    from packaging.specifiers import SpecifierSet
 
     _set_config(dist, "python_requires", SpecifierSet(val))
 

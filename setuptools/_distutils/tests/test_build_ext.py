@@ -31,7 +31,7 @@ import jaraco.path
 import path
 import pytest
 
-from . import py38compat as import_helper
+from .compat import py38 as import_helper
 
 
 @pytest.fixture()
@@ -140,7 +140,7 @@ class TestBuildExt(TempdirManager):
         from distutils.sysconfig import _config_vars
 
         old_var = _config_vars.get('Py_ENABLE_SHARED')
-        _config_vars['Py_ENABLE_SHARED'] = 1
+        _config_vars['Py_ENABLE_SHARED'] = True
         try:
             cmd.ensure_finalized()
         finally:
@@ -164,7 +164,7 @@ class TestBuildExt(TempdirManager):
         assert 'user' in options
 
         # setting a value
-        cmd.user = 1
+        cmd.user = True
 
         # setting user based lib and include
         lib = os.path.join(site.USER_BASE, 'lib')
@@ -209,7 +209,7 @@ class TestBuildExt(TempdirManager):
         for p in py_include.split(os.path.pathsep):
             assert p in cmd.include_dirs
 
-        plat_py_include = sysconfig.get_python_inc(plat_specific=1)
+        plat_py_include = sysconfig.get_python_inc(plat_specific=True)
         for p in plat_py_include.split(os.path.pathsep):
             assert p in cmd.include_dirs
 
@@ -223,7 +223,7 @@ class TestBuildExt(TempdirManager):
         # make sure cmd.library_dirs is turned into a list
         # if it's a string
         cmd = self.build_ext(dist)
-        cmd.library_dirs = 'my_lib_dir%sother_lib_dir' % os.pathsep
+        cmd.library_dirs = f'my_lib_dir{os.pathsep}other_lib_dir'
         cmd.finalize_options()
         assert 'my_lib_dir' in cmd.library_dirs
         assert 'other_lib_dir' in cmd.library_dirs
@@ -231,7 +231,7 @@ class TestBuildExt(TempdirManager):
         # make sure rpath is turned into a list
         # if it's a string
         cmd = self.build_ext(dist)
-        cmd.rpath = 'one%stwo' % os.pathsep
+        cmd.rpath = f'one{os.pathsep}two'
         cmd.finalize_options()
         assert cmd.rpath == ['one', 'two']
 
@@ -381,7 +381,7 @@ class TestBuildExt(TempdirManager):
         old_wd = os.getcwd()
         os.chdir(other_tmp_dir)
         try:
-            cmd.inplace = 1
+            cmd.inplace = True
             cmd.run()
             so_file = cmd.get_outputs()[0]
         finally:
@@ -392,7 +392,7 @@ class TestBuildExt(TempdirManager):
         so_dir = os.path.dirname(so_file)
         assert so_dir == other_tmp_dir
 
-        cmd.inplace = 0
+        cmd.inplace = False
         cmd.compiler = None
         cmd.run()
         so_file = cmd.get_outputs()[0]
@@ -401,7 +401,7 @@ class TestBuildExt(TempdirManager):
         so_dir = os.path.dirname(so_file)
         assert so_dir == cmd.build_lib
 
-        # inplace = 0, cmd.package = 'bar'
+        # inplace = False, cmd.package = 'bar'
         build_py = cmd.get_finalized_command('build_py')
         build_py.package_dir = {'': 'bar'}
         path = cmd.get_ext_fullpath('foo')
@@ -409,8 +409,8 @@ class TestBuildExt(TempdirManager):
         path = os.path.split(path)[0]
         assert path == cmd.build_lib
 
-        # inplace = 1, cmd.package = 'bar'
-        cmd.inplace = 1
+        # inplace = True, cmd.package = 'bar'
+        cmd.inplace = True
         other_tmp_dir = os.path.realpath(self.mkdtemp())
         old_wd = os.getcwd()
         os.chdir(other_tmp_dir)
@@ -431,7 +431,7 @@ class TestBuildExt(TempdirManager):
         # dist = Distribution({'name': 'lxml', 'ext_modules': [etree_ext]})
         dist = Distribution()
         cmd = self.build_ext(dist)
-        cmd.inplace = 1
+        cmd.inplace = True
         cmd.distribution.package_dir = {'': 'src'}
         cmd.distribution.packages = ['lxml', 'lxml.html']
         curdir = os.getcwd()
@@ -440,7 +440,7 @@ class TestBuildExt(TempdirManager):
         assert wanted == path
 
         # building lxml.etree not inplace
-        cmd.inplace = 0
+        cmd.inplace = False
         cmd.build_lib = os.path.join(curdir, 'tmpdir')
         wanted = os.path.join(curdir, 'tmpdir', 'lxml', 'etree' + ext)
         path = cmd.get_ext_fullpath('lxml.etree')
@@ -455,7 +455,7 @@ class TestBuildExt(TempdirManager):
         assert wanted == path
 
         # building twisted.runner.portmap inplace
-        cmd.inplace = 1
+        cmd.inplace = True
         path = cmd.get_ext_fullpath('twisted.runner.portmap')
         wanted = os.path.join(curdir, 'twisted', 'runner', 'portmap' + ext)
         assert wanted == path

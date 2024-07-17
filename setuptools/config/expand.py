@@ -36,8 +36,6 @@ from typing import (
     Iterator,
     Mapping,
     TypeVar,
-    Union,
-    cast,
 )
 from pathlib import Path
 from types import ModuleType
@@ -49,7 +47,7 @@ from ..discovery import find_package_path
 from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
-    from setuptools.dist import Distribution  # noqa
+    from setuptools.dist import Distribution
 
 _K = TypeVar("_K")
 _V = TypeVar("_V", covariant=True)
@@ -124,7 +122,7 @@ def read_files(
 
     (By default ``root_dir`` is the current directory).
     """
-    from setuptools.extern.more_itertools import always_iterable
+    from more_itertools import always_iterable
 
     root_dir = os.path.abspath(root_dir or os.getcwd())
     _filepaths = (os.path.join(root_dir, path) for path in always_iterable(filepaths))
@@ -289,7 +287,7 @@ def find_packages(
     :rtype: list
     """
     from setuptools.discovery import construct_package_dir
-    from setuptools.extern.more_itertools import unique_everseen, always_iterable
+    from more_itertools import unique_everseen, always_iterable
 
     if namespaces:
         from setuptools.discovery import PEP420PackageFinder as PackageFinder
@@ -326,18 +324,13 @@ def version(value: Callable | Iterable[str | int] | str) -> str:
     """When getting the version directly from an attribute,
     it should be normalised to string.
     """
-    if callable(value):
-        value = value()
+    _value = value() if callable(value) else value
 
-    value = cast(Iterable[Union[str, int]], value)
-
-    if not isinstance(value, str):
-        if hasattr(value, '__iter__'):
-            value = '.'.join(map(str, value))
-        else:
-            value = '%s' % value
-
-    return value
+    if isinstance(_value, str):
+        return _value
+    if hasattr(_value, '__iter__'):
+        return '.'.join(map(str, _value))
+    return '%s' % _value
 
 
 def canonic_package_data(package_data: dict) -> dict:

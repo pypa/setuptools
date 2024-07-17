@@ -468,7 +468,7 @@ class TestMetadata(support.TempdirManager):
         # smoke test, just makes sure some help is displayed
         dist = Distribution()
         sys.argv = []
-        dist.help = 1
+        dist.help = True
         dist.script_name = 'setup.py'
         dist.parse_command_line()
 

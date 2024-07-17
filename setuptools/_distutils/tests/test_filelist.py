@@ -10,7 +10,7 @@ from distutils.filelist import FileList, glob_to_re, translate_pattern
 import jaraco.path
 import pytest
 
-from . import py38compat as os_helper
+from .compat import py38 as os_helper
 
 MANIFEST_IN = """\
 include ok

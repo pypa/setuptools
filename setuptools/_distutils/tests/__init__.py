@@ -7,6 +7,7 @@ distutils.command.tests package, since command identification is done
 by import rather than matching pre-defined names.
 """
 
+import shutil
 from typing import Sequence
 
 
@@ -19,7 +20,7 @@ def missing_compiler_executable(cmd_names: Sequence[str] = []):  # pragma: no co
     missing.
 
     """
-    from distutils import ccompiler, errors, spawn, sysconfig
+    from distutils import ccompiler, errors, sysconfig
 
     compiler = ccompiler.new_compiler()
     sysconfig.customize_compiler(compiler)
@@ -34,8 +35,8 @@ def missing_compiler_executable(cmd_names: Sequence[str] = []):  # pragma: no co
             continue
         cmd = getattr(compiler, name)
         if cmd_names:
-            assert cmd is not None, "the '%s' executable is not configured" % name
+            assert cmd is not None, f"the '{name}' executable is not configured"
         elif not cmd:
             continue
-        if spawn.find_executable(cmd[0]) is None:
+        if shutil.which(cmd[0]) is None:
             return cmd[0]

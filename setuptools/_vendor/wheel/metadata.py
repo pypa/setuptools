@@ -13,7 +13,7 @@ from email.message import Message
 from email.parser import Parser
 from typing import Iterator
 
-from ..packaging.requirements import Requirement
+from .vendored.packaging.requirements import Requirement
 
 
 def _nonblank(str):

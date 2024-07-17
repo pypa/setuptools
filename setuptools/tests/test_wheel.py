@@ -17,8 +17,8 @@ import pytest
 from jaraco import path
 
 from pkg_resources import Distribution, PathMetadata, PY_MAJOR
-from setuptools.extern.packaging.utils import canonicalize_name
-from setuptools.extern.packaging.tags import parse_tag
+from packaging.utils import canonicalize_name
+from packaging.tags import parse_tag
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir

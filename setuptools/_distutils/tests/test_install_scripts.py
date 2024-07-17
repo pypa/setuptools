@@ -14,8 +14,8 @@ class TestInstallScripts(support.TempdirManager):
         dist.command_obj["build"] = support.DummyCommand(build_scripts="/foo/bar")
         dist.command_obj["install"] = support.DummyCommand(
             install_scripts="/splat/funk",
-            force=1,
-            skip_build=1,
+            force=True,
+            skip_build=True,
         )
         cmd = install_scripts(dist)
         assert not cmd.force
@@ -40,8 +40,8 @@ class TestInstallScripts(support.TempdirManager):
         dist.command_obj["build"] = support.DummyCommand(build_scripts=source)
         dist.command_obj["install"] = support.DummyCommand(
             install_scripts=target,
-            force=1,
-            skip_build=1,
+            force=True,
+            skip_build=True,
         )
         cmd = install_scripts(dist)
         cmd.finalize_options()

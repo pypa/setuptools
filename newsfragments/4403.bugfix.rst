@@ -1,1 +1,0 @@
-Replace use of mktemp with can_symlink from the stdlib test suite.

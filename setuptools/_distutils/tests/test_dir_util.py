@@ -29,17 +29,17 @@ def stuff(request, monkeypatch, distutils_managed_tempdir):
 
 class TestDirUtil(support.TempdirManager):
     def test_mkpath_remove_tree_verbosity(self, caplog):
-        mkpath(self.target, verbose=0)
+        mkpath(self.target, verbose=False)
         assert not caplog.records
-        remove_tree(self.root_target, verbose=0)
+        remove_tree(self.root_target, verbose=False)
 
-        mkpath(self.target, verbose=1)
-        wanted = ['creating %s' % self.root_target, 'creating %s' % self.target]
+        mkpath(self.target, verbose=True)
+        wanted = [f'creating {self.root_target}', f'creating {self.target}']
         assert caplog.messages == wanted
         caplog.clear()
 
-        remove_tree(self.root_target, verbose=1)
-        wanted = ["removing '%s' (and everything under it)" % self.root_target]
+        remove_tree(self.root_target, verbose=True)
+        wanted = [f"removing '{self.root_target}' (and everything under it)"]
         assert caplog.messages == wanted
 
     @pytest.mark.skipif("platform.system() == 'Windows'")
@@ -53,45 +53,45 @@ class TestDirUtil(support.TempdirManager):
         assert stat.S_IMODE(os.stat(self.target2).st_mode) == 0o555 & ~umask
 
     def test_create_tree_verbosity(self, caplog):
-        create_tree(self.root_target, ['one', 'two', 'three'], verbose=0)
+        create_tree(self.root_target, ['one', 'two', 'three'], verbose=False)
         assert caplog.messages == []
-        remove_tree(self.root_target, verbose=0)
+        remove_tree(self.root_target, verbose=False)
 
-        wanted = ['creating %s' % self.root_target]
-        create_tree(self.root_target, ['one', 'two', 'three'], verbose=1)
+        wanted = [f'creating {self.root_target}']
+        create_tree(self.root_target, ['one', 'two', 'three'], verbose=True)
         assert caplog.messages == wanted
 
-        remove_tree(self.root_target, verbose=0)
+        remove_tree(self.root_target, verbose=False)
 
     def test_copy_tree_verbosity(self, caplog):
-        mkpath(self.target, verbose=0)
+        mkpath(self.target, verbose=False)
 
-        copy_tree(self.target, self.target2, verbose=0)
+        copy_tree(self.target, self.target2, verbose=False)
         assert caplog.messages == []
 
-        remove_tree(self.root_target, verbose=0)
+        remove_tree(self.root_target, verbose=False)
 
-        mkpath(self.target, verbose=0)
+        mkpath(self.target, verbose=False)
         a_file = path.Path(self.target) / 'ok.txt'
         jaraco.path.build({'ok.txt': 'some content'}, self.target)
 
         wanted = [f'copying {a_file} -> {self.target2}']
-        copy_tree(self.target, self.target2, verbose=1)
+        copy_tree(self.target, self.target2, verbose=True)
         assert caplog.messages == wanted
 
-        remove_tree(self.root_target, verbose=0)
-        remove_tree(self.target2, verbose=0)
+        remove_tree(self.root_target, verbose=False)
+        remove_tree(self.target2, verbose=False)
 
     def test_copy_tree_skips_nfs_temp_files(self):
-        mkpath(self.target, verbose=0)
+        mkpath(self.target, verbose=False)
 
         jaraco.path.build({'ok.txt': 'some content', '.nfs123abc': ''}, self.target)
 
         copy_tree(self.target, self.target2)
         assert os.listdir(self.target2) == ['ok.txt']
 
-        remove_tree(self.root_target, verbose=0)
-        remove_tree(self.target2, verbose=0)
+        remove_tree(self.root_target, verbose=False)
+        remove_tree(self.target2, verbose=False)
 
     def test_ensure_relative(self):
         if os.sep == '/':

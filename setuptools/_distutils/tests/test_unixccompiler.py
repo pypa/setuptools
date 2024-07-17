@@ -12,7 +12,7 @@ from distutils.util import _clear_cached_macosx_ver
 import pytest
 
 from . import support
-from .py38compat import EnvironmentVarGuard
+from .compat.py38 import EnvironmentVarGuard
 
 
 @pytest.fixture(autouse=True)
@@ -32,7 +32,7 @@ def compiler_wrapper(request):
 
 
 class TestUnixCCompiler(support.TempdirManager):
-    @pytest.mark.skipif('platform.system == "Windows"')  # noqa: C901
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
         #

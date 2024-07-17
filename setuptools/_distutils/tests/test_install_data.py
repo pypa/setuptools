@@ -41,7 +41,7 @@ class TestInstallData(
         cmd.outfiles = []
 
         # let's try with warn_dir one
-        cmd.warn_dir = 1
+        cmd.warn_dir = True
         cmd.ensure_finalized()
         cmd.run()
 

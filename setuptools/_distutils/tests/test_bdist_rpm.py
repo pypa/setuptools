@@ -1,15 +1,15 @@
 """Tests for distutils.command.bdist_rpm."""
 
 import os
+import shutil  # noqa: F401
 import sys
 from distutils.command.bdist_rpm import bdist_rpm
 from distutils.core import Distribution
-from distutils.spawn import find_executable  # noqa: F401
 from distutils.tests import support
 
 import pytest
 
-from .py38compat import requires_zlib
+from .compat.py38 import requires_zlib
 
 SETUP_PY = """\
 from distutils.core import setup
@@ -43,8 +43,8 @@ class TestBuildRpm(
 ):
     @mac_woes
     @requires_zlib()
-    @pytest.mark.skipif("not find_executable('rpm')")
-    @pytest.mark.skipif("not find_executable('rpmbuild')")
+    @pytest.mark.skipif("not shutil.which('rpm')")
+    @pytest.mark.skipif("not shutil.which('rpmbuild')")
     def test_quiet(self):
         # let's create a package
         tmp_dir = self.mkdtemp()
@@ -72,7 +72,7 @@ class TestBuildRpm(
         cmd.fix_python = True
 
         # running in quiet mode
-        cmd.quiet = 1
+        cmd.quiet = True
         cmd.ensure_finalized()
         cmd.run()
 
@@ -86,8 +86,8 @@ class TestBuildRpm(
     @mac_woes
     @requires_zlib()
     # https://bugs.python.org/issue1533164
-    @pytest.mark.skipif("not find_executable('rpm')")
-    @pytest.mark.skipif("not find_executable('rpmbuild')")
+    @pytest.mark.skipif("not shutil.which('rpm')")
+    @pytest.mark.skipif("not shutil.which('rpmbuild')")
     def test_no_optimize_flag(self):
         # let's create a package that breaks bdist_rpm
         tmp_dir = self.mkdtemp()
@@ -114,7 +114,7 @@ class TestBuildRpm(
         cmd = bdist_rpm(dist)
         cmd.fix_python = True
 
-        cmd.quiet = 1
+        cmd.quiet = True
         cmd.ensure_finalized()
         cmd.run()
 

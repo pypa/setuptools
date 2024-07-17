@@ -22,23 +22,23 @@ class TestFileUtil:
     def test_move_file_verbosity(self, caplog):
         jaraco.path.build({self.source: 'some content'})
 
-        move_file(self.source, self.target, verbose=0)
+        move_file(self.source, self.target, verbose=False)
         assert not caplog.messages
 
         # back to original state
-        move_file(self.target, self.source, verbose=0)
+        move_file(self.target, self.source, verbose=False)
 
-        move_file(self.source, self.target, verbose=1)
+        move_file(self.source, self.target, verbose=True)
         wanted = [f'moving {self.source} -> {self.target}']
         assert caplog.messages == wanted
 
         # back to original state
-        move_file(self.target, self.source, verbose=0)
+        move_file(self.target, self.source, verbose=False)
 
         caplog.clear()
         # now the target is a dir
         os.mkdir(self.target_dir)
-        move_file(self.source, self.target_dir, verbose=1)
+        move_file(self.source, self.target_dir, verbose=True)
         wanted = [f'moving {self.source} -> {self.target_dir}']
         assert caplog.messages == wanted
 
@@ -48,7 +48,7 @@ class TestFileUtil:
             DistutilsFileError
         ):
             jaraco.path.build({self.source: 'spam eggs'})
-            move_file(self.source, self.target, verbose=0)
+            move_file(self.source, self.target, verbose=False)
 
     def test_move_file_exception_unpacking_unlink(self):
         # see issue 22182
@@ -58,7 +58,7 @@ class TestFileUtil:
             DistutilsFileError
         ):
             jaraco.path.build({self.source: 'spam eggs'})
-            move_file(self.source, self.target, verbose=0)
+            move_file(self.source, self.target, verbose=False)
 
     def test_copy_file_hard_link(self):
         jaraco.path.build({self.source: 'some content'})
@@ -67,7 +67,7 @@ class TestFileUtil:
         try:
             os.link(self.source, self.target)
         except OSError as e:
-            self.skipTest('os.link: %s' % e)
+            self.skipTest(f'os.link: {e}')
         else:
             self.target.unlink()
         st = os.stat(self.source)

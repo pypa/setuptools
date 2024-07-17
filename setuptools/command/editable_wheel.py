@@ -300,7 +300,7 @@ class editable_wheel(Command):
         build = self.get_finalized_command("build")
         for name in build.get_sub_commands():
             cmd = self.get_finalized_command(name)
-            if name == "build_py" and type(cmd) != build_py_cls:
+            if name == "build_py" and type(cmd) is not build_py_cls:
                 self._safely_run(name)
             else:
                 self.run_command(name)
@@ -334,7 +334,7 @@ class editable_wheel(Command):
             )
 
     def _create_wheel_file(self, bdist_wheel):
-        from ..extern.wheel.wheelfile import WheelFile
+        from wheel.wheelfile import WheelFile
 
         dist_info = self.get_finalized_command("dist_info")
         dist_name = dist_info.name
@@ -516,7 +516,7 @@ class _TopLevelFinder:
         )
 
         legacy_namespaces = {
-            cast(str, pkg): find_package_path(pkg, roots, self.dist.src_root or "")
+            pkg: find_package_path(pkg, roots, self.dist.src_root or "")
             for pkg in self.dist.namespace_packages or []
         }
 
@@ -806,7 +806,7 @@ PATH_PLACEHOLDER = {name!r} + ".__path_hook__"
 
 class _EditableFinder:  # MetaPathFinder
     @classmethod
-    def find_spec(cls, fullname: str, _path=None, _target=None) -> ModuleSpec | None:
+    def find_spec(cls, fullname: str, path=None, target=None) -> ModuleSpec | None:  # type: ignore
         # Top-level packages and modules (we know these exist in the FS)
         if fullname in MAPPING:
             pkg_path = MAPPING[fullname]
@@ -852,7 +852,7 @@ class _EditableNamespaceFinder:  # PathEntryFinder
         return [*paths, PATH_PLACEHOLDER]
 
     @classmethod
-    def find_spec(cls, fullname: str, _target=None) -> ModuleSpec | None:
+    def find_spec(cls, fullname: str, target=None) -> ModuleSpec | None:  # type: ignore
         if fullname in NAMESPACES:
             spec = ModuleSpec(fullname, None, is_package=True)
             spec.submodule_search_locations = cls._paths(fullname)
