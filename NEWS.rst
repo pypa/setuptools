@@ -1,3 +1,12 @@
+v71.0.2
+=======
+
+Bugfixes
+--------
+
+- Include all vendored files in the sdist. (#4480)
+
+
 v71.0.1
 =======
 
