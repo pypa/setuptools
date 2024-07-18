@@ -1,3 +1,12 @@
+v71.0.1
+=======
+
+Bugfixes
+--------
+
+- Restored package data that went missing in 71.0. This change also incidentally causes tests to be installed once again. (#4475)
+
+
 v71.0.0
 =======
 
