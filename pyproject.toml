@@ -178,9 +178,7 @@ PKG-INFO = "setuptools.command.egg_info:write_pkg_info"
 "dependency_links.txt" = "setuptools.command.egg_info:overwrite_arg"
 
 [tool.setuptools]
-# disabled as it causes tests to be included #2505
-# include_package_data = true
-include-package-data = false
+include-package-data = true
 
 [tool.setuptools.packages.find]
 include = [
