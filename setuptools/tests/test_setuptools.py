@@ -1,5 +1,6 @@
 """Tests for the 'setuptools' package"""
 
+import re
 import sys
 import os
 import distutils.core
@@ -315,3 +316,12 @@ def test_wheel_includes_cli_scripts(setuptools_wheel):
         contents = [f.replace(os.sep, '/') for f in zipfile.namelist()]
 
     assert any('cli-64.exe' in member for member in contents)
+
+
+def test_wheel_includes_vendored_metadata(setuptools_wheel):
+    with ZipFile(setuptools_wheel) as zipfile:
+        contents = [f.replace(os.sep, '/') for f in zipfile.namelist()]
+
+    assert any(
+        re.search(r'_vendor/.*\.dist-info/METADATA', member) for member in contents
+    )
