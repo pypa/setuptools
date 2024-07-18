@@ -43,6 +43,11 @@ ignore = [
 	"ISC002",
 ]
 
+# Suppress nuisance warnings about E402 due to workaround for #4476
+[lint.per-file-ignores]
+"setuptools/__init__.py" = ["E402"]
+"pkg_resources/__init__.py" = ["E402"]
+
 [format]
 # Enable preview to get hugged parenthesis unwrapping
 preview = true
