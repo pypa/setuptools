@@ -13,7 +13,7 @@ v71.0.0
 Deprecations and Removals
 -------------------------
 
-- Now setuptools declares its own dependencies in the ``core`` extra. Dependencies are still vendored for bootstrapping purposes, but setuptools will prefer installed dependencies if present. The ``core`` extra is used for informational purposes and should *not* be declared in package metadata (e.g. ``build-requires``). Downstream packagers can de-vendor by simply removing the ``setuptools/_vendor`` directory. (#2825)
+- Now setuptools declares its own dependencies in the ``core`` extra. Dependencies are still vendored for bootstrapping purposes, but setuptools will prefer installed dependencies if present. The ``core`` extra is used for informational purposes and should *not* be declared in package metadata (e.g. ``build-requires``). Downstream packagers can de-vendor by simply removing the ``setuptools/_vendor`` directory. Since Setuptools now prefers installed dependencies, those installing to an environment with old, incompatible dependencies will not work. In that case, either uninstall the incompatible dependencies or upgrade them to satisfy those declared in ``core``. (#2825)
 
 
 v70.3.0
