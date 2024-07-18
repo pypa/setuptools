@@ -1,0 +1,1 @@
+Include all vendored files in the sdist.
