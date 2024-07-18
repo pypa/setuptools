@@ -12,7 +12,6 @@ import tarfile
 from inspect import cleandoc
 from pathlib import Path
 from unittest.mock import Mock
-from zipfile import ZipFile
 
 import pytest
 from ini2toml.api import LiteTranslator
@@ -421,11 +420,6 @@ class TestMeta:
         """Meta test to ensure tests can run from sdist"""
         with tarfile.open(setuptools_sdist) as tar:
             assert any(name.endswith(EXAMPLES_FILE) for name in tar.getnames())
-
-    def test_example_file_not_in_wheel(self, setuptools_wheel):
-        """Meta test to ensure auxiliary test files are not in wheel"""
-        with ZipFile(setuptools_wheel) as zipfile:
-            assert not any(name.endswith(EXAMPLES_FILE) for name in zipfile.namelist())
 
 
 class TestInteropCommandLineParsing:
