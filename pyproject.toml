@@ -101,7 +101,7 @@ doc = [
 	"pyproject-hooks!=1.1",
 
 	# workaround for sphinx-doc/sphinx#12613
-	"sphinx < 7.4",
+	"sphinx < 7.5",
 ]
 ssl = []
 certs = []
