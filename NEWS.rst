@@ -1,3 +1,12 @@
+v71.0.3
+=======
+
+Bugfixes
+--------
+
+- Reset the backports module when enabling vendored packages. (#4476)
+
+
 v71.0.2
 =======
 
