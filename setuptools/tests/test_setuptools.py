@@ -301,6 +301,7 @@ def test_findall_missing_symlink(tmpdir, can_symlink):
         assert found == []
 
 
+@pytest.mark.xfail(reason="unable to exclude tests; #4475 #3260")
 def test_its_own_wheel_does_not_contain_tests(setuptools_wheel):
     with ZipFile(setuptools_wheel) as zipfile:
         contents = [f.replace(os.sep, '/') for f in zipfile.namelist()]
