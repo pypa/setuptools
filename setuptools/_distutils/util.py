@@ -414,6 +414,7 @@ def byte_compile(  # noqa: C901
             with script:
                 script.write(
                     """\
+import setuptools
 from distutils.util import byte_compile
 files = [
 """
