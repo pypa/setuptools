@@ -9,6 +9,7 @@ from __future__ import annotations
 import functools
 import importlib.util
 import os
+import pathlib
 import re
 import string
 import subprocess
@@ -130,7 +131,9 @@ def convert_path(pathname: str | os.PathLike) -> str:
     >>> convert_path(None) is None
     True
     """
-    return make_native(os.fspath(pathname))
+    # wrap in PurePosixPath to retain forward slashes on Windows
+    # see https://github.com/pypa/distutils/pull/272#issuecomment-2240100013
+    return make_native(os.fspath(pathlib.PurePosixPath(pathname)))
 
 
 def make_native(pathname: str) -> str:
