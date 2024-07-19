@@ -7,6 +7,7 @@ one of the other *util.py modules.
 import functools
 import importlib.util
 import os
+import pathlib
 import re
 import string
 import subprocess
@@ -116,7 +117,14 @@ def split_version(s):
     return [int(n) for n in s.split('.')]
 
 
-def convert_path(pathname):
+def convert_path(pathname: str | pathlib.Path) -> str:
+    """
+    Allow for pathlib.Path inputs and then make native.
+    """
+    return make_native(os.fspath(pathname))
+
+
+def make_native(pathname: str) -> str:
     """Return 'pathname' as a name that will work on the native filesystem,
     i.e. split it on '/' and put it back together again using the current
     directory separator.  Needed because filenames in the setup script are

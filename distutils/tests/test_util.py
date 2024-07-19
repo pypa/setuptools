@@ -5,6 +5,7 @@ import email.generator
 import email.policy
 import io
 import os
+import pathlib
 import sys
 import sysconfig as stdlib_sysconfig
 import unittest.mock as mock
@@ -72,6 +73,7 @@ class TestUtil:
         os.path.join = _join
 
         assert convert_path('/home/to/my/stuff') == '/home/to/my/stuff'
+        assert convert_path(pathlib.Path('/home/to/my/stuff')) == '/home/to/my/stuff'
 
         # win
         os.sep = '\\'
@@ -85,8 +87,11 @@ class TestUtil:
             convert_path('/home/to/my/stuff')
         with pytest.raises(ValueError):
             convert_path('home/to/my/stuff/')
+        with pytest.raises(ValueError):
+            convert_path(pathlib.Path('/home/to/my/stuff'))
 
         assert convert_path('home/to/my/stuff') == 'home\\to\\my\\stuff'
+        assert convert_path(pathlib.Path('home/to/my/stuff')) == 'home\\to\\my\\stuff'
         assert convert_path('.') == os.curdir
 
     def test_change_root(self):
