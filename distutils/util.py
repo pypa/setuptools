@@ -16,6 +16,7 @@ import sys
 import sysconfig
 import tempfile
 
+from ._functools import pass_none
 from ._log import log
 from ._modified import newer
 from .errors import DistutilsByteCompileError, DistutilsPlatformError
@@ -118,9 +119,16 @@ def split_version(s):
     return [int(n) for n in s.split('.')]
 
 
+@pass_none
 def convert_path(pathname: str | os.PathLike) -> str:
     """
     Allow for pathlib.Path inputs and then make native.
+
+    Also if None is passed, will just pass it through as
+    Setuptools relies on this behavior.
+
+    >>> convert_path(None) is None
+    True
     """
     return make_native(os.fspath(pathname))
 
