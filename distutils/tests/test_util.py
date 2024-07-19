@@ -4,8 +4,10 @@ import email
 import email.generator
 import email.policy
 import io
+import ntpath
 import os
 import pathlib
+import posixpath
 import sys
 import sysconfig as stdlib_sysconfig
 import unittest.mock as mock
@@ -66,22 +68,14 @@ class TestUtil:
     def test_convert_path(self):
         # linux/mac
         os.sep = '/'
-
-        def _join(path):
-            return '/'.join(path)
-
-        os.path.join = _join
+        os.path.join = posixpath.join
 
         assert convert_path('/home/to/my/stuff') == '/home/to/my/stuff'
         assert convert_path(pathlib.Path('/home/to/my/stuff')) == '/home/to/my/stuff'
 
         # win
         os.sep = '\\'
-
-        def _join(*path):
-            return '\\'.join(path)
-
-        os.path.join = _join
+        os.path.join = ntpath.join
 
         with pytest.raises(ValueError):
             convert_path('/home/to/my/stuff')
