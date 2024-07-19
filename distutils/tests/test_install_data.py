@@ -1,11 +1,12 @@
 """Tests for distutils.command.install_data."""
 
 import os
-from pathlib import Path
-from distutils.command.install_data import install_data
-from distutils.tests import support
+import pathlib
 
 import pytest
+
+from distutils.command.install_data import install_data
+from distutils.tests import support
 
 
 @pytest.mark.usefixtures('save_env')
@@ -26,7 +27,7 @@ class TestInstallData(
         inst2 = os.path.join(pkg_dir, 'inst2')
         two = os.path.join(pkg_dir, 'two')
         self.write_file(two, 'xxx')
-        three = Path(pkg_dir) / 'three'
+        three = pathlib.Path(pkg_dir) / 'three'
         self.write_file(three, 'xxx')
 
         cmd.data_files = [one, (inst2, [two]), three]
