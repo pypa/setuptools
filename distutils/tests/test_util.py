@@ -80,8 +80,6 @@ class TestUtil:
         with pytest.raises(ValueError):
             convert_path('/home/to/my/stuff')
         with pytest.raises(ValueError):
-            convert_path('home/to/my/stuff/')
-        with pytest.raises(ValueError):
             convert_path(pathlib.Path('/home/to/my/stuff'))
 
         assert convert_path('home/to/my/stuff') == 'home\\to\\my\\stuff'
