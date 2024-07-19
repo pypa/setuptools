@@ -7,6 +7,7 @@ exclude = [
 [lint]
 extend-select = [
 	"C901",
+	"PERF401",
 	"W",
 
 	# local
@@ -51,5 +52,5 @@ ignore = [
 [format]
 # Enable preview to get hugged parenthesis unwrapping
 preview = true
-# https://docs.astral.sh/ruff/settings/#format-quote-style
+# https://docs.astral.sh/ruff/settings/#format_quote-style
 quote-style = "preserve"
