@@ -5,17 +5,15 @@ platform-independent data files."""
 
 # contributed by Bastian Kleineidam
 
+from __future__ import annotations
+
 import functools
 import os
-import pathlib
 
-from typing import Tuple, Iterable
+from typing import Iterable
 
 from ..core import Command
 from ..util import change_root, convert_path
-
-
-StrPath = str | pathlib.Path
 
 
 class install_data(Command):
@@ -56,7 +54,7 @@ class install_data(Command):
             self._copy(f)
 
     @functools.singledispatchmethod
-    def _copy(self, f: StrPath | Tuple[StrPath, Iterable[StrPath]]):
+    def _copy(self, f: tuple[str | os.PathLike, Iterable[str | os.PathLike]]):
         # it's a tuple with path to install to and a list of files
         dir = convert_path(f[0])
         if not os.path.isabs(dir):
@@ -77,8 +75,9 @@ class install_data(Command):
                 (out, _) = self.copy_file(data, dir)
                 self.outfiles.append(out)
 
-    @_copy.register
-    def _(self, f: StrPath):
+    @_copy.register(str)
+    @_copy.register(os.PathLike)
+    def _(self, f: str | os.PathLike):
         # it's a simple file, so copy it
         f = convert_path(f)
         if self.warn_dir:
