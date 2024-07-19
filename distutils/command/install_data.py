@@ -47,19 +47,9 @@ class install_data(Command):
     def run(self):
         self.mkpath(self.install_dir)
         for f in self.data_files:
-            if isinstance(f, str):
+            if isinstance(f, (str, Path)):
                 # it's a simple file, so copy it
-                f = convert_path(f)
-                if self.warn_dir:
-                    self.warn(
-                        "setup script did not provide a directory for "
-                        f"'{f}' -- installing right in '{self.install_dir}'"
-                    )
-                (out, _) = self.copy_file(f, self.install_dir)
-                self.outfiles.append(out)
-            elif isinstance(f, Path):
-                # it's a simple file, so copy it
-                f = convert_path(str(f))
+                f = convert_path(os.fspath(f))
                 if self.warn_dir:
                     self.warn(
                         "setup script did not provide a directory for "
