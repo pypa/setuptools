@@ -1,0 +1,1 @@
+Added support for `Path` objects for generating data_files -- by :user:`InvincibleRMC`
