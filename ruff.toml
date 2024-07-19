@@ -50,7 +50,8 @@ ignore = [
 "pkg_resources/__init__.py" = ["E402"]
 
 [format]
-# Enable preview to get hugged parenthesis unwrapping
+# Enable preview to get hugged parenthesis unwrapping and other nice surprises
+# See https://github.com/jaraco/skeleton/pull/133#issuecomment-2239538373
 preview = true
 # https://docs.astral.sh/ruff/settings/#format_quote-style
 quote-style = "preserve"
