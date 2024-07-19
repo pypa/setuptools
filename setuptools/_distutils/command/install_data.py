@@ -6,6 +6,7 @@ platform-independent data files."""
 # contributed by Bastian Kleineidam
 
 import os
+from pathlib import Path
 
 from ..core import Command
 from ..util import change_root, convert_path
@@ -49,6 +50,16 @@ class install_data(Command):
             if isinstance(f, str):
                 # it's a simple file, so copy it
                 f = convert_path(f)
+                if self.warn_dir:
+                    self.warn(
+                        "setup script did not provide a directory for "
+                        f"'{f}' -- installing right in '{self.install_dir}'"
+                    )
+                (out, _) = self.copy_file(f, self.install_dir)
+                self.outfiles.append(out)
+            elif isinstance(f, Path):
+                # it's a simple file, so copy it
+                f = convert_path(str(f))
                 if self.warn_dir:
                     self.warn(
                         "setup script did not provide a directory for "
