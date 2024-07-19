@@ -4,6 +4,8 @@ Miscellaneous utility functions -- anything that doesn't fit into
 one of the other *util.py modules.
 """
 
+from __future__ import annotations
+
 import functools
 import importlib.util
 import os
