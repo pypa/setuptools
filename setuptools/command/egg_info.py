@@ -255,8 +255,7 @@ class egg_info(InfoCommon, Command):
         # to the version info
         #
         pd = self.distribution._patched_dist
-        key = getattr(pd, "key", None) or getattr(pd, "name", None)
-        if pd is not None and key == self.egg_name.lower():
+        if pd is not None and pd.key == self.egg_name.lower():
             pd._version = self.egg_version
             pd._parsed_version = packaging.version.Version(self.egg_version)
             self.distribution._patched_dist = None
