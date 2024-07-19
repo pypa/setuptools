@@ -4,7 +4,6 @@ from io import StringIO
 import textwrap
 import site
 import contextlib
-import pathlib
 import platform
 import tempfile
 import importlib
@@ -336,7 +335,7 @@ class TestBuildExt(TempdirManager):
         dist = Distribution({'name': 'xx', 'ext_modules': modules})
         cmd = self.build_ext(dist)
         cmd.ensure_finalized()
-        assert cmd.get_source_files() == [pathlib.Path('xxx')]
+        assert cmd.get_source_files() == ['xxx']
 
     def test_unicode_module_names(self):
         modules = [

@@ -367,9 +367,9 @@ class MSVCCompiler(CCompiler):
                 src = os.path.abspath(src)
 
             if ext in self._c_extensions:
-                input_opt = "/Tc" + str(src)
+                input_opt = "/Tc" + src
             elif ext in self._cpp_extensions:
-                input_opt = "/Tp" + str(src)
+                input_opt = "/Tp" + src
                 add_cpp_opts = True
             elif ext in self._rc_extensions:
                 # compile .RC to .RES file

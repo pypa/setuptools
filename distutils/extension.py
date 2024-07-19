@@ -4,7 +4,6 @@ Provides the Extension class, used to describe C/C++ extension
 modules in setup scripts."""
 
 import os
-import pathlib
 import warnings
 
 # This class is really only used by the "build_ext" command, so it might
@@ -116,7 +115,7 @@ class Extension:
             )
 
         self.name = name
-        self.sources = list(map(pathlib.Path, sources))
+        self.sources = list(map(os.fspath, sources))
         self.include_dirs = include_dirs or []
         self.define_macros = define_macros or []
         self.undef_macros = undef_macros or []

@@ -75,9 +75,9 @@ class TestExtension:
         with pytest.raises(AssertionError):
             Extension('name', ['file', 1])
         ext = Extension('name', ['file1', 'file2'])
-        assert ext.sources == [Path('file1'), Path('file2')]
+        assert ext.sources == ['file1', 'file2']
         ext = Extension('name', [Path('file1'), Path('file2')])
-        assert ext.sources == [Path('file1'), Path('file2')]
+        assert ext.sources == ['file1', 'file2']
 
         # others arguments have defaults
         for attr in (
