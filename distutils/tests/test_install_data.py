@@ -63,7 +63,7 @@ class TestInstallData(
         inst5 = os.path.join(pkg_dir, 'inst5')
         four = os.path.join(cmd.install_dir, 'four')
         self.write_file(four, 'xx')
-        cmd.data_files = [one, (inst2, [two]), ('inst5', [four]), (inst5, [])]
+        cmd.data_files = [one, (inst2, [two]), three, ('inst5', [four]), (inst5, [])]
         cmd.ensure_finalized()
         cmd.run()
 
