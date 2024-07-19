@@ -9,7 +9,6 @@ from __future__ import annotations
 import functools
 import importlib.util
 import os
-import pathlib
 import re
 import string
 import subprocess
@@ -119,7 +118,7 @@ def split_version(s):
     return [int(n) for n in s.split('.')]
 
 
-def convert_path(pathname: str | pathlib.Path) -> str:
+def convert_path(pathname: str | os.PathLike) -> str:
     """
     Allow for pathlib.Path inputs and then make native.
     """
