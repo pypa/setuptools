@@ -2628,6 +2628,7 @@ if TYPE_CHECKING:
     @overload
     def _normalize_cached(filename: BytesPath) -> bytes: ...
     def _normalize_cached(filename: StrOrBytesPath) -> str | bytes: ...
+
 else:
 
     @functools.lru_cache(maxsize=None)
