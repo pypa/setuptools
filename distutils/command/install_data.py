@@ -6,7 +6,7 @@ platform-independent data files."""
 # contributed by Bastian Kleineidam
 
 import os
-from pathlib import Path
+import pathlib
 
 from ..core import Command
 from ..util import change_root, convert_path
@@ -47,7 +47,7 @@ class install_data(Command):
     def run(self):
         self.mkpath(self.install_dir)
         for f in self.data_files:
-            if isinstance(f, (str, Path)):
+            if isinstance(f, (str, pathlib.Path)):
                 # it's a simple file, so copy it
                 f = convert_path(f)
                 if self.warn_dir:
