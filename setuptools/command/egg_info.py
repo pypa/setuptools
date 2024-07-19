@@ -250,16 +250,6 @@ class egg_info(InfoCommon, Command):
         #
         self.distribution.metadata.version = self.egg_version
 
-        # If we bootstrapped around the lack of a PKG-INFO, as might be the
-        # case in a fresh checkout, make sure that any special tags get added
-        # to the version info
-        #
-        pd = self.distribution._patched_dist
-        if pd is not None and pd.key == self.egg_name.lower():
-            pd._version = self.egg_version
-            pd._parsed_version = packaging.version.Version(self.egg_version)
-            self.distribution._patched_dist = None
-
     def _get_egg_basename(self, py_version=PY_MAJOR, platform=None):
         """Compute filename of the output egg. Private API."""
         return _egg_basename(self.egg_name, self.egg_version, py_version, platform)
