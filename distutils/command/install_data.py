@@ -49,7 +49,7 @@ class install_data(Command):
         for f in self.data_files:
             if isinstance(f, (str, Path)):
                 # it's a simple file, so copy it
-                f = convert_path(os.fspath(f))
+                f = convert_path(f)
                 if self.warn_dir:
                     self.warn(
                         "setup script did not provide a directory for "
