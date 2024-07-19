@@ -1,3 +1,12 @@
+v71.0.4
+=======
+
+Bugfixes
+--------
+
+- Removed lingering unused code around Distribution._patched_dist. (#4489)
+
+
 v71.0.3
 =======
 

@@ -1,1 +1,0 @@
-Removed lingering unused code around Distribution._patched_dist.
