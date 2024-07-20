@@ -4,8 +4,11 @@ on:
   merge_group:
   push:
     branches-ignore:
-    # disabled for jaraco/skeleton#103
-    # - gh-readonly-queue/**  # Temporary merge queue-related GH-made branches
+    # temporary GH branches relating to merge queues (jaraco/skeleton#93)
+    - gh-readonly-queue/**
+    tags:
+    # required if branches-ignore is supplied (jaraco/skeleton#103)
+    - '**'
   pull_request:
 
 concurrency:
@@ -34,10 +37,10 @@ env:
 jobs:
   test:
     strategy:
+      # https://blog.jaraco.com/efficient-use-of-ci-resources/
       matrix:
         python:
         - "3.8"
-        - "3.11"
         - "3.12"
         platform:
         - ubuntu-latest
@@ -47,6 +50,8 @@ jobs:
         - python: "3.9"
           platform: ubuntu-latest
         - python: "3.10"
+          platform: ubuntu-latest
+        - python: "3.11"
           platform: ubuntu-latest
         - python: pypy3.10
           platform: ubuntu-latest
@@ -87,8 +92,6 @@ jobs:
         run: tox -e ${{ matrix.job }}
 
   test_cygwin:
-    # disabled due to lack of Rust support pypa/setuptools#3921
-    if: ${{ false }}
     strategy:
       matrix:
         python:
@@ -114,6 +117,51 @@ jobs:
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: tox
+
+  test_msys2_mingw:
+    strategy:
+      matrix:
+        include:
+          - { sys: mingw64, env: x86_64, cc: gcc, cxx: g++ }
+          - { sys: mingw32, env: i686, cc: gcc, cxx: g++ }
+          - { sys: ucrt64,  env: ucrt-x86_64, cc: gcc, cxx: g++ }
+          - { sys: clang64, env: clang-x86_64, cc: clang, cxx: clang++}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          install: |
+            mingw-w64-${{matrix.env}}-toolchain
+            mingw-w64-${{matrix.env}}-python
+            mingw-w64-${{matrix.env}}-python-pip
+            mingw-w64-${{matrix.env}}-python-virtualenv
+            mingw-w64-${{matrix.env}}-cc
+            git
+      - name: Install Dependencies
+        shell: msys2 {0}
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: |
+          export VIRTUALENV_NO_SETUPTOOLS=1
+
+          python -m virtualenv /tmp/venv
+          source /tmp/venv/bin/activate
+
+          # python-ruff doesn't work without rust
+          sed -i '/pytest-ruff/d' pyproject.toml
+
+          pip install -e .[test]
+      - name: Run tests
+        shell: msys2 {0}
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: |
+          source /tmp/venv/bin/activate
+          pytest
 
   ci_setuptools:
     # Integration testing with setuptools

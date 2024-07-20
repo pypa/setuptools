@@ -3,21 +3,21 @@
 Implements the Distutils 'bdist_rpm' command (create RPM source and binary
 distributions)."""
 
+import os
 import subprocess
 import sys
-import os
+from distutils._log import log
 
 from ..core import Command
 from ..debug import DEBUG
-from ..file_util import write_file
 from ..errors import (
+    DistutilsExecError,
+    DistutilsFileError,
     DistutilsOptionError,
     DistutilsPlatformError,
-    DistutilsFileError,
-    DistutilsExecError,
 )
+from ..file_util import write_file
 from ..sysconfig import get_python_version
-from distutils._log import log
 
 
 class bdist_rpm(Command):
@@ -34,13 +34,13 @@ class bdist_rpm(Command):
         (
             'dist-dir=',
             'd',
-            "directory to put final RPM files in " "(and .spec files if --spec-only)",
+            "directory to put final RPM files in (and .spec files if --spec-only)",
         ),
         (
             'python=',
             None,
             "path to Python interpreter to hard-code in the .spec file "
-            "(default: \"python\")",
+            "[default: \"python\"]",
         ),
         (
             'fix-python',
@@ -75,7 +75,7 @@ class bdist_rpm(Command):
         (
             'packager=',
             None,
-            "RPM packager (eg. \"Jane Doe <jane@example.net>\") " "[default: vendor]",
+            "RPM packager (eg. \"Jane Doe <jane@example.net>\") [default: vendor]",
         ),
         ('doc-files=', None, "list of documentation files (space or comma-separated)"),
         ('changelog=', None, "RPM changelog"),
@@ -187,13 +187,13 @@ class bdist_rpm(Command):
         self.build_requires = None
         self.obsoletes = None
 
-        self.keep_temp = 0
-        self.use_rpm_opt_flags = 1
-        self.rpm3_mode = 1
-        self.no_autoreq = 0
+        self.keep_temp = False
+        self.use_rpm_opt_flags = True
+        self.rpm3_mode = True
+        self.no_autoreq = False
 
         self.force_arch = None
-        self.quiet = 0
+        self.quiet = False
 
     def finalize_options(self):
         self.set_undefined_options('bdist', ('bdist_base', 'bdist_base'))
@@ -214,7 +214,7 @@ class bdist_rpm(Command):
 
         if os.name != 'posix':
             raise DistutilsPlatformError(
-                "don't know how to create RPM " "distributions on platform %s" % os.name
+                f"don't know how to create RPM distributions on platform {os.name}"
             )
         if self.binary_only and self.source_only:
             raise DistutilsOptionError(
@@ -223,7 +223,7 @@ class bdist_rpm(Command):
 
         # don't pass CFLAGS to pure python distributions
         if not self.distribution.has_ext_modules():
-            self.use_rpm_opt_flags = 0
+            self.use_rpm_opt_flags = False
 
         self.set_undefined_options('bdist', ('dist_dir', 'dist_dir'))
         self.finalize_package_data()
@@ -232,8 +232,7 @@ class bdist_rpm(Command):
         self.ensure_string('group', "Development/Libraries")
         self.ensure_string(
             'vendor',
-            "%s <%s>"
-            % (self.distribution.get_contact(), self.distribution.get_contact_email()),
+            f"{self.distribution.get_contact()} <{self.distribution.get_contact_email()}>",
         )
         self.ensure_string('packager')
         self.ensure_string_list('doc_files')
@@ -296,9 +295,9 @@ class bdist_rpm(Command):
 
         # Spec file goes into 'dist_dir' if '--spec-only specified',
         # build/rpm.<plat> otherwise.
-        spec_path = os.path.join(spec_dir, "%s.spec" % self.distribution.get_name())
+        spec_path = os.path.join(spec_dir, f"{self.distribution.get_name()}.spec")
         self.execute(
-            write_file, (spec_path, self._make_spec_file()), "writing '%s'" % spec_path
+            write_file, (spec_path, self._make_spec_file()), f"writing '{spec_path}'"
         )
 
         if self.spec_only:  # stop if requested
@@ -323,7 +322,7 @@ class bdist_rpm(Command):
             if os.path.exists(self.icon):
                 self.copy_file(self.icon, source_dir)
             else:
-                raise DistutilsFileError("icon file '%s' does not exist" % self.icon)
+                raise DistutilsFileError(f"icon file '{self.icon}' does not exist")
 
         # build package
         log.info("building RPMs")
@@ -335,9 +334,9 @@ class bdist_rpm(Command):
             rpm_cmd.append('-bb')
         else:
             rpm_cmd.append('-ba')
-        rpm_cmd.extend(['--define', '__python %s' % self.python])
+        rpm_cmd.extend(['--define', f'__python {self.python}'])
         if self.rpm3_mode:
-            rpm_cmd.extend(['--define', '_topdir %s' % os.path.abspath(self.rpm_base)])
+            rpm_cmd.extend(['--define', f'_topdir {os.path.abspath(self.rpm_base)}'])
         if not self.keep_temp:
             rpm_cmd.append('--clean')
 
@@ -352,11 +351,7 @@ class bdist_rpm(Command):
         nvr_string = "%{name}-%{version}-%{release}"
         src_rpm = nvr_string + ".src.rpm"
         non_src_rpm = "%{arch}/" + nvr_string + ".%{arch}.rpm"
-        q_cmd = r"rpm -q --qf '{} {}\n' --specfile '{}'".format(
-            src_rpm,
-            non_src_rpm,
-            spec_path,
-        )
+        q_cmd = rf"rpm -q --qf '{src_rpm} {non_src_rpm}\n' --specfile '{spec_path}'"
 
         out = os.popen(q_cmd)
         try:
@@ -375,7 +370,7 @@ class bdist_rpm(Command):
 
             status = out.close()
             if status:
-                raise DistutilsExecError("Failed to execute: %s" % repr(q_cmd))
+                raise DistutilsExecError(f"Failed to execute: {q_cmd!r}")
 
         finally:
             out.close()
@@ -431,7 +426,7 @@ class bdist_rpm(Command):
         # normalizing the whitespace to simplify the test for whether the
         # invocation of brp-python-bytecompile passes in __python):
         vendor_hook = '\n'.join([
-            '  %s \\' % line.strip() for line in vendor_hook.splitlines()
+            f'  {line.strip()} \\' for line in vendor_hook.splitlines()
         ])
         problem = "brp-python-bytecompile \\\n"
         fixed = "brp-python-bytecompile %{__python} \\\n"
@@ -473,7 +468,7 @@ class bdist_rpm(Command):
             if not self.distribution.has_ext_modules():
                 spec_file.append('BuildArch: noarch')
         else:
-            spec_file.append('BuildArch: %s' % self.force_arch)
+            spec_file.append(f'BuildArch: {self.force_arch}')
 
         for field in (
             'Vendor',
@@ -523,7 +518,7 @@ class bdist_rpm(Command):
         # rpm scripts
         # figure out default build script
         def_setup_call = f"{self.python} {os.path.basename(sys.argv[0])}"
-        def_build = "%s build" % def_setup_call
+        def_build = f"{def_setup_call} build"
         if self.use_rpm_opt_flags:
             def_build = 'env CFLAGS="$RPM_OPT_FLAGS" ' + def_build
 
@@ -533,9 +528,7 @@ class bdist_rpm(Command):
         # that we open and interpolate into the spec file, but the defaults
         # are just text that we drop in as-is.  Hmmm.
 
-        install_cmd = (
-            '%s install -O1 --root=$RPM_BUILD_ROOT ' '--record=INSTALLED_FILES'
-        ) % def_setup_call
+        install_cmd = f'{def_setup_call} install -O1 --root=$RPM_BUILD_ROOT --record=INSTALLED_FILES'
 
         script_options = [
             ('prep', 'prep_script', "%setup -n %{name}-%{unmangled_version}"),

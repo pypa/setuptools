@@ -12,9 +12,10 @@ IBM z/OS XL C/C++
 """
 
 import os
-from .unixccompiler import UnixCCompiler
+
 from . import sysconfig
-from .errors import DistutilsExecError, CompileError
+from .errors import CompileError, DistutilsExecError
+from .unixccompiler import UnixCCompiler
 
 _cc_args = {
     'ibm-openxl': [
@@ -134,7 +135,7 @@ class zOSCCompiler(UnixCCompiler):
 
         return zos_compilers.get(zos_compiler_names[0], 'ibm-openxl')
 
-    def __init__(self, verbose=0, dry_run=0, force=0):
+    def __init__(self, verbose=False, dry_run=False, force=False):
         super().__init__(verbose, dry_run, force)
         self.zos_compiler = self._get_zos_compiler_name()
         sysconfig.customize_compiler(self)
@@ -171,7 +172,7 @@ class zOSCCompiler(UnixCCompiler):
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,

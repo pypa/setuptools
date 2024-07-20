@@ -1,13 +1,12 @@
 """Tests for distutils.core."""
 
-import io
 import distutils.core
+import io
 import os
 import sys
+from distutils.dist import Distribution
 
 import pytest
-
-from distutils.dist import Distribution
 
 # setup script that uses __file__
 setup_using___file__ = """\
@@ -124,7 +123,7 @@ class TestCore:
         # this covers the code called when DEBUG is set
         sys.argv = ['setup.py', '--name']
         distutils.core.setup(name='bar')
-        capsys.readouterr().out == 'bar\n'
+        assert capsys.readouterr().out == 'bar\n'
         monkeypatch.setattr(distutils.core, 'DEBUG', True)
         distutils.core.setup(name='bar')
         wanted = "options (after parsing config files):\n"

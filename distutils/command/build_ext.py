@@ -8,24 +8,22 @@ import contextlib
 import os
 import re
 import sys
+from distutils._log import log
+from site import USER_BASE
+
+from .._modified import newer_group
 from ..core import Command
 from ..errors import (
-    DistutilsOptionError,
-    DistutilsSetupError,
     CCompilerError,
-    DistutilsError,
     CompileError,
+    DistutilsError,
+    DistutilsOptionError,
     DistutilsPlatformError,
+    DistutilsSetupError,
 )
-from ..sysconfig import customize_compiler, get_python_version
-from ..sysconfig import get_config_h_filename
-from .._modified import newer_group
 from ..extension import Extension
-from ..util import get_platform
-from distutils._log import log
-from . import py37compat
-
-from site import USER_BASE
+from ..sysconfig import customize_compiler, get_config_h_filename, get_python_version
+from ..util import get_platform, is_mingw
 
 # An extension name is just a dot-separated list of Python NAMEs (ie.
 # the same as a fully-qualified module name).
@@ -59,7 +57,7 @@ class build_ext(Command):
     #     takes care of both command-line and client options
     #     in between initialize_options() and finalize_options())
 
-    sep_by = " (separated by '%s')" % os.pathsep
+    sep_by = f" (separated by '{os.pathsep}')"
     user_options = [
         ('build-lib=', 'b', "directory for compiled extension modules"),
         ('build-temp=', 't', "directory for temporary files (build by-products)"),
@@ -67,13 +65,13 @@ class build_ext(Command):
             'plat-name=',
             'p',
             "platform name to cross-compile for, if supported "
-            "(default: %s)" % get_platform(),
+            f"[default: {get_platform()}]",
         ),
         (
             'inplace',
             'i',
             "ignore build-lib and put compiled extensions into the source "
-            + "directory alongside your pure Python modules",
+            "directory alongside your pure Python modules",
         ),
         (
             'include-dirs=',
@@ -111,7 +109,7 @@ class build_ext(Command):
         self.build_lib = None
         self.plat_name = None
         self.build_temp = None
-        self.inplace = 0
+        self.inplace = False
         self.package = None
 
         self.include_dirs = None
@@ -177,7 +175,7 @@ class build_ext(Command):
         # Make sure Python's include directories (for Python.h, pyconfig.h,
         # etc.) are in the include search path.
         py_include = sysconfig.get_python_inc()
-        plat_py_include = sysconfig.get_python_inc(plat_specific=1)
+        plat_py_include = sysconfig.get_python_inc(plat_specific=True)
         if self.include_dirs is None:
             self.include_dirs = self.distribution.include_dirs or []
         if isinstance(self.include_dirs, str):
@@ -214,7 +212,7 @@ class build_ext(Command):
         # for extensions under windows use different directories
         # for Release and Debug builds.
         # also Python's library directory must be appended to library_dirs
-        if os.name == 'nt':
+        if os.name == 'nt' and not is_mingw():
             # the 'libs' directory is for binary installs - we assume that
             # must be the *native* platform.  But we don't really support
             # cross-compiling via a binary install anyway, so we let it go.
@@ -428,9 +426,7 @@ class build_ext(Command):
             # Medium-easy stuff: same syntax/semantics, different names.
             ext.runtime_library_dirs = build_info.get('rpath')
             if 'def_file' in build_info:
-                log.warning(
-                    "'def_file' element of build info dict " "no longer supported"
-                )
+                log.warning("'def_file' element of build info dict no longer supported")
 
             # Non-trivial stuff: 'macros' split into 'define_macros'
             # and 'undef_macros'.
@@ -469,10 +465,7 @@ class build_ext(Command):
         # And build the list of output (built) filenames.  Note that this
         # ignores the 'inplace' flag, and assumes everything goes in the
         # "build" tree.
-        outputs = []
-        for ext in self.extensions:
-            outputs.append(self.get_ext_fullpath(ext.name))
-        return outputs
+        return [self.get_ext_fullpath(ext.name) for ext in self.extensions]
 
     def build_extensions(self):
         # First, sanity-check the 'extensions' list
@@ -521,9 +514,9 @@ class build_ext(Command):
         sources = ext.sources
         if sources is None or not isinstance(sources, (list, tuple)):
             raise DistutilsSetupError(
-                "in 'ext_modules' option (extension '%s'), "
+                f"in 'ext_modules' option (extension '{ext.name}'), "
                 "'sources' must be present and must be "
-                "a list of source filenames" % ext.name
+                "a list of source filenames"
             )
         # sort to make the resulting .so file build reproducible
         sources = sorted(sources)
@@ -667,7 +660,7 @@ class build_ext(Command):
             # Windows (or so I presume!).  If we find it there, great;
             # if not, act like Unix and assume it's in the PATH.
             for vers in ("1.3", "1.2", "1.1"):
-                fn = os.path.join("c:\\swig%s" % vers, "swig.exe")
+                fn = os.path.join(f"c:\\swig{vers}", "swig.exe")
                 if os.path.isfile(fn):
                     return fn
             else:
@@ -675,7 +668,7 @@ class build_ext(Command):
         else:
             raise DistutilsPlatformError(
                 "I don't know how to find (much less run) SWIG "
-                "on platform '%s'" % os.name
+                f"on platform '{os.name}'"
             )
 
     # -- Name generators -----------------------------------------------
@@ -758,7 +751,7 @@ class build_ext(Command):
         # pyconfig.h that MSVC groks.  The other Windows compilers all seem
         # to need it mentioned explicitly, though, so that's what we do.
         # Append '_d' to the python import library on debug builds.
-        if sys.platform == "win32":
+        if sys.platform == "win32" and not is_mingw():
             from .._msvccompiler import MSVCCompiler
 
             if not isinstance(self.compiler, MSVCCompiler):
@@ -788,7 +781,7 @@ class build_ext(Command):
                 # A native build on an Android device or on Cygwin
                 if hasattr(sys, 'getandroidapilevel'):
                     link_libpython = True
-                elif sys.platform == 'cygwin':
+                elif sys.platform == 'cygwin' or is_mingw():
                     link_libpython = True
                 elif '_PYTHON_HOST_PLATFORM' in os.environ:
                     # We are cross-compiling for one of the relevant platforms
@@ -801,4 +794,4 @@ class build_ext(Command):
                 ldversion = get_config_var('LDVERSION')
                 return ext.libraries + ['python' + ldversion]
 
-        return ext.libraries + py37compat.pythonlib()
+        return ext.libraries
