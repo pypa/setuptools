@@ -1,8 +1,8 @@
 """Tests for distutils.extension."""
 
 import os
+import pathlib
 import warnings
-from pathlib import Path
 
 from distutils.extension import Extension, read_setup_file
 
@@ -77,7 +77,7 @@ class TestExtension:
             Extension('name', ['file', 1])
         ext = Extension('name', ['file1', 'file2'])
         assert ext.sources == ['file1', 'file2']
-        ext = Extension('name', [Path('file1'), Path('file2')])
+        ext = Extension('name', [pathlib.Path('file1'), pathlib.Path('file2')])
         assert ext.sources == ['file1', 'file2']
 
         # others arguments have defaults
