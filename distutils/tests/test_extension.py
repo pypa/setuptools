@@ -4,10 +4,11 @@ import os
 import warnings
 from pathlib import Path
 
-from distutils.extension import read_setup_file, Extension
+from distutils.extension import Extension, read_setup_file
 
-from .py38compat import check_warnings
 import pytest
+
+from .compat.py38 import check_warnings
 
 
 class TestExtension:

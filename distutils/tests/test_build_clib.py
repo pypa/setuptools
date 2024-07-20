@@ -1,12 +1,11 @@
 """Tests for distutils.command.build_clib."""
 
 import os
-
-import pytest
-
 from distutils.command.build_clib import build_clib
 from distutils.errors import DistutilsSetupError
-from distutils.tests import support, missing_compiler_executable
+from distutils.tests import missing_compiler_executable, support
+
+import pytest
 
 
 class TestBuildCLib(support.TempdirManager):
@@ -126,7 +125,7 @@ class TestBuildCLib(support.TempdirManager):
         # all commands are present on the system.
         ccmd = missing_compiler_executable()
         if ccmd is not None:
-            self.skipTest('The %r command is not found' % ccmd)
+            self.skipTest(f'The {ccmd!r} command is not found')
 
         # this should work
         cmd.run()

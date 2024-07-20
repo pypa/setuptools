@@ -1,32 +1,31 @@
 """Tests for distutils.util."""
 
 import email
-import email.policy
 import email.generator
+import email.policy
 import io
 import os
+import pathlib
 import sys
 import sysconfig as stdlib_sysconfig
 import unittest.mock as mock
 from copy import copy
-
-import pytest
-
+from distutils import sysconfig, util
+from distutils.errors import DistutilsByteCompileError, DistutilsPlatformError
 from distutils.util import (
-    get_platform,
-    convert_path,
+    byte_compile,
     change_root,
     check_environ,
+    convert_path,
+    get_host_platform,
+    get_platform,
+    grok_environment_error,
+    rfc822_escape,
     split_quoted,
     strtobool,
-    rfc822_escape,
-    byte_compile,
-    grok_environment_error,
-    get_host_platform,
 )
-from distutils import util
-from distutils import sysconfig
-from distutils.errors import DistutilsPlatformError, DistutilsByteCompileError
+
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -65,30 +64,9 @@ class TestUtil:
                 assert get_platform() == 'win-arm64'
 
     def test_convert_path(self):
-        # linux/mac
-        os.sep = '/'
-
-        def _join(path):
-            return '/'.join(path)
-
-        os.path.join = _join
-
-        assert convert_path('/home/to/my/stuff') == '/home/to/my/stuff'
-
-        # win
-        os.sep = '\\'
-
-        def _join(*path):
-            return '\\'.join(path)
-
-        os.path.join = _join
-
-        with pytest.raises(ValueError):
-            convert_path('/home/to/my/stuff')
-        with pytest.raises(ValueError):
-            convert_path('home/to/my/stuff/')
-
-        assert convert_path('home/to/my/stuff') == 'home\\to\\my\\stuff'
+        expected = os.sep.join(('', 'home', 'to', 'my', 'stuff'))
+        assert convert_path('/home/to/my/stuff') == expected
+        assert convert_path(pathlib.Path('/home/to/my/stuff')) == expected
         assert convert_path('.') == os.curdir
 
     def test_change_root(self):
@@ -110,6 +88,7 @@ class TestUtil:
 
         # windows
         os.name = 'nt'
+        os.sep = '\\'
 
         def _isabs(path):
             return path.startswith('c:\\')
@@ -259,6 +238,6 @@ class TestUtil:
 
     def test_grok_environment_error(self):
         # test obsolete function to ensure backward compat (#4931)
-        exc = IOError("Unable to find batch file")
+        exc = OSError("Unable to find batch file")
         msg = grok_environment_error(exc)
         assert msg == "error: Unable to find batch file"

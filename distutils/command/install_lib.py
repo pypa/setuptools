@@ -3,13 +3,12 @@
 Implements the Distutils 'install_lib' command
 (install all Python modules)."""
 
-import os
 import importlib.util
+import os
 import sys
 
 from ..core import Command
 from ..errors import DistutilsOptionError
-
 
 # Extension for Python source files.
 PYTHON_SOURCE_EXTENSION = ".py"
@@ -55,7 +54,7 @@ class install_lib(Command):
         # let the 'install' command dictate our installation directory
         self.install_dir = None
         self.build_dir = None
-        self.force = 0
+        self.force = False
         self.compile = None
         self.optimize = None
         self.skip_build = None
@@ -115,7 +114,7 @@ class install_lib(Command):
             outfiles = self.copy_tree(self.build_dir, self.install_dir)
         else:
             self.warn(
-                "'%s' does not exist -- no Python modules to install" % self.build_dir
+                f"'{self.build_dir}' does not exist -- no Python modules to install"
             )
             return
         return outfiles
@@ -162,9 +161,7 @@ class install_lib(Command):
         build_dir = getattr(build_cmd, cmd_option)
 
         prefix_len = len(build_dir) + len(os.sep)
-        outputs = []
-        for file in build_files:
-            outputs.append(os.path.join(output_dir, file[prefix_len:]))
+        outputs = [os.path.join(output_dir, file[prefix_len:]) for file in build_files]
 
         return outputs
 

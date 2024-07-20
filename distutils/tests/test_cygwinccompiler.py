@@ -1,19 +1,18 @@
 """Tests for distutils.cygwinccompiler."""
 
-import sys
 import os
-
-import pytest
-
+import sys
+from distutils import sysconfig
 from distutils.cygwinccompiler import (
-    check_config_h,
-    CONFIG_H_OK,
     CONFIG_H_NOTOK,
+    CONFIG_H_OK,
     CONFIG_H_UNCERTAIN,
+    check_config_h,
     get_msvcr,
 )
 from distutils.tests import support
-from distutils import sysconfig
+
+import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -72,34 +71,34 @@ class TestCygwinCCompiler(support.TempdirManager):
         assert check_config_h()[0] == CONFIG_H_OK
 
     def test_get_msvcr(self):
-        # none
+        # []
         sys.version = (
             '2.6.1 (r261:67515, Dec  6 2008, 16:42:21) '
             '\n[GCC 4.0.1 (Apple Computer, Inc. build 5370)]'
         )
-        assert get_msvcr() is None
+        assert get_msvcr() == []
 
         # MSVC 7.0
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.1300 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.1300 32 bits (Intel)]'
         )
         assert get_msvcr() == ['msvcr70']
 
         # MSVC 7.1
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.1310 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.1310 32 bits (Intel)]'
         )
         assert get_msvcr() == ['msvcr71']
 
         # VS2005 / MSVC 8.0
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.1400 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.1400 32 bits (Intel)]'
         )
         assert get_msvcr() == ['msvcr80']
 
         # VS2008 / MSVC 9.0
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.1500 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.1500 32 bits (Intel)]'
         )
         assert get_msvcr() == ['msvcr90']
 
@@ -111,7 +110,14 @@ class TestCygwinCCompiler(support.TempdirManager):
 
         # unknown
         sys.version = (
-            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) ' '[MSC v.2000 32 bits (Intel)]'
+            '2.5.1 (r251:54863, Apr 18 2007, 08:51:08) [MSC v.2000 32 bits (Intel)]'
         )
         with pytest.raises(ValueError):
             get_msvcr()
+
+    @pytest.mark.skipif('sys.platform != "cygwin"')
+    def test_dll_libraries_not_none(self):
+        from distutils.cygwinccompiler import CygwinCCompiler
+
+        compiler = CygwinCCompiler()
+        assert compiler.dll_libraries is not None

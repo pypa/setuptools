@@ -2,27 +2,26 @@
 
 import os
 import pathlib
+import shutil  # noqa: F401
 import tarfile
 import warnings
 import zipfile
-from os.path import join
-from textwrap import dedent
-from .unix_compat import require_unix_id, require_uid_0, pwd, grp
-
-import pytest
-import path
-import jaraco.path
-from more_itertools import ilen
-
-from .py38compat import check_warnings
-
+from distutils.archive_util import ARCHIVE_FORMATS
 from distutils.command.sdist import sdist, show_formats
 from distutils.core import Distribution
-from distutils.tests.test_config import BasePyPIRCCommandTestCase
 from distutils.errors import DistutilsOptionError
-from distutils.spawn import find_executable  # noqa: F401
 from distutils.filelist import FileList
-from distutils.archive_util import ARCHIVE_FORMATS
+from distutils.tests.test_config import BasePyPIRCCommandTestCase
+from os.path import join
+from textwrap import dedent
+
+import jaraco.path
+import path
+import pytest
+from more_itertools import ilen
+
+from .compat.py38 import check_warnings
+from .unix_compat import grp, pwd, require_uid_0, require_unix_id
 
 SETUP_PY = """
 from distutils.core import setup
@@ -74,7 +73,7 @@ class TestSDist(BasePyPIRCCommandTestCase):
         """Returns a cmd"""
         if metadata is None:
             metadata = {
-                'name': 'fake',
+                'name': 'ns.fake--pkg',
                 'version': '1.0',
                 'url': 'xxx',
                 'author': 'xxx',
@@ -118,9 +117,9 @@ class TestSDist(BasePyPIRCCommandTestCase):
         # now let's check what we have
         dist_folder = join(self.tmp_dir, 'dist')
         files = os.listdir(dist_folder)
-        assert files == ['fake-1.0.zip']
+        assert files == ['ns_fake_pkg-1.0.zip']
 
-        zip_file = zipfile.ZipFile(join(dist_folder, 'fake-1.0.zip'))
+        zip_file = zipfile.ZipFile(join(dist_folder, 'ns_fake_pkg-1.0.zip'))
         try:
             content = zip_file.namelist()
         finally:
@@ -135,11 +134,11 @@ class TestSDist(BasePyPIRCCommandTestCase):
             'somecode/',
             'somecode/__init__.py',
         ]
-        assert sorted(content) == ['fake-1.0/' + x for x in expected]
+        assert sorted(content) == ['ns_fake_pkg-1.0/' + x for x in expected]
 
     @pytest.mark.usefixtures('needs_zlib')
-    @pytest.mark.skipif("not find_executable('tar')")
-    @pytest.mark.skipif("not find_executable('gzip')")
+    @pytest.mark.skipif("not shutil.which('tar')")
+    @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
@@ -153,10 +152,10 @@ class TestSDist(BasePyPIRCCommandTestCase):
         dist_folder = join(self.tmp_dir, 'dist')
         result = os.listdir(dist_folder)
         result.sort()
-        assert result == ['fake-1.0.tar', 'fake-1.0.tar.gz']
+        assert result == ['ns_fake_pkg-1.0.tar', 'ns_fake_pkg-1.0.tar.gz']
 
-        os.remove(join(dist_folder, 'fake-1.0.tar'))
-        os.remove(join(dist_folder, 'fake-1.0.tar.gz'))
+        os.remove(join(dist_folder, 'ns_fake_pkg-1.0.tar'))
+        os.remove(join(dist_folder, 'ns_fake_pkg-1.0.tar.gz'))
 
         # now trying a tar then a gztar
         cmd.formats = ['tar', 'gztar']
@@ -166,7 +165,7 @@ class TestSDist(BasePyPIRCCommandTestCase):
 
         result = os.listdir(dist_folder)
         result.sort()
-        assert result == ['fake-1.0.tar', 'fake-1.0.tar.gz']
+        assert result == ['ns_fake_pkg-1.0.tar', 'ns_fake_pkg-1.0.tar.gz']
 
     @pytest.mark.usefixtures('needs_zlib')
     def test_add_defaults(self):
@@ -219,9 +218,9 @@ class TestSDist(BasePyPIRCCommandTestCase):
         # now let's check what we have
         dist_folder = join(self.tmp_dir, 'dist')
         files = os.listdir(dist_folder)
-        assert files == ['fake-1.0.zip']
+        assert files == ['ns_fake_pkg-1.0.zip']
 
-        zip_file = zipfile.ZipFile(join(dist_folder, 'fake-1.0.zip'))
+        zip_file = zipfile.ZipFile(join(dist_folder, 'ns_fake_pkg-1.0.zip'))
         try:
             content = zip_file.namelist()
         finally:
@@ -247,7 +246,7 @@ class TestSDist(BasePyPIRCCommandTestCase):
             'somecode/doc.dat',
             'somecode/doc.txt',
         ]
-        assert sorted(content) == ['fake-1.0/' + x for x in expected]
+        assert sorted(content) == ['ns_fake_pkg-1.0/' + x for x in expected]
 
         # checking the MANIFEST
         manifest = pathlib.Path(self.tmp_dir, 'MANIFEST').read_text(encoding='utf-8')
@@ -420,23 +419,23 @@ class TestSDist(BasePyPIRCCommandTestCase):
 
         assert list(clean_lines(cmd.manifest)) == ['README.manual']
 
-        archive_name = join(self.tmp_dir, 'dist', 'fake-1.0.tar.gz')
+        archive_name = join(self.tmp_dir, 'dist', 'ns_fake_pkg-1.0.tar.gz')
         archive = tarfile.open(archive_name)
         try:
             filenames = [tarinfo.name for tarinfo in archive]
         finally:
             archive.close()
         assert sorted(filenames) == [
-            'fake-1.0',
-            'fake-1.0/PKG-INFO',
-            'fake-1.0/README.manual',
+            'ns_fake_pkg-1.0',
+            'ns_fake_pkg-1.0/PKG-INFO',
+            'ns_fake_pkg-1.0/README.manual',
         ]
 
     @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id
     @require_uid_0
-    @pytest.mark.skipif("not find_executable('tar')")
-    @pytest.mark.skipif("not find_executable('gzip')")
+    @pytest.mark.skipif("not shutil.which('tar')")
+    @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution_owner_group(self):
         # now building a sdist
         dist, cmd = self.get_cmd()
@@ -449,7 +448,7 @@ class TestSDist(BasePyPIRCCommandTestCase):
         cmd.run()
 
         # making sure we have the good rights
-        archive_name = join(self.tmp_dir, 'dist', 'fake-1.0.tar.gz')
+        archive_name = join(self.tmp_dir, 'dist', 'ns_fake_pkg-1.0.tar.gz')
         archive = tarfile.open(archive_name)
         try:
             for member in archive.getmembers():
@@ -467,7 +466,7 @@ class TestSDist(BasePyPIRCCommandTestCase):
         cmd.run()
 
         # making sure we have the good rights
-        archive_name = join(self.tmp_dir, 'dist', 'fake-1.0.tar.gz')
+        archive_name = join(self.tmp_dir, 'dist', 'ns_fake_pkg-1.0.tar.gz')
         archive = tarfile.open(archive_name)
 
         # note that we are not testing the group ownership here

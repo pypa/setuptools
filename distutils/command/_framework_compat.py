@@ -2,10 +2,10 @@
 Backward compatibility for homebrew builds on macOS.
 """
 
-import sys
-import os
 import functools
+import os
 import subprocess
+import sys
 import sysconfig
 
 

@@ -1,24 +1,21 @@
 """Tests for distutils.dist."""
 
-import os
-import io
 import email
-import email.policy
 import email.generator
-import sys
-import warnings
-import textwrap
+import email.policy
 import functools
+import io
+import os
+import sys
+import textwrap
 import unittest.mock as mock
-
-import pytest
-import jaraco.path
-
-from distutils.dist import Distribution, fix_help_options
+import warnings
 from distutils.cmd import Command
-
+from distutils.dist import Distribution, fix_help_options
 from distutils.tests import support
 
+import jaraco.path
+import pytest
 
 pydistutils_cfg = '.' * (os.name == 'posix') + 'pydistutils.cfg'
 
@@ -257,7 +254,7 @@ class TestDistributionBehavior(support.TempdirManager):
         """
         Finding config files should not fail when directory is inaccessible.
         """
-        fake_home.joinpath(pydistutils_cfg).write_text('')
+        fake_home.joinpath(pydistutils_cfg).write_text('', encoding='utf-8')
         fake_home.chmod(0o000)
         Distribution().find_config_files()
 
@@ -471,7 +468,7 @@ class TestMetadata(support.TempdirManager):
         # smoke test, just makes sure some help is displayed
         dist = Distribution()
         sys.argv = []
-        dist.help = 1
+        dist.help = True
         dist.script_name = 'setup.py'
         dist.parse_command_line()
 

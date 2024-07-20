@@ -13,18 +13,21 @@ the "typical" Unix-style command-line C compiler:
   * link shared library handled by 'cc -shared'
 """
 
+from __future__ import annotations
+
+import itertools
 import os
-import sys
 import re
 import shlex
-import itertools
+import sys
 
 from . import sysconfig
-from ._modified import newer
-from .ccompiler import CCompiler, gen_preprocess_options, gen_lib_options
-from .errors import DistutilsExecError, CompileError, LibError, LinkError
 from ._log import log
 from ._macos_compat import compiler_fixup
+from ._modified import newer
+from .ccompiler import CCompiler, gen_lib_options, gen_preprocess_options
+from .compat import consolidate_linker_args
+from .errors import CompileError, DistutilsExecError, LibError, LinkError
 
 # XXX Things not currently handled:
 #   * optimization/debug/warning flags; we just use whatever's in Python's
@@ -141,6 +144,9 @@ class UnixCCompiler(CCompiler):
     xcode_stub_lib_format = dylib_lib_format
     if sys.platform == "cygwin":
         exe_extension = ".exe"
+        shared_lib_extension = ".dll.a"
+        dylib_lib_extension = ".dll"
+        dylib_lib_format = "cyg%s%s"
 
     def preprocess(
         self,
@@ -187,7 +193,7 @@ class UnixCCompiler(CCompiler):
             raise CompileError(msg)
 
     def create_static_lib(
-        self, objects, output_libname, output_dir=None, debug=0, target_lang=None
+        self, objects, output_libname, output_dir=None, debug=False, target_lang=None
     ):
         objects, output_dir = self._fix_object_args(objects, output_dir)
 
@@ -220,7 +226,7 @@ class UnixCCompiler(CCompiler):
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=0,
+        debug=False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -281,7 +287,7 @@ class UnixCCompiler(CCompiler):
         compiler = os.path.basename(shlex.split(cc_var)[0])
         return "gcc" in compiler or "g++" in compiler
 
-    def runtime_library_dir_option(self, dir):
+    def runtime_library_dir_option(self, dir: str) -> str | list[str]:
         # XXX Hackish, at the very least.  See Python bug #445902:
         # https://bugs.python.org/issue445902
         # Linkers on different platforms need different options to
@@ -313,11 +319,11 @@ class UnixCCompiler(CCompiler):
         # For all compilers, `-Wl` is the presumed way to pass a
         # compiler option to the linker
         if sysconfig.get_config_var("GNULD") == "yes":
-            return [
+            return consolidate_linker_args([
                 # Force RUNPATH instead of RPATH
                 "-Wl,--enable-new-dtags",
                 "-Wl,-rpath," + dir,
-            ]
+            ])
         else:
             return "-Wl,-R" + dir
 
@@ -359,28 +365,12 @@ class UnixCCompiler(CCompiler):
 
         return os.path.join(match.group(1), dir[1:]) if apply_root else dir
 
-    def find_library_file(self, dirs, lib, debug=0):
-        r"""
+    def find_library_file(self, dirs, lib, debug=False):
+        """
         Second-guess the linker with not much hard
         data to go on: GCC seems to prefer the shared library, so
         assume that *all* Unix C compilers do,
         ignoring even GCC's "-static" option.
-
-        >>> compiler = UnixCCompiler()
-        >>> compiler._library_root = lambda dir: dir
-        >>> monkeypatch = getfixture('monkeypatch')
-        >>> monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
-        >>> dirs = ('/foo/bar/missing', '/foo/bar/existing')
-        >>> compiler.find_library_file(dirs, 'abc').replace('\\', '/')
-        '/foo/bar/existing/libabc.dylib'
-        >>> compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
-        '/foo/bar/existing/libabc.dylib'
-        >>> monkeypatch.setattr(os.path, 'exists',
-        ...     lambda d: 'existing' in d and '.a' in d)
-        >>> compiler.find_library_file(dirs, 'abc').replace('\\', '/')
-        '/foo/bar/existing/libabc.a'
-        >>> compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
-        '/foo/bar/existing/libabc.a'
         """
         lib_names = (
             self.library_filename(lib, lib_type=type)
@@ -389,10 +379,7 @@ class UnixCCompiler(CCompiler):
 
         roots = map(self._library_root, dirs)
 
-        searched = (
-            os.path.join(root, lib_name)
-            for root, lib_name in itertools.product(roots, lib_names)
-        )
+        searched = itertools.starmap(os.path.join, itertools.product(roots, lib_names))
 
         found = filter(os.path.exists, searched)
 

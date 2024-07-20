@@ -1,12 +1,11 @@
-import os
-import sys
-import platform
-import pathlib
 import logging
+import os
+import pathlib
+import platform
+import sys
 
-import pytest
 import path
-
+import pytest
 
 collect_ignore = []
 
@@ -15,6 +14,11 @@ if platform.system() != 'Windows':
     collect_ignore.extend([
         'distutils/msvc9compiler.py',
     ])
+
+
+collect_ignore_glob = [
+    'distutils/_vendor/**/*',
+]
 
 
 @pytest.fixture
@@ -57,7 +61,7 @@ def _save_cwd():
 
 @pytest.fixture
 def distutils_managed_tempdir(request):
-    from distutils.tests import py38compat as os_helper
+    from distutils.tests.compat import py38 as os_helper
 
     self = request.instance
     self.tempdirs = []
@@ -93,8 +97,7 @@ def temp_cwd(tmp_path):
 
 @pytest.fixture
 def pypirc(request, save_env, distutils_managed_tempdir):
-    from distutils.core import PyPIRCCommand
-    from distutils.core import Distribution
+    from distutils.core import Distribution, PyPIRCCommand
 
     self = request.instance
     self.tmp_dir = self.mkdtemp()
