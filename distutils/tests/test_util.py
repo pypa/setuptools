@@ -63,16 +63,10 @@ class TestUtil:
             with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm64'}):
                 assert get_platform() == 'win-arm64'
 
-    @pytest.mark.skipif('platform.system() == "Windows"')
-    def test_convert_path_unix(self):
-        assert convert_path('/home/to/my/stuff') == '/home/to/my/stuff'
-        assert convert_path(pathlib.Path('/home/to/my/stuff')) == '/home/to/my/stuff'
-        assert convert_path('.') == os.curdir
-
-    @pytest.mark.skipif('platform.system() != "Windows"')
-    def test_convert_path_windows(self):
-        assert convert_path('/home/to/my/stuff') == r'\home\to\my\stuff'
-        assert convert_path(pathlib.Path('/home/to/my/stuff')) == r'\home\to\my\stuff'
+    def test_convert_path(self):
+        expected = os.sep.join(('', 'home', 'to', 'my', 'stuff'))
+        assert convert_path('/home/to/my/stuff') == expected
+        assert convert_path(pathlib.Path('/home/to/my/stuff')) == expected
         assert convert_path('.') == os.curdir
 
     def test_change_root(self):
