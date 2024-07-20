@@ -1,6 +1,5 @@
 import sys
-
-import pytest
+import os.path
 
 
 pytest_plugins = 'setuptools.tests.fixtures'
@@ -21,7 +20,22 @@ def pytest_addoption(parser):
     )
 
 
+def mypy_error_formatter_show_filename(item, results, errors):
+    """Include the file path before each reported error.
+
+    Taken from https://github.com/realpython/pytest-mypy/pull/93"""
+    return '\n'.join(
+        '{path}:{error}'.format(
+            path=os.path.relpath(".", item.fspath),
+            error=error,
+        )
+        for error in errors
+    )
+
+
 def pytest_configure(config):
+    mypy_plugin = config.pluginmanager.getplugin('mypy')
+    mypy_plugin.file_error_formatter = mypy_error_formatter_show_filename
     config.addinivalue_line("markers", "integration: integration tests")
     config.addinivalue_line("markers", "uses_network: tests may try to download files")
     _IntegrationTestSpeedups.disable_plugins_already_run(config)
