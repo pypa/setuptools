@@ -4,10 +4,8 @@ import email
 import email.generator
 import email.policy
 import io
-import ntpath
 import os
 import pathlib
-import posixpath
 import sys
 import sysconfig as stdlib_sysconfig
 import unittest.mock as mock
@@ -65,17 +63,13 @@ class TestUtil:
             with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm64'}):
                 assert get_platform() == 'win-arm64'
 
+    @pytest.mark.skipif('platform.system() == "Windows"')
     def test_convert_path_unix(self):
-        os.sep = '/'
-        os.path.join = posixpath.join
-
         assert convert_path('/home/to/my/stuff') == '/home/to/my/stuff'
         assert convert_path(pathlib.Path('/home/to/my/stuff')) == '/home/to/my/stuff'
 
+    @pytest.mark.skipif('platform.system() != "Windows"')
     def test_convert_path_windows(self):
-        os.sep = '\\'
-        os.path.join = ntpath.join
-
         assert convert_path('home/to/my/stuff') == 'home\\to\\my\\stuff'
         assert convert_path(pathlib.Path('home/to/my/stuff')) == 'home\\to\\my\\stuff'
         assert convert_path('.') == os.curdir

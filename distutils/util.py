@@ -122,43 +122,21 @@ def split_version(s):
 
 @pass_none
 def convert_path(pathname: str | os.PathLike) -> str:
-    """
-    Allow for pathlib.Path inputs, coax to posix, and then make native.
+    r"""
+    Allow for pathlib.Path inputs, coax to a native path string.
 
     If None is passed, will just pass it through as
     Setuptools relies on this behavior.
 
     >>> convert_path(None) is None
     True
+
+    Removes empty paths.
+
+    >>> convert_path('foo/./bar').replace('\\', '/')
+    'foo/bar'
     """
-    # Use .as_posix() to retain forward slashes on Windows
-    # see https://github.com/pypa/distutils/pull/272#issuecomment-2240100013
-    return make_native(pathlib.Path(pathname).as_posix())
-
-
-def make_native(pathname: str) -> str:
-    """Return 'pathname' as a name that will work on the native filesystem,
-    i.e. split it on '/' and put it back together again using the current
-    directory separator.  Needed because filenames in the setup script are
-    always supplied in Unix style, and have to be converted to the local
-    convention before we can actually use them in the filesystem.  Raises
-    ValueError on non-Unix-ish systems if 'pathname' either starts or
-    ends with a slash.
-    """
-    if os.sep == '/':
-        return pathname
-    if not pathname:
-        return pathname
-
-    paths = pathname.split('/')
-    while '.' in paths:
-        paths.remove('.')
-    if not paths:
-        return os.curdir
-    return os.path.join(*paths)
-
-
-# convert_path ()
+    return os.fspath(pathlib.PurePath(pathname))
 
 
 def change_root(new_root, pathname):
