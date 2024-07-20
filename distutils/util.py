@@ -149,8 +149,6 @@ def make_native(pathname: str) -> str:
         return pathname
     if not pathname:
         return pathname
-    if pathname[0] == '/':
-        raise ValueError(f"path '{pathname}' cannot be absolute")
 
     paths = pathname.split('/')
     while '.' in paths:
