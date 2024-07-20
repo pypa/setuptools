@@ -67,11 +67,12 @@ class TestUtil:
     def test_convert_path_unix(self):
         assert convert_path('/home/to/my/stuff') == '/home/to/my/stuff'
         assert convert_path(pathlib.Path('/home/to/my/stuff')) == '/home/to/my/stuff'
+        assert convert_path('.') == os.curdir
 
     @pytest.mark.skipif('platform.system() != "Windows"')
     def test_convert_path_windows(self):
-        assert convert_path('home/to/my/stuff') == 'home\\to\\my\\stuff'
-        assert convert_path(pathlib.Path('home/to/my/stuff')) == 'home\\to\\my\\stuff'
+        assert convert_path('/home/to/my/stuff') == r'\home\to\my\stuff'
+        assert convert_path(pathlib.Path('/home/to/my/stuff')) == r'\home\to\my\stuff'
         assert convert_path('.') == os.curdir
 
     def test_change_root(self):
