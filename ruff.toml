@@ -7,6 +7,7 @@ exclude = [
 [lint]
 extend-select = [
 	"C901",
+	"PERF401",
 	"W",
 
 	# local
@@ -51,12 +52,16 @@ ignore = [
 # Only enforcing return type annotations for public modules
 "**/tests/**" = ["ANN2"]
 "tools/**" = ["ANN2"]
+# Suppress nuisance warnings about module-import-not-at-top-of-file (E402) due to workaround for #4476
+"setuptools/__init__.py" = ["E402"]
+"pkg_resources/__init__.py" = ["E402"]
 
 [lint.flake8-annotations]
 ignore-fully-untyped = true
 
 [format]
-# Enable preview to get hugged parenthesis unwrapping
+# Enable preview to get hugged parenthesis unwrapping and other nice surprises
+# See https://github.com/jaraco/skeleton/pull/133#issuecomment-2239538373
 preview = true
-# https://docs.astral.sh/ruff/settings/#format-quote-style
+# https://docs.astral.sh/ruff/settings/#format_quote-style
 quote-style = "preserve"

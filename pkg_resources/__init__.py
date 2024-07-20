@@ -76,6 +76,8 @@ from pkgutil import get_importer
 import _imp
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
+# workaround for #4476
+sys.modules.pop('backports', None)
 
 # capture these to bypass sandboxing
 from os import utime
@@ -103,7 +105,7 @@ from packaging import version as _packaging_version
 from platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
-    from _typeshed import StrPath, BytesPath, StrOrBytesPath
+    from _typeshed import BytesPath, StrPath, StrOrBytesPath
     from typing_extensions import Self
 
 warnings.warn(
@@ -2647,6 +2649,7 @@ if TYPE_CHECKING:
     @overload
     def _normalize_cached(filename: BytesPath) -> bytes: ...
     def _normalize_cached(filename: StrOrBytesPath) -> str | bytes: ...
+
 else:
 
     @functools.lru_cache(maxsize=None)
