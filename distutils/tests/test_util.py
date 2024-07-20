@@ -65,15 +65,14 @@ class TestUtil:
             with mock.patch.dict('os.environ', {'VSCMD_ARG_TGT_ARCH': 'arm64'}):
                 assert get_platform() == 'win-arm64'
 
-    def test_convert_path(self):
-        # linux/mac
+    def test_convert_path_unix(self):
         os.sep = '/'
         os.path.join = posixpath.join
 
         assert convert_path('/home/to/my/stuff') == '/home/to/my/stuff'
         assert convert_path(pathlib.Path('/home/to/my/stuff')) == '/home/to/my/stuff'
 
-        # win
+    def test_convert_path_windows(self):
         os.sep = '\\'
         os.path.join = ntpath.join
 
