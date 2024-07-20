@@ -1,5 +1,7 @@
 """wheel tests"""
 
+from __future__ import annotations
+
 from distutils.sysconfig import get_config_var
 from distutils.util import get_platform
 import contextlib
@@ -11,6 +13,7 @@ import os
 import shutil
 import subprocess
 import sys
+from typing import Any
 import zipfile
 
 import pytest
@@ -176,7 +179,10 @@ class Record:
         return '%s(**%r)' % (self._id, self._fields)
 
 
-WHEEL_INSTALL_TESTS = (
+# Using Any to avoid possible type union issues later in test
+# making a TypedDict is not worth in a test and anonymous/inline TypedDict are experimental
+# https://github.com/python/mypy/issues/9884
+WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
     dict(
         id='basic',
         file_defs={'foo': {'__init__.py': ''}},
@@ -547,7 +553,7 @@ WHEEL_INSTALL_TESTS = (
 @pytest.mark.parametrize(
     'params',
     WHEEL_INSTALL_TESTS,
-    ids=list(params['id'] for params in WHEEL_INSTALL_TESTS),
+    ids=[params['id'] for params in WHEEL_INSTALL_TESTS],
 )
 def test_wheel_install(params):
     project_name = params.get('name', 'foo')
