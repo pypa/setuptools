@@ -443,8 +443,7 @@ class _LinkTree(_StaticPth):
     ):
         self.auxiliary_dir = Path(auxiliary_dir)
         self.build_lib = Path(build_lib).resolve()
-        # TODO: Update typeshed distutils stubs to overload non-None return type by default
-        self._file = dist.get_command_obj("build_py").copy_file  # type: ignore[union-attr]
+        self._file = dist.get_command_obj("build_py").copy_file
         super().__init__(dist, name, [self.auxiliary_dir])
 
     def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
@@ -462,9 +461,7 @@ class _LinkTree(_StaticPth):
         dest = self.auxiliary_dir / relative_output
         if not dest.parent.is_dir():
             dest.parent.mkdir(parents=True)
-        # TODO: Update typeshed distutils stubs so distutils.cmd.Command.copy_file, accepts PathLike
-        # same with methods used by copy_file
-        self._file(src_file, dest, link=link)  # type: ignore[arg-type]
+        self._file(src_file, dest, link=link)
 
     def _create_links(self, outputs, output_mapping):
         self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
