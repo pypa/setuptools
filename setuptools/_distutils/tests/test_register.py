@@ -137,7 +137,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
 
         register_module.input = _no_way
 
-        cmd.show_response = 1
+        cmd.show_response = True
         cmd.run()
 
         # let's see what the server received : we should
@@ -208,7 +208,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
         # empty metadata
         cmd = self._get_cmd({})
         cmd.ensure_finalized()
-        cmd.strict = 1
+        cmd.strict = True
         with pytest.raises(DistutilsSetupError):
             cmd.run()
 
@@ -224,7 +224,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
 
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
-        cmd.strict = 1
+        cmd.strict = True
         with pytest.raises(DistutilsSetupError):
             cmd.run()
 
@@ -232,7 +232,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
         metadata['long_description'] = 'title\n=====\n\ntext'
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
-        cmd.strict = 1
+        cmd.strict = True
         inputs = Inputs('1', 'tarek', 'y')
         register_module.input = inputs.__call__
         # let's run the command
@@ -265,7 +265,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
 
         cmd = self._get_cmd(metadata)
         cmd.ensure_finalized()
-        cmd.strict = 1
+        cmd.strict = True
         inputs = Inputs('1', 'tarek', 'y')
         register_module.input = inputs.__call__
         # let's run the command
@@ -296,7 +296,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
 
     def test_list_classifiers(self, caplog):
         cmd = self._get_cmd()
-        cmd.list_classifiers = 1
+        cmd.list_classifiers = True
         cmd.run()
         assert caplog.messages == ['running check', 'xxx']
 
@@ -305,7 +305,7 @@ class TestRegister(BasePyPIRCCommandTestCase):
         cmd = self._get_cmd()
         inputs = Inputs('1', 'tarek', 'y')
         register_module.input = inputs.__call__
-        cmd.show_response = 1
+        cmd.show_response = True
         try:
             cmd.run()
         finally:

@@ -7,16 +7,20 @@ exclude = [
 [lint]
 extend-select = [
 	"C901",
+	"PERF401",
 	"W",
 
 	# local
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
-  "PYI", # flake8-pyi
+	"PYI", # flake8-pyi
 	"UP", # pyupgrade
+	"TRY",
 	"YTT", # flake8-2020
 ]
 ignore = [
+	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
+	"TRY301", # raise-within-try, it's handy
 	"UP015", # redundant-open-modes, explicit is preferred
 	"UP030", # temporarily disabled
 	"UP031", # temporarily disabled
@@ -40,12 +44,14 @@ ignore = [
 	"ISC002",
 ]
 
+# Suppress nuisance warnings about E402 due to workaround for #4476
 [lint.per-file-ignores]
-# Auto-generated code
-"setuptools/config/_validate_pyproject/*" = ["FA100"]
+"setuptools/__init__.py" = ["E402"]
+"pkg_resources/__init__.py" = ["E402"]
 
 [format]
-# Enable preview to get hugged parenthesis unwrapping
+# Enable preview to get hugged parenthesis unwrapping and other nice surprises
+# See https://github.com/jaraco/skeleton/pull/133#issuecomment-2239538373
 preview = true
-# https://docs.astral.sh/ruff/settings/#format-quote-style
+# https://docs.astral.sh/ruff/settings/#format_quote-style
 quote-style = "preserve"

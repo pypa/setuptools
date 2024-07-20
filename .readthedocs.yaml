@@ -3,7 +3,7 @@ python:
   install:
   - path: .
     extra_requirements:
-      - docs
+      - doc
 
 # required boilerplate readthedocs/readthedocs.org#10401
 build:

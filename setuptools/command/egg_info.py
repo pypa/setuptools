@@ -27,7 +27,7 @@ from setuptools.command import bdist_egg
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
-from setuptools.extern import packaging
+import packaging
 from ..warnings import SetuptoolsDeprecationWarning
 
 
@@ -172,7 +172,7 @@ class egg_info(InfoCommon, Command):
             'egg-base=',
             'e',
             "directory containing .egg-info directories"
-            " (default: top of the source tree)",
+            " [default: top of the source tree]",
         ),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
@@ -249,17 +249,6 @@ class egg_info(InfoCommon, Command):
         # (e.g. sdist, bdist_wininst, etc.)
         #
         self.distribution.metadata.version = self.egg_version
-
-        # If we bootstrapped around the lack of a PKG-INFO, as might be the
-        # case in a fresh checkout, make sure that any special tags get added
-        # to the version info
-        #
-        pd = self.distribution._patched_dist
-        key = getattr(pd, "key", None) or getattr(pd, "name", None)
-        if pd is not None and key == self.egg_name.lower():
-            pd._version = self.egg_version
-            pd._parsed_version = packaging.version.Version(self.egg_version)
-            self.distribution._patched_dist = None
 
     def _get_egg_basename(self, py_version=PY_MAJOR, platform=None):
         """Compute filename of the output egg. Private API."""
@@ -363,16 +352,16 @@ class FileList(_FileList):
         }
         log_map = {
             'include': "warning: no files found matching '%s'",
-            'exclude': ("warning: no previously-included files found " "matching '%s'"),
+            'exclude': ("warning: no previously-included files found matching '%s'"),
             'global-include': (
-                "warning: no files found matching '%s' " "anywhere in distribution"
+                "warning: no files found matching '%s' anywhere in distribution"
             ),
             'global-exclude': (
                 "warning: no previously-included files matching "
                 "'%s' found anywhere in distribution"
             ),
             'recursive-include': (
-                "warning: no files found matching '%s' " "under directory '%s'"
+                "warning: no files found matching '%s' under directory '%s'"
             ),
             'recursive-exclude': (
                 "warning: no previously-included files matching "

@@ -125,7 +125,7 @@ class TestBuildCLib(support.TempdirManager):
         # all commands are present on the system.
         ccmd = missing_compiler_executable()
         if ccmd is not None:
-            self.skipTest('The %r command is not found' % ccmd)
+            self.skipTest(f'The {ccmd!r} command is not found')
 
         # this should work
         cmd.run()

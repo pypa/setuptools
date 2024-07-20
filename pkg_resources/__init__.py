@@ -34,6 +34,7 @@ import re
 import types
 from typing import (
     Any,
+    Literal,
     Dict,
     Iterator,
     Mapping,
@@ -73,6 +74,10 @@ from pkgutil import get_importer
 
 import _imp
 
+sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
+# workaround for #4476
+sys.modules.pop('backports', None)
+
 # capture these to bypass sandboxing
 from os import utime
 from os import open as os_open
@@ -86,20 +91,21 @@ except ImportError:
     # no write support, probably under GAE
     WRITE_SUPPORT = False
 
-from pkg_resources.extern.jaraco.text import (
+import packaging.specifiers
+from jaraco.text import (
     yield_lines,
     drop_comment,
     join_continuation,
 )
-from pkg_resources.extern.packaging import markers as _packaging_markers
-from pkg_resources.extern.packaging import requirements as _packaging_requirements
-from pkg_resources.extern.packaging import utils as _packaging_utils
-from pkg_resources.extern.packaging import version as _packaging_version
-from pkg_resources.extern.platformdirs import user_cache_dir as _user_cache_dir
+from packaging import markers as _packaging_markers
+from packaging import requirements as _packaging_requirements
+from packaging import utils as _packaging_utils
+from packaging import version as _packaging_version
+from platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
+    from _typeshed import BytesPath, StrPath, StrOrBytesPath
     from typing_extensions import Self
-    from _typeshed import StrPath, StrOrBytesPath, BytesPath
 
 warnings.warn(
     "pkg_resources is deprecated as an API. "
@@ -110,15 +116,20 @@ warnings.warn(
 
 
 _T = TypeVar("_T")
+_DistributionT = TypeVar("_DistributionT", bound="Distribution")
 # Type aliases
 _NestedStr = Union[str, Iterable[Union[str, Iterable["_NestedStr"]]]]
+_InstallerTypeT = Callable[["Requirement"], "_DistributionT"]
 _InstallerType = Callable[["Requirement"], Union["Distribution", None]]
 _PkgReqType = Union[str, "Requirement"]
 _EPDistType = Union["Distribution", _PkgReqType]
 _MetadataType = Union["IResourceProvider", None]
+_ResolvedEntryPoint = Any  # Can be any attribute in the module
+_ResourceStream = Any  # TODO / Incomplete: A readable file-like object
 # Any object works, but let's indicate we expect something like a module (optionally has __loader__ or __file__)
 _ModuleLike = Union[object, types.ModuleType]
-_ProviderFactoryType = Callable[[_ModuleLike], "IResourceProvider"]
+# Any: Should be _ModuleLike but we end up with issues where _ModuleLike doesn't have _ZipLoaderModule's __loader__
+_ProviderFactoryType = Callable[[Any], "IResourceProvider"]
 _DistFinderType = Callable[[_T, str, bool], Iterable["Distribution"]]
 _NSHandlerType = Callable[[_T, str, str, types.ModuleType], Union[str, None]]
 _AdapterT = TypeVar(
@@ -129,6 +140,10 @@ _AdapterT = TypeVar(
 # Use _typeshed.importlib.LoaderProtocol once available https://github.com/python/typeshed/pull/11890
 class _LoaderProtocol(Protocol):
     def load_module(self, fullname: str, /) -> types.ModuleType: ...
+
+
+class _ZipLoaderModule(Protocol):
+    __loader__: zipimport.zipimporter
 
 
 _PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
@@ -404,7 +419,11 @@ def register_loader_type(
     _provider_factories[loader_type] = provider_factory
 
 
-def get_provider(moduleOrReq: str | Requirement):
+@overload
+def get_provider(moduleOrReq: str) -> IResourceProvider: ...
+@overload
+def get_provider(moduleOrReq: Requirement) -> Distribution: ...
+def get_provider(moduleOrReq: str | Requirement) -> IResourceProvider | Distribution:
     """Return an IResourceProvider for the named module or requirement"""
     if isinstance(moduleOrReq, Requirement):
         return working_set.find(moduleOrReq) or require(str(moduleOrReq))[0]
@@ -515,22 +534,32 @@ def compatible_platforms(provided: str | None, required: str | None):
     return False
 
 
-def get_distribution(dist: _EPDistType):
+@overload
+def get_distribution(dist: _DistributionT) -> _DistributionT: ...
+@overload
+def get_distribution(dist: _PkgReqType) -> Distribution: ...
+def get_distribution(dist: Distribution | _PkgReqType) -> Distribution:
     """Return a current distribution object for a Requirement or string"""
     if isinstance(dist, str):
         dist = Requirement.parse(dist)
     if isinstance(dist, Requirement):
         dist = get_provider(dist)
     if not isinstance(dist, Distribution):
-        raise TypeError("Expected string, Requirement, or Distribution", dist)
+        raise TypeError("Expected str, Requirement, or Distribution", dist)
     return dist
 
 
-def load_entry_point(dist: _EPDistType, group: str, name: str):
+def load_entry_point(dist: _EPDistType, group: str, name: str) -> _ResolvedEntryPoint:
     """Return `name` entry point of `group` for `dist` or raise ImportError"""
     return get_distribution(dist).load_entry_point(group, name)
 
 
+@overload
+def get_entry_map(
+    dist: _EPDistType, group: None = None
+) -> dict[str, dict[str, EntryPoint]]: ...
+@overload
+def get_entry_map(dist: _EPDistType, group: str) -> dict[str, EntryPoint]: ...
 def get_entry_map(dist: _EPDistType, group: str | None = None):
     """Return the entry point map for `group`, or the full entry map"""
     return get_distribution(dist).get_entry_map(group)
@@ -545,10 +574,10 @@ class IMetadataProvider(Protocol):
     def has_metadata(self, name: str) -> bool:
         """Does the package's distribution contain the named metadata?"""
 
-    def get_metadata(self, name: str):
+    def get_metadata(self, name: str) -> str:
         """The named metadata resource as a string"""
 
-    def get_metadata_lines(self, name: str):
+    def get_metadata_lines(self, name: str) -> Iterator[str]:
         """Yield named metadata resource as list of non-blank non-comment lines
 
         Leading and trailing whitespace is stripped from each line, and lines
@@ -557,22 +586,26 @@ class IMetadataProvider(Protocol):
     def metadata_isdir(self, name: str) -> bool:
         """Is the named metadata a directory?  (like ``os.path.isdir()``)"""
 
-    def metadata_listdir(self, name: str):
+    def metadata_listdir(self, name: str) -> list[str]:
         """List of metadata names in the directory (like ``os.listdir()``)"""
 
-    def run_script(self, script_name: str, namespace: dict[str, Any]):
+    def run_script(self, script_name: str, namespace: dict[str, Any]) -> None:
         """Execute the named script in the supplied namespace dictionary"""
 
 
 class IResourceProvider(IMetadataProvider, Protocol):
     """An object that provides access to package resources"""
 
-    def get_resource_filename(self, manager: ResourceManager, resource_name: str):
+    def get_resource_filename(
+        self, manager: ResourceManager, resource_name: str
+    ) -> str:
         """Return a true filesystem path for `resource_name`
 
         `manager` must be a ``ResourceManager``"""
 
-    def get_resource_stream(self, manager: ResourceManager, resource_name: str):
+    def get_resource_stream(
+        self, manager: ResourceManager, resource_name: str
+    ) -> _ResourceStream:
         """Return a readable file-like object for `resource_name`
 
         `manager` must be a ``ResourceManager``"""
@@ -584,13 +617,13 @@ class IResourceProvider(IMetadataProvider, Protocol):
 
         `manager` must be a ``ResourceManager``"""
 
-    def has_resource(self, resource_name: str):
+    def has_resource(self, resource_name: str) -> bool:
         """Does the package contain the named resource?"""
 
-    def resource_isdir(self, resource_name: str):
+    def resource_isdir(self, resource_name: str) -> bool:
         """Is the named resource a directory?  (like ``os.path.isdir()``)"""
 
-    def resource_listdir(self, resource_name: str):
+    def resource_listdir(self, resource_name: str) -> list[str]:
         """List of resource names in the directory (like ``os.listdir()``)"""
 
 
@@ -724,7 +757,7 @@ class WorkingSet:
         The yield order is the order in which the items' path entries were
         added to the working set.
         """
-        seen = {}
+        seen = set()
         for item in self.entries:
             if item not in self.entry_keys:
                 # workaround a cache issue
@@ -732,7 +765,7 @@ class WorkingSet:
 
             for key in self.entry_keys[item]:
                 if key not in seen:
-                    seen[key] = True
+                    seen.add(key)
                     yield self.by_key[key]
 
     def add(
@@ -773,6 +806,26 @@ class WorkingSet:
             keys2.append(dist.key)
         self._added_new(dist)
 
+    @overload
+    def resolve(
+        self,
+        requirements: Iterable[Requirement],
+        env: Environment | None,
+        installer: _InstallerTypeT[_DistributionT],
+        replace_conflicting: bool = False,
+        extras: tuple[str, ...] | None = None,
+    ) -> list[_DistributionT]: ...
+    @overload
+    def resolve(
+        self,
+        requirements: Iterable[Requirement],
+        env: Environment | None = None,
+        *,
+        installer: _InstallerTypeT[_DistributionT],
+        replace_conflicting: bool = False,
+        extras: tuple[str, ...] | None = None,
+    ) -> list[_DistributionT]: ...
+    @overload
     def resolve(
         self,
         requirements: Iterable[Requirement],
@@ -780,7 +833,15 @@ class WorkingSet:
         installer: _InstallerType | None = None,
         replace_conflicting: bool = False,
         extras: tuple[str, ...] | None = None,
-    ):
+    ) -> list[Distribution]: ...
+    def resolve(
+        self,
+        requirements: Iterable[Requirement],
+        env: Environment | None = None,
+        installer: _InstallerType | None | _InstallerTypeT[_DistributionT] = None,
+        replace_conflicting: bool = False,
+        extras: tuple[str, ...] | None = None,
+    ) -> list[Distribution] | list[_DistributionT]:
         """List all distributions needed to (recursively) meet `requirements`
 
         `requirements` must be a sequence of ``Requirement`` objects.  `env`,
@@ -808,7 +869,7 @@ class WorkingSet:
         # set up the stack
         requirements = list(requirements)[::-1]
         # set of processed requirements
-        processed = {}
+        processed = set()
         # key -> dist
         best = {}
         to_activate = []
@@ -842,7 +903,7 @@ class WorkingSet:
                 required_by[new_requirement].add(req.project_name)
                 req_extras[new_requirement] = req.extras
 
-            processed[req] = True
+            processed.add(req)
 
         # return list of distros to activate
         return to_activate
@@ -878,13 +939,41 @@ class WorkingSet:
             raise VersionConflict(dist, req).with_context(dependent_req)
         return dist
 
+    @overload
+    def find_plugins(
+        self,
+        plugin_env: Environment,
+        full_env: Environment | None,
+        installer: _InstallerTypeT[_DistributionT],
+        fallback: bool = True,
+    ) -> tuple[list[_DistributionT], dict[Distribution, Exception]]: ...
+    @overload
+    def find_plugins(
+        self,
+        plugin_env: Environment,
+        full_env: Environment | None = None,
+        *,
+        installer: _InstallerTypeT[_DistributionT],
+        fallback: bool = True,
+    ) -> tuple[list[_DistributionT], dict[Distribution, Exception]]: ...
+    @overload
     def find_plugins(
         self,
         plugin_env: Environment,
         full_env: Environment | None = None,
         installer: _InstallerType | None = None,
         fallback: bool = True,
-    ):
+    ) -> tuple[list[Distribution], dict[Distribution, Exception]]: ...
+    def find_plugins(
+        self,
+        plugin_env: Environment,
+        full_env: Environment | None = None,
+        installer: _InstallerType | None | _InstallerTypeT[_DistributionT] = None,
+        fallback: bool = True,
+    ) -> tuple[
+        list[Distribution] | list[_DistributionT],
+        dict[Distribution, Exception],
+    ]:
         """Find all activatable distributions in `plugin_env`
 
         Example usage::
@@ -923,8 +1012,8 @@ class WorkingSet:
         # scan project names in alphabetic order
         plugin_projects.sort()
 
-        error_info = {}
-        distributions = {}
+        error_info: dict[Distribution, Exception] = {}
+        distributions: dict[Distribution, Exception | None] = {}
 
         if full_env is None:
             env = Environment(self.entries)
@@ -1032,11 +1121,10 @@ class _ReqExtras(Dict["Requirement", Tuple[str, ...]]):
         Return False if the req has a marker and fails
         evaluation. Otherwise, return True.
         """
-        extra_evals = (
+        return not req.marker or any(
             req.marker.evaluate({'extra': extra})
-            for extra in self.get(req, ()) + (extras or (None,))
+            for extra in self.get(req, ()) + (extras or ("",))
         )
-        return not req.marker or any(extra_evals)
 
 
 class Environment:
@@ -1121,13 +1209,29 @@ class Environment:
                 dists.append(dist)
                 dists.sort(key=operator.attrgetter('hashcmp'), reverse=True)
 
+    @overload
     def best_match(
         self,
         req: Requirement,
         working_set: WorkingSet,
-        installer: Callable[[Requirement], Any] | None = None,
+        installer: _InstallerTypeT[_DistributionT],
         replace_conflicting: bool = False,
-    ):
+    ) -> _DistributionT: ...
+    @overload
+    def best_match(
+        self,
+        req: Requirement,
+        working_set: WorkingSet,
+        installer: _InstallerType | None = None,
+        replace_conflicting: bool = False,
+    ) -> Distribution | None: ...
+    def best_match(
+        self,
+        req: Requirement,
+        working_set: WorkingSet,
+        installer: _InstallerType | None | _InstallerTypeT[_DistributionT] = None,
+        replace_conflicting: bool = False,
+    ) -> Distribution | None:
         """Find distribution best matching `req` and usable on `working_set`
 
         This calls the ``find(req)`` method of the `working_set` to see if a
@@ -1154,11 +1258,32 @@ class Environment:
         # try to download/install
         return self.obtain(req, installer)
 
+    @overload
     def obtain(
         self,
         requirement: Requirement,
-        installer: Callable[[Requirement], Any] | None = None,
-    ):
+        installer: _InstallerTypeT[_DistributionT],
+    ) -> _DistributionT: ...
+    @overload
+    def obtain(
+        self,
+        requirement: Requirement,
+        installer: Callable[[Requirement], None] | None = None,
+    ) -> None: ...
+    @overload
+    def obtain(
+        self,
+        requirement: Requirement,
+        installer: _InstallerType | None = None,
+    ) -> Distribution | None: ...
+    def obtain(
+        self,
+        requirement: Requirement,
+        installer: Callable[[Requirement], None]
+        | _InstallerType
+        | None
+        | _InstallerTypeT[_DistributionT] = None,
+    ) -> Distribution | None:
         """Obtain a distribution matching `requirement` (e.g. via download)
 
         Obtain a distro that matches requirement (e.g. via download).  In the
@@ -1313,7 +1438,7 @@ class ResourceManager:
 
         self._warn_unsafe_extraction_path(extract_path)
 
-        self.cached_files[target_path] = 1
+        self.cached_files[target_path] = True
         return target_path
 
     @staticmethod
@@ -1515,7 +1640,6 @@ class NullProvider:
     egg_name: str | None = None
     egg_info: str | None = None
     loader: _LoaderProtocol | None = None
-    module_path: str | None  # Some subclasses can have a None module_path
 
     def __init__(self, module: _ModuleLike):
         self.loader = getattr(module, '__loader__', None)
@@ -1558,7 +1682,7 @@ class NullProvider:
             exc.reason += ' in {} file at path: {}'.format(name, path)
             raise
 
-    def get_metadata_lines(self, name: str):
+    def get_metadata_lines(self, name: str) -> Iterator[str]:
         return yield_lines(self.get_metadata(name))
 
     def resource_isdir(self, resource_name: str):
@@ -1570,7 +1694,7 @@ class NullProvider:
     def resource_listdir(self, resource_name: str):
         return self._listdir(self._fn(self.module_path, resource_name))
 
-    def metadata_listdir(self, name: str):
+    def metadata_listdir(self, name: str) -> list[str]:
         if self.egg_info:
             return self._listdir(self._fn(self.egg_info, name))
         return []
@@ -1583,6 +1707,7 @@ class NullProvider:
                     **locals()
                 ),
             )
+
         script_text = self.get_metadata(script).replace('\r\n', '\n')
         script_text = script_text.replace('\r', '\n')
         script_filename = self._fn(self.egg_info, script)
@@ -1613,12 +1738,16 @@ class NullProvider:
             "Can't perform this operation for unregistered loader type"
         )
 
-    def _listdir(self, path):
+    def _listdir(self, path) -> list[str]:
         raise NotImplementedError(
             "Can't perform this operation for unregistered loader type"
         )
 
-    def _fn(self, base, resource_name: str):
+    def _fn(self, base: str | None, resource_name: str):
+        if base is None:
+            raise TypeError(
+                "`base` parameter in `_fn` is `None`. Either override this method or check the parameter first."
+            )
         self._validate_resource_path(resource_name)
         if resource_name:
             return os.path.join(base, *resource_name.split('/'))
@@ -1778,7 +1907,8 @@ DefaultProvider._register()
 class EmptyProvider(NullProvider):
     """Provider that returns nothing for all requests"""
 
-    module_path = None
+    # A special case, we don't want all Providers inheriting from NullProvider to have a potentially None module_path
+    module_path: str | None = None  # type: ignore[assignment]
 
     _isdir = _has = lambda self, path: False
 
@@ -1854,7 +1984,7 @@ class ZipProvider(EggProvider):
     # ZipProvider's loader should always be a zipimporter or equivalent
     loader: zipimport.zipimporter
 
-    def __init__(self, module: _ModuleLike):
+    def __init__(self, module: _ZipLoaderModule):
         super().__init__(module)
         self.zip_pre = self.loader.archive + os.sep
 
@@ -1903,7 +2033,7 @@ class ZipProvider(EggProvider):
         return timestamp, size
 
     # FIXME: 'ZipProvider._extract_resource' is too complex (12)
-    def _extract_resource(self, manager: ResourceManager, zip_path):  # noqa: C901
+    def _extract_resource(self, manager: ResourceManager, zip_path) -> str:  # noqa: C901
         if zip_path in self._index():
             for name in self._index()[zip_path]:
                 last = self._extract_resource(manager, os.path.join(zip_path, name))
@@ -1914,7 +2044,7 @@ class ZipProvider(EggProvider):
 
         if not WRITE_SUPPORT:
             raise OSError(
-                '"os.rename" and "os.unlink" are not supported ' 'on this platform'
+                '"os.rename" and "os.unlink" are not supported on this platform'
             )
         try:
             if not self.egg_name:
@@ -2040,7 +2170,7 @@ class FileMetadata(EmptyProvider):
     def has_metadata(self, name: str) -> bool:
         return name == 'PKG-INFO' and os.path.isfile(self.path)
 
-    def get_metadata(self, name):
+    def get_metadata(self, name: str):
         if name != 'PKG-INFO':
             raise KeyError("No metadata except PKG-INFO is available")
 
@@ -2056,7 +2186,7 @@ class FileMetadata(EmptyProvider):
             msg = tmpl.format(**locals())
             warnings.warn(msg)
 
-    def get_metadata_lines(self, name):
+    def get_metadata_lines(self, name: str) -> Iterator[str]:
         return yield_lines(self.get_metadata(name))
 
 
@@ -2498,6 +2628,7 @@ if TYPE_CHECKING:
     @overload
     def _normalize_cached(filename: BytesPath) -> bytes: ...
     def _normalize_cached(filename: StrOrBytesPath) -> str | bytes: ...
+
 else:
 
     @functools.lru_cache(maxsize=None)
@@ -2582,12 +2713,26 @@ class EntryPoint:
     def __repr__(self):
         return "EntryPoint.parse(%r)" % str(self)
 
+    @overload
+    def load(
+        self,
+        require: Literal[True] = True,
+        env: Environment | None = None,
+        installer: _InstallerType | None = None,
+    ) -> _ResolvedEntryPoint: ...
+    @overload
+    def load(
+        self,
+        require: Literal[False],
+        *args: Any,
+        **kwargs: Any,
+    ) -> _ResolvedEntryPoint: ...
     def load(
         self,
         require: bool = True,
         *args: Environment | _InstallerType | None,
         **kwargs: Environment | _InstallerType | None,
-    ):
+    ) -> _ResolvedEntryPoint:
         """
         Require packages for this EntryPoint, then resolve it.
         """
@@ -2604,7 +2749,7 @@ class EntryPoint:
             self.require(*args, **kwargs)  # type: ignore
         return self.resolve()
 
-    def resolve(self):
+    def resolve(self) -> _ResolvedEntryPoint:
         """
         Resolve the entry point from its module and attrs.
         """
@@ -2667,7 +2812,7 @@ class EntryPoint:
             return ()
         req = Requirement.parse('x' + extras_spec)
         if req.specs:
-            raise ValueError()
+            raise ValueError
         return req.extras
 
     @classmethod
@@ -3033,13 +3178,17 @@ class Distribution:
 
         return Requirement.parse(spec)
 
-    def load_entry_point(self, group: str, name: str):
+    def load_entry_point(self, group: str, name: str) -> _ResolvedEntryPoint:
         """Return the `name` entry point of `group` or raise ImportError"""
         ep = self.get_entry_info(group, name)
         if ep is None:
             raise ImportError("Entry point %r not found" % ((group, name),))
         return ep.load()
 
+    @overload
+    def get_entry_map(self, group: None = None) -> dict[str, dict[str, EntryPoint]]: ...
+    @overload
+    def get_entry_map(self, group: str) -> dict[str, EntryPoint]: ...
     def get_entry_map(self, group: str | None = None):
         """Return the entry point map for `group`, or the full entry map"""
         if not hasattr(self, "_ep_map"):
@@ -3285,6 +3434,10 @@ class RequirementParseError(_packaging_requirements.InvalidRequirement):
 
 
 class Requirement(_packaging_requirements.Requirement):
+    # prefer variable length tuple to set (as found in
+    # packaging.requirements.Requirement)
+    extras: tuple[str, ...]  # type: ignore[assignment]
+
     def __init__(self, requirement_string: str):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         super().__init__(requirement_string)
@@ -3292,8 +3445,7 @@ class Requirement(_packaging_requirements.Requirement):
         project_name = safe_name(self.name)
         self.project_name, self.key = project_name, project_name.lower()
         self.specs = [(spec.operator, spec.version) for spec in self.specifier]
-        # packaging.requirements.Requirement uses a set for its extras. We use a variable-length tuple
-        self.extras: tuple[str] = tuple(map(safe_extra, self.extras))
+        self.extras = tuple(map(safe_extra, self.extras))
         self.hashCmp = (
             self.key,
             self.url,
@@ -3309,17 +3461,24 @@ class Requirement(_packaging_requirements.Requirement):
     def __ne__(self, other):
         return not self == other
 
-    def __contains__(self, item: Distribution | str | tuple[str, ...]) -> bool:
+    def __contains__(
+        self, item: Distribution | packaging.specifiers.UnparsedVersion
+    ) -> bool:
         if isinstance(item, Distribution):
             if item.key != self.key:
                 return False
 
-            item = item.version
+            version = item.version
+        else:
+            version = item
 
         # Allow prereleases always in order to match the previous behavior of
         # this method. In the future this should be smarter and follow PEP 440
         # more accurately.
-        return self.specifier.contains(item, prereleases=True)
+        return self.specifier.contains(
+            version,
+            prereleases=True,
+        )
 
     def __hash__(self):
         return self.__hash
@@ -3426,6 +3585,38 @@ class PkgResourcesDeprecationWarning(Warning):
     """
 
 
+# Ported from ``setuptools`` to avoid introducing an import inter-dependency:
+_LOCALE_ENCODING = "locale" if sys.version_info >= (3, 10) else None
+
+
+def _read_utf8_with_fallback(file: str, fallback_encoding=_LOCALE_ENCODING) -> str:
+    """See setuptools.unicode_utils._read_utf8_with_fallback"""
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            return f.read()
+    except UnicodeDecodeError:  # pragma: no cover
+        msg = f"""\
+        ********************************************************************************
+        `encoding="utf-8"` fails with {file!r}, trying `encoding={fallback_encoding!r}`.
+
+        This fallback behaviour is considered **deprecated** and future versions of
+        `setuptools/pkg_resources` may not implement it.
+
+        Please encode {file!r} with "utf-8" to ensure future builds will succeed.
+
+        If this file was produced by `setuptools` itself, cleaning up the cached files
+        and re-building/re-installing the package with a newer version of `setuptools`
+        (e.g. by updating `build-system.requires` in its `pyproject.toml`)
+        might solve the problem.
+        ********************************************************************************
+        """
+        # TODO: Add a deadline?
+        #       See comment in setuptools.unicode_utils._Utf8EncodingNeeded
+        warnings.warn(msg, PkgResourcesDeprecationWarning, stacklevel=2)
+        with open(file, "r", encoding=fallback_encoding) as f:
+            return f.read()
+
+
 # from jaraco.functools 1.3
 def _call_aside(f, *args, **kwargs):
     f(*args, **kwargs)
@@ -3498,35 +3689,3 @@ if TYPE_CHECKING:
     add_activation_listener = working_set.subscribe
     run_script = working_set.run_script
     run_main = run_script
-
-
-#  ---- Ported from ``setuptools`` to avoid introducing an import inter-dependency ----
-LOCALE_ENCODING = "locale" if sys.version_info >= (3, 10) else None
-
-
-def _read_utf8_with_fallback(file: str, fallback_encoding=LOCALE_ENCODING) -> str:
-    """See setuptools.unicode_utils._read_utf8_with_fallback"""
-    try:
-        with open(file, "r", encoding="utf-8") as f:
-            return f.read()
-    except UnicodeDecodeError:  # pragma: no cover
-        msg = f"""\
-        ********************************************************************************
-        `encoding="utf-8"` fails with {file!r}, trying `encoding={fallback_encoding!r}`.
-
-        This fallback behaviour is considered **deprecated** and future versions of
-        `setuptools/pkg_resources` may not implement it.
-
-        Please encode {file!r} with "utf-8" to ensure future builds will succeed.
-
-        If this file was produced by `setuptools` itself, cleaning up the cached files
-        and re-building/re-installing the package with a newer version of `setuptools`
-        (e.g. by updating `build-system.requires` in its `pyproject.toml`)
-        might solve the problem.
-        ********************************************************************************
-        """
-        # TODO: Add a deadline?
-        #       See comment in setuptools.unicode_utils._Utf8EncodingNeeded
-        warnings.warn(msg, PkgResourcesDeprecationWarning, stacklevel=2)
-        with open(file, "r", encoding=fallback_encoding) as f:
-            return f.read()

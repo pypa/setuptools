@@ -36,7 +36,7 @@ class TestConfig(support.TempdirManager):
     def test_search_cpp(self):
         cmd = missing_compiler_executable(['preprocessor'])
         if cmd is not None:
-            self.skipTest('The %r command is not found' % cmd)
+            self.skipTest(f'The {cmd!r} command is not found')
         pkg_dir, dist = self.create_dist()
         cmd = config(dist)
         cmd._check_compiler()
@@ -58,9 +58,9 @@ class TestConfig(support.TempdirManager):
         # on options
         pkg_dir, dist = self.create_dist()
         cmd = config(dist)
-        cmd.include_dirs = 'one%stwo' % os.pathsep
+        cmd.include_dirs = f'one{os.pathsep}two'
         cmd.libraries = 'one'
-        cmd.library_dirs = 'three%sfour' % os.pathsep
+        cmd.library_dirs = f'three{os.pathsep}four'
         cmd.ensure_finalized()
 
         assert cmd.include_dirs == ['one', 'two']

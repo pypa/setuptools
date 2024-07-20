@@ -13,6 +13,7 @@ from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
 from distutils.tests import missing_compiler_executable, support
+from distutils.util import is_mingw
 
 import pytest
 
@@ -100,7 +101,7 @@ class TestInstall(
         assert 'user' in options
 
         # setting a value
-        cmd.user = 1
+        cmd.user = True
 
         # user base and site shouldn't be created yet
         assert not os.path.exists(site.USER_BASE)
@@ -117,7 +118,7 @@ class TestInstall(
         assert 'usersite' in cmd.config_vars
 
         actual_headers = os.path.relpath(cmd.install_headers, site.USER_BASE)
-        if os.name == 'nt':
+        if os.name == 'nt' and not is_mingw():
             site_path = os.path.relpath(os.path.dirname(orig_site), orig_base)
             include = os.path.join(site_path, 'Include')
         else:
@@ -198,7 +199,7 @@ class TestInstall(
         found = [pathlib.Path(line).name for line in content.splitlines()]
         expected = [
             'hello.py',
-            'hello.%s.pyc' % sys.implementation.cache_tag,
+            f'hello.{sys.implementation.cache_tag}.pyc',
             'sayhi',
             'UNKNOWN-0.0.0-py{}.{}.egg-info'.format(*sys.version_info[:2]),
         ]
@@ -207,7 +208,7 @@ class TestInstall(
     def test_record_extensions(self):
         cmd = missing_compiler_executable()
         if cmd is not None:
-            pytest.skip('The %r command is not found' % cmd)
+            pytest.skip(f'The {cmd!r} command is not found')
         install_dir = self.mkdtemp()
         project_dir, dist = self.create_dist(
             ext_modules=[Extension('xx', ['xxmodule.c'])]

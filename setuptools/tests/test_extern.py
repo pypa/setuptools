@@ -2,7 +2,7 @@ import importlib
 import pickle
 
 from setuptools import Distribution
-from setuptools.extern import ordered_set
+import ordered_set
 
 
 def test_reimport_extern():
