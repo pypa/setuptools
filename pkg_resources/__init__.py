@@ -34,6 +34,7 @@ import re
 import types
 from typing import (
     Any,
+    BinaryIO,
     Literal,
     Dict,
     Iterator,
@@ -114,7 +115,6 @@ warnings.warn(
     stacklevel=2,
 )
 
-
 _T = TypeVar("_T")
 _DistributionT = TypeVar("_DistributionT", bound="Distribution")
 # Type aliases
@@ -157,7 +157,6 @@ class PEP440Warning(RuntimeWarning):
 
 
 parse_version = _packaging_version.Version
-
 
 _state_vars: dict[str, str] = {}
 
@@ -340,7 +339,9 @@ class VersionConflict(ResolutionError):
     def report(self):
         return self._template.format(**locals())
 
-    def with_context(self, required_by: set[Distribution | str]):
+    def with_context(
+        self, required_by: set[Distribution | str]
+    ) -> Self | ContextualVersionConflict:
         """
         If required_by is non-empty, return a version of self that is a
         ContextualVersionConflict.
@@ -409,7 +410,7 @@ DEVELOP_DIST = -1
 
 def register_loader_type(
     loader_type: type[_ModuleLike], provider_factory: _ProviderFactoryType
-):
+) -> None:
     """Register `provider_factory` to make providers for `loader_type`
 
     `loader_type` is the type or class of a PEP 302 ``module.__loader__``,
@@ -485,7 +486,7 @@ darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
 get_platform = get_build_platform
 
 
-def compatible_platforms(provided: str | None, required: str | None):
+def compatible_platforms(provided: str | None, required: str | None) -> bool:
     """Can code for the `provided` platform run on the `required` platform?
 
     Returns true if either platform is ``None``, or the platforms are equal.
@@ -565,7 +566,7 @@ def get_entry_map(dist: _EPDistType, group: str | None = None):
     return get_distribution(dist).get_entry_map(group)
 
 
-def get_entry_info(dist: _EPDistType, group: str, name: str):
+def get_entry_info(dist: _EPDistType, group: str, name: str) -> EntryPoint | None:
     """Return the EntryPoint object for `group`+`name`, or ``None``"""
     return get_distribution(dist).get_entry_info(group, name)
 
@@ -686,7 +687,7 @@ class WorkingSet:
         sys.path[:] = ws.entries
         return ws
 
-    def add_entry(self, entry: str):
+    def add_entry(self, entry: str) -> None:
         """Add a path item to ``.entries``, finding any distributions on it
 
         ``find_distributions(entry, True)`` is used to find distributions
@@ -729,7 +730,9 @@ class WorkingSet:
             raise VersionConflict(dist, req)
         return dist
 
-    def iter_entry_points(self, group: str, name: str | None = None):
+    def iter_entry_points(
+        self, group: str, name: str | None = None
+    ) -> Iterator[EntryPoint]:
         """Yield entry point objects from `group` matching `name`
 
         If `name` is None, yields all entry points in `group` from all
@@ -743,7 +746,7 @@ class WorkingSet:
             if name is None or name == entry.name
         )
 
-    def run_script(self, requires: str, script_name: str):
+    def run_script(self, requires: str, script_name: str) -> None:
         """Locate distribution for `requires` and run `script_name` script"""
         ns = sys._getframe(1).f_globals
         name = ns['__name__']
@@ -774,7 +777,7 @@ class WorkingSet:
         entry: str | None = None,
         insert: bool = True,
         replace: bool = False,
-    ):
+    ) -> None:
         """Add `dist` to working set, associated with `entry`
 
         If `entry` is unspecified, it defaults to the ``.location`` of `dist`.
@@ -1054,7 +1057,7 @@ class WorkingSet:
 
         return sorted_distributions, error_info
 
-    def require(self, *requirements: _NestedStr):
+    def require(self, *requirements: _NestedStr) -> list[Distribution]:
         """Ensure that distributions matching `requirements` are activated
 
         `requirements` must be a string or a (possibly-nested) sequence
@@ -1072,7 +1075,7 @@ class WorkingSet:
 
     def subscribe(
         self, callback: Callable[[Distribution], object], existing: bool = True
-    ):
+    ) -> None:
         """Invoke `callback` for all distributions
 
         If `existing=True` (default),
@@ -1157,7 +1160,7 @@ class Environment:
         self.python = python
         self.scan(search_path)
 
-    def can_add(self, dist: Distribution):
+    def can_add(self, dist: Distribution) -> bool:
         """Is distribution `dist` acceptable for this environment?
 
         The distribution must match the platform and python version
@@ -1171,11 +1174,11 @@ class Environment:
         )
         return py_compat and compatible_platforms(dist.platform, self.platform)
 
-    def remove(self, dist: Distribution):
+    def remove(self, dist: Distribution) -> None:
         """Remove `dist` from the environment"""
         self._distmap[dist.key].remove(dist)
 
-    def scan(self, search_path: Iterable[str] | None = None):
+    def scan(self, search_path: Iterable[str] | None = None) -> None:
         """Scan `search_path` for distributions usable in this environment
 
         Any distributions found are added to the environment.
@@ -1201,7 +1204,7 @@ class Environment:
         distribution_key = project_name.lower()
         return self._distmap.get(distribution_key, [])
 
-    def add(self, dist: Distribution):
+    def add(self, dist: Distribution) -> None:
         """Add `dist` if we ``can_add()`` it and it has not already been added"""
         if self.can_add(dist) and dist.has_version():
             dists = self._distmap.setdefault(dist.key, [])
@@ -1352,23 +1355,29 @@ class ResourceManager:
     def __init__(self):
         self.cached_files = {}
 
-    def resource_exists(self, package_or_requirement: _PkgReqType, resource_name: str):
+    def resource_exists(
+        self, package_or_requirement: _PkgReqType, resource_name: str
+    ) -> bool:
         """Does the named resource exist?"""
         return get_provider(package_or_requirement).has_resource(resource_name)
 
-    def resource_isdir(self, package_or_requirement: _PkgReqType, resource_name: str):
+    def resource_isdir(
+        self, package_or_requirement: _PkgReqType, resource_name: str
+    ) -> bool:
         """Is the named resource an existing directory?"""
         return get_provider(package_or_requirement).resource_isdir(resource_name)
 
     def resource_filename(
         self, package_or_requirement: _PkgReqType, resource_name: str
-    ):
+    ) -> str:
         """Return a true filesystem path for specified resource"""
         return get_provider(package_or_requirement).get_resource_filename(
             self, resource_name
         )
 
-    def resource_stream(self, package_or_requirement: _PkgReqType, resource_name: str):
+    def resource_stream(
+        self, package_or_requirement: _PkgReqType, resource_name: str
+    ) -> _ResourceStream:
         """Return a readable file-like object for specified resource"""
         return get_provider(package_or_requirement).get_resource_stream(
             self, resource_name
@@ -1382,7 +1391,9 @@ class ResourceManager:
             self, resource_name
         )
 
-    def resource_listdir(self, package_or_requirement: _PkgReqType, resource_name: str):
+    def resource_listdir(
+        self, package_or_requirement: _PkgReqType, resource_name: str
+    ) -> list[str]:
         """List the contents of the named resource directory"""
         return get_provider(package_or_requirement).resource_listdir(resource_name)
 
@@ -1416,7 +1427,7 @@ class ResourceManager:
         err.original_error = old_exc
         raise err
 
-    def get_cache_path(self, archive_name: str, names: Iterable[StrPath] = ()):
+    def get_cache_path(self, archive_name: str, names: Iterable[StrPath] = ()) -> str:
         """Return absolute location in cache for `archive_name` and `names`
 
         The parent directory of the resulting path will be created if it does
@@ -1468,7 +1479,7 @@ class ResourceManager:
             ).format(**locals())
             warnings.warn(msg, UserWarning)
 
-    def postprocess(self, tempname: StrOrBytesPath, filename: StrOrBytesPath):
+    def postprocess(self, tempname: StrOrBytesPath, filename: StrOrBytesPath) -> None:
         """Perform any platform-specific postprocessing of `tempname`
 
         This is where Mac header rewrites should be done; other platforms don't
@@ -1488,7 +1499,7 @@ class ResourceManager:
             mode = ((os.stat(tempname).st_mode) | 0o555) & 0o7777
             os.chmod(tempname, mode)
 
-    def set_extraction_path(self, path: str):
+    def set_extraction_path(self, path: str) -> None:
         """Set the base path where resources will be extracted to, if needed.
 
         If you do not call this routine before any extractions take place, the
@@ -1536,7 +1547,7 @@ def get_default_cache() -> str:
     return os.environ.get('PYTHON_EGG_CACHE') or _user_cache_dir(appname='Python-Eggs')
 
 
-def safe_name(name: str):
+def safe_name(name: str) -> str:
     """Convert an arbitrary string to a standard distribution name
 
     Any runs of non-alphanumeric/. characters are replaced with a single '-'.
@@ -1544,7 +1555,7 @@ def safe_name(name: str):
     return re.sub('[^A-Za-z0-9.]+', '-', name)
 
 
-def safe_version(version: str):
+def safe_version(version: str) -> str:
     """
     Convert an arbitrary string to a standard version string
     """
@@ -1588,7 +1599,7 @@ def _safe_segment(segment):
     return re.sub(r'\.[^A-Za-z0-9]+', '.', segment).strip(".-")
 
 
-def safe_extra(extra: str):
+def safe_extra(extra: str) -> str:
     """Convert an arbitrary string to a standard 'extra' name
 
     Any runs of non-alphanumeric characters are replaced with a single '_',
@@ -1597,7 +1608,7 @@ def safe_extra(extra: str):
     return re.sub('[^A-Za-z0-9.-]+', '_', extra).lower()
 
 
-def to_filename(name: str):
+def to_filename(name: str) -> str:
     """Convert a project or version name to its filename-escaped form
 
     Any '-' characters are currently replaced with '_'.
@@ -1605,7 +1616,7 @@ def to_filename(name: str):
     return name.replace('-', '_')
 
 
-def invalid_marker(text: str):
+def invalid_marker(text: str) -> SyntaxError | Literal[False]:
     """
     Validate text as a PEP 508 environment marker; return an exception
     if invalid or False otherwise.
@@ -1645,10 +1656,14 @@ class NullProvider:
         self.loader = getattr(module, '__loader__', None)
         self.module_path = os.path.dirname(getattr(module, '__file__', ''))
 
-    def get_resource_filename(self, manager: ResourceManager, resource_name: str):
+    def get_resource_filename(
+        self, manager: ResourceManager, resource_name: str
+    ) -> str:
         return self._fn(self.module_path, resource_name)
 
-    def get_resource_stream(self, manager: ResourceManager, resource_name: str):
+    def get_resource_stream(
+        self, manager: ResourceManager, resource_name: str
+    ) -> BinaryIO:
         return io.BytesIO(self.get_resource_string(manager, resource_name))
 
     def get_resource_string(
@@ -1656,7 +1671,7 @@ class NullProvider:
     ) -> bytes:
         return self._get(self._fn(self.module_path, resource_name))
 
-    def has_resource(self, resource_name: str):
+    def has_resource(self, resource_name: str) -> bool:
         return self._has(self._fn(self.module_path, resource_name))
 
     def _get_metadata_path(self, name):
@@ -1669,7 +1684,7 @@ class NullProvider:
         path = self._get_metadata_path(name)
         return self._has(path)
 
-    def get_metadata(self, name: str):
+    def get_metadata(self, name: str) -> str:
         if not self.egg_info:
             return ""
         path = self._get_metadata_path(name)
@@ -1685,13 +1700,13 @@ class NullProvider:
     def get_metadata_lines(self, name: str) -> Iterator[str]:
         return yield_lines(self.get_metadata(name))
 
-    def resource_isdir(self, resource_name: str):
+    def resource_isdir(self, resource_name: str) -> bool:
         return self._isdir(self._fn(self.module_path, resource_name))
 
     def metadata_isdir(self, name: str) -> bool:
         return bool(self.egg_info and self._isdir(self._fn(self.egg_info, name)))
 
-    def resource_listdir(self, resource_name: str):
+    def resource_listdir(self, resource_name: str) -> list[str]:
         return self._listdir(self._fn(self.module_path, resource_name))
 
     def metadata_listdir(self, name: str) -> list[str]:
@@ -1699,7 +1714,7 @@ class NullProvider:
             return self._listdir(self._fn(self.egg_info, name))
         return []
 
-    def run_script(self, script_name: str, namespace: dict[str, Any]):
+    def run_script(self, script_name: str, namespace: dict[str, Any]) -> None:
         script = 'scripts/' + script_name
         if not self.has_metadata(script):
             raise ResolutionError(
@@ -1883,7 +1898,9 @@ class DefaultProvider(EggProvider):
     def _listdir(self, path):
         return os.listdir(path)
 
-    def get_resource_stream(self, manager: object, resource_name: str):
+    def get_resource_stream(
+        self, manager: object, resource_name: str
+    ) -> io.BufferedReader:
         return open(self._fn(self.module_path, resource_name), 'rb')
 
     def _get(self, path) -> bytes:
@@ -1932,7 +1949,7 @@ class ZipManifests(Dict[str, "MemoizedZipManifests.manifest_mod"]):
 
     # `path` could be `StrPath | IO[bytes]` but that violates the LSP for `MemoizedZipManifests.load`
     @classmethod
-    def build(cls, path: str):
+    def build(cls, path: str) -> dict[str, zipfile.ZipInfo]:
         """
         Build a dictionary similar to the zipimport directory
         caches, except instead of tuples, store ZipInfo objects.
@@ -2010,7 +2027,9 @@ class ZipProvider(EggProvider):
     def zipinfo(self):
         return self._zip_manifests.load(self.loader.archive)
 
-    def get_resource_filename(self, manager: ResourceManager, resource_name: str):
+    def get_resource_filename(
+        self, manager: ResourceManager, resource_name: str
+    ) -> str:
         if not self.egg_name:
             raise NotImplementedError(
                 "resource_filename() only supported for .egg, not .zip"
@@ -2170,7 +2189,7 @@ class FileMetadata(EmptyProvider):
     def has_metadata(self, name: str) -> bool:
         return name == 'PKG-INFO' and os.path.isfile(self.path)
 
-    def get_metadata(self, name: str):
+    def get_metadata(self, name: str) -> str:
         if name != 'PKG-INFO':
             raise KeyError("No metadata except PKG-INFO is available")
 
@@ -2235,7 +2254,9 @@ _distribution_finders: dict[type, _DistFinderType[Any]] = _declare_state(
 )
 
 
-def register_finder(importer_type: type[_T], distribution_finder: _DistFinderType[_T]):
+def register_finder(
+    importer_type: type[_T], distribution_finder: _DistFinderType[_T]
+) -> None:
     """Register `distribution_finder` to find distributions in sys.path items
 
     `importer_type` is the type or class of a PEP 302 "Importer" (sys.path item
@@ -2245,7 +2266,7 @@ def register_finder(importer_type: type[_T], distribution_finder: _DistFinderTyp
     _distribution_finders[importer_type] = distribution_finder
 
 
-def find_distributions(path_item: str, only: bool = False):
+def find_distributions(path_item: str, only: bool = False) -> Iterable[Distribution]:
     """Yield distributions accessible via `path_item`"""
     importer = get_importer(path_item)
     finder = _find_adapter(_distribution_finders, importer)
@@ -2419,7 +2440,7 @@ _namespace_packages: dict[str | None, list[str]] = _declare_state(
 
 def register_namespace_handler(
     importer_type: type[_T], namespace_handler: _NSHandlerType[_T]
-):
+) -> None:
     """Register `namespace_handler` to declare namespace packages
 
     `importer_type` is the type or class of a PEP 302 "Importer" (sys.path item
@@ -2508,7 +2529,7 @@ def _rebuild_mod_path(orig_path, package_name, module: types.ModuleType):
         module.__path__ = new_path
 
 
-def declare_namespace(packageName: str):
+def declare_namespace(packageName: str) -> None:
     """Declare that package 'packageName' is a namespace package"""
 
     msg = (
@@ -2551,7 +2572,7 @@ def declare_namespace(packageName: str):
         _imp.release_lock()
 
 
-def fixup_namespace_packages(path_item: str, parent: str | None = None):
+def fixup_namespace_packages(path_item: str, parent: str | None = None) -> None:
     """Ensure that previously-declared namespace packages include path_item"""
     _imp.acquire_lock()
     try:
@@ -2763,7 +2784,7 @@ class EntryPoint:
         self,
         env: Environment | None = None,
         installer: _InstallerType | None = None,
-    ):
+    ) -> None:
         if not self.dist:
             error_cls = UnknownExtra if self.extras else AttributeError
             raise error_cls("Can't require() without a distribution", self)
@@ -2787,7 +2808,7 @@ class EntryPoint:
     )
 
     @classmethod
-    def parse(cls, src: str, dist: Distribution | None = None):
+    def parse(cls, src: str, dist: Distribution | None = None) -> Self:
         """Parse a single entry point from string `src`
 
         Entry point syntax follows the form::
@@ -2821,7 +2842,7 @@ class EntryPoint:
         group: str,
         lines: _NestedStr,
         dist: Distribution | None = None,
-    ):
+    ) -> dict[str, Self]:
         """Parse an entry point group"""
         if not MODULE(group):
             raise ValueError("Invalid group name", group)
@@ -2838,7 +2859,7 @@ class EntryPoint:
         cls,
         data: str | Iterable[str] | dict[str, str | Iterable[str]],
         dist: Distribution | None = None,
-    ):
+    ) -> dict[str, dict[str, Self]]:
         """Parse a map of entry point groups"""
         _data: Iterable[tuple[str | None, str | Iterable[str]]]
         if isinstance(data, dict):
@@ -3043,7 +3064,9 @@ class Distribution:
         return self.__dep_map
 
     @staticmethod
-    def _filter_extras(dm: dict[str | None, list[Requirement]]):
+    def _filter_extras(
+        dm: dict[str | None, list[Requirement]],
+    ) -> dict[str | None, list[Requirement]]:
         """
         Given a mapping of extras to dependencies, strip off
         environment markers and filter out any dependencies
@@ -3070,7 +3093,7 @@ class Distribution:
                 dm.setdefault(extra, []).extend(parse_requirements(reqs))
         return dm
 
-    def requires(self, extras: Iterable[str] = ()):
+    def requires(self, extras: Iterable[str] = ()) -> list[Requirement]:
         """List of Requirements needed for this distro if `extras` are used"""
         dm = self._dep_map
         deps: list[Requirement] = []
@@ -3109,7 +3132,7 @@ class Distribution:
         lines = self._get_metadata(self.PKG_INFO)
         return _version_from_file(lines)
 
-    def activate(self, path: list[str] | None = None, replace: bool = False):
+    def activate(self, path: list[str] | None = None, replace: bool = False) -> None:
         """Ensure distribution is importable on `path` (default=sys.path)"""
         if path is None:
             path = sys.path
@@ -3164,7 +3187,7 @@ class Distribution:
         filename: StrPath,
         metadata: _MetadataType = None,
         **kw: int,  # We could set `precedence` explicitly, but keeping this as `**kw` for full backwards and subclassing compatibility
-    ):
+    ) -> Distribution:
         return cls.from_location(
             _normalize_cached(filename), os.path.basename(filename), metadata, **kw
         )
@@ -3199,7 +3222,7 @@ class Distribution:
             return self._ep_map.get(group, {})
         return self._ep_map
 
-    def get_entry_info(self, group: str, name: str):
+    def get_entry_info(self, group: str, name: str) -> EntryPoint | None:
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
 
@@ -3209,7 +3232,7 @@ class Distribution:
         path: list[str],
         loc=None,
         replace: bool = False,
-    ):
+    ) -> None:
         """Ensure self.location is on path
 
         If replace=False (default):
@@ -3314,7 +3337,7 @@ class Distribution:
             return False
         return True
 
-    def clone(self, **kw: str | int | IResourceProvider | None):
+    def clone(self, **kw: str | int | IResourceProvider | None) -> Self:
         """Copy this distribution, substituting in any changed keyword args"""
         names = 'project_name version py_version platform location precedence'
         for attr in names.split():
@@ -3420,7 +3443,7 @@ def issue_warning(*args, **kw):
     warnings.warn(stacklevel=level + 1, *args, **kw)
 
 
-def parse_requirements(strs: _NestedStr):
+def parse_requirements(strs: _NestedStr) -> map[Requirement]:
     """
     Yield ``Requirement`` objects for each specification in `strs`.
 
@@ -3487,7 +3510,7 @@ class Requirement(_packaging_requirements.Requirement):
         return "Requirement.parse(%r)" % str(self)
 
     @staticmethod
-    def parse(s: str | Iterable[str]):
+    def parse(s: str | Iterable[str]) -> Requirement:
         (req,) = parse_requirements(s)
         return req
 
@@ -3513,7 +3536,7 @@ def _find_adapter(registry: Mapping[type, _AdapterT], ob: object) -> _AdapterT:
     raise TypeError(f"Could not find adapter for {registry} and {ob}")
 
 
-def ensure_directory(path: StrOrBytesPath):
+def ensure_directory(path: StrOrBytesPath) -> None:
     """Ensure that the parent directory of `path` exists"""
     dirname = os.path.dirname(path)
     os.makedirs(dirname, exist_ok=True)
@@ -3589,6 +3612,7 @@ class PkgResourcesDeprecationWarning(Warning):
 _LOCALE_ENCODING = "locale" if sys.version_info >= (3, 10) else None
 
 
+# This must go before calls to `_call_aside`. See https://github.com/pypa/setuptools/pull/4422
 def _read_utf8_with_fallback(file: str, fallback_encoding=_LOCALE_ENCODING) -> str:
     """See setuptools.unicode_utils._read_utf8_with_fallback"""
     try:
