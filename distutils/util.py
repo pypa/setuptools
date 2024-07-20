@@ -123,17 +123,17 @@ def split_version(s):
 @pass_none
 def convert_path(pathname: str | os.PathLike) -> str:
     """
-    Allow for pathlib.Path inputs and then make native.
+    Allow for pathlib.Path inputs, coax to posix, and then make native.
 
-    Also if None is passed, will just pass it through as
+    If None is passed, will just pass it through as
     Setuptools relies on this behavior.
 
     >>> convert_path(None) is None
     True
     """
-    # wrap in PurePosixPath to retain forward slashes on Windows
+    # Use .as_posix() to retain forward slashes on Windows
     # see https://github.com/pypa/distutils/pull/272#issuecomment-2240100013
-    return make_native(os.fspath(pathlib.PurePosixPath(pathname)))
+    return make_native(pathlib.Path(pathname).as_posix())
 
 
 def make_native(pathname: str) -> str:
