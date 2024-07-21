@@ -62,7 +62,7 @@ test = [
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam 
-	"mypy==1.11",
+	"mypy==1.11.*",
 	# No Python 3.11 dependencies require tomli, but needed for type-checking since we import it directly
 	"tomli",
 	# No Python 3.12 dependencies require importlib_metadata, but needed for type-checking since we import it directly
