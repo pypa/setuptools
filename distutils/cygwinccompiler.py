@@ -9,13 +9,11 @@ cygwin in no-cygwin mode).
 import copy
 import os
 import pathlib
-import re
 import shlex
 import sys
 import warnings
 from subprocess import check_output
 
-from ._collections import RangeMap
 from .errors import (
     CCompilerError,
     CompileError,
@@ -26,42 +24,10 @@ from .file_util import write_file
 from .unixccompiler import UnixCCompiler
 from .version import LooseVersion, suppress_known_deprecation
 
-_msvcr_lookup = RangeMap.left(
-    {
-        # MSVC 7.0
-        1300: ['msvcr70'],
-        # MSVC 7.1
-        1310: ['msvcr71'],
-        # VS2005 / MSVC 8.0
-        1400: ['msvcr80'],
-        # VS2008 / MSVC 9.0
-        1500: ['msvcr90'],
-        # VS2010 / MSVC 10.0
-        1600: ['msvcr100'],
-        # VS2012 / MSVC 11.0
-        1700: ['msvcr110'],
-        # VS2013 / MSVC 12.0
-        1800: ['msvcr120'],
-        # VS2015 / MSVC 14.0
-        1900: ['vcruntime140'],
-        2000: RangeMap.undefined_value,
-    },
-)
-
 
 def get_msvcr():
-    """Include the appropriate MSVC runtime library if Python was built
-    with MSVC 7.0 or later.
-    """
-    match = re.search(r'MSC v\.(\d{4})', sys.version)
-    try:
-        msc_ver = int(match.group(1))
-    except AttributeError:
-        return []
-    try:
-        return _msvcr_lookup[msc_ver]
-    except KeyError:
-        raise ValueError(f"Unknown MS Compiler version {msc_ver} ")
+    """No longer needed, but kept for backward compatibility."""
+    return []
 
 
 _runtime_library_dirs_msg = (
@@ -109,8 +75,6 @@ class CygwinCCompiler(UnixCCompiler):
             linker_so=(f'{self.linker_dll} -mcygwin {shared_option}'),
         )
 
-        # Include the appropriate MSVC runtime library if Python was built
-        # with MSVC 7.0 or later.
         self.dll_libraries = get_msvcr()
 
     @property
