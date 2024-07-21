@@ -1,5 +1,6 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
+from abc import ABC, abstractmethod
 import functools
 import os
 import re
@@ -117,7 +118,7 @@ else:
     _Command = monkey.get_unpatched(distutils.core.Command)
 
 
-class Command(_Command):
+class Command(_Command, ABC):
     """
     Setuptools internal actions are organized using a *command design pattern*.
     This means that each action (or group of closely related actions) executed during
@@ -225,6 +226,33 @@ class Command(_Command):
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
         return cmd
+
+    @abstractmethod
+    def initialize_options(self) -> None:
+        """
+        Set or (reset) all options/attributes/caches used by the command
+        to their default values. Note that these values may be overwritten during
+        the build.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def finalize_options(self) -> None:
+        """
+        Set final values for all options/attributes used by the command.
+        Most of the time, each option/attribute/cache should only be set if it does not
+        have any value yet (e.g. ``if self.attr is None: self.attr = val``).
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def run(self) -> None:
+        """
+        Execute the actions intended by the command.
+        (Side effects **SHOULD** only take place when ``run`` is executed,
+        for example, creating new files or writing to the terminal output).
+        """
+        raise NotImplementedError
 
 
 def _find_all_simple(path):

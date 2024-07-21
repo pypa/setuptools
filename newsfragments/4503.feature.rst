@@ -1,0 +1,1 @@
+Mark abstract base classes and methods with `abc.ABC` and `abc.abstract_method` -- by :user:`Avasam`
