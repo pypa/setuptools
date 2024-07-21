@@ -27,7 +27,7 @@ def mypy_error_formatter_show_filename(item, results, errors):
     Taken from https://github.com/realpython/pytest-mypy/pull/93"""
     return '\n'.join(
         '{path}:{error}'.format(
-            path=os.path.relpath(".", item.fspath),
+            path=os.path.relpath(item.fspath, "."),
             error=error,
         )
         for error in errors
