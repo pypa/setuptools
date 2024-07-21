@@ -106,7 +106,7 @@ autodoc_preserve_defaults = True
 
 intersphinx_mapping.update({
     'pip': ('https://pip.pypa.io/en/latest', None),
-    'build': ('https://pypa-build.readthedocs.io/en/latest', None),
+    'build': ('https://build.pypa.io/en/latest', None),
     'PyPUG': ('https://packaging.python.org/en/latest/', None),
     'packaging': ('https://packaging.pypa.io/en/latest/', None),
     'twine': ('https://twine.readthedocs.io/en/stable/', None),

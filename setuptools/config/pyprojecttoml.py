@@ -15,7 +15,7 @@ import logging
 import os
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Callable, Mapping
+from typing import TYPE_CHECKING, Any, Callable, Mapping
 
 from .._path import StrPath
 from ..errors import FileError, InvalidConfigError
@@ -76,7 +76,7 @@ def read_configuration(
     expand=True,
     ignore_option_errors=False,
     dist: Distribution | None = None,
-):
+) -> dict[str, Any]:
     """Read given configuration file and returns options from it as a dict.
 
     :param str|unicode filepath: Path to configuration file in the ``pyproject.toml``

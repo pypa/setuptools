@@ -1,10 +1,63 @@
+v71.1.0
+=======
+
+Features
+--------
+
+- Added return types to typed public functions -- by :user:`Avasam`
+
+  Marked `pkg_resources` as ``py.typed`` -- by :user:`Avasam` (#4409)
+
+
+Misc
+----
+
+- #4492
+
+
+v71.0.4
+=======
+
+Bugfixes
+--------
+
+- Removed lingering unused code around Distribution._patched_dist. (#4489)
+
+
+v71.0.3
+=======
+
+Bugfixes
+--------
+
+- Reset the backports module when enabling vendored packages. (#4476)
+
+
+v71.0.2
+=======
+
+Bugfixes
+--------
+
+- Include all vendored files in the sdist. (#4480)
+
+
+v71.0.1
+=======
+
+Bugfixes
+--------
+
+- Restored package data that went missing in 71.0. This change also incidentally causes tests to be installed once again. (#4475)
+
+
 v71.0.0
 =======
 
 Deprecations and Removals
 -------------------------
 
-- Now setuptools declares its own dependencies in the ``core`` extra. Dependencies are still vendored for bootstrapping purposes, but setuptools will prefer installed dependencies if present. The ``core`` extra is used for informational purposes and should *not* be declared in package metadata (e.g. ``build-requires``). Downstream packagers can de-vendor by simply removing the ``setuptools/_vendor`` directory. (#2825)
+- Now setuptools declares its own dependencies in the ``core`` extra. Dependencies are still vendored for bootstrapping purposes, but setuptools will prefer installed dependencies if present. The ``core`` extra is used for informational purposes and should *not* be declared in package metadata (e.g. ``build-requires``). Downstream packagers can de-vendor by simply removing the ``setuptools/_vendor`` directory. Since Setuptools now prefers installed dependencies, those installing to an environment with old, incompatible dependencies will not work. In that case, either uninstall the incompatible dependencies or upgrade them to satisfy those declared in ``core``. (#2825)
 
 
 v70.3.0
