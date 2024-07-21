@@ -98,7 +98,7 @@ class install_lib(orig.install_lib):
         exclude = self.get_exclusions()
 
         if not exclude:
-            return orig.install_lib.copy_tree(self, infile, outfile)  # type: ignore[arg-type] # Fixed upstream
+            return orig.install_lib.copy_tree(self, infile, outfile)
 
         # Exclude namespace package __init__.py* files from the output
 
