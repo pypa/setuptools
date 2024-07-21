@@ -4,13 +4,8 @@ import subprocess
 from urllib.request import urlopen
 from urllib.error import URLError
 
-import pathlib
 
 import pytest
-
-from . import contexts
-from .textwrap import DALS
-from .test_easy_install import make_nspkg_sdist
 
 
 @pytest.fixture(autouse=True)
