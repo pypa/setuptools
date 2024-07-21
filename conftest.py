@@ -1,6 +1,7 @@
 import sys
 import os.path
 
+import pytest
 
 pytest_plugins = 'setuptools.tests.fixtures'
 
