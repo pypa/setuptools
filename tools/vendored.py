@@ -1,6 +1,5 @@
 import functools
 import re
-import sys
 import subprocess
 
 import jaraco.packaging.metadata
@@ -52,14 +51,8 @@ def install_deps(deps, vendor):
     """
     Install the deps to vendor.
     """
-    # workaround for https://github.com/pypa/pip/issues/12770
-    deps += [
-        'zipp >= 3.7',
-        'backports.tarfile',
-    ]
     install_args = [
-        sys.executable,
-        '-m',
+        'uv',
         'pip',
         'install',
         '--target',
