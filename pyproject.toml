@@ -110,9 +110,9 @@ core = [
 	"ordered-set>=3.1.1",
 	"more_itertools>=8.8",
 	"jaraco.text>=3.7",
-	"importlib_resources>=5.10.2",
-	"importlib_metadata>=6",
-	"tomli>=2.0.1",
+	"importlib_resources>=5.10.2; python_version < '3.9'",
+	"importlib_metadata>=6; python_version < '3.10'",
+	"tomli>=2.0.1; python_version < '3.11'",
 	"wheel>=0.43.0",
 
 	# pkg_resources
