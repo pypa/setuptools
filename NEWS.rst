@@ -1,3 +1,20 @@
+v71.1.0
+=======
+
+Features
+--------
+
+- Added return types to typed public functions -- by :user:`Avasam`
+
+  Marked `pkg_resources` as ``py.typed`` -- by :user:`Avasam` (#4409)
+
+
+Misc
+----
+
+- #4492
+
+
 v71.0.4
 =======
 

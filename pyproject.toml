@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "71.0.4"
+version = "71.1.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -62,7 +62,7 @@ test = [
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam 
-	"mypy==1.11",
+	"mypy==1.11.*",
 	# No Python 3.11 dependencies require tomli, but needed for type-checking since we import it directly
 	"tomli",
 	# No Python 3.12 dependencies require importlib_metadata, but needed for type-checking since we import it directly
@@ -110,9 +110,9 @@ core = [
 	"ordered-set>=3.1.1",
 	"more_itertools>=8.8",
 	"jaraco.text>=3.7",
-	"importlib_resources>=5.10.2",
-	"importlib_metadata>=6",
-	"tomli>=2.0.1",
+	"importlib_resources>=5.10.2; python_version < '3.9'",
+	"importlib_metadata>=6; python_version < '3.10'",
+	"tomli>=2.0.1; python_version < '3.11'",
 	"wheel>=0.43.0",
 
 	# pkg_resources
