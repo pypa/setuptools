@@ -7,9 +7,11 @@ exclude = [
 [lint]
 extend-select = [
 	"C901",
+	"PERF401",
 	"W",
 
 	# local
+	"ANN2", # missing-return-type-*
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
 	"PYI", # flake8-pyi
@@ -18,12 +20,16 @@ extend-select = [
 	"YTT", # flake8-2020
 ]
 ignore = [
+	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
 	"TRY301", # raise-within-try, it's handy
 	"UP015", # redundant-open-modes, explicit is preferred
 	"UP030", # temporarily disabled
 	"UP031", # temporarily disabled
 	"UP032", # temporarily disabled
 	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
+	# Only enforcing return type annotations for public functions
+	"ANN202", # missing-return-type-private-function
+	"ANN204", # missing-return-type-special-method
 
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
@@ -42,8 +48,20 @@ ignore = [
 	"ISC002",
 ]
 
+[lint.per-file-ignores]
+# Only enforcing return type annotations for public modules
+"**/tests/**" = ["ANN2"]
+"tools/**" = ["ANN2"]
+# Suppress nuisance warnings about module-import-not-at-top-of-file (E402) due to workaround for #4476
+"setuptools/__init__.py" = ["E402"]
+"pkg_resources/__init__.py" = ["E402"]
+
+[lint.flake8-annotations]
+ignore-fully-untyped = true
+
 [format]
-# Enable preview to get hugged parenthesis unwrapping
+# Enable preview to get hugged parenthesis unwrapping and other nice surprises
+# See https://github.com/jaraco/skeleton/pull/133#issuecomment-2239538373
 preview = true
-# https://docs.astral.sh/ruff/settings/#format-quote-style
+# https://docs.astral.sh/ruff/settings/#format_quote-style
 quote-style = "preserve"

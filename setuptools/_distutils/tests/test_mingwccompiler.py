@@ -2,6 +2,7 @@ import pytest
 
 from distutils.util import split_quoted, is_mingw
 from distutils.errors import DistutilsPlatformError, CCompilerError
+from distutils import sysconfig
 
 
 class TestMingw32CCompiler:
@@ -43,3 +44,12 @@ class TestMingw32CCompiler:
 
         with pytest.raises(CCompilerError):
             distutils.cygwinccompiler.Mingw32CCompiler()
+
+    def test_customize_compiler_with_msvc_python(self):
+        from distutils.cygwinccompiler import Mingw32CCompiler
+
+        # In case we have an MSVC Python build, but still want to use
+        # Mingw32CCompiler, then customize_compiler() shouldn't fail at least.
+        # https://github.com/pypa/setuptools/issues/4456
+        compiler = Mingw32CCompiler()
+        sysconfig.customize_compiler(compiler)

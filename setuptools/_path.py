@@ -3,7 +3,7 @@ import os
 import sys
 from typing import Union
 
-from setuptools.extern.more_itertools import unique_everseen
+from more_itertools import unique_everseen
 
 
 if sys.version_info >= (3, 9):

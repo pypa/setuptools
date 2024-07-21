@@ -279,7 +279,7 @@ def test_distribution_version_missing(
     assert expected_text in msg
     # Check that the message portion contains the path.
     assert metadata_path in msg, str((metadata_path, msg))
-    assert type(dist) == expected_dist_type
+    assert type(dist) is expected_dist_type
 
 
 @pytest.mark.xfail(

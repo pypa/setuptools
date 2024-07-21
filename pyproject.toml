@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "70.2.0"
+version = "71.1.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -24,7 +24,8 @@ classifiers = [
 ]
 keywords = ["CPAN PyPI distutils eggs package management"]
 requires-python = ">=3.8"
-dependencies = []
+dependencies = [
+]
 
 [project.urls]
 Source = "https://github.com/pypa/setuptools"
@@ -39,8 +40,7 @@ test = [
 	"pytest-cov",
 	"pytest-mypy",
 	"pytest-enabler >= 2.2",
-	# workaround for pypa/setuptools#3921
-	'pytest-ruff >= 0.3.2; sys_platform != "cygwin"',
+	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
 
 	# local
 	"virtualenv>=13.0.0",
@@ -59,17 +59,27 @@ test = [
 	# for tools/finalize.py
 	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
 	"pytest-home >= 0.5",
-	"mypy==1.10.0", # pin mypy version so a new version doesn't suddenly cause the CI to fail
+	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
+	# until types-setuptools is removed from typeshed.
+	# For help with static-typing issues, or mypy update, ping @Avasam 
+	"mypy==1.11.*",
 	# No Python 3.11 dependencies require tomli, but needed for type-checking since we import it directly
 	"tomli",
 	# No Python 3.12 dependencies require importlib_metadata, but needed for type-checking since we import it directly
 	"importlib_metadata",
 	"pytest-subprocess",
 
+	# require newer pytest-ruff than upstream for pypa/setuptools#4368
+	# also exclude cygwin for pypa/setuptools#3921
+	'pytest-ruff >= 0.3.2; sys_platform != "cygwin"',
+
 	# workaround for pypa/setuptools#4333
 	"pyproject-hooks!=1.1",
 
 	"jaraco.test",
+
+	# workaround for businho/pytest-ruff#28
+	'pytest-ruff < 0.4; platform_system == "Windows"',
 ]
 doc = [
 	# upstream
@@ -95,6 +105,19 @@ doc = [
 ]
 ssl = []
 certs = []
+core = [
+	"packaging>=24",
+	"ordered-set>=3.1.1",
+	"more_itertools>=8.8",
+	"jaraco.text>=3.7",
+	"importlib_resources>=5.10.2; python_version < '3.9'",
+	"importlib_metadata>=6; python_version < '3.10'",
+	"tomli>=2.0.1; python_version < '3.11'",
+	"wheel>=0.43.0",
+
+	# pkg_resources
+	"platformdirs >= 2.6.2",
+]
 
 [project.entry-points."distutils.commands"]
 alias = "setuptools.command.alias:alias"
@@ -150,9 +173,7 @@ PKG-INFO = "setuptools.command.egg_info:write_pkg_info"
 "dependency_links.txt" = "setuptools.command.egg_info:overwrite_arg"
 
 [tool.setuptools]
-# disabled as it causes tests to be included #2505
-# include_package_data = true
-include-package-data = false
+include-package-data = true
 
 [tool.setuptools.packages.find]
 include = [
