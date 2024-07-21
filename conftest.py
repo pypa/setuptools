@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import sys
-import os.path
 
 import pytest
+from pytest_mypy import MypyFileItem, MypyResults
+
 
 pytest_plugins = 'setuptools.tests.fixtures'
 
@@ -21,17 +24,11 @@ def pytest_addoption(parser):
     )
 
 
-def mypy_error_formatter_show_filename(item, results, errors):
-    """Include the file path before each reported error.
-
-    Taken from https://github.com/realpython/pytest-mypy/pull/93"""
-    return '\n'.join(
-        '{path}:{error}'.format(
-            path=os.path.relpath(item.fspath, "."),
-            error=error,
-        )
-        for error in errors
-    )
+def mypy_error_formatter_show_filename(
+    item: MypyFileItem, results: MypyResults, errors: list[str]
+) -> str:
+    """Include the relative file path before each reported error."""
+    return '\n'.join(f'{item.path.relative_to(".")}:{error}' for error in errors)
 
 
 def pytest_configure(config):
