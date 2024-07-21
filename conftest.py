@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 
 import pytest
@@ -29,11 +30,11 @@ def mypy_error_formatter_show_filename(
 ) -> str:
     """Include the relative file path before each reported error."""
     try:
-        print(item.path)
-        return '\n'.join(f'{item.path.relative_to(".")}:{error}' for error in errors)
-    except Exception as e:
-        print(e)
-        return str(e)
+        return '\n'.join(
+            f'{item.path.relative_to(os.getcwd())}:{error}' for error in errors
+        )
+    except Exception as error:
+        return str(error)
 
 
 def pytest_configure(config):
