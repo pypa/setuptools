@@ -1,1 +1,0 @@
-Now backports in ``core`` dependencies are installed only on Python versions requiring them.
