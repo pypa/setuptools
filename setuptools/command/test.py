@@ -1,8 +1,11 @@
+from __future__ import annotations
+from collections.abc import Callable
 import os
 import operator
 import sys
 import contextlib
 import itertools
+from typing import TYPE_CHECKING, Generic, TypeVar, overload
 import unittest
 from distutils.errors import DistutilsError, DistutilsOptionError
 from distutils import log
@@ -21,6 +24,12 @@ from .._importlib import metadata
 from setuptools import Command
 from more_itertools import unique_everseen
 from jaraco.functools import pass_none
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
+_T = TypeVar("_T")
+_R = TypeVar("_R")
 
 
 class ScanningLoader(TestLoader):
@@ -63,11 +72,15 @@ class ScanningLoader(TestLoader):
 
 
 # adapted from jaraco.classes.properties:NonDataProperty
-class NonDataProperty:
-    def __init__(self, fget):
+class NonDataProperty(Generic[_T, _R]):
+    def __init__(self, fget: Callable[[_T], _R]):
         self.fget = fget
 
-    def __get__(self, obj, objtype=None):
+    @overload
+    def __get__(self, obj: None, objtype: object = None) -> Self: ...
+    @overload
+    def __get__(self, obj: _T, objtype: object = None) -> _R: ...
+    def __get__(self, obj: _T | None, objtype: object = None) -> Self | _R:
         if obj is None:
             return self
         return self.fget(obj)
