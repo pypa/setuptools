@@ -1,9 +1,10 @@
 # don't import any costly modules
 import sys
 import os
+from _distutils_hack.clear_distutils import clear_distutils
+from _distutils_hack.is_pypy import is_pypy
 
-
-is_pypy = '__pypy__' in sys.builtin_module_names
+from _distutils_hack.override import enabled
 
 
 def warn_distutils_present():
@@ -23,29 +24,6 @@ def warn_distutils_present():
         "traditional way (e.g. not an editable install), and/or make sure "
         "that setuptools is always imported before distutils."
     )
-
-
-def clear_distutils():
-    if 'distutils' not in sys.modules:
-        return
-    import warnings
-
-    warnings.warn("Setuptools is replacing distutils.")
-    mods = [
-        name
-        for name in sys.modules
-        if name == "distutils" or name.startswith("distutils.")
-    ]
-    for name in mods:
-        del sys.modules[name]
-
-
-def enabled():
-    """
-    Allow selection of distutils by environment variable.
-    """
-    which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'local')
-    return which == 'local'
 
 
 def ensure_local_distutils():
@@ -220,3 +198,4 @@ def remove_shim():
         sys.meta_path.remove(DISTUTILS_FINDER)
     except ValueError:
         pass
+
