@@ -9,6 +9,7 @@ from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
 from zipfile import ZipFile
 
+import _distutils_hack
 import pytest
 
 from setuptools.extern.packaging import version
@@ -17,6 +18,7 @@ import setuptools
 import setuptools.dist
 import setuptools.depends as dep
 from setuptools.depends import Require
+import setuptools.get_module_constant
 
 
 @pytest.fixture(autouse=True)
@@ -58,16 +60,16 @@ class TestDepends:
         fc = f1.__code__
 
         # unrecognized name
-        assert dep.extract_constant(fc, 'q', -1) is None
+        assert _distutils_hack.extract_constant(fc, 'q', -1) is None
 
         # constant assigned
-        dep.extract_constant(fc, 'x', -1) == "test"
+        _distutils_hack.extract_constant(fc, 'x', -1) == "test"
 
         # expression assigned
-        dep.extract_constant(fc, 'y', -1) == -1
+        _distutils_hack.extract_constant(fc, 'y', -1) == -1
 
         # recognized name, not assigned
-        dep.extract_constant(fc, 'z', -1) is None
+        _distutils_hack.extract_constant(fc, 'z', -1) is None
 
     def testFindModule(self):
         with pytest.raises(ImportError):
@@ -80,9 +82,9 @@ class TestDepends:
     @needs_bytecode
     def testModuleExtract(self):
         from json import __version__
-        assert dep.get_module_constant('json', '__version__') == __version__
-        assert dep.get_module_constant('sys', 'version') == sys.version
-        assert dep.get_module_constant(
+        assert setuptools.get_module_constant.get_module_constant('json', '__version__') == __version__
+        assert setuptools.get_module_constant.get_module_constant('sys', 'version') == sys.version
+        assert setuptools.get_module_constant.get_module_constant(
             'setuptools.tests.test_setuptools', '__doc__') == __doc__
 
     @needs_bytecode

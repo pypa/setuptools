@@ -1,6 +1,6 @@
 import sys
 
-from setuptools import depends
+from setuptools import get_module_constant
 
 
 class TestGetModuleConstant:
@@ -11,6 +11,6 @@ class TestGetModuleConstant:
         the test package.
         """
         mod_name = 'setuptools.tests.mod_with_constant'
-        val = depends.get_module_constant(mod_name, 'value')
+        val = get_module_constant.get_module_constant(mod_name, 'value')
         assert val == 'three, sir!'
         assert 'setuptools.tests.mod_with_constant' not in sys.modules
