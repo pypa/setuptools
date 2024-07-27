@@ -3,9 +3,9 @@ import marshal
 import contextlib
 import dis
 
-from setuptools.extern.packaging import version
+from setuptools.extern.packaging import version # type: ignore
 
-from ._imp import find_module, PY_COMPILED, PY_FROZEN, PY_SOURCE
+from ._imp import find_module, PY_COMPIED, PY_FROZEN, PY_SOURCE
 from . import _imp
 
 

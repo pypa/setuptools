@@ -29,7 +29,7 @@ from distutils.util import rfc822_escape
 
 from setuptools.extern import packaging
 from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen, partition
+from setuptools.extern.more_itertools import unique_everseen, partition # type: ignore
 
 from ._importlib import metadata
 

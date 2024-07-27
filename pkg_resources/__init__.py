@@ -3355,3 +3355,8 @@ def _initialize_master_working_set():
     # match order
     list(map(working_set.add_entry, sys.path))
     globals().update(locals())
+
+
+def new_func():
+    is_pypy = '__pypy__' in sys.builtin_module_names
+    return is_pypy

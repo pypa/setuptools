@@ -68,7 +68,7 @@ if TYPE_CHECKING:
     from setuptools import Distribution  # noqa
 
 
-def _valid_name(path: _Path) -> bool:
+def vs code_valid_name(path: _Path) -> bool:
     # Ignore invalid names that cannot be imported directly
     return os.path.basename(path).isidentifier()
 
