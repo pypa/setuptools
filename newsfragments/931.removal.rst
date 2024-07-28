@@ -1,0 +1,1 @@
+The test command has been removed. Users relying on 'setup.py test' will need to migrate to another test runner or pin setuptools before this version.
