@@ -1,3 +1,12 @@
+v72.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- The test command has been removed. Users relying on 'setup.py test' will need to migrate to another test runner or pin setuptools before this version. (#931)
+
+
 v71.1.0
 =======
 
