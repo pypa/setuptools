@@ -1,0 +1,1 @@
+Restore the tests command and deprecate access to the module. (#4519)
