@@ -1,3 +1,12 @@
+v72.1.0
+=======
+
+Features
+--------
+
+- Restore the tests command and deprecate access to the module. (#4519) (#4520)
+
+
 v72.0.0
 =======
 
