@@ -18,10 +18,11 @@ Build system requirement
 ========================
 
 After organizing all the scripts and files and getting ready for packaging,
-there needs to be a way to specify what programs and libraries are actually needed
-to do the packaging (in our case, ``setuptools`` of course).
-This needs to be specified in your ``pyproject.toml`` file
-(if you have forgot what this is, go to :doc:`/userguide/quickstart` or :doc:`/build_meta`):
+there needs to be a way to specify what programs and libraries (build backend)
+are actually needed to build the package for distribution. For Setuptools, the
+requisite library is ``setuptools``. Specify the build backend in a
+``pyproject.toml`` file (see also :doc:`/userguide/quickstart` or
+:doc:`/build_meta`):
 
 .. code-block:: toml
 
@@ -29,13 +30,13 @@ This needs to be specified in your ``pyproject.toml`` file
     requires = ["setuptools"]
     #...
 
-Please note that you should also include here any other ``setuptools`` plugin
-(e.g., :pypi:`setuptools-scm`, :pypi:`setuptools-golang`, :pypi:`setuptools-rust`)
+Please note also to include any other ``setuptools`` plugins
+(e.g., :pypi:`setuptools_scm`, :pypi:`setuptools-golang`, :pypi:`setuptools-rust`)
 or build-time dependency (e.g., :pypi:`Cython`, :pypi:`cppy`, :pypi:`pybind11`).
 
 .. note::
     In previous versions of ``setuptools``,
-    this used to be accomplished with the ``setup_requires`` keyword but is
+    the ``setup_requires`` keyword performed a similar function but is
     now considered deprecated in favor of the :pep:`517` style described above.
     To peek into how this legacy keyword is used, consult our :doc:`guide on
     deprecated practice (WIP) </deprecated/index>`.
