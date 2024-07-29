@@ -30,9 +30,40 @@ requisite library is ``setuptools``. Specify the build backend in a
     requires = ["setuptools"]
     #...
 
-Please note also to include any other ``setuptools`` plugins
+Also include any other ``setuptools`` plugins
 (e.g., :pypi:`setuptools_scm`, :pypi:`setuptools-golang`, :pypi:`setuptools-rust`)
 or build-time dependency (e.g., :pypi:`Cython`, :pypi:`cppy`, :pypi:`pybind11`).
+
+.. code-block:: toml
+
+    [build-system]
+    requires = ["setuptools", "cython", "setuptools_scm"]
+
+
+If the project depends on a feature introduced in a specific version of Setuptools,
+it is good practice to specify it as a lower bound:
+
+.. code-block:: toml
+
+    [build-system]
+    requires = ["setuptools >= 61.2"]
+
+Some may be tempted to also include an upper-bound for yet unreleased major
+versions (e.g. ``setuptools <= 70``) or pin to a specific version (e.g.
+``setuptools == 70.0.4``) in order to avoid the project being uninstallable
+should those backward-incompatible changes affect this release of the project.
+Setuptools maintainers recommend strongly against this precautionary approach.
+The team primarily maintains one release, the latest monotonically-increasing
+release, and encourages users to use that latest release (work at HEAD). As a
+result, the team is cognizant of and takes responsibility for making
+backward-incompatible changes and aims to mitigate the impact of any breaking
+changes prior to releasing that change. By pinning against an unreleased
+version, it causes toil (maintenance burden) for each and every project that
+does the pinning (and the consumers that use it) and increases the risk of
+erosion if maintenance is unsustained. This tradeoff between reproducibility
+and compatibility is especially stark because Setuptools frequently releases
+backward-incompatible releases for a variety of reasons, many which won't
+affect a given project.
 
 .. note::
     In previous versions of ``setuptools``,
