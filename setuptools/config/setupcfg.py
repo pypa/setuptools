@@ -24,6 +24,7 @@ from typing import (
     Dict,
     Generic,
     Iterable,
+    Iterator,
     Tuple,
     TypeVar,
     Union,
@@ -260,7 +261,9 @@ class ConfigHandler(Generic[Target]):
         """
 
     @classmethod
-    def _section_options(cls, options: AllCommandOptions):
+    def _section_options(
+        cls, options: AllCommandOptions
+    ) -> Iterator[tuple[str, SingleCommandOptions]]:
         for full_name, value in options.items():
             pre, sep, name = full_name.partition(cls.section_prefix)
             if pre:
@@ -646,7 +649,6 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
                 self._parse_requirements_list, "install_requires"
             ),
             'setup_requires': self._parse_list_semicolon,
-            'tests_require': self._parse_list_semicolon,
             'packages': self._parse_packages,
             'entry_points': self._parse_file_in_root,
             'py_modules': parse_list,

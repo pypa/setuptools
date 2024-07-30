@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "71.0.0"
+version = "72.1.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -59,7 +59,10 @@ test = [
 	# for tools/finalize.py
 	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
 	"pytest-home >= 0.5",
-	"mypy==1.10.0", # pin mypy version so a new version doesn't suddenly cause the CI to fail
+	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
+	# until types-setuptools is removed from typeshed.
+	# For help with static-typing issues, or mypy update, ping @Avasam 
+	"mypy==1.11.*",
 	# No Python 3.11 dependencies require tomli, but needed for type-checking since we import it directly
 	"tomli",
 	# No Python 3.12 dependencies require importlib_metadata, but needed for type-checking since we import it directly
@@ -107,9 +110,9 @@ core = [
 	"ordered-set>=3.1.1",
 	"more_itertools>=8.8",
 	"jaraco.text>=3.7",
-	"importlib_resources>=5.10.2",
-	"importlib_metadata>=6",
-	"tomli>=2.0.1",
+	"importlib_resources>=5.10.2; python_version < '3.9'",
+	"importlib_metadata>=6; python_version < '3.10'",
+	"tomli>=2.0.1; python_version < '3.11'",
 	"wheel>=0.43.0",
 
 	# pkg_resources
@@ -138,7 +141,6 @@ rotate = "setuptools.command.rotate:rotate"
 saveopts = "setuptools.command.saveopts:saveopts"
 sdist = "setuptools.command.sdist:sdist"
 setopt = "setuptools.command.setopt:setopt"
-test = "setuptools.command.test:test"
 upload_docs = "setuptools.command.upload_docs:upload_docs"
 
 [project.entry-points."setuptools.finalize_distribution_options"]
@@ -150,19 +152,15 @@ eager_resources = "setuptools.dist:assert_string_list"
 namespace_packages = "setuptools.dist:check_nsp"
 extras_require = "setuptools.dist:check_extras"
 install_requires = "setuptools.dist:check_requirements"
-tests_require = "setuptools.dist:check_requirements"
 setup_requires = "setuptools.dist:check_requirements"
 python_requires = "setuptools.dist:check_specifier"
 entry_points = "setuptools.dist:check_entry_points"
-test_suite = "setuptools.dist:check_test_suite"
 zip_safe = "setuptools.dist:assert_bool"
 package_data = "setuptools.dist:check_package_data"
 exclude_package_data = "setuptools.dist:check_package_data"
 include_package_data = "setuptools.dist:assert_bool"
 packages = "setuptools.dist:check_packages"
 dependency_links = "setuptools.dist:assert_string_list"
-test_loader = "setuptools.dist:check_importable"
-test_runner = "setuptools.dist:check_importable"
 use_2to3 = "setuptools.dist:invalid_unless_false"
 
 [project.entry-points."egg_info.writers"]
@@ -175,9 +173,7 @@ PKG-INFO = "setuptools.command.egg_info:write_pkg_info"
 "dependency_links.txt" = "setuptools.command.egg_info:overwrite_arg"
 
 [tool.setuptools]
-# disabled as it causes tests to be included #2505
-# include_package_data = true
-include-package-data = false
+include-package-data = true
 
 [tool.setuptools.packages.find]
 include = [
@@ -190,10 +186,6 @@ exclude = [
 	"*.tests.*",
 ]
 namespaces = true
-
-[tool.setuptools.package-data]
-# ensure that `setuptools/_vendor/jaraco/text/Lorem ipsum.txt` is installed
-"*" = ["*.txt"]
 
 [tool.distutils.sdist]
 formats = "zip"

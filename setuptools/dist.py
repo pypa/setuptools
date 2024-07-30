@@ -6,7 +6,6 @@ import numbers
 import os
 import re
 import sys
-from contextlib import suppress
 from glob import iglob
 from pathlib import Path
 from typing import TYPE_CHECKING, MutableMapping
@@ -28,7 +27,6 @@ from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
 
 from . import _entry_points
-from . import _normalization
 from . import _reqs
 from . import command as _  # noqa  -- imported for side-effects
 from ._importlib import metadata
@@ -170,11 +168,6 @@ def check_entry_points(dist, attr, value):
         raise DistutilsSetupError(e) from e
 
 
-def check_test_suite(dist, attr, value):
-    if not isinstance(value, str):
-        raise DistutilsSetupError("test_suite must be a string")
-
-
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
     if not isinstance(value, dict):
@@ -235,12 +228,6 @@ class Distribution(_Distribution):
         EasyInstall and requests one of your extras, the corresponding
         additional requirements will be installed if needed.
 
-     'test_suite' -- the name of a test suite to run for the 'test' command.
-        If the user runs 'python setup.py test', the package will be installed,
-        and the named test suite will be run.  The format is the same as
-        would be used on a 'unittest.py' command line.  That is, it is the
-        dotted name of an object to import and call to generate a test suite.
-
      'package_data' -- a dictionary mapping package names to lists of filenames
         or globs to use to find data files contained in the named packages.
         If the dictionary has filenames or globs listed under '""' (the empty
@@ -269,23 +256,8 @@ class Distribution(_Distribution):
         'extras_require': dict,
     }
 
-    _patched_dist = None
     # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
     namespace_packages: list[str]  #: :meta private: DEPRECATED
-
-    def patch_missing_pkg_info(self, attrs):
-        # Fake up a replacement for the data that would normally come from
-        # PKG-INFO, but which might not yet be built if this is a fresh
-        # checkout.
-        #
-        if not attrs or 'name' not in attrs or 'version' not in attrs:
-            return
-        name = _normalization.safe_name(str(attrs['name'])).lower()
-        with suppress(metadata.PackageNotFoundError):
-            dist = metadata.distribution(name)
-            if dist is not None and not dist.read_text('PKG-INFO'):
-                dist._version = _normalization.safe_version(str(attrs['version']))
-                self._patched_dist = dist
 
     def __init__(self, attrs: MutableMapping | None = None) -> None:
         have_package_data = hasattr(self, "package_data")
@@ -295,7 +267,6 @@ class Distribution(_Distribution):
         self.dist_files: list[tuple[str, str, str]] = []
         # Filter-out setuptools' specific options.
         self.src_root = attrs.pop("src_root", None)
-        self.patch_missing_pkg_info(attrs)
         self.dependency_links = attrs.pop('dependency_links', [])
         self.setup_requires = attrs.pop('setup_requires', [])
         for ep in metadata.entry_points(group='distutils.setup_keywords'):

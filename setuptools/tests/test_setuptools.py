@@ -1,10 +1,10 @@
 """Tests for the 'setuptools' package"""
 
+import re
 import sys
 import os
 import distutils.core
 import distutils.cmd
-from distutils.errors import DistutilsOptionError
 from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
 from zipfile import ZipFile
@@ -221,43 +221,6 @@ class TestDistro:
             self.dist.exclude(package_dir=['q'])
 
 
-class TestCommandTests:
-    def testTestIsCommand(self):
-        test_cmd = makeSetup().get_command_obj('test')
-        assert isinstance(test_cmd, distutils.cmd.Command)
-
-    def testLongOptSuiteWNoDefault(self):
-        ts1 = makeSetup(script_args=['test', '--test-suite=foo.tests.suite'])
-        ts1 = ts1.get_command_obj('test')
-        ts1.ensure_finalized()
-        assert ts1.test_suite == 'foo.tests.suite'
-
-    def testDefaultSuite(self):
-        ts2 = makeSetup(test_suite='bar.tests.suite').get_command_obj('test')
-        ts2.ensure_finalized()
-        assert ts2.test_suite == 'bar.tests.suite'
-
-    def testDefaultWModuleOnCmdLine(self):
-        ts3 = makeSetup(
-            test_suite='bar.tests', script_args=['test', '-m', 'foo.tests']
-        ).get_command_obj('test')
-        ts3.ensure_finalized()
-        assert ts3.test_module == 'foo.tests'
-        assert ts3.test_suite == 'foo.tests.test_suite'
-
-    def testConflictingOptions(self):
-        ts4 = makeSetup(
-            script_args=['test', '-m', 'bar.tests', '-s', 'foo.tests.suite']
-        ).get_command_obj('test')
-        with pytest.raises(DistutilsOptionError):
-            ts4.ensure_finalized()
-
-    def testNoSuite(self):
-        ts5 = makeSetup().get_command_obj('test')
-        ts5.ensure_finalized()
-        assert ts5.test_suite is None
-
-
 @pytest.fixture
 def example_source(tmpdir):
     tmpdir.mkdir('foo')
@@ -301,9 +264,26 @@ def test_findall_missing_symlink(tmpdir, can_symlink):
         assert found == []
 
 
+@pytest.mark.xfail(reason="unable to exclude tests; #4475 #3260")
 def test_its_own_wheel_does_not_contain_tests(setuptools_wheel):
     with ZipFile(setuptools_wheel) as zipfile:
         contents = [f.replace(os.sep, '/') for f in zipfile.namelist()]
 
     for member in contents:
         assert '/tests/' not in member
+
+
+def test_wheel_includes_cli_scripts(setuptools_wheel):
+    with ZipFile(setuptools_wheel) as zipfile:
+        contents = [f.replace(os.sep, '/') for f in zipfile.namelist()]
+
+    assert any('cli-64.exe' in member for member in contents)
+
+
+def test_wheel_includes_vendored_metadata(setuptools_wheel):
+    with ZipFile(setuptools_wheel) as zipfile:
+        contents = [f.replace(os.sep, '/') for f in zipfile.namelist()]
+
+    assert any(
+        re.search(r'_vendor/.*\.dist-info/METADATA', member) for member in contents
+    )

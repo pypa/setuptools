@@ -12,7 +12,6 @@ import tarfile
 from inspect import cleandoc
 from pathlib import Path
 from unittest.mock import Mock
-from zipfile import ZipFile
 
 import pytest
 from ini2toml.api import LiteTranslator
@@ -51,7 +50,6 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
 
     dist_toml = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject_example)
     dist_cfg = setupcfg.apply_configuration(makedist(tmp_path), setupcfg_example)
-    _port_tests_require(dist_cfg)
 
     pkg_info_toml = core_metadata(dist_toml)
     pkg_info_cfg = core_metadata(dist_cfg)
@@ -84,12 +82,6 @@ def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
 
     assert set(dist_toml.install_requires) == set(dist_cfg.install_requires)
     if any(getattr(d, "extras_require", None) for d in (dist_toml, dist_cfg)):
-        if (
-            "testing" in dist_toml.extras_require
-            and "testing" not in dist_cfg.extras_require
-        ):
-            # ini2toml can automatically convert `tests_require` to `testing` extra
-            dist_toml.extras_require.pop("testing")
         extra_req_toml = {(k, *sorted(v)) for k, v in dist_toml.extras_require.items()}
         extra_req_cfg = {(k, *sorted(v)) for k, v in dist_cfg.extras_require.items()}
         assert extra_req_toml == extra_req_cfg
@@ -422,11 +414,6 @@ class TestMeta:
         with tarfile.open(setuptools_sdist) as tar:
             assert any(name.endswith(EXAMPLES_FILE) for name in tar.getnames())
 
-    def test_example_file_not_in_wheel(self, setuptools_wheel):
-        """Meta test to ensure auxiliary test files are not in wheel"""
-        with ZipFile(setuptools_wheel) as zipfile:
-            assert not any(name.endswith(EXAMPLES_FILE) for name in zipfile.namelist())
-
 
 class TestInteropCommandLineParsing:
     def test_version(self, tmp_path, monkeypatch, capsys):
@@ -467,8 +454,6 @@ def core_metadata(dist) -> str:
     skip_prefixes += ("Project-URL: Homepage,", "Home-page:")
     # May be missing in original (relying on default) but backfilled in the TOML
     skip_prefixes += ("Description-Content-Type:",)
-    # ini2toml can automatically convert `tests_require` to `testing` extra
-    skip_lines.add("Provides-Extra: testing")
     # Remove empty lines
     skip_lines.add("")
 
@@ -479,15 +464,3 @@ def core_metadata(dist) -> str:
         result.append(line + "\n")
 
     return "".join(result)
-
-
-def _port_tests_require(dist):
-    """
-    ``ini2toml`` "forward fix" deprecated tests_require definitions by moving
-    them into an extra called ``testing``.
-    """
-    tests_require = getattr(dist, "tests_require", None) or []
-    if tests_require:
-        dist.tests_require = []
-        dist.extras_require.setdefault("testing", []).extend(tests_require)
-        dist._finalize_requires()

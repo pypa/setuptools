@@ -451,7 +451,7 @@ class bdist_wheel(Command):
 
     def write_wheelfile(
         self, wheelfile_base: str, generator: str = f"setuptools ({__version__})"
-    ):
+    ) -> None:
         from email.message import Message
 
         msg = Message()
@@ -525,7 +525,7 @@ class bdist_wheel(Command):
 
         return files
 
-    def egg2dist(self, egginfo_path: str, distinfo_path: str):
+    def egg2dist(self, egginfo_path: str, distinfo_path: str) -> None:
         """Convert an .egg-info directory into a .dist-info directory"""
 
         def adios(p: str) -> None:
