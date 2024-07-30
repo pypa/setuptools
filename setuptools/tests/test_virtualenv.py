@@ -4,13 +4,8 @@ import subprocess
 from urllib.request import urlopen
 from urllib.error import URLError
 
-import pathlib
 
 import pytest
-
-from . import contexts
-from .textwrap import DALS
-from .test_easy_install import make_nspkg_sdist
 
 
 @pytest.fixture(autouse=True)
@@ -109,80 +104,6 @@ def test_pip_upgrade_from_source(
     venv.run(["pip", "install", str(setuptools_wheel)])
     # And finally try to upgrade from source.
     venv.run(["pip", "install", "--no-cache-dir", "--upgrade", str(setuptools_sdist)])
-
-
-def _check_test_command_install_requirements(venv, tmpdir):
-    """
-    Check the test command will install all required dependencies.
-    """
-
-    def sdist(distname, version):
-        dist_path = tmpdir.join('%s-%s.tar.gz' % (distname, version))
-        make_nspkg_sdist(str(dist_path), distname, version)
-        return dist_path
-
-    dependency_links = [
-        pathlib.Path(str(dist_path)).as_uri()
-        for dist_path in (
-            sdist('foobar', '2.4'),
-            sdist('bits', '4.2'),
-            sdist('bobs', '6.0'),
-            sdist('pieces', '0.6'),
-        )
-    ]
-    with tmpdir.join('setup.py').open('w') as fp:
-        fp.write(
-            DALS(
-                '''
-            from setuptools import setup
-
-            setup(
-                dependency_links={dependency_links!r},
-                install_requires=[
-                    'barbazquux1; sys_platform in ""',
-                    'foobar==2.4',
-                ],
-                setup_requires='bits==4.2',
-                tests_require="""
-                    bobs==6.0
-                """,
-                extras_require={{
-                    'test': ['barbazquux2'],
-                    ':"" in sys_platform': 'pieces==0.6',
-                    ':python_version > "1"': """
-                        pieces
-                        foobar
-                    """,
-                }}
-            )
-            '''.format(dependency_links=dependency_links)
-            )
-        )
-    with tmpdir.join('test.py').open('w') as fp:
-        fp.write(
-            DALS(
-                """
-            import foobar
-            import bits
-            import bobs
-            import pieces
-
-            open('success', 'w').close()
-            """
-            )
-        )
-
-    cmd = ["python", 'setup.py', 'test', '-s', 'test']
-    venv.run(cmd, cwd=str(tmpdir))
-    assert tmpdir.join('success').check()
-
-
-def test_test_command_install_requirements(venv, tmpdir, tmpdir_cwd):
-    # Ensure pip is installed.
-    venv.run(["python", "-c", "import pip"])
-    # disable index URL so bits and bobs aren't requested from PyPI
-    with contexts.environment(PYTHONPATH=None, PIP_NO_INDEX="1"):
-        _check_test_command_install_requirements(venv, tmpdir)
 
 
 def test_no_missing_dependencies(bare_venv, request):
