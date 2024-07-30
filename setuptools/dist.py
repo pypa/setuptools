@@ -168,11 +168,6 @@ def check_entry_points(dist, attr, value):
         raise DistutilsSetupError(e) from e
 
 
-def check_test_suite(dist, attr, value):
-    if not isinstance(value, str):
-        raise DistutilsSetupError("test_suite must be a string")
-
-
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
     if not isinstance(value, dict):
@@ -232,12 +227,6 @@ class Distribution(_Distribution):
         reSTedit are installed.  If the user installs your package using
         EasyInstall and requests one of your extras, the corresponding
         additional requirements will be installed if needed.
-
-     'test_suite' -- the name of a test suite to run for the 'test' command.
-        If the user runs 'python setup.py test', the package will be installed,
-        and the named test suite will be run.  The format is the same as
-        would be used on a 'unittest.py' command line.  That is, it is the
-        dotted name of an object to import and call to generate a test suite.
 
      'package_data' -- a dictionary mapping package names to lists of filenames
         or globs to use to find data files contained in the named packages.

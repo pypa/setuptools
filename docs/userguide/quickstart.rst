@@ -7,7 +7,7 @@ Installation
 
 You can install the latest version of ``setuptools`` using :pypi:`pip`::
 
-    pip install --upgrade setuptools
+    pip install --upgrade setuptools[core]
 
 Most of the times, however, you don't have to...
 
@@ -55,6 +55,16 @@ containing a ``build-system`` section similar to the example below:
 
 This section declares what are your build system dependencies, and which
 library will be used to actually do the packaging.
+
+.. note::
+
+   Package maintainers might be tempted to use ``setuptools[core]`` as the
+   requirement, given the guidance above. Avoid doing so, as the extra
+   is currently considered an internal implementation detail and is likely
+   to go away in the future and the Setuptools team will not support
+   compatibility for problems arising from packages published with this
+   extra declared. Vendored packages will satisfy the dependencies in
+   the most common isolated build scenarios.
 
 .. note::
 

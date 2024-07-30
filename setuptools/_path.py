@@ -1,6 +1,10 @@
+import contextlib
 import os
 import sys
 from typing import Union
+
+from more_itertools import unique_everseen
+
 
 if sys.version_info >= (3, 9):
     StrPath = Union[str, os.PathLike[str]]  #  Same as _typeshed.StrPath
@@ -38,3 +42,41 @@ def normpath(filename: StrPath) -> str:
     # See pkg_resources.normalize_path for notes about cygwin
     file = os.path.abspath(filename) if sys.platform == 'cygwin' else filename
     return os.path.normcase(os.path.realpath(os.path.normpath(file)))
+
+
+@contextlib.contextmanager
+def paths_on_pythonpath(paths):
+    """
+    Add the indicated paths to the head of the PYTHONPATH environment
+    variable so that subprocesses will also see the packages at
+    these paths.
+
+    Do this in a context that restores the value on exit.
+
+    >>> getfixture('monkeypatch').setenv('PYTHONPATH', 'anything')
+    >>> with paths_on_pythonpath(['foo', 'bar']):
+    ...     assert 'foo' in os.environ['PYTHONPATH']
+    ...     assert 'anything' in os.environ['PYTHONPATH']
+    >>> os.environ['PYTHONPATH']
+    'anything'
+
+    >>> getfixture('monkeypatch').delenv('PYTHONPATH')
+    >>> with paths_on_pythonpath(['foo', 'bar']):
+    ...     assert 'foo' in os.environ['PYTHONPATH']
+    >>> os.environ.get('PYTHONPATH')
+    """
+    nothing = object()
+    orig_pythonpath = os.environ.get('PYTHONPATH', nothing)
+    current_pythonpath = os.environ.get('PYTHONPATH', '')
+    try:
+        prefix = os.pathsep.join(unique_everseen(paths))
+        to_join = filter(None, [prefix, current_pythonpath])
+        new_path = os.pathsep.join(to_join)
+        if new_path:
+            os.environ['PYTHONPATH'] = new_path
+        yield
+    finally:
+        if orig_pythonpath is nothing:
+            os.environ.pop('PYTHONPATH', None)
+        else:
+            os.environ['PYTHONPATH'] = orig_pythonpath
