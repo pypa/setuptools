@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "71.1.0"
+version = "72.1.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -141,7 +141,6 @@ rotate = "setuptools.command.rotate:rotate"
 saveopts = "setuptools.command.saveopts:saveopts"
 sdist = "setuptools.command.sdist:sdist"
 setopt = "setuptools.command.setopt:setopt"
-test = "setuptools.command.test:test"
 upload_docs = "setuptools.command.upload_docs:upload_docs"
 
 [project.entry-points."setuptools.finalize_distribution_options"]
@@ -153,19 +152,15 @@ eager_resources = "setuptools.dist:assert_string_list"
 namespace_packages = "setuptools.dist:check_nsp"
 extras_require = "setuptools.dist:check_extras"
 install_requires = "setuptools.dist:check_requirements"
-tests_require = "setuptools.dist:check_requirements"
 setup_requires = "setuptools.dist:check_requirements"
 python_requires = "setuptools.dist:check_specifier"
 entry_points = "setuptools.dist:check_entry_points"
-test_suite = "setuptools.dist:check_test_suite"
 zip_safe = "setuptools.dist:assert_bool"
 package_data = "setuptools.dist:check_package_data"
 exclude_package_data = "setuptools.dist:check_package_data"
 include_package_data = "setuptools.dist:assert_bool"
 packages = "setuptools.dist:check_packages"
 dependency_links = "setuptools.dist:assert_string_list"
-test_loader = "setuptools.dist:check_importable"
-test_runner = "setuptools.dist:check_importable"
 use_2to3 = "setuptools.dist:invalid_unless_false"
 
 [project.entry-points."egg_info.writers"]

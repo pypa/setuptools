@@ -5,7 +5,6 @@ import sys
 import os
 import distutils.core
 import distutils.cmd
-from distutils.errors import DistutilsOptionError
 from distutils.errors import DistutilsSetupError
 from distutils.core import Extension
 from zipfile import ZipFile
@@ -220,43 +219,6 @@ class TestDistro:
             self.dist.include(package_dir=['q'])
         with pytest.raises(DistutilsSetupError):
             self.dist.exclude(package_dir=['q'])
-
-
-class TestCommandTests:
-    def testTestIsCommand(self):
-        test_cmd = makeSetup().get_command_obj('test')
-        assert isinstance(test_cmd, distutils.cmd.Command)
-
-    def testLongOptSuiteWNoDefault(self):
-        ts1 = makeSetup(script_args=['test', '--test-suite=foo.tests.suite'])
-        ts1 = ts1.get_command_obj('test')
-        ts1.ensure_finalized()
-        assert ts1.test_suite == 'foo.tests.suite'
-
-    def testDefaultSuite(self):
-        ts2 = makeSetup(test_suite='bar.tests.suite').get_command_obj('test')
-        ts2.ensure_finalized()
-        assert ts2.test_suite == 'bar.tests.suite'
-
-    def testDefaultWModuleOnCmdLine(self):
-        ts3 = makeSetup(
-            test_suite='bar.tests', script_args=['test', '-m', 'foo.tests']
-        ).get_command_obj('test')
-        ts3.ensure_finalized()
-        assert ts3.test_module == 'foo.tests'
-        assert ts3.test_suite == 'foo.tests.test_suite'
-
-    def testConflictingOptions(self):
-        ts4 = makeSetup(
-            script_args=['test', '-m', 'bar.tests', '-s', 'foo.tests.suite']
-        ).get_command_obj('test')
-        with pytest.raises(DistutilsOptionError):
-            ts4.ensure_finalized()
-
-    def testNoSuite(self):
-        ts5 = makeSetup().get_command_obj('test')
-        ts5.ensure_finalized()
-        assert ts5.test_suite is None
 
 
 @pytest.fixture
