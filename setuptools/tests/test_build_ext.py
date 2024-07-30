@@ -3,12 +3,14 @@ import sys
 import distutils.command.build_ext as orig
 from distutils.sysconfig import get_config_var
 from importlib.util import cache_from_source as _compiled_file_name
+from importlib.machinery import EXTENSION_SUFFIXES
+from pathlib import Path
 
 from jaraco import path
 
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
-from setuptools.extension import Extension
+from setuptools.extension import Extension, Library
 from setuptools.errors import CompileError
 
 from . import environment
@@ -222,8 +224,84 @@ class TestBuildExtInplace:
             cmd.run()
 
 
-def test_build_ext_config_handling(tmpdir_cwd):
-    files = {
+class TestLinksToDynamic:
+    """Regression tests for ``links_to_dynamic``."""
+
+    @pytest.mark.parametrize("libraries", [[], ["glob", "tar"]])
+    def test_links_to_dynamic_no_shlib(self, libraries):
+        ext = Extension("name", ["source.c"], libraries=libraries)
+        dist = Distribution({"ext_modules": [ext]})
+        cmd = build_ext(dist)
+        cmd.finalize_options()
+        assert cmd.links_to_dynamic(ext) is False
+
+    @pytest.mark.parametrize("shlib", [[], ["glob", "tar"]])
+    def test_links_to_dynamic_no_libraries(self, shlib):
+        ext = Extension("name", ["source.c"])
+        shlibs = [Library(name, [f"{name}.c"]) for name in shlib]
+        dist = Distribution({"ext_modules": [ext, *shlibs]})
+        cmd = build_ext(dist)
+        cmd.finalize_options()
+        assert cmd.links_to_dynamic(ext) is False
+
+    def test_links_to_dynamic_local_libraries(self):
+        dist = Distribution()
+        local_libs = ["glob", "tar"]
+
+        ext = Extension("name", ["source.c"], libraries=local_libs)
+        shlibs = [Library(name, [f"{name}.c"]) for name in local_libs]
+        dist = Distribution({"ext_modules": [ext, *shlibs]})
+        cmd = build_ext(dist)
+        cmd.finalize_options()
+        assert cmd.links_to_dynamic(ext) is True
+
+
+class TestExtensionAttrPatches:
+    """
+    Regression tests for the extra information ``setuptools`` adds to
+    the extension objects when ``build_ext`` runs.
+    """
+
+    @pytest.mark.parametrize(
+        "ext_package, ext_name, expected_full_name",
+        [
+            (None, "helloworld", "helloworld"),
+            (None, "hello.world", "hello.world"),
+            ("hello", "world", "hello.world"),
+            ("hello", "wor.ld", "hello.wor.ld"),
+        ],
+    )
+    def test_names(self, ext_package, ext_name, expected_full_name):
+        ext = Extension(ext_name, [f"{ext_name}.c"])
+        dist = Distribution({"ext_package": ext_package, "ext_modules": [ext]})
+        cmd = build_ext(dist)
+        cmd.ensure_finalized()
+        assert ext._full_name == expected_full_name
+        file_name = ext._file_name.replace(os.sep, "/")
+        assert expected_full_name.replace(".", "/") in file_name
+
+    @pytest.fixture(params=[True, False], ids=["use_stubs", "dont_use_stubs"])
+    def use_stubs(self, monkeypatch, request):
+        monkeypatch.setattr("setuptools.command.build_ext.use_stubs", request.param)
+        yield request.param
+
+    def test_links_to_dynamic(self, use_stubs):
+        local_libs = ["glob", "tar"]
+        ext = Extension("name", ["source.c"], libraries=local_libs)
+        shlibs = [Library(name, [f"{name}.c"]) for name in local_libs]
+
+        dist = Distribution({"ext_modules": [ext, *shlibs]})
+        cmd = build_ext(dist)
+        cmd.ensure_finalized()
+        assert ext._links_to_dynamic is True
+        assert ext._needs_stub is use_stubs
+        assert cmd.build_lib in ext.library_dirs
+        if use_stubs:
+            assert os.curdir in ext.runtime_library_dirs
+
+
+class TestBuildExamples:
+    SIMPLE = {
         'setup.py': DALS(
             """
             from setuptools import Extension, setup
@@ -284,9 +362,83 @@ def test_build_ext_config_handling(tmpdir_cwd):
             """
         ),
     }
-    path.build(files)
-    code, output = environment.run_setup_py(
-        cmd=['build'],
-        data_stream=(0, 2),
+
+    PREPROCESSED = {
+        **SIMPLE,
+        "foo.c": "#include <xxx-generate-compilation-error-if-not-preprocessed-xxx>\n",
+        "foo.template": SIMPLE["foo.c"],
+        "setup.py": DALS(
+            """
+            import os, shutil
+            from setuptools import setup
+            from setuptools.extension import Extension, PreprocessedExtension
+
+            class MyExtension(PreprocessedExtension):
+                def preprocess(self, build_ext):
+                    os.makedirs(build_ext.build_temp, exist_ok=False)
+                    temp_file = os.path.join(build_ext.build_temp, "foo.c")
+                    shutil.copy("foo.template", temp_file)  # simulate preprocessing
+                    assert os.path.exists(temp_file)
+                    return Extension(self.name, [temp_file])
+
+            setup(ext_modules=[MyExtension('foo', ['foo.c'])])
+            """
+        ),
+    }
+
+    PREPROCESSED_SHARED_FILES = {
+        **SIMPLE,
+        "foo.c": "#include <xxx-generate-compilation-error-if-not-preprocessed-xxx>\n",
+        "fooc.template": SIMPLE["foo.c"],
+        "fooh.template": "#define HELLO_WORLD 1\n",
+        "bar.c": '#include "foo.h"\n' + SIMPLE["foo.c"].replace("foo", "bar"),
+        "setup.py": DALS(
+            """
+            import os, shutil
+            from setuptools import setup
+            from setuptools.extension import Extension, PreprocessedExtension
+
+            class FooExtension(PreprocessedExtension):
+                shared_files_created = False  # test attribute
+
+                def create_shared_files(self, build_ext):
+                    os.makedirs(build_ext.build_temp, exist_ok=False)
+                    fooh_file = os.path.join(build_ext.build_temp, "foo.h")
+                    shutil.copy("fooh.template", fooh_file)
+                    assert os.path.exists(fooh_file)
+                    self.shared_files_created = True
+
+                def preprocess(self, build_ext):
+                    fooc_file = os.path.join(build_ext.build_temp, "foo.c")
+                    shutil.copy("fooc.template", fooc_file)  # simulate preprocessing
+                    assert os.path.exists(fooc_file)
+                    return Extension(self.name, [fooc_file])
+
+            foo = FooExtension('foo', ['foo.c'])
+
+            class BarExtension(PreprocessedExtension):
+                def preprocess(self, build_ext):
+                    assert foo.shared_files_created is True
+                    self.include_dirs.append(build_ext.build_temp)
+                    return self
+
+            bar = BarExtension('bar', ['bar.c'], depends=['foo.h'])
+
+            setup(ext_modules=[bar, foo])
+            """
+        ),
+    }
+
+    @pytest.mark.parametrize(
+        "example", ["SIMPLE", "PREPROCESSED", "PREPROCESSED_SHARED_FILES"]
     )
-    assert code == 0, '\nSTDOUT:\n%s\nSTDERR:\n%s' % output
+    def test_build_ext_config_handling(self, tmpdir_cwd, example):
+        path.build(getattr(self, example))
+        code, output = environment.run_setup_py(
+            cmd=['build'],
+            data_stream=(0, 2),
+        )
+        assert code == 0, '\nSTDOUT:\n%s\nSTDERR:\n%s' % output
+
+        genfiles = Path("foo_build").rglob("foo.*")
+        assert any(str(f).endswith(s) for f in genfiles for s in EXTENSION_SUFFIXES)
