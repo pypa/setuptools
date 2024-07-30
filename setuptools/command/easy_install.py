@@ -12,72 +12,66 @@ __ https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
 from __future__ import annotations
 
-from glob import glob
-from distutils.util import get_platform
-from distutils.util import convert_path, subst_vars
-from distutils.errors import (
-    DistutilsArgError,
-    DistutilsOptionError,
-    DistutilsError,
-    DistutilsPlatformError,
-)
-from distutils import log, dir_util
-from distutils.command.build_scripts import first_line_re
-from distutils.command import install
-import sys
+import configparser
+import contextlib
+import io
 import os
-import zipimport
-import shutil
-import tempfile
-import zipfile
-import re
-import stat
 import random
+import re
+import shlex
+import shutil
+import site
+import stat
+import struct
+import subprocess
+import sys
+import sysconfig
+import tempfile
 import textwrap
 import warnings
-import site
-import struct
-import contextlib
-import subprocess
-import shlex
-import io
-import configparser
-import sysconfig
-
+import zipfile
+import zipimport
+from glob import glob
 from sysconfig import get_path
 
+from jaraco.text import yield_lines
 from setuptools import Command
-from setuptools.sandbox import run_setup
-from setuptools.command import setopt
 from setuptools.archive_util import unpack_archive
-from setuptools.package_index import (
-    PackageIndex,
-    parse_requirement_arg,
-    URL_SCHEME,
-)
-from setuptools.command import bdist_egg, egg_info
+from setuptools.command import bdist_egg, egg_info, setopt
+from setuptools.package_index import URL_SCHEME, PackageIndex, parse_requirement_arg
+from setuptools.sandbox import run_setup
 from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 from setuptools.wheel import Wheel
+
+import pkg_resources
+from distutils import dir_util, log
+from distutils.command import install
+from distutils.command.build_scripts import first_line_re
+from distutils.errors import (
+    DistutilsArgError,
+    DistutilsError,
+    DistutilsOptionError,
+    DistutilsPlatformError,
+)
+from distutils.util import convert_path, get_platform, subst_vars
 from pkg_resources import (
+    DEVELOP_DIST,
+    Distribution,
+    DistributionNotFound,
+    EggMetadata,
+    Environment,
+    PathMetadata,
+    Requirement,
+    VersionConflict,
+    WorkingSet,
+    find_distributions,
+    get_distribution,
     normalize_path,
     resource_string,
-    get_distribution,
-    find_distributions,
-    Environment,
-    Requirement,
-    Distribution,
-    PathMetadata,
-    EggMetadata,
-    WorkingSet,
-    DistributionNotFound,
-    VersionConflict,
-    DEVELOP_DIST,
 )
-import pkg_resources
-from ..compat import py39, py311
-from .._path import ensure_directory
-from jaraco.text import yield_lines
 
+from .._path import ensure_directory
+from ..compat import py39, py311
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)

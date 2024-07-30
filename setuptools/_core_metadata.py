@@ -13,13 +13,14 @@ from email import message_from_file
 from email.message import Message
 from tempfile import NamedTemporaryFile
 
-from distutils.util import rfc822_escape
-
-from . import _normalization, _reqs
 from packaging.markers import Marker
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name, canonicalize_version
 from packaging.version import Version
+
+from distutils.util import rfc822_escape
+
+from . import _normalization, _reqs
 from .warnings import SetuptoolsDeprecationWarning
 
 

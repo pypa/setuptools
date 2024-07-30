@@ -1,7 +1,6 @@
 # don't import any costly modules
-import sys
 import os
-
+import sys
 
 report_url = (
     "https://github.com/pypa/setuptools/issues/new?"

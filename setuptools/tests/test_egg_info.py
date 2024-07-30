@@ -1,29 +1,23 @@
 from __future__ import annotations
 
-import sys
 import ast
-import os
 import glob
+import os
 import re
 import stat
+import sys
 import time
 from pathlib import Path
 from unittest import mock
 
 import pytest
 from jaraco import path
-
 from setuptools import errors
-from setuptools.command.egg_info import (
-    egg_info,
-    manifest_maker,
-    write_entries,
-)
+from setuptools.command.egg_info import egg_info, manifest_maker, write_entries
 from setuptools.dist import Distribution
 
-from . import environment
+from . import contexts, environment
 from .textwrap import DALS
-from . import contexts
 
 
 class Environment(str):

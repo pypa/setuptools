@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from os import PathLike
 import subprocess
 import sys
-
+from os import PathLike
 from pathlib import Path
 
 

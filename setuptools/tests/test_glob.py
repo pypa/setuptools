@@ -1,6 +1,5 @@
 import pytest
 from jaraco import path
-
 from setuptools.glob import glob
 
 

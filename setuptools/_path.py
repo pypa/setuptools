@@ -5,7 +5,6 @@ from typing import Union
 
 from more_itertools import unique_everseen
 
-
 if sys.version_info >= (3, 9):
     StrPath = Union[str, os.PathLike[str]]  #  Same as _typeshed.StrPath
 else:

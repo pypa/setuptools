@@ -12,8 +12,8 @@ Create a wheel that, when installed, will make the source package 'editable'
 
 from __future__ import annotations
 
-import logging
 import io
+import logging
 import os
 import shutil
 import traceback
@@ -23,32 +23,14 @@ from inspect import cleandoc
 from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import (
-    TYPE_CHECKING,
-    Iterable,
-    Iterator,
-    Mapping,
-    Protocol,
-    TypeVar,
-    cast,
-)
+from typing import TYPE_CHECKING, Iterable, Iterator, Mapping, Protocol, TypeVar, cast
 
-from .. import (
-    Command,
-    _normalization,
-    _path,
-    errors,
-    namespaces,
-)
+from .. import Command, _normalization, _path, errors, namespaces
 from .._path import StrPath
 from ..compat import py39
 from ..discovery import find_package_path
 from ..dist import Distribution
-from ..warnings import (
-    InformationOnly,
-    SetuptoolsDeprecationWarning,
-    SetuptoolsWarning,
-)
+from ..warnings import InformationOnly, SetuptoolsDeprecationWarning, SetuptoolsWarning
 from .build import build as build_cls
 from .build_py import build_py as build_py_cls
 from .dist_info import dist_info as dist_info_cls

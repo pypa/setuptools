@@ -25,25 +25,17 @@ import importlib
 import os
 import pathlib
 import sys
-from glob import iglob
 from configparser import ConfigParser
+from glob import iglob
 from importlib.machinery import ModuleSpec, all_suffixes
 from itertools import chain
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Iterable,
-    Iterator,
-    Mapping,
-    TypeVar,
-)
 from pathlib import Path
 from types import ModuleType
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Iterator, Mapping, TypeVar
 
 from distutils.errors import DistutilsOptionError
 
-from .._path import same_path as _same_path, StrPath
+from .._path import StrPath, same_path as _same_path
 from ..discovery import find_package_path
 from ..warnings import SetuptoolsWarning
 
@@ -287,8 +279,8 @@ def find_packages(
 
     :rtype: list
     """
+    from more_itertools import always_iterable, unique_everseen
     from setuptools.discovery import construct_package_dir
-    from more_itertools import unique_everseen, always_iterable
 
     if namespaces:
         from setuptools.discovery import PEP420PackageFinder as PackageFinder

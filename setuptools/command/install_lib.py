@@ -1,8 +1,11 @@
 from __future__ import annotations
+
 import os
 import sys
 from itertools import product, starmap
+
 import distutils.command.install_lib as orig
+
 from .._path import StrPath
 
 
@@ -103,6 +106,7 @@ class install_lib(orig.install_lib):
         # Exclude namespace package __init__.py* files from the output
 
         from setuptools.archive_util import unpack_directory
+
         from distutils import log
 
         outfiles: list[str] = []

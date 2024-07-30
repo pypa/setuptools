@@ -4,21 +4,21 @@ Implements a Distutils 'upload_docs' subcommand (upload documentation to
 sites other than PyPi such as devpi).
 """
 
-from base64 import standard_b64encode
-from distutils import log
-from distutils.errors import DistutilsOptionError
-import os
-import zipfile
-import tempfile
-import shutil
-import itertools
 import functools
 import http.client
+import itertools
+import os
+import shutil
+import tempfile
 import urllib.parse
+import zipfile
+from base64 import standard_b64encode
+
+from distutils import log
+from distutils.errors import DistutilsOptionError
 
 from .._importlib import metadata
 from ..warnings import SetuptoolsDeprecationWarning
-
 from .upload import upload
 
 

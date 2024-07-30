@@ -1,38 +1,37 @@
 """Easy install Tests"""
 
-import sys
-import os
-import tempfile
-import site
 import contextlib
-import tarfile
-import logging
-import itertools
-import distutils.errors
 import io
-from typing import NamedTuple
-import zipfile
-import time
-import re
-import subprocess
+import itertools
+import logging
+import os
 import pathlib
+import re
+import site
+import subprocess
+import sys
+import tarfile
+import tempfile
+import time
 import warnings
+import zipfile
 from pathlib import Path
+from typing import NamedTuple
 from unittest import mock
 
 import pytest
-from jaraco import path
-
-from setuptools import sandbox
-from setuptools.sandbox import run_setup
 import setuptools.command.easy_install as ei
+from jaraco import path
+from setuptools import sandbox
 from setuptools.command.easy_install import PthDistributions
 from setuptools.dist import Distribution
-from pkg_resources import normalize_path, working_set
-from pkg_resources import Distribution as PRDistribution
-from setuptools.tests.server import MockServer, path_to_url
+from setuptools.sandbox import run_setup
 from setuptools.tests import fail_on_ascii
+from setuptools.tests.server import MockServer, path_to_url
+
+import distutils.errors
 import pkg_resources
+from pkg_resources import Distribution as PRDistribution, normalize_path, working_set
 
 from . import contexts
 from .textwrap import DALS

@@ -3,9 +3,9 @@
 import sys
 
 import pytest
-
 from setuptools.command.install_scripts import install_scripts
 from setuptools.dist import Distribution
+
 from . import contexts
 
 

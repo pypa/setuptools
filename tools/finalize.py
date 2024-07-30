@@ -5,13 +5,12 @@ Finalize the repo for a release. Invokes towncrier and bumpversion.
 __requires__ = ['bump2version', 'towncrier', 'jaraco.develop>=7.21']
 
 
-import subprocess
 import pathlib
 import re
+import subprocess
 import sys
 
 from jaraco.develop import towncrier
-
 
 bump_version_command = [
     sys.executable,

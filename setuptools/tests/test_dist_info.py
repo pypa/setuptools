@@ -8,11 +8,11 @@ import sys
 from functools import partial
 
 import pytest
+from setuptools.archive_util import unpack_archive
 
 import pkg_resources
-from setuptools.archive_util import unpack_archive
-from .textwrap import DALS
 
+from .textwrap import DALS
 
 read = partial(pathlib.Path.read_text, encoding="utf-8")
 
