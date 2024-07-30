@@ -3321,7 +3321,7 @@ class PkgResourcesDeprecationWarning(Warning):
 
 
 @_call_aside
-def _initialize_master_working_set():
+def ensure_local_distutils _initialize_master_working_set():
     """
     Prepare the master working set and make the ``require()``
     API available.

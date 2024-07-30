@@ -17,7 +17,7 @@ from setuptools.extern.packaging import version
 import setuptools
 import setuptools.dist
 import setuptools.depends as dep
-from setuptools.depends import Require
+from _distutils_hack import Require
 import setuptools.get_module_constant
 
 

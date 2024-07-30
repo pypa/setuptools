@@ -16,7 +16,7 @@ from ._deprecation_warning import SetuptoolsDeprecationWarning
 import setuptools.version
 from setuptools.extension import Extension
 from setuptools.dist import Distribution
-from setuptools.depends import Require
+from _distutils_hack import Require
 from setuptools.discovery import PackageFinder, PEP420PackageFinder
 from . import monkey
 from . import logging
