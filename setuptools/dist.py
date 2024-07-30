@@ -28,7 +28,7 @@ from packaging.version import Version
 
 from . import _entry_points
 from . import _reqs
-from . import command as _  # noqa  -- imported for side-effects
+from . import command as _  # noqa: F401 -- imported for side-effects
 from ._importlib import metadata
 from .config import setupcfg, pyprojecttoml
 from .discovery import ConfigDiscovery
