@@ -62,7 +62,7 @@ version, it causes toil (maintenance burden) for each and every project that
 does the pinning (and the consumers that use it) and increases the risk of
 erosion if maintenance is unsustained. This tradeoff between reproducibility
 and compatibility is especially stark because Setuptools frequently releases
-backward-incompatible releases for a variety of reasons, many which won't
+backward-incompatible releases for a variety of reasons, many of which won't
 affect a given project.
 
 .. note::
