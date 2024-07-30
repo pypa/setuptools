@@ -6,12 +6,11 @@ import subprocess
 import pathlib
 import platform
 
-from setuptools.command import test
-
 import pytest
 
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
+from setuptools._path import paths_on_pythonpath
 from . import contexts
 from . import namespaces
 
@@ -124,7 +123,7 @@ class TestNamespaces:
             str(target),
         ]
         with src_dir.as_cwd():
-            with test.test.paths_on_pythonpath([str(target)]):
+            with paths_on_pythonpath([str(target)]):
                 subprocess.check_call(develop_cmd)
 
     @pytest.mark.skipif(
@@ -163,7 +162,7 @@ class TestNamespaces:
             '-c',
             'import myns.pkgA; import myns.pkgB',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(try_import)
 
         # additionally ensure that pkg_resources import works
@@ -172,5 +171,5 @@ class TestNamespaces:
             '-c',
             'import pkg_resources',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp)
