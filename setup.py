@@ -9,6 +9,7 @@ from setuptools.command.install import install
 
 here = os.path.dirname(__file__)
 
+sys.path.extend(((vendor_path := os.path.join(os.path.dirname(__file__), 'setuptools', '_build_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 
 package_data = dict(
     setuptools=['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],

@@ -33,6 +33,7 @@ collect_ignore = [
     'setuptools/_distutils',
     '_distutils_hack',
     'pkg_resources/tests/data',
+    'setuptools/_build_vendor',
     'setuptools/_vendor',
     'setuptools/config/_validate_pyproject',
     'setuptools/modified.py',
