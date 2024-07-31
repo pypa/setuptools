@@ -1,11 +1,10 @@
 [build-system]
-requires = []
+requires = ["setuptools_scm[toml]>=3.4.1"]
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "72.1.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -26,6 +25,7 @@ keywords = ["CPAN PyPI distutils eggs package management"]
 requires-python = ">=3.8"
 dependencies = [
 ]
+dynamic = ["version"]
 
 [project.urls]
 Source = "https://github.com/pypa/setuptools"
@@ -122,6 +122,8 @@ core = [
 	"platformdirs >= 2.6.2",
 ]
 
+[tool.setuptools_scm]
+
 [project.entry-points."distutils.commands"]
 alias = "setuptools.command.alias:alias"
 bdist_egg = "setuptools.command.bdist_egg:bdist_egg"
@@ -192,5 +194,3 @@ namespaces = true
 
 [tool.distutils.sdist]
 formats = "zip"
-
-[tool.setuptools_scm]
