@@ -102,6 +102,9 @@ doc = [
 
 	# workaround for pypa/setuptools#4333
 	"pyproject-hooks!=1.1",
+
+	# workaround for sphinx-contrib/sphinxcontrib-towncrier#92
+	"towncrier<24.7",
 ]
 ssl = []
 certs = []
