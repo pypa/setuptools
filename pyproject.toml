@@ -194,4 +194,3 @@ namespaces = true
 formats = "zip"
 
 [tool.setuptools_scm]
-version_scheme = "no-guess-dev"
