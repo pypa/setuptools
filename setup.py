@@ -10,6 +10,28 @@ from setuptools.command.install import install
 here = os.path.dirname(__file__)
 
 
+try:
+    with open(".version") as f:
+        version = f.read()
+except FileNotFoundError as ex:
+    # We could just use `tool.setuptools.dynamic.version.file` in `pyproject.toml`,
+    # but this way we can have a clear error message with specific instructions
+    # on how to solve the problem.
+    msg = f"""{ex!s}
+
+    This is probably caused by one of the following:
+    a. You are trying to build `setuptools` source-tree from scratch
+       (without using the official `sdist` distributed in PyPI).
+    b. You are trying to test `setuptools` without the help of `tox`.
+
+    To prevent this error from happening please write a PEP 440 compliant string
+    corresponding to the current setuptools version on the `.version` file at the root
+    of the repository (`tox -e version` can automatically do that for you based on the
+    available git tags).
+    """
+    raise FileNotFoundError(msg) from None
+
+
 package_data = {
     "": ["LICEN[CS]E*", "COPYING*", "NOTICE*", "AUTHORS*"],
     "setuptools": ['script (dev).tmpl', 'script.tmpl', 'site-patch.py'],
@@ -83,6 +105,7 @@ class install_with_pth(install):
 
 
 setup_params = dict(
+    version=version,
     cmdclass={'install': install_with_pth},
     package_data=package_data,
 )
