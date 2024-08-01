@@ -24,7 +24,7 @@ def get_version():
 
 
 def save_version(version):
-    pathlib.Path(".version").unlink()  # Remove development version
+    pathlib.Path(".latest").unlink()  # Remove "unstable"/development version
     pathlib.Path(".stable").write_text(version, encoding="utf-8")
     subprocess.check_output(['git', 'add', ".stable"])
 
