@@ -1,30 +1,24 @@
 """
-Finalize the repo for a release. Invokes towncrier and bumpversion.
+Finalize the repo for a release. Invokes towncrier.
 """
 
-__requires__ = ['bump2version', 'towncrier', 'jaraco.develop>=7.21']
-
+__requires__ = ['towncrier', 'jaraco.develop>=7.23']
 
 import subprocess
 import pathlib
 import re
-import sys
 
 from jaraco.develop import towncrier
 
 
-bump_version_command = [
-    sys.executable,
-    '-m',
-    'bumpversion',
-    towncrier.release_kind(),
-]
-
-
 def get_version():
-    cmd = bump_version_command + ['--dry-run', '--verbose']
-    out = subprocess.check_output(cmd, text=True, encoding='utf-8')
-    return re.search('^new_version=(.*)', out, re.MULTILINE).group(1)
+    return towncrier.semver(towncrier.get_version())
+
+
+def save_version(version):
+    pathlib.Path(".version").unlink()  # Remove development version
+    pathlib.Path(".stable").write_text(version, encoding="utf-8")
+    subprocess.check_output(['git', 'add', ".stable"])
 
 
 def update_changelog():
@@ -43,11 +37,6 @@ def _repair_changelog():
     subprocess.check_output(['git', 'add', changelog_fn])
 
 
-def bump_version():
-    cmd = bump_version_command + ['--allow-dirty']
-    subprocess.check_call(cmd)
-
-
 def ensure_config():
     """
     Double-check that Git has an e-mail configured.
@@ -56,8 +45,11 @@ def ensure_config():
 
 
 if __name__ == '__main__':
-    print("Cutting release at", get_version())
+    version = get_version()
+    print("Cutting release at", version)
     ensure_config()
+    save_version(version)
     towncrier.check_changes()
     update_changelog()
-    bump_version()
+    subprocess.check_call(['git', 'commit', '-a', '-m', f'Finalize #{version}'])
+    subprocess.check_call(['git', 'tag', '-a', '-m', '', version])
