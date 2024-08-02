@@ -16,6 +16,11 @@ if platform.system() != 'Windows':
     ])
 
 
+collect_ignore_glob = [
+    'distutils/_vendor/**/*',
+]
+
+
 @pytest.fixture
 def save_env():
     orig = os.environ.copy()
@@ -56,7 +61,7 @@ def _save_cwd():
 
 @pytest.fixture
 def distutils_managed_tempdir(request):
-    from distutils.tests import py38compat as os_helper
+    from distutils.tests.compat import py38 as os_helper
 
     self = request.instance
     self.tempdirs = []

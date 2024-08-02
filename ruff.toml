@@ -1,7 +1,14 @@
 [lint]
 extend-select = [
 	"C901",
+	"PERF401",
 	"W",
+
+	# local
+	"ISC",
+	"RUF010",
+	"RUF100",
+	"UP",
 ]
 ignore = [
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
@@ -22,7 +29,8 @@ ignore = [
 ]
 
 [format]
-# Enable preview, required for quote-style = "preserve"
+# Enable preview to get hugged parenthesis unwrapping and other nice surprises
+# See https://github.com/jaraco/skeleton/pull/133#issuecomment-2239538373
 preview = true
-# https://docs.astral.sh/ruff/settings/#format-quote-style
+# https://docs.astral.sh/ruff/settings/#format_quote-style
 quote-style = "preserve"

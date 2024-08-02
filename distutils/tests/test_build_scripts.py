@@ -42,7 +42,7 @@ class TestBuildScripts(support.TempdirManager):
         dist = Distribution()
         dist.scripts = scripts
         dist.command_obj["build"] = support.DummyCommand(
-            build_scripts=target, force=1, executable=sys.executable
+            build_scripts=target, force=True, executable=sys.executable
         )
         return build_scripts(dist)
 

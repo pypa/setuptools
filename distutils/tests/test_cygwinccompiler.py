@@ -71,12 +71,12 @@ class TestCygwinCCompiler(support.TempdirManager):
         assert check_config_h()[0] == CONFIG_H_OK
 
     def test_get_msvcr(self):
-        # none
+        # []
         sys.version = (
             '2.6.1 (r261:67515, Dec  6 2008, 16:42:21) '
             '\n[GCC 4.0.1 (Apple Computer, Inc. build 5370)]'
         )
-        assert get_msvcr() is None
+        assert get_msvcr() == []
 
         # MSVC 7.0
         sys.version = (
@@ -114,3 +114,10 @@ class TestCygwinCCompiler(support.TempdirManager):
         )
         with pytest.raises(ValueError):
             get_msvcr()
+
+    @pytest.mark.skipif('sys.platform != "cygwin"')
+    def test_dll_libraries_not_none(self):
+        from distutils.cygwinccompiler import CygwinCCompiler
+
+        compiler = CygwinCCompiler()
+        assert compiler.dll_libraries is not None

@@ -12,7 +12,7 @@ from distutils.util import _clear_cached_macosx_ver
 import pytest
 
 from . import support
-from .py38compat import EnvironmentVarGuard
+from .compat.py38 import EnvironmentVarGuard
 
 
 @pytest.fixture(autouse=True)
@@ -32,7 +32,7 @@ def compiler_wrapper(request):
 
 
 class TestUnixCCompiler(support.TempdirManager):
-    @pytest.mark.skipif('platform.system == "Windows"')  # noqa: C901
+    @pytest.mark.skipif('platform.system == "Windows"')
     def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
         #
@@ -319,3 +319,33 @@ class TestUnixCCompiler(support.TempdirManager):
         self.cc.output_dir = 'scratch'
         os.chdir(self.mkdtemp())
         self.cc.has_function('abort')
+
+    def test_find_library_file(self, monkeypatch):
+        compiler = UnixCCompiler()
+        compiler._library_root = lambda dir: dir
+        monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
+
+        libname = 'libabc.dylib' if sys.platform != 'cygwin' else 'cygabc.dll'
+        dirs = ('/foo/bar/missing', '/foo/bar/existing')
+        assert (
+            compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+            == f'/foo/bar/existing/{libname}'
+        )
+        assert (
+            compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+            == f'/foo/bar/existing/{libname}'
+        )
+
+        monkeypatch.setattr(
+            os.path,
+            'exists',
+            lambda d: 'existing' in d and '.a' in d and '.dll.a' not in d,
+        )
+        assert (
+            compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+            == '/foo/bar/existing/libabc.a'
+        )
+        assert (
+            compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+            == '/foo/bar/existing/libabc.a'
+        )
