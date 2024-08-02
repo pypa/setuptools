@@ -88,7 +88,7 @@ class TestDistributionBehavior(support.TempdirManager):
         'distutils' not in Distribution.parse_config_files.__module__,
         reason='Cannot test when virtualenv has monkey-patched Distribution',
     )
-    def test_venv_install_options(self, tmp_path):
+    def test_venv_install_options(self, tmp_path, clear_argv):
         sys.argv.append("install")
         file = str(tmp_path / 'file')
 
