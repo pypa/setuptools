@@ -287,7 +287,7 @@ def _customize_macos():
     )
 
 
-def customize_compiler(compiler):  # noqa: C901
+def customize_compiler(compiler):
     """Do any platform-specific customization of a CCompiler instance.
 
     Mainly needed on Unix, so we can plug in the information that
@@ -329,40 +329,32 @@ def customize_compiler(compiler):  # noqa: C901
                 #       command for LDSHARED as well
                 ldshared = newcc + ldshared[len(cc) :]
             cc = newcc
-        if 'CXX' in os.environ:
-            cxx = os.environ['CXX']
-        if 'LDSHARED' in os.environ:
-            ldshared = os.environ['LDSHARED']
-        if 'LDCXXSHARED' in os.environ:
-            ldcxxshared = os.environ['LDCXXSHARED']
-        if 'CPP' in os.environ:
-            cpp = os.environ['CPP']
-        else:
-            cpp = cc + " -E"  # not always
-        if 'LDFLAGS' in os.environ:
-            ldshared = ldshared + ' ' + os.environ['LDFLAGS']
-            ldcxxshared = ldcxxshared + ' ' + os.environ['LDFLAGS']
-        if 'CFLAGS' in os.environ:
-            cflags = cflags + ' ' + os.environ['CFLAGS']
-            ldshared = ldshared + ' ' + os.environ['CFLAGS']
-        if 'CXXFLAGS' in os.environ:
-            cxxflags = os.environ['CXXFLAGS']
-            ldcxxshared = ldcxxshared + ' ' + os.environ['CXXFLAGS']
-        if 'CPPFLAGS' in os.environ:
-            cpp = cpp + ' ' + os.environ['CPPFLAGS']
-            cflags = cflags + ' ' + os.environ['CPPFLAGS']
-            cxxflags = cxxflags + ' ' + os.environ['CPPFLAGS']
-            ldshared = ldshared + ' ' + os.environ['CPPFLAGS']
-            ldcxxshared = ldcxxshared + ' ' + os.environ['CPPFLAGS']
-        if 'AR' in os.environ:
-            ar = os.environ['AR']
-        if 'ARFLAGS' in os.environ:
-            archiver = ar + ' ' + os.environ['ARFLAGS']
-        else:
-            archiver = ar + ' ' + ar_flags
+        cxx = os.environ.get('CXX', cxx)
+        ldshared = os.environ.get('LDSHARED', ldshared)
+        ldcxxshared = os.environ.get('LDCXXSHARED', ldcxxshared)
+        cpp = os.environ.get(
+            'CPP',
+            cc + " -E",  # not always
+        )
 
+        ldshared = _add_flags(ldshared, 'LD')
+        ldcxxshared = _add_flags(ldcxxshared, 'LD')
+        cflags = _add_flags(cflags, 'C')
+        ldshared = _add_flags(ldshared, 'C')
+        cxxflags = os.environ.get('CXXFLAGS', cxxflags)
+        ldcxxshared = _add_flags(ldcxxshared, 'CXX')
+        cpp = _add_flags(cpp, 'CPP')
+        cflags = _add_flags(cflags, 'CPP')
+        cxxflags = _add_flags(cxxflags, 'CPP')
+        ldshared = _add_flags(ldshared, 'CPP')
+        ldcxxshared = _add_flags(ldcxxshared, 'CPP')
+
+        ar = os.environ.get('AR', ar)
+
+        archiver = ar + ' ' + os.environ.get('ARFLAGS', ar_flags)
         cc_cmd = cc + ' ' + cflags
         cxx_cmd = cxx + ' ' + cxxflags
+
         compiler.set_executables(
             preprocessor=cpp,
             compiler=cc_cmd,
@@ -577,3 +569,13 @@ def get_config_var(name):
 
         warnings.warn('SO is deprecated, use EXT_SUFFIX', DeprecationWarning, 2)
     return get_config_vars().get(name)
+
+
+def _add_flags(value: str, type: str) -> str:
+    """
+    Add any flags from the environment for the given type.
+
+    type is the prefix to FLAGS in the environment key (e.g. "C" for "CFLAGS").
+    """
+    flags = os.environ.get(f'{type}FLAGS')
+    return f'{value} {flags}' if flags else value
