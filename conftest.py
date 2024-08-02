@@ -162,3 +162,26 @@ def disable_macos_customization(monkeypatch):
     from distutils import sysconfig
 
     monkeypatch.setattr(sysconfig, '_customize_macos', lambda: None)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def monkey_patch_get_default_compiler():
+    """
+    Monkey patch distutils get_default_compiler to allow overriding the
+    default compiler. Mainly to test mingw32 with a MSVC Python.
+    """
+    from distutils import ccompiler
+
+    default_compiler = os.environ.get("DISTUTILS_TEST_DEFAULT_COMPILER")
+
+    if default_compiler is not None:
+
+        def patched_get_default_compiler(*args, **kwargs):
+            return default_compiler
+
+        original = ccompiler.get_default_compiler
+        ccompiler.get_default_compiler = patched_get_default_compiler
+        yield
+        ccompiler.get_default_compiler = original
+    else:
+        yield

@@ -163,6 +163,28 @@ jobs:
           source /tmp/venv/bin/activate
           pytest
 
+  test_msvc_python_mingw:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+      - name: Install tox
+        run: python -m pip install tox
+      - name: Install GCC
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ucrt64
+          install: mingw-w64-ucrt-x86_64-cc
+      - name: Run
+        run: |
+          $env:MSYS2_ROOT = msys2 -c 'cygpath -m /'
+          $env:PATH = "$env:MSYS2_ROOT/ucrt64/bin;$env:PATH"
+          $env:DISTUTILS_TEST_DEFAULT_COMPILER = "mingw32"
+          tox
+
   ci_setuptools:
     # Integration testing with setuptools
     strategy:
