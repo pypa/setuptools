@@ -2,11 +2,10 @@
 
 import os
 import pathlib
-
-import pytest
-
 from distutils.command.install_data import install_data
 from distutils.tests import support
+
+import pytest
 
 
 @pytest.mark.usefixtures('save_env')
