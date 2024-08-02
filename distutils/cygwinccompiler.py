@@ -99,14 +99,18 @@ class CygwinCCompiler(UnixCCompiler):
         self.cxx = os.environ.get('CXX', 'g++')
 
         self.linker_dll = self.cc
+        self.linker_dll_cxx = self.cxx
         shared_option = "-shared"
 
         self.set_executables(
             compiler=f'{self.cc} -mcygwin -O -Wall',
             compiler_so=f'{self.cc} -mcygwin -mdll -O -Wall',
             compiler_cxx=f'{self.cxx} -mcygwin -O -Wall',
+            compiler_so_cxx=f'{self.cxx} -mcygwin -mdll -O -Wall',
             linker_exe=f'{self.cc} -mcygwin',
-            linker_so=(f'{self.linker_dll} -mcygwin {shared_option}'),
+            linker_so=f'{self.linker_dll} -mcygwin {shared_option}',
+            linker_exe_cxx=f'{self.cxx} -mcygwin',
+            linker_so_cxx=f'{self.linker_dll_cxx} -mcygwin {shared_option}',
         )
 
         # Include the appropriate MSVC runtime library if Python was built
@@ -138,9 +142,17 @@ class CygwinCCompiler(UnixCCompiler):
                 raise CompileError(msg)
         else:  # for other files use the C-compiler
             try:
-                self.spawn(
-                    self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs
-                )
+                if self.detect_language(src) == 'c++':
+                    self.spawn(
+                        self.compiler_so_cxx
+                        + cc_args
+                        + [src, '-o', obj]
+                        + extra_postargs
+                    )
+                else:
+                    self.spawn(
+                        self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs
+                    )
             except DistutilsExecError as msg:
                 raise CompileError(msg)
 
@@ -276,9 +288,12 @@ class Mingw32CCompiler(CygwinCCompiler):
         self.set_executables(
             compiler=f'{self.cc} -O -Wall',
             compiler_so=f'{self.cc} -shared -O -Wall',
+            compiler_so_cxx=f'{self.cxx} -shared -O -Wall',
             compiler_cxx=f'{self.cxx} -O -Wall',
             linker_exe=f'{self.cc}',
             linker_so=f'{self.linker_dll} {shared_option}',
+            linker_exe_cxx=f'{self.cxx}',
+            linker_so_cxx=f'{self.linker_dll_cxx} {shared_option}',
         )
 
     def runtime_library_dir_option(self, dir):
