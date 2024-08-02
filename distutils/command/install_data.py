@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import functools
 import os
-
 from typing import Iterable
 
 from ..core import Command

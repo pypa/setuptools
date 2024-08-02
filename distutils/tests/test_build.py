@@ -4,8 +4,7 @@ import os
 import sys
 from distutils.command.build import build
 from distutils.tests import support
-from sysconfig import get_config_var
-from sysconfig import get_platform
+from sysconfig import get_config_var, get_platform
 
 
 class TestBuild(support.TempdirManager):

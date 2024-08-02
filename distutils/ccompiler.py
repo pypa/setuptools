@@ -22,7 +22,7 @@ from .errors import (
 )
 from .file_util import move_file
 from .spawn import spawn
-from .util import execute, split_quoted, is_mingw
+from .util import execute, is_mingw, split_quoted
 
 
 class CCompiler:

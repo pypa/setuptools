@@ -3,7 +3,6 @@
 import os
 import pathlib
 import warnings
-
 from distutils.extension import Extension, read_setup_file
 
 import pytest
