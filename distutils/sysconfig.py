@@ -304,6 +304,7 @@ def customize_compiler(compiler):  # noqa: C901
             cflags,
             ccshared,
             ldshared,
+            ldcxxshared,
             shlib_suffix,
             ar,
             ar_flags,
@@ -313,13 +314,13 @@ def customize_compiler(compiler):  # noqa: C901
             'CFLAGS',
             'CCSHARED',
             'LDSHARED',
+            'LDCXXSHARED',
             'SHLIB_SUFFIX',
             'AR',
             'ARFLAGS',
         )
 
         cxxflags = cflags
-        ldcxxshared = ""
 
         if 'CC' in os.environ:
             newcc = os.environ['CC']
