@@ -571,6 +571,7 @@ def get_config_var(name):
     return get_config_vars().get(name)
 
 
+@pass_none
 def _add_flags(value: str, type: str) -> str:
     """
     Add any flags from the environment for the given type.
