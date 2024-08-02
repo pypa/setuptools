@@ -7,10 +7,10 @@ import unittest.mock as mock
 from distutils.errors import DistutilsExecError
 from distutils.spawn import find_executable, spawn
 from distutils.tests import support
-from test.support import unix_shell
 
 import path
 import pytest
+from test.support import unix_shell
 
 from .compat import py38 as os_helper
 
