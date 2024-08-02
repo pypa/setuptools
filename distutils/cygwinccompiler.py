@@ -288,7 +288,7 @@ class Mingw32CCompiler(CygwinCCompiler):
         self.set_executables(
             compiler=f'{self.cc} -O -Wall',
             compiler_so=f'{self.cc} -shared -O -Wall',
-            compiler_so_cxx=f'{self.cxx} -mdll -O -Wall',
+            compiler_so_cxx=f'{self.cxx} -shared -O -Wall',
             compiler_cxx=f'{self.cxx} -O -Wall',
             linker_exe=f'{self.cc}',
             linker_so=f'{self.linker_dll} {shared_option}',
