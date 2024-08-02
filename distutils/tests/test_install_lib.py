@@ -97,7 +97,7 @@ class TestInstallLib(
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = install_lib(dist)
-        cmd.compile = 1
+        cmd.compile = True
         cmd.optimize = 1
 
         old_dont_write_bytecode = sys.dont_write_bytecode

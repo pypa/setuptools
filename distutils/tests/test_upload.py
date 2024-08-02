@@ -117,7 +117,7 @@ class TestUpload(BasePyPIRCCommandTestCase):
         # lets run it
         pkg_dir, dist = self.create_dist(dist_files=dist_files)
         cmd = upload(dist)
-        cmd.show_response = 1
+        cmd.show_response = True
         cmd.ensure_finalized()
         cmd.run()
 
@@ -167,7 +167,7 @@ class TestUpload(BasePyPIRCCommandTestCase):
             dist_files=dist_files, description='long description\r'
         )
         cmd = upload(dist)
-        cmd.show_response = 1
+        cmd.show_response = True
         cmd.ensure_finalized()
         cmd.run()
 

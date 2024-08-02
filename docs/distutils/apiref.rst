@@ -361,7 +361,7 @@ This module provides the following functions.
    are not given.
 
 
-.. function:: new_compiler(plat=None, compiler=None, verbose=0, dry_run=0, force=0)
+.. function:: new_compiler(plat=None, compiler=None, verbose=False, dry_run=False, force=False)
 
    Factory function to generate an instance of some CCompiler subclass for the
    supplied platform/compiler combination. *plat* defaults to ``os.name`` (eg.
@@ -383,7 +383,7 @@ This module provides the following functions.
    to :command:`build`, :command:`build_ext`, :command:`build_clib`).
 
 
-.. class:: CCompiler([verbose=0, dry_run=0, force=0])
+.. class:: CCompiler([verbose=False, dry_run=False, force=False])
 
    The abstract base class :class:`CCompiler` defines the interface that  must be
    implemented by real compiler classes.  The class also has  some utility methods
@@ -517,7 +517,7 @@ This module provides the following functions.
       list) to do the job.
 
 
-   .. method:: CCompiler.find_library_file(dirs, lib[, debug=0])
+   .. method:: CCompiler.find_library_file(dirs, lib[, debug=False])
 
       Search the specified list of directories for a static or shared library file
       *lib* and return the full path to that file.  If *debug* is true, look for a
@@ -580,7 +580,7 @@ This module provides the following functions.
    The following methods invoke stages in the build process.
 
 
-   .. method:: CCompiler.compile(sources[, output_dir=None, macros=None, include_dirs=None, debug=0, extra_preargs=None, extra_postargs=None, depends=None])
+   .. method:: CCompiler.compile(sources[, output_dir=None, macros=None, include_dirs=None, debug=False, extra_preargs=None, extra_postargs=None, depends=None])
 
       Compile one or more source files. Generates object files (e.g.  transforms a
       :file:`.c` file to a :file:`.o` file.)
@@ -624,7 +624,7 @@ This module provides the following functions.
       Raises :exc:`CompileError` on failure.
 
 
-   .. method:: CCompiler.create_static_lib(objects, output_libname[, output_dir=None, debug=0, target_lang=None])
+   .. method:: CCompiler.create_static_lib(objects, output_libname[, output_dir=None, debug=False, target_lang=None])
 
       Link a bunch of stuff together to create a static library file. The "bunch of
       stuff" consists of the list of object files supplied as *objects*, the extra
@@ -648,7 +648,7 @@ This module provides the following functions.
       Raises :exc:`LibError` on failure.
 
 
-   .. method:: CCompiler.link(target_desc, objects, output_filename[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, export_symbols=None, debug=0, extra_preargs=None, extra_postargs=None, build_temp=None, target_lang=None])
+   .. method:: CCompiler.link(target_desc, objects, output_filename[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, export_symbols=None, debug=False, extra_preargs=None, extra_postargs=None, build_temp=None, target_lang=None])
 
       Link a bunch of stuff together to create an executable or shared library file.
 
@@ -690,21 +690,21 @@ This module provides the following functions.
       Raises :exc:`LinkError` on failure.
 
 
-   .. method:: CCompiler.link_executable(objects, output_progname[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, debug=0, extra_preargs=None, extra_postargs=None, target_lang=None])
+   .. method:: CCompiler.link_executable(objects, output_progname[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, debug=False, extra_preargs=None, extra_postargs=None, target_lang=None])
 
       Link an executable.  *output_progname* is the name of the file executable, while
       *objects* are a list of object filenames to link in. Other arguments  are as for
       the :meth:`link` method.
 
 
-   .. method:: CCompiler.link_shared_lib(objects, output_libname[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, export_symbols=None, debug=0, extra_preargs=None, extra_postargs=None, build_temp=None, target_lang=None])
+   .. method:: CCompiler.link_shared_lib(objects, output_libname[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, export_symbols=None, debug=False, extra_preargs=None, extra_postargs=None, build_temp=None, target_lang=None])
 
       Link a shared library. *output_libname* is the name of the output  library,
       while *objects* is a list of object filenames to link in.  Other arguments are
       as for the :meth:`link` method.
 
 
-   .. method:: CCompiler.link_shared_object(objects, output_filename[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, export_symbols=None, debug=0, extra_preargs=None, extra_postargs=None, build_temp=None, target_lang=None])
+   .. method:: CCompiler.link_shared_object(objects, output_filename[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, export_symbols=None, debug=False, extra_preargs=None, extra_postargs=None, build_temp=None, target_lang=None])
 
       Link a shared object. *output_filename* is the name of the shared object that
       will be created, while *objects* is a list of object filenames  to link in.
@@ -726,14 +726,14 @@ This module provides the following functions.
    use by the various concrete subclasses.
 
 
-   .. method:: CCompiler.executable_filename(basename[, strip_dir=0, output_dir=''])
+   .. method:: CCompiler.executable_filename(basename[, strip_dir=False, output_dir=''])
 
       Returns the filename of the executable for the given *basename*.  Typically for
       non-Windows platforms this is the same as the basename,  while Windows will get
       a :file:`.exe` added.
 
 
-   .. method:: CCompiler.library_filename(libname[, lib_type='static', strip_dir=0, output_dir=''])
+   .. method:: CCompiler.library_filename(libname[, lib_type='static', strip_dir=False, output_dir=''])
 
       Returns the filename for the given library name on the current platform. On Unix
       a library with *lib_type* of ``'static'`` will typically  be of the form
@@ -741,13 +741,13 @@ This module provides the following functions.
       :file:`liblibname.so`.
 
 
-   .. method:: CCompiler.object_filenames(source_filenames[, strip_dir=0, output_dir=''])
+   .. method:: CCompiler.object_filenames(source_filenames[, strip_dir=False, output_dir=''])
 
       Returns the name of the object files for the given source files.
       *source_filenames* should be a list of filenames.
 
 
-   .. method:: CCompiler.shared_object_filename(basename[, strip_dir=0, output_dir=''])
+   .. method:: CCompiler.shared_object_filename(basename[, strip_dir=False, output_dir=''])
 
       Returns the name of a shared object file for the given file name *basename*.
 
@@ -884,7 +884,7 @@ This module provides a few functions for creating archive files, such as
 tarballs or zipfiles.
 
 
-.. function:: make_archive(base_name, format[, root_dir=None, base_dir=None, verbose=0, dry_run=0])
+.. function:: make_archive(base_name, format[, root_dir=None, base_dir=None, verbose=False, dry_run=False])
 
    Create an archive file (eg. ``zip`` or ``tar``).  *base_name*  is the name of
    the file to create, minus any format-specific extension;  *format* is the
@@ -900,7 +900,7 @@ tarballs or zipfiles.
       Added support for the ``xztar`` format.
 
 
-.. function:: make_tarball(base_name, base_dir[, compress='gzip', verbose=0, dry_run=0])
+.. function:: make_tarball(base_name, base_dir[, compress='gzip', verbose=False, dry_run=False])
 
    'Create an (optional compressed) archive as a tar file from all files in and
    under *base_dir*. *compress* must be ``'gzip'`` (the default),
@@ -915,7 +915,7 @@ tarballs or zipfiles.
       Added support for the ``xz`` compression.
 
 
-.. function:: make_zipfile(base_name, base_dir[, verbose=0, dry_run=0])
+.. function:: make_zipfile(base_name, base_dir[, verbose=False, dry_run=False])
 
    Create a zip file from all files in and under *base_dir*.  The output zip file
    will be named *base_name* + :file:`.zip`.  Uses either the  :mod:`zipfile` Python
@@ -978,7 +978,7 @@ This module provides functions for operating on directories and trees of
 directories.
 
 
-.. function:: mkpath(name[, mode=0o777, verbose=0, dry_run=0])
+.. function:: mkpath(name[, mode=0o777, verbose=False, dry_run=False])
 
    Create a directory and any missing ancestor directories.  If the directory
    already exists (or if *name* is the empty string, which means the current
@@ -989,7 +989,7 @@ directories.
    directories actually created.
 
 
-.. function:: create_tree(base_dir, files[, mode=0o777, verbose=0, dry_run=0])
+.. function:: create_tree(base_dir, files[, mode=0o777, verbose=False, dry_run=False])
 
    Create all the empty directories under *base_dir* needed to put *files* there.
    *base_dir* is just the name of a directory which doesn't necessarily exist
@@ -999,7 +999,7 @@ directories.
    :func:`mkpath`.
 
 
-.. function:: copy_tree(src, dst[, preserve_mode=1, preserve_times=1, preserve_symlinks=0, update=0, verbose=0, dry_run=0])
+.. function:: copy_tree(src, dst[, preserve_mode=True, preserve_times=True, preserve_symlinks=False, update=False, verbose=False, dry_run=False])
 
    Copy an entire directory tree *src* to a new location *dst*.  Both *src* and
    *dst* must be directory names.  If *src* is not a directory, raise
@@ -1026,7 +1026,7 @@ directories.
    .. versionchanged:: 3.3.1
       NFS files are ignored.
 
-.. function:: remove_tree(directory[, verbose=0, dry_run=0])
+.. function:: remove_tree(directory[, verbose=False, dry_run=False])
 
    Recursively remove *directory* and all files and directories underneath it. Any
    errors are ignored (apart from being reported to ``sys.stdout`` if *verbose* is
@@ -1043,7 +1043,7 @@ directories.
 This module contains some utility functions for operating on individual files.
 
 
-.. function:: copy_file(src, dst[, preserve_mode=1, preserve_times=1, update=0, link=None, verbose=0, dry_run=0])
+.. function:: copy_file(src, dst[, preserve_mode=True, preserve_times=True, update=False, link=None, verbose=False, dry_run=False])
 
    Copy file *src* to *dst*. If *dst* is a directory, then *src* is copied there
    with the same name; otherwise, it must be a filename. (If the file exists, it
@@ -1216,7 +1216,7 @@ other utility module.
    .. % Should probably be moved into the standard library.
 
 
-.. function:: execute(func, args[, msg=None, verbose=0, dry_run=0])
+.. function:: execute(func, args[, msg=None, verbose=False, dry_run=False])
 
    Perform some action that affects the outside world (for instance, writing to the
    filesystem).  Such actions are special because they are disabled by the
@@ -1234,7 +1234,7 @@ other utility module.
    :exc:`ValueError` if *val*  is anything else.
 
 
-.. function:: byte_compile(py_files[, optimize=0, force=0, prefix=None, base_dir=None, verbose=1, dry_run=0, direct=None])
+.. function:: byte_compile(py_files[, optimize=0, force=False, prefix=None, base_dir=None, verbose=True, dry_run=False, direct=None])
 
    Byte-compile a collection of Python source files to :file:`.pyc` files in a
    :file:`__pycache__` subdirectory (see :pep:`3147` and :pep:`488`).
