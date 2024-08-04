@@ -5,6 +5,8 @@ extend-select = [
 	"W",
 
 	# local
+	"B",
+	"I",
 	"ISC",
 	"RUF010",
 	"RUF100",
@@ -26,6 +28,10 @@ ignore = [
 	"COM819",
 	"ISC001",
 	"ISC002",
+
+	# local
+	"B028",
+	"B904",
 ]
 
 [format]
