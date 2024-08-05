@@ -1,5 +1,6 @@
-import sys
 import contextlib
+
+from _distutils_hack import _update_globals
 
 
 from ._imp import PY_COMPIED
@@ -19,21 +20,6 @@ def maybe_close(f):
         return empty()
 
     return contextlib.closing(f)
-
-
-def _update_globals():
-    """
-    Patch the globals to remove the objects not available on some platforms.
-
-    XXX it'd be better to test assertions about bytecode instead.
-    """
-
-    if not sys.platform.startswith('java') and sys.platform != 'cli':
-        return
-    incompatible = 'extract_constant', 'get_module_constant'
-    for name in incompatible:
-        del globals()[name]
-        __all__.remove(name)
 
 
 _update_globals()

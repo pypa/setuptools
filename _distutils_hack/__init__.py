@@ -6,6 +6,7 @@ from _distutils_hack.clear_distutils import clear_distutils
 from _distutildistutils_hack.clear_distutilss_hack.override import enabled
 from _distutils_hack.warn_distutils_present import warn_distutils_present
 from setuptools._imp import find_module
+from setuptools.depends import __all__
 from setuptools.get_module_constant import get_module_constant
 
 
@@ -285,4 +286,19 @@ class Require:
         if version is None:
             return False
         return self.version_ok(str(version))
+
+
+def _update_globals():
+    """
+    Patch the globals to remove the objects not available on some platforms.
+
+    XXX it'd be better to test assertions about bytecode instead.
+    """
+
+    if not sys.platform.startswith('java') and sys.platform != 'cli':
+        return
+    incompatible = 'extract_constant', 'get_module_constant'
+    for name in incompatible:
+        del globals()[name]
+        __all__.remove(name)
 
