@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 from jaraco import path
+from packaging.requirements import Requirement
 
 from .textwrap import DALS
 
@@ -436,18 +437,16 @@ class TestBuildMetaBackend:
         }
         assert license == "---- placeholder MIT license ----"
 
-        metadata = metadata.replace("(", "").replace(")", "")
-        # ^-- compatibility hack for pypa/wheel#552
-
         for line in (
             "Summary: This is a Python package",
             "License: MIT",
             "Classifier: Intended Audience :: Developers",
             "Requires-Dist: appdirs",
-            "Requires-Dist: tomli >=1 ; extra == 'all'",
-            "Requires-Dist: importlib ; python_version == \"2.6\" and extra == 'all'",
+            "Requires-Dist: " + str(Requirement('tomli>=1 ; extra == "all"')),
+            "Requires-Dist: "
+            + str(Requirement('importlib; python_version=="2.6" and extra =="all"')),
         ):
-            assert line in metadata
+            assert line in metadata, (line, metadata)
 
         assert metadata.strip().endswith("This is a ``README``")
         assert epoints.strip() == "[console_scripts]\nfoo = foo.cli:main"

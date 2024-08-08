@@ -25,11 +25,11 @@ from distutils.tests.support import (
     fixup_build_ext,
 )
 from io import StringIO
-from test import support
 
 import jaraco.path
 import path
 import pytest
+from test import support
 
 from .compat import py38 as import_helper
 

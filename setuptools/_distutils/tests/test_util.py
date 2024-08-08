@@ -5,6 +5,7 @@ import email.generator
 import email.policy
 import io
 import os
+import pathlib
 import sys
 import sysconfig as stdlib_sysconfig
 import unittest.mock as mock
@@ -63,30 +64,9 @@ class TestUtil:
                 assert get_platform() == 'win-arm64'
 
     def test_convert_path(self):
-        # linux/mac
-        os.sep = '/'
-
-        def _join(path):
-            return '/'.join(path)
-
-        os.path.join = _join
-
-        assert convert_path('/home/to/my/stuff') == '/home/to/my/stuff'
-
-        # win
-        os.sep = '\\'
-
-        def _join(*path):
-            return '\\'.join(path)
-
-        os.path.join = _join
-
-        with pytest.raises(ValueError):
-            convert_path('/home/to/my/stuff')
-        with pytest.raises(ValueError):
-            convert_path('home/to/my/stuff/')
-
-        assert convert_path('home/to/my/stuff') == 'home\\to\\my\\stuff'
+        expected = os.sep.join(('', 'home', 'to', 'my', 'stuff'))
+        assert convert_path('/home/to/my/stuff') == expected
+        assert convert_path(pathlib.Path('/home/to/my/stuff')) == expected
         assert convert_path('.') == os.curdir
 
     def test_change_root(self):

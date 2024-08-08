@@ -55,7 +55,7 @@ def assert_string_list(dist, attr, value):
     try:
         # verify that value is a list or tuple to exclude unordered
         # or single-use iterables
-        assert isinstance(value, (list, tuple))
+        assert isinstance(value, sequence)
         # verify that elements of value are strings
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
@@ -168,11 +168,6 @@ def check_entry_points(dist, attr, value):
         raise DistutilsSetupError(e) from e
 
 
-def check_test_suite(dist, attr, value):
-    if not isinstance(value, str):
-        raise DistutilsSetupError("test_suite must be a string")
-
-
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
     if not isinstance(value, dict):
@@ -235,12 +230,6 @@ class Distribution(_Distribution):
         EasyInstall and requests one of your extras, the corresponding
         additional requirements will be installed if needed.
 
-     'test_suite' -- the name of a test suite to run for the 'test' command.
-        If the user runs 'python setup.py test', the package will be installed,
-        and the named test suite will be run.  The format is the same as
-        would be used on a 'unittest.py' command line.  That is, it is the
-        dotted name of an object to import and call to generate a test suite.
-
      'package_data' -- a dictionary mapping package names to lists of filenames
         or globs to use to find data files contained in the named packages.
         If the dictionary has filenames or globs listed under '""' (the empty
@@ -278,6 +267,8 @@ class Distribution(_Distribution):
             self.package_data: dict[str, list[str]] = {}
         attrs = attrs or {}
         self.dist_files: list[tuple[str, str, str]] = []
+        self.include_package_data: bool | None = None
+        self.exclude_package_data: dict[str, list[str]] | None = None
         # Filter-out setuptools' specific options.
         self.src_root = attrs.pop("src_root", None)
         self.dependency_links = attrs.pop('dependency_links', [])

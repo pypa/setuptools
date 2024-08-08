@@ -10,6 +10,7 @@ from typing import Any, cast
 from typing import ClassVar
 
 import setuptools
+from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 from .bdist_egg import bdist_egg as bdist_egg_cls
 
@@ -20,6 +21,8 @@ _install = orig.install
 
 class install(orig.install):
     """Use easy_install to install the package, w/dependencies"""
+
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
     user_options = orig.install.user_options + [
         ('old-and-unmanageable', None, "Try not to use this!"),

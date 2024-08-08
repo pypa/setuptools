@@ -1,3 +1,30 @@
+v72.2.0
+=======
+
+Features
+--------
+
+- Merged with pypa/distutils@b7ee725f3 including: Support for Pathlike objects in data files and extensions (pypa/distutils#272, pypa/distutils#237), native support for C++ compilers (pypa/distuils#228) and removed unused get_msvcr() (pypa/distutils#274). (#4538)
+
+
+v72.1.0
+=======
+
+Features
+--------
+
+- Restore the tests command and deprecate access to the module. (#4519) (#4520)
+
+
+v72.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- The test command has been removed. Users relying on 'setup.py test' will need to migrate to another test runner or pin setuptools before this version. (#931)
+
+
 v71.1.0
 =======
 
