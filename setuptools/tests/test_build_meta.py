@@ -436,16 +436,17 @@ class TestBuildMetaBackend:
         }
         assert license == "---- placeholder MIT license ----"
 
-        metadata = metadata.replace("(", "").replace(")", "")
+        metadata = metadata.replace("(", "").replace(")", "").replace("'", '"')
         # ^-- compatibility hack for pypa/wheel#552
+        #     + normalise all quotes to `"` to avoid inconsistency in #4547
 
         for line in (
             "Summary: This is a Python package",
             "License: MIT",
             "Classifier: Intended Audience :: Developers",
             "Requires-Dist: appdirs",
-            "Requires-Dist: tomli >=1 ; extra == 'all'",
-            "Requires-Dist: importlib ; python_version == \"2.6\" and extra == 'all'",
+            "Requires-Dist: tomli >=1 ; extra == \"all\"",
+            "Requires-Dist: importlib ; python_version == \"2.6\" and extra == \"all\"",
         ):
             assert line in metadata
 
