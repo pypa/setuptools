@@ -1,0 +1,1 @@
+Changed the import of ``ctypes.wintypes`` from ``__import__`` to a regular ``import`` statement -- by :user:`Avasam`
