@@ -126,6 +126,14 @@ class Extension(_Extension):
       specified on Windows. (since v63)
     """
 
+    # These 4 are set and used in setuptools/command/build_ext.py
+    # The lack of a default value and risk of `AttributeError` is purposeful
+    # to avoid people forgetting to call finalize_options if they modify the extension list
+    _full_name: str  #: Private API, internal use only.
+    _links_to_dynamic: bool  #: Private API, internal use only.
+    _needs_stub: bool  #: Private API, internal use only.
+    _file_name: str  #: Private API, internal use only.
+
     def __init__(self, name, sources, *args, **kw):
         # The *args is needed for compatibility as calls may use positional
         # arguments. py_limited_api may be set only via keyword.

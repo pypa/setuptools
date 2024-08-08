@@ -265,6 +265,8 @@ class Distribution(_Distribution):
             self.package_data: dict[str, list[str]] = {}
         attrs = attrs or {}
         self.dist_files: list[tuple[str, str, str]] = []
+        self.include_package_data: bool | None = None
+        self.exclude_package_data: dict[str, list[str]] | None = None
         # Filter-out setuptools' specific options.
         self.src_root = attrs.pop("src_root", None)
         self.dependency_links = attrs.pop('dependency_links', [])

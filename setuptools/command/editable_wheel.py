@@ -153,6 +153,7 @@ class editable_wheel(Command):
             self._create_wheel_file(bdist_wheel)
         except Exception:
             traceback.print_exc()
+            # TODO: Fix false-positive [attr-defined] in typeshed
             project = self.distribution.name or self.distribution.get_name()
             _DebuggingTips.emit(project=project)
             raise

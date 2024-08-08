@@ -13,6 +13,7 @@ from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
 from distutils import log
 
+from setuptools.dist import Distribution
 from setuptools.errors import BaseError
 from setuptools.extension import Extension, Library
 
@@ -84,6 +85,7 @@ def get_abi3_suffix():
 
 
 class build_ext(_build_ext):
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
     editable_mode: bool = False
     inplace: bool = False
 
