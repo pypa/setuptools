@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from distutils.util import convert_path
 from distutils import log
 from distutils.errors import DistutilsOptionError
@@ -103,10 +103,6 @@ class option_base(Command, ABC):
                 "Must specify only one configuration file option", filenames
             )
         (self.filename,) = filenames
-
-    @abstractmethod
-    def run(self) -> None:
-        raise NotImplementedError
 
 
 class setopt(option_base):
