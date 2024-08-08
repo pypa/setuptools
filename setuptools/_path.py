@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import os
 import sys
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias

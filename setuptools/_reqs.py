@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Callable, Iterable, Iterator, TypeVar, Union, overload, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Iterable, Iterator, TypeVar, Union, overload
+
 import jaraco.text as text
 from packaging.requirements import Requirement
 
