@@ -448,7 +448,7 @@ class TestBuildMetaBackend:
             "Requires-Dist: tomli >=1 ; extra == \"all\"",
             "Requires-Dist: importlib ; python_version == \"2.6\" and extra == \"all\"",
         ):
-            assert line in metadata
+            assert line in metadata, (line, metadata)
 
         assert metadata.strip().endswith("This is a ``README``")
         assert epoints.strip() == "[console_scripts]\nfoo = foo.cli:main"
