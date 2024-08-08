@@ -55,6 +55,7 @@ from .dist_info import dist_info as dist_info_cls
 from .egg_info import egg_info as egg_info_cls
 from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
+import operator
 
 if TYPE_CHECKING:
     from .._vendor.wheel.wheelfile import WheelFile
@@ -882,7 +883,7 @@ def _finder_template(
     """Create a string containing the code for the``MetaPathFinder`` and
     ``PathEntryFinder``.
     """
-    mapping = dict(sorted(mapping.items(), key=lambda p: p[0]))
+    mapping = dict(sorted(mapping.items(), key=operator.itemgetter(0)))
     return _FINDER_TEMPLATE.format(name=name, mapping=mapping, namespaces=namespaces)
 
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 import itertools
+import operator
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
 from typing import Iterator
@@ -315,7 +316,7 @@ class build_ext(_build_ext):
     def get_output_mapping(self) -> dict[str, str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         mapping = self._get_output_mapping()
-        return dict(sorted(mapping, key=lambda x: x[0]))
+        return dict(sorted(mapping, key=operator.itemgetter(0)))
 
     def __get_stubs_outputs(self):
         # assemble the base name for each extension that needs a stub
