@@ -24,10 +24,10 @@ def show_formats():
     from ..archive_util import ARCHIVE_FORMATS
     from ..fancy_getopt import FancyGetopt
 
-    formats = []
-    for format in ARCHIVE_FORMATS.keys():
-        formats.append(("formats=" + format, None, ARCHIVE_FORMATS[format][2]))
-    formats.sort()
+    formats = sorted(
+        ("formats=" + format, None, ARCHIVE_FORMATS[format][2])
+        for format in ARCHIVE_FORMATS.keys()
+    )
     FancyGetopt(formats).print_help("List of available source distribution formats:")
 
 

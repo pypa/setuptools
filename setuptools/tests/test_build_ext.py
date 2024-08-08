@@ -189,6 +189,7 @@ class TestBuildExtInplace:
         dist = Distribution(dict(ext_modules=[extension]))
         dist.script_name = 'setup.py'
         cmd = build_ext(dist)
+        # TODO: False-positive [attr-defined], raise upstream
         vars(cmd).update(build_lib=".build/lib", build_temp=".build/tmp", **opts)
         cmd.ensure_finalized()
         return cmd

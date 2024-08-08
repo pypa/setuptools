@@ -55,7 +55,7 @@ def assert_string_list(dist, attr, value):
     try:
         # verify that value is a list or tuple to exclude unordered
         # or single-use iterables
-        assert isinstance(value, (list, tuple))
+        assert isinstance(value, sequence)
         # verify that elements of value are strings
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
@@ -265,6 +265,8 @@ class Distribution(_Distribution):
             self.package_data: dict[str, list[str]] = {}
         attrs = attrs or {}
         self.dist_files: list[tuple[str, str, str]] = []
+        self.include_package_data: bool | None = None
+        self.exclude_package_data: dict[str, list[str]] | None = None
         # Filter-out setuptools' specific options.
         self.src_root = attrs.pop("src_root", None)
         self.dependency_links = attrs.pop('dependency_links', [])

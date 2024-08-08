@@ -745,10 +745,7 @@ Common commands: (see '--help-commands' for more)
         for cmd in std_commands:
             is_std.add(cmd)
 
-        extra_commands = []
-        for cmd in self.cmdclass.keys():
-            if cmd not in is_std:
-                extra_commands.append(cmd)
+        extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
 
         max_length = 0
         for cmd in std_commands + extra_commands:
@@ -776,10 +773,7 @@ Common commands: (see '--help-commands' for more)
         for cmd in std_commands:
             is_std.add(cmd)
 
-        extra_commands = []
-        for cmd in self.cmdclass.keys():
-            if cmd not in is_std:
-                extra_commands.append(cmd)
+        extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
 
         rv = []
         for cmd in std_commands + extra_commands:
@@ -1301,7 +1295,4 @@ def fix_help_options(options):
     """Convert a 4-tuple 'help_options' list as found in various command
     classes to the 3-tuple form required by FancyGetopt.
     """
-    new_options = []
-    for help_tuple in options:
-        new_options.append(help_tuple[0:3])
-    return new_options
+    return [opt[0:3] for opt in options]

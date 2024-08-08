@@ -33,11 +33,12 @@ if TYPE_CHECKING:
     from distutils.dist import _OptionsList
     from setuptools._importlib import metadata
     from setuptools.dist import Distribution
+    from typing_extensions import TypeAlias
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
-_ProjectReadmeValue = Union[str, Dict[str, str]]
-_CorrespFn = Callable[["Distribution", Any, StrPath], None]
-_Correspondence = Union[str, _CorrespFn]
+_ProjectReadmeValue: TypeAlias = Union[str, Dict[str, str]]
+_CorrespFn: TypeAlias = Callable[["Distribution", Any, StrPath], None]
+_Correspondence: TypeAlias = Union[str, _CorrespFn]
 
 _logger = logging.getLogger(__name__)
 

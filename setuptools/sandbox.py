@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 import os
 import sys
 import tempfile
@@ -265,7 +266,7 @@ def run_setup(setup_script, args):
             # Normal exit, just return
 
 
-class AbstractSandbox:
+class AbstractSandbox(ABC):
     """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""
 
     _active = False

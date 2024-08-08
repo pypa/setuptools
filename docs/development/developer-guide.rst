@@ -131,3 +131,35 @@ simple Python script ``tools/vendor.py``.
 To refresh the dependencies, run the following command::
 
     $ tox -e vendor
+
+----------------
+Type annotations
+----------------
+
+Most standards and best practices are enforced by
+`Ruff <https://docs.astral.sh/ruff/rules/>`_'s ``ANN2``, ``FA``, ``PYI``, ``UP``
+and ``YTT`` rules.
+
+Explicit return types have to be added for typed public functions whose
+parameters are *all* annotated. This is enforced by ``ANN2``, but it's worth noting
+that this is due to mypy inferring ``Any`` even for simple return types. Mypy also
+doesn't count functions with missing parameter annotations as "typed". (see
+`python/mypy#4409 <https://github.com/python/mypy/issues/4409>`_,
+`python/mypy#10149 <https://github.com/python/mypy/issues/10149>`_ and
+`python/mypy#6646 <https://github.com/python/mypy/issues/6646>`_).
+Otherwise, return annotations can be omitted to reduce verbosity,
+especially for complex return types.
+
+Instead of typing an explicit return type annotation as
+``Generator[..., None, None]``, we'll prefer using an ``Iterator`` as it is more
+concise and conceptually easier to deal with. Returning a ``Generator`` with no
+``yield`` type or ``send`` type can sometimes be considered as exposing
+implementation details. See
+`Y058 <https://github.com/PyCQA/flake8-pyi/blob/main/ERRORCODES.md#Y058>`_.
+
+Avoid importing private type-checking-only symbols. These are often
+`typeshed <https://github.com/python/typeshed>`_ internal details and are not
+guaranteed to be stable.
+Importing from ``_typeshed`` or ``typing_extensions`` is fine, but if you find
+yourself importing the same symbol in ``TYPE_CHECKING`` blocks a lot, consider
+implementing an alias directly in ``setuptools``.

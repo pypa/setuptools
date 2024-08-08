@@ -3,11 +3,15 @@ import os
 import sys
 from itertools import product, starmap
 import distutils.command.install_lib as orig
+
 from .._path import StrPath
+from ..dist import Distribution
 
 
 class install_lib(orig.install_lib):
     """Don't add compiled flags to filenames of non-Python files"""
+
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
     def run(self):
         self.build()
