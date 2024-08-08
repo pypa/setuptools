@@ -22,6 +22,7 @@ This module is deprecated. Users are directed to :mod:`importlib.resources`,
 
 from __future__ import annotations
 
+from abc import ABC
 import sys
 
 if sys.version_info < (3, 8):  # noqa: UP036 # Check for unsupported versions
@@ -311,7 +312,7 @@ __all__ = [
 ]
 
 
-class ResolutionError(Exception):
+class ResolutionError(Exception, ABC):
     """Abstract base for dependency resolution errors"""
 
     def __repr__(self):
