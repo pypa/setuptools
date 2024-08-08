@@ -44,7 +44,7 @@ test = [
 
 	# local
 	"virtualenv>=13.0.0",
-	"wheel",
+	"wheel>=0.44.0",  # Consistent requirement normalisation in METADATA (see #4547)
 	"pip>=19.1", # For proper file:// URLs support.
 	"packaging>=23.2",
 	"jaraco.envs>=2.2",
