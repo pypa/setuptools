@@ -3,14 +3,13 @@ from __future__ import annotations
 import contextlib
 import os
 import sys
-from typing import Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
 
 from more_itertools import unique_everseen
-
 
 if sys.version_info >= (3, 9):
     StrPath: TypeAlias = Union[str, os.PathLike[str]]  #  Same as _typeshed.StrPath

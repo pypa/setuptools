@@ -1,9 +1,8 @@
 import os
-import sys
 import subprocess
-from urllib.request import urlopen
+import sys
 from urllib.error import URLError
-
+from urllib.request import urlopen
 
 import pytest
 

@@ -1,8 +1,8 @@
 import importlib
 import pickle
 
-from setuptools import Distribution
 import ordered_set
+from setuptools import Distribution
 
 
 def test_reimport_extern():

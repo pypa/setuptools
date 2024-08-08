@@ -1,6 +1,6 @@
 from setuptools import Command
-from setuptools.dist import Distribution
 from setuptools.command.build import build
+from setuptools.dist import Distribution
 
 
 def test_distribution_gives_setuptools_build_obj(tmpdir_cwd):

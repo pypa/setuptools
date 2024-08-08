@@ -1,10 +1,9 @@
-from setuptools.command.upload import upload
-from setuptools.dist import Distribution
-from setuptools.errors import RemovedCommandError
-
 from unittest import mock
 
 import pytest
+from setuptools.command.upload import upload
+from setuptools.dist import Distribution
+from setuptools.errors import RemovedCommandError
 
 
 class TestUpload:

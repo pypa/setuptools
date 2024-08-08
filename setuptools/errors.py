@@ -5,7 +5,6 @@ Provides exceptions used by setuptools modules.
 
 from distutils import errors as _distutils_errors
 
-
 # Re-export errors from distutils to facilitate the migration to PEP632
 
 ByteCompileError = _distutils_errors.DistutilsByteCompileError

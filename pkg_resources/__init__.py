@@ -22,68 +22,66 @@ This module is deprecated. Users are directed to :mod:`importlib.resources`,
 
 from __future__ import annotations
 
-from abc import ABC
 import sys
+from abc import ABC
 
 if sys.version_info < (3, 8):  # noqa: UP036 # Check for unsupported versions
     raise RuntimeError("Python 3.8 or later is required")
 
-import os
+import _imp
+import collections
+import email.parser
+import errno
+import functools
+import importlib
+import importlib.abc
+import importlib.machinery
+import inspect
 import io
-import time
+import ntpath
+import operator
+import os
+import pkgutil
+import platform
+import plistlib
+import posixpath
 import re
+import stat
+import tempfile
+import textwrap
+import time
 import types
+import warnings
+import zipfile
+import zipimport
+from pkgutil import get_importer
 from typing import (
+    TYPE_CHECKING,
     Any,
     BinaryIO,
-    Literal,
+    Callable,
     Dict,
+    Iterable,
     Iterator,
+    Literal,
     Mapping,
     MutableSequence,
     NamedTuple,
     NoReturn,
-    Tuple,
-    Union,
-    TYPE_CHECKING,
     Protocol,
-    Callable,
-    Iterable,
+    Tuple,
     TypeVar,
+    Union,
     overload,
 )
-import zipfile
-import zipimport
-import warnings
-import stat
-import functools
-import pkgutil
-import operator
-import platform
-import collections
-import plistlib
-import email.parser
-import errno
-import tempfile
-import textwrap
-import inspect
-import ntpath
-import posixpath
-import importlib
-import importlib.abc
-import importlib.machinery
-from pkgutil import get_importer
-
-import _imp
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 # workaround for #4476
 sys.modules.pop('backports', None)
 
 # capture these to bypass sandboxing
-from os import utime
-from os import open as os_open
-from os.path import isdir, split
+from os import open as os_open, utime  # isort: skip
+from os.path import isdir, split  # isort: skip
 
 try:
     from os import mkdir, rename, unlink
@@ -93,20 +91,16 @@ except ImportError:
     # no write support, probably under GAE
     WRITE_SUPPORT = False
 
-from jaraco.text import (
-    yield_lines,
-    drop_comment,
-    join_continuation,
-)
 import packaging.markers
 import packaging.requirements
 import packaging.specifiers
 import packaging.utils
 import packaging.version
+from jaraco.text import drop_comment, join_continuation, yield_lines
 from platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
-    from _typeshed import BytesPath, StrPath, StrOrBytesPath
+    from _typeshed import BytesPath, StrOrBytesPath, StrPath
     from typing_extensions import Self, TypeAlias
 
 warnings.warn(

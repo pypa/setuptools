@@ -1,8 +1,7 @@
-import tarfile
 import io
+import tarfile
 
 import pytest
-
 from setuptools import archive_util
 
 

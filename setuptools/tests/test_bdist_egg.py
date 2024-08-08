@@ -5,7 +5,6 @@ import re
 import zipfile
 
 import pytest
-
 from setuptools.dist import Distribution
 
 from . import contexts

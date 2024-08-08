@@ -8,8 +8,8 @@ facilitate debugging.
 import os
 import subprocess
 import tarfile
-from zipfile import ZipFile
 from pathlib import Path
+from zipfile import ZipFile
 
 
 def run(cmd, env=None):

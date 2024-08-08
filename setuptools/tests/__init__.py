@@ -3,7 +3,6 @@ import sys
 
 import pytest
 
-
 __all__ = ['fail_on_ascii']
 
 if sys.version_info >= (3, 11):

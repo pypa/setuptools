@@ -4,9 +4,9 @@ import os
 import types
 
 import pytest
+import setuptools.sandbox
 
 import pkg_resources
-import setuptools.sandbox
 
 
 class TestSandbox:

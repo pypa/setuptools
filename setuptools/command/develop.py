@@ -1,14 +1,13 @@
-from distutils.util import convert_path
+import glob
+import os
+
+import setuptools
+from setuptools import _normalization, _path, namespaces
+from setuptools.command.easy_install import easy_install
+
 from distutils import log
 from distutils.errors import DistutilsOptionError
-import os
-import glob
-
-from setuptools.command.easy_install import easy_install
-from setuptools import _normalization
-from setuptools import _path
-from setuptools import namespaces
-import setuptools
+from distutils.util import convert_path
 
 from ..unicode_utils import _read_utf8_with_fallback
 
