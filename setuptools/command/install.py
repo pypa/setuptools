@@ -6,8 +6,7 @@ import inspect
 import glob
 import platform
 import distutils.command.install as orig
-from typing import Any, cast
-from typing import ClassVar
+from typing import Any, ClassVar, cast
 
 import setuptools
 from ..dist import Distribution
