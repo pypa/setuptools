@@ -437,10 +437,6 @@ class TestBuildMetaBackend:
         }
         assert license == "---- placeholder MIT license ----"
 
-        metadata = metadata.replace("(", "").replace(")", "").replace("'", '"')
-        # ^-- compatibility hack for pypa/wheel#552
-        #     + normalise all quotes to `"` to avoid inconsistency in #4547
-
         for line in (
             "Summary: This is a Python package",
             "License: MIT",
