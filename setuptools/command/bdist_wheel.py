@@ -601,8 +601,9 @@ class bdist_wheel(Command):
         ):
             return self.compression
 
-        compression = self.supported_compressions.get(self.compression)
-        if compression is not None:
+        if isinstance(self.compression, str) and (
+            compression := self.supported_compressions.get(self.compression)
+        ):
             return compression
 
         raise ValueError(f"Unsupported compression: {self.compression!r}")
