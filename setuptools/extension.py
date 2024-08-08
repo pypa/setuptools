@@ -128,7 +128,8 @@ class Extension(_Extension):
 
     # These 4 are set and used in setuptools/command/build_ext.py
     # The lack of a default value and risk of `AttributeError` is purposeful
-    # to avoid people forgetting to call finalize_options if they modify the extension list
+    # to avoid people forgetting to call finalize_options if they modify the extension list.
+    # See example/rationale in https://github.com/pypa/setuptools/issues/4529.
     _full_name: str  #: Private API, internal use only.
     _links_to_dynamic: bool  #: Private API, internal use only.
     _needs_stub: bool  #: Private API, internal use only.
