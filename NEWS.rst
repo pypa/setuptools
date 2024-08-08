@@ -1,3 +1,12 @@
+v72.2.0
+=======
+
+Features
+--------
+
+- Merged with pypa/distutils@b7ee725f3 including: Support for Pathlike objects in data files and extensions (pypa/distutils#272, pypa/distutils#237), native support for C++ compilers (pypa/distuils#228) and removed unused get_msvcr() (pypa/distutils#274). (#4538)
+
+
 v72.1.0
 =======
 

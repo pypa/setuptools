@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:
     from _typeshed import ExcInfo, StrOrBytesPath
+    from typing_extensions import TypeAlias
 
 # Same as shutil._OnExcCallback from typeshed
-_OnExcCallback = Callable[[Callable[..., Any], str, BaseException], object]
+_OnExcCallback: TypeAlias = Callable[[Callable[..., Any], str, BaseException], object]
 
 
 def shutil_rmtree(

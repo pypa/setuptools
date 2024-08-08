@@ -1,5 +1,6 @@
 import configparser
 import os
+from abc import ABC, abstractmethod
 
 import distutils
 from distutils import log
@@ -69,7 +70,7 @@ def edit_config(filename, settings, dry_run=False):
             opts.write(f)
 
 
-class option_base(Command):
+class option_base(Command, ABC):
     """Abstract base class for commands that mess with config files"""
 
     user_options = [
@@ -103,6 +104,10 @@ class option_base(Command):
                 "Must specify only one configuration file option", filenames
             )
         (self.filename,) = filenames
+
+    @abstractmethod
+    def run(self) -> None:
+        raise NotImplementedError
 
 
 class setopt(option_base):

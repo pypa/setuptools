@@ -640,9 +640,7 @@ class MSVCCompiler(CCompiler):
                 else:
                     ldflags = self.ldflags_shared
 
-            export_opts = []
-            for sym in export_symbols or []:
-                export_opts.append("/EXPORT:" + sym)
+            export_opts = [f"/EXPORT:{sym}" for sym in export_symbols or []]
 
             ld_args = (
                 ldflags + lib_opts + export_opts + objects + ['/OUT:' + output_filename]

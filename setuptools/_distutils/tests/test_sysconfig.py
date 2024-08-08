@@ -9,12 +9,12 @@ import sys
 from distutils import sysconfig
 from distutils.ccompiler import new_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
-from test.support import swap_item
 
 import jaraco.envs
 import path
 import pytest
 from jaraco.text import trim
+from test.support import swap_item
 
 
 def _gen_makefile(root, contents):
@@ -134,7 +134,10 @@ class TestSysconfig:
         assert comp.exes['compiler_so'] == (
             'env_cc --sc-cflags --env-cflags --env-cppflags --sc-ccshared'
         )
-        assert comp.exes['compiler_cxx'] == 'env_cxx --env-cxx-flags'
+        assert (
+            comp.exes['compiler_cxx']
+            == 'env_cxx --env-cxx-flags --sc-cflags --env-cppflags'
+        )
         assert comp.exes['linker_exe'] == 'env_cc'
         assert comp.exes['linker_so'] == (
             'env_ldshared --env-ldflags --env-cflags --env-cppflags'
@@ -162,7 +165,7 @@ class TestSysconfig:
         assert comp.exes['preprocessor'] == 'sc_cc -E'
         assert comp.exes['compiler'] == 'sc_cc --sc-cflags'
         assert comp.exes['compiler_so'] == 'sc_cc --sc-cflags --sc-ccshared'
-        assert comp.exes['compiler_cxx'] == 'sc_cxx'
+        assert comp.exes['compiler_cxx'] == 'sc_cxx --sc-cflags'
         assert comp.exes['linker_exe'] == 'sc_cc'
         assert comp.exes['linker_so'] == 'sc_ldshared'
         assert comp.shared_lib_extension == 'sc_shutil_suffix'

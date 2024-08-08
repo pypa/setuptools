@@ -18,10 +18,10 @@ from distutils.archive_util import (
 from distutils.spawn import spawn
 from distutils.tests import support
 from os.path import splitdrive
-from test.support import patch
 
 import path
 import pytest
+from test.support import patch
 
 from .compat.py38 import check_warnings
 from .unix_compat import UID_0_SUPPORT, grp, pwd, require_uid_0, require_unix_id

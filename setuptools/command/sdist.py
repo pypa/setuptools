@@ -6,6 +6,7 @@ import distutils.command.sdist as orig
 from distutils import log
 
 from .._importlib import metadata
+from ..dist import Distribution
 from .build import _ORIGINAL_SUBCOMMANDS
 
 _default_revctrl = list
@@ -44,6 +45,7 @@ class sdist(orig.sdist):
         ),
     ]
 
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
     negative_opt = {}
 
     README_EXTENSIONS = ['', '.rst', '.txt', '.md']

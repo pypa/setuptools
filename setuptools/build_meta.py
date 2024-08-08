@@ -38,7 +38,7 @@ import tempfile
 import tokenize
 import warnings
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, Iterable, Iterator, List, Union
 
 import setuptools
 
@@ -49,6 +49,10 @@ from . import errors
 from ._path import StrPath, same_path
 from ._reqs import parse_strings
 from .warnings import SetuptoolsDeprecationWarning
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
 
 __all__ = [
     'get_requires_for_build_sdist',
@@ -143,7 +147,7 @@ def suppress_known_deprecation():
         yield
 
 
-_ConfigSettings = Optional[Dict[str, Union[str, List[str], None]]]
+_ConfigSettings: TypeAlias = Union[Dict[str, Union[str, List[str], None]], None]
 """
 Currently the user can run::
 
