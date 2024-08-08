@@ -1,10 +1,13 @@
 """Extensions to the 'distutils' for large or complex distributions"""
 
+from __future__ import annotations
+
 import functools
 import os
 import re
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar, overload
+
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 # workaround for #4476
@@ -15,7 +18,7 @@ import distutils.core
 from distutils.errors import DistutilsOptionError
 
 from . import logging, monkey
-from . import version as _version_module
+from .version import __version__ as __version__
 from .depends import Require
 from .discovery import PackageFinder, PEP420PackageFinder
 from .dist import Distribution
@@ -33,10 +36,9 @@ __all__ = [
     'find_namespace_packages',
 ]
 
-__version__ = _version_module.__version__
+_CommandT = TypeVar("_CommandT", bound="_Command")
 
 bootstrap_install_from = None
-
 
 find_packages = PackageFinder.find
 find_namespace_packages = PEP420PackageFinder.find
@@ -221,7 +223,17 @@ class Command(_Command):
                     "'%s' must be a list of strings (got %r)" % (option, val)
                 )
 
-    def reinitialize_command(self, command, reinit_subcommands=False, **kw):
+    @overload  # type:ignore[override] # Extra **kw param
+    def reinitialize_command(
+        self, command: str, reinit_subcommands: bool = False, **kw
+    ) -> _Command: ...
+    @overload
+    def reinitialize_command(
+        self, command: _CommandT, reinit_subcommands: bool = False, **kw
+    ) -> _CommandT: ...
+    def reinitialize_command(
+        self, command: str | _Command, reinit_subcommands: bool = False, **kw
+    ) -> _Command:
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
         return cmd

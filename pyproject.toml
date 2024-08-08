@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "72.1.0"
+version = "72.2.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -44,7 +44,7 @@ test = [
 
 	# local
 	"virtualenv>=13.0.0",
-	"wheel",
+	"wheel>=0.44.0",  # Consistent requirement normalisation in METADATA (see #4547)
 	"pip>=19.1", # For proper file:// URLs support.
 	"packaging>=23.2",
 	"jaraco.envs>=2.2",
@@ -102,6 +102,9 @@ doc = [
 
 	# workaround for pypa/setuptools#4333
 	"pyproject-hooks!=1.1",
+
+	# workaround for sphinx-contrib/sphinxcontrib-towncrier#92
+	"towncrier<24.7",
 ]
 ssl = []
 certs = []
