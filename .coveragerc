@@ -8,6 +8,8 @@ disable_warnings =
 [report]
 show_missing = True
 exclude_also =
-	# jaraco/skeleton#97
-	@overload
+	# Exclude common false positives per
+	# https://coverage.readthedocs.io/en/latest/excluding.html#advanced-exclusion
+	# Ref jaraco/skeleton#97 and jaraco/skeleton#135
+	class .*\bProtocol\):
 	if TYPE_CHECKING:
