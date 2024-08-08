@@ -37,7 +37,7 @@ class upload_docs(upload):
         (
             'repository=',
             'r',
-            "url of repository [default: %s]" % upload.DEFAULT_REPOSITORY,
+            f"url of repository [default: {upload.DEFAULT_REPOSITORY}]",
         ),
         ('show-response', None, 'display full response text from server'),
         ('upload-dir=', None, 'directory to upload'),
@@ -73,7 +73,7 @@ class upload_docs(upload):
         else:
             self.ensure_dirname('upload_dir')
             self.target_dir = self.upload_dir
-        self.announce('Using upload directory %s' % self.target_dir)
+        self.announce(f'Using upload directory {self.target_dir}')
 
     def create_zipfile(self, filename):
         zip_file = zipfile.ZipFile(filename, "w")
@@ -108,7 +108,7 @@ class upload_docs(upload):
 
         tmp_dir = tempfile.mkdtemp()
         name = self.distribution.metadata.get_name()
-        zip_file = os.path.join(tmp_dir, "%s.zip" % name)
+        zip_file = os.path.join(tmp_dir, f"{name}.zip")
         try:
             self.create_zipfile(zip_file)
             self.upload_file(zip_file)
@@ -118,13 +118,13 @@ class upload_docs(upload):
     @staticmethod
     def _build_part(item, sep_boundary):
         key, values = item
-        title = '\nContent-Disposition: form-data; name="%s"' % key
+        title = f'\nContent-Disposition: form-data; name="{key}"'
         # handle multiple entries for the same name
         if not isinstance(values, list):
             values = [values]
         for value in values:
             if isinstance(value, tuple):
-                title += '; filename="%s"' % value[0]
+                title += f'; filename="{value[0]}"'
                 value = value[1]
             else:
                 value = _encode(value)
@@ -154,7 +154,7 @@ class upload_docs(upload):
         part_groups = map(builder, data.items())
         parts = itertools.chain.from_iterable(part_groups)
         body_items = itertools.chain(parts, end_items)
-        content_type = 'multipart/form-data; boundary=%s' % boundary
+        content_type = f'multipart/form-data; boundary={boundary}'
         return b''.join(body_items), content_type
 
     def upload_file(self, filename):
@@ -173,7 +173,7 @@ class upload_docs(upload):
 
         body, ct = self._build_multipart(data)
 
-        msg = "Submitting documentation to %s" % (self.repository)
+        msg = f"Submitting documentation to {self.repository}"
         self.announce(msg, log.INFO)
 
         # build the Request
@@ -206,16 +206,16 @@ class upload_docs(upload):
 
         r = conn.getresponse()
         if r.status == 200:
-            msg = 'Server response (%s): %s' % (r.status, r.reason)
+            msg = f'Server response ({r.status}): {r.reason}'
             self.announce(msg, log.INFO)
         elif r.status == 301:
             location = r.getheader('Location')
             if location is None:
-                location = 'https://pythonhosted.org/%s/' % meta.get_name()
-            msg = 'Upload successful. Visit %s' % location
+                location = f'https://pythonhosted.org/{meta.get_name()}/'
+            msg = f'Upload successful. Visit {location}'
             self.announce(msg, log.INFO)
         else:
-            msg = 'Upload failed (%s): %s' % (r.status, r.reason)
+            msg = f'Upload failed ({r.status}): {r.reason}'
             self.announce(msg, log.ERROR)
         if self.show_response:
             print('-' * 75, r.read(), '-' * 75)

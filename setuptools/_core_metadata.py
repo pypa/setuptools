@@ -149,7 +149,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     version = self.get_metadata_version()
 
     def write_field(key, value):
-        file.write("%s: %s\n" % (key, value))
+        file.write(f"{key}: {value}\n")
 
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
@@ -178,7 +178,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
         write_field('License', rfc822_escape(license))
 
     for project_url in self.project_urls.items():
-        write_field('Project-URL', '%s, %s' % project_url)
+        write_field('Project-URL', '{}, {}'.format(*project_url))
 
     keywords = ','.join(self.get_keywords())
     if keywords:
@@ -208,7 +208,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
 
     long_description = self.get_long_description()
     if long_description:
-        file.write("\n%s" % long_description)
+        file.write(f"\n{long_description}")
         if not long_description.endswith("\n"):
             file.write("\n")
 
