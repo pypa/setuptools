@@ -12,6 +12,7 @@ __ https://setuptools.pypa.io/en/latest/deprecated/easy_install.html
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from glob import glob
 from distutils.util import get_platform
 from distutils.util import convert_path, subst_vars
@@ -26,6 +27,7 @@ from distutils.command.build_scripts import first_line_re
 from distutils.command import install
 import sys
 import os
+from typing import TYPE_CHECKING
 import zipimport
 import shutil
 import tempfile
@@ -78,6 +80,8 @@ from ..compat import py39, py311
 from .._path import ensure_directory
 from jaraco.text import yield_lines
 
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
@@ -2055,19 +2059,21 @@ class CommandSpec(list):
         return os.environ.get('__PYVENV_LAUNCHER__', _default)
 
     @classmethod
-    def from_param(cls, param):
+    def from_param(cls, param: Self | str | Iterable[str] | None) -> Self:
         """
         Construct a CommandSpec from a parameter to build_scripts, which may
         be None.
         """
         if isinstance(param, cls):
             return param
-        if isinstance(param, list):
+        if isinstance(param, str):
+            return cls.from_string(param)
+        if isinstance(param, Iterable):
             return cls(param)
         if param is None:
             return cls.from_environment()
-        # otherwise, assume it's a string.
-        return cls.from_string(param)
+        # AttributeError to keep backwards compatibility, this should really be a TypeError though
+        raise AttributeError(f"Argument has an unsupported type {type(param)}")
 
     @classmethod
     def from_environment(cls):

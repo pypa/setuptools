@@ -466,8 +466,14 @@ class _LinkTree(_StaticPth):
     def _create_links(self, outputs, output_mapping):
         self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
         link_type = "sym" if _can_symlink_files(self.auxiliary_dir) else "hard"
-        mappings = {self._normalize_output(k): v for k, v in output_mapping.items()}
-        mappings.pop(None, None)  # remove files that are not relative to build_lib
+        mappings = {
+            k: v
+            for k, v in (
+                (self._normalize_output(k), v) for k, v in output_mapping.items()
+            )
+            # remove files that are not relative to build_lib
+            if k is not None
+        }
 
         for output in outputs:
             relative = self._normalize_output(output)
