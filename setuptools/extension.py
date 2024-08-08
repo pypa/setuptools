@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 import functools
 import distutils.core
@@ -135,10 +136,10 @@ class Extension(_Extension):
     _needs_stub: bool  #: Private API, internal use only.
     _file_name: str  #: Private API, internal use only.
 
-    def __init__(self, name, sources, *args, **kw):
+    def __init__(self, name: str, sources, *args, py_limited_api: bool = False, **kw):
         # The *args is needed for compatibility as calls may use positional
         # arguments. py_limited_api may be set only via keyword.
-        self.py_limited_api = kw.pop("py_limited_api", False)
+        self.py_limited_api = py_limited_api
         super().__init__(name, sources, *args, **kw)
 
     def _convert_pyx_sources_to_lang(self):

@@ -8,7 +8,6 @@ from importlib.util import cache_from_source as _compiled_file_name
 from typing import Iterator
 from pathlib import Path
 
-from distutils.command.build_ext import build_ext as _du_build_ext
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
 from distutils import log
@@ -25,7 +24,7 @@ try:
     # also. Ref #1229.
     __import__('Cython.Compiler.Main')
 except ImportError:
-    _build_ext = _du_build_ext
+    from distutils.command.build_ext import build_ext as _build_ext
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")

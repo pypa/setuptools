@@ -1,0 +1,1 @@
+Changed the order of type checks in ``setuptools.command.easy_install.CommandSpec.from_param`` to support any `collections.abc.Iterable` of `str` param -- by :user:`Avasam`
