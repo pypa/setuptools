@@ -257,9 +257,13 @@ class TestUnixCCompiler(support.TempdirManager):
         def gcv(v):
             if v == 'LDSHARED':
                 return 'gcc-4.2 -bundle -undefined dynamic_lookup '
+            elif v == 'LDCXXSHARED':
+                return 'g++-4.2 -bundle -undefined dynamic_lookup '
             elif v == 'CXX':
                 return 'g++-4.2'
-            return 'gcc-4.2'
+            elif v == 'CC':
+                return 'gcc-4.2'
+            return ''
 
         def gcvs(*args, _orig=sysconfig.get_config_vars):
             if args:
@@ -315,3 +319,33 @@ class TestUnixCCompiler(support.TempdirManager):
         self.cc.output_dir = 'scratch'
         os.chdir(self.mkdtemp())
         self.cc.has_function('abort')
+
+    def test_find_library_file(self, monkeypatch):
+        compiler = UnixCCompiler()
+        compiler._library_root = lambda dir: dir
+        monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
+
+        libname = 'libabc.dylib' if sys.platform != 'cygwin' else 'cygabc.dll'
+        dirs = ('/foo/bar/missing', '/foo/bar/existing')
+        assert (
+            compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+            == f'/foo/bar/existing/{libname}'
+        )
+        assert (
+            compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+            == f'/foo/bar/existing/{libname}'
+        )
+
+        monkeypatch.setattr(
+            os.path,
+            'exists',
+            lambda d: 'existing' in d and '.a' in d and '.dll.a' not in d,
+        )
+        assert (
+            compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+            == '/foo/bar/existing/libabc.a'
+        )
+        assert (
+            compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+            == '/foo/bar/existing/libabc.a'
+        )

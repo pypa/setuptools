@@ -93,16 +93,16 @@ except ImportError:
     # no write support, probably under GAE
     WRITE_SUPPORT = False
 
-import packaging.specifiers
 from jaraco.text import (
     yield_lines,
     drop_comment,
     join_continuation,
 )
-from packaging import markers as _packaging_markers
-from packaging import requirements as _packaging_requirements
-from packaging import utils as _packaging_utils
-from packaging import version as _packaging_version
+import packaging.markers
+import packaging.requirements
+import packaging.specifiers
+import packaging.utils
+import packaging.version
 from platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
@@ -157,7 +157,7 @@ class PEP440Warning(RuntimeWarning):
     """
 
 
-parse_version = _packaging_version.Version
+parse_version = packaging.version.Version
 
 _state_vars: dict[str, str] = {}
 
@@ -802,7 +802,7 @@ class WorkingSet:
             return
 
         self.by_key[dist.key] = dist
-        normalized_name = _packaging_utils.canonicalize_name(dist.key)
+        normalized_name = packaging.utils.canonicalize_name(dist.key)
         self.normalized_to_canonical_keys[normalized_name] = dist.key
         if dist.key not in keys:
             keys.append(dist.key)
@@ -1562,8 +1562,8 @@ def safe_version(version: str) -> str:
     """
     try:
         # normalize the version
-        return str(_packaging_version.Version(version))
-    except _packaging_version.InvalidVersion:
+        return str(packaging.version.Version(version))
+    except packaging.version.InvalidVersion:
         version = version.replace(' ', '.')
         return re.sub('[^A-Za-z0-9.]+', '-', version)
 
@@ -1640,9 +1640,9 @@ def evaluate_marker(text: str, extra: str | None = None) -> bool:
     This implementation uses the 'pyparsing' module.
     """
     try:
-        marker = _packaging_markers.Marker(text)
+        marker = packaging.markers.Marker(text)
         return marker.evaluate()
-    except _packaging_markers.InvalidMarker as e:
+    except packaging.markers.InvalidMarker as e:
         raise SyntaxError(e) from e
 
 
@@ -3002,12 +3002,12 @@ class Distribution:
         if not hasattr(self, "_parsed_version"):
             try:
                 self._parsed_version = parse_version(self.version)
-            except _packaging_version.InvalidVersion as ex:
+            except packaging.version.InvalidVersion as ex:
                 info = f"(package: {self.project_name})"
                 if hasattr(ex, "add_note"):
                     ex.add_note(info)  # PEP 678
                     raise
-                raise _packaging_version.InvalidVersion(f"{str(ex)} {info}") from None
+                raise packaging.version.InvalidVersion(f"{str(ex)} {info}") from None
 
         return self._parsed_version
 
@@ -3015,7 +3015,7 @@ class Distribution:
     def _forgiving_parsed_version(self):
         try:
             return self.parsed_version
-        except _packaging_version.InvalidVersion as ex:
+        except packaging.version.InvalidVersion as ex:
             self._parsed_version = parse_version(_forgiving_version(self.version))
 
             notes = "\n".join(getattr(ex, "__notes__", []))  # PEP 678
@@ -3195,7 +3195,7 @@ class Distribution:
 
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
-        if isinstance(self.parsed_version, _packaging_version.Version):
+        if isinstance(self.parsed_version, packaging.version.Version):
             spec = "%s==%s" % (self.project_name, self.parsed_version)
         else:
             spec = "%s===%s" % (self.project_name, self.parsed_version)
@@ -3453,11 +3453,11 @@ def parse_requirements(strs: _NestedStr) -> map[Requirement]:
     return map(Requirement, join_continuation(map(drop_comment, yield_lines(strs))))
 
 
-class RequirementParseError(_packaging_requirements.InvalidRequirement):
+class RequirementParseError(packaging.requirements.InvalidRequirement):
     "Compatibility wrapper for InvalidRequirement"
 
 
-class Requirement(_packaging_requirements.Requirement):
+class Requirement(packaging.requirements.Requirement):
     # prefer variable length tuple to set (as found in
     # packaging.requirements.Requirement)
     extras: tuple[str, ...]  # type: ignore[assignment]

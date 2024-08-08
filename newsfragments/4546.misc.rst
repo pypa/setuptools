@@ -1,0 +1,2 @@
+Added lower bound to test dependency on ``wheel`` (0.44.0) to avoid
+small inconsistencies in ``Requires-Dist`` normalisation for ``METADATA``.
