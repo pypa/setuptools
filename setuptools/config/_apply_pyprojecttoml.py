@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from setuptools.dist import Distribution
     from typing_extensions import TypeAlias
 
-EMPTY: MappingProxyType = MappingProxyType({})  # Immutable dict-like
+EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
 _ProjectReadmeValue: TypeAlias = Union[str, Dict[str, str]]
 _CorrespFn: TypeAlias = Callable[["Distribution", Any, StrPath], None]
 _Correspondence: TypeAlias = Union[str, _CorrespFn]
