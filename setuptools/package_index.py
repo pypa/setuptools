@@ -1072,7 +1072,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
     if scheme in ('http', 'https'):
         auth, address = _splituser(netloc)
     else:
-        auth = None
+        auth, address = (None, None)
 
     if not auth:
         cred = PyPIConfig().find_credential(url)
