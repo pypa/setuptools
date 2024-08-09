@@ -79,7 +79,7 @@ test = [
 	"jaraco.test",
 
 	# workaround for businho/pytest-ruff#28
-	'pytest-ruff < 0.4; platform_system == "Windows"',
+	'pytest-ruff < 0.5; platform_system == "Windows"',
 ]
 doc = [
 	# upstream
