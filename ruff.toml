@@ -18,6 +18,8 @@ extend-select = [
 	"UP", # pyupgrade
 	"TRY",
 	"YTT", # flake8-2020
+	"PGH", # pygrep-hooks (blanket-* rules)
+	"RUF100", # unused-noqa
 ]
 ignore = [
 	"TRY003", # raise-vanilla-args, avoid multitude of exception classes

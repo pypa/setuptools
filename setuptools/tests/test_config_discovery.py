@@ -8,7 +8,7 @@ from setuptools.dist import Distribution
 from setuptools.discovery import find_package_path, find_parent_package
 from setuptools.errors import PackageDiscoveryError
 
-import setuptools  # noqa -- force distutils.core to be patched
+import setuptools  # noqa: F401 -- force distutils.core to be patched
 import distutils.core
 
 import pytest

@@ -18,7 +18,7 @@ from setuptools.dist import Distribution
 from setuptools.errors import OptionError
 
 
-import setuptools  # noqa -- force distutils.core to be patched
+import setuptools  # noqa: F401 -- force distutils.core to be patched
 import distutils.core
 
 EXAMPLE = """
