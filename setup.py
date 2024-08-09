@@ -26,6 +26,12 @@ if include_windows_files:
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
 
+def get_version() -> str:
+    version_files = (f for f in [".latest", ".stable"] if os.path.exists(f))
+    with open(next(version_files), encoding="utf-8") as fp:
+        return fp.read()
+
+
 def pypi_link(pkg_filename):
     """
     Given the filename, including md5 fragment, construct the
@@ -83,6 +89,7 @@ class install_with_pth(install):
 
 
 setup_params = dict(
+    version=get_version(),
     cmdclass={'install': install_with_pth},
     package_data=package_data,
 )
