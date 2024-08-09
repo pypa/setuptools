@@ -1,0 +1,1 @@
+Changed the type of error raised by ``setuptools.command.easy_install.CommandSpec.from_param`` on unsupported argument from `AttributeError` to `TypeError` -- by :user:`Avasam`
