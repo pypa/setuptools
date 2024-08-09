@@ -43,19 +43,21 @@ if TYPE_CHECKING:
     from distutils.dist import DistributionMetadata
 
     from setuptools.dist import Distribution
+    from typing_extensions import TypeAlias
 
-SingleCommandOptions = Dict["str", Tuple["str", Any]]
+SingleCommandOptions: TypeAlias = Dict[str, Tuple[str, Any]]
 """Dict that associate the name of the options of a particular command to a
 tuple. The first element of the tuple indicates the origin of the option value
 (e.g. the name of the configuration file where it was read from),
 while the second element of the tuple is the option value itself
 """
-AllCommandOptions = Dict["str", SingleCommandOptions]  # cmd name => its options
+AllCommandOptions: TypeAlias = Dict[str, SingleCommandOptions]
+"""cmd name => its options"""
 Target = TypeVar("Target", bound=Union["Distribution", "DistributionMetadata"])
 
 
 def read_configuration(
-    filepath: StrPath, find_others=False, ignore_option_errors=False
+    filepath: StrPath, find_others: bool = False, ignore_option_errors: bool = False
 ) -> dict:
     """Read given configuration file and returns options from it as a dict.
 
@@ -131,7 +133,9 @@ def _get_option(target_obj: Target, key: str):
     return getter()
 
 
-def configuration_to_dict(handlers: tuple[ConfigHandler, ...]) -> dict:
+def configuration_to_dict(
+    handlers: tuple[ConfigHandler[Distribution | DistributionMetadata], ...],
+) -> dict:
     """Returns configuration data gathered by given handlers as a dict.
 
     :param list[ConfigHandler] handlers: Handlers list,
@@ -152,7 +156,7 @@ def configuration_to_dict(handlers: tuple[ConfigHandler, ...]) -> dict:
 def parse_configuration(
     distribution: Distribution,
     command_options: AllCommandOptions,
-    ignore_option_errors=False,
+    ignore_option_errors: bool = False,
 ) -> tuple[ConfigMetadataHandler, ConfigOptionsHandler]:
     """Performs additional parsing of configuration options
     for a distribution.
@@ -373,7 +377,7 @@ class ConfigHandler(Generic[Target]):
 
         return parser
 
-    def _parse_file(self, value, root_dir: StrPath):
+    def _parse_file(self, value, root_dir: StrPath | None):
         """Represents value as a string, allowing including text
         from nearest files using `file:` directive.
 
@@ -541,7 +545,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         ignore_option_errors: bool,
         ensure_discovered: expand.EnsurePackagesDiscovered,
         package_dir: dict | None = None,
-        root_dir: StrPath = os.curdir,
+        root_dir: StrPath | None = os.curdir,
     ):
         super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.package_dir = package_dir

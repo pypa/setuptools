@@ -44,7 +44,7 @@ class BuildBackend(BuildBackendBase):
         super().__init__(*args, **kwargs)
         self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         """Handles arbitrary function invocations on the build backend."""
 
         def method(*args, **kw):

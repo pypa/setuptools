@@ -83,7 +83,7 @@ def _install_setup_requires(attrs):
         _fetch_build_eggs(dist)
 
 
-def _fetch_build_eggs(dist):
+def _fetch_build_eggs(dist: Distribution):
     try:
         dist.fetch_build_eggs(dist.setup_requires)
     except Exception as ex:
@@ -115,7 +115,7 @@ setup.__doc__ = distutils.core.setup.__doc__
 
 if TYPE_CHECKING:
     # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
-    _Command = distutils.core.Command
+    from distutils.core import Command as _Command
 else:
     _Command = monkey.get_unpatched(distutils.core.Command)
 
@@ -180,7 +180,7 @@ class Command(_Command, ABC):
             )
         return val
 
-    def ensure_string_list(self, option):
+    def ensure_string_list(self, option: str):  # type: ignore[override] # Fixed in typeshed for mypy 1.12
         r"""Ensure that 'option' is a list of strings.  If 'option' is
         currently a string, we split it either on /,\s*/ or /\s+/, so
         "foo bar baz", "foo,bar,baz", and "foo,   bar baz" all become

@@ -85,8 +85,8 @@ def get_abi3_suffix():
 
 class build_ext(_build_ext):
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
-    editable_mode: bool = False
-    inplace: bool = False
+    editable_mode = False
+    inplace = False
 
     def run(self):
         """Build extensions in build directory, then copy if --inplace"""
@@ -402,7 +402,7 @@ if use_stubs or os.name == 'nt':
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=False,
+        debug: bool = False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
@@ -437,7 +437,7 @@ else:
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=False,
+        debug: bool = False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,

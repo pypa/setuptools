@@ -15,6 +15,7 @@ from itertools import filterfalse
 from typing import Dict, Mapping, TypeVar
 
 from .. import _reqs
+from .._reqs import _StrOrIter
 from jaraco.text import yield_lines
 from packaging.requirements import Requirement
 
@@ -23,7 +24,6 @@ from packaging.requirements import Requirement
 _T = TypeVar("_T")
 _Ordered = Dict[_T, None]
 _ordered = dict
-_StrOrIter = _reqs._StrOrIter
 
 
 def _prepare(
