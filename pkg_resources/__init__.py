@@ -22,6 +22,7 @@ This module is deprecated. Users are directed to :mod:`importlib.resources`,
 
 from __future__ import annotations
 
+from abc import ABC
 import sys
 
 if sys.version_info < (3, 8):  # noqa: UP036 # Check for unsupported versions
@@ -92,21 +93,21 @@ except ImportError:
     # no write support, probably under GAE
     WRITE_SUPPORT = False
 
-import packaging.specifiers
 from jaraco.text import (
     yield_lines,
     drop_comment,
     join_continuation,
 )
-from packaging import markers as _packaging_markers
-from packaging import requirements as _packaging_requirements
-from packaging import utils as _packaging_utils
-from packaging import version as _packaging_version
+import packaging.markers
+import packaging.requirements
+import packaging.specifiers
+import packaging.utils
+import packaging.version
 from platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrPath, StrOrBytesPath
-    from typing_extensions import Self
+    from typing_extensions import Self, TypeAlias
 
 warnings.warn(
     "pkg_resources is deprecated as an API. "
@@ -118,20 +119,20 @@ warnings.warn(
 _T = TypeVar("_T")
 _DistributionT = TypeVar("_DistributionT", bound="Distribution")
 # Type aliases
-_NestedStr = Union[str, Iterable[Union[str, Iterable["_NestedStr"]]]]
-_InstallerTypeT = Callable[["Requirement"], "_DistributionT"]
-_InstallerType = Callable[["Requirement"], Union["Distribution", None]]
-_PkgReqType = Union[str, "Requirement"]
-_EPDistType = Union["Distribution", _PkgReqType]
-_MetadataType = Union["IResourceProvider", None]
-_ResolvedEntryPoint = Any  # Can be any attribute in the module
-_ResourceStream = Any  # TODO / Incomplete: A readable file-like object
+_NestedStr: TypeAlias = Union[str, Iterable[Union[str, Iterable["_NestedStr"]]]]
+_StrictInstallerType: TypeAlias = Callable[["Requirement"], "_DistributionT"]
+_InstallerType: TypeAlias = Callable[["Requirement"], Union["Distribution", None]]
+_PkgReqType: TypeAlias = Union[str, "Requirement"]
+_EPDistType: TypeAlias = Union["Distribution", _PkgReqType]
+_MetadataType: TypeAlias = Union["IResourceProvider", None]
+_ResolvedEntryPoint: TypeAlias = Any  # Can be any attribute in the module
+_ResourceStream: TypeAlias = Any  # TODO / Incomplete: A readable file-like object
 # Any object works, but let's indicate we expect something like a module (optionally has __loader__ or __file__)
-_ModuleLike = Union[object, types.ModuleType]
+_ModuleLike: TypeAlias = Union[object, types.ModuleType]
 # Any: Should be _ModuleLike but we end up with issues where _ModuleLike doesn't have _ZipLoaderModule's __loader__
-_ProviderFactoryType = Callable[[Any], "IResourceProvider"]
-_DistFinderType = Callable[[_T, str, bool], Iterable["Distribution"]]
-_NSHandlerType = Callable[[_T, str, str, types.ModuleType], Union[str, None]]
+_ProviderFactoryType: TypeAlias = Callable[[Any], "IResourceProvider"]
+_DistFinderType: TypeAlias = Callable[[_T, str, bool], Iterable["Distribution"]]
+_NSHandlerType: TypeAlias = Callable[[_T, str, str, types.ModuleType], Union[str, None]]
 _AdapterT = TypeVar(
     "_AdapterT", _DistFinderType[Any], _ProviderFactoryType, _NSHandlerType[Any]
 )
@@ -156,7 +157,7 @@ class PEP440Warning(RuntimeWarning):
     """
 
 
-parse_version = _packaging_version.Version
+parse_version = packaging.version.Version
 
 _state_vars: dict[str, str] = {}
 
@@ -311,7 +312,7 @@ __all__ = [
 ]
 
 
-class ResolutionError(Exception):
+class ResolutionError(Exception, ABC):
     """Abstract base for dependency resolution errors"""
 
     def __repr__(self):
@@ -801,7 +802,7 @@ class WorkingSet:
             return
 
         self.by_key[dist.key] = dist
-        normalized_name = _packaging_utils.canonicalize_name(dist.key)
+        normalized_name = packaging.utils.canonicalize_name(dist.key)
         self.normalized_to_canonical_keys[normalized_name] = dist.key
         if dist.key not in keys:
             keys.append(dist.key)
@@ -814,7 +815,7 @@ class WorkingSet:
         self,
         requirements: Iterable[Requirement],
         env: Environment | None,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         replace_conflicting: bool = False,
         extras: tuple[str, ...] | None = None,
     ) -> list[_DistributionT]: ...
@@ -824,7 +825,7 @@ class WorkingSet:
         requirements: Iterable[Requirement],
         env: Environment | None = None,
         *,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         replace_conflicting: bool = False,
         extras: tuple[str, ...] | None = None,
     ) -> list[_DistributionT]: ...
@@ -841,7 +842,7 @@ class WorkingSet:
         self,
         requirements: Iterable[Requirement],
         env: Environment | None = None,
-        installer: _InstallerType | None | _InstallerTypeT[_DistributionT] = None,
+        installer: _InstallerType | None | _StrictInstallerType[_DistributionT] = None,
         replace_conflicting: bool = False,
         extras: tuple[str, ...] | None = None,
     ) -> list[Distribution] | list[_DistributionT]:
@@ -947,7 +948,7 @@ class WorkingSet:
         self,
         plugin_env: Environment,
         full_env: Environment | None,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         fallback: bool = True,
     ) -> tuple[list[_DistributionT], dict[Distribution, Exception]]: ...
     @overload
@@ -956,7 +957,7 @@ class WorkingSet:
         plugin_env: Environment,
         full_env: Environment | None = None,
         *,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         fallback: bool = True,
     ) -> tuple[list[_DistributionT], dict[Distribution, Exception]]: ...
     @overload
@@ -971,7 +972,7 @@ class WorkingSet:
         self,
         plugin_env: Environment,
         full_env: Environment | None = None,
-        installer: _InstallerType | None | _InstallerTypeT[_DistributionT] = None,
+        installer: _InstallerType | None | _StrictInstallerType[_DistributionT] = None,
         fallback: bool = True,
     ) -> tuple[
         list[Distribution] | list[_DistributionT],
@@ -1217,7 +1218,7 @@ class Environment:
         self,
         req: Requirement,
         working_set: WorkingSet,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
         replace_conflicting: bool = False,
     ) -> _DistributionT: ...
     @overload
@@ -1232,7 +1233,7 @@ class Environment:
         self,
         req: Requirement,
         working_set: WorkingSet,
-        installer: _InstallerType | None | _InstallerTypeT[_DistributionT] = None,
+        installer: _InstallerType | None | _StrictInstallerType[_DistributionT] = None,
         replace_conflicting: bool = False,
     ) -> Distribution | None:
         """Find distribution best matching `req` and usable on `working_set`
@@ -1265,7 +1266,7 @@ class Environment:
     def obtain(
         self,
         requirement: Requirement,
-        installer: _InstallerTypeT[_DistributionT],
+        installer: _StrictInstallerType[_DistributionT],
     ) -> _DistributionT: ...
     @overload
     def obtain(
@@ -1285,7 +1286,7 @@ class Environment:
         installer: Callable[[Requirement], None]
         | _InstallerType
         | None
-        | _InstallerTypeT[_DistributionT] = None,
+        | _StrictInstallerType[_DistributionT] = None,
     ) -> Distribution | None:
         """Obtain a distribution matching `requirement` (e.g. via download)
 
@@ -1561,8 +1562,8 @@ def safe_version(version: str) -> str:
     """
     try:
         # normalize the version
-        return str(_packaging_version.Version(version))
-    except _packaging_version.InvalidVersion:
+        return str(packaging.version.Version(version))
+    except packaging.version.InvalidVersion:
         version = version.replace(' ', '.')
         return re.sub('[^A-Za-z0-9.]+', '-', version)
 
@@ -1639,9 +1640,9 @@ def evaluate_marker(text: str, extra: str | None = None) -> bool:
     This implementation uses the 'pyparsing' module.
     """
     try:
-        marker = _packaging_markers.Marker(text)
+        marker = packaging.markers.Marker(text)
         return marker.evaluate()
-    except _packaging_markers.InvalidMarker as e:
+    except packaging.markers.InvalidMarker as e:
         raise SyntaxError(e) from e
 
 
@@ -3001,12 +3002,12 @@ class Distribution:
         if not hasattr(self, "_parsed_version"):
             try:
                 self._parsed_version = parse_version(self.version)
-            except _packaging_version.InvalidVersion as ex:
+            except packaging.version.InvalidVersion as ex:
                 info = f"(package: {self.project_name})"
                 if hasattr(ex, "add_note"):
                     ex.add_note(info)  # PEP 678
                     raise
-                raise _packaging_version.InvalidVersion(f"{str(ex)} {info}") from None
+                raise packaging.version.InvalidVersion(f"{str(ex)} {info}") from None
 
         return self._parsed_version
 
@@ -3014,7 +3015,7 @@ class Distribution:
     def _forgiving_parsed_version(self):
         try:
             return self.parsed_version
-        except _packaging_version.InvalidVersion as ex:
+        except packaging.version.InvalidVersion as ex:
             self._parsed_version = parse_version(_forgiving_version(self.version))
 
             notes = "\n".join(getattr(ex, "__notes__", []))  # PEP 678
@@ -3194,7 +3195,7 @@ class Distribution:
 
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
-        if isinstance(self.parsed_version, _packaging_version.Version):
+        if isinstance(self.parsed_version, packaging.version.Version):
             spec = "%s==%s" % (self.project_name, self.parsed_version)
         else:
             spec = "%s===%s" % (self.project_name, self.parsed_version)
@@ -3452,11 +3453,11 @@ def parse_requirements(strs: _NestedStr) -> map[Requirement]:
     return map(Requirement, join_continuation(map(drop_comment, yield_lines(strs))))
 
 
-class RequirementParseError(_packaging_requirements.InvalidRequirement):
+class RequirementParseError(packaging.requirements.InvalidRequirement):
     "Compatibility wrapper for InvalidRequirement"
 
 
-class Requirement(_packaging_requirements.Requirement):
+class Requirement(packaging.requirements.Requirement):
     # prefer variable length tuple to set (as found in
     # packaging.requirements.Requirement)
     extras: tuple[str, ...]  # type: ignore[assignment]

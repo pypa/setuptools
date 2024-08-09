@@ -1,3 +1,4 @@
+from abc import ABC
 from distutils.util import convert_path
 from distutils import log
 from distutils.errors import DistutilsOptionError
@@ -68,7 +69,7 @@ def edit_config(filename, settings, dry_run=False):
             opts.write(f)
 
 
-class option_base(Command):
+class option_base(Command, ABC):
     """Abstract base class for commands that mess with config files"""
 
     user_options = [

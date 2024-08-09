@@ -24,12 +24,13 @@ from setuptools.command.sdist import sdist
 from setuptools.command.sdist import walk_revctrl
 from setuptools.command.setopt import edit_config
 from setuptools.command import bdist_egg
+from setuptools.dist import Distribution
 import setuptools.unicode_utils as unicode_utils
 from setuptools.glob import glob
 
-import packaging
+import packaging.requirements
+import packaging.version
 from ..warnings import SetuptoolsDeprecationWarning
-
 
 PY_MAJOR = '{}.{}'.format(*sys.version_info)
 
@@ -520,6 +521,7 @@ class FileList(_FileList):
 
 
 class manifest_maker(sdist):
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
     template = "MANIFEST.in"
 
     def initialize_options(self):

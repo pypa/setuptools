@@ -10,7 +10,7 @@
 # *** PLEASE DO NOT MODIFY DIRECTLY: Automatically generated code *** 
 
 
-VERSION = "2.19.1"
+VERSION = "2.20.0"
 from decimal import Decimal
 import re
 from .fastjsonschema_exceptions import JsonSchemaValueException
