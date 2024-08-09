@@ -104,7 +104,7 @@ doc = [
 	"pyproject-hooks!=1.1",
 
 	# workaround for sphinx-contrib/sphinxcontrib-towncrier#92
-	"towncrier<24.7",
+	"towncrier<24.8",
 ]
 ssl = []
 certs = []
