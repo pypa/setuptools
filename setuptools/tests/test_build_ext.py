@@ -1,21 +1,20 @@
 import os
 import sys
-import distutils.command.build_ext as orig
-from distutils.sysconfig import get_config_var
 from importlib.util import cache_from_source as _compiled_file_name
 
+import pytest
 from jaraco import path
 
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
-from setuptools.extension import Extension
 from setuptools.errors import CompileError
+from setuptools.extension import Extension
 
 from . import environment
 from .textwrap import DALS
 
-import pytest
-
+import distutils.command.build_ext as orig
+from distutils.sysconfig import get_config_var
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 

@@ -6,8 +6,8 @@ import pytest
 
 from setuptools.discovery import FlatLayoutModuleFinder, ModuleFinder
 
-from .test_find_packages import ensure_files
 from .compat.py39 import os_helper
+from .test_find_packages import ensure_files
 
 
 class TestModuleFinder:

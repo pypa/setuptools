@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import shutil
 import sys
-from typing import Any, Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable
 
 if TYPE_CHECKING:
-    from _typeshed import StrOrBytesPath, ExcInfo
+    from _typeshed import ExcInfo, StrOrBytesPath
     from typing_extensions import TypeAlias
 
 # Same as shutil._OnExcCallback from typeshed

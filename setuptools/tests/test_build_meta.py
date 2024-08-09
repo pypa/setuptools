@@ -1,14 +1,14 @@
+import contextlib
+import importlib
 import os
-import sys
+import re
 import shutil
 import signal
+import sys
 import tarfile
-import importlib
-import contextlib
 from concurrent import futures
-import re
-from zipfile import ZipFile
 from pathlib import Path
+from zipfile import ZipFile
 
 import pytest
 from jaraco import path

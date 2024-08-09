@@ -4,9 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from distutils.errors import DistutilsOptionError
 from setuptools.config import expand
 from setuptools.discovery import find_package_path
+
+from distutils.errors import DistutilsOptionError
 
 
 def write_files(files, root_dir):

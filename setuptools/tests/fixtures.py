@@ -1,11 +1,11 @@
-import os
 import contextlib
-import sys
+import os
 import subprocess
+import sys
 from pathlib import Path
 
-import pytest
 import path
+import pytest
 
 from . import contexts, environment
 

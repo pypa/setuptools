@@ -1,18 +1,18 @@
 """develop tests"""
 
 import os
-import sys
-import subprocess
 import pathlib
 import platform
+import subprocess
+import sys
 
 import pytest
 
+from setuptools._path import paths_on_pythonpath
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
-from setuptools._path import paths_on_pythonpath
-from . import contexts
-from . import namespaces
+
+from . import contexts, namespaces
 
 SETUP_PY = """\
 from setuptools import setup

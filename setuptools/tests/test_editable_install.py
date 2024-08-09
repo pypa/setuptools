@@ -1,8 +1,8 @@
 import os
-import stat
-import sys
-import subprocess
 import platform
+import stat
+import subprocess
+import sys
 from copy import deepcopy
 from importlib import import_module
 from importlib.machinery import EXTENSION_SUFFIXES
@@ -11,30 +11,30 @@ from textwrap import dedent
 from unittest.mock import Mock
 from uuid import uuid4
 
-from distutils.core import run_setup
-
 import jaraco.envs
 import jaraco.path
 import pytest
 from path import Path as _Path
 
-from . import contexts, namespaces
-
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
     _DebuggingTips,
-    _LinkTree,
-    _TopLevelFinder,
     _encode_pth,
-    _find_virtual_namespaces,
     _find_namespaces,
     _find_package_roots,
+    _find_virtual_namespaces,
     _finder_template,
+    _LinkTree,
+    _TopLevelFinder,
     editable_wheel,
 )
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 from setuptools.warnings import SetuptoolsDeprecationWarning
+
+from . import contexts, namespaces
+
+from distutils.core import run_setup
 
 
 @pytest.fixture(params=["strict", "lenient"])

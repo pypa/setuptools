@@ -2,29 +2,29 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 import functools
 import os
 import re
 import sys
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, TypeVar, overload
-
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 # workaround for #4476
 sys.modules.pop('backports', None)
 
 import _distutils_hack.override  # noqa: F401
-import distutils.core
-from distutils.errors import DistutilsOptionError
 
 from . import logging, monkey
-from .version import __version__ as __version__
 from .depends import Require
 from .discovery import PackageFinder, PEP420PackageFinder
 from .dist import Distribution
 from .extension import Extension
+from .version import __version__ as __version__
 from .warnings import SetuptoolsDeprecationWarning
+
+import distutils.core
+from distutils.errors import DistutilsOptionError
 
 __all__ = [
     'setup',
