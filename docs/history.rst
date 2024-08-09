@@ -5,6 +5,9 @@
 History
 *******
 
+.. meta::
+   :keywords: changelog
+
 .. towncrier-draft-entries:: DRAFT, unreleased as on |today|
 
 .. include:: ../NEWS (links).rst
