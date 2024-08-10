@@ -89,6 +89,7 @@ def _msvc14_find_vc2017():
         return None, None
 
     suitable_components = (
+        "Microsoft.VisualStudio.Component.VC.Tools.arm64",
         "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
         "Microsoft.VisualStudio.Workload.WDExpress",
     )
