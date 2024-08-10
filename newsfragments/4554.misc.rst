@@ -1,0 +1,1 @@
+Removed ``setputools.sandbox``'s Python 2 ``builtins.file`` support -- by :user:`Avasam`
