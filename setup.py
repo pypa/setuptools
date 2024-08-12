@@ -27,8 +27,9 @@ if include_windows_files:
 
 
 def get_version() -> str:
-    version_files = (f for f in [".latest", ".stable"] if os.path.exists(f))
-    with open(next(version_files), encoding="utf-8") as fp:
+    candidates = ["(meta)/latest.txt", "(meta)/stable.txt"]
+    version_file = next(f for f in candidates if os.path.exists(f))
+    with open(version_file, encoding="utf-8") as fp:
         return fp.read()
 
 

@@ -24,8 +24,9 @@ def get_version():
 
 
 def save_version(version):
-    pathlib.Path(".latest").unlink()  # Remove "unstable"/development version
-    pathlib.Path(".stable").write_text(version, encoding="utf-8")
+    version = version.lstrip("v")  # Compatibility with setuptools-scm
+    pathlib.Path("(meta)/latest.txt").unlink()  # Remove "unstable"/development version
+    pathlib.Path("(meta)/stable.txt").write_text(version, encoding="utf-8")
     subprocess.check_output(['git', 'add', ".stable"])
 
 

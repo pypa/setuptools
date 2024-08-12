@@ -1,4 +1,4 @@
 # This file lists exclude patterns unique to the repository.
 # Do not add common patterns here, see https://blog.jaraco.com/skeleton/#ignoring-artifacts
 # for a global approach or use .git/info/exclude.
-.latest
+(meta)/latest.txt

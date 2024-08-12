@@ -27,7 +27,6 @@ def pytest_configure(config):
 
 
 collect_ignore = [
-    'tools/save_version.py',
     'tests/manual_test.py',
     'setuptools/tests/mod_with_constant.py',
     'setuptools/_distutils',

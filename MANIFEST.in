@@ -18,5 +18,5 @@ include pytest.ini
 include tox.ini
 include setuptools/tests/config/setupcfg_examples.txt
 include setuptools/config/*.schema.json
-include .latest .stable
+graft (meta)
 global-exclude *.py[cod] __pycache__
