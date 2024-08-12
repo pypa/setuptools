@@ -99,7 +99,7 @@ core = [
 	"wheel>=0.43.0",
 
 	# pkg_resources
-	"platformdirs >= 2.6.2",
+	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
 
 	# for distutils
 	"jaraco.collections",
