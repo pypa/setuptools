@@ -14,9 +14,8 @@ import warnings
 from collections.abc import Iterable
 from email import message_from_file
 
-from ._vendor.packaging.utils import canonicalize_name, canonicalize_version
-
 from ._log import log
+from ._vendor.packaging.utils import canonicalize_name, canonicalize_version
 from .debug import DEBUG
 from .errors import (
     DistutilsArgError,
