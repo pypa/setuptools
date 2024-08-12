@@ -26,7 +26,6 @@ from wheel.metadata import pkginfo_to_metadata
 from wheel.wheelfile import WheelFile
 
 from .. import Command, __version__
-from ..warnings import SetuptoolsWarning
 from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
@@ -297,13 +296,12 @@ class bdist_wheel(Command):
             raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
 
         if sysconfig.get_config_var("Py_GIL_DISABLED"):
-            SetuptoolsWarning.emit(
-                summary=f"Ignoring `py_limited_api={self.py_limited_api!r}`.",
-                details="`Py_LIMITED_API` is currently incompatible with "
-                f"`Py_GIL_DISABLED` ({sys.abiflags=!r}).",
-                see_url="https://github.com/python/cpython/issues/111506",
+            raise ValueError(
+                f"`py_limited_api={self.py_limited_api!r}` not supported. "
+                "`Py_LIMITED_API` is currently incompatible with "
+                f"`Py_GIL_DISABLED` ({sys.abiflags=!r}). "
+                "See https://github.com/python/cpython/issues/111506."
             )
-            self.py_limited_api = False
 
     @property
     def wheel_dist_name(self) -> str:
