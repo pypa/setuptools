@@ -101,9 +101,9 @@ jobs:
       - name: Pre-build distributions for test
         shell: bash
         run: |
+          tox -e version
           rm -rf dist
           # workaround for pypa/setuptools#4333
-          tox -e version
           pipx run --pip-args 'pyproject-hooks!=1.1' build
           echo "PRE_BUILT_SETUPTOOLS_SDIST=$(ls dist/*.tar.gz)" >> $GITHUB_ENV
           echo "PRE_BUILT_SETUPTOOLS_WHEEL=$(ls dist/*.whl)" >> $GITHUB_ENV
