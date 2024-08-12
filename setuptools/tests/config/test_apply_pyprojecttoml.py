@@ -15,19 +15,16 @@ from unittest.mock import Mock
 
 import pytest
 from ini2toml.api import LiteTranslator
-
 from packaging.metadata import Metadata
 
 import setuptools  # noqa ensure monkey patch to metadata
-from setuptools.dist import Distribution
-from setuptools.config import setupcfg, pyprojecttoml
-from setuptools.config import expand
-from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.command.egg_info import write_requirements
+from setuptools.config import expand, pyprojecttoml, setupcfg
+from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
+from setuptools.dist import Distribution
 from setuptools.errors import RemovedConfigError
 
 from .downloads import retrieve_file, urls_from_file
-
 
 HERE = Path(__file__).parent
 EXAMPLES_FILE = "setupcfg_examples.txt"

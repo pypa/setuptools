@@ -1,8 +1,9 @@
-from pathlib import Path
 import shutil
-import pytest
-import pkg_resources
+from pathlib import Path
 
+import pytest
+
+import pkg_resources
 
 TESTS_DATA_DIR = Path(__file__).parent / 'data'
 

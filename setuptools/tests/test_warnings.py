@@ -4,7 +4,6 @@ import pytest
 
 from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
-
 _EXAMPLES = {
     "default": dict(
         args=("Hello {x}", "\n\t{target} {v:.1f}"),

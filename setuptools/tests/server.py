@@ -1,9 +1,9 @@
 """Basic http server for tests to simulate PyPI or custom indexes"""
 
-import os
-import time
-import threading
 import http.server
+import os
+import threading
+import time
 import urllib.parse
 import urllib.request
 

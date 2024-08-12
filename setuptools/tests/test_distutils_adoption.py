@@ -1,10 +1,9 @@
 import os
-import sys
 import platform
+import sys
 import textwrap
 
 import pytest
-
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 

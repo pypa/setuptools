@@ -5,8 +5,8 @@ from unittest import mock
 
 import pytest
 
-from setuptools.dist import Distribution
 from setuptools import SetuptoolsDeprecationWarning
+from setuptools.dist import Distribution
 
 
 @pytest.mark.skipif(sys.platform == 'win32', reason='non-Windows only')

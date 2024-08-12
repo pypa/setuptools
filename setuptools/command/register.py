@@ -1,7 +1,7 @@
-from distutils import log
-import distutils.command.register as orig
-
 from setuptools.errors import RemovedCommandError
+
+import distutils.command.register as orig
+from distutils import log
 
 
 class register(orig.register):

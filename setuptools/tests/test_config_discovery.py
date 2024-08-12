@@ -3,21 +3,21 @@ import sys
 from configparser import ConfigParser
 from itertools import product
 
-from setuptools.command.sdist import sdist
-from setuptools.dist import Distribution
-from setuptools.discovery import find_package_path, find_parent_package
-from setuptools.errors import PackageDiscoveryError
-
-import setuptools  # noqa -- force distutils.core to be patched
-import distutils.core
-
-import pytest
 import jaraco.path
+import pytest
 from path import Path
+
+import setuptools  # noqa: F401 # force distutils.core to be patched
+from setuptools.command.sdist import sdist
+from setuptools.discovery import find_package_path, find_parent_package
+from setuptools.dist import Distribution
+from setuptools.errors import PackageDiscoveryError
 
 from .contexts import quiet
 from .integration.helpers import get_sdist_members, get_wheel_members, run
 from .textwrap import DALS
+
+import distutils.core
 
 
 class TestFindParentPackage:

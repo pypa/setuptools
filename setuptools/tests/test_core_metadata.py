@@ -1,17 +1,15 @@
 import functools
-import io
 import importlib
+import io
 from email import message_from_string
 
 import pytest
-
 from packaging.metadata import Metadata
 
-from setuptools import sic, _reqs
-from setuptools.dist import Distribution
+from setuptools import _reqs, sic
 from setuptools._core_metadata import rfc822_escape, rfc822_unescape
 from setuptools.command.egg_info import egg_info, write_requirements
-
+from setuptools.dist import Distribution
 
 EXAMPLE_BASE_INFO = dict(
     name="package",

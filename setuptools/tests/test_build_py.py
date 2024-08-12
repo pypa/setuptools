@@ -1,12 +1,12 @@
 import os
-import stat
 import shutil
+import stat
 import warnings
 from pathlib import Path
 from unittest.mock import Mock
 
-import pytest
 import jaraco.path
+import pytest
 
 from setuptools import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution

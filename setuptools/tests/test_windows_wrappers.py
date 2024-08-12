@@ -13,15 +13,15 @@ are to wrap.
 """
 
 import pathlib
-import sys
 import platform
-import textwrap
 import subprocess
+import sys
+import textwrap
 
 import pytest
 
-from setuptools.command.easy_install import nt_quote_arg
 import pkg_resources
+from setuptools.command.easy_install import nt_quote_arg
 
 pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 

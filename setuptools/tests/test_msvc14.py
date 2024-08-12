@@ -3,9 +3,11 @@ Tests for msvc support module (msvc14 unit tests).
 """
 
 import os
-from distutils.errors import DistutilsPlatformError
-import pytest
 import sys
+
+import pytest
+
+from distutils.errors import DistutilsPlatformError
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="These tests are only for win32")

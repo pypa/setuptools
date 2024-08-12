@@ -1,10 +1,10 @@
-from setuptools.command.register import register
-from setuptools.dist import Distribution
-from setuptools.errors import RemovedCommandError
-
 from unittest import mock
 
 import pytest
+
+from setuptools.command.register import register
+from setuptools.dist import Distribution
+from setuptools.errors import RemovedCommandError
 
 
 class TestRegister:

@@ -1,9 +1,9 @@
-import os
-from distutils import log
 import itertools
+import os
 
 from .compat import py39
 
+from distutils import log
 
 flatten = itertools.chain.from_iterable
 

@@ -10,10 +10,9 @@ import urllib.request
 
 import pytest
 
-from setuptools.command.easy_install import easy_install
 from setuptools.command import easy_install as easy_install_pkg
+from setuptools.command.easy_install import easy_install
 from setuptools.dist import Distribution
-
 
 pytestmark = pytest.mark.skipif(
     'platform.python_implementation() == "PyPy" and platform.system() == "Windows"',

@@ -1,5 +1,5 @@
-import sys
 import subprocess
+import sys
 
 from setuptools._path import paths_on_pythonpath
 

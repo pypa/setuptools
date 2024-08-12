@@ -28,24 +28,26 @@ Again, this is not a formal definition! Just a "taste" of the module.
 
 from __future__ import annotations
 
+import contextlib
 import io
 import os
 import shlex
-import sys
-import tokenize
 import shutil
-import contextlib
+import sys
 import tempfile
+import tokenize
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterator, List, Union, Iterable
+from typing import TYPE_CHECKING, Dict, Iterable, Iterator, List, Union
 
 import setuptools
-import distutils
+
 from . import errors
-from ._path import same_path, StrPath
+from ._path import StrPath, same_path
 from ._reqs import parse_strings
 from .warnings import SetuptoolsDeprecationWarning
+
+import distutils
 from distutils.util import strtobool
 
 if TYPE_CHECKING:

@@ -1,20 +1,19 @@
 import collections
-import re
 import os
-import urllib.request
+import re
 import urllib.parse
-from distutils.errors import DistutilsSetupError
-from setuptools.dist import (
-    check_package_data,
-    check_specifier,
-)
-from setuptools import Distribution
-
-from .textwrap import DALS
-from .test_easy_install import make_nspkg_sdist
-from .test_find_packages import ensure_files
+import urllib.request
 
 import pytest
+
+from setuptools import Distribution
+from setuptools.dist import check_package_data, check_specifier
+
+from .test_easy_install import make_nspkg_sdist
+from .test_find_packages import ensure_files
+from .textwrap import DALS
+
+from distutils.errors import DistutilsSetupError
 
 
 def test_dist_fetch_build_egg(tmpdir):
