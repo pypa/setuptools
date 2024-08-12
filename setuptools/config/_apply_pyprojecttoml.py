@@ -278,6 +278,7 @@ def _valid_command_options(cmdclass: Mapping = EMPTY) -> dict[str, set[str]]:
 def _load_ep(ep: metadata.EntryPoint) -> tuple[str, type] | None:
     if ep.value.startswith("wheel.bdist_wheel"):
         # Ignore deprecated entrypoint from wheel and avoid warning pypa/wheel#631
+        # TODO: remove check when `bdist_wheel` has been fully removed from pypa/wheel
         return None
 
     # Ignore all the errors
