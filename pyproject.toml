@@ -39,7 +39,7 @@ test = [
 
 	# local
 	"virtualenv>=13.0.0",
-	"wheel>=0.44.0",  # Consistent requirement normalisation in METADATA (see #4547)
+	"wheel>=0.44.0", # Consistent requirement normalisation in METADATA (see #4547)
 	"pip>=19.1", # For proper file:// URLs support.
 	"packaging>=23.2",
 	"jaraco.envs>=2.2",
@@ -64,17 +64,10 @@ test = [
 	"importlib_metadata",
 	"pytest-subprocess",
 
-	# require newer pytest-ruff than upstream for pypa/setuptools#4368
-	# also exclude cygwin for pypa/setuptools#3921
-	'pytest-ruff >= 0.3.2; sys_platform != "cygwin"',
-
 	# workaround for pypa/setuptools#4333
 	"pyproject-hooks!=1.1",
 
 	"jaraco.test",
-
-	# workaround for businho/pytest-ruff#28
-	'pytest-ruff < 0.4; platform_system == "Windows"',
 ]
 
 doc = [
@@ -118,8 +111,14 @@ core = [
 ]
 
 check = [
+	# upstream
 	"pytest-checkdocs >= 2.4",
 	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
+
+	# local
+
+	# workaround for businho/pytest-ruff#28
+	"ruff >= 0.5.2; sys_platform != 'cygwin'",
 ]
 
 cover = [
