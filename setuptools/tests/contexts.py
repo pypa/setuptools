@@ -1,10 +1,10 @@
-import tempfile
+import contextlib
+import io
 import os
 import shutil
-import sys
-import contextlib
 import site
-import io
+import sys
+import tempfile
 
 from filelock import FileLock
 

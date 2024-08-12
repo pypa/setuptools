@@ -3,22 +3,22 @@
 from __future__ import annotations
 
 import contextlib
+import io
+import itertools
+import logging
 import os
 import shutil
 import sys
 import tempfile
-import itertools
-import io
-import logging
-from distutils import log
-from distutils.errors import DistutilsTemplateError
+
+import pytest
 
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
 from setuptools.tests.textwrap import DALS
 
-import pytest
-
+from distutils import log
+from distutils.errors import DistutilsTemplateError
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 

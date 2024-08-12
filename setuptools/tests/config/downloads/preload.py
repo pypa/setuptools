@@ -13,7 +13,6 @@ from pathlib import Path
 
 from . import retrieve_file, urls_from_file
 
-
 if __name__ == "__main__":
     urls = urls_from_file(Path(sys.argv[1]))
     list(map(retrieve_file, urls))

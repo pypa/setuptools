@@ -1,6 +1,6 @@
 import distutils.command.build_clib as orig
-from distutils.errors import DistutilsSetupError
 from distutils import log
+from distutils.errors import DistutilsSetupError
 
 try:
     from distutils._modified import newer_pairwise_group

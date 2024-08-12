@@ -1,28 +1,23 @@
 from __future__ import annotations
 
 import builtins
+import datetime
+import os
+import plistlib
+import stat
+import subprocess
 import sys
 import tempfile
-import os
 import zipfile
-import datetime
-import plistlib
-import subprocess
-import stat
-import distutils.dist
-import distutils.command.install_egg_info
-
 from unittest import mock
-
-from pkg_resources import (
-    DistInfoDistribution,
-    Distribution,
-    EggInfoDistribution,
-)
 
 import pytest
 
 import pkg_resources
+from pkg_resources import DistInfoDistribution, Distribution, EggInfoDistribution
+
+import distutils.command.install_egg_info
+import distutils.dist
 
 
 class EggRemover(str):

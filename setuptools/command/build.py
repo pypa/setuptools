@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Protocol
+
 from distutils.command.build import build as _build
 
 _ORIGINAL_SUBCOMMANDS = {"build_py", "build_clib", "build_ext", "build_scripts"}

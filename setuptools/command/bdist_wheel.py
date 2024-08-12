@@ -16,18 +16,19 @@ import sysconfig
 import warnings
 from email.generator import BytesGenerator, Generator
 from email.policy import EmailPolicy
-from distutils import log
 from glob import iglob
 from shutil import rmtree
 from typing import TYPE_CHECKING, Callable, Iterable, Literal, Sequence, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
+from packaging import tags, version as _packaging_version
+from wheel.metadata import pkginfo_to_metadata
+from wheel.wheelfile import WheelFile
+
 from .. import Command, __version__
 from .egg_info import egg_info as egg_info_cls
-from wheel.metadata import pkginfo_to_metadata
-from packaging import tags
-from packaging import version as _packaging_version
-from wheel.wheelfile import WheelFile
+
+from distutils import log
 
 if TYPE_CHECKING:
     from _typeshed import ExcInfo

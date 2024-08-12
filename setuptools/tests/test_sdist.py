@@ -1,32 +1,31 @@
 """sdist tests"""
 
-import os
-import sys
-import tempfile
-import unicodedata
 import contextlib
 import io
-import tarfile
 import logging
-import distutils
+import os
+import sys
+import tarfile
+import tempfile
+import unicodedata
 from inspect import cleandoc
 from unittest import mock
 
+import jaraco.path
 import pytest
 
-from distutils.core import run_setup
-from setuptools import Command
+from setuptools import Command, SetuptoolsDeprecationWarning
 from setuptools._importlib import metadata
-from setuptools import SetuptoolsDeprecationWarning
-from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
+from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 from setuptools.tests import fail_on_ascii
+
 from .text import Filenames
 
-import jaraco.path
-
+import distutils
+from distutils.core import run_setup
 
 SETUP_ATTRS = {
     'name': 'sdist_test',

@@ -14,6 +14,7 @@ extend-select = [
 	"ANN2", # missing-return-type-*
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
+	"I", # isort
 	"PYI", # flake8-pyi
 	"UP", # pyupgrade
 	"TRY",
@@ -55,6 +56,16 @@ ignore = [
 # Suppress nuisance warnings about module-import-not-at-top-of-file (E402) due to workaround for #4476
 "setuptools/__init__.py" = ["E402"]
 "pkg_resources/__init__.py" = ["E402"]
+
+[lint.isort]
+combine-as-imports = true
+split-on-trailing-comma = false
+# Force Ruff/isort to always import setuptools before distutils in tests as long as distutils_hack is supported
+# This also ensures _distutils_hack is imported before distutils
+# https://github.com/pypa/setuptools/issues/4137
+section-order = ["future", "standard-library", "eager", "third-party", "first-party", "local-folder", "delayed"]
+sections.eager = ["_distutils_hack"]
+sections.delayed = ["distutils"]
 
 [lint.flake8-annotations]
 ignore-fully-untyped = true

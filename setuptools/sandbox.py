@@ -1,21 +1,22 @@
 from __future__ import annotations
 
-from abc import ABC
-import os
-import sys
-import tempfile
-import operator
+import builtins
+import contextlib
 import functools
 import itertools
-import re
-import contextlib
+import operator
+import os
 import pickle
+import re
+import sys
+import tempfile
 import textwrap
-import builtins
+from abc import ABC
 
 import pkg_resources
-from distutils.errors import DistutilsError
 from pkg_resources import working_set
+
+from distutils.errors import DistutilsError
 
 if sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os
