@@ -45,7 +45,7 @@ class Archive:
             raise ValueError(f"{filename} doesn't seem to be a zip or tar.gz")
 
     def __iter__(self):
-        if hasattr(self._obj, "infolist"):
+        if isinstance(self._obj, ZipFile) or hasattr(self._obj, "infolist"):
             return iter(self._obj.infolist())
         return iter(self._obj)
 

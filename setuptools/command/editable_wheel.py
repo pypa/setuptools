@@ -39,7 +39,7 @@ from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
 
 if TYPE_CHECKING:
-    from .._vendor.wheel.wheelfile import WheelFile
+    from wheel.wheelfile import WheelFile
 
 _P = TypeVar("_P", bound=StrPath)
 _logger = logging.getLogger(__name__)

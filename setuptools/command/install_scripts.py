@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+from typing import cast
 
 from .._path import ensure_directory
 from ..dist import Distribution
@@ -49,7 +50,8 @@ class install_scripts(orig.install_scripts):
         if exec_param == sys.executable:
             # In case the path to the Python executable contains a space, wrap
             # it so it's not split up.
-            exec_param = [exec_param]
+            # cast: This can only be the same string as sys.executable at this point
+            exec_param = [cast(str, exec_param)]
         # resolve the writer to the environment
         writer = writer.best()
         cmd = writer.command_spec_class.best().from_param(exec_param)

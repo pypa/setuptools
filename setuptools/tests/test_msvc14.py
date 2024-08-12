@@ -62,6 +62,7 @@ class TestMSVC14:
         if os.environ.get('APPVEYOR_BUILD_WORKER_IMAGE', '') == 'Visual Studio 2017':
             assert version
         if version:
+            assert path is not None
             assert version >= 15
             assert os.path.isdir(path)
         else:
@@ -79,6 +80,7 @@ class TestMSVC14:
         ]:
             assert version
         if version:
+            assert path is not None
             assert version >= 14
             assert os.path.isdir(path)
         else:

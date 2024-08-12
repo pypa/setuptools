@@ -11,6 +11,7 @@ import setuptools
 from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 from .bdist_egg import bdist_egg as bdist_egg_cls
+from .easy_install import easy_install as easy_install_cls
 
 import distutils.command.install as orig
 from distutils.errors import DistutilsArgError
@@ -132,7 +133,9 @@ class install(orig.install):
         return False
 
     def do_egg_install(self):
-        easy_install = self.distribution.get_command_class('easy_install')
+        easy_install = cast(
+            type[easy_install_cls], self.distribution.get_command_class('easy_install')
+        )
 
         cmd = easy_install(
             self.distribution,

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
@@ -43,7 +45,13 @@ def _which_dirs(cmd):
     return result
 
 
-def run_setup_py(cmd, pypath=None, path=None, data_stream=0, env=None):
+def run_setup_py(
+    cmd,
+    pypath=None,
+    path=None,
+    data_stream: tuple[int, ...] | slice | int = 0,
+    env=None,
+):
     """
     Execution command for tests, separate from those used by the
     code directly to prevent accidental behavior issues

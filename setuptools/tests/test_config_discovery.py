@@ -618,7 +618,8 @@ def _get_dist(dist_path, attrs):
     script = dist_path / 'setup.py'
     if script.exists():
         with Path(dist_path):
-            dist = distutils.core.run_setup("setup.py", {}, stop_after="init")
+            # TODO: Fix in typeshed that any Iterable[str] works for 2nd argument
+            dist = distutils.core.run_setup("setup.py", [], stop_after="init")
     else:
         dist = Distribution(attrs)
 

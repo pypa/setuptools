@@ -373,8 +373,8 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
     del metadata_msg["Requires-Dist"]
     del metadata_msg["Provides-Extra"]
     pkg_info_msg = message_from_string(pkg_info)
-    pkg_info_deps = set(_reqs.parse(pkg_info_msg.get_all("Requires-Dist")))
-    pkg_info_extras = set(pkg_info_msg.get_all("Provides-Extra"))
+    pkg_info_deps = set(_reqs.parse(pkg_info_msg.get_all("Requires-Dist", ())))
+    pkg_info_extras = set(pkg_info_msg.get_all("Provides-Extra", ()))
     del pkg_info_msg["Requires-Dist"]
     del pkg_info_msg["Provides-Extra"]
 

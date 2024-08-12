@@ -373,6 +373,7 @@ class TestDeepVersionLookupDistutils:
         # .egg-info file is parsed (see #419 on BitBucket)
         req = pkg_resources.Requirement.parse('foo>=1.9')
         dist = pkg_resources.WorkingSet([env.paths['lib']]).find(req)
+        assert dist is not None
         assert dist.version == version
 
     @pytest.mark.parametrize(

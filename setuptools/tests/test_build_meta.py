@@ -499,7 +499,9 @@ class TestBuildMetaBackend:
         assert not (tmpdir / "temp/foo-13-py3-none-any.whl").exists()
 
         with tarfile.open(os.path.join(tmpdir, "temp", sdist_path)) as tar:
-            pkg_info = str(tar.extractfile('foo-42/PKG-INFO').read(), "utf-8")
+            file = tar.extractfile('foo-42/PKG-INFO')
+            assert file is not None
+            pkg_info = str(file.read(), "utf-8")
             members = tar.getnames()
             assert "bar-13/PKG-INFO" not in members
 

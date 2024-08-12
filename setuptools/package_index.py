@@ -1,5 +1,7 @@
 """PyPI and direct package downloading."""
 
+from __future__ import annotations
+
 import base64
 import configparser
 import hashlib
@@ -18,6 +20,7 @@ import urllib.parse
 import urllib.request
 from fnmatch import translate
 from functools import wraps
+from typing import TYPE_CHECKING
 
 from more_itertools import unique_everseen
 
@@ -44,6 +47,9 @@ from .unicode_utils import _cfg_read_utf8_with_fallback, _read_utf8_with_fallbac
 
 from distutils import log
 from distutils.errors import DistutilsError
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
@@ -631,7 +637,7 @@ class PackageIndex(Environment):
         skipped = set()
         dist = None
 
-        def find(req, env=None):
+        def find(req, env: Self | None = None):
             if env is None:
                 env = self
             # Find a matching distribution; may be called more than once

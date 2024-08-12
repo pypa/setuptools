@@ -1,5 +1,7 @@
 """sdist tests"""
 
+from __future__ import annotations
+
 import contextlib
 import io
 import logging
@@ -8,7 +10,9 @@ import sys
 import tarfile
 import tempfile
 import unicodedata
+from collections.abc import Iterable, Mapping
 from inspect import cleandoc
+from typing import TYPE_CHECKING, Dict, List, TypeVar, Union, overload
 from unittest import mock
 
 import jaraco.path
@@ -26,6 +30,13 @@ from .text import Filenames
 
 import distutils
 from distutils.core import run_setup
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
+_T = TypeVar("_T")
+_NestedStrDict: TypeAlias = Dict[_T, Union[str, "_NestedStrList", "_NestedStrDict"]]
+_NestedStrList: TypeAlias = List[Union[str, "_NestedStrList", "_NestedStrDict"]]
 
 SETUP_ATTRS = {
     'name': 'sdist_test',
@@ -95,6 +106,8 @@ def latin1_fail():
         os.remove(filename)
     except Exception:
         return True
+    else:
+        return False
 
 
 fail_on_latin1_encoded_filenames = pytest.mark.xfail(
@@ -108,7 +121,7 @@ skip_under_xdist = pytest.mark.skipif(
     reason="pytest-dev/pytest-xdist#843",
 )
 skip_under_stdlib_distutils = pytest.mark.skipif(
-    not distutils.__package__.startswith('setuptools'),
+    not (distutils.__package__ and distutils.__package__.startswith('setuptools')),
     reason="the test is not supported with stdlib distutils",
 )
 
@@ -617,11 +630,22 @@ class TestSdistTest:
             filename = filename.decode('utf-8')
             assert filename in cmd.filelist.files
 
+    @overload
     @classmethod
-    def make_strings(cls, item):
-        if isinstance(item, dict):
+    def make_strings(cls, item: Mapping[_T, object]) -> _NestedStrDict[_T]: ...
+    @overload
+    @classmethod
+    def make_strings(cls, item: Iterable[object]) -> _NestedStrList: ...
+    @overload
+    @classmethod
+    def make_strings(cls, item: object) -> str: ...
+    @classmethod
+    def make_strings(cls, item: object) -> str | _NestedStrDict[_T] | _NestedStrList:
+        if isinstance(item, str):
+            return item
+        if isinstance(item, Mapping):
             return {key: cls.make_strings(value) for key, value in item.items()}
-        if isinstance(item, list):
+        if isinstance(item, Iterable):
             return list(map(cls.make_strings, item))
         return str(item)
 

@@ -544,7 +544,7 @@ class RegistryInfo:
         node64 = '' if self.pi.current_is_x86() or x86 else 'Wow6432Node'
         return join('Software', node64, 'Microsoft', key)
 
-    def lookup(self, key, name):
+    def lookup(self, key, name) -> str | None:
         """
         Look for values in registry in Microsoft software registry.
 
@@ -604,7 +604,7 @@ class SystemInfo:
     ProgramFiles = environ.get('ProgramFiles', '')
     ProgramFilesx86 = environ.get('ProgramFiles(x86)', ProgramFiles)
 
-    def __init__(self, registry_info, vc_ver=None):
+    def __init__(self, registry_info: RegistryInfo, vc_ver=None):
         self.ri = registry_info
         self.pi = self.ri.pi
 

@@ -564,9 +564,11 @@ class TestFinderTemplate:
             mod2 = import_module("different_name.subpkg.my_module2")
 
             expected = str((tmp_path / "src/my_package/my_module.py").resolve())
+            assert mod1.__file__ is not None
             assert str(Path(mod1.__file__).resolve()) == expected
 
             expected = str((tmp_path / "src2/my_package2/my_module2.py").resolve())
+            assert mod2.__file__ is not None
             assert str(Path(mod2.__file__).resolve()) == expected
 
             assert mod1.a == 13

@@ -435,6 +435,7 @@ class TestUserInstallTest:
         cmd.ensure_finalized()
         cmd.local_index.scan([foo_package])
         res = cmd.easy_install('foo')
+        assert res and res.location
         actual = os.path.normcase(os.path.realpath(res.location))
         expected = os.path.normcase(os.path.realpath(foo_package))
         assert actual == expected

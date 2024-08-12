@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import configparser
 import contextlib
 import inspect
 from pathlib import Path
+from typing import TYPE_CHECKING, Literal, overload
 from unittest.mock import Mock, patch
 
 import pytest
 from packaging.requirements import InvalidRequirement
 
+from setuptools._path import StrPath
 from setuptools.config.setupcfg import ConfigHandler, read_configuration
 from setuptools.dist import Distribution, _Distribution
 from setuptools.warnings import SetuptoolsDeprecationWarning
@@ -15,6 +19,9 @@ from ..textwrap import DALS
 
 from distutils.errors import DistutilsFileError, DistutilsOptionError
 
+if TYPE_CHECKING:
+    from py.path import local  # pyright: ignore[reportMissingModuleSource]
+
 
 class ErrConfigHandler(ConfigHandler):
     """Erroneous handler. Fails to implement required methods."""
@@ -22,7 +29,17 @@ class ErrConfigHandler(ConfigHandler):
     section_prefix = "**err**"
 
 
-def make_package_dir(name, base_dir, ns=False):
+@overload
+def make_package_dir(
+    name: StrPath, base_dir: local, ns: Literal[False] = False
+) -> tuple[local, local]: ...
+@overload
+def make_package_dir(
+    name: StrPath, base_dir: local, ns: Literal[True]
+) -> tuple[local, None]: ...
+def make_package_dir(
+    name: StrPath, base_dir: local, ns: bool = False
+) -> tuple[local, local | None]:
     dir_package = base_dir
     for dir_name in name.split('/'):
         dir_package = dir_package.mkdir(dir_name)

@@ -179,7 +179,8 @@ class easy_install(Command):
         self.args = None
         self.optimize = self.record = None
         self.upgrade = self.always_copy = self.multi_version = None
-        self.editable = self.no_deps = self.allow_hosts = None
+        self.editable = self.no_deps = None
+        self.allow_hosts: str | None = None
         self.root = self.prefix = self.no_report = None
         self.version = None
         self.install_purelib = None  # for pure module distributions
@@ -879,7 +880,7 @@ class easy_install(Command):
             f.write(contents)
         chmod(target, 0o777 - mask)
 
-    def install_eggs(self, spec, dist_filename, tmpdir):
+    def install_eggs(self, spec, dist_filename, tmpdir) -> list[Distribution]:
         # .egg dirs or files are already built, so just return them
         installer_map = {
             '.egg': self.install_egg,
