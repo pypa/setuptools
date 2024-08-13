@@ -1,0 +1,2 @@
+Prevent deprecation warning from ``pypa/wheel#631`` to accidentally
+trigger when validating ``pyproject.toml``.
