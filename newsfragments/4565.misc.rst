@@ -1,0 +1,3 @@
+Replace ``pip install -I`` with ``pip install --force-reinstall`` in
+integration tests. Additionally, remove ``wheel`` from virtual environment as
+it is no longer a build dependency.
