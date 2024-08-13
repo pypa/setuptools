@@ -148,14 +148,14 @@
     },
     "namespace-packages": {
       "type": "array",
-      "items": {"type": "string", "format": "python-module-name"},
+      "items": {"type": "string", "format": "python-module-name-relaxed"},
       "$comment": "https://setuptools.pypa.io/en/latest/userguide/package_discovery.html",
       "description": "**DEPRECATED**: use implicit namespaces instead (:pep:`420`)."
     },
     "py-modules": {
       "description": "Modules that setuptools will manipulate",
       "type": "array",
-      "items": {"type": "string", "format": "python-module-name"},
+      "items": {"type": "string", "format": "python-module-name-relaxed"},
       "$comment": "TODO: clarify the relationship with ``packages``"
     },
     "data-files": {
@@ -250,7 +250,7 @@
       "description": "Valid package name (importable or :pep:`561`).",
       "type": "string",
       "anyOf": [
-        {"type": "string", "format": "python-module-name"},
+        {"type": "string", "format": "python-module-name-relaxed"},
         {"type": "string", "format": "pep561-stub-name"}
       ]
     },
