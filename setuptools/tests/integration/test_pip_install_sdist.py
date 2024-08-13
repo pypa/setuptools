@@ -137,7 +137,7 @@ def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel
     # Use a virtualenv to simulate PEP 517 isolation
     # but install fresh setuptools wheel to ensure the version under development
     env = EXTRA_ENV_VARS.get(package, {})
-    run([*venv_pip, "install", "wheel", "-I", setuptools_wheel])
+    run([*venv_pip, "install", "--force-reinstall", setuptools_wheel])
     run([*venv_pip, "install", *INSTALL_OPTIONS, sdist], env)
 
     # Execute a simple script to make sure the package was installed correctly
