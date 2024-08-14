@@ -1,0 +1,2 @@
+Added support for defining ``ext-modules`` via ``pyproject.toml``
+(**EXPERIMENTAL**, may change in future releases).
