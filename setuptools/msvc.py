@@ -21,6 +21,7 @@ import contextlib
 import platform
 import itertools
 import subprocess
+import sysconfig
 import distutils.errors
 from typing import TYPE_CHECKING
 
@@ -88,9 +89,9 @@ def _msvc14_find_vc2017():
     if not root:
         return None, None
 
+    variant = 'arm64' if sysconfig.get_platform() == 'win-arm64' else 'x86.x64'
     suitable_components = (
-        "Microsoft.VisualStudio.Component.VC.Tools.arm64",
-        "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+        f"Microsoft.VisualStudio.Component.VC.Tools.{variant}",
         "Microsoft.VisualStudio.Workload.WDExpress",
     )
 
