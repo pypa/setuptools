@@ -18,10 +18,10 @@ import itertools
 import json
 import platform
 import subprocess
+import sysconfig
 from os import listdir, pathsep
 from os.path import dirname, isdir, isfile, join
 from subprocess import CalledProcessError
-import sysconfig
 from typing import TYPE_CHECKING
 
 from more_itertools import unique_everseen
