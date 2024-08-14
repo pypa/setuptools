@@ -10,6 +10,23 @@ from glob import iglob
 from pathlib import Path
 from typing import TYPE_CHECKING, MutableMapping
 
+from more_itertools import partition, unique_everseen
+from ordered_set import OrderedSet
+from packaging.markers import InvalidMarker, Marker
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.version import Version
+
+from . import (
+    _entry_points,
+    _reqs,
+    command as _,  # noqa: F401 # imported for side-effects
+)
+from ._importlib import metadata
+from .config import pyprojecttoml, setupcfg
+from .discovery import ConfigDiscovery
+from .monkey import get_unpatched
+from .warnings import InformationOnly, SetuptoolsDeprecationWarning
+
 import distutils.cmd
 import distutils.command
 import distutils.core
@@ -19,21 +36,6 @@ from distutils.debug import DEBUG
 from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
-
-from more_itertools import partition, unique_everseen
-from ordered_set import OrderedSet
-from packaging.markers import InvalidMarker, Marker
-from packaging.specifiers import InvalidSpecifier, SpecifierSet
-from packaging.version import Version
-
-from . import _entry_points
-from . import _reqs
-from . import command as _  # noqa  -- imported for side-effects
-from ._importlib import metadata
-from .config import setupcfg, pyprojecttoml
-from .discovery import ConfigDiscovery
-from .monkey import get_unpatched
-from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
 __all__ = ['Distribution']
 

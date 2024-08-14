@@ -6,9 +6,9 @@ the user running travis build to install pip packages.
 TODO: is someone tracking this issue? Maybe just move to bionic?
 """
 
-import subprocess
 import collections
 import os
+import subprocess
 
 
 def patch():

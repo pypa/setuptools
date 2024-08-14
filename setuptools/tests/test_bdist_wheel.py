@@ -16,9 +16,9 @@ from zipfile import ZipFile
 
 import jaraco.path
 import pytest
+from packaging import tags
 
 import setuptools
-from distutils.core import run_setup
 from setuptools.command.bdist_wheel import (
     bdist_wheel,
     get_abi_tag,
@@ -26,7 +26,8 @@ from setuptools.command.bdist_wheel import (
     remove_readonly_exc,
 )
 from setuptools.dist import Distribution
-from packaging import tags
+
+from distutils.core import run_setup
 
 DEFAULT_FILES = {
     "dummy_dist-1.0.dist-info/top_level.txt",

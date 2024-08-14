@@ -1,49 +1,49 @@
 """PyPI and direct package downloading."""
 
-import sys
-import subprocess
-import os
-import re
-import io
-import shutil
-import socket
 import base64
-import hashlib
-import itertools
 import configparser
+import hashlib
 import html
 import http.client
+import io
+import itertools
+import os
+import re
+import shutil
+import socket
+import subprocess
+import sys
+import urllib.error
 import urllib.parse
 import urllib.request
-import urllib.error
-from functools import wraps
-
-import setuptools
-from pkg_resources import (
-    CHECKOUT_DIST,
-    Distribution,
-    BINARY_DIST,
-    normalize_path,
-    SOURCE_DIST,
-    Environment,
-    find_distributions,
-    safe_name,
-    safe_version,
-    to_filename,
-    Requirement,
-    DEVELOP_DIST,
-    EGG_DIST,
-    parse_version,
-)
-from distutils import log
-from distutils.errors import DistutilsError
 from fnmatch import translate
-from setuptools.wheel import Wheel
+from functools import wraps
 
 from more_itertools import unique_everseen
 
-from .unicode_utils import _read_utf8_with_fallback, _cfg_read_utf8_with_fallback
+import setuptools
+from pkg_resources import (
+    BINARY_DIST,
+    CHECKOUT_DIST,
+    DEVELOP_DIST,
+    EGG_DIST,
+    SOURCE_DIST,
+    Distribution,
+    Environment,
+    Requirement,
+    find_distributions,
+    normalize_path,
+    parse_version,
+    safe_name,
+    safe_version,
+    to_filename,
+)
+from setuptools.wheel import Wheel
 
+from .unicode_utils import _cfg_read_utf8_with_fallback, _read_utf8_with_fallback
+
+from distutils import log
+from distutils.errors import DistutilsError
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
 HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)

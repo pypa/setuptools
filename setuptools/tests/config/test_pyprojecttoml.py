@@ -7,18 +7,17 @@ import pytest
 import tomli_w
 from path import Path
 
+import setuptools  # noqa: F401 # force distutils.core to be patched
 from setuptools.config.pyprojecttoml import (
     _ToolsTypoInMetadata,
-    read_configuration,
-    expand_configuration,
     apply_configuration,
+    expand_configuration,
+    read_configuration,
     validate,
 )
 from setuptools.dist import Distribution
 from setuptools.errors import OptionError
 
-
-import setuptools  # noqa -- force distutils.core to be patched
 import distutils.core
 
 EXAMPLE = """

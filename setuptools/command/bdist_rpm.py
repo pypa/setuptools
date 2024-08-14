@@ -1,6 +1,6 @@
-import distutils.command.bdist_rpm as orig
-
 from ..warnings import SetuptoolsDeprecationWarning
+
+import distutils.command.bdist_rpm as orig
 
 
 class bdist_rpm(orig.bdist_rpm):

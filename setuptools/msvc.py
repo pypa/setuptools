@@ -13,19 +13,20 @@ This may also support compilers shipped with compatible Visual Studio versions.
 
 from __future__ import annotations
 
-import json
-from os import listdir, pathsep
-from os.path import join, isfile, isdir, dirname
-from subprocess import CalledProcessError
 import contextlib
-import platform
 import itertools
+import json
+import platform
 import subprocess
+from os import listdir, pathsep
+from os.path import dirname, isdir, isfile, join
+from subprocess import CalledProcessError
 import sysconfig
-import distutils.errors
 from typing import TYPE_CHECKING
 
 from more_itertools import unique_everseen
+
+import distutils.errors
 
 # https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':
