@@ -274,10 +274,7 @@ class bdist_wheel(Command):
             self.distribution.has_ext_modules() or self.distribution.has_c_libraries()
         )
 
-        if self.py_limited_api and not re.match(
-            PY_LIMITED_API_PATTERN, self.py_limited_api
-        ):
-            raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
+        self._validate_py_limited_api()
 
         # Support legacy [wheel] section for setting universal
         wheel = self.distribution.get_option_dict("wheel")
@@ -290,6 +287,21 @@ class bdist_wheel(Command):
 
         if self.build_number is not None and not self.build_number[:1].isdigit():
             raise ValueError("Build tag (build-number) must start with a digit.")
+
+    def _validate_py_limited_api(self) -> None:
+        if not self.py_limited_api:
+            return
+
+        if not re.match(PY_LIMITED_API_PATTERN, self.py_limited_api):
+            raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
+
+        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+            raise ValueError(
+                f"`py_limited_api={self.py_limited_api!r}` not supported. "
+                "`Py_LIMITED_API` is currently incompatible with "
+                f"`Py_GIL_DISABLED` ({sys.abiflags=!r}). "
+                "See https://github.com/python/cpython/issues/111506."
+            )
 
     @property
     def wheel_dist_name(self) -> str:
