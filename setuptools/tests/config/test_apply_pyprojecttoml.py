@@ -297,6 +297,33 @@ class TestLicenseFiles:
         assert set(dist.metadata.license_files) == {*license_files, "LICENSE.txt"}
 
 
+class TestPyModules:
+    # https://github.com/pypa/setuptools/issues/4316
+
+    def dist(self, name):
+        toml_config = f"""
+        [project]
+        name = "test"
+        version = "42.0"
+        [tool.setuptools]
+        py-modules = [{name!r}]
+        """
+        pyproject = Path("pyproject.toml")
+        pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
+        return pyprojecttoml.apply_configuration(Distribution({}), pyproject)
+
+    @pytest.mark.parametrize("module", ["pip-run", "abc-d.λ-xyz-e"])
+    def test_valid_module_name(self, tmp_path, monkeypatch, module):
+        monkeypatch.chdir(tmp_path)
+        assert module in self.dist(module).py_modules
+
+    @pytest.mark.parametrize("module", ["pip run", "-pip-run", "pip-run-stubs"])
+    def test_invalid_module_name(self, tmp_path, monkeypatch, module):
+        monkeypatch.chdir(tmp_path)
+        with pytest.raises(ValueError, match="py-modules"):
+            self.dist(module).py_modules
+
+
 class TestDeprecatedFields:
     def test_namespace_packages(self, tmp_path):
         pyproject = tmp_path / "pyproject.toml"
