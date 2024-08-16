@@ -1,62 +1,23 @@
 """
-Finalize the repo for a release. Invokes towncrier and bumpversion.
+Finalize the repo for a release. Invokes towncrier.
 """
 
-__requires__ = ['bump2version', 'towncrier', 'jaraco.develop>=7.21']
+__requires__ = ['towncrier', 'jaraco.develop>=7.23']
 
-
-import pathlib
-import re
 import subprocess
-import sys
+from pathlib import Path
 
 from jaraco.develop import towncrier
-
-bump_version_command = [
-    sys.executable,
-    '-m',
-    'bumpversion',
-    towncrier.release_kind(),
-]
+from jaraco.develop.finalize import finalize
 
 
-def get_version():
-    cmd = bump_version_command + ['--dry-run', '--verbose']
-    out = subprocess.check_output(cmd, text=True, encoding='utf-8')
-    return re.search('^new_version=(.*)', out, re.MULTILINE).group(1)
+def main():
+    version = towncrier.semver(towncrier.get_version())
+    version = version.lstrip("v")  # Compatibility with setuptools-scm
+    Path("(meta)/latest.txt").unlink()  # Remove "unstable"/development version
+    Path("(meta)/stable.txt").write_text(version, encoding="utf-8")
+    subprocess.check_output(['git', 'add', "(meta)/stable.txt"])
+    finalize()
 
 
-def update_changelog():
-    towncrier.run('build', '--yes')
-    _repair_changelog()
-
-
-def _repair_changelog():
-    """
-    Workaround for #2666
-    """
-    changelog_fn = pathlib.Path('NEWS.rst')
-    changelog = changelog_fn.read_text(encoding='utf-8')
-    fixed = re.sub(r'^(v[0-9.]+)v[0-9.]+$', r'\1', changelog, flags=re.M)
-    changelog_fn.write_text(fixed, encoding='utf-8')
-    subprocess.check_output(['git', 'add', changelog_fn])
-
-
-def bump_version():
-    cmd = bump_version_command + ['--allow-dirty']
-    subprocess.check_call(cmd)
-
-
-def ensure_config():
-    """
-    Double-check that Git has an e-mail configured.
-    """
-    subprocess.check_output(['git', 'config', 'user.email'])
-
-
-if __name__ == '__main__':
-    print("Cutting release at", get_version())
-    ensure_config()
-    towncrier.check_changes()
-    update_changelog()
-    bump_version()
+__name__ == '__main__' and main()
