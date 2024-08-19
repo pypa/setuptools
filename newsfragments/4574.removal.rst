@@ -1,0 +1,4 @@
+``setuptools`` is replacing the usages of :pypi:`ordered_set` with simple
+instances of ``dict[Hashable, None]``. This is done to remove the extra
+dependency and it is possible because since Python 3.7, ``dict`` maintain
+insertion order.

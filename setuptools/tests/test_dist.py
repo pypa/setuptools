@@ -77,12 +77,12 @@ def test_provides_extras_deterministic_order():
     extras['b'] = ['bar']
     attrs = dict(extras_require=extras)
     dist = Distribution(attrs)
-    assert dist.metadata.provides_extras == ['a', 'b']
+    assert list(dist.metadata.provides_extras) == ['a', 'b']
     attrs['extras_require'] = collections.OrderedDict(
         reversed(list(attrs['extras_require'].items()))
     )
     dist = Distribution(attrs)
-    assert dist.metadata.provides_extras == ['b', 'a']
+    assert list(dist.metadata.provides_extras) == ['b', 'a']
 
 
 CHECK_PACKAGE_DATA_TESTS = (
