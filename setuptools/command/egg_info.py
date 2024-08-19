@@ -18,7 +18,6 @@ from setuptools import Command
 from setuptools.command import bdist_egg
 from setuptools.command.sdist import sdist, walk_revctrl
 from setuptools.command.setopt import edit_config
-from setuptools.dist import Distribution
 from setuptools.glob import glob
 
 from .. import _entry_points, _normalization
@@ -522,7 +521,6 @@ class FileList(_FileList):
 
 
 class manifest_maker(sdist):
-    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
     template = "MANIFEST.in"
 
     def initialize_options(self):

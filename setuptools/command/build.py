@@ -2,12 +2,16 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from ..dist import Distribution
+
 from distutils.command.build import build as _build
 
 _ORIGINAL_SUBCOMMANDS = {"build_py", "build_clib", "build_ext", "build_scripts"}
 
 
 class build(_build):
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
+
     # copy to avoid sharing the object with parent class
     sub_commands = _build.sub_commands[:]
 
