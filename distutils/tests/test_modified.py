@@ -119,7 +119,6 @@ def test_newer_pairwise_group(groups_target):
     assert newer == ([groups_target.newer], [groups_target.target])
 
 
-@pytest.mark.xfail(reason="pypa/distutils#284")
 def test_newer_group_no_sources_no_target(tmp_path):
     """
     Consider no sources and no target "newer".
