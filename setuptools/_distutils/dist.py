@@ -658,7 +658,7 @@ Common commands: (see '--help-commands' for more)
             )
             print()
 
-        for command in self.commands:
+        for command in commands:
             if isinstance(command, type) and issubclass(command, Command):
                 klass = command
             else:

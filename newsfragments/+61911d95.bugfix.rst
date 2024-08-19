@@ -1,0 +1,1 @@
+Synced with pypa/distutils@30b7331 including fix for modified check on empty sources (pypa/distutils#284).
