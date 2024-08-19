@@ -1,1 +1,0 @@
-Prevent an error in ``bdist_wheel`` if ``compression`` is set to a `str` (even if valid) after finalizing options but before running the command. -- by :user:`Avasam`

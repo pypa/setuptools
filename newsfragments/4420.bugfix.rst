@@ -1,2 +1,0 @@
-Raises an exception when ``py_limited_api`` is used in a build with
-``Py_GIL_DISABLED``. This is currently not supported (python/cpython#111506).
