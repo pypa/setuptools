@@ -117,3 +117,10 @@ def test_newer_pairwise_group(groups_target):
     newer = newer_pairwise_group([groups_target.newer], [groups_target.target])
     assert older == ([], [])
     assert newer == ([groups_target.newer], [groups_target.target])
+
+
+def test_newer_group_no_sources_no_target(tmp_path):
+    """
+    Consider no sources and no target "newer".
+    """
+    assert newer_group([], str(tmp_path / 'does-not-exist'))
