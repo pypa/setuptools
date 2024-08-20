@@ -1,3 +1,12 @@
+v73.0.1
+=======
+
+Bugfixes
+--------
+
+- Remove `abc.ABCMeta` metaclass from abstract classes. `pypa/setuptools#4503 <https://github.com/pypa/setuptools/pull/4503>`_ had an unintended consequence of causing potential ``TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases`` -- by :user:`Avasam` (#4579)
+
+
 v73.0.0
 =======
 
