@@ -280,7 +280,7 @@ class ConfigHandler(Generic[Target]):
             '%s must provide .parsers property' % self.__class__.__name__
         )
 
-    def __setitem__(self, option_name, value):
+    def __setitem__(self, option_name, value) -> None:
         target_obj = self.target_obj
 
         # Translate alias into real name.
