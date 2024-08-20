@@ -11,7 +11,6 @@ import re
 import sys
 import tempfile
 import textwrap
-from abc import ABC
 
 import pkg_resources
 from pkg_resources import working_set
@@ -263,7 +262,7 @@ def run_setup(setup_script, args):
             # Normal exit, just return
 
 
-class AbstractSandbox(ABC):
+class AbstractSandbox:
     """Wrap 'os' module and 'open()' builtin for virtualizing setup scripts"""
 
     _active = False

@@ -6,7 +6,7 @@ import functools
 import os
 import re
 import sys
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import TYPE_CHECKING, TypeVar, overload
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
@@ -120,7 +120,7 @@ else:
     _Command = monkey.get_unpatched(distutils.core.Command)
 
 
-class Command(_Command, ABC):
+class Command(_Command):
     """
     Setuptools internal actions are organized using a *command design pattern*.
     This means that each action (or group of closely related actions) executed during
