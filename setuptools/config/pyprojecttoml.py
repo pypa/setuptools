@@ -15,6 +15,7 @@ import logging
 import os
 from contextlib import contextmanager
 from functools import partial
+from types import TracebackType
 from typing import TYPE_CHECKING, Any, Callable, Mapping
 
 from .._path import StrPath
@@ -430,7 +431,12 @@ class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
 
         return super().__enter__()
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         """When exiting the context, if values of ``packages``, ``py_modules`` and
         ``package_dir`` are missing in ``setuptools_cfg``, copy from ``dist``.
         """
