@@ -509,6 +509,6 @@ class SandboxViolation(DistutilsError):
         """
     ).lstrip()
 
-    def __str__(self):
+    def __str__(self) -> str:
         cmd, args, kwargs = self.args
         return self.tmpl.format(**locals())

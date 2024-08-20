@@ -175,7 +175,7 @@ class Record:
         self._id = id
         self._fields = kwargs
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '%s(**%r)' % (self._id, self._fields)
 
 

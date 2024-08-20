@@ -1014,7 +1014,7 @@ class Credential:
         yield self.username
         yield self.password
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '%(username)s:%(password)s' % vars(self)
 
 
