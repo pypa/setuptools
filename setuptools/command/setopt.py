@@ -1,6 +1,5 @@
 import configparser
 import os
-from abc import ABC
 
 from .. import Command
 from ..unicode_utils import _cfg_read_utf8_with_fallback
@@ -70,7 +69,7 @@ def edit_config(filename, settings, dry_run=False):
             opts.write(f)
 
 
-class option_base(Command, ABC):
+class option_base(Command):
     """Abstract base class for commands that mess with config files"""
 
     user_options = [
