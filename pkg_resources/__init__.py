@@ -1297,7 +1297,7 @@ class Environment:
             if self[key]:
                 yield key
 
-    def __iadd__(self, other: Distribution | Environment):
+    def __iadd__(self, other: Distribution | Environment) -> Self:
         """In-place addition of a distribution or environment"""
         if isinstance(other, Distribution):
             self.add(other)
@@ -1309,7 +1309,7 @@ class Environment:
             raise TypeError("Can't add %r to environment" % (other,))
         return self
 
-    def __add__(self, other: Distribution | Environment):
+    def __add__(self, other: Distribution | Environment) -> Self:
         """Add an environment or distribution to an environment"""
         new = self.__class__([], platform=None, python=None)
         for env in self, other:
@@ -2355,7 +2355,7 @@ class NoDists:
     []
     """
 
-    def __bool__(self):
+    def __bool__(self) -> Literal[False]:
         return False
 
     def __call__(self, fullpath):
@@ -2954,28 +2954,28 @@ class Distribution:
             self.platform or '',
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.hashcmp)
 
-    def __lt__(self, other: Distribution):
+    def __lt__(self, other: Distribution) -> bool:
         return self.hashcmp < other.hashcmp
 
-    def __le__(self, other: Distribution):
+    def __le__(self, other: Distribution) -> bool:
         return self.hashcmp <= other.hashcmp
 
-    def __gt__(self, other: Distribution):
+    def __gt__(self, other: Distribution) -> bool:
         return self.hashcmp > other.hashcmp
 
-    def __ge__(self, other: Distribution):
+    def __ge__(self, other: Distribution) -> bool:
         return self.hashcmp >= other.hashcmp
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             # It's not a Distribution, so they are not equal
             return False
         return self.hashcmp == other.hashcmp
 
-    def __ne__(self, other: object):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
     # These properties have to be lazy so that we don't have to load any
@@ -3472,10 +3472,10 @@ class Requirement(packaging.requirements.Requirement):
         )
         self.__hash = hash(self.hashCmp)
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, Requirement) and self.hashCmp == other.hashCmp
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
     def __contains__(
@@ -3497,7 +3497,7 @@ class Requirement(packaging.requirements.Requirement):
             prereleases=True,
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.__hash
 
     def __repr__(self):
