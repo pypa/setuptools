@@ -387,9 +387,10 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
         # Build in a temporary directory, then copy to the target.
         os.makedirs(result_directory, exist_ok=True)
-        temp_opts = {"prefix": ".tmp-", "dir": result_directory}
 
-        with tempfile.TemporaryDirectory(**temp_opts) as tmp_dist_dir:
+        with tempfile.TemporaryDirectory(
+            prefix=".tmp-", dir=result_directory
+        ) as tmp_dist_dir:
             sys.argv = [
                 *sys.argv[:1],
                 *self._global_args(config_settings),
