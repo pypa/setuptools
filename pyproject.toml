@@ -57,7 +57,10 @@ enabler = [
 ]
 
 type = [
+	# upstream
 	"pytest-mypy",
+
+	# local
 ]
 
 
