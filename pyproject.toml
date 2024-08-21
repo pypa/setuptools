@@ -39,7 +39,7 @@ test = [
 
 	# local
 	"virtualenv>=13.0.0",
-	"wheel>=0.44.0",  # Consistent requirement normalisation in METADATA (see #4547)
+	"wheel>=0.44.0", # Consistent requirement normalisation in METADATA (see #4547)
 	"pip>=19.1", # For proper file:// URLs support.
 	"packaging>=23.2",
 	"jaraco.envs>=2.2",
@@ -52,11 +52,12 @@ test = [
 	"pytest-timeout",
 	'pytest-perf; sys_platform != "cygwin"', # workaround for jaraco/inflect#195, pydantic/pydantic-core#773 (see #3986)
 	# for tools/finalize.py
-	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
+	'jaraco.develop >= 7.21; sys_platform != "cygwin"',
 	"pytest-home >= 0.5",
-	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
+	# pin type-checkers so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
-	# For help with static-typing issues, or mypy update, ping @Avasam 
+	# For help with static-typing issues, or mypy/pyright update, ping @Avasam
+	"pyright == 1.1.377",
 	"mypy==1.11.*",
 	# No Python 3.11 dependencies require tomli, but needed for type-checking since we import it directly
 	"tomli",
