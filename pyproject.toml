@@ -27,11 +27,6 @@ Source = "https://github.com/pypa/distutils"
 test = [
 	# upstream
 	"pytest >= 6, != 8.1.*",
-	"pytest-checkdocs >= 2.4",
-	"pytest-cov",
-	"pytest-mypy",
-	"pytest-enabler >= 2.2",
-	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
 
 	# local
 	"pytest >= 7.4.3", # 186
@@ -46,6 +41,7 @@ test = [
 	# workaround for pytest-dev/pytest#12490
 	"pytest < 8.1; python_version < '3.12'",
 ]
+
 doc = [
 	# upstream
 	"sphinx >= 3.5",
@@ -56,6 +52,28 @@ doc = [
 
 	# local
 ]
+
+check = [
+	"pytest-checkdocs >= 2.4",
+	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
+]
+
+cover = [
+	"pytest-cov",
+]
+
+enabler = [
+	"pytest-enabler >= 2.2",
+]
+
+type = [
+	# upstream
+	"pytest-mypy",
+
+	# local
+]
+
+
 
 [tool.setuptools_scm]
 
