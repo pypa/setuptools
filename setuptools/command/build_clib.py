@@ -5,7 +5,9 @@ from distutils import log
 from distutils.errors import DistutilsSetupError
 
 try:
-    from distutils._modified import newer_pairwise_group
+    from distutils._modified import (  # pyright: ignore[reportMissingImports]
+        newer_pairwise_group,
+    )
 except ImportError:
     # fallback for SETUPTOOLS_USE_DISTUTILS=stdlib
     from .._distutils._modified import newer_pairwise_group

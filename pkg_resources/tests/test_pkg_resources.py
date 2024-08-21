@@ -70,7 +70,7 @@ class TestZipProvider:
             finalizer()
 
     def test_resource_listdir(self):
-        import mod
+        import mod  # pyright: ignore[reportMissingImports] # Temporary package for test
 
         zp = pkg_resources.ZipProvider(mod)
 
@@ -84,7 +84,7 @@ class TestZipProvider:
         assert zp.resource_listdir('nonexistent') == []
         assert zp.resource_listdir('nonexistent/') == []
 
-        import mod2
+        import mod2  # pyright: ignore[reportMissingImports] # Temporary package for test
 
         zp2 = pkg_resources.ZipProvider(mod2)
 
@@ -100,7 +100,7 @@ class TestZipProvider:
         same size and modification time, it should not be overwritten on a
         subsequent call to get_resource_filename.
         """
-        import mod
+        import mod  # pyright: ignore[reportMissingImports] # Temporary package for test
 
         manager = pkg_resources.ResourceManager()
         zp = pkg_resources.ZipProvider(mod)
