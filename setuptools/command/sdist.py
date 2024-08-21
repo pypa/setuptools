@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import os
 from itertools import chain
@@ -46,7 +48,7 @@ class sdist(orig.sdist):
     ]
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
-    negative_opt = {}
+    negative_opt: dict[str, str] = {}
 
     README_EXTENSIONS = ['', '.rst', '.txt', '.md']
     READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
