@@ -64,7 +64,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
-        id: python-install
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -86,3 +85,4 @@ jobs:
         uses: jakebailey/pyright-action@v2
         with:
           version: ${{ env.PYRIGHT_VERSION }}
+          extra-args: --threads
