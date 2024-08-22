@@ -75,7 +75,7 @@ jobs:
           echo 'To run this test locally with npm pre-installed, run:'
           echo '> npx -y pyright@${{ env.PYRIGHT_VERSION }} --threads'
           echo 'You can also instead install "Pyright for Python" which will install npm for you:'
-          if [$PYRIGHT_VERSION == 'latest'] then
+          if [$PYRIGHT_VERSION == 'latest']; then
             echo '> pip install -U'
           else
             echo '> pip install pyright==${{ env.PYRIGHT_VERSION }}'
