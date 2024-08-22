@@ -741,9 +741,7 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = set()
-        for cmd in std_commands:
-            is_std.add(cmd)
+        is_std = set(std_commands)
 
         extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
 
@@ -769,9 +767,7 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = set()
-        for cmd in std_commands:
-            is_std.add(cmd)
+        is_std = set(std_commands)
 
         extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
 
