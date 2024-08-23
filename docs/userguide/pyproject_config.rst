@@ -280,7 +280,7 @@ not installed yet. You may also need to manually add the project directory to
    directive for ``tool.setuptools.dynamic.version``.
 
 .. [#attr] ``attr`` is meant to be used when the module attribute is statically
-   specified (e.g. as a string, list or tuple). As a rule of thumb, the
+   specified (e.g. as a string). As a rule of thumb, the
    attribute should be able to be parsed with :func:`ast.literal_eval`, and
    should not be modified or re-assigned.
 
