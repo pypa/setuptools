@@ -21,10 +21,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # pin pyright so a new version doesn't suddenly cause the CI to fail,
+  # pin pyright version so a new version doesn't suddenly cause the CI to fail,
   # until types-setuptools is removed from typeshed.
   # For help with static-typing issues, or pyright update, ping @Avasam
-  PYRIGHT_VERSION: "latest"
+  PYRIGHT_VERSION: "1.1.377"
 
   # Environment variable to support color support (jaraco/skeleton#66)
   FORCE_COLOR: 1
