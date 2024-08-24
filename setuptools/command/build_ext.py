@@ -155,21 +155,25 @@ class build_ext(_build_ext):
                 output_cache = _compiled_file_name(regular_stub, optimization=opt)
                 yield (output_cache, inplace_cache)
 
-    def get_ext_filename(self, fullname):
+    def get_ext_filename(self, fullname: str) -> str:
         so_ext = os.getenv('SETUPTOOLS_EXT_SUFFIX')
         if so_ext:
             filename = os.path.join(*fullname.split('.')) + so_ext
         else:
             filename = _build_ext.get_ext_filename(self, fullname)
-            so_ext = get_config_var('EXT_SUFFIX')
+            ext_suffix = get_config_var('EXT_SUFFIX')
+            if not isinstance(ext_suffix, str):
+                raise OSError(
+                    "Configuration variable EXT_SUFFIX not found for this platform "
+                    + "and environment variable SETUPTOOLS_EXT_SUFFIX is missing"
+                )
+            so_ext = ext_suffix
 
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
-            use_abi3 = ext.py_limited_api and get_abi3_suffix()
-            if use_abi3:
-                filename = filename[: -len(so_ext)]
-                so_ext = get_abi3_suffix()
-                filename = filename + so_ext
+            abi3_suffix = get_abi3_suffix()
+            if ext.py_limited_api and abi3_suffix:  # Use abi3
+                filename = filename[: -len(so_ext)] + abi3_suffix
             if isinstance(ext, Library):
                 fn, ext = os.path.splitext(filename)
                 return self.shlib_compiler.library_filename(fn, libtype)
