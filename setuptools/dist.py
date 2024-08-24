@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, MutableMapping
 
 from more_itertools import partition, unique_everseen
-from ordered_set import OrderedSet
 from packaging.markers import InvalidMarker, Marker
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
@@ -196,8 +195,10 @@ def check_packages(dist, attr, value):
 
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
-    _Distribution = distutils.core.Distribution
+    _Distribution: TypeAlias = distutils.core.Distribution
 else:
     _Distribution = get_unpatched(distutils.core.Distribution)
 
@@ -251,7 +252,7 @@ class Distribution(_Distribution):
     _DISTUTILS_UNSUPPORTED_METADATA = {
         'long_description_content_type': lambda: None,
         'project_urls': dict,
-        'provides_extras': OrderedSet,
+        'provides_extras': dict,  # behaves like an ordered set
         'license_file': lambda: None,
         'license_files': lambda: None,
         'install_requires': list,
@@ -349,7 +350,7 @@ class Distribution(_Distribution):
                 # Setuptools allows a weird "<name>:<env markers> syntax for extras
                 extra = extra.split(':')[0]
                 if extra:
-                    self.metadata.provides_extras.add(extra)
+                    self.metadata.provides_extras.setdefault(extra)
 
     def _normalize_requires(self):
         """Make sure requirement-related attributes exist and are normalized"""

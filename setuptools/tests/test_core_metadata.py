@@ -188,7 +188,7 @@ def test_read_metadata(name, attrs):
         ('requires', dist_class.get_requires),
         ('classifiers', dist_class.get_classifiers),
         ('project_urls', lambda s: getattr(s, 'project_urls', {})),
-        ('provides_extras', lambda s: getattr(s, 'provides_extras', set())),
+        ('provides_extras', lambda s: getattr(s, 'provides_extras', {})),
     ]
 
     for attr, getter in tested_attrs:

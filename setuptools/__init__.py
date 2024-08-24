@@ -1,4 +1,9 @@
 """Extensions to the 'distutils' for large or complex distributions"""
+# mypy: disable_error_code=override
+# Command.reinitialize_command has an extra **kw param that distutils doesn't have
+# Can't disable on the exact line because distutils doesn't exists on Python 3.12
+# and mypy isn't aware of distutils_hack, causing distutils.core.Command to be Any,
+# and a [unused-ignore] to be raised on 3.12+
 
 from __future__ import annotations
 
@@ -6,7 +11,7 @@ import functools
 import os
 import re
 import sys
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import TYPE_CHECKING, TypeVar, overload
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
@@ -114,13 +119,15 @@ def setup(**attrs):
 setup.__doc__ = distutils.core.setup.__doc__
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
-    _Command = distutils.core.Command
+    _Command: TypeAlias = distutils.core.Command
 else:
     _Command = monkey.get_unpatched(distutils.core.Command)
 
 
-class Command(_Command, ABC):
+class Command(_Command):
     """
     Setuptools internal actions are organized using a *command design pattern*.
     This means that each action (or group of closely related actions) executed during
@@ -207,7 +214,7 @@ class Command(_Command, ABC):
                     "'%s' must be a list of strings (got %r)" % (option, val)
                 )
 
-    @overload  # type:ignore[override] # Extra **kw param
+    @overload
     def reinitialize_command(
         self, command: str, reinit_subcommands: bool = False, **kw
     ) -> _Command: ...

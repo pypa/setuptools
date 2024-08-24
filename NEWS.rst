@@ -1,3 +1,46 @@
+v73.0.1
+=======
+
+Bugfixes
+--------
+
+- Remove `abc.ABCMeta` metaclass from abstract classes. `pypa/setuptools#4503 <https://github.com/pypa/setuptools/pull/4503>`_ had an unintended consequence of causing potential ``TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases`` -- by :user:`Avasam` (#4579)
+
+
+v73.0.0
+=======
+
+Features
+--------
+
+- Mark abstract base classes and methods with `abc.ABC` and `abc.abstractmethod` -- by :user:`Avasam` (#4503)
+- Changed the order of type checks in ``setuptools.command.easy_install.CommandSpec.from_param`` to support any `collections.abc.Iterable` of `str` param -- by :user:`Avasam` (#4505)
+
+
+Bugfixes
+--------
+
+- Prevent an error in ``bdist_wheel`` if ``compression`` is set to a `str` (even if valid) after finalizing options but before running the command. -- by :user:`Avasam` (#4383)
+- Raises an exception when ``py_limited_api`` is used in a build with
+  ``Py_GIL_DISABLED``. This is currently not supported (python/cpython#111506). (#4420)
+- Synced with pypa/distutils@30b7331 including fix for modified check on empty sources (pypa/distutils#284).
+
+
+Deprecations and Removals
+-------------------------
+
+- ``setuptools`` is replacing the usages of :pypi:`ordered_set` with simple
+  instances of ``dict[Hashable, None]``. This is done to remove the extra
+  dependency and it is possible because since Python 3.7, ``dict`` maintain
+  insertion order. (#4574)
+
+
+Misc
+----
+
+- #4534, #4546, #4554, #4559, #4565
+
+
 v72.2.0
 =======
 
