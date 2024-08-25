@@ -74,8 +74,9 @@ type = [
 ]
 
 
-
 [tool.setuptools_scm]
 
+
 [tool.pytest-enabler.mypy]
-# disabled
+# Disabled due to jaraco/skeleton#143
+# Disabled as distutils isn't ready yet
