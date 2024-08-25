@@ -33,7 +33,7 @@ from .errors import (
     LibError,
     LinkError,
 )
-from .util import get_platform
+from .util import get_platform, get_host_platform
 
 
 def _find_vc2015():
@@ -249,6 +249,10 @@ class MSVCCompiler(CCompiler):
 
         # Get the vcvarsall.bat spec for the requested platform.
         plat_spec = PLAT_TO_VCVARS[plat_name]
+
+        # Use the native MSVC host if the host platform would need expensive emulation for x86.
+        if plat_name == get_host_platform() and plat_spec == 'x86_arm64':
+            plat_spec = plat_spec[4:]
 
         vc_env = _get_vc_env(plat_spec)
         if not vc_env:
