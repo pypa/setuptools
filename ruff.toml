@@ -11,13 +11,15 @@ extend-select = [
 	"PERF",
 	"RUF010",
 	"RUF100",
+	"TRY",
 	"UP",
 ]
 ignore = [
 	# local
 	"PERF203",
+	"TRY003",
 
-	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+  # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
 	"E111",
 	"E114",
