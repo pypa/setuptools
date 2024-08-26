@@ -1,0 +1,1 @@
+Added detection of ARM64 variant of MSVC -- by :user:`saschanaz`
