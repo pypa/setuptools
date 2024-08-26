@@ -5,15 +5,21 @@ extend-select = [
 	"W",
 
 	# local
+	"B",
+	"I",
 	"ISC",
+	"PERF",
 	"RUF010",
 	"RUF100",
 	"TRY",
 	"UP",
 ]
 ignore = [
+	# local
+	"PERF203",
 	"TRY003",
-	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+
+  # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
 	"E111",
 	"E114",
@@ -28,6 +34,10 @@ ignore = [
 	"COM819",
 	"ISC001",
 	"ISC002",
+
+	# local
+	"B028",
+	"B904",
 ]
 
 [format]

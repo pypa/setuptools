@@ -172,8 +172,7 @@ class CygwinCCompiler(UnixCCompiler):
 
             # Generate .def file
             contents = [f"LIBRARY {os.path.basename(output_filename)}", "EXPORTS"]
-            for sym in export_symbols:
-                contents.append(sym)
+            contents.extend(export_symbols)
             self.execute(write_file, (def_file, contents), f"writing {def_file}")
 
             # next add options for def-file
