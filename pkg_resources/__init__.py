@@ -100,6 +100,7 @@ from platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrOrBytesPath, StrPath
+    from _typeshed.importlib import LoaderProtocol
     from typing_extensions import Self, TypeAlias
 
 warnings.warn(
@@ -129,11 +130,6 @@ _NSHandlerType: TypeAlias = Callable[[_T, str, str, types.ModuleType], Union[str
 _AdapterT = TypeVar(
     "_AdapterT", _DistFinderType[Any], _ProviderFactoryType, _NSHandlerType[Any]
 )
-
-
-# Use _typeshed.importlib.LoaderProtocol once available https://github.com/python/typeshed/pull/11890
-class _LoaderProtocol(Protocol):
-    def load_module(self, fullname: str, /) -> types.ModuleType: ...
 
 
 class _ZipLoaderModule(Protocol):
@@ -1644,7 +1640,7 @@ class NullProvider:
 
     egg_name: str | None = None
     egg_info: str | None = None
-    loader: _LoaderProtocol | None = None
+    loader: LoaderProtocol | None = None
 
     def __init__(self, module: _ModuleLike):
         self.loader = getattr(module, '__loader__', None)
