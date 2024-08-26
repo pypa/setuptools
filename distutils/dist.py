@@ -349,7 +349,9 @@ Common commands: (see '--help-commands' for more)
             try:
                 yield pathlib.Path('~').expanduser() / filename
             except RuntimeError:
-                warnings.warn("Failed to locate user home directory. Skipping user config.")
+                warnings.warn(
+                    "Failed to locate user home directory. Skipping user config."
+                )
 
         # All platforms support local setup.cfg
         yield pathlib.Path('setup.cfg')
