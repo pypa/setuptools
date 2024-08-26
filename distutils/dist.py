@@ -346,7 +346,8 @@ Common commands: (see '--help-commands' for more)
         prefix = '.' * (os.name == 'posix')
         filename = prefix + 'pydistutils.cfg'
         if self.want_user_cfg:
-            yield pathlib.Path('~').expanduser() / filename
+            with contextlib.suppress(RuntimeError):
+                yield pathlib.Path('~').expanduser() / filename
 
         # All platforms support local setup.cfg
         yield pathlib.Path('setup.cfg')
