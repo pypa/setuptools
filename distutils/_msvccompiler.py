@@ -178,30 +178,24 @@ def _find_exe(exe, paths=None):
     return exe
 
 
-def _get_plat_to_vcvars():
-    # A map keyed by get_platform() return values to values accepted by
-    # 'vcvarsall.bat'.
-    if get_platform() == get_host_platform() == "win-arm64":
-        # Use the native MSVC host if the host platform would need expensive
-        # emulation for x86.
-        return {
-            'win32': 'arm64_x86',
-            'win-amd64': 'arm64_amd64',
-            'win-arm32': 'arm64_arm',
-            'win-arm64': 'arm64',
-        }
-    else:
-        # Always cross-compile from x86 to work with the lighter-weight MSVC
-        # installs that do not include native 64-bit tools.
-        return {
-            'win32': 'x86',
-            'win-amd64': 'x86_amd64',
-            'win-arm32': 'x86_arm',
-            'win-arm64': 'x86_arm64',
-        }
-
-
-PLAT_TO_VCVARS = _get_plat_to_vcvars()
+if get_host_platform() == "win-arm64":
+    # Use the native MSVC host if the host platform would need expensive
+    # emulation for x86.
+    PLAT_TO_VCVARS = {
+        'win32': 'arm64_x86',
+        'win-amd64': 'arm64_amd64',
+        'win-arm32': 'arm64_arm',
+        'win-arm64': 'arm64',
+    }
+else:
+    # Always cross-compile from x86 to work with the lighter-weight MSVC
+    # installs that do not include native 64-bit tools.
+    PLAT_TO_VCVARS = {
+        'win32': 'x86',
+        'win-amd64': 'x86_amd64',
+        'win-arm32': 'x86_arm',
+        'win-arm64': 'x86_arm64',
+    }
 
 
 class MSVCCompiler(CCompiler):
