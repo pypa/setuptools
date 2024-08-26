@@ -178,28 +178,41 @@ def _find_exe(exe, paths=None):
     return exe
 
 
-PLAT_TO_VCVARS = (
-    {
-        # Use the native MSVC host if the host platform would need expensive
-        # emulation for x86.
-        'win32': 'arm64_x86',
-        'win-amd64': 'arm64_amd64',
-        'win-arm32': 'arm64_arm',
-        'win-arm64': 'arm64',
-    }
-    if get_host_platform() == "win-arm64"
-    else {
-        # Always cross-compile from x86 to work with the lighter-weight MSVC
-        # installs that do not include native 64-bit tools.
-        'win32': 'x86',
-        'win-amd64': 'x86_amd64',
-        'win-arm32': 'x86_arm',
-        'win-arm64': 'x86_arm64',
-    }
-)
-"""
-Maps get_platform() results to values expected by vcvarsall.bat.
-"""
+_vcvars_names = {
+    'win32': 'x86',
+    'win-amd64': 'amd64',
+    'win-arm32': 'arm',
+    'win-arm64': 'arm64',
+}
+
+
+def _get_vcvars_spec(host_platform, platform):
+    """
+    Given a host platform and platform, determine the spec for vcvarsall.
+
+    Uses the native MSVC host if the host platform would need expensive
+    emulation for x86.
+
+    >>> _get_vcvars_spec('win-arm64', 'win32')
+    'arm64_x86'
+    >>> _get_vcvars_spec('win-arm64', 'win-amd64')
+    'arm64_amd64'
+
+    Always cross-compile from x86 to work with the lighter-weight MSVC
+    installs that do not include native 64-bit tools.
+
+    >>> _get_vcvars_spec('win32', 'win32')
+    'x86'
+    >>> _get_vcvars_spec('win-arm32', 'win-arm32')
+    'x86_arm'
+    >>> _get_vcvars_spec('win-amd64', 'win-arm64')
+    'x86_arm64'
+    """
+    if host_platform != 'win-arm64':
+        host_platform = 'win32'
+    vc_hp = _vcvars_names[host_platform]
+    vc_plat = _vcvars_names[platform]
+    return vc_hp if vc_hp == vc_plat else f'{vc_hp}_{vc_plat}'
 
 
 class MSVCCompiler(CCompiler):
@@ -255,13 +268,12 @@ class MSVCCompiler(CCompiler):
         if plat_name is None:
             plat_name = get_platform()
         # sanity check for platforms to prevent obscure errors later.
-        if plat_name not in PLAT_TO_VCVARS:
+        if plat_name not in _vcvars_names:
             raise DistutilsPlatformError(
-                f"--plat-name must be one of {tuple(PLAT_TO_VCVARS)}"
+                f"--plat-name must be one of {tuple(_vcvars_names)}"
             )
 
-        # Get the vcvarsall.bat spec for the requested platform.
-        plat_spec = PLAT_TO_VCVARS[plat_name]
+        plat_spec = _get_vcvars_spec(get_host_platform(), get_platform())
 
         vc_env = _get_vc_env(plat_spec)
         if not vc_env:
