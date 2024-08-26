@@ -638,8 +638,7 @@ class build_ext(Command):
 
         # Do not override commandline arguments
         if not self.swig_opts:
-            for o in extension.swig_opts:
-                swig_cmd.append(o)
+            swig_cmd.extend(extension.swig_opts)
 
         for source in swig_sources:
             target = swig_targets[source]
