@@ -33,7 +33,7 @@ from .errors import (
     LibError,
     LinkError,
 )
-from .util import get_platform, get_host_platform
+from .util import get_host_platform, get_platform
 
 
 def _find_vc2015():
