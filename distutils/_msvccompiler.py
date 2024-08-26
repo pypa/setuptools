@@ -178,6 +178,8 @@ def _find_exe(exe, paths=None):
     return exe
 
 
+# A map keyed by get_platform() return values to values accepted by
+# 'vcvarsall.bat'.
 if get_host_platform() == "win-arm64":
     # Use the native MSVC host if the host platform would need expensive
     # emulation for x86.
