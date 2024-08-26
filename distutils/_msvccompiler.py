@@ -178,24 +178,28 @@ def _find_exe(exe, paths=None):
     return exe
 
 
-if get_host_platform() == "win-arm64":
-    # Use the native MSVC host if the host platform would need expensive
-    # emulation for x86.
-    PLAT_TO_VCVARS = {
+PLAT_TO_VCVARS = (
+    {
+        # Use the native MSVC host if the host platform would need expensive
+        # emulation for x86.
         'win32': 'arm64_x86',
         'win-amd64': 'arm64_amd64',
         'win-arm32': 'arm64_arm',
         'win-arm64': 'arm64',
     }
-else:
-    # Always cross-compile from x86 to work with the lighter-weight MSVC
-    # installs that do not include native 64-bit tools.
-    PLAT_TO_VCVARS = {
+    if get_host_platform() == "win-arm64"
+    else {
+        # Always cross-compile from x86 to work with the lighter-weight MSVC
+        # installs that do not include native 64-bit tools.
         'win32': 'x86',
         'win-amd64': 'x86_amd64',
         'win-arm32': 'x86_arm',
         'win-arm64': 'x86_arm64',
     }
+)
+"""
+Maps get_platform() results to values expected by vcvarsall.bat.
+"""
 
 
 class MSVCCompiler(CCompiler):
