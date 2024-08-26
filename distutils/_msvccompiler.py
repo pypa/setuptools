@@ -198,8 +198,8 @@ def _get_vcvars_spec(host_platform, platform):
     >>> _get_vcvars_spec('win-arm64', 'win-amd64')
     'arm64_amd64'
 
-    Always cross-compile from x86 to work with the lighter-weight MSVC
-    installs that do not include native 64-bit tools.
+    Otherwise, always cross-compile from x86 to work with the
+    lighter-weight MSVC installs that do not include native 64-bit tools.
 
     >>> _get_vcvars_spec('win32', 'win32')
     'x86'
