@@ -355,11 +355,9 @@ Common commands: (see '--help-commands' for more)
         filename = prefix + 'pydistutils.cfg'
         if self.want_user_cfg:
             try:
-                user_home = pathlib.Path('~').expanduser()
+                yield pathlib.Path('~').expanduser() / filename
             except RuntimeError:
-                self.announce("Failed to locate user home directory. Skipping user config.", logging.WARNING)
-            else:
-                yield user_home / filename
+                warnings.warn("Failed to locate user home directory. Skipping user config.")
 
         # All platforms support local setup.cfg
         yield pathlib.Path('setup.cfg')
