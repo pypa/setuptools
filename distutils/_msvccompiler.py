@@ -179,14 +179,25 @@ def _find_exe(exe, paths=None):
 
 
 # A map keyed by get_platform() return values to values accepted by
-# 'vcvarsall.bat'. Always cross-compile from x86 to work with the
-# lighter-weight MSVC installs that do not include native 64-bit tools.
-PLAT_TO_VCVARS = {
-    'win32': 'x86',
-    'win-amd64': 'x86_amd64',
-    'win-arm32': 'x86_arm',
-    'win-arm64': 'x86_arm64',
-}
+# 'vcvarsall.bat'.
+if get_platform() == get_host_platform() and get_host_platform() == "win-arm64":
+    # Use the native MSVC host if the host platform would need expensive
+    # emulation for x86.
+    PLAT_TO_VCVARS = {
+        'win32': 'arm64_x86',
+        'win-amd64': 'arm64_amd64',
+        'win-arm32': 'arm64_arm',
+        'win-arm64': 'arm64',
+    }
+else:
+    # Always cross-compile from x86 to work with the lighter-weight MSVC
+    # installs that do not include native 64-bit tools.
+    PLAT_TO_VCVARS = {
+        'win32': 'x86',
+        'win-amd64': 'x86_amd64',
+        'win-arm32': 'x86_arm',
+        'win-arm64': 'x86_arm64',
+    }
 
 
 class MSVCCompiler(CCompiler):
@@ -249,10 +260,6 @@ class MSVCCompiler(CCompiler):
 
         # Get the vcvarsall.bat spec for the requested platform.
         plat_spec = PLAT_TO_VCVARS[plat_name]
-
-        # Use the native MSVC host if the host platform would need expensive emulation for x86.
-        if plat_name == get_host_platform() and plat_spec == 'x86_arm64':
-            plat_spec = plat_spec[4:]
 
         vc_env = _get_vc_env(plat_spec)
         if not vc_env:
