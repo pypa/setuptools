@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 from packaging.requirements import InvalidRequirement
 
-from setuptools.config.setupcfg import ConfigHandler, read_configuration
+from setuptools.config.setupcfg import ConfigHandler, Target, read_configuration
 from setuptools.dist import Distribution, _Distribution
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
@@ -16,7 +16,7 @@ from ..textwrap import DALS
 from distutils.errors import DistutilsFileError, DistutilsOptionError
 
 
-class ErrConfigHandler(ConfigHandler):
+class ErrConfigHandler(ConfigHandler[Target]):
     """Erroneous handler. Fails to implement required methods."""
 
     section_prefix = "**err**"
