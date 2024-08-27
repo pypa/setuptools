@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import platform
 import stat
@@ -8,6 +10,7 @@ from importlib import import_module
 from importlib.machinery import EXTENSION_SUFFIXES
 from pathlib import Path
 from textwrap import dedent
+from typing import Any
 from unittest.mock import Mock
 from uuid import uuid4
 
@@ -840,7 +843,8 @@ class TestOverallBehaviour:
         version = "3.14159"
         """
 
-    FLAT_LAYOUT = {
+    # Any: Would need a TypedDict. Keep it simple for tests
+    FLAT_LAYOUT: dict[str, Any] = {
         "pyproject.toml": dedent(PYPROJECT),
         "MANIFEST.in": EXAMPLE["MANIFEST.in"],
         "otherfile.py": "",
@@ -878,9 +882,9 @@ class TestOverallBehaviour:
             "otherfile.py": "",
             "mypkg": {
                 "__init__.py": "",
-                "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore
+                "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],
             },
-            "other": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore
+            "other": FLAT_LAYOUT["mypkg"]["subpackage"],
         },
         "namespace": {
             "pyproject.toml": dedent(PYPROJECT),
@@ -888,8 +892,8 @@ class TestOverallBehaviour:
             "otherfile.py": "",
             "src": {
                 "mypkg": {
-                    "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore
-                    "subpackage": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore
+                    "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],
+                    "subpackage": FLAT_LAYOUT["mypkg"]["subpackage"],
                 },
             },
         },
