@@ -1,0 +1,1 @@
+Fully typed all collection attributes in ``pkg_resources`` -- by :user:`Avasam`
