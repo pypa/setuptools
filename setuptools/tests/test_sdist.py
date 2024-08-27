@@ -458,7 +458,7 @@ class TestSdistTest:
 
         cmd = self.setup_with_extension()
         self.assert_package_data_in_manifest(cmd)
-        manifest = cmd.filelist.files
+        manifest = {f.replace(os.sep, '/') for f in cmd.filelist.files}
         for path in excluded:
             assert os.path.exists(path)
             assert path not in manifest, (path, manifest)
