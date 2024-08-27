@@ -9,6 +9,7 @@ import tarfile
 import tempfile
 import unicodedata
 from inspect import cleandoc
+from pathlib import Path
 from unittest import mock
 
 import jaraco.path
@@ -424,6 +425,39 @@ class TestSdistTest:
         assert 'readme.rst' not in manifest, manifest
         assert 'setup.py' not in manifest, manifest
         assert 'setup.cfg' not in manifest, manifest
+
+    def test_exclude_dev_only_cache_folders(self, source_dir):
+        included = {
+            # Emulate problem in https://github.com/pypa/setuptools/issues/4601
+            "MANIFEST.in": "global-include LICEN[CS]E* COPYING* NOTICE* AUTHORS*",
+            # For the sake of being conservative and limiting unforeseen side-effects
+            # we just exclude dev-only cache folders at the root of the repository
+            "test/.venv/lib/python3.9/site-packages/bar-2.dist-info/AUTHORS.rst": "",
+            "src/.nox/py/lib/python3.12/site-packages/bar-2.dist-info/COPYING.txt": "",
+            "doc/.tox/default/lib/python3.11/site-packages/foo-4.dist-info/LICENSE": "",
+        }
+
+        excluded = {
+            # .tox/.nox/.venv are well-know folders present at the root of Python repos
+            # and therefore should be excluded
+            ".tox/release/lib/python3.11/site-packages/foo-4.dist-info/LICENSE": "",
+            ".nox/py/lib/python3.12/site-packages/bar-2.dist-info/COPYING.txt": "",
+            ".venv/lib/python3.9/site-packages/bar-2.dist-info/AUTHORS.rst": "",
+        }
+
+        for file, content in {**excluded, **included}.items():
+            Path(source_dir, file).parent.mkdir(parents=True, exist_ok=True)
+            Path(source_dir, file).write_text(content, encoding="utf-8")
+
+        cmd = self.setup_with_extension()
+        self.assert_package_data_in_manifest(cmd)
+        manifest = cmd.filelist.files
+        for path in excluded:
+            assert os.path.exists(path)
+            assert path not in manifest
+        for path in included:
+            assert os.path.exists(path)
+            assert path in manifest
 
     @fail_on_ascii
     def test_manifest_is_written_with_utf8_encoding(self):
@@ -915,4 +949,4 @@ def test_sanity_check_setuptools_own_sdist(setuptools_sdist):
 
     # setuptools sdist should not include the .tox folder
     tox_files = [name for name in files if ".tox" in name]
-    assert len(tox_files) == 0
+    assert len(tox_files) == 0, f"not empty {tox_files}"
