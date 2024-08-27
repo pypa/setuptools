@@ -18,7 +18,7 @@ from pkg_resources import working_set
 from distutils.errors import DistutilsError
 
 if sys.platform.startswith('java'):
-    import org.python.modules.posix.PosixModule as _os
+    import org.python.modules.posix.PosixModule as _os  # pyright: ignore[reportMissingImports]
 else:
     _os = sys.modules[os.name]
 _open = open

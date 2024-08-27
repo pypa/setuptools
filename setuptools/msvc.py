@@ -26,6 +26,7 @@ from typing import TYPE_CHECKING
 from more_itertools import unique_everseen
 
 import distutils.errors
+from distutils.util import get_platform
 
 # https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':
@@ -89,8 +90,9 @@ def _msvc14_find_vc2017():
     if not root:
         return None, None
 
+    variant = 'arm64' if get_platform() == 'win-arm64' else 'x86.x64'
     suitable_components = (
-        "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+        f"Microsoft.VisualStudio.Component.VC.Tools.{variant}",
         "Microsoft.VisualStudio.Workload.WDExpress",
     )
 

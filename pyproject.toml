@@ -36,15 +36,10 @@ Changelog = "https://setuptools.pypa.io/en/stable/history.html"
 test = [
 	# upstream
 	"pytest >= 6, != 8.1.*",
-	"pytest-checkdocs >= 2.4",
-	"pytest-cov",
-	"pytest-mypy",
-	"pytest-enabler >= 2.2",
-	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
 
 	# local
 	"virtualenv>=13.0.0",
-	"wheel>=0.44.0",  # Consistent requirement normalisation in METADATA (see #4547)
+	"wheel>=0.44.0", # Consistent requirement normalisation in METADATA (see #4547)
 	"pip>=19.1", # For proper file:// URLs support.
 	"packaging>=23.2",
 	"jaraco.envs>=2.2",
@@ -59,28 +54,14 @@ test = [
 	# for tools/finalize.py
 	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
 	"pytest-home >= 0.5",
-	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
-	# until types-setuptools is removed from typeshed.
-	# For help with static-typing issues, or mypy update, ping @Avasam 
-	"mypy==1.11.*",
-	# No Python 3.11 dependencies require tomli, but needed for type-checking since we import it directly
-	"tomli",
-	# No Python 3.12 dependencies require importlib_metadata, but needed for type-checking since we import it directly
-	"importlib_metadata",
 	"pytest-subprocess",
-
-	# require newer pytest-ruff than upstream for pypa/setuptools#4368
-	# also exclude cygwin for pypa/setuptools#3921
-	'pytest-ruff >= 0.3.2; sys_platform != "cygwin"',
 
 	# workaround for pypa/setuptools#4333
 	"pyproject-hooks!=1.1",
 
 	"jaraco.test",
-
-	# workaround for businho/pytest-ruff#28
-	'pytest-ruff < 0.4; platform_system == "Windows"',
 ]
+
 doc = [
 	# upstream
 	"sphinx >= 3.5",
@@ -120,6 +101,42 @@ core = [
 	# pkg_resources
 	"platformdirs >= 2.6.2",
 ]
+
+check = [
+	# upstream
+	"pytest-checkdocs >= 2.4",
+	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
+
+	# local
+
+	# workaround for businho/pytest-ruff#28
+	"ruff >= 0.5.2; sys_platform != 'cygwin'",
+]
+
+cover = [
+	"pytest-cov",
+]
+
+enabler = [
+	"pytest-enabler >= 2.2",
+]
+
+type = [
+	# upstream
+	"pytest-mypy",
+
+	# local
+
+	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
+	# until types-setuptools is removed from typeshed.
+	# For help with static-typing issues, or mypy update, ping @Avasam 
+	"mypy==1.11.*",
+	# Typing fixes in version newer than we require at runtime
+	"importlib_metadata>=7.0.2; python_version < '3.10'",
+	# Imported unconditionally in tools/finalize.py
+	'jaraco.develop >= 7.21; sys_platform != "cygwin"',
+]
+
 
 [project.entry-points."distutils.commands"]
 alias = "setuptools.command.alias:alias"
@@ -192,4 +209,9 @@ namespaces = true
 [tool.distutils.sdist]
 formats = "zip"
 
+
 [tool.setuptools_scm]
+
+
+[tool.pytest-enabler.mypy]
+# Disabled due to jaraco/skeleton#143

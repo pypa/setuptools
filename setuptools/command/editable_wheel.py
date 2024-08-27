@@ -39,6 +39,8 @@ from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
+
     from .._vendor.wheel.wheelfile import WheelFile
 
 _P = TypeVar("_P", bound=StrPath)
@@ -379,7 +381,7 @@ class editable_wheel(Command):
 class EditableStrategy(Protocol):
     def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]): ...
 
-    def __enter__(self): ...
+    def __enter__(self) -> Self: ...
 
     def __exit__(self, _exc_type, _exc_value, _traceback): ...
 

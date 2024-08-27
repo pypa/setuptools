@@ -87,12 +87,15 @@ class SubCommand(Protocol):
 
     def initialize_options(self):
         """(Required by the original :class:`setuptools.Command` interface)"""
+        ...
 
     def finalize_options(self):
         """(Required by the original :class:`setuptools.Command` interface)"""
+        ...
 
     def run(self):
         """(Required by the original :class:`setuptools.Command` interface)"""
+        ...
 
     def get_source_files(self) -> list[str]:
         """
@@ -104,6 +107,7 @@ class SubCommand(Protocol):
         with all the files necessary to build the distribution.
         All files should be strings relative to the project root directory.
         """
+        ...
 
     def get_outputs(self) -> list[str]:
         """
@@ -117,6 +121,7 @@ class SubCommand(Protocol):
            in ``get_output_mapping()`` plus files that are generated during the build
            and don't correspond to any source file already present in the project.
         """
+        ...
 
     def get_output_mapping(self) -> dict[str, str]:
         """
@@ -127,3 +132,4 @@ class SubCommand(Protocol):
         Destination files should be strings in the form of
         ``"{build_lib}/destination/file/path"``.
         """
+        ...
