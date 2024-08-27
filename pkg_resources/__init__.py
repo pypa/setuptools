@@ -301,7 +301,7 @@ __all__ = [
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__class__.__name__ + repr(self.args)
 
 
@@ -377,7 +377,7 @@ class DistributionNotFound(ResolutionError):
     def report(self):
         return self._template.format(**locals())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.report()
 
 
@@ -2725,7 +2725,7 @@ class EntryPoint:
         self.extras = tuple(extras)
         self.dist = dist
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = "%s = %s" % (self.name, self.module_name)
         if self.attrs:
             s += ':' + '.'.join(self.attrs)
@@ -2733,7 +2733,7 @@ class EntryPoint:
             s += ' [%s]' % ','.join(self.extras)
         return s
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "EntryPoint.parse(%r)" % str(self)
 
     @overload
@@ -3157,13 +3157,13 @@ class Distribution:
             filename += '-' + self.platform
         return filename
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.location:
             return "%s (%s)" % (self, self.location)
         else:
             return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         try:
             version = getattr(self, 'version', None)
         except ValueError:
@@ -3508,7 +3508,7 @@ class Requirement(packaging.requirements.Requirement):
     def __hash__(self):
         return self.__hash
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Requirement.parse(%r)" % str(self)
 
     @staticmethod
