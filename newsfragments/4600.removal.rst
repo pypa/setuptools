@@ -1,1 +1,0 @@
-Removed the monkeypatching of distutils._msvccompiler. Now all compiler logic is consolidated in distutils.

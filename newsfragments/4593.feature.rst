@@ -1,1 +1,0 @@
-Reraise error from ``setuptools.command.easy_install.auto_chmod`` instead of nonsensical ``TypeError: 'Exception' object is not subscriptable`` -- by :user:`Avasam`

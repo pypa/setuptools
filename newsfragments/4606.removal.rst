@@ -1,1 +1,0 @@
-Synced with pypa/distutils@58fe058e4, including consolidating Visual Studio 2017 support (#4600, pypa/distutils#289), removal of deprecated legacy MSVC compiler modules (pypa/distutils#287), suppressing of errors when the home directory is missing (pypa/distutils#278), removal of wininst binaries (pypa/distutils#282).

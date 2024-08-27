@@ -1,1 +1,0 @@
-Made ``setuptools.package_index.Credential`` a `typing.NamedTuple` -- by :user:`Avasam`
