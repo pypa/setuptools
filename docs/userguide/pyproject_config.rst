@@ -192,7 +192,7 @@ corresponding entry is required in the ``tool.setuptools.dynamic`` table
    dynamic = ["version", "readme"]
    # ...
    [tool.setuptools.dynamic]
-   version = {attr = "my_package.__version__"}
+   version = {attr = "my_package.__version__"}  # any module attribute compatible with ast.literal_eval
    readme = {file = ["README.rst", "USAGE.rst"]}
 
 In the ``dynamic`` table, the ``attr`` directive [#directives]_ will read an
