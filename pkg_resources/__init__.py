@@ -1,6 +1,3 @@
-# TODO: Add Generic type annotations to initialized collections.
-# For now we'd simply use implicit Any/Unknown which would add redundant annotations
-# mypy: disable-error-code="var-annotated"
 """
 Package resource API
 --------------------
@@ -100,6 +97,7 @@ from platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrOrBytesPath, StrPath
+    from _typeshed.importlib import LoaderProtocol
     from typing_extensions import Self, TypeAlias
 
 warnings.warn(
@@ -129,11 +127,6 @@ _NSHandlerType: TypeAlias = Callable[[_T, str, str, types.ModuleType], Union[str
 _AdapterT = TypeVar(
     "_AdapterT", _DistFinderType[Any], _ProviderFactoryType, _NSHandlerType[Any]
 )
-
-
-# Use _typeshed.importlib.LoaderProtocol once available https://github.com/python/typeshed/pull/11890
-class _LoaderProtocol(Protocol):
-    def load_module(self, fullname: str, /) -> types.ModuleType: ...
 
 
 class _ZipLoaderModule(Protocol):
@@ -637,13 +630,13 @@ class IResourceProvider(IMetadataProvider, Protocol):
 class WorkingSet:
     """A collection of active distributions on sys.path (or a similar list)"""
 
-    def __init__(self, entries: Iterable[str] | None = None):
+    def __init__(self, entries: Iterable[str] | None = None) -> None:
         """Create working set from list of path entries (default=sys.path)"""
         self.entries: list[str] = []
-        self.entry_keys = {}
-        self.by_key = {}
-        self.normalized_to_canonical_keys = {}
-        self.callbacks = []
+        self.entry_keys: dict[str | None, list[str]] = {}
+        self.by_key: dict[str, Distribution] = {}
+        self.normalized_to_canonical_keys: dict[str, str] = {}
+        self.callbacks: list[Callable[[Distribution], object]] = []
 
         if entries is None:
             entries = sys.path
@@ -880,14 +873,16 @@ class WorkingSet:
         # set of processed requirements
         processed = set()
         # key -> dist
-        best = {}
-        to_activate = []
+        best: dict[str, Distribution] = {}
+        to_activate: list[Distribution] = []
 
         req_extras = _ReqExtras()
 
         # Mapping of requirement to set of distributions that required it;
         # useful for reporting info about conflicts.
-        required_by = collections.defaultdict(set)
+        required_by: collections.defaultdict[Requirement, set[str]] = (
+            collections.defaultdict(set)
+        )
 
         while requirements:
             # process dependencies breadth-first
@@ -1144,7 +1139,7 @@ class Environment:
         search_path: Iterable[str] | None = None,
         platform: str | None = get_supported_platform(),
         python: str | None = PY_MAJOR,
-    ):
+    ) -> None:
         """Snapshot distributions available on a search path
 
         Any distributions found on `search_path` are added to the environment.
@@ -1161,7 +1156,7 @@ class Environment:
         wish to map *all* distributions, not just those compatible with the
         running platform or Python version.
         """
-        self._distmap = {}
+        self._distmap: dict[str, list[Distribution]] = {}
         self.platform = platform
         self.python = python
         self.scan(search_path)
@@ -1358,8 +1353,9 @@ class ResourceManager:
 
     extraction_path: str | None = None
 
-    def __init__(self):
-        self.cached_files = {}
+    def __init__(self) -> None:
+        # acts like a set
+        self.cached_files: dict[str, Literal[True]] = {}
 
     def resource_exists(
         self, package_or_requirement: _PkgReqType, resource_name: str
@@ -1656,9 +1652,9 @@ class NullProvider:
 
     egg_name: str | None = None
     egg_info: str | None = None
-    loader: _LoaderProtocol | None = None
+    loader: LoaderProtocol | None = None
 
-    def __init__(self, module: _ModuleLike):
+    def __init__(self, module: _ModuleLike) -> None:
         self.loader = getattr(module, '__loader__', None)
         self.module_path = os.path.dirname(getattr(module, '__file__', ''))
 
@@ -1875,7 +1871,7 @@ def _parents(path):
 class EggProvider(NullProvider):
     """Provider based on a virtual filesystem"""
 
-    def __init__(self, module: _ModuleLike):
+    def __init__(self, module: _ModuleLike) -> None:
         super().__init__(module)
         self._setup_prefix()
 
@@ -1941,7 +1937,7 @@ class EmptyProvider(NullProvider):
     def _listdir(self, path):
         return []
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
 
@@ -2007,7 +2003,7 @@ class ZipProvider(EggProvider):
     # ZipProvider's loader should always be a zipimporter or equivalent
     loader: zipimport.zipimporter
 
-    def __init__(self, module: _ZipLoaderModule):
+    def __init__(self, module: _ZipLoaderModule) -> None:
         super().__init__(module)
         self.zip_pre = self.loader.archive + os.sep
 
@@ -2186,7 +2182,7 @@ class FileMetadata(EmptyProvider):
     the provided location.
     """
 
-    def __init__(self, path: StrPath):
+    def __init__(self, path: StrPath) -> None:
         self.path = path
 
     def _get_metadata_path(self, name):
@@ -2235,7 +2231,7 @@ class PathMetadata(DefaultProvider):
         dist = Distribution.from_filename(egg_path, metadata=metadata)
     """
 
-    def __init__(self, path: str, egg_info: str):
+    def __init__(self, path: str, egg_info: str) -> None:
         self.module_path = path
         self.egg_info = egg_info
 
@@ -2243,7 +2239,7 @@ class PathMetadata(DefaultProvider):
 class EggMetadata(ZipProvider):
     """Metadata provider for .egg files"""
 
-    def __init__(self, importer: zipimport.zipimporter):
+    def __init__(self, importer: zipimport.zipimporter) -> None:
         """Create a metadata provider from a zipimporter"""
 
         self.zip_pre = importer.archive + os.sep
@@ -2370,7 +2366,7 @@ class NoDists:
     def __bool__(self):
         return False
 
-    def __call__(self, fullpath):
+    def __call__(self, fullpath: object):
         return iter(())
 
 
@@ -2720,7 +2716,7 @@ class EntryPoint:
         attrs: Iterable[str] = (),
         extras: Iterable[str] = (),
         dist: Distribution | None = None,
-    ):
+    ) -> None:
         if not MODULE(module_name):
             raise ValueError("Invalid module name", module_name)
         self.name = name
@@ -2914,7 +2910,7 @@ class Distribution:
         py_version: str | None = PY_MAJOR,
         platform: str | None = None,
         precedence: int = EGG_DIST,
-    ):
+    ) -> None:
         self.project_name = safe_name(project_name or 'Unknown')
         if version is not None:
             self._version = safe_version(version)
@@ -3467,7 +3463,7 @@ class Requirement(packaging.requirements.Requirement):
     # packaging.requirements.Requirement)
     extras: tuple[str, ...]  # type: ignore[assignment]
 
-    def __init__(self, requirement_string: str):
+    def __init__(self, requirement_string: str) -> None:
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         super().__init__(requirement_string)
         self.unsafe_name = self.name
@@ -3570,7 +3566,7 @@ def split_sections(s: _NestedStr) -> Iterator[tuple[str | None, list[str]]]:
     header, they're returned in a first ``section`` of ``None``.
     """
     section = None
-    content = []
+    content: list[str] = []
     for line in yield_lines(s):
         if line.startswith("["):
             if line.endswith("]"):
