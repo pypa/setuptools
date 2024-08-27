@@ -10,17 +10,12 @@ import os
 import pathlib
 import re
 import sys
+import warnings
 from collections.abc import Iterable
 from email import message_from_file
 
-from ._vendor.packaging.utils import canonicalize_name, canonicalize_version
-
-try:
-    import warnings
-except ImportError:
-    warnings = None
-
 from ._log import log
+from ._vendor.packaging.utils import canonicalize_name, canonicalize_version
 from .debug import DEBUG
 from .errors import (
     DistutilsArgError,
@@ -249,10 +244,7 @@ Common commands: (see '--help-commands' for more)
                 attrs['license'] = attrs['licence']
                 del attrs['licence']
                 msg = "'licence' distribution option is deprecated; use 'license'"
-                if warnings is not None:
-                    warnings.warn(msg)
-                else:
-                    sys.stderr.write(msg + "\n")
+                warnings.warn(msg)
 
             # Now work on the rest of the attributes.  Any attribute that's
             # not already defined is invalid!
@@ -354,7 +346,8 @@ Common commands: (see '--help-commands' for more)
         prefix = '.' * (os.name == 'posix')
         filename = prefix + 'pydistutils.cfg'
         if self.want_user_cfg:
-            yield pathlib.Path('~').expanduser() / filename
+            with contextlib.suppress(RuntimeError):
+                yield pathlib.Path('~').expanduser() / filename
 
         # All platforms support local setup.cfg
         yield pathlib.Path('setup.cfg')
@@ -741,9 +734,7 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = set()
-        for cmd in std_commands:
-            is_std.add(cmd)
+        is_std = set(std_commands)
 
         extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
 
@@ -769,9 +760,7 @@ Common commands: (see '--help-commands' for more)
         import distutils.command
 
         std_commands = distutils.command.__all__
-        is_std = set()
-        for cmd in std_commands:
-            is_std.add(cmd)
+        is_std = set(std_commands)
 
         extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
 

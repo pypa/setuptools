@@ -1,0 +1,1 @@
+Automatically exclude ``.tox|.nox|.venv`` directories from ``sdist``.

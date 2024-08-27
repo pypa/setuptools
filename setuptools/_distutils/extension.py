@@ -105,7 +105,7 @@ class Extension:
         **kw,  # To catch unknown keywords
     ):
         if not isinstance(name, str):
-            raise AssertionError("'name' must be a string")
+            raise AssertionError("'name' must be a string")  # noqa: TRY004
         if not (
             isinstance(sources, list)
             and all(isinstance(v, (str, os.PathLike)) for v in sources)
