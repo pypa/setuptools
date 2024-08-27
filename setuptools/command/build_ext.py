@@ -6,7 +6,7 @@ import sys
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
 from pathlib import Path
-from typing import Iterator
+from typing import TYPE_CHECKING, Iterator
 
 from setuptools.dist import Distribution
 from setuptools.errors import BaseError
@@ -16,17 +16,19 @@ from distutils import log
 from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
 
-try:
-    # Attempt to use Cython for building extensions, if available
-    from Cython.Distutils.build_ext import (  # type: ignore[import-not-found] # Cython not installed on CI tests
-        build_ext as _build_ext,
-    )
-
-    # Additionally, assert that the compiler module will load
-    # also. Ref #1229.
-    __import__('Cython.Compiler.Main')
-except ImportError:
+if TYPE_CHECKING:
+    # Cython not installed on CI tests, causing _build_ext to be `Any`
     from distutils.command.build_ext import build_ext as _build_ext
+else:
+    try:
+        # Attempt to use Cython for building extensions, if available
+        from Cython.Distutils.build_ext import build_ext as _build_ext
+
+        # Additionally, assert that the compiler module will load
+        # also. Ref #1229.
+        __import__('Cython.Compiler.Main')
+    except ImportError:
+        from distutils.command.build_ext import build_ext as _build_ext
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")
