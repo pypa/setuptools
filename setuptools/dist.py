@@ -140,8 +140,7 @@ def _check_marker(marker):
 def assert_bool(dist, attr, value):
     """Verify that value is True, False, 0, or 1"""
     if bool(value) != value:
-        tmpl = "{attr!r} must be a boolean value (got {value!r})"
-        raise DistutilsSetupError(tmpl.format(attr=attr, value=value))
+        raise DistutilsSetupError(f"{attr!r} must be a boolean value (got {value!r})")
 
 
 def invalid_unless_false(dist, attr, value):
@@ -163,11 +162,11 @@ def check_requirements(dist, attr: str, value: _StrOrIter) -> None:
         if isinstance(value, (dict, set)):
             raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
-        tmpl = (
+        msg = (
             f"{attr!r} must be a string or iterable of strings "
             f"containing valid project/version requirement specifiers; {error}"
         )
-        raise DistutilsSetupError(tmpl) from error
+        raise DistutilsSetupError(msg) from error
 
 
 def check_specifier(dist, attr, value):
@@ -175,8 +174,8 @@ def check_specifier(dist, attr, value):
     try:
         SpecifierSet(value)
     except (InvalidSpecifier, AttributeError) as error:
-        tmpl = "{attr!r} must be a string containing valid version specifiers; {error}"
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error)) from error
+        msg = f"{attr!r} must be a string containing valid version specifiers; {error}"
+        raise DistutilsSetupError(msg) from error
 
 
 def check_entry_points(dist, attr, value):
