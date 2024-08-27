@@ -17,7 +17,7 @@ classifiers = [
 	"Programming Language :: Python :: 3 :: Only",
 ]
 requires-python = ">=3.8"
-dependencies = []
+dependencies = ["packaging"]  # setuptools dependency
 dynamic = ["version"]
 
 [project.urls]
