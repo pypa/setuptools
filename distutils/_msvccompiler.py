@@ -148,7 +148,11 @@ def _get_vc_env(plat_spec):
 
     vcvarsall, _ = _find_vcvarsall(plat_spec)
     if not vcvarsall:
-        raise DistutilsPlatformError("Unable to find vcvarsall.bat")
+        raise DistutilsPlatformError(
+            'Microsoft Visual C++ 14.0 or greater is required. '
+            'Get it with "Microsoft C++ Build Tools": '
+            'https://visualstudio.microsoft.com/visual-cpp-build-tools/'
+        )
 
     try:
         out = subprocess.check_output(
