@@ -81,7 +81,7 @@ class build_py(orig.build_py):
         # output files are.
         self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=False))
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str):
         "lazily compute data files"
         if attr == 'data_files':
             self.data_files = self._get_data_files()
