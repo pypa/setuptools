@@ -429,12 +429,19 @@ class TestSdistTest:
     def test_exclude_dev_only_cache_folders(self, source_dir):
         included = {
             # Emulate problem in https://github.com/pypa/setuptools/issues/4601
-            "MANIFEST.in": "global-include LICEN[CS]E* COPYING* NOTICE* AUTHORS*",
+            "MANIFEST.in": (
+                "global-include LICEN[CS]E* COPYING* NOTICE* AUTHORS*\n"
+                "global-include *.txt\n"
+            ),
             # For the sake of being conservative and limiting unforeseen side-effects
-            # we just exclude dev-only cache folders at the root of the repository
+            # we just exclude dev-only cache folders at the root of the repository:
             "test/.venv/lib/python3.9/site-packages/bar-2.dist-info/AUTHORS.rst": "",
             "src/.nox/py/lib/python3.12/site-packages/bar-2.dist-info/COPYING.txt": "",
             "doc/.tox/default/lib/python3.11/site-packages/foo-4.dist-info/LICENSE": "",
+            # Let's test against false positives with similarly named files:
+            ".venv-requirements.txt": "",
+            ".tox-coveragerc.txt": "",
+            ".noxy/coveragerc.txt": "",
         }
 
         excluded = {
@@ -454,10 +461,10 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         for path in excluded:
             assert os.path.exists(path)
-            assert path not in manifest
+            assert path not in manifest, (path, manifest)
         for path in included:
             assert os.path.exists(path)
-            assert path in manifest
+            assert path in manifest, (path, manifest)
 
     @fail_on_ascii
     def test_manifest_is_written_with_utf8_encoding(self):
