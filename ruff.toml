@@ -12,12 +12,14 @@ extend-select = [
 
 	# local
 	"ANN2", # missing-return-type-*
-	"FA", # flake8-future-annotations
 	"F404", # late-future-import
+	"FA", # flake8-future-annotations
 	"I", # isort
+	"PGH", # pygrep-hooks (blanket-* rules)
 	"PYI", # flake8-pyi
+	"RUF100", # unused-noqa
+	"TRY", # tryceratops
 	"UP", # pyupgrade
-	"TRY",
 	"YTT", # flake8-2020
 ]
 ignore = [
