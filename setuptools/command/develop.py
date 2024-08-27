@@ -188,7 +188,7 @@ class VersionlessRequirement:
     def __init__(self, dist):
         self.__dist = dist
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         return getattr(self.__dist, name)
 
     def as_requirement(self):

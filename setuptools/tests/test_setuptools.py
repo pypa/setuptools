@@ -53,7 +53,7 @@ class TestDepends:
         def f1():
             global x, y, z
             x = "test"
-            y = z
+            y = z  # pyright: ignore[reportUnboundVariable] # Explicitly testing for this runtime issue
 
         fc = f1.__code__
 

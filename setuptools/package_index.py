@@ -18,6 +18,7 @@ import urllib.parse
 import urllib.request
 from fnmatch import translate
 from functools import wraps
+from typing import NamedTuple
 
 from more_itertools import unique_everseen
 
@@ -1001,21 +1002,20 @@ def _encode_auth(auth):
     return encoded.replace('\n', '')
 
 
-class Credential:
+class Credential(NamedTuple):
     """
-    A username/password pair. Use like a namedtuple.
+    A username/password pair.
+
+    Displayed separated by `:`.
+    >>> str(Credential('username', 'password'))
+    'username:password'
     """
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    username: str
+    password: str
 
-    def __iter__(self):
-        yield self.username
-        yield self.password
-
-    def __str__(self):
-        return '%(username)s:%(password)s' % vars(self)
+    def __str__(self) -> str:
+        return f'{self.username}:{self.password}'
 
 
 class PyPIConfig(configparser.RawConfigParser):
@@ -1072,7 +1072,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
     if scheme in ('http', 'https'):
         auth, address = _splituser(netloc)
     else:
-        auth = None
+        auth, address = (None, None)
 
     if not auth:
         cred = PyPIConfig().find_credential(url)

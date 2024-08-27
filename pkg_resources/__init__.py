@@ -1,6 +1,3 @@
-# TODO: Add Generic type annotations to initialized collections.
-# For now we'd simply use implicit Any/Unknown which would add redundant annotations
-# mypy: disable-error-code="var-annotated"
 """
 Package resource API
 --------------------
@@ -100,6 +97,7 @@ from platformdirs import user_cache_dir as _user_cache_dir
 
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrOrBytesPath, StrPath
+    from _typeshed.importlib import LoaderProtocol
     from typing_extensions import Self, TypeAlias
 
 warnings.warn(
@@ -129,11 +127,6 @@ _NSHandlerType: TypeAlias = Callable[[_T, str, str, types.ModuleType], Union[str
 _AdapterT = TypeVar(
     "_AdapterT", _DistFinderType[Any], _ProviderFactoryType, _NSHandlerType[Any]
 )
-
-
-# Use _typeshed.importlib.LoaderProtocol once available https://github.com/python/typeshed/pull/11890
-class _LoaderProtocol(Protocol):
-    def load_module(self, fullname: str, /) -> types.ModuleType: ...
 
 
 class _ZipLoaderModule(Protocol):
@@ -308,7 +301,7 @@ __all__ = [
 class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__class__.__name__ + repr(self.args)
 
 
@@ -384,7 +377,7 @@ class DistributionNotFound(ResolutionError):
     def report(self):
         return self._template.format(**locals())
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.report()
 
 
@@ -568,24 +561,30 @@ def get_entry_info(dist: _EPDistType, group: str, name: str) -> EntryPoint | Non
 class IMetadataProvider(Protocol):
     def has_metadata(self, name: str) -> bool:
         """Does the package's distribution contain the named metadata?"""
+        ...
 
     def get_metadata(self, name: str) -> str:
         """The named metadata resource as a string"""
+        ...
 
     def get_metadata_lines(self, name: str) -> Iterator[str]:
         """Yield named metadata resource as list of non-blank non-comment lines
 
         Leading and trailing whitespace is stripped from each line, and lines
         with ``#`` as the first non-blank character are omitted."""
+        ...
 
     def metadata_isdir(self, name: str) -> bool:
         """Is the named metadata a directory?  (like ``os.path.isdir()``)"""
+        ...
 
     def metadata_listdir(self, name: str) -> list[str]:
         """List of metadata names in the directory (like ``os.listdir()``)"""
+        ...
 
     def run_script(self, script_name: str, namespace: dict[str, Any]) -> None:
         """Execute the named script in the supplied namespace dictionary"""
+        ...
 
 
 class IResourceProvider(IMetadataProvider, Protocol):
@@ -597,6 +596,7 @@ class IResourceProvider(IMetadataProvider, Protocol):
         """Return a true filesystem path for `resource_name`
 
         `manager` must be a ``ResourceManager``"""
+        ...
 
     def get_resource_stream(
         self, manager: ResourceManager, resource_name: str
@@ -604,6 +604,7 @@ class IResourceProvider(IMetadataProvider, Protocol):
         """Return a readable file-like object for `resource_name`
 
         `manager` must be a ``ResourceManager``"""
+        ...
 
     def get_resource_string(
         self, manager: ResourceManager, resource_name: str
@@ -611,27 +612,31 @@ class IResourceProvider(IMetadataProvider, Protocol):
         """Return the contents of `resource_name` as :obj:`bytes`
 
         `manager` must be a ``ResourceManager``"""
+        ...
 
     def has_resource(self, resource_name: str) -> bool:
         """Does the package contain the named resource?"""
+        ...
 
     def resource_isdir(self, resource_name: str) -> bool:
         """Is the named resource a directory?  (like ``os.path.isdir()``)"""
+        ...
 
     def resource_listdir(self, resource_name: str) -> list[str]:
         """List of resource names in the directory (like ``os.listdir()``)"""
+        ...
 
 
 class WorkingSet:
     """A collection of active distributions on sys.path (or a similar list)"""
 
-    def __init__(self, entries: Iterable[str] | None = None):
+    def __init__(self, entries: Iterable[str] | None = None) -> None:
         """Create working set from list of path entries (default=sys.path)"""
         self.entries: list[str] = []
-        self.entry_keys = {}
-        self.by_key = {}
-        self.normalized_to_canonical_keys = {}
-        self.callbacks = []
+        self.entry_keys: dict[str | None, list[str]] = {}
+        self.by_key: dict[str, Distribution] = {}
+        self.normalized_to_canonical_keys: dict[str, str] = {}
+        self.callbacks: list[Callable[[Distribution], object]] = []
 
         if entries is None:
             entries = sys.path
@@ -868,14 +873,16 @@ class WorkingSet:
         # set of processed requirements
         processed = set()
         # key -> dist
-        best = {}
-        to_activate = []
+        best: dict[str, Distribution] = {}
+        to_activate: list[Distribution] = []
 
         req_extras = _ReqExtras()
 
         # Mapping of requirement to set of distributions that required it;
         # useful for reporting info about conflicts.
-        required_by = collections.defaultdict(set)
+        required_by: collections.defaultdict[Requirement, set[str]] = (
+            collections.defaultdict(set)
+        )
 
         while requirements:
             # process dependencies breadth-first
@@ -1087,7 +1094,15 @@ class WorkingSet:
         for callback in self.callbacks:
             callback(dist)
 
-    def __getstate__(self):
+    def __getstate__(
+        self,
+    ) -> tuple[
+        list[str],
+        dict[str | None, list[str]],
+        dict[str, Distribution],
+        dict[str, str],
+        list[Callable[[Distribution], object]],
+    ]:
         return (
             self.entries[:],
             self.entry_keys.copy(),
@@ -1096,7 +1111,7 @@ class WorkingSet:
             self.callbacks[:],
         )
 
-    def __setstate__(self, e_k_b_n_c):
+    def __setstate__(self, e_k_b_n_c) -> None:
         entries, keys, by_key, normalized_to_canonical_keys, callbacks = e_k_b_n_c
         self.entries = entries[:]
         self.entry_keys = keys.copy()
@@ -1132,7 +1147,7 @@ class Environment:
         search_path: Iterable[str] | None = None,
         platform: str | None = get_supported_platform(),
         python: str | None = PY_MAJOR,
-    ):
+    ) -> None:
         """Snapshot distributions available on a search path
 
         Any distributions found on `search_path` are added to the environment.
@@ -1149,7 +1164,7 @@ class Environment:
         wish to map *all* distributions, not just those compatible with the
         running platform or Python version.
         """
-        self._distmap = {}
+        self._distmap: dict[str, list[Distribution]] = {}
         self.platform = platform
         self.python = python
         self.scan(search_path)
@@ -1297,7 +1312,7 @@ class Environment:
             if self[key]:
                 yield key
 
-    def __iadd__(self, other: Distribution | Environment):
+    def __iadd__(self, other: Distribution | Environment) -> Self:
         """In-place addition of a distribution or environment"""
         if isinstance(other, Distribution):
             self.add(other)
@@ -1309,7 +1324,7 @@ class Environment:
             raise TypeError("Can't add %r to environment" % (other,))
         return self
 
-    def __add__(self, other: Distribution | Environment):
+    def __add__(self, other: Distribution | Environment) -> Self:
         """Add an environment or distribution to an environment"""
         new = self.__class__([], platform=None, python=None)
         for env in self, other:
@@ -1346,8 +1361,9 @@ class ResourceManager:
 
     extraction_path: str | None = None
 
-    def __init__(self):
-        self.cached_files = {}
+    def __init__(self) -> None:
+        # acts like a set
+        self.cached_files: dict[str, Literal[True]] = {}
 
     def resource_exists(
         self, package_or_requirement: _PkgReqType, resource_name: str
@@ -1644,9 +1660,9 @@ class NullProvider:
 
     egg_name: str | None = None
     egg_info: str | None = None
-    loader: _LoaderProtocol | None = None
+    loader: LoaderProtocol | None = None
 
-    def __init__(self, module: _ModuleLike):
+    def __init__(self, module: _ModuleLike) -> None:
         self.loader = getattr(module, '__loader__', None)
         self.module_path = os.path.dirname(getattr(module, '__file__', ''))
 
@@ -1863,7 +1879,7 @@ def _parents(path):
 class EggProvider(NullProvider):
     """Provider based on a virtual filesystem"""
 
-    def __init__(self, module: _ModuleLike):
+    def __init__(self, module: _ModuleLike) -> None:
         super().__init__(module)
         self._setup_prefix()
 
@@ -1929,7 +1945,7 @@ class EmptyProvider(NullProvider):
     def _listdir(self, path):
         return []
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
 
@@ -1995,7 +2011,7 @@ class ZipProvider(EggProvider):
     # ZipProvider's loader should always be a zipimporter or equivalent
     loader: zipimport.zipimporter
 
-    def __init__(self, module: _ZipLoaderModule):
+    def __init__(self, module: _ZipLoaderModule) -> None:
         super().__init__(module)
         self.zip_pre = self.loader.archive + os.sep
 
@@ -2174,7 +2190,7 @@ class FileMetadata(EmptyProvider):
     the provided location.
     """
 
-    def __init__(self, path: StrPath):
+    def __init__(self, path: StrPath) -> None:
         self.path = path
 
     def _get_metadata_path(self, name):
@@ -2223,7 +2239,7 @@ class PathMetadata(DefaultProvider):
         dist = Distribution.from_filename(egg_path, metadata=metadata)
     """
 
-    def __init__(self, path: str, egg_info: str):
+    def __init__(self, path: str, egg_info: str) -> None:
         self.module_path = path
         self.egg_info = egg_info
 
@@ -2231,7 +2247,7 @@ class PathMetadata(DefaultProvider):
 class EggMetadata(ZipProvider):
     """Metadata provider for .egg files"""
 
-    def __init__(self, importer: zipimport.zipimporter):
+    def __init__(self, importer: zipimport.zipimporter) -> None:
         """Create a metadata provider from a zipimporter"""
 
         self.zip_pre = importer.archive + os.sep
@@ -2355,10 +2371,10 @@ class NoDists:
     []
     """
 
-    def __bool__(self):
+    def __bool__(self) -> Literal[False]:
         return False
 
-    def __call__(self, fullpath):
+    def __call__(self, fullpath: object):
         return iter(())
 
 
@@ -2708,7 +2724,7 @@ class EntryPoint:
         attrs: Iterable[str] = (),
         extras: Iterable[str] = (),
         dist: Distribution | None = None,
-    ):
+    ) -> None:
         if not MODULE(module_name):
             raise ValueError("Invalid module name", module_name)
         self.name = name
@@ -2717,7 +2733,7 @@ class EntryPoint:
         self.extras = tuple(extras)
         self.dist = dist
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = "%s = %s" % (self.name, self.module_name)
         if self.attrs:
             s += ':' + '.'.join(self.attrs)
@@ -2725,7 +2741,7 @@ class EntryPoint:
             s += ' [%s]' % ','.join(self.extras)
         return s
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "EntryPoint.parse(%r)" % str(self)
 
     @overload
@@ -2902,7 +2918,7 @@ class Distribution:
         py_version: str | None = PY_MAJOR,
         platform: str | None = None,
         precedence: int = EGG_DIST,
-    ):
+    ) -> None:
         self.project_name = safe_name(project_name or 'Unknown')
         if version is not None:
             self._version = safe_version(version)
@@ -2954,28 +2970,28 @@ class Distribution:
             self.platform or '',
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.hashcmp)
 
-    def __lt__(self, other: Distribution):
+    def __lt__(self, other: Distribution) -> bool:
         return self.hashcmp < other.hashcmp
 
-    def __le__(self, other: Distribution):
+    def __le__(self, other: Distribution) -> bool:
         return self.hashcmp <= other.hashcmp
 
-    def __gt__(self, other: Distribution):
+    def __gt__(self, other: Distribution) -> bool:
         return self.hashcmp > other.hashcmp
 
-    def __ge__(self, other: Distribution):
+    def __ge__(self, other: Distribution) -> bool:
         return self.hashcmp >= other.hashcmp
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, self.__class__):
             # It's not a Distribution, so they are not equal
             return False
         return self.hashcmp == other.hashcmp
 
-    def __ne__(self, other: object):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
     # These properties have to be lazy so that we don't have to load any
@@ -3149,13 +3165,13 @@ class Distribution:
             filename += '-' + self.platform
         return filename
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.location:
             return "%s (%s)" % (self, self.location)
         else:
             return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         try:
             version = getattr(self, 'version', None)
         except ValueError:
@@ -3163,7 +3179,7 @@ class Distribution:
         version = version or "[unknown version]"
         return "%s %s" % (self.project_name, version)
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str):
         """Delegate all unrecognized public attributes to .metadata provider"""
         if attr.startswith('_'):
             raise AttributeError(attr)
@@ -3455,7 +3471,7 @@ class Requirement(packaging.requirements.Requirement):
     # packaging.requirements.Requirement)
     extras: tuple[str, ...]  # type: ignore[assignment]
 
-    def __init__(self, requirement_string: str):
+    def __init__(self, requirement_string: str) -> None:
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         super().__init__(requirement_string)
         self.unsafe_name = self.name
@@ -3472,10 +3488,10 @@ class Requirement(packaging.requirements.Requirement):
         )
         self.__hash = hash(self.hashCmp)
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         return isinstance(other, Requirement) and self.hashCmp == other.hashCmp
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self == other
 
     def __contains__(
@@ -3497,10 +3513,10 @@ class Requirement(packaging.requirements.Requirement):
             prereleases=True,
         )
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.__hash
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Requirement.parse(%r)" % str(self)
 
     @staticmethod
@@ -3558,7 +3574,7 @@ def split_sections(s: _NestedStr) -> Iterator[tuple[str | None, list[str]]]:
     header, they're returned in a first ``section`` of ``None``.
     """
     section = None
-    content = []
+    content: list[str] = []
     for line in yield_lines(s):
         if line.startswith("["):
             if line.endswith("]"):

@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from setuptools import Command
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
 
-def __getattr__(name):
+# Would restrict to Literal["test"], but mypy doesn't support it: https://github.com/python/mypy/issues/8203
+def __getattr__(name: str) -> type[_test]:
     if name == 'test':
         SetuptoolsDeprecationWarning.emit(
             "The test command is disabled and references to it are deprecated.",

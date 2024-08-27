@@ -8,11 +8,13 @@ import inspect
 import platform
 import sys
 import types
-from typing import TypeVar
+from typing import Type, TypeVar, cast, overload
 
 import distutils.filelist
 
 _T = TypeVar("_T")
+_UnpatchT = TypeVar("_UnpatchT", type, types.FunctionType)
+
 
 __all__: list[str] = []
 """
@@ -35,25 +37,30 @@ def _get_mro(cls):
     return inspect.getmro(cls)
 
 
-def get_unpatched(item: _T) -> _T:
-    lookup = (
-        get_unpatched_class
-        if isinstance(item, type)
-        else get_unpatched_function
-        if isinstance(item, types.FunctionType)
-        else lambda item: None
-    )
-    return lookup(item)
+@overload
+def get_unpatched(item: _UnpatchT) -> _UnpatchT: ...
+@overload
+def get_unpatched(item: object) -> None: ...
+def get_unpatched(
+    item: type | types.FunctionType | object,
+) -> type | types.FunctionType | None:
+    if isinstance(item, type):
+        return get_unpatched_class(item)
+    if isinstance(item, types.FunctionType):
+        return get_unpatched_function(item)
+    return None
 
 
-def get_unpatched_class(cls):
+def get_unpatched_class(cls: type[_T]) -> type[_T]:
     """Protect against re-patching the distutils if reloaded
 
     Also ensures that no other distutils extension monkeypatched the distutils
     first.
     """
     external_bases = (
-        cls for cls in _get_mro(cls) if not cls.__module__.startswith('setuptools')
+        cast(Type[_T], cls)
+        for cls in _get_mro(cls)
+        if not cls.__module__.startswith('setuptools')
     )
     base = next(external_bases)
     if not base.__module__.startswith('distutils'):

@@ -23,6 +23,7 @@ from inspect import cleandoc
 from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import TracebackType
 from typing import TYPE_CHECKING, Iterable, Iterator, Mapping, Protocol, TypeVar, cast
 
 from .. import Command, _normalization, _path, errors, namespaces
@@ -39,6 +40,8 @@ from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
 
 if TYPE_CHECKING:
+    from typing_extensions import Self
+
     from .._vendor.wheel.wheelfile import WheelFile
 
 _P = TypeVar("_P", bound=StrPath)
@@ -379,9 +382,15 @@ class editable_wheel(Command):
 class EditableStrategy(Protocol):
     def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]): ...
 
-    def __enter__(self): ...
+    def __enter__(self) -> Self: ...
 
-    def __exit__(self, _exc_type, _exc_value, _traceback): ...
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+        /,
+    ) -> object: ...
 
 
 class _StaticPth:
@@ -395,7 +404,7 @@ class _StaticPth:
         contents = _encode_pth(f"{entries}\n")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         msg = f"""
         Editable install will be performed using .pth file to extend `sys.path` with:
         {list(map(os.fspath, self.path_entries))!r}
@@ -403,7 +412,13 @@ class _StaticPth:
         _logger.warning(msg + _LENIENT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback): ...
+    def __exit__(
+        self,
+        _exc_type: object,
+        _exc_value: object,
+        _traceback: object,
+    ) -> None:
+        pass
 
 
 class _LinkTree(_StaticPth):
@@ -461,12 +476,17 @@ class _LinkTree(_StaticPth):
         for relative, src in mappings.items():
             self._create_file(relative, src, link=link_type)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         msg = "Strict editable install will be performed using a link tree.\n"
         _logger.warning(msg + _STRICT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback):
+    def __exit__(
+        self,
+        _exc_type: object,
+        _exc_value: object,
+        _traceback: object,
+    ) -> None:
         msg = f"""\n
         Strict editable installation performed using the auxiliary directory:
             {self.auxiliary_dir}
@@ -522,12 +542,17 @@ class _TopLevelFinder:
         for file, content in self.get_implementation():
             wheel.writestr(file, content)
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         msg = "Editable install will be performed using a meta path finder.\n"
         _logger.warning(msg + _LENIENT_WARNING)
         return self
 
-    def __exit__(self, _exc_type, _exc_value, _traceback):
+    def __exit__(
+        self,
+        _exc_type: object,
+        _exc_value: object,
+        _traceback: object,
+    ) -> None:
         msg = """\n
         Please be careful with folders in your working directory with the same
         name as your package as they may take precedence during imports.
