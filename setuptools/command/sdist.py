@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import os
 from itertools import chain
+from typing import ClassVar
 
 from .._importlib import metadata
 from ..dist import Distribution
@@ -48,7 +49,7 @@ class sdist(orig.sdist):
     ]
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
-    negative_opt: dict[str, str] = {}
+    negative_opt: ClassVar[dict[str, str]] = {}  # type: ignore[misc] # Fixed upstream in typeshed to be a ClassVar. Should be included in mypy 1.12
 
     README_EXTENSIONS = ['', '.rst', '.txt', '.md']
     READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)

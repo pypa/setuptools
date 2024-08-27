@@ -213,7 +213,7 @@ def _msvc14_get_vc_env(plat_spec):
     return env
 
 
-def msvc14_get_vc_env(plat_spec):
+def msvc14_get_vc_env(plat_spec: str):
     """
     Patched "distutils._msvccompiler._get_vc_env" for support extra
     Microsoft Visual C++ 14.X compilers.
@@ -327,7 +327,7 @@ class PlatformInfo:
         """
         return self.current_cpu == 'x86'
 
-    def current_dir(self, hidex86=False, x64=False):
+    def current_dir(self, hidex86: bool = False, x64: bool = False):
         """
         Current platform specific subfolder.
 
@@ -351,7 +351,7 @@ class PlatformInfo:
             else r'\%s' % self.current_cpu
         )
 
-    def target_dir(self, hidex86=False, x64=False):
+    def target_dir(self, hidex86: bool = False, x64: bool = False):
         r"""
         Target platform specific subfolder.
 
@@ -375,7 +375,7 @@ class PlatformInfo:
             else r'\%s' % self.target_cpu
         )
 
-    def cross_dir(self, forcex86=False):
+    def cross_dir(self, forcex86: bool = False):
         r"""
         Cross platform specific subfolder.
 
@@ -527,7 +527,7 @@ class RegistryInfo:
         """
         return r'Windows Kits\Installed Roots'
 
-    def microsoft(self, key, x86=False):
+    def microsoft(self, key, x86: bool = False):
         """
         Return key in Microsoft software registry.
 
@@ -1142,7 +1142,7 @@ class EnvironmentInfo:
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparison.
 
-    def __init__(self, arch, vc_ver=None, vc_min_ver=0):
+    def __init__(self, arch, vc_ver=None, vc_min_ver: float = 0):
         self.pi = PlatformInfo(arch)
         self.ri = RegistryInfo(self.pi)
         self.si = SystemInfo(self.ri, vc_ver)
@@ -1655,7 +1655,7 @@ class EnvironmentInfo:
                 return path
         return None
 
-    def return_env(self, exists=True):
+    def return_env(self, exists: bool = True):
         """
         Return environment dict.
 

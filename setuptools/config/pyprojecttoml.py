@@ -63,7 +63,7 @@ def validate(config: dict, filepath: StrPath) -> bool:
 def apply_configuration(
     dist: Distribution,
     filepath: StrPath,
-    ignore_option_errors=False,
+    ignore_option_errors: bool = False,
 ) -> Distribution:
     """Apply the configuration from a ``pyproject.toml`` file into an existing
     distribution object.
@@ -74,8 +74,8 @@ def apply_configuration(
 
 def read_configuration(
     filepath: StrPath,
-    expand=True,
-    ignore_option_errors=False,
+    expand: bool = True,
+    ignore_option_errors: bool = False,
     dist: Distribution | None = None,
 ) -> dict[str, Any]:
     """Read given configuration file and returns options from it as a dict.
