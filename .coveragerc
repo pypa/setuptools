@@ -7,6 +7,9 @@ omit =
 	*/_vendor/*
 	*/tools/*
 	*/setuptools/_distutils/*
+	# See #4588 for integration tests coverage
+	*/setuptools/tests/integration/*
+	*/setuptools/tests/test_integration.py
 
 disable_warnings =
 	couldnt-parse
