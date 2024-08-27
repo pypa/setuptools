@@ -1792,7 +1792,7 @@ def auto_chmod(func, arg, exc):
         return func(arg)
     et, ev, _ = sys.exc_info()
     # TODO: This code doesn't make sense. What is it trying to do?
-    raise (ev[0], ev[1] + (" %s %s" % (func, arg)))
+    raise (ev[0], ev[1] + (" %s %s" % (func, arg)))  # pyright: ignore[reportOptionalSubscript, reportIndexIssue]
 
 
 def update_dist_caches(dist_path, fix_zipimporter_caches):
@@ -2018,7 +2018,9 @@ def is_python_script(script_text, filename):
 
 
 try:
-    from os import chmod as _chmod
+    from os import (
+        chmod as _chmod,  # pyright: ignore[reportAssignmentType] # Loosing type-safety w/ pyright, but that's ok
+    )
 except ImportError:
     # Jython compatibility
     def _chmod(*args: object, **kwargs: object) -> None:  # type: ignore[misc] # Mypy re-uses the imported definition anyway

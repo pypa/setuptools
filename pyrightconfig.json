@@ -1,0 +1,32 @@
+{
+	"$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
+	"exclude": [
+		"build",
+		".tox",
+		".eggs",
+		"**/_vendor", // Vendored
+		"setuptools/_distutils", // Vendored
+		"setuptools/config/_validate_pyproject/**", // Auto-generated
+	],
+	// Our testing setup doesn't allow passing CLI arguments, so local devs have to set this manually.
+	// "pythonVersion": "3.8",
+	// For now we don't mind if mypy's `type: ignore` comments accidentally suppresses pyright issues
+	"enableTypeIgnoreComments": true,
+	"typeCheckingMode": "basic",
+	// Too many issues caused by dynamic patching, still worth fixing when we can
+	"reportAttributeAccessIssue": "warning",
+	// Fails on Python 3.12 due to missing distutils and on cygwin CI tests
+	"reportAssignmentType": "warning",
+	"reportMissingImports": "warning",
+	"reportOptionalCall": "warning",
+	// FIXME: A handful of reportOperatorIssue spread throughout the codebase
+	"reportOperatorIssue": "warning",
+	// Deferred initialization (initialize_options/finalize_options) causes many "potentially None" issues
+	// TODO: Fix with type-guards or by changing how it's initialized
+	"reportArgumentType": "warning", // A lot of these are caused by jaraco.path.build's spec argument not being a Mapping https://github.com/jaraco/jaraco.path/pull/3
+	"reportCallIssue": "warning",
+	"reportGeneralTypeIssues": "warning",
+	"reportOptionalIterable": "warning",
+	"reportOptionalMemberAccess": "warning",
+	"reportOptionalOperand": "warning",
+}

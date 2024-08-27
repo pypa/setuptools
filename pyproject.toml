@@ -131,6 +131,10 @@ type = [
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam 
 	"mypy==1.11.*",
+	# Typing fixes in version newer than we require at runtime
+	"importlib_metadata>=7.0.2; python_version < '3.10'",
+	# Imported unconditionally in tools/finalize.py
+	'jaraco.develop >= 7.21; sys_platform != "cygwin"',
 ]
 
 
