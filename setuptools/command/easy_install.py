@@ -2073,8 +2073,7 @@ class CommandSpec(list):
             return cls(param)
         if param is None:
             return cls.from_environment()
-        # AttributeError to keep backwards compatibility, this should really be a TypeError though
-        raise AttributeError(f"Argument has an unsupported type {type(param)}")
+        raise TypeError(f"Argument has an unsupported type {type(param)}")
 
     @classmethod
     def from_environment(cls):
