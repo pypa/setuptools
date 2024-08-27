@@ -4,12 +4,10 @@ Monkey patching of distutils.
 
 from __future__ import annotations
 
-import functools
 import inspect
 import platform
 import sys
 import types
-from importlib import import_module
 from typing import TypeVar
 
 import distutils.filelist
@@ -84,8 +82,6 @@ def patch_all():
             'distutils.command.build_ext'
         ].Extension = setuptools.extension.Extension
 
-    patch_for_msvc_specialized_compiler()
-
 
 def _patch_distribution_metadata():
     from . import _core_metadata
@@ -121,36 +117,3 @@ def patch_func(replacement, target_mod, func_name):
 
 def get_unpatched_function(candidate):
     return candidate.unpatched
-
-
-def patch_for_msvc_specialized_compiler():
-    """
-    Patch functions in distutils to use standalone Microsoft Visual C++
-    compilers.
-    """
-    from . import msvc
-
-    if platform.system() != 'Windows':
-        # Compilers only available on Microsoft Windows
-        return
-
-    def patch_params(mod_name, func_name):
-        """
-        Prepare the parameters for patch_func to patch indicated function.
-        """
-        repl_prefix = 'msvc14_'
-        repl_name = repl_prefix + func_name.lstrip('_')
-        repl = getattr(msvc, repl_name)
-        mod = import_module(mod_name)
-        if not hasattr(mod, func_name):
-            raise ImportError(func_name)
-        return repl, mod, func_name
-
-    # Python 3.5+
-    msvc14 = functools.partial(patch_params, 'distutils._msvccompiler')
-
-    try:
-        # Patch distutils._msvccompiler._get_vc_env
-        patch_func(*msvc14('_get_vc_env'))
-    except ImportError:
-        pass
