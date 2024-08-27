@@ -8,7 +8,16 @@ import re
 import sys
 from glob import iglob
 from pathlib import Path
-from typing import TYPE_CHECKING, List, MutableMapping, NoReturn, Tuple, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    List,
+    MutableMapping,
+    NoReturn,
+    Tuple,
+    Union,
+    overload,
+)
 
 from more_itertools import partition, unique_everseen
 from packaging.markers import InvalidMarker, Marker
@@ -42,8 +51,10 @@ if TYPE_CHECKING:
 
 __all__ = ['Distribution']
 
-sequence = tuple, list
+_sequence = tuple, list
 """
+:meta private:
+
 Supported iterable types that are known to be:
 - ordered (which `set` isn't)
 - not match a str (which `Sequence[str]` does)
@@ -53,6 +64,17 @@ for use with `isinstance`.
 _Sequence: TypeAlias = Union[Tuple[str, ...], List[str]]
 # This is how stringifying _Sequence would look in Python 3.10
 _requence_type_repr = "tuple[str, ...] | list[str]"
+
+
+def __getattr__(name: str) -> Any:  # pragma: no cover
+    if name == "sequence":
+        SetuptoolsDeprecationWarning.emit(
+            "`setuptools.dist.sequence` is an internal implementation detail.",
+            "Please define your own `sequence = tuple, list` instead.",
+            due_date=(2025, 8, 28),  # Originally added on 2024-08-27
+        )
+        return _sequence
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def check_importable(dist, attr, value):
@@ -70,7 +92,7 @@ def assert_string_list(dist, attr: str, value: _Sequence) -> None:
     try:
         # verify that value is a list or tuple to exclude unordered
         # or single-use iterables
-        assert isinstance(value, sequence)
+        assert isinstance(value, _sequence)
         # verify that elements of value are strings
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
@@ -786,7 +808,7 @@ class Distribution(_Distribution):
 
     def _exclude_misc(self, name: str, value: _Sequence) -> None:
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
-        if not isinstance(value, sequence):
+        if not isinstance(value, _sequence):
             raise DistutilsSetupError(
                 f"{name}: setting must be of type <{_requence_type_repr}> (got {value!r})"
             )
@@ -794,7 +816,7 @@ class Distribution(_Distribution):
             old = getattr(self, name)
         except AttributeError as e:
             raise DistutilsSetupError("%s: No such distribution setting" % name) from e
-        if old is not None and not isinstance(old, sequence):
+        if old is not None and not isinstance(old, _sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
             )
@@ -804,7 +826,7 @@ class Distribution(_Distribution):
     def _include_misc(self, name: str, value: _Sequence) -> None:
         """Handle 'include()' for list/tuple attrs without a special handler"""
 
-        if not isinstance(value, sequence):
+        if not isinstance(value, _sequence):
             raise DistutilsSetupError(
                 f"{name}: setting must be of type <{_requence_type_repr}> (got {value!r})"
             )
@@ -814,7 +836,7 @@ class Distribution(_Distribution):
             raise DistutilsSetupError("%s: No such distribution setting" % name) from e
         if old is None:
             setattr(self, name, value)
-        elif not isinstance(old, sequence):
+        elif not isinstance(old, _sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
             )
@@ -846,7 +868,7 @@ class Distribution(_Distribution):
                 self._exclude_misc(k, v)
 
     def _exclude_packages(self, packages: _Sequence) -> None:
-        if not isinstance(packages, sequence):
+        if not isinstance(packages, _sequence):
             raise DistutilsSetupError(
                 f"packages: setting must be of type <{_requence_type_repr}> (got {packages!r})"
             )
