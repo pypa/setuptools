@@ -172,8 +172,7 @@ class CygwinCCompiler(UnixCCompiler):
 
             # Generate .def file
             contents = [f"LIBRARY {os.path.basename(output_filename)}", "EXPORTS"]
-            for sym in export_symbols:
-                contents.append(sym)
+            contents.extend(export_symbols)
             self.execute(write_file, (def_file, contents), f"writing {def_file}")
 
             # next add options for def-file
@@ -309,6 +308,9 @@ def check_config_h():
     fn = sysconfig.get_config_h_filename()
     try:
         config_h = pathlib.Path(fn).read_text(encoding='utf-8')
+    except OSError as exc:
+        return (CONFIG_H_UNCERTAIN, f"couldn't read '{fn}': {exc.strerror}")
+    else:
         substring = '__GNUC__'
         if substring in config_h:
             code = CONFIG_H_OK
@@ -317,8 +319,6 @@ def check_config_h():
             code = CONFIG_H_NOTOK
             mention_inflected = 'does not mention'
         return code, f"{fn!r} {mention_inflected} {substring!r}"
-    except OSError as exc:
-        return (CONFIG_H_UNCERTAIN, f"couldn't read '{fn}': {exc.strerror}")
 
 
 def is_cygwincc(cc):

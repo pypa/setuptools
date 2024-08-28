@@ -34,7 +34,7 @@ import zipimport
 from collections.abc import Iterable
 from glob import glob
 from sysconfig import get_path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, TypeVar
 
 from jaraco.text import yield_lines
 
@@ -88,6 +88,8 @@ __all__ = [
     'extract_wininst_cfg',
     'get_exe_prefixes',
 ]
+
+_T = TypeVar("_T")
 
 
 def is_64bit():
@@ -1786,13 +1788,14 @@ def _first_line_re():
     return re.compile(first_line_re.pattern.decode())
 
 
-def auto_chmod(func, arg, exc):
+# Must match shutil._OnExcCallback
+def auto_chmod(func: Callable[..., _T], arg: str, exc: BaseException) -> _T:
+    """shutils onexc callback to automatically call chmod for certain functions."""
+    # Only retry for scenarios known to have an issue
     if func in [os.unlink, os.remove] and os.name == 'nt':
         chmod(arg, stat.S_IWRITE)
         return func(arg)
-    et, ev, _ = sys.exc_info()
-    # TODO: This code doesn't make sense. What is it trying to do?
-    raise (ev[0], ev[1] + (" %s %s" % (func, arg)))  # pyright: ignore[reportOptionalSubscript, reportIndexIssue]
+    raise exc
 
 
 def update_dist_caches(dist_path, fix_zipimporter_caches):
@@ -2070,8 +2073,7 @@ class CommandSpec(list):
             return cls(param)
         if param is None:
             return cls.from_environment()
-        # AttributeError to keep backwards compatibility, this should really be a TypeError though
-        raise AttributeError(f"Argument has an unsupported type {type(param)}")
+        raise TypeError(f"Argument has an unsupported type {type(param)}")
 
     @classmethod
     def from_environment(cls):

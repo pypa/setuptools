@@ -1,3 +1,30 @@
+v74.0.0
+=======
+
+Features
+--------
+
+- Changed the type of error raised by ``setuptools.command.easy_install.CommandSpec.from_param`` on unsupported argument from `AttributeError` to `TypeError` -- by :user:`Avasam` (#4548)
+- Added detection of ARM64 variant of MSVC -- by :user:`saschanaz` (#4553)
+- Made ``setuptools.package_index.Credential`` a `typing.NamedTuple` -- by :user:`Avasam` (#4585)
+- Reraise error from ``setuptools.command.easy_install.auto_chmod`` instead of nonsensical ``TypeError: 'Exception' object is not subscriptable`` -- by :user:`Avasam` (#4593)
+- Fully typed all collection attributes in ``pkg_resources`` -- by :user:`Avasam` (#4598)
+- Automatically exclude ``.tox|.nox|.venv`` directories from ``sdist``. (#4603)
+
+
+Deprecations and Removals
+-------------------------
+
+- Removed the monkeypatching of distutils._msvccompiler. Now all compiler logic is consolidated in distutils. (#4600)
+- Synced with pypa/distutils@58fe058e4, including consolidating Visual Studio 2017 support (#4600, pypa/distutils#289), removal of deprecated legacy MSVC compiler modules (pypa/distutils#287), suppressing of errors when the home directory is missing (pypa/distutils#278), removal of wininst binaries (pypa/distutils#282). (#4606)
+
+
+Misc
+----
+
+- #4592
+
+
 v73.0.1
 =======
 

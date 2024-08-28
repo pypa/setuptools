@@ -606,16 +606,6 @@ class manifest_maker(sdist):
             log.debug("adding file referenced by config '%s'", rf)
         self.filelist.extend(referenced)
 
-    def prune_file_list(self):
-        build = self.get_finalized_command('build')
-        base_dir = self.distribution.get_fullname()
-        self.filelist.prune(build.build_base)
-        self.filelist.prune(base_dir)
-        sep = re.escape(os.sep)
-        self.filelist.exclude_pattern(
-            r'(^|' + sep + r')(RCS|CVS|\.svn)' + sep, is_regex=True
-        )
-
     def _safe_data_files(self, build_py):
         """
         The parent class implementation of this method
