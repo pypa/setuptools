@@ -104,23 +104,22 @@ def venv_python(tmp_path):
 
 
 @pytest.fixture(autouse=True)
-def _prepare(tmp_path, venv_python, monkeypatch, request):
+def _prepare(tmp_path, venv_python, monkeypatch):
     download_path = os.getenv("DOWNLOAD_PATH", str(tmp_path))
     os.makedirs(download_path, exist_ok=True)
 
     # Environment vars used for building some of the packages
     monkeypatch.setenv("USE_MYPYC", "1")
 
-    def _debug_info():
-        # Let's provide the maximum amount of information possible in the case
-        # it is necessary to debug the tests directly from the CI logs.
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print("Temporary directory:")
-        map(print, tmp_path.glob("*"))
-        print("Virtual environment:")
-        run([venv_python, "-m", "pip", "freeze"])
+    yield
 
-    request.addfinalizer(_debug_info)
+    # Let's provide the maximum amount of information possible in the case
+    # it is necessary to debug the tests directly from the CI logs.
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print("Temporary directory:")
+    map(print, tmp_path.glob("*"))
+    print("Virtual environment:")
+    run([venv_python, "-m", "pip", "freeze"])
 
 
 @pytest.mark.parametrize('package, version', EXAMPLES)
