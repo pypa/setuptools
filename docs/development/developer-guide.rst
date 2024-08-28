@@ -132,6 +132,30 @@ To refresh the dependencies, run the following command::
 
     $ tox -e vendor
 
+
+---------------------
+Compatibility Modules
+---------------------
+
+Setuptools organises its own internal polyfills, backports, version conditional
+imports and workarounds into a series of separated modules under the
+``setuptools.compat`` package. These modules provide compatibility layers or
+shims that ensure code runs smoothly across different Python versions.
+
+These modules are named to reflect the version of Python that requires the
+legacy behavior. For example, the module ``setuptools.compat.py310`` supports
+compatibility with Python 3.10 and earlier.
+This naming convention is beneficial because it signals when the code
+can be removed. When support for Python 3.10 is dropped (i.e., when
+``requires-python = ">=3.11"`` is added to ``pyproject.toml``),
+imports of the module ``py310`` will be easily identifiable as removable debt.
+
+Please note that these modules are implementation details of ``setuptools`` and
+not part of the public API. The naming convention is documented above as a
+guide for ``setuptools`` developers. There is no guarantee regarding the
+stability of these modules and they should not be used in 3rd-party projects.
+
+
 ----------------
 Type annotations
 ----------------
