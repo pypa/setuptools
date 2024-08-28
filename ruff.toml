@@ -17,7 +17,7 @@ extend-select = [
 	"I", # isort
 	"PGH", # pygrep-hooks (blanket-* rules)
 	"PYI", # flake8-pyi
-	"RUF100", # unused-noqa
+	"RUF10", # unused-noqa & redirected-noqa
 	"TRY", # tryceratops
 	"UP", # pyupgrade
 	"YTT", # flake8-2020
