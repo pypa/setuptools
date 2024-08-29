@@ -132,6 +132,29 @@ To refresh the dependencies, run the following command::
 
     $ tox -e vendor
 
+
+------------------------------------
+Code conventions and other practices
+------------------------------------
+
+Setuptools utilizes the `skeleton <https://github.com/jaraco/skeleton>`_
+framework as a foundation for sharing re-usable maintenance tasks
+across different projects in the ecosystem.
+
+This also means that the project adheres to the same coding conventions
+and other practices described in the `skeleton documentation
+<https://blog.jaraco.com/skeleton/>`_.
+
+Moreover, changes in the code base should be kept as compatible as possible
+to ``skeleton`` to avoid merge conflicts, or accidental regressions on
+periodical merges.
+
+Finally, the ``setuptools/_distutils`` directory should not be modified
+directly when contributing to the ``setuptools`` project.
+Instead, this directory is maintained as a separated project in
+https://github.com/pypa/distutils, and periodically merged into ``setuptools``.
+
+
 ----------------
 Type annotations
 ----------------
