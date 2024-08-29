@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 extensions = [
     'sphinx.ext.autodoc',
     'jaraco.packaging.sphinx',
@@ -93,6 +96,7 @@ link_files = {
 
 # Be strict about any broken references
 nitpicky = True
+nitpick_ignore: list[tuple[str, str]] = []
 
 # Include Python intersphinx mapping to prevent failures
 # jaraco/skeleton#51
@@ -104,31 +108,16 @@ intersphinx_mapping = {
 # Preserve authored syntax for defaults
 autodoc_preserve_defaults = True
 
-intersphinx_mapping.update({
-    'pip': ('https://pip.pypa.io/en/latest', None),
-    'build': ('https://build.pypa.io/en/latest', None),
-    'PyPUG': ('https://packaging.python.org/en/latest/', None),
-    'packaging': ('https://packaging.pypa.io/en/latest/', None),
-    'twine': ('https://twine.readthedocs.io/en/stable/', None),
-    'importlib-resources': (
-        'https://importlib-resources.readthedocs.io/en/latest',
-        None,
-    ),
-})
-
-# Add support for linking usernames
-github_url = 'https://github.com'
-github_repo_org = 'pypa'
-github_repo_name = 'setuptools'
-github_repo_slug = f'{github_repo_org}/{github_repo_name}'
-github_repo_url = f'{github_url}/{github_repo_slug}'
-github_sponsors_url = f'{github_url}/sponsors'
+# Add support for linking usernames, PyPI projects, Wikipedia pages
+github_url = 'https://github.com/'
 extlinks = {
-    'user': (f'{github_sponsors_url}/%s', '@%s'),
+    'user': (f'{github_url}%s', '@%s'),
     'pypi': ('https://pypi.org/project/%s', '%s'),
     'wiki': ('https://wikipedia.org/wiki/%s', '%s'),
 }
 extensions += ['sphinx.ext.extlinks']
+
+# local
 
 # Ref: https://github.com/python-attrs/attrs/pull/571/files\
 #      #diff-85987f48f1258d9ee486e3191495582dR82
@@ -163,7 +152,7 @@ extensions += ['sphinx_inline_tabs']
 # Support for distutils
 
 # Ref: https://stackoverflow.com/a/30624034/595220
-nitpick_ignore = [
+nitpick_ignore += [
     ('c:func', 'SHGetSpecialFolderPath'),  # ref to MS docs
     ('envvar', 'DIST_EXTRA_CONFIG'),  # undocumented
     ('envvar', 'DISTUTILS_DEBUG'),  # undocumented
@@ -245,3 +234,15 @@ favicons = [
     },
     # rel="apple-touch-icon" does not support SVG yet
 ]
+
+intersphinx_mapping.update({
+    'pip': ('https://pip.pypa.io/en/latest', None),
+    'build': ('https://build.pypa.io/en/latest', None),
+    'PyPUG': ('https://packaging.python.org/en/latest/', None),
+    'packaging': ('https://packaging.pypa.io/en/latest/', None),
+    'twine': ('https://twine.readthedocs.io/en/stable/', None),
+    'importlib-resources': (
+        'https://importlib-resources.readthedocs.io/en/latest',
+        None,
+    ),
+})
