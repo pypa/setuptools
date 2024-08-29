@@ -133,27 +133,26 @@ To refresh the dependencies, run the following command::
     $ tox -e vendor
 
 
----------------------
-Compatibility Modules
----------------------
+------------------------------------
+Code conventions and other practices
+------------------------------------
 
-Setuptools organises its own internal polyfills, backports, version conditional
-imports and workarounds into a series of separated modules under the
-``setuptools.compat`` package. These modules provide compatibility layers or
-shims that ensure code runs smoothly across different Python versions.
+Setuptools utilizes the `skeleton <https://github.com/jaraco/skeleton>`_
+framework as a foundation for sharing re-usable maintenance tasks
+across different projects in the ecosystem.
 
-These modules are named to reflect the version of Python that requires the
-legacy behavior. For example, the module ``setuptools.compat.py310`` supports
-compatibility with Python 3.10 and earlier.
-This naming convention is beneficial because it signals when the code
-can be removed. When support for Python 3.10 is dropped (i.e., when
-``requires-python = ">=3.11"`` is added to ``pyproject.toml``),
-imports of the module ``py310`` will be easily identifiable as removable debt.
+This also means that the project adheres to the same coding conventions
+and other practices described in the `skeleton documentation
+<https://blog.jaraco.com/skeleton/>`_.
 
-Please note that these modules are implementation details of ``setuptools`` and
-not part of the public API. The naming convention is documented above as a
-guide for ``setuptools`` developers. There is no guarantee regarding the
-stability of these modules and they should not be used in 3rd-party projects.
+Moreover, changes in the code base should be kept as compatible as possible
+to ``skeleton`` to avoid merge conflicts, or accidental regressions on
+periodical merges.
+
+Finally, the ``setuptools/_distutils`` directory should not be modified
+directly when contributing to the ``setuptools`` project.
+Instead, this directory is maintained as a separated project in
+https://github.com/pypa/distutils, and periodically merged into ``setuptools``.
 
 
 ----------------
