@@ -279,7 +279,7 @@ class bdist_wheel(Command):
 
         # Support legacy [wheel] section for setting universal
         wheel = self.distribution.get_option_dict("wheel")
-        if "universal" in wheel:
+        if "universal" in wheel:  # pragma: no cover
             # please don't define this in your global configs
             log.warn("The [wheel] section is deprecated. Use [bdist_wheel] instead.")
             val = wheel["universal"][1].strip()
