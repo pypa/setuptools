@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 extensions = [
     'sphinx.ext.autodoc',
     'jaraco.packaging.sphinx',
