@@ -3,7 +3,7 @@
 Contains MSVCCompiler, an implementation of the abstract CCompiler class
 for Microsoft Visual Studio 2015.
 
-Please ensure that you are using VS 2015 or later.
+This module requires VS 2015 or later.
 """
 
 # Written by Perry Stoll
