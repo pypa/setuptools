@@ -127,7 +127,7 @@ class Extension(_Extension):
     :keyword bool py_limited_api:
       opt-in flag for the usage of :doc:`Python's limited API <python:c-api/stable>`.
 
-    :raises setuptools.errors.PlatformError: if 'runtime_library_dirs' is
+    :raises setuptools.errors.PlatformError: if ``runtime_library_dirs`` is
       specified on Windows. (since v63)
     """
 

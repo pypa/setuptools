@@ -27,22 +27,41 @@ and all project metadata configuration in the ``pyproject.toml`` file:
    version = "0.42"
 
 To instruct setuptools to compile the ``foo.c`` file into the extension module
-``mylib.foo``, we need to add a ``setup.py`` file similar to the following:
+``mylib.foo``, we need to define an appropriate configuration in either
+``pyproject.toml`` [#pyproject.toml]_ or ``setup.py`` file ,
+similar to the following:
 
-.. code-block:: python
+.. tab:: pyproject.toml
 
-   from setuptools import Extension, setup
+    .. code-block:: toml
 
-   setup(
-       ext_modules=[
-           Extension(
-               name="mylib.foo",  # as it would be imported
-                                  # may include packages/namespaces separated by `.`
-
-               sources=["foo.c"], # all sources are compiled into a single binary file
-           ),
+       [tool.setuptools]
+       ext-modules = [
+         {name = "mylib.foo", sources = ["foo.c"]}
        ]
-   )
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+       from setuptools import Extension, setup
+
+       setup(
+           ext_modules=[
+               Extension(
+                   name="mylib.foo",
+                   sources=["foo.c"],
+               ),
+           ]
+       )
+
+The ``name`` value corresponds to how the extension module would be
+imported and may include packages/namespaces separated by ``.``.
+The ``sources`` value is a list of all source files that are compiled
+into a single binary file.
+Optionally any other parameter of :class:`setuptools.Extension` can be defined
+in the configuration file (but in the case of ``pyproject.toml`` they must be
+written using :wiki:`kebab-case` convention).
 
 .. seealso::
    You can find more information on the `Python docs about C/C++ extensions`_.
@@ -166,6 +185,16 @@ Extension API Reference
 =======================
 
 .. autoclass:: setuptools.Extension
+
+
+----
+
+.. rubric:: Notes
+
+.. [#pyproject.toml]
+   Declarative configuration of extension modules via ``pyproject.toml`` was
+   introduced recently and is still considered experimental.
+   Therefore it might change in future versions of ``setuptools``.
 
 
 .. _Python docs about C/C++ extensions: https://docs.python.org/3/extending/extending.html
