@@ -1,1 +1,0 @@
-Merge with pypa/distutils@3dcdf8567, removing the duplicate vendored copy of packaging.

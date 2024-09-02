@@ -1,3 +1,20 @@
+v74.1.0
+=======
+
+Features
+--------
+
+- Added support for defining ``ext-modules`` via ``pyproject.toml``
+  (**EXPERIMENTAL**, may change in future releases). (#4568)
+
+
+Bugfixes
+--------
+
+- Merge with pypa/distutils@3dcdf8567, removing the duplicate vendored copy of packaging. (#4622)
+- Restored ``setuptools.msvc.Environmentinfo`` as it is used externally. (#4625)
+
+
 v74.0.0
 =======
 
