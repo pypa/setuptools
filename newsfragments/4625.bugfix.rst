@@ -1,0 +1,1 @@
+Restored ``setuptools.msvc.Environmentinfo`` as it is used externally.
