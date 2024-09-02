@@ -1,3 +1,4 @@
+import platform
 import sys
 
 import pytest
@@ -67,3 +68,9 @@ class _IntegrationTestSpeedups:
             pytest.skip("running integration tests only")
         if not running_integration_tests and is_integration_test:
             pytest.skip("skipping integration tests")
+
+
+@pytest.fixture
+def windows_only():
+    if platform.system() != 'Windows':
+        pytest.skip("Windows only")

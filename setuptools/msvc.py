@@ -1,5 +1,8 @@
 """
 Environment info about Microsoft Compilers.
+
+>>> getfixture('windows_only')
+>>> ei = EnvironmentInfo('amd64')
 """
 
 from __future__ import annotations
