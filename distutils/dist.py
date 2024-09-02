@@ -14,6 +14,8 @@ import warnings
 from collections.abc import Iterable
 from email import message_from_file
 
+from packaging.utils import canonicalize_name, canonicalize_version
+
 from ._log import log
 from .debug import DEBUG
 from .errors import (
@@ -24,13 +26,6 @@ from .errors import (
 )
 from .fancy_getopt import FancyGetopt, translate_longopt
 from .util import check_environ, rfc822_escape, strtobool
-
-try:
-    from packaging.utils import canonicalize_name, canonicalize_version
-except ImportError as ex:  # pragma: no cover
-    raise ImportError(
-        "Distutils should be distributed alongside setuptools and its dependencies"
-    ) from ex
 
 # Regex to define acceptable Distutils command names.  This is not *quite*
 # the same as a Python NAME -- I don't allow leading underscores.  The fact
