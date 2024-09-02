@@ -14,16 +14,16 @@ import sys
 import warnings
 from subprocess import check_output
 
-from .errors import (
+from ...errors import (
     CCompilerError,
     CompileError,
     DistutilsExecError,
     DistutilsPlatformError,
 )
-from .file_util import write_file
-from .sysconfig import get_config_vars
-from .unixccompiler import UnixCCompiler
-from .version import LooseVersion, suppress_known_deprecation
+from ...file_util import write_file
+from ...sysconfig import get_config_vars
+from ...version import LooseVersion, suppress_known_deprecation
+from . import unix
 
 
 def get_msvcr():
@@ -37,7 +37,7 @@ _runtime_library_dirs_msg = (
 )
 
 
-class CygwinCCompiler(UnixCCompiler):
+class Compiler(unix.Compiler):
     """Handles the Cygwin port of the GNU C compiler to Windows."""
 
     compiler_type = 'cygwin'
@@ -197,8 +197,7 @@ class CygwinCCompiler(UnixCCompiler):
         if not debug:
             extra_preargs.append("-s")
 
-        UnixCCompiler.link(
-            self,
+        super().link(
             target_desc,
             objects,
             output_filename,
@@ -240,7 +239,7 @@ class CygwinCCompiler(UnixCCompiler):
 
 
 # the same as cygwin plus some additional parameters
-class Mingw32CCompiler(CygwinCCompiler):
+class MinGW32Compiler(Compiler):
     """Handles the Mingw32 port of the GNU C compiler to Windows."""
 
     compiler_type = 'mingw32'

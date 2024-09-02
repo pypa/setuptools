@@ -13,9 +13,9 @@ IBM z/OS XL C/C++
 
 import os
 
-from . import sysconfig
-from .errors import CompileError, DistutilsExecError
-from .unixccompiler import UnixCCompiler
+from ... import sysconfig
+from ...errors import CompileError, DistutilsExecError
+from . import unix
 
 _cc_args = {
     'ibm-openxl': [
@@ -101,7 +101,7 @@ _ld_args = {
 # Python on z/OS is built with no compiler specific options in it's CFLAGS.
 # But each compiler requires it's own specific options to build successfully,
 # though some of the options are common between them
-class zOSCCompiler(UnixCCompiler):
+class Compiler(unix.Compiler):
     src_extensions = ['.c', '.C', '.cc', '.cxx', '.cpp', '.m', '.s']
     _cpp_extensions = ['.cc', '.cpp', '.cxx', '.C']
     _asm_extensions = ['.s']

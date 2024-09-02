@@ -21,13 +21,14 @@ import re
 import shlex
 import sys
 
-from . import sysconfig
-from ._log import log
-from ._macos_compat import compiler_fixup
-from ._modified import newer
-from .ccompiler import CCompiler, gen_lib_options, gen_preprocess_options
-from .compat import consolidate_linker_args
-from .errors import CompileError, DistutilsExecError, LibError, LinkError
+from ... import sysconfig
+from ..._log import log
+from ..._macos_compat import compiler_fixup
+from ..._modified import newer
+from ...compat import consolidate_linker_args
+from ...errors import CompileError, DistutilsExecError, LibError, LinkError
+from . import base
+from .base import gen_lib_options, gen_preprocess_options
 
 # XXX Things not currently handled:
 #   * optimization/debug/warning flags; we just use whatever's in Python's
@@ -105,7 +106,7 @@ def _linker_params(linker_cmd, compiler_cmd):
     return linker_cmd[pivot:]
 
 
-class UnixCCompiler(CCompiler):
+class Compiler(base.Compiler):
     compiler_type = 'unix'
 
     # These are used by CCompiler in two places: the constructor sets
@@ -264,7 +265,7 @@ class UnixCCompiler(CCompiler):
                 # Select a linker based on context: linker_exe when
                 # building an executable or linker_so (with shared options)
                 # when building a shared library.
-                building_exe = target_desc == CCompiler.EXECUTABLE
+                building_exe = target_desc == base.Compiler.EXECUTABLE
                 linker = (
                     self.linker_exe
                     if building_exe

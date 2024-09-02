@@ -23,16 +23,17 @@ with contextlib.suppress(ImportError):
 
 from itertools import count
 
-from ._log import log
-from .ccompiler import CCompiler, gen_lib_options
-from .errors import (
+from ..._log import log
+from ...errors import (
     CompileError,
     DistutilsExecError,
     DistutilsPlatformError,
     LibError,
     LinkError,
 )
-from .util import get_host_platform, get_platform
+from ...util import get_host_platform, get_platform
+from . import base
+from .base import gen_lib_options
 
 
 def _find_vc2015():
@@ -226,7 +227,7 @@ def _get_vcvars_spec(host_platform, platform):
     return vc_hp if vc_hp == vc_plat else f'{vc_hp}_{vc_plat}'
 
 
-class MSVCCompiler(CCompiler):
+class Compiler(base.Compiler):
     """Concrete class that implements an interface to Microsoft Visual C++,
     as defined by the CCompiler abstract class."""
 
@@ -339,15 +340,15 @@ class MSVCCompiler(CCompiler):
         self.ldflags_static_debug = [*ldflags_debug]
 
         self._ldflags = {
-            (CCompiler.EXECUTABLE, None): self.ldflags_exe,
-            (CCompiler.EXECUTABLE, False): self.ldflags_exe,
-            (CCompiler.EXECUTABLE, True): self.ldflags_exe_debug,
-            (CCompiler.SHARED_OBJECT, None): self.ldflags_shared,
-            (CCompiler.SHARED_OBJECT, False): self.ldflags_shared,
-            (CCompiler.SHARED_OBJECT, True): self.ldflags_shared_debug,
-            (CCompiler.SHARED_LIBRARY, None): self.ldflags_static,
-            (CCompiler.SHARED_LIBRARY, False): self.ldflags_static,
-            (CCompiler.SHARED_LIBRARY, True): self.ldflags_static_debug,
+            (base.Compiler.EXECUTABLE, None): self.ldflags_exe,
+            (base.Compiler.EXECUTABLE, False): self.ldflags_exe,
+            (base.Compiler.EXECUTABLE, True): self.ldflags_exe_debug,
+            (base.Compiler.SHARED_OBJECT, None): self.ldflags_shared,
+            (base.Compiler.SHARED_OBJECT, False): self.ldflags_shared,
+            (base.Compiler.SHARED_OBJECT, True): self.ldflags_shared_debug,
+            (base.Compiler.SHARED_LIBRARY, None): self.ldflags_static,
+            (base.Compiler.SHARED_LIBRARY, False): self.ldflags_static,
+            (base.Compiler.SHARED_LIBRARY, True): self.ldflags_static_debug,
         }
 
         self.initialized = True
