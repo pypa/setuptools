@@ -391,7 +391,7 @@ class sdist(Command):
         build = self.get_finalized_command('build')
         base_dir = self.distribution.get_fullname()
 
-        self.filelist.exclude_pattern(None, prefix=build.build_base)
+        self.filelist.exclude_pattern(None, prefix=os.fspath(build.build_base))
         self.filelist.exclude_pattern(None, prefix=base_dir)
 
         if sys.platform == 'win32':
