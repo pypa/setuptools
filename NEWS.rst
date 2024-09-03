@@ -1,3 +1,12 @@
+v74.1.2
+=======
+
+Bugfixes
+--------
+
+- Fixed TypeError in sdist filelist processing by adding support for pathlib Paths for the build_base. (#4615)
+
+
 v74.1.1
 =======
 

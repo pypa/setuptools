@@ -1,1 +1,0 @@
-Fixed TypeError in sdist filelist processing by adding support for pathlib Paths for the build_base.
