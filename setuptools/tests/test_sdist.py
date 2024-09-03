@@ -823,6 +823,7 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert '.myfile~' in manifest
 
+    @pytest.mark.skipif("os.environ.get('SETUPTOOLS_USE_DISTUTILS') == 'stdlib'")
     def test_build_base_pathlib(self, source_dir):
         """
         Ensure if build_base is a pathlib.Path, the build still succeeds.
