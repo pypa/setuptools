@@ -16,11 +16,7 @@ extend-select = [
 	"YTT",
 ]
 ignore = [
-	# local
-	"PERF203",
-	"TRY003",
-
-  # https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
 	"E111",
 	"E114",
@@ -39,6 +35,8 @@ ignore = [
 	# local
 	"B028",
 	"B904",
+	"PERF203",
+	"TRY003",
 	"TRY400",
 ]
 
