@@ -1375,14 +1375,11 @@ class EnvironmentInfo:
         return [self.si.FSharpInstallDir]
 
     @property
-    def VCRuntimeRedist(self):
+    def VCRuntimeRedist(self) -> str | None:
         """
         Microsoft Visual C++ runtime redistributable dll.
 
-        Return
-        ------
-        str
-            path
+        Returns the first suitable path found or None.
         """
         vcruntime = 'vcruntime%d0.dll' % self.vc_ver
         arch_subdir = self.pi.target_dir(x64=True).strip('\\')
@@ -1406,11 +1403,11 @@ class EnvironmentInfo:
         )
 
         # vcruntime path
-        for prefix, crt_dir in itertools.product(prefixes, crt_dirs):
-            path = join(prefix, arch_subdir, crt_dir, vcruntime)
-            if isfile(path):
-                return path
-        return None
+        candidate_paths = (
+            join(prefix, arch_subdir, crt_dir, vcruntime)
+            for (prefix, crt_dir) in itertools.product(prefixes, crt_dirs)
+        )
+        return next(filter(isfile, candidate_paths), None)
 
     def return_env(self, exists=True):
         """
@@ -1469,7 +1466,7 @@ class EnvironmentInfo:
                 exists,
             ),
         )
-        if self.vs_ver >= 14 and isfile(self.VCRuntimeRedist):
+        if self.vs_ver >= 14 and self.VCRuntimeRedist:
             env['py_vcruntime_redist'] = self.VCRuntimeRedist
         return env
 
