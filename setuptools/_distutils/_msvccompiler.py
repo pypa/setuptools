@@ -159,7 +159,7 @@ def _get_vc_env(plat_spec):
             stderr=subprocess.STDOUT,
         ).decode('utf-16le', errors='replace')
     except subprocess.CalledProcessError as exc:
-        log.error(exc.output)
+        log.error(exc.output)  # noqa: RUF100, TRY400
         raise DistutilsPlatformError(f"Error executing {exc.cmd}")
 
     env = {
