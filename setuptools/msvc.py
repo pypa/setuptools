@@ -1469,7 +1469,7 @@ class EnvironmentInfo:
                 exists,
             ),
         )
-        if self.vs_ver >= 14 and isfile(self.VCRuntimeRedist):
+        if self.vs_ver >= 14 and self.VCRuntimeRedist:
             env['py_vcruntime_redist'] = self.VCRuntimeRedist
         return env
 
