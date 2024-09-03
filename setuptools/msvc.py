@@ -1375,14 +1375,11 @@ class EnvironmentInfo:
         return [self.si.FSharpInstallDir]
 
     @property
-    def VCRuntimeRedist(self):
+    def VCRuntimeRedist(self) -> str | None:
         """
         Microsoft Visual C++ runtime redistributable dll.
 
-        Return
-        ------
-        str
-            path
+        Returns the first suitable path found or None.
         """
         vcruntime = 'vcruntime%d0.dll' % self.vc_ver
         arch_subdir = self.pi.target_dir(x64=True).strip('\\')
