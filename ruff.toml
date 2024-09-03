@@ -39,6 +39,7 @@ ignore = [
 	# local
 	"B028",
 	"B904",
+	"TRY400",
 ]
 
 [format]
