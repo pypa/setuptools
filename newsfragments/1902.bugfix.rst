@@ -1,1 +1,0 @@
-Fixed TypeError in ``msvc.EnvironmentInfo.return_env`` when no runtime redistributables are installed.

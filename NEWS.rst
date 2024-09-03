@@ -1,3 +1,12 @@
+v74.1.1
+=======
+
+Bugfixes
+--------
+
+- Fixed TypeError in ``msvc.EnvironmentInfo.return_env`` when no runtime redistributables are installed. (#1902)
+
+
 v74.1.0
 =======
 
