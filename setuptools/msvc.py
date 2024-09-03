@@ -1406,11 +1406,11 @@ class EnvironmentInfo:
         )
 
         # vcruntime path
-        for prefix, crt_dir in itertools.product(prefixes, crt_dirs):
-            path = join(prefix, arch_subdir, crt_dir, vcruntime)
-            if isfile(path):
-                return path
-        return None
+        candidate_paths = (
+            join(prefix, arch_subdir, crt_dir, vcruntime)
+            for (prefix, crt_dir) in itertools.product(prefixes, crt_dirs)
+        )
+        return next(filter(isfile, candidate_paths), None)
 
     def return_env(self, exists=True):
         """
