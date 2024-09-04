@@ -828,6 +828,8 @@ class TestSdistTest:
         """
         Ensure if build_base is a pathlib.Path, the build still succeeds.
         """
+        if sys.implementation.name == "pypy":
+            raise ValueError(os.environ.get('SETUPTOOLS_USE_DISTUTILS'))
         dist = Distribution({
             **SETUP_ATTRS,
             "script_name": "setup.py",
