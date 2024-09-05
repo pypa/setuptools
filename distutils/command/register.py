@@ -10,6 +10,7 @@ import io
 import logging
 import urllib.parse
 import urllib.request
+import warnings
 from distutils._log import log
 
 from more_itertools import always_iterable
@@ -50,6 +51,7 @@ class register(PyPIRCCommand):
         self.distribution.command_options['check'] = check_options
 
     def run(self):
+        warnings.warn("register command is deprecated. Do not use.")
         self.finalize_options()
         self._set_config()
 

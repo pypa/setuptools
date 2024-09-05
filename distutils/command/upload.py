@@ -9,6 +9,7 @@ import hashlib
 import io
 import logging
 import os
+import warnings
 from base64 import standard_b64encode
 from urllib.parse import urlparse
 from urllib.request import HTTPError, Request, urlopen
@@ -63,6 +64,7 @@ class upload(PyPIRCCommand):
             self.password = self.distribution.password
 
     def run(self):
+        warnings.warn("upload command is deprecated. Do not use.")
         if not self.distribution.dist_files:
             msg = (
                 "Must create and upload files in one command "
