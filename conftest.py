@@ -79,8 +79,12 @@ def windows_only():
 @pytest.fixture(autouse=True)
 def check_setuptools_use_distutils():
     import os
+
     orig = os.environ.get('SETUPTOOLS_USE_DISTUTILS')
+    assert orig == 'stdlib'
     yield
     current = os.environ.get('SETUPTOOLS_USE_DISTUTILS')
     if current != orig:
-        raise RuntimeError(f"SETUPTOOLS_USE_DISTUTILS changed from {orig} to {current}.")
+        raise RuntimeError(
+            f"SETUPTOOLS_USE_DISTUTILS changed from {orig} to {current}."
+        )
