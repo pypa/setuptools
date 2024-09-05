@@ -13,7 +13,8 @@ import urllib.request
 from distutils._log import log
 from warnings import warn
 
-from .._itertools import always_iterable
+from more_itertools import always_iterable
+
 from ..core import PyPIRCCommand
 
 

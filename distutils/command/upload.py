@@ -13,7 +13,8 @@ from base64 import standard_b64encode
 from urllib.parse import urlparse
 from urllib.request import HTTPError, Request, urlopen
 
-from .._itertools import always_iterable
+from more_itertools import always_iterable
+
 from ..core import PyPIRCCommand
 from ..errors import DistutilsError, DistutilsOptionError
 from ..spawn import spawn
