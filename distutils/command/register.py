@@ -11,7 +11,6 @@ import logging
 import urllib.parse
 import urllib.request
 from distutils._log import log
-from warnings import warn
 
 from more_itertools import always_iterable
 
@@ -64,19 +63,6 @@ class register(PyPIRCCommand):
             self.classifiers()
         else:
             self.send_metadata()
-
-    def check_metadata(self):
-        """Deprecated API."""
-        warn(
-            "distutils.command.register.check_metadata is deprecated; "
-            "use the check command instead",
-            DeprecationWarning,
-        )
-        check = self.distribution.get_command_obj('check')
-        check.ensure_finalized()
-        check.strict = self.strict
-        check.restructuredtext = True
-        check.run()
 
     def _set_config(self):
         """Reads the configuration file and set attributes."""

@@ -4,7 +4,6 @@ import os
 import pathlib
 import shutil  # noqa: F401
 import tarfile
-import warnings
 import zipfile
 from distutils.archive_util import ARCHIVE_FORMATS
 from distutils.command.sdist import sdist, show_formats
@@ -20,7 +19,6 @@ import path
 import pytest
 from more_itertools import ilen
 
-from .compat.py38 import check_warnings
 from .unix_compat import grp, pwd, require_uid_0, require_unix_id
 
 SETUP_PY = """
@@ -274,14 +272,6 @@ class TestSDist(BasePyPIRCCommandTestCase):
         cmd.metadata_check = 0
         cmd.run()
         assert len(self.warnings(caplog.messages, 'warning: check: ')) == 0
-
-    def test_check_metadata_deprecated(self):
-        # makes sure make_metadata is deprecated
-        dist, cmd = self.get_cmd()
-        with check_warnings() as w:
-            warnings.simplefilter("always")
-            cmd.check_metadata()
-            assert len(w.warnings) == 1
 
     def test_show_formats(self, capsys):
         show_formats()
