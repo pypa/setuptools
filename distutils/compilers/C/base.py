@@ -16,15 +16,17 @@ from ..._log import log
 from ..._modified import newer_group
 from ...dir_util import mkpath
 from ...errors import (
-    CompileError,
     DistutilsModuleError,
     DistutilsPlatformError,
-    LinkError,
-    UnknownFileError,
 )
 from ...file_util import move_file
 from ...spawn import spawn
 from ...util import execute, is_mingw, split_quoted
+from .errors import (
+    CompileError,
+    LinkError,
+    UnknownFileType,
+)
 
 
 class Compiler:
@@ -989,7 +991,7 @@ int main (int argc, char **argv) {{
         try:
             new_ext = extensions[src.suffix]
         except LookupError:
-            raise UnknownFileError(f"unknown file type '{src.suffix}' (from '{src}')")
+            raise UnknownFileType(f"unknown file type '{src.suffix}' (from '{src}')")
         if strip_dir:
             base = pathlib.PurePath(base.name)
         return os.path.join(output_dir, base.with_suffix(new_ext))

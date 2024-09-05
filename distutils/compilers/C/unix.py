@@ -26,9 +26,14 @@ from ..._log import log
 from ..._macos_compat import compiler_fixup
 from ..._modified import newer
 from ...compat import consolidate_linker_args
-from ...errors import CompileError, DistutilsExecError, LibError, LinkError
+from ...errors import DistutilsExecError
 from . import base
 from .base import gen_lib_options, gen_preprocess_options
+from .errors import (
+    CompileError,
+    LibError,
+    LinkError,
+)
 
 # XXX Things not currently handled:
 #   * optimization/debug/warning flags; we just use whatever's in Python's

@@ -14,8 +14,9 @@ IBM z/OS XL C/C++
 import os
 
 from ... import sysconfig
-from ...errors import CompileError, DistutilsExecError
+from ...errors import DistutilsExecError
 from . import unix
+from .errors import CompileError
 
 _cc_args = {
     'ibm-openxl': [
