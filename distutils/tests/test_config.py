@@ -51,7 +51,7 @@ class BasePyPIRCCommandTestCase(support.TempdirManager):
     pass
 
 
-class PyPIRCCommandTestCase(BasePyPIRCCommandTestCase):
+class TestPyPIRCCommand(BasePyPIRCCommandTestCase):
     def test_server_registration(self):
         # This test makes sure PyPIRCCommand knows how to:
         # 1. handle several sections in .pypirc
