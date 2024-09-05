@@ -20,7 +20,7 @@ def mkpath(name, mode=0o777, verbose=True, dry_run=False):  # noqa: C901
     means the current directory, which of course exists), then do nothing.
     Raise DistutilsFileError if unable to create some directory along the way
     (eg. some sub-path exists, but is a file rather than a directory).
-    If 'verbose' is true, print a one-line summary of each mkdir to stdout.
+    If 'verbose' is true, log the directory created.
     Return the list of directories actually created.
 
     os.makedirs is not used because:
@@ -36,12 +36,11 @@ def mkpath(name, mode=0o777, verbose=True, dry_run=False):  # noqa: C901
     if not isinstance(name, str):
         raise DistutilsInternalError(f"mkpath: 'name' must be a string (got {name!r})")
 
-    # XXX what's the better way to handle verbosity? print as we create
-    # each directory in the path (the current behaviour), or only announce
-    # the creation of the whole path? (quite easy to do the latter since
-    # we're not using a recursive algorithm)
-
     name = os.path.normpath(name)
+
+    if verbose and not os.path.isdir(name):
+        log.info("creating %s", name)
+
     created_dirs = []
     if os.path.isdir(name) or name == '':
         return created_dirs
@@ -65,9 +64,6 @@ def mkpath(name, mode=0o777, verbose=True, dry_run=False):  # noqa: C901
 
         if abs_head in _path_created:
             continue
-
-        if verbose >= 1:
-            log.info("creating %s", head)
 
         if not dry_run:
             try:
