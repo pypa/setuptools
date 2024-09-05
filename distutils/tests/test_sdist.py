@@ -10,7 +10,6 @@ from distutils.command.sdist import sdist, show_formats
 from distutils.core import Distribution
 from distutils.errors import DistutilsOptionError
 from distutils.filelist import FileList
-from distutils.tests.test_config import BasePyPIRCCommandTestCase
 from os.path import join
 from textwrap import dedent
 
@@ -19,6 +18,7 @@ import path
 import pytest
 from more_itertools import ilen
 
+from . import support
 from .unix_compat import grp, pwd, require_uid_0, require_unix_id
 
 SETUP_PY = """
@@ -66,7 +66,7 @@ def clean_lines(filepath):
         yield from filter(None, map(str.strip, f))
 
 
-class TestSDist(BasePyPIRCCommandTestCase):
+class TestSDist(support.TempdirManager):
     def get_cmd(self, metadata=None):
         """Returns a cmd"""
         if metadata is None:
