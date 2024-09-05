@@ -7,6 +7,7 @@ import itertools
 import os
 import pathlib
 
+from . import file_util
 from ._log import log
 from .errors import DistutilsFileError, DistutilsInternalError
 
@@ -98,7 +99,7 @@ def create_tree(base_dir, files, mode=0o777, verbose=True, dry_run=False):
         mkpath(dir, mode, verbose=verbose, dry_run=dry_run)
 
 
-def copy_tree(  # noqa: C901
+def copy_tree(
     src,
     dst,
     preserve_mode=True,
@@ -127,8 +128,6 @@ def copy_tree(  # noqa: C901
     (the default), the destination of the symlink will be copied.
     'update' and 'verbose' are the same as for 'copy_file'.
     """
-    from distutils.file_util import copy_file
-
     if not dry_run and not os.path.isdir(src):
         raise DistutilsFileError(f"cannot copy tree '{src}': not a directory")
     try:
@@ -142,50 +141,69 @@ def copy_tree(  # noqa: C901
     if not dry_run:
         mkpath(dst, verbose=verbose)
 
-    outputs = []
+    copy_one = functools.partial(
+        _copy_one,
+        src=src,
+        dst=dst,
+        preserve_symlinks=preserve_symlinks,
+        verbose=verbose,
+        dry_run=dry_run,
+        preserve_mode=preserve_mode,
+        preserve_times=preserve_times,
+        update=update,
+    )
+    return list(itertools.chain.from_iterable(map(copy_one, names)))
 
-    for n in names:
-        src_name = os.path.join(src, n)
-        dst_name = os.path.join(dst, n)
 
-        if n.startswith('.nfs'):
-            # skip NFS rename files
-            continue
+def _copy_one(
+    name,
+    *,
+    src,
+    dst,
+    preserve_symlinks,
+    verbose,
+    dry_run,
+    preserve_mode,
+    preserve_times,
+    update,
+):
+    src_name = os.path.join(src, name)
+    dst_name = os.path.join(dst, name)
 
-        if preserve_symlinks and os.path.islink(src_name):
-            link_dest = os.readlink(src_name)
-            if verbose >= 1:
-                log.info("linking %s -> %s", dst_name, link_dest)
-            if not dry_run:
-                os.symlink(link_dest, dst_name)
-            outputs.append(dst_name)
+    if name.startswith('.nfs'):
+        # skip NFS rename files
+        return
 
-        elif os.path.isdir(src_name):
-            outputs.extend(
-                copy_tree(
-                    src_name,
-                    dst_name,
-                    preserve_mode,
-                    preserve_times,
-                    preserve_symlinks,
-                    update,
-                    verbose=verbose,
-                    dry_run=dry_run,
-                )
-            )
-        else:
-            copy_file(
-                src_name,
-                dst_name,
-                preserve_mode,
-                preserve_times,
-                update,
-                verbose=verbose,
-                dry_run=dry_run,
-            )
-            outputs.append(dst_name)
+    if preserve_symlinks and os.path.islink(src_name):
+        link_dest = os.readlink(src_name)
+        if verbose >= 1:
+            log.info("linking %s -> %s", dst_name, link_dest)
+        if not dry_run:
+            os.symlink(link_dest, dst_name)
+        yield dst_name
 
-    return outputs
+    elif os.path.isdir(src_name):
+        yield from copy_tree(
+            src_name,
+            dst_name,
+            preserve_mode,
+            preserve_times,
+            preserve_symlinks,
+            update,
+            verbose=verbose,
+            dry_run=dry_run,
+        )
+    else:
+        file_util.copy_file(
+            src_name,
+            dst_name,
+            preserve_mode,
+            preserve_times,
+            update,
+            verbose=verbose,
+            dry_run=dry_run,
+        )
+        yield dst_name
 
 
 def _build_cmdtuple(path, cmdtuples):
