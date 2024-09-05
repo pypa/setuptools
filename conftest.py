@@ -76,6 +76,20 @@ def windows_only():
         pytest.skip("Windows only")
 
 
+class FailOnWrite(dict):
+    def __setitem__(self, key, value):
+        super().__setitem__(key, value)
+        if key == 'SETUPTOOLS_USE_DISTUTILS':
+            raise ValueError(f"Attempt to set {key} to {value}")
+
+
+@pytest.fixture(autouse=True, scope="session")
+def protect_os_environ():
+    import os
+
+    os.environ = FailOnWrite(os.environ)
+
+
 @pytest.fixture(autouse=True)
 def check_setuptools_use_distutils():
     import os
