@@ -7,14 +7,6 @@ import sys
 import path
 import pytest
 
-collect_ignore = []
-
-
-if platform.system() != 'Windows':
-    collect_ignore.extend([
-        'distutils/msvc9compiler.py',
-    ])
-
 
 @pytest.fixture
 def save_env():
