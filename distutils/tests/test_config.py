@@ -1,6 +1,7 @@
 """Tests for distutils.pypirc.pypirc."""
 
 import os
+import pathlib
 from distutils.tests import support
 
 import pytest
@@ -91,12 +92,7 @@ class TestPyPIRCCommand(BasePyPIRCCommandTestCase):
         assert not os.path.exists(rc)
         cmd._store_pypirc('tarek', 'xxx')
         assert os.path.exists(rc)
-        f = open(rc)
-        try:
-            content = f.read()
-            assert content == WANTED
-        finally:
-            f.close()
+        assert pathlib.Path(rc).read_text(encoding='utf-8') == WANTED
 
     def test_config_interpolation(self):
         # using the % character in .pypirc should not raise an error (#20120)
