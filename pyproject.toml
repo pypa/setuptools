@@ -100,6 +100,12 @@ core = [
 
 	# pkg_resources
 	"platformdirs >= 2.6.2",
+
+	# for distutils
+	"jaraco.collections",
+	"jaraco.functools",
+	"packaging",
+	"more_itertools",
 ]
 
 check = [
