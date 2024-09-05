@@ -5,6 +5,7 @@ Bugfixes
 --------
 
 - Fixed TypeError in sdist filelist processing by adding support for pathlib Paths for the build_base. (#4615)
+- Removed degraded and deprecated ``test_integration`` (easy_install) from the test suite. (#4632)
 
 
 v74.1.1
