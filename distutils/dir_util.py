@@ -2,6 +2,7 @@
 
 Utility functions for manipulating directories and directory trees."""
 
+import functools
 import itertools
 import os
 import pathlib
@@ -14,7 +15,8 @@ from .errors import DistutilsFileError, DistutilsInternalError
 _path_created = set()
 
 
-def mkpath(name, mode=0o777, verbose=True, dry_run=False):
+@functools.singledispatch
+def mkpath(name: pathlib.Path, mode=0o777, verbose=True, dry_run=False):
     """Create a directory and any missing ancestor directories.
 
     If the directory already exists (or if 'name' is the empty string, which
@@ -26,12 +28,6 @@ def mkpath(name, mode=0o777, verbose=True, dry_run=False):
     """
 
     global _path_created
-
-    # Detect a common bug -- name is None
-    if not isinstance(name, str):
-        raise DistutilsInternalError(f"mkpath: 'name' must be a string (got {name!r})")
-
-    name = pathlib.Path(name)
 
     if str(name.absolute()) in _path_created:
         return
@@ -49,6 +45,19 @@ def mkpath(name, mode=0o777, verbose=True, dry_run=False):
         raise DistutilsFileError(f"could not create '{name}': {exc.args[-1]}")
 
     return list(map(str, missing))
+
+
+@mkpath.register
+def _(name: str, *args, **kwargs):
+    return mkpath(pathlib.Path(name), *args, **kwargs)
+
+
+@mkpath.register
+def _(name: None, *args, **kwargs):
+    """
+    Detect a common bug -- name is None.
+    """
+    raise DistutilsInternalError(f"mkpath: 'name' must be a string (got {name!r})")
 
 
 def create_tree(base_dir, files, mode=0o777, verbose=True, dry_run=False):
