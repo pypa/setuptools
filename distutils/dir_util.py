@@ -10,12 +10,39 @@ import pathlib
 from ._log import log
 from .errors import DistutilsFileError, DistutilsInternalError
 
-# cache for by mkpath() -- in addition to cheapening redundant calls,
-# eliminates redundant "creating /foo/bar/baz" messages in dry-run mode
-_path_created = set()
+
+class SkipRepeatAbsolutePaths(set):
+    """
+    Cache for mkpath.
+
+    In addition to cheapening redundant calls, eliminates redundant
+    "creating /foo/bar/baz" messages in dry-run mode.
+    """
+
+    def __init__(self):
+        SkipRepeatAbsolutePaths.instance = self
+
+    @classmethod
+    def clear(cls):
+        super(cls, cls.instance).clear()
+
+    def wrap(self, func):
+        @functools.wraps(func)
+        def wrapper(path, *args, **kwargs):
+            if path.absolute() in self:
+                return
+            self.add(path.absolute())
+            return func(path, *args, **kwargs)
+
+        return wrapper
+
+
+# Python 3.8 compatibility
+wrapper = SkipRepeatAbsolutePaths().wrap
 
 
 @functools.singledispatch
+@wrapper
 def mkpath(name: pathlib.Path, mode=0o777, verbose=True, dry_run=False):
     """Create a directory and any missing ancestor directories.
 
@@ -26,12 +53,6 @@ def mkpath(name: pathlib.Path, mode=0o777, verbose=True, dry_run=False):
     If 'verbose' is true, log the directory created.
     Return the list of directories actually created.
     """
-
-    global _path_created
-
-    if str(name.absolute()) in _path_created:
-        return
-
     if verbose and not name.is_dir():
         log.info("creating %s", name)
 
@@ -40,7 +61,6 @@ def mkpath(name: pathlib.Path, mode=0o777, verbose=True, dry_run=False):
 
     try:
         dry_run or name.mkdir(mode=mode, parents=True, exist_ok=True)
-        _path_created.add(name.absolute())
     except OSError as exc:
         raise DistutilsFileError(f"could not create '{name}': {exc.args[-1]}")
 
@@ -185,8 +205,6 @@ def remove_tree(directory, verbose=True, dry_run=False):
     Any errors are ignored (apart from being reported to stdout if 'verbose'
     is true).
     """
-    global _path_created
-
     if verbose >= 1:
         log.info("removing '%s' (and everything under it)", directory)
     if dry_run:
@@ -196,10 +214,8 @@ def remove_tree(directory, verbose=True, dry_run=False):
     for cmd in cmdtuples:
         try:
             cmd[0](cmd[1])
-            # remove dir from cache if it's already there
-            abspath = os.path.abspath(cmd[1])
-            if abspath in _path_created:
-                _path_created.remove(abspath)
+            # Clear the cache
+            SkipRepeatAbsolutePaths.clear()
         except OSError as exc:
             log.warning("error removing %s: %s", directory, exc)
 
