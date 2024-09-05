@@ -2,8 +2,9 @@
 
 Utility functions for manipulating directories and directory trees."""
 
-import errno
+import itertools
 import os
+import pathlib
 
 from ._log import log
 from .errors import DistutilsFileError, DistutilsInternalError
@@ -13,7 +14,7 @@ from .errors import DistutilsFileError, DistutilsInternalError
 _path_created = set()
 
 
-def mkpath(name, mode=0o777, verbose=True, dry_run=False):  # noqa: C901
+def mkpath(name, mode=0o777, verbose=True, dry_run=False):
     """Create a directory and any missing ancestor directories.
 
     If the directory already exists (or if 'name' is the empty string, which
@@ -22,12 +23,6 @@ def mkpath(name, mode=0o777, verbose=True, dry_run=False):  # noqa: C901
     (eg. some sub-path exists, but is a file rather than a directory).
     If 'verbose' is true, log the directory created.
     Return the list of directories actually created.
-
-    os.makedirs is not used because:
-
-    a) It's new to Python 1.5.2, and
-    b) it blows up if the directory already exists (in which case it should
-       silently succeed).
     """
 
     global _path_created
@@ -36,47 +31,24 @@ def mkpath(name, mode=0o777, verbose=True, dry_run=False):  # noqa: C901
     if not isinstance(name, str):
         raise DistutilsInternalError(f"mkpath: 'name' must be a string (got {name!r})")
 
-    name = os.path.normpath(name)
+    name = pathlib.Path(name)
 
-    if verbose and not os.path.isdir(name):
+    if str(name.absolute()) in _path_created:
+        return
+
+    if verbose and not name.is_dir():
         log.info("creating %s", name)
 
-    created_dirs = []
-    if os.path.isdir(name) or name == '':
-        return created_dirs
-    if os.path.abspath(name) in _path_created:
-        return created_dirs
+    ancestry = itertools.chain((name,), name.parents)
+    missing = (path for path in ancestry if not path.is_dir())
 
-    (head, tail) = os.path.split(name)
-    tails = [tail]  # stack of lone dirs to create
+    try:
+        dry_run or name.mkdir(mode=mode, parents=True, exist_ok=True)
+        _path_created.add(name.absolute())
+    except OSError as exc:
+        raise DistutilsFileError(f"could not create '{name}': {exc.args[-1]}")
 
-    while head and tail and not os.path.isdir(head):
-        (head, tail) = os.path.split(head)
-        tails.insert(0, tail)  # push next higher dir onto stack
-
-    # now 'head' contains the deepest directory that already exists
-    # (that is, the child of 'head' in 'name' is the highest directory
-    # that does *not* exist)
-    for d in tails:
-        # print "head = %s, d = %s: " % (head, d),
-        head = os.path.join(head, d)
-        abs_head = os.path.abspath(head)
-
-        if abs_head in _path_created:
-            continue
-
-        if not dry_run:
-            try:
-                os.mkdir(head, mode)
-            except OSError as exc:
-                if not (exc.errno == errno.EEXIST and os.path.isdir(head)):
-                    raise DistutilsFileError(
-                        f"could not create '{head}': {exc.args[-1]}"
-                    )
-            created_dirs.append(head)
-
-        _path_created.add(abs_head)
-    return created_dirs
+    return list(map(str, missing))
 
 
 def create_tree(base_dir, files, mode=0o777, verbose=True, dry_run=False):
