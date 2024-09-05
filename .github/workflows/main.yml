@@ -84,7 +84,7 @@ jobs:
       - name: Install tox
         run: python -m pip install tox
       - name: Run
-        run: tox -- -p no:xdist -v -k 'pyuri or novaclient'
+        run: tox -- -p no:xdist -v -k 'pyuri or novaclient' --runxfail
       - name: Create coverage report
         if: hashFiles('.coverage') != ''  # Rudimentary `file.exists()`
         run: pipx run coverage xml --ignore-errors
