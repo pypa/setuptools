@@ -6,13 +6,12 @@ import unittest.mock as mock
 from distutils import sysconfig
 from distutils.compat import consolidate_linker_args
 from distutils.errors import DistutilsPlatformError
+from distutils.tests import support
+from distutils.tests.compat.py39 import EnvironmentVarGuard
 from distutils.unixccompiler import UnixCCompiler
 from distutils.util import _clear_cached_macosx_ver
 
 import pytest
-
-from . import support
-from .compat.py39 import EnvironmentVarGuard
 
 
 @pytest.fixture(autouse=True)
