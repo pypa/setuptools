@@ -82,29 +82,6 @@ def temp_cwd(tmp_path):
         yield
 
 
-@pytest.fixture
-def pypirc(request, save_env, distutils_managed_tempdir):
-    from distutils.core import Distribution, PyPIRCCommand
-
-    self = request.instance
-    self.tmp_dir = self.mkdtemp()
-    os.environ['HOME'] = self.tmp_dir
-    os.environ['USERPROFILE'] = self.tmp_dir
-    self.rc = os.path.join(self.tmp_dir, '.pypirc')
-    self.dist = Distribution()
-
-    class command(PyPIRCCommand):
-        def __init__(self, dist):
-            super().__init__(dist)
-
-        def initialize_options(self):
-            pass
-
-        finalize_options = initialize_options
-
-    self._cmd = command
-
-
 # from pytest-dev/pytest#363
 @pytest.fixture(scope="session")
 def monkeysession(request):
