@@ -462,6 +462,9 @@ def _normalize_metadata(msg: Message) -> str:
     for extra in sorted(extras):
         msg["Provides-Extra"] = extra
 
+    # TODO: Handle lack of PEP 643 implementation in pypa/wheel?
+    del msg["Metadata-Version"]
+
     return msg.as_string()
 
 
