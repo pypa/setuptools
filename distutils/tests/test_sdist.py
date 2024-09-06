@@ -45,8 +45,9 @@ somecode%(sep)sdoc.txt
 
 
 @pytest.fixture(autouse=True)
-def project_dir(request, pypirc):
+def project_dir(request, distutils_managed_tempdir):
     self = request.instance
+    self.tmp_dir = self.mkdtemp()
     jaraco.path.build(
         {
             'somecode': {
