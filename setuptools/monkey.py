@@ -89,6 +89,19 @@ def patch_all():
             'distutils.command.build_ext'
         ].Extension = setuptools.extension.Extension
 
+    if hasattr(distutils.dist, '_ensure_list'):
+        from . import _static
+
+        ensure_list = distutils.dist._ensure_list
+
+        def _ensure_list_accept_static(value, fieldname):
+            if isinstance(value, _static.Static):
+                return value
+
+            return ensure_list(value, fieldname)
+
+        patch_func(_ensure_list_accept_static, distutils.dist, '_ensure_list')
+
 
 def _patch_distribution_metadata():
     from . import _core_metadata
