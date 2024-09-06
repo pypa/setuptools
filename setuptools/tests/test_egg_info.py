@@ -517,7 +517,7 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as fp:
             pkg_info_lines = fp.read().split('\n')
         assert 'Provides-Extra: foobar' in pkg_info_lines
-        assert 'Metadata-Version: 2.1' in pkg_info_lines
+        assert 'Metadata-Version: 2.2' in pkg_info_lines
 
     def test_doesnt_provides_extra(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
