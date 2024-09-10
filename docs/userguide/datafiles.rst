@@ -3,7 +3,7 @@ Data Files Support
 ====================
 
 Old packaging installation methods in the Python ecosystem have
-traditionally allowed the inclusion of "data files" (i.e. files beyond
+traditionally allowed the inclusion of "data files" (files beyond
 :ref:`the default set <manifest>` ), which are placed in a platform-specific
 location. However, the most common use case for data files distributed
 with a package is for use *by* the package, usually by including the
@@ -20,8 +20,8 @@ Configuration Options
 
 .. _include-package-data:
 
-include_package_data
---------------------
+1. ``include_package_data``
+---------------------------
 
 First, you can use the ``include_package_data`` keyword.
 For example, if the package tree looks like this::
@@ -102,8 +102,8 @@ your package, provided:
 
 .. _package-data:
 
-package_data
-------------
+2. ``package_data``
+-------------------
 
 By default, ``include_package_data`` considers **all** non ``.py`` files found inside
 the package directory (``src/mypkg`` in this case) as data files, and includes those that
@@ -272,8 +272,8 @@ we specify that ``data1.rst`` from ``mypkg1`` alone should be captured as well.
 
 .. _exclude-package-data:
 
-exclude_package_data
---------------------
+3. ``exclude_package_data``
+---------------------------
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included. For example,
