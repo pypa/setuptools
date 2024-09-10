@@ -272,7 +272,7 @@ class ConfigHandler(Generic[Target]):
     def parsers(self):
         """Metadata item name to parser function mapping."""
         raise NotImplementedError(
-            '{} must provide .parsers property'.format(self.__class__.__name__)
+            f'{self.__class__.__name__} must provide .parsers property'
         )
 
     def __setitem__(self, option_name, value) -> None:
@@ -483,24 +483,12 @@ class ConfigHandler(Generic[Target]):
         for section_name, section_options in self.sections.items():
             method_postfix = ''
             if section_name:  # [section.option] variant
-<<<<<<< HEAD
                 method_postfix = f"_{section_name}"
-||||||| parent of e98b9ffc4 (Enforce ruff/pyupgrade rule UP031)
-                method_postfix = '_%s' % section_name
-=======
-                method_postfix = '_{}'.format(section_name)
->>>>>>> e98b9ffc4 (Enforce ruff/pyupgrade rule UP031)
 
             section_parser_method: Callable | None = getattr(
                 self,
                 # Dots in section names are translated into dunderscores.
-<<<<<<< HEAD
                 f'parse_section{method_postfix}'.replace('.', '__'),
-||||||| parent of e98b9ffc4 (Enforce ruff/pyupgrade rule UP031)
-                ('parse_section%s' % method_postfix).replace('.', '__'),
-=======
-                ('parse_section{}'.format(method_postfix)).replace('.', '__'),
->>>>>>> e98b9ffc4 (Enforce ruff/pyupgrade rule UP031)
                 None,
             )
 

@@ -62,7 +62,7 @@ def unpack_archive(
         else:
             return
     else:
-        raise UnrecognizedFormat("Not a recognized archive type: {}".format(filename))
+        raise UnrecognizedFormat(f"Not a recognized archive type: {filename}")
 
 
 def unpack_directory(filename, extract_dir, progress_filter=default_filter) -> None:
@@ -71,7 +71,7 @@ def unpack_directory(filename, extract_dir, progress_filter=default_filter) -> N
     Raises ``UnrecognizedFormat`` if `filename` is not a directory
     """
     if not os.path.isdir(filename):
-        raise UnrecognizedFormat("{} is not a directory".format(filename))
+        raise UnrecognizedFormat(f"{filename} is not a directory")
 
     paths = {
         filename: ('', extract_dir),
@@ -101,7 +101,7 @@ def unpack_zipfile(filename, extract_dir, progress_filter=default_filter) -> Non
     """
 
     if not zipfile.is_zipfile(filename):
-        raise UnrecognizedFormat("{} is not a zip file".format(filename))
+        raise UnrecognizedFormat(f"{filename} is not a zip file")
 
     with zipfile.ZipFile(filename) as z:
         _unpack_zipfile_obj(z, extract_dir, progress_filter)
@@ -198,7 +198,7 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter) -> boo
         tarobj = tarfile.open(filename)
     except tarfile.TarError as e:
         raise UnrecognizedFormat(
-            "{} is not a compressed or uncompressed tar file".format(filename)
+            f"{filename} is not a compressed or uncompressed tar file"
         ) from e
 
     for member, final_dst in _iter_open_tar(

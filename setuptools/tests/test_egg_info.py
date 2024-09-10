@@ -259,13 +259,9 @@ class TestEggInfo:
             'setup.cfg': setup_config,
         })
 
-    mismatch_marker = "python_version<'{this_ver}'".format(
-        this_ver=sys.version_info.major,
-    )
+    mismatch_marker = f"python_version<'{sys.version_info[0]}'"
     # Alternate equivalent syntax.
-    mismatch_marker_alternate = 'python_version < "{this_ver}"'.format(
-        this_ver=sys.version_info.major,
-    )
+    mismatch_marker_alternate = f'python_version < "{sys.version_info[0]}"'
     invalid_marker = "<=>++"
 
     class RequiresTestHelper:

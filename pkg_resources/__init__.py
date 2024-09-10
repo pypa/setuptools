@@ -492,7 +492,7 @@ def compatible_platforms(provided: str | None, required: str | None) -> bool:
             provDarwin = darwinVersionString.match(provided)
             if provDarwin:
                 dversion = int(provDarwin.group(1))
-                macosversion = "{}.{}".format(reqMac.group(1), reqMac.group(2))
+                macosversion = f"{reqMac.group(1)}.{reqMac.group(2)}"
                 if (
                     dversion == 7
                     and macosversion >= "10.3"
@@ -1316,7 +1316,7 @@ class Environment:
                 for dist in other[project]:
                     self.add(dist)
         else:
-            raise TypeError("Can't add {!r} to environment".format(other))
+            raise TypeError(f"Can't add {other!r} to environment")
         return self
 
     def __add__(self, other: Distribution | Environment) -> Self:
@@ -1699,7 +1699,7 @@ class NullProvider:
         except UnicodeDecodeError as exc:
             # Include the path in the error message to simplify
             # troubleshooting, and without changing the exception type.
-            exc.reason += ' in {} file at path: {}'.format(name, path)
+            exc.reason += f' in {name} file at path: {path}'
             raise
 
     def get_metadata_lines(self, name: str) -> Iterator[str]:
@@ -2018,7 +2018,7 @@ class ZipProvider(EggProvider):
             return ''
         if fspath.startswith(self.zip_pre):
             return fspath[len(self.zip_pre) :]
-        raise AssertionError("{} is not a subpath of {}".format(fspath, self.zip_pre))
+        raise AssertionError(f"{fspath} is not a subpath of {self.zip_pre}")
 
     def _parts(self, zip_path):
         # Convert a zipfile subpath into an egg-relative path part list.
@@ -2026,7 +2026,7 @@ class ZipProvider(EggProvider):
         fspath = self.zip_pre + zip_path
         if fspath.startswith(self.egg_root + os.sep):
             return fspath[len(self.egg_root) + 1 :].split(os.sep)
-        raise AssertionError("{} is not a subpath of {}".format(fspath, self.egg_root))
+        raise AssertionError(f"{fspath} is not a subpath of {self.egg_root}")
 
     @property
     def zipinfo(self):
@@ -2729,7 +2729,7 @@ class EntryPoint:
         self.dist = dist
 
     def __str__(self) -> str:
-        s = "{} = {}".format(self.name, self.module_name)
+        s = f"{self.name} = {self.module_name}"
         if self.attrs:
             s += ':' + '.'.join(self.attrs)
         if self.extras:
@@ -2737,7 +2737,7 @@ class EntryPoint:
         return s
 
     def __repr__(self) -> str:
-        return "EntryPoint.parse({!r})".format(str(self))
+        return f"EntryPoint.parse({str(self)!r})"
 
     @overload
     def load(
@@ -3049,9 +3049,7 @@ class Distribution:
             version = self._get_version()
             if version is None:
                 path = self._get_metadata_path_for_display(self.PKG_INFO)
-                msg = ("Missing 'Version:' header and/or {} file at path: {}").format(
-                    self.PKG_INFO, path
-                )
+                msg = (f"Missing 'Version:' header and/or {self.PKG_INFO} file at path: {path}")
                 raise ValueError(msg, self) from e
 
             return version
@@ -3108,7 +3106,7 @@ class Distribution:
                 deps.extend(dm[safe_extra(ext)])
             except KeyError as e:
                 raise UnknownExtra(
-                    "{} has no such extra feature {!r}".format(self, ext)
+                    f"{self} has no such extra feature {ext!r}"
                 ) from e
         return deps
 
@@ -3150,11 +3148,7 @@ class Distribution:
 
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""
-        filename = "{}-{}-py{}".format(
-            to_filename(self.project_name),
-            to_filename(self.version),
-            self.py_version or PY_MAJOR,
-        )
+        filename = f"{to_filename(self.project_name)}-{to_filename(self.version)}-py{self.py_version or PY_MAJOR}"
 
         if self.platform:
             filename += '-' + self.platform
@@ -3162,7 +3156,7 @@ class Distribution:
 
     def __repr__(self) -> str:
         if self.location:
-            return "{} ({})".format(self, self.location)
+            return f"{self} ({self.location})"
         else:
             return str(self)
 
@@ -3172,7 +3166,7 @@ class Distribution:
         except ValueError:
             version = None
         version = version or "[unknown version]"
-        return "{} {}".format(self.project_name, version)
+        return f"{self.project_name} {version}"
 
     def __getattr__(self, attr: str):
         """Delegate all unrecognized public attributes to .metadata provider"""
@@ -3200,9 +3194,9 @@ class Distribution:
     def as_requirement(self):
         """Return a ``Requirement`` that matches this distribution exactly"""
         if isinstance(self.parsed_version, packaging.version.Version):
-            spec = "{}=={}".format(self.project_name, self.parsed_version)
+            spec = f"{self.project_name}=={self.parsed_version}"
         else:
-            spec = "{}==={}".format(self.project_name, self.parsed_version)
+            spec = f"{self.project_name}==={self.parsed_version}"
 
         return Requirement.parse(spec)
 
@@ -3210,7 +3204,7 @@ class Distribution:
         """Return the `name` entry point of `group` or raise ImportError"""
         ep = self.get_entry_info(group, name)
         if ep is None:
-            raise ImportError("Entry point {!r} not found".format((group, name)))
+            raise ImportError(f"Entry point {(group, name)!r} not found")
         return ep.load()
 
     @overload
@@ -3327,8 +3321,8 @@ class Distribution:
             ):
                 continue
             issue_warning(
-                "Module {} was already imported from {}, but {} is being added"
-                " to sys.path".format(modname, fn, self.location),
+                f"Module {modname} was already imported from {fn}, but {self.location} is being added"
+                " to sys.path",
             )
 
     def has_version(self) -> bool:
@@ -3512,7 +3506,7 @@ class Requirement(packaging.requirements.Requirement):
         return self.__hash
 
     def __repr__(self) -> str:
-        return "Requirement.parse({!r})".format(str(self))
+        return f"Requirement.parse({str(self)!r})"
 
     @staticmethod
     def parse(s: str | Iterable[str]) -> Requirement:

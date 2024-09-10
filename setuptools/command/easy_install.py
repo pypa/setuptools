@@ -148,7 +148,7 @@ class easy_install(Command):
             None,
             "Don't load find-links defined in packages being installed",
         ),
-        ('user', None, "install in user site-package '{}'".format(site.USER_SITE)),
+        ('user', None, f"install in user site-package '{site.USER_SITE}'"),
     ]
     boolean_options = [
         'zip-ok',
@@ -446,7 +446,7 @@ class easy_install(Command):
                 self.execute(
                     file_util.write_file,
                     (self.record, outputs),
-                    "writing list of installed files to '{}'".format(self.record),
+                    f"writing list of installed files to '{self.record}'",
                 )
             self.warn_deprecated_options()
         finally:
@@ -461,7 +461,7 @@ class easy_install(Command):
             pid = os.getpid()
         except Exception:
             pid = random.randint(0, sys.maxsize)
-        return os.path.join(self.install_dir, "test-easy-install-{}".format(pid))
+        return os.path.join(self.install_dir, f"test-easy-install-{pid}")
 
     def warn_deprecated_options(self) -> None:
         pass
@@ -649,8 +649,8 @@ class easy_install(Command):
     def not_editable(self, spec) -> None:
         if self.editable:
             raise DistutilsArgError(
-                "Invalid argument {!r}: you can't use filenames or URLs "
-                "with --editable (except via the --find-links option).".format(spec)
+                f"Invalid argument {spec!r}: you can't use filenames or URLs "
+                "with --editable (except via the --find-links option)."
             )
 
     def check_editable(self, spec) -> None:
@@ -659,9 +659,7 @@ class easy_install(Command):
 
         if os.path.exists(os.path.join(self.build_directory, spec.key)):
             raise DistutilsArgError(
-                "{!r} already exists in {}; can't do a checkout there".format(
-                    spec.key, self.build_directory
-                )
+                f"{spec.key!r} already exists in {self.build_directory}; can't do a checkout there"
             )
 
     @contextlib.contextmanager
@@ -699,7 +697,7 @@ class easy_install(Command):
                 self.local_index,
             )
             if dist is None:
-                msg = "Could not find suitable distribution for {!r}".format(spec)
+                msg = f"Could not find suitable distribution for {spec!r}"
                 if self.always_copy:
                     msg += " (--always-copy skips system and development eggs)"
                 raise DistutilsError(msg)
@@ -918,15 +916,11 @@ class easy_install(Command):
             setups = glob(os.path.join(setup_base, '*', 'setup.py'))
             if not setups:
                 raise DistutilsError(
-                    "Couldn't find a setup script in {}".format(
-                        os.path.abspath(dist_filename)
-                    )
+                    f"Couldn't find a setup script in {os.path.abspath(dist_filename)}"
                 )
             if len(setups) > 1:
                 raise DistutilsError(
-                    "Multiple setup scripts in {}".format(
-                        os.path.abspath(dist_filename)
-                    )
+                    f"Multiple setup scripts in {os.path.abspath(dist_filename)}"
                 )
             setup_script = setups[0]
 
@@ -1004,7 +998,7 @@ class easy_install(Command):
         cfg = extract_wininst_cfg(dist_filename)
         if cfg is None:
             raise DistutilsError(
-                "{} is not a valid distutils Windows .exe".format(dist_filename)
+                f"{dist_filename} is not a valid distutils Windows .exe"
             )
         # Create a dummy distribution object until we build the real distro
         dist = Distribution(
@@ -1118,9 +1112,7 @@ class easy_install(Command):
             self.execute(
                 wheel.install_as_egg,
                 (destination,),
-                ("Installing {} to {}").format(
-                    os.path.basename(wheel_path), os.path.dirname(destination)
-                ),
+                (f"Installing {os.path.basename(wheel_path)} to {os.path.dirname(destination)}"),
             )
         finally:
             update_dist_caches(destination, fix_zipimporter_caches=False)
@@ -1196,7 +1188,7 @@ class easy_install(Command):
         try:
             run_setup(setup_script, args)
         except SystemExit as v:
-            raise DistutilsError("Setup script exited with {}".format(v.args[0])) from v
+            raise DistutilsError(f"Setup script exited with {v.args[0]}") from v
 
     def build_and_install(self, setup_script, setup_base):
         args = ['bdist_egg', '--dist-dir']
@@ -1379,7 +1371,7 @@ class easy_install(Command):
         home = convert_path(os.path.expanduser("~"))
         for path in only_strs(self.config_vars.values()):
             if path.startswith(home) and not os.path.isdir(path):
-                self.debug_print("os.makedirs('{}', 0o700)".format(path))
+                self.debug_print(f"os.makedirs('{path}', 0o700)")
                 os.makedirs(path, 0o700)
 
     INSTALL_SCHEMES = dict(
@@ -1604,7 +1596,7 @@ def get_exe_prefixes(exe_filename):
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\', '/')
                     if not pth.startswith('import'):
-                        prefixes.append((('{}/{}/'.format(parts[0], pth)), ''))
+                        prefixes.append(((f'{parts[0]}/{pth}/'), ''))
     finally:
         z.close()
     prefixes = [(x.lower(), y) for x, y in prefixes]
@@ -2310,7 +2302,7 @@ def get_win_launcher(type):
 
     Returns the executable as a byte string.
     """
-    launcher_fn = '{}.exe'.format(type)
+    launcher_fn = f'{type}.exe'
     if is_64bit():
         if get_platform() == "win-arm64":
             launcher_fn = launcher_fn.replace(".", "-arm64.")

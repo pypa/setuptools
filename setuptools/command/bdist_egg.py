@@ -264,7 +264,7 @@ class bdist_egg(Command):
                     m = re.match(pattern, name)
                     path_new = os.path.join(base, os.pardir, m.group('name') + '.pyc')
                     log.info(
-                        "Renaming file from [{}] to [{}]".format(path_old, path_new)
+                        f"Renaming file from [{path_old}] to [{path_new}]"
                     )
                     try:
                         os.remove(path_new)

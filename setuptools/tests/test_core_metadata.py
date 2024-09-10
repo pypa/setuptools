@@ -311,7 +311,7 @@ def test_maintainer_author(name, attrs, tmpdir):
             for line in pkg_lines:
                 assert not line.startswith(fkey + ':')
         else:
-            line = '{}: {}'.format(fkey, val)
+            line = f'{fkey}: {val}'
             assert line in pkg_lines_set
 
 
