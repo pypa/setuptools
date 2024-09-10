@@ -2,11 +2,12 @@
 Data Files Support
 ====================
 
-Old packaging installation methods in the Python ecosystem
-have traditionally allowed installation of "data files", which
-are placed in a platform-specific location.  However, the most common use case
-for data files distributed with a package is for use *by* the package, usually
-by including the data files **inside the package directory**.
+Old packaging installation methods in the Python ecosystem have
+traditionally allowed the inclusion of "data files" (i.e. files beyond
+:ref:`the default set <manifest>` ), which are placed in a platform-specific
+location. However, the most common use case for data files distributed
+with a package is for use *by* the package, usually by including the
+data files **inside the package directory**.
 
 ``Setuptools`` focuses on this most common type of data files and offers three ways
 of specifying which files should be included in your packages, as described in
