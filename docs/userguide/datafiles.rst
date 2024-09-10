@@ -24,6 +24,7 @@ Configuration Options
 ---------------------------
 
 First, you can use the ``include_package_data`` keyword.
+
 For example, if the package tree looks like this::
 
     project_root_directory
@@ -36,7 +37,25 @@ For example, if the package tree looks like this::
             ├── data1.txt
             └── data2.txt
 
-and you supply this configuration:
+When at least one of the following conditions are met:
+
+1. These files are included via the :ref:`MANIFEST.in <Using MANIFEST.in>` file,
+   like so::
+
+        include src/mypkg/*.txt
+        include src/mypkg/*.rst
+
+2. They are being tracked by a revision control system such as Git, Mercurial
+   or SVN, **AND** you have configured an appropriate plugin such as
+   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
+   (See the section below on :ref:`Adding Support for Revision
+   Control Systems` for information on how to configure such plugins.)
+
+then all the ``.txt`` and ``.rst`` files will be included into
+the source distribution.
+
+To further include them into the ``wheels``, you can need to use the
+``include_package_data`` keyword:
 
 .. tab:: pyproject.toml
 
@@ -44,8 +63,8 @@ and you supply this configuration:
 
         [tool.setuptools]
         # ...
-        # By default, include-package-data is true in pyproject.toml, so you do
-        # NOT have to specify this line.
+        # By default, include-package-data is true in pyproject.toml,
+        # so you do NOT have to specify this line.
         include-package-data = true
 
         [tool.setuptools.packages.find]
@@ -77,27 +96,12 @@ and you supply this configuration:
         include_package_data=True
     )
 
-then all the ``.txt`` and ``.rst`` files will be automatically installed with
-your package, provided:
-
-1. These files are included via the :ref:`MANIFEST.in <Using MANIFEST.in>` file,
-   like so::
-
-        include src/mypkg/*.txt
-        include src/mypkg/*.rst
-
-2. OR, they are being tracked by a revision control system such as Git, Mercurial
-   or SVN, and you have configured an appropriate plugin such as
-   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
-   (See the section below on :ref:`Adding Support for Revision
-   Control Systems` for information on how to write such plugins.)
-
 .. note::
    .. versionadded:: v61.0.0
       The default value for ``tool.setuptools.include-package-data`` is ``true``
       when projects are configured via ``pyproject.toml``.
       This behaviour differs from ``setup.cfg`` and ``setup.py``
-      (where ``include_package_data=False`` by default), which was not changed
+      (where ``include_package_data`` is ``False`` by default), which was not changed
       to ensure backwards compatibility with existing projects.
 
 .. _package-data:
