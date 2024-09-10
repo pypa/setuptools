@@ -55,7 +55,7 @@ class alias(option_base):
                 print("setup.py alias", format_alias(alias, aliases))
                 return
             else:
-                print("No alias definition found for %r" % alias)
+                print("No alias definition found for {!r}".format(alias))
                 return
         else:
             alias = self.args[0]
@@ -73,5 +73,5 @@ def format_alias(name, aliases):
     elif source == config_file('local'):
         source = ''
     else:
-        source = '--filename=%r' % source
+        source = '--filename={!r}'.format(source)
     return source + name + ' ' + command

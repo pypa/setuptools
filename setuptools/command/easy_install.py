@@ -148,7 +148,7 @@ class easy_install(Command):
             None,
             "Don't load find-links defined in packages being installed",
         ),
-        ('user', None, "install in user site-package '%s'" % site.USER_SITE),
+        ('user', None, "install in user site-package '{}'".format(site.USER_SITE)),
     ]
     boolean_options = [
         'zip-ok',
@@ -446,7 +446,7 @@ class easy_install(Command):
                 self.execute(
                     file_util.write_file,
                     (self.record, outputs),
-                    "writing list of installed files to '%s'" % self.record,
+                    "writing list of installed files to '{}'".format(self.record),
                 )
             self.warn_deprecated_options()
         finally:
@@ -461,7 +461,7 @@ class easy_install(Command):
             pid = os.getpid()
         except Exception:
             pid = random.randint(0, sys.maxsize)
-        return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
+        return os.path.join(self.install_dir, "test-easy-install-{}".format(pid))
 
     def warn_deprecated_options(self) -> None:
         pass
@@ -649,8 +649,8 @@ class easy_install(Command):
     def not_editable(self, spec) -> None:
         if self.editable:
             raise DistutilsArgError(
-                "Invalid argument %r: you can't use filenames or URLs "
-                "with --editable (except via the --find-links option)." % (spec,)
+                "Invalid argument {!r}: you can't use filenames or URLs "
+                "with --editable (except via the --find-links option).".format(spec)
             )
 
     def check_editable(self, spec) -> None:
@@ -659,8 +659,7 @@ class easy_install(Command):
 
         if os.path.exists(os.path.join(self.build_directory, spec.key)):
             raise DistutilsArgError(
-                "%r already exists in %s; can't do a checkout there"
-                % (spec.key, self.build_directory)
+                "{!r} already exists in {}; can't do a checkout there".format(spec.key, self.build_directory)
             )
 
     @contextlib.contextmanager
@@ -698,7 +697,7 @@ class easy_install(Command):
                 self.local_index,
             )
             if dist is None:
-                msg = "Could not find suitable distribution for %r" % spec
+                msg = "Could not find suitable distribution for {!r}".format(spec)
                 if self.always_copy:
                     msg += " (--always-copy skips system and development eggs)"
                 raise DistutilsError(msg)
@@ -917,12 +916,11 @@ class easy_install(Command):
             setups = glob(os.path.join(setup_base, '*', 'setup.py'))
             if not setups:
                 raise DistutilsError(
-                    "Couldn't find a setup script in %s"
-                    % os.path.abspath(dist_filename)
+                    "Couldn't find a setup script in {}".format(os.path.abspath(dist_filename))
                 )
             if len(setups) > 1:
                 raise DistutilsError(
-                    "Multiple setup scripts in %s" % os.path.abspath(dist_filename)
+                    "Multiple setup scripts in {}".format(os.path.abspath(dist_filename))
                 )
             setup_script = setups[0]
 
@@ -1000,7 +998,7 @@ class easy_install(Command):
         cfg = extract_wininst_cfg(dist_filename)
         if cfg is None:
             raise DistutilsError(
-                "%s is not a valid distutils Windows .exe" % dist_filename
+                "{} is not a valid distutils Windows .exe".format(dist_filename)
             )
         # Create a dummy distribution object until we build the real distro
         dist = Distribution(
@@ -1026,7 +1024,7 @@ class easy_install(Command):
                 f.write('Metadata-Version: 1.0\n')
                 for k, v in cfg.items('metadata'):
                     if k != 'target_version':
-                        f.write('%s: %s\n' % (k.replace('_', '-').title(), v))
+                        f.write('{}: {}\n'.format(k.replace('_', '-').title(), v))
         script_dir = os.path.join(_egg_info, 'scripts')
         # delete entry-point scripts to avoid duping
         self.delete_blockers([
@@ -1114,8 +1112,7 @@ class easy_install(Command):
             self.execute(
                 wheel.install_as_egg,
                 (destination,),
-                ("Installing %s to %s")
-                % (os.path.basename(wheel_path), os.path.dirname(destination)),
+                ("Installing {} to {}").format(os.path.basename(wheel_path), os.path.dirname(destination)),
             )
         finally:
             update_dist_caches(destination, fix_zipimporter_caches=False)
@@ -1191,7 +1188,7 @@ class easy_install(Command):
         try:
             run_setup(setup_script, args)
         except SystemExit as v:
-            raise DistutilsError("Setup script exited with %s" % (v.args[0],)) from v
+            raise DistutilsError("Setup script exited with {}".format(v.args[0])) from v
 
     def build_and_install(self, setup_script, setup_base):
         args = ['bdist_egg', '--dist-dir']
@@ -1374,7 +1371,7 @@ class easy_install(Command):
         home = convert_path(os.path.expanduser("~"))
         for path in only_strs(self.config_vars.values()):
             if path.startswith(home) and not os.path.isdir(path):
-                self.debug_print("os.makedirs('%s', 0o700)" % path)
+                self.debug_print("os.makedirs('{}', 0o700)".format(path))
                 os.makedirs(path, 0o700)
 
     INSTALL_SCHEMES = dict(
@@ -1599,7 +1596,7 @@ def get_exe_prefixes(exe_filename):
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\', '/')
                     if not pth.startswith('import'):
-                        prefixes.append((('%s/%s/' % (parts[0], pth)), ''))
+                        prefixes.append((('{}/{}/'.format(parts[0], pth)), ''))
     finally:
         z.close()
     prefixes = [(x.lower(), y) for x, y in prefixes]
@@ -2305,7 +2302,7 @@ def get_win_launcher(type):
 
     Returns the executable as a byte string.
     """
-    launcher_fn = '%s.exe' % type
+    launcher_fn = '{}.exe'.format(type)
     if is_64bit():
         if get_platform() == "win-arm64":
             launcher_fn = launcher_fn.replace(".", "-arm64.")

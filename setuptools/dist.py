@@ -85,7 +85,7 @@ def check_importable(dist, attr, value):
         assert not ep.extras
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            "%r must be importable 'module:attrs' string (got %r)" % (attr, value)
+            "{!r} must be importable 'module:attrs' string (got {!r})".format(attr, value)
         ) from e
 
 
@@ -111,7 +111,7 @@ def check_nsp(dist, attr, value):
         if not dist.has_contents_for(nsp):
             raise DistutilsSetupError(
                 "Distribution contains no modules or packages for "
-                + "namespace package %r" % nsp
+                + "namespace package {!r}".format(nsp)
             )
         parent, _sep, _child = nsp.rpartition('.')
         if parent and parent not in ns_packages:
@@ -588,10 +588,10 @@ class Distribution(_Distribution):
             option_dict = self.get_option_dict(command_name)
 
         if DEBUG:
-            self.announce("  setting options for '%s' command:" % command_name)
+            self.announce("  setting options for '{}' command:".format(command_name))
         for option, (source, value) in option_dict.items():
             if DEBUG:
-                self.announce("    %s = %s (from %s)" % (option, value, source))
+                self.announce("    {} = {} (from {})".format(option, value, source))
             try:
                 bool_opts = [translate_longopt(o) for o in command_obj.boolean_options]
             except AttributeError:
@@ -611,8 +611,7 @@ class Distribution(_Distribution):
                     setattr(command_obj, option, value)
                 else:
                     raise DistutilsOptionError(
-                        "error in %s: command '%s' has no such option '%s'"
-                        % (source, command_name, option)
+                        "error in {}: command '{}' has no such option '{}'".format(source, command_name, option)
                     )
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
@@ -818,7 +817,7 @@ class Distribution(_Distribution):
         try:
             old = getattr(self, name)
         except AttributeError as e:
-            raise DistutilsSetupError("%s: No such distribution setting" % name) from e
+            raise DistutilsSetupError(f"{name}: No such distribution setting") from e
         if old is not None and not isinstance(old, _sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
@@ -836,7 +835,7 @@ class Distribution(_Distribution):
         try:
             old = getattr(self, name)
         except AttributeError as e:
-            raise DistutilsSetupError("%s: No such distribution setting" % name) from e
+            raise DistutilsSetupError("{}: No such distribution setting".format(name)) from e
         if old is None:
             setattr(self, name, value)
         elif not isinstance(old, _sequence):

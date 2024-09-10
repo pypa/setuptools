@@ -207,7 +207,7 @@ class sdist(orig.sdist):
             try:
                 line = bytes_line.decode('UTF-8')
             except UnicodeDecodeError:
-                log.warn("%r not UTF-8 decodable -- skipping" % line)
+                log.warn("{!r} not UTF-8 decodable -- skipping".format(line))
                 continue
             # ignore comments and blank lines
             line = line.strip()

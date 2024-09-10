@@ -263,7 +263,7 @@ class bdist_egg(Command):
                     pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\.pyc'
                     m = re.match(pattern, name)
                     path_new = os.path.join(base, os.pardir, m.group('name') + '.pyc')
-                    log.info("Renaming file from [%s] to [%s]" % (path_old, path_new))
+                    log.info("Renaming file from [{}] to [{}]".format(path_old, path_new))
                     try:
                         os.remove(path_new)
                     except OSError:

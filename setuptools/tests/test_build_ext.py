@@ -290,4 +290,4 @@ def test_build_ext_config_handling(tmpdir_cwd):
         cmd=['build'],
         data_stream=(0, 2),
     )
-    assert code == 0, '\nSTDOUT:\n%s\nSTDERR:\n%s' % output
+    assert code == 0, '\nSTDOUT:\n{}\nSTDERR:\n{}'.format(*output)

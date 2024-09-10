@@ -814,7 +814,7 @@ class TestSetupRequires:
                     # Ignored (overridden by setup_attrs)
                     'python-xlib',
                     '0.19',
-                    setup_attrs=dict(setup_requires='dependency @ %s' % dep_url),
+                    setup_attrs=dict(setup_requires='dependency @ {}'.format(dep_url)),
                 )
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 run_setup(test_setup_py, ['--version'])
@@ -1103,11 +1103,10 @@ def make_trivial_sdist(dist_path, distname, version):
                     """\
              import setuptools
              setuptools.setup(
-                 name=%r,
-                 version=%r
+                 name={!r},
+                 version={!r}
              )
-         """
-                    % (distname, version)
+         """.format(distname, version)
                 ),
             ),
             ('setup.cfg', ''),
@@ -1131,13 +1130,12 @@ def make_nspkg_sdist(dist_path, distname, version):
         """\
         import setuptools
         setuptools.setup(
-            name=%r,
-            version=%r,
-            packages=%r,
-            namespace_packages=[%r]
+            name={!r},
+            version={!r},
+            packages={!r},
+            namespace_packages=[{!r}]
         )
-    """
-        % (distname, version, packages, nspackage)
+    """.format(distname, version, packages, nspackage)
     )
 
     init = "__import__('pkg_resources').declare_namespace(__name__)"
@@ -1212,7 +1210,7 @@ def create_setup_requires_package(
     test_setup_attrs = {
         'name': 'test_pkg',
         'version': '0.0',
-        'setup_requires': ['%s==%s' % (distname, version)],
+        'setup_requires': ['{}=={}'.format(distname, version)],
         'dependency_links': [os.path.abspath(path)],
     }
     if setup_attrs:
@@ -1233,7 +1231,7 @@ def create_setup_requires_package(
                 section = options
             if isinstance(value, (tuple, list)):
                 value = ';'.join(value)
-            section.append('%s: %s' % (name, value))
+            section.append('{}: {}'.format(name, value))
         test_setup_cfg_contents = DALS(
             """
             [metadata]
@@ -1261,7 +1259,7 @@ def create_setup_requires_package(
     with open(os.path.join(test_pkg, 'setup.py'), 'w', encoding="utf-8") as f:
         f.write(setup_py_template % test_setup_attrs)
 
-    foobar_path = os.path.join(path, '%s-%s.tar.gz' % (distname, version))
+    foobar_path = os.path.join(path, '{}-{}.tar.gz'.format(distname, version))
     make_package(foobar_path, distname, version)
 
     return test_pkg
@@ -1276,12 +1274,12 @@ class TestScriptHeader:
     exe_with_spaces = r'C:\Program Files\Python36\python.exe'
 
     def test_get_script_header(self):
-        expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
+        expected = '#!{}\n'.format(ei.nt_quote_arg(os.path.normpath(sys.executable)))
         actual = ei.ScriptWriter.get_header('#!/usr/local/bin/python')
         assert actual == expected
 
     def test_get_script_header_args(self):
-        expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
+        expected = '#!{} -x\n'.format(ei.nt_quote_arg(os.path.normpath(sys.executable)))
         actual = ei.ScriptWriter.get_header('#!/usr/bin/python -x')
         assert actual == expected
 
@@ -1289,14 +1287,14 @@ class TestScriptHeader:
         actual = ei.ScriptWriter.get_header(
             '#!/usr/bin/python', executable=self.non_ascii_exe
         )
-        expected = '#!%s -x\n' % self.non_ascii_exe
+        expected = '#!{} -x\n'.format(self.non_ascii_exe)
         assert actual == expected
 
     def test_get_script_header_exe_with_spaces(self):
         actual = ei.ScriptWriter.get_header(
             '#!/usr/bin/python', executable='"' + self.exe_with_spaces + '"'
         )
-        expected = '#!"%s"\n' % self.exe_with_spaces
+        expected = '#!"{}"\n'.format(self.exe_with_spaces)
         assert actual == expected
 
 

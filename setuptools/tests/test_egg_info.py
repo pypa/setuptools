@@ -38,9 +38,8 @@ def env():
                 '.pydistutils.cfg': DALS(
                     """
                 [egg_info]
-                egg-base = %(egg-base)s
-                """
-                    % env.paths
+                egg-base = {egg-base}
+                """.format(**env.paths)
                 )
             }
         })

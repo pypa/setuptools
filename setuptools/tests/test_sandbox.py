@@ -76,7 +76,7 @@ class TestExceptionSaver:
             "This Exception is unpickleable because it's not in globals"
 
             def __repr__(self) -> str:
-                return 'CantPickleThis%r' % (self.args,)
+                return 'CantPickleThis{!r}'.format(self.args)
 
         with setuptools.sandbox.ExceptionSaver() as saved_exc:
             raise CantPickleThis('detail')
