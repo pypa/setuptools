@@ -200,7 +200,9 @@ def get_supported_platform():
     m = macosVersionString.match(plat)
     if m is not None and sys.platform == "darwin":
         try:
-            plat = 'macosx-{}-{}'.format('.'.join(_macos_vers()[:2]), m.group(3))
+            major_minor = '.'.join(_macos_vers()[:2])
+            build = m.group(3)
+            plat = f'macosx-{major_minor}-{build}'
         except ValueError:
             # not macOS
             pass
@@ -2733,7 +2735,8 @@ class EntryPoint:
         if self.attrs:
             s += ':' + '.'.join(self.attrs)
         if self.extras:
-            s += ' [{}]'.format(','.join(self.extras))
+            extras = ','.join(self.extras)
+            s += f' [{extras}]'
         return s
 
     def __repr__(self) -> str:
@@ -3319,8 +3322,8 @@ class Distribution:
             ):
                 continue
             issue_warning(
-                f"Module {modname} was already imported from {fn}, but {self.location} is being added"
-                " to sys.path",
+                f"Module {modname} was already imported from {fn}, "
+                f"but {self.location} is being added to sys.path",
             )
 
     def has_version(self) -> bool:

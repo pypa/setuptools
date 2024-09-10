@@ -286,8 +286,8 @@ def test_build_ext_config_handling(tmpdir_cwd):
         ),
     }
     path.build(files)
-    code, output = environment.run_setup_py(
+    code, (stdout, stderr) = environment.run_setup_py(
         cmd=['build'],
         data_stream=(0, 2),
     )
-    assert code == 0, '\nSTDOUT:\n{}\nSTDERR:\n{}'.format(*output)
+    assert code == 0, f'\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}'

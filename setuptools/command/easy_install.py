@@ -132,8 +132,8 @@ class easy_install(Command):
         (
             'optimize=',
             'O',
-            "also compile with optimization: -O1 for \"python -O\", "
-            "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
+            'also compile with optimization: -O1 for "python -O", '
+            '-O2 for "python -OO", and -O0 to disable [default: -O0]',
         ),
         ('record=', None, "filename in which to record list of installed files"),
         ('always-unzip', 'Z', "don't install as a zipfile, no matter what"),
@@ -1024,7 +1024,8 @@ class easy_install(Command):
                 f.write('Metadata-Version: 1.0\n')
                 for k, v in cfg.items('metadata'):
                     if k != 'target_version':
-                        f.write('{}: {}\n'.format(k.replace('_', '-').title(), v))
+                        k = k.replace('_', '-').title()
+                        f.write(f'{k}: {v}\n')
         script_dir = os.path.join(_egg_info, 'scripts')
         # delete entry-point scripts to avoid duping
         self.delete_blockers([

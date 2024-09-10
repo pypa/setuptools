@@ -178,8 +178,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if license:
         write_field('License', rfc822_escape(license))
 
-    for project_url in self.project_urls.items():
-        write_field('Project-URL', '{}, {}'.format(*project_url))
+    for label, url in self.project_urls.items():
+        write_field('Project-URL', f'{label}, {url}')
 
     keywords = ','.join(self.get_keywords())
     if keywords:

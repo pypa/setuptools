@@ -69,7 +69,7 @@ def write_stub(resource, pyfile) -> None:
 
 
 class bdist_egg(Command):
-    description = "create an \"egg\" distribution"
+    description = 'create an "egg" distribution'
 
     user_options = [
         ('bdist-dir=', 'b', "temporary directory for creating the distribution"),

@@ -110,8 +110,7 @@ def check_nsp(dist, attr, value):
     for nsp in ns_packages:
         if not dist.has_contents_for(nsp):
             raise DistutilsSetupError(
-                "Distribution contains no modules or packages for "
-                + f"namespace package {nsp!r}"
+                f"Distribution contains no modules or packages for namespace package {nsp!r}"
             )
         parent, _sep, _child = nsp.rpartition('.')
         if parent and parent not in ns_packages:
