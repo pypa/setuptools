@@ -37,7 +37,7 @@ For example, if the package tree looks like this::
             ├── data1.txt
             └── data2.txt
 
-When at least one of the following conditions are met:
+When **at least one** of the following conditions are met:
 
 1. These files are included via the :ref:`MANIFEST.in <Using MANIFEST.in>` file,
    like so::
@@ -54,7 +54,7 @@ When at least one of the following conditions are met:
 then all the ``.txt`` and ``.rst`` files will be included into
 the source distribution.
 
-To further include them into the ``wheels``, you can need to use the
+To further include them into the ``wheels``, you can use the
 ``include_package_data`` keyword:
 
 .. tab:: pyproject.toml
