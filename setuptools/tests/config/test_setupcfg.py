@@ -87,14 +87,14 @@ class TestConfigurationReader:
             '[options]\n'
             'scripts = bin/a.py, bin/b.py\n',
         )
-        config_dict = read_configuration('%s' % config)
+        config_dict = read_configuration('{}'.format(config))
         assert config_dict['metadata']['version'] == '10.1.1'
         assert config_dict['metadata']['keywords'] == ['one', 'two']
         assert config_dict['options']['scripts'] == ['bin/a.py', 'bin/b.py']
 
     def test_no_config(self, tmpdir):
         with pytest.raises(DistutilsFileError):
-            read_configuration('%s' % tmpdir.join('setup.cfg'))
+            read_configuration('{}'.format(tmpdir.join('setup.cfg')))
 
     def test_ignore_errors(self, tmpdir):
         _, config = fake_env(
@@ -102,9 +102,9 @@ class TestConfigurationReader:
             '[metadata]\nversion = attr: none.VERSION\nkeywords = one, two\n',
         )
         with pytest.raises(ImportError):
-            read_configuration('%s' % config)
+            read_configuration('{}'.format(config))
 
-        config_dict = read_configuration('%s' % config, ignore_option_errors=True)
+        config_dict = read_configuration('{}'.format(config), ignore_option_errors=True)
 
         assert config_dict['metadata']['keywords'] == ['one', 'two']
         assert 'version' not in config_dict['metadata']

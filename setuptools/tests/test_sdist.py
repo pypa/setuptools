@@ -41,9 +41,8 @@ SETUP_PY = (
     """\
 from setuptools import setup
 
-setup(**%r)
-"""
-    % SETUP_ATTRS
+setup(**{!r})
+""".format(SETUP_ATTRS)
 )
 
 EXTENSION = Extension(
