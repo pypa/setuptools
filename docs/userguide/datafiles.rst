@@ -8,7 +8,7 @@ are placed in a platform-specific location.  However, the most common use case
 for data files distributed with a package is for use *by* the package, usually
 by including the data files **inside the package directory**.
 
-Setuptools focuses on this most common type of data files and offers three ways
+``Setuptools`` focuses on this most common type of data files and offers three ways
 of specifying which files should be included in your packages, as described in
 the following section.
 
@@ -172,7 +172,7 @@ file, nor require to be added by a revision control system plugin.
 
 .. note::
         If your glob patterns use paths, you *must* use a forward slash (``/``) as
-        the path separator, even if you are on Windows.  Setuptools automatically
+        the path separator, even if you are on Windows. ``Setuptools`` automatically
         converts slashes to appropriate platform-specific separators at build time.
 
 .. important::
@@ -450,7 +450,7 @@ With :ref:`package-data`, the configuration might look like this:
             }
         )
 
-In other words, we allow Setuptools to scan for namespace packages in the ``src`` directory,
+In other words, we allow ``Setuptools`` to scan for namespace packages in the ``src`` directory,
 which enables the ``data`` directory to be identified, and then, we separately specify data
 files for the root package ``mypkg``, and the namespace package ``data`` under the package
 ``mypkg``.
