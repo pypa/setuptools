@@ -52,7 +52,7 @@ class sdist(orig.sdist):
     negative_opt: dict[str, str] = {}
 
     README_EXTENSIONS = ['', '.rst', '.txt', '.md']
-    READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
+    READMES = tuple('README{}'.format(ext) for ext in README_EXTENSIONS)
 
     def run(self):
         self.run_command('egg_info')
