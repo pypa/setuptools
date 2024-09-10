@@ -451,12 +451,8 @@ def get_build_platform():
     if sys.platform == "darwin" and not plat.startswith('macosx-'):
         try:
             version = _macos_vers()
-            machine = os.uname()[4].replace(" ", "_")
-            return "macosx-%d.%d-%s" % (
-                int(version[0]),
-                int(version[1]),
-                _macos_arch(machine),
-            )
+            machine = _macos_arch(os.uname()[4].replace(" ", "_"))
+            return f"macosx-{version[0]}.{version[1]}-{machine}"
         except ValueError:
             # if someone is running a non-Mac darwin system, this will fall
             # through to the default implementation

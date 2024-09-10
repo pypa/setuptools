@@ -667,8 +667,8 @@ class SystemInfo:
         else:
             netfxver = 40
             hidex86 = True if self.vs_ver <= 12.0 else False
-            arch = self.pi.current_dir(x64=True, hidex86=hidex86)
-        fx = 'WinSDK-NetFx%dTools%s' % (netfxver, arch.replace('\\', '-'))
+            arch = self.pi.current_dir(x64=True, hidex86=hidex86).replace('\\', '-')
+        fx = f'WinSDK-NetFx{netfxver}Tools{arch}'
 
         # list all possibles registry paths
         regpaths = []
@@ -839,8 +839,8 @@ class SystemInfo:
             versions
         """
         # Find actual .NET version in registry
-        reg_ver = self.ri.lookup(self.ri.vc, 'frameworkver%d' % bits)
-        dot_net_dir = getattr(self, 'FrameworkDir%d' % bits)
+        reg_ver = self.ri.lookup(self.ri.vc, f'frameworkver{bits}')
+        dot_net_dir = getattr(self, f'FrameworkDir{bits}')
         ver = reg_ver or self._use_last_dir_name(dot_net_dir, 'v') or ''
 
         # Set .NET versions for specified MSVC++ version
@@ -1404,7 +1404,7 @@ class EnvironmentInfo:
 
         Returns the first suitable path found or None.
         """
-        vcruntime = 'vcruntime%d0.dll' % self.vc_ver
+        vcruntime = f'vcruntime{self.vc_ver}0.dll'
         arch_subdir = self.pi.target_dir(x64=True).strip('\\')
 
         # Installation prefixes candidates
@@ -1420,9 +1420,9 @@ class EnvironmentInfo:
 
         # CRT directory
         crt_dirs = (
-            'Microsoft.VC%d.CRT' % (self.vc_ver * 10),
+            f'Microsoft.VC{self.vc_ver * 10}.CRT',
             # Sometime store in directory with VS version instead of VC
-            'Microsoft.VC%d.CRT' % (int(self.vs_ver) * 10),
+            f'Microsoft.VC{int(self.vs_ver) * 10}.CRT',
         )
 
         # vcruntime path
