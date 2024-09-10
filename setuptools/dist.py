@@ -47,7 +47,9 @@ def check_importable(dist, attr, value):
         assert not ep.extras
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            "{!r} must be importable 'module:attrs' string (got {!r})".format(attr, value)
+            "{!r} must be importable 'module:attrs' string (got {!r})".format(
+                attr, value
+            )
         ) from e
 
 
@@ -575,7 +577,9 @@ class Distribution(_Distribution):
                     setattr(command_obj, option, value)
                 else:
                     raise DistutilsOptionError(
-                        "error in {}: command '{}' has no such option '{}'".format(source, command_name, option)
+                        "error in {}: command '{}' has no such option '{}'".format(
+                            source, command_name, option
+                        )
                     )
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
@@ -775,7 +779,9 @@ class Distribution(_Distribution):
         try:
             old = getattr(self, name)
         except AttributeError as e:
-            raise DistutilsSetupError("{}: No such distribution setting".format(name)) from e
+            raise DistutilsSetupError(
+                "{}: No such distribution setting".format(name)
+            ) from e
         if old is not None and not isinstance(old, sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
@@ -787,11 +793,15 @@ class Distribution(_Distribution):
         """Handle 'include()' for list/tuple attrs without a special handler"""
 
         if not isinstance(value, sequence):
-            raise DistutilsSetupError("{}: setting must be a list ({!r})".format(name, value))
+            raise DistutilsSetupError(
+                "{}: setting must be a list ({!r})".format(name, value)
+            )
         try:
             old = getattr(self, name)
         except AttributeError as e:
-            raise DistutilsSetupError("{}: No such distribution setting".format(name)) from e
+            raise DistutilsSetupError(
+                "{}: No such distribution setting".format(name)
+            ) from e
         if old is None:
             setattr(self, name, value)
         elif not isinstance(old, sequence):
