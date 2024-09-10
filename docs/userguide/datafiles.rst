@@ -94,7 +94,7 @@ your package, provided:
 
 .. note::
    .. versionadded:: v61.0.0
-      The default value for ``tool.setuptools.include-package-data`` is ``True``
+      The default value for ``tool.setuptools.include-package-data`` is ``true``
       when projects are configured via ``pyproject.toml``.
       This behaviour differs from ``setup.cfg`` and ``setup.py``
       (where ``include_package_data=False`` by default), which was not changed
