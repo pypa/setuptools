@@ -530,8 +530,9 @@ class PackageIndex(Environment):
             tfp.close()
             os.unlink(filename)
             raise DistutilsError(
-                "{} validation failed for {}; "
-                "possible download problem?".format(checker.hash.name, os.path.basename(filename))
+                "{} validation failed for {}; " "possible download problem?".format(
+                    checker.hash.name, os.path.basename(filename)
+                )
             )
 
     def add_find_links(self, urls) -> None:

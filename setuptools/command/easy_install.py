@@ -659,7 +659,9 @@ class easy_install(Command):
 
         if os.path.exists(os.path.join(self.build_directory, spec.key)):
             raise DistutilsArgError(
-                "{!r} already exists in {}; can't do a checkout there".format(spec.key, self.build_directory)
+                "{!r} already exists in {}; can't do a checkout there".format(
+                    spec.key, self.build_directory
+                )
             )
 
     @contextlib.contextmanager
@@ -916,11 +918,15 @@ class easy_install(Command):
             setups = glob(os.path.join(setup_base, '*', 'setup.py'))
             if not setups:
                 raise DistutilsError(
-                    "Couldn't find a setup script in {}".format(os.path.abspath(dist_filename))
+                    "Couldn't find a setup script in {}".format(
+                        os.path.abspath(dist_filename)
+                    )
                 )
             if len(setups) > 1:
                 raise DistutilsError(
-                    "Multiple setup scripts in {}".format(os.path.abspath(dist_filename))
+                    "Multiple setup scripts in {}".format(
+                        os.path.abspath(dist_filename)
+                    )
                 )
             setup_script = setups[0]
 
@@ -1112,7 +1118,9 @@ class easy_install(Command):
             self.execute(
                 wheel.install_as_egg,
                 (destination,),
-                ("Installing {} to {}").format(os.path.basename(wheel_path), os.path.dirname(destination)),
+                ("Installing {} to {}").format(
+                    os.path.basename(wheel_path), os.path.dirname(destination)
+                ),
             )
         finally:
             update_dist_caches(destination, fix_zipimporter_caches=False)

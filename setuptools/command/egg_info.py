@@ -231,7 +231,9 @@ class egg_info(InfoCommon, Command):
             packaging.requirements.Requirement(spec % (self.egg_name, self.egg_version))
         except ValueError as e:
             raise distutils.errors.DistutilsOptionError(
-                "Invalid distribution name or version syntax: {}-{}".format(self.egg_name, self.egg_version)
+                "Invalid distribution name or version syntax: {}-{}".format(
+                    self.egg_name, self.egg_version
+                )
             ) from e
 
         if self.egg_base is None:

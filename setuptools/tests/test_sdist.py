@@ -37,13 +37,11 @@ SETUP_ATTRS = {
     'data_files': [("data", [os.path.join("d", "e.dat")])],
 }
 
-SETUP_PY = (
-    """\
+SETUP_PY = """\
 from setuptools import setup
 
 setup(**{!r})
 """.format(SETUP_ATTRS)
-)
 
 EXTENSION = Extension(
     name="sdist_test.f",

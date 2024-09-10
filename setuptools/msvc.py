@@ -561,7 +561,8 @@ class SystemInfo:
             path
         """
         default = os.path.join(
-            self.ProgramFilesx86, r'Microsoft Visual Studio {:0.1f}\VC'.format(self.vs_ver)
+            self.ProgramFilesx86,
+            r'Microsoft Visual Studio {:0.1f}\VC'.format(self.vs_ver),
         )
 
         # Try to get "VC++ for Python" path from registry as default path
@@ -696,7 +697,9 @@ class SystemInfo:
         str
             path
         """
-        path = os.path.join(self.ri.visualstudio, r'{:0.1f}\Setup\F#'.format(self.vs_ver))
+        path = os.path.join(
+            self.ri.visualstudio, r'{:0.1f}\Setup\F#'.format(self.vs_ver)
+        )
         return self.ri.lookup(path, 'productdir') or ''
 
     @property
@@ -714,7 +717,9 @@ class SystemInfo:
 
         # Find path of the more recent Kit
         for ver in vers:
-            sdkdir = self.ri.lookup(self.ri.windows_kits_roots, 'kitsroot{}'.format(ver))
+            sdkdir = self.ri.lookup(
+                self.ri.windows_kits_roots, 'kitsroot{}'.format(ver)
+            )
             if sdkdir:
                 return sdkdir or ''
 

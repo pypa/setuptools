@@ -36,7 +36,9 @@ class install_egg_info(namespaces.Installer, Command):
             self.execute(os.unlink, (self.target,), "Removing " + self.target)
         if not self.dry_run:
             ensure_directory(self.target)
-        self.execute(self.copytree, (), "Copying {} to {}".format(self.source, self.target))
+        self.execute(
+            self.copytree, (), "Copying {} to {}".format(self.source, self.target)
+        )
         self.install_namespaces()
 
     def get_outputs(self):
