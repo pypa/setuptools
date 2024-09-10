@@ -255,7 +255,9 @@ def test_distribution_version_missing(
     basename = f'foo.{suffix}'
     dist, dist_dir = make_distribution_no_version(tmpdir, basename)
 
-    expected_text = (f"Missing 'Version:' header and/or {expected_filename} file at path: ")
+    expected_text = (
+        f"Missing 'Version:' header and/or {expected_filename} file at path: "
+    )
     metadata_path = os.path.join(dist_dir, expected_filename)
 
     # Now check the exception raised when the "version" attribute is accessed.

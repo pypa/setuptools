@@ -835,9 +835,7 @@ class Distribution(_Distribution):
         try:
             old = getattr(self, name)
         except AttributeError as e:
-            raise DistutilsSetupError(
-                f"{name}: No such distribution setting"
-            ) from e
+            raise DistutilsSetupError(f"{name}: No such distribution setting") from e
         if old is None:
             setattr(self, name, value)
         elif not isinstance(old, _sequence):

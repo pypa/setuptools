@@ -530,7 +530,8 @@ class PackageIndex(Environment):
             tfp.close()
             os.unlink(filename)
             raise DistutilsError(
-                f"{checker.hash.name} validation failed for {os.path.basename(filename)}; " "possible download problem?"
+                f"{checker.hash.name} validation failed for {os.path.basename(filename)}; "
+                "possible download problem?"
             )
 
     def add_find_links(self, urls) -> None:
@@ -744,9 +745,7 @@ class PackageIndex(Environment):
             checker = HashChecker.from_url(url)
             fp = self.open_url(url)
             if isinstance(fp, urllib.error.HTTPError):
-                raise DistutilsError(
-                    f"Can't download {url}: {fp.code} {fp.msg}"
-                )
+                raise DistutilsError(f"Can't download {url}: {fp.code} {fp.msg}")
             headers = fp.info()
             blocknum = 0
             bs = self.dl_blocksize
@@ -793,9 +792,7 @@ class PackageIndex(Environment):
             if warning:
                 self.warn(warning, v.reason)
             else:
-                raise DistutilsError(
-                    f"Download error for {url}: {v.reason}"
-                ) from v
+                raise DistutilsError(f"Download error for {url}: {v.reason}") from v
         except http.client.BadStatusLine as v:
             if warning:
                 self.warn(warning, v.line)

@@ -3049,7 +3049,7 @@ class Distribution:
             version = self._get_version()
             if version is None:
                 path = self._get_metadata_path_for_display(self.PKG_INFO)
-                msg = (f"Missing 'Version:' header and/or {self.PKG_INFO} file at path: {path}")
+                msg = f"Missing 'Version:' header and/or {self.PKG_INFO} file at path: {path}"
                 raise ValueError(msg, self) from e
 
             return version
@@ -3105,9 +3105,7 @@ class Distribution:
             try:
                 deps.extend(dm[safe_extra(ext)])
             except KeyError as e:
-                raise UnknownExtra(
-                    f"{self} has no such extra feature {ext!r}"
-                ) from e
+                raise UnknownExtra(f"{self} has no such extra feature {ext!r}") from e
         return deps
 
     def _get_metadata_path_for_display(self, name):

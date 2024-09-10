@@ -145,9 +145,7 @@ class Wheel:
         wheel_version = parse_version(wheel_metadata.get('Wheel-Version'))
         wheel_v1 = parse_version('1.0') <= wheel_version < parse_version('2.0dev0')
         if not wheel_v1:
-            raise ValueError(
-                f'unsupported wheel format version: {wheel_version}'
-            )
+            raise ValueError(f'unsupported wheel format version: {wheel_version}')
         # Extract to target directory.
         _unpack_zipfile_obj(zf, destination_eggdir)
         # Convert metadata.
