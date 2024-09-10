@@ -775,9 +775,7 @@ class Distribution(_Distribution):
         try:
             old = getattr(self, name)
         except AttributeError as e:
-            raise DistutilsSetupError(
-                f"{name}: No such distribution setting"
-            ) from e
+            raise DistutilsSetupError(f"{name}: No such distribution setting") from e
         if old is not None and not isinstance(old, sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
@@ -789,15 +787,11 @@ class Distribution(_Distribution):
         """Handle 'include()' for list/tuple attrs without a special handler"""
 
         if not isinstance(value, sequence):
-            raise DistutilsSetupError(
-                f"{name}: setting must be a list ({value!r})"
-            )
+            raise DistutilsSetupError(f"{name}: setting must be a list ({value!r})")
         try:
             old = getattr(self, name)
         except AttributeError as e:
-            raise DistutilsSetupError(
-                f"{name}: No such distribution setting"
-            ) from e
+            raise DistutilsSetupError(f"{name}: No such distribution setting") from e
         if old is None:
             setattr(self, name, value)
         elif not isinstance(old, sequence):
