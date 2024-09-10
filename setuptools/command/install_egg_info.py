@@ -37,7 +37,7 @@ class install_egg_info(namespaces.Installer, Command):
         if not self.dry_run:
             ensure_directory(self.target)
         self.execute(
-            self.copytree, (), "Copying {} to {}".format(self.source, self.target)
+            self.copytree, (), f"Copying {self.source} to {self.target}"
         )
         self.install_namespaces()
 

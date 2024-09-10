@@ -47,9 +47,7 @@ def check_importable(dist, attr, value):
         assert not ep.extras
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            "{!r} must be importable 'module:attrs' string (got {!r})".format(
-                attr, value
-            )
+            f"{attr!r} must be importable 'module:attrs' string (got {value!r})"
         ) from e
 
 
@@ -63,7 +61,7 @@ def assert_string_list(dist, attr, value):
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            "{!r} must be a list of strings (got {!r})".format(attr, value)
+            f"{attr!r} must be a list of strings (got {value!r})"
         ) from e
 
 
@@ -75,7 +73,7 @@ def check_nsp(dist, attr, value):
         if not dist.has_contents_for(nsp):
             raise DistutilsSetupError(
                 "Distribution contains no modules or packages for "
-                + "namespace package {!r}".format(nsp)
+                + f"namespace package {nsp!r}"
             )
         parent, sep, child = nsp.rpartition('.')
         if parent and parent not in ns_packages:
@@ -175,15 +173,15 @@ def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
     if not isinstance(value, dict):
         raise DistutilsSetupError(
-            "{!r} must be a dictionary mapping package names to lists of "
-            "string wildcard patterns".format(attr)
+            f"{attr!r} must be a dictionary mapping package names to lists of "
+            "string wildcard patterns"
         )
     for k, v in value.items():
         if not isinstance(k, str):
             raise DistutilsSetupError(
-                "keys of {!r} dict must be strings (got {!r})".format(attr, k)
+                f"keys of {attr!r} dict must be strings (got {k!r})"
             )
-        assert_string_list(dist, 'values of {!r} dict'.format(attr), v)
+        assert_string_list(dist, f'values of {attr!r} dict', v)
 
 
 def check_packages(dist, attr, value):
@@ -554,10 +552,10 @@ class Distribution(_Distribution):
             option_dict = self.get_option_dict(command_name)
 
         if DEBUG:
-            self.announce("  setting options for '{}' command:".format(command_name))
+            self.announce(f"  setting options for '{command_name}' command:")
         for option, (source, value) in option_dict.items():
             if DEBUG:
-                self.announce("    {} = {} (from {})".format(option, value, source))
+                self.announce(f"    {option} = {value} (from {source})")
             try:
                 bool_opts = [translate_longopt(o) for o in command_obj.boolean_options]
             except AttributeError:
@@ -577,9 +575,7 @@ class Distribution(_Distribution):
                     setattr(command_obj, option, value)
                 else:
                     raise DistutilsOptionError(
-                        "error in {}: command '{}' has no such option '{}'".format(
-                            source, command_name, option
-                        )
+                        f"error in {source}: command '{command_name}' has no such option '{option}'"
                     )
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
@@ -774,13 +770,13 @@ class Distribution(_Distribution):
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
         if not isinstance(value, sequence):
             raise DistutilsSetupError(
-                "{}: setting must be a list or tuple ({!r})".format(name, value)
+                f"{name}: setting must be a list or tuple ({value!r})"
             )
         try:
             old = getattr(self, name)
         except AttributeError as e:
             raise DistutilsSetupError(
-                "{}: No such distribution setting".format(name)
+                f"{name}: No such distribution setting"
             ) from e
         if old is not None and not isinstance(old, sequence):
             raise DistutilsSetupError(
@@ -794,13 +790,13 @@ class Distribution(_Distribution):
 
         if not isinstance(value, sequence):
             raise DistutilsSetupError(
-                "{}: setting must be a list ({!r})".format(name, value)
+                f"{name}: setting must be a list ({value!r})"
             )
         try:
             old = getattr(self, name)
         except AttributeError as e:
             raise DistutilsSetupError(
-                "{}: No such distribution setting".format(name)
+                f"{name}: No such distribution setting"
             ) from e
         if old is None:
             setattr(self, name, value)
@@ -838,7 +834,7 @@ class Distribution(_Distribution):
     def _exclude_packages(self, packages):
         if not isinstance(packages, sequence):
             raise DistutilsSetupError(
-                "packages: setting must be a list or tuple ({!r})".format(packages)
+                f"packages: setting must be a list or tuple ({packages!r})"
             )
         list(map(self.exclude_package, packages))
 

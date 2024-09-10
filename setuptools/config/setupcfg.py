@@ -277,7 +277,7 @@ class ConfigHandler(Generic[Target]):
     def parsers(self):
         """Metadata item name to parser function mapping."""
         raise NotImplementedError(
-            '{} must provide .parsers property'.format(self.__class__.__name__)
+            f'{self.__class__.__name__} must provide .parsers property'
         )
 
     def __setitem__(self, option_name, value) -> None:
@@ -301,7 +301,7 @@ class ConfigHandler(Generic[Target]):
             return
 
         simple_setter = functools.partial(target_obj.__setattr__, option_name)
-        setter = getattr(target_obj, 'set_{}'.format(option_name), simple_setter)
+        setter = getattr(target_obj, f'set_{option_name}', simple_setter)
         setter(parsed)
 
         self.set_options.append(option_name)
@@ -369,8 +369,8 @@ class ConfigHandler(Generic[Target]):
             exclude_directive = 'file:'
             if value.startswith(exclude_directive):
                 raise ValueError(
-                    'Only strings are accepted for the {} field, '
-                    'files are not accepted'.format(key)
+                    f'Only strings are accepted for the {key} field, '
+                    'files are not accepted'
                 )
             return value
 
@@ -488,12 +488,12 @@ class ConfigHandler(Generic[Target]):
         for section_name, section_options in self.sections.items():
             method_postfix = ''
             if section_name:  # [section.option] variant
-                method_postfix = '_{}'.format(section_name)
+                method_postfix = f'_{section_name}'
 
             section_parser_method: Callable | None = getattr(
                 self,
                 # Dots in section names are translated into dunderscores.
-                ('parse_section{}'.format(method_postfix)).replace('.', '__'),
+                (f'parse_section{method_postfix}').replace('.', '__'),
                 None,
             )
 

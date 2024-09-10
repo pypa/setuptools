@@ -150,7 +150,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     version = self.get_metadata_version()
 
     def write_field(key, value):
-        file.write("{}: {}\n".format(key, value))
+        file.write(f"{key}: {value}\n")
 
     write_field('Metadata-Version', str(version))
     write_field('Name', self.get_name())
@@ -209,7 +209,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
 
     long_description = self.get_long_description()
     if long_description:
-        file.write("\n{}".format(long_description))
+        file.write(f"\n{long_description}")
         if not long_description.endswith("\n"):
             file.write("\n")
 
