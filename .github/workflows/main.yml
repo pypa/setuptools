@@ -43,7 +43,7 @@ jobs:
       matrix:
         python:
         - "3.8"
-        - "3.12"
+        - "3.13"
         platform:
         - ubuntu-latest
         - macos-latest
@@ -54,6 +54,10 @@ jobs:
         - python: "3.10"
           platform: ubuntu-latest
         - python: "3.11"
+          platform: ubuntu-latest
+        - python: "3.12"
+          platform: ubuntu-latest
+        - python: "3.14"
           platform: ubuntu-latest
         - python: pypy3.10
           platform: ubuntu-latest
@@ -68,7 +72,7 @@ jobs:
         exclude:
         - {python: "3.8", platform: "macos-latest"}
     runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.python == '3.13' }}
+    continue-on-error: ${{ matrix.python == '3.14' }}
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils || 'local' }}
     timeout-minutes: 75
