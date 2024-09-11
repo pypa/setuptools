@@ -45,7 +45,7 @@ When **at least one** of the following conditions are met:
         include src/mypkg/*.txt
         include src/mypkg/*.rst
 
-2. They are being tracked by a version control system such as Git, Mercurial
+2. They are being tracked by a revision control system such as Git, Mercurial
    or SVN, **AND** you have configured an appropriate plugin such as
    :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
    (See the section below on :ref:`Adding Support for Revision
