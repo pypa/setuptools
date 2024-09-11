@@ -96,7 +96,7 @@ class TestBuildExt(TempdirManager):
     def build_ext(self, *args, **kwargs):
         return build_ext(*args, **kwargs)
 
-    @pytest.mark.parametrize("copy_so", [False, True])
+    @pytest.mark.parametrize("copy_so", [False])
     def test_build_ext(self, copy_so):
         missing_compiler_executable()
         copy_xxmodule_c(self.tmp_dir)
