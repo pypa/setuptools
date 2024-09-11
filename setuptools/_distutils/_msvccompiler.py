@@ -3,8 +3,7 @@
 Contains MSVCCompiler, an implementation of the abstract CCompiler class
 for Microsoft Visual Studio 2015.
 
-The module is compatible with VS 2015 and later. You can find legacy support
-for older versions in distutils.msvc9compiler and distutils.msvccompiler.
+This module requires VS 2015 or later.
 """
 
 # Written by Perry Stoll
@@ -160,7 +159,7 @@ def _get_vc_env(plat_spec):
             stderr=subprocess.STDOUT,
         ).decode('utf-16le', errors='replace')
     except subprocess.CalledProcessError as exc:
-        log.error(exc.output)
+        log.error(exc.output)  # noqa: RUF100, TRY400
         raise DistutilsPlatformError(f"Error executing {exc.cmd}")
 
     env = {

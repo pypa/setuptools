@@ -130,6 +130,9 @@ def read_configuration(
     asdict["tool"] = tool_table
     tool_table["setuptools"] = setuptools_table
 
+    if "ext-modules" in setuptools_table:
+        _ExperimentalConfiguration.emit(subject="[tool.setuptools.ext-modules]")
+
     with _ignore_errors(ignore_option_errors):
         # Don't complain about unrelated errors (e.g. tools not using the "tool" table)
         subset = {"project": project_table, "tool": {"setuptools": setuptools_table}}

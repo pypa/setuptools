@@ -1,3 +1,39 @@
+v74.1.2
+=======
+
+Bugfixes
+--------
+
+- Fixed TypeError in sdist filelist processing by adding support for pathlib Paths for the build_base. (#4615)
+- Removed degraded and deprecated ``test_integration`` (easy_install) from the test suite. (#4632)
+
+
+v74.1.1
+=======
+
+Bugfixes
+--------
+
+- Fixed TypeError in ``msvc.EnvironmentInfo.return_env`` when no runtime redistributables are installed. (#1902)
+
+
+v74.1.0
+=======
+
+Features
+--------
+
+- Added support for defining ``ext-modules`` via ``pyproject.toml``
+  (**EXPERIMENTAL**, may change in future releases). (#4568)
+
+
+Bugfixes
+--------
+
+- Merge with pypa/distutils@3dcdf8567, removing the duplicate vendored copy of packaging. (#4622)
+- Restored ``setuptools.msvc.Environmentinfo`` as it is used externally. (#4625)
+
+
 v74.0.0
 =======
 
