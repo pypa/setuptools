@@ -10,6 +10,7 @@ on:
     # required if branches-ignore is supplied (jaraco/skeleton#103)
     - '**'
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: >-
@@ -41,7 +42,7 @@ jobs:
       matrix:
         python:
         - "3.8"
-        - "3.12"
+        - "3.13"
         platform:
         - ubuntu-latest
         - macos-latest
@@ -53,10 +54,14 @@ jobs:
           platform: ubuntu-latest
         - python: "3.11"
           platform: ubuntu-latest
+        - python: "3.12"
+          platform: ubuntu-latest
+        - python: "3.14"
+          platform: ubuntu-latest
         - python: pypy3.10
           platform: ubuntu-latest
     runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.python == '3.13' }}
+    continue-on-error: ${{ matrix.python == '3.14' }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Python
