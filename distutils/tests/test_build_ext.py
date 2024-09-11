@@ -112,7 +112,9 @@ class TestBuildExt(TempdirManager):
                     runtime_library_dirs=['/usr/lib'],
                 )
             elif sys.platform == 'linux':
-                libz_so = {os.path.realpath(name) for name in glob.iglob('/usr/lib*/libz.so*')}
+                libz_so = {
+                    os.path.realpath(name) for name in glob.iglob('/usr/lib*/libz.so*')
+                }
                 libz_so = sorted(libz_so, key=lambda lib_path: len(lib_path))
                 shutil.copyfile(libz_so[-1], '/tmp/libxx_z.so')
 
@@ -167,10 +169,12 @@ class TestBuildExt(TempdirManager):
                 ["readelf", "-d", xx.__file__], universal_newlines=True
             )
             import pprint
+
             pprint.pprint(so_headers)
             rpaths = [
                 rpath
-                for line in so_headers.split("\n") if "RPATH" in line or "RUNPATH" in line
+                for line in so_headers.split("\n")
+                if "RPATH" in line or "RUNPATH" in line
                 for rpath in line.split()[2][1:-1].split(":")
             ]
             if not copy_so:
