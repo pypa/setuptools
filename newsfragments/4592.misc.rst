@@ -1,1 +1,0 @@
-If somehow the ``EXT_SUFFIX`` configuration variable and ``SETUPTOOLS_EXT_SUFFIX`` environment variables are both missing, ``setuptools.command.build_ext.pyget_ext_filename`` will now raise an `OSError` instead of a `TypeError` -- by :user:`Avasam`

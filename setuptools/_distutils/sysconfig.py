@@ -236,7 +236,7 @@ def get_python_lib(plat_specific=False, standard_lib=False, prefix=None):
         if prefix is None:
             prefix = PREFIX
         if standard_lib:
-            return os.path.join(prefix, "lib-python", sys.version[0])
+            return os.path.join(prefix, "lib-python", sys.version_info.major)
         return os.path.join(prefix, 'site-packages')
 
     early_prefix = prefix

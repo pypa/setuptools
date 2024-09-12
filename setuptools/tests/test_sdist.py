@@ -4,11 +4,13 @@ import contextlib
 import io
 import logging
 import os
+import pathlib
 import sys
 import tarfile
 import tempfile
 import unicodedata
 from inspect import cleandoc
+from pathlib import Path
 from unittest import mock
 
 import jaraco.path
@@ -425,6 +427,46 @@ class TestSdistTest:
         assert 'setup.py' not in manifest, manifest
         assert 'setup.cfg' not in manifest, manifest
 
+    def test_exclude_dev_only_cache_folders(self, source_dir):
+        included = {
+            # Emulate problem in https://github.com/pypa/setuptools/issues/4601
+            "MANIFEST.in": (
+                "global-include LICEN[CS]E* COPYING* NOTICE* AUTHORS*\n"
+                "global-include *.txt\n"
+            ),
+            # For the sake of being conservative and limiting unforeseen side-effects
+            # we just exclude dev-only cache folders at the root of the repository:
+            "test/.venv/lib/python3.9/site-packages/bar-2.dist-info/AUTHORS.rst": "",
+            "src/.nox/py/lib/python3.12/site-packages/bar-2.dist-info/COPYING.txt": "",
+            "doc/.tox/default/lib/python3.11/site-packages/foo-4.dist-info/LICENSE": "",
+            # Let's test against false positives with similarly named files:
+            ".venv-requirements.txt": "",
+            ".tox-coveragerc.txt": "",
+            ".noxy/coveragerc.txt": "",
+        }
+
+        excluded = {
+            # .tox/.nox/.venv are well-know folders present at the root of Python repos
+            # and therefore should be excluded
+            ".tox/release/lib/python3.11/site-packages/foo-4.dist-info/LICENSE": "",
+            ".nox/py/lib/python3.12/site-packages/bar-2.dist-info/COPYING.txt": "",
+            ".venv/lib/python3.9/site-packages/bar-2.dist-info/AUTHORS.rst": "",
+        }
+
+        for file, content in {**excluded, **included}.items():
+            Path(source_dir, file).parent.mkdir(parents=True, exist_ok=True)
+            Path(source_dir, file).write_text(content, encoding="utf-8")
+
+        cmd = self.setup_with_extension()
+        self.assert_package_data_in_manifest(cmd)
+        manifest = {f.replace(os.sep, '/') for f in cmd.filelist.files}
+        for path in excluded:
+            assert os.path.exists(path)
+            assert path not in manifest, (path, manifest)
+        for path in included:
+            assert os.path.exists(path)
+            assert path in manifest, (path, manifest)
+
     @fail_on_ascii
     def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
@@ -781,6 +823,21 @@ class TestSdistTest:
         manifest = cmd.filelist.files
         assert '.myfile~' in manifest
 
+    @pytest.mark.skipif("os.environ.get('SETUPTOOLS_USE_DISTUTILS') == 'stdlib'")
+    def test_build_base_pathlib(self, source_dir):
+        """
+        Ensure if build_base is a pathlib.Path, the build still succeeds.
+        """
+        dist = Distribution({
+            **SETUP_ATTRS,
+            "script_name": "setup.py",
+            "options": {"build": {"build_base": pathlib.Path('build')}},
+        })
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
+
 
 def test_default_revctrl():
     """
@@ -915,4 +972,4 @@ def test_sanity_check_setuptools_own_sdist(setuptools_sdist):
 
     # setuptools sdist should not include the .tox folder
     tox_files = [name for name in files if ".tox" in name]
-    assert len(tox_files) == 0
+    assert len(tox_files) == 0, f"not empty {tox_files}"

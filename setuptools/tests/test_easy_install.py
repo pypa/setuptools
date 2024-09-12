@@ -1332,6 +1332,16 @@ class TestCommandSpec:
         assert len(cmd) == 2
         assert '"' not in cmd.as_header()
 
+    def test_from_param_raises_expected_error(self) -> None:
+        """
+        from_param should raise its own TypeError when the argument's type is unsupported
+        """
+        with pytest.raises(TypeError) as exc_info:
+            ei.CommandSpec.from_param(object())  # type: ignore[arg-type] # We want a type error here
+        assert (
+            str(exc_info.value) == "Argument has an unsupported type <class 'object'>"
+        ), exc_info.value
+
 
 class TestWindowsScriptWriter:
     def test_header(self):
