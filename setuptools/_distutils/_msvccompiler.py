@@ -284,7 +284,7 @@ class MSVCCompiler(CCompiler):
                 f"--plat-name must be one of {tuple(_vcvars_names)}"
             )
 
-        plat_spec = _get_vcvars_spec(get_host_platform(), get_platform())
+        plat_spec = _get_vcvars_spec(get_host_platform(), plat_name)
 
         vc_env = _get_vc_env(plat_spec)
         if not vc_env:
