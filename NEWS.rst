@@ -1,3 +1,12 @@
+v74.1.3
+=======
+
+Bugfixes
+--------
+
+- Fix cross-platform compilation using ``distutils._msvccompiler.MSVCCompiler`` -- by :user:`saschanaz` and :user:`Avasam` (#4648)
+
+
 v74.1.2
 =======
 
