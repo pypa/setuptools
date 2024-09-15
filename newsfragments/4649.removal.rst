@@ -1,0 +1,1 @@
+Merge with pypa/distutils@7283751. Removed the register and upload commands and the config module that backs them (pypa/distutils#294). Removed the borland compiler. Replaced vendored dependencies with natural dependencies. Cygwin C compiler now gets compilers from sysconfig (pypa/distutils#296).
