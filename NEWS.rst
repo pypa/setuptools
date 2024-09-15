@@ -1,3 +1,19 @@
+v75.0.0
+=======
+
+Features
+--------
+
+- Declare also the dependencies used by distutils (adds jaraco.collections).
+
+
+Deprecations and Removals
+-------------------------
+
+- Removed upload_docs command. (#2971)
+- Merge with pypa/distutils@7283751. Removed the register and upload commands and the config module that backs them (pypa/distutils#294). Removed the borland compiler. Replaced vendored dependencies with natural dependencies. Cygwin C compiler now gets compilers from sysconfig (pypa/distutils#296). (#4649)
+
+
 v74.1.3
 =======
 
