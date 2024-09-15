@@ -2,11 +2,13 @@
 
 import os
 import sys
+import sysconfig
 import threading
 import unittest.mock as mock
 from distutils import _msvccompiler
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
+from distutils.util import get_platform
 
 import pytest
 
@@ -27,6 +29,30 @@ class Testmsvccompiler(support.TempdirManager):
             _msvccompiler._get_vc_env(
                 'wont find this version',
             )
+
+    @pytest.mark.skipif(
+        not sysconfig.get_platform().startswith("win"),
+        reason="Only run test for non-mingw Windows platforms",
+    )
+    @pytest.mark.parametrize(
+        "plat_name, expected",
+        [
+            ("win-arm64", "win-arm64"),
+            ("win-amd64", "win-amd64"),
+            (None, get_platform()),
+        ],
+    )
+    def test_cross_platform_compilation_paths(self, monkeypatch, plat_name, expected):
+        """
+        Ensure a specified target platform is passed to _get_vcvars_spec.
+        """
+        compiler = _msvccompiler.MSVCCompiler()
+
+        def _get_vcvars_spec(host_platform, platform):
+            assert platform == expected
+
+        monkeypatch.setattr(_msvccompiler, '_get_vcvars_spec', _get_vcvars_spec)
+        compiler.initialize(plat_name)
 
     @needs_winreg
     def test_get_vc_env_unicode(self):
