@@ -1,1 +1,1 @@
-Fix cross-platform compilation using `distutils._msvccompiler.MSVCCompiler` -- by :user:`saschanaz` and :user:`Avasam` 
+Fix cross-platform compilation using ``distutils._msvccompiler.MSVCCompiler`` -- by :user:`saschanaz` and :user:`Avasam` 
