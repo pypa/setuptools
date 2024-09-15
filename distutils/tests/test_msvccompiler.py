@@ -43,9 +43,11 @@ class Testmsvccompiler(support.TempdirManager):
         ],
     )
     def test_cross_platform_compilation_paths(self, monkeypatch, plat_name, expected):
+        """
+        Ensure a specified target platform is passed to _get_vcvars_spec.
+        """
         compiler = _msvccompiler.MSVCCompiler()
 
-        # makes sure that the right target platform name is used
         def _get_vcvars_spec(host_platform, platform):
             assert platform == expected
 
