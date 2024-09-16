@@ -1,3 +1,18 @@
+v75.1.0
+=======
+
+Features
+--------
+
+- Deprecated ``bdist_wheel.universal`` configuration. (#4617)
+
+
+Bugfixes
+--------
+
+- Removed reference to upload_docs module in entry points. (#4650)
+
+
 v75.0.0
 =======
 
