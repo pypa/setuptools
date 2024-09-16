@@ -1,1 +1,1 @@
-Enabled passing dist-info-dir to the bdist_wheel, and to the PEP-517 build backend. Therefore, metadata can now be injected prior to wheel building when following PEP-517 -- by :user:`pelson`
+Allow passing dist-info-dir to the bdist_wheel command, as well as to the PEP-517 build backend. Metadata can therefore now be injected prior to wheel building when following PEP-517 -- by :user:`pelson`

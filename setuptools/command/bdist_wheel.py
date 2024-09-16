@@ -27,7 +27,6 @@ from wheel.wheelfile import WheelFile
 
 from .. import Command, __version__
 from ..warnings import SetuptoolsDeprecationWarning
-from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
 
