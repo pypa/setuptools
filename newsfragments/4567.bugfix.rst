@@ -1,0 +1,1 @@
+Ensured all methods in ``setuptools.modified`` raise a consistant ``distutils.errors.DistutilsError`` type -- by :user:`Avasam`
