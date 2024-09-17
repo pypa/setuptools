@@ -8,9 +8,10 @@ For the purposes of this documentation, we define "data files" as non-Python fil
 that are installed alongside Python modules and packages on the user's machine
 when they install a :term:`distribution <Distribution Package>` from PyPI
 or via a ``.whl`` file.
+
 These files are typically intended for use at runtime by the package itself or
 to influence the behavior of other packages or systems.
-They may also be referred to as "resource files."
+
 Old packaging installation methods in the Python ecosystem
 have traditionally allowed installation of "data files", which
 are placed in a platform-specific location.  However, the most common use case
