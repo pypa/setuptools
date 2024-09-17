@@ -2,12 +2,20 @@
 Data Files Support
 ====================
 
-Old packaging installation methods in the Python ecosystem have
-traditionally allowed the inclusion of "data files" (files beyond
-:ref:`the default set <manifest>` ), which are placed in a platform-specific
-location. However, the most common use case for data files distributed
-with a package is for use *by* the package, usually by including the
-data files **inside the package directory**.
+In the Python ecosystem, the term "data files" is used in various complex scenarios
+and can have nuanced meanings.
+For the purposes of this documentation, we define "data files" as non-Python files
+that are installed alongside Python modules and packages on the user's machine
+when they install a :term:`distribution <Distribution Package>` from PyPI
+or via a ``.whl`` file.
+These files are typically intended for use at runtime by the package itself or
+to influence the behavior of other packages or systems.
+They may also be referred to as "resource files."
+Old packaging installation methods in the Python ecosystem
+have traditionally allowed installation of "data files", which
+are placed in a platform-specific location.  However, the most common use case
+for data files distributed with a package is for use *by* the package, usually
+by including the data files **inside the package directory**.
 
 Setuptools focuses on this most common type of data files and offers three ways
 of specifying which files should be included in your packages, as described in
