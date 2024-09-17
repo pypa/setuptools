@@ -358,7 +358,7 @@ Interplay between these keywords
 
 Meanwhile, to further clarify the interplay between these three keywords,
 to include certain data file into the source distribution, the following
-logic condition has two be met::
+logic condition has to be met::
 
     m or (p and not e)
 
@@ -373,7 +373,7 @@ In plain language, the file should not be excluded by ``exclude-package-data``
 (highest priority), and should be either: 1. selected by ``package-data``; or
 2. selected by ``MANIFEST.in`` AND use ``include-package-data = true``.
 
-Notation::
+**Notation**::
 
     i - "include-package-data = true" is set
     e - file selected by "exclude-package-data"
