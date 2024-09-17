@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "74.1.2"
+version = "75.1.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -166,7 +166,6 @@ rotate = "setuptools.command.rotate:rotate"
 saveopts = "setuptools.command.saveopts:saveopts"
 sdist = "setuptools.command.sdist:sdist"
 setopt = "setuptools.command.setopt:setopt"
-upload_docs = "setuptools.command.upload_docs:upload_docs"
 
 [project.entry-points."setuptools.finalize_distribution_options"]
 parent_finalize = "setuptools.dist:_Distribution.finalize_options"

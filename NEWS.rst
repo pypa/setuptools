@@ -1,3 +1,43 @@
+v75.1.0
+=======
+
+Features
+--------
+
+- Deprecated ``bdist_wheel.universal`` configuration. (#4617)
+
+
+Bugfixes
+--------
+
+- Removed reference to upload_docs module in entry points. (#4650)
+
+
+v75.0.0
+=======
+
+Features
+--------
+
+- Declare also the dependencies used by distutils (adds jaraco.collections).
+
+
+Deprecations and Removals
+-------------------------
+
+- Removed upload_docs command. (#2971)
+- Merge with pypa/distutils@7283751. Removed the register and upload commands and the config module that backs them (pypa/distutils#294). Removed the borland compiler. Replaced vendored dependencies with natural dependencies. Cygwin C compiler now gets compilers from sysconfig (pypa/distutils#296). (#4649)
+
+
+v74.1.3
+=======
+
+Bugfixes
+--------
+
+- Fix cross-platform compilation using ``distutils._msvccompiler.MSVCCompiler`` -- by :user:`saschanaz` and :user:`Avasam` (#4648)
+
+
 v74.1.2
 =======
 

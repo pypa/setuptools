@@ -1,1 +1,0 @@
-Declare also the dependencies used by distutils (adds jaraco.collections).

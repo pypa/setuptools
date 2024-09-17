@@ -1,1 +1,0 @@
-Removed upload_docs command.
