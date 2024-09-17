@@ -356,24 +356,21 @@ even if they were listed in ``package_data`` or were included as a result of usi
 Interplay between these keywords
 --------------------------------
 
-TODO:
-- better formatted logic expression
-- check logic correctness (especially regarding parentheses)
-
 Meanwhile, to further clarify the interplay between these three keywords,
 to include certain data file into the source distribution, the following
 logic condition has two be met::
 
-    m or (p and not (i or e))  # TODO: why not i?
+    m or (p and not e)
 
-In plain language, TODO:
+In plain language, the file should be either: 1. included in ``MANIFEST.in``;
+or 2. selected by ``package-data`` AND not excluded by ``exclude-package-data``.
 
 To include some data file into the ``.whl``::
 
     (not e) and ((i and m) or p)
 
 In plain language, the file should not be excluded by ``exclude-package-data``
-(highest priority), and should be either: 1. selected by ``package-data``;
+(highest priority), and should be either: 1. selected by ``package-data``; or
 2. selected by ``MANIFEST.in`` AND use ``include-package-data = true``.
 
 Notation::
