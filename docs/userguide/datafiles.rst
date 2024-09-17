@@ -351,6 +351,38 @@ Any files that match these patterns will be *excluded* from installation,
 even if they were listed in ``package_data`` or were included as a result of using
 ``include_package_data``.
 
+.. _interplay_package_data_keywords:
+
+Interplay between these keywords
+--------------------------------
+
+TODO:
+- better formatted logic expression
+- check logic correctness (especially regarding parentheses)
+
+Meanwhile, to further clarify the interplay between these three keywords,
+to include certain data file into the source distribution, the following
+logic condition has two be met::
+
+    (m or p) and not (i or e)  # TODO: why "not i"?
+
+In plain language, the file should be selected by either ``package-data``
+or ``MAINFEST.in``, AND should not be excluded by ``exclude-package-data``.  # TODO: why "not i"?
+
+To include some data file into the ``.whl``::
+
+    (not e) and ((i and m) or p)
+
+In plain language, the file should not be excluded by ``exclude-package-data``
+(highest priority), and should be either: 1. selected by ``package-data``;
+2. selected by ``MANIFEST.in`` AND use ``include-package-data = true``.
+
+Notation::
+
+    i - "include-package-data = true" is set
+    e - file selected by "exclude-package-data"
+    p - file selected by "package-data"
+    m - "MANIFEST.in" exists and includes file
 
 Summary
 -------
