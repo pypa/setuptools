@@ -3,13 +3,13 @@ Data Files Support
 ====================
 
 In the Python ecosystem, the term "data files" is used in various complex scenarios
-and can have nuanced meanings.
-For the purposes of this documentation, we define "data files" as non-Python files
-that are installed alongside Python modules and packages on the user's machine
-when they install a :term:`distribution <Distribution Package>` from PyPI
-or via a ``.whl`` file.
+and can have nuanced meanings. For the purposes of this documentation,
+we define "data files" as non-Python files that are installed alongside Python
+modules and packages on the user's machine when they install a
+:term:`distribution <Distribution Package>` from either source distribution
+or via a binary distribution (``.whl`` file for example).
 
-These files are typically intended for use at runtime by the package itself or
+These files are typically intended for use at **runtime** by the package itself or
 to influence the behavior of other packages or systems.
 
 Old packaging installation methods in the Python ecosystem
