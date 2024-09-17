@@ -380,6 +380,12 @@ In plain language, the file should not be excluded by ``exclude-package-data``
     p - file selected by "package-data"
     m - file included in "MANIFEST.in"
 
+.. note::
+    Different versions of ``setuptools`` might behave differently. The above
+    description applies to versions after ``58.5.3`` (exclusive). For information
+    on the behavior of earlier versions and more details, please refer to the
+    `GitHub repository <https://github.com/abravalheri/experiment-setuptools-package-data>`_.
+
 Summary
 -------
 
