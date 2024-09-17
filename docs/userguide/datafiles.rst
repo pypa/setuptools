@@ -360,25 +360,24 @@ Meanwhile, to further clarify the interplay between these three keywords,
 to include certain data file into the source distribution, the following
 logic condition has to be met::
 
-    m or (p and not e)
+    MANIFEST.in or (package-data and not exclude-package-data)
 
-In plain language, the file should be either: 1. included in ``MANIFEST.in``;
-or 2. selected by ``package-data`` AND not excluded by ``exclude-package-data``.
+In plain language, the file should be either:
+
+1. included in ``MANIFEST.in``; or
+
+2. selected by ``package-data`` AND not excluded by ``exclude-package-data``.
 
 To include some data file into the ``.whl``::
 
-    (not e) and ((i and m) or p)
+    (not exclude-package-data) and ((include-package-data and MANIFEST.in) or package-data)
 
-In plain language, the file should not be excluded by ``exclude-package-data``
-(highest priority), and should be either: 1. selected by ``package-data``; or
+In other words, the file should not be excluded by ``exclude-package-data``
+(highest priority), AND should be either:
+
+1. selected by ``package-data``; or
+
 2. selected by ``MANIFEST.in`` AND use ``include-package-data = true``.
-
-**Notation**::
-
-    i - "include-package-data = true" is set
-    e - file selected by "exclude-package-data"
-    p - file selected by "package-data"
-    m - file included in "MANIFEST.in"
 
 Summary
 -------
