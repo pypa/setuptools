@@ -364,10 +364,9 @@ Meanwhile, to further clarify the interplay between these three keywords,
 to include certain data file into the source distribution, the following
 logic condition has two be met::
 
-    (m or p) and not (i or e)  # TODO: why "not i"?
+    m or (p and not (i or e))  # TODO: why not i?
 
-In plain language, the file should be selected by either ``package-data``
-or ``MAINFEST.in``, AND should not be excluded by ``exclude-package-data``.  # TODO: why "not i"?
+In plain language, TODO:
 
 To include some data file into the ``.whl``::
 
@@ -382,7 +381,7 @@ Notation::
     i - "include-package-data = true" is set
     e - file selected by "exclude-package-data"
     p - file selected by "package-data"
-    m - "MANIFEST.in" exists and includes file
+    m - file included in "MANIFEST.in"
 
 Summary
 -------
