@@ -26,6 +26,7 @@ from wheel.metadata import pkginfo_to_metadata
 from wheel.wheelfile import WheelFile
 
 from .. import Command, __version__
+from ..warnings import SetuptoolsDeprecationWarning
 from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
@@ -205,7 +206,7 @@ class bdist_wheel(Command):
             "g",
             "Group name used when creating a tar file [default: current group]",
         ),
-        ("universal", None, "make a universal wheel [default: false]"),
+        ("universal", None, "*DEPRECATED* make a universal wheel [default: false]"),
         (
             "compression=",
             None,
@@ -278,12 +279,25 @@ class bdist_wheel(Command):
 
         # Support legacy [wheel] section for setting universal
         wheel = self.distribution.get_option_dict("wheel")
-        if "universal" in wheel:
+        if "universal" in wheel:  # pragma: no cover
             # please don't define this in your global configs
             log.warn("The [wheel] section is deprecated. Use [bdist_wheel] instead.")
             val = wheel["universal"][1].strip()
             if val.lower() in ("1", "true", "yes"):
                 self.universal = True
+
+        if self.universal:
+            SetuptoolsDeprecationWarning.emit(
+                "bdist_wheel.universal is deprecated",
+                """
+                With Python 2.7 end-of-life, support for building universal wheels
+                (i.e., wheels that support both Python 2 and Python 3)
+                is being obviated.
+                Please discontinue using this option, or if you still need it,
+                file an issue with pypa/setuptools describing your use case.
+                """,
+                due_date=(2025, 8, 30),  # Introduced in 2024-08-30
+            )
 
         if self.build_number is not None and not self.build_number[:1].isdigit():
             raise ValueError("Build tag (build-number) must start with a digit.")
