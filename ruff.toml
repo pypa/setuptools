@@ -24,6 +24,7 @@ ignore = [
 	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
 	"TRY301", # raise-within-try, it's handy
 	"UP015", # redundant-open-modes, explicit is preferred
+	"UP027", # deprecated https://github.com/astral-sh/ruff/pull/12843
 	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
 	# Only enforcing return type annotations for public functions
 	"ANN202", # missing-return-type-private-function
