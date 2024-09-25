@@ -27,6 +27,7 @@ from wheel.wheelfile import WheelFile
 
 from .. import Command, __version__
 from ..warnings import SetuptoolsDeprecationWarning
+from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
 
@@ -269,7 +270,7 @@ class bdist_wheel(Command):
             self.bdist_dir = os.path.join(bdist_base, "wheel")
 
         if self.dist_info_dir is None:
-            egg_info = self.distribution.get_command_obj("egg_info")
+            egg_info = cast(egg_info_cls, self.distribution.get_command_obj("egg_info"))
             egg_info.ensure_finalized()  # needed for correct `wheel_dist_name`
 
         self.data_dir = self.wheel_dist_name + ".data"
