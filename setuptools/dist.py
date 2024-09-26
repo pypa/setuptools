@@ -8,7 +8,7 @@ import re
 import sys
 from glob import iglob
 from pathlib import Path
-from typing import TYPE_CHECKING, MutableMapping
+from typing import TYPE_CHECKING, MutableMapping, NoReturn, overload
 
 from more_itertools import partition, unique_everseen
 from packaging.markers import InvalidMarker, Marker
@@ -21,6 +21,7 @@ from . import (
     command as _,  # noqa: F401 # imported for side-effects
 )
 from ._importlib import metadata
+from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
 from .monkey import get_unpatched
@@ -138,11 +139,15 @@ def invalid_unless_false(dist, attr, value):
     raise DistutilsSetupError(f"{attr} is invalid.")
 
 
-def check_requirements(dist, attr, value):
+@overload
+def check_requirements(dist, attr: str, value: set) -> NoReturn: ...
+@overload
+def check_requirements(dist, attr: str, value: _StrOrIter) -> None: ...
+def check_requirements(dist, attr: str, value: _StrOrIter) -> None:
     """Verify that install_requires is a valid requirements list"""
     try:
         list(_reqs.parse(value))
-        if isinstance(value, (dict, set)):
+        if isinstance(value, set):
             raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
         tmpl = (
