@@ -458,6 +458,7 @@ class bdist_wheel(Command):
         distinfo_dir = os.path.join(self.bdist_dir, distinfo_dirname)
         if self.dist_info_dir:
             # Use the given dist-info directly.
+            log.debug(f"reusing {self.dist_info_dir}")
             shutil.copytree(self.dist_info_dir, distinfo_dir)
             # Egg info is still generated, so remove it now to avoid it getting
             # copied into the wheel.
