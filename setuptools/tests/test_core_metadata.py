@@ -429,6 +429,20 @@ class TestPEP643:
             install_requires = requests
             """
         ),
+        "pyproject.toml": cleandoc(
+            """
+            [project]
+            name = "package"
+            version = "0.0.1"
+            authors = [
+              {name = "Foo Bar", email = "foo@bar.net"}
+            ]
+            description = "Short description"
+            readme = {text = "Long\\ndescription", content-type = "text/plain"}
+            keywords = ["one", "two"]
+            dependencies = ["requests"]
+            """
+        ),
     }
 
     @pytest.mark.parametrize("file", STATIC_CONFIG.keys())
