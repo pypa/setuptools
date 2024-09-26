@@ -1,0 +1,1 @@
+Re-use pre-existing ``.dist-info`` dir when creating wheels via the build backend APIs (PEP 517) and the ``metadata_directory`` argument is passed -- by :user:`pelson`.

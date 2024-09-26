@@ -417,9 +417,12 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         config_settings: _ConfigSettings = None,
         metadata_directory: StrPath | None = None,
     ):
+        cmd = ['bdist_wheel']
+        if metadata_directory:
+            cmd.extend(['--dist-info-dir', metadata_directory])
         with suppress_known_deprecation():
             return self._build_with_temp_dir(
-                ['bdist_wheel'],
+                cmd,
                 '.whl',
                 wheel_directory,
                 config_settings,
