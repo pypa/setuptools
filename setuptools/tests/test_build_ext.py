@@ -183,7 +183,7 @@ class TestBuildExtInplace:
             "eggs.c": "#include missingheader.h\n",
             ".build": {"lib": {}, "tmp": {}},
         }
-        path.build(files)  # type: ignore[arg-type] # jaraco/path#232
+        path.build(files)  # jaraco/path#232
         extension = Extension('spam.eggs', ['eggs.c'], optional=optional)
         dist = Distribution(dict(ext_modules=[extension]))
         dist.script_name = 'setup.py'
