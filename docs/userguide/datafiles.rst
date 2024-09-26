@@ -6,8 +6,7 @@ In the Python ecosystem, the term "data files" is used in various complex scenar
 and can have nuanced meanings. For the purposes of this documentation,
 we define "data files" as non-Python files that are installed alongside Python
 modules and packages on the user's machine when they install a
-:term:`distribution <Distribution Package>` from either source distribution
-or via a binary distribution (``.whl`` file for example).
+:term:`distribution <Distribution Package>` via :term:`wheel <Wheel>`.
 
 These files are typically intended for use at **runtime** by the package itself or
 to influence the behavior of other packages or systems.
