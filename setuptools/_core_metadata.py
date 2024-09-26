@@ -18,7 +18,8 @@ from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name, canonicalize_version
 from packaging.version import Version
 
-from . import _normalization, _reqs, _static
+from . import _normalization, _reqs
+from ._static import is_static
 from .warnings import SetuptoolsDeprecationWarning
 
 from distutils.util import rfc822_escape
@@ -208,7 +209,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     _write_requirements(self, file)
 
     for field, attr in _POSSIBLE_DYNAMIC_FIELDS.items():
-        if hasattr(self, attr) and not isinstance(getattr(self, attr), _static.Static):
+        if (val := getattr(self, attr, None)) and not is_static(val):
             write_field('Dynamic', field)
 
     long_description = self.get_long_description()
@@ -291,6 +292,7 @@ def _distribution_fullname(name: str, version: str) -> str:
 
 
 _POSSIBLE_DYNAMIC_FIELDS = {
+    # Core Metadata Field x related Distribution attribute
     "author": "author",
     "author-email": "author_email",
     "classifier": "classifiers",
@@ -300,7 +302,7 @@ _POSSIBLE_DYNAMIC_FIELDS = {
     "home-page": "url",
     "keywords": "keywords",
     "license": "license",
-    # "license-file": "license_files", # PEP 639 allows backfilling without dynamic ??
+    # "license-file": "license_files", # XXX: does PEP 639 exempt Dynamic ??
     "maintainer": "maintainer",
     "maintainer-email": "maintainer_email",
     "obsoletes": "obsoletes",

@@ -1,12 +1,14 @@
-from collections import abc
-from functools import singledispatch
+from functools import wraps
+from typing import Any, TypeVar
 
 import packaging.specifiers
+
+from .warnings import SetuptoolsDeprecationWarning
 
 
 class Static:
     """
-    Wrapper for butil-in object types that are allow setuptools to identify
+    Wrapper for built-in object types that are allow setuptools to identify
     static core metadata (in opposition to ``Dynamic``, as defined :pep:`643`).
 
     The trick is to mark values with :class:`Static` when they come from
@@ -15,8 +17,43 @@ class Static:
 
     We inherit from built-in classes, so that we don't need to change the existing
     code base to deal with the new types.
-    We also prefer "immutable-ish" objects to avoid changes after the initial parsing.
+    We also should strive for immutability objects to avoid changes after the
+    initial parsing.
     """
+
+    _mutated_: bool = False  # TODO: Remove after deprecation warning is solved
+
+
+def _prevent_modification(target: type, method: str, copying: str):
+    """
+    Because setuptools is very flexible we cannot fully prevent
+    plugins and user customisations from modifying static values that were
+    parsed from config files.
+    But we can attempt to block "in-place" mutations and identify when they
+    were done.
+    """
+    fn = getattr(target, method)
+
+    @wraps(fn)
+    def _replacement(self: Static, *args, **kwargs):
+        # TODO: After deprecation period raise NotImplementedError instead of warning
+        #       which obviated the existence and checks of the `_mutated_` attribute.
+        self._mutated_ = True
+        SetuptoolsDeprecationWarning.emit(
+            "Direct modification of value will be disallowed",
+            f"""
+            In an effort to implement PEP 643, direct/in-place changes of static values
+            that come from configuration files are deprecated.
+            If you need to modify this value, please first create a copy with {copying}
+            and make sure conform to all relevant standards when overriding setuptools
+            functionality (https://packaging.python.org/en/latest/specifications/).
+            """,
+            due_date=(2025, 10, 10),  # Initially introduced in 2024-09-06
+        )
+        return fn(self, *args, **kwargs)
+
+    _replacement.__doc__ = ""  # otherwise doctest may fail.
+    setattr(target, method, _replacement)
 
 
 class Str(str, Static):
@@ -27,15 +64,69 @@ class Tuple(tuple, Static):
     pass
 
 
-class Mapping(dict, Static):
-    pass
+class List(list, Static):
+    """
+    :meta private:
+    >>> x = List([1, 2, 3])
+    >>> is_static(x)
+    True
+    >>> x += [0]  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    SetuptoolsDeprecationWarning: Direct modification ...
+    >>> is_static(x)  # no longer static after modification
+    False
+    >>> y = list(x)
+    >>> y.clear()
+    >>> y
+    []
+    >>> y == x
+    False
+    >>> is_static(List(y))
+    True
+    """
 
 
-def _do_not_modify(*_, **__):
-    raise NotImplementedError("Direct modification disallowed (statically defined)")
+# Make `List` immutable-ish
+# (certain places of setuptools/distutils issue a warn if we use tuple instead of list)
+for _method in (
+    '__delitem__',
+    '__iadd__',
+    '__setitem__',
+    'append',
+    'clear',
+    'extend',
+    'insert',
+    'remove',
+    'reverse',
+    'pop',
+):
+    _prevent_modification(List, _method, "`list(value)`")
 
 
-# Make `Mapping` immutable-ish (we cannot inherit from types.MappingProxyType):
+class Dict(dict, Static):
+    """
+    :meta private:
+    >>> x = Dict({'a': 1, 'b': 2})
+    >>> is_static(x)
+    True
+    >>> x['c'] = 0  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    SetuptoolsDeprecationWarning: Direct modification ...
+    >>> x._mutated_
+    True
+    >>> is_static(x)  # no longer static after modification
+    False
+    >>> y = dict(x)
+    >>> y.popitem()
+    ('b', 2)
+    >>> y == x
+    False
+    >>> is_static(Dict(y))
+    True
+    """
+
+
+# Make `Dict` immutable-ish (we cannot inherit from types.MappingProxyType):
 for _method in (
     '__delitem__',
     '__ior__',
@@ -46,38 +137,46 @@ for _method in (
     'setdefault',
     'update',
 ):
-    setattr(Mapping, _method, _do_not_modify)
+    _prevent_modification(Dict, _method, "`dict(value)`")
 
 
 class SpeficierSet(packaging.specifiers.SpecifierSet, Static):
-    """Not exactly a builtin type but useful for ``requires-python``"""
+    """Not exactly a built-in type but useful for ``requires-python``"""
 
 
-@singledispatch
-def convert(value):
+T = TypeVar("T")
+
+
+def noop(value: T) -> T:
+    """
+    >>> noop(42)
+    42
+    """
     return value
 
 
-@convert.register
-def _(value: str) -> Str:
-    return Str(value)
+_CONVERSIONS = {str: Str, tuple: Tuple, list: List, dict: Dict}
 
 
-@convert.register
-def _(value: str) -> Str:
-    return Str(value)
+def attempt_conversion(value: T) -> T:
+    """
+    >>> is_static(attempt_conversion("hello"))
+    True
+    >>> is_static(object())
+    False
+    """
+    return _CONVERSIONS.get(type(value), noop)(value)  # type: ignore[call-overload]
 
 
-@convert.register
-def _(value: tuple) -> Tuple:
-    return Tuple(value)
-
-
-@convert.register
-def _(value: list) -> Tuple:
-    return Tuple(value)
-
-
-@convert.register
-def _(value: abc.Mapping) -> Mapping:
-    return Mapping(value)
+def is_static(value: Any) -> bool:
+    """
+    >>> is_static(a := Dict({'a': 1}))
+    True
+    >>> is_static(dict(a))
+    False
+    >>> is_static(b := List([1, 2, 3]))
+    True
+    >>> is_static(list(b))
+    False
+    """
+    return isinstance(value, Static) and not value._mutated_
