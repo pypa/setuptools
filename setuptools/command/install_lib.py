@@ -100,7 +100,9 @@ class install_lib(orig.install_lib):
         preserve_symlinks=False,
         level=1,
     ) -> list[str]:
-        assert preserve_mode and preserve_times and not preserve_symlinks
+        assert preserve_mode
+        assert preserve_times
+        assert not preserve_symlinks
         exclude = self.get_exclusions()
 
         if not exclude:
