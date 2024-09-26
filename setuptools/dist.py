@@ -394,11 +394,11 @@ class Distribution(_Distribution):
         extras_require = getattr(self, "extras_require", None) or {}
 
         # Preserve the "static"-ness of values parsed from config files
-        seq = _static.Tuple if isinstance(install_requires, _static.Static) else list
-        self.install_requires = seq(map(str, _reqs.parse(install_requires)))
+        list_ = _static.List if _static.is_static(install_requires) else list
+        self.install_requires = list_(map(str, _reqs.parse(install_requires)))
 
-        mapp = _static.Mapping if isinstance(extras_require, _static.Static) else dict
-        self.extras_require = mapp(
+        dict_ = _static.Dict if _static.is_static(extras_require) else dict
+        self.extras_require = dict_(
             (k, list(map(str, _reqs.parse(v or [])))) for k, v in extras_require.items()
         )
 

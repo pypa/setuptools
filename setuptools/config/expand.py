@@ -183,7 +183,8 @@ def read_attr(
 
     try:
         value = getattr(StaticModule(module_name, spec), attr_name)
-        return _static.convert(value)
+        # XXX: Is marking as static contents coming from modules too optimistic?
+        return _static.attempt_conversion(value)
     except Exception:
         # fallback to evaluate module
         module = _load_spec(spec, module_name)
