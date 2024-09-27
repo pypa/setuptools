@@ -210,6 +210,9 @@ exclude = [
 ]
 namespaces = true
 
+[tool.setuptools.exclude-package-data]
+"*" = ["ruff.toml"]
+
 [tool.distutils.sdist]
 formats = "zip"
 
