@@ -878,9 +878,9 @@ class TestOverallBehaviour:
             "otherfile.py": "",
             "mypkg": {
                 "__init__.py": "",
-                "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore
+                "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore[index] # Would need a TypedDict
             },
-            "other": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore
+            "other": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore[index] # Would need a TypedDict
         },
         "namespace": {
             "pyproject.toml": dedent(PYPROJECT),
@@ -888,8 +888,8 @@ class TestOverallBehaviour:
             "otherfile.py": "",
             "src": {
                 "mypkg": {
-                    "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore
-                    "subpackage": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore
+                    "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore[index] # Would need a TypedDict
+                    "subpackage": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore[index] # Would need a TypedDict
                 },
             },
         },

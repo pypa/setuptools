@@ -44,8 +44,8 @@ def validate(config: dict, filepath: StrPath) -> bool:
 
     trove_classifier = validator.FORMAT_FUNCTIONS.get("trove-classifier")
     if hasattr(trove_classifier, "_disable_download"):
-        # Improve reproducibility by default. See issue 31 for validate-pyproject.
-        trove_classifier._disable_download()  # type: ignore
+        # Improve reproducibility by default. See abravalheri/validate-pyproject#31
+        trove_classifier._disable_download()  # type: ignore[union-attr]
 
     try:
         return validator.validate(config)
