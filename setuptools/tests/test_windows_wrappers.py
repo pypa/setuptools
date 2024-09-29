@@ -57,9 +57,9 @@ def win_launcher_exe(prefix):
     """A simple routine to select launcher script based on platform."""
     assert prefix in ('cli', 'gui')
     if platform.machine() == "ARM64":
-        return "{}-arm64.exe".format(prefix)
+        return f"{prefix}-arm64.exe"
     else:
-        return "{}-32.exe".format(prefix)
+        return f"{prefix}-32.exe"
 
 
 class TestCLI(WrapperTester):

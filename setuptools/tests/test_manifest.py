@@ -34,14 +34,11 @@ SETUP_ATTRS = {
     'packages': ['app'],
 }
 
-SETUP_PY = (
-    """\
+SETUP_PY = f"""\
 from setuptools import setup
 
-setup(**%r)
+setup(**{SETUP_ATTRS!r})
 """
-    % SETUP_ATTRS
-)
 
 
 @contextlib.contextmanager
