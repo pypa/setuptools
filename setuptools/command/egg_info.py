@@ -311,7 +311,7 @@ class egg_info(InfoCommon, Command):
 
             # Get rid of native_libs.txt if it was put there by older bdist_egg
             nl = os.path.join(staging, "native_libs.txt")
-            if os.path.exists(nl):
+            if os.path.exists(nl):  # pragma: no cover
                 self.delete_file(nl)
 
             # Remove old directory and create the new one
