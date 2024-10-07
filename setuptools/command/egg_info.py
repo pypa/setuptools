@@ -318,8 +318,7 @@ class egg_info(InfoCommon, Command):
             try:
                 # Unfortunately os.replace does not work for existing destination dirs,
                 # so we cannot have a single atomic operation
-                if os.path.isdir(self.egg_info):
-                    _shutil.rmtree(self.egg_info)
+                _shutil.rmdir(self.egg_info)
                 os.replace(staging, self.egg_info)
                 log.info(f"renaming {staging!r} to {self.egg_info!r}")
             except OSError as e:
