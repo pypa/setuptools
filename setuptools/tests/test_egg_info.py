@@ -165,19 +165,17 @@ class TestEggInfo:
         ]
         assert sorted(actual) == expected
 
-    def test_handling_utime_error(self, tmpdir_cwd, env):
-        dist = Distribution()
+    def test_handling_file_system_error(self, tmpdir_cwd, env):
+        dist = Distribution({"script_name": "hello.py"})
         ei = egg_info(dist)
-        utime_patch = mock.patch('os.utime', side_effect=OSError("TEST"))
-        mkpath_patch = mock.patch(
-            'setuptools.command.egg_info.egg_info.mkpath', return_val=None
-        )
+        rm_patch = mock.patch('setuptools._shutil.rmdir', side_effect=OSError("TEST"))
 
-        with utime_patch, mkpath_patch:
+        with rm_patch:
             import distutils.errors
 
-            msg = r"Cannot update time stamp of directory 'None'"
+            msg = r"Cannot create directory .*egg-info"
             with pytest.raises(distutils.errors.DistutilsFileError, match=msg):
+                ei.ensure_finalized()
                 ei.run()
 
     def test_license_is_a_string(self, tmpdir_cwd, env):

@@ -504,7 +504,7 @@ class Distribution(_Distribution):
                 versions. Please use the underscore name {underscore_opt!r} instead.
                 """,
                 see_docs="userguide/declarative_config.html",
-                due_date=(2024, 9, 26),
+                due_date=(2025, 3, 3),
                 # Warning initially introduced in 3 Mar 2021
             )
         return underscore_opt
@@ -529,7 +529,7 @@ class Distribution(_Distribution):
             future versions. Please use lowercase {lowercase_opt!r} instead.
             """,
             see_docs="userguide/declarative_config.html",
-            due_date=(2024, 9, 26),
+            due_date=(2025, 3, 3),
             # Warning initially introduced in 6 Mar 2021
         )
         return lowercase_opt
