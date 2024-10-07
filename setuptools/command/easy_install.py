@@ -34,7 +34,7 @@ import zipimport
 from collections.abc import Iterable
 from glob import glob
 from sysconfig import get_path
-from typing import TYPE_CHECKING, Callable, TypeVar
+from typing import TYPE_CHECKING
 
 from jaraco.text import yield_lines
 
@@ -63,7 +63,8 @@ from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 from setuptools.wheel import Wheel
 
 from .._path import ensure_directory
-from ..compat import py39, py311, py312
+from .._shutil import attempt_chmod_verbose as chmod, rmtree as _rmtree
+from ..compat import py39, py312
 
 from distutils import dir_util, log
 from distutils.command import install
@@ -88,8 +89,6 @@ __all__ = [
     'extract_wininst_cfg',
     'get_exe_prefixes',
 ]
-
-_T = TypeVar("_T")
 
 
 def is_64bit():
@@ -1788,16 +1787,6 @@ def _first_line_re():
     return re.compile(first_line_re.pattern.decode())
 
 
-# Must match shutil._OnExcCallback
-def auto_chmod(func: Callable[..., _T], arg: str, exc: BaseException) -> _T:
-    """shutils onexc callback to automatically call chmod for certain functions."""
-    # Only retry for scenarios known to have an issue
-    if func in [os.unlink, os.remove] and os.name == 'nt':
-        chmod(arg, stat.S_IWRITE)
-        return func(arg)
-    raise exc
-
-
 def update_dist_caches(dist_path, fix_zipimporter_caches):
     """
     Fix any globally cached `dist_path` related data
@@ -2018,24 +2007,6 @@ def is_python_script(script_text, filename):
         return 'python' in script_text.splitlines()[0].lower()
 
     return False  # Not any Python I can recognize
-
-
-try:
-    from os import (
-        chmod as _chmod,  # pyright: ignore[reportAssignmentType] # Losing type-safety w/ pyright, but that's ok
-    )
-except ImportError:
-    # Jython compatibility
-    def _chmod(*args: object, **kwargs: object) -> None:  # type: ignore[misc] # Mypy reuses the imported definition anyway
-        pass
-
-
-def chmod(path, mode):
-    log.debug("changing mode of %s to %o", path, mode)
-    try:
-        _chmod(path, mode)
-    except OSError as e:
-        log.debug("chmod failed: %s", e)
 
 
 class CommandSpec(list):
@@ -2338,10 +2309,6 @@ def get_win_launcher(type):
 def load_launcher_manifest(name):
     manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
     return manifest.decode('utf-8') % vars()
-
-
-def _rmtree(path, ignore_errors=False, onexc=auto_chmod):
-    return py311.shutil_rmtree(path, ignore_errors, onexc)
 
 
 def current_umask():
