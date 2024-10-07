@@ -9,7 +9,8 @@ from .compat import py311
 from distutils import log
 
 try:
-    from os import chmod
+    from os import chmod  # pyright: ignore[reportAssignmentType]
+    # Losing type-safety w/ pyright, but that's ok
 except ImportError:
     # Jython compatibility
     def chmod(*args: object, **kwargs: object) -> None:  # type: ignore[misc] # Mypy reuses the imported definition anyway
