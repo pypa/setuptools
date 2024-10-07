@@ -6,8 +6,10 @@ import collections
 import functools
 import os
 import re
+import shutil
 import sys
 import time
+from tempfile import TemporaryDirectory
 
 import packaging
 import packaging.requirements
@@ -20,7 +22,7 @@ from setuptools.command.sdist import sdist, walk_revctrl
 from setuptools.command.setopt import edit_config
 from setuptools.glob import glob
 
-from .. import _entry_points, _normalization
+from .. import _entry_points, _normalization, _shutil
 from .._importlib import metadata
 from ..warnings import SetuptoolsDeprecationWarning
 from . import _requirestxt
@@ -293,20 +295,36 @@ class egg_info(InfoCommon, Command):
             os.unlink(filename)
 
     def run(self):
-        self.mkpath(self.egg_info)
-        try:
-            os.utime(self.egg_info, None)
-        except OSError as e:
-            msg = f"Cannot update time stamp of directory '{self.egg_info}'"
-            raise distutils.errors.DistutilsFileError(msg) from e
-        for ep in metadata.entry_points(group='egg_info.writers'):
-            writer = ep.load()
-            writer(self, ep.name, os.path.join(self.egg_info, ep.name))
+        # Avoid adding an empty .egg-info to sys.path while using importlib.metadata
+        # See pypa/pyproject-hooks#206
+        self.mkpath(self.egg_base)  # avoid file system errors with tmpdir / os.replace
+        with TemporaryDirectory(prefix=".tmp-", dir=self.egg_base) as tmp:
+            staging = os.path.join(tmp, "egg_info")
+            if os.path.isdir(self.egg_info):
+                shutil.copytree(self.egg_info, staging)  # account pre-existing files
+            else:
+                os.mkdir(staging)
 
-        # Get rid of native_libs.txt if it was put there by older bdist_egg
-        nl = os.path.join(self.egg_info, "native_libs.txt")
-        if os.path.exists(nl):
-            self.delete_file(nl)
+            for ep in metadata.entry_points(group='egg_info.writers'):
+                writer = ep.load()
+                writer(self, ep.name, os.path.join(staging, ep.name))
+
+            # Get rid of native_libs.txt if it was put there by older bdist_egg
+            nl = os.path.join(staging, "native_libs.txt")
+            if os.path.exists(nl):
+                self.delete_file(nl)
+
+            # Remove old directory and create the new one
+            try:
+                # Unfortunately os.replace does not work for existing destination dirs,
+                # so we cannot have a single atomic operation
+                if os.path.isdir(self.egg_info):
+                    _shutil.rmtree(self.egg_info)
+                os.replace(staging, self.egg_info)
+                log.info(f"renaming {staging!r} to {self.egg_info!r}")
+            except OSError as e:
+                msg = f"Cannot create directory '{self.egg_info}'"
+                raise distutils.errors.DistutilsFileError(msg) from e
 
         self.find_sources()
 
@@ -654,13 +672,14 @@ def write_pkg_info(cmd, basename, filename):
         try:
             # write unescaped data to PKG-INFO, so older pkg_resources
             # can still parse it
-            metadata.write_pkg_info(cmd.egg_info)
+            parent_dir = os.path.dirname(filename)
+            metadata.write_pkg_info(parent_dir)
         finally:
             metadata.name, metadata.version = oldname, oldver
 
         safe = getattr(cmd.distribution, 'zip_safe', None)
 
-        bdist_egg.write_safety_flag(cmd.egg_info, safe)
+        bdist_egg.write_safety_flag(parent_dir, safe)
 
 
 def warn_depends_obsolete(cmd, basename, filename):
