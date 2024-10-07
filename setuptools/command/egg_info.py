@@ -322,7 +322,7 @@ class egg_info(InfoCommon, Command):
                 os.replace(staging, self.egg_info)
                 log.info(f"renaming {staging!r} to {self.egg_info!r}")
             except OSError as e:
-                msg = f"Cannot create directory '{self.egg_info}'"
+                msg = f"Cannot create directory '{self.egg_info}' ({e})"
                 raise distutils.errors.DistutilsFileError(msg) from e
 
         self.find_sources()
