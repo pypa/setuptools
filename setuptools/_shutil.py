@@ -39,3 +39,8 @@ def _auto_chmod(func: Callable[..., _T], arg: str, exc: BaseException) -> _T:
 
 def rmtree(path, ignore_errors=False, onexc=_auto_chmod):
     return py311.shutil_rmtree(path, ignore_errors, onexc)
+
+
+def rmdir(path, **opts):
+    if os.path.isdir(path):
+        rmtree(path, **opts)
