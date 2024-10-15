@@ -100,7 +100,7 @@ jobs:
         run: |
           rm -rf dist
           # workaround for pypa/setuptools#4333
-          pipx run --pip-args 'pyproject-hooks<1.1' build
+          pipx run --pip-args 'pyproject-hooks!=1.1' build
           echo "PRE_BUILT_SETUPTOOLS_SDIST=$(ls dist/*.tar.gz)" >> $GITHUB_ENV
           echo "PRE_BUILT_SETUPTOOLS_WHEEL=$(ls dist/*.whl)" >> $GITHUB_ENV
           rm -rf setuptools.egg-info  # Avoid interfering with the other tests

@@ -57,7 +57,7 @@ test = [
 	"pytest-subprocess",
 
 	# workaround for pypa/pyproject-hooks#206
-	"pyproject-hooks<1.1",  # TODO: fix problem with egg-info, see #4670
+	"pyproject-hooks!=1.1",
 
 	"jaraco.test",
 ]
