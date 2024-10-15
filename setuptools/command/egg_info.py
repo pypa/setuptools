@@ -293,13 +293,17 @@ class egg_info(InfoCommon, Command):
             os.unlink(filename)
 
     def run(self):
+        # Pre-load to avoid iterating over entry-points while an empty .egg-info
+        # exists in sys.path. See pypa/pyproject-hooks#206
+        writers = list(metadata.entry_points(group='egg_info.writers'))
+
         self.mkpath(self.egg_info)
         try:
             os.utime(self.egg_info, None)
         except OSError as e:
             msg = f"Cannot update time stamp of directory '{self.egg_info}'"
             raise distutils.errors.DistutilsFileError(msg) from e
-        for ep in metadata.entry_points(group='egg_info.writers'):
+        for ep in writers:
             writer = ep.load()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 
