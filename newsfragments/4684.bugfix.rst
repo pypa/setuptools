@@ -1,0 +1,2 @@
+Add workaround for ``bdist_wheel --dist-info-dir`` errors
+when customisation does not inherit from setuptools.
