@@ -1,3 +1,16 @@
+v75.1.1
+=======
+
+Bugfixes
+--------
+
+- Re-use pre-existing ``.dist-info`` dir when creating wheels via the build backend APIs (PEP 517) and the ``metadata_directory`` argument is passed -- by :user:`pelson`. (#1825)
+- Changed ``egg_info`` command to avoid adding an empty ``.egg-info`` directory
+  while iterating over entry-points.
+  This avoids triggering integration problems with ``importlib.metadata``/``importlib_metadata``
+  (reference: pypa/pyproject-hooks#206). (#4680)
+
+
 v75.1.0
 =======
 
