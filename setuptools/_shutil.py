@@ -41,6 +41,10 @@ def _auto_chmod(
 
 
 def rmtree(path, ignore_errors=False, onexc=_auto_chmod):
+    """
+    Similar to ``shutil.rmtree`` but automatically executes ``chmod``
+    for well know Windows failure scenarios.
+    """
     return py311.shutil_rmtree(path, ignore_errors, onexc)
 
 
