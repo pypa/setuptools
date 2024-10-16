@@ -417,17 +417,27 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         config_settings: _ConfigSettings = None,
         metadata_directory: StrPath | None = None,
     ):
-        cmd = ['bdist_wheel']
-        if metadata_directory:
-            cmd.extend(['--dist-info-dir', metadata_directory])
-        with suppress_known_deprecation():
-            return self._build_with_temp_dir(
-                cmd,
-                '.whl',
-                wheel_directory,
-                config_settings,
-                self._arbitrary_args(config_settings),
-            )
+        def _build(cmd: list[str]):
+            with suppress_known_deprecation():
+                return self._build_with_temp_dir(
+                    cmd,
+                    '.whl',
+                    wheel_directory,
+                    config_settings,
+                    self._arbitrary_args(config_settings),
+                )
+
+        if metadata_directory is None:
+            return _build(['bdist_wheel'])
+
+        try:
+            return _build(['bdist_wheel', '--dist-info-dir', metadata_directory])
+        except SystemExit as ex:  # pragma: nocover
+            # pypa/setuptools#4683
+            if "--dist-info-dir not recognized" not in str(ex):
+                raise
+            _IncompatibleBdistWheel.emit()
+            return _build(['bdist_wheel'])
 
     def build_sdist(
         self, sdist_directory: StrPath, config_settings: _ConfigSettings = None
@@ -512,6 +522,17 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
             # within the hook after run_setup is called.
             sys.path[:] = sys_path
             sys.argv[0] = sys_argv_0
+
+
+class _IncompatibleBdistWheel(SetuptoolsDeprecationWarning):
+    _SUMMARY = "wheel.bdist_wheel is deprecated, please import it from setuptools"
+    _DETAILS = """
+    Ensure that any custom bdist_wheel implementation is a subclass of
+    setuptools.command.bdist_wheel.bdist_wheel.
+    """
+    _DUE_DATE = (2025, 10, 15)
+    # Initially introduced in 2024/10/15, but maybe too disruptive to be enforced?
+    _SEE_URL = "https://github.com/pypa/wheel/pull/631"
 
 
 # The primary backend
