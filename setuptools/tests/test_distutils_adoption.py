@@ -161,7 +161,7 @@ def test_log_module_is_not_duplicated_on_import(distutils_version, venv):
 
 ENSURE_CONSISTENT_ERROR_FROM_MODIFIED_PY = r"""
 from setuptools.modified import newer
-from distutils.errors import DistutilsError
+from {imported_module}.errors import DistutilsError
 
 # Can't use pytest.raises in this context
 try:
@@ -177,12 +177,20 @@ else:
 @pytest.mark.parametrize(
     "distutils_version",
     [
-        "local",
-        pytest.param("stdlib", marks=skip_without_stdlib_distutils),
+        ("local", "distutils"),
+        # Unfortunately we still get ._distutils.errors.DistutilsError with SETUPTOOLS_USE_DISTUTILS=stdlib
+        # But that's a deprecated use-case we don't mind not fully supporting in newer code
+        (pytest.param("stdlib", marks=skip_without_stdlib_distutils), "._distutils"),
     ],
 )
-def test_consistent_error_from_modified_py(distutils_version, venv):
+def test_consistent_error_from_modified_py(distutils_version, imported_module, venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
-    cmd = ['python', '-c', ENSURE_CONSISTENT_ERROR_FROM_MODIFIED_PY]
+    cmd = [
+        'python',
+        '-c',
+        ENSURE_CONSISTENT_ERROR_FROM_MODIFIED_PY.format(
+            imported_module=imported_module
+        ),
+    ]
     output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
     assert output == "success"
