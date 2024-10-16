@@ -1,0 +1,1 @@
+Made errors when parsing ``Distribution`` data more explicit about the expected type (``tuple[str, ...] | list[str]``) -- by :user:`Avasam`

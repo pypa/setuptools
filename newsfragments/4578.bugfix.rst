@@ -1,0 +1,1 @@
+Fix a `TypeError` when a ``Distribution``'s old included attribute was a `tuple` -- by :user:`Avasam`
