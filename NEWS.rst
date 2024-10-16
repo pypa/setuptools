@@ -1,3 +1,20 @@
+v75.2.0
+=======
+
+Features
+--------
+
+- Made errors when parsing ``Distribution`` data more explicit about the expected type (``tuple[str, ...] | list[str]``) -- by :user:`Avasam` (#4578)
+
+
+Bugfixes
+--------
+
+- Fix a `TypeError` when a ``Distribution``'s old included attribute was a `tuple` -- by :user:`Avasam` (#4578)
+- Add workaround for ``bdist_wheel --dist-info-dir`` errors
+  when customisation does not inherit from setuptools. (#4684)
+
+
 v75.1.1
 =======
 
