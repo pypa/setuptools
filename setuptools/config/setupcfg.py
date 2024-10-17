@@ -27,7 +27,6 @@ from typing import (
     List,
     Tuple,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -56,7 +55,7 @@ while the second element of the tuple is the option value itself
 """
 AllCommandOptions: TypeAlias = Dict[str, SingleCommandOptions]
 """cmd name => its options"""
-Target = TypeVar("Target", bound=Union["Distribution", "DistributionMetadata"])
+Target = TypeVar("Target", "Distribution", "DistributionMetadata")
 
 
 def read_configuration(
@@ -99,7 +98,7 @@ def _apply(
     filepath: StrPath,
     other_files: Iterable[StrPath] = (),
     ignore_option_errors: bool = False,
-) -> tuple[ConfigHandler, ...]:
+) -> tuple[ConfigMetadataHandler, ConfigOptionsHandler]:
     """Read configuration from ``filepath`` and applies to the ``dist`` object."""
     from setuptools.dist import _Distribution
 
@@ -125,7 +124,7 @@ def _apply(
     return handlers
 
 
-def _get_option(target_obj: Target, key: str):
+def _get_option(target_obj: Distribution | DistributionMetadata, key: str):
     """
     Given a target object and option key, get that option from
     the target object, either through a get_{key} method or
@@ -138,11 +137,13 @@ def _get_option(target_obj: Target, key: str):
 
 
 def configuration_to_dict(
-    handlers: tuple[ConfigHandler[Distribution | DistributionMetadata], ...],
+    handlers: Iterable[
+        ConfigHandler[Distribution] | ConfigHandler[DistributionMetadata]
+    ],
 ) -> dict:
     """Returns configuration data gathered by given handlers as a dict.
 
-    :param list[ConfigHandler] handlers: Handlers list,
+    :param Iterable[ConfigHandler] handlers: Handlers list,
         usually from parse_configuration()
 
     :rtype: dict
@@ -259,7 +260,7 @@ class ConfigHandler(Generic[Target]):
         ensure_discovered: expand.EnsurePackagesDiscovered,
     ):
         self.ignore_option_errors = ignore_option_errors
-        self.target_obj = target_obj
+        self.target_obj: Target = target_obj
         self.sections = dict(self._section_options(options))
         self.set_options: list[str] = []
         self.ensure_discovered = ensure_discovered
