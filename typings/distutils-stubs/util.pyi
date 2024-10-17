@@ -1,53 +1,38 @@
-from _typeshed import StrPath, Unused
-from collections.abc import Callable, Container, Iterable, Mapping
-from typing import Any, Literal
+from _typeshed import Unused
+from collections.abc import Callable, Mapping
+from typing import Literal
 from typing_extensions import TypeVarTuple, Unpack
 
 _Ts = TypeVarTuple("_Ts")
 
 def get_host_platform() -> str: ...
 def get_platform() -> str: ...
+def get_macosx_target_ver_from_syscfg(): ...
+def get_macosx_target_ver(): ...
+def split_version(s: str) -> list[int]: ...
 def convert_path(pathname: str) -> str: ...
-def change_root(new_root: StrPath, pathname: StrPath) -> str: ...
+def change_root(new_root: str, pathname: str) -> str: ...
 def check_environ() -> None: ...
 def subst_vars(s: str, local_vars: Mapping[str, str]) -> None: ...
+def grok_environment_error(exc: object, prefix: str = "error: ") -> str: ...
 def split_quoted(s: str) -> list[str]: ...
 def execute(
     func: Callable[[Unpack[_Ts]], Unused],
     args: tuple[Unpack[_Ts]],
     msg: str | None = None,
-    verbose: bool | Literal[0, 1] = 0,
-    dry_run: bool | Literal[0, 1] = 0,
+    verbose: bool = False,
+    dry_run: bool = False,
 ) -> None: ...
 def strtobool(val: str) -> Literal[0, 1]: ...
 def byte_compile(
     py_files: list[str],
     optimize: int = 0,
-    force: bool | Literal[0, 1] = 0,
+    force: bool = False,
     prefix: str | None = None,
     base_dir: str | None = None,
-    verbose: bool | Literal[0, 1] = 1,
-    dry_run: bool | Literal[0, 1] = 0,
+    verbose: bool = True,
+    dry_run: bool = False,
     direct: bool | None = None,
 ) -> None: ...
 def rfc822_escape(header: str) -> str: ...
-def run_2to3(
-    files: Iterable[str],
-    fixer_names: Iterable[str] | None = None,
-    options: Mapping[str, Any] | None = None,
-    explicit: Unused = None,
-) -> None: ...
-def copydir_run_2to3(
-    src: StrPath,
-    dest: StrPath,
-    template: str | None = None,
-    fixer_names: Iterable[str] | None = None,
-    options: Mapping[str, Any] | None = None,
-    explicit: Container[str] | None = None,
-) -> list[str]: ...
-
-class Mixin2to3:
-    fixer_names: Iterable[str] | None
-    options: Mapping[str, Any] | None
-    explicit: Container[str] | None
-    def run_2to3(self, files: Iterable[str]) -> None: ...
+def is_mingw() -> bool: ...
