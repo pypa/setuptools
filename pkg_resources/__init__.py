@@ -2648,7 +2648,7 @@ def _cygwin_patch(filename: StrOrBytesPath):  # pragma: nocover
     would probably better, in Cygwin even more so, except
     that this seems to be by design...
     """
-    return os.path.abspath(filename) if sys.platform == 'cygwin' else filename
+    return os.path.abspath(filename) if sys.platform == 'cygwin' else filename  # type: ignore[type-var] # python/mypy#17952
 
 
 if TYPE_CHECKING:
