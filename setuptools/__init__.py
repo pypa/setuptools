@@ -1,9 +1,4 @@
 """Extensions to the 'distutils' for large or complex distributions"""
-# mypy: disable_error_code=override
-# Command.reinitialize_command has an extra **kw param that distutils doesn't have
-# Can't disable on the exact line because distutils doesn't exists on Python 3.12
-# and mypy isn't aware of distutils_hack, causing distutils.core.Command to be Any,
-# and a [unused-ignore] to be raised on 3.12+
 
 from __future__ import annotations
 
@@ -226,7 +221,7 @@ class Command(_Command):
     ) -> _Command:
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
-        return cmd  # pyright: ignore[reportReturnType] # pypa/distutils#307
+        return cmd
 
     @abstractmethod
     def initialize_options(self) -> None:
