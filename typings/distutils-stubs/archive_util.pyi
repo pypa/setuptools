@@ -1,5 +1,6 @@
-from _typeshed import StrOrBytesPath, StrPath
 from typing import Literal, overload
+
+from _typeshed import StrOrBytesPath, StrPath
 
 @overload
 def make_archive(
@@ -32,4 +33,6 @@ def make_tarball(
     owner: str | None = None,
     group: str | None = None,
 ) -> str: ...
-def make_zipfile(base_name: str, base_dir: str, verbose: bool = False, dry_run: bool = False) -> str: ...
+def make_zipfile(
+    base_name: str, base_dir: str, verbose: bool = False, dry_run: bool = False
+) -> str: ...

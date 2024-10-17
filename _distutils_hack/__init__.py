@@ -3,8 +3,7 @@ import os
 import sys
 
 report_url = (
-    "https://github.com/pypa/setuptools/issues/new?"
-    "template=distutils-deprecation.yml"
+    "https://github.com/pypa/setuptools/issues/new?template=distutils-deprecation.yml"
 )
 
 

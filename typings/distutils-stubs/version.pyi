@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from re import Pattern
+
 from typing_extensions import Self
 
 class Version:

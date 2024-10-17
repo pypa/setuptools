@@ -1,6 +1,7 @@
-from _typeshed import Incomplete
 from collections.abc import Callable
 from typing import Any, ClassVar
+
+from _typeshed import Incomplete
 
 from ..config import PyPIRCCommand
 
