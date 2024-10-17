@@ -1,5 +1,6 @@
-from _typeshed import Incomplete
 from typing import ClassVar
+
+from _typeshed import Incomplete
 
 from ..cmd import Command
 
