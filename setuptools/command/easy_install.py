@@ -713,7 +713,7 @@ class easy_install(Command):
 
     def install_item(self, spec, download, tmpdir, deps, install_needed: bool = False):
         # Installation is also needed if file in tmpdir or is not an egg
-        install_needed = install_needed or self.always_copy
+        install_needed = install_needed or bool(self.always_copy)
         install_needed = install_needed or os.path.dirname(download) == tmpdir
         install_needed = install_needed or not download.endswith('.egg')
         install_needed = install_needed or (
