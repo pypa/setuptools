@@ -3,9 +3,9 @@ from typing import Final
 
 from _typeshed import Incomplete, StrOrBytesPath
 
-from distutils.cmd import Command as Command
-from distutils.dist import Distribution as Distribution
-from distutils.extension import Extension as Extension
+from .cmd import Command as Command
+from .dist import Distribution as Distribution
+from .extension import Extension as Extension
 
 USAGE: Final[str]
 

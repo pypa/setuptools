@@ -1,31 +1,30 @@
 from _typeshed import Incomplete, StrOrBytesPath, StrPath, SupportsWrite
 from collections.abc import Iterable, MutableMapping
-from distutils.cmd import Command
-from distutils.command.bdist import bdist
-from distutils.command.bdist_dumb import bdist_dumb
-from distutils.command.bdist_rpm import bdist_rpm
-from distutils.command.build import build
-from distutils.command.build_clib import build_clib
-from distutils.command.build_ext import build_ext
-from distutils.command.build_py import build_py
-from distutils.command.build_scripts import build_scripts
-from distutils.command.check import check
-from distutils.command.clean import clean
-from distutils.command.config import config
-from distutils.command.install import install
-from distutils.command.install_data import install_data
-from distutils.command.install_egg_info import install_egg_info
-from distutils.command.install_headers import install_headers
-from distutils.command.install_lib import install_lib
-from distutils.command.install_scripts import install_scripts
-from distutils.command.register import register
-from distutils.command.sdist import sdist
-from distutils.command.upload import upload
 from re import Pattern
 from typing import IO, ClassVar, Literal, TypeVar, overload
 from typing_extensions import TypeAlias
 
 from .cmd import Command
+from .command.bdist import bdist
+from .command.bdist_dumb import bdist_dumb
+from .command.bdist_rpm import bdist_rpm
+from .command.build import build
+from .command.build_clib import build_clib
+from .command.build_ext import build_ext
+from .command.build_py import build_py
+from .command.build_scripts import build_scripts
+from .command.check import check
+from .command.clean import clean
+from .command.config import config
+from .command.install import install
+from .command.install_data import install_data
+from .command.install_egg_info import install_egg_info
+from .command.install_headers import install_headers
+from .command.install_lib import install_lib
+from .command.install_scripts import install_scripts
+from .command.register import register
+from .command.sdist import sdist
+from .command.upload import upload
 
 command_re: Pattern[str]
 

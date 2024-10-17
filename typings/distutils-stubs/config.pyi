@@ -1,6 +1,7 @@
 from abc import abstractmethod
-from distutils.cmd import Command
 from typing import ClassVar
+
+from .cmd import Command
 
 DEFAULT_PYPIRC: str
 
