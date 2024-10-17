@@ -38,7 +38,7 @@ import tempfile
 import tokenize
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Iterable, Iterator, List, Union
+from typing import TYPE_CHECKING, Iterable, Iterator, List, Mapping, Union
 
 import setuptools
 
@@ -52,7 +52,6 @@ from distutils.util import strtobool
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
-
 
 __all__ = [
     'get_requires_for_build_sdist',
@@ -147,7 +146,7 @@ def suppress_known_deprecation():
         yield
 
 
-_ConfigSettings: TypeAlias = Union[Dict[str, Union[str, List[str], None]], None]
+_ConfigSettings: TypeAlias = Union[Mapping[str, Union[str, List[str], None]], None]
 """
 Currently the user can run::
 
@@ -291,7 +290,9 @@ class _ConfigSettingsTranslator:
 
 
 class _BuildMetaBackend(_ConfigSettingsTranslator):
-    def _get_build_requires(self, config_settings, requirements):
+    def _get_build_requires(
+        self, config_settings: _ConfigSettings, requirements: list[str]
+    ):
         sys.argv = [
             *sys.argv[:1],
             *self._global_args(config_settings),
@@ -305,7 +306,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
         return requirements
 
-    def run_setup(self, setup_script='setup.py'):
+    def run_setup(self, setup_script: str = 'setup.py'):
         # Note that we can reuse our build directory between calls
         # Correctness comes first, then optimization later
         __file__ = os.path.abspath(setup_script)
@@ -328,13 +329,15 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
                 "setup-py-deprecated.html",
             )
 
-    def get_requires_for_build_wheel(self, config_settings=None):
+    def get_requires_for_build_wheel(self, config_settings: _ConfigSettings = None):
         return self._get_build_requires(config_settings, requirements=[])
 
-    def get_requires_for_build_sdist(self, config_settings=None):
+    def get_requires_for_build_sdist(self, config_settings: _ConfigSettings = None):
         return self._get_build_requires(config_settings, requirements=[])
 
-    def _bubble_up_info_directory(self, metadata_directory: str, suffix: str) -> str:
+    def _bubble_up_info_directory(
+        self, metadata_directory: StrPath, suffix: str
+    ) -> str:
         """
         PEP 517 requires that the .dist-info directory be placed in the
         metadata_directory. To comply, we MUST copy the directory to the root.
@@ -347,7 +350,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             # PEP 517 allow other files and dirs to exist in metadata_directory
         return info_dir.name
 
-    def _find_info_directory(self, metadata_directory: str, suffix: str) -> Path:
+    def _find_info_directory(self, metadata_directory: StrPath, suffix: str) -> Path:
         for parent, dirs, _ in os.walk(metadata_directory):
             candidates = [f for f in dirs if f.endswith(suffix)]
 
@@ -359,14 +362,14 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         raise errors.InternalError(msg)
 
     def prepare_metadata_for_build_wheel(
-        self, metadata_directory, config_settings=None
+        self, metadata_directory: StrPath, config_settings: _ConfigSettings = None
     ):
         sys.argv = [
             *sys.argv[:1],
             *self._global_args(config_settings),
             "dist_info",
             "--output-dir",
-            metadata_directory,
+            str(metadata_directory),
             "--keep-egg-info",
         ]
         with no_install_setup_requires():
@@ -462,7 +465,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             self,
             wheel_directory: StrPath,
             config_settings: _ConfigSettings = None,
-            metadata_directory: str | None = None,
+            metadata_directory: StrPath | None = None,
         ):
             # XXX can or should we hide our editable_wheel command normally?
             info_dir = self._get_dist_info_dir(metadata_directory)
@@ -473,11 +476,13 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
                     cmd, ".whl", wheel_directory, config_settings
                 )
 
-        def get_requires_for_build_editable(self, config_settings=None):
+        def get_requires_for_build_editable(
+            self, config_settings: _ConfigSettings = None
+        ):
             return self.get_requires_for_build_wheel(config_settings)
 
         def prepare_metadata_for_build_editable(
-            self, metadata_directory, config_settings=None
+            self, metadata_directory: StrPath, config_settings: _ConfigSettings = None
         ):
             return self.prepare_metadata_for_build_wheel(
                 metadata_directory, config_settings
@@ -496,7 +501,7 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
     and will eventually be removed.
     """
 
-    def run_setup(self, setup_script='setup.py'):
+    def run_setup(self, setup_script: str = 'setup.py'):
         # In order to maintain compatibility with scripts assuming that
         # the setup.py script is in a directory on the PYTHONPATH, inject
         # '' into sys.path. (pypa/setuptools#1642)

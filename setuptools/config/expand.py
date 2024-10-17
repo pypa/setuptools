@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     from setuptools.dist import Distribution
 
 _K = TypeVar("_K")
-_V = TypeVar("_V", covariant=True)
+_V_co = TypeVar("_V_co", covariant=True)
 
 
 class StaticModule:
@@ -354,7 +354,7 @@ def canonic_data_files(
     ]
 
 
-def entry_points(text: str, text_source="entry-points") -> dict[str, dict]:
+def entry_points(text: str, text_source: str = "entry-points") -> dict[str, dict]:
     """Given the contents of entry-points file,
     process it into a 2-level dictionary (``dict[str, dict[str, str]]``).
     The first level keys are entry-point groups, the second level keys are
@@ -398,7 +398,7 @@ class EnsurePackagesDiscovered:
         exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
         traceback: TracebackType | None,
-    ) -> None:
+    ):
         if self._called:
             self._dist.set_defaults.analyse_name()  # Now we can set a default name
 
@@ -413,7 +413,7 @@ class EnsurePackagesDiscovered:
         return LazyMappingProxy(self._get_package_dir)
 
 
-class LazyMappingProxy(Mapping[_K, _V]):
+class LazyMappingProxy(Mapping[_K, _V_co]):
     """Mapping proxy that delays resolving the target object, until really needed.
 
     >>> def obtain_mapping():
@@ -427,16 +427,16 @@ class LazyMappingProxy(Mapping[_K, _V]):
     'other value'
     """
 
-    def __init__(self, obtain_mapping_value: Callable[[], Mapping[_K, _V]]):
+    def __init__(self, obtain_mapping_value: Callable[[], Mapping[_K, _V_co]]):
         self._obtain = obtain_mapping_value
-        self._value: Mapping[_K, _V] | None = None
+        self._value: Mapping[_K, _V_co] | None = None
 
-    def _target(self) -> Mapping[_K, _V]:
+    def _target(self) -> Mapping[_K, _V_co]:
         if self._value is None:
             self._value = self._obtain()
         return self._value
 
-    def __getitem__(self, key: _K) -> _V:
+    def __getitem__(self, key: _K) -> _V_co:
         return self._target()[key]
 
     def __len__(self) -> int:

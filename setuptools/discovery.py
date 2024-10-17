@@ -53,12 +53,13 @@ from ._path import StrPath
 from distutils import log
 from distutils.util import convert_path
 
-StrIter = Iterator[str]
-
-chain_iter = itertools.chain.from_iterable
-
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     from setuptools import Distribution
+
+StrIter: TypeAlias = Iterator[str]
+chain_iter = itertools.chain.from_iterable
 
 
 def _valid_name(path: StrPath) -> bool:
@@ -328,7 +329,9 @@ class ConfigDiscovery:
             return {}
         return self.dist.package_dir
 
-    def __call__(self, force=False, name=True, ignore_ext_modules=False):
+    def __call__(
+        self, force: bool = False, name: bool = True, ignore_ext_modules: bool = False
+    ):
         """Automatically discover missing configuration fields
         and modifies the given ``distribution`` object in-place.
 
