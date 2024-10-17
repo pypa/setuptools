@@ -1,0 +1,1 @@
+Fix an issue with Python 3.13 on Windows where specifying the absolute path to an extension module source file would cause the build files to be written to the directory containing the source file.
