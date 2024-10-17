@@ -431,7 +431,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             return _build(['bdist_wheel'])
 
         try:
-            return _build(['bdist_wheel', '--dist-info-dir', metadata_directory])
+            return _build(['bdist_wheel', '--dist-info-dir', str(metadata_directory)])
         except SystemExit as ex:  # pragma: nocover
             # pypa/setuptools#4683
             if "--dist-info-dir not recognized" not in str(ex):
