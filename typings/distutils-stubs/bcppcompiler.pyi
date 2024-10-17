@@ -1,0 +1,3 @@
+from .ccompiler import CCompiler
+
+class BCPPCompiler(CCompiler): ...
