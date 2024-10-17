@@ -95,10 +95,9 @@ class install_lib(orig.install_lib):
         self,
         infile: StrPath,
         outfile: str,
-        # override: Using actual booleans
-        preserve_mode: bool = True,  # type: ignore[override]
-        preserve_times: bool = True,  # type: ignore[override]
-        preserve_symlinks: bool = False,  # type: ignore[override]
+        preserve_mode: bool = True,
+        preserve_times: bool = True,
+        preserve_symlinks: bool = False,
         level: object = 1,
     ) -> list[str]:
         assert preserve_mode and preserve_times and not preserve_symlinks

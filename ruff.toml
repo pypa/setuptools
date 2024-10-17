@@ -34,6 +34,9 @@ ignore = [
 	# Only enforcing return type annotations for public functions
 	"ANN202", # missing-return-type-private-function
 	"ANN204", # missing-return-type-special-method
+	# Typeshed doesn't want complex or non-literal defaults for maintenance and testing reasons.
+	# This doesn't affect us, let's have more complete stubs.
+	"PYI011", # typed-argument-default-in-stub
 
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
