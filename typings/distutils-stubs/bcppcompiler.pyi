@@ -1,3 +1,3 @@
-from distutils.ccompiler import CCompiler
+from .ccompiler import CCompiler
 
 class BCPPCompiler(CCompiler): ...
