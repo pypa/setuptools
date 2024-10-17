@@ -1,0 +1,1 @@
+Fix the ABI tag when building a wheel using the debug build of Python 3.13 on Windows. Previously, the ABI tag was missing the ``"d"`` flag.
