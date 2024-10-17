@@ -1,10 +1,11 @@
 from _typeshed import BytesPath, StrPath, Unused
 from collections.abc import Callable, Iterable
-from distutils.file_util import _BytesPathT, _StrPathT
-from typing import Literal, overload
+from typing import ClassVar, Literal, TypeVar, overload
 from typing_extensions import TypeAlias, TypeVarTuple, Unpack
 
 _Macro: TypeAlias = tuple[str] | tuple[str, str | None]
+_StrPathT = TypeVar("_StrPathT", bound=StrPath)
+_BytesPathT = TypeVar("_BytesPathT", bound=BytesPath)
 _Ts = TypeVarTuple("_Ts")
 
 def gen_lib_options(
@@ -13,15 +14,20 @@ def gen_lib_options(
 def gen_preprocess_options(macros: list[_Macro], include_dirs: list[str]) -> list[str]: ...
 def get_default_compiler(osname: str | None = None, platform: str | None = None) -> str: ...
 def new_compiler(
-    plat: str | None = None,
-    compiler: str | None = None,
-    verbose: bool | Literal[0, 1] = 0,
-    dry_run: bool | Literal[0, 1] = 0,
-    force: bool | Literal[0, 1] = 0,
+    plat: str | None = None, compiler: str | None = None, verbose: bool = False, dry_run: bool = False, force: bool = False
 ) -> CCompiler: ...
 def show_compilers() -> None: ...
 
 class CCompiler:
+    src_extensions: ClassVar[list[str] | None]
+    obj_extension: ClassVar[str | None]
+    static_lib_extension: ClassVar[str | None]
+    shared_lib_extension: ClassVar[str | None]
+    static_lib_format: ClassVar[str | None]
+    shared_lib_format: ClassVar[str | None]
+    exe_extension: ClassVar[str | None]
+    language_map: ClassVar[dict[str, str]]
+    language_order: ClassVar[list[str]]
     dry_run: bool
     force: bool
     verbose: bool
@@ -32,9 +38,7 @@ class CCompiler:
     library_dirs: list[str]
     runtime_library_dirs: list[str]
     objects: list[str]
-    def __init__(
-        self, verbose: bool | Literal[0, 1] = 0, dry_run: bool | Literal[0, 1] = 0, force: bool | Literal[0, 1] = 0
-    ) -> None: ...
+    def __init__(self, verbose: bool = False, dry_run: bool = False, force: bool = False) -> None: ...
     def add_include_dir(self, dir: str) -> None: ...
     def set_include_dirs(self, dirs: list[str]) -> None: ...
     def add_library(self, libname: str) -> None: ...
@@ -48,7 +52,7 @@ class CCompiler:
     def add_link_object(self, object: str) -> None: ...
     def set_link_objects(self, objects: list[str]) -> None: ...
     def detect_language(self, sources: str | list[str]) -> str | None: ...
-    def find_library_file(self, dirs: list[str], lib: str, debug: bool | Literal[0, 1] = 0) -> str | None: ...
+    def find_library_file(self, dirs: list[str], lib: str, debug: bool = False) -> str | None: ...
     def has_function(
         self,
         funcname: str,
@@ -67,7 +71,7 @@ class CCompiler:
         output_dir: str | None = None,
         macros: list[_Macro] | None = None,
         include_dirs: list[str] | None = None,
-        debug: bool | Literal[0, 1] = 0,
+        debug: bool = False,
         extra_preargs: list[str] | None = None,
         extra_postargs: list[str] | None = None,
         depends: list[str] | None = None,
@@ -77,7 +81,7 @@ class CCompiler:
         objects: list[str],
         output_libname: str,
         output_dir: str | None = None,
-        debug: bool | Literal[0, 1] = 0,
+        debug: bool = False,
         target_lang: str | None = None,
     ) -> None: ...
     def link(
@@ -90,7 +94,7 @@ class CCompiler:
         library_dirs: list[str] | None = None,
         runtime_library_dirs: list[str] | None = None,
         export_symbols: list[str] | None = None,
-        debug: bool | Literal[0, 1] = 0,
+        debug: bool = False,
         extra_preargs: list[str] | None = None,
         extra_postargs: list[str] | None = None,
         build_temp: str | None = None,
@@ -104,7 +108,7 @@ class CCompiler:
         libraries: list[str] | None = None,
         library_dirs: list[str] | None = None,
         runtime_library_dirs: list[str] | None = None,
-        debug: bool | Literal[0, 1] = 0,
+        debug: bool = False,
         extra_preargs: list[str] | None = None,
         extra_postargs: list[str] | None = None,
         target_lang: str | None = None,
@@ -118,7 +122,7 @@ class CCompiler:
         library_dirs: list[str] | None = None,
         runtime_library_dirs: list[str] | None = None,
         export_symbols: list[str] | None = None,
-        debug: bool | Literal[0, 1] = 0,
+        debug: bool = False,
         extra_preargs: list[str] | None = None,
         extra_postargs: list[str] | None = None,
         build_temp: str | None = None,
@@ -133,7 +137,7 @@ class CCompiler:
         library_dirs: list[str] | None = None,
         runtime_library_dirs: list[str] | None = None,
         export_symbols: list[str] | None = None,
-        debug: bool | Literal[0, 1] = 0,
+        debug: bool = False,
         extra_preargs: list[str] | None = None,
         extra_postargs: list[str] | None = None,
         build_temp: str | None = None,
@@ -153,10 +157,10 @@ class CCompiler:
     @overload
     def executable_filename(self, basename: StrPath, strip_dir: Literal[1, True], output_dir: StrPath = "") -> str: ...
     def library_filename(
-        self, libname: str, lib_type: str = "static", strip_dir: bool | Literal[0, 1] = 0, output_dir: StrPath = ""
+        self, libname: str, lib_type: str = "static", strip_dir: bool = False, output_dir: StrPath = ""
     ) -> str: ...
     def object_filenames(
-        self, source_filenames: Iterable[StrPath], strip_dir: bool | Literal[0, 1] = 0, output_dir: StrPath | None = ""
+        self, source_filenames: Iterable[StrPath], strip_dir: bool = False, output_dir: StrPath | None = None
     ) -> list[str]: ...
     @overload
     def shared_object_filename(self, basename: str, strip_dir: Literal[0, False] = 0, output_dir: StrPath = "") -> str: ...
