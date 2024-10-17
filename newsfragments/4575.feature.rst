@@ -1,0 +1,1 @@
+Allowed using `dict` as an ordered type in ``setuptools.dist.check_requirements`` -- by :user:`Avasam`
