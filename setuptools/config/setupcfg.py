@@ -24,10 +24,8 @@ from typing import (
     Generic,
     Iterable,
     Iterator,
-    List,
     Tuple,
     TypeVar,
-    cast,
 )
 
 from packaging.markers import default_environment as marker_env
@@ -112,8 +110,7 @@ def _apply(
     filenames = [*other_files, filepath]
 
     try:
-        # TODO: Temporary cast until mypy 1.12 is released with upstream fixes from typeshed
-        _Distribution.parse_config_files(dist, filenames=cast(List[str], filenames))
+        _Distribution.parse_config_files(dist, filenames=filenames)
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )

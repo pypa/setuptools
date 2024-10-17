@@ -1,9 +1,11 @@
-from _typeshed import StrOrBytesPath
 from collections.abc import Mapping
+from typing import Final
+
+from _typeshed import Incomplete, StrOrBytesPath
+
 from distutils.cmd import Command as Command
 from distutils.dist import Distribution as Distribution
 from distutils.extension import Extension as Extension
-from typing import Any, Final, Literal
 
 USAGE: Final[str]
 
@@ -32,7 +34,7 @@ def setup(
     distclass: type[Distribution] = ...,
     script_name: str = ...,
     script_args: list[str] = ...,
-    options: Mapping[str, Any] = ...,
+    options: Mapping[str, Incomplete] = ...,
     license: str = ...,
     keywords: list[str] | str = ...,
     platforms: list[str] | str = ...,
@@ -43,15 +45,18 @@ def setup(
     provides: list[str] = ...,
     requires: list[str] = ...,
     command_packages: list[str] = ...,
-    command_options: Mapping[str, Mapping[str, tuple[Any, Any]]] = ...,
+    command_options: Mapping[str, Mapping[str, tuple[Incomplete, Incomplete]]] = ...,
     package_data: Mapping[str, list[str]] = ...,
-    include_package_data: bool | Literal[0, 1] = ...,
+    include_package_data: bool = ...,
     libraries: list[str] = ...,
     headers: list[str] = ...,
     ext_package: str = ...,
     include_dirs: list[str] = ...,
     password: str = ...,
     fullname: str = ...,
-    **attrs: Any,
+    # Custom Distributions could accept more params
+    **attrs: object,
 ) -> Distribution: ...
-def run_setup(script_name: str, script_args: list[str] | None = None, stop_after: str = "run") -> Distribution: ...
+def run_setup(
+    script_name: str, script_args: list[str] | None = None, stop_after: str = "run"
+) -> Distribution: ...

@@ -1,22 +1,19 @@
-from typing import Any, ClassVar, Final, Literal
-from typing_extensions import TypeAlias
+from typing import ClassVar, Final
+
+from _typeshed import Incomplete
+from docutils.utils import Reporter
 
 from ..cmd import Command
 
-_Reporter: TypeAlias = Any  # really docutils.utils.Reporter
-
-# Only defined if docutils is installed.
-# Depends on a third-party stub. Since distutils is deprecated anyway,
-# it's easier to just suppress the "any subclassing" error.
-class SilentReporter(_Reporter):
-    messages: Any
+class SilentReporter(Reporter):
+    messages: Incomplete
     def __init__(
         self,
         source,
         report_level,
         halt_level,
-        stream: Any | None = ...,
-        debug: bool | Literal[0, 1] = 0,
+        stream: Incomplete | None = ...,
+        debug: bool = False,
         encoding: str = ...,
         error_handler: str = ...,
     ) -> None: ...

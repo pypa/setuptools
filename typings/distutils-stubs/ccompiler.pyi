@@ -1,6 +1,7 @@
-from _typeshed import BytesPath, StrPath, Unused
 from collections.abc import Callable, Iterable
 from typing import ClassVar, Literal, TypeVar, overload
+
+from _typeshed import BytesPath, StrPath, Unused
 from typing_extensions import TypeAlias, TypeVarTuple, Unpack
 
 _Macro: TypeAlias = tuple[str] | tuple[str, str | None]
@@ -9,12 +10,23 @@ _BytesPathT = TypeVar("_BytesPathT", bound=BytesPath)
 _Ts = TypeVarTuple("_Ts")
 
 def gen_lib_options(
-    compiler: CCompiler, library_dirs: list[str], runtime_library_dirs: list[str], libraries: list[str]
+    compiler: CCompiler,
+    library_dirs: list[str],
+    runtime_library_dirs: list[str],
+    libraries: list[str],
 ) -> list[str]: ...
-def gen_preprocess_options(macros: list[_Macro], include_dirs: list[str]) -> list[str]: ...
-def get_default_compiler(osname: str | None = None, platform: str | None = None) -> str: ...
+def gen_preprocess_options(
+    macros: list[_Macro], include_dirs: list[str]
+) -> list[str]: ...
+def get_default_compiler(
+    osname: str | None = None, platform: str | None = None
+) -> str: ...
 def new_compiler(
-    plat: str | None = None, compiler: str | None = None, verbose: bool = False, dry_run: bool = False, force: bool = False
+    plat: str | None = None,
+    compiler: str | None = None,
+    verbose: bool = False,
+    dry_run: bool = False,
+    force: bool = False,
 ) -> CCompiler: ...
 def show_compilers() -> None: ...
 
@@ -38,7 +50,9 @@ class CCompiler:
     library_dirs: list[str]
     runtime_library_dirs: list[str]
     objects: list[str]
-    def __init__(self, verbose: bool = False, dry_run: bool = False, force: bool = False) -> None: ...
+    def __init__(
+        self, verbose: bool = False, dry_run: bool = False, force: bool = False
+    ) -> None: ...
     def add_include_dir(self, dir: str) -> None: ...
     def set_include_dirs(self, dirs: list[str]) -> None: ...
     def add_library(self, libname: str) -> None: ...
@@ -52,7 +66,9 @@ class CCompiler:
     def add_link_object(self, object: str) -> None: ...
     def set_link_objects(self, objects: list[str]) -> None: ...
     def detect_language(self, sources: str | list[str]) -> str | None: ...
-    def find_library_file(self, dirs: list[str], lib: str, debug: bool = False) -> str | None: ...
+    def find_library_file(
+        self, dirs: list[str], lib: str, debug: bool = False
+    ) -> str | None: ...
     def has_function(
         self,
         funcname: str,
@@ -153,21 +169,40 @@ class CCompiler:
         extra_postargs: list[str] | None = None,
     ) -> None: ...
     @overload
-    def executable_filename(self, basename: str, strip_dir: Literal[0, False] = 0, output_dir: StrPath = "") -> str: ...
+    def executable_filename(
+        self, basename: str, strip_dir: Literal[False] = False, output_dir: StrPath = ""
+    ) -> str: ...
     @overload
-    def executable_filename(self, basename: StrPath, strip_dir: Literal[1, True], output_dir: StrPath = "") -> str: ...
+    def executable_filename(
+        self, basename: StrPath, strip_dir: Literal[True], output_dir: StrPath = ""
+    ) -> str: ...
     def library_filename(
-        self, libname: str, lib_type: str = "static", strip_dir: bool = False, output_dir: StrPath = ""
+        self,
+        libname: str,
+        lib_type: str = "static",
+        strip_dir: bool = False,
+        output_dir: StrPath = "",
     ) -> str: ...
     def object_filenames(
-        self, source_filenames: Iterable[StrPath], strip_dir: bool = False, output_dir: StrPath | None = None
+        self,
+        source_filenames: Iterable[StrPath],
+        strip_dir: bool = False,
+        output_dir: StrPath | None = '',
     ) -> list[str]: ...
     @overload
-    def shared_object_filename(self, basename: str, strip_dir: Literal[0, False] = 0, output_dir: StrPath = "") -> str: ...
+    def shared_object_filename(
+        self, basename: str, strip_dir: Literal[False] = False, output_dir: StrPath = ""
+    ) -> str: ...
     @overload
-    def shared_object_filename(self, basename: StrPath, strip_dir: Literal[1, True], output_dir: StrPath = "") -> str: ...
+    def shared_object_filename(
+        self, basename: StrPath, strip_dir: Literal[True], output_dir: StrPath = ""
+    ) -> str: ...
     def execute(
-        self, func: Callable[[Unpack[_Ts]], Unused], args: tuple[Unpack[_Ts]], msg: str | None = None, level: int = 1
+        self,
+        func: Callable[[Unpack[_Ts]], Unused],
+        args: tuple[Unpack[_Ts]],
+        msg: str | None = None,
+        level: int = 1,
     ) -> None: ...
     def spawn(self, cmd: list[str]) -> None: ...
     def mkpath(self, name: str, mode: int = 0o777) -> None: ...
