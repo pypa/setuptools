@@ -111,8 +111,8 @@ def _fetch_build_eggs(dist):
 
 
 def setup(**attrs):
-    # Make sure we have any requirements needed to interpret 'attrs'.
     logging.configure()
+    # Make sure we have any requirements needed to interpret 'attrs'.
     _install_setup_requires(attrs)
     return distutils.core.setup(**attrs)
 

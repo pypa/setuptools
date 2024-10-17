@@ -358,9 +358,6 @@ class TestBuildMetaBackend:
 
                 [tool.distutils.sdist]
                 formats = "gztar"
-
-                [tool.distutils.bdist_wheel]
-                universal = true
                 """
             ),
             "MANIFEST.in": DALS(

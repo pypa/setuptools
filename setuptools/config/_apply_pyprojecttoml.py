@@ -17,10 +17,11 @@ from functools import partial, reduce
 from inspect import cleandoc
 from itertools import chain
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Callable, Dict, Mapping, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Mapping, TypeVar, Union
 
 from .._path import StrPath
 from ..errors import RemovedConfigError
+from ..extension import Extension
 from ..warnings import SetuptoolsWarning
 
 if TYPE_CHECKING:
@@ -35,6 +36,7 @@ EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
 _ProjectReadmeValue: TypeAlias = Union[str, Dict[str, str]]
 _CorrespFn: TypeAlias = Callable[["Distribution", Any, StrPath], None]
 _Correspondence: TypeAlias = Union[str, _CorrespFn]
+_T = TypeVar("_T")
 
 _logger = logging.getLogger(__name__)
 
@@ -117,13 +119,14 @@ def json_compatible_key(key: str) -> str:
 
 
 def _set_config(dist: Distribution, field: str, value: Any):
+    val = _PREPROCESS.get(field, _noop)(dist, value)
     setter = getattr(dist.metadata, f"set_{field}", None)
     if setter:
-        setter(value)
+        setter(val)
     elif hasattr(dist.metadata, field) or field in SETUPTOOLS_PATCHES:
-        setattr(dist.metadata, field, value)
+        setattr(dist.metadata, field, val)
     else:
-        setattr(dist, field, value)
+        setattr(dist, field, val)
 
 
 _CONTENT_TYPES = {
@@ -216,6 +219,17 @@ def _dependencies(dist: Distribution, val: list, _root_dir):
 def _optional_dependencies(dist: Distribution, val: dict, _root_dir):
     existing = getattr(dist, "extras_require", None) or {}
     dist.extras_require = {**existing, **val}
+
+
+def _ext_modules(dist: Distribution, val: list[dict]) -> list[Extension]:
+    existing = dist.ext_modules or []
+    args = ({k.replace("-", "_"): v for k, v in x.items()} for x in val)
+    new = [Extension(**kw) for kw in args]
+    return [*existing, *new]
+
+
+def _noop(_dist: Distribution, val: _T) -> _T:
+    return val
 
 
 def _unify_entry_points(project_table: dict):
@@ -374,6 +388,10 @@ SETUPTOOLS_PATCHES = {
     "provides_extras",
     "license_file",
     "license_files",
+}
+
+_PREPROCESS = {
+    "ext_modules": _ext_modules,
 }
 
 _PREVIOUSLY_DEFINED = {

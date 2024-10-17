@@ -118,8 +118,8 @@ CHECK_PACKAGE_DATA_TESTS = (
             'hello': '*.msg',
         },
         (
-            "\"values of 'package_data' dict\" "
-            "must be a list of strings (got '*.msg')"
+            "\"values of 'package_data' dict\" must be of type <tuple[str, ...] | list[str]>"
+            " (got '*.msg')"
         ),
     ),
     # Invalid value type (generators are single use)
@@ -128,8 +128,8 @@ CHECK_PACKAGE_DATA_TESTS = (
             'hello': (x for x in "generator"),
         },
         (
-            "\"values of 'package_data' dict\" must be a list of strings "
-            "(got <generator object"
+            "\"values of 'package_data' dict\" must be of type <tuple[str, ...] | list[str]>"
+            " (got <generator object"
         ),
     ),
 )

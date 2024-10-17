@@ -4,6 +4,7 @@ import contextlib
 import io
 import logging
 import os
+import pathlib
 import sys
 import tarfile
 import tempfile
@@ -821,6 +822,21 @@ class TestSdistTest:
             cmd.run()
         manifest = cmd.filelist.files
         assert '.myfile~' in manifest
+
+    @pytest.mark.skipif("os.environ.get('SETUPTOOLS_USE_DISTUTILS') == 'stdlib'")
+    def test_build_base_pathlib(self, source_dir):
+        """
+        Ensure if build_base is a pathlib.Path, the build still succeeds.
+        """
+        dist = Distribution({
+            **SETUP_ATTRS,
+            "script_name": "setup.py",
+            "options": {"build": {"build_base": pathlib.Path('build')}},
+        })
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
 
 
 def test_default_revctrl():

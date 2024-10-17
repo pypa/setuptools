@@ -44,7 +44,7 @@ def validate(config: dict, filepath: StrPath) -> bool:
 
     trove_classifier = validator.FORMAT_FUNCTIONS.get("trove-classifier")
     if hasattr(trove_classifier, "_disable_download"):
-        # Improve reproducibility by default. See https://github.com/abravalheri/validate-pyproject/issues/31
+        # Improve reproducibility by default. See abravalheri/validate-pyproject#31
         trove_classifier._disable_download()  # type: ignore[union-attr]
 
     try:
@@ -129,6 +129,9 @@ def read_configuration(
     # Persist changes:
     asdict["tool"] = tool_table
     tool_table["setuptools"] = setuptools_table
+
+    if "ext-modules" in setuptools_table:
+        _ExperimentalConfiguration.emit(subject="[tool.setuptools.ext-modules]")
 
     with _ignore_errors(ignore_option_errors):
         # Don't complain about unrelated errors (e.g. tools not using the "tool" table)

@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "74.0.0"
+version = "75.2.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -56,7 +56,7 @@ test = [
 	"pytest-home >= 0.5",
 	"pytest-subprocess",
 
-	# workaround for pypa/setuptools#4333
+	# workaround for pypa/pyproject-hooks#206
 	"pyproject-hooks!=1.1",
 
 	"jaraco.test",
@@ -100,6 +100,12 @@ core = [
 
 	# pkg_resources
 	"platformdirs >= 2.6.2",
+
+	# for distutils
+	"jaraco.collections",
+	"jaraco.functools",
+	"packaging",
+	"more_itertools",
 ]
 
 check = [
@@ -160,7 +166,6 @@ rotate = "setuptools.command.rotate:rotate"
 saveopts = "setuptools.command.saveopts:saveopts"
 sdist = "setuptools.command.sdist:sdist"
 setopt = "setuptools.command.setopt:setopt"
-upload_docs = "setuptools.command.upload_docs:upload_docs"
 
 [project.entry-points."setuptools.finalize_distribution_options"]
 parent_finalize = "setuptools.dist:_Distribution.finalize_options"

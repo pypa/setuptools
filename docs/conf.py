@@ -191,7 +191,7 @@ nitpick_ignore += [
 # Allow linking objects on other Sphinx sites seamlessly:
 intersphinx_mapping.update(
     # python=('https://docs.python.org/3', None),
-    python=('https://docs.python.org/3.11/', None),
+    python=('https://docs.python.org/3.11', None),
     # ^-- Python 3.11 is required because it still contains `distutils`.
     #     Just leaving it as `3` would imply 3.12+, but that causes an
     #     error with the cross references to distutils functions.
@@ -237,9 +237,9 @@ favicons = [
 intersphinx_mapping.update({
     'pip': ('https://pip.pypa.io/en/latest', None),
     'build': ('https://build.pypa.io/en/latest', None),
-    'PyPUG': ('https://packaging.python.org/en/latest/', None),
-    'packaging': ('https://packaging.pypa.io/en/latest/', None),
-    'twine': ('https://twine.readthedocs.io/en/stable/', None),
+    'PyPUG': ('https://packaging.python.org/en/latest', None),
+    'packaging': ('https://packaging.pypa.io/en/latest', None),
+    'twine': ('https://twine.readthedocs.io/en/stable', None),
     'importlib-resources': (
         'https://importlib-resources.readthedocs.io/en/latest',
         None,

@@ -8,7 +8,16 @@ import re
 import sys
 from glob import iglob
 from pathlib import Path
-from typing import TYPE_CHECKING, MutableMapping
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    List,
+    MutableMapping,
+    NoReturn,
+    Tuple,
+    Union,
+    overload,
+)
 
 from more_itertools import partition, unique_everseen
 from packaging.markers import InvalidMarker, Marker
@@ -21,6 +30,7 @@ from . import (
     command as _,  # noqa: F401 # imported for side-effects
 )
 from ._importlib import metadata
+from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
 from .monkey import get_unpatched
@@ -36,9 +46,35 @@ from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
 
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
 __all__ = ['Distribution']
 
-sequence = tuple, list
+_sequence = tuple, list
+"""
+:meta private:
+
+Supported iterable types that are known to be:
+- ordered (which `set` isn't)
+- not match a str (which `Sequence[str]` does)
+- not imply a nested type (like `dict`)
+for use with `isinstance`.
+"""
+_Sequence: TypeAlias = Union[Tuple[str, ...], List[str]]
+# This is how stringifying _Sequence would look in Python 3.10
+_requence_type_repr = "tuple[str, ...] | list[str]"
+
+
+def __getattr__(name: str) -> Any:  # pragma: no cover
+    if name == "sequence":
+        SetuptoolsDeprecationWarning.emit(
+            "`setuptools.dist.sequence` is an internal implementation detail.",
+            "Please define your own `sequence = tuple, list` instead.",
+            due_date=(2025, 8, 28),  # Originally added on 2024-08-27
+        )
+        return _sequence
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def check_importable(dist, attr, value):
@@ -51,17 +87,17 @@ def check_importable(dist, attr, value):
         ) from e
 
 
-def assert_string_list(dist, attr, value):
+def assert_string_list(dist, attr: str, value: _Sequence) -> None:
     """Verify that value is a string list"""
     try:
         # verify that value is a list or tuple to exclude unordered
         # or single-use iterables
-        assert isinstance(value, sequence)
+        assert isinstance(value, _sequence)
         # verify that elements of value are strings
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            "%r must be a list of strings (got %r)" % (attr, value)
+            f"{attr!r} must be of type <{_requence_type_repr}> (got {value!r})"
         ) from e
 
 
@@ -126,8 +162,7 @@ def _check_marker(marker):
 def assert_bool(dist, attr, value):
     """Verify that value is True, False, 0, or 1"""
     if bool(value) != value:
-        tmpl = "{attr!r} must be a boolean value (got {value!r})"
-        raise DistutilsSetupError(tmpl.format(attr=attr, value=value))
+        raise DistutilsSetupError(f"{attr!r} must be a boolean value (got {value!r})")
 
 
 def invalid_unless_false(dist, attr, value):
@@ -138,18 +173,22 @@ def invalid_unless_false(dist, attr, value):
     raise DistutilsSetupError(f"{attr} is invalid.")
 
 
-def check_requirements(dist, attr, value):
+@overload
+def check_requirements(dist, attr: str, value: set | dict) -> NoReturn: ...
+@overload
+def check_requirements(dist, attr: str, value: _StrOrIter) -> None: ...
+def check_requirements(dist, attr: str, value: _StrOrIter) -> None:
     """Verify that install_requires is a valid requirements list"""
     try:
         list(_reqs.parse(value))
         if isinstance(value, (dict, set)):
             raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
-        tmpl = (
-            "{attr!r} must be a string or list of strings "
-            "containing valid project/version requirement specifiers; {error}"
+        msg = (
+            f"{attr!r} must be a string or iterable of strings "
+            f"containing valid project/version requirement specifiers; {error}"
         )
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error)) from error
+        raise DistutilsSetupError(msg) from error
 
 
 def check_specifier(dist, attr, value):
@@ -157,8 +196,8 @@ def check_specifier(dist, attr, value):
     try:
         SpecifierSet(value)
     except (InvalidSpecifier, AttributeError) as error:
-        tmpl = "{attr!r} must be a string containing valid version specifiers; {error}"
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error)) from error
+        msg = f"{attr!r} must be a string containing valid version specifiers; {error}"
+        raise DistutilsSetupError(msg) from error
 
 
 def check_entry_points(dist, attr, value):
@@ -504,7 +543,7 @@ class Distribution(_Distribution):
                 versions. Please use the underscore name {underscore_opt!r} instead.
                 """,
                 see_docs="userguide/declarative_config.html",
-                due_date=(2024, 9, 26),
+                due_date=(2025, 3, 3),
                 # Warning initially introduced in 3 Mar 2021
             )
         return underscore_opt
@@ -529,7 +568,7 @@ class Distribution(_Distribution):
             future versions. Please use lowercase {lowercase_opt!r} instead.
             """,
             see_docs="userguide/declarative_config.html",
-            due_date=(2024, 9, 26),
+            due_date=(2025, 3, 3),
             # Warning initially introduced in 6 Mar 2021
         )
         return lowercase_opt
@@ -767,41 +806,43 @@ class Distribution(_Distribution):
 
         return False
 
-    def _exclude_misc(self, name, value):
+    def _exclude_misc(self, name: str, value: _Sequence) -> None:
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
-        if not isinstance(value, sequence):
+        if not isinstance(value, _sequence):
             raise DistutilsSetupError(
-                "%s: setting must be a list or tuple (%r)" % (name, value)
+                f"{name}: setting must be of type <{_requence_type_repr}> (got {value!r})"
             )
         try:
             old = getattr(self, name)
         except AttributeError as e:
             raise DistutilsSetupError("%s: No such distribution setting" % name) from e
-        if old is not None and not isinstance(old, sequence):
+        if old is not None and not isinstance(old, _sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
             )
         elif old:
             setattr(self, name, [item for item in old if item not in value])
 
-    def _include_misc(self, name, value):
+    def _include_misc(self, name: str, value: _Sequence) -> None:
         """Handle 'include()' for list/tuple attrs without a special handler"""
 
-        if not isinstance(value, sequence):
-            raise DistutilsSetupError("%s: setting must be a list (%r)" % (name, value))
+        if not isinstance(value, _sequence):
+            raise DistutilsSetupError(
+                f"{name}: setting must be of type <{_requence_type_repr}> (got {value!r})"
+            )
         try:
             old = getattr(self, name)
         except AttributeError as e:
             raise DistutilsSetupError("%s: No such distribution setting" % name) from e
         if old is None:
             setattr(self, name, value)
-        elif not isinstance(old, sequence):
+        elif not isinstance(old, _sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
             )
         else:
             new = [item for item in value if item not in old]
-            setattr(self, name, old + new)
+            setattr(self, name, list(old) + new)
 
     def exclude(self, **attrs):
         """Remove items from distribution that are named in keyword arguments
@@ -826,10 +867,10 @@ class Distribution(_Distribution):
             else:
                 self._exclude_misc(k, v)
 
-    def _exclude_packages(self, packages):
-        if not isinstance(packages, sequence):
+    def _exclude_packages(self, packages: _Sequence) -> None:
+        if not isinstance(packages, _sequence):
             raise DistutilsSetupError(
-                "packages: setting must be a list or tuple (%r)" % (packages,)
+                f"packages: setting must be of type <{_requence_type_repr}> (got {packages!r})"
             )
         list(map(self.exclude_package, packages))
 

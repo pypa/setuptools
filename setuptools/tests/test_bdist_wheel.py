@@ -26,6 +26,7 @@ from setuptools.command.bdist_wheel import (
     remove_readonly_exc,
 )
 from setuptools.dist import Distribution
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from distutils.core import run_setup
 
@@ -123,7 +124,6 @@ EXAMPLES = {
             )
             """
         ),
-        "setup.cfg": "[bdist_wheel]\nuniversal=1",
         "headersdist.py": "",
         "header.h": "",
     },
@@ -300,8 +300,8 @@ def test_preserve_unicode_metadata(monkeypatch, tmp_path):
 
 def test_licenses_default(dummy_dist, monkeypatch, tmp_path):
     monkeypatch.chdir(dummy_dist)
-    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
-    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
+    with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         license_files = {
             "dummy_dist-1.0.dist-info/" + fname for fname in DEFAULT_LICENSE_FILES
         }
@@ -314,9 +314,9 @@ def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
     )
     monkeypatch.chdir(dummy_dist)
 
-    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
+    bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
 
-    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         license_files = {"dummy_dist-1.0.dist-info/DUMMYFILE"}
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
 
@@ -337,8 +337,8 @@ def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
 def test_licenses_override(dummy_dist, monkeypatch, tmp_path, config_file, config):
     dummy_dist.joinpath(config_file).write_text(config, encoding="utf-8")
     monkeypatch.chdir(dummy_dist)
-    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
-    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
+    with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         license_files = {
             "dummy_dist-1.0.dist-info/" + fname for fname in {"DUMMYFILE", "LICENSE"}
         }
@@ -350,18 +350,27 @@ def test_licenses_disabled(dummy_dist, monkeypatch, tmp_path):
         "[metadata]\nlicense_files=\n", encoding="utf-8"
     )
     monkeypatch.chdir(dummy_dist)
-    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
-    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
+    with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         assert set(wf.namelist()) == DEFAULT_FILES
 
 
 def test_build_number(dummy_dist, monkeypatch, tmp_path):
     monkeypatch.chdir(dummy_dist)
-    bdist_wheel_cmd(bdist_dir=str(tmp_path), build_number="2", universal=True).run()
-    with ZipFile("dist/dummy_dist-1.0-2-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), build_number="2").run()
+    with ZipFile("dist/dummy_dist-1.0-2-py3-none-any.whl") as wf:
         filenames = set(wf.namelist())
         assert "dummy_dist-1.0.dist-info/RECORD" in filenames
         assert "dummy_dist-1.0.dist-info/METADATA" in filenames
+
+
+def test_universal_deprecated(dummy_dist, monkeypatch, tmp_path):
+    monkeypatch.chdir(dummy_dist)
+    with pytest.warns(SetuptoolsDeprecationWarning, match=".*universal is deprecated"):
+        bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True).run()
+
+    # For now we still respect the option
+    assert os.path.exists("dist/dummy_dist-1.0-py2.py3-none-any.whl")
 
 
 EXTENSION_EXAMPLE = """\
@@ -431,8 +440,8 @@ def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
 )
 def test_compression(dummy_dist, monkeypatch, tmp_path, option, compress_type):
     monkeypatch.chdir(dummy_dist)
-    bdist_wheel_cmd(bdist_dir=str(tmp_path), universal=True, compression=option).run()
-    with ZipFile("dist/dummy_dist-1.0-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), compression=option).run()
+    with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         filenames = set(wf.namelist())
         assert "dummy_dist-1.0.dist-info/RECORD" in filenames
         assert "dummy_dist-1.0.dist-info/METADATA" in filenames
@@ -451,8 +460,8 @@ def test_wheelfile_line_endings(wheel_paths):
 def test_unix_epoch_timestamps(dummy_dist, monkeypatch, tmp_path):
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "0")
     monkeypatch.chdir(dummy_dist)
-    bdist_wheel_cmd(bdist_dir=str(tmp_path), build_number="2a", universal=True).run()
-    with ZipFile("dist/dummy_dist-1.0-2a-py2.py3-none-any.whl") as wf:
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), build_number="2a").run()
+    with ZipFile("dist/dummy_dist-1.0-2a-py3-none-any.whl") as wf:
         for zinfo in wf.filelist:
             assert zinfo.date_time >= (1980, 1, 1, 0, 0, 0)  # min epoch is used
 
@@ -610,3 +619,28 @@ def test_no_ctypes(monkeypatch) -> None:
     monkeypatch.delitem(sys.modules, "setuptools.command.bdist_wheel")
 
     import setuptools.command.bdist_wheel  # noqa: F401
+
+
+def test_dist_info_provided(dummy_dist, monkeypatch, tmp_path):
+    monkeypatch.chdir(dummy_dist)
+    distinfo = tmp_path / "dummy_dist.dist-info"
+
+    distinfo.mkdir()
+    (distinfo / "METADATA").write_text("name: helloworld", encoding="utf-8")
+
+    # We don't control the metadata. According to PEP-517, "The hook MAY also
+    # create other files inside this directory, and a build frontend MUST
+    # preserve".
+    (distinfo / "FOO").write_text("bar", encoding="utf-8")
+
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), dist_info_dir=str(distinfo)).run()
+    expected = {
+        "dummy_dist-1.0.dist-info/FOO",
+        "dummy_dist-1.0.dist-info/RECORD",
+    }
+    with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
+        files_found = set(wf.namelist())
+    # Check that all expected files are there.
+    assert expected - files_found == set()
+    # Make sure there is no accidental egg-info bleeding into the wheel.
+    assert not [path for path in files_found if 'egg-info' in str(path)]

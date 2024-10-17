@@ -9,7 +9,7 @@ on:
     - gh-readonly-queue/**
     tags:
     # required if branches-ignore is supplied (jaraco/skeleton#103)
-    - '**'
+    - "**"
   pull_request:
   workflow_dispatch:
 
@@ -24,15 +24,17 @@ env:
   # pin pyright version so a new version doesn't suddenly cause the CI to fail,
   # until types-setuptools is removed from typeshed.
   # For help with static-typing issues, or pyright update, ping @Avasam
+  #
+  # An exact version from https://github.com/microsoft/pyright/releases or "latest"
   PYRIGHT_VERSION: "1.1.377"
 
   # Environment variable to support color support (jaraco/skeleton#66)
   FORCE_COLOR: 1
 
   # Suppress noisy pip warnings
-  PIP_DISABLE_PIP_VERSION_CHECK: 'true'
-  PIP_NO_PYTHON_VERSION_WARNING: 'true'
-  PIP_NO_WARN_SCRIPT_LOCATION: 'true'
+  PIP_DISABLE_PIP_VERSION_CHECK: "true"
+  PIP_NO_PYTHON_VERSION_WARNING: "true"
+  PIP_NO_WARN_SCRIPT_LOCATION: "true"
 
 jobs:
   pyright:
@@ -65,7 +67,7 @@ jobs:
           else
             echo '> pip install pyright==${{ env.PYRIGHT_VERSION }}'
           fi
-          echo 'pyright --threads'
+          echo '> pyright --threads'
         shell: bash
       - name: Run pyright
         uses: jakebailey/pyright-action@v2

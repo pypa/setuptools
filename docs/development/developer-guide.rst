@@ -138,7 +138,7 @@ Code conventions and other practices
 ------------------------------------
 
 Setuptools utilizes the `skeleton <https://github.com/jaraco/skeleton>`_
-framework as a foundation for sharing re-usable maintenance tasks
+framework as a foundation for sharing reusable maintenance tasks
 across different projects in the ecosystem.
 
 This also means that the project adheres to the same coding conventions

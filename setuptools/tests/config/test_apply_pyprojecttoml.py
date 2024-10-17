@@ -324,6 +324,27 @@ class TestPyModules:
             self.dist(module).py_modules
 
 
+class TestExtModules:
+    def test_pyproject_sets_attribute(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        pyproject = Path("pyproject.toml")
+        toml_config = """
+        [project]
+        name = "test"
+        version = "42.0"
+        [tool.setuptools]
+        ext-modules = [
+          {name = "my.ext", sources = ["hello.c", "world.c"]}
+        ]
+        """
+        pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
+        with pytest.warns(pyprojecttoml._ExperimentalConfiguration):
+            dist = pyprojecttoml.apply_configuration(Distribution({}), pyproject)
+        assert len(dist.ext_modules) == 1
+        assert dist.ext_modules[0].name == "my.ext"
+        assert set(dist.ext_modules[0].sources) == {"hello.c", "world.c"}
+
+
 class TestDeprecatedFields:
     def test_namespace_packages(self, tmp_path):
         pyproject = tmp_path / "pyproject.toml"

@@ -286,6 +286,7 @@ def find_packages(
 
     from setuptools.discovery import construct_package_dir
 
+    # check "not namespaces" first due to python/mypy#6232
     if not namespaces:
         from setuptools.discovery import PackageFinder
     else:
@@ -362,7 +363,7 @@ def entry_points(
     entry-point names, and the second level values are references to objects
     (that correspond to the entry-point value).
     """
-    # TODO: Explain why passing None is fine here when ConfigParser.default_section expects to be str
+    # Using undocumented behaviour, see python/typeshed#12700
     parser = ConfigParser(default_section=None, delimiters=("=",))  # type: ignore[call-overload]
     parser.optionxform = str  # case sensitive
     parser.read_string(text, text_source)

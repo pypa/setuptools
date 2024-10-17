@@ -2022,11 +2022,11 @@ def is_python_script(script_text, filename):
 
 try:
     from os import (
-        chmod as _chmod,  # pyright: ignore[reportAssignmentType] # Loosing type-safety w/ pyright, but that's ok
+        chmod as _chmod,  # pyright: ignore[reportAssignmentType] # Losing type-safety w/ pyright, but that's ok
     )
 except ImportError:
     # Jython compatibility
-    def _chmod(*args: object, **kwargs: object) -> None:  # type: ignore[misc] # Mypy re-uses the imported definition anyway
+    def _chmod(*args: object, **kwargs: object) -> None:  # type: ignore[misc] # Mypy reuses the imported definition anyway
         pass
 
 
