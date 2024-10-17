@@ -1,6 +1,7 @@
-from _typeshed import Unused
 from collections.abc import Callable
 from typing import ClassVar
+
+from _typeshed import Unused
 from typing_extensions import deprecated
 
 from ..cmd import Command

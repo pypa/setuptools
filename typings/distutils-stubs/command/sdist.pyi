@@ -1,6 +1,7 @@
-from _typeshed import Incomplete, Unused
 from collections.abc import Callable
 from typing import ClassVar
+
+from _typeshed import Incomplete, Unused
 
 from ..cmd import Command
 
