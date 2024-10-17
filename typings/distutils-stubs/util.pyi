@@ -1,6 +1,6 @@
-from _typeshed import Unused
 from collections.abc import Callable, Mapping
-from typing import Literal
+
+from _typeshed import Unused
 from typing_extensions import TypeVarTuple, Unpack
 
 _Ts = TypeVarTuple("_Ts")
@@ -23,7 +23,7 @@ def execute(
     verbose: bool = False,
     dry_run: bool = False,
 ) -> None: ...
-def strtobool(val: str) -> Literal[0, 1]: ...
+def strtobool(val: str) -> bool: ...
 def byte_compile(
     py_files: list[str],
     optimize: int = 0,

@@ -1,6 +1,7 @@
 from collections.abc import Iterable, Mapping
 from re import Pattern
 from typing import Any, Final, overload
+
 from typing_extensions import TypeAlias
 
 _Option: TypeAlias = tuple[str, str | None, str]
@@ -22,7 +23,10 @@ class FancyGetopt:
     def generate_help(self, header: str | None = None) -> list[str]: ...
 
 def fancy_getopt(
-    options: list[_Option], negative_opt: Mapping[_Option, _Option], object: Any, args: list[str] | None
+    options: list[_Option],
+    negative_opt: Mapping[_Option, _Option],
+    object: Any,
+    args: list[str] | None,
 ) -> list[str] | _GR: ...
 
 WS_TRANS: Final[dict[int, str]]

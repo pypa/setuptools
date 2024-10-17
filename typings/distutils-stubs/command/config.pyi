@@ -1,7 +1,8 @@
-from _typeshed import StrOrBytesPath
 from collections.abc import Sequence
 from re import Pattern
-from typing import Any, ClassVar, Final, Literal
+from typing import ClassVar, Final
+
+from _typeshed import Incomplete, StrOrBytesPath
 
 from ..ccompiler import CCompiler
 from ..cmd import Command
@@ -39,7 +40,11 @@ class config(Command):
         lang: str = "c",
     ) -> bool: ...
     def try_compile(
-        self, body: str, headers: Sequence[str] | None = None, include_dirs: Sequence[str] | None = None, lang: str = "c"
+        self,
+        body: str,
+        headers: Sequence[str] | None = None,
+        include_dirs: Sequence[str] | None = None,
+        lang: str = "c",
     ) -> bool: ...
     def try_link(
         self,
@@ -66,8 +71,8 @@ class config(Command):
         include_dirs: Sequence[str] | None = None,
         libraries: Sequence[str] | None = None,
         library_dirs: Sequence[str] | None = None,
-        decl: bool | Literal[0, 1] = 0,
-        call: bool | Literal[0, 1] = 0,
+        decl: bool = False,
+        call: bool = False,
     ) -> bool: ...
     def check_lib(
         self,
@@ -78,7 +83,11 @@ class config(Command):
         other_libraries: list[str] = [],
     ) -> bool: ...
     def check_header(
-        self, header: str, include_dirs: Sequence[str] | None = None, library_dirs: Sequence[str] | None = None, lang: str = "c"
+        self,
+        header: str,
+        include_dirs: Sequence[str] | None = None,
+        library_dirs: Sequence[str] | None = None,
+        lang: str = "c",
     ) -> bool: ...
 
-def dump_file(filename: StrOrBytesPath, head: Any | None = None) -> None: ...
+def dump_file(filename: StrOrBytesPath, head: Incomplete | None = None) -> None: ...
