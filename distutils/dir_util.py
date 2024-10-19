@@ -44,7 +44,7 @@ wrapper = SkipRepeatAbsolutePaths().wrap
 
 @functools.singledispatch
 @wrapper
-def mkpath(name: pathlib.Path, mode=0o777, verbose=True, dry_run=False):
+def mkpath(name: pathlib.Path, mode=0o777, verbose=True, dry_run=False) -> None:
     """Create a directory and any missing ancestor directories.
 
     If the directory already exists (or if 'name' is the empty string, which
@@ -52,20 +52,14 @@ def mkpath(name: pathlib.Path, mode=0o777, verbose=True, dry_run=False):
     Raise DistutilsFileError if unable to create some directory along the way
     (eg. some sub-path exists, but is a file rather than a directory).
     If 'verbose' is true, log the directory created.
-    Return the list of directories actually created.
     """
     if verbose and not name.is_dir():
         log.info("creating %s", name)
-
-    ancestry = itertools.chain((name,), name.parents)
-    missing = list(path for path in ancestry if not path.is_dir())
 
     try:
         dry_run or name.mkdir(mode=mode, parents=True, exist_ok=True)
     except OSError as exc:
         raise DistutilsFileError(f"could not create '{name}': {exc.args[-1]}")
-
-    return list(map(str, missing))
 
 
 @mkpath.register

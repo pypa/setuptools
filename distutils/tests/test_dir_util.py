@@ -52,17 +52,6 @@ class TestDirUtil(support.TempdirManager):
         mkpath(self.target2, 0o555)
         assert stat.S_IMODE(os.stat(self.target2).st_mode) == 0o555 & ~umask
 
-    def test_mkpath_returns_as_described(self, tmp_path):
-        """
-        Per the docstring, mkpath should return the list of directories created.
-
-        pypa/distutils#305 revealed that the return value is always the empty
-        string and no one complained. Consider removing this expectation.
-        """
-        target = tmp_path / 'foodir'
-        res = mkpath(target)
-        assert res == [str(target)]
-
     def test_create_tree_verbosity(self, caplog):
         create_tree(self.root_target, ['one', 'two', 'three'], verbose=False)
         assert caplog.messages == []
