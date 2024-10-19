@@ -58,7 +58,7 @@ def mkpath(name: pathlib.Path, mode=0o777, verbose=True, dry_run=False):
         log.info("creating %s", name)
 
     ancestry = itertools.chain((name,), name.parents)
-    missing = (path for path in ancestry if not path.is_dir())
+    missing = list(path for path in ancestry if not path.is_dir())
 
     try:
         dry_run or name.mkdir(mode=mode, parents=True, exist_ok=True)
