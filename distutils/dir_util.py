@@ -32,8 +32,9 @@ class SkipRepeatAbsolutePaths(set):
         def wrapper(path, *args, **kwargs):
             if path.absolute() in self:
                 return
+            result = func(path, *args, **kwargs)
             self.add(path.absolute())
-            return func(path, *args, **kwargs)
+            return result
 
         return wrapper
 

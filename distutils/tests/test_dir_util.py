@@ -112,7 +112,6 @@ class TestDirUtil(support.TempdirManager):
             src = self.tempdirs[-1]
             dir_util.copy_tree(src, None)
 
-    @pytest.mark.xfail(reason="#304")
     def test_mkpath_exception_uncached(self, monkeypatch, tmp_path):
         """
         Caching should not remember failed attempts.
