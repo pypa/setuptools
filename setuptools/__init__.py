@@ -186,7 +186,7 @@ class Command(_Command):
             )
         return val
 
-    def ensure_string_list(self, option: str):  # type: ignore[override] # Fixed in typeshed for mypy 1.12
+    def ensure_string_list(self, option: str):
         r"""Ensure that 'option' is a list of strings.  If 'option' is
         currently a string, we split it either on /,\s*/ or /\s+/, so
         "foo bar baz", "foo,bar,baz", and "foo,   bar baz" all become
