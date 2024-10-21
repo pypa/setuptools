@@ -2187,7 +2187,7 @@ class ScriptWriter:
         spec = str(dist.as_requirement())
         for type_ in 'console', 'gui':
             group = type_ + '_scripts'
-            for name, ep in dist.get_entry_map(group).items():
+            for name in dist.get_entry_map(group).keys():
                 cls._ensure_safe_name(name)
                 script_text = cls.template % locals()
                 args = cls._get_script_args(type_, name, header, script_text)

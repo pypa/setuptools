@@ -485,14 +485,8 @@ class TestFileListTest(TempDirTestCase):
             'prune',
             'blarg',
         ):
-            try:
+            with pytest.raises(DistutilsTemplateError):
                 file_list.process_template_line(action)
-            except DistutilsTemplateError:
-                pass
-            except Exception:
-                assert False, "Incorrect error thrown"
-            else:
-                assert False, "Should have thrown an error"
 
     def test_include(self, caplog):
         caplog.set_level(logging.DEBUG)
