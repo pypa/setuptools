@@ -180,3 +180,7 @@ def is_static(value: Any) -> bool:
     False
     """
     return isinstance(value, Static) and not value._mutated_
+
+
+EMPTY_LIST = List()
+EMPTY_DICT = Dict()
