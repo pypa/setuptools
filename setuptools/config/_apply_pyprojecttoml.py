@@ -217,8 +217,10 @@ def _dependencies(dist: Distribution, val: list, _root_dir):
 
 
 def _optional_dependencies(dist: Distribution, val: dict, _root_dir):
-    existing = getattr(dist, "extras_require", None) or {}
-    dist.extras_require = {**existing, **val}
+    if getattr(dist, "extras_require", None):
+        msg = "`extras_require` overwritten in `pyproject.toml` (optional-dependencies)"
+        SetuptoolsWarning.emit(msg)
+    dist.extras_require = val
 
 
 def _ext_modules(dist: Distribution, val: list[dict]) -> list[Extension]:

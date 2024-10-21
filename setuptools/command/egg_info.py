@@ -2,7 +2,6 @@
 
 Create a distribution's .egg-info directory and contents"""
 
-import collections
 import functools
 import os
 import re
@@ -211,11 +210,9 @@ class egg_info(InfoCommon, Command):
         build tag. Install build keys in a deterministic order
         to avoid arbitrary reordering on subsequent builds.
         """
-        egg_info = collections.OrderedDict()
         # follow the order these keys would have been added
         # when PYTHONHASHSEED=0
-        egg_info['tag_build'] = self.tags()
-        egg_info['tag_date'] = 0
+        egg_info = dict(tag_build=self.tags(), tag_date=0)
         edit_config(filename, dict(egg_info=egg_info))
 
     def finalize_options(self):

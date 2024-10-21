@@ -26,7 +26,7 @@ env:
   # For help with static-typing issues, or pyright update, ping @Avasam
   #
   # An exact version from https://github.com/microsoft/pyright/releases or "latest"
-  PYRIGHT_VERSION: "1.1.377"
+  PYRIGHT_VERSION: "1.1.385"
 
   # Environment variable to support color support (jaraco/skeleton#66)
   FORCE_COLOR: 1
@@ -73,4 +73,5 @@ jobs:
         uses: jakebailey/pyright-action@v2
         with:
           version: ${{ env.PYRIGHT_VERSION }}
+          python-version: ${{ matrix.python }}
           extra-args: --threads

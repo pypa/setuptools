@@ -5,6 +5,7 @@ from jaraco import path
 
 from setuptools.config.pyprojecttoml import apply_configuration
 from setuptools.dist import Distribution
+from setuptools.warnings import SetuptoolsWarning
 
 
 def test_dynamic_dependencies(tmp_path):
@@ -77,23 +78,32 @@ def test_mixed_dynamic_optional_dependencies(tmp_path):
 
             [tool.setuptools.dynamic.optional-dependencies.images]
             file = ["requirements-images.txt"]
-
-            [build-system]
-            requires = ["setuptools", "wheel"]
-            build-backend = "setuptools.build_meta"
             """
         ),
     }
 
     path.build(files, prefix=tmp_path)
-
-    # Test that the mix-and-match doesn't currently validate.
     pyproject = tmp_path / "pyproject.toml"
     with pytest.raises(ValueError, match="project.optional-dependencies"):
         apply_configuration(Distribution(), pyproject)
 
-    # Explicitly disable the validation and try again, to see that the mix-and-match
-    # result would be correct.
-    dist = Distribution()
-    dist = apply_configuration(dist, pyproject, ignore_option_errors=True)
-    assert dist.extras_require == {"docs": ["sphinx"], "images": ["pillow~=42.0"]}
+
+def test_mixed_extras_require_optional_dependencies(tmp_path):
+    files = {
+        "pyproject.toml": cleandoc(
+            """
+            [project]
+            name = "myproj"
+            version = "1.0"
+            optional-dependencies.docs = ["sphinx"]
+            """
+        ),
+    }
+
+    path.build(files, prefix=tmp_path)
+    pyproject = tmp_path / "pyproject.toml"
+
+    with pytest.warns(SetuptoolsWarning, match=".extras_require. overwritten"):
+        dist = Distribution({"extras_require": {"hello": ["world"]}})
+        dist = apply_configuration(dist, pyproject)
+        assert dist.extras_require == {"docs": ["sphinx"]}

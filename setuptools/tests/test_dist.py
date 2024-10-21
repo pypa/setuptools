@@ -1,4 +1,3 @@
-import collections
 import os
 import re
 import urllib.parse
@@ -72,15 +71,10 @@ EXAMPLE_BASE_INFO = dict(
 
 
 def test_provides_extras_deterministic_order():
-    extras = collections.OrderedDict()
-    extras['a'] = ['foo']
-    extras['b'] = ['bar']
-    attrs = dict(extras_require=extras)
+    attrs = dict(extras_require=dict(a=['foo'], b=['bar']))
     dist = Distribution(attrs)
     assert list(dist.metadata.provides_extras) == ['a', 'b']
-    attrs['extras_require'] = collections.OrderedDict(
-        reversed(list(attrs['extras_require'].items()))
-    )
+    attrs['extras_require'] = dict(reversed(attrs['extras_require'].items()))
     dist = Distribution(attrs)
     assert list(dist.metadata.provides_extras) == ['b', 'a']
 
