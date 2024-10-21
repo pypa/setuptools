@@ -12,12 +12,12 @@ from pathlib import Path
 from typing import (
     TYPE_CHECKING,
     Any,
+    Dict,
     List,
     MutableMapping,
-    NoReturn,
+    Sequence,
     Tuple,
     Union,
-    overload,
 )
 
 from more_itertools import partition, unique_everseen
@@ -33,7 +33,6 @@ from . import (
     command as _,  # noqa: F401 # imported for side-effects
 )
 from ._importlib import metadata
-from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
 from .monkey import get_unpatched
@@ -66,7 +65,13 @@ for use with `isinstance`.
 """
 _Sequence: TypeAlias = Union[Tuple[str, ...], List[str]]
 # This is how stringifying _Sequence would look in Python 3.10
-_requence_type_repr = "tuple[str, ...] | list[str]"
+_sequence_type_repr = "tuple[str, ...] | list[str]"
+_OrderedStrSequence: TypeAlias = Union[str, Dict[str, Any], Sequence[str]]
+"""
+:meta private:
+Avoid single-use iterable. Disallow sets.
+A poor approximation of an OrderedSequence (dict doesn't match a Sequence).
+"""
 
 
 def __getattr__(name: str) -> Any:  # pragma: no cover
@@ -100,7 +105,7 @@ def assert_string_list(dist, attr: str, value: _Sequence) -> None:
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            f"{attr!r} must be of type <{_requence_type_repr}> (got {value!r})"
+            f"{attr!r} must be of type <{_sequence_type_repr}> (got {value!r})"
         ) from e
 
 
@@ -176,15 +181,11 @@ def invalid_unless_false(dist, attr, value):
     raise DistutilsSetupError(f"{attr} is invalid.")
 
 
-@overload
-def check_requirements(dist, attr: str, value: set | dict) -> NoReturn: ...
-@overload
-def check_requirements(dist, attr: str, value: _StrOrIter) -> None: ...
-def check_requirements(dist, attr: str, value: _StrOrIter) -> None:
+def check_requirements(dist, attr: str, value: _OrderedStrSequence) -> None:
     """Verify that install_requires is a valid requirements list"""
     try:
         list(_reqs.parse(value))
-        if isinstance(value, (dict, set)):
+        if isinstance(value, set):
             raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
         msg = (
@@ -816,7 +817,7 @@ class Distribution(_Distribution):
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
         if not isinstance(value, _sequence):
             raise DistutilsSetupError(
-                f"{name}: setting must be of type <{_requence_type_repr}> (got {value!r})"
+                f"{name}: setting must be of type <{_sequence_type_repr}> (got {value!r})"
             )
         try:
             old = getattr(self, name)
@@ -834,7 +835,7 @@ class Distribution(_Distribution):
 
         if not isinstance(value, _sequence):
             raise DistutilsSetupError(
-                f"{name}: setting must be of type <{_requence_type_repr}> (got {value!r})"
+                f"{name}: setting must be of type <{_sequence_type_repr}> (got {value!r})"
             )
         try:
             old = getattr(self, name)
@@ -876,7 +877,7 @@ class Distribution(_Distribution):
     def _exclude_packages(self, packages: _Sequence) -> None:
         if not isinstance(packages, _sequence):
             raise DistutilsSetupError(
-                f"packages: setting must be of type <{_requence_type_repr}> (got {packages!r})"
+                f"packages: setting must be of type <{_sequence_type_repr}> (got {packages!r})"
             )
         list(map(self.exclude_package, packages))
 

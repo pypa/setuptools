@@ -1,0 +1,1 @@
+Bumped declared ``platformdirs`` dependency to ``>= 4.2.2`` to help platforms lacking `ctypes` support install setuptools seamlessly -- by :user:`Avasam`

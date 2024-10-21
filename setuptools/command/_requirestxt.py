@@ -23,7 +23,6 @@ from .._reqs import _StrOrIter
 # dict can work as an ordered set
 _T = TypeVar("_T")
 _Ordered = Dict[_T, None]
-_ordered = dict
 
 
 def _prepare(

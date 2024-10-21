@@ -561,10 +561,7 @@ class PackageIndex(Environment):
         if self[requirement.key]:  # we've seen at least one distro
             meth, msg = self.info, "Couldn't retrieve index page for %r"
         else:  # no distros seen for this name, might be misspelled
-            meth, msg = (
-                self.warn,
-                "Couldn't find index page for %r (maybe misspelled?)",
-            )
+            meth, msg = self.warn, "Couldn't find index page for %r (maybe misspelled?)"
         meth(msg, requirement.unsafe_name)
         self.scan_all()
 
