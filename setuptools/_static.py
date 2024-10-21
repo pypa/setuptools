@@ -140,7 +140,7 @@ for _method in (
     _prevent_modification(Dict, _method, "`dict(value)`")
 
 
-class SpeficierSet(packaging.specifiers.SpecifierSet, Static):
+class SpecifierSet(packaging.specifiers.SpecifierSet, Static):
     """Not exactly a built-in type but useful for ``requires-python``"""
 
 

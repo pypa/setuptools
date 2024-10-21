@@ -657,7 +657,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
             'packages': self._parse_packages,
             'entry_points': self._parse_file_in_root,
             'py_modules': parse_list,
-            'python_requires': _static.SpeficierSet,  # Core Metadata
+            'python_requires': _static.SpecifierSet,  # Core Metadata
             'cmdclass': parse_cmdclass,
         }
 
