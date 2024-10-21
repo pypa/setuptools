@@ -180,7 +180,9 @@ else:
         ("local", "distutils"),
         # Unfortunately we still get ._distutils.errors.DistutilsError with SETUPTOOLS_USE_DISTUTILS=stdlib
         # But that's a deprecated use-case we don't mind not fully supporting in newer code
-        pytest.param("stdlib", "setuptools._distutils", marks=skip_without_stdlib_distutils),
+        pytest.param(
+            "stdlib", "setuptools._distutils", marks=skip_without_stdlib_distutils
+        ),
     ],
 )
 def test_consistent_error_from_modified_py(distutils_version, imported_module, venv):
