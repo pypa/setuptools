@@ -407,14 +407,14 @@ class TestUserInstallTest:
         logging.basicConfig(level=logging.INFO, stream=sys.stderr)
         log.info('this should not break')
 
-    @pytest.fixture()
+    @pytest.fixture
     def foo_package(self, tmpdir):
         egg_file = tmpdir / 'foo-1.0.egg-info'
         with egg_file.open('w') as f:
             f.write('Name: foo\n')
         return str(tmpdir)
 
-    @pytest.fixture()
+    @pytest.fixture
     def install_target(self, tmpdir):
         target = str(tmpdir)
         with mock.patch('sys.path', sys.path + [target]):
@@ -472,6 +472,12 @@ def distutils_package():
         yield
 
 
+@pytest.mark.usefixtures("distutils_package")
+class TestDistutilsPackage:
+    def test_bdist_egg_available_on_distutils_pkg(self):
+        run_setup('setup.py', ['bdist_egg'])
+
+
 @pytest.fixture
 def mock_index():
     # set up a server which will simulate an alternate package index.
@@ -482,11 +488,6 @@ def mock_index():
         pytest.skip("could not find a valid port")
     p_index.start()
     return p_index
-
-
-class TestDistutilsPackage:
-    def test_bdist_egg_available_on_distutils_pkg(self, distutils_package):
-        run_setup('setup.py', ['bdist_egg'])
 
 
 class TestInstallRequires:

@@ -78,7 +78,7 @@ WHEEL_INFO_TESTS = (
 
 
 @pytest.mark.parametrize(
-    ('filename', 'info'), WHEEL_INFO_TESTS, ids=[t[0] for t in WHEEL_INFO_TESTS]
+    'filename, info', WHEEL_INFO_TESTS, ids=[t[0] for t in WHEEL_INFO_TESTS]
 )
 def test_wheel_info(filename, info):
     if inspect.isclass(info):
