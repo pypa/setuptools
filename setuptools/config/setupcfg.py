@@ -304,7 +304,7 @@ class ConfigHandler(Generic[Target]):
             return
 
         simple_setter = functools.partial(target_obj.__setattr__, option_name)
-        setter = getattr(target_obj, 'set_%s' % option_name, simple_setter)
+        setter = getattr(target_obj, f"set_{option_name}", simple_setter)
         setter(parsed)
 
         self.set_options.append(option_name)
@@ -372,8 +372,8 @@ class ConfigHandler(Generic[Target]):
             exclude_directive = 'file:'
             if value.startswith(exclude_directive):
                 raise ValueError(
-                    'Only strings are accepted for the {0} field, '
-                    'files are not accepted'.format(key)
+                    f'Only strings are accepted for the {key} field, '
+                    'files are not accepted'
                 )
             return value
 
@@ -491,12 +491,12 @@ class ConfigHandler(Generic[Target]):
         for section_name, section_options in self.sections.items():
             method_postfix = ''
             if section_name:  # [section.option] variant
-                method_postfix = '_%s' % section_name
+                method_postfix = f"_{section_name}"
 
             section_parser_method: Callable | None = getattr(
                 self,
                 # Dots in section names are translated into dunderscores.
-                ('parse_section%s' % method_postfix).replace('.', '__'),
+                f'parse_section{method_postfix}'.replace('.', '__'),
                 None,
             )
 
@@ -701,10 +701,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         section_data = self._parse_section_to_dict(section_options, self._parse_list)
 
         valid_keys = ['where', 'include', 'exclude']
-
-        find_kwargs = dict([
-            (k, v) for k, v in section_data.items() if k in valid_keys and v
-        ])
+        find_kwargs = {k: v for k, v in section_data.items() if k in valid_keys and v}
 
         where = find_kwargs.get('where')
         if where is not None:
