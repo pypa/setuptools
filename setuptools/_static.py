@@ -24,7 +24,7 @@ class Static:
     _mutated_: bool = False  # TODO: Remove after deprecation warning is solved
 
 
-def _prevent_modification(target: type, method: str, copying: str):
+def _prevent_modification(target: type, method: str, copying: str) -> None:
     """
     Because setuptools is very flexible we cannot fully prevent
     plugins and user customisations from modifying static values that were
@@ -32,7 +32,9 @@ def _prevent_modification(target: type, method: str, copying: str):
     But we can attempt to block "in-place" mutations and identify when they
     were done.
     """
-    fn = getattr(target, method)
+    fn = getattr(target, method, None)
+    if fn is None:
+        return
 
     @wraps(fn)
     def _replacement(self: Static, *args, **kwargs):
