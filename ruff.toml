@@ -79,10 +79,6 @@ ignore-fully-untyped = true
 
 [lint.flake8-pytest-style]
 parametrize-names-type = "csv"
-# These default to false in non-preview mode in Ruff 0.6,
-# we'll be able to remove this config once raising our minimum version
-fixture-parentheses = false
-mark-parentheses = false
 
 [format]
 # Enable preview to get hugged parenthesis unwrapping and other nice surprises
