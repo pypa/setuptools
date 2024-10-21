@@ -529,8 +529,6 @@ def core_metadata(dist) -> str:
     skip_prefixes += ("Description-Content-Type:",)
     # Remove empty lines
     skip_lines.add("")
-    # TODO: Mark static values coming from pyproject.toml with `_static.*`
-    skip_prefixes += ("Dynamic:",)
 
     result = []
     for line in pkg_file_txt.splitlines():
