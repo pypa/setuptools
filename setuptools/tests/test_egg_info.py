@@ -283,9 +283,9 @@ class TestEggInfo:
                 else:
                     install_cmd_kwargs = {}
                 name = name_kwargs[0].strip()
-                setup_py_requires, setup_cfg_requires, expected_requires = (
+                setup_py_requires, setup_cfg_requires, expected_requires = [
                     DALS(a).format(**format_dict) for a in test_params
-                )
+                ]
                 for id_, requires, use_cfg in (
                     (name, setup_py_requires, False),
                     (name + '_in_setup_cfg', setup_cfg_requires, True),

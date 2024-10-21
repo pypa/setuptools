@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "75.1.0"
+version = "75.2.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -56,7 +56,7 @@ test = [
 	"pytest-home >= 0.5",
 	"pytest-subprocess",
 
-	# workaround for pypa/setuptools#4333
+	# workaround for pypa/pyproject-hooks#206
 	"pyproject-hooks!=1.1",
 
 	"jaraco.test>=5.5", # py.typed
@@ -99,7 +99,7 @@ core = [
 	"wheel>=0.43.0",
 
 	# pkg_resources
-	"platformdirs >= 2.6.2",
+	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
 
 	# for distutils
 	"jaraco.collections",
@@ -136,7 +136,7 @@ type = [
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam 
-	"mypy==1.11.*",
+	"mypy==1.12.*",
 	# Typing fixes in version newer than we require at runtime
 	"importlib_metadata>=7.0.2; python_version < '3.10'",
 	# Imported unconditionally in tools/finalize.py
@@ -216,7 +216,3 @@ formats = "zip"
 
 
 [tool.setuptools_scm]
-
-
-[tool.pytest-enabler.mypy]
-# Disabled due to jaraco/skeleton#143

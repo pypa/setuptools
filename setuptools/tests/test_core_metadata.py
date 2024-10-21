@@ -310,7 +310,6 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
         python_requires=">=3.8",
         install_requires="""
         packaging==23.2
-        ordered-set==3.1.1
         more-itertools==8.8.0; extra == "other"
         jaraco.text==3.7.0
         importlib-resources==5.10.2; python_version<"3.8"

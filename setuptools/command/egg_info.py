@@ -2,7 +2,6 @@
 
 Create a distribution's .egg-info directory and contents"""
 
-import collections
 import functools
 import os
 import re
@@ -211,11 +210,9 @@ class egg_info(InfoCommon, Command):
         build tag. Install build keys in a deterministic order
         to avoid arbitrary reordering on subsequent builds.
         """
-        egg_info = collections.OrderedDict()
         # follow the order these keys would have been added
         # when PYTHONHASHSEED=0
-        egg_info['tag_build'] = self.tags()
-        egg_info['tag_date'] = 0
+        egg_info = dict(tag_build=self.tags(), tag_date=0)
         edit_config(filename, dict(egg_info=egg_info))
 
     def finalize_options(self):
@@ -293,13 +290,17 @@ class egg_info(InfoCommon, Command):
             os.unlink(filename)
 
     def run(self):
+        # Pre-load to avoid iterating over entry-points while an empty .egg-info
+        # exists in sys.path. See pypa/pyproject-hooks#206
+        writers = list(metadata.entry_points(group='egg_info.writers'))
+
         self.mkpath(self.egg_info)
         try:
             os.utime(self.egg_info, None)
         except OSError as e:
             msg = f"Cannot update time stamp of directory '{self.egg_info}'"
             raise distutils.errors.DistutilsFileError(msg) from e
-        for ep in metadata.entry_points(group='egg_info.writers'):
+        for ep in writers:
             writer = ep.load()
             writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 

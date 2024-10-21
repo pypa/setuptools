@@ -1,3 +1,33 @@
+v75.2.0
+=======
+
+Features
+--------
+
+- Made errors when parsing ``Distribution`` data more explicit about the expected type (``tuple[str, ...] | list[str]``) -- by :user:`Avasam` (#4578)
+
+
+Bugfixes
+--------
+
+- Fix a `TypeError` when a ``Distribution``'s old included attribute was a `tuple` -- by :user:`Avasam` (#4578)
+- Add workaround for ``bdist_wheel --dist-info-dir`` errors
+  when customisation does not inherit from setuptools. (#4684)
+
+
+v75.1.1
+=======
+
+Bugfixes
+--------
+
+- Re-use pre-existing ``.dist-info`` dir when creating wheels via the build backend APIs (PEP 517) and the ``metadata_directory`` argument is passed -- by :user:`pelson`. (#1825)
+- Changed ``egg_info`` command to avoid adding an empty ``.egg-info`` directory
+  while iterating over entry-points.
+  This avoids triggering integration problems with ``importlib.metadata``/``importlib_metadata``
+  (reference: pypa/pyproject-hooks#206). (#4680)
+
+
 v75.1.0
 =======
 

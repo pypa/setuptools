@@ -27,7 +27,6 @@ from typing import (
     List,
     Tuple,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -53,7 +52,7 @@ tuple. The first element of the tuple indicates the origin of the option value
 while the second element of the tuple is the option value itself
 """
 AllCommandOptions = Dict["str", SingleCommandOptions]  # cmd name => its options
-Target = TypeVar("Target", bound=Union["Distribution", "DistributionMetadata"])
+Target = TypeVar("Target", "Distribution", "DistributionMetadata")
 
 
 def read_configuration(
@@ -96,7 +95,7 @@ def _apply(
     filepath: StrPath,
     other_files: Iterable[StrPath] = (),
     ignore_option_errors: bool = False,
-) -> tuple[ConfigHandler, ...]:
+) -> tuple[ConfigMetadataHandler, ConfigOptionsHandler]:
     """Read configuration from ``filepath`` and applies to the ``dist`` object."""
     from setuptools.dist import _Distribution
 
@@ -122,7 +121,7 @@ def _apply(
     return handlers
 
 
-def _get_option(target_obj: Target, key: str):
+def _get_option(target_obj: Distribution | DistributionMetadata, key: str):
     """
     Given a target object and option key, get that option from
     the target object, either through a get_{key} method or
@@ -134,10 +133,14 @@ def _get_option(target_obj: Target, key: str):
     return getter()
 
 
-def configuration_to_dict(handlers: tuple[ConfigHandler, ...]) -> dict:
+def configuration_to_dict(
+    handlers: Iterable[
+        ConfigHandler[Distribution] | ConfigHandler[DistributionMetadata]
+    ],
+) -> dict:
     """Returns configuration data gathered by given handlers as a dict.
 
-    :param list[ConfigHandler] handlers: Handlers list,
+    :param Iterable[ConfigHandler] handlers: Handlers list,
         usually from parse_configuration()
 
     :rtype: dict
@@ -254,7 +257,7 @@ class ConfigHandler(Generic[Target]):
         ensure_discovered: expand.EnsurePackagesDiscovered,
     ):
         self.ignore_option_errors = ignore_option_errors
-        self.target_obj = target_obj
+        self.target_obj: Target = target_obj
         self.sections = dict(self._section_options(options))
         self.set_options: list[str] = []
         self.ensure_discovered = ensure_discovered
@@ -301,7 +304,7 @@ class ConfigHandler(Generic[Target]):
             return
 
         simple_setter = functools.partial(target_obj.__setattr__, option_name)
-        setter = getattr(target_obj, 'set_%s' % option_name, simple_setter)
+        setter = getattr(target_obj, f"set_{option_name}", simple_setter)
         setter(parsed)
 
         self.set_options.append(option_name)
@@ -369,8 +372,8 @@ class ConfigHandler(Generic[Target]):
             exclude_directive = 'file:'
             if value.startswith(exclude_directive):
                 raise ValueError(
-                    'Only strings are accepted for the {0} field, '
-                    'files are not accepted'.format(key)
+                    f'Only strings are accepted for the {key} field, '
+                    'files are not accepted'
                 )
             return value
 
@@ -488,12 +491,12 @@ class ConfigHandler(Generic[Target]):
         for section_name, section_options in self.sections.items():
             method_postfix = ''
             if section_name:  # [section.option] variant
-                method_postfix = '_%s' % section_name
+                method_postfix = f"_{section_name}"
 
             section_parser_method: Callable | None = getattr(
                 self,
                 # Dots in section names are translated into dunderscores.
-                ('parse_section%s' % method_postfix).replace('.', '__'),
+                f'parse_section{method_postfix}'.replace('.', '__'),
                 None,
             )
 
@@ -698,10 +701,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         section_data = self._parse_section_to_dict(section_options, self._parse_list)
 
         valid_keys = ['where', 'include', 'exclude']
-
-        find_kwargs = dict([
-            (k, v) for k, v in section_data.items() if k in valid_keys and v
-        ])
+        find_kwargs = {k: v for k, v in section_data.items() if k in valid_keys and v}
 
         where = find_kwargs.get('where')
         if where is not None:
