@@ -1,0 +1,4 @@
+Fix clashes for ``optional-dependencies`` in ``pyproject.toml`` and
+``extra_requires`` in ``setup.cfg/setup.py``.
+As per PEP 621, ``optional-dependencies`` has to be honoured and dynamic
+behaviour is not allowed.
