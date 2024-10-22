@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import functools
 import importlib
 import io
 from email import message_from_string
+from inspect import cleandoc
+from pathlib import Path
 
 import pytest
 from packaging.metadata import Metadata
@@ -377,10 +381,106 @@ def test_parity_with_metadata_from_pypa_wheel(tmp_path):
     del pkg_info_msg["Requires-Dist"]
     del pkg_info_msg["Provides-Extra"]
 
+    # TODO: Handle lack of PEP 643 implementation in pypa/wheel?
+    del pkg_info_msg["Metadata-Version"]
+    del metadata_msg["Metadata-Version"]
+
     # Compare setuptools PKG-INFO x pypa/wheel METADATA
     assert metadata_msg.as_string() == pkg_info_msg.as_string()
     assert metadata_deps == pkg_info_deps
     assert metadata_extras == pkg_info_extras
+
+
+class TestPEP643:
+    STATIC_CONFIG = {
+        "setup.cfg": cleandoc(
+            """
+            [metadata]
+            name = package
+            version = 0.0.1
+            author = Foo Bar
+            author_email = foo@bar.net
+            long_description = Long
+                               description
+            description = Short description
+            keywords = one, two
+            platforms = abcd
+            [options]
+            install_requires = requests
+            """
+        ),
+        "pyproject.toml": cleandoc(
+            """
+            [project]
+            name = "package"
+            version = "0.0.1"
+            authors = [
+              {name = "Foo Bar", email = "foo@bar.net"}
+            ]
+            description = "Short description"
+            readme = {text = "Long\\ndescription", content-type = "text/plain"}
+            keywords = ["one", "two"]
+            dependencies = ["requests"]
+            [tool.setuptools]
+            provides = ["abcd"]
+            obsoletes = ["abcd"]
+            """
+        ),
+    }
+
+    @pytest.mark.parametrize("file", STATIC_CONFIG.keys())
+    def test_static_config_has_no_dynamic(self, file, tmpdir_cwd):
+        Path(file).write_text(self.STATIC_CONFIG[file], encoding="utf-8")
+        metadata = _get_metadata()
+        assert metadata.get_all("Dynamic") is None
+        assert metadata.get_all("dynamic") is None
+
+    @pytest.mark.parametrize("file", STATIC_CONFIG.keys())
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            # Single dynamic field
+            {"requires-python": ("python_requires", ">=3.12")},
+            {"author-email": ("author_email", "snoopy@peanuts.com")},
+            {"keywords": ("keywords", ["hello", "world"])},
+            {"platform": ("platforms", ["abcd"])},
+            # Multiple dynamic fields
+            {
+                "summary": ("description", "hello world"),
+                "description": ("long_description", "bla bla bla bla"),
+                "requires-dist": ("install_requires", ["hello-world"]),
+            },
+        ],
+    )
+    def test_modified_fields_marked_as_dynamic(self, file, fields, tmpdir_cwd):
+        # We start with a static config
+        Path(file).write_text(self.STATIC_CONFIG[file], encoding="utf-8")
+        dist = _makedist()
+
+        # ... but then we simulate the effects of a plugin modifying the distribution
+        for attr, value in fields.values():
+            # `dist` and `dist.metadata` are complicated...
+            # Some attributes work when set on `dist`, others on `dist.metadata`...
+            # Here we set in both just in case (this also avoids calling `_finalize_*`)
+            setattr(dist, attr, value)
+            setattr(dist.metadata, attr, value)
+
+        # Then we should be able to list the modified fields as Dynamic
+        metadata = _get_metadata(dist)
+        assert set(metadata.get_all("Dynamic")) == set(fields)
+
+
+def _makedist(**attrs):
+    dist = Distribution(attrs)
+    dist.parse_config_files()
+    return dist
+
+
+def _get_metadata(dist: Distribution | None = None):
+    metadata = (dist or _makedist()).metadata
+    with io.StringIO() as METADATA:
+        metadata.write_pkg_file(METADATA)
+        return message_from_string(METADATA.getvalue())
 
 
 def _valid_metadata(text: str) -> bool:
