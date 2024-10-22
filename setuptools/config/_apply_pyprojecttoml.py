@@ -30,12 +30,12 @@ if TYPE_CHECKING:
     from setuptools._importlib import metadata
     from setuptools.dist import Distribution
 
-    from distutils.dist import _OptionsList
+    from distutils.dist import _OptionsList  # Comes from typeshed
+
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
 _ProjectReadmeValue: TypeAlias = Union[str, Dict[str, str]]
-_CorrespFn: TypeAlias = Callable[["Distribution", Any, StrPath], None]
-_Correspondence: TypeAlias = Union[str, _CorrespFn]
+_Correspondence: TypeAlias = Callable[["Distribution", Any, Union[StrPath, None]], None]
 _T = TypeVar("_T")
 
 _logger = logging.getLogger(__name__)
@@ -149,7 +149,9 @@ def _guess_content_type(file: str) -> str | None:
     raise ValueError(f"Undefined content type for {file}, {msg}")
 
 
-def _long_description(dist: Distribution, val: _ProjectReadmeValue, root_dir: StrPath):
+def _long_description(
+    dist: Distribution, val: _ProjectReadmeValue, root_dir: StrPath | None
+):
     from setuptools.config import expand
 
     file: str | tuple[()]
@@ -171,7 +173,7 @@ def _long_description(dist: Distribution, val: _ProjectReadmeValue, root_dir: St
         dist._referenced_files.add(file)
 
 
-def _license(dist: Distribution, val: dict, root_dir: StrPath):
+def _license(dist: Distribution, val: dict, root_dir: StrPath | None):
     from setuptools.config import expand
 
     if "file" in val:
@@ -181,7 +183,7 @@ def _license(dist: Distribution, val: dict, root_dir: StrPath):
         _set_config(dist, "license", val["text"])
 
 
-def _people(dist: Distribution, val: list[dict], _root_dir: StrPath, kind: str):
+def _people(dist: Distribution, val: list[dict], _root_dir: StrPath | None, kind: str):
     field = []
     email_field = []
     for person in val:
@@ -199,24 +201,24 @@ def _people(dist: Distribution, val: list[dict], _root_dir: StrPath, kind: str):
         _set_config(dist, f"{kind}_email", ", ".join(email_field))
 
 
-def _project_urls(dist: Distribution, val: dict, _root_dir):
+def _project_urls(dist: Distribution, val: dict, _root_dir: StrPath | None):
     _set_config(dist, "project_urls", val)
 
 
-def _python_requires(dist: Distribution, val: str, _root_dir):
+def _python_requires(dist: Distribution, val: str, _root_dir: StrPath | None):
     from packaging.specifiers import SpecifierSet
 
     _set_config(dist, "python_requires", SpecifierSet(val))
 
 
-def _dependencies(dist: Distribution, val: list, _root_dir):
+def _dependencies(dist: Distribution, val: list, _root_dir: StrPath | None):
     if getattr(dist, "install_requires", []):
         msg = "`install_requires` overwritten in `pyproject.toml` (dependencies)"
         SetuptoolsWarning.emit(msg)
     dist.install_requires = val
 
 
-def _optional_dependencies(dist: Distribution, val: dict, _root_dir):
+def _optional_dependencies(dist: Distribution, val: dict, _root_dir: StrPath | None):
     if getattr(dist, "extras_require", None):
         msg = "`extras_require` overwritten in `pyproject.toml` (optional-dependencies)"
         SetuptoolsWarning.emit(msg)
