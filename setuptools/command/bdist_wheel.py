@@ -129,6 +129,9 @@ def get_abi_tag() -> str | None:
     elif soabi and impl == "cp" and soabi.startswith("cp"):
         # Windows
         abi = soabi.split("-")[0]
+        if hasattr(sys, "gettotalrefcount"):
+            # using debug build; append "d" flag
+            abi += "d"
     elif soabi and impl == "pp":
         # we want something like pypy36-pp73
         abi = "-".join(soabi.split("-")[:2])
