@@ -136,7 +136,7 @@ type = [
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam 
-	"mypy==1.12.*",
+	"mypy>=1.12,<1.14",
 	# Typing fixes in version newer than we require at runtime
 	"importlib_metadata>=7.0.2; python_version < '3.10'",
 	# Imported unconditionally in tools/finalize.py
