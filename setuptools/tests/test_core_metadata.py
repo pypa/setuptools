@@ -429,6 +429,9 @@ def _assert_roundtrip_message(metadata: str) -> None:
         regenerated = buffer.getvalue()
 
     raw_metadata = bytes(metadata, "utf-8")
+    # Normalise newlines to avoid test errors on Windows:
+    raw_metadata = b"\n".join(raw_metadata.splitlines())
+    regenerated = b"\n".join(regenerated.splitlines())
     assert regenerated == raw_metadata
 
 
