@@ -384,7 +384,7 @@ class TestParityWithMetadataFromPyPaWheel:
         wheel_metadata = importlib.import_module("wheel.metadata")
         pkginfo_to_metadata = getattr(wheel_metadata, "pkginfo_to_metadata", None)
 
-        if pkginfo_to_metadata is None:
+        if pkginfo_to_metadata is None:  # pragma: nocover
             pytest.xfail(
                 "wheel.metadata.pkginfo_to_metadata is undefined, "
                 "(this is likely to be caused by API changes in pypa/wheel"
