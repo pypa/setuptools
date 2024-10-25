@@ -415,9 +415,7 @@ class TestMetadata:
         """
         fake_env(
             tmpdir,
-            '# vim: set fileencoding=iso-8859-15 :\n'
-            '[metadata]\n'
-            'description = éàïôñ\n',
+            '# vim: set fileencoding=iso-8859-15 :\n[metadata]\ndescription = éàïôñ\n',
             encoding='iso-8859-15',
         )
         with pytest.raises(UnicodeDecodeError):
