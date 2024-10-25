@@ -257,9 +257,9 @@ class bdist_wheel(Command):
         self.relative = False
         self.owner = None
         self.group = None
-        self.universal: bool = False
-        self.compression: int | str = "deflated"
-        self.python_tag: str = python_tag()
+        self.universal = False
+        self.compression: str | int = "deflated"
+        self.python_tag = python_tag()
         self.build_number: str | None = None
         self.py_limited_api: str | Literal[False] = False
         self.plat_name_supplied = False

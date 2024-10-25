@@ -252,7 +252,7 @@ class egg_info(InfoCommon, Command):
         """Compute filename of the output egg. Private API."""
         return _egg_basename(self.egg_name, self.egg_version, py_version, platform)
 
-    def write_or_delete_file(self, what, filename, data, force=False):
+    def write_or_delete_file(self, what, filename, data, force: bool = False):
         """Write `data` to `filename` or delete if empty
 
         If `data` is non-empty, this routine is the same as ``write_file()``.
@@ -324,7 +324,7 @@ class egg_info(InfoCommon, Command):
 class FileList(_FileList):
     # Implementations of the various MANIFEST.in commands
 
-    def __init__(self, warn=None, debug_print=None, ignore_egg_info_dir=False):
+    def __init__(self, warn=None, debug_print=None, ignore_egg_info_dir: bool = False):
         super().__init__(warn, debug_print)
         self.ignore_egg_info_dir = ignore_egg_info_dir
 
@@ -690,7 +690,7 @@ def overwrite_arg(cmd, basename, filename):
     write_arg(cmd, basename, filename, True)
 
 
-def write_arg(cmd, basename, filename, force=False):
+def write_arg(cmd, basename, filename, force: bool = False):
     argname = os.path.splitext(basename)[0]
     value = getattr(cmd.distribution, argname, None)
     if value is not None:

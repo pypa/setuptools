@@ -56,6 +56,8 @@ ignore = [
 # Only enforcing return type annotations for public modules
 "**/tests/**" = ["ANN2"]
 "tools/**" = ["ANN2"]
+# Temporarily disabling enforced return annotations for the setuptool package to progressively type from Typeshed
+"setuptools/**" = ["ANN2"]
 # Suppress nuisance warnings about module-import-not-at-top-of-file (E402) due to workaround for #4476
 "setuptools/__init__.py" = ["E402"]
 "pkg_resources/__init__.py" = ["E402"]

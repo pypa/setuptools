@@ -5,13 +5,11 @@ import os
 import sys
 from typing import TYPE_CHECKING, Union
 
-if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
-
-
 from more_itertools import unique_everseen
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     StrPath: TypeAlias = Union[str, os.PathLike[str]]  #  Same as _typeshed.StrPath
 else:
     # Python 3.8 support

@@ -425,7 +425,7 @@ class easy_install(Command):
         ]
         self._expand_attrs(dirs)
 
-    def run(self, show_deprecation=True):
+    def run(self, show_deprecation: bool = True):
         if show_deprecation:
             self.announce(
                 "WARNING: The easy_install command is deprecated "
@@ -674,7 +674,7 @@ class easy_install(Command):
         finally:
             os.path.exists(tmpdir) and _rmtree(tmpdir)
 
-    def easy_install(self, spec, deps=False):
+    def easy_install(self, spec, deps: bool = False):
         with self._tmpdir() as tmpdir:
             if not isinstance(spec, Requirement):
                 if URL_SCHEME(spec):
@@ -711,9 +711,9 @@ class easy_install(Command):
             else:
                 return self.install_item(spec, dist.location, tmpdir, deps)
 
-    def install_item(self, spec, download, tmpdir, deps, install_needed=False):
+    def install_item(self, spec, download, tmpdir, deps, install_needed: bool = False):
         # Installation is also needed if file in tmpdir or is not an egg
-        install_needed = install_needed or self.always_copy
+        install_needed = install_needed or bool(self.always_copy)
         install_needed = install_needed or os.path.dirname(download) == tmpdir
         install_needed = install_needed or not download.endswith('.egg')
         install_needed = install_needed or (
@@ -759,7 +759,7 @@ class easy_install(Command):
         self,
         requirement,
         dist,
-        deps=True,
+        deps: bool = True,
         *info,
     ):
         self.update_pth(dist)
@@ -860,7 +860,7 @@ class easy_install(Command):
         raw_bytes = resource_string('setuptools', name)
         return raw_bytes.decode('utf-8')
 
-    def write_script(self, script_name, contents, mode="t", blockers=()):
+    def write_script(self, script_name, contents, mode: str = "t", blockers=()):
         """Write an executable file to the scripts directory"""
         self.delete_blockers(  # clean up old .py/.pyw w/o a script
             [os.path.join(self.script_dir, x) for x in blockers]
@@ -1143,7 +1143,7 @@ class easy_install(Command):
         """
     )
 
-    def installation_report(self, req, dist, what="Installed"):
+    def installation_report(self, req, dist, what: str = "Installed"):
         """Helpful installation message for display to package users"""
         msg = "\n%(what)s %(eggloc)s%(extras)s"
         if self.multi_version and not self.no_report:
@@ -2080,7 +2080,7 @@ class CommandSpec(list):
         return cls([cls._sys_executable()])
 
     @classmethod
-    def from_string(cls, string):
+    def from_string(cls, string: str):
         """
         Construct a command spec from a simple string representing a command
         line parseable by shlex.split.
@@ -2088,7 +2088,7 @@ class CommandSpec(list):
         items = shlex.split(string, **cls.split_args)
         return cls(items)
 
-    def install_options(self, script_text):
+    def install_options(self, script_text: str):
         self.options = shlex.split(self._extract_options(script_text))
         cmdline = subprocess.list2cmdline(self)
         if not isascii(cmdline):
@@ -2218,7 +2218,11 @@ class ScriptWriter:
         yield (name, header + script_text)
 
     @classmethod
-    def get_header(cls, script_text="", executable=None):
+    def get_header(
+        cls,
+        script_text: str = "",
+        executable: str | CommandSpec | Iterable[str] | None = None,
+    ):
         """Create a #! line, getting options (if any) from script_text"""
         cmd = cls.command_spec_class.best().from_param(executable)
         cmd.install_options(script_text)
@@ -2340,7 +2344,7 @@ def load_launcher_manifest(name):
     return manifest.decode('utf-8') % vars()
 
 
-def _rmtree(path, ignore_errors=False, onexc=auto_chmod):
+def _rmtree(path, ignore_errors: bool = False, onexc=auto_chmod):
     return py311.shutil_rmtree(path, ignore_errors, onexc)
 
 
