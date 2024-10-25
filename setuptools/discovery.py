@@ -41,10 +41,11 @@ from __future__ import annotations
 
 import itertools
 import os
+from collections.abc import Iterator
 from fnmatch import fnmatchcase
 from glob import glob
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, Iterator, Mapping
+from typing import TYPE_CHECKING, Iterable, Mapping
 
 import _distutils_hack.override  # noqa: F401
 
@@ -54,11 +55,8 @@ from distutils import log
 from distutils.util import convert_path
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
-
     from setuptools import Distribution
 
-StrIter: TypeAlias = Iterator[str]
 chain_iter = itertools.chain.from_iterable
 
 
@@ -125,7 +123,9 @@ class _Finder:
         )
 
     @classmethod
-    def _find_iter(cls, where: StrPath, exclude: _Filter, include: _Filter) -> StrIter:
+    def _find_iter(
+        cls, where: StrPath, exclude: _Filter, include: _Filter
+    ) -> Iterator[str]:
         raise NotImplementedError
 
 
@@ -137,7 +137,9 @@ class PackageFinder(_Finder):
     ALWAYS_EXCLUDE = ("ez_setup", "*__pycache__")
 
     @classmethod
-    def _find_iter(cls, where: StrPath, exclude: _Filter, include: _Filter) -> StrIter:
+    def _find_iter(
+        cls, where: StrPath, exclude: _Filter, include: _Filter
+    ) -> Iterator[str]:
         """
         All the packages found in 'where' that pass the 'include' filter, but
         not the 'exclude' filter.
@@ -186,7 +188,9 @@ class ModuleFinder(_Finder):
     """
 
     @classmethod
-    def _find_iter(cls, where: StrPath, exclude: _Filter, include: _Filter) -> StrIter:
+    def _find_iter(
+        cls, where: StrPath, exclude: _Filter, include: _Filter
+    ) -> Iterator[str]:
         for file in glob(os.path.join(where, "*.py")):
             module, _ext = os.path.splitext(os.path.basename(file))
 
