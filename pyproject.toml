@@ -59,7 +59,7 @@ test = [
 	# workaround for pypa/pyproject-hooks#206
 	"pyproject-hooks!=1.1",
 
-	"jaraco.test",
+	"jaraco.test>=5.5", # py.typed
 ]
 
 doc = [

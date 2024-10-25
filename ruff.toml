@@ -7,20 +7,22 @@ exclude = [
 [lint]
 extend-select = [
 	"C901",
-	"PERF401",
 	"W",
 
 	# local
 	"ANN2", # missing-return-type-*
+	"F", # Pyflakes
 	"F404", # late-future-import
 	"FA", # flake8-future-annotations
 	"I", # isort
+	"PERF", # Perflint
 	"PYI", # flake8-pyi
 	"TRY", # tryceratops
 	"UP", # pyupgrade
 	"YTT", # flake8-2020
 ]
 ignore = [
+	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
 	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
 	"TRY301", # raise-within-try, it's handy
 	"UP015", # redundant-open-modes, explicit is preferred
