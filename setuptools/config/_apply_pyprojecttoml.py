@@ -181,16 +181,19 @@ def _long_description(
         dist._referenced_files.add(file)
 
 
-def _license(dist: Distribution, val: dict, root_dir: StrPath | None):
+def _license(dist: Distribution, val: str | dict, root_dir: StrPath | None):
     from setuptools.config import expand
 
-    if "file" in val:
-        # XXX: Is it completely safe to assume static?
-        value = expand.read_files([val["file"]], root_dir)
-        _set_config(dist, "license", _static.Str(value))
-        dist._referenced_files.add(val["file"])
+    if isinstance(val, str):
+        _set_config(dist, "license_expression", _static.Str(val))
     else:
-        _set_config(dist, "license", _static.Str(val["text"]))
+        if "file" in val:
+            # XXX: Is it completely safe to assume static?
+            value = expand.read_files([val["file"]], root_dir)
+            _set_config(dist, "license", _static.Str(value))
+            dist._referenced_files.add(val["file"])
+        else:
+            _set_config(dist, "license", _static.Str(val["text"]))
 
 
 def _people(dist: Distribution, val: list[dict], _root_dir: StrPath | None, kind: str):
