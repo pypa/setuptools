@@ -178,7 +178,7 @@ class TestBuildExt:
 
 
 class TestBuildExtInplace:
-    def get_build_ext_cmd(self, optional: bool, **opts):
+    def get_build_ext_cmd(self, optional: bool, **opts) -> build_ext:
         files = {
             "eggs.c": "#include missingheader.h\n",
             ".build": {"lib": {}, "tmp": {}},

@@ -1275,7 +1275,7 @@ def assert_path(pkg, expected):
             assert str(Path(path).resolve()) == expected
 
 
-def assert_link_to(file: Path, other: Path):
+def assert_link_to(file: Path, other: Path) -> None:
     if file.is_symlink():
         assert str(file.resolve()) == str(other.resolve())
     else:

@@ -252,7 +252,7 @@ class egg_info(InfoCommon, Command):
         """Compute filename of the output egg. Private API."""
         return _egg_basename(self.egg_name, self.egg_version, py_version, platform)
 
-    def write_or_delete_file(self, what, filename, data, force: bool = False):
+    def write_or_delete_file(self, what, filename, data, force: bool = False) -> None:
         """Write `data` to `filename` or delete if empty
 
         If `data` is non-empty, this routine is the same as ``write_file()``.
@@ -690,7 +690,7 @@ def overwrite_arg(cmd, basename, filename):
     write_arg(cmd, basename, filename, True)
 
 
-def write_arg(cmd, basename, filename, force: bool = False):
+def write_arg(cmd, basename, filename, force: bool = False) -> None:
     argname = os.path.splitext(basename)[0]
     value = getattr(cmd.distribution, argname, None)
     if value is not None:

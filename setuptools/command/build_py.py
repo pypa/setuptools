@@ -12,8 +12,7 @@ from typing import Iterable, Iterator
 
 from more_itertools import unique_everseen
 
-from setuptools._path import StrPath
-
+from .._path import StrPath, StrPathT
 from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning
 
@@ -50,20 +49,20 @@ class build_py(orig.build_py):
             del self.__dict__['data_files']
         self.__updated_files = []
 
-    def copy_file(  # type: ignore[override] # No overload, str support only
+    def copy_file(  # type: ignore[override] # No overload, no bytes support
         self,
         infile: StrPath,
-        outfile: StrPath,
+        outfile: StrPathT,
         preserve_mode: bool = True,
         preserve_times: bool = True,
         link: str | None = None,
         level: object = 1,
-    ):
+    ) -> tuple[StrPathT | str, bool]:
         # Overwrite base class to allow using links
         if link:
             infile = str(Path(infile).resolve())
-            outfile = str(Path(outfile).resolve())
-        return super().copy_file(
+            outfile = str(Path(outfile).resolve())  # type: ignore[assignment] # Re-assigning a str when outfile is StrPath is ok
+        return super().copy_file(  # pyright: ignore[reportReturnType] # pypa/distutils#309
             infile, outfile, preserve_mode, preserve_times, link, level
         )
 

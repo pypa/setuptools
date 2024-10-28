@@ -1,5 +1,7 @@
 """PyPI and direct package downloading."""
 
+from __future__ import annotations
+
 import base64
 import configparser
 import hashlib
@@ -325,7 +327,7 @@ class PackageIndex(Environment):
         return super().add(dist)
 
     # FIXME: 'PackageIndex.process_url' is too complex (14)
-    def process_url(self, url, retrieve: bool = False):  # noqa: C901
+    def process_url(self, url, retrieve: bool = False) -> None:  # noqa: C901
         """Evaluate a URL as a possible download, and maybe retrieve it"""
         if url in self.scanned_urls and not retrieve:
             return
@@ -378,7 +380,7 @@ class PackageIndex(Environment):
         if url.startswith(self.index_url) and getattr(f, 'code', None) != 404:
             page = self.process_index(url, page)
 
-    def process_filename(self, fn, nested: bool = False):
+    def process_filename(self, fn, nested: bool = False) -> None:
         # process filenames or directories
         if not os.path.exists(fn):
             self.warn("Not found: %s", fn)
@@ -394,7 +396,7 @@ class PackageIndex(Environment):
             self.debug("Found: %s", fn)
             list(map(self.add, dists))
 
-    def url_ok(self, url, fatal: bool = False):
+    def url_ok(self, url, fatal: bool = False) -> bool:
         s = URL_SCHEME(url)
         is_file = s and s.group(1).lower() == 'file'
         if is_file or self.allows(urllib.parse.urlparse(url)[1]):
@@ -604,7 +606,7 @@ class PackageIndex(Environment):
         source: bool = False,
         develop_ok: bool = False,
         local_index=None,
-    ):
+    ) -> Distribution | None:
         """Obtain a distribution suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
@@ -626,7 +628,7 @@ class PackageIndex(Environment):
         skipped = set()
         dist = None
 
-        def find(req, env=None):
+        def find(req, env: Environment | None = None):
             if env is None:
                 env = self
             # Find a matching distribution; may be called more than once
@@ -680,7 +682,7 @@ class PackageIndex(Environment):
 
     def fetch(
         self, requirement, tmpdir, force_scan: bool = False, source: bool = False
-    ):
+    ) -> str | None:
         """Obtain a file suitable for fulfilling `requirement`
 
         DEPRECATED; use the ``fetch_distribution()`` method now instead.  For

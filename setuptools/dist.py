@@ -25,14 +25,13 @@ from packaging.markers import InvalidMarker, Marker
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
 
-from setuptools._path import StrPath
-
 from . import (
     _entry_points,
     _reqs,
     command as _,  # noqa: F401 # imported for side-effects
 )
 from ._importlib import metadata
+from ._path import StrPath
 from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
@@ -51,6 +50,9 @@ from distutils.util import strtobool
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
+
+    from pkg_resources import Distribution as _pkg_resources_Distribution
+
 
 __all__ = ['Distribution']
 
@@ -518,7 +520,7 @@ class Distribution(_Distribution):
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
-    def warn_dash_deprecation(self, opt: str, section: str):
+    def warn_dash_deprecation(self, opt: str, section: str) -> str:
         if section in (
             'options.extras_require',
             'options.data_files',
@@ -560,7 +562,7 @@ class Distribution(_Distribution):
             # during bootstrapping, distribution doesn't exist
             return []
 
-    def make_option_lowercase(self, opt: str, section: str):
+    def make_option_lowercase(self, opt: str, section: str) -> str:
         if section != 'metadata' or opt.islower():
             return opt
 
@@ -640,7 +642,7 @@ class Distribution(_Distribution):
         self,
         filenames: Iterable[StrPath] | None = None,
         ignore_option_errors: bool = False,
-    ):
+    ) -> None:
         """Parses configuration files from various levels
         and loads configuration.
         """
@@ -657,7 +659,9 @@ class Distribution(_Distribution):
         self._finalize_requires()
         self._finalize_license_files()
 
-    def fetch_build_eggs(self, requires: _StrOrIter):
+    def fetch_build_eggs(
+        self, requires: _StrOrIter
+    ) -> list[_pkg_resources_Distribution]:
         """Resolve pre-setup requirements"""
         from .installer import _fetch_build_eggs
 
@@ -728,7 +732,7 @@ class Distribution(_Distribution):
 
         return fetch_build_egg(self, req)
 
-    def get_command_class(self, command: str):
+    def get_command_class(self, command: str) -> type[distutils.cmd.Command]:  # type: ignore[override] # Not doing complex overrides yet
         """Pluggable version of get_command_class()"""
         if command in self.cmdclass:
             return self.cmdclass[command]
@@ -782,7 +786,7 @@ class Distribution(_Distribution):
             else:
                 self._include_misc(k, v)
 
-    def exclude_package(self, package: str):
+    def exclude_package(self, package: str) -> None:
         """Remove packages, modules, and extensions in named package"""
 
         pfx = package + '.'
@@ -803,7 +807,7 @@ class Distribution(_Distribution):
                 if p.name != package and not p.name.startswith(pfx)
             ]
 
-    def has_contents_for(self, package: str):
+    def has_contents_for(self, package: str) -> bool:
         """Return true if 'exclude_package(package)' would do something"""
 
         pfx = package + '.'

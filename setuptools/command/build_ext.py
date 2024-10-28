@@ -415,7 +415,7 @@ if use_stubs or os.name == 'nt':
         extra_postargs=None,
         build_temp=None,
         target_lang=None,
-    ):
+    ) -> None:
         self.link(
             self.SHARED_LIBRARY,
             objects,
@@ -450,7 +450,7 @@ else:
         extra_postargs=None,
         build_temp=None,
         target_lang=None,
-    ):
+    ) -> None:
         # XXX we need to either disallow these attrs on Library instances,
         # or warn/abort here if set, or something...
         # libraries=None, library_dirs=None, runtime_library_dirs=None,
