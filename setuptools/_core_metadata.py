@@ -88,6 +88,7 @@ def read_pkg_file(self, file):
     self.url = _read_field_from_msg(msg, 'home-page')
     self.download_url = _read_field_from_msg(msg, 'download-url')
     self.license = _read_field_unescaped_from_msg(msg, 'license')
+    self.license_expression = _read_field_unescaped_from_msg(msg, 'license_expression')
 
     self.long_description = _read_field_unescaped_from_msg(msg, 'description')
     if self.long_description is None and self.metadata_version >= Version('2.1'):
@@ -175,9 +176,12 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
         if attr_val is not None:
             write_field(field, attr_val)
 
-    license = self.get_license()
-    if license:
-        write_field('License', rfc822_escape(license))
+    if self.license_expression:
+        write_field('License-Expression', rfc822_escape(self.license_expression))
+    else:
+        license = self.get_license()
+        if license:
+            write_field('License', rfc822_escape(license))
 
     for label, url in self.project_urls.items():
         write_field('Project-URL', f'{label}, {url}')
