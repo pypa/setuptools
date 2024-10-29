@@ -1,4 +1,0 @@
-Ensured methods in ``setuptools.modified`` preferably raise a consistent
-``distutils.errors.DistutilsError`` type
-(except in the deprecated use case of ``SETUPTOOLS_USE_DISTUTILS=stdlib``)
--- by :user:`Avasam`

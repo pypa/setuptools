@@ -1,3 +1,32 @@
+v75.3.0
+=======
+
+Features
+--------
+
+- Allowed using `dict` as an ordered type in ``setuptools.dist.check_requirements`` -- by :user:`Avasam` (#4575)
+
+
+Bugfixes
+--------
+
+- Ensured methods in ``setuptools.modified`` preferably raise a consistent
+  ``distutils.errors.DistutilsError`` type
+  (except in the deprecated use case of ``SETUPTOOLS_USE_DISTUTILS=stdlib``)
+  -- by :user:`Avasam` (#4567)
+- Fix the ABI tag when building a wheel using the debug build of Python 3.13 on Windows. Previously, the ABI tag was missing the ``"d"`` flag. (#4674)
+- Fix clashes for ``optional-dependencies`` in ``pyproject.toml`` and
+  ``extra_requires`` in ``setup.cfg/setup.py``.
+  As per PEP 621, ``optional-dependencies`` have to be honoured and dynamic
+  behaviour is not allowed. (#4696)
+
+
+Misc
+----
+
+- #4560
+
+
 v75.2.0
 =======
 
