@@ -22,10 +22,10 @@ classifiers = [
 	"Topic :: System :: Systems Administration",
 	"Topic :: Utilities",
 ]
-keywords = ["CPAN PyPI distutils eggs package management"]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
 ]
+keywords = ["CPAN PyPI distutils eggs package management"]
 
 [project.urls]
 Source = "https://github.com/pypa/setuptools"
