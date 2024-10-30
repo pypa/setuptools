@@ -42,8 +42,8 @@ jobs:
       # https://blog.jaraco.com/efficient-use-of-ci-resources/
       matrix:
         python:
-          - "3.8"
-          - "3.12"
+          - "3.9"
+          - "3.13"
         platform:
           - ubuntu-latest
     runs-on: ${{ matrix.platform }}
