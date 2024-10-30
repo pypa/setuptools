@@ -1407,6 +1407,10 @@ def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
     assert cmd.config_vars['py_version_nodot'] == '310'
 
 
+@pytest.mark.xfail(
+    sys.platform == "darwin",
+    reason="https://github.com/pypa/setuptools/pull/4716#issuecomment-2447624418",
+)
 def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path):
     """`setup.py develop` should honor `--user` even under build isolation"""
 

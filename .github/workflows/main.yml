@@ -63,12 +63,6 @@ jobs:
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
-        # Python 3.8, 3.9 are on macos-13 but not macos-latest (macos-14-arm64)
-        # https://github.com/actions/setup-python/issues/850
-        # https://github.com/actions/setup-python/issues/696#issuecomment-1637587760
-        - {python: "3.8", platform: "macos-13"}
-        exclude:
-        - {python: "3.8", platform: "macos-latest"}
     runs-on: ${{ matrix.platform }}
     continue-on-error: ${{ matrix.python == '3.14' }}
     env:
