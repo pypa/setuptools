@@ -387,7 +387,7 @@ class UnknownExtra(ResolutionError):
 
 _provider_factories: dict[type[_ModuleLike], _ProviderFactoryType] = {}
 
-PY_MAJOR = '{}.{}'.format(*sys.version_info)
+PY_MAJOR = f'{sys.version_info.major}.{sys.version_info.minor}'
 EGG_DIST = 3
 BINARY_DIST = 2
 SOURCE_DIST = 1

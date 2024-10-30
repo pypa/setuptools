@@ -64,7 +64,7 @@ def _is_32bit_interpreter() -> bool:
 
 
 def python_tag() -> str:
-    return f"py{sys.version_info[0]}"
+    return f"py{sys.version_info.major}"
 
 
 def get_platform(archive_root: str | None) -> str:
@@ -483,7 +483,7 @@ class bdist_wheel(Command):
         # Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution, "dist_files", []).append((
             "bdist_wheel",
-            "{}.{}".format(*sys.version_info[:2]),  # like 3.7
+            f"{sys.version_info.major}.{sys.version_info.minor}",
             wheel_path,
         ))
 

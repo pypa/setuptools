@@ -261,11 +261,11 @@ class TestEggInfo:
         })
 
     mismatch_marker = "python_version<'{this_ver}'".format(
-        this_ver=sys.version_info[0],
+        this_ver=sys.version_info.major,
     )
     # Alternate equivalent syntax.
     mismatch_marker_alternate = 'python_version < "{this_ver}"'.format(
-        this_ver=sys.version_info[0],
+        this_ver=sys.version_info.major,
     )
     invalid_marker = "<=>++"
 

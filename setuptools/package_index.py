@@ -64,10 +64,7 @@ __all__ = [
 
 _SOCKET_TIMEOUT = 15
 
-_tmpl = "setuptools/{setuptools.__version__} Python-urllib/{py_major}"
-user_agent = _tmpl.format(
-    py_major='{}.{}'.format(*sys.version_info), setuptools=setuptools
-)
+user_agent = f"setuptools/{setuptools.__version__} Python-urllib/{sys.version_info.major}.{sys.version_info.minor}"
 
 
 def parse_requirement_arg(spec):

@@ -859,7 +859,9 @@ class TestSetupRequires:
         )
         dep_2_0_sdist = 'dep-2.0.tar.gz'
         dep_2_0_url = path_to_url(str(tmpdir / dep_2_0_sdist))
-        dep_2_0_python_requires = '!=' + '.'.join(map(str, sys.version_info[:2])) + '.*'
+        dep_2_0_python_requires = (
+            f'!={sys.version_info.major}.{sys.version_info.minor}.*'
+        )
         make_python_requires_sdist(
             str(tmpdir / dep_2_0_sdist), 'dep', '2.0', dep_2_0_python_requires
         )
