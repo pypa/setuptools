@@ -12,7 +12,7 @@ import sys
 import tempfile
 import textwrap
 from types import TracebackType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 import pkg_resources
 from pkg_resources import working_set
@@ -416,7 +416,7 @@ else:
 class DirectorySandbox(AbstractSandbox):
     """Restrict operations to a single subdirectory - pseudo-chroot"""
 
-    write_ops: dict[str, None] = dict.fromkeys([
+    write_ops: ClassVar[dict[str, None]] = dict.fromkeys([
         "open",
         "chmod",
         "chown",

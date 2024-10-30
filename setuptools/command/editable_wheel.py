@@ -23,6 +23,7 @@ from inspect import cleandoc
 from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import TracebackType
 from typing import TYPE_CHECKING, Iterable, Iterator, Mapping, Protocol, TypeVar, cast
 
 from .. import Command, _normalization, _path, errors, namespaces
@@ -379,13 +380,13 @@ class editable_wheel(Command):
 class EditableStrategy(Protocol):
     def __call__(
         self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]
-    ): ...
+    ) -> object: ...
     def __enter__(self) -> Self: ...
     def __exit__(
         self,
-        _exc_type: object,
-        _exc_value: object,
-        _traceback: object,
+        _exc_type: type[BaseException] | None,
+        _exc_value: BaseException | None,
+        _traceback: TracebackType | None,
     ) -> object: ...
 
 

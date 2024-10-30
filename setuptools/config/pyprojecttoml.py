@@ -330,7 +330,7 @@ class _ConfigExpander:
 
     def _obtain_entry_points(
         self, dist: Distribution, package_dir: Mapping[str, str]
-    ) -> dict[str, dict] | None:
+    ) -> dict[str, dict[str, Any]] | None:
         fields = ("entry-points", "scripts", "gui-scripts")
         if not any(field in self.dynamic for field in fields):
             return None
@@ -340,7 +340,8 @@ class _ConfigExpander:
             return None
 
         groups = _expand.entry_points(text)
-        expanded = {"entry-points": groups}
+        # Any is str | dict[str, str], but causes variance issues
+        expanded: dict[str, dict[str, Any]] = {"entry-points": groups}
 
         def _set_scripts(field: str, group: str):
             if group in groups:

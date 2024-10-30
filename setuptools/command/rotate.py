@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shutil
+from typing import ClassVar
 
 from setuptools import Command
 
@@ -20,7 +21,7 @@ class rotate(Command):
         ('keep=', 'k', "number of matching distributions to keep"),
     ]
 
-    boolean_options: list[str] = []
+    boolean_options: ClassVar[list[str]] = []
 
     def initialize_options(self):
         self.match = None

@@ -322,7 +322,7 @@ class bdist_egg(Command):
         return all_outputs, ext_outputs
 
 
-NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
+NATIVE_EXTENSIONS: dict[str, None] = dict.fromkeys('.dll .so .dylib .pyd'.split())
 
 
 def walk_egg(egg_dir):
