@@ -479,7 +479,7 @@ class ConfigDiscovery:
             """
             raise PackageDiscoveryError(cleandoc(msg))
 
-    def analyse_name(self):
+    def analyse_name(self) -> None:
         """The packages/modules are the essential contribution of the author.
         Therefore the name of the distribution can be derived from them.
         """

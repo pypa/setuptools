@@ -39,7 +39,7 @@ def _get_supported_tags():
     return {(t.interpreter, t.abi, t.platform) for t in sys_tags()}
 
 
-def unpack(src_dir, dst_dir):
+def unpack(src_dir, dst_dir) -> None:
     """Move everything under `src_dir` to `dst_dir`, and delete the former."""
     for dirpath, dirnames, filenames in os.walk(src_dir):
         subdir = os.path.relpath(dirpath, src_dir)
@@ -116,7 +116,7 @@ class Wheel:
                 return dirname
         raise ValueError("unsupported wheel format. .dist-info not found")
 
-    def install_as_egg(self, destination_eggdir):
+    def install_as_egg(self, destination_eggdir) -> None:
         """Install wheel as an egg directory."""
         with zipfile.ZipFile(self.filename) as zf:
             self._install_as_egg(destination_eggdir, zf)

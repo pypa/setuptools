@@ -34,7 +34,7 @@ import zipimport
 from collections.abc import Iterable
 from glob import glob
 from sysconfig import get_path
-from typing import TYPE_CHECKING, Callable, TypeVar
+from typing import TYPE_CHECKING, Callable, NoReturn, TypeVar
 
 from jaraco.text import yield_lines
 
@@ -212,7 +212,7 @@ class easy_install(Command):
             self, self.distribution.get_option_dict('easy_install')
         )
 
-    def delete_blockers(self, blockers):
+    def delete_blockers(self, blockers) -> None:
         extant_blockers = (
             filename
             for filename in blockers
@@ -407,12 +407,12 @@ class easy_install(Command):
                 val = subst_vars(val, self.config_vars)
                 setattr(self, attr, val)
 
-    def expand_basedirs(self):
+    def expand_basedirs(self) -> None:
         """Calls `os.path.expanduser` on install_base, install_platbase and
         root."""
         self._expand_attrs(['install_base', 'install_platbase', 'root'])
 
-    def expand_dirs(self):
+    def expand_dirs(self) -> None:
         """Calls `os.path.expanduser` on install dirs."""
         dirs = [
             'install_purelib',
@@ -424,7 +424,7 @@ class easy_install(Command):
         ]
         self._expand_attrs(dirs)
 
-    def run(self, show_deprecation: bool = True):
+    def run(self, show_deprecation: bool = True) -> None:
         if show_deprecation:
             self.announce(
                 "WARNING: The easy_install command is deprecated "
@@ -464,10 +464,10 @@ class easy_install(Command):
             pid = random.randint(0, sys.maxsize)
         return os.path.join(self.install_dir, "test-easy-install-%s" % pid)
 
-    def warn_deprecated_options(self):
+    def warn_deprecated_options(self) -> None:
         pass
 
-    def check_site_dir(self):  # is too complex (12)  # FIXME
+    def check_site_dir(self) -> None:  # is too complex (12)  # FIXME
         """Verify that self.install_dir is .pth-capable dir, if needed"""
 
         instdir = normalize_path(self.install_dir)
@@ -554,7 +554,7 @@ class easy_install(Command):
         """
     ).lstrip()
 
-    def cant_write_to_target(self):
+    def cant_write_to_target(self) -> NoReturn:
         msg = self.__cant_write_msg % (
             sys.exc_info()[1],
             self.install_dir,
@@ -626,7 +626,7 @@ class easy_install(Command):
             log.warn("TEST FAILED: %s does NOT support .pth files", instdir)
         return False
 
-    def install_egg_scripts(self, dist):
+    def install_egg_scripts(self, dist) -> None:
         """Write all the scripts for `dist`, unless scripts are excluded"""
         if not self.exclude_scripts and dist.metadata_isdir('scripts'):
             for script_name in dist.metadata_listdir('scripts'):
@@ -639,7 +639,7 @@ class easy_install(Command):
                 )
         self.install_wrapper_scripts(dist)
 
-    def add_output(self, path):
+    def add_output(self, path) -> None:
         if os.path.isdir(path):
             for base, dirs, files in os.walk(path):
                 for filename in files:
@@ -647,14 +647,14 @@ class easy_install(Command):
         else:
             self.outputs.append(path)
 
-    def not_editable(self, spec):
+    def not_editable(self, spec) -> None:
         if self.editable:
             raise DistutilsArgError(
                 "Invalid argument %r: you can't use filenames or URLs "
                 "with --editable (except via the --find-links option)." % (spec,)
             )
 
-    def check_editable(self, spec):
+    def check_editable(self, spec) -> None:
         if not self.editable:
             return
 
@@ -760,7 +760,7 @@ class easy_install(Command):
         dist,
         deps: bool = True,
         *info,
-    ):
+    ) -> None:
         self.update_pth(dist)
         self.package_index.add(dist)
         if dist in self.local_index[dist.key]:
@@ -798,7 +798,7 @@ class easy_install(Command):
                     self.easy_install(dist.as_requirement())
         log.info("Finished processing dependencies for %s", requirement)
 
-    def should_unzip(self, dist):
+    def should_unzip(self, dist) -> bool:
         if self.zip_ok is not None:
             return not self.zip_ok
         if dist.has_metadata('not-zip-safe'):
@@ -828,13 +828,13 @@ class easy_install(Command):
         shutil.move(setup_base, dst)
         return dst
 
-    def install_wrapper_scripts(self, dist):
+    def install_wrapper_scripts(self, dist) -> None:
         if self.exclude_scripts:
             return
         for args in ScriptWriter.best().get_args(dist):
             self.write_script(*args)
 
-    def install_script(self, dist, script_name, script_text, dev_path=None):
+    def install_script(self, dist, script_name, script_text, dev_path=None) -> None:
         """Generate a legacy script wrapper and install it"""
         spec = str(dist.as_requirement())
         is_script = is_python_script(script_text, script_name)
@@ -859,7 +859,7 @@ class easy_install(Command):
         raw_bytes = resource_string('setuptools', name)
         return raw_bytes.decode('utf-8')
 
-    def write_script(self, script_name, contents, mode: str = "t", blockers=()):
+    def write_script(self, script_name, contents, mode: str = "t", blockers=()) -> None:
         """Write an executable file to the scripts directory"""
         self.delete_blockers(  # clean up old .py/.pyw w/o a script
             [os.path.join(self.script_dir, x) for x in blockers]
@@ -1042,7 +1042,7 @@ class easy_install(Command):
         return self.install_egg(egg_path, tmpdir)
 
     # FIXME: 'easy_install.exe_to_egg' is too complex (12)
-    def exe_to_egg(self, dist_filename, egg_tmp):  # noqa: C901
+    def exe_to_egg(self, dist_filename, egg_tmp) -> None:  # noqa: C901
         """Extract a bdist_wininst to the directories an egg would use"""
         # Check for .pth file and set up prefix translations
         prefixes = get_exe_prefixes(dist_filename)
@@ -1174,7 +1174,7 @@ class easy_install(Command):
         python = sys.executable
         return '\n' + self.__editable_msg % locals()
 
-    def run_setup(self, setup_script, setup_base, args):
+    def run_setup(self, setup_script, setup_base, args) -> None:
         sys.modules.setdefault('distutils.command.bdist_egg', bdist_egg)
         sys.modules.setdefault('distutils.command.egg_info', egg_info)
 
@@ -1243,7 +1243,7 @@ class easy_install(Command):
         cfg_filename = os.path.join(base, 'setup.cfg')
         setopt.edit_config(cfg_filename, settings)
 
-    def update_pth(self, dist):  # noqa: C901  # is too complex (11)  # FIXME
+    def update_pth(self, dist) -> None:  # noqa: C901  # is too complex (11)  # FIXME
         if self.pth_file is None:
             return
 
@@ -1292,7 +1292,7 @@ class easy_install(Command):
         log.debug("Unpacking %s to %s", src, dst)
         return dst  # only unpack-and-compile skips files for dry run
 
-    def unpack_and_compile(self, egg_path, destination):
+    def unpack_and_compile(self, egg_path, destination) -> None:
         to_compile = []
         to_chmod = []
 
@@ -1311,7 +1311,7 @@ class easy_install(Command):
                 mode = ((os.stat(f)[stat.ST_MODE]) | 0o555) & 0o7755
                 chmod(f, mode)
 
-    def byte_compile(self, to_compile):
+    def byte_compile(self, to_compile) -> None:
         if sys.dont_write_bytecode:
             return
 
@@ -1366,7 +1366,7 @@ class easy_install(Command):
         """
     ).strip()
 
-    def create_home_path(self):
+    def create_home_path(self) -> None:
         """Create directories under ~."""
         if not self.user:
             return
@@ -1656,7 +1656,7 @@ class PthDistributions(Environment):
             return self._load_raw()
         return [], False
 
-    def save(self):
+    def save(self) -> None:
         """Write changed .pth file back to disk"""
         # first reload the file
         last_paths, last_dirty = self._load()
@@ -1710,7 +1710,7 @@ class PthDistributions(Environment):
     def _wrap_lines(lines):
         return lines
 
-    def add(self, dist):
+    def add(self, dist) -> None:
         """Add `dist` to the distribution map"""
         new_path = dist.location not in self.paths and (
             dist.location not in self.sitedirs
@@ -1723,7 +1723,7 @@ class PthDistributions(Environment):
             self.dirty = True
         super().add(dist)
 
-    def remove(self, dist):
+    def remove(self, dist) -> None:
         """Remove `dist` from the distribution map"""
         while dist.location in self.paths:
             self.paths.remove(dist.location)

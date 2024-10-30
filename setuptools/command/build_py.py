@@ -24,7 +24,7 @@ from distutils.util import convert_path
 _IMPLICIT_DATA_FILES = ('*.pyi', 'py.typed')
 
 
-def make_writable(target):
+def make_writable(target) -> None:
     os.chmod(target, os.stat(target).st_mode | stat.S_IWRITE)
 
 
@@ -67,7 +67,7 @@ class build_py(orig.build_py):
             infile, outfile, preserve_mode, preserve_times, link, level
         )
 
-    def run(self):
+    def run(self) -> None:
         """Build modules, packages, and copy data files to build directory"""
         if not (self.py_modules or self.packages) or self.editable_mode:
             return
@@ -172,7 +172,7 @@ class build_py(orig.build_py):
                 srcfile = os.path.join(src_dir, filename)
                 yield (target, srcfile)
 
-    def build_package_data(self):
+    def build_package_data(self) -> None:
         """Copy data files into build directory"""
         for target, srcfile in self._get_package_data_output_mapping():
             self.mkpath(os.path.dirname(target))
@@ -239,7 +239,7 @@ class build_py(orig.build_py):
             if not os.path.isabs(file) or all(d not in norm_path for d in norm_dirs):
                 yield file
 
-    def get_data_files(self):
+    def get_data_files(self) -> None:
         pass  # Lazily compute data files in _get_data_files() function.
 
     def check_package(self, package, package_dir):

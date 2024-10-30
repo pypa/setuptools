@@ -28,7 +28,7 @@ class install_egg_info(namespaces.Installer, Command):
         self.target = os.path.join(self.install_dir, basename)
         self.outputs = []
 
-    def run(self):
+    def run(self) -> None:
         self.run_command('egg_info')
         if os.path.isdir(self.target) and not os.path.islink(self.target):
             dir_util.remove_tree(self.target, dry_run=self.dry_run)
@@ -42,7 +42,7 @@ class install_egg_info(namespaces.Installer, Command):
     def get_outputs(self):
         return self.outputs
 
-    def copytree(self):
+    def copytree(self) -> None:
         # Copy the .egg-info tree to site-packages
         def skimmer(src, dst):
             # filter out source-control directories; note that 'src' is always

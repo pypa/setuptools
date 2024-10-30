@@ -11,7 +11,7 @@ def _not_warning(record):
     return record.levelno < logging.WARNING
 
 
-def configure():
+def configure() -> None:
     """
     Configure logging to emit warning and above to stderr
     and everything else to stdout. This behavior is provided
