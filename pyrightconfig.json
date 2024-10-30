@@ -11,7 +11,7 @@
 		"setuptools/_distutils",
 	],
 	// Our testing setup doesn't allow passing CLI arguments, so local devs have to set this manually.
-	// "pythonVersion": "3.8",
+	// "pythonVersion": "3.9",
 	// For now we don't mind if mypy's `type: ignore` comments accidentally suppresses pyright issues
 	"enableTypeIgnoreComments": true,
 	"typeCheckingMode": "basic",
