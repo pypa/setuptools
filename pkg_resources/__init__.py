@@ -21,8 +21,8 @@ from __future__ import annotations
 
 import sys
 
-if sys.version_info < (3, 8):  # noqa: UP036 # Check for unsupported versions
-    raise RuntimeError("Python 3.8 or later is required")
+if sys.version_info < (3, 9):  # noqa: UP036 # Check for unsupported versions
+    raise RuntimeError("Python 3.9 or later is required")
 
 import _imp
 import collections
