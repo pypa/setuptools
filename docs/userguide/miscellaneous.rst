@@ -38,7 +38,9 @@ of ``setuptools``. The behavior of older versions might differ.
    .. versionadded:: v69.0.0
       ``setuptools`` will attempt to include type information files
       by default in the distribution
-      (``.pyi`` and ``py.typed``, as specified in :pep:`561`).
+      (``.pyi`` and ``py.typed``, as specified in :pep:`561`),
+      as long as they are contained inside of a package directory
+      (for the time being there is no automatic support for top-level ``.pyi`` files).
 
     *Please note however that this feature is* **EXPERIMENTAL** *and may change in
     the future.*
