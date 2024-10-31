@@ -354,7 +354,9 @@ def canonic_data_files(
     ]
 
 
-def entry_points(text: str, text_source: str = "entry-points") -> dict[str, dict]:
+def entry_points(
+    text: str, text_source: str = "entry-points"
+) -> dict[str, dict[str, str]]:
     """Given the contents of entry-points file,
     process it into a 2-level dictionary (``dict[str, dict[str, str]]``).
     The first level keys are entry-point groups, the second level keys are

@@ -20,6 +20,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    ClassVar,
     Dict,
     Generic,
     Iterable,
@@ -245,7 +246,7 @@ class ConfigHandler(Generic[Target]):
 
     """
 
-    aliases: dict[str, str] = {}
+    aliases: ClassVar[dict[str, str]] = {}
     """Options aliases.
     For compatibility with various packages. E.g.: d2to1 and pbr.
     Note: `-` in keys is replaced with `_` by config parser.

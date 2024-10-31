@@ -45,7 +45,7 @@ from collections.abc import Iterator
 from fnmatch import fnmatchcase
 from glob import glob
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, Mapping
+from typing import TYPE_CHECKING, ClassVar, Iterable, Mapping
 
 import _distutils_hack.override  # noqa: F401
 
@@ -84,8 +84,8 @@ class _Filter:
 class _Finder:
     """Base class that exposes functionality for module/package finders"""
 
-    ALWAYS_EXCLUDE: tuple[str, ...] = ()
-    DEFAULT_EXCLUDE: tuple[str, ...] = ()
+    ALWAYS_EXCLUDE: ClassVar[tuple[str, ...]] = ()
+    DEFAULT_EXCLUDE: ClassVar[tuple[str, ...]] = ()
 
     @classmethod
     def find(
