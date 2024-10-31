@@ -3,10 +3,11 @@ from __future__ import annotations
 import itertools
 import os
 import sys
+from collections.abc import Iterator
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING
 
 from setuptools.dist import Distribution
 from setuptools.errors import BaseError

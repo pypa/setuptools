@@ -6,19 +6,10 @@ import numbers
 import os
 import re
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, MutableMapping, Sequence
 from glob import iglob
 from pathlib import Path
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    List,
-    MutableMapping,
-    Sequence,
-    Tuple,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Union
 
 from more_itertools import partition, unique_everseen
 from packaging.markers import InvalidMarker, Marker
@@ -66,10 +57,10 @@ Supported iterable types that are known to be:
 - not imply a nested type (like `dict`)
 for use with `isinstance`.
 """
-_Sequence: TypeAlias = Union[Tuple[str, ...], List[str]]
+_Sequence: TypeAlias = Union[tuple[str, ...], list[str]]
 # This is how stringifying _Sequence would look in Python 3.10
 _sequence_type_repr = "tuple[str, ...] | list[str]"
-_OrderedStrSequence: TypeAlias = Union[str, Dict[str, Any], Sequence[str]]
+_OrderedStrSequence: TypeAlias = Union[str, dict[str, Any], Sequence[str]]
 """
 :meta private:
 Avoid single-use iterable. Disallow sets.

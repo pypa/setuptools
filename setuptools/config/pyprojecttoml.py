@@ -13,10 +13,11 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Mapping
 from contextlib import contextmanager
 from functools import partial
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Mapping
+from typing import TYPE_CHECKING, Any, Callable
 
 from .._path import StrPath
 from ..errors import FileError, InvalidConfigError

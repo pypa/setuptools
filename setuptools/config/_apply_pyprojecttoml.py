@@ -12,12 +12,13 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Mapping
 from email.headerregistry import Address
 from functools import partial, reduce
 from inspect import cleandoc
 from itertools import chain
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Callable, Dict, Mapping, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union
 
 from .._path import StrPath
 from ..errors import RemovedConfigError
@@ -34,7 +35,7 @@ if TYPE_CHECKING:
 
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
-_ProjectReadmeValue: TypeAlias = Union[str, Dict[str, str]]
+_ProjectReadmeValue: TypeAlias = Union[str, dict[str, str]]
 _Correspondence: TypeAlias = Callable[["Distribution", Any, Union[StrPath, None]], None]
 _T = TypeVar("_T")
 

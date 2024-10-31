@@ -14,11 +14,12 @@ import struct
 import sys
 import sysconfig
 import warnings
+from collections.abc import Iterable, Sequence
 from email.generator import BytesGenerator, Generator
 from email.policy import EmailPolicy
 from glob import iglob
 from shutil import rmtree
-from typing import TYPE_CHECKING, Callable, Iterable, Literal, Sequence, cast
+from typing import TYPE_CHECKING, Callable, Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from packaging import tags, version as _packaging_version

@@ -37,8 +37,9 @@ import sys
 import tempfile
 import tokenize
 import warnings
+from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, Iterator, List, Mapping, Union
+from typing import TYPE_CHECKING, Union
 
 import setuptools
 
@@ -146,7 +147,7 @@ def suppress_known_deprecation():
         yield
 
 
-_ConfigSettings: TypeAlias = Union[Mapping[str, Union[str, List[str], None]], None]
+_ConfigSettings: TypeAlias = Union[Mapping[str, Union[str, list[str], None]], None]
 """
 Currently the user can run::
 
