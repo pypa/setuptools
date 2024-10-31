@@ -19,7 +19,9 @@ extend-select = [
 	"FA", # flake8-future-annotations
 	"I", # isort
 	"PERF", # Perflint
+	"PGH", # pygrep-hooks (blanket-* rules)
 	"PYI", # flake8-pyi
+	"RUF10", # unused-noqa & redirected-noqa
 	"TRY", # tryceratops
 	"UP", # pyupgrade
 	"YTT", # flake8-2020
