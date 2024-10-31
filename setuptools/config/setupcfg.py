@@ -477,7 +477,7 @@ class ConfigHandler(Generic[Target]):
         parser = (lambda _, v: values_parser(v)) if values_parser else (lambda _, v: v)
         return cls._parse_section_to_dict_with_key(section_options, parser)
 
-    def parse_section(self, section_options):
+    def parse_section(self, section_options) -> None:
         """Parses configuration file section.
 
         :param dict section_options:
@@ -713,7 +713,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
 
         return find_kwargs
 
-    def parse_section_entry_points(self, section_options):
+    def parse_section_entry_points(self, section_options) -> None:
         """Parses `entry_points` configuration file section.
 
         :param dict section_options:
@@ -725,21 +725,21 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         package_data = self._parse_section_to_dict(section_options, self._parse_list)
         return expand.canonic_package_data(package_data)
 
-    def parse_section_package_data(self, section_options):
+    def parse_section_package_data(self, section_options) -> None:
         """Parses `package_data` configuration file section.
 
         :param dict section_options:
         """
         self['package_data'] = self._parse_package_data(section_options)
 
-    def parse_section_exclude_package_data(self, section_options):
+    def parse_section_exclude_package_data(self, section_options) -> None:
         """Parses `exclude_package_data` configuration file section.
 
         :param dict section_options:
         """
         self['exclude_package_data'] = self._parse_package_data(section_options)
 
-    def parse_section_extras_require(self, section_options):
+    def parse_section_extras_require(self, section_options) -> None:
         """Parses `extras_require` configuration file section.
 
         :param dict section_options:
@@ -751,7 +751,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
 
         self['extras_require'] = parsed
 
-    def parse_section_data_files(self, section_options):
+    def parse_section_data_files(self, section_options) -> None:
         """Parses `data_files` configuration file section.
 
         :param dict section_options:

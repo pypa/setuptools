@@ -306,7 +306,7 @@ class PackageIndex(Environment):
         verify_ssl: bool = True,
         *args,
         **kw,
-    ):
+    ) -> None:
         super().__init__(*args, **kw)
         self.index_url = index_url + "/"[: not index_url.endswith('/')]
         self.scanned_urls: dict = {}
@@ -325,7 +325,7 @@ class PackageIndex(Environment):
         return super().add(dist)
 
     # FIXME: 'PackageIndex.process_url' is too complex (14)
-    def process_url(self, url, retrieve: bool = False):  # noqa: C901
+    def process_url(self, url, retrieve: bool = False) -> None:  # noqa: C901
         """Evaluate a URL as a possible download, and maybe retrieve it"""
         if url in self.scanned_urls and not retrieve:
             return
@@ -378,7 +378,7 @@ class PackageIndex(Environment):
         if url.startswith(self.index_url) and getattr(f, 'code', None) != 404:
             page = self.process_index(url, page)
 
-    def process_filename(self, fn, nested: bool = False):
+    def process_filename(self, fn, nested: bool = False) -> None:
         # process filenames or directories
         if not os.path.exists(fn):
             self.warn("Not found: %s", fn)
@@ -394,7 +394,7 @@ class PackageIndex(Environment):
             self.debug("Found: %s", fn)
             list(map(self.add, dists))
 
-    def url_ok(self, url, fatal: bool = False):
+    def url_ok(self, url, fatal: bool = False) -> bool:
         s = URL_SCHEME(url)
         is_file = s and s.group(1).lower() == 'file'
         if is_file or self.allows(urllib.parse.urlparse(url)[1]):
@@ -410,7 +410,7 @@ class PackageIndex(Environment):
             self.warn(msg, url)
             return False
 
-    def scan_egg_links(self, search_path):
+    def scan_egg_links(self, search_path) -> None:
         dirs = filter(os.path.isdir, search_path)
         egg_links = (
             (path, entry)
@@ -420,7 +420,7 @@ class PackageIndex(Environment):
         )
         list(itertools.starmap(self.scan_egg_link, egg_links))
 
-    def scan_egg_link(self, path, entry):
+    def scan_egg_link(self, path, entry) -> None:
         content = _read_utf8_with_fallback(os.path.join(path, entry))
         # filter non-empty lines
         lines = list(filter(None, map(str.strip, content.splitlines())))
@@ -481,21 +481,21 @@ class PackageIndex(Environment):
             lambda m: '<a href="%s#md5=%s">%s</a>' % m.group(1, 3, 2), page
         )
 
-    def need_version_info(self, url):
+    def need_version_info(self, url) -> None:
         self.scan_all(
             "Page at %s links to .py file(s) without version info; an index "
             "scan is required.",
             url,
         )
 
-    def scan_all(self, msg=None, *args):
+    def scan_all(self, msg=None, *args) -> None:
         if self.index_url not in self.fetched_urls:
             if msg:
                 self.warn(msg, *args)
             self.info("Scanning index of all packages (this may take a while)")
         self.scan_url(self.index_url)
 
-    def find_packages(self, requirement):
+    def find_packages(self, requirement) -> None:
         self.scan_url(self.index_url + requirement.unsafe_name + '/')
 
         if not self.package_pages.get(requirement.key):
@@ -519,7 +519,7 @@ class PackageIndex(Environment):
             self.debug("%s does not match %s", requirement, dist)
         return super().obtain(requirement, installer)
 
-    def check_hash(self, checker, filename, tfp):
+    def check_hash(self, checker, filename, tfp) -> None:
         """
         checker is a ContentChecker
         """
@@ -533,7 +533,7 @@ class PackageIndex(Environment):
                 % (checker.hash.name, os.path.basename(filename))
             )
 
-    def add_find_links(self, urls):
+    def add_find_links(self, urls) -> None:
         """Add `urls` to the list that will be prescanned for searches"""
         for url in urls:
             if (
@@ -554,7 +554,7 @@ class PackageIndex(Environment):
             list(map(self.scan_url, self.to_scan))
         self.to_scan = None  # from now on, go ahead and process immediately
 
-    def not_found_in_index(self, requirement):
+    def not_found_in_index(self, requirement) -> None:
         if self[requirement.key]:  # we've seen at least one distro
             meth, msg = self.info, "Couldn't retrieve index page for %r"
         else:  # no distros seen for this name, might be misspelled
@@ -777,7 +777,7 @@ class PackageIndex(Environment):
             if fp:
                 fp.close()
 
-    def reporthook(self, url, filename, blocknum, blksize, size):
+    def reporthook(self, url, filename, blocknum, blksize, size) -> None:
         pass  # no-op
 
     # FIXME:
@@ -884,7 +884,7 @@ class PackageIndex(Environment):
         self.url_ok(url, True)
         return self._attempt_download(url, filename)
 
-    def scan_url(self, url):
+    def scan_url(self, url) -> None:
         self.process_url(url, True)
 
     def _attempt_download(self, url, filename):
@@ -930,13 +930,13 @@ class PackageIndex(Environment):
 
         return resolved, rev
 
-    def debug(self, msg, *args):
+    def debug(self, msg, *args) -> None:
         log.debug(msg, *args)
 
-    def info(self, msg, *args):
+    def info(self, msg, *args) -> None:
         log.info(msg, *args)
 
-    def warn(self, msg, *args):
+    def warn(self, msg, *args) -> None:
         log.warn(msg, *args)
 
 

@@ -15,7 +15,7 @@ class install_lib(orig.install_lib):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def run(self):
+    def run(self) -> None:
         self.build()
         outfiles = self.install()
         if outfiles is not None:

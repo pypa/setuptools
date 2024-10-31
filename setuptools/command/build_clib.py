@@ -24,7 +24,7 @@ class build_clib(orig.build_clib):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def build_libraries(self, libraries):
+    def build_libraries(self, libraries) -> None:
         for lib_name, build_info in libraries:
             sources = build_info.get('sources')
             if sources is None or not isinstance(sources, (list, tuple)):

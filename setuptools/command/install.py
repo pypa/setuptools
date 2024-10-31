@@ -63,7 +63,7 @@ class install(orig.install):
         self.old_and_unmanageable = None
         self.single_version_externally_managed = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         super().finalize_options()
         if self.root:
             self.single_version_externally_managed = True
@@ -130,7 +130,7 @@ class install(orig.install):
 
         return False
 
-    def do_egg_install(self):
+    def do_egg_install(self) -> None:
         easy_install = self.distribution.get_command_class('easy_install')
 
         cmd = easy_install(

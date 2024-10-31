@@ -640,7 +640,7 @@ class Distribution(_Distribution):
         self,
         filenames: Iterable[StrPath] | None = None,
         ignore_option_errors: bool = False,
-    ):
+    ) -> None:
         """Parses configuration files from various levels
         and loads configuration.
         """
@@ -663,7 +663,7 @@ class Distribution(_Distribution):
 
         return _fetch_build_eggs(self, requires)
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         """
         Allow plugins to apply arbitrary operations to the
         distribution. Each hook may optionally define a 'order'
@@ -760,7 +760,7 @@ class Distribution(_Distribution):
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.get_command_list(self)
 
-    def include(self, **attrs):
+    def include(self, **attrs) -> None:
         """Add items to distribution that are named in keyword arguments
 
         For example, 'dist.include(py_modules=["x"])' would add 'x' to
@@ -782,7 +782,7 @@ class Distribution(_Distribution):
             else:
                 self._include_misc(k, v)
 
-    def exclude_package(self, package: str):
+    def exclude_package(self, package: str) -> None:
         """Remove packages, modules, and extensions in named package"""
 
         pfx = package + '.'
@@ -803,7 +803,7 @@ class Distribution(_Distribution):
                 if p.name != package and not p.name.startswith(pfx)
             ]
 
-    def has_contents_for(self, package: str):
+    def has_contents_for(self, package: str) -> bool:
         """Return true if 'exclude_package(package)' would do something"""
 
         pfx = package + '.'
@@ -852,7 +852,7 @@ class Distribution(_Distribution):
             new = [item for item in value if item not in old]
             setattr(self, name, list(old) + new)
 
-    def exclude(self, **attrs):
+    def exclude(self, **attrs) -> None:
         """Remove items from distribution that are named in keyword arguments
 
         For example, 'dist.exclude(py_modules=["x"])' would remove 'x' from
@@ -991,7 +991,7 @@ class Distribution(_Distribution):
         finally:
             sys.stdout.reconfigure(encoding=encoding)
 
-    def run_command(self, command):
+    def run_command(self, command) -> None:
         self.set_defaults()
         # Postpone defaults until all explicit configuration is considered
         # (setup() args, config files, command line and plugins)

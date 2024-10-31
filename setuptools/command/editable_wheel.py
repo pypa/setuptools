@@ -119,13 +119,13 @@ class editable_wheel(Command):
         self.project_dir = None
         self.mode = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         dist = self.distribution
         self.project_dir = dist.src_root or os.curdir
         self.package_dir = dist.package_dir or {}
         self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
 
-    def run(self):
+    def run(self) -> None:
         try:
             self.dist_dir.mkdir(exist_ok=True)
             self._ensure_dist_info()

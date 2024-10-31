@@ -453,7 +453,7 @@ class DirectorySandbox(AbstractSandbox):
             self._violation("open", path, mode, *args, **kw)
         return _open(path, mode, *args, **kw)
 
-    def tmpnam(self):
+    def tmpnam(self) -> None:
         self._violation("tmpnam")
 
     def _ok(self, path):

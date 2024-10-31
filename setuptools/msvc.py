@@ -84,7 +84,7 @@ class PlatformInfo:
         """
         return self.current_cpu == 'x86'
 
-    def current_dir(self, hidex86=False, x64=False):
+    def current_dir(self, hidex86=False, x64=False) -> str:
         """
         Current platform specific subfolder.
 
@@ -108,7 +108,7 @@ class PlatformInfo:
             else r'\%s' % self.current_cpu
         )
 
-    def target_dir(self, hidex86=False, x64=False):
+    def target_dir(self, hidex86=False, x64=False) -> str:
         r"""
         Target platform specific subfolder.
 
@@ -177,7 +177,7 @@ class RegistryInfo:
         self.pi = platform_info
 
     @property
-    def visualstudio(self):
+    def visualstudio(self) -> str:
         """
         Microsoft Visual Studio root registry key.
 
@@ -225,7 +225,7 @@ class RegistryInfo:
         return os.path.join(self.sxs, 'VS7')
 
     @property
-    def vc_for_python(self):
+    def vc_for_python(self) -> str:
         """
         Microsoft Visual C++ for Python registry key.
 
@@ -237,7 +237,7 @@ class RegistryInfo:
         return r'DevDiv\VCForPython'
 
     @property
-    def microsoft_sdk(self):
+    def microsoft_sdk(self) -> str:
         """
         Microsoft SDK registry key.
 
@@ -273,7 +273,7 @@ class RegistryInfo:
         return os.path.join(self.microsoft_sdk, 'NETFXSDK')
 
     @property
-    def windows_kits_roots(self):
+    def windows_kits_roots(self) -> str:
         """
         Microsoft Windows Kits Roots registry key.
 

@@ -110,7 +110,7 @@ class build_ext(_build_ext):
         regular_file = os.path.join(self.build_lib, filename)
         return (inplace_file, regular_file)
 
-    def copy_extensions_to_source(self):
+    def copy_extensions_to_source(self) -> None:
         build_py = self.get_finalized_command('build_py')
         for ext in self.extensions:
             inplace_file, regular_file = self._get_inplace_equivalent(build_py, ext)
@@ -191,7 +191,7 @@ class build_ext(_build_ext):
         self.ext_map = {}
         self.editable_mode = False
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         _build_ext.finalize_options(self)
         self.extensions = self.extensions or []
         self.check_extensions_list(self.extensions)
@@ -254,7 +254,7 @@ class build_ext(_build_ext):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self, ext)
 
-    def build_extension(self, ext):
+    def build_extension(self, ext) -> None:
         ext._convert_pyx_sources_to_lang()
         _compiler = self.compiler
         try:
@@ -344,7 +344,7 @@ class build_ext(_build_ext):
         if self.get_finalized_command('build_py').optimize:
             yield '.pyo'
 
-    def write_stub(self, output_dir, ext, compile=False):
+    def write_stub(self, output_dir, ext, compile=False) -> None:
         stub_file = os.path.join(output_dir, *ext._full_name.split('.')) + '.py'
         self._write_stub_file(stub_file, ext, compile)
 
@@ -415,7 +415,7 @@ if use_stubs or os.name == 'nt':
         extra_postargs=None,
         build_temp=None,
         target_lang=None,
-    ):
+    ) -> None:
         self.link(
             self.SHARED_LIBRARY,
             objects,
@@ -450,7 +450,7 @@ else:
         extra_postargs=None,
         build_temp=None,
         target_lang=None,
-    ):
+    ) -> None:
         # XXX we need to either disallow these attrs on Library instances,
         # or warn/abort here if set, or something...
         # libraries=None, library_dirs=None, runtime_library_dirs=None,

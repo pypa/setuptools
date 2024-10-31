@@ -50,7 +50,7 @@ def sorted_walk(dir):
         yield base, dirs, files
 
 
-def write_stub(resource, pyfile):
+def write_stub(resource, pyfile) -> None:
     _stub_template = textwrap.dedent(
         """
         def __bootstrap__():
@@ -101,7 +101,7 @@ class bdist_egg(Command):
         self.egg_output = None
         self.exclude_source_files = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         ei_cmd = self.ei_cmd = self.get_finalized_command("egg_info")
         self.egg_info = ei_cmd.egg_info
 
@@ -125,7 +125,7 @@ class bdist_egg(Command):
 
             self.egg_output = os.path.join(self.dist_dir, basename + '.egg')
 
-    def do_install_data(self):
+    def do_install_data(self) -> None:
         # Hack for packages that install data to install's --install-lib
         self.get_finalized_command('install').install_lib = self.bdist_dir
 
@@ -277,10 +277,10 @@ class bdist_egg(Command):
         log.warn("zip_safe flag not set; analyzing archive contents...")
         return analyze_egg(self.bdist_dir, self.stubs)
 
-    def gen_header(self):
+    def gen_header(self) -> str:
         return 'w'
 
-    def copy_metadata_to(self, target_dir):
+    def copy_metadata_to(self, target_dir) -> None:
         "Copy metadata (egg info) to the target_dir"
         # normalize the path (so that a forward-slash in egg_info will
         # match using startswith below)
@@ -353,7 +353,7 @@ def analyze_egg(egg_dir, stubs):
     return safe
 
 
-def write_safety_flag(egg_dir, safe):
+def write_safety_flag(egg_dir, safe) -> None:
     # Write or remove zip safety flag file(s)
     for flag, fn in safety_flags.items():
         fn = os.path.join(egg_dir, fn)
@@ -421,7 +421,7 @@ def iter_symbols(code):
             yield from iter_symbols(const)
 
 
-def can_scan():
+def can_scan() -> bool:
     if not sys.platform.startswith('java') and sys.platform != 'cli':
         # CPython, PyPy, etc.
         return True
