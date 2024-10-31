@@ -226,7 +226,7 @@ class Command(_Command):
     ) -> _Command:
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
-        return cmd
+        return cmd  # pyright: ignore[reportReturnType] # pypa/distutils#307
 
     @abstractmethod
     def initialize_options(self) -> None:

@@ -1,5 +1,7 @@
 """PyPI and direct package downloading."""
 
+from __future__ import annotations
+
 import base64
 import configparser
 import hashlib
@@ -604,7 +606,7 @@ class PackageIndex(Environment):
         source: bool = False,
         develop_ok: bool = False,
         local_index=None,
-    ):
+    ) -> Distribution | None:
         """Obtain a distribution suitable for fulfilling `requirement`
 
         `requirement` must be a ``pkg_resources.Requirement`` instance.
@@ -626,7 +628,7 @@ class PackageIndex(Environment):
         skipped = set()
         dist = None
 
-        def find(req, env=None):
+        def find(req, env: Environment | None = None):
             if env is None:
                 env = self
             # Find a matching distribution; may be called more than once
@@ -680,7 +682,7 @@ class PackageIndex(Environment):
 
     def fetch(
         self, requirement, tmpdir, force_scan: bool = False, source: bool = False
-    ):
+    ) -> str | None:
         """Obtain a file suitable for fulfilling `requirement`
 
         DEPRECATED; use the ``fetch_distribution()`` method now instead.  For

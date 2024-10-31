@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Literal
 from setuptools import Command
 from setuptools.extension import Library
 
-from .._path import ensure_directory
+from .._path import StrPathT, ensure_directory
 
 from distutils import log
 from distutils.dir_util import mkpath, remove_tree
@@ -440,13 +440,13 @@ INSTALL_DIRECTORY_ATTRS = ['install_lib', 'install_dir', 'install_data', 'instal
 
 
 def make_zipfile(
-    zip_filename,
+    zip_filename: StrPathT,
     base_dir,
     verbose: bool = False,
     dry_run: bool = False,
     compress=True,
     mode: _ZipFileMode = 'w',
-):
+) -> StrPathT:
     """Create a zip file from all the files under 'base_dir'.  The output
     zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
     Python module (if available) or the InfoZIP "zip" utility (if installed
@@ -455,7 +455,7 @@ def make_zipfile(
     """
     import zipfile
 
-    mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
+    mkpath(os.path.dirname(zip_filename), dry_run=dry_run)  # type: ignore[arg-type] # python/mypy#18075
     log.info("creating '%s' and adding '%s' to it", zip_filename, base_dir)
 
     def visit(z, dirname, names):

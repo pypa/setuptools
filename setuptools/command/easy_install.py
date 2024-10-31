@@ -673,7 +673,7 @@ class easy_install(Command):
         finally:
             os.path.exists(tmpdir) and _rmtree(tmpdir)
 
-    def easy_install(self, spec, deps: bool = False):
+    def easy_install(self, spec, deps: bool = False) -> Distribution | None:
         with self._tmpdir() as tmpdir:
             if not isinstance(spec, Requirement):
                 if URL_SCHEME(spec):
@@ -710,7 +710,9 @@ class easy_install(Command):
             else:
                 return self.install_item(spec, dist.location, tmpdir, deps)
 
-    def install_item(self, spec, download, tmpdir, deps, install_needed: bool = False):
+    def install_item(
+        self, spec, download, tmpdir, deps, install_needed: bool = False
+    ) -> Distribution | None:
         # Installation is also needed if file in tmpdir or is not an egg
         install_needed = install_needed or bool(self.always_copy)
         install_needed = install_needed or os.path.dirname(download) == tmpdir
@@ -881,7 +883,7 @@ class easy_install(Command):
             f.write(contents)
         chmod(target, 0o777 - mask)
 
-    def install_eggs(self, spec, dist_filename, tmpdir):
+    def install_eggs(self, spec, dist_filename, tmpdir) -> list[Distribution]:
         # .egg dirs or files are already built, so just return them
         installer_map = {
             '.egg': self.install_egg,
@@ -1142,7 +1144,7 @@ class easy_install(Command):
         """
     )
 
-    def installation_report(self, req, dist, what: str = "Installed"):
+    def installation_report(self, req, dist, what: str = "Installed") -> str:
         """Helpful installation message for display to package users"""
         msg = "\n%(what)s %(eggloc)s%(extras)s"
         if self.multi_version and not self.no_report:
@@ -2079,7 +2081,7 @@ class CommandSpec(list):
         return cls([cls._sys_executable()])
 
     @classmethod
-    def from_string(cls, string: str):
+    def from_string(cls, string: str) -> Self:
         """
         Construct a command spec from a simple string representing a command
         line parseable by shlex.split.
@@ -2221,7 +2223,7 @@ class ScriptWriter:
         cls,
         script_text: str = "",
         executable: str | CommandSpec | Iterable[str] | None = None,
-    ):
+    ) -> str:
         """Create a #! line, getting options (if any) from script_text"""
         cmd = cls.command_spec_class.best().from_param(executable)
         cmd.install_options(script_text)

@@ -4,11 +4,15 @@ import contextlib
 import dis
 import marshal
 import sys
+from types import CodeType
+from typing import Any, Literal, TypeVar
 
 from packaging.version import Version
 
 from . import _imp
 from ._imp import PY_COMPILED, PY_FROZEN, PY_SOURCE, find_module
+
+_T = TypeVar("_T")
 
 __all__ = ['Require', 'find_module']
 
@@ -51,7 +55,9 @@ class Require:
             and self.format(version) >= self.requested_version
         )
 
-    def get_version(self, paths=None, default: str = "unknown"):
+    def get_version(
+        self, paths=None, default: _T | Literal["unknown"] = "unknown"
+    ) -> _T | Literal["unknown"] | None | Any:
         """Get version number of installed module, 'None', or 'default'
 
         Search 'paths' for module.  If not found, return 'None'.  If found,
@@ -106,7 +112,9 @@ def maybe_close(f):
 # XXX it'd be better to test assertions about bytecode instead.
 if not sys.platform.startswith('java') and sys.platform != 'cli':
 
-    def get_module_constant(module, symbol, default: str | int = -1, paths=None):
+    def get_module_constant(
+        module, symbol, default: _T | int = -1, paths=None
+    ) -> _T | int | None | Any:
         """Find 'module' by searching 'paths', and extract 'symbol'
 
         Return 'None' if 'module' does not exist on 'paths', or it does not define
@@ -134,7 +142,9 @@ if not sys.platform.startswith('java') and sys.platform != 'cli':
 
         return extract_constant(code, symbol, default)
 
-    def extract_constant(code, symbol, default: str | int = -1):
+    def extract_constant(
+        code: CodeType, symbol: str, default: _T | int = -1
+    ) -> _T | int | None | Any:
         """Extract the constant value of 'symbol' from 'code'
 
         If the name 'symbol' is bound to a constant value by the Python code
@@ -163,6 +173,7 @@ if not sys.platform.startswith('java') and sys.platform != 'cli':
             arg = byte_code.arg
 
             if op == LOAD_CONST:
+                assert arg is not None
                 const = code.co_consts[arg]
             elif arg == name_idx and (op == STORE_NAME or op == STORE_GLOBAL):
                 return const

@@ -19,7 +19,9 @@ from pkg_resources import working_set
 
 from distutils.errors import DistutilsError
 
-if sys.platform.startswith('java'):
+if TYPE_CHECKING:
+    import os as _os
+elif sys.platform.startswith('java'):
     import org.python.modules.posix.PosixModule as _os  # pyright: ignore[reportMissingImports]
 else:
     _os = sys.modules[os.name]
@@ -496,7 +498,7 @@ class DirectorySandbox(AbstractSandbox):
             self._violation(operation, src, dst, *args, **kw)
         return (src, dst)
 
-    def open(self, file, flags, mode: int = 0o777, *args, **kw):
+    def open(self, file, flags, mode: int = 0o777, *args, **kw) -> int:
         """Called for low-level os.open()"""
         if flags & WRITE_FLAGS and not self._ok(file):
             self._violation("os.open", file, flags, mode, *args, **kw)
