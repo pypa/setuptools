@@ -17,7 +17,7 @@ import pytest
 from ini2toml.api import LiteTranslator
 from packaging.metadata import Metadata
 
-import setuptools  # noqa ensure monkey patch to metadata
+import setuptools  # noqa: F401 # ensure monkey patch to metadata
 from setuptools.command.egg_info import write_requirements
 from setuptools.config import expand, pyprojecttoml, setupcfg
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
