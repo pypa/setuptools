@@ -12,7 +12,7 @@ import sys
 import tempfile
 import textwrap
 from types import TracebackType
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import pkg_resources
 from pkg_resources import working_set
@@ -405,6 +405,11 @@ class AbstractSandbox:
             self._remap_input(operation + '-from', src, *args, **kw),
             self._remap_input(operation + '-to', dst, *args, **kw),
         )
+
+    if TYPE_CHECKING:
+        # This is a catch-all for all the dynamically created attributes.
+        # This isn't public API anyway
+        def __getattribute__(self, name: str) -> Any: ...
 
 
 if hasattr(os, 'devnull'):
