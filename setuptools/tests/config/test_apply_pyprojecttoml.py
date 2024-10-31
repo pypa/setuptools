@@ -209,7 +209,7 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
 
 
 @pytest.mark.parametrize(
-    ('pyproject_text', 'expected_maintainers_meta_value'),
+    'pyproject_text, expected_maintainers_meta_value',
     (
         pytest.param(
             PEP621_EXAMPLE,

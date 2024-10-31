@@ -21,7 +21,7 @@ from distutils.errors import DistutilsSetupError
 
 @pytest.fixture(autouse=True)
 def isolated_dir(tmpdir_cwd):
-    yield
+    return
 
 
 def makeSetup(**args):
@@ -257,7 +257,8 @@ def can_symlink(tmpdir):
     os.remove(link_fn)
 
 
-def test_findall_missing_symlink(tmpdir, can_symlink):
+@pytest.mark.usefixtures("can_symlink")
+def test_findall_missing_symlink(tmpdir):
     with tmpdir.as_cwd():
         os.symlink('foo', 'bar')
         found = list(setuptools.findall())

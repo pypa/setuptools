@@ -20,6 +20,7 @@ extend-select = [
 	"I", # isort
 	"PERF", # Perflint
 	"PGH", # pygrep-hooks (blanket-* rules)
+	"PT", # flake8-pytest-style
 	"PYI", # flake8-pyi
 	"RUF10", # unused-noqa & redirected-noqa
 	"TRY", # tryceratops
@@ -28,6 +29,11 @@ extend-select = [
 ]
 ignore = [
 	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
+	"PT004", # deprecated https://github.com/astral-sh/ruff/issues/8796#issuecomment-2057143531
+	"PT005", # deprecated https://github.com/astral-sh/ruff/issues/8796#issuecomment-2057143531
+	"PT007", # temporarily disabled, TODO: configure and standardize to preference
+	"PT011", # temporarily disabled, TODO: tighten expected error 
+	"PT012", # pytest-raises-with-multiple-statements, avoid extra dummy methods for a few lines, sometimes we explicitly assert in case of no error
 	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
 	"TRY301", # raise-within-try, it's handy
 	"UP015", # redundant-open-modes, explicit is preferred
@@ -74,6 +80,9 @@ sections.delayed = ["distutils"]
 
 [lint.flake8-annotations]
 ignore-fully-untyped = true
+
+[lint.flake8-pytest-style]
+parametrize-names-type = "csv"
 
 [format]
 # Enable preview to get hugged parenthesis unwrapping and other nice surprises
