@@ -31,7 +31,7 @@ from distutils.errors import DistutilsInternalError
 from distutils.filelist import FileList as _FileList
 from distutils.util import convert_path
 
-PY_MAJOR = '{}.{}'.format(*sys.version_info)
+PY_MAJOR = f'{sys.version_info.major}.{sys.version_info.minor}'
 
 
 def translate_pattern(glob):  # noqa: C901  # is too complex (14)  # FIXME

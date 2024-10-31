@@ -234,10 +234,9 @@ class easy_install(Command):
         """
         Render the Setuptools version and installation details, then exit.
         """
-        ver = '{}.{}'.format(*sys.version_info)
+        ver = f'{sys.version_info.major}.{sys.version_info.minor}'
         dist = get_distribution('setuptools')
-        tmpl = 'setuptools {dist.version} from {dist.location} (Python {ver})'
-        print(tmpl.format(**locals()))
+        print(f'setuptools {dist.version} from {dist.location} (Python {ver})')
         raise SystemExit
 
     def finalize_options(self):  # noqa: C901  # is too complex (25)  # FIXME
@@ -1441,7 +1440,7 @@ def get_site_dirs():
                 os.path.join(
                     prefix,
                     "lib",
-                    "python{}.{}".format(*sys.version_info),
+                    f"python{sys.version_info.major}.{sys.version_info.minor}",
                     "site-packages",
                 ),
                 os.path.join(prefix, "lib", "site-python"),
@@ -1468,7 +1467,7 @@ def get_site_dirs():
             home,
             'Library',
             'Python',
-            '{}.{}'.format(*sys.version_info),
+            f'{sys.version_info.major}.{sys.version_info.minor}',
             'site-packages',
         )
         sitedirs.append(home_sp)
