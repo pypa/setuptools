@@ -1104,6 +1104,7 @@ def open_with_auth(url, opener=urllib.request.urlopen):
 
 
 # copy of urllib.parse._splituser from Python 3.8
+# See https://github.com/python/cpython/issues/80072.
 def _splituser(host):
     """splituser('user[:passwd]@host[:port]')
     --> 'user[:passwd]', 'host[:port]'."""
