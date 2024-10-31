@@ -150,7 +150,7 @@ class ExceptionSaver:
         if '_saved' not in vars(self):
             return
 
-        type, exc = map(pickle.loads, self._saved)
+        _type, exc = map(pickle.loads, self._saved)
         raise exc.with_traceback(self._tb)
 
 

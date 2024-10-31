@@ -70,7 +70,7 @@ class Require:
 
         if self.attribute is None:
             try:
-                f, p, i = find_module(self.module, paths)
+                f, _p, _i = find_module(self.module, paths)
             except ImportError:
                 return None
             if f:
@@ -122,7 +122,7 @@ if not sys.platform.startswith('java') and sys.platform != 'cli':
         constant.  Otherwise, return 'default'."""
 
         try:
-            f, path, (suffix, mode, kind) = info = find_module(module, paths)
+            f, path, (_suffix, _mode, kind) = info = find_module(module, paths)
         except ImportError:
             # Module doesn't exist
             return None

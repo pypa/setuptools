@@ -512,7 +512,7 @@ class TestEggInfo:
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
-        code, data = environment.run_setup_py(
+        environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
@@ -1060,7 +1060,7 @@ class TestEggInfo:
     def test_metadata_version(self, tmpdir_cwd, env):
         """Make sure latest metadata version is used by default."""
         self._setup_script_with_requires("")
-        code, data = environment.run_setup_py(
+        environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
@@ -1085,7 +1085,7 @@ class TestEggInfo:
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
-        code, data = environment.run_setup_py(
+        environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
@@ -1107,7 +1107,7 @@ class TestEggInfo:
             "long_description='This is a long description\\nover multiple lines',"
             "long_description_content_type='text/markdown',"
         )
-        code, data = environment.run_setup_py(
+        environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
@@ -1138,7 +1138,7 @@ class TestEggInfo:
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
-        code, data = environment.run_setup_py(
+        environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
@@ -1156,7 +1156,7 @@ class TestEggInfo:
     def test_license(self, tmpdir_cwd, env):
         """Test single line license."""
         self._setup_script_with_requires("license='MIT',")
-        code, data = environment.run_setup_py(
+        environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
@@ -1171,7 +1171,7 @@ class TestEggInfo:
         self._setup_script_with_requires(
             "license='This is a long license text \\nover multiple lines',"
         )
-        code, data = environment.run_setup_py(
+        environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,
@@ -1189,7 +1189,7 @@ class TestEggInfo:
         environ = os.environ.copy().update(
             HOME=env.paths['home'],
         )
-        code, data = environment.run_setup_py(
+        environment.run_setup_py(
             cmd=['egg_info'],
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
             data_stream=1,

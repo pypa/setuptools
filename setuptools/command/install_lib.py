@@ -52,7 +52,7 @@ class install_lib(orig.install_lib):
         """
         while pkg_name:
             yield pkg_name
-            pkg_name, sep, child = pkg_name.rpartition('.')
+            pkg_name, _sep, _child = pkg_name.rpartition('.')
 
     def _get_SVEM_NSPs(self):
         """

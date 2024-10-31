@@ -32,7 +32,7 @@ def pypi_link(pkg_filename):
     dependency link for PyPI.
     """
     root = 'https://files.pythonhosted.org/packages/source'
-    name, sep, rest = pkg_filename.partition('-')
+    name, _sep, _rest = pkg_filename.partition('-')
     parts = root, name[0], name, pkg_filename
     return '/'.join(parts)
 

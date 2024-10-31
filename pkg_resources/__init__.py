@@ -2064,7 +2064,7 @@ class ZipProvider(EggProvider):
             # return the extracted directory name
             return os.path.dirname(last)
 
-        timestamp, size = self._get_date_and_size(self.zipinfo[zip_path])
+        timestamp, _size = self._get_date_and_size(self.zipinfo[zip_path])
 
         if not WRITE_SUPPORT:
             raise OSError(

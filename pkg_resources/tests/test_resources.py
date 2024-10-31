@@ -693,11 +693,11 @@ class TestParsing:
         ) != Requirement.parse("name[foo,bar]==1.0;python_version=='3.6'")
 
     def test_local_version(self):
-        (req,) = parse_requirements('foo==1.0+org1')
+        parse_requirements('foo==1.0+org1')
 
     def test_spaces_between_multiple_versions(self):
-        (req,) = parse_requirements('foo>=1.0, <3')
-        (req,) = parse_requirements('foo >= 1.0, < 3')
+        parse_requirements('foo>=1.0, <3')
+        parse_requirements('foo >= 1.0, < 3')
 
     @pytest.mark.parametrize(
         ("lower", "upper"),

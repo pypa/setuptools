@@ -72,7 +72,7 @@ class TestEasyInstallTest:
         header = ei.CommandSpec.best().from_environment().as_header()
         dist = FakeDist()
         args = next(ei.ScriptWriter.get_args(dist))
-        name, script = itertools.islice(args, 2)
+        _name, script = itertools.islice(args, 2)
         assert script.startswith(header)
         assert "'spec'" in script
         assert "'console_scripts'" in script
@@ -651,7 +651,7 @@ class TestSetupRequires:
                     temp_dir, use_setup_cfg=use_setup_cfg
                 )
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
-                with contexts.quiet() as (stdout, stderr):
+                with contexts.quiet() as (stdout, _stderr):
                     # Don't even need to install the package, just
                     # running the setup.py at all is sufficient
                     run_setup(test_setup_py, ['--name'])
@@ -713,7 +713,7 @@ class TestSetupRequires:
 
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
 
-                with contexts.quiet() as (stdout, stderr):
+                with contexts.quiet() as (stdout, _stderr):
                     try:
                         # Don't even need to install the package, just
                         # running the setup.py at all is sufficient
@@ -765,7 +765,7 @@ class TestSetupRequires:
                     use_setup_cfg=use_setup_cfg + ('version',),
                 )
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
-                with contexts.quiet() as (stdout, stderr):
+                with contexts.quiet() as (stdout, _stderr):
                     run_setup(test_setup_py, ['--version'])
                 lines = stdout.readlines()
                 assert len(lines) > 0
