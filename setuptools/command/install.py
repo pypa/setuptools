@@ -4,7 +4,7 @@ import glob
 import inspect
 import platform
 from collections.abc import Callable
-from typing import Any, ClassVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, cast
 
 import setuptools
 
@@ -14,6 +14,12 @@ from .bdist_egg import bdist_egg as bdist_egg_cls
 
 import distutils.command.install as orig
 from distutils.errors import DistutilsArgError
+
+if TYPE_CHECKING:
+    # This is only used for a type-cast, don't import at runtime or it'll cause deprecation warnings
+    from .easy_install import easy_install as easy_install_cls
+else:
+    easy_install_cls = None
 
 # Prior to numpy 1.9, NumPy relies on the '_install' name, so provide it for
 # now. See https://github.com/pypa/setuptools/issues/199/
@@ -133,11 +139,17 @@ class install(orig.install):
     def do_egg_install(self) -> None:
         easy_install = self.distribution.get_command_class('easy_install')
 
-        cmd = easy_install(
-            self.distribution,
-            args="x",
-            root=self.root,
-            record=self.record,
+        cmd = cast(
+            # We'd want to cast easy_install as type[easy_install_cls] but a bug in
+            # mypy makes it think easy_install() returns a Command on Python 3.12+
+            # https://github.com/python/mypy/issues/18088
+            easy_install_cls,
+            easy_install(  # type: ignore[call-arg]
+                self.distribution,
+                args="x",
+                root=self.root,
+                record=self.record,
+            ),
         )
         cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
         cmd.always_copy_from = '.'  # make sure local-dir eggs get installed
