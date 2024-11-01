@@ -21,9 +21,16 @@ if TYPE_CHECKING:
 else:
     easy_install_cls = None
 
-# Prior to numpy 1.9, NumPy relies on the '_install' name, so provide it for
-# now. See https://github.com/pypa/setuptools/issues/199/
-_install = orig.install
+
+def __getattr__(name: str):  # pragma: no cover
+    if name == "_install":
+        SetuptoolsDeprecationWarning.emit(
+            "`setuptools.command._install` was an internal implementation detail "
+            + "that was left in for numpy<1.9 support.",
+            due_date=(2025, 5, 2),  # Originally added on 2024-11-01
+        )
+        return orig.install
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class install(orig.install):
