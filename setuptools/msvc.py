@@ -13,11 +13,14 @@ import json
 import os
 import os.path
 import platform
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 from more_itertools import unique_everseen
 
 import distutils.errors
+
+if TYPE_CHECKING:
+    from typing_extensions import NotRequired
 
 # https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':
@@ -876,6 +879,14 @@ class SystemInfo:
         return next(matching_dirs, None) or ''
 
 
+class _EnvironmentDict(TypedDict):
+    include: str
+    lib: str
+    libpath: str
+    path: str
+    py_vcruntime_redist: NotRequired[str | None]
+
+
 class EnvironmentInfo:
     """
     Return environment variables for specified Microsoft Visual C++ version
@@ -1420,7 +1431,7 @@ class EnvironmentInfo:
         )
         return next(filter(os.path.isfile, candidate_paths), None)  # type: ignore[arg-type] #python/mypy#12682
 
-    def return_env(self, exists=True):
+    def return_env(self, exists: bool = True) -> _EnvironmentDict:
         """
         Return environment dict.
 
@@ -1434,7 +1445,7 @@ class EnvironmentInfo:
         dict
             environment
         """
-        env = dict(
+        env = _EnvironmentDict(
             include=self._build_paths(
                 'include',
                 [
