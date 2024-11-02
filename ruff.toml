@@ -1,5 +1,5 @@
-# include pyproject.toml for requires-python (workaround astral-sh/ruff#10299)
-include = "pyproject.toml"
+# extend pyproject.toml for requires-python (workaround astral-sh/ruff#10299)
+extend = "pyproject.toml"
 
 [lint]
 extend-select = [
