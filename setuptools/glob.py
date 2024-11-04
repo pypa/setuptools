@@ -11,8 +11,8 @@ from __future__ import annotations
 import fnmatch
 import os
 import re
-from collections.abc import Iterator
-from typing import TYPE_CHECKING, AnyStr, Iterable, overload
+from collections.abc import Iterable, Iterator
+from typing import TYPE_CHECKING, AnyStr, overload
 
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrOrBytesPath, StrPath
