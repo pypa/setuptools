@@ -5,7 +5,7 @@ from setuptools.glob import glob
 
 
 @pytest.mark.parametrize(
-    'tree, pattern, matches',
+    ('tree', 'pattern', 'matches'),
     (
         ('', b'', []),
         ('', '', []),

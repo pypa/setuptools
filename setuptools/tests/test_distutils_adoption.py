@@ -116,7 +116,7 @@ print("success")
 
 @pytest.mark.usefixtures("tmpdir_cwd")
 @pytest.mark.parametrize(
-    "distutils_version, imported_module",
+    ('distutils_version', 'imported_module'),
     [
         pytest.param("stdlib", "dir_util", marks=skip_without_stdlib_distutils),
         pytest.param("stdlib", "file_util", marks=skip_without_stdlib_distutils),
@@ -175,7 +175,7 @@ else:
 
 @pytest.mark.usefixtures("tmpdir_cwd")
 @pytest.mark.parametrize(
-    "distutils_version, imported_module",
+    ('distutils_version', 'imported_module'),
     [
         ("local", "distutils"),
         # Unfortunately we still get ._distutils.errors.DistutilsError with SETUPTOOLS_USE_DISTUTILS=stdlib

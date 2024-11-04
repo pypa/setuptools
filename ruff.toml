@@ -81,9 +81,6 @@ sections.delayed = ["distutils"]
 [lint.flake8-annotations]
 ignore-fully-untyped = true
 
-[lint.flake8-pytest-style]
-parametrize-names-type = "csv"
-
 [format]
 # Enable preview to get hugged parenthesis unwrapping and other nice surprises
 # See https://github.com/jaraco/skeleton/pull/133#issuecomment-2239538373

@@ -737,7 +737,7 @@ class TestBuildMetaBackend:
         self._assert_link_tree(next(Path("build").glob("__editable__.*")))
 
     @pytest.mark.parametrize(
-        'setup_literal, requirements',
+        ("setup_literal", "requirements"),
         [
             ("'foo'", ['foo']),
             ("['foo']", ['foo']),

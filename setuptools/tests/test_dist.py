@@ -129,7 +129,7 @@ CHECK_PACKAGE_DATA_TESTS = (
 )
 
 
-@pytest.mark.parametrize('package_data, expected_message', CHECK_PACKAGE_DATA_TESTS)
+@pytest.mark.parametrize(('package_data', 'expected_message'), CHECK_PACKAGE_DATA_TESTS)
 def test_check_package_data(package_data, expected_message):
     if expected_message is None:
         assert check_package_data(None, 'package_data', package_data) is None
@@ -156,7 +156,7 @@ def test_metadata_name():
 
 
 @pytest.mark.parametrize(
-    "dist_name, py_module",
+    ('dist_name', 'py_module'),
     [
         ("my.pkg", "my_pkg"),
         ("my-pkg", "my_pkg"),
@@ -187,7 +187,7 @@ def test_dist_default_py_modules(tmp_path, dist_name, py_module):
 
 
 @pytest.mark.parametrize(
-    "dist_name, package_dir, package_files, packages",
+    ('dist_name', 'package_dir', 'package_files', 'packages'),
     [
         ("my.pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
         ("my-pkg", None, ["my_pkg/__init__.py", "my_pkg/mod.py"], ["my_pkg"]),
@@ -241,7 +241,7 @@ def test_dist_default_packages(
 
 
 @pytest.mark.parametrize(
-    "dist_name, package_dir, package_files",
+    ('dist_name', 'package_dir', 'package_files'),
     [
         ("my.pkg.nested", None, ["my/pkg/nested/__init__.py"]),
         ("my.pkg", None, ["my/pkg/__init__.py", "my/pkg/file.py"]),
