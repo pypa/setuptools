@@ -564,14 +564,17 @@ def test_wheel_install(params):
     install_tree = params.get('install_tree')
     file_defs = params.get('file_defs', {})
     setup_kwargs = params.get('setup_kwargs', {})
-    with build_wheel(
-        name=project_name,
-        version=version,
-        install_requires=install_requires,
-        extras_require=extras_require,
-        extra_file_defs=file_defs,
-        **setup_kwargs,
-    ) as filename, tempdir() as install_dir:
+    with (
+        build_wheel(
+            name=project_name,
+            version=version,
+            install_requires=install_requires,
+            extras_require=extras_require,
+            extra_file_defs=file_defs,
+            **setup_kwargs,
+        ) as filename,
+        tempdir() as install_dir,
+    ):
         _check_wheel_install(
             filename, install_dir, install_tree, project_name, version, requires_txt
         )
@@ -580,10 +583,13 @@ def test_wheel_install(params):
 def test_wheel_install_pep_503():
     project_name = 'Foo_Bar'  # PEP 503 canonicalized name is "foo-bar"
     version = '1.0'
-    with build_wheel(
-        name=project_name,
-        version=version,
-    ) as filename, tempdir() as install_dir:
+    with (
+        build_wheel(
+            name=project_name,
+            version=version,
+        ) as filename,
+        tempdir() as install_dir,
+    ):
         new_filename = filename.replace(project_name, canonicalize_name(project_name))
         shutil.move(filename, new_filename)
         _check_wheel_install(
@@ -687,14 +693,17 @@ def test_wheel_mode():
     file_defs = params.get('file_defs', {})
     setup_kwargs = params.get('setup_kwargs', {})
 
-    with build_wheel(
-        name=project_name,
-        version=version,
-        install_requires=[],
-        extras_require={},
-        extra_file_defs=file_defs,
-        **setup_kwargs,
-    ) as filename, tempdir() as install_dir:
+    with (
+        build_wheel(
+            name=project_name,
+            version=version,
+            install_requires=[],
+            extras_require={},
+            extra_file_defs=file_defs,
+            **setup_kwargs,
+        ) as filename,
+        tempdir() as install_dir,
+    ):
         _check_wheel_install(
             filename, install_dir, install_tree, project_name, version, None
         )
