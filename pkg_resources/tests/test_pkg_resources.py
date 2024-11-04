@@ -236,7 +236,7 @@ def make_distribution_no_version(tmpdir, basename):
 
 
 @pytest.mark.parametrize(
-    'suffix, expected_filename, expected_dist_type',
+    ("suffix", "expected_filename", "expected_dist_type"),
     [
         ('egg-info', 'PKG-INFO', EggInfoDistribution),
         ('dist-info', 'METADATA', DistInfoDistribution),
@@ -376,7 +376,7 @@ class TestDeepVersionLookupDistutils:
         assert dist.version == version
 
     @pytest.mark.parametrize(
-        'unnormalized, normalized',
+        ("unnormalized", "normalized"),
         [
             ('foo', 'foo'),
             ('foo/', 'foo'),
@@ -398,7 +398,7 @@ class TestDeepVersionLookupDistutils:
         reason='Testing case-insensitive filesystems.',
     )
     @pytest.mark.parametrize(
-        'unnormalized, normalized',
+        ("unnormalized", "normalized"),
         [
             ('MiXeD/CasE', 'mixed/case'),
         ],
@@ -414,7 +414,7 @@ class TestDeepVersionLookupDistutils:
         reason='Testing systems using backslashes as path separators.',
     )
     @pytest.mark.parametrize(
-        'unnormalized, expected',
+        ("unnormalized", "expected"),
         [
             ('forward/slash', 'forward\\slash'),
             ('forward/slash/', 'forward\\slash'),

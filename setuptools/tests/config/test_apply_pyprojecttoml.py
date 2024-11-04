@@ -183,7 +183,7 @@ def test_pep621_example(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "readme, ctype",
+    ("readme", "ctype"),
     [
         ("Readme.txt", "text/plain"),
         ("readme.md", "text/markdown"),
@@ -209,7 +209,7 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
 
 
 @pytest.mark.parametrize(
-    'pyproject_text, expected_maintainers_meta_value',
+    ("pyproject_text", "expected_maintainers_meta_value"),
     (
         pytest.param(
             PEP621_EXAMPLE,
@@ -370,7 +370,7 @@ class TestPresetField:
         return file
 
     @pytest.mark.parametrize(
-        "attr, field, value",
+        ("attr", "field", "value"),
         [
             ("classifiers", "classifiers", ["Private :: Classifier"]),
             ("entry_points", "scripts", {"console_scripts": ["foobar=foobar:main"]}),
@@ -395,7 +395,7 @@ class TestPresetField:
         assert not dist_value
 
     @pytest.mark.parametrize(
-        "attr, field, value",
+        ("attr", "field", "value"),
         [
             ("install_requires", "dependencies", []),
             ("extras_require", "optional-dependencies", {}),
@@ -442,7 +442,8 @@ class TestPresetField:
         assert ':python_version < "3.7"' in reqs
 
     @pytest.mark.parametrize(
-        "field,group", [("scripts", "console_scripts"), ("gui-scripts", "gui_scripts")]
+        ("field", "group"),
+        [("scripts", "console_scripts"), ("gui-scripts", "gui_scripts")],
     )
     @pytest.mark.filterwarnings("error")
     def test_scripts_dont_require_dynamic_entry_points(self, tmp_path, field, group):

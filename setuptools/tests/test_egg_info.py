@@ -543,7 +543,7 @@ class TestEggInfo:
         assert 'Provides-Extra:' not in pkg_info_text
 
     @pytest.mark.parametrize(
-        "files, license_in_sources",
+        ('files', 'license_in_sources'),
         [
             (
                 {
@@ -627,7 +627,7 @@ class TestEggInfo:
             assert 'INVALID_LICENSE' not in sources_text
 
     @pytest.mark.parametrize(
-        "files, incl_licenses, excl_licenses",
+        ('files', 'incl_licenses', 'excl_licenses'),
         [
             (
                 {
@@ -839,7 +839,7 @@ class TestEggInfo:
             assert sources_lines.count(lf) == 0
 
     @pytest.mark.parametrize(
-        "files, incl_licenses, excl_licenses",
+        ('files', 'incl_licenses', 'excl_licenses'),
         [
             (
                 {

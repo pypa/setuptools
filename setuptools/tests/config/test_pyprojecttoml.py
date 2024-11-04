@@ -149,7 +149,7 @@ def test_read_configuration(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "pkg_root, opts",
+    ("pkg_root", "opts"),
     [
         (".", {}),
         ("src", {}),
@@ -308,7 +308,7 @@ def test_ignore_unrelated_config(tmp_path, example):
 
 
 @pytest.mark.parametrize(
-    "example, error_msg",
+    ("example", "error_msg"),
     [
         (
             """

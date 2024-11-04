@@ -700,7 +700,7 @@ class TestParsing:
         (req,) = parse_requirements('foo >= 1.0, < 3')
 
     @pytest.mark.parametrize(
-        'lower, upper',
+        ("lower", "upper"),
         [
             ('1.2-rc1', '1.2rc1'),
             ('0.4', '0.4.0'),
@@ -724,7 +724,7 @@ class TestParsing:
         """
 
     @pytest.mark.parametrize(
-        'lower, upper',
+        ("lower", "upper"),
         [
             ('2.1', '2.1.1'),
             ('2a1', '2b0'),

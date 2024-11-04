@@ -161,7 +161,7 @@ class TestDiscoverPackagesAndPyModules:
     }
 
     @pytest.mark.parametrize(
-        "config_file, param, circumstance",
+        ("config_file", "param", "circumstance"),
         product(
             ["setup.cfg", "setup.py", "pyproject.toml"],
             ["packages", "py_modules"],
@@ -191,7 +191,7 @@ class TestDiscoverPackagesAndPyModules:
         assert getattr(dist, other) is None
 
     @pytest.mark.parametrize(
-        "extra_files, pkgs",
+        ("extra_files", "pkgs"),
         [
             (["venv/bin/simulate_venv"], {"pkg"}),
             (["pkg-stubs/__init__.pyi"], {"pkg", "pkg-stubs"}),
@@ -284,7 +284,7 @@ class TestNoConfig:
 
 class TestWithAttrDirective:
     @pytest.mark.parametrize(
-        "folder, opts",
+        ("folder", "opts"),
         [
             ("src", {}),
             ("lib", {"packages": "find:", "packages.find": {"where": "lib"}}),
@@ -446,7 +446,7 @@ class TestWithPackageData:
     """
 
     @pytest.mark.parametrize(
-        "src_root, files",
+        ("src_root", "files"),
         [
             (".", {"setup.cfg": DALS(EXAMPLE_SETUPCFG)}),
             (".", {"pyproject.toml": DALS(EXAMPLE_PYPROJECT)}),

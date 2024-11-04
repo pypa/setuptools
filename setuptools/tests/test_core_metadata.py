@@ -23,7 +23,7 @@ EXAMPLE_BASE_INFO = dict(
 
 
 @pytest.mark.parametrize(
-    'content, result',
+    ("content", "result"),
     (
         pytest.param(
             "Just a single line",
@@ -154,7 +154,7 @@ def __read_test_cases():
     ]
 
 
-@pytest.mark.parametrize('name,attrs', __read_test_cases())
+@pytest.mark.parametrize(("name", "attrs"), __read_test_cases())
 def test_read_metadata(name, attrs):
     dist = Distribution(attrs)
     metadata_out = dist.metadata
@@ -263,7 +263,7 @@ def __maintainer_test_cases():
     ]
 
 
-@pytest.mark.parametrize('name,attrs', __maintainer_test_cases())
+@pytest.mark.parametrize(("name", "attrs"), __maintainer_test_cases())
 def test_maintainer_author(name, attrs, tmpdir):
     tested_keys = {
         'author': 'Author',

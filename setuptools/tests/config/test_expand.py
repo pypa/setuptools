@@ -141,7 +141,7 @@ class TestReadAttr:
 
 
 @pytest.mark.parametrize(
-    'package_dir, file, module, return_value',
+    ("package_dir", "file", "module", "return_value"),
     [
         ({"": "src"}, "src/pkg/main.py", "pkg.main", 42),
         ({"pkg": "lib"}, "lib/main.py", "pkg.main", 13),
@@ -158,7 +158,7 @@ def test_resolve_class(monkeypatch, tmp_path, package_dir, file, module, return_
 
 
 @pytest.mark.parametrize(
-    'args, pkgs',
+    ("args", "pkgs"),
     [
         ({"where": ["."], "namespaces": False}, {"pkg", "other"}),
         ({"where": [".", "dir1"], "namespaces": False}, {"pkg", "other", "dir2"}),
@@ -192,7 +192,7 @@ def test_find_packages(tmp_path, args, pkgs):
 
 
 @pytest.mark.parametrize(
-    "files, where, expected_package_dir",
+    ("files", "where", "expected_package_dir"),
     [
         (["pkg1/__init__.py", "pkg1/other.py"], ["."], {}),
         (["pkg1/__init__.py", "pkg2/__init__.py"], ["."], {}),

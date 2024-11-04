@@ -322,7 +322,7 @@ def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "config_file, config",
+    ("config_file", "config"),
     [
         ("setup.cfg", "[metadata]\nlicense_files=licenses/*\n  LICENSE"),
         ("setup.cfg", "[metadata]\nlicense_files=licenses/*, LICENSE"),
@@ -434,7 +434,7 @@ def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "option, compress_type",
+    ("option", "compress_type"),
     list(bdist_wheel.supported_compressions.items()),
     ids=list(bdist_wheel.supported_compressions),
 )
@@ -589,7 +589,7 @@ def test_data_dir_with_tag_build(monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "reported,expected",
+    ("reported", "expected"),
     [("linux-x86_64", "linux_i686"), ("linux-aarch64", "linux_armv7l")],
 )
 @pytest.mark.skipif(

@@ -122,7 +122,7 @@ def _prepare(tmp_path, venv_python, monkeypatch):
     run([venv_python, "-m", "pip", "freeze"])
 
 
-@pytest.mark.parametrize('package, version', EXAMPLES)
+@pytest.mark.parametrize(("package", "version"), EXAMPLES)
 @pytest.mark.uses_network
 def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel):
     venv_pip = (venv_python, "-m", "pip")
