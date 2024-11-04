@@ -31,7 +31,7 @@ WHEEL_NAME = re.compile(
 NAMESPACE_PACKAGE_INIT = "__import__('pkg_resources').declare_namespace(__name__)\n"
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def _get_supported_tags():
     # We calculate the supported tags only once, otherwise calling
     # this method on thousands of wheels takes seconds instead of

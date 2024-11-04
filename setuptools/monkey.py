@@ -8,7 +8,7 @@ import inspect
 import platform
 import sys
 import types
-from typing import Type, TypeVar, cast, overload
+from typing import TypeVar, cast, overload
 
 import distutils.filelist
 
@@ -58,7 +58,7 @@ def get_unpatched_class(cls: type[_T]) -> type[_T]:
     first.
     """
     external_bases = (
-        cast(Type[_T], cls)
+        cast(type[_T], cls)
         for cls in _get_mro(cls)
         if not cls.__module__.startswith('setuptools')
     )

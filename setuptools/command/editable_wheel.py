@@ -17,6 +17,7 @@ import logging
 import os
 import shutil
 import traceback
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import suppress
 from enum import Enum
 from inspect import cleandoc
@@ -24,7 +25,7 @@ from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import TracebackType
-from typing import TYPE_CHECKING, Iterable, Iterator, Mapping, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Protocol, TypeVar, cast
 
 from .. import Command, _normalization, _path, errors, namespaces
 from .._path import StrPath

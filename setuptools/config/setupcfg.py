@@ -15,21 +15,9 @@ import contextlib
 import functools
 import os
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
 from functools import partial, wraps
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    ClassVar,
-    Dict,
-    Generic,
-    Iterable,
-    Iterator,
-    List,
-    Tuple,
-    TypeVar,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, TypeVar, cast
 
 from packaging.markers import default_environment as marker_env
 from packaging.requirements import InvalidRequirement, Requirement
@@ -48,13 +36,13 @@ if TYPE_CHECKING:
 
     from distutils.dist import DistributionMetadata
 
-SingleCommandOptions: TypeAlias = Dict[str, Tuple[str, Any]]
+SingleCommandOptions: TypeAlias = dict[str, tuple[str, Any]]
 """Dict that associate the name of the options of a particular command to a
 tuple. The first element of the tuple indicates the origin of the option value
 (e.g. the name of the configuration file where it was read from),
 while the second element of the tuple is the option value itself
 """
-AllCommandOptions: TypeAlias = Dict[str, SingleCommandOptions]
+AllCommandOptions: TypeAlias = dict[str, SingleCommandOptions]
 """cmd name => its options"""
 Target = TypeVar("Target", "Distribution", "DistributionMetadata")
 
@@ -114,7 +102,7 @@ def _apply(
 
     try:
         # TODO: Temporary cast until mypy 1.12 is released with upstream fixes from typeshed
-        _Distribution.parse_config_files(dist, filenames=cast(List[str], filenames))
+        _Distribution.parse_config_files(dist, filenames=cast(list[str], filenames))
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )
