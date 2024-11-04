@@ -34,7 +34,7 @@ import zipimport
 from collections.abc import Iterable
 from glob import glob
 from sysconfig import get_path
-from typing import TYPE_CHECKING, Callable, NoReturn, TypeVar
+from typing import TYPE_CHECKING, Callable, NoReturn, TypedDict, TypeVar
 
 from jaraco.text import yield_lines
 
@@ -2039,6 +2039,11 @@ def chmod(path, mode):
         log.debug("chmod failed: %s", e)
 
 
+class _SplitArgs(TypedDict, total=False):
+    comments: bool
+    posix: bool
+
+
 class CommandSpec(list):
     """
     A command spec for a #! header, specified as a list of arguments akin to
@@ -2046,7 +2051,7 @@ class CommandSpec(list):
     """
 
     options: list[str] = []
-    split_args: dict[str, bool] = dict()
+    split_args = _SplitArgs()
 
     @classmethod
     def best(cls):
@@ -2129,7 +2134,7 @@ sys_executable = CommandSpec._sys_executable()
 
 
 class WindowsCommandSpec(CommandSpec):
-    split_args = dict(posix=False)
+    split_args = _SplitArgs(posix=False)
 
 
 class ScriptWriter:
