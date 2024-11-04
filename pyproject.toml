@@ -114,8 +114,8 @@ check = [
 
 	# local
 
-	# workaround for businho/pytest-ruff#28
-	"ruff >= 0.5.2; sys_platform != 'cygwin'",
+	# changed defaults for PT001 and PT023 astral-sh/ruff#13292
+	"ruff >= 0.7.0; sys_platform != 'cygwin'",
 ]
 
 cover = [
