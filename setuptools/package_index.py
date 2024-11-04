@@ -104,7 +104,7 @@ def parse_bdist_wininst(name):
 
 def egg_info_for_url(url):
     parts = urllib.parse.urlparse(url)
-    scheme, server, path, parameters, query, fragment = parts
+    _scheme, server, path, _parameters, _query, fragment = parts
     base = urllib.parse.unquote(path.split('/')[-1])
     if server == 'sourceforge.net' and base == 'download':  # XXX Yuck
         base = urllib.parse.unquote(path.split('/')[-2])
@@ -431,7 +431,7 @@ class PackageIndex(Environment):
             # format is not recognized; punt
             return
 
-        egg_path, setup_path = lines
+        egg_path, _setup_path = lines
 
         for dist in find_distributions(os.path.join(path, egg_path)):
             dist.location = os.path.join(path, *lines)
@@ -820,7 +820,7 @@ class PackageIndex(Environment):
     def _download_url(self, url, tmpdir):
         # Determine download filename
         #
-        name, fragment = egg_info_for_url(url)
+        name, _fragment = egg_info_for_url(url)
         if name:
             while '..' in name:
                 name = name.replace('..', '.').replace('\\', '_')
@@ -848,7 +848,7 @@ class PackageIndex(Environment):
         >>> rvcs('http://foo/bar')
         """
         scheme = urllib.parse.urlsplit(url).scheme
-        pre, sep, post = scheme.partition('+')
+        pre, sep, _post = scheme.partition('+')
         # svn and git have their own protocol; hg does not
         allowed = set(['svn', 'git'] + ['hg'] * bool(sep))
         return next(iter({pre} & allowed), None)
@@ -1121,7 +1121,7 @@ def fix_sf_url(url):
 
 def local_open(url):
     """Read a local path, with special support for directories"""
-    scheme, server, path, param, query, frag = urllib.parse.urlparse(url)
+    _scheme, _server, path, _param, _query, _frag = urllib.parse.urlparse(url)
     filename = urllib.request.url2pathname(path)
     if os.path.isfile(filename):
         return urllib.request.urlopen(url)

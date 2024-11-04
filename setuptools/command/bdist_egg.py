@@ -181,7 +181,7 @@ class bdist_egg(Command):
         self.stubs = []
         to_compile = []
         for p, ext_name in enumerate(ext_outputs):
-            filename, ext = os.path.splitext(ext_name)
+            filename, _ext = os.path.splitext(ext_name)
             pyfile = os.path.join(self.bdist_dir, strip_module(filename) + '.py')
             self.stubs.append(pyfile)
             log.info("creating stub loader for %s", ext_name)

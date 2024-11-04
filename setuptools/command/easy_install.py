@@ -1547,7 +1547,7 @@ def extract_wininst_cfg(dist_filename):
             return None
         f.seek(prepended - 12)
 
-        tag, cfglen, bmlen = struct.unpack("<iii", f.read(12))
+        tag, cfglen, _bmlen = struct.unpack("<iii", f.read(12))
         if tag not in (0x1234567A, 0x1234567B):
             return None  # not a valid tag
 

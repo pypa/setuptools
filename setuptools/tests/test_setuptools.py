@@ -74,7 +74,7 @@ class TestDepends:
             dep.find_module('no-such.-thing')
         with pytest.raises(ImportError):
             dep.find_module('setuptools.non-existent')
-        f, p, i = dep.find_module('setuptools.tests')
+        f, _p, _i = dep.find_module('setuptools.tests')
         f.close()
 
     @needs_bytecode

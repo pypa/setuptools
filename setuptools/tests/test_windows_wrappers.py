@@ -116,7 +116,7 @@ class TestCLI(WrapperTester):
             text=True,
             encoding="utf-8",
         )
-        stdout, stderr = proc.communicate('hello\nworld\n')
+        stdout, _stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
         expected = textwrap.dedent(
             r"""
@@ -153,7 +153,7 @@ class TestCLI(WrapperTester):
             text=True,
             encoding="utf-8",
         )
-        stdout, stderr = proc.communicate('hello\nworld\n')
+        stdout, _stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
         expected = textwrap.dedent(
             r"""
@@ -201,7 +201,7 @@ class TestCLI(WrapperTester):
             text=True,
             encoding="utf-8",
         )
-        stdout, stderr = proc.communicate()
+        stdout, _stderr = proc.communicate()
         actual = stdout.replace('\r\n', '\n')
         expected = textwrap.dedent(
             r"""

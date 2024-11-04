@@ -113,7 +113,7 @@ def check_nsp(dist, attr, value):
                 "Distribution contains no modules or packages for "
                 + "namespace package %r" % nsp
             )
-        parent, sep, child = nsp.rpartition('.')
+        parent, _sep, _child = nsp.rpartition('.')
         if parent and parent not in ns_packages:
             distutils.log.warn(
                 "WARNING: %r is declared as a package namespace, but %r"
@@ -145,7 +145,7 @@ def check_extras(dist, attr, value):
 
 
 def _check_extra(extra, reqs):
-    name, sep, marker = extra.partition(':')
+    _name, _sep, marker = extra.partition(':')
     try:
         _check_marker(marker)
     except InvalidMarker:
@@ -886,7 +886,7 @@ class Distribution(_Distribution):
         command = args[0]
         aliases = self.get_option_dict('aliases')
         while command in aliases:
-            src, alias = aliases[command]
+            _src, alias = aliases[command]
             del aliases[command]  # ensure each alias can expand only once!
             import shlex
 
@@ -951,7 +951,7 @@ class Distribution(_Distribution):
 
         for ext in self.ext_modules or ():
             if isinstance(ext, tuple):
-                name, buildinfo = ext
+                name, _buildinfo = ext
             else:
                 name = ext.name
             if name.endswith('module'):

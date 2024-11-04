@@ -288,9 +288,7 @@ class TestMetadata:
             assert dist.metadata.version == '2016.11.26'
 
     def test_version_file(self, tmpdir):
-        _, config = fake_env(
-            tmpdir, '[metadata]\nversion = file: fake_package/version.txt\n'
-        )
+        fake_env(tmpdir, '[metadata]\nversion = file: fake_package/version.txt\n')
         tmpdir.join('fake_package', 'version.txt').write('1.2.3\n')
 
         with get_dist(tmpdir) as dist:
@@ -302,7 +300,7 @@ class TestMetadata:
                 dist.metadata.version
 
     def test_version_with_package_dir_simple(self, tmpdir):
-        _, config = fake_env(
+        fake_env(
             tmpdir,
             '[metadata]\n'
             'version = attr: fake_package_simple.VERSION\n'
@@ -316,7 +314,7 @@ class TestMetadata:
             assert dist.metadata.version == '1.2.3'
 
     def test_version_with_package_dir_rename(self, tmpdir):
-        _, config = fake_env(
+        fake_env(
             tmpdir,
             '[metadata]\n'
             'version = attr: fake_package_rename.VERSION\n'
@@ -330,7 +328,7 @@ class TestMetadata:
             assert dist.metadata.version == '1.2.3'
 
     def test_version_with_package_dir_complex(self, tmpdir):
-        _, config = fake_env(
+        fake_env(
             tmpdir,
             '[metadata]\n'
             'version = attr: fake_package_complex.VERSION\n'
@@ -585,8 +583,8 @@ class TestOptions:
     def test_find_directive(self, tmpdir):
         dir_package, config = fake_env(tmpdir, '[options]\npackages = find:\n')
 
-        dir_sub_one, _ = make_package_dir('sub_one', dir_package)
-        dir_sub_two, _ = make_package_dir('sub_two', dir_package)
+        make_package_dir('sub_one', dir_package)
+        make_package_dir('sub_two', dir_package)
 
         with get_dist(tmpdir) as dist:
             assert set(dist.packages) == set([
@@ -624,8 +622,8 @@ class TestOptions:
             tmpdir, '[options]\npackages = find_namespace:\n'
         )
 
-        dir_sub_one, _ = make_package_dir('sub_one', dir_package)
-        dir_sub_two, _ = make_package_dir('sub_two', dir_package, ns=True)
+        make_package_dir('sub_one', dir_package)
+        make_package_dir('sub_two', dir_package, ns=True)
 
         with get_dist(tmpdir) as dist:
             assert set(dist.packages) == {
@@ -779,7 +777,7 @@ class TestOptions:
             assert dist.entry_points == expected
 
     def test_case_sensitive_entry_points(self, tmpdir):
-        _, config = fake_env(
+        fake_env(
             tmpdir,
             '[options.entry_points]\n'
             'GROUP1 = point1 = pack.module:func, '

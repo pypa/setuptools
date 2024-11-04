@@ -70,7 +70,7 @@ def _install_setup_requires(attrs):
         def _get_project_config_files(self, filenames=None):
             """Ignore ``pyproject.toml``, they are not related to setup_requires"""
             try:
-                cfg, toml = super()._split_standard_project_metadata(filenames)
+                cfg, _toml = super()._split_standard_project_metadata(filenames)
             except Exception:
                 return filenames, ()
             return cfg, ()

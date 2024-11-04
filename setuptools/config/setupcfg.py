@@ -263,7 +263,7 @@ class ConfigHandler(Generic[Target]):
         cls, options: AllCommandOptions
     ) -> Iterator[tuple[str, SingleCommandOptions]]:
         for full_name, value in options.items():
-            pre, sep, name = full_name.partition(cls.section_prefix)
+            pre, _sep, name = full_name.partition(cls.section_prefix)
             if pre:
                 continue
             yield name.lstrip('.'), value
