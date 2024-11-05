@@ -109,6 +109,18 @@ class CygwinCCompiler(UnixCCompiler):
                 self.spawn(["windres", "-i", src, "-o", obj])
             except DistutilsExecError as msg:
                 raise CompileError(msg)
+        elif ext == '.mc':
+            h_dir = os.path.dirname(src)
+            rc_dir = os.path.dirname(obj)
+            try:
+                # first compile .mc to .rc and .h file
+                self.spawn(['windmc'] + ['-h', h_dir, '-r', rc_dir] + [src])
+                base, _ = os.path.splitext(os.path.basename(src))
+                rc_file = os.path.join(rc_dir, base + '.rc')
+                # then compile .rc to .res file
+                self.spawn(['windres', '-i', rc_file, '-o', obj])
+            except DistutilsExecError as msg:
+                raise CompileError(msg)
         else:  # for other files use the C-compiler
             try:
                 if self.detect_language(src) == 'c++':
@@ -235,7 +247,7 @@ class CygwinCCompiler(UnixCCompiler):
         """
         return {
             **super().out_extensions,
-            **{ext: ext + self.obj_extension for ext in ('.res', '.rc')},
+            **{ext: ext + self.obj_extension for ext in ('.res', '.rc', '.mc')},
         }
 
 
