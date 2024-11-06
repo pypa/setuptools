@@ -270,7 +270,7 @@ class HashChecker(ContentChecker):
         r'(?P<expected>[a-f0-9]+)'
     )
 
-    def __init__(self, hash_name, expected):
+    def __init__(self, hash_name, expected) -> None:
         self.hash_name = hash_name
         self.hash = hashlib.new(hash_name)
         self.expected = expected

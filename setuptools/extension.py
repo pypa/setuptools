@@ -147,7 +147,7 @@ class Extension(_Extension):
         *args,
         py_limited_api: bool = False,
         **kw,
-    ):
+    ) -> None:
         # The *args is needed for compatibility as calls may use positional
         # arguments. py_limited_api may be set only via keyword.
         self.py_limited_api = py_limited_api

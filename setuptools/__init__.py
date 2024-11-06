@@ -60,7 +60,7 @@ def _install_setup_requires(attrs):
         fetch_build_eggs interface.
         """
 
-        def __init__(self, attrs: Mapping[str, object]):
+        def __init__(self, attrs: Mapping[str, object]) -> None:
             _incl = 'dependency_links', 'setup_requires'
             filtered = {k: attrs[k] for k in set(_incl) & set(attrs)}
             super().__init__(filtered)
@@ -167,7 +167,7 @@ class Command(_Command):
     command_consumes_arguments = False
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def __init__(self, dist: Distribution, **kw):
+    def __init__(self, dist: Distribution, **kw) -> None:
         """
         Construct the command for dist, updating
         vars(self) with any keyword parameters.

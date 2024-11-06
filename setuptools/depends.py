@@ -28,7 +28,7 @@ class Require:
         homepage: str = '',
         attribute=None,
         format=None,
-    ):
+    ) -> None:
         if format is None and requested_version is not None:
             format = Version
 

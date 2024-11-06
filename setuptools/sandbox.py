@@ -279,7 +279,7 @@ class AbstractSandbox:
 
     _active = False
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._attrs = [
             name
             for name in dir(_os)
@@ -442,7 +442,7 @@ class DirectorySandbox(AbstractSandbox):
     _exception_patterns: list[str | re.Pattern] = []
     "exempt writing to paths that match the pattern"
 
-    def __init__(self, sandbox, exceptions=_EXCEPTIONS):
+    def __init__(self, sandbox, exceptions=_EXCEPTIONS) -> None:
         self._sandbox = os.path.normcase(os.path.realpath(sandbox))
         self._prefix = os.path.join(self._sandbox, '')
         self._exceptions = [

@@ -71,7 +71,7 @@ class _Filter:
     the input matches at least one of the patterns.
     """
 
-    def __init__(self, *patterns: str):
+    def __init__(self, *patterns: str) -> None:
         self._patterns = dict.fromkeys(patterns)
 
     def __call__(self, item: str) -> bool:
@@ -300,7 +300,7 @@ class ConfigDiscovery:
     (from other metadata/options, the file system or conventions)
     """
 
-    def __init__(self, distribution: Distribution):
+    def __init__(self, distribution: Distribution) -> None:
         self.dist = distribution
         self._called = False
         self._disabled = False

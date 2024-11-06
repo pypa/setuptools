@@ -76,7 +76,7 @@ def disable_info_traces():
 
 
 class Wheel:
-    def __init__(self, filename):
+    def __init__(self, filename) -> None:
         match = WHEEL_NAME(os.path.basename(filename))
         if match is None:
             raise ValueError('invalid wheel name: %r' % filename)

@@ -1612,7 +1612,7 @@ def get_exe_prefixes(exe_filename):
 class PthDistributions(Environment):
     """A .pth file with Distribution paths in it"""
 
-    def __init__(self, filename, sitedirs=()):
+    def __init__(self, filename, sitedirs=()) -> None:
         self.filename = filename
         self.sitedirs = list(map(normalize_path, sitedirs))
         self.basedir = normalize_path(os.path.dirname(self.filename))

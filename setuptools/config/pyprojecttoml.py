@@ -176,7 +176,7 @@ class _ConfigExpander:
         root_dir: StrPath | None = None,
         ignore_option_errors: bool = False,
         dist: Distribution | None = None,
-    ):
+    ) -> None:
         self.config = config
         self.root_dir = root_dir or os.getcwd()
         self.project_cfg = config.get("project", {})
@@ -413,7 +413,7 @@ def _ignore_errors(ignore_option_errors: bool):
 class _EnsurePackagesDiscovered(_expand.EnsurePackagesDiscovered):
     def __init__(
         self, distribution: Distribution, project_cfg: dict, setuptools_cfg: dict
-    ):
+    ) -> None:
         super().__init__(distribution)
         self._project_cfg = project_cfg
         self._setuptools_cfg = setuptools_cfg

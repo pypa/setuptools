@@ -185,7 +185,7 @@ class VersionlessRequirement:
     'foo'
     """
 
-    def __init__(self, dist):
+    def __init__(self, dist) -> None:
         self.__dist = dist
 
     def __getattr__(self, name: str):
