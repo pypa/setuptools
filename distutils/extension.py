@@ -26,12 +26,14 @@ class Extension:
       name : string
         the full name of the extension, including any packages -- ie.
         *not* a filename or pathname, but Python dotted name
-      sources : [string | os.PathLike]
-        list of source filenames, relative to the distribution root
-        (where the setup script lives), in Unix form (slash-separated)
-        for portability.  Source files may be C, C++, SWIG (.i),
-        platform-specific resource files, or whatever else is recognized
-        by the "build_ext" command as source for a Python extension.
+      sources : Iterable[string | os.PathLike]
+        iterable of source filenames (except strings, which could be misinterpreted
+        as a single filename), relative to the distribution root (where the setup
+        script lives), in Unix form (slash-separated) for portability. Can be any
+        non-string iterable (list, tuple, set, etc.) containing strings or
+        PathLike objects. Source files may be C, C++, SWIG (.i), platform-specific
+        resource files, or whatever else is recognized by the "build_ext" command
+        as source for a Python extension.
       include_dirs : [string]
         list of directories to search for C/C++ header files (in Unix
         form for portability)
@@ -106,12 +108,23 @@ class Extension:
     ):
         if not isinstance(name, str):
             raise AssertionError("'name' must be a string")  # noqa: TRY004
-        if not (
-            isinstance(sources, list)
-            and all(isinstance(v, (str, os.PathLike)) for v in sources)
-        ):
+
+        # we handle the string case first; though strings are iterable, we disallow them
+        if isinstance(sources, str):
+            raise AssertionError(  # noqa: TRY004
+                "'sources' must be an iterable of strings or PathLike objects, not a string"
+            )
+
+        # mow we check if it's iterable and contains valid types
+        try:
+            sources = list(sources)  # convert to list for consistency
+            if not all(isinstance(v, (str, os.PathLike)) for v in sources):
+                raise AssertionError(
+                    "All elements in 'sources' must be strings or PathLike objects"
+                )
+        except TypeError:
             raise AssertionError(
-                "'sources' must be a list of strings or PathLike objects."
+                "'sources' must be an iterable of strings or PathLike objects"
             )
 
         self.name = name
