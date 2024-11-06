@@ -32,7 +32,7 @@ def pairwise(iterable):
 class Metadata(pkg_resources.EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
-    def __init__(self, *pairs):
+    def __init__(self, *pairs) -> None:
         self.metadata = dict(pairs)
 
     def has_metadata(self, name) -> bool:

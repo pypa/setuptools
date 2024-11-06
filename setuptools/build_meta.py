@@ -72,7 +72,7 @@ LEGACY_EDITABLE = "legacy-editable" in SETUPTOOLS_ENABLE_FEATURES.replace("_", "
 
 
 class SetupRequirementsError(BaseException):
-    def __init__(self, specifiers):
+    def __init__(self, specifiers) -> None:
         self.specifiers = specifiers
 
 
