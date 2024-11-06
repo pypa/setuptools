@@ -115,7 +115,7 @@ class Extension:
                 "'sources' must be an iterable of strings or PathLike objects, not a string"
             )
 
-        # mow we check if it's iterable and contains valid types
+        # now we check if it's iterable and contains valid types
         try:
             self.sources = list(map(os.fspath, sources))
         except TypeError:
