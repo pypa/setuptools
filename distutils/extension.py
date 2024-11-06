@@ -117,18 +117,13 @@ class Extension:
 
         # mow we check if it's iterable and contains valid types
         try:
-            sources = list(sources)  # convert to list for consistency
-            if not all(isinstance(v, (str, os.PathLike)) for v in sources):
-                raise AssertionError(
-                    "All elements in 'sources' must be strings or PathLike objects"
-                )
+            self.sources = list(map(os.fspath, sources))
         except TypeError:
             raise AssertionError(
                 "'sources' must be an iterable of strings or PathLike objects"
             )
 
         self.name = name
-        self.sources = list(map(os.fspath, sources))
         self.include_dirs = include_dirs or []
         self.define_macros = define_macros or []
         self.undef_macros = undef_macros or []
