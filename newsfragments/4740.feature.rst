@@ -1,0 +1,1 @@
+Updated vendored packaging version to 24.2.
