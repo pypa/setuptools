@@ -26,7 +26,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
 
     command_consumes_arguments = False  # override base
 
-    def run(self):
+    def run(self) -> None:
         if self.uninstall:
             self.multi_version = True
             self.uninstall_link()

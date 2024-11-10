@@ -6,7 +6,7 @@ class saveopts(option_base):
 
     description = "save supplied options to setup.cfg or other config file"
 
-    def run(self):
+    def run(self) -> None:
         dist = self.distribution
         settings = {}
 

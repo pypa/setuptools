@@ -144,7 +144,7 @@ class ExceptionSaver:
         # suppress the exception
         return True
 
-    def resume(self):
+    def resume(self) -> None:
         "restore and re-raise any exception"
 
         if '_saved' not in vars(self):
@@ -300,7 +300,7 @@ class AbstractSandbox:
         exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
         traceback: TracebackType | None,
-    ):
+    ) -> None:
         self._active = False
         builtins.open = _open
         self._copy(_os)

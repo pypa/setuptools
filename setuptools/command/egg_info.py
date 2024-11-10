@@ -2,6 +2,8 @@
 
 Create a distribution's .egg-info directory and contents"""
 
+from __future__ import annotations
+
 import functools
 import os
 import re
@@ -195,11 +197,11 @@ class egg_info(InfoCommon, Command):
     # allow the 'tag_svn_revision' to be detected and
     # set, supporting sdists built on older Setuptools.
     @property
-    def tag_svn_revision(self) -> None:
+    def tag_svn_revision(self) -> int | None:
         pass
 
     @tag_svn_revision.setter
-    def tag_svn_revision(self, value):
+    def tag_svn_revision(self, value) -> None:
         pass
 
     ####################################
@@ -330,7 +332,7 @@ class FileList(_FileList):
         super().__init__(warn, debug_print)
         self.ignore_egg_info_dir = ignore_egg_info_dir
 
-    def process_template_line(self, line):
+    def process_template_line(self, line) -> None:
         # Parse the line: split it up, make sure the right number of words
         # is there, and return the relevant words.  'action' is always
         # defined: it's the first word of the line.  Which of the other

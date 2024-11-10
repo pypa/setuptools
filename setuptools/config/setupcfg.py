@@ -14,6 +14,7 @@ from __future__ import annotations
 import contextlib
 import functools
 import os
+from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from functools import partial, wraps
@@ -269,7 +270,8 @@ class ConfigHandler(Generic[Target]):
             yield name.lstrip('.'), value
 
     @property
-    def parsers(self):
+    @abstractmethod
+    def parsers(self) -> dict[str, Callable]:
         """Metadata item name to parser function mapping."""
         raise NotImplementedError(
             '%s must provide .parsers property' % self.__class__.__name__
@@ -546,7 +548,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         self.root_dir = root_dir
 
     @property
-    def parsers(self):
+    def parsers(self) -> dict[str, Callable]:
         """Metadata item name to parser function mapping."""
         parse_list = self._parse_list
         parse_file = partial(self._parse_file, root_dir=self.root_dir)
@@ -623,7 +625,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         return [line for line in parsed if not line.startswith("#")]
 
     @property
-    def parsers(self):
+    def parsers(self) -> dict[str, Callable]:
         """Metadata item name to parser function mapping."""
         parse_list = self._parse_list
         parse_bool = self._parse_bool
