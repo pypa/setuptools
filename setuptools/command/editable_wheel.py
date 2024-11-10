@@ -779,7 +779,7 @@ def _empty_dir(dir_: _P) -> _P:
 
 
 class _NamespaceInstaller(namespaces.Installer):
-    def __init__(self, distribution, installation_dir, editable_name, src_root):
+    def __init__(self, distribution, installation_dir, editable_name, src_root) -> None:
         self.distribution = distribution
         self.src_root = src_root
         self.installation_dir = installation_dir

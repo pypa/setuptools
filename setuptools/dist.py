@@ -6,7 +6,7 @@ import numbers
 import os
 import re
 import sys
-from collections.abc import Iterable, MutableMapping, Sequence
+from collections.abc import Iterable, Iterator, MutableMapping, Sequence
 from glob import iglob
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
@@ -696,7 +696,7 @@ class Distribution(_Distribution):
             if value is not None:
                 ep.load()(self, ep.name, value)
 
-    def get_egg_cache_dir(self):
+    def get_egg_cache_dir(self) -> str:
         from . import windows_support
 
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
@@ -904,7 +904,7 @@ class Distribution(_Distribution):
 
         return nargs
 
-    def get_cmdline_options(self):
+    def get_cmdline_options(self) -> dict[str, dict[str, str | None]]:
         """Return a '{cmd: {opt:val}}' map of all command-line options
 
         Option names are all long, but do not include the leading '--', and
@@ -942,7 +942,7 @@ class Distribution(_Distribution):
 
         return d
 
-    def iter_distribution_names(self):
+    def iter_distribution_names(self) -> Iterator[str]:
         """Yield all packages, modules, and extension names in distribution"""
 
         yield from self.packages or ()

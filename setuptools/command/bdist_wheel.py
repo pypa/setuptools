@@ -391,7 +391,7 @@ class bdist_wheel(Command):
             )
         return tag
 
-    def run(self):
+    def run(self) -> None:
         build_scripts = self.reinitialize_command("build_scripts")
         build_scripts.executable = "python"
         build_scripts.force = True

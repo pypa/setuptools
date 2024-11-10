@@ -239,7 +239,7 @@ class easy_install(Command):
         print(f'setuptools {dist.version} from {dist.location} (Python {ver})')
         raise SystemExit
 
-    def finalize_options(self):  # noqa: C901  # is too complex (25)  # FIXME
+    def finalize_options(self) -> None:  # noqa: C901  # is too complex (25)  # FIXME
         self.version and self._render_version()
 
         py_version = sys.version.split()[0]
@@ -748,7 +748,7 @@ class easy_install(Command):
                     return dist
         return None
 
-    def select_scheme(self, name):
+    def select_scheme(self, name) -> None:
         try:
             install._select_scheme(self, name)
         except AttributeError:

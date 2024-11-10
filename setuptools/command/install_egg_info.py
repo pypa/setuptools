@@ -20,7 +20,7 @@ class install_egg_info(namespaces.Installer, Command):
     def initialize_options(self):
         self.install_dir = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         self.set_undefined_options('install_lib', ('install_dir', 'install_dir'))
         ei_cmd = self.get_finalized_command("egg_info")
         basename = f"{ei_cmd._get_egg_basename()}.egg-info"
