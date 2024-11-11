@@ -2,8 +2,8 @@ import os
 import shutil
 
 import pytest
-from setuptools.archive_util import unpack_archive
 
+from setuptools.archive_util import unpack_archive
 
 CMD = ["python", "-m", "setuptools._bootstrap"]
 
