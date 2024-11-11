@@ -90,7 +90,7 @@ def do_override():
 
 
 class _TrivialRe:
-    def __init__(self, *patterns):
+    def __init__(self, *patterns) -> None:
         self._patterns = patterns
 
     def match(self, string):

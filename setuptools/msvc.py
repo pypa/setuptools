@@ -50,7 +50,7 @@ class PlatformInfo:
 
     current_cpu = environ.get('processor_architecture', '').lower()
 
-    def __init__(self, arch):
+    def __init__(self, arch) -> None:
         self.arch = arch.lower().replace('x64', 'amd64')
 
     @property
@@ -176,7 +176,7 @@ class RegistryInfo:
         winreg.HKEY_CLASSES_ROOT,
     )
 
-    def __init__(self, platform_info):
+    def __init__(self, platform_info) -> None:
         self.pi = platform_info
 
     @property
@@ -366,7 +366,7 @@ class SystemInfo:
     ProgramFiles = environ.get('ProgramFiles', '')
     ProgramFilesx86 = environ.get('ProgramFiles(x86)', ProgramFiles)
 
-    def __init__(self, registry_info, vc_ver=None):
+    def __init__(self, registry_info, vc_ver=None) -> None:
         self.ri = registry_info
         self.pi = self.ri.pi
 
@@ -911,7 +911,7 @@ class EnvironmentInfo:
     # Variables and properties in this class use originals CamelCase variables
     # names from Microsoft source files for more easy comparison.
 
-    def __init__(self, arch, vc_ver=None, vc_min_ver=0):
+    def __init__(self, arch, vc_ver=None, vc_min_ver=0) -> None:
         self.pi = PlatformInfo(arch)
         self.ri = RegistryInfo(self.pi)
         self.si = SystemInfo(self.ri, vc_ver)

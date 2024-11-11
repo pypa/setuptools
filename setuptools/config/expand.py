@@ -52,7 +52,7 @@ _V_co = TypeVar("_V_co", covariant=True)
 class StaticModule:
     """Proxy to a module object that avoids executing arbitrary code."""
 
-    def __init__(self, name: str, spec: ModuleSpec):
+    def __init__(self, name: str, spec: ModuleSpec) -> None:
         module = ast.parse(pathlib.Path(spec.origin).read_bytes())  # type: ignore[arg-type] # Let it raise an error on None
         vars(self).update(locals())
         del self.self
@@ -383,7 +383,7 @@ class EnsurePackagesDiscovered:
     and those might not have been processed yet.
     """
 
-    def __init__(self, distribution: Distribution):
+    def __init__(self, distribution: Distribution) -> None:
         self._dist = distribution
         self._called = False
 
@@ -430,7 +430,7 @@ class LazyMappingProxy(Mapping[_K, _V_co]):
     'other value'
     """
 
-    def __init__(self, obtain_mapping_value: Callable[[], Mapping[_K, _V_co]]):
+    def __init__(self, obtain_mapping_value: Callable[[], Mapping[_K, _V_co]]) -> None:
         self._obtain = obtain_mapping_value
         self._value: Mapping[_K, _V_co] | None = None
 

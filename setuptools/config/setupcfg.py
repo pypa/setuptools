@@ -247,7 +247,7 @@ class ConfigHandler(Generic[Target]):
         options: AllCommandOptions,
         ignore_option_errors,
         ensure_discovered: expand.EnsurePackagesDiscovered,
-    ):
+    ) -> None:
         self.ignore_option_errors = ignore_option_errors
         self.target_obj: Target = target_obj
         self.sections = dict(self._section_options(options))
@@ -540,7 +540,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         ensure_discovered: expand.EnsurePackagesDiscovered,
         package_dir: dict | None = None,
         root_dir: StrPath | None = os.curdir,
-    ):
+    ) -> None:
         super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.package_dir = package_dir
         self.root_dir = root_dir
@@ -602,7 +602,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         options: AllCommandOptions,
         ignore_option_errors: bool,
         ensure_discovered: expand.EnsurePackagesDiscovered,
-    ):
+    ) -> None:
         super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
         self.root_dir = target_obj.src_root
         self.package_dir: dict[str, str] = {}  # To be filled by `find_packages`

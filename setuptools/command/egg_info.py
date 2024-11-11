@@ -324,7 +324,9 @@ class egg_info(InfoCommon, Command):
 class FileList(_FileList):
     # Implementations of the various MANIFEST.in commands
 
-    def __init__(self, warn=None, debug_print=None, ignore_egg_info_dir: bool = False):
+    def __init__(
+        self, warn=None, debug_print=None, ignore_egg_info_dir: bool = False
+    ) -> None:
         super().__init__(warn, debug_print)
         self.ignore_egg_info_dir = ignore_egg_info_dir
 
