@@ -11,7 +11,6 @@ import sys
 import sysconfig
 from contextlib import suppress
 from inspect import cleandoc
-from unittest.mock import Mock
 from zipfile import ZipFile
 
 import jaraco.path
@@ -19,12 +18,7 @@ import pytest
 from packaging import tags
 
 import setuptools
-from setuptools.command.bdist_wheel import (
-    bdist_wheel,
-    get_abi_tag,
-    remove_readonly,
-    remove_readonly_exc,
-)
+from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag
 from setuptools.dist import Distribution
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
@@ -508,29 +502,6 @@ def test_platform_with_space(dummy_dist, monkeypatch):
     """Ensure building on platforms with a space in the name succeed."""
     monkeypatch.chdir(dummy_dist)
     bdist_wheel_cmd(plat_name="isilon onefs").run()
-
-
-def test_rmtree_readonly(monkeypatch, tmp_path):
-    """Verify onerr works as expected"""
-
-    bdist_dir = tmp_path / "with_readonly"
-    bdist_dir.mkdir()
-    some_file = bdist_dir.joinpath("file.txt")
-    some_file.touch()
-    some_file.chmod(stat.S_IREAD)
-
-    expected_count = 1 if sys.platform.startswith("win") else 0
-
-    if sys.version_info < (3, 12):
-        count_remove_readonly = Mock(side_effect=remove_readonly)
-        shutil.rmtree(bdist_dir, onerror=count_remove_readonly)
-        assert count_remove_readonly.call_count == expected_count
-    else:
-        count_remove_readonly_exc = Mock(side_effect=remove_readonly_exc)
-        shutil.rmtree(bdist_dir, onexc=count_remove_readonly_exc)
-        assert count_remove_readonly_exc.call_count == expected_count
-
-    assert not bdist_dir.is_dir()
 
 
 def test_data_dir_with_tag_build(monkeypatch, tmp_path):
