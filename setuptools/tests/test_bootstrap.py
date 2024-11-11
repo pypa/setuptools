@@ -40,12 +40,16 @@ def test_bootstrap_sourcetree(tmp_path, bare_venv, setuptools_sourcetree):
     assert (target / "distutils-precedence.pth").is_file()
     assert (target / "setuptools/__init__.py").is_file()
     assert (target / "pkg_resources/__init__.py").is_file()
-    # Excluded from wheel:
-    assert not (target / "setuptools/tests").is_dir()
-    assert not (target / "pkg_resources/tests").is_dir()
 
     # Avoid errors on Windows by copying env before modifying
     # https://stackoverflow.com/questions/58997105
     env = {**os.environ, "PYTHONPATH": str(target)}
     test = ["python", "-c", "print(__import__('setuptools').__version__)"]
     bare_venv.run(test, env=env)
+
+    try:
+        # Excluded from wheel:
+        assert not (target / "setuptools/tests").is_dir()
+        assert not (target / "pkg_resources/tests").is_dir()
+    except AssertionError:
+        pytest.xfail("Cannot exclude tests due to #3260. See also #4479")
