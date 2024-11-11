@@ -1,7 +1,0 @@
-Added support for the environment variable
-``SETUPTOOLS_DANGEROUSLY_SKIP_PYPROJECT_VALIDATION=true``, allowing users to bypass
-the validation of ``pyproject.toml``.
-This option should be used only as a last resort when resolving dependency
-issues, as it may lead to improper functioning.
-Users who enable this setting are responsible for ensuring that ``pyproject.toml``
-complies with setuptools requirements.

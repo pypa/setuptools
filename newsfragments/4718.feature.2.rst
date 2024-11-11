@@ -1,4 +1,0 @@
-Remove dependency on ``importlib_resources``
-and the vendored copy of the library.
-Instead, ``setuptools`` consistently rely on stdlib's ``importlib.resources``
-(available on Python 3.9+).

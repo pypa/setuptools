@@ -1,3 +1,0 @@
-Setuptools' ``bdist_wheel`` implementation no longer produces wheels with
-the ``m`` SOABI flag (pymalloc-related).
-This flag was removed on Python 3.8+ (see :obj:`sys.abiflags`).

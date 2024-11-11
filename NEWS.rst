@@ -1,3 +1,33 @@
+v75.4.0
+=======
+
+Features
+--------
+
+- Added support for the environment variable
+  ``SETUPTOOLS_DANGEROUSLY_SKIP_PYPROJECT_VALIDATION=true``, allowing users to bypass
+  the validation of ``pyproject.toml``.
+  This option should be used only as a last resort when resolving dependency
+  issues, as it may lead to improper functioning.
+  Users who enable this setting are responsible for ensuring that ``pyproject.toml``
+  complies with setuptools requirements. (#4611)
+- Require Python 3.9 or later. (#4718)
+- Remove dependency on ``importlib_resources``
+  and the vendored copy of the library.
+  Instead, ``setuptools`` consistently rely on stdlib's ``importlib.resources``
+  (available on Python 3.9+). (#4718)
+- Setuptools' ``bdist_wheel`` implementation no longer produces wheels with
+  the ``m`` SOABI flag (pymalloc-related).
+  This flag was removed on Python 3.8+ (see :obj:`sys.abiflags`). (#4718)
+- Updated vendored packaging version to 24.2. (#4740)
+
+
+Bugfixes
+--------
+
+- Merge with pypa/distutils@251797602, including fix for dirutil.mkpath handling in pypa/distutils#304.
+
+
 v75.3.0
 =======
 
