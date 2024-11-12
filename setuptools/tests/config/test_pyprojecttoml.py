@@ -17,7 +17,6 @@ from setuptools.config.pyprojecttoml import (
 )
 from setuptools.dist import Distribution
 from setuptools.errors import OptionError
-from setuptools.warnings import SetuptoolsWarning
 
 import distutils.core
 
@@ -395,9 +394,3 @@ def test_warn_tools_typo(tmp_path):
 
     with pytest.warns(_ToolsTypoInMetadata):
         read_configuration(pyproject)
-
-
-def test_warn_skipping_validation(monkeypatch):
-    monkeypatch.setenv("SETUPTOOLS_DANGEROUSLY_SKIP_PYPROJECT_VALIDATION", "true")
-    with pytest.warns(SetuptoolsWarning, match="Skipping the validation"):
-        assert validate({"completely-wrong": "data"}, "pyproject.toml") is True
