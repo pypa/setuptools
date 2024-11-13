@@ -15,6 +15,7 @@ import pathlib
 import re
 import sys
 import sysconfig
+import shlex
 
 from jaraco.functools import pass_none
 
@@ -64,7 +65,6 @@ def _is_parent(dir_a, dir_b):
 
 
 if os.name == 'nt':
-
     @pass_none
     def _fix_pcbuild(d):
         # In a venv, sys._home will be inside BASE_PREFIX rather than PREFIX.
@@ -87,7 +87,6 @@ def _python_build():
 
 
 python_build = _python_build()
-
 
 # Calculate the build qualifier flags if they are defined.  Adding the flags
 # to the include and lib directories only makes sense for an installation, not
@@ -328,11 +327,14 @@ def customize_compiler(compiler):
             if 'LDSHARED' not in os.environ and ldshared.startswith(cc):
                 # If CC is overridden, use that as the default
                 #       command for LDSHARED as well
-                ldshared = newcc + ldshared[len(cc) :]
+                ldshared = newcc + ldshared[len(cc):]
             cc = newcc
         cxx = os.environ.get('CXX', cxx)
         ldshared = os.environ.get('LDSHARED', ldshared)
         ldcxxshared = os.environ.get('LDCXXSHARED', ldcxxshared)
+        ldcxxshared_s = shlex.split(ldcxxshared)
+        if ldcxxshared_s[0] in {'ccache', 'sccache'}:
+            ldcxxshared = shlex.join(ldcxxshared_s[1:])
         cpp = os.environ.get(
             'CPP',
             cc + " -E",  # not always
@@ -481,7 +483,7 @@ def parse_makefile(fn, g=None):  # noqa: C901
                 else:
                     done[n] = item = ""
                 if found:
-                    after = value[m.end() :]
+                    after = value[m.end():]
                     value = value[: m.start()] + item + after
                     if "$" in after:
                         notdone[name] = value
