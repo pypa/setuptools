@@ -1,2 +1,0 @@
-Removed support for ``SETUPTOOLS_DANGEROUSLY_SKIP_PYPROJECT_VALIDATION``, as it
-is deemed prone to errors.

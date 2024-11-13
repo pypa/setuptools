@@ -1,3 +1,13 @@
+v75.5.0
+=======
+
+Features
+--------
+
+- Removed support for ``SETUPTOOLS_DANGEROUSLY_SKIP_PYPROJECT_VALIDATION``, as it
+  is deemed prone to errors. (#4746)
+
+
 v75.4.0
 =======
 
