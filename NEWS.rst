@@ -11,6 +11,10 @@ Features
   issues, as it may lead to improper functioning.
   Users who enable this setting are responsible for ensuring that ``pyproject.toml``
   complies with setuptools requirements. (#4611)
+
+  .. attention::
+     This environment variable was removed in a later version of ``setuptools``.
+
 - Require Python 3.9 or later. (#4718)
 - Remove dependency on ``importlib_resources``
   and the vendored copy of the library.
