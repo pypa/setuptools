@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import os
-import shutil
 from typing import ClassVar
 
-from setuptools import Command
+from .. import Command, _shutil
 
 from distutils import log
 from distutils.errors import DistutilsOptionError
@@ -61,6 +60,6 @@ class rotate(Command):
                 log.info("Deleting %s", f)
                 if not self.dry_run:
                     if os.path.isdir(f):
-                        shutil.rmtree(f)
+                        _shutil.rmtree(f)
                     else:
                         os.unlink(f)

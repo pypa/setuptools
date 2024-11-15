@@ -9,7 +9,6 @@ from __future__ import annotations
 import os
 import re
 import shutil
-import stat
 import struct
 import sys
 import sysconfig
@@ -18,22 +17,18 @@ from collections.abc import Iterable, Sequence
 from email.generator import BytesGenerator, Generator
 from email.policy import EmailPolicy
 from glob import iglob
-from shutil import rmtree
-from typing import TYPE_CHECKING, Callable, Literal, cast
+from typing import Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from packaging import tags, version as _packaging_version
 from wheel.metadata import pkginfo_to_metadata
 from wheel.wheelfile import WheelFile
 
-from .. import Command, __version__
+from .. import Command, __version__, _shutil
 from ..warnings import SetuptoolsDeprecationWarning
 from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
-
-if TYPE_CHECKING:
-    from _typeshed import ExcInfo
 
 
 def safe_name(name: str) -> str:
@@ -146,21 +141,6 @@ def safer_name(name: str) -> str:
 
 def safer_version(version: str) -> str:
     return safe_version(version).replace("-", "_")
-
-
-def remove_readonly(
-    func: Callable[..., object],
-    path: str,
-    excinfo: ExcInfo,
-) -> None:
-    remove_readonly_exc(func, path, excinfo[1])
-
-
-def remove_readonly_exc(
-    func: Callable[..., object], path: str, exc: BaseException
-) -> None:
-    os.chmod(path, stat.S_IWRITE)
-    func(path)
 
 
 class bdist_wheel(Command):
@@ -458,7 +438,7 @@ class bdist_wheel(Command):
             shutil.copytree(self.dist_info_dir, distinfo_dir)
             # Egg info is still generated, so remove it now to avoid it getting
             # copied into the wheel.
-            shutil.rmtree(self.egginfo_dir)
+            _shutil.rmtree(self.egginfo_dir)
         else:
             # Convert the generated egg-info into dist-info.
             self.egg2dist(self.egginfo_dir, distinfo_dir)
@@ -483,10 +463,7 @@ class bdist_wheel(Command):
         if not self.keep_temp:
             log.info(f"removing {self.bdist_dir}")
             if not self.dry_run:
-                if sys.version_info < (3, 12):
-                    rmtree(self.bdist_dir, onerror=remove_readonly)
-                else:
-                    rmtree(self.bdist_dir, onexc=remove_readonly_exc)
+                _shutil.rmtree(self.bdist_dir)
 
     def write_wheelfile(
         self, wheelfile_base: str, generator: str = f"setuptools ({__version__})"
@@ -570,7 +547,7 @@ class bdist_wheel(Command):
         def adios(p: str) -> None:
             """Appropriately delete directory, file or link."""
             if os.path.exists(p) and not os.path.islink(p) and os.path.isdir(p):
-                shutil.rmtree(p)
+                _shutil.rmtree(p)
             elif os.path.exists(p):
                 os.unlink(p)
 
