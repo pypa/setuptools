@@ -282,5 +282,5 @@ def _distribution_fullname(name: str, version: str) -> str:
     """
     return "{}-{}".format(
         canonicalize_name(name).replace('-', '_'),
-        canonicalize_version(version, strip_trailing_zero=False),
+        canonicalize_version(version),
     )
