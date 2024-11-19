@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.3
 Name: packaging
-Version: 24.1
+Version: 24.2
 Summary: Core utilities for Python packages
 Author-email: Donald Stufft <donald@stufft.io>
 Requires-Python: >=3.8
