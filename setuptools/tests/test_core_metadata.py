@@ -378,6 +378,7 @@ class TestParityWithMetadataFromPyPaWheel:
             config = retrieve_file(request.param)
             yield setupcfg.apply_configuration(Distribution({}), config)
 
+    @pytest.mark.uses_network
     def test_equivalent_output(self, tmp_path, dist):
         """Ensure output from setuptools is equivalent to the one from `pypa/wheel`"""
         # Generate a METADATA file using pypa/wheel for comparison
@@ -455,6 +456,7 @@ def _normalize_metadata(msg: Message) -> str:
     del msg["Requires-Dist"]
     del msg["Provides-Extra"]
 
+    # Ensure consistent ord
     for req in sorted(reqs):
         msg["Requires-Dist"] = req
     for extra in sorted(extras):
