@@ -26,7 +26,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
 
     command_consumes_arguments = False  # override base
 
-    def run(self) -> None:
+    def run(self) -> None:  # type: ignore[override] # Not including easy_install's show_deprecation argument
         if self.uninstall:
             self.multi_version = True
             self.uninstall_link()
