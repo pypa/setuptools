@@ -266,7 +266,7 @@ class bdist_egg(Command):
 
                     pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\.pyc'
                     m = re.match(pattern, name)
-                    # We shouldn't ind any non-pyc files in __pycache__
+                    # We shouldn't find any non-pyc files in __pycache__
                     assert m is not None
                     path_new = os.path.join(base, os.pardir, m.group('name') + '.pyc')
                     log.info("Renaming file from [%s] to [%s]" % (path_old, path_new))
