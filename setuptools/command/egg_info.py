@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import time
+from collections.abc import Callable
 
 import packaging
 import packaging.requirements
@@ -330,7 +331,7 @@ class FileList(_FileList):
         super().__init__(warn, debug_print)
         self.ignore_egg_info_dir = ignore_egg_info_dir
 
-    def process_template_line(self, line):
+    def process_template_line(self, line) -> None:
         # Parse the line: split it up, make sure the right number of words
         # is there, and return the relevant words.  'action' is always
         # defined: it's the first word of the line.  Which of the other
@@ -338,7 +339,7 @@ class FileList(_FileList):
         # patterns, (dir and patterns), or (dir_pattern).
         (action, patterns, dir, dir_pattern) = self._parse_template_line(line)
 
-        action_map = {
+        action_map: dict[str, Callable] = {
             'include': self.include,
             'exclude': self.exclude,
             'global-include': self.global_include,

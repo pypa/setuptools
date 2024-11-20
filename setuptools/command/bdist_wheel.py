@@ -218,7 +218,7 @@ class bdist_wheel(Command):
 
     def initialize_options(self) -> None:
         self.bdist_dir: str | None = None
-        self.data_dir: str | None = None
+        self.data_dir = ""
         self.plat_name: str | None = None
         self.plat_tag: str | None = None
         self.format = "zip"

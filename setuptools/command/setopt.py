@@ -37,7 +37,7 @@ def edit_config(filename, settings, dry_run=False):
     """
     log.debug("Reading configuration from %s", filename)
     opts = configparser.RawConfigParser()
-    opts.optionxform = lambda x: x
+    opts.optionxform = lambda optionstr: optionstr  # type: ignore[method-assign] # overriding method
     _cfg_read_utf8_with_fallback(opts, filename)
 
     for section, options in settings.items():
