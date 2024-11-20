@@ -1,3 +1,15 @@
+v75.6.0
+=======
+
+Features
+--------
+
+- Preserve original ``PKG-INFO`` into ``METADATA`` when creating wheel
+  (instead of calling ``wheel.metadata.pkginfo_to_metadata``).
+  This helps to be more compliant with the flow specified in PEP 517. (#4701)
+- Changed the ``WindowsSdkVersion``, ``FrameworkVersion32`` and ``FrameworkVersion64`` properties of ``setuptools.msvc.PlatformInfo`` to return an empty `tuple` instead of `None` as a fallthrough case --  by :user:`Avasam` (#4754)
+
+
 v75.5.0
 =======
 
