@@ -1,15 +1,27 @@
+from __future__ import annotations
+
 import functools
 import importlib
 import io
 from email import message_from_string
+from email.generator import Generator
+from email.message import Message
+from email.parser import Parser
+from email.policy import EmailPolicy
+from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 from packaging.metadata import Metadata
+from packaging.requirements import Requirement
 
 from setuptools import _reqs, sic
 from setuptools._core_metadata import rfc822_escape, rfc822_unescape
 from setuptools.command.egg_info import egg_info, write_requirements
+from setuptools.config import expand, setupcfg
 from setuptools.dist import Distribution
+
+from .config.downloads import retrieve_file, urls_from_file
 
 EXAMPLE_BASE_INFO = dict(
     name="package",
@@ -303,84 +315,168 @@ def test_maintainer_author(name, attrs, tmpdir):
             assert line in pkg_lines_set
 
 
-def test_parity_with_metadata_from_pypa_wheel(tmp_path):
-    attrs = dict(
-        **EXAMPLE_BASE_INFO,
-        # Example with complex requirement definition
-        python_requires=">=3.8",
-        install_requires="""
-        packaging==23.2
-        more-itertools==8.8.0; extra == "other"
-        jaraco.text==3.7.0
-        importlib-resources==5.10.2; python_version<"3.8"
-        importlib-metadata==6.0.0 ; python_version<"3.8"
-        colorama>=0.4.4; sys_platform == "win32"
-        """,
-        extras_require={
-            "testing": """
-                pytest >= 6
-                pytest-checkdocs >= 2.4
-                tomli ; \\
-                        # Using stdlib when possible
-                        python_version < "3.11"
-                ini2toml[lite]>=0.9
-                """,
-            "other": [],
-        },
+class TestParityWithMetadataFromPyPaWheel:
+    def base_example(self):
+        attrs = dict(
+            **EXAMPLE_BASE_INFO,
+            # Example with complex requirement definition
+            python_requires=">=3.8",
+            install_requires="""
+            packaging==23.2
+            more-itertools==8.8.0; extra == "other"
+            jaraco.text==3.7.0
+            importlib-resources==5.10.2; python_version<"3.8"
+            importlib-metadata==6.0.0 ; python_version<"3.8"
+            colorama>=0.4.4; sys_platform == "win32"
+            """,
+            extras_require={
+                "testing": """
+                    pytest >= 6
+                    pytest-checkdocs >= 2.4
+                    tomli ; \\
+                            # Using stdlib when possible
+                            python_version < "3.11"
+                    ini2toml[lite]>=0.9
+                    """,
+                "other": [],
+            },
+        )
+        # Generate a PKG-INFO file using setuptools
+        return Distribution(attrs)
+
+    def test_requires_dist(self, tmp_path):
+        dist = self.base_example()
+        pkg_info = _get_pkginfo(dist)
+        assert _valid_metadata(pkg_info)
+
+        # Ensure Requires-Dist is present
+        expected = [
+            'Metadata-Version:',
+            'Requires-Python: >=3.8',
+            'Provides-Extra: other',
+            'Provides-Extra: testing',
+            'Requires-Dist: tomli; python_version < "3.11" and extra == "testing"',
+            'Requires-Dist: more-itertools==8.8.0; extra == "other"',
+            'Requires-Dist: ini2toml[lite]>=0.9; extra == "testing"',
+        ]
+        for line in expected:
+            assert line in pkg_info
+
+    HERE = Path(__file__).parent
+    EXAMPLES_FILE = HERE / "config/setupcfg_examples.txt"
+
+    @pytest.fixture(params=[None, *urls_from_file(EXAMPLES_FILE)])
+    def dist(self, request, monkeypatch, tmp_path):
+        """Example of distribution with arbitrary configuration"""
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.42"))
+        monkeypatch.setattr(expand, "read_files", Mock(return_value="hello world"))
+        if request.param is None:
+            yield self.base_example()
+        else:
+            # Real-world usage
+            config = retrieve_file(request.param)
+            yield setupcfg.apply_configuration(Distribution({}), config)
+
+    @pytest.mark.uses_network
+    def test_equivalent_output(self, tmp_path, dist):
+        """Ensure output from setuptools is equivalent to the one from `pypa/wheel`"""
+        # Generate a METADATA file using pypa/wheel for comparison
+        wheel_metadata = importlib.import_module("wheel.metadata")
+        pkginfo_to_metadata = getattr(wheel_metadata, "pkginfo_to_metadata", None)
+
+        if pkginfo_to_metadata is None:  # pragma: nocover
+            pytest.xfail(
+                "wheel.metadata.pkginfo_to_metadata is undefined, "
+                "(this is likely to be caused by API changes in pypa/wheel"
+            )
+
+        # Generate an simplified "egg-info" dir for pypa/wheel to convert
+        pkg_info = _get_pkginfo(dist)
+        egg_info_dir = tmp_path / "pkg.egg-info"
+        egg_info_dir.mkdir(parents=True)
+        (egg_info_dir / "PKG-INFO").write_text(pkg_info, encoding="utf-8")
+        write_requirements(egg_info(dist), egg_info_dir, egg_info_dir / "requires.txt")
+
+        # Get pypa/wheel generated METADATA but normalize requirements formatting
+        metadata_msg = pkginfo_to_metadata(egg_info_dir, egg_info_dir / "PKG-INFO")
+        metadata_str = _normalize_metadata(metadata_msg)
+        pkg_info_msg = message_from_string(pkg_info)
+        pkg_info_str = _normalize_metadata(pkg_info_msg)
+
+        # Compare setuptools PKG-INFO x pypa/wheel METADATA
+        assert metadata_str == pkg_info_str
+
+        # Make sure it parses/serializes well in pypa/wheel
+        _assert_roundtrip_message(pkg_info)
+
+
+def _assert_roundtrip_message(metadata: str) -> None:
+    """Emulate the way wheel.bdist_wheel parses and regenerates the message,
+    then ensures the metadata generated by setuptools is compatible.
+    """
+    with io.StringIO(metadata) as buffer:
+        msg = Parser().parse(buffer)
+
+    serialization_policy = EmailPolicy(
+        utf8=True,
+        mangle_from_=False,
+        max_line_length=0,
     )
-    # Generate a PKG-INFO file using setuptools
-    dist = Distribution(attrs)
+    with io.BytesIO() as buffer:
+        out = io.TextIOWrapper(buffer, encoding="utf-8")
+        Generator(out, policy=serialization_policy).flatten(msg)
+        out.flush()
+        regenerated = buffer.getvalue()
+
+    raw_metadata = bytes(metadata, "utf-8")
+    # Normalise newlines to avoid test errors on Windows:
+    raw_metadata = b"\n".join(raw_metadata.splitlines())
+    regenerated = b"\n".join(regenerated.splitlines())
+    assert regenerated == raw_metadata
+
+
+def _normalize_metadata(msg: Message) -> str:
+    """Allow equivalent metadata to be compared directly"""
+    # The main challenge regards the requirements and extras.
+    # Both setuptools and wheel already apply some level of normalization
+    # but they differ regarding which character is chosen, according to the
+    # following spec it should be "-":
+    # https://packaging.python.org/en/latest/specifications/name-normalization/
+
+    # Related issues:
+    # https://github.com/pypa/packaging/issues/845
+    # https://github.com/pypa/packaging/issues/644#issuecomment-2429813968
+
+    extras = {x.replace("_", "-"): x for x in msg.get_all("Provides-Extra", [])}
+    reqs = [
+        _normalize_req(req, extras)
+        for req in _reqs.parse(msg.get_all("Requires-Dist", []))
+    ]
+    del msg["Requires-Dist"]
+    del msg["Provides-Extra"]
+
+    # Ensure consistent ord
+    for req in sorted(reqs):
+        msg["Requires-Dist"] = req
+    for extra in sorted(extras):
+        msg["Provides-Extra"] = extra
+
+    return msg.as_string()
+
+
+def _normalize_req(req: Requirement, extras: dict[str, str]) -> str:
+    """Allow equivalent requirement objects to be compared directly"""
+    as_str = str(req).replace(req.name, req.name.replace("_", "-"))
+    for norm, orig in extras.items():
+        as_str = as_str.replace(orig, norm)
+    return as_str
+
+
+def _get_pkginfo(dist: Distribution):
     with io.StringIO() as fp:
         dist.metadata.write_pkg_file(fp)
-        pkg_info = fp.getvalue()
-
-    assert _valid_metadata(pkg_info)
-
-    # Ensure Requires-Dist is present
-    expected = [
-        'Metadata-Version:',
-        'Requires-Python: >=3.8',
-        'Provides-Extra: other',
-        'Provides-Extra: testing',
-        'Requires-Dist: tomli; python_version < "3.11" and extra == "testing"',
-        'Requires-Dist: more-itertools==8.8.0; extra == "other"',
-        'Requires-Dist: ini2toml[lite]>=0.9; extra == "testing"',
-    ]
-    for line in expected:
-        assert line in pkg_info
-
-    # Generate a METADATA file using pypa/wheel for comparison
-    wheel_metadata = importlib.import_module("wheel.metadata")
-    pkginfo_to_metadata = getattr(wheel_metadata, "pkginfo_to_metadata", None)
-
-    if pkginfo_to_metadata is None:
-        pytest.xfail(
-            "wheel.metadata.pkginfo_to_metadata is undefined, "
-            "(this is likely to be caused by API changes in pypa/wheel"
-        )
-
-    # Generate an simplified "egg-info" dir for pypa/wheel to convert
-    egg_info_dir = tmp_path / "pkg.egg-info"
-    egg_info_dir.mkdir(parents=True)
-    (egg_info_dir / "PKG-INFO").write_text(pkg_info, encoding="utf-8")
-    write_requirements(egg_info(dist), egg_info_dir, egg_info_dir / "requires.txt")
-
-    # Get pypa/wheel generated METADATA but normalize requirements formatting
-    metadata_msg = pkginfo_to_metadata(egg_info_dir, egg_info_dir / "PKG-INFO")
-    metadata_deps = set(_reqs.parse(metadata_msg.get_all("Requires-Dist")))
-    metadata_extras = set(metadata_msg.get_all("Provides-Extra"))
-    del metadata_msg["Requires-Dist"]
-    del metadata_msg["Provides-Extra"]
-    pkg_info_msg = message_from_string(pkg_info)
-    pkg_info_deps = set(_reqs.parse(pkg_info_msg.get_all("Requires-Dist")))
-    pkg_info_extras = set(pkg_info_msg.get_all("Provides-Extra"))
-    del pkg_info_msg["Requires-Dist"]
-    del pkg_info_msg["Provides-Extra"]
-
-    # Compare setuptools PKG-INFO x pypa/wheel METADATA
-    assert metadata_msg.as_string() == pkg_info_msg.as_string()
-    assert metadata_deps == pkg_info_deps
-    assert metadata_extras == pkg_info_extras
+        return fp.getvalue()
 
 
 def _valid_metadata(text: str) -> bool:

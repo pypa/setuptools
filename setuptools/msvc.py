@@ -442,7 +442,7 @@ class SystemInfo:
         dict
             float version as key, path as value.
         """
-        vs_versions = {}
+        vs_versions: dict[float, str] = {}
         instances_dir = r'C:\ProgramData\Microsoft\VisualStudio\Packages\_Instances'
 
         try:
@@ -622,7 +622,7 @@ class SystemInfo:
         str
             path
         """
-        sdkdir = ''
+        sdkdir: str | None = ''
         for ver in self.WindowsSdkVersion:
             # Try to get it from registry
             loc = os.path.join(self.ri.windows_sdk, 'v%s' % ver)

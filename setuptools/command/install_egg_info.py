@@ -26,7 +26,7 @@ class install_egg_info(namespaces.Installer, Command):
         basename = f"{ei_cmd._get_egg_basename()}.egg-info"
         self.source = ei_cmd.egg_info
         self.target = os.path.join(self.install_dir, basename)
-        self.outputs = []
+        self.outputs: list[str] = []
 
     def run(self) -> None:
         self.run_command('egg_info')

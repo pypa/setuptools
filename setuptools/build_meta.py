@@ -91,11 +91,11 @@ class Distribution(setuptools.dist.Distribution):
         for the duration of this context.
         """
         orig = distutils.core.Distribution
-        distutils.core.Distribution = cls
+        distutils.core.Distribution = cls  # type: ignore[misc] # monkeypatching
         try:
             yield
         finally:
-            distutils.core.Distribution = orig
+            distutils.core.Distribution = orig  # type: ignore[misc] # monkeypatching
 
 
 @contextlib.contextmanager

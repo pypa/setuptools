@@ -354,7 +354,7 @@ class easy_install(Command):
                 "No urls, filenames, or requirements specified (see --help)"
             )
 
-        self.outputs = []
+        self.outputs: list[str] = []
 
     @staticmethod
     def _process_site_dirs(site_dirs):

@@ -9,6 +9,7 @@ import os
 import re
 import sys
 import time
+from collections.abc import Callable
 
 import packaging
 import packaging.requirements
@@ -340,7 +341,7 @@ class FileList(_FileList):
         # patterns, (dir and patterns), or (dir_pattern).
         (action, patterns, dir, dir_pattern) = self._parse_template_line(line)
 
-        action_map = {
+        action_map: dict[str, Callable] = {
             'include': self.include,
             'exclude': self.exclude,
             'global-include': self.global_include,

@@ -14,14 +14,12 @@ import sys
 import sysconfig
 import warnings
 from collections.abc import Iterable, Sequence
-from email.generator import BytesGenerator, Generator
-from email.policy import EmailPolicy
+from email.generator import BytesGenerator
 from glob import iglob
 from typing import Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from packaging import tags, version as _packaging_version
-from wheel.metadata import pkginfo_to_metadata
 from wheel.wheelfile import WheelFile
 
 from .. import Command, __version__, _shutil
@@ -220,7 +218,7 @@ class bdist_wheel(Command):
 
     def initialize_options(self) -> None:
         self.bdist_dir: str | None = None
-        self.data_dir: str | None = None
+        self.data_dir = ""
         self.plat_name: str | None = None
         self.plat_tag: str | None = None
         self.format = "zip"
@@ -569,42 +567,30 @@ class bdist_wheel(Command):
 
             raise ValueError(err)
 
-        if os.path.isfile(egginfo_path):
-            # .egg-info is a single file
-            pkg_info = pkginfo_to_metadata(egginfo_path, egginfo_path)
-            os.mkdir(distinfo_path)
-        else:
-            # .egg-info is a directory
-            pkginfo_path = os.path.join(egginfo_path, "PKG-INFO")
-            pkg_info = pkginfo_to_metadata(egginfo_path, pkginfo_path)
+        # .egg-info is a directory
+        pkginfo_path = os.path.join(egginfo_path, "PKG-INFO")
 
-            # ignore common egg metadata that is useless to wheel
-            shutil.copytree(
-                egginfo_path,
-                distinfo_path,
-                ignore=lambda x, y: {
-                    "PKG-INFO",
-                    "requires.txt",
-                    "SOURCES.txt",
-                    "not-zip-safe",
-                },
-            )
-
-            # delete dependency_links if it is only whitespace
-            dependency_links_path = os.path.join(distinfo_path, "dependency_links.txt")
-            with open(dependency_links_path, encoding="utf-8") as dependency_links_file:
-                dependency_links = dependency_links_file.read().strip()
-            if not dependency_links:
-                adios(dependency_links_path)
-
-        pkg_info_path = os.path.join(distinfo_path, "METADATA")
-        serialization_policy = EmailPolicy(
-            utf8=True,
-            mangle_from_=False,
-            max_line_length=0,
+        # ignore common egg metadata that is useless to wheel
+        shutil.copytree(
+            egginfo_path,
+            distinfo_path,
+            ignore=lambda x, y: {
+                "PKG-INFO",
+                "requires.txt",
+                "SOURCES.txt",
+                "not-zip-safe",
+            },
         )
-        with open(pkg_info_path, "w", encoding="utf-8") as out:
-            Generator(out, policy=serialization_policy).flatten(pkg_info)
+
+        # delete dependency_links if it is only whitespace
+        dependency_links_path = os.path.join(distinfo_path, "dependency_links.txt")
+        with open(dependency_links_path, encoding="utf-8") as dependency_links_file:
+            dependency_links = dependency_links_file.read().strip()
+        if not dependency_links:
+            adios(dependency_links_path)
+
+        metadata_path = os.path.join(distinfo_path, "METADATA")
+        shutil.copy(pkginfo_path, metadata_path)
 
         for license_path in self.license_paths:
             filename = os.path.basename(license_path)

@@ -8,7 +8,7 @@ class saveopts(option_base):
 
     def run(self) -> None:
         dist = self.distribution
-        settings = {}
+        settings: dict[str, dict[str, str]] = {}
 
         for cmd in dist.command_options:
             if cmd == 'saveopts':

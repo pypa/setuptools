@@ -914,9 +914,10 @@ class Distribution(_Distribution):
         Note that options provided by config files are intentionally excluded.
         """
 
-        d = {}
+        d: dict[str, dict[str, str | None]] = {}
 
         for cmd, opts in self.command_options.items():
+            val: str | None
             for opt, (src, val) in opts.items():
                 if src != "command line":
                     continue

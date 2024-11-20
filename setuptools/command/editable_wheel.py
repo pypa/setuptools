@@ -784,7 +784,7 @@ class _NamespaceInstaller(namespaces.Installer):
         self.src_root = src_root
         self.installation_dir = installation_dir
         self.editable_name = editable_name
-        self.outputs = []
+        self.outputs: list[str] = []
         self.dry_run = False
 
     def _get_nspkg_file(self):
