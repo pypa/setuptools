@@ -1,0 +1,1 @@
+Changed the ``WindowsSdkVersion``, ``FrameworkVersion32`` and ``FrameworkVersion64`` properties of ``setuptools.msvc.PlatformInfo`` to return an empty `tuple` instead of `None` as a fallthrough case --  by :user:`Avasam`
