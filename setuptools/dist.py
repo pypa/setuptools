@@ -400,7 +400,7 @@ class Distribution(_Distribution):
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
         license_files: list[str] | None = self.metadata.license_files
-        patterns: list[str] = license_files if license_files else []
+        patterns: list[str] = license_files or []
 
         license_file: str | None = self.metadata.license_file
         if license_file and license_file not in patterns:
