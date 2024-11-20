@@ -111,6 +111,7 @@ class build(Command):
             self.build_scripts = os.path.join(
                 self.build_base, 'scripts-%d.%d' % sys.version_info[:2]
             )
+            os.makedirs(self.build_scripts, exist_ok=True)
 
         if self.executable is None and sys.executable:
             self.executable = os.path.normpath(sys.executable)
