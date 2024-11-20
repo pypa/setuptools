@@ -426,7 +426,7 @@ class SystemInfo:
                             vs_vers.append(ver)
         return sorted(vs_vers)
 
-    def find_programdata_vs_vers(self):
+    def find_programdata_vs_vers(self) -> dict[float, str]:
         r"""
         Find Visual studio 2017+ versions from information in
         "C:\ProgramData\Microsoft\VisualStudio\Packages\_Instances".
@@ -436,7 +436,7 @@ class SystemInfo:
         dict
             float version as key, path as value.
         """
-        vs_versions = {}
+        vs_versions: dict[float, str] = {}
         instances_dir = r'C:\ProgramData\Microsoft\VisualStudio\Packages\_Instances'
 
         try:
@@ -607,7 +607,7 @@ class SystemInfo:
         return self._use_last_dir_name(os.path.join(self.WindowsSdkDir, 'lib'))
 
     @property
-    def WindowsSdkDir(self):  # noqa: C901  # is too complex (12)  # FIXME
+    def WindowsSdkDir(self) -> str | None:  # noqa: C901  # is too complex (12)  # FIXME
         """
         Microsoft Windows SDK directory.
 
@@ -616,7 +616,7 @@ class SystemInfo:
         str
             path
         """
-        sdkdir = ''
+        sdkdir: str | None = ''
         for ver in self.WindowsSdkVersion:
             # Try to get it from registry
             loc = os.path.join(self.ri.windows_sdk, 'v%s' % ver)

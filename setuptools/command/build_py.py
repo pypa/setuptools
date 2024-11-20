@@ -39,7 +39,7 @@ class build_py(orig.build_py):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
     editable_mode: bool = False
-    existing_egg_info_dir: str | None = None  #: Private API, internal use only.
+    existing_egg_info_dir: StrPath | None = None  #: Private API, internal use only.
 
     def finalize_options(self):
         orig.build_py.finalize_options(self)
@@ -47,7 +47,6 @@ class build_py(orig.build_py):
         self.exclude_package_data = self.distribution.exclude_package_data or {}
         if 'data_files' in self.__dict__:
             del self.__dict__['data_files']
-        self.__updated_files = []
 
     def copy_file(  # type: ignore[override] # No overload, no bytes support
         self,
@@ -88,12 +87,6 @@ class build_py(orig.build_py):
             self.data_files = self._get_data_files()
             return self.data_files
         return orig.build_py.__getattr__(self, attr)
-
-    def build_module(self, module, module_file, package):
-        outfile, copied = orig.build_py.build_module(self, module, module_file, package)
-        if copied:
-            self.__updated_files.append(outfile)
-        return outfile, copied
 
     def _get_data_files(self):
         """Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
@@ -178,17 +171,17 @@ class build_py(orig.build_py):
             _outf, _copied = self.copy_file(srcfile, target)
             make_writable(target)
 
-    def analyze_manifest(self):
-        self.manifest_files = mf = {}
+    def analyze_manifest(self) -> None:
+        self.manifest_files: dict[str, list[str]] = {}
         if not self.distribution.include_package_data:
             return
-        src_dirs = {}
+        src_dirs: dict[str, str] = {}
         for package in self.packages or ():
             # Locate package source directory
             src_dirs[assert_relative(self.get_package_dir(package))] = package
 
         if (
-            getattr(self, 'existing_egg_info_dir', None)
+            self.existing_egg_info_dir
             and Path(self.existing_egg_info_dir, "SOURCES.txt").exists()
         ):
             egg_info_dir = self.existing_egg_info_dir
@@ -217,9 +210,11 @@ class build_py(orig.build_py):
                     importable = check.importable_subpackage(src_dirs[d], f)
                     if importable:
                         check.warn(importable)
-                mf.setdefault(src_dirs[d], []).append(path)
+                self.manifest_files.setdefault(src_dirs[d], []).append(path)
 
-    def _filter_build_files(self, files: Iterable[str], egg_info: str) -> Iterator[str]:
+    def _filter_build_files(
+        self, files: Iterable[str], egg_info: StrPath
+    ) -> Iterator[str]:
         """
         ``build_meta`` may try to create egg_info outside of the project directory,
         and this can be problematic for certain plugins (reported in issue #3500).

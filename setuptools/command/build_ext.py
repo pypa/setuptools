@@ -95,7 +95,7 @@ class build_ext(_build_ext):
 
     def run(self):
         """Build extensions in build directory, then copy if --inplace"""
-        old_inplace, self.inplace = self.inplace, 0
+        old_inplace, self.inplace = self.inplace, False
         _build_ext.run(self)
         self.inplace = old_inplace
         if old_inplace:
@@ -248,7 +248,7 @@ class build_ext(_build_ext):
             compiler.set_link_objects(self.link_objects)
 
         # hack so distutils' build_extension() builds a library instead
-        compiler.link_shared_object = link_shared_object.__get__(compiler)
+        compiler.link_shared_object = link_shared_object.__get__(compiler)  # type: ignore[method-assign]
 
     def get_export_symbols(self, ext):
         if isinstance(ext, Library):

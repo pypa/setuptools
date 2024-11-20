@@ -238,7 +238,7 @@ class easy_install(Command):
         print(f'setuptools {dist.version} from {dist.location} (Python {ver})')
         raise SystemExit
 
-    def finalize_options(self):  # noqa: C901  # is too complex (25)  # FIXME
+    def finalize_options(self) -> None:  # noqa: C901  # is too complex (25)  # FIXME
         self.version and self._render_version()
 
         py_version = sys.version.split()[0]
@@ -354,7 +354,7 @@ class easy_install(Command):
                 "No urls, filenames, or requirements specified (see --help)"
             )
 
-        self.outputs = []
+        self.outputs: list[str] = []
 
     @staticmethod
     def _process_site_dirs(site_dirs):

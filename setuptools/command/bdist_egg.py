@@ -277,7 +277,7 @@ class bdist_egg(Command):
         log.warn("zip_safe flag not set; analyzing archive contents...")
         return analyze_egg(self.bdist_dir, self.stubs)
 
-    def gen_header(self) -> str:
+    def gen_header(self) -> Literal["w"]:
         return 'w'
 
     def copy_metadata_to(self, target_dir) -> None:
