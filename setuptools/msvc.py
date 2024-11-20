@@ -20,7 +20,7 @@ from more_itertools import unique_everseen
 import distutils.errors
 
 if TYPE_CHECKING:
-    from typing_extensions import NotRequired
+    from typing_extensions import LiteralString, NotRequired
 
 # https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':
@@ -573,7 +573,7 @@ class SystemInfo:
         return self.ri.lookup(self.ri.vc, '%0.1f' % self.vs_ver) or default_vc
 
     @property
-    def WindowsSdkVersion(self):
+    def WindowsSdkVersion(self) -> tuple[LiteralString, ...]:
         """
         Microsoft Windows SDK versions for specified MSVC++ version.
 
@@ -592,7 +592,7 @@ class SystemInfo:
             return '8.1', '8.1a'
         elif self.vs_ver >= 14.0:
             return '10.0', '8.1'
-        return None
+        return ()
 
     @property
     def WindowsSdkLastVersion(self):
@@ -800,7 +800,7 @@ class SystemInfo:
         return self.ri.lookup(self.ri.vc, 'frameworkdir64') or guess_fw
 
     @property
-    def FrameworkVersion32(self):
+    def FrameworkVersion32(self) -> tuple[str, ...]:
         """
         Microsoft .NET Framework 32bit versions.
 
@@ -812,7 +812,7 @@ class SystemInfo:
         return self._find_dot_net_versions(32)
 
     @property
-    def FrameworkVersion64(self):
+    def FrameworkVersion64(self) -> tuple[str, ...]:
         """
         Microsoft .NET Framework 64bit versions.
 
@@ -823,7 +823,7 @@ class SystemInfo:
         """
         return self._find_dot_net_versions(64)
 
-    def _find_dot_net_versions(self, bits):
+    def _find_dot_net_versions(self, bits) -> tuple[str, ...]:
         """
         Find Microsoft .NET Framework versions.
 
@@ -851,7 +851,7 @@ class SystemInfo:
             return 'v3.5', 'v2.0.50727'
         elif self.vs_ver == 8.0:
             return 'v3.0', 'v2.0.50727'
-        return None
+        return ()
 
     @staticmethod
     def _use_last_dir_name(path, prefix=''):
