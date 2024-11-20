@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from importlib.util import cache_from_source as _compiled_file_name

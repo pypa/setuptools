@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING, TypedDict
 
 from more_itertools import unique_everseen
 
+from ._path import StrPath
+
 import distutils.errors
 
 if TYPE_CHECKING:
@@ -135,7 +137,7 @@ class PlatformInfo:
             else r'\%s' % self.target_cpu
         )
 
-    def cross_dir(self, forcex86=False):
+    def cross_dir(self, forcex86=False) -> str:
         r"""
         Cross platform specific subfolder.
 
@@ -306,7 +308,7 @@ class RegistryInfo:
         node64 = '' if self.pi.current_is_x86() or x86 else 'Wow6432Node'
         return os.path.join('Software', node64, 'Microsoft', key)
 
-    def lookup(self, key, name):
+    def lookup(self, key: str, name: str) -> str | None:
         """
         Look for values in registry in Microsoft software registry.
 
@@ -319,7 +321,7 @@ class RegistryInfo:
 
         Return
         ------
-        str
+        str | None
             value
         """
         key_read = winreg.KEY_READ
@@ -486,7 +488,7 @@ class SystemInfo:
         return float('.'.join(version.split('.')[:2]))
 
     @property
-    def VSInstallDir(self):
+    def VSInstallDir(self) -> str:
         """
         Microsoft Visual Studio directory.
 
@@ -504,7 +506,7 @@ class SystemInfo:
         return self.ri.lookup(self.ri.vs, '%0.1f' % self.vs_ver) or default
 
     @property
-    def VCInstallDir(self):
+    def VCInstallDir(self) -> str:
         """
         Microsoft Visual C++ directory.
 
@@ -607,7 +609,7 @@ class SystemInfo:
         return self._use_last_dir_name(os.path.join(self.WindowsSdkDir, 'lib'))
 
     @property
-    def WindowsSdkDir(self) -> str | None:  # noqa: C901  # is too complex (12)  # FIXME
+    def WindowsSdkDir(self) -> str:  # noqa: C901  # is too complex (12)  # FIXME
         """
         Microsoft Windows SDK directory.
 
@@ -650,13 +652,13 @@ class SystemInfo:
         return sdkdir
 
     @property
-    def WindowsSDKExecutablePath(self):
+    def WindowsSDKExecutablePath(self) -> str | None:
         """
         Microsoft Windows SDK executable directory.
 
         Return
         ------
-        str
+        str | None
             path
         """
         # Find WinSDK NetFx Tools registry dir name
@@ -687,7 +689,7 @@ class SystemInfo:
         return None
 
     @property
-    def FSharpInstallDir(self):
+    def FSharpInstallDir(self) -> str:
         """
         Microsoft Visual F# directory.
 
@@ -700,7 +702,7 @@ class SystemInfo:
         return self.ri.lookup(path, 'productdir') or ''
 
     @property
-    def UniversalCRTSdkDir(self):
+    def UniversalCRTSdkDir(self) -> str:
         """
         Microsoft Universal CRT SDK directory.
 
@@ -716,9 +718,9 @@ class SystemInfo:
         for ver in vers:
             sdkdir = self.ri.lookup(self.ri.windows_kits_roots, 'kitsroot%s' % ver)
             if sdkdir:
-                return sdkdir or ''
+                return sdkdir
 
-        return None
+        return ''
 
     @property
     def UniversalCRTSdkLastVersion(self):
@@ -750,16 +752,15 @@ class SystemInfo:
         )
 
     @property
-    def NetFxSdkDir(self):
+    def NetFxSdkDir(self) -> str | None:
         """
         Microsoft .NET Framework SDK directory.
 
         Return
         ------
-        str
+        str | None
             path
         """
-        sdkdir = ''
         for ver in self.NetFxSdkVersion:
             loc = os.path.join(self.ri.netfx_sdk, ver)
             sdkdir = self.ri.lookup(loc, 'kitsinstallationfolder')
@@ -768,7 +769,7 @@ class SystemInfo:
         return sdkdir
 
     @property
-    def FrameworkDir32(self):
+    def FrameworkDir32(self) -> str:
         """
         Microsoft .NET Framework 32bit directory.
 
@@ -784,7 +785,7 @@ class SystemInfo:
         return self.ri.lookup(self.ri.vc, 'frameworkdir32') or guess_fw
 
     @property
-    def FrameworkDir64(self):
+    def FrameworkDir64(self) -> str:
         """
         Microsoft .NET Framework 64bit directory.
 
@@ -854,7 +855,7 @@ class SystemInfo:
         return ()
 
     @staticmethod
-    def _use_last_dir_name(path, prefix=''):
+    def _use_last_dir_name(path: StrPath, prefix: str = '') -> str:
         """
         Return name of the last dir in path or '' if no dir found.
 
@@ -876,7 +877,7 @@ class SystemInfo:
             if os.path.isdir(os.path.join(path, dir_name))
             and dir_name.startswith(prefix)
         )
-        return next(matching_dirs, None) or ''
+        return next(matching_dirs, '')
 
 
 class _EnvironmentDict(TypedDict):
@@ -1190,7 +1191,7 @@ class EnvironmentInfo:
             yield self.si.WindowsSDKExecutablePath
 
     @property
-    def _sdk_subdir(self):
+    def _sdk_subdir(self) -> str:
         """
         Microsoft Windows SDK version subdir.
 
@@ -1369,7 +1370,7 @@ class EnvironmentInfo:
         return [os.path.join(include, '%sucrt' % self._ucrt_subdir)]
 
     @property
-    def _ucrt_subdir(self):
+    def _ucrt_subdir(self) -> str:
         """
         Microsoft Universal C Runtime SDK version subdir.
 
