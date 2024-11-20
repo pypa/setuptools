@@ -238,7 +238,7 @@ class bdist_egg(Command):
             self.egg_output,
             archive_root,
             verbose=self.verbose,
-            dry_run=self.dry_run,
+            dry_run=self.dry_run,  # type: ignore[arg-type] # Is an actual boolean in vendored _distutils
             mode=self.gen_header(),
         )
         if not self.keep_temp:
