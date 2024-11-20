@@ -1,3 +1,0 @@
-Preserve original ``PKG-INFO`` into ``METADATA`` when creating wheel
-(instead of calling ``wheel.metadata.pkginfo_to_metadata``).
-This helps to be more compliant with the flow specified in PEP 517.
