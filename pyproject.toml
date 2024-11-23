@@ -1,5 +1,19 @@
 [build-system]
-requires = []
+requires = [
+	# setuptools builds itself; keep in sync with dependencies below
+
+	"packaging>=24.2",
+	"more-itertools>=8.8",
+	"wheel>=0.43.0",
+	"tomli>=2.0.1; python_version < '3.11'",
+
+	# pkg_resources
+	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
+
+	# for distutils
+	"packaging",
+	"more-itertools",
+]
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
