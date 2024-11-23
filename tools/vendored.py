@@ -15,13 +15,13 @@ def update_vendored():
     update_setuptools()
 
 
-def clean(vendor):
+def clean(target):
     """
-    Remove all files out of the vendor directory except the meta
+    Remove all files out of the target directory except the meta
     data (as pip uninstall doesn't support -t).
     """
     ignored = ['ruff.toml']
-    remove_all(path for path in vendor.glob('*') if path.basename() not in ignored)
+    remove_all(path for path in target.glob('*') if path.basename() not in ignored)
 
 
 @functools.lru_cache
@@ -47,7 +47,7 @@ def min_python():
     return metadata()['Requires-Python'].removeprefix('>=').strip()
 
 
-def install_deps(deps, vendor):
+def install_deps(deps, target):
     """
     Install the deps to vendor.
     """
@@ -56,7 +56,7 @@ def install_deps(deps, vendor):
         'pip',
         'install',
         '--target',
-        str(vendor),
+        str(target),
         '--python-version',
         min_python(),
         '--only-binary',
@@ -66,10 +66,10 @@ def install_deps(deps, vendor):
 
 
 def update_setuptools():
-    vendor = Path('setuptools/_vendor')
+    target = Path('setuptools/_vendor')
     deps = load_deps()
-    clean(vendor)
-    install_deps(deps, vendor)
+    clean(target)
+    install_deps(deps, target)
 
 
 __name__ == '__main__' and update_vendored()
