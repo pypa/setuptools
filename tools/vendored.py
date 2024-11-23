@@ -25,18 +25,28 @@ def metadata():
     return jaraco.packaging.metadata.load('.')
 
 
-def upgrade_core(dep):
-    """
-    Remove 'extra == "core"' from any dependency.
-    """
-    return re.sub('''(;| and) extra == ['"]core['"]''', '', dep)
+class Core(str):
+    exp = '''(;| and) extra == ['"]core['"]'''
 
+    def bare(self):
+        """
+        Remove 'extra == "core"' from any dependency.
+        """
+        return re.sub(self.exp, '', self)
 
-def load_deps():
-    """
-    Read the dependencies from `.[core]`.
-    """
-    return list(map(upgrade_core, metadata().get_all('Requires-Dist')))
+    def __bool__(self):
+        """
+        Determine if the dependency is "core".
+        """
+        return bool(re.search(self.exp, self))
+
+    @classmethod
+    def load(cls):
+        """
+        Read the dependencies from `.[core]`.
+        """
+        specs = metadata().get_all('Requires-Dist')
+        return [dep.bare() for dep in map(Core, specs) if dep]
 
 
 def min_python():
@@ -63,7 +73,7 @@ def install_deps(deps, target):
 
 def update_vendored():
     target = Path('setuptools/_vendor')
-    deps = load_deps()
+    deps = Core.load()
     clean(target)
     install_deps(deps, target)
 
