@@ -11,10 +11,6 @@ def remove_all(paths):
         path.rmtree() if path.is_dir() else path.remove()
 
 
-def update_vendored():
-    update_setuptools()
-
-
 def clean(target):
     """
     Remove all files out of the target directory except the meta
@@ -65,7 +61,7 @@ def install_deps(deps, target):
     subprocess.check_call(install_args)
 
 
-def update_setuptools():
+def update_vendored():
     target = Path('setuptools/_vendor')
     deps = load_deps()
     clean(target)
