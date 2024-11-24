@@ -123,6 +123,10 @@ class TestDirUtil(support.TempdirManager):
             def mkdir(self, *args, **kwargs):
                 raise OSError("Failed to create directory")
 
+            _flavor = (
+                pathlib._windows_flavour if os.name == 'nt' else pathlib._posix_flavour
+            )
+
         target = tmp_path / 'foodir'
 
         with pytest.raises(errors.DistutilsFileError):
