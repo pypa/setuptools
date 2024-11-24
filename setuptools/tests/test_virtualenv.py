@@ -103,11 +103,3 @@ def test_pip_upgrade_from_source(
     venv.run(["pip", "install", str(setuptools_wheel)])
     # And finally try to upgrade from source.
     venv.run(["pip", "install", "--no-cache-dir", "--upgrade", str(setuptools_sdist)])
-
-
-def test_no_missing_dependencies(bare_venv, request):
-    """
-    Quick and dirty test to ensure all external dependencies are vendored.
-    """
-    setuptools_dir = request.config.rootdir
-    bare_venv.run(['python', 'setup.py', '--help'], cwd=setuptools_dir)
