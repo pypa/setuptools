@@ -19,6 +19,10 @@ extend-select = [
 	"YTT",
 ]
 ignore = [
+	# TODO: Fix these new violations in Ruff 0.8.0
+	"UP031",
+	"UP036",
+
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
 	"E111",

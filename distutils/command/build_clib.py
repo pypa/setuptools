@@ -138,8 +138,7 @@ class build_clib(Command):
 
             if '/' in name or (os.sep != '/' and os.sep in name):
                 raise DistutilsSetupError(
-                    f"bad library name '{lib[0]}': "
-                    "may not contain directory separators"
+                    f"bad library name '{lib[0]}': may not contain directory separators"
                 )
 
             if not isinstance(build_info, dict):
