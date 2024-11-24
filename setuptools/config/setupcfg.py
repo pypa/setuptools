@@ -272,7 +272,7 @@ class ConfigHandler(Generic[Target]):
     def parsers(self):
         """Metadata item name to parser function mapping."""
         raise NotImplementedError(
-            '%s must provide .parsers property' % self.__class__.__name__
+            f'{self.__class__.__name__} must provide .parsers property'
         )
 
     def __setitem__(self, option_name, value) -> None:
