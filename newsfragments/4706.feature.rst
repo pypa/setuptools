@@ -1,1 +1,1 @@
-Added initial support for ``License-Expression`` (`PEP 639 <https://peps.python.org/pep-0639/#add-license-expression-field>`_). -- by :user:`cdce8p`
+Added initial support for license expression (`PEP 639 <https://peps.python.org/pep-0639/#add-license-expression-field>`_). -- by :user:`cdce8p`
