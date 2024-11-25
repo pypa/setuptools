@@ -315,9 +315,6 @@ def test_license_in_metadata(
 
 
 class TestLicenseFiles:
-    # TODO: After PEP 639 is accepted, we have to move the license-files
-    #       to the `project` table instead of `tool.setuptools`
-
     def base_pyproject(self, tmp_path, additional_text):
         pyproject = _pep621_example_project(tmp_path, "README")
         text = pyproject.read_text(encoding="utf-8")
@@ -327,6 +324,24 @@ class TestLicenseFiles:
         assert "[tool.setuptools]" not in text
 
         text = f"{text}\n{additional_text}\n"
+        pyproject.write_text(text, encoding="utf-8")
+        return pyproject
+
+    def base_pyproject_license_pep639(self, tmp_path):
+        pyproject = _pep621_example_project(tmp_path, "README")
+        text = pyproject.read_text(encoding="utf-8")
+
+        # Sanity-check
+        assert 'license = {file = "LICENSE.txt"}' in text
+        assert 'license-files' not in text
+        assert "[tool.setuptools]" not in text
+
+        text = re.sub(
+            r"(license = {file = \"LICENSE.txt\"})\n",
+            ("license = \"licenseref-Proprietary\"\nlicense-files = [\"_FILE*\"]\n"),
+            text,
+            count=1,
+        )
         pyproject.write_text(text, encoding="utf-8")
         return pyproject
 
@@ -345,6 +360,18 @@ class TestLicenseFiles:
         dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
         assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
         assert dist.metadata.license == "LicenseRef-Proprietary\n"
+
+    def test_both_license_and_license_files_defined_pep639(self, tmp_path):
+        # Set license and license-files
+        pyproject = self.base_pyproject_license_pep639(tmp_path)
+
+        (tmp_path / "_FILE.txt").touch()
+        (tmp_path / "_FILE.rst").touch()
+
+        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
+        assert dist.metadata.license is None
+        assert dist.metadata.license_expression == "LicenseRef-Proprietary"
 
     def test_default_patterns(self, tmp_path):
         setuptools_config = '[tool.setuptools]\nzip-safe = false'
