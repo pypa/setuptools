@@ -169,7 +169,7 @@ Common commands: (see '--help-commands' for more)
         # and sys.argv[1:], but they can be overridden when the caller is
         # not necessarily a setup script run from the command-line.
         self.script_name = None
-        self.script_args = None
+        self.script_args: list[str] | None = None
 
         # 'command_options' is where we store command options between
         # parsing them (from config files, the command-line, etc.) and when
@@ -269,6 +269,8 @@ Common commands: (see '--help-commands' for more)
         self.want_user_cfg = True
 
         if self.script_args is not None:
+            # Coerce any possible iterable from attrs into a list
+            self.script_args = list(self.script_args)
             for arg in self.script_args:
                 if not arg.startswith('-'):
                     break
