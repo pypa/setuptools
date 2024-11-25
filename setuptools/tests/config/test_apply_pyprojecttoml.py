@@ -290,7 +290,7 @@ def test_utf8_maintainer_in_metadata(  # issue-3663
             PEP639_LICENSE_EXPRESSION,
             None,
             'MIT OR Apache-2.0',
-            'License-Expression: MIT OR Apache-2.0',
+            'License: MIT OR Apache-2.0',  # TODO Metadata version '2.4'
             id='license-expression',
         ),
     ),
