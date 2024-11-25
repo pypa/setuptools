@@ -58,6 +58,7 @@ def apply(dist: Distribution, config: dict, filename: StrPath) -> Distribution:
     os.chdir(root_dir)
     try:
         dist._finalize_requires()
+        dist._finalize_license_expression()
         dist._finalize_license_files()
     finally:
         os.chdir(current_directory)

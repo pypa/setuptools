@@ -23,7 +23,7 @@ from setuptools.command.egg_info import write_requirements
 from setuptools.config import expand, pyprojecttoml, setupcfg
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.dist import Distribution
-from setuptools.errors import RemovedConfigError
+from setuptools.errors import InvalidConfigError, RemovedConfigError
 
 from .downloads import retrieve_file, urls_from_file
 
@@ -175,7 +175,10 @@ authors = [
   {email = "hi@pradyunsg.me"},
   {name = "Tzu-Ping Chung"}
 ]
-license = "MIT"
+license = "mit or apache-2.0"  # should be normalized in metadata
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+]
 """
 
 
@@ -286,8 +289,8 @@ def test_utf8_maintainer_in_metadata(  # issue-3663
         pytest.param(
             PEP639_LICENSE_EXPRESSION,
             None,
-            'MIT',
-            'License-Expression: MIT',
+            'MIT OR Apache-2.0',
+            'License-Expression: MIT OR Apache-2.0',
             id='license-expression',
         ),
     ),
@@ -312,6 +315,18 @@ def test_license_in_metadata(
         dist.metadata.write_pkg_file(fh)
     content = pkg_file.read_text(encoding="utf-8")
     assert content_str in content
+
+
+def test_license_expression_with_bad_classifier(tmp_path):
+    text = PEP639_LICENSE_EXPRESSION.rsplit("\n", 2)[0]
+    pyproject = _pep621_example_project(
+        tmp_path,
+        "README",
+        f"{text}\n    \"License :: OSI Approved :: MIT License\"\n]",
+    )
+    msg = "License classifier are deprecated.*'License :: OSI Approved :: MIT License'"
+    with pytest.raises(InvalidConfigError, match=msg):
+        pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
 
 class TestLicenseFiles:
