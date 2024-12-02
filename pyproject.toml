@@ -210,6 +210,10 @@ exclude = [
 ]
 namespaces = true
 
+[tool.setuptools.exclude-package-data]
+# Remove ruff.toml when installing vendored packages (#4652)
+"*" = ["ruff.toml"]
+
 [tool.distutils.sdist]
 formats = "zip"
 
