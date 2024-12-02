@@ -18,6 +18,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+from collections.abc import Iterator
 from fnmatch import translate
 from functools import wraps
 from typing import NamedTuple
@@ -113,7 +114,7 @@ def egg_info_for_url(url):
     return base, fragment
 
 
-def distros_for_url(url, metadata=None):
+def distros_for_url(url, metadata=None) -> Iterator[Distribution]:
     """Yield egg or source distribution objects that might be found at a URL"""
     base, fragment = egg_info_for_url(url)
     yield from distros_for_location(url, base, metadata)
@@ -125,7 +126,9 @@ def distros_for_url(url, metadata=None):
             )
 
 
-def distros_for_location(location, basename, metadata=None):
+def distros_for_location(
+    location, basename, metadata=None
+) -> list[Distribution] | Iterator[Distribution]:
     """Yield egg or source distribution objects based on basename"""
     if basename.endswith('.egg.zip'):
         basename = basename[:-4]  # strip the .zip
@@ -169,7 +172,7 @@ def distros_for_filename(filename, metadata=None):
 
 def interpret_distro_name(
     location, basename, metadata, py_version=None, precedence=SOURCE_DIST, platform=None
-):
+) -> Iterator[Distribution]:
     """Generate the interpretation of a source distro name
 
     Note: if `location` is a filesystem filename, you should call
@@ -244,7 +247,7 @@ class ContentChecker:
     A null content checker that defines the interface for checking content
     """
 
-    def feed(self, block):
+    def feed(self, block) -> None:
         """
         Feed a block of data to the hash.
         """
@@ -256,7 +259,7 @@ class ContentChecker:
         """
         return True
 
-    def report(self, reporter, template):
+    def report(self, reporter, template) -> None:
         """
         Call reporter with information about the checker (hash name)
         substituted into the template.
@@ -286,7 +289,7 @@ class HashChecker(ContentChecker):
             return ContentChecker()
         return cls(**match.groupdict())
 
-    def feed(self, block):
+    def feed(self, block) -> None:
         self.hash.update(block)
 
     def is_valid(self):
@@ -1017,7 +1020,7 @@ class Credential(NamedTuple):
 
 
 class PyPIConfig(configparser.RawConfigParser):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Load from ~/.pypirc
         """

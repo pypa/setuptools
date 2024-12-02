@@ -2,6 +2,8 @@
 
 Create a distribution's .egg-info directory and contents"""
 
+from __future__ import annotations
+
 import functools
 import os
 import re
@@ -196,11 +198,11 @@ class egg_info(InfoCommon, Command):
     # allow the 'tag_svn_revision' to be detected and
     # set, supporting sdists built on older Setuptools.
     @property
-    def tag_svn_revision(self) -> None:
+    def tag_svn_revision(self) -> int | None:
         pass
 
     @tag_svn_revision.setter
-    def tag_svn_revision(self, value):
+    def tag_svn_revision(self, value) -> None:
         pass
 
     ####################################

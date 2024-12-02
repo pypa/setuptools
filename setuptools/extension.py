@@ -13,7 +13,7 @@ import distutils.errors
 import distutils.extension
 
 
-def _have_cython():
+def _have_cython() -> bool:
     """
     Return True if Cython can be imported.
     """
