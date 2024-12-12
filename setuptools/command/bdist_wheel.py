@@ -134,7 +134,13 @@ def get_abi_tag() -> str | None:
 
 
 def safer_name(name: str) -> str:
-    return safe_name(name).replace("-", "_")
+    return (
+        # Per https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization
+        re.sub(r"[-_.]+", "-", safe_name(name))
+        .lower()
+        # Per https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode
+        .replace("-", "_")
+    )
 
 
 def safer_version(version: str) -> str:
@@ -364,9 +370,9 @@ class bdist_wheel(Command):
             supported_tags = [
                 (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
             ]
-            assert tag in supported_tags, (
-                f"would build wheel with unsupported tag {tag}"
-            )
+            assert (
+                tag in supported_tags
+            ), f"would build wheel with unsupported tag {tag}"
         return tag
 
     def run(self):
