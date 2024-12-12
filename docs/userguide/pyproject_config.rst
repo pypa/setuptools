@@ -49,7 +49,7 @@ The ``project`` table contains metadata fields as described by the
    readme = "README.rst"
    requires-python = ">=3.8"
    keywords = ["one", "two"]
-   license = {text = "BSD-3-Clause"}
+   license = "BSD-3-Clause"
    classifiers = [
        "Framework :: Django",
        "Programming Language :: Python :: 3",
