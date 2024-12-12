@@ -50,10 +50,12 @@ class sdist(orig.sdist):
     ]
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
-    negative_opt: ClassVar[dict[str, str]] = {}
+    # TODO: Mark class-level mutables as ClassVars in pypa/distutils (like python/typeshed#12403)
+    negative_opt: ClassVar[dict[str, str]] = {}  # type: ignore[misc]
 
     README_EXTENSIONS = ['', '.rst', '.txt', '.md']
-    READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
+    # TODO: Mark some class-level tuples as as not fixed-length pypa/distutils (like python/typeshed#12403)
+    READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)  # type: ignore[assignment]
 
     def run(self) -> None:
         self.run_command('egg_info')
