@@ -1,5 +1,19 @@
 [build-system]
-requires = []
+requires = [
+	# setuptools builds itself; keep in sync with dependencies below
+
+	"packaging>=24.2",
+	"more-itertools>=8.8",
+	"wheel>=0.43.0",
+	"tomli>=2.0.1; python_version < '3.11'",
+
+	# pkg_resources
+	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
+
+	# for distutils
+	"packaging",
+	"more-itertools",
+]
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
@@ -24,6 +38,17 @@ classifiers = [
 ]
 requires-python = ">=3.9"
 dependencies = [
+	"packaging>=24.2",
+	"more-itertools>=8.8",
+	"wheel>=0.43.0",
+	"tomli>=2.0.1; python_version < '3.11'",
+
+	# pkg_resources
+	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
+
+	# for distutils
+	"packaging",
+	"more-itertools",
 ]
 keywords = ["CPAN PyPI distutils eggs package management"]
 
@@ -90,21 +115,14 @@ doc = [
 ssl = []
 certs = []
 core = [
-	"packaging>=24.2",
-	"more_itertools>=8.8",
+	# #2825: dependencies with a setuptools build dependency go here.
+
 	"jaraco.text>=3.7",
 	"importlib_metadata>=6; python_version < '3.10'",
-	"tomli>=2.0.1; python_version < '3.11'",
-	"wheel>=0.43.0",
-
-	# pkg_resources
-	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
 
 	# for distutils
 	"jaraco.collections",
 	"jaraco.functools>=4",
-	"packaging",
-	"more_itertools",
 ]
 
 check = [

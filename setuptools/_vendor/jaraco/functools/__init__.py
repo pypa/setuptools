@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections.abc
 import functools
 import inspect
@@ -7,12 +9,22 @@ import time
 import types
 import warnings
 
+from typing import Callable, TypeVar
+
 import more_itertools
 
 
 def compose(*funcs):
     """
     Compose any number of unary functions into a single unary function.
+
+    Comparable to
+    `function composition <https://en.wikipedia.org/wiki/Function_composition>`_
+    in mathematics:
+
+    ``h = g ∘ f`` implies ``h(x) = g(f(x))``.
+
+    In Python, ``h = compose(g, f)``.
 
     >>> import textwrap
     >>> expected = str.strip(textwrap.dedent(compose.__doc__))
@@ -631,3 +643,43 @@ def splat(func):
     {'msg': 'unknown', 'code': 0}
     """
     return functools.wraps(func)(functools.partial(_splat_inner, func=func))
+
+
+_T = TypeVar('_T')
+
+
+def chainable(method: Callable[[_T, ...], None]) -> Callable[[_T, ...], _T]:
+    """
+    Wrap an instance method to always return self.
+
+
+    >>> class Dingus:
+    ...     @chainable
+    ...     def set_attr(self, name, val):
+    ...         setattr(self, name, val)
+    >>> d = Dingus().set_attr('a', 'eh!')
+    >>> d.a
+    'eh!'
+    >>> d2 = Dingus().set_attr('a', 'eh!').set_attr('b', 'bee!')
+    >>> d2.a + d2.b
+    'eh!bee!'
+
+    Enforces that the return value is null.
+
+    >>> class BorkedDingus:
+    ...     @chainable
+    ...     def set_attr(self, name, val):
+    ...         setattr(self, name, val)
+    ...         return len(name)
+    >>> BorkedDingus().set_attr('a', 'eh!')
+    Traceback (most recent call last):
+    ...
+    AssertionError
+    """
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        assert method(self, *args, **kwargs) is None
+        return self
+
+    return wrapper
