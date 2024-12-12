@@ -1,0 +1,1 @@
+Setuptools no longer vendors those dependencies that are built using other backends and instead declares those dependencies naturally.
