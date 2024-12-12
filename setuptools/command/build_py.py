@@ -41,7 +41,7 @@ class build_py(orig.build_py):
     editable_mode: bool = False
     existing_egg_info_dir: StrPath | None = None  #: Private API, internal use only.
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         orig.build_py.finalize_options(self)
         self.package_data = self.distribution.package_data
         self.exclude_package_data = self.distribution.exclude_package_data or {}
@@ -93,7 +93,7 @@ class build_py(orig.build_py):
         self.analyze_manifest()
         return list(map(self._get_pkg_data_files, self.packages or ()))
 
-    def get_data_files_without_manifest(self):
+    def get_data_files_without_manifest(self) -> list[tuple[str, str, str, list[str]]]:
         """
         Generate list of ``(package,src_dir,build_dir,filenames)`` tuples,
         but without triggering any attempt to analyze or build the manifest.
@@ -103,7 +103,7 @@ class build_py(orig.build_py):
         self.__dict__.setdefault('manifest_files', {})
         return list(map(self._get_pkg_data_files, self.packages or ()))
 
-    def _get_pkg_data_files(self, package):
+    def _get_pkg_data_files(self, package: str) -> tuple[str, str, str, list[str]]:
         # Locate package source directory
         src_dir = self.get_package_dir(package)
 
@@ -272,7 +272,7 @@ class build_py(orig.build_py):
         self.editable_mode = False
         self.existing_egg_info_dir = None
 
-    def get_package_dir(self, package):
+    def get_package_dir(self, package: str) -> str:
         res = orig.build_py.get_package_dir(self, package)
         if self.distribution.src_root is not None:
             return os.path.join(self.distribution.src_root, res)
