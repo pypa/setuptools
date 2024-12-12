@@ -413,7 +413,10 @@ class Distribution(_Distribution):
             patterns = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
 
         self.metadata.license_files = list(
-            unique_everseen(self._expand_patterns(patterns))
+            map(
+                lambda path: path.replace("\\", "/"),
+                unique_everseen(self._expand_patterns(patterns)),
+            )
         )
 
     @staticmethod
@@ -427,7 +430,7 @@ class Distribution(_Distribution):
         return (
             path
             for pattern in patterns
-            for path in sorted(iglob(pattern))
+            for path in sorted(iglob(pattern, recursive=True))
             if not path.endswith('~') and os.path.isfile(path)
         )
 
