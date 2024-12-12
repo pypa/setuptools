@@ -180,4 +180,5 @@ class install(orig.install):
 # XXX Python 3.1 doesn't see _nc if this is inside the class
 install.sub_commands = [
     cmd for cmd in orig.install.sub_commands if cmd[0] not in install._nc
-] + install.new_commands
+] + install.new_commands  # type: ignore[operator]
+# TODO: Type sub_commands/new_commands to avoid variance issues in pypa/distutils (like python/typeshed#11951)
