@@ -393,7 +393,9 @@ class TestBuildMetaBackend:
         with ZipFile(os.path.join(tmpdir, "temp", wheel_file)) as zipfile:
             wheel_contents = set(zipfile.namelist())
             metadata = str(zipfile.read("foo-0.1.dist-info/METADATA"), "utf-8")
-            license = str(zipfile.read("foo-0.1.dist-info/LICENSE.txt"), "utf-8")
+            license = str(
+                zipfile.read("foo-0.1.dist-info/licenses/LICENSE.txt"), "utf-8"
+            )
             epoints = str(zipfile.read("foo-0.1.dist-info/entry_points.txt"), "utf-8")
 
         assert sdist_contents - {"foo-0.1/setup.py"} == {
@@ -426,7 +428,7 @@ class TestBuildMetaBackend:
             "foo/cli.py",
             "foo/data.txt",  # include_package_data defaults to True
             "foo/py.typed",  # include type information by default
-            "foo-0.1.dist-info/LICENSE.txt",
+            "foo-0.1.dist-info/licenses/LICENSE.txt",
             "foo-0.1.dist-info/METADATA",
             "foo-0.1.dist-info/WHEEL",
             "foo-0.1.dist-info/entry_points.txt",
@@ -438,6 +440,7 @@ class TestBuildMetaBackend:
         for line in (
             "Summary: This is a Python package",
             "License: MIT",
+            "License-File: LICENSE.txt",
             "Classifier: Intended Audience :: Developers",
             "Requires-Dist: appdirs",
             "Requires-Dist: " + str(Requirement('tomli>=1 ; extra == "all"')),
