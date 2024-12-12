@@ -1,0 +1,2 @@
+Merged with pypa/distutils@49e362c, including fix for setting Py_GIL_DISABLED
+on Windows in pypa/distutils#310.
