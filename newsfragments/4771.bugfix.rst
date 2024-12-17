@@ -1,0 +1,1 @@
+Stop writing ``License-File`` to metadata, since setuptools does not yet support Metadata 2.4
