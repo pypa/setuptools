@@ -63,6 +63,9 @@ jobs:
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
+        # TODO: Re-evaluate the need for the following workaround
+        exclude:
+        - {python: "3.9", platform: "macos-latest"}  # actions/setup-python#981
     runs-on: ${{ matrix.platform }}
     continue-on-error: ${{ matrix.python == '3.14' }}
     env:
