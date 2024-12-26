@@ -335,8 +335,7 @@ class build_ext(Command):
 
         # The official Windows free threaded Python installer doesn't set
         # Py_GIL_DISABLED because its pyconfig.h is shared with the
-        # default build, so we need to define it here
-        # (see pypa/setuptools#4662).
+        # default build, so define it here (pypa/setuptools#4662).
         if os.name == 'nt' and is_freethreaded():
             self.compiler.define_macro('Py_GIL_DISABLED', '1')
 
