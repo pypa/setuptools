@@ -107,11 +107,11 @@ class Extension:
         **kw,  # To catch unknown keywords
     ):
         if not isinstance(name, str):
-            raise AssertionError("'name' must be a string")  # noqa: TRY004
+            raise TypeError("'name' must be a string")  # noqa: TRY004
 
         # handle the string case first; since strings are iterable, disallow them
         if isinstance(sources, str):
-            raise AssertionError(  # noqa: TRY004
+            raise TypeError(
                 "'sources' must be an iterable of strings or PathLike objects, not a string"
             )
 
@@ -119,7 +119,7 @@ class Extension:
         try:
             self.sources = list(map(os.fspath, sources))
         except TypeError:
-            raise AssertionError(
+            raise TypeError(
                 "'sources' must be an iterable of strings or PathLike objects"
             )
 
