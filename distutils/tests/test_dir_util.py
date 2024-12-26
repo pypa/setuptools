@@ -3,6 +3,7 @@
 import os
 import pathlib
 import stat
+import sys
 import unittest.mock as mock
 from distutils import dir_util, errors
 from distutils.dir_util import (
@@ -124,9 +125,12 @@ class TestDirUtil(support.TempdirManager):
             def mkdir(self, *args, **kwargs):
                 raise OSError("Failed to create directory")
 
-            _flavour = (
-                pathlib._windows_flavour if os.name == 'nt' else pathlib._posix_flavour
-            )
+            if sys.version_info < (3, 12):
+                _flavour = (
+                    pathlib._windows_flavour
+                    if os.name == 'nt'
+                    else pathlib._posix_flavour
+                )
 
         target = tmp_path / 'foodir'
 
