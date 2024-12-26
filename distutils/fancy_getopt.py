@@ -12,7 +12,8 @@ import getopt
 import re
 import string
 import sys
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from .errors import DistutilsArgError, DistutilsGetoptError
 
@@ -167,8 +168,7 @@ class FancyGetopt:
 
             if not ((short is None) or (isinstance(short, str) and len(short) == 1)):
                 raise DistutilsGetoptError(
-                    f"invalid short option '{short}': "
-                    "must a single character or None"
+                    f"invalid short option '{short}': must a single character or None"
                 )
 
             self.repeat[long] = repeat

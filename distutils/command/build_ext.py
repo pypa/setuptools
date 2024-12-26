@@ -443,8 +443,7 @@ class build_ext(Command):
                 for macro in macros:
                     if not (isinstance(macro, tuple) and len(macro) in (1, 2)):
                         raise DistutilsSetupError(
-                            "'macros' element of build info dict "
-                            "must be 1- or 2-tuple"
+                            "'macros' element of build info dict must be 1- or 2-tuple"
                         )
                     if len(macro) == 1:
                         ext.undef_macros.append(macro[0])
@@ -672,8 +671,7 @@ class build_ext(Command):
                 return "swig.exe"
         else:
             raise DistutilsPlatformError(
-                "I don't know how to find (much less run) SWIG "
-                f"on platform '{os.name}'"
+                f"I don't know how to find (much less run) SWIG on platform '{os.name}'"
             )
 
     # -- Name generators -----------------------------------------------

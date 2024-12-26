@@ -46,10 +46,7 @@ class check(Command):
         (
             'restructuredtext',
             'r',
-            (
-                'Checks if long string meta-data syntax '
-                'are reStructuredText-compliant'
-            ),
+            'Checks if long string meta-data syntax are reStructuredText-compliant',
         ),
         ('strict', 's', 'Will exit with an error if a check fails'),
     ]
