@@ -23,7 +23,7 @@ from ..errors import (
 )
 from ..extension import Extension
 from ..sysconfig import customize_compiler, get_config_h_filename, get_python_version
-from ..util import get_platform, is_mingw, is_freethreaded
+from ..util import get_platform, is_freethreaded, is_mingw
 
 # An extension name is just a dot-separated list of Python NAMEs (ie.
 # the same as a fully-qualified module name).
