@@ -23,7 +23,7 @@ from ..errors import (
 )
 from ..extension import Extension
 from ..sysconfig import customize_compiler, get_config_h_filename, get_python_version
-from ..util import get_platform, is_mingw
+from ..util import get_platform, is_mingw, is_freethreaded
 
 # An extension name is just a dot-separated list of Python NAMEs (ie.
 # the same as a fully-qualified module name).
@@ -332,6 +332,12 @@ class build_ext(Command):
         # late initialization of compiler even if they shouldn't...)
         if os.name == 'nt' and self.plat_name != get_platform():
             self.compiler.initialize(self.plat_name)
+
+        # The official Windows free threaded Python installer doesn't set
+        # Py_GIL_DISABLED because its pyconfig.h is shared with the
+        # default build, so define it here (pypa/setuptools#4662).
+        if os.name == 'nt' and is_freethreaded():
+            self.compiler.define_macro('Py_GIL_DISABLED', '1')
 
         # And make sure that any compile/link-related options (which might
         # come from the command-line or from the setup script) are set in
