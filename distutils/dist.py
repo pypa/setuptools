@@ -139,7 +139,7 @@ Common commands: (see '--help-commands' for more)
         self.dry_run = False
         self.help = False
         for attr in self.display_option_names:
-            setattr(self, attr, 0)
+            setattr(self, attr, False)
 
         # Store the distribution meta-data (name, version, author, and so
         # forth) in a separate object -- we're getting to have enough
