@@ -69,7 +69,7 @@ class TestExtension:
         assert ext.name == 'name'
 
         # the second argument, which is the list of files, must
-        # be a list of strings or PathLike objects, and not a string
+        # be an iterable of strings or PathLike objects, and not a string
         with pytest.raises(AssertionError):
             Extension('name', 'file')
         with pytest.raises(AssertionError):

@@ -109,7 +109,7 @@ class Extension:
         if not isinstance(name, str):
             raise AssertionError("'name' must be a string")  # noqa: TRY004
 
-        # we handle the string case first; though strings are iterable, we disallow them
+        # handle the string case first; since strings are iterable, disallow them
         if isinstance(sources, str):
             raise AssertionError(  # noqa: TRY004
                 "'sources' must be an iterable of strings or PathLike objects, not a string"
