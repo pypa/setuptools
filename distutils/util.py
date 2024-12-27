@@ -25,7 +25,7 @@ from .errors import DistutilsByteCompileError, DistutilsPlatformError
 from .spawn import spawn
 
 
-def get_host_platform():
+def get_host_platform() -> str:
     """
     Return a string that identifies the current platform. Use this
     function to distinguish platform-specific build directories and
@@ -34,15 +34,7 @@ def get_host_platform():
 
     # This function initially exposed platforms as defined in Python 3.9
     # even with older Python versions when distutils was split out.
-    # Now it delegates to stdlib sysconfig, but maintains compatibility.
-
-    if sys.version_info < (3, 9):
-        if os.name == "posix" and hasattr(os, 'uname'):
-            osname, host, release, version, machine = os.uname()
-            if osname[:3] == "aix":
-                from .compat.py38 import aix_platform
-
-                return aix_platform(osname, version, release)
+    # Now it delegates to stdlib sysconfig.
 
     return sysconfig.get_platform()
 
