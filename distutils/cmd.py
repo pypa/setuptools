@@ -4,14 +4,19 @@ Provides the Command class, the base class for the command classes
 in the distutils.command package.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import re
 import sys
+from typing import TypeVar, overload
 
 from . import _modified, archive_util, dir_util, file_util, util
 from ._log import log
 from .errors import DistutilsOptionError
+
+_CommandT = TypeVar("_CommandT", bound="Command")
 
 
 class Command:
@@ -305,7 +310,17 @@ class Command:
 
     # XXX rename to 'get_reinitialized_command()'? (should do the
     # same in dist.py, if so)
-    def reinitialize_command(self, command, reinit_subcommands=False):
+    @overload
+    def reinitialize_command(
+        self, command: str, reinit_subcommands: bool = False
+    ) -> Command: ...
+    @overload
+    def reinitialize_command(
+        self, command: _CommandT, reinit_subcommands: bool = False
+    ) -> _CommandT: ...
+    def reinitialize_command(
+        self, command: str | Command, reinit_subcommands=False
+    ) -> Command:
         return self.distribution.reinitialize_command(command, reinit_subcommands)
 
     def run_command(self, command):

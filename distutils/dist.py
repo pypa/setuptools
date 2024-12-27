@@ -4,6 +4,8 @@ Provides the Distribution class, which represents the module distribution
 being built/installed/distributed.
 """
 
+from __future__ import annotations
+
 import contextlib
 import logging
 import os
@@ -13,6 +15,7 @@ import sys
 import warnings
 from collections.abc import Iterable
 from email import message_from_file
+from typing import TYPE_CHECKING, TypeVar, overload
 
 from packaging.utils import canonicalize_name, canonicalize_version
 
@@ -26,6 +29,11 @@ from .errors import (
 )
 from .fancy_getopt import FancyGetopt, translate_longopt
 from .util import check_environ, rfc822_escape, strtobool
+
+if TYPE_CHECKING:
+    from .cmd import Command
+
+_CommandT = TypeVar("_CommandT", bound="Command")
 
 # Regex to define acceptable Distutils command names.  This is not *quite*
 # the same as a Python NAME -- I don't allow leading underscores.  The fact
@@ -900,7 +908,17 @@ Common commands: (see '--help-commands' for more)
             except ValueError as msg:
                 raise DistutilsOptionError(msg)
 
-    def reinitialize_command(self, command, reinit_subcommands=False):
+    @overload
+    def reinitialize_command(
+        self, command: str, reinit_subcommands: bool = False
+    ) -> Command: ...
+    @overload
+    def reinitialize_command(
+        self, command: _CommandT, reinit_subcommands: bool = False
+    ) -> _CommandT: ...
+    def reinitialize_command(
+        self, command: str | Command, reinit_subcommands=False
+    ) -> Command:
         """Reinitializes a command to the state it was in when first
         returned by 'get_command_obj()': ie., initialized but not yet
         finalized.  This provides the opportunity to sneak option
