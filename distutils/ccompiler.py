@@ -989,7 +989,7 @@ int main (int argc, char **argv) {{
         # Chop off the drive
         no_drive = os.path.splitdrive(base)[1]
         # If abs, chop off leading /
-        is_abs = os.path.isabs(no_drive) or sys.platform == 'win32' and (no_drive.startswith('/') or no_drive.startswith('\\'))
+        is_abs = os.path.isabs(no_drive) or sys.platform == 'win32' and no_drive.startswith(('/', "\\"))
         return no_drive[is_abs:]
 
     def shared_object_filename(self, basename, strip_dir=False, output_dir=''):
