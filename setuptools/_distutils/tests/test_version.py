@@ -53,9 +53,9 @@ class TestVersion:
             res = StrictVersion(v1)._cmp(v2)
             assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = StrictVersion(v1)._cmp(object())
-            assert (
-                res is NotImplemented
-            ), f'cmp({v1}, {v2}) should be NotImplemented, got {res}'
+            assert res is NotImplemented, (
+                f'cmp({v1}, {v2}) should be NotImplemented, got {res}'
+            )
 
     def test_cmp(self):
         versions = (
@@ -75,6 +75,6 @@ class TestVersion:
             res = LooseVersion(v1)._cmp(v2)
             assert res == wanted, f'cmp({v1}, {v2}) should be {wanted}, got {res}'
             res = LooseVersion(v1)._cmp(object())
-            assert (
-                res is NotImplemented
-            ), f'cmp({v1}, {v2}) should be NotImplemented, got {res}'
+            assert res is NotImplemented, (
+                f'cmp({v1}, {v2}) should be NotImplemented, got {res}'
+            )
