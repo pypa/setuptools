@@ -8,6 +8,7 @@ from distutils import archive_util, dir_util, file_util
 from distutils._log import log
 from glob import glob
 from itertools import filterfalse
+from typing import ClassVar
 
 from ..core import Command
 from ..errors import DistutilsOptionError, DistutilsTemplateError
@@ -114,7 +115,7 @@ class sdist(Command):
 
     sub_commands = [('check', checking_metadata)]
 
-    READMES = ('README', 'README.txt', 'README.rst')
+    READMES: ClassVar[tuple[str, ...]] = ('README', 'README.txt', 'README.rst')
 
     def initialize_options(self):
         # 'template' and 'manifest' are, respectively, the names of

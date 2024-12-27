@@ -8,6 +8,7 @@ a package's PKG-INFO metadata.
 import os
 import re
 import sys
+from typing import ClassVar
 
 from .. import dir_util
 from .._log import log
@@ -18,7 +19,7 @@ class install_egg_info(Command):
     """Install an .egg-info file for the package"""
 
     description = "Install package's PKG-INFO metadata as an .egg-info file"
-    user_options = [
+    user_options: ClassVar[list[tuple[str, str, str]]] = [
         ('install-dir=', 'd', "directory to install to"),
     ]
 
