@@ -340,6 +340,7 @@ def customize_compiler(compiler):
 
         ldshared = _add_flags(ldshared, 'LD')
         ldcxxshared = _add_flags(ldcxxshared, 'LD')
+        cflags = os.environ.get('CFLAGS', cflags)
         cflags = _add_flags(cflags, 'C')
         ldshared = _add_flags(ldshared, 'C')
         cxxflags = os.environ.get('CXXFLAGS', cxxflags)
