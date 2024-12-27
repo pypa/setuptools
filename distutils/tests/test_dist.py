@@ -13,6 +13,7 @@ import warnings
 from distutils.cmd import Command
 from distutils.dist import Distribution, fix_help_options
 from distutils.tests import support
+from typing import ClassVar
 
 import jaraco.path
 import pytest
@@ -23,7 +24,7 @@ pydistutils_cfg = '.' * (os.name == 'posix') + 'pydistutils.cfg'
 class test_dist(Command):
     """Sample distutils extension command."""
 
-    user_options = [
+    user_options: ClassVar[list[tuple[str, str, str]]] = [
         ("sample-option=", "S", "help text"),
     ]
 
