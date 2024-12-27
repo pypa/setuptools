@@ -8,6 +8,8 @@ additional features:
   * options set attributes of a passed-in object
 """
 
+from __future__ import annotations
+
 import getopt
 import re
 import string
@@ -219,7 +221,7 @@ class FancyGetopt:
                 self.short_opts.append(short)
                 self.short2long[short[0]] = long
 
-    def getopt(self, args=None, object=None):  # noqa: C901
+    def getopt(self, args: Sequence[str] | None = None, object=None):  # noqa: C901
         """Parse command-line options in args. Store as attributes on object.
 
         If 'args' is None or not supplied, uses 'sys.argv[1:]'.  If
@@ -375,7 +377,7 @@ class FancyGetopt:
             file.write(line + "\n")
 
 
-def fancy_getopt(options, negative_opt, object, args):
+def fancy_getopt(options, negative_opt, object, args: Sequence[str] | None):
     parser = FancyGetopt(options)
     parser.set_negative_aliases(negative_opt)
     return parser.getopt(args, object)

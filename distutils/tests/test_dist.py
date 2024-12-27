@@ -246,6 +246,12 @@ class TestDistributionBehavior(support.TempdirManager):
         # make sure --no-user-cfg disables the user cfg file
         assert len(all_files) - 1 == len(files)
 
+    def test_script_args_list_coercion(self):
+        d = Distribution(attrs={'script_args': ('build', '--no-user-cfg')})
+
+        # make sure script_args is a list even if it started as a different iterable
+        assert d.script_args == ['build', '--no-user-cfg']
+
     @pytest.mark.skipif(
         'platform.system() == "Windows"',
         reason='Windows does not honor chmod 000',
