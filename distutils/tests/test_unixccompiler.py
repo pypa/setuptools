@@ -12,7 +12,7 @@ from distutils.util import _clear_cached_macosx_ver
 import pytest
 
 from . import support
-from .compat.py38 import EnvironmentVarGuard
+from .compat.py39 import EnvironmentVarGuard
 
 
 @pytest.fixture(autouse=True)

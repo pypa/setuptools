@@ -6,8 +6,7 @@ import warnings
 from distutils.extension import Extension, read_setup_file
 
 import pytest
-
-from .compat.py38 import check_warnings
+from test.support.warnings_helper import check_warnings
 
 
 class TestExtension:
