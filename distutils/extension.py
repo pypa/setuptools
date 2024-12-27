@@ -107,7 +107,7 @@ class Extension:
         **kw,  # To catch unknown keywords
     ):
         if not isinstance(name, str):
-            raise TypeError("'name' must be a string")  # noqa: TRY004
+            raise TypeError("'name' must be a string")
 
         # handle the string case first; since strings are iterable, disallow them
         if isinstance(sources, str):
