@@ -46,10 +46,6 @@ ignore = [
 	"TRY400",
 ]
 
-[lint.isort]
-combine-as-imports = true
-split-on-trailing-comma = false
-
 [format]
 # Enable preview to get hugged parenthesis unwrapping and other nice surprises
 # See https://github.com/jaraco/skeleton/pull/133#issuecomment-2239538373
