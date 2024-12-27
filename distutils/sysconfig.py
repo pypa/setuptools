@@ -107,7 +107,7 @@ def get_python_version():
     leaving off the patchlevel.  Sample return values could be '1.5'
     or '2.2'.
     """
-    return '%d.%d' % sys.version_info[:2]
+    return f'{sys.version_info.major}.{sys.version_info.minor}'
 
 
 def get_python_inc(plat_specific=False, prefix=None):

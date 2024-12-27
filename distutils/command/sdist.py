@@ -362,8 +362,7 @@ class sdist(Command):
                 # convert_path function
                 except (DistutilsTemplateError, ValueError) as msg:
                     self.warn(
-                        "%s, line %d: %s"
-                        % (template.filename, template.current_line, msg)
+                        f"{template.filename}, line {int(template.current_line)}: {msg}"
                     )
         finally:
             template.close()

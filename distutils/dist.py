@@ -730,7 +730,7 @@ Common commands: (see '--help-commands' for more)
             except AttributeError:
                 description = "(no description available)"
 
-            print("  %-*s  %s" % (max_length, cmd, description))
+            print(f"  {cmd:<{max_length}}  {description}")
 
     def print_commands(self):
         """Print out a help message listing all available commands with a

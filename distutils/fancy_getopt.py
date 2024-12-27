@@ -351,18 +351,18 @@ class FancyGetopt:
             # Case 1: no short option at all (makes life easy)
             if short is None:
                 if text:
-                    lines.append("  --%-*s  %s" % (max_opt, long, text[0]))
+                    lines.append(f"  --{long:<{max_opt}}  {text[0]}")
                 else:
-                    lines.append("  --%-*s  " % (max_opt, long))
+                    lines.append(f"  --{long:<{max_opt}}")
 
             # Case 2: we have a short option, so we have to include it
             # just after the long option
             else:
                 opt_names = f"{long} (-{short})"
                 if text:
-                    lines.append("  --%-*s  %s" % (max_opt, opt_names, text[0]))
+                    lines.append(f"  --{opt_names:<{max_opt}}  {text[0]}")
                 else:
-                    lines.append("  --%-*s" % opt_names)
+                    lines.append(f"  --{opt_names:<{max_opt}}")
 
             for ell in text[1:]:
                 lines.append(big_indent + ell)
@@ -464,6 +464,6 @@ How *do* you spell that odd word, anyways?
 say, "How should I know?"].)"""
 
     for w in (10, 20, 30, 40):
-        print("width: %d" % w)
+        print(f"width: {w}")
         print("\n".join(wrap_text(text, w)))
         print()
