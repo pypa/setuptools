@@ -15,7 +15,7 @@ import sys
 import warnings
 from collections.abc import Iterable
 from email import message_from_file
-from typing import TYPE_CHECKING, TypeVar, overload
+from typing import TYPE_CHECKING, Literal, TypeVar, overload
 
 from packaging.utils import canonicalize_name, canonicalize_version
 
@@ -31,6 +31,7 @@ from .fancy_getopt import FancyGetopt, translate_longopt
 from .util import check_environ, rfc822_escape, strtobool
 
 if TYPE_CHECKING:
+    # type-only import because of mutual dependence between these modules
     from .cmd import Command
 
 _CommandT = TypeVar("_CommandT", bound="Command")
@@ -839,7 +840,15 @@ Common commands: (see '--help-commands' for more)
 
         raise DistutilsModuleError(f"invalid command '{command}'")
 
-    def get_command_obj(self, command, create=True):
+    @overload
+    def get_command_obj(
+        self, command: str, create: Literal[True] = True
+    ) -> Command: ...
+    @overload
+    def get_command_obj(
+        self, command: str, create: Literal[False]
+    ) -> Command | None: ...
+    def get_command_obj(self, command: str, create: bool = True) -> Command | None:
         """Return the command object for 'command'.  Normally this object
         is cached on a previous call to 'get_command_obj()'; if no command
         object for 'command' is in the cache, then we either create and
