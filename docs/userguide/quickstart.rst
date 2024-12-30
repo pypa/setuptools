@@ -199,7 +199,7 @@ Package discovery
 -----------------
 For projects that follow a simple directory structure, ``setuptools`` should be
 able to automatically detect all :term:`packages <package>` and
-:term:`namespaces <namespace>`. However, complex projects might include
+:term:`namespaces <namespace package>`. However, complex projects might include
 additional folders and supporting files that not necessarily should be
 distributed (or that can confuse ``setuptools`` auto discovery algorithm).
 

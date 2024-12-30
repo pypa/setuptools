@@ -44,7 +44,7 @@ test = [
 	"packaging>=24.2",
 	"jaraco.envs>=2.2",
 	"pytest-xdist>=3", # Dropped dependency on pytest-fork and py
-	"jaraco.path>=3.2.0",
+	"jaraco.path>=3.7.2", # Typing fixes
 	"build[virtualenv]>=1.0.3",
 	"filelock>=3.4.0",
 	"ini2toml[lite]>=0.14",
@@ -102,7 +102,7 @@ core = [
 
 	# for distutils
 	"jaraco.collections",
-	"jaraco.functools>=4",
+	"jaraco.functools >= 4",
 	"packaging",
 	"more_itertools",
 ]
@@ -135,7 +135,7 @@ type = [
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam
-	"mypy>=1.12,<1.14",
+	"mypy==1.14.*",
 	# Typing fixes in version newer than we require at runtime
 	"importlib_metadata>=7.0.2; python_version < '3.10'",
 	# Imported unconditionally in tools/finalize.py
@@ -209,6 +209,10 @@ exclude = [
 	"*.tests.*",
 ]
 namespaces = true
+
+[tool.setuptools.exclude-package-data]
+# Remove ruff.toml when installing vendored packages (#4652)
+"*" = ["ruff.toml"]
 
 [tool.distutils.sdist]
 formats = "zip"
