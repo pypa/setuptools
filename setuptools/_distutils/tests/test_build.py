@@ -40,7 +40,9 @@ class TestBuild(support.TempdirManager):
         assert cmd.build_temp == wanted
 
         # build_scripts is build/scripts-x.x
-        wanted = os.path.join(cmd.build_base, 'scripts-%d.%d' % sys.version_info[:2])
+        wanted = os.path.join(
+            cmd.build_base, f'scripts-{sys.version_info.major}.{sys.version_info.minor}'
+        )
         assert cmd.build_scripts == wanted
 
         # executable is os.path.normpath(sys.executable)

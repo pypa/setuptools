@@ -12,7 +12,7 @@ from distutils.util import _clear_cached_macosx_ver
 import pytest
 
 from . import support
-from .compat.py38 import EnvironmentVarGuard
+from .compat.py39 import EnvironmentVarGuard
 
 
 @pytest.fixture(autouse=True)
@@ -272,13 +272,12 @@ class TestUnixCCompiler(support.TempdirManager):
 
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
-        with mock.patch.object(
-            self.cc, 'spawn', return_value=None
-        ) as mock_spawn, mock.patch.object(
-            self.cc, '_need_link', return_value=True
-        ), mock.patch.object(
-            self.cc, 'mkpath', return_value=None
-        ), EnvironmentVarGuard() as env:
+        with (
+            mock.patch.object(self.cc, 'spawn', return_value=None) as mock_spawn,
+            mock.patch.object(self.cc, '_need_link', return_value=True),
+            mock.patch.object(self.cc, 'mkpath', return_value=None),
+            EnvironmentVarGuard() as env,
+        ):
             env['CC'] = 'ccache my_cc'
             env['CXX'] = 'my_cxx'
             del env['LDSHARED']

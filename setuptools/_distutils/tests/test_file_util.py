@@ -44,18 +44,19 @@ class TestFileUtil:
 
     def test_move_file_exception_unpacking_rename(self):
         # see issue 22182
-        with mock.patch("os.rename", side_effect=OSError("wrong", 1)), pytest.raises(
-            DistutilsFileError
+        with (
+            mock.patch("os.rename", side_effect=OSError("wrong", 1)),
+            pytest.raises(DistutilsFileError),
         ):
             jaraco.path.build({self.source: 'spam eggs'})
             move_file(self.source, self.target, verbose=False)
 
     def test_move_file_exception_unpacking_unlink(self):
         # see issue 22182
-        with mock.patch(
-            "os.rename", side_effect=OSError(errno.EXDEV, "wrong")
-        ), mock.patch("os.unlink", side_effect=OSError("wrong", 1)), pytest.raises(
-            DistutilsFileError
+        with (
+            mock.patch("os.rename", side_effect=OSError(errno.EXDEV, "wrong")),
+            mock.patch("os.unlink", side_effect=OSError("wrong", 1)),
+            pytest.raises(DistutilsFileError),
         ):
             jaraco.path.build({self.source: 'spam eggs'})
             move_file(self.source, self.target, verbose=False)

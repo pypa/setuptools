@@ -6,8 +6,7 @@ import warnings
 from distutils.extension import Extension, read_setup_file
 
 import pytest
-
-from .compat.py38 import check_warnings
+from test.support.warnings_helper import check_warnings
 
 
 class TestExtension:
@@ -63,20 +62,30 @@ class TestExtension:
 
     def test_extension_init(self):
         # the first argument, which is the name, must be a string
-        with pytest.raises(AssertionError):
+        with pytest.raises(TypeError):
             Extension(1, [])
         ext = Extension('name', [])
         assert ext.name == 'name'
 
         # the second argument, which is the list of files, must
-        # be a list of strings or PathLike objects
-        with pytest.raises(AssertionError):
+        # be an iterable of strings or PathLike objects, and not a string
+        with pytest.raises(TypeError):
             Extension('name', 'file')
-        with pytest.raises(AssertionError):
+        with pytest.raises(TypeError):
             Extension('name', ['file', 1])
         ext = Extension('name', ['file1', 'file2'])
         assert ext.sources == ['file1', 'file2']
         ext = Extension('name', [pathlib.Path('file1'), pathlib.Path('file2')])
+        assert ext.sources == ['file1', 'file2']
+
+        # any non-string iterable of strings or PathLike objects should work
+        ext = Extension('name', ('file1', 'file2'))  # tuple
+        assert ext.sources == ['file1', 'file2']
+        ext = Extension('name', {'file1', 'file2'})  # set
+        assert sorted(ext.sources) == ['file1', 'file2']
+        ext = Extension('name', iter(['file1', 'file2']))  # iterator
+        assert ext.sources == ['file1', 'file2']
+        ext = Extension('name', [pathlib.Path('file1'), 'file2'])  # mixed types
         assert ext.sources == ['file1', 'file2']
 
         # others arguments have defaults
