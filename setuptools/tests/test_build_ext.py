@@ -179,7 +179,7 @@ class TestBuildExt:
 
 class TestBuildExtInplace:
     def get_build_ext_cmd(self, optional: bool, **opts) -> build_ext:
-        files = {
+        files: dict[str, str | dict[str, dict[str, str]]] = {
             "eggs.c": "#include missingheader.h\n",
             ".build": {"lib": {}, "tmp": {}},
         }
