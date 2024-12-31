@@ -660,7 +660,7 @@ def _parent_path(pkg, pkg_path):
     >>> _parent_path("b", "src/c")
     'src/c'
     """
-    parent = pkg_path[: -len(pkg)] if pkg_path.endswith(pkg) else pkg_path
+    parent = pkg_path.removesuffix(pkg)
     return parent.rstrip("/" + os.sep)
 
 
