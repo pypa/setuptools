@@ -184,9 +184,7 @@ class bdist_wheel(Command):
         (
             "compression=",
             None,
-            "zipfile compression (one of: {}) [default: 'deflated']".format(
-                ", ".join(supported_compressions)
-            ),
+            f"zipfile compression (one of: {', '.join(supported_compressions)}) [default: 'deflated']",
         ),
         (
             "python-tag=",

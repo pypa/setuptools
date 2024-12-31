@@ -24,7 +24,7 @@ def test_dist_fetch_build_egg(tmpdir):
 
     def sdist_with_index(distname, version):
         dist_dir = index.mkdir(distname)
-        dist_sdist = '%s-%s.tar.gz' % (distname, version)
+        dist_sdist = f'{distname}-{version}.tar.gz'
         make_nspkg_sdist(str(dist_dir.join(dist_sdist)), distname, version)
         with dist_dir.join('index.html').open('w') as fp:
             fp.write(
