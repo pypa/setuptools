@@ -29,7 +29,6 @@ extend-select = [
 ]
 ignore = [
 	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
-	"PT011", # temporarily disabled, TODO: tighten expected error 
 	"PT012", # pytest-raises-with-multiple-statements, avoid extra dummy methods for a few lines, sometimes we explicitly assert in case of no error
 	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
 	"TRY301", # raise-within-try, it's handy
