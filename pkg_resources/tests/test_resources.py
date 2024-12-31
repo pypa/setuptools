@@ -481,13 +481,13 @@ class TestEntryPoints:
             assert sorted(m.get(key).attrs) == sorted(ep.attrs)
             assert sorted(m.get(key).extras) == sorted(ep.extras)
 
-    submap_expect = dict(
-        feature1=EntryPoint('feature1', 'somemodule', ['somefunction']),
-        feature2=EntryPoint(
+    submap_expect = {
+        "feature1": EntryPoint('feature1', 'somemodule', ['somefunction']),
+        "feature2": EntryPoint(
             'feature2', 'another.module', ['SomeClass'], ['extra1', 'extra2']
         ),
-        feature3=EntryPoint('feature3', 'this.module', extras=['something']),
-    )
+        "feature3": EntryPoint('feature3', 'this.module', extras=['something']),
+    }
     submap_str = """
             # define features for blah blah
             feature1 = somemodule:somefunction

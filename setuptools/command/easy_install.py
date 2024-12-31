@@ -1240,7 +1240,7 @@ class easy_install(Command):
                 continue
             fetch_options[key] = val[1]
         # create a settings dictionary suitable for `edit_config`
-        settings = dict(easy_install=fetch_options)
+        settings = {"easy_install": fetch_options}
         cfg_filename = os.path.join(base, 'setup.cfg')
         setopt.edit_config(cfg_filename, settings)
 
@@ -1377,17 +1377,17 @@ class easy_install(Command):
                 self.debug_print(f"os.makedirs('{path}', 0o700)")
                 os.makedirs(path, 0o700)
 
-    INSTALL_SCHEMES = dict(
-        posix=dict(
-            install_dir='$base/lib/python$py_version_short/site-packages',
-            script_dir='$base/bin',
-        ),
-    )
+    INSTALL_SCHEMES = {
+        "posix": {
+            "install_dir": '$base/lib/python$py_version_short/site-packages',
+            "script_dir": '$base/bin',
+        },
+    }
 
-    DEFAULT_SCHEME = dict(
-        install_dir='$base/Lib/site-packages',
-        script_dir='$base/Scripts',
-    )
+    DEFAULT_SCHEME = {
+        "install_dir": '$base/Lib/site-packages',
+        "script_dir": '$base/Scripts',
+    }
 
     def _expand(self, *attrs):
         config_vars = self.get_finalized_command('install').config_vars
@@ -2214,10 +2214,10 @@ class WindowsScriptWriter(ScriptWriter):
         """
         Select the best ScriptWriter suitable for Windows
         """
-        writer_lookup = dict(
-            executable=WindowsExecutableLauncherWriter,
-            natural=cls,
-        )
+        writer_lookup = {
+            "executable": WindowsExecutableLauncherWriter,
+            "natural": cls,
+        }
         # for compatibility, use the executable launcher by default
         launcher = os.environ.get('SETUPTOOLS_LAUNCHER', 'executable')
         return writer_lookup[launcher]
@@ -2225,7 +2225,7 @@ class WindowsScriptWriter(ScriptWriter):
     @classmethod
     def _get_script_args(cls, type_, name, header, script_text):
         "For Windows, add a .py extension"
-        ext = dict(console='.pya', gui='.pyw')[type_]
+        ext = {"console": '.pya', "gui": '.pyw'}[type_]
         if ext not in os.environ['PATHEXT'].lower().split(';'):
             msg = (
                 "{ext} not listed in PATHEXT; scripts will not be "

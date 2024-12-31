@@ -357,7 +357,7 @@ class TestDeepVersionLookupDistutils:
         as version.
         """
         ld = "This package has unicode metadata! ❄"
-        attrs = dict(name='foo', version=version, long_description=ld)
+        attrs = {"name": 'foo', "version": version, "long_description": ld}
         dist = distutils.dist.Distribution(attrs)
         iei_cmd = distutils.command.install_egg_info.install_egg_info(dist)
         iei_cmd.initialize_options()
