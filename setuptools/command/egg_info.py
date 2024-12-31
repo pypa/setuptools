@@ -213,8 +213,8 @@ class egg_info(InfoCommon, Command):
         """
         # follow the order these keys would have been added
         # when PYTHONHASHSEED=0
-        egg_info = dict(tag_build=self.tags(), tag_date=0)
-        edit_config(filename, dict(egg_info=egg_info))
+        egg_info = {'tag_build': self.tags(), 'tag_date': 0}
+        edit_config(filename, {'egg_info': egg_info})
 
     def finalize_options(self) -> None:
         # Note: we need to capture the current value returned

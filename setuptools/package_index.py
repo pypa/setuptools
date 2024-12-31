@@ -860,10 +860,10 @@ class PackageIndex(Environment):
         self.info(f"Doing {vcs} clone from {url} to {filename}")
         subprocess.check_call([vcs, 'clone', '--quiet', url, filename])
 
-        co_commands = dict(
-            git=[vcs, '-C', filename, 'checkout', '--quiet', rev],
-            hg=[vcs, '--cwd', filename, 'up', '-C', '-r', rev, '-q'],
-        )
+        co_commands = {
+            'git': [vcs, '-C', filename, 'checkout', '--quiet', rev],
+            'hg': [vcs, '--cwd', filename, 'up', '-C', '-r', rev, '-q'],
+        }
         if rev is not None:
             self.info(f"Checking out {rev}")
             subprocess.check_call(co_commands[vcs])

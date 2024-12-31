@@ -11,86 +11,86 @@ html_theme = "furo"
 # Link dates and other references in the changelog
 extensions += ['rst.linker']
 link_files = {
-    '../NEWS.rst': dict(
-        using=dict(
-            BB='https://bitbucket.org',
-            GH='https://github.com',
-        ),
-        replace=[
-            dict(
-                pattern=r'(Issue #|\B#)(?P<issue>\d+)',
-                url='{package_url}/issues/{issue}',
-            ),
-            dict(
-                pattern=r'(?m:^((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n)',
-                with_scm='{text}\n{rev[timestamp]:%d %b %Y}\n',
-            ),
-            dict(
-                pattern=r'PEP[- ](?P<pep_number>\d+)',
-                url='https://peps.python.org/pep-{pep_number:0>4}/',
-            ),
-            dict(
-                pattern=r'(?<!\w)PR #(?P<pull>\d+)',
-                url='{package_url}/pull/{pull}',
-            ),
-            dict(
-                pattern=r'BB Pull Request ?#(?P<bb_pull_request>\d+)',
-                url='{BB}/pypa/setuptools/pull-request/{bb_pull_request}',
-            ),
-            dict(
-                pattern=r'Distribute #(?P<distribute>\d+)',
-                url='{BB}/tarek/distribute/issue/{distribute}',
-            ),
-            dict(
-                pattern=r'Buildout #(?P<buildout>\d+)',
-                url='{GH}/buildout/buildout/issues/{buildout}',
-            ),
-            dict(
-                pattern=r'Old Setuptools #(?P<old_setuptools>\d+)',
-                url='https://bugs.python.org/setuptools/issue{old_setuptools}',
-            ),
-            dict(
-                pattern=r'Jython #(?P<jython>\d+)',
-                url='https://bugs.jython.org/issue{jython}',
-            ),
-            dict(
-                pattern=r'(Python #|bpo-)(?P<python>\d+)',
-                url='https://bugs.python.org/issue{python}',
-            ),
-            dict(
-                pattern=r'\bpython/cpython#(?P<cpython>\d+)',
-                url='{GH}/python/cpython/issues/{cpython}',
-            ),
-            dict(
-                pattern=r'Interop #(?P<interop>\d+)',
-                url='{GH}/pypa/interoperability-peps/issues/{interop}',
-            ),
-            dict(
-                pattern=r'Pip #(?P<pip>\d+)',
-                url='{GH}/pypa/pip/issues/{pip}',
-            ),
-            dict(
-                pattern=r'Packaging #(?P<packaging>\d+)',
-                url='{GH}/pypa/packaging/issues/{packaging}',
-            ),
-            dict(
-                pattern=r'[Pp]ackaging (?P<packaging_ver>\d+(\.\d+)+)',
-                url='{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
-            ),
-            dict(
-                pattern=r'setuptools_svn #(?P<setuptools_svn>\d+)',
-                url='{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
-            ),
-            dict(
-                pattern=r'pypa/(?P<issue_repo>[\-\.\w]+)#(?P<issue_number>\d+)',
-                url='{GH}/pypa/{issue_repo}/issues/{issue_number}',
-            ),
-            dict(
-                pattern=r'pypa/(?P<commit_repo>[\-\.\w]+)@(?P<commit_number>[\da-f]+)',
-                url='{GH}/pypa/{commit_repo}/commit/{commit_number}',
-            ),
+    '../NEWS.rst': {
+        'using': {
+            'BB': 'https://bitbucket.org',
+            'GH': 'https://github.com',
+        },
+        'replace': [
+            {
+                'pattern': r'(Issue #|\B#)(?P<issue>\d+)',
+                'url': '{package_url}/issues/{issue}',
+            },
+            {
+                'pattern': r'(?m:^((?P<scm_version>v?\d+(\.\d+){1,2}))\n[-=]+\n)',
+                'with_scm': '{text}\n{rev[timestamp]:%d %b %Y}\n',
+            },
+            {
+                'pattern': r'PEP[- ](?P<pep_number>\d+)',
+                'url': 'https://peps.python.org/pep-{pep_number:0>4}/',
+            },
+            {
+                'pattern': r'(?<!\w)PR #(?P<pull>\d+)',
+                'url': '{package_url}/pull/{pull}',
+            },
+            {
+                'pattern': r'BB Pull Request ?#(?P<bb_pull_request>\d+)',
+                'url': '{BB}/pypa/setuptools/pull-request/{bb_pull_request}',
+            },
+            {
+                'pattern': r'Distribute #(?P<distribute>\d+)',
+                'url': '{BB}/tarek/distribute/issue/{distribute}',
+            },
+            {
+                'pattern': r'Buildout #(?P<buildout>\d+)',
+                'url': '{GH}/buildout/buildout/issues/{buildout}',
+            },
+            {
+                'pattern': r'Old Setuptools #(?P<old_setuptools>\d+)',
+                'url': 'https://bugs.python.org/setuptools/issue{old_setuptools}',
+            },
+            {
+                'pattern': r'Jython #(?P<jython>\d+)',
+                'url': 'https://bugs.jython.org/issue{jython}',
+            },
+            {
+                'pattern': r'(Python #|bpo-)(?P<python>\d+)',
+                'url': 'https://bugs.python.org/issue{python}',
+            },
+            {
+                'pattern': r'\bpython/cpython#(?P<cpython>\d+)',
+                'url': '{GH}/python/cpython/issues/{cpython}',
+            },
+            {
+                'pattern': r'Interop #(?P<interop>\d+)',
+                'url': '{GH}/pypa/interoperability-peps/issues/{interop}',
+            },
+            {
+                'pattern': r'Pip #(?P<pip>\d+)',
+                'url': '{GH}/pypa/pip/issues/{pip}',
+            },
+            {
+                'pattern': r'Packaging #(?P<packaging>\d+)',
+                'url': '{GH}/pypa/packaging/issues/{packaging}',
+            },
+            {
+                'pattern': r'[Pp]ackaging (?P<packaging_ver>\d+(\.\d+)+)',
+                'url': '{GH}/pypa/packaging/blob/{packaging_ver}/CHANGELOG.rst',
+            },
+            {
+                'pattern': r'setuptools_svn #(?P<setuptools_svn>\d+)',
+                'url': '{GH}/jaraco/setuptools_svn/issues/{setuptools_svn}',
+            },
+            {
+                'pattern': r'pypa/(?P<issue_repo>[\-\.\w]+)#(?P<issue_number>\d+)',
+                'url': '{GH}/pypa/{issue_repo}/issues/{issue_number}',
+            },
+            {
+                'pattern': r'pypa/(?P<commit_repo>[\-\.\w]+)@(?P<commit_number>[\da-f]+)',
+                'url': '{GH}/pypa/{commit_repo}/commit/{commit_number}',
+            },
         ],
-    ),
+    },
 }
 
 # Be strict about any broken references

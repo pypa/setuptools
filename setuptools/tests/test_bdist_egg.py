@@ -31,14 +31,12 @@ class Test:
     @pytest.mark.usefixtures("user_override")
     @pytest.mark.usefixtures("setup_context")
     def test_bdist_egg(self):
-        dist = Distribution(
-            dict(
-                script_name='setup.py',
-                script_args=['bdist_egg'],
-                name='foo',
-                py_modules=['hi'],
-            )
-        )
+        dist = Distribution({
+            'script_name': 'setup.py',
+            'script_args': ['bdist_egg'],
+            'name': 'foo',
+            'py_modules': ['hi'],
+        })
         os.makedirs(os.path.join('build', 'src'))
         with contexts.quiet():
             dist.parse_command_line()
@@ -55,13 +53,11 @@ class Test:
     @pytest.mark.usefixtures("user_override")
     @pytest.mark.usefixtures("setup_context")
     def test_exclude_source_files(self):
-        dist = Distribution(
-            dict(
-                script_name='setup.py',
-                script_args=['bdist_egg', '--exclude-source-files'],
-                py_modules=['hi'],
-            )
-        )
+        dist = Distribution({
+            'script_name': 'setup.py',
+            'script_args': ['bdist_egg', '--exclude-source-files'],
+            'py_modules': ['hi'],
+        })
         with contexts.quiet():
             dist.parse_command_line()
             dist.run_commands()
