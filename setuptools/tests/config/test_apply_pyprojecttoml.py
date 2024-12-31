@@ -18,6 +18,7 @@ from ini2toml.api import LiteTranslator
 from packaging.metadata import Metadata
 
 import setuptools  # noqa: F401 # ensure monkey patch to metadata
+from setuptools._static import is_static
 from setuptools.command.egg_info import write_requirements
 from setuptools.config import expand, pyprojecttoml, setupcfg
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
@@ -478,6 +479,32 @@ class TestInteropCommandLineParsing:
         dist.parse_command_line()  # <-- there should be no exception here.
         captured = capsys.readouterr()
         assert "42.0" in captured.out
+
+
+class TestStaticConfig:
+    def test_mark_static_fields(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        toml_config = """
+        [project]
+        name = "test"
+        version = "42.0"
+        dependencies = ["hello"]
+        keywords = ["world"]
+        classifiers = ["private :: hello world"]
+        [tool.setuptools]
+        obsoletes = ["abcd"]
+        provides = ["abcd"]
+        platforms = ["abcd"]
+        """
+        pyproject = Path(tmp_path, "pyproject.toml")
+        pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
+        dist = pyprojecttoml.apply_configuration(Distribution({}), pyproject)
+        assert is_static(dist.install_requires)
+        assert is_static(dist.metadata.keywords)
+        assert is_static(dist.metadata.classifiers)
+        assert is_static(dist.metadata.obsoletes)
+        assert is_static(dist.metadata.provides)
+        assert is_static(dist.metadata.platforms)
 
 
 # --- Auxiliary Functions ---
