@@ -26,6 +26,7 @@ extend-select = [
 
 	# local
 	"ANN2", # missing-return-type-*
+	"C4", # flake8-comprehensions
 	"ISC", # flake8-implicit-str-concat
 	"FURB", # refurb
 	"PERF", # Perflint
