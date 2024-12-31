@@ -41,5 +41,5 @@ from setuptools.glob import glob
 )
 def test_glob(monkeypatch, tmpdir, tree, pattern, matches):
     monkeypatch.chdir(tmpdir)
-    path.build({name: '' for name in tree.split()})
+    path.build(dict.fromkeys(tree.split(), ''))
     assert sorted(glob(pattern)) == sorted(matches)
