@@ -262,7 +262,7 @@ def test_distribution_version_missing(
     metadata_path = os.path.join(dist_dir, expected_filename)
 
     # Now check the exception raised when the "version" attribute is accessed.
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match="xxxxx") as excinfo:
         dist.version
 
     err = str(excinfo.value)
@@ -290,7 +290,7 @@ def test_distribution_version_missing_undetected_path():
     # Create a Distribution object with no metadata argument, which results
     # in an empty metadata provider.
     dist = Distribution('/foo')
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError, match="xxxxx") as excinfo:
         dist.version
 
     msg, dist = excinfo.value.args
