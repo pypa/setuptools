@@ -250,7 +250,7 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
 
 @pytest.mark.parametrize(
     ("pyproject_text", "expected_maintainers_meta_value"),
-    (
+    [
         pytest.param(
             PEP621_EXAMPLE,
             (
@@ -269,7 +269,7 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
             ),
             id='international-email',
         ),
-    ),
+    ],
 )
 def test_utf8_maintainer_in_metadata(  # issue-3663
     expected_maintainers_meta_value,
@@ -298,7 +298,7 @@ def test_utf8_maintainer_in_metadata(  # issue-3663
         'content_str',
         'not_content_str',
     ),
-    (
+    [
         pytest.param(
             PEP639_LICENSE_TEXT,
             'MIT',
@@ -320,7 +320,7 @@ def test_utf8_maintainer_in_metadata(  # issue-3663
             'License: ',
             id='license-expression',
         ),
-    ),
+    ],
 )
 def test_license_in_metadata(
     license,

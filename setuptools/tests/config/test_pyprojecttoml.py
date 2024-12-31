@@ -201,7 +201,7 @@ class TestEntryPoints:
         assert len(expanded_project["entry-points"]) == 1
         assert expanded_project["entry-points"]["other"]["c"] == "mod.c:func [extra]"
 
-    @pytest.mark.parametrize("missing_dynamic", ("scripts", "gui-scripts"))
+    @pytest.mark.parametrize("missing_dynamic", ["scripts", "gui-scripts"])
     def test_scripts_not_listed_in_dynamic(self, tmp_path, missing_dynamic):
         self.write_entry_points(tmp_path)
         dynamic = {"scripts", "gui-scripts", "entry-points"} - {missing_dynamic}
@@ -288,7 +288,7 @@ class TestClassifiers:
 
 @pytest.mark.parametrize(
     "example",
-    (
+    [
         """
         [project]
         name = "myproj"
@@ -297,7 +297,7 @@ class TestClassifiers:
         [my-tool.that-disrespect.pep518]
         value = 42
         """,
-    ),
+    ],
 )
 def test_ignore_unrelated_config(tmp_path, example):
     pyproject = tmp_path / "pyproject.toml"
@@ -332,7 +332,7 @@ def test_invalid_example(tmp_path, example, error_msg):
         read_configuration(pyproject)
 
 
-@pytest.mark.parametrize("config", ("", "[tool.something]\nvalue = 42"))
+@pytest.mark.parametrize("config", ["", "[tool.something]\nvalue = 42"])
 def test_empty(tmp_path, config):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(config, encoding="utf-8")
@@ -341,7 +341,7 @@ def test_empty(tmp_path, config):
     assert read_configuration(pyproject) == {}
 
 
-@pytest.mark.parametrize("config", ("[project]\nname = 'myproj'\nversion='42'\n",))
+@pytest.mark.parametrize("config", ["[project]\nname = 'myproj'\nversion='42'\n"])
 def test_include_package_data_by_default(tmp_path, config):
     """Builds with ``pyproject.toml`` should consider ``include-package-data=True`` as
     default.
