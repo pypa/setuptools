@@ -64,16 +64,16 @@ class TestDevelop:
             "TODO: needs a fixture to cause 'develop' "
             "to be invoked without mutating environment."
         )
-        settings = dict(
-            name='foo',
-            packages=['foo'],
-            version='0.0',
-            entry_points={
+        settings = {
+            'name': 'foo',
+            'packages': ['foo'],
+            'version': '0.0',
+            'entry_points': {
                 'console_scripts': [
                     'foocmd = foo:foo',
                 ],
             },
-        )
+        }
         dist = Distribution(settings)
         dist.script_name = 'setup.py'
         cmd = develop(dist)
@@ -84,9 +84,9 @@ class TestDevelop:
 
     @pytest.mark.xfail(reason="legacy behavior retained for compatibility #4167")
     def test_egg_link_filename(self):
-        settings = dict(
-            name='Foo $$$ Bar_baz-bing',
-        )
+        settings = {
+            'name': 'Foo $$$ Bar_baz-bing',
+        }
         dist = Distribution(settings)
         cmd = develop(dist)
         cmd.ensure_finalized()

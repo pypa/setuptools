@@ -25,15 +25,15 @@ from setuptools.dist import Distribution
 
 from .config.downloads import retrieve_file, urls_from_file
 
-EXAMPLE_BASE_INFO = dict(
-    name="package",
-    version="0.0.1",
-    author="Foo Bar",
-    author_email="foo@bar.net",
-    long_description="Long\ndescription",
-    description="Short description",
-    keywords=["one", "two"],
-)
+EXAMPLE_BASE_INFO = {
+    "name": "package",
+    "version": "0.0.1",
+    "author": "Foo Bar",
+    "author_email": "foo@bar.net",
+    "long_description": "Long\ndescription",
+    "description": "Short description",
+    "keywords": ["one", "two"],
+}
 
 
 @pytest.mark.parametrize(
@@ -107,7 +107,7 @@ def __read_test_cases():
         ),
         pytest.param(
             'Metadata Version 1.2: Project-Url',
-            params(project_urls=dict(Foo='https://example.bar')),
+            params(project_urls={"Foo": 'https://example.bar'}),
             marks=pytest.mark.xfail(
                 reason="Issue #1578: project_urls not read",
             ),
@@ -137,33 +137,33 @@ def __read_test_cases():
         ),
         (
             'Missing author',
-            dict(
-                name='foo',
-                version='1.0.0',
-                author_email='snorri@sturluson.name',
-            ),
+            {
+                "name": 'foo',
+                "version": '1.0.0',
+                "author_email": 'snorri@sturluson.name',
+            },
         ),
         (
             'Missing author e-mail',
-            dict(
-                name='foo',
-                version='1.0.0',
-                author='Snorri Sturluson',
-            ),
+            {
+                "name": 'foo',
+                "version": '1.0.0',
+                "author": 'Snorri Sturluson',
+            },
         ),
         (
             'Missing author and e-mail',
-            dict(
-                name='foo',
-                version='1.0.0',
-            ),
+            {
+                "name": 'foo',
+                "version": '1.0.0',
+            },
         ),
         (
             'Bypass normalized version',
-            dict(
-                name='foo',
-                version=sic('1.0.0a'),
-            ),
+            {
+                "name": 'foo',
+                "version": sic('1.0.0a'),
+            },
         ),
     ]
 
