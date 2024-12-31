@@ -210,7 +210,7 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
 
 @pytest.mark.parametrize(
     ("pyproject_text", "expected_maintainers_meta_value"),
-    (
+    [
         pytest.param(
             PEP621_EXAMPLE,
             (
@@ -229,7 +229,7 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
             ),
             id='international-email',
         ),
-    ),
+    ],
 )
 def test_utf8_maintainer_in_metadata(  # issue-3663
     expected_maintainers_meta_value,
