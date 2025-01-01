@@ -906,7 +906,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
         )
         assert eggs == ['dep 1.0']
 
-    @pytest.mark.parametrize('with_dependency_links_in_setup_py', (False, True))
+    @pytest.mark.parametrize('with_dependency_links_in_setup_py', [False, True])
     def test_setup_requires_with_find_links_in_setup_cfg(
         self, monkeypatch, with_dependency_links_in_setup_py
     ):

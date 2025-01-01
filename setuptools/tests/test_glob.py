@@ -6,7 +6,7 @@ from setuptools.glob import glob
 
 @pytest.mark.parametrize(
     ('tree', 'pattern', 'matches'),
-    (
+    [
         ('', b'', []),
         ('', '', []),
         (
@@ -37,7 +37,7 @@ from setuptools.glob import glob
             b'*.rst',
             (b'CHANGES.rst', b'README.rst'),
         ),
-    ),
+    ],
 )
 def test_glob(monkeypatch, tmpdir, tree, pattern, matches):
     monkeypatch.chdir(tmpdir)

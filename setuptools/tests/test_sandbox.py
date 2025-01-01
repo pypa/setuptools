@@ -47,7 +47,7 @@ class TestExceptionSaver:
         with setuptools.sandbox.ExceptionSaver() as saved_exc:
             raise ValueError("details")
 
-        with pytest.raises(ValueError) as caught:
+        with pytest.raises(ValueError, match="details") as caught:
             saved_exc.resume()
 
         assert isinstance(caught.value, ValueError)
@@ -59,7 +59,7 @@ class TestExceptionSaver:
         with setuptools.sandbox.ExceptionSaver() as saved_exc:
             raise orig_exc
 
-        with pytest.raises(ValueError) as caught:
+        with pytest.raises(ValueError, match="details") as caught:
             saved_exc.resume()
 
         assert isinstance(caught.value, ValueError)

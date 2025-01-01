@@ -460,7 +460,7 @@ class TestEntryPoints:
 
     @pytest.mark.parametrize("reject_spec", reject_specs)
     def test_reject_spec(self, reject_spec):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=reject_spec):
             EntryPoint.parse(reject_spec)
 
     def test_printable_name(self):
@@ -497,9 +497,9 @@ class TestEntryPoints:
 
     def testParseList(self):
         self.checkSubMap(EntryPoint.parse_group("xyz", self.submap_str))
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="xxxxx"):
             EntryPoint.parse_group("x a", "foo=bar")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="xxxxx"):
             EntryPoint.parse_group("x", ["foo=baz", "foo=bar"])
 
     def testParseMap(self):
@@ -509,9 +509,9 @@ class TestEntryPoints:
         m = EntryPoint.parse_map("[xyz]\n" + self.submap_str)
         self.checkSubMap(m['xyz'])
         assert list(m.keys()) == ['xyz']
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="xxxxx"):
             EntryPoint.parse_map(["[xyz]", "[xyz]"])
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="xxxxx"):
             EntryPoint.parse_map(self.submap_str)
 
     def testDeprecationWarnings(self):
@@ -642,7 +642,7 @@ class TestParsing:
             ("d", []),
             ("q", ["v"]),
         ]
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="xxxxx"):
             list(pkg_resources.split_sections("[foo"))
 
     def testSafeName(self):
@@ -667,15 +667,15 @@ class TestParsing:
             Requirement('Twisted>=1.2,<2.0')
         ]
         assert Requirement.parse("FooBar==1.99a3") == Requirement("FooBar==1.99a3")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match=r" >=2\.3"):
             Requirement.parse(">=2.3")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="xxxxx"):
             Requirement.parse("x\\")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="xxxxx"):
             Requirement.parse("x==2 q")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="xxxxx"):
             Requirement.parse("X==1\nY==2")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="xxxxx"):
             Requirement.parse("#")
 
     def test_requirements_with_markers(self):
