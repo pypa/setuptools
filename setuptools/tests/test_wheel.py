@@ -114,11 +114,11 @@ def build_wheel(extra_file_defs=None, **kwargs):
 
 
 def tree_set(root):
-    return set(
+    return {
         os.path.join(os.path.relpath(dirpath, root), filename)
         for dirpath, dirnames, filenames in os.walk(root)
         for filename in filenames
-    )
+    }
 
 
 def flatten_tree(tree):
