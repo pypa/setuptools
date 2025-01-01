@@ -9,14 +9,12 @@ def test_distribution_gives_setuptools_build_obj(tmpdir_cwd):
     setuptools specific build object.
     """
 
-    dist = Distribution(
-        dict(
-            script_name='setup.py',
-            script_args=['build'],
-            packages=[],
-            package_data={'': ['path/*']},
-        )
-    )
+    dist = Distribution({
+        'script_name': 'setup.py',
+        'script_args': ['build'],
+        'packages': [],
+        'package_data': {'': ['path/*']},
+    })
     assert isinstance(dist.get_command_obj("build"), build)
 
 

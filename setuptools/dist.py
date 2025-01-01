@@ -399,7 +399,7 @@ class Distribution(_Distribution):
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
         license_files: list[str] | None = self.metadata.license_files
-        patterns: list[str] = license_files if license_files else []
+        patterns: list[str] = license_files or []
 
         license_file: str | None = self.metadata.license_file
         if license_file and license_file not in patterns:
@@ -670,7 +670,7 @@ class Distribution(_Distribution):
 
         defined = metadata.entry_points(group=group)
         filtered = itertools.filterfalse(self._removed, defined)
-        loaded = map(lambda e: e.load(), filtered)
+        loaded = (e.load() for e in filtered)
         for ep in sorted(loaded, key=by_order):
             ep(self)
 
@@ -953,8 +953,7 @@ class Distribution(_Distribution):
                 name, _buildinfo = ext
             else:
                 name = ext.name
-            if name.endswith('module'):
-                name = name[:-6]
+            name = name.removesuffix('module')
             yield name
 
     def handle_display_options(self, option_order):
