@@ -5,8 +5,8 @@ Package Discovery and Namespace Packages
 ========================================
 
 .. note::
-    a full specification for the keywords supplied to ``setup.cfg`` or
-    ``setup.py`` can be found at :doc:`keywords reference </references/keywords>`
+    A full specification for the keywords supplied to ``setup.cfg`` or
+    ``setup.py`` can be found at :doc:`keywords reference </references/keywords>`.
 
 .. important::
     The examples provided here are only to demonstrate the functionality
@@ -45,7 +45,7 @@ Normally, you would specify the packages to be included manually in the followin
 
         setup(
             # ...
-            packages=['mypkg', 'mypkg.subpkg1', 'mypkg.subpkg2']
+            packages=["mypkg", "mypkg.subpkg1", "mypkg.subpkg2"]
         )
 
 
@@ -268,7 +268,7 @@ the provided tools for package discovery:
 
         [options]
         packages = find:
-        #or
+        # OR
         packages = find_namespace:
 
 .. tab:: setup.py
@@ -276,7 +276,7 @@ the provided tools for package discovery:
     .. code-block:: python
 
         from setuptools import find_packages
-        # or
+        # OR
         from setuptools import find_namespace_packages
 
 
@@ -327,7 +327,7 @@ in ``src`` that start with the name ``pkg`` and not ``additional``:
         [options]
         packages = find:
         package_dir =
-            =src
+            = src
 
         [options.packages.find]
         where = src
@@ -345,8 +345,8 @@ in ``src`` that start with the name ``pkg`` and not ``additional``:
         setup(
             # ...
             packages=find_packages(
-                where='src',
-                include=['pkg*'],  # alternatively: `exclude=['additional*']`
+                where="src",
+                include=["pkg*"],  # alternatively: `exclude=["additional*"]`
             ),
             package_dir={"": "src"}
             # ...
@@ -431,7 +431,7 @@ distribution, then you will need to specify:
 
         [options]
         package_dir =
-            =src
+            = src
         packages = find_namespace:
 
         [options.packages.find]
@@ -450,7 +450,7 @@ distribution, then you will need to specify:
 
         setup(
             # ...
-            packages=find_namespace_packages(where='src'),
+            packages=find_namespace_packages(where="src"),
             package_dir={"": "src"}
             # ...
         )
@@ -542,7 +542,7 @@ And the ``namespace_packages`` keyword in your ``setup.cfg`` or ``setup.py``:
 
         setup(
             # ...
-            namespace_packages=['timmins']
+            namespace_packages=["timmins"]
         )
 
 And your directory should look like this
@@ -568,7 +568,7 @@ file contains the following:
 
 .. code-block:: python
 
-    __path__ = __import__('pkgutil').extend_path(__path__, __name__)
+    __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
 The project layout remains the same and ``pyproject.toml/setup.cfg`` remains the same.
 
