@@ -19,6 +19,15 @@ support for namespace packages.
 
 Normally, you would specify the packages to be included manually in the following manner:
 
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        # ...
+        [tool.setuptools]
+        packages = ["mypkg", "mypkg.subpkg1", "mypkg.subpkg2"]
+        # ...
+
 .. tab:: setup.cfg
 
     .. code-block:: ini
@@ -39,18 +48,29 @@ Normally, you would specify the packages to be included manually in the followin
             packages=['mypkg', 'mypkg.subpkg1', 'mypkg.subpkg2']
         )
 
+
+If your packages are not in the root of the repository or do not correspond
+exactly to the directory structure, you also need to configure ``package_dir``:
+
 .. tab:: pyproject.toml
 
     .. code-block:: toml
 
-        # ...
         [tool.setuptools]
-        packages = ["mypkg", "mypkg.subpkg1", "mypkg.subpkg2"]
         # ...
+        package-dir = {"" = "src"}
+            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
 
+        # OR
 
-If your packages are not in the root of the repository or do not correspond
-exactly to the directory structure, you also need to configure ``package_dir``:
+        [tool.setuptools.package-dir]
+        mypkg = "lib"
+        # mypkg.module corresponds to lib/module.py
+        "mypkg.subpkg1" = "lib1"
+        # mypkg.subpkg1.module1 corresponds to lib1/module1.py
+        "mypkg.subpkg2" = "lib2"
+        # mypkg.subpkg2.module2 corresponds to lib2/module2.py
+        # ...
 
 .. tab:: setup.cfg
 
@@ -92,26 +112,6 @@ exactly to the directory structure, you also need to configure ``package_dir``:
                 # ...
             }
         )
-
-.. tab:: pyproject.toml
-
-    .. code-block:: toml
-
-        [tool.setuptools]
-        # ...
-        package-dir = {"" = "src"}
-            # directory containing all the packages (e.g.  src/mypkg1, src/mypkg2)
-
-        # OR
-
-        [tool.setuptools.package-dir]
-        mypkg = "lib"
-        # mypkg.module corresponds to lib/module.py
-        "mypkg.subpkg1" = "lib1"
-        # mypkg.subpkg1.module1 corresponds to lib1/module1.py
-        "mypkg.subpkg2" = "lib2"
-        # mypkg.subpkg2.module2 corresponds to lib2/module2.py
-        # ...
 
 This can get tiresome really quickly. To speed things up, you can rely on
 setuptools automatic discovery, or use the provided tools, as explained in
@@ -252,6 +252,16 @@ reserved names such as ``tasks``, ``example`` or ``docs``, or you want to
 *exclude* nested packages that would be otherwise included), you can use
 the provided tools for package discovery:
 
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        # ...
+        [tool.setuptools.packages]
+        find = {}  # Scanning implicit namespaces is active by default
+        # OR
+        find = {namespaces = false}  # Disable implicit namespaces
+
 .. tab:: setup.cfg
 
     .. code-block:: ini
@@ -268,16 +278,6 @@ the provided tools for package discovery:
         from setuptools import find_packages
         # or
         from setuptools import find_namespace_packages
-
-.. tab:: pyproject.toml
-
-    .. code-block:: toml
-
-        # ...
-        [tool.setuptools.packages]
-        find = {}  # Scanning implicit namespaces is active by default
-        # OR
-        find = {namespaces = false}  # Disable implicit namespaces
 
 
 Finding simple packages
@@ -302,6 +302,23 @@ it, consider the following directory::
 
 To have setuptools to automatically include packages found
 in ``src`` that start with the name ``pkg`` and not ``additional``:
+
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
+        include = ["pkg*"]  # alternatively: `exclude = ["additional*"]`
+        namespaces = false
+
+    .. note::
+        When using ``tool.setuptools.packages.find`` in ``pyproject.toml``,
+        setuptools will consider :pep:`implicit namespaces <420>` by default when
+        scanning your project directory.
+        To avoid ``pkg.namespace`` from being added to your package list
+        you can set ``namespaces = false``. This will prevent any folder
+        without an ``__init__.py`` file from being scanned.
 
 .. tab:: setup.cfg
 
@@ -340,23 +357,6 @@ in ``src`` that start with the name ``pkg`` and not ``additional``:
         ``pkg`` does not contain an ``__init__.py`` file, therefore
         ``pkg.namespace`` is ignored by ``find_packages()``
         (see ``find_namespace_packages()`` below).
-
-.. tab:: pyproject.toml
-
-    .. code-block:: toml
-
-        [tool.setuptools.packages.find]
-        where = ["src"]
-        include = ["pkg*"]  # alternatively: `exclude = ["additional*"]`
-        namespaces = false
-
-    .. note::
-        When using ``tool.setuptools.packages.find`` in ``pyproject.toml``,
-        setuptools will consider :pep:`implicit namespaces <420>` by default when
-        scanning your project directory.
-        To avoid ``pkg.namespace`` from being added to your package list
-        you can set ``namespaces = false``. This will prevent any folder
-        without an ``__init__.py`` file from being scanned.
 
 .. important::
    ``include`` and ``exclude`` accept strings representing :mod:`glob` patterns.
@@ -414,6 +414,17 @@ by creating a project directory organized as follows::
 If you want the ``timmins.foo`` to be automatically included in the
 distribution, then you will need to specify:
 
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
+
+    When using ``tool.setuptools.packages.find`` in ``pyproject.toml``,
+    setuptools will consider :pep:`implicit namespaces <420>` by default when
+    scanning your project directory.
+
 .. tab:: setup.cfg
 
     .. code-block:: ini
@@ -448,17 +459,6 @@ distribution, then you will need to specify:
     ``__init__.py`` file will be ignored.
     On the other hand, ``find_namespace_packages()`` will scan all
     directories.
-
-.. tab:: pyproject.toml
-
-    .. code-block:: toml
-
-        [tool.setuptools.packages.find]
-        where = ["src"]
-
-    When using ``tool.setuptools.packages.find`` in ``pyproject.toml``,
-    setuptools will consider :pep:`implicit namespaces <420>` by default when
-    scanning your project directory.
 
 After installing the package distribution, ``timmins.foo`` would become
 available to your interpreter.
