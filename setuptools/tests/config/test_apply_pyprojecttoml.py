@@ -387,7 +387,7 @@ class TestPresetField:
         """Setuptools cannot set a field if not listed in ``dynamic``"""
         pyproject = self.pyproject(tmp_path, [])
         dist = makedist(tmp_path, **{attr: value})
-        msg = re.compile(f"defined outside of `pyproject.toml`:.*{field}", re.S)
+        msg = re.compile(f"defined outside of `pyproject.toml`:.*{field}", re.DOTALL)
         with pytest.warns(_MissingDynamic, match=msg):
             dist = pyprojecttoml.apply_configuration(dist, pyproject)
 
