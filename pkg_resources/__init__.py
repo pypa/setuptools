@@ -875,9 +875,7 @@ class WorkingSet:
 
         # Mapping of requirement to set of distributions that required it;
         # useful for reporting info about conflicts.
-        required_by: collections.defaultdict[Requirement, set[str]] = (
-            collections.defaultdict(set)
-        )
+        required_by = collections.defaultdict[Requirement, set[str]](set)
 
         while requirements:
             # process dependencies breadth-first

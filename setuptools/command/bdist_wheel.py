@@ -500,7 +500,7 @@ class bdist_wheel(Command):
             # Setuptools has resolved any patterns to actual file names
             return self.distribution.metadata.license_files or ()
 
-        files: set[str] = set()
+        files = set[str]()
         metadata = self.distribution.get_option_dict("metadata")
         if setuptools_major_version >= 42:
             # Setuptools recognizes the license_files option but does not do globbing
