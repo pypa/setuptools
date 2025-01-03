@@ -1039,7 +1039,13 @@ class EnvironmentInfo:
 
         elif self.vs_ver >= 15.0:
             host_dir = (
-                r'bin\HostX86%s' if self.pi.current_is_x86() else r'bin\HostX64%s'
+                r'bin\HostX86%s'
+                if self.pi.current_is_x86()
+                else (
+                    r'bin\HostARM64%s'
+                    if self.pi.current_cpu == 'arm64'
+                    else r'bin\HostX64%s'
+                )
             )
             tools += [
                 os.path.join(si.VCInstallDir, host_dir % self.pi.target_dir(x64=True))
