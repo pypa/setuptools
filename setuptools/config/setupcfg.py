@@ -253,7 +253,7 @@ class ConfigHandler(Generic[Target]):
         self.sections = dict(self._section_options(options))
         self.set_options: list[str] = []
         self.ensure_discovered = ensure_discovered
-        self._referenced_files: set[str] = set()
+        self._referenced_files = set[str]()
         """After parsing configurations, this property will enumerate
         all files referenced by the "file:" directive. Private API for setuptools only.
         """
