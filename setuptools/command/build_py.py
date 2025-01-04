@@ -194,6 +194,10 @@ class build_py(orig.build_py):
             files = ei_cmd.filelist.files
 
         check = _IncludePackageDataAbuse()
+        data_files = {
+            package: filenames
+            for package, _, _, filenames in self.get_data_files_without_manifest()
+        }
         for path in self._filter_build_files(files, egg_info_dir):
             d, f = os.path.split(assert_relative(path))
             prev = None
@@ -208,7 +212,7 @@ class build_py(orig.build_py):
                         continue  # it's a module, not data
                 else:
                     importable = check.importable_subpackage(src_dirs[d], f)
-                    if importable:
+                    if importable and f not in data_files.get(d, {}):
                         check.warn(importable)
                 self.manifest_files.setdefault(src_dirs[d], []).append(path)
 
