@@ -92,7 +92,7 @@ def monkeysession(request):
     mpatch.undo()
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(scope="module")
 def suppress_path_mangle(monkeysession):
     """
     Disable the path mangling in CCompiler. Workaround for #169.
