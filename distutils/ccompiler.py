@@ -976,6 +976,13 @@ int main (int argc, char **argv) {{
 
     @classmethod
     def _make_out_path_exts(cls, output_dir, strip_dir, src_name, extensions):
+        r"""
+        >>> exts = {'.c': '.o'}
+        >>> CCompiler._make_out_path_exts('.', False, '/foo/bar.c', exts).replace('\\', '/')
+        './foo/bar.o'
+        >>> CCompiler._make_out_path_exts('.', True, '/foo/bar.c', exts).replace('\\', '/')
+        './bar.o'
+        """
         base, ext = os.path.splitext(src_name)
         base = pathlib.PurePath(base)
         # Ensure base is relative to honor output_dir (python/cpython#37775).
@@ -985,7 +992,7 @@ int main (int argc, char **argv) {{
         except LookupError:
             raise UnknownFileError(f"unknown file type '{ext}' (from '{src_name}')")
         if strip_dir:
-            base = base.name
+            base = pathlib.PurePath(base.name)
         return os.path.join(output_dir, base.with_suffix(new_ext))
 
     @staticmethod
