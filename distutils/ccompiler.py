@@ -969,10 +969,16 @@ int main (int argc, char **argv) {{
         return dict.fromkeys(self.src_extensions, self.obj_extension)
 
     def _make_out_path(self, output_dir, strip_dir, src_name):
+        return self._make_out_path_exts(
+            output_dir, strip_dir, src_name, self.out_extensions
+        )
+
+    @classmethod
+    def _make_out_path_exts(cls, output_dir, strip_dir, src_name, extensions):
         base, ext = os.path.splitext(src_name)
-        base = self._make_relative(base)
+        base = cls._make_relative(base)
         try:
-            new_ext = self.out_extensions[ext]
+            new_ext = extensions[ext]
         except LookupError:
             raise UnknownFileError(f"unknown file type '{ext}' (from '{src_name}')")
         if strip_dir:
