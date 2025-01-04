@@ -983,14 +983,13 @@ int main (int argc, char **argv) {{
         >>> CCompiler._make_out_path_exts('.', True, '/foo/bar.c', exts).replace('\\', '/')
         './bar.o'
         """
-        base, ext = os.path.splitext(src_name)
-        base = pathlib.PurePath(base)
+        src = pathlib.PurePath(src_name)
         # Ensure base is relative to honor output_dir (python/cpython#37775).
-        base = cls._make_relative(base)
+        base = cls._make_relative(src)
         try:
-            new_ext = extensions[ext]
+            new_ext = extensions[src.suffix]
         except LookupError:
-            raise UnknownFileError(f"unknown file type '{ext}' (from '{src_name}')")
+            raise UnknownFileError(f"unknown file type '{src.suffix}' (from '{src}')")
         if strip_dir:
             base = pathlib.PurePath(base.name)
         return os.path.join(output_dir, base.with_suffix(new_ext))
