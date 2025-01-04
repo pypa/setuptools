@@ -4,6 +4,7 @@ Contains CCompiler, an abstract base class that defines the interface
 for the Distutils compiler abstraction model."""
 
 import os
+import pathlib
 import re
 import sys
 import types
@@ -976,31 +977,20 @@ int main (int argc, char **argv) {{
     @classmethod
     def _make_out_path_exts(cls, output_dir, strip_dir, src_name, extensions):
         base, ext = os.path.splitext(src_name)
+        base = pathlib.PurePath(base)
+        # Ensure base is relative to honor output_dir (python/cpython#37775).
         base = cls._make_relative(base)
         try:
             new_ext = extensions[ext]
         except LookupError:
             raise UnknownFileError(f"unknown file type '{ext}' (from '{src_name}')")
         if strip_dir:
-            base = os.path.basename(base)
-        return os.path.join(output_dir, base + new_ext)
+            base = base.name
+        return os.path.join(output_dir, base.with_suffix(new_ext))
 
     @staticmethod
-    def _make_relative(base):
-        """
-        In order to ensure that a filename always honors the
-        indicated output_dir, make sure it's relative.
-        Ref python/cpython#37775.
-        """
-        # Chop off the drive
-        no_drive = os.path.splitdrive(base)[1]
-        # If abs, chop off leading /
-        is_abs = (
-            os.path.isabs(no_drive)
-            or sys.platform == 'win32'
-            and no_drive.startswith(('/', "\\"))
-        )
-        return no_drive[is_abs:]
+    def _make_relative(base: pathlib.Path):
+        return base.relative_to(base.anchor)
 
     def shared_object_filename(self, basename, strip_dir=False, output_dir=''):
         assert output_dir is not None
