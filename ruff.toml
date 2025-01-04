@@ -1,3 +1,6 @@
+# extend pyproject.toml for requires-python (workaround astral-sh/ruff#10299)
+extend = "pyproject.toml"
+
 [lint]
 extend-select = [
 	"C901",

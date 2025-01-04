@@ -16,11 +16,11 @@ classifiers = [
 	"Programming Language :: Python :: 3",
 	"Programming Language :: Python :: 3 :: Only",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
 	# Setuptools must require these
 	"packaging",
-	"jaraco.functools",
+	"jaraco.functools >= 4",
 	"more_itertools",
 	"jaraco.collections",
 ]
