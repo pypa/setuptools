@@ -320,7 +320,7 @@ class Distribution(_Distribution):
         # Private API (setuptools-use only, not restricted to Distribution)
         # Stores files that are referenced by the configuration and need to be in the
         # sdist (e.g. `version = file: VERSION.txt`)
-        self._referenced_files: set[str] = set()
+        self._referenced_files = set[str]()
 
         self.set_defaults = ConfigDiscovery(self)
 
@@ -399,7 +399,7 @@ class Distribution(_Distribution):
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
         license_files: list[str] | None = self.metadata.license_files
-        patterns: list[str] = license_files if license_files else []
+        patterns = license_files or []
 
         license_file: str | None = self.metadata.license_file
         if license_file and license_file not in patterns:
