@@ -44,7 +44,7 @@ test = [
 	"packaging>=24.2",
 	"jaraco.envs>=2.2",
 	"pytest-xdist>=3", # Dropped dependency on pytest-fork and py
-	"jaraco.path>=3.2.0",
+	"jaraco.path>=3.7.2", # Typing fixes
 	"build[virtualenv]>=1.0.3",
 	"filelock>=3.4.0",
 	"ini2toml[lite]>=0.14",
@@ -114,8 +114,8 @@ check = [
 
 	# local
 
-	# changed defaults for PT001 and PT023 astral-sh/ruff#13292
-	"ruff >= 0.7.0; sys_platform != 'cygwin'",
+	# Removal of deprecated UP027, PT004 & PT005 astral-sh/ruff#14383
+	"ruff >= 0.8.0; sys_platform != 'cygwin'",
 ]
 
 cover = [
@@ -135,7 +135,7 @@ type = [
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam
-	"mypy>=1.12,<1.14",
+	"mypy==1.14.*",
 	# Typing fixes in version newer than we require at runtime
 	"importlib_metadata>=7.0.2; python_version < '3.10'",
 	# Imported unconditionally in tools/finalize.py

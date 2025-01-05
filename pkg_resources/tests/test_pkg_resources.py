@@ -214,8 +214,8 @@ def test_get_metadata__bad_utf8(tmpdir):
         "codec can't decode byte 0xe9 in position 1: "
         'invalid continuation byte in METADATA file at path: '
     )
-    assert expected in actual, 'actual: {}'.format(actual)
-    assert actual.endswith(metadata_path), 'actual: {}'.format(actual)
+    assert expected in actual, f'actual: {actual}'
+    assert actual.endswith(metadata_path), f'actual: {actual}'
 
 
 def make_distribution_no_version(tmpdir, basename):
@@ -252,11 +252,11 @@ def test_distribution_version_missing(
     """
     Test Distribution.version when the "Version" header is missing.
     """
-    basename = 'foo.{}'.format(suffix)
+    basename = f'foo.{suffix}'
     dist, dist_dir = make_distribution_no_version(tmpdir, basename)
 
-    expected_text = ("Missing 'Version:' header and/or {} file at path: ").format(
-        expected_filename
+    expected_text = (
+        f"Missing 'Version:' header and/or {expected_filename} file at path: "
     )
     metadata_path = os.path.join(dist_dir, expected_filename)
 
