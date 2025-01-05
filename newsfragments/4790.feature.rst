@@ -1,1 +1,1 @@
-Synced with pypa/distutils@ff11eed0c including bugfix for duplicate CFLAGS, adaption to support Python 3.13 is_abs in the C compiler (#4669), and setting of ``Py_GIL_DISABLED=1`` for free threaded Python on Windows (#4662).
+Synced with pypa/distutils@ff11eed0c including bugfix for duplicate CFLAGS and adaption to support Python 3.13 is_abs in the C compiler (#4669).
