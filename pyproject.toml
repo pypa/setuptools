@@ -102,7 +102,7 @@ core = [
 
 	# for distutils
 	"jaraco.collections",
-	"jaraco.functools>=4",
+	"jaraco.functools >= 4",
 	"packaging",
 	"more_itertools",
 ]

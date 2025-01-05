@@ -130,9 +130,9 @@ class TestSysconfig:
         comp = self.customize_compiler()
         assert comp.exes['archiver'] == 'env_ar --env-arflags'
         assert comp.exes['preprocessor'] == 'env_cpp --env-cppflags'
-        assert comp.exes['compiler'] == 'env_cc --sc-cflags --env-cflags --env-cppflags'
+        assert comp.exes['compiler'] == 'env_cc --env-cflags --env-cppflags'
         assert comp.exes['compiler_so'] == (
-            'env_cc --sc-cflags --env-cflags --env-cppflags --sc-ccshared'
+            'env_cc --env-cflags --env-cppflags --sc-ccshared'
         )
         assert (
             comp.exes['compiler_cxx']
