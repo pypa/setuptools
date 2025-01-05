@@ -1,3 +1,13 @@
+v75.7.0
+=======
+
+Features
+--------
+
+- Synced with pypa/distutils@c97a3db2f including better support for free threaded Python on Windows (pypa/distutils#310), improved typing support, and linter accommodations. (#4478)
+- Synced with pypa/distutils@ff11eed0c including bugfix for duplicate CFLAGS and adaption to support Python 3.13 is_abs in the C compiler (#4669). (#4790)
+
+
 v75.6.0
 =======
 
