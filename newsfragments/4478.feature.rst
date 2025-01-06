@@ -1,1 +1,0 @@
-Synced with pypa/distutils@c97a3db2f including better support for free threaded Python on Windows (pypa/distutils#310), improved typing support, and linter accommodations.

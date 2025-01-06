@@ -7,6 +7,8 @@ from distutils import ccompiler
 
 import pytest
 
+pytestmark = pytest.mark.usefixtures('suppress_path_mangle')
+
 
 def _make_strs(paths):
     """

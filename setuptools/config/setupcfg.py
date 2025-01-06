@@ -254,7 +254,7 @@ class ConfigHandler(Generic[Target]):
         self.sections = dict(self._section_options(options))
         self.set_options: list[str] = []
         self.ensure_discovered = ensure_discovered
-        self._referenced_files: set[str] = set()
+        self._referenced_files = set[str]()
         """After parsing configurations, this property will enumerate
         all files referenced by the "file:" directive. Private API for setuptools only.
         """
@@ -274,7 +274,7 @@ class ConfigHandler(Generic[Target]):
     def parsers(self) -> dict[str, Callable]:
         """Metadata item name to parser function mapping."""
         raise NotImplementedError(
-            '%s must provide .parsers property' % self.__class__.__name__
+            f'{self.__class__.__name__} must provide .parsers property'
         )
 
     def __setitem__(self, option_name, value) -> None:
