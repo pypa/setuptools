@@ -517,7 +517,7 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as fp:
             pkg_info_lines = fp.read().split('\n')
         assert 'Provides-Extra: foobar' in pkg_info_lines
-        assert 'Metadata-Version: 2.1' in pkg_info_lines
+        assert 'Metadata-Version: 2.2' in pkg_info_lines
 
     def test_doesnt_provides_extra(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
@@ -1064,7 +1064,7 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as fp:
             pkg_info_lines = fp.read().split('\n')
         # Update metadata version if changed
-        assert self._extract_mv_version(pkg_info_lines) == (2, 1)
+        assert self._extract_mv_version(pkg_info_lines) == (2, 2)
 
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
@@ -1091,7 +1091,7 @@ class TestEggInfo:
             pkg_info_lines = fp.read().split('\n')
         expected_line = 'Description-Content-Type: text/markdown'
         assert expected_line in pkg_info_lines
-        assert 'Metadata-Version: 2.1' in pkg_info_lines
+        assert 'Metadata-Version: 2.2' in pkg_info_lines
 
     def test_long_description(self, tmpdir_cwd, env):
         # Test that specifying `long_description` and `long_description_content_type`
@@ -1110,7 +1110,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as fp:
             pkg_info_lines = fp.read().split('\n')
-        assert 'Metadata-Version: 2.1' in pkg_info_lines
+        assert 'Metadata-Version: 2.2' in pkg_info_lines
         assert '' == pkg_info_lines[-1]  # last line should be empty
         long_desc_lines = pkg_info_lines[pkg_info_lines.index('') :]
         assert 'This is a long description' in long_desc_lines
