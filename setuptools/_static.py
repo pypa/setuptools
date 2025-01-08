@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Any, TypeVar
+from typing import TypeVar
 
 import packaging.specifiers
 
@@ -170,7 +170,7 @@ def attempt_conversion(value: T) -> T:
     return _CONVERSIONS.get(type(value), noop)(value)  # type: ignore[call-overload]
 
 
-def is_static(value: Any) -> bool:
+def is_static(value: object) -> bool:
     """
     >>> is_static(a := Dict({'a': 1}))
     True
