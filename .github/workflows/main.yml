@@ -90,6 +90,10 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: setuptools/tests/config
         run: python -m downloads.preload setupcfg_examples.txt
+      - name: Adjust env vars
+        shell: bash
+        run: |
+          echo 'PIPX_DEFAULT_PYTHON=${{ steps.python-install.outputs.python-path }}' >> $GITHUB_ENV
       - name: Pre-build distributions for test
         shell: bash
         run: |
