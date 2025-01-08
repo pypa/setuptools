@@ -1,3 +1,14 @@
+v75.8.0
+=======
+
+Features
+--------
+
+- Implemented ``Dynamic`` field for core metadata (as introduced in PEP 643).
+  The existing implementation is currently experimental and the exact approach
+  may change in future releases. (#4698)
+
+
 v75.7.0
 =======
 
