@@ -670,11 +670,11 @@ class TestSetupRequires:
 
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
-                foobar_1_archive = os.path.join(temp_dir, 'foo.bar-0.1.tar.gz')
-                make_nspkg_sdist(foobar_1_archive, 'foo.bar', '0.1')
+                foobar_1_archive = os.path.join(temp_dir, 'foo_bar-0.1.tar.gz')
+                make_nspkg_sdist(foobar_1_archive, 'foo_bar', '0.1')
                 # Now actually go ahead an extract to the temp dir and add the
                 # extracted path to sys.path so foo.bar v0.1 is importable
-                foobar_1_dir = os.path.join(temp_dir, 'foo.bar-0.1')
+                foobar_1_dir = os.path.join(temp_dir, 'foo_bar-0.1')
                 os.mkdir(foobar_1_dir)
                 with tarfile.open(foobar_1_archive) as tf:
                     tf.extraction_filter = lambda member, path: member
@@ -697,14 +697,14 @@ class TestSetupRequires:
                             len(foo.__path__) == 2):
                         print('FAIL')
 
-                    if 'foo.bar-0.2' not in foo.__path__[0]:
+                    if 'foo_bar-0.2' not in foo.__path__[0]:
                         print('FAIL')
                 """
                 )
 
                 test_pkg = create_setup_requires_package(
                     temp_dir,
-                    'foo.bar',
+                    'foo_bar',
                     '0.2',
                     make_nspkg_sdist,
                     template,
@@ -1120,8 +1120,10 @@ def make_nspkg_sdist(dist_path, distname, version):
     package with the same name as distname.  The top-level package is
     designated a namespace package).
     """
-
-    parts = distname.split('.')
+    # The project name might not contain periods. Replace dashes and
+    # underscores with periods before constructing the namespace.
+    namespace = distname.replace('-', '.').replace('_', '.')
+    parts = namespace.split('.')
     nspackage = parts[0]
 
     packages = ['.'.join(parts[:idx]) for idx in range(1, len(parts) + 1)]
