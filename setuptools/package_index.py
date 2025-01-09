@@ -49,12 +49,12 @@ from distutils import log
 from distutils.errors import DistutilsError
 
 EGG_FRAGMENT = re.compile(r'^egg=([-A-Za-z0-9_.+!]+)$')
-HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.I)
+HREF = re.compile(r"""href\s*=\s*['"]?([^'"> ]+)""", re.IGNORECASE)
 PYPI_MD5 = re.compile(
     r'<a href="([^"#]+)">([^<]+)</a>\n\s+\(<a (?:title="MD5 hash"\n\s+)'
     r'href="[^?]+\?:action=show_md5&amp;digest=([0-9a-f]{32})">md5</a>\)'
 )
-URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):', re.I).match
+URL_SCHEME = re.compile('([-+.a-z0-9]{2,}):', re.IGNORECASE).match
 EXTENSIONS = ".tar.gz .tar.bz2 .tar .zip .tgz".split()
 
 __all__ = [
@@ -214,7 +214,9 @@ def unique_values(func):
     return wrapper
 
 
-REL = re.compile(r"""<([^>]*\srel\s{0,10}=\s{0,10}['"]?([^'" >]+)[^>]*)>""", re.I)
+REL = re.compile(
+    r"""<([^>]*\srel\s{0,10}=\s{0,10}['"]?([^'" >]+)[^>]*)>""", re.IGNORECASE
+)
 """
 Regex for an HTML tag with 'rel="val"' attributes.
 """
@@ -858,10 +860,10 @@ class PackageIndex(Environment):
         self.info(f"Doing {vcs} clone from {url} to {filename}")
         subprocess.check_call([vcs, 'clone', '--quiet', url, filename])
 
-        co_commands = dict(
-            git=[vcs, '-C', filename, 'checkout', '--quiet', rev],
-            hg=[vcs, '--cwd', filename, 'up', '-C', '-r', rev, '-q'],
-        )
+        co_commands = {
+            'git': [vcs, '-C', filename, 'checkout', '--quiet', rev],
+            'hg': [vcs, '--cwd', filename, 'up', '-C', '-r', rev, '-q'],
+        }
         if rev is not None:
             self.info(f"Checking out {rev}")
             subprocess.check_call(co_commands[vcs])

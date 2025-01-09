@@ -347,7 +347,7 @@ class TestDeepVersionLookupDistutils:
         env = Environment(tmpdir)
         tmpdir.chmod(stat.S_IRWXU)
         subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
-        env.paths = dict((dirname, str(tmpdir / dirname)) for dirname in subs)
+        env.paths = {dirname: str(tmpdir / dirname) for dirname in subs}
         list(map(os.mkdir, env.paths.values()))
         return env
 
@@ -357,7 +357,7 @@ class TestDeepVersionLookupDistutils:
         as version.
         """
         ld = "This package has unicode metadata! ❄"
-        attrs = dict(name='foo', version=version, long_description=ld)
+        attrs = {"name": 'foo', "version": version, "long_description": ld}
         dist = distutils.dist.Distribution(attrs)
         iei_cmd = distutils.command.install_egg_info.install_egg_info(dist)
         iei_cmd.initialize_options()
