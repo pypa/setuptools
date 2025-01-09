@@ -815,6 +815,22 @@ class TestEggInfo:
                 [],
                 id="files_only_added_once",
             ),
+            pytest.param(
+                {
+                    'setup.cfg': DALS(
+                        """
+                              [metadata]
+                              license_files = **/LICENSE
+                              """
+                    ),
+                    'LICENSE': "ABC license",
+                    'LICENSE-OTHER': "Don't include",
+                    'vendor': {'LICENSE': "Vendor license"},
+                },
+                ['LICENSE', 'vendor/LICENSE'],
+                ['LICENSE-OTHER'],
+                id="recursive_glob",
+            ),
         ],
     )
     def test_setup_cfg_license_files(
@@ -1032,12 +1048,14 @@ class TestEggInfo:
                               license_files =
                                   NOTICE*
                                   LICENSE*
+                                  **/LICENSE
                               """
             ),
             "LICENSE-ABC": "ABC license",
             "LICENSE-XYZ": "XYZ license",
             "NOTICE": "included",
             "IGNORE": "not include",
+            "vendor": {'LICENSE': "Vendor license"},
         })
 
         environment.run_setup_py(
@@ -1053,9 +1071,11 @@ class TestEggInfo:
 
         # Only 'NOTICE', LICENSE-ABC', and 'LICENSE-XYZ' should have been matched
         # Also assert that order from license_files is keeped
+        assert len(license_file_lines) == 4
         assert "License-File: NOTICE" == license_file_lines[0]
         assert "License-File: LICENSE-ABC" in license_file_lines[1:]
         assert "License-File: LICENSE-XYZ" in license_file_lines[1:]
+        assert "License-File: vendor/LICENSE" in license_file_lines[3]
 
     def test_metadata_version(self, tmpdir_cwd, env):
         """Make sure latest metadata version is used by default."""
