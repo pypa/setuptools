@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from setuptools._static import is_static
 from setuptools.config import expand
 from setuptools.discovery import find_package_path
 
@@ -93,11 +94,15 @@ class TestReadAttr:
         with monkeypatch.context() as m:
             m.chdir(tmp_path)
             # Make sure it can read the attr statically without evaluating the module
-            assert expand.read_attr('pkg.sub.VERSION') == '0.1.1'
+            version = expand.read_attr('pkg.sub.VERSION')
             values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'})
+
+        assert version == '0.1.1'
+        assert is_static(values)
 
         assert values['a'] == 0
         assert values['b'] == {42}
+        assert is_static(values)
 
         # Make sure the same APIs work outside cwd
         assert expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path) == '0.1.1'
@@ -118,7 +123,28 @@ class TestReadAttr:
         }
         write_files(files, tmp_path)
         # Make sure this attribute can be read statically
-        assert expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path) == '0.1.1'
+        version = expand.read_attr('pkg.sub.VERSION', root_dir=tmp_path)
+        assert version == '0.1.1'
+        assert is_static(version)
+
+    @pytest.mark.parametrize(
+        "example",
+        [
+            "VERSION = (lambda: '0.1.1')()\n",
+            "def fn(): return '0.1.1'\nVERSION = fn()\n",
+            "VERSION: str = (lambda: '0.1.1')()\n",
+        ],
+    )
+    def test_read_dynamic_attr(self, tmp_path, monkeypatch, example):
+        files = {
+            "pkg/__init__.py": "",
+            "pkg/sub/__init__.py": example,
+        }
+        write_files(files, tmp_path)
+        monkeypatch.chdir(tmp_path)
+        version = expand.read_attr('pkg.sub.VERSION')
+        assert version == '0.1.1'
+        assert not is_static(version)
 
     def test_import_order(self, tmp_path):
         """
