@@ -205,7 +205,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if self.long_description_content_type:
         write_field('Description-Content-Type', self.long_description_content_type)
 
-    self._write_list(file, 'License-File', self.license_files or [])
+    # self._write_list(file, 'License-File', self.license_files or [])
     _write_requirements(self, file)
 
     for field, attr in _POSSIBLE_DYNAMIC_FIELDS.items():
