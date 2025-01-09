@@ -300,7 +300,12 @@ class TestEggInfo:
                         )
                     )
             return pytest.mark.parametrize(
-                'requires,use_setup_cfg,expected_requires,install_cmd_kwargs',
+                (
+                    "requires",
+                    "use_setup_cfg",
+                    "expected_requires",
+                    "install_cmd_kwargs",
+                ),
                 argvalues,
                 ids=idlist,
             )
