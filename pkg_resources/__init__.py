@@ -93,7 +93,7 @@ from platformdirs import user_cache_dir as _user_cache_dir
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrOrBytesPath, StrPath
     from _typeshed.importlib import LoaderProtocol
-    from typing_extensions import Self, TypeAlias
+    from typing_extensions import Never, Self, TypeAlias
 
 warnings.warn(
     "pkg_resources is deprecated as an API. "
@@ -2365,7 +2365,7 @@ class NoDists:
     def __bool__(self) -> Literal[False]:
         return False
 
-    def __call__(self, fullpath: object):
+    def __call__(self, fullpath: object) -> Iterator[Never]:
         return iter(())
 
 
@@ -3163,13 +3163,13 @@ class Distribution:
         version = version or "[unknown version]"
         return f"{self.project_name} {version}"
 
-    def __getattr__(self, attr: str):
+    def __getattr__(self, attr: str) -> Any:
         """Delegate all unrecognized public attributes to .metadata provider"""
         if attr.startswith('_'):
             raise AttributeError(attr)
         return getattr(self._provider, attr)
 
-    def __dir__(self):
+    def __dir__(self) -> list[str]:
         return list(
             set(super().__dir__())
             | set(attr for attr in self._provider.__dir__() if not attr.startswith('_'))
