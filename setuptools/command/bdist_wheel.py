@@ -292,7 +292,7 @@ class bdist_wheel(Command):
 
         if sysconfig.get_config_var("Py_GIL_DISABLED"):
             # sys.abiflags is only defined on POSIX
-            if getattr(sys, "abiflags", ""):
+            if hasattr(sys, "abiflags"):
                 abinote = f" ({sys.abiflags=!r}). "
             else:
                 abinote = ". "
