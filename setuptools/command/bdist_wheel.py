@@ -294,7 +294,7 @@ class bdist_wheel(Command):
             raise ValueError(
                 f"`py_limited_api={self.py_limited_api!r}` not supported. "
                 "`Py_LIMITED_API` is currently incompatible with "
-                f"`Py_GIL_DISABLED` ({sys.abiflags=!r}). "
+                "`Py_GIL_DISABLED`."
                 "See https://github.com/python/cpython/issues/111506."
             )
 
