@@ -5,6 +5,9 @@ python:
     extra_requirements:
       - doc
 
+sphinx:
+  configuration: docs/conf.py
+
 # required boilerplate readthedocs/readthedocs.org#10401
 build:
   os: ubuntu-lts-latest
