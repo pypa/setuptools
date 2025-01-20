@@ -231,6 +231,18 @@ def check_packages(dist, attr, value):
             )
 
 
+def _check_deprecated_metadata_field(
+    dist: Distribution, attr: str, value: object
+) -> None:
+    if value:
+        SetuptoolsDeprecationWarning.emit(
+            f"Deprecated usage of `{attr}` in setuptools configuration.",
+            see_docs=f"references/keywords.html#keyword-{attr.replace('_', '-')}",
+            due_date=(2027, 1, 25),
+            # Warning initially introduced in 14 Jan 2025
+        )
+
+
 if TYPE_CHECKING:
     # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
     from distutils.core import Distribution as _Distribution
@@ -294,6 +306,14 @@ class Distribution(_Distribution):
         'extras_require': dict,
     }
 
+    _DEPRECATED_FIELDS = (
+        "url",
+        "download_url",
+        "requires",
+        "provides",
+        "obsoletes",
+    )
+
     # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
     namespace_packages: list[str]  #: :meta private: DEPRECATED
 
@@ -317,6 +337,9 @@ class Distribution(_Distribution):
         metadata_only -= {"install_requires", "extras_require"}
         dist_attrs = {k: v for k, v in attrs.items() if k not in metadata_only}
         _Distribution.__init__(self, dist_attrs)
+
+        for attr in self._DEPRECATED_FIELDS:
+            _check_deprecated_metadata_field(self, attr, dist_attrs.get(attr))
 
         # Private API (setuptools-use only, not restricted to Distribution)
         # Stores files that are referenced by the configuration and need to be in the
