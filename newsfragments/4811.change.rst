@@ -1,0 +1,2 @@
+Configuration options that yield deprecated metadata fields
+result now in warnings.
