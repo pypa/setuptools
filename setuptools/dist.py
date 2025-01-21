@@ -132,6 +132,17 @@ def check_nsp(dist, attr, value):
         )
 
 
+def check_default_extras_require(dist, attr, value):
+    """Verify that extras_require mapping is valid"""
+    try:
+        assert isinstance(value, (list, tuple))
+        assert all(isinstance(val, str) for val in value)
+    except AssertionError as e:
+        raise DistutilsSetupError(
+            "'default_extras_require' must be a a list whose values are strings."
+        ) from e
+
+
 def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
@@ -292,6 +303,7 @@ class Distribution(_Distribution):
         'license_files': lambda: None,
         'install_requires': list,
         'extras_require': dict,
+        'default_extras_require': list,
     }
 
     # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
@@ -314,7 +326,11 @@ class Distribution(_Distribution):
             vars(self).setdefault(ep.name, None)
 
         metadata_only = set(self._DISTUTILS_UNSUPPORTED_METADATA)
-        metadata_only -= {"install_requires", "extras_require"}
+        metadata_only -= {
+            "install_requires",
+            "extras_require",
+            "default_extras_require",
+        }
         dist_attrs = {k: v for k, v in attrs.items() if k not in metadata_only}
         _Distribution.__init__(self, dist_attrs)
 
@@ -380,6 +396,7 @@ class Distribution(_Distribution):
         self._normalize_requires()
         self.metadata.install_requires = self.install_requires
         self.metadata.extras_require = self.extras_require
+        self.metadata.default_extras_require = self.default_extras_require
 
         if self.extras_require:
             for extra in self.extras_require.keys():
@@ -392,6 +409,7 @@ class Distribution(_Distribution):
         """Make sure requirement-related attributes exist and are normalized"""
         install_requires = getattr(self, "install_requires", None) or []
         extras_require = getattr(self, "extras_require", None) or {}
+        default_extras_require = getattr(self, "default_extras_require", None) or []
 
         # Preserve the "static"-ness of values parsed from config files
         list_ = _static.List if _static.is_static(install_requires) else list
@@ -401,6 +419,17 @@ class Distribution(_Distribution):
         self.extras_require = dict_(
             (k, list(map(str, _reqs.parse(v or [])))) for k, v in extras_require.items()
         )
+
+        self.default_extras_require = []
+        for extra in default_extras_require:
+            if extra not in self.extras_require:
+                raise ValueError(
+                    f"The default-extra `{extra}` does not exists in `extras_require`."
+                )
+            self.default_extras_require.append(extra)
+
+        list_ = _static.List if _static.is_static(default_extras_require) else list
+        self.default_extras_require = list_(self.default_extras_require)
 
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""

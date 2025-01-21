@@ -226,6 +226,13 @@ def _dependencies(dist: Distribution, val: list, _root_dir: StrPath | None):
     dist.install_requires = val
 
 
+def _default_optional_dependencies(dist: Distribution, val: dict, _root_dir: StrPath | None):
+    if getattr(dist, "default_extras_require", None):
+        msg = "`default_extras_require` overwritten in `pyproject.toml` (default-optional-dependencies)"
+        SetuptoolsWarning.emit(msg)
+    dist.default_extras_require = val
+
+
 def _optional_dependencies(dist: Distribution, val: dict, _root_dir: StrPath | None):
     if getattr(dist, "extras_require", None):
         msg = "`extras_require` overwritten in `pyproject.toml` (optional-dependencies)"
@@ -396,6 +403,7 @@ PYPROJECT_CORRESPONDENCE: dict[str, _Correspondence] = {
     "urls": _project_urls,
     "dependencies": _dependencies,
     "optional_dependencies": _optional_dependencies,
+    "default_optional_dependencies": _default_optional_dependencies,
     "requires_python": _python_requires,
 }
 
@@ -441,6 +449,7 @@ _PREVIOUSLY_DEFINED = {
     "scripts": _get_previous_scripts,
     "gui-scripts": _get_previous_gui_scripts,
     "dependencies": _attrgetter("install_requires"),
+    "default-optional-dependencies": _attrgetter("default_extras_require"),
     "optional-dependencies": _attrgetter("extras_require"),
 }
 
@@ -458,6 +467,7 @@ _RESET_PREVIOUSLY_DEFINED: dict = {
     "scripts": _static.EMPTY_DICT,
     "gui-scripts": _static.EMPTY_DICT,
     "dependencies": _static.EMPTY_LIST,
+    "default-optional-dependencies": _static.EMPTY_LIST,
     "optional-dependencies": _static.EMPTY_DICT,
 }
 
