@@ -82,7 +82,8 @@ class build_py(orig.build_py):
         # output files are.
         self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=False))
 
-    def __getattr__(self, attr: str) -> list[tuple[str, str, str, list[str]]] | Any:
+    # Should return "list[tuple[str, str, str, list[str]]] | Any" but can't do without typed distutils on Python 3.12+
+    def __getattr__(self, attr: str) -> Any:
         "lazily compute data files"
         if attr == 'data_files':
             self.data_files = self._get_data_files()
