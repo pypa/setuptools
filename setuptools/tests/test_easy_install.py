@@ -26,6 +26,7 @@ import pkg_resources
 import setuptools.command.easy_install as ei
 from pkg_resources import Distribution as PRDistribution, normalize_path, working_set
 from setuptools import sandbox
+from setuptools._normalization import safer_name
 from setuptools.command.easy_install import PthDistributions
 from setuptools.dist import Distribution
 from setuptools.sandbox import run_setup
@@ -1209,10 +1210,11 @@ def create_setup_requires_package(
     package itself is just 'test_pkg'.
     """
 
+    normalized_distname = safer_name(distname)
     test_setup_attrs = {
         'name': 'test_pkg',
         'version': '0.0',
-        'setup_requires': [f'{distname}=={version}'],
+        'setup_requires': [f'{normalized_distname}=={version}'],
         'dependency_links': [os.path.abspath(path)],
     }
     if setup_attrs:
@@ -1261,7 +1263,7 @@ def create_setup_requires_package(
     with open(os.path.join(test_pkg, 'setup.py'), 'w', encoding="utf-8") as f:
         f.write(setup_py_template % test_setup_attrs)
 
-    foobar_path = os.path.join(path, f'{distname}-{version}.tar.gz')
+    foobar_path = os.path.join(path, f'{normalized_distname}-{version}.tar.gz')
     make_package(foobar_path, distname, version)
 
     return test_pkg
