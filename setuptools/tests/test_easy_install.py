@@ -1120,10 +1120,7 @@ def make_nspkg_sdist(dist_path, distname, version):
     package with the same name as distname.  The top-level package is
     designated a namespace package).
     """
-    # The project name might not contain periods. Replace dashes and
-    # underscores with periods before constructing the namespace.
-    namespace = distname.replace('-', '.').replace('_', '.')
-    parts = namespace.split('.')
+    parts = distname.split('.')
     nspackage = parts[0]
 
     packages = ['.'.join(parts[:idx]) for idx in range(1, len(parts) + 1)]
