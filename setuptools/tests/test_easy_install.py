@@ -671,7 +671,7 @@ class TestSetupRequires:
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
                 foobar_1_archive = os.path.join(temp_dir, 'foo_bar-0.1.tar.gz')
-                make_nspkg_sdist(foobar_1_archive, 'foo_bar', '0.1')
+                make_nspkg_sdist(foobar_1_archive, 'foo.bar', '0.1')
                 # Now actually go ahead an extract to the temp dir and add the
                 # extracted path to sys.path so foo.bar v0.1 is importable
                 foobar_1_dir = os.path.join(temp_dir, 'foo_bar-0.1')
@@ -704,7 +704,7 @@ class TestSetupRequires:
 
                 test_pkg = create_setup_requires_package(
                     temp_dir,
-                    'foo_bar',
+                    'foo.bar',
                     '0.2',
                     make_nspkg_sdist,
                     template,
