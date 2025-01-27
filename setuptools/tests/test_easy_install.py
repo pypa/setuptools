@@ -1120,6 +1120,9 @@ def make_nspkg_sdist(dist_path, distname, version):
     package with the same name as distname.  The top-level package is
     designated a namespace package).
     """
+    # Assert that the distname contains at least one period
+    assert '.' in distname
+
     parts = distname.split('.')
     nspackage = parts[0]
 
