@@ -10,36 +10,11 @@ report_url = (
 def warn_distutils_present():
     if 'distutils' not in sys.modules:
         return
-    import warnings
-
-    warnings.warn(
-        "Distutils was imported before Setuptools, but importing Setuptools "
-        "also replaces the `distutils` module in `sys.modules`. This may lead "
-        "to undesirable behaviors or errors. To avoid these issues, avoid "
-        "using distutils directly, ensure that setuptools is installed in the "
-        "traditional way (e.g. not an editable install), and/or make sure "
-        "that setuptools is always imported before distutils."
-    )
 
 
 def clear_distutils():
     if 'distutils' not in sys.modules:
         return
-    import warnings
-
-    warnings.warn(
-        "Setuptools is replacing distutils. Support for replacing "
-        "an already imported distutils is deprecated. In the future, "
-        "this condition will fail. "
-        f"Register concerns at {report_url}"
-    )
-    mods = [
-        name
-        for name in sys.modules
-        if name == "distutils" or name.startswith("distutils.")
-    ]
-    for name in mods:
-        del sys.modules[name]
 
 
 def enabled():
@@ -47,16 +22,6 @@ def enabled():
     Allow selection of distutils by environment variable.
     """
     which = os.environ.get('SETUPTOOLS_USE_DISTUTILS', 'local')
-    if which == 'stdlib':
-        import warnings
-
-        warnings.warn(
-            "Reliance on distutils from stdlib is deprecated. Users "
-            "must rely on setuptools to provide the distutils module. "
-            "Avoid importing distutils or import setuptools first, "
-            "and avoid setting SETUPTOOLS_USE_DISTUTILS=stdlib. "
-            f"Register concerns at {report_url}"
-        )
     return which == 'local'
 
 

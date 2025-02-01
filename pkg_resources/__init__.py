@@ -12,9 +12,6 @@ The package resource API is designed to work with normal filesystem packages,
 .egg files, and unpacked .egg files.  It can also work in a limited way with
 .zip files and with custom PEP 302 loaders that support the ``get_data()``
 method.
-
-This module is deprecated. Users are directed to :mod:`importlib.resources`,
-:mod:`importlib.metadata` and :pypi:`packaging` instead.
 """
 
 from __future__ import annotations
@@ -94,13 +91,6 @@ if TYPE_CHECKING:
     from _typeshed import BytesPath, StrOrBytesPath, StrPath
     from _typeshed.importlib import LoaderProtocol
     from typing_extensions import Self, TypeAlias
-
-warnings.warn(
-    "pkg_resources is deprecated as an API. "
-    "See https://setuptools.pypa.io/en/latest/pkg_resources.html",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
 _T = TypeVar("_T")
 _DistributionT = TypeVar("_DistributionT", bound="Distribution")
@@ -1731,7 +1721,7 @@ class NullProvider:
         if os.path.exists(script_filename):
             source = _read_utf8_with_fallback(script_filename)
             code = compile(source, script_filename, 'exec')
-            exec(code, namespace, namespace)
+            exec(code, namespace)
         else:
             from linecache import cache
 
