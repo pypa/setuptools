@@ -4,7 +4,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import path
 import pytest
 
 from . import contexts, environment
@@ -119,7 +118,7 @@ def setuptools_wheel(tmp_path_factory, request):
 def venv(tmp_path, setuptools_wheel):
     """Virtual env with the version of setuptools under test installed"""
     env = environment.VirtualEnv()
-    env.root = path.Path(tmp_path / 'venv')
+    env.root = Path(tmp_path / 'venv')
     env.create_opts = ['--no-setuptools', '--wheel=bundle']
     # TODO: Use `--no-wheel` when setuptools implements its own bdist_wheel
     env.req = str(setuptools_wheel)
@@ -141,7 +140,7 @@ def venv(tmp_path, setuptools_wheel):
 def venv_without_setuptools(tmp_path):
     """Virtual env without any version of setuptools installed"""
     env = environment.VirtualEnv()
-    env.root = path.Path(tmp_path / 'venv_without_setuptools')
+    env.root = Path(tmp_path / 'venv_without_setuptools')
     env.create_opts = ['--no-setuptools', '--no-wheel']
     env.ensure_env()
     return env
@@ -151,7 +150,7 @@ def venv_without_setuptools(tmp_path):
 def bare_venv(tmp_path):
     """Virtual env without any common packages installed"""
     env = environment.VirtualEnv()
-    env.root = path.Path(tmp_path / 'bare_venv')
+    env.root = Path(tmp_path / 'bare_venv')
     env.create_opts = ['--no-setuptools', '--no-pip', '--no-wheel', '--no-seed']
     env.ensure_env()
     return env

@@ -14,10 +14,8 @@ from typing import Any
 from unittest.mock import Mock
 from uuid import uuid4
 
-import jaraco.envs
 import jaraco.path
 import pytest
-from path import Path as _Path
 
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
@@ -565,6 +563,8 @@ class TestFinderTemplate:
             self.install_finder(code)
             mod1 = import_module("different_name.my_module")
             mod2 = import_module("different_name.subpkg.my_module2")
+            assert mod1.__file__ is not None
+            assert mod2.__file__ is not None
 
             expected = str((tmp_path / "src/my_package/my_module.py").resolve())
             assert str(Path(mod1.__file__).resolve()) == expected
@@ -972,7 +972,7 @@ class TestLinkTree:
     def test_generated_tree(self, tmp_path):
         jaraco.path.build(self.FILES, prefix=tmp_path)
 
-        with _Path(tmp_path):
+        with jaraco.path.DirectoryStack().context(tmp_path):
             name = "mypkg-3.14159"
             dist = Distribution({"script_name": "%PEP 517%"})
             dist.parse_config_files()

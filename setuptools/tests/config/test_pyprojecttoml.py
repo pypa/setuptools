@@ -5,7 +5,6 @@ from inspect import cleandoc
 import jaraco.path
 import pytest
 import tomli_w
-from path import Path
 
 import setuptools  # noqa: F401 # force distutils.core to be patched
 from setuptools.config.pyprojecttoml import (
@@ -363,7 +362,7 @@ def test_include_package_data_in_setuppy(tmp_path):
     }
     jaraco.path.build(files, prefix=tmp_path)
 
-    with Path(tmp_path):
+    with jaraco.path.DirectoryStack().context(tmp_path):
         dist = distutils.core.run_setup("setup.py", {}, stop_after="config")
 
     assert dist.get_name() == "myproj"

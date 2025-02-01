@@ -2,11 +2,11 @@ import os
 import sys
 from configparser import ConfigParser
 from itertools import product
+from pathlib import Path
 from typing import cast
 
 import jaraco.path
 import pytest
-from path import Path
 
 import setuptools  # noqa: F401 # force distutils.core to be patched
 from setuptools.command.sdist import sdist
@@ -307,7 +307,7 @@ class TestWithAttrDirective:
         assert dist.package_dir
         package_path = find_package_path("pkg", dist.package_dir, tmp_path)
         assert os.path.exists(package_path)
-        assert folder in Path(package_path).parts()
+        assert folder in Path(package_path).parts
 
         _run_build(tmp_path, "--sdist")
         dist_file = tmp_path / "dist/pkg-42.tar.gz"
@@ -618,7 +618,7 @@ def _get_dist(dist_path, attrs):
 
     script = dist_path / 'setup.py'
     if script.exists():
-        with Path(dist_path):
+        with jaraco.path.DirectoryStack().context(dist_path):
             dist = cast(
                 Distribution,
                 distutils.core.run_setup("setup.py", {}, stop_after="init"),
@@ -628,7 +628,7 @@ def _get_dist(dist_path, attrs):
 
     dist.src_root = root
     dist.script_name = "setup.py"
-    with Path(dist_path):
+    with jaraco.path.DirectoryStack().context(dist_path):
         dist.parse_config_files()
 
     dist.set_defaults()
@@ -641,7 +641,7 @@ def _run_sdist_programatically(dist_path, attrs):
     cmd.ensure_finalized()
     assert cmd.distribution.packages or cmd.distribution.py_modules
 
-    with quiet(), Path(dist_path):
+    with quiet(), jaraco.path.DirectoryStack().context(dist_path):
         cmd.run()
 
     return dist, cmd

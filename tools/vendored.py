@@ -1,9 +1,9 @@
 import functools
 import re
 import subprocess
+from pathlib import Path
 
 import jaraco.packaging.metadata
-from path import Path
 
 
 def remove_all(paths):
