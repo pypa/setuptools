@@ -26,6 +26,7 @@ import pkg_resources
 import setuptools.command.easy_install as ei
 from pkg_resources import Distribution as PRDistribution, normalize_path, working_set
 from setuptools import sandbox
+from setuptools._normalization import safer_name
 from setuptools.command.easy_install import PthDistributions
 from setuptools.dist import Distribution
 from setuptools.sandbox import run_setup
@@ -670,11 +671,11 @@ class TestSetupRequires:
 
         with contexts.save_pkg_resources_state():
             with contexts.tempdir() as temp_dir:
-                foobar_1_archive = os.path.join(temp_dir, 'foo.bar-0.1.tar.gz')
+                foobar_1_archive = os.path.join(temp_dir, 'foo_bar-0.1.tar.gz')
                 make_nspkg_sdist(foobar_1_archive, 'foo.bar', '0.1')
                 # Now actually go ahead an extract to the temp dir and add the
                 # extracted path to sys.path so foo.bar v0.1 is importable
-                foobar_1_dir = os.path.join(temp_dir, 'foo.bar-0.1')
+                foobar_1_dir = os.path.join(temp_dir, 'foo_bar-0.1')
                 os.mkdir(foobar_1_dir)
                 with tarfile.open(foobar_1_archive) as tf:
                     tf.extraction_filter = lambda member, path: member
@@ -697,7 +698,7 @@ class TestSetupRequires:
                             len(foo.__path__) == 2):
                         print('FAIL')
 
-                    if 'foo.bar-0.2' not in foo.__path__[0]:
+                    if 'foo_bar-0.2' not in foo.__path__[0]:
                         print('FAIL')
                 """
                 )
@@ -718,8 +719,8 @@ class TestSetupRequires:
                         # Don't even need to install the package, just
                         # running the setup.py at all is sufficient
                         run_setup(test_setup_py, ['--name'])
-                    except pkg_resources.VersionConflict:
-                        self.fail(
+                    except pkg_resources.VersionConflict:  # pragma: nocover
+                        pytest.fail(
                             'Installing setup.py requirements caused a VersionConflict'
                         )
 
@@ -1120,6 +1121,8 @@ def make_nspkg_sdist(dist_path, distname, version):
     package with the same name as distname.  The top-level package is
     designated a namespace package).
     """
+    # Assert that the distname contains at least one period
+    assert '.' in distname
 
     parts = distname.split('.')
     nspackage = parts[0]
@@ -1207,10 +1210,11 @@ def create_setup_requires_package(
     package itself is just 'test_pkg'.
     """
 
+    normalized_distname = safer_name(distname)
     test_setup_attrs = {
         'name': 'test_pkg',
         'version': '0.0',
-        'setup_requires': [f'{distname}=={version}'],
+        'setup_requires': [f'{normalized_distname}=={version}'],
         'dependency_links': [os.path.abspath(path)],
     }
     if setup_attrs:
@@ -1259,7 +1263,7 @@ def create_setup_requires_package(
     with open(os.path.join(test_pkg, 'setup.py'), 'w', encoding="utf-8") as f:
         f.write(setup_py_template % test_setup_attrs)
 
-    foobar_path = os.path.join(path, f'{distname}-{version}.tar.gz')
+    foobar_path = os.path.join(path, f'{normalized_distname}-{version}.tar.gz')
     make_package(foobar_path, distname, version)
 
     return test_pkg

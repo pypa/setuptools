@@ -23,17 +23,11 @@ from packaging import tags, version as _packaging_version
 from wheel.wheelfile import WheelFile
 
 from .. import Command, __version__, _shutil
+from .._normalization import safer_name
 from ..warnings import SetuptoolsDeprecationWarning
 from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
-
-
-def safe_name(name: str) -> str:
-    """Convert an arbitrary string to a standard distribution name
-    Any runs of non-alphanumeric/. characters are replaced with a single '-'.
-    """
-    return re.sub("[^A-Za-z0-9.]+", "-", name)
 
 
 def safe_version(version: str) -> str:
@@ -131,10 +125,6 @@ def get_abi_tag() -> str | None:
         abi = None
 
     return abi
-
-
-def safer_name(name: str) -> str:
-    return safe_name(name).replace("-", "_")
 
 
 def safer_version(version: str) -> str:

@@ -246,9 +246,9 @@ def test_no_scripts(wheel_paths):
 
 
 def test_unicode_record(wheel_paths):
-    path = next(path for path in wheel_paths if "unicode.dist" in path)
+    path = next(path for path in wheel_paths if "unicode_dist" in path)
     with ZipFile(path) as zf:
-        record = zf.read("unicode.dist-0.1.dist-info/RECORD")
+        record = zf.read("unicode_dist-0.1.dist-info/RECORD")
 
     assert "åäö_日本語.py".encode() in record
 
