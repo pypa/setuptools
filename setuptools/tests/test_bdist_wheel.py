@@ -59,7 +59,7 @@ setup(
 EXAMPLES = {
     "dummy-dist": {
         "setup.py": SETUPPY_EXAMPLE,
-        "licenses": {"DUMMYFILE": ""},
+        "licenses_dir": {"DUMMYFILE": ""},
         **dict.fromkeys(DEFAULT_LICENSE_FILES | OTHER_IGNORED_FILES, ""),
     },
     "simple-dist": {
@@ -324,26 +324,26 @@ def test_licenses_default(dummy_dist, monkeypatch, tmp_path):
 
 def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
     dummy_dist.joinpath("setup.cfg").write_text(
-        "[metadata]\nlicense_file=licenses/DUMMYFILE", encoding="utf-8"
+        "[metadata]\nlicense_file=licenses_dir/DUMMYFILE", encoding="utf-8"
     )
     monkeypatch.chdir(dummy_dist)
 
     bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
 
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
-        license_files = {"dummy_dist-1.0.dist-info/licenses/licenses/DUMMYFILE"}
+        license_files = {"dummy_dist-1.0.dist-info/licenses/licenses_dir/DUMMYFILE"}
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
 
 
 @pytest.mark.parametrize(
     ("config_file", "config"),
     [
-        ("setup.cfg", "[metadata]\nlicense_files=licenses/*\n  LICENSE"),
-        ("setup.cfg", "[metadata]\nlicense_files=licenses/*, LICENSE"),
+        ("setup.cfg", "[metadata]\nlicense_files=licenses_dir/*\n  LICENSE"),
+        ("setup.cfg", "[metadata]\nlicense_files=licenses_dir/*, LICENSE"),
         (
             "setup.py",
             SETUPPY_EXAMPLE.replace(
-                ")", "  license_files=['licenses/DUMMYFILE', 'LICENSE'])"
+                ")", "  license_files=['licenses_dir/DUMMYFILE', 'LICENSE'])"
             ),
         ),
     ],
@@ -355,11 +355,11 @@ def test_licenses_override(dummy_dist, monkeypatch, tmp_path, config_file, confi
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         license_files = {
             "dummy_dist-1.0.dist-info/licenses/" + fname
-            for fname in {"licenses/DUMMYFILE", "LICENSE"}
+            for fname in {"licenses_dir/DUMMYFILE", "LICENSE"}
         }
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
         metadata = wf.read("dummy_dist-1.0.dist-info/METADATA").decode("utf8")
-        assert "License-File: licenses/DUMMYFILE" in metadata
+        assert "License-File: licenses_dir/DUMMYFILE" in metadata
         assert "License-File: LICENSE" in metadata
 
 
