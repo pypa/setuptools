@@ -88,7 +88,7 @@ def read_pkg_file(self, file):
     self.url = _read_field_from_msg(msg, 'home-page')
     self.download_url = _read_field_from_msg(msg, 'download-url')
     self.license = _read_field_unescaped_from_msg(msg, 'license')
-    self.license_expression = _read_field_unescaped_from_msg(msg, 'license_expression')
+    self.license_expression = _read_field_unescaped_from_msg(msg, 'license-expression')
 
     self.long_description = _read_field_unescaped_from_msg(msg, 'description')
     if self.long_description is None and self.metadata_version >= Version('2.1'):
