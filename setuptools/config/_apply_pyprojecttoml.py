@@ -24,7 +24,7 @@ from .. import _static
 from .._path import StrPath
 from ..errors import RemovedConfigError
 from ..extension import Extension
-from ..warnings import SetuptoolsWarning
+from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -98,6 +98,12 @@ def _apply_tool_table(dist: Distribution, config: dict, filename: StrPath):
             and has been removed from `pyproject.toml`.
             """
             raise RemovedConfigError("\n".join([cleandoc(msg), suggestion]))
+        elif norm_key in TOOL_TABLE_DEPRECATIONS:
+            SetuptoolsDeprecationWarning.emit(
+                f"Deprecated usage of `tool.setuptools.{field}` in `pyproject.toml`.",
+                see_docs=f"references/keywords.html#keyword-{field}",
+                due_date=(2027, 1, 25),  # introduced in 20 Jan 2025
+            )
 
         norm_key = TOOL_TABLE_RENAMES.get(norm_key, norm_key)
         corresp = TOOL_TABLE_CORRESPONDENCE.get(norm_key, norm_key)
@@ -401,11 +407,13 @@ PYPROJECT_CORRESPONDENCE: dict[str, _Correspondence] = {
 
 TOOL_TABLE_RENAMES = {"script_files": "scripts"}
 TOOL_TABLE_REMOVALS = {
+    "requires": "Please use `[project] dependencies` for Python requirements.",
     "namespace_packages": """
         Please migrate to implicit native namespaces instead.
         See https://packaging.python.org/en/latest/guides/packaging-namespace-packages/.
         """,
 }
+TOOL_TABLE_DEPRECATIONS = ("obsoletes", "provides")
 TOOL_TABLE_CORRESPONDENCE = {
     # Fields with corresponding core metadata need to be marked as static:
     "obsoletes": partial(_set_static_list_metadata, "obsoletes"),
