@@ -423,6 +423,7 @@ SETUPTOOLS_PATCHES = {
     "provides_extras",
     "license_file",
     "license_files",
+    "license_expression",
 }
 
 _PREPROCESS = {
