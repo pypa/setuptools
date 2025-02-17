@@ -28,6 +28,7 @@ from ._path import StrPath
 from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
+from .errors import InvalidConfigError
 from .monkey import get_unpatched
 from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
@@ -407,15 +408,7 @@ class Distribution(_Distribution):
     def _finalize_license_expression(self) -> None:
         """Normalize license and license_expression."""
         classifiers = self.metadata.get_classifiers()
-        license_classifiers = {cl for cl in classifiers if cl.startswith("License :: ")}
-
-        if license_classifiers:
-            SetuptoolsDeprecationWarning.emit(
-                "License classifiers are deprecated in favor of the license expression.",
-                "Please remove the classifiers:\n\n" + "\n".join(license_classifiers),
-                see_url="https://peps.python.org/pep-0639/",
-                due_date=(2027, 2, 17),  # Introduced 2025-02-17
-            )
+        license_classifiers = [cl for cl in classifiers if cl.startswith("License :: ")]
 
         license_expr = self.metadata.license_expression
         if license_expr:
@@ -424,10 +417,21 @@ class Distribution(_Distribution):
                 InformationOnly.emit(f"Normalizing '{license_expr}' to '{normalized}'")
                 self.metadata.license_expression = normalized
             if license_classifiers:
-                # Filter classifiers but preserve "static-ness" of metadata
-                list_ = _static.List if _static.is_static(classifiers) else list
-                filtered = (cl for cl in classifiers if cl not in license_classifiers)
-                self.metadata.set_classifiers(list_(filtered))
+                raise InvalidConfigError(
+                    "License classifiers have been superseded by license expressions "
+                    "(see https://peps.python.org/pep-0639/). Please remove:\n\n"
+                    + "\n".join(license_classifiers),
+                )
+        elif license_classifiers:
+            SetuptoolsDeprecationWarning.emit(
+                "License classifiers are deprecated.",
+                "Please consider removing the following classifiers in favor of a "
+                "SPDX license expression:\n\n" + "\n".join(license_classifiers),
+                see_url="https://peps.python.org/pep-0639/",
+                # Warning introduced on 2025-02-17
+                # TODO: Should we add a due date? It may affect old/unmaintained
+                #       packages in the ecosystem and cause problems...
+            )
 
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
