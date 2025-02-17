@@ -334,10 +334,11 @@ def test_license_expression_with_bad_classifier(tmp_path):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", SetuptoolsDeprecationWarning)
         dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
-        # Check 'License :: OSI Approved :: MIT License' is removed
+        # Check license classifier is still included
         assert dist.metadata.get_classifiers() == [
             "Development Status :: 5 - Production/Stable",
             "Programming Language :: Python",
+            "License :: OSI Approved :: MIT License",
         ]
 
 
