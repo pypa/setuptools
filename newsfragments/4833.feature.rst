@@ -1,0 +1,3 @@
+Added deprecation warning for license classifiers,
+according to `PEP 639
+<https://peps.python.org/pep-0639/#deprecate-license-classifiers>`_.
