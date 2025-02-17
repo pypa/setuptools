@@ -280,20 +280,28 @@ def test_utf8_maintainer_in_metadata(  # issue-3663
 
 
 @pytest.mark.parametrize(
-    ('pyproject_text', 'license', 'license_expression', 'content_str'),
+    (
+        'pyproject_text',
+        'license',
+        'license_expression',
+        'content_str',
+        'not_content_str',
+    ),
     (
         pytest.param(
             PEP639_LICENSE_TEXT,
             'MIT',
             None,
             'License: MIT',
+            'License-Expression: ',
             id='license-text',
         ),
         pytest.param(
             PEP639_LICENSE_EXPRESSION,
             None,
             'MIT OR Apache-2.0',
-            'License: MIT OR Apache-2.0',  # TODO Metadata version '2.4'
+            'License-Expression: MIT OR Apache-2.0',
+            'License: ',
             id='license-expression',
         ),
     ),
@@ -302,6 +310,7 @@ def test_license_in_metadata(
     license,
     license_expression,
     content_str,
+    not_content_str,
     pyproject_text,
     tmp_path,
 ):
@@ -317,7 +326,9 @@ def test_license_in_metadata(
     with open(pkg_file, "w", encoding="utf-8") as fh:
         dist.metadata.write_pkg_file(fh)
     content = pkg_file.read_text(encoding="utf-8")
+    assert "Metadata-Version: 2.4" in content
     assert content_str in content
+    assert not_content_str not in content
 
 
 def test_license_expression_with_bad_classifier(tmp_path):

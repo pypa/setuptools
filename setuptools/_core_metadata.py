@@ -28,7 +28,7 @@ from distutils.util import rfc822_escape
 def get_metadata_version(self):
     mv = getattr(self, 'metadata_version', None)
     if mv is None:
-        mv = Version('2.2')
+        mv = Version('2.4')
         self.metadata_version = mv
     return mv
 
@@ -176,8 +176,9 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
         if attr_val is not None:
             write_field(field, attr_val)
 
-    license = self.license_expression or self.get_license()
-    if license:
+    if license_expression := self.license_expression:
+        write_field('License-Expression', license_expression)
+    elif license := self.get_license():
         write_field('License', rfc822_escape(license))
 
     for label, url in self.project_urls.items():
