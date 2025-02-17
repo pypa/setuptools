@@ -183,7 +183,6 @@ jobs:
             python${{ matrix.python }},
             python${{ matrix.python }}-devel,
             python${{ matrix.python }}-pip,
-            python${{ matrix.python }}-tox,
             gcc-core,
             git,
       - name: Record the currently selected Python version
@@ -194,11 +193,11 @@ jobs:
         run: |
           python -c 'import platform; print("python-version=" + platform.python_version())' >> ${GITHUB_OUTPUT}
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
-      - name: Install missing dependencies
+      - name: Install tox using pip
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
           # Workaround for https://github.com/pypa/setuptools/issues/4831
-          python -m pip check | sed -rn 's/.*requires ([^,]+),.*/\1/p' | xargs python -m pip install
+          python -m pip install tox
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
