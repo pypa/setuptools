@@ -411,7 +411,7 @@ class Distribution(_Distribution):
 
         if license_classifiers:
             SetuptoolsDeprecationWarning.emit(
-                "License classifier are deprecated in favor of the license expression.",
+                "License classifiers are deprecated in favor of the license expression.",
                 "Please remove the classifiers:\n\n" + "\n".join(license_classifiers),
                 see_url="https://peps.python.org/pep-0639/",
                 due_date=(2027, 2, 17),  # Introduced 2025-02-17
