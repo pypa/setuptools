@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
 
 from more_itertools import partition, unique_everseen
+from packaging.licenses import canonicalize_license_expression
 from packaging.markers import InvalidMarker, Marker
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
@@ -288,6 +289,7 @@ class Distribution(_Distribution):
         'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': dict,  # behaves like an ordered set
+        'license_expression': lambda: None,
         'license_file': lambda: None,
         'license_files': lambda: None,
         'install_requires': list,
@@ -401,6 +403,25 @@ class Distribution(_Distribution):
         self.extras_require = dict_(
             (k, list(map(str, _reqs.parse(v or [])))) for k, v in extras_require.items()
         )
+
+    def _finalize_license_expression(self) -> None:
+        """Normalize license and license_expression."""
+        license_expr = self.metadata.license_expression
+        if license_expr:
+            normalized = canonicalize_license_expression(license_expr)
+            if license_expr != normalized:
+                InformationOnly.emit(f"Normalizing '{license_expr}' to '{normalized}'")
+                self.metadata.license_expression = normalized
+
+            for cl in self.metadata.get_classifiers():
+                if not cl.startswith("License :: "):
+                    continue
+                SetuptoolsDeprecationWarning.emit(
+                    "License classifier are deprecated in favor of the license expression.",
+                    f"Please remove the '{cl}' classifier.",
+                    see_url="https://peps.python.org/pep-0639/",
+                    due_date=(2027, 2, 17),  # Introduced 2025-02-17
+                )
 
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
@@ -655,6 +676,7 @@ class Distribution(_Distribution):
             pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)
 
         self._finalize_requires()
+        self._finalize_license_expression()
         self._finalize_license_files()
 
     def fetch_build_eggs(

@@ -9,6 +9,7 @@ from __future__ import annotations
 import io
 import re
 import tarfile
+import warnings
 from inspect import cleandoc
 from pathlib import Path
 from unittest.mock import Mock
@@ -24,6 +25,7 @@ from setuptools.config import expand, pyprojecttoml, setupcfg
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.dist import Distribution
 from setuptools.errors import RemovedConfigError
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from .downloads import retrieve_file, urls_from_file
 
@@ -156,6 +158,32 @@ def main_gui(): pass
 def main_tomatoes(): pass
 """
 
+PEP639_LICENSE_TEXT = """\
+[project]
+name = "spam"
+version = "2020.0.0"
+authors = [
+  {email = "hi@pradyunsg.me"},
+  {name = "Tzu-Ping Chung"}
+]
+license = {text = "MIT"}
+"""
+
+PEP639_LICENSE_EXPRESSION = """\
+[project]
+name = "spam"
+version = "2020.0.0"
+authors = [
+  {email = "hi@pradyunsg.me"},
+  {name = "Tzu-Ping Chung"}
+]
+license = "mit or apache-2.0"  # should be normalized in metadata
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python",
+]
+"""
+
 
 def _pep621_example_project(
     tmp_path,
@@ -251,10 +279,70 @@ def test_utf8_maintainer_in_metadata(  # issue-3663
     assert f"Maintainer-email: {expected_maintainers_meta_value}" in content
 
 
-class TestLicenseFiles:
-    # TODO: After PEP 639 is accepted, we have to move the license-files
-    #       to the `project` table instead of `tool.setuptools`
+@pytest.mark.parametrize(
+    ('pyproject_text', 'license', 'license_expression', 'content_str'),
+    (
+        pytest.param(
+            PEP639_LICENSE_TEXT,
+            'MIT',
+            None,
+            'License: MIT',
+            id='license-text',
+        ),
+        pytest.param(
+            PEP639_LICENSE_EXPRESSION,
+            None,
+            'MIT OR Apache-2.0',
+            'License: MIT OR Apache-2.0',  # TODO Metadata version '2.4'
+            id='license-expression',
+        ),
+    ),
+)
+def test_license_in_metadata(
+    license,
+    license_expression,
+    content_str,
+    pyproject_text,
+    tmp_path,
+):
+    pyproject = _pep621_example_project(
+        tmp_path,
+        "README",
+        pyproject_text=pyproject_text,
+    )
+    dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+    assert dist.metadata.license == license
+    assert dist.metadata.license_expression == license_expression
+    pkg_file = tmp_path / "PKG-FILE"
+    with open(pkg_file, "w", encoding="utf-8") as fh:
+        dist.metadata.write_pkg_file(fh)
+    content = pkg_file.read_text(encoding="utf-8")
+    assert content_str in content
 
+
+def test_license_expression_with_bad_classifier(tmp_path):
+    text = PEP639_LICENSE_EXPRESSION.rsplit("\n", 2)[0]
+    pyproject = _pep621_example_project(
+        tmp_path,
+        "README",
+        f"{text}\n    \"License :: OSI Approved :: MIT License\"\n]",
+    )
+    msg = "License classifier are deprecated(?:.|\n)*'License :: OSI Approved :: MIT License'"
+    with pytest.raises(SetuptoolsDeprecationWarning, match=msg):
+        pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", SetuptoolsDeprecationWarning)
+        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        # Check license classifier is still included
+        assert dist.metadata.get_classifiers() == [
+            "Development Status :: 5 - Production/Stable",
+            "Programming Language :: Python",
+            "License :: OSI Approved :: MIT License",
+        ]
+
+
+class TestLicenseFiles:
     def base_pyproject(self, tmp_path, additional_text):
         pyproject = _pep621_example_project(tmp_path, "README")
         text = pyproject.read_text(encoding="utf-8")
@@ -264,6 +352,24 @@ class TestLicenseFiles:
         assert "[tool.setuptools]" not in text
 
         text = f"{text}\n{additional_text}\n"
+        pyproject.write_text(text, encoding="utf-8")
+        return pyproject
+
+    def base_pyproject_license_pep639(self, tmp_path):
+        pyproject = _pep621_example_project(tmp_path, "README")
+        text = pyproject.read_text(encoding="utf-8")
+
+        # Sanity-check
+        assert 'license = {file = "LICENSE.txt"}' in text
+        assert 'license-files' not in text
+        assert "[tool.setuptools]" not in text
+
+        text = re.sub(
+            r"(license = {file = \"LICENSE.txt\"})\n",
+            ("license = \"licenseref-Proprietary\"\nlicense-files = [\"_FILE*\"]\n"),
+            text,
+            count=1,
+        )
         pyproject.write_text(text, encoding="utf-8")
         return pyproject
 
@@ -282,6 +388,18 @@ class TestLicenseFiles:
         dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
         assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
         assert dist.metadata.license == "LicenseRef-Proprietary\n"
+
+    def test_both_license_and_license_files_defined_pep639(self, tmp_path):
+        # Set license and license-files
+        pyproject = self.base_pyproject_license_pep639(tmp_path)
+
+        (tmp_path / "_FILE.txt").touch()
+        (tmp_path / "_FILE.rst").touch()
+
+        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
+        assert dist.metadata.license is None
+        assert dist.metadata.license_expression == "LicenseRef-Proprietary"
 
     def test_default_patterns(self, tmp_path):
         setuptools_config = '[tool.setuptools]\nzip-safe = false'
