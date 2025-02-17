@@ -423,11 +423,12 @@ class Distribution(_Distribution):
                     + "\n".join(license_classifiers),
                 )
         elif license_classifiers:
+            pypa_guides = "guides/licensing-examples-and-user-scenarios/"
             SetuptoolsDeprecationWarning.emit(
                 "License classifiers are deprecated.",
                 "Please consider removing the following classifiers in favor of a "
                 "SPDX license expression:\n\n" + "\n".join(license_classifiers),
-                see_url="https://peps.python.org/pep-0639/",
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
                 # Warning introduced on 2025-02-17
                 # TODO: Should we add a due date? It may affect old/unmaintained
                 #       packages in the ecosystem and cause problems...
