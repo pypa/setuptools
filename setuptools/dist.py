@@ -419,7 +419,7 @@ class Distribution(_Distribution):
 
         self.metadata.license_files = list(
             map(
-                lambda path: path.replace("\\", "/"),
+                lambda path: path.replace(os.sep, "/"),
                 unique_everseen(self._expand_patterns(patterns)),
             )
         )
