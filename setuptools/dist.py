@@ -425,8 +425,9 @@ class Distribution(_Distribution):
                 self.metadata.license_expression = normalized
             if license_classifiers:
                 # Filter classifiers but preserve "static-ness" of metadata
-                filtered = [cl for cl in classifiers if cl not in license_classifiers]
-                self.metadata.set_classifiers(classifiers.__class__(filtered))
+                list_ = _static.List if _static.is_static(classifiers) else list
+                filtered = (cl for cl in classifiers if cl not in license_classifiers)
+                self.metadata.set_classifiers(list_(filtered))
 
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
