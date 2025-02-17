@@ -9,6 +9,7 @@ from __future__ import annotations
 import io
 import re
 import tarfile
+import warnings
 from inspect import cleandoc
 from pathlib import Path
 from unittest.mock import Mock
@@ -23,7 +24,8 @@ from setuptools.command.egg_info import write_requirements
 from setuptools.config import expand, pyprojecttoml, setupcfg
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.dist import Distribution
-from setuptools.errors import InvalidConfigError, RemovedConfigError
+from setuptools.errors import RemovedConfigError
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from .downloads import retrieve_file, urls_from_file
 
@@ -178,6 +180,7 @@ authors = [
 license = "mit or apache-2.0"  # should be normalized in metadata
 classifiers = [
     "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python",
 ]
 """
 
@@ -324,9 +327,18 @@ def test_license_expression_with_bad_classifier(tmp_path):
         "README",
         f"{text}\n    \"License :: OSI Approved :: MIT License\"\n]",
     )
-    msg = "License classifier are deprecated.*'License :: OSI Approved :: MIT License'"
-    with pytest.raises(InvalidConfigError, match=msg):
+    msg = "License classifier are deprecated(?:.|\n)*'License :: OSI Approved :: MIT License'"
+    with pytest.raises(SetuptoolsDeprecationWarning, match=msg):
         pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", SetuptoolsDeprecationWarning)
+        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        # Check 'License :: OSI Approved :: MIT License' is removed
+        assert dist.metadata.get_classifiers() == [
+            "Development Status :: 5 - Production/Stable",
+            "Programming Language :: Python",
+        ]
 
 
 class TestLicenseFiles:
