@@ -327,18 +327,18 @@ def test_license_expression_with_bad_classifier(tmp_path):
         "README",
         f"{text}\n    \"License :: OSI Approved :: MIT License\"\n]",
     )
-    msg = "License classifier are deprecated(?:.|\n)*'License :: OSI Approved :: MIT License'"
-    with pytest.raises(SetuptoolsDeprecationWarning, match=msg):
+    msg = "License classifier are deprecated"
+    with pytest.raises(SetuptoolsDeprecationWarning, match=msg) as exc:
         pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        assert "License :: OSI Approved :: MIT License" in str(exc.value)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", SetuptoolsDeprecationWarning)
         dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
-        # Check license classifier is still included
+        # Check 'License :: OSI Approved :: MIT License' is removed
         assert dist.metadata.get_classifiers() == [
             "Development Status :: 5 - Production/Stable",
             "Programming Language :: Python",
-            "License :: OSI Approved :: MIT License",
         ]
 
 

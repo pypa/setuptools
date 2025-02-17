@@ -406,22 +406,27 @@ class Distribution(_Distribution):
 
     def _finalize_license_expression(self) -> None:
         """Normalize license and license_expression."""
+        classifiers = self.metadata.get_classifiers()
+        license_classifiers = {cl for cl in classifiers if cl.startswith("License :: ")}
+
+        if license_classifiers:
+            SetuptoolsDeprecationWarning.emit(
+                "License classifier are deprecated in favor of the license expression.",
+                "Please remove the classifiers:\n\n" + "\n".join(license_classifiers),
+                see_url="https://peps.python.org/pep-0639/",
+                due_date=(2027, 2, 17),  # Introduced 2025-02-17
+            )
+
         license_expr = self.metadata.license_expression
         if license_expr:
             normalized = canonicalize_license_expression(license_expr)
             if license_expr != normalized:
                 InformationOnly.emit(f"Normalizing '{license_expr}' to '{normalized}'")
                 self.metadata.license_expression = normalized
-
-            for cl in self.metadata.get_classifiers():
-                if not cl.startswith("License :: "):
-                    continue
-                SetuptoolsDeprecationWarning.emit(
-                    "License classifier are deprecated in favor of the license expression.",
-                    f"Please remove the '{cl}' classifier.",
-                    see_url="https://peps.python.org/pep-0639/",
-                    due_date=(2027, 2, 17),  # Introduced 2025-02-17
-                )
+            if license_classifiers:
+                # Filter classifiers but preserve "static-ness" of metadata
+                filtered = [cl for cl in classifiers if cl not in license_classifiers]
+                self.metadata.set_classifiers(classifiers.__class__(filtered))
 
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
