@@ -22,9 +22,9 @@ from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union
 
 from .. import _static
 from .._path import StrPath
-from ..errors import RemovedConfigError
+from ..errors import InvalidConfigError, RemovedConfigError
 from ..extension import Extension
-from ..warnings import SetuptoolsWarning
+from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -88,6 +88,21 @@ def _apply_tool_table(dist: Distribution, config: dict, filename: StrPath):
     tool_table = config.get("tool", {}).get("setuptools", {})
     if not tool_table:
         return  # short-circuit
+
+    if "license-files" in tool_table:
+        if dist.metadata.license_files:
+            raise InvalidConfigError(
+                "'project.license-files' is defined already. "
+                "Remove 'tool.setuptools.license-files'."
+            )
+
+        pypa_guides = "guides/writing-pyproject-toml/#license-files"
+        SetuptoolsDeprecationWarning.emit(
+            "'tool.setuptools.license-files' is deprecated in favor of "
+            "'project.license-files'",
+            see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+            due_date=(2026, 2, 18),  # Warning introduced on 2025-02-18
+        )
 
     for field, value in tool_table.items():
         norm_key = json_compatible_key(field)
