@@ -6,7 +6,7 @@ import numbers
 import os
 import re
 import sys
-from collections.abc import Iterable, MutableMapping, Sequence
+from collections.abc import Iterable, Iterator, MutableMapping, Sequence
 from glob import iglob
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
@@ -461,14 +461,24 @@ class Distribution(_Distribution):
             patterns = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
 
         self.metadata.license_files = list(
-            map(
-                lambda path: path.replace(os.sep, "/"),
-                unique_everseen(self._expand_patterns(patterns)),
-            )
+            unique_everseen(self._expand_patterns(patterns)),
         )
 
-    @staticmethod
-    def _expand_patterns(patterns):
+        if license_files and not self.metadata.license_files:
+            # Pattern explicitly given but no file found
+            if not self.metadata.license_files:
+                SetuptoolsDeprecationWarning.emit(
+                    "Cannot find any license files for the given patterns.",
+                    f"The glob patterns {patterns!r} do not match any file.",
+                    due_date=(2026, 2, 20),
+                    # Warning introduced on 2025/02/18
+                    # PEP 639 requires us to error, but as a transition period
+                    # we will only issue a warning to give people time to prepare.
+                    # After the transition, this should raise an InvalidConfigError.
+                )
+
+    @classmethod
+    def _expand_patterns(cls, patterns: list[str]) -> Iterator[str]:
         """
         >>> list(Distribution._expand_patterns(['LICENSE']))
         ['LICENSE']
@@ -476,11 +486,25 @@ class Distribution(_Distribution):
         ['pyproject.toml', 'LICENSE']
         """
         return (
-            path
+            path.replace(os.sep, "/")
             for pattern in patterns
-            for path in sorted(iglob(pattern, recursive=True))
+            for path in sorted(cls._find_pattern(pattern))
             if not path.endswith('~') and os.path.isfile(path)
         )
+
+    @staticmethod
+    def _find_pattern(pattern: str) -> Iterator[str]:
+        """
+        >>> list(Distribution._find_pattern("setuptools/**/pyprojecttoml.py"))
+        ['setuptools/config/pyprojecttoml.py']
+        >>> list(Distribution._find_pattern("../LICENSE"))
+        Traceback (most recent call last):
+        ...
+        setuptools.errors.InvalidConfigError: Pattern '../LICENSE' cannot contain '..'
+        """
+        if ".." in pattern:  # XXX: Any other invalid character?
+            raise InvalidConfigError(f"Pattern {pattern!r} cannot contain '..'")
+        return iglob(pattern, recursive=True)
 
     # FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
