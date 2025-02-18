@@ -28,6 +28,7 @@ from ._path import StrPath
 from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
+from .errors import InvalidConfigError
 from .monkey import get_unpatched
 from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
@@ -406,22 +407,32 @@ class Distribution(_Distribution):
 
     def _finalize_license_expression(self) -> None:
         """Normalize license and license_expression."""
+        classifiers = self.metadata.get_classifiers()
+        license_classifiers = [cl for cl in classifiers if cl.startswith("License :: ")]
+
         license_expr = self.metadata.license_expression
         if license_expr:
             normalized = canonicalize_license_expression(license_expr)
             if license_expr != normalized:
                 InformationOnly.emit(f"Normalizing '{license_expr}' to '{normalized}'")
                 self.metadata.license_expression = normalized
-
-            for cl in self.metadata.get_classifiers():
-                if not cl.startswith("License :: "):
-                    continue
-                SetuptoolsDeprecationWarning.emit(
-                    "License classifier are deprecated in favor of the license expression.",
-                    f"Please remove the '{cl}' classifier.",
-                    see_url="https://peps.python.org/pep-0639/",
-                    due_date=(2027, 2, 17),  # Introduced 2025-02-17
+            if license_classifiers:
+                raise InvalidConfigError(
+                    "License classifiers have been superseded by license expressions "
+                    "(see https://peps.python.org/pep-0639/). Please remove:\n\n"
+                    + "\n".join(license_classifiers),
                 )
+        elif license_classifiers:
+            pypa_guides = "guides/writing-pyproject-toml/#license"
+            SetuptoolsDeprecationWarning.emit(
+                "License classifiers are deprecated.",
+                "Please consider removing the following classifiers in favor of a "
+                "SPDX license expression:\n\n" + "\n".join(license_classifiers),
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+                # Warning introduced on 2025-02-17
+                # TODO: Should we add a due date? It may affect old/unmaintained
+                #       packages in the ecosystem and cause problems...
+            )
 
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
