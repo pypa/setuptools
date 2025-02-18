@@ -24,7 +24,7 @@ from setuptools.command.egg_info import write_requirements
 from setuptools.config import expand, pyprojecttoml, setupcfg
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.dist import Distribution
-from setuptools.errors import RemovedConfigError
+from setuptools.errors import InvalidConfigError, RemovedConfigError
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from .downloads import retrieve_file, urls_from_file
@@ -366,7 +366,7 @@ class TestLicenseFiles:
         pyproject.write_text(text, encoding="utf-8")
         return pyproject
 
-    def base_pyproject_license_pep639(self, tmp_path):
+    def base_pyproject_license_pep639(self, tmp_path, additional_text=""):
         pyproject = _pep621_example_project(tmp_path, "README")
         text = pyproject.read_text(encoding="utf-8")
 
@@ -381,6 +381,8 @@ class TestLicenseFiles:
             text,
             count=1,
         )
+        if additional_text:
+            text = f"{text}\n{additional_text}\n"
         pyproject.write_text(text, encoding="utf-8")
         return pyproject
 
@@ -396,7 +398,9 @@ class TestLicenseFiles:
         license = tmp_path / "LICENSE.txt"
         license.write_text("LicenseRef-Proprietary\n", encoding="utf-8")
 
-        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        msg = "'tool.setuptools.license-files' is deprecated in favor of 'project.license-files'"
+        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+            dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
         assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
         assert dist.metadata.license == "LicenseRef-Proprietary\n"
 
@@ -411,6 +415,15 @@ class TestLicenseFiles:
         assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
         assert dist.metadata.license is None
         assert dist.metadata.license_expression == "LicenseRef-Proprietary"
+
+    def test_license_files_defined_twice(self, tmp_path):
+        # Set project.license-files and tools.setuptools.license-files
+        setuptools_config = '[tool.setuptools]\nlicense-files = ["_FILE*"]'
+        pyproject = self.base_pyproject_license_pep639(tmp_path, setuptools_config)
+
+        msg = "'project.license-files' is defined already. Remove 'tool.setuptools.license-files'"
+        with pytest.raises(InvalidConfigError, match=msg):
+            pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
     def test_default_patterns(self, tmp_path):
         setuptools_config = '[tool.setuptools]\nzip-safe = false'

@@ -24,7 +24,7 @@ files are included in a source distribution by default:
   in ``pyproject.toml`` and/or equivalent in ``setup.cfg``/``setup.py``;
   note that if you don't explicitly set this parameter, ``setuptools``
   will include any files that match the following glob patterns:
-  ``LICENSE*``, ``LICENCE*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS**``;
+  ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS**``;
 - ``pyproject.toml``;
 - ``setup.cfg``;
 - ``setup.py``;

@@ -1,0 +1,3 @@
+Deprecated ``tools.setuptools.license-files`` in favor of ``project.license-files``
+and added exception if ``project.license-files`` and ``tools.setuptools.license-files``
+are used together. -- by :user:`cdce8p`

@@ -22,9 +22,9 @@ from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union
 
 from .. import _static
 from .._path import StrPath
-from ..errors import RemovedConfigError
+from ..errors import InvalidConfigError, RemovedConfigError
 from ..extension import Extension
-from ..warnings import SetuptoolsWarning
+from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
@@ -99,6 +99,23 @@ def _apply_tool_table(dist: Distribution, config: dict, filename: StrPath):
             and has been removed from `pyproject.toml`.
             """
             raise RemovedConfigError("\n".join([cleandoc(msg), suggestion]))
+
+        if norm_key == "license_files":
+            if dist.metadata.license_files:
+                raise InvalidConfigError(
+                    "'project.license-files' is defined already. "
+                    "Remove 'tool.setuptools.license-files'."
+                )
+
+            pypa_guides = "guides/writing-pyproject-toml/#license-files"
+            SetuptoolsDeprecationWarning.emit(
+                "'tool.setuptools.license-files' is deprecated in favor of "
+                "'project.license-files'",
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+            )
+            # Warning introduced on 2025-02-18
+            # TODO: Should we add a due date? It may affect old/unmaintained
+            #       packages in the ecosystem and cause problems...
 
         norm_key = TOOL_TABLE_RENAMES.get(norm_key, norm_key)
         corresp = TOOL_TABLE_CORRESPONDENCE.get(norm_key, norm_key)
