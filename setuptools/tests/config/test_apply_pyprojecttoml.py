@@ -329,7 +329,8 @@ def test_license_classifier_with_license_expression(tmp_path):
     msg = "License classifiers have been superseded by license expressions"
     with pytest.raises(InvalidConfigError, match=msg) as exc:
         pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
-        assert "License :: OSI Approved :: MIT License" in str(exc.value)
+
+    assert "License :: OSI Approved :: MIT License" in str(exc.value)
 
 
 def test_license_classifier_without_license_expression(tmp_path):
@@ -345,10 +346,9 @@ def test_license_classifier_without_license_expression(tmp_path):
     msg = "License classifiers are deprecated(?:.|\n)*MIT License"
     with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
         dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
-        # Check license classifier is still included
-        assert dist.metadata.get_classifiers() == [
-            "License :: OSI Approved :: MIT License"
-        ]
+
+    # Check license classifier is still included
+    assert dist.metadata.get_classifiers() == ["License :: OSI Approved :: MIT License"]
 
 
 class TestLicenseFiles:
