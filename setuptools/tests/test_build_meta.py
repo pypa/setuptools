@@ -387,9 +387,13 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         with tmpdir.as_cwd():
             path.build(files)
+            msgs = [
+                "'tool.setuptools.license-files' is deprecated in favor of 'project.license-files'",
+                "`project.license` as a TOML table is deprecated",
+            ]
             with warnings.catch_warnings():
-                msg = "'tool.setuptools.license-files' is deprecated in favor of 'project.license-files'"
-                warnings.filterwarnings("ignore", msg, SetuptoolsDeprecationWarning)
+                for msg in msgs:
+                    warnings.filterwarnings("ignore", msg, SetuptoolsDeprecationWarning)
                 sdist_path = build_backend.build_sdist("temp")
                 wheel_file = build_backend.build_wheel("temp")
 
