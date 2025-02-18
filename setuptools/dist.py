@@ -423,7 +423,7 @@ class Distribution(_Distribution):
                     + "\n".join(license_classifiers),
                 )
         elif license_classifiers:
-            pypa_guides = "guides/licensing-examples-and-user-scenarios/"
+            pypa_guides = "guides/writing-pyproject-toml/#license"
             SetuptoolsDeprecationWarning.emit(
                 "License classifiers are deprecated.",
                 "Please consider removing the following classifiers in favor of a "
