@@ -484,6 +484,12 @@ class Distribution(_Distribution):
         ['LICENSE']
         >>> list(Distribution._expand_patterns(['pyproject.toml', 'LIC*']))
         ['pyproject.toml', 'LICENSE']
+        >>> list(Distribution._expand_patterns(['setuptools/**/pyprojecttoml.py']))
+        ['setuptools/config/pyprojecttoml.py']
+        >>> list(Distribution._expand_patterns(['../LICENSE']))
+        Traceback (most recent call last):
+        ...
+        setuptools.errors.InvalidConfigError: Pattern '../LICENSE' cannot contain '..'
         """
         return (
             path.replace(os.sep, "/")
@@ -494,14 +500,6 @@ class Distribution(_Distribution):
 
     @staticmethod
     def _find_pattern(pattern: str) -> Iterator[str]:
-        """
-        >>> list(Distribution._find_pattern("setuptools/**/pyprojecttoml.py"))
-        ['setuptools/config/pyprojecttoml.py']
-        >>> list(Distribution._find_pattern("../LICENSE"))
-        Traceback (most recent call last):
-        ...
-        setuptools.errors.InvalidConfigError: Pattern '../LICENSE' cannot contain '..'
-        """
         if ".." in pattern:  # XXX: Any other invalid character?
             raise InvalidConfigError(f"Pattern {pattern!r} cannot contain '..'")
         return iglob(pattern, recursive=True)
