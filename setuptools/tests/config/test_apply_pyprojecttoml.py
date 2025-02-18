@@ -461,6 +461,14 @@ class TestLicenseFiles:
         assert (tmp_path / "LICENSE.txt").exists()  # from base example
         assert set(dist.metadata.license_files) == {*license_files, "LICENSE.txt"}
 
+    def test_missing_patterns(self, tmp_path):
+        pyproject = self.base_pyproject_license_pep639(tmp_path)
+        assert list(tmp_path.glob("_FILE*")) == []  # sanity check
+
+        msg = "Cannot find any license files for the given patterns."
+        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+            pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+
     def test_deprecated_file_expands_to_text(self, tmp_path):
         """Make sure the old example with ``license = {text = ...}`` works"""
 
