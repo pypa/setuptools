@@ -1,1 +1,1 @@
-Store ``License-File``s in ``.dist-info/licenses`` subfolder and added support for recursive globs for ``license_files`` (`PEP 639 <https://peps.python.org/pep-0639/#add-license-expression-field>`_). -- by :user:`cdce8p`
+Store ``License-File``s in ``.dist-info/licenses`` subfolder and added support for recursive globs for ``license_files`` (:pep:`639#add-license-expression-field`). -- by :user:`cdce8p`
