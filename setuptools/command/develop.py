@@ -1,5 +1,6 @@
 import glob
 import os
+from typing import Any
 
 import setuptools
 from setuptools import _normalization, _path, namespaces
@@ -188,7 +189,7 @@ class VersionlessRequirement:
     def __init__(self, dist) -> None:
         self.__dist = dist
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Any:
         return getattr(self.__dist, name)
 
     def as_requirement(self):
