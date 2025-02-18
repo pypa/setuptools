@@ -93,7 +93,7 @@ version = "2020.0.0"
 description = "Lovely Spam! Wonderful Spam!"
 readme = "README.rst"
 requires-python = ">=3.8"
-license = {file = "LICENSE.txt"}
+license-files = ["LICENSE.txt"]  # Updated to be PEP 639 compliant
 keywords = ["egg", "bacon", "sausage", "tomatoes", "Lobster Thermidor"]
 authors = [
   {email = "hi@pradyunsg.me"},
@@ -206,7 +206,6 @@ def test_pep621_example(tmp_path):
     """Make sure the example in PEP 621 works"""
     pyproject = _pep621_example_project(tmp_path)
     dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
-    assert dist.metadata.license == "--- LICENSE stub ---"
     assert set(dist.metadata.license_files) == {"LICENSE.txt"}
 
 
@@ -294,6 +293,11 @@ def test_utf8_maintainer_in_metadata(  # issue-3663
             'License: MIT',
             'License-Expression: ',
             id='license-text',
+            marks=[
+                pytest.mark.filterwarnings(
+                    "ignore:.project.license. as a TOML table is deprecated",
+                )
+            ],
         ),
         pytest.param(
             PEP639_LICENSE_EXPRESSION,
@@ -354,8 +358,12 @@ def test_license_classifier_without_license_expression(tmp_path):
     """
     pyproject = _pep621_example_project(tmp_path, "README", text)
 
-    msg = "License classifiers are deprecated(?:.|\n)*MIT License"
-    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+    msg1 = "License classifiers are deprecated(?:.|\n)*MIT License"
+    msg2 = ".project.license. as a TOML table is deprecated"
+    with (
+        pytest.warns(SetuptoolsDeprecationWarning, match=msg1),
+        pytest.warns(SetuptoolsDeprecationWarning, match=msg2),
+    ):
         dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
     # Check license classifier is still included
@@ -363,37 +371,37 @@ def test_license_classifier_without_license_expression(tmp_path):
 
 
 class TestLicenseFiles:
-    def base_pyproject(self, tmp_path, additional_text):
-        pyproject = _pep621_example_project(tmp_path, "README")
-        text = pyproject.read_text(encoding="utf-8")
+    def base_pyproject(
+        self,
+        tmp_path,
+        additional_text="",
+        license_toml='license = {file = "LICENSE.txt"}\n',
+    ):
+        text = PEP639_LICENSE_EXPRESSION
 
         # Sanity-check
-        assert 'license = {file = "LICENSE.txt"}' in text
-        assert "[tool.setuptools]" not in text
-
-        text = f"{text}\n{additional_text}\n"
-        pyproject.write_text(text, encoding="utf-8")
-        return pyproject
-
-    def base_pyproject_license_pep639(self, tmp_path, additional_text=""):
-        pyproject = _pep621_example_project(tmp_path, "README")
-        text = pyproject.read_text(encoding="utf-8")
-
-        # Sanity-check
-        assert 'license = {file = "LICENSE.txt"}' in text
+        assert 'license = "mit or apache-2.0"' in text
         assert 'license-files' not in text
         assert "[tool.setuptools]" not in text
 
         text = re.sub(
-            r"(license = {file = \"LICENSE.txt\"})\n",
-            ("license = \"licenseref-Proprietary\"\nlicense-files = [\"_FILE*\"]\n"),
+            r"(license = .*)\n",
+            license_toml,
             text,
             count=1,
         )
-        if additional_text:
-            text = f"{text}\n{additional_text}\n"
-        pyproject.write_text(text, encoding="utf-8")
+        assert license_toml in text  # sanity check
+        text = f"{text}\n{additional_text}\n"
+        pyproject = _pep621_example_project(tmp_path, "README", pyproject_text=text)
         return pyproject
+
+    def base_pyproject_license_pep639(self, tmp_path, additional_text=""):
+        return self.base_pyproject(
+            tmp_path,
+            additional_text=additional_text,
+            license_toml='license = "licenseref-Proprietary"'
+            '\nlicense-files = ["_FILE*"]\n',
+        )
 
     def test_both_license_and_license_files_defined(self, tmp_path):
         setuptools_config = '[tool.setuptools]\nlicense-files = ["_FILE*"]'
@@ -407,8 +415,12 @@ class TestLicenseFiles:
         license = tmp_path / "LICENSE.txt"
         license.write_text("LicenseRef-Proprietary\n", encoding="utf-8")
 
-        msg = "'tool.setuptools.license-files' is deprecated in favor of 'project.license-files'"
-        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+        msg1 = "'tool.setuptools.license-files' is deprecated in favor of 'project.license-files'"
+        msg2 = ".project.license. as a TOML table is deprecated"
+        with (
+            pytest.warns(SetuptoolsDeprecationWarning, match=msg1),
+            pytest.warns(SetuptoolsDeprecationWarning, match=msg2),
+        ):
             dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
         assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
         assert dist.metadata.license == "LicenseRef-Proprietary\n"
@@ -437,7 +449,7 @@ class TestLicenseFiles:
     def test_default_patterns(self, tmp_path):
         setuptools_config = '[tool.setuptools]\nzip-safe = false'
         # ^ used just to trigger section validation
-        pyproject = self.base_pyproject(tmp_path, setuptools_config)
+        pyproject = self.base_pyproject(tmp_path, setuptools_config, license_toml="")
 
         license_files = "LICENCE-a.html COPYING-abc.txt AUTHORS-xyz NOTICE,def".split()
 
@@ -445,8 +457,26 @@ class TestLicenseFiles:
             (tmp_path / fname).write_text(f"{fname}\n", encoding="utf-8")
 
         dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+
         assert (tmp_path / "LICENSE.txt").exists()  # from base example
         assert set(dist.metadata.license_files) == {*license_files, "LICENSE.txt"}
+
+    def test_deprecated_file_expands_to_text(self, tmp_path):
+        """Make sure the old example with ``license = {text = ...}`` works"""
+
+        assert 'license-files = ["LICENSE.txt"]' in PEP621_EXAMPLE  # sanity check
+        text = PEP621_EXAMPLE.replace(
+            'license-files = ["LICENSE.txt"]',
+            'license = {file = "LICENSE.txt"}',
+        )
+        pyproject = _pep621_example_project(tmp_path, pyproject_text=text)
+
+        msg = ".project.license. as a TOML table is deprecated"
+        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+            dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+
+        assert dist.metadata.license == "--- LICENSE stub ---"
+        assert set(dist.metadata.license_files) == {"LICENSE.txt"}  # auto-filled
 
 
 class TestPyModules:
