@@ -70,6 +70,8 @@ Avoid single-use iterable. Disallow sets.
 A poor approximation of an OrderedSequence (dict doesn't match a Sequence).
 """
 
+_license_files_allowed_chars = re.compile(r'^[\w\-\.\/\*\?\[\]]+$')
+
 
 def __getattr__(name: str) -> Any:  # pragma: no cover
     if name == "sequence":
@@ -438,35 +440,68 @@ class Distribution(_Distribution):
         """Compute names of all license files which should be included."""
         license_files: list[str] | None = self.metadata.license_files
         patterns = license_files or []
+        skip_pattern_validation = False
 
         license_file: str | None = self.metadata.license_file
         if license_file and license_file not in patterns:
             patterns.append(license_file)
+            skip_pattern_validation = True
 
         if license_files is None and license_file is None:
             # Default patterns match the ones wheel uses
             # See https://wheel.readthedocs.io/en/stable/user_guide.html
             # -> 'Including license files in the generated wheel file'
             patterns = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
+            skip_pattern_validation = True
 
-        self.metadata.license_files = list(
-            map(
-                lambda path: path.replace(os.sep, "/"),
-                unique_everseen(self._expand_patterns(patterns)),
+        matched_files = []
+        if skip_pattern_validation is True:
+            for pattern in patterns:
+                matched_files.extend(self._expand_pattern(pattern))
+        else:
+            for pattern in patterns:
+                matched_files.extend(self._validate_and_expand_pattern(pattern))
+
+        self.metadata.license_files = list(unique_everseen(matched_files))
+
+    def _validate_and_expand_pattern(self, pattern):
+        """Validate license file patterns according to the PyPA specifications.
+        https://packaging.python.org/en/latest/specifications/pyproject-toml/#license-files
+        """
+        if ".." in pattern:
+            raise InvalidConfigError(
+                f"License file pattern '{pattern}' cannot contain '..'"
             )
-        )
+        if pattern.startswith((os.sep, "/")) or ":\\" in pattern:
+            raise InvalidConfigError(
+                f"License file pattern '{pattern}' should be relative and "
+                "must not start with '/'"
+            )
+        if _license_files_allowed_chars.match(pattern) is None:
+            raise InvalidConfigError(
+                f"License file pattern '{pattern}' contains invalid "
+                "characters. "
+                "https://packaging.python.org/en/latest/specifications/pyproject-toml/#license-files"
+            )
+        found = list(self._expand_pattern(pattern))
+        if not found:
+            raise InvalidConfigError(
+                f"License file pattern '{pattern}' did not match any files."
+            )
+        return found
 
     @staticmethod
-    def _expand_patterns(patterns):
+    def _expand_pattern(pattern):
         """
-        >>> list(Distribution._expand_patterns(['LICENSE']))
+        >>> list(Distribution._expand_pattern('LICENSE'))
         ['LICENSE']
-        >>> list(Distribution._expand_patterns(['pyproject.toml', 'LIC*']))
-        ['pyproject.toml', 'LICENSE']
+        >>> list(Distribution._expand_pattern('LIC*'))
+        ['LICENSE']
+        >>> list(Distribution._expand_pattern('setuptools/**/pyprojecttoml.py'))
+        ['setuptools/config/pyprojecttoml.py']
         """
         return (
-            path
-            for pattern in patterns
+            path.replace(os.sep, "/")
             for path in sorted(iglob(pattern, recursive=True))
             if not path.endswith('~') and os.path.isfile(path)
         )

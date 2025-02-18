@@ -1,0 +1,3 @@
+Added validation for given glob patterns in ``license-files``.
+Raise an exception if it is invalid or doesn't match any
+license files.

@@ -372,6 +372,9 @@ class TestParityWithMetadataFromPyPaWheel:
         monkeypatch.chdir(tmp_path)
         monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.42"))
         monkeypatch.setattr(expand, "read_files", Mock(return_value="hello world"))
+        monkeypatch.setattr(
+            Distribution, "_validate_and_expand_pattern", Mock(return_value=[])
+        )
         if request.param is None:
             yield self.base_example()
         else:

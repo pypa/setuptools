@@ -41,6 +41,9 @@ def makedist(path, **attrs):
 @pytest.mark.uses_network
 def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
     monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.0.1"))
+    monkeypatch.setattr(
+        Distribution, "_validate_and_expand_pattern", Mock(return_value=[])
+    )
     setupcfg_example = retrieve_file(url)
     pyproject_example = Path(tmp_path, "pyproject.toml")
     setupcfg_text = setupcfg_example.read_text(encoding="utf-8")
@@ -390,17 +393,21 @@ class TestLicenseFiles:
             text,
             count=1,
         )
-        assert license_toml in text  # sanity check
+        if r"\\" not in license_toml:
+            assert license_toml in text  # sanity check
         text = f"{text}\n{additional_text}\n"
         pyproject = _pep621_example_project(tmp_path, "README", pyproject_text=text)
         return pyproject
 
-    def base_pyproject_license_pep639(self, tmp_path, additional_text=""):
+    def base_pyproject_license_pep639(
+        self, tmp_path, additional_text="", *, license_files=None
+    ):
+        license_files = license_files or '["_FILE*"]'
         return self.base_pyproject(
             tmp_path,
             additional_text=additional_text,
             license_toml='license = "licenseref-Proprietary"'
-            '\nlicense-files = ["_FILE*"]\n',
+            f'\nlicense-files = {license_files}\n',
         )
 
     def test_both_license_and_license_files_defined(self, tmp_path):
@@ -477,6 +484,58 @@ class TestLicenseFiles:
 
         assert dist.metadata.license == "--- LICENSE stub ---"
         assert set(dist.metadata.license_files) == {"LICENSE.txt"}  # auto-filled
+
+    def test_missing_patterns(self, tmp_path):
+        pyproject = self.base_pyproject_license_pep639(tmp_path)
+        assert list(tmp_path.glob("_FILE*")) == []  # sanity check
+
+        msg = r"License file pattern '_FILE\*' did not match any files."
+        with pytest.raises(InvalidConfigError, match=msg):
+            pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+
+    @pytest.mark.parametrize(
+        ("license_files", "msg"),
+        [
+            pytest.param(
+                '["../folder/LICENSE"]',
+                "License file pattern '../folder/LICENSE' cannot contain '..'",
+                id="..",
+            ),
+            pytest.param(
+                '["folder/../LICENSE"]',
+                "License file pattern 'folder/../LICENSE' cannot contain '..'",
+                id="..2",
+            ),
+            pytest.param(
+                '["/folder/LICENSE"]',
+                "License file pattern '/folder/LICENSE' should be "
+                "relative and must not start with '/'",
+                id="absolute-path",
+            ),
+            pytest.param(
+                '["C:\\\\\\\\folder\\\\\\\\LICENSE"]',
+                r"License file pattern 'C:\\folder\\LICENSE' should be "
+                "relative and must not start with '/'",
+                id="absolute-path2",
+            ),
+            pytest.param(
+                '["~LICENSE"]',
+                r"License file pattern '~LICENSE' contains invalid characters",
+                id="invalid_chars",
+            ),
+            pytest.param(
+                '["LICENSE$"]',
+                r"License file pattern 'LICENSE\$' contains invalid characters",
+                id="invalid_chars2",
+            ),
+        ],
+    )
+    def test_validate_patterns(self, tmp_path, license_files, msg):
+        pyproject = self.base_pyproject_license_pep639(
+            tmp_path, license_files=license_files
+        )
+        with pytest.raises(InvalidConfigError, match=msg):
+            pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
 
 class TestPyModules:

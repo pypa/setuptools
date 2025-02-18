@@ -844,6 +844,10 @@ class TestEggInfo:
             pypath=os.pathsep.join([env.paths['lib'], str(tmpdir_cwd)]),
         )
         egg_info_dir = os.path.join('.', 'foo.egg-info')
+        if "INVALID_LICENSE" in excl_licenses:
+            # Invalid license file patterns raise InvalidConfigError
+            assert not Path(egg_info_dir, "SOURCES.txt").is_file()
+            return
 
         sources_text = Path(egg_info_dir, "SOURCES.txt").read_text(encoding="utf-8")
         sources_lines = [line.strip() for line in sources_text.splitlines()]
