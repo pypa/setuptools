@@ -23,7 +23,7 @@ class TestEdit:
         """
         config = tmpdir.join('setup.cfg')
         self.write_text(str(config), '[names]\njaraco=джарако')
-        setopt.edit_config(str(config), dict(names=dict(other='yes')))
+        setopt.edit_config(str(config), {'names': {'other': 'yes'}})
         parser = self.parse_config(str(config))
         assert parser.get('names', 'jaraco') == 'джарако'
         assert parser.get('names', 'other') == 'yes'
@@ -34,7 +34,7 @@ class TestEdit:
         """
         config = tmpdir.join('setup.cfg')
         self.write_text(str(config), '[names]\nFoO=bAr')
-        setopt.edit_config(str(config), dict(names=dict(oTher='yes')))
+        setopt.edit_config(str(config), {'names': {'oTher': 'yes'}})
         actual = config.read_text(encoding='ascii')
         assert 'FoO' in actual
         assert 'oTher' in actual
