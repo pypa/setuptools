@@ -459,7 +459,8 @@ _PREVIOUSLY_DEFINED = {
     "description": _attrgetter("metadata.description"),
     "readme": _attrgetter("metadata.long_description"),
     "requires-python": _some_attrgetter("python_requires", "metadata.python_requires"),
-    "license": _attrgetter("metadata.license"),
+    "license": _some_attrgetter("metadata.license_expression", "metadata.license"),
+    # XXX: Should we wait until someone requires `license_files`?
     "authors": _some_attrgetter("metadata.author", "metadata.author_email"),
     "maintainers": _some_attrgetter("metadata.maintainer", "metadata.maintainer_email"),
     "keywords": _attrgetter("metadata.keywords"),
