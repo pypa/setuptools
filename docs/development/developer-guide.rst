@@ -112,23 +112,60 @@ To build the docs locally, use tox::
 .. _Sphinx: https://www.sphinx-doc.org/en/master/
 .. _published documentation: https://setuptools.pypa.io/en/latest/
 
----------------------
-Vendored Dependencies
----------------------
 
-Setuptools has some dependencies, but due to `bootstrapping issues
-<https://github.com/pypa/setuptools/issues/980>`_, those dependencies
-cannot be declared as they won't be resolved soon enough to build
-setuptools from source. Eventually, this limitation may be lifted as
-PEP 517/518 reach ubiquitous adoption, but for now, Setuptools
-cannot declare dependencies other than through
-``setuptools/_vendor/vendored.txt`` and
-``pkg_resources/_vendor/vendored.txt``.
+.. _dependency-policy:
 
-All the dependencies specified in these files are "vendorized" using a
-simple Python script ``tools/vendor.py``.
+----------------------------------
+Adopting and Updating Dependencies
+----------------------------------
 
-To refresh the dependencies, run the following command::
+When developing ``setuptools``, contributors should strive to keep the codebase
+efficient and maintainable.
+Ideally, we would like to adhere to the DRY (Don’t Repeat Yourself) philosophy,
+use the right tool for the job, and only make pragmatic compromises where
+necessary (or if there's a strong case).
+
+This means that incorporating dependencies to streamline programming is in
+principle possible, and that these would be readily adopted as needed.
+However, ``setuptools`` is a :pep:`517`-compliant build-backend, and therefore
+it is subject to a strong limitation on which dependencies it can or cannot
+incorporate.
+
+To circumvent these limitations, ``setuptools`` bundles and distributes these
+dependencies together into a nested directory in its source tree, in a process
+called "vendorization", which is implemented using a simple Python script
+``tools/vendor.py``. Unfortunately, this process still presents challenges, such as:
+
+- the increasing size of ``setuptools`` distribution archives and the associated
+  time to download,
+- the existence of old and incompatible versions of dependencies available
+  elsewhere in ``sys.path``,
+- the difficulty for downstream packagers (e.g. different Linux distributions)
+  to adopt and distribute ``setuptools``,
+- the open bootstrapping issues discussed at `pypa/packaging-problems#342
+  <https://github.com/pypa/packaging-problems/issues/342>`_.
+
+Therefore, we recommend developers to observe the following policies before
+deciding to adopt new dependencies:
+
+1. Developers **SHOULD NOT** introduce dependencies that bring along other
+   transient or indirect dependencies, unless there is a strong reason to.
+2. Developers **MUST NOT** introduce dependencies (either direct or transient)
+   that require binary extension modules.
+3. Developers **SHOULD** prefer similar alternatives available in the standard
+   library whenever possible.
+4. Developers **SHOULD** avoid large dependencies but from which ``setuptools``
+   uses a very small number of features/functions (high cost of adoption but
+   low utilisation).
+5. Developers **SHOULD** ensure that a wide range of available versions of a
+   given dependency is compatible with ``setuptools`` codebase (ideally
+   ``setuptools`` should work with whichever version of the dependency the end
+   user already have installed in their environment).
+
+Once adopted, dependencies should be listed in the ``core`` optional-dependencies
+group in ``setuptools``' ``pyproject.toml`` configuration file.
+
+To refresh the vendored dependencies, a contributor can run the following command::
 
     $ tox -e vendor
 
