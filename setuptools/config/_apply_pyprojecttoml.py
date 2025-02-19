@@ -479,9 +479,11 @@ _PREVIOUSLY_DEFINED = {
 
 _RESET_PREVIOUSLY_DEFINED: dict = {
     # Fix improper setting: given in `setup.py`, but not listed in `dynamic`
-    # Use "immutable" data structures to avoid in-place modification
+    # Use "immutable" data structures to avoid in-place modification.
     # dict: pyproject name => value to which reset
     "license": "",
+    # XXX: `license-file` is currently not considered in the context of `dynamic`.
+    #      See TestPresetField.test_license_files_exempt_from_dynamic
     "authors": _static.EMPTY_LIST,
     "maintainers": _static.EMPTY_LIST,
     "keywords": _static.EMPTY_LIST,

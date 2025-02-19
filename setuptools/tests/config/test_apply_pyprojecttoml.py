@@ -598,6 +598,26 @@ class TestPresetField:
         dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
         assert dist_value == value
 
+    def test_license_files_exempt_from_dynamic(self, monkeypatch, tmp_path):
+        """
+        license-file is currently not considered in the context of dynamic.
+        As per 2025-02-19, https://packaging.python.org/en/latest/specifications/pyproject-toml/#license-files
+        allows setuptools to fill-in `license-files` the way it sees fit:
+
+        > If the license-files key is not defined, tools can decide how to handle license files.
+        > For example they can choose not to include any files or use their own
+        > logic to discover the appropriate files in the distribution.
+
+        Using license_files from setup.py to fill-in the value is in accordance
+        with this rule.
+        """
+        monkeypatch.chdir(tmp_path)
+        pyproject = self.pyproject(tmp_path, [])
+        dist = makedist(tmp_path, license_files=["LIC*"])
+        (tmp_path / "LIC1").write_text("42", encoding="utf-8")
+        dist = pyprojecttoml.apply_configuration(dist, pyproject)
+        assert dist.metadata.license_files == ["LIC1"]
+
     def test_warning_overwritten_dependencies(self, tmp_path):
         src = "[project]\nname='pkg'\nversion='0.1'\ndependencies=['click']\n"
         pyproject = tmp_path / "pyproject.toml"
