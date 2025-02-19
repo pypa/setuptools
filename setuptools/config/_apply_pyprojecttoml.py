@@ -201,6 +201,9 @@ def _license(dist: Distribution, val: str | dict, root_dir: StrPath | None):
     from setuptools.config import expand
 
     if isinstance(val, str):
+        if getattr(dist.metadata, "license", None):
+            SetuptoolsWarning.emit("`license` overwritten by `pyproject.toml`")
+            dist.metadata.license = None
         _set_config(dist, "license_expression", _static.Str(val))
     else:
         pypa_guides = "guides/writing-pyproject-toml/#license"
@@ -476,8 +479,9 @@ _PREVIOUSLY_DEFINED = {
 
 _RESET_PREVIOUSLY_DEFINED: dict = {
     # Fix improper setting: given in `setup.py`, but not listed in `dynamic`
+    # Use "immutable" data structures to avoid in-place modification
     # dict: pyproject name => value to which reset
-    "license": _static.EMPTY_DICT,
+    "license": "",
     "authors": _static.EMPTY_LIST,
     "maintainers": _static.EMPTY_LIST,
     "keywords": _static.EMPTY_LIST,

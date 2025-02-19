@@ -554,6 +554,11 @@ class TestPresetField:
     @pytest.mark.parametrize(
         ("attr", "field", "value"),
         [
+            ("license_expression", "license", "MIT"),
+            pytest.param(
+                *("license", "license", "Not SPDX"),
+                marks=[pytest.mark.filterwarnings("ignore:.*license. overwritten")],
+            ),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
             ("entry_points", "scripts", {"console_scripts": ["foobar=foobar:main"]}),
             ("entry_points", "gui-scripts", {"gui_scripts": ["bazquux=bazquux:main"]}),
@@ -579,6 +584,7 @@ class TestPresetField:
     @pytest.mark.parametrize(
         ("attr", "field", "value"),
         [
+            ("license_expression", "license", "MIT"),
             ("install_requires", "dependencies", []),
             ("extras_require", "optional-dependencies", {}),
             ("install_requires", "dependencies", ["six"]),
