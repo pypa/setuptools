@@ -412,7 +412,7 @@ class Distribution(_Distribution):
         >>> _static.is_static(dist.metadata.license_expression)
         True
         >>> dist._finalize_license_expression()
-        >>> _static.is_static(dist.metadata.license_expression)  # preserve static-ness"
+        >>> _static.is_static(dist.metadata.license_expression)  # preserve "static-ness"
         True
         >>> print(dist.metadata.license_expression)
         MIT AND GPL-3.0-or-later

@@ -463,7 +463,8 @@ _PREVIOUSLY_DEFINED = {
     "readme": _attrgetter("metadata.long_description"),
     "requires-python": _some_attrgetter("python_requires", "metadata.python_requires"),
     "license": _some_attrgetter("metadata.license_expression", "metadata.license"),
-    # XXX: Should we wait until someone requires `license_files`?
+    # XXX: `license-file` is currently not considered in the context of `dynamic`.
+    #      See TestPresetField.test_license_files_exempt_from_dynamic
     "authors": _some_attrgetter("metadata.author", "metadata.author_email"),
     "maintainers": _some_attrgetter("metadata.maintainer", "metadata.maintainer_email"),
     "keywords": _attrgetter("metadata.keywords"),
