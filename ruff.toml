@@ -17,6 +17,7 @@ extend-select = [
 	"F", # Pyflakes
 	"F404", # late-future-import
 	"FA", # flake8-future-annotations
+	"FURB", # refurb
 	"I", # isort
 	"PERF", # Perflint
 	"PGH", # pygrep-hooks (blanket-* rules)
