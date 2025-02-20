@@ -99,7 +99,8 @@ Key                       Value Type (TOML)           Notes
                                                       See :doc:`/userguide/datafiles`.
 ``exclude-package-data``  table/inline-table          Empty by default. See :doc:`/userguide/datafiles`.
 ------------------------- --------------------------- -------------------------
-``license-files``         array of glob patterns      **Deprecated** - use ``project.license-files`` instead. See :doc:`PyPUG:guides/writing-pyproject-toml`
+``license-files``         array of glob patterns      **Deprecated** - use ``project.license-files`` instead. See
+                                                      :external+PyPUG:ref:`Writing your pyproject.toml <license-files>`
                                                       (by default: ``['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']``)
 ``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`.
                                                       Whenever possible, consider using data files inside the package directories.
