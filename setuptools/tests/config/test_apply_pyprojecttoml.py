@@ -465,7 +465,7 @@ class TestLicenseFiles:
         pyproject = self.base_pyproject_license_pep639(tmp_path)
         assert list(tmp_path.glob("_FILE*")) == []  # sanity check
 
-        msg = "Cannot find any license files for the given patterns."
+        msg = "Cannot find any files for the given pattern.*"
         with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
             pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
