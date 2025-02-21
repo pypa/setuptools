@@ -110,8 +110,7 @@ The compiler options appear in the command line in the following order:
 
 .. Reference: "compiler_so" and distutils.ccompiler.gen_preprocess_options, CCompiler.compile, UnixCCompiler._compile
 
-* first, the options provided by the ``sysconfig`` variable ``CFLAGS``,
-* then, the options provided by the environment variables ``CFLAGS`` and ``CPPFLAGS``,
+* first, the options provided by the environment variables ``CFLAGS`` and ``CPPFLAGS``,
 * then, the options provided by the ``sysconfig`` variable ``CCSHARED``,
 * then, a ``-I`` option for each element of ``Extension.include_dirs``,
 * finally, the options provided by ``Extension.extra_compile_args``.
