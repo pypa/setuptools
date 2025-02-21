@@ -406,13 +406,24 @@ class Distribution(_Distribution):
         )
 
     def _finalize_license_expression(self) -> None:
-        """Normalize license and license_expression."""
+        """
+        Normalize license and license_expression.
+        >>> dist = Distribution({"license_expression": _static.Str("mit aNd  gpl-3.0-OR-later")})
+        >>> _static.is_static(dist.metadata.license_expression)
+        True
+        >>> dist._finalize_license_expression()
+        >>> _static.is_static(dist.metadata.license_expression)  # preserve "static-ness"
+        True
+        >>> print(dist.metadata.license_expression)
+        MIT AND GPL-3.0-or-later
+        """
         classifiers = self.metadata.get_classifiers()
         license_classifiers = [cl for cl in classifiers if cl.startswith("License :: ")]
 
         license_expr = self.metadata.license_expression
         if license_expr:
-            normalized = canonicalize_license_expression(license_expr)
+            str_ = _static.Str if _static.is_static(license_expr) else str
+            normalized = str_(canonicalize_license_expression(license_expr))
             if license_expr != normalized:
                 InformationOnly.emit(f"Normalizing '{license_expr}' to '{normalized}'")
                 self.metadata.license_expression = normalized

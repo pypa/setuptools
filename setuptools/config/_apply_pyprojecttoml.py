@@ -201,6 +201,9 @@ def _license(dist: Distribution, val: str | dict, root_dir: StrPath | None):
     from setuptools.config import expand
 
     if isinstance(val, str):
+        if getattr(dist.metadata, "license", None):
+            SetuptoolsWarning.emit("`license` overwritten by `pyproject.toml`")
+            dist.metadata.license = None
         _set_config(dist, "license_expression", _static.Str(val))
     else:
         pypa_guides = "guides/writing-pyproject-toml/#license"
@@ -459,7 +462,9 @@ _PREVIOUSLY_DEFINED = {
     "description": _attrgetter("metadata.description"),
     "readme": _attrgetter("metadata.long_description"),
     "requires-python": _some_attrgetter("python_requires", "metadata.python_requires"),
-    "license": _attrgetter("metadata.license"),
+    "license": _some_attrgetter("metadata.license_expression", "metadata.license"),
+    # XXX: `license-file` is currently not considered in the context of `dynamic`.
+    #      See TestPresetField.test_license_files_exempt_from_dynamic
     "authors": _some_attrgetter("metadata.author", "metadata.author_email"),
     "maintainers": _some_attrgetter("metadata.maintainer", "metadata.maintainer_email"),
     "keywords": _attrgetter("metadata.keywords"),
@@ -475,8 +480,11 @@ _PREVIOUSLY_DEFINED = {
 
 _RESET_PREVIOUSLY_DEFINED: dict = {
     # Fix improper setting: given in `setup.py`, but not listed in `dynamic`
+    # Use "immutable" data structures to avoid in-place modification.
     # dict: pyproject name => value to which reset
-    "license": _static.EMPTY_DICT,
+    "license": "",
+    # XXX: `license-file` is currently not considered in the context of `dynamic`.
+    #      See TestPresetField.test_license_files_exempt_from_dynamic
     "authors": _static.EMPTY_LIST,
     "maintainers": _static.EMPTY_LIST,
     "keywords": _static.EMPTY_LIST,
