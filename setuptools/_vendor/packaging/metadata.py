@@ -193,10 +193,10 @@ def _parse_project_urls(data: list[str]) -> dict[str, str]:
         # be the missing value, then they'd have multiple '' values that
         # overwrite each other in a accumulating dict.
         #
-        # The other potentional issue is that it's possible to have the
+        # The other potential issue is that it's possible to have the
         # same label multiple times in the metadata, with no solid "right"
         # answer with what to do in that case. As such, we'll do the only
-        # thing we can, which is treat the field as unparseable and add it
+        # thing we can, which is treat the field as unparsable and add it
         # to our list of unparsed fields.
         parts = [p.strip() for p in pair.split(",", 1)]
         parts.extend([""] * (max(0, 2 - len(parts))))  # Ensure 2 items
@@ -209,8 +209,8 @@ def _parse_project_urls(data: list[str]) -> dict[str, str]:
         label, url = parts
         if label in urls:
             # The label already exists in our set of urls, so this field
-            # is unparseable, and we can just add the whole thing to our
-            # unparseable data and stop processing it.
+            # is unparsable, and we can just add the whole thing to our
+            # unparsable data and stop processing it.
             raise KeyError("duplicate labels in project urls")
         urls[label] = url
 

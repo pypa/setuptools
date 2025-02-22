@@ -137,7 +137,7 @@ def _add_arguments(param, parser, used_char_args, add_nos):
             arg_spec['type'] = str
 
         # TODO: special case for list type.
-        #   - How to specificy type of list members?
+        #   - How to specify type of list members?
         #       - param: [int]
         #       - param: int =[]
         #   - action='append' vs nargs='*'
