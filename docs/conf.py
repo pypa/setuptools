@@ -13,7 +13,6 @@ extensions += ['rst.linker']
 link_files = {
     '../NEWS.rst': dict(
         using=dict(
-            BB='https://bitbucket.org',
             GH='https://github.com',
         ),
         replace=[
@@ -34,20 +33,8 @@ link_files = {
                 url='{package_url}/pull/{pull}',
             ),
             dict(
-                pattern=r'BB Pull Request ?#(?P<bb_pull_request>\d+)',
-                url='{BB}/pypa/setuptools/pull-request/{bb_pull_request}',
-            ),
-            dict(
-                pattern=r'Distribute #(?P<distribute>\d+)',
-                url='{BB}/tarek/distribute/issue/{distribute}',
-            ),
-            dict(
                 pattern=r'Buildout #(?P<buildout>\d+)',
                 url='{GH}/buildout/buildout/issues/{buildout}',
-            ),
-            dict(
-                pattern=r'Old Setuptools #(?P<old_setuptools>\d+)',
-                url='https://bugs.python.org/setuptools/issue{old_setuptools}',
             ),
             dict(
                 pattern=r'Jython #(?P<jython>\d+)',
