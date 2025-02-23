@@ -56,6 +56,13 @@ jobs:
     continue-on-error: ${{ matrix.python == '3.14' }}
     steps:
       - uses: actions/checkout@v4
+      - name: Install build dependencies
+        # Install dependencies for building packages on pre-release Pythons
+        # jaraco/skeleton#161
+        if: matrix.python == '3.14' && matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y libxml2-dev libxslt-dev
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
