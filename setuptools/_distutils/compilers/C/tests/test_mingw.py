@@ -1,26 +1,24 @@
 from distutils import sysconfig
-from distutils.errors import CCompilerError, DistutilsPlatformError
+from distutils.errors import DistutilsPlatformError
 from distutils.util import is_mingw, split_quoted
 
 import pytest
 
+from .. import cygwin, errors
 
-class TestMingw32CCompiler:
+
+class TestMinGW32Compiler:
     @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
     def test_compiler_type(self):
-        from distutils.cygwinccompiler import Mingw32CCompiler
-
-        compiler = Mingw32CCompiler()
+        compiler = cygwin.MinGW32Compiler()
         assert compiler.compiler_type == 'mingw32'
 
     @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
     def test_set_executables(self, monkeypatch):
-        from distutils.cygwinccompiler import Mingw32CCompiler
-
         monkeypatch.setenv('CC', 'cc')
         monkeypatch.setenv('CXX', 'c++')
 
-        compiler = Mingw32CCompiler()
+        compiler = cygwin.MinGW32Compiler()
 
         assert compiler.compiler == split_quoted('cc -O -Wall')
         assert compiler.compiler_so == split_quoted('cc -shared -O -Wall')
@@ -30,27 +28,21 @@ class TestMingw32CCompiler:
 
     @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
     def test_runtime_library_dir_option(self):
-        from distutils.cygwinccompiler import Mingw32CCompiler
-
-        compiler = Mingw32CCompiler()
+        compiler = cygwin.MinGW32Compiler()
         with pytest.raises(DistutilsPlatformError):
             compiler.runtime_library_dir_option('/usr/lib')
 
     @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
     def test_cygwincc_error(self, monkeypatch):
-        import distutils.cygwinccompiler
+        monkeypatch.setattr(cygwin, 'is_cygwincc', lambda _: True)
 
-        monkeypatch.setattr(distutils.cygwinccompiler, 'is_cygwincc', lambda _: True)
-
-        with pytest.raises(CCompilerError):
-            distutils.cygwinccompiler.Mingw32CCompiler()
+        with pytest.raises(errors.Error):
+            cygwin.MinGW32Compiler()
 
     @pytest.mark.skipif('sys.platform == "cygwin"')
     def test_customize_compiler_with_msvc_python(self):
-        from distutils.cygwinccompiler import Mingw32CCompiler
-
         # In case we have an MSVC Python build, but still want to use
-        # Mingw32CCompiler, then customize_compiler() shouldn't fail at least.
+        # MinGW32Compiler, then customize_compiler() shouldn't fail at least.
         # https://github.com/pypa/setuptools/issues/4456
-        compiler = Mingw32CCompiler()
+        compiler = cygwin.MinGW32Compiler()
         sysconfig.customize_compiler(compiler)
