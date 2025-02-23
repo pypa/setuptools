@@ -34,7 +34,7 @@ class AnnotationError(AutocommandError):
 
 class PositionalArgError(AutocommandError):
     '''
-    Postional Arg Error: autocommand can't handle postional-only parameters
+    Positional Arg Error: autocommand can't handle positional-only parameters
     '''
 
 
@@ -197,7 +197,7 @@ def make_parser(func_sig, description, epilog, add_nos):
     used_char_args = {'h'}
 
     # Arange the params so that single-character arguments are first. This
-    # esnures they don't have to get --long versions. sorted is stable, so the
+    # ensures they don't have to get --long versions. sorted is stable, so the
     # parameters will otherwise still be in relative order.
     params = sorted(
         func_sig.parameters.values(),
@@ -249,7 +249,7 @@ def autoparse(
     while parameters *with* defaults become --options. Use annotations to set
     the type of the parameter.
 
-    The `desctiption` and `epilog` parameters corrospond to the same respective
+    The `description` and `epilog` parameters correspond to the same respective
     argparse parameters. If no description is given, it defaults to the
     decorated functions's docstring, if present.
 

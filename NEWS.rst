@@ -620,7 +620,7 @@ Bugfixes
 --------
 
 - In tests, rely on pytest-home for reusable fixture. (#4072)
-- Explicitely marked as ``Protocol`` and fixed missing ``self`` argument in interfaces ``pkg_resources.IMetadataProvider`` and ``pkg_resources.IResourceProvider`` -- by :user:`Avasam` (#4144)
+- Explicitly marked as ``Protocol`` and fixed missing ``self`` argument in interfaces ``pkg_resources.IMetadataProvider`` and ``pkg_resources.IResourceProvider`` -- by :user:`Avasam` (#4144)
 - Restored expectation that egg-link files would be named with dash separators for compatibility with pip prior to version 24. (#4167)
 
 
@@ -7151,7 +7151,7 @@ setuptools
 
 * Fixed invalid URL error catching. Old Setuptools #20.
 
-* Fixed invalid bootstraping with easy_install installation (Distribute #40).
+* Fixed invalid bootstrapping with easy_install installation (Distribute #40).
   Thanks to Florian Schulze for the help.
 
 * Removed buildout/bootstrap.py. A new repository will create a specific

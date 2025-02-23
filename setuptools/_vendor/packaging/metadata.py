@@ -424,7 +424,7 @@ def parse_email(data: bytes | str) -> tuple[RawMetadata, dict[str, list[str]]]:
             except KeyError:
                 unparsed[name] = value
         # Nothing that we've done has managed to parse this, so it'll just
-        # throw it in our unparseable data and move on.
+        # throw it in our unparsable data and move on.
         else:
             unparsed[name] = value
 
@@ -441,7 +441,7 @@ def parse_email(data: bytes | str) -> tuple[RawMetadata, dict[str, list[str]]]:
     else:
         if payload:
             # Check to see if we've already got a description, if so then both
-            # it, and this body move to unparseable.
+            # it, and this body move to unparsable.
             if "description" in raw:
                 description_header = cast(str, raw.pop("description"))
                 unparsed.setdefault("description", []).extend(
