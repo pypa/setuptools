@@ -729,7 +729,7 @@ class build_ext(Command):
         provided, "PyInit_" + module_name.  Only relevant on Windows, where
         the .pyd file (DLL) must export the module "PyInit_" function.
         """
-        name = ext.name.split('.')[-1]
+        name = self._get_module_name_for_symbol(ext)
         try:
             # Unicode module name support as defined in PEP-489
             # https://peps.python.org/pep-0489/#export-hook-name
@@ -743,6 +743,15 @@ class build_ext(Command):
         if initfunc_name not in ext.export_symbols:
             ext.export_symbols.append(initfunc_name)
         return ext.export_symbols
+
+    def _get_module_name_for_symbol(self, ext):
+        # Package name should be used for `__init__` modules
+        # https://github.com/python/cpython/issues/80074
+        # https://github.com/pypa/setuptools/issues/4826
+        parts = ext.name.split(".")
+        if parts[-1] == "__init__" and len(parts) >= 2:
+            return parts[-2]
+        return parts[-1]
 
     def get_libraries(self, ext):  # noqa: C901
         """Return the list of libraries to link against when building a
