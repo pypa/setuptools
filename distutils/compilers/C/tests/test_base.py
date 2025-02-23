@@ -3,9 +3,10 @@ import platform
 import sys
 import sysconfig
 import textwrap
-from distutils import ccompiler
 
 import pytest
+
+from .. import base
 
 pytestmark = pytest.mark.usefixtures('suppress_path_mangle')
 
@@ -46,7 +47,7 @@ def test_set_include_dirs(c_file):
     Extensions should build even if set_include_dirs is invoked.
     In particular, compiler-specific paths should not be overridden.
     """
-    compiler = ccompiler.new_compiler()
+    compiler = base.new_compiler()
     python = sysconfig.get_paths()['include']
     compiler.set_include_dirs([python])
     compiler.compile(_make_strs([c_file]))
@@ -60,7 +61,7 @@ def test_has_function_prototype():
     # Issue https://github.com/pypa/setuptools/issues/3648
     # Test prototype-generating behavior.
 
-    compiler = ccompiler.new_compiler()
+    compiler = base.new_compiler()
 
     # Every C implementation should have these.
     assert compiler.has_function('abort')
@@ -84,7 +85,7 @@ def test_include_dirs_after_multiple_compile_calls(c_file):
     Calling compile multiple times should not change the include dirs
     (regression test for setuptools issue #3591).
     """
-    compiler = ccompiler.new_compiler()
+    compiler = base.new_compiler()
     python = sysconfig.get_paths()['include']
     compiler.set_include_dirs([python])
     compiler.compile(_make_strs([c_file]))
