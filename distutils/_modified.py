@@ -1,5 +1,7 @@
 """Timestamp comparison of files and groups of files."""
 
+from __future__ import annotations
+
 import functools
 import os.path
 from collections.abc import Callable, Iterable
@@ -11,10 +13,10 @@ from .compat.py39 import zip_strict
 from .errors import DistutilsFileError
 
 _SourcesT = TypeVar(
-    "_SourcesT", bound=str | bytes | os.PathLike[str] | os.PathLike[bytes]
+    "_SourcesT", bound="str | bytes | os.PathLike[str] | os.PathLike[bytes]"
 )
 _TargetsT = TypeVar(
-    "_TargetsT", bound=str | bytes | os.PathLike[str] | os.PathLike[bytes]
+    "_TargetsT", bound="str | bytes | os.PathLike[str] | os.PathLike[bytes]"
 )
 
 

@@ -46,8 +46,8 @@ if TYPE_CHECKING:
     _Ts = TypeVarTuple("_Ts")
 
 _Macro: TypeAlias = Union[Tuple[str], Tuple[str, str | None]]
-_StrPathT = TypeVar("_StrPathT", bound=str | os.PathLike[str])
-_BytesPathT = TypeVar("_BytesPathT", bound=bytes | os.PathLike[bytes])
+_StrPathT = TypeVar("_StrPathT", bound="str | os.PathLike[str]")
+_BytesPathT = TypeVar("_BytesPathT", bound="bytes | os.PathLike[bytes]")
 
 
 class Compiler:
