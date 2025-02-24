@@ -2,6 +2,8 @@
 
 Implements the Distutils 'install' command."""
 
+from __future__ import annotations
+
 import contextlib
 import itertools
 import os

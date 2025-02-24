@@ -4,6 +4,8 @@ Implements the Distutils 'build_ext' command, for building extension
 modules (currently limited to C extensions, should accommodate C++
 extensions ASAP)."""
 
+from __future__ import annotations
+
 import contextlib
 import os
 import re

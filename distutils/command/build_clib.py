@@ -4,7 +4,6 @@ Implements the Distutils 'build_clib' command, to build a C/C++ library
 that is included in the module distribution and needed by an extension
 module."""
 
-
 # XXX this module has *lots* of code ripped-off quite transparently from
 # build_ext.py -- not surprisingly really, as the work required to build
 # a static library from a collection of C source files is not really all
@@ -13,6 +12,7 @@ module."""
 # necessary refactoring to account for the overlap in code between the
 # two modules, mainly because a number of subtle details changed in the
 # cut 'n paste.  Sigh.
+from __future__ import annotations
 
 import os
 from collections.abc import Callable

@@ -3,6 +3,8 @@
 Utility functions for creating archive files (tarballs, zip files,
 that sort of thing)."""
 
+from __future__ import annotations
+
 import os
 from typing import Literal, overload
 

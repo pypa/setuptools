@@ -11,6 +11,7 @@ This module requires VS 2015 or later.
 #   finding DevStudio (through the registry)
 # ported to VS 2005 and VS 2008 by Christian Heimes
 # ported to VS 2015 by Steve Dower
+from __future__ import annotations
 
 import contextlib
 import os

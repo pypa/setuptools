@@ -4,6 +4,8 @@ Provides the FileList class, used for poking about the filesystem
 and building lists of files.
 """
 
+from __future__ import annotations
+
 import fnmatch
 import functools
 import os

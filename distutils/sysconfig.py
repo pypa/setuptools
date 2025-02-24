@@ -9,6 +9,8 @@ Written by:   Fred L. Drake, Jr.
 Email:        <fdrake@acm.org>
 """
 
+from __future__ import annotations
+
 import functools
 import os
 import pathlib
