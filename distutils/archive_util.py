@@ -4,7 +4,7 @@ Utility functions for creating archive files (tarballs, zip files,
 that sort of thing)."""
 
 import os
-from typing import Literal
+from typing import Literal, overload
 
 try:
     import zipfile
@@ -128,7 +128,7 @@ def make_zipfile(
     base_dir: str | os.PathLike[str],
     verbose: bool = False,
     dry_run: bool = False,
-) -> str:  # noqa: C901
+) -> str:
     """Create a zip file from all the files under 'base_dir'.
 
     The output zip file will be named 'base_name' + ".zip".  Uses either the
@@ -210,8 +210,30 @@ def check_archive_formats(formats):
     return None
 
 
+@overload
 def make_archive(
     base_name: str,
+    format: str,
+    root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes] | None = None,
+    base_dir: str | None = None,
+    verbose: bool = False,
+    dry_run: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str: ...
+@overload
+def make_archive(
+    base_name: str | os.PathLike[str],
+    format: str,
+    root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes],
+    base_dir: str | None = None,
+    verbose: bool = False,
+    dry_run: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str: ...
+def make_archive(
+    base_name: str | os.PathLike[str],
     format: str,
     root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes] | None = None,
     base_dir: str | None = None,

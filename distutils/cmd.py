@@ -475,9 +475,29 @@ class Command:
 
         spawn(cmd, search_path, dry_run=self.dry_run)
 
+    @overload
     def make_archive(
         self,
         base_name: str,
+        format: str,
+        root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes] | None = None,
+        base_dir: str | None = None,
+        owner: str | None = None,
+        group: str | None = None,
+    ) -> str: ...
+    @overload
+    def make_archive(
+        self,
+        base_name: str | os.PathLike[str],
+        format: str,
+        root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes],
+        base_dir: str | None = None,
+        owner: str | None = None,
+        group: str | None = None,
+    ) -> str: ...
+    def make_archive(
+        self,
+        base_name: str | os.PathLike[str],
         format: str,
         root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes] | None = None,
         base_dir: str | None = None,
