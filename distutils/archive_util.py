@@ -4,6 +4,7 @@ Utility functions for creating archive files (tarballs, zip files,
 that sort of thing)."""
 
 import os
+from typing import Literal
 
 try:
     import zipfile
@@ -54,14 +55,14 @@ def _get_uid(name):
 
 
 def make_tarball(
-    base_name,
-    base_dir,
-    compress="gzip",
-    verbose=False,
-    dry_run=False,
-    owner=None,
-    group=None,
-):
+    base_name: str,
+    base_dir: str | os.PathLike[str],
+    compress: Literal["gzip", "bzip2", "xz"] | None = "gzip",
+    verbose: bool = False,
+    dry_run: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str:
     """Create a (possibly compressed) tar file from all the files under
     'base_dir'.
 
@@ -122,7 +123,12 @@ def make_tarball(
     return archive_name
 
 
-def make_zipfile(base_name, base_dir, verbose=False, dry_run=False):  # noqa: C901
+def make_zipfile(
+    base_name: str,
+    base_dir: str | os.PathLike[str],
+    verbose: bool = False,
+    dry_run: bool = False,
+) -> str:  # noqa: C901
     """Create a zip file from all the files under 'base_dir'.
 
     The output zip file will be named 'base_name' + ".zip".  Uses either the
@@ -205,15 +211,15 @@ def check_archive_formats(formats):
 
 
 def make_archive(
-    base_name,
-    format,
-    root_dir=None,
-    base_dir=None,
-    verbose=False,
-    dry_run=False,
-    owner=None,
-    group=None,
-):
+    base_name: str,
+    format: str,
+    root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes] | None = None,
+    base_dir: str | None = None,
+    verbose: bool = False,
+    dry_run: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str:
     """Create an archive file (eg. zip or tar).
 
     'base_name' is the name of the file to create, minus any format-specific
