@@ -16,8 +16,8 @@ if TYPE_CHECKING:
     from typing_extensions import deprecated
 else:
 
-    def deprecated(fn):
-        return fn
+    def deprecated(message):
+        return lambda fn: fn
 
 
 def show_formats():
