@@ -21,7 +21,6 @@ from typing import (
     Any,
     ClassVar,
     Literal,
-    TypeAlias,
     TypeVar,
     Union,
     overload,
@@ -42,6 +41,7 @@ from .util import check_environ, rfc822_escape, strtobool
 
 if TYPE_CHECKING:
     from _typeshed import SupportsWrite
+    from typing_extensions import TypeAlias
 
     # type-only import because of mutual dependence between these modules
     from .cmd import Command

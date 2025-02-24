@@ -15,7 +15,6 @@ from typing import (
     TYPE_CHECKING,
     ClassVar,
     Literal,
-    TypeAlias,
     TypeVar,
     Union,
     overload,
@@ -40,7 +39,7 @@ from .errors import (
 )
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeVarTuple, Unpack
+    from typing_extensions import TypeAlias, TypeVarTuple, Unpack
 
     _Ts = TypeVarTuple("_Ts")
 
