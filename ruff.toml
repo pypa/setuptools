@@ -3,11 +3,32 @@ extend = "pyproject.toml"
 
 [lint]
 extend-select = [
+	# upstream
+ 
 	"C901",
 	"PERF401",
 	"W",
+ 
+ 	# Ensure modern type annotation syntax and best practices
+	# Not including those covered by type-checkers or exclusive to Python 3.11+
+	"FA", # flake8-future-annotations
+	"F404", # late-future-import
+	"PYI", # flake8-pyi
+	"UP006", # non-pep585-annotation
+	"UP007", # non-pep604-annotation
+	"UP010", # unnecessary-future-import
+	"UP035", # deprecated-import
+	"UP037", # quoted-annotation
+	"UP043", # unnecessary-default-type-args
+
+	# local
 ]
 ignore = [
+	# upstream
+ 
+	# Typeshed rejects complex or non-literal defaults for maintenance and testing reasons,
+	# irrelevant to this project.
+	"PYI011", # typed-argument-default-in-stub
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
 	"E111",
@@ -23,6 +44,8 @@ ignore = [
 	"COM819",
 	"ISC001",
 	"ISC002",
+
+ 	# local
 ]
 
 [format]
