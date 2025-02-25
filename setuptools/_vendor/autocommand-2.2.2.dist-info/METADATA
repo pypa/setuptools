@@ -320,7 +320,7 @@ optional arguments:
 STOP and STEP default to 1
 ```
 
-Even though autocommand is being applied to the `wrapper` returned by `print_yielded`, it still retreives the signature of the underlying `seq` function to create the argument parsing.
+Even though autocommand is being applied to the `wrapper` returned by `print_yielded`, it still retrieves the signature of the underlying `seq` function to create the argument parsing.
 
 ### Custom Parser
 
@@ -331,7 +331,7 @@ from argparse import ArgumentParser
 from autocommand import autocommand
 
 parser = ArgumentParser()
-# autocommand can't do optional positonal parameters
+# autocommand can't do optional positional parameters
 parser.add_argument('arg', nargs='?')
 # or mutually exclusive options
 group = parser.add_mutually_exclusive_group()
