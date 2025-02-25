@@ -1,3 +1,4 @@
 Added simple validation for given glob patterns in ``license-files``:
 a warning will be generated if no file is matched.
 Invalid glob patterns can raise an exception.
+-- thanks :user:`cdce8p` for contributions.
