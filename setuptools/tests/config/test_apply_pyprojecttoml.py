@@ -24,7 +24,7 @@ from setuptools.config import expand, pyprojecttoml, setupcfg
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.dist import Distribution
 from setuptools.errors import InvalidConfigError, RemovedConfigError
-from setuptools.warnings import SetuptoolsDeprecationWarning
+from setuptools.warnings import InformationOnly, SetuptoolsDeprecationWarning
 
 from .downloads import retrieve_file, urls_from_file
 
@@ -36,11 +36,22 @@ def makedist(path, **attrs):
     return Distribution({"src_root": path, **attrs})
 
 
+def _mock_expand_patterns(patterns, *_, **__):
+    """
+    Allow comparing the given patterns for 2 dist objects.
+    We need to strip special chars to avoid errors when validating.
+    """
+    return [re.sub("[^a-z0-9]+", "", p, flags=re.I) or "empty" for p in patterns]
+
+
 @pytest.mark.parametrize("url", urls_from_file(HERE / EXAMPLES_FILE))
 @pytest.mark.filterwarnings("ignore")
 @pytest.mark.uses_network
 def test_apply_pyproject_equivalent_to_setupcfg(url, monkeypatch, tmp_path):
     monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.0.1"))
+    monkeypatch.setattr(
+        Distribution, "_expand_patterns", Mock(side_effect=_mock_expand_patterns)
+    )
     setupcfg_example = retrieve_file(url)
     pyproject_example = Path(tmp_path, "pyproject.toml")
     setupcfg_text = setupcfg_example.read_text(encoding="utf-8")
@@ -432,7 +443,10 @@ class TestLicenseFiles:
         (tmp_path / "_FILE.txt").touch()
         (tmp_path / "_FILE.rst").touch()
 
-        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        msg = "Normalizing.*LicenseRef"
+        with pytest.warns(InformationOnly, match=msg):
+            dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+
         assert set(dist.metadata.license_files) == {"_FILE.rst", "_FILE.txt"}
         assert dist.metadata.license is None
         assert dist.metadata.license_expression == "LicenseRef-Proprietary"
@@ -465,8 +479,12 @@ class TestLicenseFiles:
         pyproject = self.base_pyproject_license_pep639(tmp_path)
         assert list(tmp_path.glob("_FILE*")) == []  # sanity check
 
-        msg = "Cannot find any files for the given pattern.*"
-        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+        msg1 = "Cannot find any files for the given pattern.*"
+        msg2 = "Normalizing 'licenseref-Proprietary' to 'LicenseRef-Proprietary'"
+        with (
+            pytest.warns(SetuptoolsDeprecationWarning, match=msg1),
+            pytest.warns(InformationOnly, match=msg2),
+        ):
             pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
     def test_deprecated_file_expands_to_text(self, tmp_path):

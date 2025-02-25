@@ -515,7 +515,7 @@ class Distribution(_Distribution):
                 "Pattern {pattern!r} contains invalid characters.",
                 pattern=pattern,
                 see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
-                due_date=(2025, 2, 20),  # Introduced in 2024-02-20
+                due_date=(2026, 2, 20),  # Introduced in 2025-02-20
             )
 
         found = glob(pattern, recursive=True)
@@ -525,7 +525,7 @@ class Distribution(_Distribution):
                 "Cannot find any files for the given pattern.",
                 "Pattern {pattern!r} did not match any files.",
                 pattern=pattern,
-                due_date=(2025, 2, 20),  # Introduced in 2024-02-20
+                due_date=(2026, 2, 20),  # Introduced in 2025-02-20
                 # PEP 639 requires us to error, but as a transition period
                 # we will only issue a warning to give people time to prepare.
                 # After the transition, this should raise an InvalidConfigError.
