@@ -125,7 +125,7 @@ def make_tarball(
     return archive_name
 
 
-def make_zipfile(
+def make_zipfile(  # noqa: C901
     base_name: str,
     base_dir: str | os.PathLike[str],
     verbose: bool = False,
