@@ -3,6 +3,8 @@
 Implements the Distutils 'install_lib' command
 (install all Python modules)."""
 
+from __future__ import annotations
+
 import importlib.util
 import os
 import sys
