@@ -51,7 +51,7 @@ def test_distutils_stdlib(venv):
     """
     Ensure stdlib distutils is used when appropriate.
     """
-    env = dict(SETUPTOOLS_USE_DISTUTILS='stdlib')
+    env = {'SETUPTOOLS_USE_DISTUTILS': 'stdlib'}
     assert venv.name not in find_distutils(venv, env=env).split(os.sep)
     assert count_meta_path(venv, env=env) == 0
 
@@ -60,7 +60,7 @@ def test_distutils_local_with_setuptools(venv):
     """
     Ensure local distutils is used when appropriate.
     """
-    env = dict(SETUPTOOLS_USE_DISTUTILS='local')
+    env = {'SETUPTOOLS_USE_DISTUTILS': 'local'}
     loc = find_distutils(venv, imports='setuptools, distutils', env=env)
     assert venv.name in loc.split(os.sep)
     assert count_meta_path(venv, env=env) <= 1
@@ -72,7 +72,7 @@ def test_distutils_local(venv):
     Even without importing, the setuptools-local copy of distutils is
     preferred.
     """
-    env = dict(SETUPTOOLS_USE_DISTUTILS='local')
+    env = {'SETUPTOOLS_USE_DISTUTILS': 'local'}
     assert venv.name in find_distutils(venv, env=env).split(os.sep)
     assert count_meta_path(venv, env=env) <= 1
 
@@ -127,7 +127,7 @@ print("success")
     ],
 )
 def test_modules_are_not_duplicated_on_import(distutils_version, imported_module, venv):
-    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    env = {'SETUPTOOLS_USE_DISTUTILS': distutils_version}
     script = ENSURE_IMPORTS_ARE_NOT_DUPLICATED.format(imported_module=imported_module)
     cmd = ['python', '-c', script]
     output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
@@ -153,7 +153,7 @@ print("success")
     ],
 )
 def test_log_module_is_not_duplicated_on_import(distutils_version, venv):
-    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    env = {'SETUPTOOLS_USE_DISTUTILS': distutils_version}
     cmd = ['python', '-c', ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED]
     output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
     assert output == "success"
@@ -186,7 +186,7 @@ else:
     ],
 )
 def test_consistent_error_from_modified_py(distutils_version, imported_module, venv):
-    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    env = {'SETUPTOOLS_USE_DISTUTILS': distutils_version}
     cmd = [
         'python',
         '-c',

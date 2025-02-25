@@ -115,11 +115,11 @@ def build_wheel(extra_file_defs=None, **kwargs):
 
 
 def tree_set(root):
-    contents = set()
-    for dirpath, dirnames, filenames in os.walk(root):
-        for filename in filenames:
-            contents.add(os.path.join(os.path.relpath(dirpath, root), filename))
-    return contents
+    return {
+        os.path.join(os.path.relpath(dirpath, root), filename)
+        for dirpath, dirnames, filenames in os.walk(root)
+        for filename in filenames
+    }
 
 
 def flatten_tree(tree):
@@ -183,47 +183,47 @@ class Record:
 # making a TypedDict is not worth in a test and anonymous/inline TypedDict are experimental
 # https://github.com/python/mypy/issues/9884
 WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
-    dict(
-        id='basic',
-        file_defs={'foo': {'__init__.py': ''}},
-        setup_kwargs=dict(
-            packages=['foo'],
-        ),
-        install_tree=flatten_tree({
+    {
+        'id': 'basic',
+        'file_defs': {'foo': {'__init__.py': ''}},
+        'setup_kwargs': {
+            'packages': ['foo'],
+        },
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}.egg': {
                 'EGG-INFO': ['PKG-INFO', 'RECORD', 'WHEEL', 'top_level.txt'],
                 'foo': ['__init__.py'],
             }
         }),
-    ),
-    dict(
-        id='utf-8',
-        setup_kwargs=dict(
-            description='Description accentuée',
-        ),
-    ),
-    dict(
-        id='data',
-        file_defs={
+    },
+    {
+        'id': 'utf-8',
+        'setup_kwargs': {
+            'description': 'Description accentuée',
+        },
+    },
+    {
+        'id': 'data',
+        'file_defs': {
             'data.txt': DALS(
                 """
                 Some data...
                 """
             ),
         },
-        setup_kwargs=dict(
-            data_files=[('data_dir', ['data.txt'])],
-        ),
-        install_tree=flatten_tree({
+        'setup_kwargs': {
+            'data_files': [('data_dir', ['data.txt'])],
+        },
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}.egg': {
                 'EGG-INFO': ['PKG-INFO', 'RECORD', 'WHEEL', 'top_level.txt'],
                 'data_dir': ['data.txt'],
             }
         }),
-    ),
-    dict(
-        id='extension',
-        file_defs={
+    },
+    {
+        'id': 'extension',
+        'file_defs': {
             'extension.c': DALS(
                 """
                 #include "Python.h"
@@ -268,14 +268,14 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 """
             ),
         },
-        setup_kwargs=dict(
-            ext_modules=[
+        'setup_kwargs': {
+            'ext_modules': [
                 Record(
                     'setuptools.Extension', name='extension', sources=['extension.c']
                 )
             ],
-        ),
-        install_tree=flatten_tree({
+        },
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}-{platform}.egg': [
                 'extension{shlib_ext}',
                 {
@@ -288,19 +288,19 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 },
             ]
         }),
-    ),
-    dict(
-        id='header',
-        file_defs={
+    },
+    {
+        'id': 'header',
+        'file_defs': {
             'header.h': DALS(
                 """
                 """
             ),
         },
-        setup_kwargs=dict(
-            headers=['header.h'],
-        ),
-        install_tree=flatten_tree({
+        'setup_kwargs': {
+            'headers': ['header.h'],
+        },
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}.egg': [
                 'header.h',
                 {
@@ -313,10 +313,10 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 },
             ]
         }),
-    ),
-    dict(
-        id='script',
-        file_defs={
+    },
+    {
+        'id': 'script',
+        'file_defs': {
             'script.py': DALS(
                 """
                 #/usr/bin/python
@@ -330,10 +330,10 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 """
             ),
         },
-        setup_kwargs=dict(
-            scripts=['script.py', 'script.sh'],
-        ),
-        install_tree=flatten_tree({
+        'setup_kwargs': {
+            'scripts': ['script.py', 'script.sh'],
+        },
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}.egg': {
                 'EGG-INFO': [
                     'PKG-INFO',
@@ -344,11 +344,11 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 ]
             }
         }),
-    ),
-    dict(
-        id='requires1',
-        install_requires='foobar==2.0',
-        install_tree=flatten_tree({
+    },
+    {
+        'id': 'requires1',
+        'install_requires': 'foobar==2.0',
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}.egg': {
                 'EGG-INFO': [
                     'PKG-INFO',
@@ -359,40 +359,40 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 ]
             }
         }),
-        requires_txt=DALS(
+        'requires_txt': DALS(
             """
             foobar==2.0
             """
         ),
-    ),
-    dict(
-        id='requires2',
-        install_requires=f"""
+    },
+    {
+        'id': 'requires2',
+        'install_requires': f"""
         bar
         foo<=2.0; {sys.platform!r} in sys_platform
         """,
-        requires_txt=DALS(
+        'requires_txt': DALS(
             """
             bar
             foo<=2.0
             """
         ),
-    ),
-    dict(
-        id='requires3',
-        install_requires=f"""
+    },
+    {
+        'id': 'requires3',
+        'install_requires': f"""
         bar; {sys.platform!r} != sys_platform
         """,
-    ),
-    dict(
-        id='requires4',
-        install_requires="""
+    },
+    {
+        'id': 'requires4',
+        'install_requires': """
         foo
         """,
-        extras_require={
+        'extras_require': {
             'extra': 'foobar>3',
         },
-        requires_txt=DALS(
+        'requires_txt': DALS(
             """
             foo
 
@@ -400,27 +400,27 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
             foobar>3
             """
         ),
-    ),
-    dict(
-        id='requires5',
-        extras_require={
+    },
+    {
+        'id': 'requires5',
+        'extras_require': {
             'extra': f'foobar; {sys.platform!r} != sys_platform',
         },
-        requires_txt=DALS(
+        'requires_txt': DALS(
             """
             [extra]
             """
         ),
-    ),
-    dict(
-        id='requires_ensure_order',
-        install_requires="""
+    },
+    {
+        'id': 'requires_ensure_order',
+        'install_requires': """
         foo
         bar
         baz
         qux
         """,
-        extras_require={
+        'extras_require': {
             'extra': """
             foobar>3
             barbaz>4
@@ -428,7 +428,7 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
             quxzap>6
             """,
         },
-        requires_txt=DALS(
+        'requires_txt': DALS(
             """
             foo
             bar
@@ -442,19 +442,19 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
             quxzap>6
             """
         ),
-    ),
-    dict(
-        id='namespace_package',
-        file_defs={
+    },
+    {
+        'id': 'namespace_package',
+        'file_defs': {
             'foo': {
                 'bar': {'__init__.py': ''},
             },
         },
-        setup_kwargs=dict(
-            namespace_packages=['foo'],
-            packages=['foo.bar'],
-        ),
-        install_tree=flatten_tree({
+        'setup_kwargs': {
+            'namespace_packages': ['foo'],
+            'packages': ['foo.bar'],
+        },
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}.egg': [
                 'foo-1.0-py{py_version}-nspkg.pth',
                 {
@@ -474,21 +474,21 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 },
             ]
         }),
-    ),
-    dict(
-        id='empty_namespace_package',
-        file_defs={
+    },
+    {
+        'id': 'empty_namespace_package',
+        'file_defs': {
             'foobar': {
                 '__init__.py': (
                     "__import__('pkg_resources').declare_namespace(__name__)"
                 )
             },
         },
-        setup_kwargs=dict(
-            namespace_packages=['foobar'],
-            packages=['foobar'],
-        ),
-        install_tree=flatten_tree({
+        'setup_kwargs': {
+            'namespace_packages': ['foobar'],
+            'packages': ['foobar'],
+        },
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}.egg': [
                 'foo-1.0-py{py_version}-nspkg.pth',
                 {
@@ -507,10 +507,10 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 },
             ]
         }),
-    ),
-    dict(
-        id='data_in_package',
-        file_defs={
+    },
+    {
+        'id': 'data_in_package',
+        'file_defs': {
             'foo': {
                 '__init__.py': '',
                 'data_dir': {
@@ -522,11 +522,11 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 },
             }
         },
-        setup_kwargs=dict(
-            packages=['foo'],
-            data_files=[('foo/data_dir', ['foo/data_dir/data.txt'])],
-        ),
-        install_tree=flatten_tree({
+        'setup_kwargs': {
+            'packages': ['foo'],
+            'data_files': [('foo/data_dir', ['foo/data_dir/data.txt'])],
+        },
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}.egg': {
                 'EGG-INFO': [
                     'PKG-INFO',
@@ -544,7 +544,7 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                 ],
             }
         }),
-    ),
+    },
 )
 
 
@@ -653,9 +653,9 @@ def test_wheel_mode():
             )
             yield glob.glob(os.path.join(source_dir, 'dist', '*.whl'))[0]
 
-    params = dict(
-        id='script',
-        file_defs={
+    params = {
+        'id': 'script',
+        'file_defs': {
             'script.py': DALS(
                 """
                 #/usr/bin/python
@@ -669,10 +669,10 @@ def test_wheel_mode():
                 """
             ),
         },
-        setup_kwargs=dict(
-            scripts=['script.py', 'script.sh'],
-        ),
-        install_tree=flatten_tree({
+        'setup_kwargs': {
+            'scripts': ['script.py', 'script.sh'],
+        },
+        'install_tree': flatten_tree({
             'foo-1.0-py{py_version}.egg': {
                 'EGG-INFO': [
                     'PKG-INFO',
@@ -683,7 +683,7 @@ def test_wheel_mode():
                 ]
             }
         }),
-    )
+    }
 
     project_name = params.get('name', 'foo')
     version = params.get('version', '1.0')

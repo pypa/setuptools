@@ -5,10 +5,10 @@ import pytest
 from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 _EXAMPLES = {
-    "default": dict(
-        args=("Hello {x}", "\n\t{target} {v:.1f}"),
-        kwargs={"x": 5, "v": 3, "target": "World"},
-        expected="""
+    "default": {
+        "args": ("Hello {x}", "\n\t{target} {v:.1f}"),
+        "kwargs": {"x": 5, "v": 3, "target": "World"},
+        "expected": """
     Hello 5
     !!
 
@@ -18,11 +18,11 @@ _EXAMPLES = {
 
     !!
     """,
-    ),
-    "futue_due_date": dict(
-        args=("Summary", "Lorem ipsum"),
-        kwargs={"due_date": (9999, 11, 22)},
-        expected="""
+    },
+    "futue_due_date": {
+        "args": ("Summary", "Lorem ipsum"),
+        "kwargs": {"due_date": (9999, 11, 22)},
+        "expected": """
     Summary
     !!
 
@@ -35,11 +35,11 @@ _EXAMPLES = {
 
     !!
     """,
-    ),
-    "past_due_date_with_docs": dict(
-        args=("Summary", "Lorem ipsum"),
-        kwargs={"due_date": (2000, 11, 22), "see_docs": "some_page.html"},
-        expected="""
+    },
+    "past_due_date_with_docs": {
+        "args": ("Summary", "Lorem ipsum"),
+        "kwargs": {"due_date": (2000, 11, 22), "see_docs": "some_page.html"},
+        "expected": """
     Summary
     !!
 
@@ -54,7 +54,7 @@ _EXAMPLES = {
 
     !!
     """,
-    ),
+    },
 }
 
 
