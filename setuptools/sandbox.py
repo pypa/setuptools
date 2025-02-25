@@ -300,7 +300,7 @@ class AbstractSandbox:
         exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
         traceback: TracebackType | None,
-    ):
+    ) -> None:
         self._active = False
         builtins.open = _open
         self._copy(_os)
@@ -411,7 +411,7 @@ class AbstractSandbox:
     if TYPE_CHECKING:
         # This is a catch-all for all the dynamically created attributes.
         # This isn't public API anyway
-        def __getattribute__(self, name: str) -> Any: ...
+        def __getattr__(self, name: str) -> Any: ...
 
 
 if hasattr(os, 'devnull'):

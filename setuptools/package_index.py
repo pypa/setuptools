@@ -1007,7 +1007,7 @@ class Credential(NamedTuple):
 
 
 class PyPIConfig(configparser.RawConfigParser):
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Load from ~/.pypirc
         """
