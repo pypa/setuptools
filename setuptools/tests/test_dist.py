@@ -5,7 +5,7 @@ import urllib.request
 
 import pytest
 
-from setuptools import Distribution
+from setuptools import Distribution, SetuptoolsDeprecationWarning
 from setuptools.dist import check_package_data, check_specifier
 
 from .test_easy_install import make_trivial_sdist
@@ -276,3 +276,22 @@ def test_dist_default_name(tmp_path, dist_name, package_dir, package_files):
     dist.set_defaults()
     assert dist.py_modules or dist.packages
     assert dist.get_name() == dist_name
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("requires", ["setuptools"]),
+        ("provides", ["setuptools"]),
+        ("obsoletes", ["setuptools"]),
+        ("url", "www.setuptools.com.br"),
+        ("download_url", "www.setuptools.com.br/42"),
+    ],
+)
+def test_deprecated_fields(tmpdir_cwd, field, value):
+    """See discussion in https://github.com/pypa/setuptools/issues/4797"""
+    attrs = {"name": "test", "version": "0.42", field: value}
+    match = f"Deprecated usage of `{field}`"
+    with pytest.warns(SetuptoolsDeprecationWarning, match=match):
+        dist = Distribution(attrs)
+        assert getattr(dist.metadata, field, None) == value
