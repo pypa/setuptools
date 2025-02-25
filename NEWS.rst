@@ -1,3 +1,15 @@
+v75.8.1
+=======
+
+Bugfixes
+--------
+
+- Fix wheel file naming to follow binary distribution specification -- by :user:`di` (#4766)
+- Fixed crash generating error message printed when building wheels for the
+  free-threaded build using the limited API. -- by :user:`ngoldbaum` (#4809)
+- Fix documentation for recent CFLAGS distutils change. -- by :user:`thesamesam` (#4836)
+
+
 v75.8.0
 =======
 

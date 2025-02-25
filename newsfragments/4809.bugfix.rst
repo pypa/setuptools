@@ -1,2 +1,0 @@
-Fixed crash generating error message printed when building wheels for the
-free-threaded build using the limited API. -- by :user:`ngoldbaum`

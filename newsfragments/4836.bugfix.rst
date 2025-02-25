@@ -1,1 +1,0 @@
-Fix documentation for recent CFLAGS distutils change. -- by :user:`thesamesam`
