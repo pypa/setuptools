@@ -9,15 +9,30 @@ exclude = [
 
 [lint]
 extend-select = [
-	"C901",
-	"W",
+	# upstream
+ 
+	"C901", # complex-structure
+	"I", # isort
+	"PERF401", # manual-list-comprehension
+	"W", # pycodestyle Warning
+ 
+ 	# Ensure modern type annotation syntax and best practices
+	# Not including those covered by type-checkers or exclusive to Python 3.11+
+	"FA", # flake8-future-annotations
+	"F404", # late-future-import
+	"PYI", # flake8-pyi
+	"UP006", # non-pep585-annotation
+	"UP007", # non-pep604-annotation
+	"UP010", # unnecessary-future-import
+	"UP035", # deprecated-import
+	"UP037", # quoted-annotation
+	"UP043", # unnecessary-default-type-args
 
 	# local
 	"ANN2", # missing-return-type-*
 	"F", # Pyflakes
 	"F404", # late-future-import
 	"FA", # flake8-future-annotations
-	"I", # isort
 	"PERF", # Perflint
 	"PGH", # pygrep-hooks (blanket-* rules)
 	"PT", # flake8-pytest-style
@@ -28,18 +43,11 @@ extend-select = [
 	"YTT", # flake8-2020
 ]
 ignore = [
-	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
-	"PT007", # temporarily disabled, TODO: configure and standardize to preference
-	"PT011", # temporarily disabled, TODO: tighten expected error 
-	"PT012", # pytest-raises-with-multiple-statements, avoid extra dummy methods for a few lines, sometimes we explicitly assert in case of no error
-	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
-	"TRY301", # raise-within-try, it's handy
-	"UP015", # redundant-open-modes, explicit is preferred
-	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
-	# Only enforcing return type annotations for public functions
-	"ANN202", # missing-return-type-private-function
-	"ANN204", # missing-return-type-special-method
-
+	# upstream
+ 
+	# Typeshed rejects complex or non-literal defaults for maintenance and testing reasons,
+	# irrelevant to this project.
+	"PYI011", # typed-argument-default-in-stub
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
 	"E111",
@@ -55,6 +63,19 @@ ignore = [
 	"COM819",
 	"ISC001",
 	"ISC002",
+
+ 	# local
+ 	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
+	"PT007", # temporarily disabled, TODO: configure and standardize to preference
+	"PT011", # temporarily disabled, TODO: tighten expected error 
+	"PT012", # pytest-raises-with-multiple-statements, avoid extra dummy methods for a few lines, sometimes we explicitly assert in case of no error
+	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
+	"TRY301", # raise-within-try, it's handy
+	"UP015", # redundant-open-modes, explicit is preferred
+	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
+	# Only enforcing return type annotations for public functions
+	"ANN202", # missing-return-type-private-function
+	"ANN204", # missing-return-type-special-method
 ]
 
 [lint.per-file-ignores]
