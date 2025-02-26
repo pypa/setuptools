@@ -1,2 +1,0 @@
-Fixed ``pkg_resources.require(...)`` to also consider standardised
-``dist-info`` directories.

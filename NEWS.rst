@@ -1,3 +1,13 @@
+v75.8.2
+=======
+
+Bugfixes
+--------
+
+- Fixed ``pkg_resources.require(...)`` to also consider standardised
+  ``dist-info`` directories. (#4856)
+
+
 v75.8.1
 =======
 
