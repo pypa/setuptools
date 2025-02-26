@@ -462,21 +462,24 @@ class TestWorkdirRequire:
     }
 
     @pytest.mark.parametrize(
-        ("name", "version", "req"),
+        ("version", "requirement"),
         [
-            ("pkg1.mod", "1.2.3", "pkg1.mod>=1"),
-            ("pkg2.mod", "0.42", "pkg2.mod>=0.4"),
-            ("pkg3.mod", "1.2.3.4", "pkg3.mod<=2"),
-            ("pkg4.mod", "0.42.1", "pkg4.mod>0.2,<1"),
+            ("1.2.3", "pkg1.mod>=1"),
+            ("0.42", "pkg2.mod>=0.4"),
+            ("1.2.3.4", "pkg3.mod<=2"),
+            ("0.42.1", "pkg4.mod>0.2,<1"),
         ],
     )
-    def test_require_normalised_name(self, tmp_path, monkeypatch, name, version, req):
+    def test_require_non_normalised_name(
+        self, tmp_path, monkeypatch, version, requirement
+    ):
         # https://github.com/pypa/setuptools/issues/4853
         site_packages = self.fake_site_packages(tmp_path, monkeypatch, self.FILES)
         ws = pkg_resources.WorkingSet([site_packages])
 
-        [dist] = ws.require(req)
-        assert dist.version == version
-        assert os.path.samefile(
-            os.path.commonpath([dist.location, site_packages]), site_packages
-        )
+        for req in [requirement, requirement.replace(".", "-")]:
+            [dist] = ws.require(req)
+            assert dist.version == version
+            assert os.path.samefile(
+                os.path.commonpath([dist.location, site_packages]), site_packages
+            )
