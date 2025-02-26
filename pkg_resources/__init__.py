@@ -2911,7 +2911,7 @@ class Distribution:
         platform: str | None = None,
         precedence: int = EGG_DIST,
     ) -> None:
-        self.project_name = safe_name(project_name or 'Unknown')
+        self.project_name = safe_name(project_name or 'Unknown').replace('.', '-')
         if version is not None:
             self._version = safe_version(version)
         self.py_version = py_version
@@ -3459,7 +3459,7 @@ class Requirement(packaging.requirements.Requirement):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         super().__init__(requirement_string)
         self.unsafe_name = self.name
-        project_name = safe_name(self.name)
+        project_name = safe_name(self.name).replace('.', '-')
         self.project_name, self.key = project_name, project_name.lower()
         self.specs = [(spec.operator, spec.version) for spec in self.specifier]
         self.extras = tuple(map(safe_extra, self.extras))
