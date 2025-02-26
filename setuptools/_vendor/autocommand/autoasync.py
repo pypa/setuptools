@@ -54,14 +54,14 @@ async def _run_forever_coro(coro, args, kwargs, loop):
 def autoasync(coro=None, *, loop=None, forever=False, pass_loop=False):
     '''
     Convert an asyncio coroutine into a function which, when called, is
-    evaluated in an event loop, and the return value returned. This is intended
+    evaluted in an event loop, and the return value returned. This is intented
     to make it easy to write entry points into asyncio coroutines, which
-    otherwise need to be explicitly evaluated with an event loop's
+    otherwise need to be explictly evaluted with an event loop's
     run_until_complete.
 
     If `loop` is given, it is used as the event loop to run the coro in. If it
-    is None (the default), the loop is retrieved using asyncio.get_event_loop.
-    This call is deferred until the decorated function is called, so that
+    is None (the default), the loop is retreived using asyncio.get_event_loop.
+    This call is defered until the decorated function is called, so that
     callers can install custom event loops or event loop policies after
     @autoasync is applied.
 

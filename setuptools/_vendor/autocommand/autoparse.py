@@ -34,7 +34,7 @@ class AnnotationError(AutocommandError):
 
 class PositionalArgError(AutocommandError):
     '''
-    Positional Arg Error: autocommand can't handle positional-only parameters
+    Postional Arg Error: autocommand can't handle postional-only parameters
     '''
 
 
@@ -137,7 +137,7 @@ def _add_arguments(param, parser, used_char_args, add_nos):
             arg_spec['type'] = str
 
         # TODO: special case for list type.
-        #   - How to specify type of list members?
+        #   - How to specificy type of list members?
         #       - param: [int]
         #       - param: int =[]
         #   - action='append' vs nargs='*'
@@ -197,7 +197,7 @@ def make_parser(func_sig, description, epilog, add_nos):
     used_char_args = {'h'}
 
     # Arange the params so that single-character arguments are first. This
-    # ensures they don't have to get --long versions. sorted is stable, so the
+    # esnures they don't have to get --long versions. sorted is stable, so the
     # parameters will otherwise still be in relative order.
     params = sorted(
         func_sig.parameters.values(),
@@ -249,7 +249,7 @@ def autoparse(
     while parameters *with* defaults become --options. Use annotations to set
     the type of the parameter.
 
-    The `description` and `epilog` parameters correspond to the same respective
+    The `desctiption` and `epilog` parameters corrospond to the same respective
     argparse parameters. If no description is given, it defaults to the
     decorated functions's docstring, if present.
 
