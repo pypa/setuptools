@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import builtins
 import datetime
+import inspect
 import os
 import plistlib
 import stat
@@ -425,3 +426,60 @@ class TestDeepVersionLookupDistutils:
         """Ensure path seps are cleaned on backslash path sep systems."""
         result = pkg_resources.normalize_path(unnormalized)
         assert result.endswith(expected)
+
+
+class TestWorkdirRequire:
+    def fake_site_packages(self, tmp_path, monkeypatch, dist_files):
+        site_packages = tmp_path / "site-packages"
+        site_packages.mkdir()
+        for file, content in self.FILES.items():
+            path = site_packages / file
+            path.parent.mkdir(exist_ok=True, parents=True)
+            path.write_text(inspect.cleandoc(content), encoding="utf-8")
+
+        monkeypatch.setattr(sys, "path", [site_packages])
+        return os.fspath(site_packages)
+
+    FILES = {
+        "pkg1_mod-1.2.3.dist-info/METADATA": """
+            Metadata-Version: 2.4
+            Name: pkg1.mod
+            Version: 1.2.3
+            """,
+        "pkg2.mod-0.42.dist-info/METADATA": """
+            Metadata-Version: 2.1
+            Name: pkg2.mod
+            Version: 0.42
+            """,
+        "pkg3_mod.egg-info/PKG-INFO": """
+            Name: pkg3.mod
+            Version: 1.2.3.4
+            """,
+        "pkg4.mod.egg-info/PKG-INFO": """
+            Name: pkg4.mod
+            Version: 0.42.1
+            """,
+    }
+
+    @pytest.mark.parametrize(
+        ("version", "requirement"),
+        [
+            ("1.2.3", "pkg1.mod>=1"),
+            ("0.42", "pkg2.mod>=0.4"),
+            ("1.2.3.4", "pkg3.mod<=2"),
+            ("0.42.1", "pkg4.mod>0.2,<1"),
+        ],
+    )
+    def test_require_non_normalised_name(
+        self, tmp_path, monkeypatch, version, requirement
+    ):
+        # https://github.com/pypa/setuptools/issues/4853
+        site_packages = self.fake_site_packages(tmp_path, monkeypatch, self.FILES)
+        ws = pkg_resources.WorkingSet([site_packages])
+
+        for req in [requirement, requirement.replace(".", "-")]:
+            [dist] = ws.require(req)
+            assert dist.version == version
+            assert os.path.samefile(
+                os.path.commonpath([dist.location, site_packages]), site_packages
+            )
