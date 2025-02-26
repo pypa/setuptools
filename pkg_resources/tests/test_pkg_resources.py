@@ -453,11 +453,11 @@ class TestWorkdirRequire:
             """,
         "pkg3_mod.egg-info/PKG-INFO": """
             Name: pkg3.mod
-            Version: 1.2.3
+            Version: 1.2.3.4
             """,
         "pkg4.mod.egg-info/PKG-INFO": """
             Name: pkg4.mod
-            Version: 0.42
+            Version: 0.42.1
             """,
     }
 
@@ -466,8 +466,8 @@ class TestWorkdirRequire:
         [
             ("pkg1.mod", "1.2.3", "pkg1.mod>=1"),
             ("pkg2.mod", "0.42", "pkg2.mod>=0.4"),
-            ("pkg3.mod", "1.2.3", "pkg3.mod<=2"),
-            ("pkg4.mod", "0.42", "pkg4.mod>0.2,<1"),
+            ("pkg3.mod", "1.2.3.4", "pkg3.mod<=2"),
+            ("pkg4.mod", "0.42.1", "pkg4.mod>0.2,<1"),
         ],
     )
     def test_require_normalised_name(self, tmp_path, monkeypatch, name, version, req):
