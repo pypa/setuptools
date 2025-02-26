@@ -17,7 +17,7 @@ import os
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, TypeVar
 
 from packaging.markers import default_environment as marker_env
 from packaging.requirements import InvalidRequirement, Requirement
@@ -101,8 +101,7 @@ def _apply(
     filenames = [*other_files, filepath]
 
     try:
-        # TODO: Temporary cast until mypy 1.12 is released with upstream fixes from typeshed
-        _Distribution.parse_config_files(dist, filenames=cast(list[str], filenames))
+        _Distribution.parse_config_files(dist, filenames=filenames)
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )
