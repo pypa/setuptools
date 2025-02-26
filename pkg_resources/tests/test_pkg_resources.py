@@ -477,4 +477,6 @@ class TestWorkdirRequire:
 
         [dist] = ws.require(req)
         assert dist.version == version
-        assert os.path.commonpath([dist.location, site_packages]) == site_packages
+        assert os.path.samefile(
+            os.path.commonpath([dist.location, site_packages]), site_packages
+        )
