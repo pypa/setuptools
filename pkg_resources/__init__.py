@@ -708,14 +708,15 @@ class WorkingSet:
         If there is no active distribution for the requested project, ``None``
         is returned.
         """
-        dist = self.by_key.get(req.key)
-
-        if dist is None:
-            canonical_key = self.normalized_to_canonical_keys.get(req.key)
-
-            if canonical_key is not None:
-                req.key = canonical_key
-                dist = self.by_key.get(canonical_key)
+        for candidate in (
+            req.key,
+            self.normalized_to_canonical_keys.get(req.key),
+            safe_name(req.key).replace(".", "-"),
+        ):
+            dist = self.by_key.get(candidate)
+            if dist:
+                req.key = candidate
+                break
 
         if dist is not None and dist not in req:
             # XXX add more info
