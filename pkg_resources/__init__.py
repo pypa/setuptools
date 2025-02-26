@@ -2911,7 +2911,7 @@ class Distribution:
         platform: str | None = None,
         precedence: int = EGG_DIST,
     ) -> None:
-        self.project_name = safe_name(project_name or 'Unknown').replace('.', '-')
+        self.project_name = safe_name(project_name or 'Unknown')
         if version is not None:
             self._version = safe_version(version)
         self.py_version = py_version
