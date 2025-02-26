@@ -708,11 +708,15 @@ class WorkingSet:
         If there is no active distribution for the requested project, ``None``
         is returned.
         """
-        for candidate in (
+        dist: Distribution | None = None
+
+        candidates = (
             req.key,
             self.normalized_to_canonical_keys.get(req.key),
             safe_name(req.key).replace(".", "-"),
-        ):
+        )
+
+        for candidate in filter(None, candidates):
             dist = self.by_key.get(candidate)
             if dist:
                 req.key = candidate
