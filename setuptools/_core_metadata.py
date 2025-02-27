@@ -28,7 +28,7 @@ from distutils.util import rfc822_escape
 def get_metadata_version(self):
     mv = getattr(self, 'metadata_version', None)
     if mv is None:
-        mv = Version('2.2')
+        mv = Version('2.5')
         self.metadata_version = mv
     return mv
 
@@ -223,6 +223,9 @@ def _write_requirements(self, file):
     for req in _reqs.parse(self.install_requires):
         file.write(f"Requires-Dist: {req}\n")
 
+    for req in _reqs.parse(self.default_extras_require):
+        file.write(f"Default-Extra: {req}\n")
+
     processed_extras = {}
     for augmented_extra, reqs in self.extras_require.items():
         # Historically, setuptools allows "augmented extras": `<extra>:<condition>`
@@ -311,6 +314,7 @@ _POSSIBLE_DYNAMIC_FIELDS = {
     "project-url": "project_urls",
     "provides": "provides",
     # "provides-dist": "provides_dist",  # NOT USED
+    "default-extra": "default_extras_require",
     "provides-extra": "extras_require",
     "requires": "requires",
     "requires-dist": "install_requires",
