@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
 
 from more_itertools import partition, unique_everseen
+from packaging.licenses import canonicalize_license_expression
 from packaging.markers import InvalidMarker, Marker
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
@@ -27,6 +28,7 @@ from ._path import StrPath
 from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
+from .errors import InvalidConfigError
 from .monkey import get_unpatched
 from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
@@ -288,6 +290,7 @@ class Distribution(_Distribution):
         'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': dict,  # behaves like an ordered set
+        'license_expression': lambda: None,
         'license_file': lambda: None,
         'license_files': lambda: None,
         'install_requires': list,
@@ -402,6 +405,46 @@ class Distribution(_Distribution):
             (k, list(map(str, _reqs.parse(v or [])))) for k, v in extras_require.items()
         )
 
+    def _finalize_license_expression(self) -> None:
+        """
+        Normalize license and license_expression.
+        >>> dist = Distribution({"license_expression": _static.Str("mit aNd  gpl-3.0-OR-later")})
+        >>> _static.is_static(dist.metadata.license_expression)
+        True
+        >>> dist._finalize_license_expression()
+        >>> _static.is_static(dist.metadata.license_expression)  # preserve "static-ness"
+        True
+        >>> print(dist.metadata.license_expression)
+        MIT AND GPL-3.0-or-later
+        """
+        classifiers = self.metadata.get_classifiers()
+        license_classifiers = [cl for cl in classifiers if cl.startswith("License :: ")]
+
+        license_expr = self.metadata.license_expression
+        if license_expr:
+            str_ = _static.Str if _static.is_static(license_expr) else str
+            normalized = str_(canonicalize_license_expression(license_expr))
+            if license_expr != normalized:
+                InformationOnly.emit(f"Normalizing '{license_expr}' to '{normalized}'")
+                self.metadata.license_expression = normalized
+            if license_classifiers:
+                raise InvalidConfigError(
+                    "License classifiers have been superseded by license expressions "
+                    "(see https://peps.python.org/pep-0639/). Please remove:\n\n"
+                    + "\n".join(license_classifiers),
+                )
+        elif license_classifiers:
+            pypa_guides = "guides/writing-pyproject-toml/#license"
+            SetuptoolsDeprecationWarning.emit(
+                "License classifiers are deprecated.",
+                "Please consider removing the following classifiers in favor of a "
+                "SPDX license expression:\n\n" + "\n".join(license_classifiers),
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+                # Warning introduced on 2025-02-17
+                # TODO: Should we add a due date? It may affect old/unmaintained
+                #       packages in the ecosystem and cause problems...
+            )
+
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
         license_files: list[str] | None = self.metadata.license_files
@@ -418,7 +461,10 @@ class Distribution(_Distribution):
             patterns = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
 
         self.metadata.license_files = list(
-            unique_everseen(self._expand_patterns(patterns))
+            map(
+                lambda path: path.replace(os.sep, "/"),
+                unique_everseen(self._expand_patterns(patterns)),
+            )
         )
 
     @staticmethod
@@ -432,7 +478,7 @@ class Distribution(_Distribution):
         return (
             path
             for pattern in patterns
-            for path in sorted(iglob(pattern))
+            for path in sorted(iglob(pattern, recursive=True))
             if not path.endswith('~') and os.path.isfile(path)
         )
 
@@ -652,6 +698,7 @@ class Distribution(_Distribution):
             pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)
 
         self._finalize_requires()
+        self._finalize_license_expression()
         self._finalize_license_files()
 
     def fetch_build_eggs(

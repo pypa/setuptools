@@ -49,7 +49,7 @@ The ``project`` table contains metadata fields as described by the
    readme = "README.rst"
    requires-python = ">=3.8"
    keywords = ["one", "two"]
-   license = {text = "BSD-3-Clause"}
+   license = "BSD-3-Clause"
    classifiers = [
        "Framework :: Django",
        "Programming Language :: Python :: 3",
@@ -99,7 +99,8 @@ Key                       Value Type (TOML)           Notes
                                                       See :doc:`/userguide/datafiles`.
 ``exclude-package-data``  table/inline-table          Empty by default. See :doc:`/userguide/datafiles`.
 ------------------------- --------------------------- -------------------------
-``license-files``         array of glob patterns      **Provisional** - likely to change with :pep:`639`
+``license-files``         array of glob patterns      **Deprecated** - use ``project.license-files`` instead. See
+                                                      :external+PyPUG:ref:`Writing your pyproject.toml <license-files>`
                                                       (by default: ``['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']``)
 ``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`.
                                                       Whenever possible, consider using data files inside the package directories.
