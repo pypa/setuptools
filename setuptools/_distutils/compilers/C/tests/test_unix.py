@@ -6,13 +6,13 @@ import unittest.mock as mock
 from distutils import sysconfig
 from distutils.compat import consolidate_linker_args
 from distutils.errors import DistutilsPlatformError
-from distutils.unixccompiler import UnixCCompiler
+from distutils.tests import support
+from distutils.tests.compat.py39 import EnvironmentVarGuard
 from distutils.util import _clear_cached_macosx_ver
 
 import pytest
 
-from . import support
-from .compat.py39 import EnvironmentVarGuard
+from .. import unix
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +24,7 @@ def save_values(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def compiler_wrapper(request):
-    class CompilerWrapper(UnixCCompiler):
+    class CompilerWrapper(unix.Compiler):
         def rpath_foo(self):
             return self.runtime_library_dir_option('/foo')
 
@@ -320,7 +320,7 @@ class TestUnixCCompiler(support.TempdirManager):
         self.cc.has_function('abort')
 
     def test_find_library_file(self, monkeypatch):
-        compiler = UnixCCompiler()
+        compiler = unix.Compiler()
         compiler._library_root = lambda dir: dir
         monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
 
