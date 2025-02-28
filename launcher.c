@@ -208,14 +208,14 @@ int create_and_wait_for_subprocess(char* command) {
     SetConsoleCtrlHandler((PHANDLER_ROUTINE) control_handler, TRUE);
     if (!CreateProcessA(NULL, commandline, NULL, NULL, TRUE, 0, NULL, NULL, &s_info, &p_info)) {
         fprintf(stderr, "failed to create process.\n");
-        return 0;
+        return 3;
     }
     child_pid = p_info.dwProcessId;
     // wait for Python to exit
     WaitForSingleObject(p_info.hProcess, INFINITE);
     if (!GetExitCodeProcess(p_info.hProcess, &return_value)) {
         fprintf(stderr, "failed to get exit code from process.\n");
-        return 0;
+        return 4;
     }
     return return_value;
 }
@@ -306,6 +306,12 @@ int run(int argc, char **argv, int is_gui) {
     }
 
     /* printf("Python executable: %s\n", ptr); */
+
+    if (access(ptr, F_OK) != 0) {
+        ptr = "python.exe";
+    }
+
+    /* printf("Final python executable: %s\n", ptr); */
 
     /* Argument array needs to be
        parsedargc + argc, plus 1 for null sentinel */
