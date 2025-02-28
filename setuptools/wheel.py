@@ -178,10 +178,10 @@ class Wheel:
             os.path.join(egg_info, 'PKG-INFO'),
         )
         setup_dist = setuptools.Distribution(
-            attrs=dict(
-                install_requires=install_requires,
-                extras_require=extras_require,
-            ),
+            attrs={
+                "install_requires": install_requires,
+                "extras_require": extras_require,
+            },
         )
         with disable_info_traces():
             write_requirements(

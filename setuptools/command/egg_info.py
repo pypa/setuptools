@@ -213,8 +213,8 @@ class egg_info(InfoCommon, Command):
         """
         # follow the order these keys would have been added
         # when PYTHONHASHSEED=0
-        egg_info = dict(tag_build=self.tags(), tag_date=0)
-        edit_config(filename, dict(egg_info=egg_info))
+        egg_info = {'tag_build': self.tags(), 'tag_date': 0}
+        edit_config(filename, {'egg_info': egg_info})
 
     def finalize_options(self) -> None:
         # Note: we need to capture the current value returned
@@ -475,8 +475,7 @@ class FileList(_FileList):
         return self._remove_files(match.match)
 
     def append(self, item) -> None:
-        if item.endswith('\r'):  # Fix older sdists built on Windows
-            item = item[:-1]
+        item = item.removesuffix('\r')
         path = convert_path(item)
 
         if self._safe_path(path):

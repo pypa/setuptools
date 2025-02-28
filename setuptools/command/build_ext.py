@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+import operator
 import os
 import sys
 from collections.abc import Iterator
@@ -326,7 +327,7 @@ class build_ext(_build_ext):
     def get_output_mapping(self) -> dict[str, str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         mapping = self._get_output_mapping()
-        return dict(sorted(mapping, key=lambda x: x[0]))
+        return dict(sorted(mapping, key=operator.itemgetter(0)))
 
     def __get_stubs_outputs(self):
         # assemble the base name for each extension that needs a stub
@@ -337,7 +338,7 @@ class build_ext(_build_ext):
         )
         # pair each base with the extension
         pairs = itertools.product(ns_ext_bases, self.__get_output_extensions())
-        return list(base + fnext for base, fnext in pairs)
+        return [base + fnext for base, fnext in pairs]
 
     def __get_output_extensions(self):
         yield '.py'
