@@ -15,6 +15,7 @@ class Message(email.message.Message):
                 'Platform',
                 'Project-URL',
                 'Provides-Dist',
+                'Default-Extra'
                 'Provides-Extra',
                 'Requires-Dist',
                 'Requires-External',
