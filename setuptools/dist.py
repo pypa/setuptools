@@ -6,8 +6,8 @@ import numbers
 import os
 import re
 import sys
-from collections.abc import Iterable, MutableMapping, Sequence
-from glob import iglob
+from collections.abc import Iterable, Iterator, MutableMapping, Sequence
+from glob import glob
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
 
@@ -459,28 +459,78 @@ class Distribution(_Distribution):
             # See https://wheel.readthedocs.io/en/stable/user_guide.html
             # -> 'Including license files in the generated wheel file'
             patterns = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
+            files = self._expand_patterns(patterns, enforce_match=False)
+        else:  # Patterns explicitly given by the user
+            files = self._expand_patterns(patterns, enforce_match=True)
 
-        self.metadata.license_files = list(
-            map(
-                lambda path: path.replace(os.sep, "/"),
-                unique_everseen(self._expand_patterns(patterns)),
-            )
-        )
+        self.metadata.license_files = list(unique_everseen(files))
 
-    @staticmethod
-    def _expand_patterns(patterns):
+    @classmethod
+    def _expand_patterns(
+        cls, patterns: list[str], enforce_match: bool = True
+    ) -> Iterator[str]:
         """
         >>> list(Distribution._expand_patterns(['LICENSE']))
         ['LICENSE']
         >>> list(Distribution._expand_patterns(['pyproject.toml', 'LIC*']))
         ['pyproject.toml', 'LICENSE']
+        >>> list(Distribution._expand_patterns(['setuptools/**/pyprojecttoml.py']))
+        ['setuptools/config/pyprojecttoml.py']
         """
         return (
-            path
+            path.replace(os.sep, "/")
             for pattern in patterns
-            for path in sorted(iglob(pattern, recursive=True))
+            for path in sorted(cls._find_pattern(pattern, enforce_match))
             if not path.endswith('~') and os.path.isfile(path)
         )
+
+    @staticmethod
+    def _find_pattern(pattern: str, enforce_match: bool = True) -> list[str]:
+        r"""
+        >>> Distribution._find_pattern("LICENSE")
+        ['LICENSE']
+        >>> Distribution._find_pattern("/LICENSE.MIT")
+        Traceback (most recent call last):
+        ...
+        setuptools.errors.InvalidConfigError: Pattern '/LICENSE.MIT' should be relative...
+        >>> Distribution._find_pattern("../LICENSE.MIT")
+        Traceback (most recent call last):
+        ...
+        setuptools.errors.InvalidConfigError: ...Pattern '../LICENSE.MIT' cannot contain '..'
+        >>> Distribution._find_pattern("LICEN{CSE*")
+        Traceback (most recent call last):
+        ...
+        setuptools.warnings.SetuptoolsDeprecationWarning: ...Pattern 'LICEN{CSE*' contains invalid characters...
+        """
+        if ".." in pattern:
+            raise InvalidConfigError(f"Pattern {pattern!r} cannot contain '..'")
+        if pattern.startswith((os.sep, "/")) or ":\\" in pattern:
+            raise InvalidConfigError(
+                f"Pattern {pattern!r} should be relative and must not start with '/'"
+            )
+        if re.match(r'^[\w\-\.\/\*\?\[\]]+$', pattern) is None:
+            pypa_guides = "specifications/pyproject-toml/#license-files"
+            SetuptoolsDeprecationWarning.emit(
+                "Please provide a valid glob pattern.",
+                "Pattern {pattern!r} contains invalid characters.",
+                pattern=pattern,
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+                due_date=(2026, 2, 20),  # Introduced in 2025-02-20
+            )
+
+        found = glob(pattern, recursive=True)
+
+        if enforce_match and not found:
+            SetuptoolsDeprecationWarning.emit(
+                "Cannot find any files for the given pattern.",
+                "Pattern {pattern!r} did not match any files.",
+                pattern=pattern,
+                due_date=(2026, 2, 20),  # Introduced in 2025-02-20
+                # PEP 639 requires us to error, but as a transition period
+                # we will only issue a warning to give people time to prepare.
+                # After the transition, this should raise an InvalidConfigError.
+            )
+        return found
 
     # FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
