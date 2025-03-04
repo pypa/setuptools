@@ -4,13 +4,13 @@ extend = "pyproject.toml"
 [lint]
 extend-select = [
 	# upstream
- 
+
 	"C901", # complex-structure
 	"I", # isort
 	"PERF401", # manual-list-comprehension
 	"W", # pycodestyle Warning
- 
- 	# Ensure modern type annotation syntax and best practices
+
+	# Ensure modern type annotation syntax and best practices
 	# Not including those covered by type-checkers or exclusive to Python 3.11+
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
@@ -26,7 +26,7 @@ extend-select = [
 ]
 ignore = [
 	# upstream
- 
+
 	# Typeshed rejects complex or non-literal defaults for maintenance and testing reasons,
 	# irrelevant to this project.
 	"PYI011", # typed-argument-default-in-stub
@@ -44,7 +44,7 @@ ignore = [
 	"COM812",
 	"COM819",
 
- 	# local
+	# local
 ]
 
 [format]
