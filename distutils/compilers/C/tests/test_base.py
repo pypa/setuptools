@@ -15,7 +15,7 @@ def _make_strs(paths):
     """
     Convert paths to strings for legacy compatibility.
     """
-    if sys.version_info > (3, 8) and platform.system() != "Windows":
+    if sys.version_info >= (3, 8) and platform.system() != "Windows":
         return paths
     return list(map(os.fspath, paths))
 
