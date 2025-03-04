@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "75.6.0"
+version = "75.8.2"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -114,8 +114,8 @@ check = [
 
 	# local
 
-	# changed defaults for PT001 and PT023 astral-sh/ruff#13292
-	"ruff >= 0.7.0; sys_platform != 'cygwin'",
+	# Removal of deprecated UP027, PT004 & PT005 astral-sh/ruff#14383
+	"ruff >= 0.8.0; sys_platform != 'cygwin'",
 ]
 
 cover = [

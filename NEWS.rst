@@ -1,3 +1,46 @@
+v75.8.2
+=======
+
+Bugfixes
+--------
+
+- Fixed ``pkg_resources.require(...)`` to also consider standardised
+  ``dist-info`` directories. (#4856)
+
+
+v75.8.1
+=======
+
+Bugfixes
+--------
+
+- Fix wheel file naming to follow binary distribution specification -- by :user:`di` (#4766)
+- Fixed crash generating error message printed when building wheels for the
+  free-threaded build using the limited API. -- by :user:`ngoldbaum` (#4809)
+- Fix documentation for recent CFLAGS distutils change. -- by :user:`thesamesam` (#4836)
+
+
+v75.8.0
+=======
+
+Features
+--------
+
+- Implemented ``Dynamic`` field for core metadata (as introduced in PEP 643).
+  The existing implementation is currently experimental and the exact approach
+  may change in future releases. (#4698)
+
+
+v75.7.0
+=======
+
+Features
+--------
+
+- Synced with pypa/distutils@c97a3db2f including better support for free threaded Python on Windows (pypa/distutils#310), improved typing support, and linter accommodations. (#4478)
+- Synced with pypa/distutils@ff11eed0c including bugfix for duplicate CFLAGS and adaption to support Python 3.13 is_abs in the C compiler (#4669). (#4790)
+
+
 v75.6.0
 =======
 
@@ -599,7 +642,7 @@ Bugfixes
 --------
 
 - In tests, rely on pytest-home for reusable fixture. (#4072)
-- Explicitely marked as ``Protocol`` and fixed missing ``self`` argument in interfaces ``pkg_resources.IMetadataProvider`` and ``pkg_resources.IResourceProvider`` -- by :user:`Avasam` (#4144)
+- Explicitly marked as ``Protocol`` and fixed missing ``self`` argument in interfaces ``pkg_resources.IMetadataProvider`` and ``pkg_resources.IResourceProvider`` -- by :user:`Avasam` (#4144)
 - Restored expectation that egg-link files would be named with dash separators for compatibility with pip prior to version 24. (#4167)
 
 
@@ -7130,7 +7173,7 @@ setuptools
 
 * Fixed invalid URL error catching. Old Setuptools #20.
 
-* Fixed invalid bootstraping with easy_install installation (Distribute #40).
+* Fixed invalid bootstrapping with easy_install installation (Distribute #40).
   Thanks to Florian Schulze for the help.
 
 * Removed buildout/bootstrap.py. A new repository will create a specific
