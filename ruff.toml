@@ -8,7 +8,6 @@ extend-select = [
 	"C901", # complex-structure
 	"I", # isort
 	"PERF401", # manual-list-comprehension
-	"W", # pycodestyle Warning
 
 	# Ensure modern type annotation syntax and best practices
 	# Not including those covered by type-checkers or exclusive to Python 3.11+
