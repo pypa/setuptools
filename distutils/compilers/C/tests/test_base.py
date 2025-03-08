@@ -1,6 +1,5 @@
 import os
 import platform
-import sys
 import sysconfig
 import textwrap
 
@@ -13,9 +12,9 @@ pytestmark = pytest.mark.usefixtures('suppress_path_mangle')
 
 def _make_strs(paths):
     """
-    Convert paths to strings for legacy compatibility.
+    Convert paths to strings for platform compatibility.
     """
-    if sys.version_info >= (3, 8) and platform.system() != "Windows":
+    if platform.system() != "Windows":
         return paths
     return list(map(os.fspath, paths))
 
