@@ -420,6 +420,7 @@ class TestMetadata:
             with get_dist(tmpdir):
                 pass
 
+    @pytest.mark.xfail(reason="#4864")
     def test_warn_dash_deprecation(self, tmpdir):
         # warn_dash_deprecation() is a method in setuptools.dist
         # remove this test and the method when no longer needed
@@ -437,6 +438,7 @@ class TestMetadata:
         assert metadata.author_email == 'test@test.com'
         assert metadata.maintainer_email == 'foo@foo.com'
 
+    @pytest.mark.xfail(reason="#4864")
     def test_make_option_lowercase(self, tmpdir):
         # remove this test and the method make_option_lowercase() in setuptools.dist
         # when no longer needed
