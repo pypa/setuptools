@@ -5,6 +5,20 @@ Distutils modules may raise these or standard exceptions,
 including :exc:`SystemExit`.
 """
 
+# compiler exceptions aliased for compatibility
+from .compilers.C.errors import (
+    CompileError,  # noqa: F401
+    LibError,  # noqa: F401
+    LinkError,  # noqa: F401
+    PreprocessError,  # noqa: F401
+)
+from .compilers.C.errors import (
+    Error as CCompilerError,  # noqa: F401
+)
+from .compilers.C.errors import (
+    UnknownFileType as UnknownFileError,  # noqa: F401
+)
+
 
 class DistutilsError(Exception):
     """The root of all Distutils evil."""
@@ -95,30 +109,3 @@ class DistutilsTemplateError(DistutilsError):
 
 class DistutilsByteCompileError(DistutilsError):
     """Byte compile error."""
-
-
-# Exception classes used by the CCompiler implementation classes
-class CCompilerError(Exception):
-    """Some compile/link operation failed."""
-
-
-class PreprocessError(CCompilerError):
-    """Failure to preprocess one or more C/C++ files."""
-
-
-class CompileError(CCompilerError):
-    """Failure to compile one or more C/C++ source files."""
-
-
-class LibError(CCompilerError):
-    """Failure to create a static library from one or more C/C++ object
-    files."""
-
-
-class LinkError(CCompilerError):
-    """Failure to link one or more C/C++ object files into an executable
-    or shared library file."""
-
-
-class UnknownFileError(CCompilerError):
-    """Attempt to process an unknown file type."""
