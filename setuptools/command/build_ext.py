@@ -225,7 +225,7 @@ class build_ext(_build_ext):
 
     def setup_shlib_compiler(self):
         compiler = self.shlib_compiler = new_compiler(
-            compiler=self.compiler, dry_run=self.dry_run, force=self.force
+            compiler=self.compiler, force=self.force
         )
         _customize_compiler_for_shlib(compiler)
 
@@ -353,49 +353,47 @@ class build_ext(_build_ext):
         log.info("writing stub loader for %s to %s", ext._full_name, stub_file)
         if compile and os.path.exists(stub_file):
             raise BaseError(stub_file + " already exists! Please delete.")
-        if not self.dry_run:
-            with open(stub_file, 'w', encoding="utf-8") as f:
-                content = '\n'.join([
-                    "def __bootstrap__():",
-                    "   global __bootstrap__, __file__, __loader__",
-                    "   import sys, os, pkg_resources, importlib.util" + if_dl(", dl"),
-                    "   __file__ = pkg_resources.resource_filename"
-                    f"(__name__,{os.path.basename(ext._file_name)!r})",
-                    "   del __bootstrap__",
-                    "   if '__loader__' in globals():",
-                    "       del __loader__",
-                    if_dl("   old_flags = sys.getdlopenflags()"),
-                    "   old_dir = os.getcwd()",
-                    "   try:",
-                    "     os.chdir(os.path.dirname(__file__))",
-                    if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
-                    "     spec = importlib.util.spec_from_file_location(",
-                    "                __name__, __file__)",
-                    "     mod = importlib.util.module_from_spec(spec)",
-                    "     spec.loader.exec_module(mod)",
-                    "   finally:",
-                    if_dl("     sys.setdlopenflags(old_flags)"),
-                    "     os.chdir(old_dir)",
-                    "__bootstrap__()",
-                    "",  # terminal \n
-                ])
-                f.write(content)
+        with open(stub_file, 'w', encoding="utf-8") as f:
+            content = '\n'.join([
+                "def __bootstrap__():",
+                "   global __bootstrap__, __file__, __loader__",
+                "   import sys, os, pkg_resources, importlib.util" + if_dl(", dl"),
+                "   __file__ = pkg_resources.resource_filename"
+                f"(__name__,{os.path.basename(ext._file_name)!r})",
+                "   del __bootstrap__",
+                "   if '__loader__' in globals():",
+                "       del __loader__",
+                if_dl("   old_flags = sys.getdlopenflags()"),
+                "   old_dir = os.getcwd()",
+                "   try:",
+                "     os.chdir(os.path.dirname(__file__))",
+                if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
+                "     spec = importlib.util.spec_from_file_location(",
+                "                __name__, __file__)",
+                "     mod = importlib.util.module_from_spec(spec)",
+                "     spec.loader.exec_module(mod)",
+                "   finally:",
+                if_dl("     sys.setdlopenflags(old_flags)"),
+                "     os.chdir(old_dir)",
+                "__bootstrap__()",
+                "",  # terminal \n
+            ])
+            f.write(content)
         if compile:
             self._compile_and_remove_stub(stub_file)
 
     def _compile_and_remove_stub(self, stub_file: str):
         from distutils.util import byte_compile
 
-        byte_compile([stub_file], optimize=0, force=True, dry_run=self.dry_run)
+        byte_compile([stub_file], optimize=0, force=True)
         optimize = self.get_finalized_command('install_lib').optimize
         if optimize > 0:
             byte_compile(
                 [stub_file],
                 optimize=optimize,
                 force=True,
-                dry_run=self.dry_run,
             )
-        if os.path.exists(stub_file) and not self.dry_run:
+        if os.path.exists(stub_file):
             os.unlink(stub_file)
 
 
