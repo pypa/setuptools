@@ -1,3 +1,12 @@
+v76.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Synced with pypa/distutils@5589d7527 including a simplified shebang generation when building scripts (#4863). (#4865)
+
+
 v75.9.1
 =======
 
