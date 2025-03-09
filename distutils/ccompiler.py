@@ -1,6 +1,7 @@
 from .compilers.C import base
 from .compilers.C.base import (
     CompileError,
+    LinkError,
     gen_lib_options,
     gen_preprocess_options,
     get_default_compiler,
@@ -10,6 +11,7 @@ from .compilers.C.base import (
 
 __all__ = [
     'CompileError',
+    'LinkError',
     'gen_lib_options',
     'gen_preprocess_options',
     'get_default_compiler',
