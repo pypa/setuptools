@@ -206,7 +206,7 @@ class Command(_Command):
                     f"'{option}' must be a list of strings (got {val!r})"
                 )
 
-    @overload  # type: ignore[override] # extra **kw param that distutils doesn't have
+    @overload
     def reinitialize_command(
         self, command: str, reinit_subcommands: bool = False, **kw
     ) -> _Command: ...

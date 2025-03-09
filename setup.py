@@ -3,7 +3,6 @@
 import os
 import sys
 import textwrap
-from pathlib import Path
 
 import setuptools
 from setuptools.command.install import install
@@ -38,22 +37,6 @@ def pypi_link(pkg_filename):
     return '/'.join(parts)
 
 
-vendored_distutils_path = Path(here) / "setuptools" / "_distutils"
-
-
-def generate_distutils_stubs(destination: Path) -> None:
-    for path in vendored_distutils_path.rglob("*.py"):
-        relative_path = path.relative_to(vendored_distutils_path)
-        if relative_path.parts[0] == "tests":
-            continue
-        stub_path = (destination / relative_path).with_suffix(".pyi")
-        stub_path.parent.mkdir(parents=True, exist_ok=True)
-        module = "setuptools._distutils." + str(relative_path.with_suffix("")).replace(
-            os.sep, "."
-        ).removesuffix(".__init__")
-        stub_path.write_text(f"from {module} import *\n")
-
-
 class install_with_pth(install):
     """
     Custom install command to install a .pth file for distutils patching.
@@ -84,10 +67,6 @@ class install_with_pth(install):
     def initialize_options(self):
         install.initialize_options(self)
         self.extra_path = self._pth_name, self._pth_contents
-
-    def run(self):
-        install.run(self)
-        generate_distutils_stubs(Path(self.install_lib) / 'distutils-stubs')
 
     def finalize_options(self):
         install.finalize_options(self)
