@@ -1,4 +1,4 @@
-Setuptools no longer accepts options containing upper-case or dash characters in ``setup.cfg``.
+Setuptools no longer accepts options containing uppercase or dash characters in ``setup.cfg``.
 Please ensure to write the options in ``setup.cfg`` using the :wiki:`lower_snake_case <Snake_case>` convention
 (e.g. ``Name => name``, ``install-requires => install_requires``).
 This is a follow-up on deprecations introduced in
