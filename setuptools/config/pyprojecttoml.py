@@ -249,6 +249,7 @@ class _ConfigExpander:
             "gui-scripts",
             "classifiers",
             "dependencies",
+            "default-optional-dependencies",
             "optional-dependencies",
         )
         # `_obtain` functions are assumed to raise appropriate exceptions/warnings.
@@ -263,6 +264,7 @@ class _ConfigExpander:
             readme=self._obtain_readme(dist),
             classifiers=self._obtain_classifiers(dist),
             dependencies=self._obtain_dependencies(dist),
+            default_optional_dependencies=self._obtain_default_optional_dependencies(dist),
             optional_dependencies=self._obtain_optional_dependencies(dist),
         )
         # `None` indicates there is nothing in `tool.setuptools.dynamic` but the value
@@ -368,6 +370,15 @@ class _ConfigExpander:
             value = self._obtain(dist, "dependencies", {})
             if value:
                 return _parse_requirements_list(value)
+        return None
+
+    def _obtain_default_optional_dependencies(self, dist: Distribution):
+        if "default-optional-dependencies" in self.dynamic:
+            value = self._obtain(dist, "default-optional-dependencies", {})
+            if value:
+                return _parse_requirements_list(value)
+        assert "extras_require" in dist.__dict__
+        assert "default_extras_require" in dist.__dict__
         return None
 
     def _obtain_optional_dependencies(self, dist: Distribution):
