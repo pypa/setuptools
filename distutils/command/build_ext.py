@@ -16,6 +16,7 @@ from site import USER_BASE
 from typing import ClassVar
 
 from .._modified import newer_group
+from ..ccompiler import new_compiler, show_compilers
 from ..core import Command
 from ..errors import (
     CCompilerError,
@@ -32,12 +33,6 @@ from ..util import get_platform, is_freethreaded, is_mingw
 # An extension name is just a dot-separated list of Python NAMEs (ie.
 # the same as a fully-qualified module name).
 extension_name_re = re.compile(r'^[a-zA-Z_][a-zA-Z_0-9]*(\.[a-zA-Z_][a-zA-Z_0-9]*)*$')
-
-
-def show_compilers():
-    from ..ccompiler import show_compilers
-
-    show_compilers()
 
 
 class build_ext(Command):
@@ -303,8 +298,6 @@ class build_ext(Command):
                 raise DistutilsOptionError("parallel should be an integer")
 
     def run(self) -> None:  # noqa: C901
-        from ..ccompiler import new_compiler
-
         # 'self.extensions', as supplied by setup.py, is a list of
         # Extension instances.  See the documentation for Extension (in
         # distutils.extension) for details.
