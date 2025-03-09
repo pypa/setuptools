@@ -580,9 +580,11 @@ class bdist_wheel(Command):
         metadata_path = os.path.join(distinfo_path, "METADATA")
         shutil.copy(pkginfo_path, metadata_path)
 
+        licenses_folder_path = os.path.join(distinfo_path, "licenses")
         for license_path in self.license_paths:
-            filename = os.path.basename(license_path)
-            shutil.copy(license_path, os.path.join(distinfo_path, filename))
+            dist_info_license_path = os.path.join(licenses_folder_path, license_path)
+            os.makedirs(os.path.dirname(dist_info_license_path), exist_ok=True)
+            shutil.copy(license_path, dist_info_license_path)
 
         adios(egginfo_path)
 
