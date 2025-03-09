@@ -22,19 +22,15 @@ from distutils.errors import (
 )
 from distutils.extension import Extension
 from distutils.tests import missing_compiler_executable
-from distutils.tests.support import (
-    TempdirManager,
-    copy_xxmodule_c,
-    fixup_build_ext,
-)
+from distutils.tests.support import TempdirManager, copy_xxmodule_c, fixup_build_ext
 from io import StringIO
-from test import support
 
 import jaraco.path
 import path
 import pytest
+from test import support
 
-from .compat import py38 as import_helper
+from .compat import py39 as import_helper
 
 
 @pytest.fixture()
@@ -404,6 +400,19 @@ class TestBuildExt(TempdirManager):
         assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
         assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
 
+    def test_export_symbols__init__(self):
+        # https://github.com/python/cpython/issues/80074
+        # https://github.com/pypa/setuptools/issues/4826
+        modules = [
+            Extension('foo.__init__', ['aaa']),
+            Extension('föö.__init__', ['uuu']),
+        ]
+        dist = Distribution({'name': 'xx', 'ext_modules': modules})
+        cmd = self.build_ext(dist)
+        cmd.ensure_finalized()
+        assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
+        assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+
     def test_compiler_option(self):
         # cmd.compiler is an option and
         # should not be overridden by a compiler instance
@@ -577,14 +586,15 @@ class TestBuildExt(TempdirManager):
         # at least one value we test with will not exist yet.
         if target[:2] < (10, 10):
             # for 10.1 through 10.9.x -> "10n0"
-            target = '%02d%01d0' % target
+            tmpl = '{:02}{:01}0'
         else:
             # for 10.10 and beyond -> "10nn00"
             if len(target) >= 2:
-                target = '%02d%02d00' % target
+                tmpl = '{:02}{:02}00'
             else:
                 # 11 and later can have no minor version (11 instead of 11.0)
-                target = '%02d0000' % target
+                tmpl = '{:02}0000'
+        target = tmpl.format(*target)
         deptarget_ext = Extension(
             'deptarget',
             [self.tmp_path / 'deptargetmodule.c'],

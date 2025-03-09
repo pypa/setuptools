@@ -4,23 +4,35 @@ Miscellaneous utility functions -- anything that doesn't fit into
 one of the other *util.py modules.
 """
 
+from __future__ import annotations
+
 import functools
 import importlib.util
 import os
+import pathlib
 import re
 import string
 import subprocess
 import sys
 import sysconfig
 import tempfile
+from collections.abc import Callable, Iterable, Mapping
+from typing import TYPE_CHECKING, AnyStr
+
+from jaraco.functools import pass_none
 
 from ._log import log
 from ._modified import newer
 from .errors import DistutilsByteCompileError, DistutilsPlatformError
 from .spawn import spawn
 
+if TYPE_CHECKING:
+    from typing_extensions import TypeVarTuple, Unpack
 
-def get_host_platform():
+    _Ts = TypeVarTuple("_Ts")
+
+
+def get_host_platform() -> str:
     """
     Return a string that identifies the current platform. Use this
     function to distinguish platform-specific build directories and
@@ -29,20 +41,12 @@ def get_host_platform():
 
     # This function initially exposed platforms as defined in Python 3.9
     # even with older Python versions when distutils was split out.
-    # Now it delegates to stdlib sysconfig, but maintains compatibility.
-
-    if sys.version_info < (3, 9):
-        if os.name == "posix" and hasattr(os, 'uname'):
-            osname, host, release, version, machine = os.uname()
-            if osname[:3] == "aix":
-                from .compat.py38 import aix_platform
-
-                return aix_platform(osname, version, release)
+    # Now it delegates to stdlib sysconfig.
 
     return sysconfig.get_platform()
 
 
-def get_platform():
+def get_platform() -> str:
     if os.name == 'nt':
         TARGET_TO_PLAT = {
             'x86': 'win32',
@@ -111,41 +115,33 @@ def get_macosx_target_ver():
     return syscfg_ver
 
 
-def split_version(s):
+def split_version(s: str) -> list[int]:
     """Convert a dot-separated string into a list of numbers for comparisons"""
     return [int(n) for n in s.split('.')]
 
 
-def convert_path(pathname):
-    """Return 'pathname' as a name that will work on the native filesystem,
-    i.e. split it on '/' and put it back together again using the current
-    directory separator.  Needed because filenames in the setup script are
-    always supplied in Unix style, and have to be converted to the local
-    convention before we can actually use them in the filesystem.  Raises
-    ValueError on non-Unix-ish systems if 'pathname' either starts or
-    ends with a slash.
+@pass_none
+def convert_path(pathname: str | os.PathLike[str]) -> str:
+    r"""
+    Allow for pathlib.Path inputs, coax to a native path string.
+
+    If None is passed, will just pass it through as
+    Setuptools relies on this behavior.
+
+    >>> convert_path(None) is None
+    True
+
+    Removes empty paths.
+
+    >>> convert_path('foo/./bar').replace('\\', '/')
+    'foo/bar'
     """
-    if os.sep == '/':
-        return pathname
-    if not pathname:
-        return pathname
-    if pathname[0] == '/':
-        raise ValueError(f"path '{pathname}' cannot be absolute")
-    if pathname[-1] == '/':
-        raise ValueError(f"path '{pathname}' cannot end with '/'")
-
-    paths = pathname.split('/')
-    while '.' in paths:
-        paths.remove('.')
-    if not paths:
-        return os.curdir
-    return os.path.join(*paths)
+    return os.fspath(pathlib.PurePath(pathname))
 
 
-# convert_path ()
-
-
-def change_root(new_root, pathname):
+def change_root(
+    new_root: AnyStr | os.PathLike[AnyStr], pathname: AnyStr | os.PathLike[AnyStr]
+) -> AnyStr:
     """Return 'pathname' with 'new_root' prepended.  If 'pathname' is
     relative, this is equivalent to "os.path.join(new_root,pathname)".
     Otherwise, it requires making 'pathname' relative and then joining the
@@ -167,7 +163,7 @@ def change_root(new_root, pathname):
 
 
 @functools.lru_cache
-def check_environ():
+def check_environ() -> None:
     """Ensure that 'os.environ' has all the environment variables we
     guarantee that users can use in config files, command-line options,
     etc.  Currently this includes:
@@ -189,7 +185,7 @@ def check_environ():
         os.environ['PLAT'] = get_platform()
 
 
-def subst_vars(s, local_vars):
+def subst_vars(s, local_vars: Mapping[str, object]) -> str:
     """
     Perform variable substitution on 'string'.
     Variables are indicated by format-style braces ("{var}").
@@ -228,7 +224,7 @@ def _subst_compat(s):
     return repl
 
 
-def grok_environment_error(exc, prefix="error: "):
+def grok_environment_error(exc: object, prefix: str = "error: ") -> str:
     # Function kept for backward compatibility.
     # Used to try clever things with EnvironmentErrors,
     # but nowadays str(exception) produces good messages.
@@ -246,7 +242,7 @@ def _init_regex():
     _dquote_re = re.compile(r'"(?:[^"\\]|\\.)*"')
 
 
-def split_quoted(s):
+def split_quoted(s: str) -> list[str]:
     """Split a string up according to Unix shell-like rules for quotes and
     backslashes.  In short: words are delimited by spaces, as long as those
     spaces are not escaped by a backslash, or inside a quoted string.
@@ -293,7 +289,7 @@ def split_quoted(s):
             elif s[end] == '"':  # slurp doubly-quoted string
                 m = _dquote_re.match(s, end)
             else:
-                raise RuntimeError("this can't happen (bad char '%c')" % s[end])
+                raise RuntimeError(f"this can't happen (bad char '{s[end]}')")
 
             if m is None:
                 raise ValueError(f"bad string (mismatched {s[end]} quotes?)")
@@ -312,7 +308,13 @@ def split_quoted(s):
 # split_quoted ()
 
 
-def execute(func, args, msg=None, verbose=False, dry_run=False):
+def execute(
+    func: Callable[[Unpack[_Ts]], object],
+    args: tuple[Unpack[_Ts]],
+    msg: object = None,
+    verbose: bool = False,
+    dry_run: bool = False,
+) -> None:
     """Perform some action that affects the outside world (eg.  by
     writing to the filesystem).  Such actions are special because they
     are disabled by the 'dry_run' flag.  This method takes care of all
@@ -331,7 +333,7 @@ def execute(func, args, msg=None, verbose=False, dry_run=False):
         func(*args)
 
 
-def strtobool(val):
+def strtobool(val: str) -> bool:
     """Convert a string representation of truth to true (1) or false (0).
 
     True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
@@ -340,23 +342,23 @@ def strtobool(val):
     """
     val = val.lower()
     if val in ('y', 'yes', 't', 'true', 'on', '1'):
-        return 1
+        return True
     elif val in ('n', 'no', 'f', 'false', 'off', '0'):
-        return 0
+        return False
     else:
         raise ValueError(f"invalid truth value {val!r}")
 
 
 def byte_compile(  # noqa: C901
-    py_files,
-    optimize=0,
-    force=False,
-    prefix=None,
-    base_dir=None,
-    verbose=True,
-    dry_run=False,
-    direct=None,
-):
+    py_files: Iterable[str],
+    optimize: int = 0,
+    force: bool = False,
+    prefix: str | None = None,
+    base_dir: str | None = None,
+    verbose: bool = True,
+    dry_run: bool = False,
+    direct: bool | None = None,
+) -> None:
     """Byte-compile a collection of Python source files to .pyc
     files in a __pycache__ subdirectory.  'py_files' is a list
     of files to compile; any files that don't end in ".py" are silently
@@ -486,7 +488,7 @@ byte_compile(files, optimize={optimize!r}, force={force!r},
                     log.debug("skipping byte-compilation of %s to %s", file, cfile_base)
 
 
-def rfc822_escape(header):
+def rfc822_escape(header: str) -> str:
     """Return a version of the string escaped for inclusion in an
     RFC-822 header, by ensuring there are 8 spaces space after each newline.
     """
@@ -501,10 +503,15 @@ def rfc822_escape(header):
     return indent.join(lines) + suffix
 
 
-def is_mingw():
+def is_mingw() -> bool:
     """Returns True if the current platform is mingw.
 
     Python compiled with Mingw-w64 has sys.platform == 'win32' and
     get_platform() starts with 'mingw'.
     """
     return sys.platform == 'win32' and get_platform().startswith('mingw')
+
+
+def is_freethreaded():
+    """Return True if the Python interpreter is built with free threading support."""
+    return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))

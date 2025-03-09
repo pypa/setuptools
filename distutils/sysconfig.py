@@ -9,17 +9,30 @@ Written by:   Fred L. Drake, Jr.
 Email:        <fdrake@acm.org>
 """
 
+from __future__ import annotations
+
 import functools
 import os
 import pathlib
 import re
 import sys
 import sysconfig
+from typing import TYPE_CHECKING, Literal, overload
 
-from ._functools import pass_none
+from jaraco.functools import pass_none
+
+from .ccompiler import CCompiler
 from .compat import py39
 from .errors import DistutilsPlatformError
 from .util import is_mingw
+
+if TYPE_CHECKING:
+    from typing_extensions import deprecated
+else:
+
+    def deprecated(message):
+        return lambda fn: fn
+
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -106,10 +119,10 @@ def get_python_version():
     leaving off the patchlevel.  Sample return values could be '1.5'
     or '2.2'.
     """
-    return '%d.%d' % sys.version_info[:2]
+    return f'{sys.version_info.major}.{sys.version_info.minor}'
 
 
-def get_python_inc(plat_specific=False, prefix=None):
+def get_python_inc(plat_specific: bool = False, prefix: str | None = None) -> str:
     """Return the directory containing installed Python header files.
 
     If 'plat_specific' is false (the default), this is the path to the
@@ -216,7 +229,9 @@ def _posix_lib(standard_lib, libpython, early_prefix, prefix):
         return os.path.join(libpython, "site-packages")
 
 
-def get_python_lib(plat_specific=False, standard_lib=False, prefix=None):
+def get_python_lib(
+    plat_specific: bool = False, standard_lib: bool = False, prefix: str | None = None
+) -> str:
     """Return the directory containing the Python library (standard or
     site additions).
 
@@ -236,7 +251,7 @@ def get_python_lib(plat_specific=False, standard_lib=False, prefix=None):
         if prefix is None:
             prefix = PREFIX
         if standard_lib:
-            return os.path.join(prefix, "lib-python", sys.version[0])
+            return os.path.join(prefix, "lib-python", sys.version_info.major)
         return os.path.join(prefix, 'site-packages')
 
     early_prefix = prefix
@@ -287,13 +302,15 @@ def _customize_macos():
     )
 
 
-def customize_compiler(compiler):  # noqa: C901
+def customize_compiler(compiler: CCompiler) -> None:
     """Do any platform-specific customization of a CCompiler instance.
 
     Mainly needed on Unix, so we can plug in the information that
     varies across Unices and is stored in Python's Makefile.
     """
-    if compiler.compiler_type in ["unix", "cygwin", "mingw32"]:
+    if compiler.compiler_type in ["unix", "cygwin"] or (
+        compiler.compiler_type == "mingw32" and is_mingw()
+    ):
         _customize_macos()
 
         (
@@ -302,6 +319,7 @@ def customize_compiler(compiler):  # noqa: C901
             cflags,
             ccshared,
             ldshared,
+            ldcxxshared,
             shlib_suffix,
             ar,
             ar_flags,
@@ -311,10 +329,13 @@ def customize_compiler(compiler):  # noqa: C901
             'CFLAGS',
             'CCSHARED',
             'LDSHARED',
+            'LDCXXSHARED',
             'SHLIB_SUFFIX',
             'AR',
             'ARFLAGS',
         )
+
+        cxxflags = cflags
 
         if 'CC' in os.environ:
             newcc = os.environ['CC']
@@ -323,38 +344,42 @@ def customize_compiler(compiler):  # noqa: C901
                 #       command for LDSHARED as well
                 ldshared = newcc + ldshared[len(cc) :]
             cc = newcc
-        if 'CXX' in os.environ:
-            cxx = os.environ['CXX']
-        if 'LDSHARED' in os.environ:
-            ldshared = os.environ['LDSHARED']
-        if 'CPP' in os.environ:
-            cpp = os.environ['CPP']
-        else:
-            cpp = cc + " -E"  # not always
-        if 'LDFLAGS' in os.environ:
-            ldshared = ldshared + ' ' + os.environ['LDFLAGS']
-        if 'CFLAGS' in os.environ:
-            cflags = cflags + ' ' + os.environ['CFLAGS']
-            ldshared = ldshared + ' ' + os.environ['CFLAGS']
-        if 'CPPFLAGS' in os.environ:
-            cpp = cpp + ' ' + os.environ['CPPFLAGS']
-            cflags = cflags + ' ' + os.environ['CPPFLAGS']
-            ldshared = ldshared + ' ' + os.environ['CPPFLAGS']
-        if 'AR' in os.environ:
-            ar = os.environ['AR']
-        if 'ARFLAGS' in os.environ:
-            archiver = ar + ' ' + os.environ['ARFLAGS']
-        else:
-            archiver = ar + ' ' + ar_flags
+        cxx = os.environ.get('CXX', cxx)
+        ldshared = os.environ.get('LDSHARED', ldshared)
+        ldcxxshared = os.environ.get('LDCXXSHARED', ldcxxshared)
+        cpp = os.environ.get(
+            'CPP',
+            cc + " -E",  # not always
+        )
 
+        ldshared = _add_flags(ldshared, 'LD')
+        ldcxxshared = _add_flags(ldcxxshared, 'LD')
+        cflags = os.environ.get('CFLAGS', cflags)
+        ldshared = _add_flags(ldshared, 'C')
+        cxxflags = os.environ.get('CXXFLAGS', cxxflags)
+        ldcxxshared = _add_flags(ldcxxshared, 'CXX')
+        cpp = _add_flags(cpp, 'CPP')
+        cflags = _add_flags(cflags, 'CPP')
+        cxxflags = _add_flags(cxxflags, 'CPP')
+        ldshared = _add_flags(ldshared, 'CPP')
+        ldcxxshared = _add_flags(ldcxxshared, 'CPP')
+
+        ar = os.environ.get('AR', ar)
+
+        archiver = ar + ' ' + os.environ.get('ARFLAGS', ar_flags)
         cc_cmd = cc + ' ' + cflags
+        cxx_cmd = cxx + ' ' + cxxflags
+
         compiler.set_executables(
             preprocessor=cpp,
             compiler=cc_cmd,
             compiler_so=cc_cmd + ' ' + ccshared,
-            compiler_cxx=cxx,
+            compiler_cxx=cxx_cmd,
+            compiler_so_cxx=cxx_cmd + ' ' + ccshared,
             linker_so=ldshared,
+            linker_so_cxx=ldcxxshared,
             linker_exe=cc,
+            linker_exe_cxx=cxx,
             archiver=archiver,
         )
 
@@ -364,12 +389,12 @@ def customize_compiler(compiler):  # noqa: C901
         compiler.shared_lib_extension = shlib_suffix
 
 
-def get_config_h_filename():
+def get_config_h_filename() -> str:
     """Return full pathname of installed pyconfig.h file."""
     return sysconfig.get_config_h_filename()
 
 
-def get_makefile_filename():
+def get_makefile_filename() -> str:
     """Return full pathname of installed Makefile from the Python build."""
     return sysconfig.get_makefile_filename()
 
@@ -531,7 +556,11 @@ def expand_makefile_vars(s, vars):
 _config_vars = None
 
 
-def get_config_vars(*args):
+@overload
+def get_config_vars() -> dict[str, str | int]: ...
+@overload
+def get_config_vars(arg: str, /, *args: str) -> list[str | int]: ...
+def get_config_vars(*args: str) -> list[str | int] | dict[str, str | int]:
     """With no arguments, return a dictionary of all configuration
     variables relevant for the current platform.  Generally this includes
     everything needed to build extensions and install both pure modules and
@@ -549,7 +578,14 @@ def get_config_vars(*args):
     return [_config_vars.get(name) for name in args] if args else _config_vars
 
 
-def get_config_var(name):
+@overload
+@deprecated(
+    "SO is deprecated, use EXT_SUFFIX. Support will be removed when this module is synchronized with stdlib Python 3.11"
+)
+def get_config_var(name: Literal["SO"]) -> int | str | None: ...
+@overload
+def get_config_var(name: str) -> int | str | None: ...
+def get_config_var(name: str) -> int | str | None:
     """Return the value of a single variable using the dictionary
     returned by 'get_config_vars()'.  Equivalent to
     get_config_vars().get(name)
@@ -559,3 +595,14 @@ def get_config_var(name):
 
         warnings.warn('SO is deprecated, use EXT_SUFFIX', DeprecationWarning, 2)
     return get_config_vars().get(name)
+
+
+@pass_none
+def _add_flags(value: str, type: str) -> str:
+    """
+    Add any flags from the environment for the given type.
+
+    type is the prefix to FLAGS in the environment key (e.g. "C" for "CFLAGS").
+    """
+    flags = os.environ.get(f'{type}FLAGS')
+    return f'{value} {flags}' if flags else value

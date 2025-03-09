@@ -7,19 +7,6 @@ import sys
 import path
 import pytest
 
-collect_ignore = []
-
-
-if platform.system() != 'Windows':
-    collect_ignore.extend([
-        'distutils/msvc9compiler.py',
-    ])
-
-
-collect_ignore_glob = [
-    'distutils/_vendor/**/*',
-]
-
 
 @pytest.fixture
 def save_env():
@@ -61,7 +48,7 @@ def _save_cwd():
 
 @pytest.fixture
 def distutils_managed_tempdir(request):
-    from distutils.tests.compat import py38 as os_helper
+    from distutils.tests.compat import py39 as os_helper
 
     self = request.instance
     self.tempdirs = []
@@ -95,29 +82,6 @@ def temp_cwd(tmp_path):
         yield
 
 
-@pytest.fixture
-def pypirc(request, save_env, distutils_managed_tempdir):
-    from distutils.core import Distribution, PyPIRCCommand
-
-    self = request.instance
-    self.tmp_dir = self.mkdtemp()
-    os.environ['HOME'] = self.tmp_dir
-    os.environ['USERPROFILE'] = self.tmp_dir
-    self.rc = os.path.join(self.tmp_dir, '.pypirc')
-    self.dist = Distribution()
-
-    class command(PyPIRCCommand):
-        def __init__(self, dist):
-            super().__init__(dist)
-
-        def initialize_options(self):
-            pass
-
-        finalize_options = initialize_options
-
-    self._cmd = command
-
-
 # from pytest-dev/pytest#363
 @pytest.fixture(scope="session")
 def monkeysession(request):
@@ -128,7 +92,7 @@ def monkeysession(request):
     mpatch.undo()
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(scope="module")
 def suppress_path_mangle(monkeysession):
     """
     Disable the path mangling in CCompiler. Workaround for #169.
@@ -162,3 +126,22 @@ def disable_macos_customization(monkeypatch):
     from distutils import sysconfig
 
     monkeypatch.setattr(sysconfig, '_customize_macos', lambda: None)
+
+
+@pytest.fixture(autouse=True, scope="session")
+def monkey_patch_get_default_compiler(monkeysession):
+    """
+    Monkey patch distutils get_default_compiler to allow overriding the
+    default compiler. Mainly to test mingw32 with a MSVC Python.
+    """
+    from distutils import ccompiler
+
+    default_compiler = os.environ.get("DISTUTILS_TEST_DEFAULT_COMPILER")
+
+    if default_compiler is None:
+        return
+
+    def patched_getter(*args, **kwargs):
+        return default_compiler
+
+    monkeysession.setattr(ccompiler, 'get_default_compiler', patched_getter)

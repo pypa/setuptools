@@ -6,13 +6,13 @@ import unittest.mock as mock
 from distutils import sysconfig
 from distutils.compat import consolidate_linker_args
 from distutils.errors import DistutilsPlatformError
-from distutils.unixccompiler import UnixCCompiler
+from distutils.tests import support
+from distutils.tests.compat.py39 import EnvironmentVarGuard
 from distutils.util import _clear_cached_macosx_ver
 
 import pytest
 
-from . import support
-from .compat.py38 import EnvironmentVarGuard
+from .. import unix
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +24,7 @@ def save_values(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def compiler_wrapper(request):
-    class CompilerWrapper(UnixCCompiler):
+    class CompilerWrapper(unix.Compiler):
         def rpath_foo(self):
             return self.runtime_library_dir_option('/foo')
 
@@ -257,9 +257,13 @@ class TestUnixCCompiler(support.TempdirManager):
         def gcv(v):
             if v == 'LDSHARED':
                 return 'gcc-4.2 -bundle -undefined dynamic_lookup '
+            elif v == 'LDCXXSHARED':
+                return 'g++-4.2 -bundle -undefined dynamic_lookup '
             elif v == 'CXX':
                 return 'g++-4.2'
-            return 'gcc-4.2'
+            elif v == 'CC':
+                return 'gcc-4.2'
+            return ''
 
         def gcvs(*args, _orig=sysconfig.get_config_vars):
             if args:
@@ -268,13 +272,12 @@ class TestUnixCCompiler(support.TempdirManager):
 
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
-        with mock.patch.object(
-            self.cc, 'spawn', return_value=None
-        ) as mock_spawn, mock.patch.object(
-            self.cc, '_need_link', return_value=True
-        ), mock.patch.object(
-            self.cc, 'mkpath', return_value=None
-        ), EnvironmentVarGuard() as env:
+        with (
+            mock.patch.object(self.cc, 'spawn', return_value=None) as mock_spawn,
+            mock.patch.object(self.cc, '_need_link', return_value=True),
+            mock.patch.object(self.cc, 'mkpath', return_value=None),
+            EnvironmentVarGuard() as env,
+        ):
             env['CC'] = 'ccache my_cc'
             env['CXX'] = 'my_cxx'
             del env['LDSHARED']
@@ -315,3 +318,33 @@ class TestUnixCCompiler(support.TempdirManager):
         self.cc.output_dir = 'scratch'
         os.chdir(self.mkdtemp())
         self.cc.has_function('abort')
+
+    def test_find_library_file(self, monkeypatch):
+        compiler = unix.Compiler()
+        compiler._library_root = lambda dir: dir
+        monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
+
+        libname = 'libabc.dylib' if sys.platform != 'cygwin' else 'cygabc.dll'
+        dirs = ('/foo/bar/missing', '/foo/bar/existing')
+        assert (
+            compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+            == f'/foo/bar/existing/{libname}'
+        )
+        assert (
+            compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+            == f'/foo/bar/existing/{libname}'
+        )
+
+        monkeypatch.setattr(
+            os.path,
+            'exists',
+            lambda d: 'existing' in d and '.a' in d and '.dll.a' not in d,
+        )
+        assert (
+            compiler.find_library_file(dirs, 'abc').replace('\\', '/')
+            == '/foo/bar/existing/libabc.a'
+        )
+        assert (
+            compiler.find_library_file(reversed(dirs), 'abc').replace('\\', '/')
+            == '/foo/bar/existing/libabc.a'
+        )
