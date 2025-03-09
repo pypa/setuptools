@@ -440,11 +440,10 @@ class bdist_wheel(Command):
 
         if not self.keep_temp:
             log.info(f"removing {self.bdist_dir}")
-            if not self.dry_run:
-                if sys.version_info < (3, 12):
-                    rmtree(self.bdist_dir, onerror=remove_readonly)
-                else:
-                    rmtree(self.bdist_dir, onexc=remove_readonly_exc)
+            if sys.version_info < (3, 12):
+                rmtree(self.bdist_dir, onerror=remove_readonly)
+            else:
+                rmtree(self.bdist_dir, onexc=remove_readonly_exc)
 
     def write_wheelfile(
         self, wheelfile_base, generator="bdist_wheel (" + wheel_version + ")"
