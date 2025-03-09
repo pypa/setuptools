@@ -1,1 +1,0 @@
-Synced with pypa/distutils@91f75bb98 including exporting of PyInit_pkg (pypa/distutils#327) and a refactoring of the compiler classes into distutils.compilers (pypa/distutils#295).

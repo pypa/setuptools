@@ -1,3 +1,12 @@
+v75.9.0
+=======
+
+Features
+--------
+
+- Synced with pypa/distutils@91f75bb98 including exporting of PyInit_pkg (pypa/distutils#327) and a refactoring of the compiler classes into distutils.compilers (pypa/distutils#295). (#4852)
+
+
 v75.8.2
 =======
 
