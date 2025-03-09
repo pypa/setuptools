@@ -11,12 +11,14 @@ This module requires VS 2015 or later.
 #   finding DevStudio (through the registry)
 # ported to VS 2005 and VS 2008 by Christian Heimes
 # ported to VS 2015 by Steve Dower
+from __future__ import annotations
 
 import contextlib
 import os
 import subprocess
 import unittest.mock as mock
 import warnings
+from collections.abc import Iterable
 
 with contextlib.suppress(ImportError):
     import winreg
@@ -255,10 +257,10 @@ class Compiler(base.Compiler):
     obj_extension = '.obj'
     static_lib_extension = '.lib'
     shared_lib_extension = '.dll'
-    static_lib_format = shared_lib_format = '%s%s'
+    static_lib_format = static_lib_format = '%s%s'
     exe_extension = '.exe'
 
-    def __init__(self, verbose=False, dry_run=False, force=False):
+    def __init__(self, verbose=False, dry_run=False, force=False) -> None:
         super().__init__(verbose, dry_run, force)
         # target platform (.plat_name is consistent with 'bdist')
         self.plat_name = None
@@ -276,7 +278,7 @@ class Compiler(base.Compiler):
     def _parse_path(val):
         return [dir.rstrip(os.sep) for dir in val.split(os.pathsep) if dir]
 
-    def initialize(self, plat_name=None):
+    def initialize(self, plat_name: str | None = None) -> None:
         # multi-init means we would need to check platform same each time...
         assert not self.initialized, "don't init multiple times"
         if plat_name is None:
@@ -358,7 +360,7 @@ class Compiler(base.Compiler):
     # -- Worker methods ------------------------------------------------
 
     @property
-    def out_extensions(self):
+    def out_extensions(self) -> dict[str, str]:
         return {
             **super().out_extensions,
             **{
@@ -462,8 +464,13 @@ class Compiler(base.Compiler):
         return objects
 
     def create_static_lib(
-        self, objects, output_libname, output_dir=None, debug=False, target_lang=None
-    ):
+        self,
+        objects: list[str] | tuple[str, ...],
+        output_libname: str,
+        output_dir: str | None = None,
+        debug: bool = False,
+        target_lang: str | None = None,
+    ) -> None:
         if not self.initialized:
             self.initialize()
         objects, output_dir = self._fix_object_args(objects, output_dir)
@@ -483,20 +490,20 @@ class Compiler(base.Compiler):
 
     def link(
         self,
-        target_desc,
-        objects,
-        output_filename,
-        output_dir=None,
-        libraries=None,
-        library_dirs=None,
-        runtime_library_dirs=None,
-        export_symbols=None,
-        debug=False,
-        extra_preargs=None,
-        extra_postargs=None,
-        build_temp=None,
-        target_lang=None,
-    ):
+        target_desc: str,
+        objects: list[str] | tuple[str, ...],
+        output_filename: str,
+        output_dir: str | None = None,
+        libraries: list[str] | tuple[str, ...] | None = None,
+        library_dirs: list[str] | tuple[str, ...] | None = None,
+        runtime_library_dirs: list[str] | tuple[str, ...] | None = None,
+        export_symbols: Iterable[str] | None = None,
+        debug: bool = False,
+        extra_preargs: list[str] | None = None,
+        extra_postargs: Iterable[str] | None = None,
+        build_temp: str | os.PathLike[str] | None = None,
+        target_lang: str | None = None,
+    ) -> None:
         if not self.initialized:
             self.initialize()
         objects, output_dir = self._fix_object_args(objects, output_dir)

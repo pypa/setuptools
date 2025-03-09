@@ -20,6 +20,7 @@ import os
 import re
 import shlex
 import sys
+from collections.abc import Iterable
 
 from ... import sysconfig
 from ..._log import log
@@ -28,7 +29,7 @@ from ..._modified import newer
 from ...compat import consolidate_linker_args
 from ...errors import DistutilsExecError
 from . import base
-from .base import gen_lib_options, gen_preprocess_options
+from .base import _Macro, gen_lib_options, gen_preprocess_options
 from .errors import (
     CompileError,
     LibError,
@@ -159,12 +160,12 @@ class Compiler(base.Compiler):
 
     def preprocess(
         self,
-        source,
-        output_file=None,
-        macros=None,
-        include_dirs=None,
-        extra_preargs=None,
-        extra_postargs=None,
+        source: str | os.PathLike[str],
+        output_file: str | os.PathLike[str] | None = None,
+        macros: list[_Macro] | None = None,
+        include_dirs: list[str] | tuple[str, ...] | None = None,
+        extra_preargs: list[str] | None = None,
+        extra_postargs: Iterable[str] | None = None,
     ):
         fixed_args = self._fix_compile_args(None, macros, include_dirs)
         ignore, macros, include_dirs = fixed_args
@@ -234,12 +235,12 @@ class Compiler(base.Compiler):
     def link(
         self,
         target_desc,
-        objects,
+        objects: list[str] | tuple[str, ...],
         output_filename,
-        output_dir=None,
-        libraries=None,
-        library_dirs=None,
-        runtime_library_dirs=None,
+        output_dir: str | None = None,
+        libraries: list[str] | tuple[str, ...] | None = None,
+        library_dirs: list[str] | tuple[str, ...] | None = None,
+        runtime_library_dirs: list[str] | tuple[str, ...] | None = None,
         export_symbols=None,
         debug=False,
         extra_preargs=None,
