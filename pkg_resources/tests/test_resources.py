@@ -405,7 +405,7 @@ class TestWorkingSet:
             ws.resolve(parse_requirements("Foo\nBar\n"))
 
         msg = "Baz 1.0 is installed but Baz==2.0 is required by "
-        msg += repr(set(['Bar']))
+        msg += repr({'Bar'})
         assert vc.value.report() == msg
 
 
@@ -481,13 +481,13 @@ class TestEntryPoints:
             assert sorted(m.get(key).attrs) == sorted(ep.attrs)
             assert sorted(m.get(key).extras) == sorted(ep.extras)
 
-    submap_expect = dict(
-        feature1=EntryPoint('feature1', 'somemodule', ['somefunction']),
-        feature2=EntryPoint(
+    submap_expect = {
+        "feature1": EntryPoint('feature1', 'somemodule', ['somefunction']),
+        "feature2": EntryPoint(
             'feature2', 'another.module', ['SomeClass'], ['extra1', 'extra2']
         ),
-        feature3=EntryPoint('feature3', 'this.module', extras=['something']),
-    )
+        "feature3": EntryPoint('feature3', 'this.module', extras=['something']),
+    }
     submap_str = """
             # define features for blah blah
             feature1 = somemodule:somefunction
@@ -561,8 +561,8 @@ class TestRequirements:
         r1 = Requirement.parse("Twisted[foo,bar]>=1.2")
         r2 = Requirement.parse("Twisted[bar,FOO]>=1.2")
         assert r1 == r2
-        assert set(r1.extras) == set(("foo", "bar"))
-        assert set(r2.extras) == set(("foo", "bar"))
+        assert set(r1.extras) == {"foo", "bar"}
+        assert set(r2.extras) == {"foo", "bar"}
         assert hash(r1) == hash(r2)
         assert hash(r1) == hash((
             "twisted",

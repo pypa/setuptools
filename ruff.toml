@@ -30,6 +30,7 @@ extend-select = [
 
 	# local
 	"ANN2", # missing-return-type-*
+	"C4", # flake8-comprehensions
 	"F", # Pyflakes
 	"F404", # late-future-import
 	"FA", # flake8-future-annotations

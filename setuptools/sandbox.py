@@ -266,7 +266,7 @@ def run_setup(setup_script, args):
             working_set.callbacks.append(lambda dist: dist.activate())
 
             with DirectorySandbox(setup_dir):
-                ns = dict(__file__=setup_script, __name__='__main__')
+                ns = {'__file__': setup_script, '__name__': '__main__'}
                 _execfile(setup_script, ns)
         except SystemExit as v:
             if v.args and v.args[0]:
