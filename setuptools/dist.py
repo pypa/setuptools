@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import io
 import itertools
 import numbers
@@ -27,6 +28,7 @@ from ._path import StrPath
 from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
+from .errors import InvalidConfigError
 from .monkey import get_unpatched
 from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
@@ -490,8 +492,8 @@ class Distribution(_Distribution):
                         continue
 
                     val = parser.get(section, opt)
-                    opt = self.warn_dash_deprecation(opt, section)
-                    opt = self.make_option_lowercase(opt, section)
+                    opt = self._enforce_underscore(opt, section)
+                    opt = self._enforce_option_lowercase(opt, section)
                     opt_dict[opt] = (filename, val)
 
             # Make the ConfigParser forget everything (so we retain
@@ -516,64 +518,42 @@ class Distribution(_Distribution):
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
-    def warn_dash_deprecation(self, opt: str, section: str) -> str:
-        if section in (
-            'options.extras_require',
-            'options.data_files',
-        ):
+    def _enforce_underscore(self, opt: str, section: str) -> str:
+        if "-" not in opt or not self._config_requires_normalization(section):
             return opt
 
-        underscore_opt = opt.replace('-', '_')
-        commands = list(
-            itertools.chain(
-                distutils.command.__all__,
-                self._setuptools_commands(),
-            )
+        raise InvalidConfigError(
+            f"Invalid dash-separated key {opt!r} in {section!r} (setup.cfg), "
+            f"please use the underscore name {opt.replace('-', '_')!r} instead."
+            # Warning initially introduced in 3 Mar 2021
         )
-        if (
-            not section.startswith('options')
-            and section != 'metadata'
-            and section not in commands
-        ):
-            return underscore_opt
 
-        if '-' in opt:
-            SetuptoolsDeprecationWarning.emit(
-                "Invalid dash-separated options",
-                f"""
-                Usage of dash-separated {opt!r} will not be supported in future
-                versions. Please use the underscore name {underscore_opt!r} instead.
-                """,
-                see_docs="userguide/declarative_config.html",
-                due_date=(2025, 3, 3),
-                # Warning initially introduced in 3 Mar 2021
-            )
-        return underscore_opt
-
-    def _setuptools_commands(self):
-        try:
-            entry_points = metadata.distribution('setuptools').entry_points
-            return {ep.name for ep in entry_points}  # Avoid newer API for compatibility
-        except metadata.PackageNotFoundError:
-            # during bootstrapping, distribution doesn't exist
-            return []
-
-    def make_option_lowercase(self, opt: str, section: str) -> str:
-        if section != 'metadata' or opt.islower():
+    def _enforce_option_lowercase(self, opt: str, section: str) -> str:
+        if opt.islower() or not self._config_requires_normalization(section):
             return opt
 
-        lowercase_opt = opt.lower()
-        SetuptoolsDeprecationWarning.emit(
-            "Invalid uppercase configuration",
-            f"""
-            Usage of uppercase key {opt!r} in {section!r} will not be supported in
-            future versions. Please use lowercase {lowercase_opt!r} instead.
-            """,
-            see_docs="userguide/declarative_config.html",
-            due_date=(2025, 3, 3),
+        raise InvalidConfigError(
+            f"Invalid uppercase key {opt!r} in {section!r} (setup.cfg), "
+            f"please use lowercase {opt.lower()!r} instead."
             # Warning initially introduced in 6 Mar 2021
         )
-        return lowercase_opt
+
+    def _config_requires_normalization(self, section: str) -> bool:
+        skip = (
+            'options.extras_require',
+            'options.data_files',
+            'options.entry_points',
+            'options.package_data',
+            'options.exclude_package_data',
+        )
+        return section not in skip and self._is_setuptools_section(section)
+
+    def _is_setuptools_section(self, section: str) -> bool:
+        return (
+            section == "metadata"
+            or section.startswith("option")
+            or section in _setuptools_commands()
+        )
 
     # FIXME: 'Distribution._set_command_options' is too complex (14)
     def _set_command_options(self, command_obj, option_dict=None):  # noqa: C901
@@ -997,6 +977,18 @@ class Distribution(_Distribution):
         # (setup() args, config files, command line and plugins)
 
         super().run_command(command)
+
+
+@functools.cache
+def _setuptools_commands() -> set[str]:
+    try:
+        # Use older API for importlib.metadata compatibility
+        entry_points = metadata.distribution('setuptools').entry_points
+        eps = (ep.name for ep in entry_points)
+    except metadata.PackageNotFoundError:
+        # during bootstrapping, distribution doesn't exist
+        return set(distutils.command.__all__)
+    return {*distutils.command.__all__, *eps}
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):
