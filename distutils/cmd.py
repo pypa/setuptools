@@ -322,8 +322,8 @@ class Command:
             if getattr(self, dst_option) is None:
                 setattr(self, dst_option, getattr(src_cmd_obj, src_option))
 
-    # NOTE: Because distutils is private setuptools implementation and we don't need to re-expose all commands here,
-    # we're not overloading each and every command possibility.
+    # NOTE: Because distutils is private to Setuptools and not all commands are exposed here,
+    # not every possible command is enumerated in the signature.
     def get_finalized_command(self, command: str, create: bool = True) -> Command:
         """Wrapper around Distribution's 'get_command_obj()' method: find
         (create if necessary and 'create' is true) the command object for
