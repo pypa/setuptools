@@ -1,1 +1,0 @@
-Fix ImportError in distutils when configuring for linking.

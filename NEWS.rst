@@ -1,3 +1,12 @@
+v75.9.1
+=======
+
+Bugfixes
+--------
+
+- Fix ImportError in distutils when configuring for linking. (#4866)
+
+
 v75.9.0
 =======
 
