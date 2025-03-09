@@ -34,7 +34,7 @@ def show_formats():
 class sdist(Command):
     description = "create a source distribution (tarball, zip file, etc.)"
 
-    def checking_metadata(self):
+    def checking_metadata(self) -> bool:
         """Callable used for the check sub-command.
 
         Placed here so user_options can view it"""
@@ -136,7 +136,7 @@ class sdist(Command):
         self.dist_dir = None
 
         self.archive_files = None
-        self.metadata_check = 1
+        self.metadata_check = True
         self.owner = None
         self.group = None
 
