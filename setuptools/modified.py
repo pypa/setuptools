@@ -1,6 +1,6 @@
 try:
     # Ensure a DistutilsError raised by these methods is the same as distutils.errors.DistutilsError
-    from distutils._modified import (
+    from distutils._modified import (  # type: ignore[import-not-found]
         newer,
         newer_group,
         newer_pairwise,

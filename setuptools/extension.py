@@ -153,7 +153,7 @@ class Extension(_Extension):
         self.py_limited_api = py_limited_api
         super().__init__(
             name,
-            sources,  # type: ignore[arg-type] # Vendored version of setuptools supports PathLike
+            sources,  # type: ignore[arg-type] # Vendored version of distutils supports PathLike
             *args,
             **kw,
         )
