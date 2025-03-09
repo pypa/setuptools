@@ -119,9 +119,8 @@ class develop(namespaces.DevelopInstaller, easy_install):
 
         # create an .egg-link in the installation dir, pointing to our egg
         log.info("Creating %s (link to %s)", self.egg_link, self.egg_base)
-        if not self.dry_run:
-            with open(self.egg_link, "w", encoding="utf-8") as f:
-                f.write(self.egg_path + "\n" + self.setup_path)
+        with open(self.egg_link, "w", encoding="utf-8") as f:
+            f.write(self.egg_path + "\n" + self.setup_path)
         # postprocess the installed distro, fixing up .pth, installing scripts,
         # and handling requirements
         self.process_distribution(None, self.dist, not self.no_deps)
@@ -138,10 +137,8 @@ class develop(namespaces.DevelopInstaller, easy_install):
             if contents not in ([self.egg_path], [self.egg_path, self.setup_path]):
                 log.warn("Link points to %s: uninstall aborted", contents)
                 return
-            if not self.dry_run:
-                os.unlink(self.egg_link)
-        if not self.dry_run:
-            self.update_pth(self.dist)  # remove any .pth link to us
+            os.unlink(self.egg_link)
+        self.update_pth(self.dist)  # remove any .pth link to us
         if self.distribution.scripts:
             # XXX should also check for entry point scripts!
             log.warn("Note: you must uninstall or replace scripts manually!")
