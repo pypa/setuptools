@@ -7,4 +7,4 @@ This is a follow-up on deprecations introduced in
 
 .. note::
    This change *does not affect configurations in* ``pyproject.toml``
-   (which uses the :wiki:`lower-kebab-case <Letter_case#Kebab_case>` convention following the precedent in :pep:`517`).
+   (which uses the :wiki:`lower-kebab-case <Letter_case#Kebab_case>` convention following the precedent set in :pep:`517`/:pep:`518`).
