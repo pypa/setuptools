@@ -519,7 +519,7 @@ class Distribution(_Distribution):
                 raise DistutilsOptionError(e) from e
 
     def _enforce_underscore(self, opt: str, section: str) -> str:
-        if "-" not in opt or not self._config_requires_normalization(section):
+        if "-" not in opt or self._skip_setupcfg_normalization(section):
             return opt
 
         raise InvalidConfigError(
@@ -529,7 +529,7 @@ class Distribution(_Distribution):
         )
 
     def _enforce_option_lowercase(self, opt: str, section: str) -> str:
-        if opt.islower() or not self._config_requires_normalization(section):
+        if opt.islower() or self._skip_setupcfg_normalization(section):
             return opt
 
         raise InvalidConfigError(
@@ -538,7 +538,7 @@ class Distribution(_Distribution):
             # Warning initially introduced in 6 Mar 2021
         )
 
-    def _config_requires_normalization(self, section: str) -> bool:
+    def _skip_setupcfg_normalization(self, section: str) -> bool:
         skip = (
             'options.extras_require',
             'options.data_files',
@@ -546,7 +546,7 @@ class Distribution(_Distribution):
             'options.package_data',
             'options.exclude_package_data',
         )
-        return section not in skip and self._is_setuptools_section(section)
+        return section in skip or not self._is_setuptools_section(section)
 
     def _is_setuptools_section(self, section: str) -> bool:
         return (
