@@ -1,1 +1,0 @@
-Fix wheel file naming to follow binary distribution specification -- by :user:`di`
