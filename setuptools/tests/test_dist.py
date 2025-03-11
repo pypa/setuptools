@@ -138,6 +138,7 @@ def test_check_package_data(package_data, expected_message):
             check_package_data(None, 'package_data', package_data)
 
 
+@pytest.mark.xfail(reason="#4745")
 def test_check_specifier():
     # valid specifier value
     attrs = {'name': 'foo', 'python_requires': '>=3.0, !=3.1'}
