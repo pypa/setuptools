@@ -257,7 +257,7 @@ class Compiler(base.Compiler):
     obj_extension = '.obj'
     static_lib_extension = '.lib'
     shared_lib_extension = '.dll'
-    static_lib_format = static_lib_format = '%s%s'
+    static_lib_format = shared_lib_format = '%s%s'
     exe_extension = '.exe'
 
     def __init__(self, verbose=False, dry_run=False, force=False) -> None:
