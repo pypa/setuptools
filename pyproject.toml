@@ -60,6 +60,9 @@ test = [
 	"pyproject-hooks!=1.1",
 
 	"jaraco.test>=5.5", # py.typed
+
+	# temporarily pin ruff for backport bugfix (#4879)
+	"ruff <= 0.7.1",
 ]
 
 doc = [
