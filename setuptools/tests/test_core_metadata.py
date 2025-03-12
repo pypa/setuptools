@@ -92,10 +92,11 @@ def __read_test_cases():
                 ],
             ),
         ),
-        (
+        pytest.param(
             'Metadata version 1.1: Download URL',
-            params(
-                download_url='https://example.com',
+            params(download_url='https://example.com'),
+            marks=pytest.mark.filterwarnings(
+                "ignore:Deprecated usage of .download_url"
             ),
         ),
         (

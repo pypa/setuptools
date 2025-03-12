@@ -9,6 +9,7 @@ from packaging.requirements import InvalidRequirement
 
 from setuptools.config.setupcfg import ConfigHandler, Target, read_configuration
 from setuptools.dist import Distribution, _Distribution
+from setuptools.errors import RemovedConfigError
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from ..textwrap import DALS
@@ -136,19 +137,20 @@ class TestMetadata:
             'license': 'BSD 3-Clause License',
         }
 
-        with get_dist(tmpdir, meta_initial) as dist:
-            metadata = dist.metadata
+        with pytest.warns(SetuptoolsDeprecationWarning, match="Deprecated config"):
+            with get_dist(tmpdir, meta_initial) as dist:
+                metadata = dist.metadata
 
-            assert metadata.version == '10.1.1'
-            assert metadata.description == 'Some description'
-            assert metadata.long_description_content_type == 'text/something'
-            assert metadata.long_description == 'readme contents\nline2'
-            assert metadata.provides == ['package', 'package.sub']
-            assert metadata.license == 'BSD 3-Clause License'
-            assert metadata.name == 'fake_name'
-            assert metadata.keywords == ['one', 'two']
-            assert metadata.download_url == 'http://test.test.com/test/'
-            assert metadata.maintainer_email == 'test@test.com'
+                assert metadata.version == '10.1.1'
+                assert metadata.description == 'Some description'
+                assert metadata.long_description_content_type == 'text/something'
+                assert metadata.long_description == 'readme contents\nline2'
+                assert metadata.provides == ['package', 'package.sub']
+                assert metadata.license == 'BSD 3-Clause License'
+                assert metadata.name == 'fake_name'
+                assert metadata.keywords == ['one', 'two']
+                assert metadata.download_url == 'http://test.test.com/test/'
+                assert metadata.maintainer_email == 'test@test.com'
 
     def test_license_cfg(self, tmpdir):
         fake_env(
@@ -207,16 +209,17 @@ class TestMetadata:
             '  Programming Language :: Python :: 3.5\n',
         )
 
-        with get_dist(tmpdir) as dist:
-            metadata = dist.metadata
-            assert metadata.author_email == 'test@test.com'
-            assert metadata.url == 'http://test.test.com/test/'
-            assert metadata.description == 'Short summary'
-            assert metadata.platforms == ['a', 'b']
-            assert metadata.classifiers == [
-                'Framework :: Django',
-                'Programming Language :: Python :: 3.5',
-            ]
+        with pytest.warns(match='Deprecated usage of .url.'):
+            with get_dist(tmpdir) as dist:
+                metadata = dist.metadata
+                assert metadata.author_email == 'test@test.com'
+                assert metadata.url == 'http://test.test.com/test/'
+                assert metadata.description == 'Short summary'
+                assert metadata.platforms == ['a', 'b']
+                assert metadata.classifiers == [
+                    'Framework :: Django',
+                    'Programming Language :: Python :: 3.5',
+                ]
 
     def test_multiline(self, tmpdir):
         fake_env(
@@ -450,6 +453,39 @@ class TestMetadata:
 
         assert metadata.name == 'foo'
         assert metadata.description == 'Some description'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("provides", "setuptools"),
+            ("obsoletes", "setuptools"),
+            ("url", "www.setuptools.com.br"),
+            ("download_url", "www.setuptools.com.br/42"),
+        ],
+    )
+    def test_deprecated(self, tmpdir, field, value):
+        fake_env(
+            tmpdir,
+            f'[metadata]\nname = foo\ndescription = Desc\n{field} = {value}',
+        )
+        match = f"Deprecated usage of `{field}`"
+        with pytest.warns(SetuptoolsDeprecationWarning, match=match):
+            get_dist(tmpdir).__enter__()
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("requires", "setuptools"),
+        ],
+    )
+    def test_removed(self, tmpdir, field, value):
+        fake_env(
+            tmpdir,
+            f'[metadata]\nname = foo\ndescription = Desc\n{field} = {value}',
+        )
+        match = f"Invalid use of `{field}`"
+        with pytest.raises(RemovedConfigError, match=match):
+            get_dist(tmpdir).__enter__()
 
 
 class TestOptions:
