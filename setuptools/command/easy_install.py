@@ -205,7 +205,6 @@ class easy_install(Command):
         # always come from the standard configuration file(s)' "easy_install"
         # section, even if this is a "develop" or "install" command, or some
         # other embedding.
-        self._dry_run = None
         self.verbose = self.distribution.verbose
         self.distribution._set_command_options(
             self, self.distribution.get_option_dict('easy_install')
@@ -221,8 +220,6 @@ class easy_install(Command):
 
     def _delete_path(self, path):
         log.info("Deleting %s", path)
-        if self.dry_run:
-            return
 
         is_tree = os.path.isdir(path) and not os.path.islink(path)
         remover = _rmtree if is_tree else os.unlink
@@ -868,9 +865,6 @@ class easy_install(Command):
         target = os.path.join(self.script_dir, script_name)
         self.add_output(target)
 
-        if self.dry_run:
-            return
-
         mask = current_umask()
         ensure_directory(target)
         if os.path.exists(target):
@@ -945,15 +939,14 @@ class easy_install(Command):
             os.path.basename(egg_path),
         )
         destination = os.path.abspath(destination)
-        if not self.dry_run:
-            ensure_directory(destination)
+        ensure_directory(destination)
 
         dist = self.egg_distribution(egg_path)
         if not (
             os.path.exists(destination) and os.path.samefile(egg_path, destination)
         ):
             if os.path.isdir(destination) and not os.path.islink(destination):
-                dir_util.remove_tree(destination, dry_run=self.dry_run)
+                dir_util.remove_tree(destination)
             elif os.path.exists(destination):
                 self.execute(
                     os.unlink,
@@ -1036,7 +1029,6 @@ class easy_install(Command):
             egg_path,
             egg_tmp,
             verbose=self.verbose,
-            dry_run=self.dry_run,
         )
         # install the .egg
         return self.install_egg(egg_path, tmpdir)
@@ -1099,10 +1091,9 @@ class easy_install(Command):
         assert wheel.is_compatible()
         destination = os.path.join(self.install_dir, wheel.egg_name())
         destination = os.path.abspath(destination)
-        if not self.dry_run:
-            ensure_directory(destination)
+        ensure_directory(destination)
         if os.path.isdir(destination) and not os.path.islink(destination):
-            dir_util.remove_tree(destination, dry_run=self.dry_run)
+            dir_util.remove_tree(destination)
         elif os.path.exists(destination):
             self.execute(
                 os.unlink,
@@ -1185,8 +1176,6 @@ class easy_install(Command):
             args.insert(0, '-' + v)
         elif self.verbose < 2:
             args.insert(0, '-q')
-        if self.dry_run:
-            args.insert(0, '-n')
         log.info("Running %s %s", setup_script[len(setup_base) + 1 :], ' '.join(args))
         try:
             run_setup(setup_script, args)
@@ -1210,7 +1199,7 @@ class easy_install(Command):
                 for key in all_eggs
                 for dist in all_eggs[key]
             ]
-            if not eggs and not self.dry_run:
+            if not eggs:
                 log.warn("No eggs found in %s (setup script problem?)", dist_dir)
             return eggs
         finally:
@@ -1244,7 +1233,7 @@ class easy_install(Command):
         cfg_filename = os.path.join(base, 'setup.cfg')
         setopt.edit_config(cfg_filename, settings)
 
-    def update_pth(self, dist) -> None:  # noqa: C901  # is too complex (11)  # FIXME
+    def update_pth(self, dist) -> None:
         if self.pth_file is None:
             return
 
@@ -1268,9 +1257,6 @@ class easy_install(Command):
                 self.pth_file.add(dist)  # add new entry
                 if dist.location not in self.shadow_path:
                     self.shadow_path.append(dist.location)
-
-        if self.dry_run:
-            return
 
         self.pth_file.save()
 
@@ -1303,14 +1289,13 @@ class easy_install(Command):
             elif dst.endswith('.dll') or dst.endswith('.so'):
                 to_chmod.append(dst)
             self.unpack_progress(src, dst)
-            return not self.dry_run and dst or None
+            return dst or None
 
         unpack_archive(egg_path, destination, pf)
         self.byte_compile(to_compile)
-        if not self.dry_run:
-            for f in to_chmod:
-                mode = ((os.stat(f)[stat.ST_MODE]) | 0o555) & 0o7755
-                chmod(f, mode)
+        for f in to_chmod:
+            mode = ((os.stat(f)[stat.ST_MODE]) | 0o555) & 0o7755
+            chmod(f, mode)
 
     def byte_compile(self, to_compile) -> None:
         if sys.dont_write_bytecode:
@@ -1322,13 +1307,12 @@ class easy_install(Command):
             # try to make the byte compile messages quieter
             log.set_verbosity(self.verbose - 1)
 
-            byte_compile(to_compile, optimize=0, force=True, dry_run=self.dry_run)
+            byte_compile(to_compile, optimize=0, force=True)
             if self.optimize:
                 byte_compile(
                     to_compile,
                     optimize=self.optimize,
                     force=True,
-                    dry_run=self.dry_run,
                 )
         finally:
             log.set_verbosity(self.verbose)  # restore original verbosity
