@@ -237,7 +237,7 @@ class Compiler:
         """
         A valid macro is a ``name : str`` and a ``value : str | None``.
         """
-        return isinstance(name, str) and isinstance(value, (str, None))
+        return isinstance(name, str) and isinstance(value, (str, type(None)))
 
     # -- Bookkeeping methods -------------------------------------------
 
