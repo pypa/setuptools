@@ -1,3 +1,9 @@
+v75.3.2
+=======
+
+- Fixed version error in changelog.
+
+
 v75.3.1
 =======
 
