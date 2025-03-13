@@ -1,3 +1,18 @@
+v75.3.2
+=======
+
+- Fixed version error in changelog.
+
+
+v75.3.1
+=======
+
+Bugfixes
+--------
+
+- Fix wheel file naming to follow binary distribution specification -- by :user:`di` (#4877)
+
+
 v76.0.0
 =======
 
