@@ -551,7 +551,7 @@ class Distribution(_Distribution):
     def _is_setuptools_section(self, section: str) -> bool:
         return (
             section == "metadata"
-            or section.startswith("option")
+            or section.startswith("options")
             or section in _setuptools_commands()
         )
 
