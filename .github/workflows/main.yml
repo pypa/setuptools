@@ -122,6 +122,7 @@ jobs:
             python${{ matrix.python }}-pip,
             gcc-core,
             gcc-g++,
+            zlib-devel,
             ncompress
             git
       - name: Install tox using pip
