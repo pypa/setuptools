@@ -167,7 +167,7 @@ class Command(_Command):
     command_consumes_arguments = False
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    dry_run = False  # pyright: ignore[reportAssignmentType] # (until #4689; see #4872)
+    dry_run = False  # type: ignore[assignment] # pyright: ignore[reportAssignmentType] (until #4689; see #4872)
     """
     For compatibility with vendored bdist_wheel.
     https://github.com/pypa/setuptools/pull/4872/files#r1986395142
