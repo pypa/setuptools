@@ -19,15 +19,10 @@ from collections.abc import Callable
 from distutils._log import log
 from typing import ClassVar
 
+from ..ccompiler import new_compiler, show_compilers
 from ..core import Command
 from ..errors import DistutilsSetupError
 from ..sysconfig import customize_compiler
-
-
-def show_compilers():
-    from ..ccompiler import show_compilers
-
-    show_compilers()
 
 
 class build_clib(Command):
@@ -93,12 +88,7 @@ class build_clib(Command):
         if not self.libraries:
             return
 
-        # Yech -- this is cut 'n pasted from build_ext.py!
-        from ..ccompiler import new_compiler
-
-        self.compiler = new_compiler(
-            compiler=self.compiler, dry_run=self.dry_run, force=self.force
-        )
+        self.compiler = new_compiler(compiler=self.compiler, force=self.force)
         customize_compiler(self.compiler)
 
         if self.include_dirs is not None:
