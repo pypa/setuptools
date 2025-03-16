@@ -3,16 +3,11 @@
 import os
 import sys
 from distutils import sysconfig
-from distutils.cygwinccompiler import (
-    CONFIG_H_NOTOK,
-    CONFIG_H_OK,
-    CONFIG_H_UNCERTAIN,
-    check_config_h,
-    get_msvcr,
-)
 from distutils.tests import support
 
 import pytest
+
+from .. import cygwin
 
 
 @pytest.fixture(autouse=True)
@@ -54,24 +49,24 @@ class TestCygwinCCompiler(support.TempdirManager):
             '4.0.1 (Apple Computer, Inc. build 5370)]'
         )
 
-        assert check_config_h()[0] == CONFIG_H_OK
+        assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_OK
 
         # then it tries to see if it can find "__GNUC__" in pyconfig.h
         sys.version = 'something without the *CC word'
 
         # if the file doesn't exist it returns  CONFIG_H_UNCERTAIN
-        assert check_config_h()[0] == CONFIG_H_UNCERTAIN
+        assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_UNCERTAIN
 
         # if it exists but does not contain __GNUC__, it returns CONFIG_H_NOTOK
         self.write_file(self.python_h, 'xxx')
-        assert check_config_h()[0] == CONFIG_H_NOTOK
+        assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_NOTOK
 
         # and CONFIG_H_OK if __GNUC__ is found
         self.write_file(self.python_h, 'xxx __GNUC__ xxx')
-        assert check_config_h()[0] == CONFIG_H_OK
+        assert cygwin.check_config_h()[0] == cygwin.CONFIG_H_OK
 
     def test_get_msvcr(self):
-        assert get_msvcr() == []
+        assert cygwin.get_msvcr() == []
 
     @pytest.mark.skipif('sys.platform != "cygwin"')
     def test_dll_libraries_not_none(self):

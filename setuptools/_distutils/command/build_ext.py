@@ -4,12 +4,16 @@ Implements the Distutils 'build_ext' command, for building extension
 modules (currently limited to C extensions, should accommodate C++
 extensions ASAP)."""
 
+from __future__ import annotations
+
 import contextlib
 import os
 import re
 import sys
+from collections.abc import Callable
 from distutils._log import log
 from site import USER_BASE
+from typing import ClassVar
 
 from .._modified import newer_group
 from ..core import Command
@@ -98,9 +102,15 @@ class build_ext(Command):
         ('user', None, "add user include, library and rpath"),
     ]
 
-    boolean_options = ['inplace', 'debug', 'force', 'swig-cpp', 'user']
+    boolean_options: ClassVar[list[str]] = [
+        'inplace',
+        'debug',
+        'force',
+        'swig-cpp',
+        'user',
+    ]
 
-    help_options = [
+    help_options: ClassVar[list[tuple[str, str | None, str, Callable[[], object]]]] = [
         ('help-compiler', None, "list available compilers", show_compilers),
     ]
 
@@ -153,7 +163,7 @@ class build_ext(Command):
             # building third party extensions
             yield sysconfig.get_config_var('LIBDIR')
 
-    def finalize_options(self):  # noqa: C901
+    def finalize_options(self) -> None:  # noqa: C901
         from distutils import sysconfig
 
         self.set_undefined_options(
@@ -292,7 +302,7 @@ class build_ext(Command):
             except ValueError:
                 raise DistutilsOptionError("parallel should be an integer")
 
-    def run(self):  # noqa: C901
+    def run(self) -> None:  # noqa: C901
         from ..ccompiler import new_compiler
 
         # 'self.extensions', as supplied by setup.py, is a list of
@@ -364,7 +374,7 @@ class build_ext(Command):
         # Now actually compile and link everything.
         self.build_extensions()
 
-    def check_extensions_list(self, extensions):  # noqa: C901
+    def check_extensions_list(self, extensions) -> None:  # noqa: C901
         """Ensure that the list of extensions (presumably provided as a
         command option 'extensions') is valid, i.e. it is a list of
         Extension objects.  We also support the old-style list of 2-tuples,
@@ -472,7 +482,7 @@ class build_ext(Command):
         # "build" tree.
         return [self.get_ext_fullpath(ext.name) for ext in self.extensions]
 
-    def build_extensions(self):
+    def build_extensions(self) -> None:
         # First, sanity-check the 'extensions' list
         self.check_extensions_list(self.extensions)
         if self.parallel:
@@ -515,7 +525,7 @@ class build_ext(Command):
                 raise
             self.warn(f'building extension "{ext.name}" failed: {e}')
 
-    def build_extension(self, ext):
+    def build_extension(self, ext) -> None:
         sources = ext.sources
         if sources is None or not isinstance(sources, (list, tuple)):
             raise DistutilsSetupError(
@@ -676,7 +686,7 @@ class build_ext(Command):
 
     # -- Name generators -----------------------------------------------
     # (extension names, filenames, whatever)
-    def get_ext_fullpath(self, ext_name):
+    def get_ext_fullpath(self, ext_name: str) -> str:
         """Returns the path of the filename for a given extension.
 
         The file is located in `build_lib` or directly in the package
@@ -703,7 +713,7 @@ class build_ext(Command):
         #   package_dir/filename
         return os.path.join(package_dir, filename)
 
-    def get_ext_fullname(self, ext_name):
+    def get_ext_fullname(self, ext_name: str) -> str:
         """Returns the fullname of a given extension name.
 
         Adds the `package.` prefix"""
@@ -712,7 +722,7 @@ class build_ext(Command):
         else:
             return self.package + '.' + ext_name
 
-    def get_ext_filename(self, ext_name):
+    def get_ext_filename(self, ext_name: str) -> str:
         r"""Convert the name of an extension (eg. "foo.bar") into the name
         of the file from which it will be loaded (eg. "foo/bar.so", or
         "foo\bar.pyd").
@@ -723,13 +733,13 @@ class build_ext(Command):
         ext_suffix = get_config_var('EXT_SUFFIX')
         return os.path.join(*ext_path) + ext_suffix
 
-    def get_export_symbols(self, ext):
+    def get_export_symbols(self, ext: Extension) -> list[str]:
         """Return the list of symbols that a shared extension has to
         export.  This either uses 'ext.export_symbols' or, if it's not
         provided, "PyInit_" + module_name.  Only relevant on Windows, where
         the .pyd file (DLL) must export the module "PyInit_" function.
         """
-        name = ext.name.split('.')[-1]
+        name = self._get_module_name_for_symbol(ext)
         try:
             # Unicode module name support as defined in PEP-489
             # https://peps.python.org/pep-0489/#export-hook-name
@@ -744,7 +754,16 @@ class build_ext(Command):
             ext.export_symbols.append(initfunc_name)
         return ext.export_symbols
 
-    def get_libraries(self, ext):  # noqa: C901
+    def _get_module_name_for_symbol(self, ext):
+        # Package name should be used for `__init__` modules
+        # https://github.com/python/cpython/issues/80074
+        # https://github.com/pypa/setuptools/issues/4826
+        parts = ext.name.split(".")
+        if parts[-1] == "__init__" and len(parts) >= 2:
+            return parts[-2]
+        return parts[-1]
+
+    def get_libraries(self, ext: Extension) -> list[str]:  # noqa: C901
         """Return the list of libraries to link against when building a
         shared extension.  On most platforms, this is just 'ext.libraries';
         on Windows, we add the Python library (eg. python20.dll).

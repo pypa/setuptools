@@ -52,7 +52,7 @@ class check(Command):
         ('strict', 's', 'Will exit with an error if a check fails'),
     ]
 
-    boolean_options = ['metadata', 'restructuredtext', 'strict']
+    boolean_options: ClassVar[list[str]] = ['metadata', 'restructuredtext', 'strict']
 
     def initialize_options(self):
         """Sets default values for options."""

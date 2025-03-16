@@ -63,9 +63,6 @@ jobs:
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
-        # TODO: Re-evaluate the need for the following workaround
-        exclude:
-        - {python: "3.9", platform: "macos-latest"}  # actions/setup-python#981
     runs-on: ${{ matrix.platform }}
     continue-on-error: ${{ matrix.python == '3.14' }}
     env:
@@ -73,12 +70,22 @@ jobs:
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
+      - name: Install build dependencies
+        # Install dependencies for building packages on pre-release Pythons
+        # jaraco/skeleton#161
+        if: matrix.python == '3.14' && matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y libxml2-dev libxslt-dev
       - name: Setup Python
         id: python-install
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
+        env:
+          # Workaround for actions/setup-python#981 (env var only modified for this specific step)
+          SETUPTOOLS_USE_DISTUTILS: ${{ matrix.platform == 'macos-latest' && matrix.python == '3.9' && 'stdlib' || matrix.distutils || 'local' }}
       - uses: actions/cache@v4
         id: cache
         with:
@@ -90,6 +97,10 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: setuptools/tests/config
         run: python -m downloads.preload setupcfg_examples.txt
+      - name: Adjust env vars
+        shell: bash
+        run: |
+          echo 'PIPX_DEFAULT_PYTHON=${{ steps.python-install.outputs.python-path }}' >> $GITHUB_ENV
       - name: Pre-build distributions for test
         shell: bash
         run: |
@@ -178,7 +189,7 @@ jobs:
           packages: >-
             python${{ matrix.python }},
             python${{ matrix.python }}-devel,
-            python${{ matrix.python }}-tox,
+            python${{ matrix.python }}-pip,
             gcc-core,
             git,
       - name: Record the currently selected Python version
@@ -189,11 +200,17 @@ jobs:
         run: |
           python -c 'import platform; print("python-version=" + platform.python_version())' >> ${GITHUB_OUTPUT}
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+      - name: Install tox using pip
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+        run: |
+          # Workaround for https://github.com/pypa/setuptools/issues/4831
+          python -m pip install tox
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
-          git config --global --add safe.directory "$(cygpath -u "$GITHUB_WORKSPACE")" # workaround for #3408
-          tox
+          git config --global --add safe.directory "$(cygpath -u "${{ github.workspace }}")" # workaround for #3408
+          echo "$(cygpath -u "${{ github.workspace }}")" # for debugging purposes
+          python -m tox
       - name: Create coverage report
         if: hashFiles('.coverage') != ''  # Rudimentary `file.exists()`
         run: |
