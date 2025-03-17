@@ -27,21 +27,25 @@ def _regenerate_distutils_stubs() -> None:
     _distutils_stubs_path.mkdir(parents=True)
     (_distutils_stubs_path / ".gitignore").write_text("*")
     (_distutils_stubs_path / "ruff.toml").write_text('[lint]\nignore = ["F403"]')
+    (_distutils_stubs_path / "py.typed").write_text("\n")
     for path in _vendored_distutils_path.rglob("*.py"):
         relative_path = path.relative_to(_vendored_distutils_path)
-        if relative_path.parts[0] == "tests":
+        if "tests" in relative_path.parts:
             continue
-        # if str(relative_path) == "__init__.py":
-        #     # Work around a mypy issue with types/distutils/__init__.pyi:
-        #     # error: Source file found twice under different module names: "setuptools._distutils.__init__" and "setuptools._distutils"
-        #     (_distutils_stubs_path / "py.typed").write_text('partial')
-        #     continue
         stub_path = _distutils_stubs_path / relative_path.with_suffix(".pyi")
         stub_path.parent.mkdir(parents=True, exist_ok=True)
         module = "setuptools._distutils." + str(relative_path.with_suffix("")).replace(
             os.sep, "."
         ).removesuffix(".__init__")
-        stub_path.write_text(f"from {module} import *\n")
+        if str(relative_path) == "__init__.py":
+            # Work around python/mypy#18775
+            stub_path.write_text("""\
+from typing import Final
+
+__version__: Final[str]
+""")
+        else:
+            stub_path.write_text(f"from {module} import *\n")
 
 
 def build_wheel(  # type: ignore[no-redef]
