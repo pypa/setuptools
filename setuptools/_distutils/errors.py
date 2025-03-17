@@ -6,18 +6,15 @@ including :exc:`SystemExit`.
 """
 
 # compiler exceptions aliased for compatibility
-from .compilers.C.errors import (
-    CompileError,  # noqa: F401
-    LibError,  # noqa: F401
-    LinkError,  # noqa: F401
-    PreprocessError,  # noqa: F401
-)
-from .compilers.C.errors import (
-    Error as CCompilerError,  # noqa: F401
-)
-from .compilers.C.errors import (
-    UnknownFileType as UnknownFileError,  # noqa: F401
-)
+from .compilers.C.errors import CompileError as CompileError
+from .compilers.C.errors import Error as _Error
+from .compilers.C.errors import LibError as LibError
+from .compilers.C.errors import LinkError as LinkError
+from .compilers.C.errors import PreprocessError as PreprocessError
+from .compilers.C.errors import UnknownFileType as _UnknownFileType
+
+CCompilerError = _Error
+UnknownFileError = _UnknownFileType
 
 
 class DistutilsError(Exception):

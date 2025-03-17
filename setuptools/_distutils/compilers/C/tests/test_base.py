@@ -1,6 +1,4 @@
-import os
 import platform
-import sys
 import sysconfig
 import textwrap
 
@@ -9,15 +7,6 @@ import pytest
 from .. import base
 
 pytestmark = pytest.mark.usefixtures('suppress_path_mangle')
-
-
-def _make_strs(paths):
-    """
-    Convert paths to strings for legacy compatibility.
-    """
-    if sys.version_info > (3, 8) and platform.system() != "Windows":
-        return paths
-    return list(map(os.fspath, paths))
 
 
 @pytest.fixture
@@ -50,11 +39,11 @@ def test_set_include_dirs(c_file):
     compiler = base.new_compiler()
     python = sysconfig.get_paths()['include']
     compiler.set_include_dirs([python])
-    compiler.compile(_make_strs([c_file]))
+    compiler.compile([c_file])
 
     # do it again, setting include dirs after any initialization
     compiler.set_include_dirs([python])
-    compiler.compile(_make_strs([c_file]))
+    compiler.compile([c_file])
 
 
 def test_has_function_prototype():
@@ -88,7 +77,7 @@ def test_include_dirs_after_multiple_compile_calls(c_file):
     compiler = base.new_compiler()
     python = sysconfig.get_paths()['include']
     compiler.set_include_dirs([python])
-    compiler.compile(_make_strs([c_file]))
+    compiler.compile([c_file])
     assert compiler.include_dirs == [python]
-    compiler.compile(_make_strs([c_file]))
+    compiler.compile([c_file])
     assert compiler.include_dirs == [python]

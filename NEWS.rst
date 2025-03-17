@@ -1,3 +1,36 @@
+v75.3.2
+=======
+
+- Fixed version error in changelog.
+
+
+v75.3.1
+=======
+
+Bugfixes
+--------
+
+- Fix wheel file naming to follow binary distribution specification -- by :user:`di` (#4877)
+
+
+v76.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Synced with pypa/distutils@5589d7527 including a simplified shebang generation when building scripts (#4863). (#4865)
+
+
+v75.9.1
+=======
+
+Bugfixes
+--------
+
+- Fix ImportError in distutils when configuring for linking. (#4866)
+
+
 v75.9.0
 =======
 
