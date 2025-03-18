@@ -10,15 +10,10 @@ import sysconfig
 from collections.abc import Callable
 from typing import ClassVar
 
+from ..ccompiler import show_compilers
 from ..core import Command
 from ..errors import DistutilsOptionError
 from ..util import get_platform
-
-
-def show_compilers():
-    from ..ccompiler import show_compilers
-
-    show_compilers()
 
 
 class build(Command):

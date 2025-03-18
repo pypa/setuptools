@@ -1,0 +1,1 @@
+Restore `distutils.ccompiler.compiler_class` -- by :user:`Avasam`

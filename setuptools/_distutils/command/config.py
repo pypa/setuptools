@@ -258,8 +258,6 @@ class config(Command):
         built from 'body' and 'headers'.  Return true on success, false
         otherwise.
         """
-        from ..ccompiler import CompileError, LinkError
-
         self._check_compiler()
         try:
             src, obj, exe = self._link(
