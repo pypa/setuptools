@@ -164,6 +164,30 @@ def __read_test_cases():
                 version=sic('1.0.0a'),
             ),
         ),
+        (
+            'Keywords with commas',
+            params(
+                keywords='one, two, three',
+            ),
+        ),
+        (
+            'Keywords with spaces',
+            params(
+                keywords='one two three',
+            ),
+        ),
+        (
+            'Keywords with commas multiline',
+            params(
+                keywords='one, two,\nthree, four\n',
+            ),
+        ),
+        (
+            'Keywords with spaces multiline',
+            params(
+                keywords='one two\nthree four\n',
+            ),
+        ),
     ]
 
 
