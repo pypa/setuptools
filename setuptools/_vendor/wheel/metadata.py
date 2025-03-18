@@ -142,12 +142,12 @@ def generate_requirements(
 
 def pkginfo_to_metadata(egg_info_path: str, pkginfo_path: str) -> Message:
     """
-    Convert .egg-info directory with PKG-INFO to the Metadata 2.1 format
+    Convert .egg-info directory with PKG-INFO to the Metadata 2.5 format
     """
     with open(pkginfo_path, encoding="utf-8") as headers:
         pkg_info = Parser().parse(headers)
 
-    pkg_info.replace_header("Metadata-Version", "2.1")
+    pkg_info.replace_header("Metadata-Version", "2.5")
     # Those will be regenerated from `requires.txt`.
     del pkg_info["Provides-Extra"]
     del pkg_info["Requires-Dist"]

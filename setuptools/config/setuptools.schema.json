@@ -222,6 +222,7 @@
         "description": {"$ref": "#/definitions/file-directive"},
         "entry-points": {"$ref": "#/definitions/file-directive"},
         "dependencies": {"$ref": "#/definitions/file-directive-for-dependencies"},
+        "default-optional-dependencies": {"$ref": "#/definitions/attr-directive"},
         "optional-dependencies": {
           "type": "object",
           "propertyNames": {"type": "string", "format": "pep508-identifier"},
