@@ -746,12 +746,15 @@ class easy_install(Command):
                     return dist
         return None
 
-    def select_scheme(self, name):
+    def select_scheme(self, name) -> None:
         try:
             install._select_scheme(self, name)
         except AttributeError:
             # stdlib distutils
-            install.install.select_scheme(self, name.replace('posix', 'unix'))
+            install.install.select_scheme(
+                self,  # type: ignore[arg-type] # Pretend it's the correct type for stdlib compatibility
+                name.replace('posix', 'unix'),
+            )
 
     # FIXME: 'easy_install.process_distribution' is too complex (12)
     def process_distribution(  # noqa: C901
