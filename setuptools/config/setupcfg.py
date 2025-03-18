@@ -25,7 +25,7 @@ from packaging.version import InvalidVersion, Version
 
 from .. import _static
 from .._path import StrPath
-from ..errors import FileError, OptionError
+from ..errors import FileError, OptionError, RemovedConfigError
 from ..warnings import SetuptoolsDeprecationWarning
 from . import expand
 
@@ -516,6 +516,25 @@ class ConfigHandler(Generic[Target]):
 
         return config_handler
 
+    def _deprecated(self, field, func):
+        anchor = f"keyword-{field.replace('_', '-')}"
+        return self._deprecated_config_handler(
+            func,
+            f"Deprecated usage of `{field}` in `setup.cfg`.",
+            see_docs=f"references/keywords.html#{anchor}",
+            due_date=(2027, 1, 25),  # introduced in 20 Jan 2025
+        )
+
+    def _removed(self, field, **kwargs):
+        def config_handler(*args, **kwargs):
+            raise RemovedConfigError(
+                f"Invalid use of `{field}` in `setup.cfg`.\nSee: "
+                "https://setuptools.pypa.io/en/latest/"
+                f"references/keywords.html#keyword-{field.replace('_', '-')}"
+            )
+
+        return config_handler
+
 
 class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
     section_prefix = 'metadata'
@@ -561,8 +580,9 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
             'maintainer_email': _static.Str,
             'platforms': parse_list_static,
             'keywords': parse_list_static,
-            'provides': parse_list_static,
-            'obsoletes': parse_list_static,
+            'provides': self._deprecated('provides', parse_list_static),
+            'obsoletes': self._deprecated('obsoletes', parse_list_static),
+            'requires': self._removed('requires'),  # 2023-Nov-20
             'classifiers': self._get_parser_compound(parse_file, parse_list_static),
             'license': exclude_files_parser('license'),
             'license_files': parse_list_static,
@@ -570,7 +590,8 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
             'long_description': parse_file,
             'long_description_content_type': _static.Str,
             'version': self._parse_version,  # Cannot be marked as dynamic
-            'url': _static.Str,
+            'url': self._deprecated('url', _static.Str),
+            'download_url': self._deprecated('download_url', _static.Str),
             'project_urls': parse_dict_static,
         }
 

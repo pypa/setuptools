@@ -85,10 +85,20 @@ extensions).
 ``url``
     A string specifying the URL for the package homepage.
 
+    .. warning::
+        ``url`` is deprecated as it generates the ``Home-page`` metadata.
+        Please use ``project_urls`` instead, with the relevant labels.
+        See :pep:`753`.
+
 .. _keyword/download_url:
 
 ``download_url``
     A string specifying the URL to download the package.
+
+    .. warning::
+        ``download_url`` is deprecated as it generates the ``Download-URL`` metadata.
+        Please use ``project_urls`` instead, with the relevant labels.
+        See :pep:`753`.
 
 .. _keyword/packages:
 
@@ -257,14 +267,14 @@ extensions).
 
 ``requires``
    .. warning::
-      ``requires`` is superseded by ``install_requires`` and should not be used
-      anymore.
+      ``requires`` is deprecated and superseded by ``install_requires``.
+      It should not be used anymore.
 
 .. _keyword/obsoletes:
 
 ``obsoletes``
    .. warning::
-      ``obsoletes`` is currently ignored by ``pip``.
+      ``obsoletes`` is deprecated and currently ignored by ``pip``.
 
    List of strings describing packages which this package renders obsolete,
    meaning that the two projects should not be installed at the same time.
@@ -283,7 +293,7 @@ extensions).
 
 ``provides``
    .. warning::
-      ``provides`` is currently ignored by ``pip``.
+      ``provides`` is currently considered deprecated and is ignored by ``pip``.
 
    List of strings describing package- and virtual package names contained
    within this package.

@@ -294,6 +294,14 @@ class Distribution(_Distribution):
         'extras_require': dict,
     }
 
+    _DEPRECATED_FIELDS = (
+        "url",
+        "download_url",
+        "requires",
+        "provides",
+        "obsoletes",
+    )
+
     # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
     namespace_packages: list[str]  #: :meta private: DEPRECATED
 
@@ -326,9 +334,9 @@ class Distribution(_Distribution):
         self.set_defaults = ConfigDiscovery(self)
 
         self._set_metadata_defaults(attrs)
-
         self.metadata.version = self._normalize_version(self.metadata.version)
         self._finalize_requires()
+        self._check_deprecated_metadata_fields()
 
     def _validate_metadata(self):
         required = {"name"}
@@ -342,6 +350,16 @@ class Distribution(_Distribution):
         if missing:
             msg = f"Required package metadata is missing: {missing}"
             raise DistutilsSetupError(msg)
+
+    def _check_deprecated_metadata_fields(self) -> None:
+        for attr in self._DEPRECATED_FIELDS:
+            if getattr(self.metadata, attr, None):
+                anchor = f"keyword-{attr.replace('_', '-')}"
+                SetuptoolsDeprecationWarning.emit(
+                    f"Deprecated usage of `{attr}` in setuptools configuration.",
+                    see_docs=f"references/keywords.html#{anchor}",
+                    due_date=(2027, 1, 25),  # introduced in 20 Jan 2025
+                )
 
     def _set_metadata_defaults(self, attrs):
         """
@@ -993,8 +1011,9 @@ class Distribution(_Distribution):
 
     def run_command(self, command) -> None:
         self.set_defaults()
-        # Postpone defaults until all explicit configuration is considered
-        # (setup() args, config files, command line and plugins)
+        self._check_deprecated_metadata_fields()
+        # Postpone defaults and validations until all explicit configuration is
+        # considered (setup() args, config files, command line and plugins)
 
         super().run_command(command)
 
