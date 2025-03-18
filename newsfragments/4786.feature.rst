@@ -1,1 +1,0 @@
-In setuptools.msvc.EnvironmentInfo, now honor the correct paths when on an ARM host.

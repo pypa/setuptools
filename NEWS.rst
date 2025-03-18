@@ -1,3 +1,19 @@
+v76.1.0
+=======
+
+Features
+--------
+
+- In setuptools.msvc.EnvironmentInfo, now honor the correct paths when on an ARM host. (#4786)
+
+
+Bugfixes
+--------
+
+- Restored implicit distutils.ccompiler import for g-ir-scanner. (#4871)
+- Restore ``distutils.ccompiler.compiler_class`` -- by :user:`Avasam` (#4876)
+
+
 v75.3.2
 =======
 
