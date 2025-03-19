@@ -1,3 +1,12 @@
+v77.1.1
+=======
+
+Bugfixes
+--------
+
+- Manually fix news fragment entries causing CI to crash when building docs. (#4891)
+
+
 v77.0.0
 =======
 
