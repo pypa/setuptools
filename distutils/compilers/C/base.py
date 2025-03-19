@@ -236,6 +236,9 @@ class Compiler:
     def _is_valid_macro(name, value=None):
         """
         A valid macro is a ``name : str`` and a ``value : str | None``.
+
+        >>> Compiler._is_valid_macro('foo', None)
+        True
         """
         return isinstance(name, str) and isinstance(value, (str, type(None)))
 
