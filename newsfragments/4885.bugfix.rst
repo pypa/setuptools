@@ -1,0 +1,1 @@
+Fixed copy pasta in msvc.shared_lib_format.
