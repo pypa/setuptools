@@ -1,0 +1,1 @@
+Manually fix news fragment entries causing CI to crash when building docs.
