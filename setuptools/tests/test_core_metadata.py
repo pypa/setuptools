@@ -12,6 +12,7 @@ from inspect import cleandoc
 from pathlib import Path
 from unittest.mock import Mock
 
+import jaraco.path
 import pytest
 from packaging.metadata import Metadata
 from packaging.requirements import Requirement
@@ -372,6 +373,9 @@ class TestParityWithMetadataFromPyPaWheel:
         monkeypatch.chdir(tmp_path)
         monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.42"))
         monkeypatch.setattr(expand, "read_files", Mock(return_value="hello world"))
+        monkeypatch.setattr(
+            Distribution, "_finalize_license_files", Mock(return_value=None)
+        )
         if request.param is None:
             yield self.base_example()
         else:
@@ -442,6 +446,7 @@ class TestPEP643:
             readme = {text = "Long\\ndescription", content-type = "text/plain"}
             keywords = ["one", "two"]
             dependencies = ["requests"]
+            license = "AGPL-3.0-or-later"
             [tool.setuptools]
             provides = ["abcd"]
             obsoletes = ["abcd"]
@@ -489,6 +494,46 @@ class TestPEP643:
         # Then we should be able to list the modified fields as Dynamic
         metadata = _get_metadata(dist)
         assert set(metadata.get_all("Dynamic")) == set(fields)
+
+    @pytest.mark.parametrize(
+        "extra_toml",
+        [
+            "# Let setuptools autofill license-files",
+            "license-files = ['LICENSE*', 'AUTHORS*', 'NOTICE']",
+        ],
+    )
+    def test_license_files_dynamic(self, extra_toml, tmpdir_cwd):
+        # For simplicity (and for the time being) setuptools is not making
+        # any special handling to guarantee `License-File` is considered static.
+        # Instead we rely in the fact that, although suboptimal, it is OK to have
+        # it as dynamics, as per:
+        # https://github.com/pypa/setuptools/issues/4629#issuecomment-2331233677
+        files = {
+            "pyproject.toml": self.STATIC_CONFIG["pyproject.toml"].replace(
+                'license = "AGPL-3.0-or-later"',
+                f"dynamic = ['license']\n{extra_toml}",
+            ),
+            "LICENSE.md": "--- mock license ---",
+            "NOTICE": "--- mock notice ---",
+            "AUTHORS.txt": "--- me ---",
+        }
+        # Sanity checks:
+        assert extra_toml in files["pyproject.toml"]
+        assert 'license = "AGPL-3.0-or-later"' not in extra_toml
+
+        jaraco.path.build(files)
+        dist = _makedist(license_expression="AGPL-3.0-or-later")
+        metadata = _get_metadata(dist)
+        assert set(metadata.get_all("Dynamic")) == {
+            'license-file',
+            'license-expression',
+        }
+        assert metadata.get("License-Expression") == "AGPL-3.0-or-later"
+        assert set(metadata.get_all("License-File")) == {
+            "NOTICE",
+            "AUTHORS.txt",
+            "LICENSE.md",
+        }
 
 
 def _makedist(**attrs):

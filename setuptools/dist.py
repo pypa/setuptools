@@ -6,12 +6,13 @@ import numbers
 import os
 import re
 import sys
-from collections.abc import Iterable, MutableMapping, Sequence
-from glob import iglob
+from collections.abc import Iterable, Iterator, MutableMapping, Sequence
+from glob import glob
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
 
 from more_itertools import partition, unique_everseen
+from packaging.licenses import canonicalize_license_expression
 from packaging.markers import InvalidMarker, Marker
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
@@ -27,6 +28,7 @@ from ._path import StrPath
 from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
+from .errors import InvalidConfigError
 from .monkey import get_unpatched
 from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
@@ -288,6 +290,7 @@ class Distribution(_Distribution):
         'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': dict,  # behaves like an ordered set
+        'license_expression': lambda: None,
         'license_file': lambda: None,
         'license_files': lambda: None,
         'install_requires': list,
@@ -402,6 +405,46 @@ class Distribution(_Distribution):
             (k, list(map(str, _reqs.parse(v or [])))) for k, v in extras_require.items()
         )
 
+    def _finalize_license_expression(self) -> None:
+        """
+        Normalize license and license_expression.
+        >>> dist = Distribution({"license_expression": _static.Str("mit aNd  gpl-3.0-OR-later")})
+        >>> _static.is_static(dist.metadata.license_expression)
+        True
+        >>> dist._finalize_license_expression()
+        >>> _static.is_static(dist.metadata.license_expression)  # preserve "static-ness"
+        True
+        >>> print(dist.metadata.license_expression)
+        MIT AND GPL-3.0-or-later
+        """
+        classifiers = self.metadata.get_classifiers()
+        license_classifiers = [cl for cl in classifiers if cl.startswith("License :: ")]
+
+        license_expr = self.metadata.license_expression
+        if license_expr:
+            str_ = _static.Str if _static.is_static(license_expr) else str
+            normalized = str_(canonicalize_license_expression(license_expr))
+            if license_expr != normalized:
+                InformationOnly.emit(f"Normalizing '{license_expr}' to '{normalized}'")
+                self.metadata.license_expression = normalized
+            if license_classifiers:
+                raise InvalidConfigError(
+                    "License classifiers have been superseded by license expressions "
+                    "(see https://peps.python.org/pep-0639/). Please remove:\n\n"
+                    + "\n".join(license_classifiers),
+                )
+        elif license_classifiers:
+            pypa_guides = "guides/writing-pyproject-toml/#license"
+            SetuptoolsDeprecationWarning.emit(
+                "License classifiers are deprecated.",
+                "Please consider removing the following classifiers in favor of a "
+                "SPDX license expression:\n\n" + "\n".join(license_classifiers),
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+                # Warning introduced on 2025-02-17
+                # TODO: Should we add a due date? It may affect old/unmaintained
+                #       packages in the ecosystem and cause problems...
+            )
+
     def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
         license_files: list[str] | None = self.metadata.license_files
@@ -416,25 +459,78 @@ class Distribution(_Distribution):
             # See https://wheel.readthedocs.io/en/stable/user_guide.html
             # -> 'Including license files in the generated wheel file'
             patterns = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
+            files = self._expand_patterns(patterns, enforce_match=False)
+        else:  # Patterns explicitly given by the user
+            files = self._expand_patterns(patterns, enforce_match=True)
 
-        self.metadata.license_files = list(
-            unique_everseen(self._expand_patterns(patterns))
-        )
+        self.metadata.license_files = list(unique_everseen(files))
 
-    @staticmethod
-    def _expand_patterns(patterns):
+    @classmethod
+    def _expand_patterns(
+        cls, patterns: list[str], enforce_match: bool = True
+    ) -> Iterator[str]:
         """
         >>> list(Distribution._expand_patterns(['LICENSE']))
         ['LICENSE']
         >>> list(Distribution._expand_patterns(['pyproject.toml', 'LIC*']))
         ['pyproject.toml', 'LICENSE']
+        >>> list(Distribution._expand_patterns(['setuptools/**/pyprojecttoml.py']))
+        ['setuptools/config/pyprojecttoml.py']
         """
         return (
-            path
+            path.replace(os.sep, "/")
             for pattern in patterns
-            for path in sorted(iglob(pattern))
+            for path in sorted(cls._find_pattern(pattern, enforce_match))
             if not path.endswith('~') and os.path.isfile(path)
         )
+
+    @staticmethod
+    def _find_pattern(pattern: str, enforce_match: bool = True) -> list[str]:
+        r"""
+        >>> Distribution._find_pattern("LICENSE")
+        ['LICENSE']
+        >>> Distribution._find_pattern("/LICENSE.MIT")
+        Traceback (most recent call last):
+        ...
+        setuptools.errors.InvalidConfigError: Pattern '/LICENSE.MIT' should be relative...
+        >>> Distribution._find_pattern("../LICENSE.MIT")
+        Traceback (most recent call last):
+        ...
+        setuptools.errors.InvalidConfigError: ...Pattern '../LICENSE.MIT' cannot contain '..'
+        >>> Distribution._find_pattern("LICEN{CSE*")
+        Traceback (most recent call last):
+        ...
+        setuptools.warnings.SetuptoolsDeprecationWarning: ...Pattern 'LICEN{CSE*' contains invalid characters...
+        """
+        if ".." in pattern:
+            raise InvalidConfigError(f"Pattern {pattern!r} cannot contain '..'")
+        if pattern.startswith((os.sep, "/")) or ":\\" in pattern:
+            raise InvalidConfigError(
+                f"Pattern {pattern!r} should be relative and must not start with '/'"
+            )
+        if re.match(r'^[\w\-\.\/\*\?\[\]]+$', pattern) is None:
+            pypa_guides = "specifications/pyproject-toml/#license-files"
+            SetuptoolsDeprecationWarning.emit(
+                "Please provide a valid glob pattern.",
+                "Pattern {pattern!r} contains invalid characters.",
+                pattern=pattern,
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+                due_date=(2026, 2, 20),  # Introduced in 2025-02-20
+            )
+
+        found = glob(pattern, recursive=True)
+
+        if enforce_match and not found:
+            SetuptoolsDeprecationWarning.emit(
+                "Cannot find any files for the given pattern.",
+                "Pattern {pattern!r} did not match any files.",
+                pattern=pattern,
+                due_date=(2026, 2, 20),  # Introduced in 2025-02-20
+                # PEP 639 requires us to error, but as a transition period
+                # we will only issue a warning to give people time to prepare.
+                # After the transition, this should raise an InvalidConfigError.
+            )
+        return found
 
     # FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
@@ -652,6 +748,7 @@ class Distribution(_Distribution):
             pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)
 
         self._finalize_requires()
+        self._finalize_license_expression()
         self._finalize_license_files()
 
     def fetch_build_eggs(

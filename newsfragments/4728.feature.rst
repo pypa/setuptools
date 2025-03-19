@@ -1,0 +1,1 @@
+Store ``License-File``s in ``.dist-info/licenses`` subfolder and added support for recursive globs for ``license_files`` (:pep:`PEP 639 <639#add-license-expression-field>`). -- by :user:`cdce8p`

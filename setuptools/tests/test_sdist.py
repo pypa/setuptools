@@ -708,12 +708,21 @@ class TestSdistTest:
             [project]
             name = "testing"
             readme = "USAGE.rst"
-            license = {file = "DOWHATYOUWANT"}
+            license-files = ["DOWHATYOUWANT"]
             dynamic = ["version"]
             [tool.setuptools.dynamic]
             version = {file = ["src/VERSION.txt"]}
             """,
         "pyproject.toml - directive with str instead of list": """
+            [project]
+            name = "testing"
+            readme = "USAGE.rst"
+            license-files = ["DOWHATYOUWANT"]
+            dynamic = ["version"]
+            [tool.setuptools.dynamic]
+            version = {file = "src/VERSION.txt"}
+            """,
+        "pyproject.toml - deprecated license table with file entry": """
             [project]
             name = "testing"
             readme = "USAGE.rst"
@@ -725,6 +734,9 @@ class TestSdistTest:
     }
 
     @pytest.mark.parametrize("config", _EXAMPLE_DIRECTIVES.keys())
+    @pytest.mark.filterwarnings(
+        "ignore:.project.license. as a TOML table is deprecated"
+    )
     def test_add_files_referenced_by_config_directives(self, source_dir, config):
         config_file, _, _ = config.partition(" - ")
         config_text = self._EXAMPLE_DIRECTIVES[config]
