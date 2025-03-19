@@ -509,7 +509,7 @@ class Distribution(_Distribution):
                 f"Pattern {pattern!r} should be relative and must not start with '/'"
             )
         if re.match(r'^[\w\-\.\/\*\?\[\]]+$', pattern) is None:
-            pypa_guides = "specifications/pyproject-toml/#license-files"
+            pypa_guides = "specifications/glob-patterns/"
             SetuptoolsDeprecationWarning.emit(
                 "Please provide a valid glob pattern.",
                 "Pattern {pattern!r} contains invalid characters.",
