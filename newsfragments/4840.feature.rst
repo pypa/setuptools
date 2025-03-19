@@ -1,5 +1,0 @@
-Deprecated ``project.license`` as a TOML table in
-``pyproject.toml``. Users are expected to move towards using
-``project.license-files`` and/or SPDX expressions (as strings) in
-``pyproject.license``.
-See :pep:`PEP 639 <639#deprecate-license-key-table-subkeys>`.

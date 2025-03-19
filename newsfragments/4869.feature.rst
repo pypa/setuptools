@@ -1,1 +1,0 @@
-Updated vendored copy of ``wheel`` to ``v0.45.1``.

@@ -1,1 +1,0 @@
-Added initial support for license expression (:pep:`PEP 639 <639#add-license-expression-field>`). -- by :user:`cdce8p`

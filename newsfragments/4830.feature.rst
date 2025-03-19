@@ -1,1 +1,0 @@
-Bump core metadata version to ``2.4``. -- by :user:`cdce8p`

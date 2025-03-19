@@ -1,1 +1,0 @@
-Updated ``pyproject.toml`` validation via ``validate-pyproject`` v0.23.0.

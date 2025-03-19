@@ -1,3 +1,46 @@
+v77.0.0
+=======
+
+Features
+--------
+
+- Added initial support for license expression (:pep:`PEP 639 <639#add-license-expression-field>`). -- by :user:`cdce8p` (#4706)
+- Store ``License-File``s in ``.dist-info/licenses`` subfolder and added support for recursive globs for ``license_files`` (:pep:`PEP 639 <639#add-license-expression-field>`). -- by :user:`cdce8p` (#4728)
+- Bump core metadata version to ``2.4``. -- by :user:`cdce8p` (#4830)
+- Added exception (or warning) when deprecated license classifiers are used,
+  according to `PEP 639 <https://peps.python.org/pep-0639/#deprecate-license-classifiers>`_. (#4833)
+- Deprecated ``tools.setuptools.license-files`` in favor of ``project.license-files``
+  and added exception if ``project.license-files`` and ``tools.setuptools.license-files``
+  are used together. -- by :user:`cdce8p` (#4837)
+- Added simple validation for given glob patterns in ``license-files``:
+  a warning will be generated if no file is matched.
+  Invalid glob patterns can raise an exception.
+  -- thanks :user:`cdce8p` for contributions. (#4838)
+- Deprecated ``project.license`` as a TOML table in
+  ``pyproject.toml``. Users are expected to move towards using
+  ``project.license-files`` and/or SPDX expressions (as strings) in
+  ``pyproject.license``.
+  See :pep:`PEP 639 <639#deprecate-license-key-table-subkeys>`. (#4840)
+- Updated vendored copy of ``wheel`` to ``v0.45.1``. (#4869)
+
+
+Deprecations and Removals
+-------------------------
+
+- Added initial implementation of :pep:`639`.
+  Users relying on pre-:pep:`639` implementation details
+  (like precise license file paths inside ``dist-info`` directory)
+  may need to adjust their code base to avoid problems.
+  Deprecations and stronger validation were also introduced
+  (see details in the **Features** section). (#4829)
+
+
+Misc
+----
+
+- #4734
+
+
 v76.1.0
 =======
 

@@ -1,2 +1,0 @@
-Added exception (or warning) when deprecated license classifiers are used,
-according to `PEP 639 <https://peps.python.org/pep-0639/#deprecate-license-classifiers>`_.
