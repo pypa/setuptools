@@ -1,0 +1,6 @@
+Added initial implementation of :pep:`639`.
+Users relying on pre-:pep:`639` implementation details
+(like precise license file paths inside ``dist-info`` directory)
+may need to adjust their code base to avoid problems.
+Deprecations and stronger validation were also introduced
+(see details in the **Features** section).
