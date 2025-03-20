@@ -4,8 +4,8 @@ v77.0.2
 Bugfixes
 --------
 
-- Restore `distutils.ccompiler._default_compilers` -- by :user:`ManiacDC` (#4876)
-- Fixed copy pasta in msvc.shared_lib_format. (#4885)
+- Restore ``distutils.ccompiler._default_compilers`` -- by :user:`ManiacDC` (#4876)
+- Fixed copy pasta in ``msvc.shared_lib_format``\. (#4885)
 
 
 v77.0.1
