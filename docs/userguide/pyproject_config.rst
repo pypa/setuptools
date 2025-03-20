@@ -70,6 +70,14 @@ The ``project`` table contains metadata fields as described by the
    # ... other project metadata fields as listed in:
    #     https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
 
+.. important::
+   Support for
+   :doc:`project.license-files <PyPUG:pecifications/pyproject-toml/#license-files>`
+   and SPDX license expressions in
+   :doc:`project.license <PyPUG:pecifications/pyproject-toml/#license>` (:pep:`639`)
+   were introduced in version 71.0.0.
+
+
 .. _setuptools-table:
 
 Setuptools-specific configuration
