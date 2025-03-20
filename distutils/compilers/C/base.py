@@ -120,12 +120,12 @@ class Compiler:
     }
     language_order: ClassVar[list[str]] = ["c++", "objc", "c"]
 
-    include_dirs = []
+    include_dirs: list[str] = []
     """
     include dirs specific to this compiler class
     """
 
-    library_dirs = []
+    library_dirs: list[str] = []
     """
     library dirs specific to this compiler class
     """
@@ -148,14 +148,14 @@ class Compiler:
         self.macros: list[_Macro] = []
 
         # 'include_dirs': a list of directories to search for include files
-        self.include_dirs: list[str] = []
+        self.include_dirs = []
 
         # 'libraries': a list of libraries to include in any link
         # (library names, not filenames: eg. "foo" not "libfoo.a")
         self.libraries: list[str] = []
 
         # 'library_dirs': a list of directories to search for libraries
-        self.library_dirs: list[str] = []
+        self.library_dirs = []
 
         # 'runtime_library_dirs': a list of directories to search for
         # shared libraries/objects at runtime
