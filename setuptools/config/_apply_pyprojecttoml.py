@@ -90,7 +90,8 @@ def _apply_tool_table(dist: Distribution, config: dict, filename: StrPath):
         return  # short-circuit
 
     if "license-files" in tool_table:
-        if dist.metadata.license_files:
+        if "license-files" in config.get("project", {}):
+            # https://github.com/pypa/setuptools/pull/4837#discussion_r2004983349
             raise InvalidConfigError(
                 "'project.license-files' is defined already. "
                 "Remove 'tool.setuptools.license-files'."
