@@ -151,21 +151,29 @@ def safer_best_effort_version(value: str) -> str:
     return filename_component(best_effort_version(value))
 
 
+def _missing_canonicalize_license_expression(expression: str) -> str:
+    """
+    Defer import error to affect only users that actually use it
+    https://github.com/pypa/setuptools/issues/4894
+    >>> _missing_canonicalize_license_expression("a OR b")
+    Traceback (most recent call last):
+    ...
+    ImportError: ...Cannot import `packaging.licenses`...
+    """
+    raise ImportError(
+        "Cannot import `packaging.licenses`."
+        """
+        Setuptools>=77.0.0 requires "packaging>=24.2" to work properly.
+        Please make sure you have a suitable version installed.
+        """
+    )
+
+
 try:
     from packaging.licenses import (
         canonicalize_license_expression as _canonicalize_license_expression,
     )
-except ImportError:
+except ImportError:  # pragma: nocover
     if not TYPE_CHECKING:
         # XXX: pyright is still upset even with # pyright: ignore[reportAssignmentType]
-
-        def _canonicalize_license_expression(expression: str) -> str:
-            # Defer import error to affect only users that actually use it
-            # https://github.com/pypa/setuptools/issues/4894
-            raise ImportError(
-                "Cannot import `packaging.licenses`."
-                """
-                Setuptools>=77.0.0 requires "packaging>=24.2" to work properly.
-                Please make sure you have a suitable version installed.
-                """
-            )
+        _canonicalize_license_expression = _missing_canonicalize_license_expression
