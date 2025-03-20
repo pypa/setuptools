@@ -4,6 +4,7 @@ and core metadata
 """
 
 import re
+from typing import TYPE_CHECKING
 
 import packaging
 
@@ -155,14 +156,16 @@ try:
         canonicalize_license_expression as _canonicalize_license_expression,
     )
 except ImportError:
+    if not TYPE_CHECKING:
+        # XXX: pyright is still upset even with # pyright: ignore[reportAssignmentType]
 
-    def _canonicalize_license_expression(expression: str) -> str:  # type: ignore[misc]  # pyright: ignore[reportAssignmentType]
-        # Defer import error to affect only users that actually use it
-        # https://github.com/pypa/setuptools/issues/4894
-        raise ImportError(
-            "Cannot import `packaging.licenses`."
-            """
-            Setuptools>=77.0.0 requires "packaging>=24.2" to work properly.
-            Please make sure you have a suitable version installed.
-            """
-        )
+        def _canonicalize_license_expression(expression: str) -> str:
+            # Defer import error to affect only users that actually use it
+            # https://github.com/pypa/setuptools/issues/4894
+            raise ImportError(
+                "Cannot import `packaging.licenses`."
+                """
+                Setuptools>=77.0.0 requires "packaging>=24.2" to work properly.
+                Please make sure you have a suitable version installed.
+                """
+            )
