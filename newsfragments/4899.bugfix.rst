@@ -1,3 +1,0 @@
-Avoided eagerly raising an exception when ``license-files`` is defined
-simultaneously inside and outside of ``pyproject.toml``.
-Instead we rely on the existing deprecation error.

@@ -1,3 +1,19 @@
+v77.0.3
+=======
+
+Bugfixes
+--------
+
+- Temporarily convert error for license glob patterns containing ``../`` into a deprecation warning
+  to allow an accomodation period. (#4896)
+- Better error messages for ``packaging.licenses`` import errors in environments with ``packaging<24.2``\.
+  The import statement was also deferred to spare users that are not using
+  license expressions. (#4898)
+- Avoided eagerly raising an exception when ``license-files`` is defined
+  simultaneously inside and outside of ``pyproject.toml``.
+  Instead we rely on the existing deprecation error. (#4899)
+
+
 v77.0.2
 =======
 

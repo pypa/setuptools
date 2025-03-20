@@ -1,4 +1,0 @@
-Better error messages for ``packaging.licenses`` import errors in environments with ``packaging<24.2``\.
-The import statement was also deferred to spare users that are not using
-license expressions.
-

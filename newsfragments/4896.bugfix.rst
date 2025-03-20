@@ -1,2 +1,0 @@
-Temporarily convert error for license glob patterns containing ``../`` into a deprecation warning
-to allow an accomodation period.
