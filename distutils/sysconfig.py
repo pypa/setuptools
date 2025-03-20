@@ -156,8 +156,6 @@ def _extant(path):
 
 
 def _get_python_inc_posix(prefix, spec_prefix, plat_specific):
-    if IS_PYPY and sys.version_info < (3, 8):
-        return os.path.join(prefix, 'include')
     return (
         _get_python_inc_posix_python(plat_specific)
         or _extant(_get_python_inc_from_config(plat_specific, spec_prefix))
@@ -245,14 +243,6 @@ def get_python_lib(
     If 'prefix' is supplied, use it instead of sys.base_prefix or
     sys.base_exec_prefix -- i.e., ignore 'plat_specific'.
     """
-
-    if IS_PYPY and sys.version_info < (3, 8):
-        # PyPy-specific schema
-        if prefix is None:
-            prefix = PREFIX
-        if standard_lib:
-            return os.path.join(prefix, "lib-python", sys.version_info.major)
-        return os.path.join(prefix, 'site-packages')
 
     early_prefix = prefix
 
