@@ -496,20 +496,30 @@ class Distribution(_Distribution):
         >>> Distribution._find_pattern("../LICENSE.MIT")
         Traceback (most recent call last):
         ...
-        setuptools.errors.InvalidConfigError: ...Pattern '../LICENSE.MIT' cannot contain '..'
+        setuptools.warnings.SetuptoolsDeprecationWarning: ...Pattern '../LICENSE.MIT' cannot contain '..'
         >>> Distribution._find_pattern("LICEN{CSE*")
         Traceback (most recent call last):
         ...
         setuptools.warnings.SetuptoolsDeprecationWarning: ...Pattern 'LICEN{CSE*' contains invalid characters...
         """
+        pypa_guides = "specifications/glob-patterns/"
         if ".." in pattern:
-            raise InvalidConfigError(f"Pattern {pattern!r} cannot contain '..'")
+            SetuptoolsDeprecationWarning.emit(
+                f"Pattern {pattern!r} cannot contain '..'",
+                """
+                According to the new PyPA standards, this glob pattern is invalid.
+                Please ensure the files specified are contained by the root
+                of the Python package (normally marked by `pyproject.toml`).
+                """,
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+                due_date=(2026, 2, 20),  # Introduced in 2025-03-20
+                # Replace with InvalidConfigError after deprecation
+            )
         if pattern.startswith((os.sep, "/")) or ":\\" in pattern:
             raise InvalidConfigError(
                 f"Pattern {pattern!r} should be relative and must not start with '/'"
             )
         if re.match(r'^[\w\-\.\/\*\?\[\]]+$', pattern) is None:
-            pypa_guides = "specifications/glob-patterns/"
             SetuptoolsDeprecationWarning.emit(
                 "Please provide a valid glob pattern.",
                 "Pattern {pattern!r} contains invalid characters.",
