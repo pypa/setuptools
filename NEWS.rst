@@ -8,7 +8,7 @@ Bugfixes
 - Fixed copy pasta in msvc.shared_lib_format. (#4885)
 
 
-v77.1.1
+v77.0.1
 =======
 
 Bugfixes
