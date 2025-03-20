@@ -23,6 +23,7 @@ from packaging import tags, version as _packaging_version
 from wheel.wheelfile import WheelFile
 
 from .. import Command, __version__, _shutil
+from .._core_metadata import _safe_license_file
 from .._normalization import safer_name
 from ..warnings import SetuptoolsDeprecationWarning
 from .egg_info import egg_info as egg_info_cls
@@ -582,7 +583,8 @@ class bdist_wheel(Command):
 
         licenses_folder_path = os.path.join(distinfo_path, "licenses")
         for license_path in self.license_paths:
-            dist_info_license_path = os.path.join(licenses_folder_path, license_path)
+            safe_path = _safe_license_file(license_path)
+            dist_info_license_path = os.path.join(licenses_folder_path, safe_path)
             os.makedirs(os.path.dirname(dist_info_license_path), exist_ok=True)
             shutil.copy(license_path, dist_info_license_path)
 
