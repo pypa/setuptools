@@ -72,9 +72,9 @@ The ``project`` table contains metadata fields as described by the
 
 .. important::
    Support for
-   :doc:`project.license-files <PyPUG:pecifications/pyproject-toml/#license-files>`
+   :doc:`project.license-files <PyPUG:specifications/pyproject-toml/#license-files>`
    and SPDX license expressions in
-   :doc:`project.license <PyPUG:pecifications/pyproject-toml/#license>` (:pep:`639`)
+   :doc:`project.license <PyPUG:specifications/pyproject-toml/#license>` (:pep:`639`)
    were introduced in version 71.0.0.
 
 
