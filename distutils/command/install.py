@@ -4,6 +4,7 @@ Implements the Distutils 'install' command."""
 
 from __future__ import annotations
 
+import collections
 import contextlib
 import itertools
 import os
@@ -12,8 +13,6 @@ import sysconfig
 from distutils._log import log
 from site import USER_BASE, USER_SITE
 from typing import ClassVar
-
-import jaraco.collections
 
 from ..core import Command
 from ..debug import DEBUG
@@ -432,12 +431,12 @@ class install(Command):
             local_vars['userbase'] = self.install_userbase
             local_vars['usersite'] = self.install_usersite
 
-        self.config_vars = jaraco.collections.DictStack([
-            fw.vars(),
-            compat_vars,
-            sysconfig.get_config_vars(),
+        self.config_vars = collections.ChainMap(
             local_vars,
-        ])
+            sysconfig.get_config_vars(),
+            compat_vars,
+            fw.vars(),
+        )
 
         self.expand_basedirs()
 
