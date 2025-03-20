@@ -146,7 +146,7 @@ class TestBuildExt(TempdirManager):
 
     @staticmethod
     def _test_xx(copy_so):
-        import xx
+        import xx  # type: ignore[import-not-found] # Module generated for tests
 
         for attr in ('error', 'foo', 'new', 'roj'):
             assert hasattr(xx, attr)

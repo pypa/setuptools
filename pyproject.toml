@@ -101,7 +101,6 @@ core = [
 	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
 
 	# for distutils
-	"jaraco.collections",
 	"jaraco.functools >= 4",
 	"packaging",
 	"more_itertools",
