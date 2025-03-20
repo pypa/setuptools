@@ -183,7 +183,7 @@ Common commands: (see '--help-commands' for more)
         # can 1) quickly figure out which class to instantiate when
         # we need to create a new command object, and 2) have a way
         # for the setup script to override command classes
-        self.cmdclass = {}
+        self.cmdclass: dict[str, type[Command]] = {}
 
         # 'command_packages' is a list of packages in which commands
         # are searched for.  The factory for command 'foo' is expected
@@ -1168,6 +1168,7 @@ class DistributionMetadata:
             value = msg[name]
             if value and value != "UNKNOWN":
                 return value
+            return None
 
         def _read_list(name):
             values = msg.get_all(name, None)

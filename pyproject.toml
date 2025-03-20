@@ -77,12 +77,8 @@ type = [
 	"pytest-mypy",
 
 	# local
+	"types-docutils",
 ]
 
 
 [tool.setuptools_scm]
-
-
-[tool.pytest-enabler.mypy]
-# Disabled due to jaraco/skeleton#143
-# Disabled as distutils isn't ready yet
