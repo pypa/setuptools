@@ -156,7 +156,7 @@ try:
     )
 except ImportError:
 
-    def _canonicalize_license_expression(expression: str) -> str:
+    def _canonicalize_license_expression(expression: str) -> str:  # type: ignore[misc]  # pyright: ignore[reportAssignmentType]
         # Defer import error to affect only users that actually use it
         # https://github.com/pypa/setuptools/issues/4894
         raise ImportError(
