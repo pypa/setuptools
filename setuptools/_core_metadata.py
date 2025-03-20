@@ -207,7 +207,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     if self.long_description_content_type:
         write_field('Description-Content-Type', self.long_description_content_type)
 
-    self._write_list(file, 'License-File', self.license_files or [])
+    safe_license_files = map(_safe_license_file, self.license_files or [])
+    self._write_list(file, 'License-File', safe_license_files)
     _write_requirements(self, file)
 
     for field, attr in _POSSIBLE_DYNAMIC_FIELDS.items():
@@ -291,6 +292,14 @@ def _distribution_fullname(name: str, version: str) -> str:
         canonicalize_name(name).replace('-', '_'),
         canonicalize_version(version, strip_trailing_zero=False),
     )
+
+
+def _safe_license_file(file):
+    # XXX: Do we need this after the deprecation discussed in #4892, #4896??
+    normalized = os.path.normpath(file).replace(os.sep, "/")
+    if "../" in normalized:
+        return os.path.basename(normalized)  # Temporarily restore pre PEP639 behaviour
+    return normalized
 
 
 _POSSIBLE_DYNAMIC_FIELDS = {
