@@ -148,3 +148,21 @@ def safer_best_effort_version(value: str) -> str:
     # See bdist_wheel.safer_verion
     # TODO: Replace with only safe_version in the future (no need for best effort)
     return filename_component(best_effort_version(value))
+
+
+try:
+    from packaging.licenses import (
+        canonicalize_license_expression as _canonicalize_license_expression,
+    )
+except ImportError:
+
+    def _canonicalize_license_expression(expression: str) -> str:
+        # Defer import error to affect only users that actually use it
+        # https://github.com/pypa/setuptools/issues/4894
+        raise ImportError(
+            "Cannot import `packaging.licenses`."
+            """
+            Setuptools>=77.0.0 requires "packaging>=24.2" to work properly.
+            Please make sure you have a suitable version installed.
+            """
+        )

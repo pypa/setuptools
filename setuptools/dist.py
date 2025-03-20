@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
 
 from more_itertools import partition, unique_everseen
-from packaging.licenses import canonicalize_license_expression
 from packaging.markers import InvalidMarker, Marker
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
@@ -24,6 +23,7 @@ from . import (
     command as _,  # noqa: F401 # imported for side-effects
 )
 from ._importlib import metadata
+from ._normalization import _canonicalize_license_expression
 from ._path import StrPath
 from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
@@ -423,7 +423,7 @@ class Distribution(_Distribution):
         license_expr = self.metadata.license_expression
         if license_expr:
             str_ = _static.Str if _static.is_static(license_expr) else str
-            normalized = str_(canonicalize_license_expression(license_expr))
+            normalized = str_(_canonicalize_license_expression(license_expr))
             if license_expr != normalized:
                 InformationOnly.emit(f"Normalizing '{license_expr}' to '{normalized}'")
                 self.metadata.license_expression = normalized
