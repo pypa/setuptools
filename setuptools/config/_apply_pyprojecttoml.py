@@ -100,7 +100,7 @@ def _apply_tool_table(dist: Distribution, config: dict, filename: StrPath):
         pypa_guides = "guides/writing-pyproject-toml/#license-files"
         SetuptoolsDeprecationWarning.emit(
             "'tool.setuptools.license-files' is deprecated in favor of "
-            "'project.license-files'",
+            "'project.license-files' (available on setuptools>=77.0.0).",
             see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
             due_date=(2026, 2, 18),  # Warning introduced on 2025-02-18
         )
@@ -211,7 +211,8 @@ def _license(dist: Distribution, val: str | dict, root_dir: StrPath | None):
         SetuptoolsDeprecationWarning.emit(
             "`project.license` as a TOML table is deprecated",
             "Please use a simple string containing a SPDX expression for "
-            "`project.license`. You can also use `project.license-files`.",
+            "`project.license`. You can also use `project.license-files`. "
+            "(Both options available on setuptools>=77.0.0).",
             see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
             due_date=(2026, 2, 18),  # Introduced on 2025-02-18
         )
