@@ -1,0 +1,10 @@
+Setuptools no longer accepts options containing uppercase or dash characters in ``setup.cfg``.
+Please ensure to write the options in ``setup.cfg`` using the :wiki:`lower_snake_case <Snake_case>` convention
+(e.g. ``Name => name``, ``install-requires => install_requires``).
+This is a follow-up on deprecations introduced in
+`v54.1.0 <https://setuptools.pypa.io/en/latest/history.html#v54-1-0>`_ (see #1608) and
+`v54.1.1 <https://setuptools.pypa.io/en/latest/history.html#v54-1-1>`_ (see #2592).
+
+.. note::
+   This change *does not affect configurations in* ``pyproject.toml``
+   (which uses the :wiki:`lower-kebab-case <Letter_case#Kebab_case>` convention following the precedent set in :pep:`517`/:pep:`518`).
