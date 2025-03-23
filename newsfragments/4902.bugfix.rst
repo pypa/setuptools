@@ -1,0 +1,1 @@
+Reverted distutils changes that broke the monkey patching of command classes.
