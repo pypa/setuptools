@@ -54,7 +54,7 @@ EXAMPLES = [
     ("pyyaml", LATEST),  # cython + custom build_ext + custom distclass
     ("charset-normalizer", LATEST),  # uses mypyc, used by aiohttp
     ("protobuf", LATEST),
-    ("requests", LATEST),
+    # ("requests", LATEST),  # XXX: https://github.com/psf/requests/pull/6920
     ("celery", LATEST),
     # When adding packages to this list, make sure they expose a `__version__`
     # attribute, or modify the tests below
