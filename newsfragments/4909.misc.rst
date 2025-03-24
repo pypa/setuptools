@@ -1,0 +1,2 @@
+Temporarily remove ``requests`` from integration tests
+due to invalid ``setup.cfg``.
