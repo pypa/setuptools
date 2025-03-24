@@ -1,3 +1,13 @@
+v78.0.2
+=======
+
+Bugfixes
+--------
+
+- Postponed removals of deprecated dash-separated and uppercase fields in ``setup.cfg``.
+  All packages with deprecated configurations are advised to move before 2026. (#4911)
+
+
 v78.0.1
 =======
 
