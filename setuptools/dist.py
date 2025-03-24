@@ -626,21 +626,41 @@ class Distribution(_Distribution):
         if "-" not in opt or self._skip_setupcfg_normalization(section):
             return opt
 
-        raise InvalidConfigError(
+        underscore_opt = opt.replace('-', '_')
+        affected = f"(Affected: {self.metadata.name})." if self.metadata.name else ""
+        SetuptoolsDeprecationWarning.emit(
             f"Invalid dash-separated key {opt!r} in {section!r} (setup.cfg), "
-            f"please use the underscore name {opt.replace('-', '_')!r} instead."
+            f"please use the underscore name {underscore_opt!r} instead.",
+            f"""
+            Usage of dash-separated {opt!r} will not be supported in future
+            versions. Please use the underscore name {underscore_opt!r} instead.
+            {affected}
+            """,
+            see_docs="userguide/declarative_config.html",
+            due_date=(2026, 3, 3),
             # Warning initially introduced in 3 Mar 2021
         )
+        return underscore_opt
 
     def _enforce_option_lowercase(self, opt: str, section: str) -> str:
         if opt.islower() or self._skip_setupcfg_normalization(section):
             return opt
 
-        raise InvalidConfigError(
+        lowercase_opt = opt.lower()
+        affected = f"(Affected: {self.metadata.name})." if self.metadata.name else ""
+        SetuptoolsDeprecationWarning.emit(
             f"Invalid uppercase key {opt!r} in {section!r} (setup.cfg), "
-            f"please use lowercase {opt.lower()!r} instead."
+            f"please use lowercase {lowercase_opt!r} instead.",
+            f"""
+            Usage of uppercase key {opt!r} in {section!r} will not be supported in
+            future versions. Please use lowercase {lowercase_opt!r} instead.
+            {affected}
+            """,
+            see_docs="userguide/declarative_config.html",
+            due_date=(2026, 3, 3),
             # Warning initially introduced in 6 Mar 2021
         )
+        return lowercase_opt
 
     def _skip_setupcfg_normalization(self, section: str) -> bool:
         skip = (
