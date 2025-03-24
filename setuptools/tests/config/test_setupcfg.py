@@ -458,6 +458,8 @@ class TestMetadata:
         with pytest.warns(SetuptoolsDeprecationWarning, match=re.escape(error_msg)):
             dist = get_dist(tmpdir).__enter__()
 
+        tmpdir.join('setup.cfg').remove()
+
         for field, value in invalid.items():
             attr = field.replace("-", "_").lower()
             assert getattr(dist.metadata, attr) == value
