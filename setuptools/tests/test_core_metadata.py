@@ -38,7 +38,7 @@ EXAMPLE_BASE_INFO = dict(
 
 @pytest.mark.parametrize(
     ("content", "result"),
-    (
+    [
         pytest.param(
             "Just a single line",
             None,
@@ -64,7 +64,7 @@ EXAMPLE_BASE_INFO = dict(
             "Leading whitespace\nIn\n    Multiline comment",
             id="remove_leading_whitespace_multiline",
         ),
-    ),
+    ],
 )
 def test_rfc822_unescape(content, result):
     assert (result or content) == rfc822_unescape(rfc822_escape(content))
