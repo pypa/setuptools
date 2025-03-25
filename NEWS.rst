@@ -1,3 +1,12 @@
+v78.1.0
+=======
+
+Features
+--------
+
+- Restore access to _get_vc_env with a warning. (#4874)
+
+
 v78.0.2
 =======
 
