@@ -1,0 +1,1 @@
+Restore access to _get_vc_env with a warning.
