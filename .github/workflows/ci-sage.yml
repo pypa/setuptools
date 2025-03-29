@@ -79,8 +79,8 @@ jobs:
           name: upstream
 
   linux:
-    # https://github.com/sagemath/sage/blob/develop/.github/workflows/docker.yml
-    uses: sagemath/sage/.github/workflows/docker.yml@develop
+    # https://github.com/sagemath/sage/blob/10.5/.github/workflows/docker.yml
+    uses: sagemath/sage/.github/workflows/docker.yml@10.5
     with:
       # Sage distribution packages to build
       targets: setuptools pyzmq
