@@ -354,11 +354,11 @@ class TestMetadata:
                 dist.parse_config_files()
 
     def test_classifiers(self, tmpdir):
-        expected = set([
+        expected = {
             'Framework :: Django',
             'Programming Language :: Python :: 3',
             'Programming Language :: Python :: 3.5',
-        ])
+        }
 
         # From file.
         _, config = fake_env(tmpdir, '[metadata]\nclassifiers = file: classifiers\n')
@@ -602,11 +602,11 @@ class TestOptions:
         make_package_dir('sub_two', dir_package)
 
         with get_dist(tmpdir) as dist:
-            assert set(dist.packages) == set([
+            assert set(dist.packages) == {
                 'fake_package',
                 'fake_package.sub_two',
                 'fake_package.sub_one',
-            ])
+            }
 
         config.write(
             '[options]\n'
@@ -630,7 +630,7 @@ class TestOptions:
             '    fake_package.sub_one\n'
         )
         with get_dist(tmpdir) as dist:
-            assert set(dist.packages) == set(['fake_package', 'fake_package.sub_two'])
+            assert set(dist.packages) == {'fake_package', 'fake_package.sub_two'}
 
     def test_find_namespace_directive(self, tmpdir):
         dir_package, config = fake_env(
