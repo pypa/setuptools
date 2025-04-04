@@ -171,7 +171,12 @@ class bdist_wheel(Command):
             "g",
             "Group name used when creating a tar file [default: current group]",
         ),
-        ("universal", None, "*DEPRECATED* make a universal wheel [default: false]"),
+        (
+            "universal",
+            None,
+            "*DEPRECATED* make a universal wheel [default: false]\n\n'
+            'Set `python_tag = py2.py3` in `setup.cfg` instead.",
+        ),
         (
             "compression=",
             None,
@@ -267,6 +272,9 @@ class bdist_wheel(Command):
                 is being obviated.
                 Please discontinue using this option, or if you still need it,
                 file an issue with pypa/setuptools describing your use case.
+
+                The use of this setting can be replaced with `python_tag = py2.py3`
+                entry in `setup.cfg`.",
                 """,
                 due_date=(2025, 8, 30),  # Introduced in 2024-08-30
             )
