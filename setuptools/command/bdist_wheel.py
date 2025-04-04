@@ -174,8 +174,8 @@ class bdist_wheel(Command):
         (
             "universal",
             None,
-            "*DEPRECATED* make a universal wheel [default: false]\n\n'
-            'Set `python_tag = py2.py3` in `setup.cfg` instead.",
+            "*DEPRECATED* make a universal wheel [default: false]\n\n"
+            "Set `python_tag = py2.py3` in `setup.cfg` instead.",
         ),
         (
             "compression=",
