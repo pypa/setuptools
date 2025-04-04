@@ -119,7 +119,7 @@ Deprecations and Removals
 - Deprecated ``project.license`` as a TOML table in
   ``pyproject.toml``\. Users are expected to move towards using
   ``project.license-files`` and/or SPDX expressions (as strings) in
-  ``pyproject.license``\.
+  ``project.license``\.
   See PEP :pep:`639 <639#deprecate-license-key-table-subkeys>`. (#4840)
 - Added simple validation for given glob patterns in ``license-files``\:
   a warning will be generated if no file is matched.
