@@ -291,8 +291,8 @@ int run(int argc, char **argv, int is_gui) {
     *ptr-- = '\0';
 
     if (strncmp(python, "#!", 2)) {
-        /* default to python.exe if no #! header */
-        strcpy(python, "#!python.exe");
+        /* default to python[w].exe if no #! header */
+        strcpy(python, is_gui ? "#!pythonw.exe" : "#!python.exe");
     }
 
     parsedargs = parse_argv(python+2, &parsedargc);
