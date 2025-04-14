@@ -61,11 +61,11 @@ equal to "final", or a dash (``-``) - for example ``2.4-r1263`` or
 
 Notice that after each legacy pre or post-release tag, you are free to place
 another release number, followed again by more pre- or post-release tags.  For
-example, ``0.6a9.dev41475`` could denote Subversion revision 41475 of the in-
-development version of the ninth alpha of release 0.6.  Notice that ``dev`` is
-a pre-release tag, so this version is a *lower* version number than ``0.6a9``,
-which would be the actual ninth alpha of release 0.6.  But the ``41475`` is
-a post-release tag, so this version is *newer* than ``0.6a9.dev``.
+example, ``0.6a9.dev41475`` could denote Subversion revision 41475 of the
+in-development version of the ninth alpha of release 0.6.  Notice that ``dev``
+is a pre-release tag, so this version is a *lower* version number than
+``0.6a9``, which would be the actual ninth alpha of release 0.6.  But the
+``41475`` is a post-release tag, so this version is *newer* than ``0.6a9.dev``.
 
 For the most part, setuptools' interpretation of version numbers is intuitive,
 but here are a few tips that will keep you out of trouble in the corner cases:

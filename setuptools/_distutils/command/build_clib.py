@@ -4,7 +4,6 @@ Implements the Distutils 'build_clib' command, to build a C/C++ library
 that is included in the module distribution and needed by an extension
 module."""
 
-
 # XXX this module has *lots* of code ripped-off quite transparently from
 # build_ext.py -- not surprisingly really, as the work required to build
 # a static library from a collection of C source files is not really all
@@ -13,24 +12,23 @@ module."""
 # necessary refactoring to account for the overlap in code between the
 # two modules, mainly because a number of subtle details changed in the
 # cut 'n paste.  Sigh.
+from __future__ import annotations
 
 import os
+from collections.abc import Callable
+from distutils._log import log
+from typing import ClassVar
+
+from ..ccompiler import new_compiler, show_compilers
 from ..core import Command
 from ..errors import DistutilsSetupError
 from ..sysconfig import customize_compiler
-from distutils._log import log
-
-
-def show_compilers():
-    from ..ccompiler import show_compilers
-
-    show_compilers()
 
 
 class build_clib(Command):
     description = "build C/C++ libraries used by Python extensions"
 
-    user_options = [
+    user_options: ClassVar[list[tuple[str, str, str]]] = [
         ('build-clib=', 'b', "directory to build C/C++ libraries to"),
         ('build-temp=', 't', "directory to put temporary build by-products"),
         ('debug', 'g', "compile with debugging information"),
@@ -38,9 +36,9 @@ class build_clib(Command):
         ('compiler=', 'c', "specify the compiler type"),
     ]
 
-    boolean_options = ['debug', 'force']
+    boolean_options: ClassVar[list[str]] = ['debug', 'force']
 
-    help_options = [
+    help_options: ClassVar[list[tuple[str, str | None, str, Callable[[], object]]]] = [
         ('help-compiler', None, "list available compilers", show_compilers),
     ]
 
@@ -56,10 +54,10 @@ class build_clib(Command):
         self.define = None
         self.undef = None
         self.debug = None
-        self.force = 0
+        self.force = False
         self.compiler = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         # This might be confusing: both build-clib and build-temp default
         # to build-temp as defined by the "build" command.  This is because
         # I think that C libraries are really just temporary build
@@ -86,12 +84,9 @@ class build_clib(Command):
         # XXX same as for build_ext -- what about 'self.define' and
         # 'self.undef' ?
 
-    def run(self):
+    def run(self) -> None:
         if not self.libraries:
             return
-
-        # Yech -- this is cut 'n pasted from build_ext.py!
-        from ..ccompiler import new_compiler
 
         self.compiler = new_compiler(
             compiler=self.compiler, dry_run=self.dry_run, force=self.force
@@ -110,7 +105,7 @@ class build_clib(Command):
 
         self.build_libraries(self.libraries)
 
-    def check_library_list(self, libraries):
+    def check_library_list(self, libraries) -> None:
         """Ensure that the list of libraries is valid.
 
         `library` is presumably provided as a command option 'libraries'.
@@ -137,8 +132,7 @@ class build_clib(Command):
 
             if '/' in name or (os.sep != '/' and os.sep in name):
                 raise DistutilsSetupError(
-                    "bad library name '%s': "
-                    "may not contain directory separators" % lib[0]
+                    f"bad library name '{lib[0]}': may not contain directory separators"
                 )
 
             if not isinstance(build_info, dict):
@@ -154,7 +148,7 @@ class build_clib(Command):
             return None
 
         lib_names = []
-        for lib_name, build_info in self.libraries:
+        for lib_name, _build_info in self.libraries:
             lib_names.append(lib_name)
         return lib_names
 
@@ -165,22 +159,22 @@ class build_clib(Command):
             sources = build_info.get('sources')
             if sources is None or not isinstance(sources, (list, tuple)):
                 raise DistutilsSetupError(
-                    "in 'libraries' option (library '%s'), "
+                    f"in 'libraries' option (library '{lib_name}'), "
                     "'sources' must be present and must be "
-                    "a list of source filenames" % lib_name
+                    "a list of source filenames"
                 )
 
             filenames.extend(sources)
         return filenames
 
-    def build_libraries(self, libraries):
+    def build_libraries(self, libraries) -> None:
         for lib_name, build_info in libraries:
             sources = build_info.get('sources')
             if sources is None or not isinstance(sources, (list, tuple)):
                 raise DistutilsSetupError(
-                    "in 'libraries' option (library '%s'), "
+                    f"in 'libraries' option (library '{lib_name}'), "
                     "'sources' must be present and must be "
-                    "a list of source filenames" % lib_name
+                    "a list of source filenames"
                 )
             sources = list(sources)
 

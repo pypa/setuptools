@@ -1,5 +1,5 @@
-"""Test .dist-info style distributions.
-"""
+"""Test .dist-info style distributions."""
+
 import pathlib
 import re
 import shutil
@@ -11,14 +11,13 @@ import pytest
 
 import pkg_resources
 from setuptools.archive_util import unpack_archive
-from .textwrap import DALS
 
+from .textwrap import DALS
 
 read = partial(pathlib.Path.read_text, encoding="utf-8")
 
 
 class TestDistInfo:
-
     metadata_base = DALS(
         """
         Metadata-Version: 1.2
@@ -123,7 +122,7 @@ class TestDistInfo:
         run_command("dist_info", "--output-dir", out, *opts, cwd=tmp_path)
         assert len(list(out.glob("*.dist-info"))) == 1
         assert len(list(tmp_path.glob("*.dist-info"))) == 0
-        expected_egg_info = 1 if keep_egg_info else 0
+        expected_egg_info = int(keep_egg_info)
         assert len(list(out.glob("*.egg-info"))) == expected_egg_info
         assert len(list(tmp_path.glob("*.egg-info"))) == 0
         assert len(list(out.glob("*.__bkp__"))) == 0
@@ -170,7 +169,7 @@ class TestWheelCompatibility:
 
     @pytest.mark.parametrize("name", "my-proj my_proj my.proj My.Proj".split())
     @pytest.mark.parametrize("version", ["0.42.13"])
-    @pytest.mark.parametrize("suffix, cfg", EGG_INFO_OPTS)
+    @pytest.mark.parametrize(("suffix", "cfg"), EGG_INFO_OPTS)
     def test_dist_info_is_the_same_as_in_wheel(
         self, name, version, tmp_path, suffix, cfg
     ):
@@ -189,7 +188,7 @@ class TestWheelCompatibility:
         dist_info = next(tmp_path.glob("dir_dist/*.dist-info"))
 
         assert dist_info.name == wheel_dist_info.name
-        assert dist_info.name.startswith(f"{name.replace('-', '_')}-{version}{suffix}")
+        assert dist_info.name.startswith(f"my_proj-{version}{suffix}")
         for file in "METADATA", "entry_points.txt":
             assert read(dist_info / file) == read(wheel_dist_info / file)
 
@@ -199,7 +198,8 @@ def run_command_inner(*cmd, **kwargs):
         "stderr": subprocess.STDOUT,
         "stdout": subprocess.PIPE,
         "text": True,
-        'check': True,
+        "encoding": "utf-8",
+        "check": True,
         **kwargs,
     }
     cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *map(str, cmd)]

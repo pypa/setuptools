@@ -23,7 +23,7 @@ using :doc:`pip's <pip:cli/pip_install>` ``-e/--editable`` flag, as shown below:
 
    $ cd your-python-project
    $ python -m venv .venv
-   # Activate your environemt with:
+   # Activate your environment with:
    #      `source .venv/bin/activate` on Unix/macOS
    # or   `.venv\Scripts\activate` on Windows
 

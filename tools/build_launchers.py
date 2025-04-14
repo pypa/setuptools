@@ -17,14 +17,13 @@ List of components needed to install to compile on ARM:
 - C++ ATL for latest v143 build tools (ARM64)
 """
 
-import os
 import functools
 import itertools
+import os
 import pathlib
 import shutil
 import subprocess
 import tempfile
-
 
 BUILD_TARGETS = ["cli", "gui"]
 GUI = {"cli": 0, "gui": 1}
@@ -55,13 +54,13 @@ Generators
 """
 
 
-def resolve_platform(platform: str):
+def resolve_platform(platform: str) -> str:
     if platform in ["Win32", "x64"]:
         return platform[-2:]
     return platform
 
 
-def get_executable_name(name, platform: str):
+def get_executable_name(name, platform: str) -> str:
     return f"{name}-{resolve_platform(platform)}"
 
 
@@ -86,7 +85,7 @@ def build_cmake_project_with_msbuild(build_arena, msbuild_parameters):
     subprocess.check_call(cmd, cwd=build_arena)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_cmake():
     """Find CMake using registry."""
     import winreg
@@ -96,7 +95,7 @@ def get_cmake():
     return root / 'bin\\CMake.exe'
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def get_msbuild():
     """Use VSWhere to find MSBuild."""
     vswhere = pathlib.Path(
@@ -118,8 +117,8 @@ def get_msbuild():
     ]
     try:
         return subprocess.check_output(cmd, encoding='utf-8', text=True).strip()
-    except subprocess.CalledProcessError:
-        raise SystemExit("Unable to find MSBuild; check Visual Studio install")
+    except subprocess.CalledProcessError as e:
+        raise SystemExit("Unable to find MSBuild; check Visual Studio install") from e
 
 
 def do_build(arena, platform, target):

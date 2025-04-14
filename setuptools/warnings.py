@@ -5,14 +5,19 @@ Using custom classes (other than ``UserWarning``) allow users to set
 setuptools.
 """
 
+from __future__ import annotations
+
 import os
 import warnings
 from datetime import date
 from inspect import cleandoc
 from textwrap import indent
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING
 
-_DueDate = Tuple[int, int, int]  # time tuple
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
+_DueDate: TypeAlias = tuple[int, int, int]  # time tuple
 _INDENT = 8 * " "
 _TEMPLATE = f"""{80 * '*'}\n{{details}}\n{80 * '*'}"""
 
@@ -23,14 +28,14 @@ class SetuptoolsWarning(UserWarning):
     @classmethod
     def emit(
         cls,
-        summary: Optional[str] = None,
-        details: Optional[str] = None,
-        due_date: Optional[_DueDate] = None,
-        see_docs: Optional[str] = None,
-        see_url: Optional[str] = None,
+        summary: str | None = None,
+        details: str | None = None,
+        due_date: _DueDate | None = None,
+        see_docs: str | None = None,
+        see_url: str | None = None,
         stacklevel: int = 2,
-        **kwargs
-    ):
+        **kwargs,
+    ) -> None:
         """Private: reserved for ``setuptools`` internal use only"""
         # Default values:
         summary_ = summary or getattr(cls, "_SUMMARY", None) or ""
@@ -51,10 +56,10 @@ class SetuptoolsWarning(UserWarning):
         cls,
         summary: str,
         details: str,
-        due_date: Optional[date] = None,
-        see_url: Optional[str] = None,
-        format_args: Optional[dict] = None,
-    ):
+        due_date: date | None = None,
+        see_url: str | None = None,
+        format_args: dict | None = None,
+    ) -> str:
         """Private: reserved for ``setuptools`` internal use only"""
         today = date.today()
         summary = cleandoc(summary).format_map(format_args or {})
@@ -63,15 +68,16 @@ class SetuptoolsWarning(UserWarning):
             (
                 f"\nBy {due_date:%Y-%b-%d}, you need to update your project and remove "
                 "deprecated calls\nor your builds will no longer be supported."
-                if due_date and due_date > today else None
+                if due_date and due_date > today
+                else None
             ),
             (
                 "\nThis deprecation is overdue, please update your project and remove "
                 "deprecated\ncalls to avoid build errors in the future."
-                if due_date and due_date < today else None
+                if due_date and due_date < today
+                else None
             ),
-            (f"\nSee {see_url} for details." if see_url else None)
-
+            (f"\nSee {see_url} for details." if see_url else None),
         ]
         parts = [x for x in possible_parts if x]
         if parts:

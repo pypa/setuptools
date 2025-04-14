@@ -29,8 +29,8 @@ be used with ``setuptools``. It contains two TOML tables (identified by the
 The ``build-system`` table is used to tell the build frontend (e.g.
 :pypi:`build` or :pypi:`pip`) to use ``setuptools`` and any other plugins (e.g.
 ``setuptools-scm``) to build the package.
-The ``project`` table contains metadata fields as described by
-:doc:`PyPUG:specifications/declaring-project-metadata` guide.
+The ``project`` table contains metadata fields as described by the
+:doc:`PyPUG:guides/writing-pyproject-toml` guide.
 
 .. _example-pyproject-config:
 
@@ -47,16 +47,16 @@ The ``project`` table contains metadata fields as described by
    ]
    description = "My package description"
    readme = "README.rst"
-   requires-python = ">=3.7"
+   requires-python = ">=3.8"
    keywords = ["one", "two"]
-   license = {text = "BSD-3-Clause"}
+   license = "BSD-3-Clause"
    classifiers = [
        "Framework :: Django",
        "Programming Language :: Python :: 3",
    ]
    dependencies = [
        "requests",
-       'importlib-metadata; python_version<"3.8"',
+       'importlib-metadata; python_version<"3.10"',
    ]
    dynamic = ["version"]
 
@@ -67,18 +67,21 @@ The ``project`` table contains metadata fields as described by
    [project.scripts]
    my-script = "my_package.module:function"
 
-   # ... other project metadata fields as specified in:
-   #     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+   # ... other project metadata fields as listed in:
+   #     https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+
+.. important::
+   Support for
+   :external+PyPUG:ref:`project.license-files <license-files>`
+   and SPDX license expressions in
+   :external+PyPUG:ref:`project.license <license>` (:pep:`639`)
+   were introduced in version 77.0.0.
+
 
 .. _setuptools-table:
 
 Setuptools-specific configuration
 =================================
-
-.. warning::
-   Support for declaring configurations not standardized by :pep:`621`
-   (i.e.  the ``[tool.setuptools]`` table),
-   is still in **beta** stage and might change in future releases.
 
 While the standard ``project`` table in the ``pyproject.toml`` file covers most
 of the metadata used during the packaging process, there are still some
@@ -92,34 +95,47 @@ file, and can be set via the ``tool.setuptools`` table:
 ========================= =========================== =========================
 Key                       Value Type (TOML)           Notes
 ========================= =========================== =========================
-``platforms``             array
-``zip-safe``              boolean                     If not specified, ``setuptools`` will try to guess
-                                                      a reasonable default for the package
-``eager-resources``       array
-``py-modules``            array                       See tip below
-``packages``              array or ``find`` directive See tip below
-``package-dir``           table/inline-table          Used when explicitly listing ``packages``
-``namespace-packages``    array                       **Deprecated** - Use implicit namespaces instead (:pep:`420`)
-``package-data``          table/inline-table          See :doc:`/userguide/datafiles`
-``include-package-data``  boolean                     ``True`` by default
-``exclude-package-data``  table/inline-table
-``license-files``         array of glob patterns      **Provisional** - likely to change with :pep:`639`
+``py-modules``            array                       See tip below.
+``ext-modules``           array of                    **Experimental** - Each item corresponds to a
+                          tables/inline-tables        :class:`setuptools.Extension` object and may define
+                                                      the associated parameters in :wiki:`kebab-case`.
+``packages``              array or ``find`` directive See tip below.
+``package-dir``           table/inline-table          Used when explicitly/manually listing ``packages``.
+------------------------- --------------------------- -------------------------
+``package-data``          table/inline-table          See :doc:`/userguide/datafiles`.
+``include-package-data``  boolean                     ``True`` by default (only when using ``pyproject.toml`` project metadata/config).
+                                                      See :doc:`/userguide/datafiles`.
+``exclude-package-data``  table/inline-table          Empty by default. See :doc:`/userguide/datafiles`.
+------------------------- --------------------------- -------------------------
+``license-files``         array of glob patterns      **Deprecated** - use ``project.license-files`` instead. See
+                                                      :external+PyPUG:ref:`Writing your pyproject.toml <license-files>`
                                                       (by default: ``['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']``)
-``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`
-``script-files``          array                       **Deprecated** - equivalent to the ``script`` keyword in ``setup.py``
-                                                      (should be avoided in favour of ``project.scripts``)
-``provides``              array                       **Ignored by pip**
-``obsoletes``             array                       **Ignored by pip**
+``data-files``            table/inline-table          **Discouraged** - check :doc:`/userguide/datafiles`.
+                                                      Whenever possible, consider using data files inside the package directories.
+``script-files``          array                       **Discouraged** - equivalent to the ``script`` keyword in ``setup.py``.
+                                                      Whenever possible, please use ``project.scripts`` instead.
+------------------------- --------------------------- -------------------------
+``provides``              array                       *ignored by pip when installing packages*
+``obsoletes``             array                       *ignored by pip when installing packages*
+``platforms``             array                       Sets the ``Platform`` :doc:`core-metadata <PyPUG:specifications/core-metadata>` field
+                                                      (*ignored by pip when installing packages*).
+------------------------- --------------------------- -------------------------
+``zip-safe``              boolean                     **Obsolete** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
+                                                      in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
+``eager-resources``       array                       **Obsolete** - only relevant for ``pkg_resources``, ``easy_install`` and ``setup.py install``
+                                                      in the context of :doc:`eggs </deprecated/python_eggs>` (deprecated).
+``namespace-packages``    array                       **Deprecated** - use implicit namespaces instead (:pep:`420`).
 ========================= =========================== =========================
 
 .. note::
    The `TOML value types`_ ``array`` and ``table/inline-table`` are roughly
    equivalent to the Python's :obj:`list` and :obj:`dict` data types, respectively.
 
-Please note that some of these configurations are deprecated or at least
+Please note that some of these configurations are deprecated, obsolete or at least
 discouraged, but they are made available to ensure portability.
-New packages should avoid relying on deprecated/discouraged fields, and
-existing packages should consider alternatives.
+Deprecated and obsolete configurations may be removed in future versions of ``setuptools``.
+New packages should avoid relying on discouraged fields if possible, and
+existing packages should consider migrating to alternatives.
 
 .. tip::
    When both ``py-modules`` and ``packages`` are left unspecified,
@@ -152,6 +168,15 @@ existing packages should consider alternatives.
       [tool.setuptools]
       packages = ["my_package"]
 
+   If you want to publish a distribution that does not include any Python module
+   (e.g. a "meta-distribution" that just aggregate dependencies), please
+   consider something like the following:
+
+   .. code-block:: toml
+
+      [tool.setuptools]
+      packages = []
+
 
 .. _dynamic-pyproject-config:
 
@@ -179,7 +204,7 @@ corresponding entry is required in the ``tool.setuptools.dynamic`` table
    dynamic = ["version", "readme"]
    # ...
    [tool.setuptools.dynamic]
-   version = {attr = "my_package.VERSION"}
+   version = {attr = "my_package.__version__"}  # any module attribute compatible with ast.literal_eval
    readme = {file = ["README.rst", "USAGE.rst"]}
 
 In the ``dynamic`` table, the ``attr`` directive [#directives]_ will read an
@@ -217,7 +242,7 @@ some of them dynamically.
 
 Also note that the file format for specifying dependencies resembles a ``requirements.txt`` file,
 however please keep in mind that all non-comment lines must conform with :pep:`508`
-(``pip``-specify syntaxes, e.g. ``-c/-r/-e`` flags, are not supported).
+(``pip`` specific syntaxes, e.g. ``-c/-r/-e`` and other flags, are not supported).
 
 
 .. note::
@@ -228,6 +253,20 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
 
    .. versionchanged:: 66.1.0
       Newer versions of ``setuptools`` will automatically add these files to the ``sdist``.
+
+It is advisable to use literal values together with ``attr`` (e.g. ``str``,
+``tuple[str]``, see :func:`ast.literal_eval`). This is recommend
+in order to support the common case of a literal value assigned to a variable
+in a module containing (directly or indirectly) third-party imports.
+
+``attr`` first tries to read the value from the module by examining the
+module's AST. If that fails, ``attr`` falls back to importing the module,
+using :func:`importlib.util.spec_from_file_location` recommended recipe
+(see :ref:`example on Python docs <python:importlib-examples>`
+about "Importing a source file directly").
+Note however that importing the module is error prone since your package is
+not installed yet. You may also need to manually add the project directory to
+``sys.path`` (via ``setup.py``) in order to be able to do that.
 
 ----
 
@@ -240,7 +279,7 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
 
 .. [#entry-points] Dynamic ``scripts`` and ``gui-scripts`` are a special case.
    When resolving these metadata keys, ``setuptools`` will look for
-   ``tool.setuptool.dynamic.entry-points``, and use the values of the
+   ``tool.setuptools.dynamic.entry-points``, and use the values of the
    ``console_scripts`` and ``gui_scripts`` :doc:`entry-point groups
    <PyPUG:specifications/entry-points>`.
 
@@ -253,7 +292,7 @@ however please keep in mind that all non-comment lines must conform with :pep:`5
    directive for ``tool.setuptools.dynamic.version``.
 
 .. [#attr] ``attr`` is meant to be used when the module attribute is statically
-   specified (e.g. as a string, list or tuple). As a rule of thumb, the
+   specified (e.g. as a string). As a rule of thumb, the
    attribute should be able to be parsed with :func:`ast.literal_eval`, and
    should not be modified or re-assigned.
 

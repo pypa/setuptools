@@ -1,11 +1,11 @@
-import os
 import contextlib
-import sys
+import os
 import subprocess
+import sys
 from pathlib import Path
 
-import pytest
 import path
+import pytest
 
 from . import contexts, environment
 
@@ -63,41 +63,56 @@ def sample_project(tmp_path):
 # sdist and wheel artifacts should be stable across a round of tests
 # so we can build them once per session and use the files as "readonly"
 
+# In the case of setuptools, building the wheel without sdist may cause
+# it to contain the `build` directory, and therefore create situations with
+# `setuptools/build/lib/build/lib/...`. To avoid that, build both artifacts at once.
+
+
+def _build_distributions(tmp_path_factory, request):
+    with contexts.session_locked_tmp_dir(
+        request, tmp_path_factory, "dist_build"
+    ) as tmp:  # pragma: no cover
+        sdist = next(tmp.glob("*.tar.gz"), None)
+        wheel = next(tmp.glob("*.whl"), None)
+        if sdist and wheel:
+            return (sdist, wheel)
+
+        # Sanity check: should not create recursive setuptools/build/lib/build/lib/...
+        assert not Path(request.config.rootdir, "build/lib/build").exists()
+
+        subprocess.check_output([
+            sys.executable,
+            "-m",
+            "build",
+            "--outdir",
+            str(tmp),
+            str(request.config.rootdir),
+        ])
+
+        # Sanity check: should not create recursive setuptools/build/lib/build/lib/...
+        assert not Path(request.config.rootdir, "build/lib/build").exists()
+
+        return next(tmp.glob("*.tar.gz")), next(tmp.glob("*.whl"))
+
 
 @pytest.fixture(scope="session")
 def setuptools_sdist(tmp_path_factory, request):
-    if os.getenv("PRE_BUILT_SETUPTOOLS_SDIST"):
-        return Path(os.getenv("PRE_BUILT_SETUPTOOLS_SDIST")).resolve()
+    prebuilt = os.getenv("PRE_BUILT_SETUPTOOLS_SDIST")
+    if prebuilt and os.path.exists(prebuilt):  # pragma: no cover
+        return Path(prebuilt).resolve()
 
-    with contexts.session_locked_tmp_dir(
-            request, tmp_path_factory, "sdist_build") as tmp:
-        dist = next(tmp.glob("*.tar.gz"), None)
-        if dist:
-            return dist
-
-        subprocess.check_call([
-            sys.executable, "-m", "build", "--sdist",
-            "--outdir", str(tmp), str(request.config.rootdir)
-        ])
-        return next(tmp.glob("*.tar.gz"))
+    sdist, _ = _build_distributions(tmp_path_factory, request)
+    return sdist
 
 
 @pytest.fixture(scope="session")
 def setuptools_wheel(tmp_path_factory, request):
-    if os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL"):
-        return Path(os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL")).resolve()
+    prebuilt = os.getenv("PRE_BUILT_SETUPTOOLS_WHEEL")
+    if prebuilt and os.path.exists(prebuilt):  # pragma: no cover
+        return Path(prebuilt).resolve()
 
-    with contexts.session_locked_tmp_dir(
-            request, tmp_path_factory, "wheel_build") as tmp:
-        dist = next(tmp.glob("*.whl"), None)
-        if dist:
-            return dist
-
-        subprocess.check_call([
-            sys.executable, "-m", "build", "--wheel",
-            "--outdir", str(tmp) , str(request.config.rootdir)
-        ])
-        return next(tmp.glob("*.whl"))
+    _, wheel = _build_distributions(tmp_path_factory, request)
+    return wheel
 
 
 @pytest.fixture

@@ -1,4 +1,5 @@
 import setuptools
+
 setuptools.setup(
     name="my-test-package",
     version="1.0",

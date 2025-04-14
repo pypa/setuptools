@@ -4,20 +4,21 @@ For example ``Archive`` can be used to check the contents of distribution built
 with setuptools, and ``run`` will always try to be as verbose as possible to
 facilitate debugging.
 """
+
 import os
 import subprocess
 import tarfile
-from zipfile import ZipFile
 from pathlib import Path
+from zipfile import ZipFile
 
 
 def run(cmd, env=None):
     r = subprocess.run(
         cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        universal_newlines=True,
-        env={**os.environ, **(env or {})}
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env={**os.environ, **(env or {})},
         # ^-- allow overwriting instead of discarding the current env
     )
 
@@ -33,6 +34,7 @@ def run(cmd, env=None):
 
 class Archive:
     """Compatibility layer for ZipFile/Info and TarFile/Info"""
+
     def __init__(self, filename):
         self._filename = filename
         if filename.endswith("tar.gz"):

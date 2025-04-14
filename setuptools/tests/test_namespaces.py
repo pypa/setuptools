@@ -1,18 +1,12 @@
-import sys
 import subprocess
+import sys
 
-import pytest
+from setuptools._path import paths_on_pythonpath
 
 from . import namespaces
-from setuptools.command import test
 
 
 class TestNamespaces:
-
-    @pytest.mark.skipif(
-        sys.version_info < (3, 5),
-        reason="Requires importlib.util.module_from_spec",
-    )
     def test_mixed_site_and_non_site(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
@@ -32,7 +26,8 @@ class TestNamespaces:
             'pip.__main__',
             'install',
             str(pkg_A),
-            '-t', str(site_packages),
+            '-t',
+            str(site_packages),
         ]
         subprocess.check_call(install_cmd)
         namespaces.make_site_dir(site_packages)
@@ -42,14 +37,16 @@ class TestNamespaces:
             'pip.__main__',
             'install',
             str(pkg_B),
-            '-t', str(path_packages),
+            '-t',
+            str(path_packages),
         ]
         subprocess.check_call(install_cmd)
         try_import = [
             sys.executable,
-            '-c', 'import myns.pkgA; import myns.pkgB',
+            '-c',
+            'import myns.pkgA; import myns.pkgB',
         ]
-        with test.test.paths_on_pythonpath(map(str, targets)):
+        with paths_on_pythonpath(map(str, targets)):
             subprocess.check_call(try_import)
 
     def test_pkg_resources_import(self, tmpdir):
@@ -62,19 +59,22 @@ class TestNamespaces:
         target.mkdir()
         install_cmd = [
             sys.executable,
-            '-m', 'pip',
+            '-m',
+            'pip',
             'install',
-            '-t', str(target),
+            '-t',
+            str(target),
             str(pkg),
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(install_cmd)
         namespaces.make_site_dir(target)
         try_import = [
             sys.executable,
-            '-c', 'import pkg_resources',
+            '-c',
+            'import pkg_resources',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(try_import)
 
     def test_namespace_package_installed_and_cwd(self, tmpdir):
@@ -91,7 +91,8 @@ class TestNamespaces:
             'pip.__main__',
             'install',
             str(pkg_A),
-            '-t', str(target),
+            '-t',
+            str(target),
         ]
         subprocess.check_call(install_cmd)
         namespaces.make_site_dir(target)
@@ -99,9 +100,10 @@ class TestNamespaces:
         # ensure that package imports and pkg_resources imports
         pkg_resources_imp = [
             sys.executable,
-            '-c', 'import pkg_resources; import myns.pkgA',
+            '-c',
+            'import pkg_resources; import myns.pkgA',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp, cwd=str(pkg_A))
 
     def test_packages_in_the_same_namespace_installed_and_cwd(self, tmpdir):
@@ -120,7 +122,8 @@ class TestNamespaces:
             'pip.__main__',
             'install',
             str(pkg_A),
-            '-t', str(target),
+            '-t',
+            str(target),
         ]
         subprocess.check_call(install_cmd)
         namespaces.make_site_dir(target)
@@ -128,7 +131,8 @@ class TestNamespaces:
         # ensure that all packages import and pkg_resources imports
         pkg_resources_imp = [
             sys.executable,
-            '-c', 'import pkg_resources; import myns.pkgA; import myns.pkgB',
+            '-c',
+            'import pkg_resources; import myns.pkgA; import myns.pkgB',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp, cwd=str(pkg_B))

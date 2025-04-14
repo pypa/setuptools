@@ -3,13 +3,15 @@
 Implements the Distutils 'install_lib' command
 (install all Python modules)."""
 
-import os
+from __future__ import annotations
+
 import importlib.util
+import os
 import sys
+from typing import Any, ClassVar
 
 from ..core import Command
 from ..errors import DistutilsOptionError
-
 
 # Extension for Python source files.
 PYTHON_SOURCE_EXTENSION = ".py"
@@ -48,19 +50,19 @@ class install_lib(Command):
         ('skip-build', None, "skip the build steps"),
     ]
 
-    boolean_options = ['force', 'compile', 'skip-build']
-    negative_opt = {'no-compile': 'compile'}
+    boolean_options: ClassVar[list[str]] = ['force', 'compile', 'skip-build']
+    negative_opt: ClassVar[dict[str, str]] = {'no-compile': 'compile'}
 
     def initialize_options(self):
         # let the 'install' command dictate our installation directory
         self.install_dir = None
         self.build_dir = None
-        self.force = 0
+        self.force = False
         self.compile = None
         self.optimize = None
         self.skip_build = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         # Get all the information we need to install pure Python modules
         # from the umbrella 'install' command -- build (source) directory,
         # install (target) directory, and whether to compile .py files.
@@ -82,12 +84,12 @@ class install_lib(Command):
         if not isinstance(self.optimize, int):
             try:
                 self.optimize = int(self.optimize)
-                if self.optimize not in (0, 1, 2):
-                    raise AssertionError
-            except (ValueError, AssertionError):
+            except ValueError:
+                pass
+            if self.optimize not in (0, 1, 2):
                 raise DistutilsOptionError("optimize must be 0, 1, or 2")
 
-    def run(self):
+    def run(self) -> None:
         # Make sure we have built everything we need first
         self.build()
 
@@ -103,24 +105,25 @@ class install_lib(Command):
     # -- Top-level worker functions ------------------------------------
     # (called from 'run()')
 
-    def build(self):
+    def build(self) -> None:
         if not self.skip_build:
             if self.distribution.has_pure_modules():
                 self.run_command('build_py')
             if self.distribution.has_ext_modules():
                 self.run_command('build_ext')
 
-    def install(self):
+    # Any: https://typing.readthedocs.io/en/latest/guides/writing_stubs.html#the-any-trick
+    def install(self) -> list[str] | Any:
         if os.path.isdir(self.build_dir):
             outfiles = self.copy_tree(self.build_dir, self.install_dir)
         else:
             self.warn(
-                "'%s' does not exist -- no Python modules to install" % self.build_dir
+                f"'{self.build_dir}' does not exist -- no Python modules to install"
             )
             return
         return outfiles
 
-    def byte_compile(self, files):
+    def byte_compile(self, files) -> None:
         if sys.dont_write_bytecode:
             self.warn('byte-compiling is disabled, skipping.')
             return
@@ -162,9 +165,7 @@ class install_lib(Command):
         build_dir = getattr(build_cmd, cmd_option)
 
         prefix_len = len(build_dir) + len(os.sep)
-        outputs = []
-        for file in build_files:
-            outputs.append(os.path.join(output_dir, file[prefix_len:]))
+        outputs = [os.path.join(output_dir, file[prefix_len:]) for file in build_files]
 
         return outputs
 

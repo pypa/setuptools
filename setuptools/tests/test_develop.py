@@ -1,19 +1,18 @@
-"""develop tests
-"""
+"""develop tests"""
 
 import os
-import sys
-import subprocess
+import pathlib
 import platform
-
-from setuptools.command import test
+import subprocess
+import sys
 
 import pytest
 
+from setuptools._path import paths_on_pythonpath
 from setuptools.command.develop import develop
 from setuptools.dist import Distribution
-from . import contexts
-from . import namespaces
+
+from . import contexts, namespaces
 
 SETUP_PY = """\
 from setuptools import setup
@@ -83,6 +82,18 @@ class TestDevelop:
         cmd.run()
         # assert '0.0' not in foocmd_text
 
+    @pytest.mark.xfail(reason="legacy behavior retained for compatibility #4167")
+    def test_egg_link_filename(self):
+        settings = dict(
+            name='Foo $$$ Bar_baz-bing',
+        )
+        dist = Distribution(settings)
+        cmd = develop(dist)
+        cmd.ensure_finalized()
+        link = pathlib.Path(cmd.egg_link)
+        assert link.suffix == '.egg-link'
+        assert link.stem == 'Foo_Bar_baz_bing'
+
 
 class TestResolver:
     """
@@ -104,7 +115,6 @@ class TestResolver:
 class TestNamespaces:
     @staticmethod
     def install_develop(src_dir, target):
-
         develop_cmd = [
             sys.executable,
             'setup.py',
@@ -113,7 +123,7 @@ class TestNamespaces:
             str(target),
         ]
         with src_dir.as_cwd():
-            with test.test.paths_on_pythonpath([str(target)]):
+            with paths_on_pythonpath([str(target)]):
                 subprocess.check_call(develop_cmd)
 
     @pytest.mark.skipif(
@@ -152,7 +162,7 @@ class TestNamespaces:
             '-c',
             'import myns.pkgA; import myns.pkgB',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(try_import)
 
         # additionally ensure that pkg_resources import works
@@ -161,5 +171,5 @@ class TestNamespaces:
             '-c',
             'import pkg_resources',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp)

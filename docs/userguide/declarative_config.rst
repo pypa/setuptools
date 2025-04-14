@@ -11,12 +11,10 @@ Configuring setuptools using ``setup.cfg`` files
     build API) is desired, a ``setup.py`` file containing a ``setup()`` function
     call is still required even if your configuration resides in ``setup.cfg``.
 
-``Setuptools`` allows using configuration files (usually :file:`setup.cfg`)
-to define a package’s metadata and other options that are normally supplied
-to the ``setup()`` function (declarative config).
+``Setuptools`` allows using configuration files (for example, :file:`setup.cfg`)
+to define a package’s metadata and other options (declarative config).
 
-This approach not only allows automation scenarios but also reduces
-boilerplate code in some cases.
+This approach allows automation scenarios and can reduce boilerplate code.
 
 .. _example-setup-config:
 
@@ -39,10 +37,10 @@ boilerplate code in some cases.
     zip_safe = False
     include_package_data = True
     packages = find:
-    python_requires = >=3.7
+    python_requires = >=3.8
     install_requires =
         requests
-        importlib-metadata; python_version<"3.8"
+        importlib-metadata; python_version<"3.10"
 
     [options.package_data]
     * = *.txt, *.rst
@@ -135,6 +133,24 @@ value associated with ``""`` in the ``package_dir`` dictionary.
    Please see :doc:`package discovery </userguide/package_discovery>` for more
    details.
 
+Interpolation
+=============
+
+Config files are parsed using :mod:`configparser` with
+`interpolation <https://docs.python.org/3/library/configparser.html#interpolation-of-values>`_
+enabled. As a result, one config value may reference another. This
+feature may be used, for example, in defining extras:
+
+.. code-block:: ini
+
+    [options.extras_require]
+    tester =
+        pytest==3.3.2
+        pytest-sugar
+    dev =
+        pytest-xdist
+        %(tester)s
+
 Specifying values
 =================
 
@@ -155,13 +171,25 @@ Type names used below:
 
 Special directives:
 
-* ``attr:`` - Value is read from a module attribute.  ``attr:`` supports
+* ``attr:`` - Value is read from a module attribute.
+
+  It is advisable to use literal values together with ``attr:`` (e.g. ``str``,
+  ``tuple[str]``, see :func:`ast.literal_eval`). This is recommend
+  in order to support the common case of a literal value assigned to a variable
+  in a module containing (directly or indirectly) third-party imports.
+
+  ``attr:`` first tries to read the value from the module by examining the
+  module's AST.  If that fails, ``attr:`` falls back to importing the module,
+  using :func:`importlib.util.spec_from_file_location` recommended recipe
+  (see :ref:`example on Python docs <python:importlib-examples>`
+  about "Importing a source file directly").
+  Note however that importing the module is error prone since your package is
+  not installed yet. You may also need to manually add the project directory to
+  ``sys.path`` (via ``setup.py``) in order to be able to do that.
+
+  When the module is imported, ``attr:`` supports
   callables and iterables; unsupported types are cast using ``str()``.
 
-  In order to support the common case of a literal value assigned to a variable
-  in a module containing (directly or indirectly) third-party imports,
-  ``attr:`` first tries to read the value from the module by examining the
-  module's AST.  If that fails, ``attr:`` falls back to importing the module.
 
 * ``file:`` - Value is read from a list of files and then concatenated
 
@@ -259,11 +287,11 @@ data_files               section                              40.6.0          [#
 
       [options]
       install_requires =
-          importlib-metadata; python_version<"3.8"
+          importlib-metadata; python_version<"3.10"
 
       [options.extras_require]
       all =
-          importlib-metadata; python_version < "3.8"
+          importlib-metadata; python_version<"3.10"
 
 .. [#opt-3] The ``find:`` and ``find_namespace:`` directive can be further configured
    in a dedicated subsection ``options.packages.find``. This subsection accepts the

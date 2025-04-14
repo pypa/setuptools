@@ -1,1 +1,1 @@
-﻿result = 'passed'
+result = 'passed'

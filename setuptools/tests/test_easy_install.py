@@ -1,36 +1,36 @@
-"""Easy install Tests
-"""
+"""Easy install Tests"""
 
-import sys
-import os
-import tempfile
-import site
-import tarfile
-import logging
-import itertools
-import distutils.errors
 import io
-import zipfile
-import time
-import re
-import subprocess
+import itertools
+import logging
+import os
 import pathlib
+import re
+import site
+import subprocess
+import sys
+import tarfile
+import tempfile
+import time
 import warnings
-import collections
+import zipfile
+from typing import NamedTuple
 from unittest import mock
 
 import pytest
 
+import pkg_resources
 import setuptools.command.easy_install as ei
+from pkg_resources import Distribution as PRDistribution, normalize_path
+from setuptools._normalization import safer_name
 from setuptools.command.easy_install import PthDistributions
 from setuptools.dist import Distribution
-from pkg_resources import normalize_path
-from pkg_resources import Distribution as PRDistribution
 from setuptools.tests.server import MockServer
-import pkg_resources
 
 from . import contexts
 from .textwrap import DALS
+
+import distutils.errors
 
 
 @pytest.fixture(autouse=True)
@@ -47,7 +47,7 @@ class FakeDist:
     def get_entry_map(self, group):
         if group != 'console_scripts':
             return {}
-        return {str('name'): 'ep'}
+        return {'name': 'ep'}
 
     def as_requirement(self):
         return 'spec'
@@ -67,7 +67,7 @@ class TestEasyInstallTest:
         header = ei.CommandSpec.best().from_environment().as_header()
         dist = FakeDist()
         args = next(ei.ScriptWriter.get_args(dist))
-        name, script = itertools.islice(args, 2)
+        _name, script = itertools.islice(args, 2)
         assert script.startswith(header)
         assert "'spec'" in script
         assert "'console_scripts'" in script
@@ -233,29 +233,13 @@ class TestEasyInstallTest:
         make_sdist(sdist, files)
         return sdist
 
-    def test_dist_get_script_args_deprecated(self):
-        with pytest.warns(EasyInstallDeprecationWarning):
-            ScriptWriter.get_script_args(None, None)
-
-    def test_dist_get_script_header_deprecated(self):
-        with pytest.warns(EasyInstallDeprecationWarning):
-            ScriptWriter.get_script_header("")
-
-    def test_dist_get_writer_deprecated(self):
-        with pytest.warns(EasyInstallDeprecationWarning):
-            ScriptWriter.get_writer(None)
-
-    def test_dist_WindowsScriptWriter_get_writer_deprecated(self):
-        with pytest.warns(EasyInstallDeprecationWarning):
-            WindowsScriptWriter.get_writer()
-
 
 @pytest.mark.filterwarnings('ignore:Unbuilt egg')
 class TestPTHFileWriter:
     def test_add_from_cwd_site_sets_dirty(self):
-        '''a pth file manager should set dirty
+        """a pth file manager should set dirty
         if a distribution is in site but also the cwd
-        '''
+        """
         pth = PthDistributions('does-not_exist', [os.getcwd()])
         assert not pth.dirty
         pth.add(PRDistribution(os.getcwd()))
@@ -287,9 +271,9 @@ class TestPTHFileWriter:
         pth_path = str(pth_subdir.join("file1.pth"))
         pth1 = PthDistributions(pth_path)
         pth2 = PthDistributions(pth_path)
-        assert (
-            pth1.paths == pth2.paths == []
-        ), "unless there would be some default added at some point"
+        assert pth1.paths == pth2.paths == [], (
+            "unless there would be some default added at some point"
+        )
         # and so putting the src_subdir in folder distinct than the pth one,
         # so to keep it absolute by PthDistributions
         new_src_path = tmpdir.join("src_subdir")
@@ -297,17 +281,17 @@ class TestPTHFileWriter:
         new_src_path_str = str(new_src_path)
         pth1.paths.append(new_src_path_str)
         pth1.save()
-        assert (
-            pth1.paths
-        ), "the new_src_path added must still be present/valid in pth1 after save"
+        assert pth1.paths, (
+            "the new_src_path added must still be present/valid in pth1 after save"
+        )
         # now,
-        assert (
-            new_src_path_str not in pth2.paths
-        ), "right before we save the entry should still not be present"
+        assert new_src_path_str not in pth2.paths, (
+            "right before we save the entry should still not be present"
+        )
         pth2.save()
-        assert (
-            new_src_path_str in pth2.paths
-        ), "the new_src_path entry should have been added by pth2 with its save() call"
+        assert new_src_path_str in pth2.paths, (
+            "the new_src_path entry should have been added by pth2 with its save() call"
+        )
         assert pth2.paths[-1] == new_src_path, (
             "and it should match exactly on the last entry actually "
             "given we append to it in save()"
@@ -321,7 +305,7 @@ class TestPTHFileWriter:
 
 @pytest.fixture
 def setup_context(tmpdir):
-    with (tmpdir / 'setup.py').open('w') as f:
+    with (tmpdir / 'setup.py').open('w', encoding="utf-8") as f:
         f.write(SETUP_PY)
     with tmpdir.as_cwd():
         yield tmpdir
@@ -367,14 +351,14 @@ class TestUserInstallTest:
         logging.basicConfig(level=logging.INFO, stream=sys.stderr)
         log.info('this should not break')
 
-    @pytest.fixture()
+    @pytest.fixture
     def foo_package(self, tmpdir):
         egg_file = tmpdir / 'foo-1.0.egg-info'
         with egg_file.open('w') as f:
             f.write('Name: foo\n')
         return str(tmpdir)
 
-    @pytest.fixture()
+    @pytest.fixture
     def install_target(self, tmpdir):
         target = str(tmpdir)
         with mock.patch('sys.path', sys.path + [target]):
@@ -407,9 +391,15 @@ def distutils_package():
         'from distutils.core import setup',
     )
     with contexts.tempdir(cd=os.chdir):
-        with open('setup.py', 'w') as f:
+        with open('setup.py', 'w', encoding="utf-8") as f:
             f.write(distutils_setup_py)
         yield
+
+
+@pytest.mark.usefixtures("distutils_package")
+class TestDistutilsPackage:
+    def test_bdist_egg_available_on_distutils_pkg(self):
+        subprocess.check_call([sys.executable, 'setup.py', 'bdist_egg'])
 
 
 @pytest.fixture
@@ -465,6 +455,7 @@ class TestInstallRequires:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
         )
         assert cp.returncode != 0
         try:
@@ -506,14 +497,13 @@ def make_trivial_sdist(dist_path, distname, version):
             (
                 'setup.py',
                 DALS(
-                    """\
+                    f"""\
              import setuptools
              setuptools.setup(
-                 name=%r,
-                 version=%r
+                 name={distname!r},
+                 version={version!r}
              )
          """
-                    % (distname, version)
                 ),
             ),
             ('setup.cfg', ''),
@@ -527,6 +517,8 @@ def make_nspkg_sdist(dist_path, distname, version):
     package with the same name as distname.  The top-level package is
     designated a namespace package).
     """
+    # Assert that the distname contains at least one period
+    assert '.' in distname
 
     parts = distname.split('.')
     nspackage = parts[0]
@@ -534,16 +526,15 @@ def make_nspkg_sdist(dist_path, distname, version):
     packages = ['.'.join(parts[:idx]) for idx in range(1, len(parts) + 1)]
 
     setup_py = DALS(
-        """\
+        f"""\
         import setuptools
         setuptools.setup(
-            name=%r,
-            version=%r,
-            packages=%r,
-            namespace_packages=[%r]
+            name={distname!r},
+            version={version!r},
+            packages={packages!r},
+            namespace_packages=[{nspackage!r}]
         )
     """
-        % (distname, version, packages, nspackage)
     )
 
     init = "__import__('pkg_resources').declare_namespace(__name__)"
@@ -603,7 +594,7 @@ def create_setup_requires_package(
     version='0.1',
     make_package=make_trivial_sdist,
     setup_py_template=None,
-    setup_attrs={},
+    setup_attrs=None,
     use_setup_cfg=(),
 ):
     """Creates a source tree under path for a trivial test package that has a
@@ -615,13 +606,15 @@ def create_setup_requires_package(
     package itself is just 'test_pkg'.
     """
 
+    normalized_distname = safer_name(distname)
     test_setup_attrs = {
         'name': 'test_pkg',
         'version': '0.0',
-        'setup_requires': ['%s==%s' % (distname, version)],
+        'setup_requires': [f'{normalized_distname}=={version}'],
         'dependency_links': [os.path.abspath(path)],
     }
-    test_setup_attrs.update(setup_attrs)
+    if setup_attrs:
+        test_setup_attrs.update(setup_attrs)
 
     test_pkg = os.path.join(path, 'test_pkg')
     os.mkdir(test_pkg)
@@ -638,7 +631,7 @@ def create_setup_requires_package(
                 section = options
             if isinstance(value, (tuple, list)):
                 value = ';'.join(value)
-            section.append('%s: %s' % (name, value))
+            section.append(f'{name}: {value}')
         test_setup_cfg_contents = DALS(
             """
             [metadata]
@@ -652,7 +645,7 @@ def create_setup_requires_package(
         )
     else:
         test_setup_cfg_contents = ''
-    with open(os.path.join(test_pkg, 'setup.cfg'), 'w') as f:
+    with open(os.path.join(test_pkg, 'setup.cfg'), 'w', encoding="utf-8") as f:
         f.write(test_setup_cfg_contents)
 
     # setup.py
@@ -663,10 +656,10 @@ def create_setup_requires_package(
             setuptools.setup(**%r)
         """
         )
-    with open(os.path.join(test_pkg, 'setup.py'), 'w') as f:
+    with open(os.path.join(test_pkg, 'setup.py'), 'w', encoding="utf-8") as f:
         f.write(setup_py_template % test_setup_attrs)
 
-    foobar_path = os.path.join(path, '%s-%s.tar.gz' % (distname, version))
+    foobar_path = os.path.join(path, f'{normalized_distname}-{version}.tar.gz')
     make_package(foobar_path, distname, version)
 
     return test_pkg
@@ -681,12 +674,12 @@ class TestScriptHeader:
     exe_with_spaces = r'C:\Program Files\Python36\python.exe'
 
     def test_get_script_header(self):
-        expected = '#!%s\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
+        expected = f'#!{ei.nt_quote_arg(os.path.normpath(sys.executable))}\n'
         actual = ei.ScriptWriter.get_header('#!/usr/local/bin/python')
         assert actual == expected
 
     def test_get_script_header_args(self):
-        expected = '#!%s -x\n' % ei.nt_quote_arg(os.path.normpath(sys.executable))
+        expected = f'#!{ei.nt_quote_arg(os.path.normpath(sys.executable))} -x\n'
         actual = ei.ScriptWriter.get_header('#!/usr/bin/python -x')
         assert actual == expected
 
@@ -694,14 +687,14 @@ class TestScriptHeader:
         actual = ei.ScriptWriter.get_header(
             '#!/usr/bin/python', executable=self.non_ascii_exe
         )
-        expected = str('#!%s -x\n') % self.non_ascii_exe
+        expected = f'#!{self.non_ascii_exe} -x\n'
         assert actual == expected
 
     def test_get_script_header_exe_with_spaces(self):
         actual = ei.ScriptWriter.get_header(
             '#!/usr/bin/python', executable='"' + self.exe_with_spaces + '"'
         )
-        expected = '#!"%s"\n' % self.exe_with_spaces
+        expected = f'#!"{self.exe_with_spaces}"\n'
         assert actual == expected
 
 
@@ -739,6 +732,16 @@ class TestCommandSpec:
         assert len(cmd) == 2
         assert '"' not in cmd.as_header()
 
+    def test_from_param_raises_expected_error(self) -> None:
+        """
+        from_param should raise its own TypeError when the argument's type is unsupported
+        """
+        with pytest.raises(TypeError) as exc_info:
+            ei.CommandSpec.from_param(object())  # type: ignore[arg-type] # We want a type error here
+        assert (
+            str(exc_info.value) == "Argument has an unsupported type <class 'object'>"
+        ), exc_info.value
+
 
 class TestWindowsScriptWriter:
     def test_header(self):
@@ -751,8 +754,12 @@ class TestWindowsScriptWriter:
         assert not hdr.startswith('\\"')
 
 
-VersionStub = collections.namedtuple(
-    "VersionStub", "major, minor, micro, releaselevel, serial")
+class VersionStub(NamedTuple):
+    major: int
+    minor: int
+    micro: int
+    releaselevel: str
+    serial: int
 
 
 def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
@@ -801,8 +808,12 @@ def test_use_correct_python_version_string(tmpdir, tmpdir_cwd, monkeypatch):
     assert cmd.config_vars['py_version_nodot'] == '310'
 
 
+@pytest.mark.xfail(
+    sys.platform == "darwin",
+    reason="https://github.com/pypa/setuptools/pull/4716#issuecomment-2447624418",
+)
 def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path):
-    '''`setup.py develop` should honor `--user` even under build isolation'''
+    """`setup.py develop` should honor `--user` even under build isolation"""
 
     # == Arrange ==
     # Pretend that build isolation was enabled
@@ -849,7 +860,7 @@ def test_editable_user_and_build_isolation(setup_context, monkeypatch, tmp_path)
     assert list(user_site.glob("*")) == []
 
     # == Act ==
-    run_setup('setup.py', ['develop', '--user'])
+    subprocess.check_call([sys.executable, 'setup.py', 'develop', '--user'])
 
     # == Assert ==
     # Should not install to sys.prefix

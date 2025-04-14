@@ -4,12 +4,11 @@ import pytest
 
 from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
-
 _EXAMPLES = {
     "default": dict(
         args=("Hello {x}", "\n\t{target} {v:.1f}"),
         kwargs={"x": 5, "v": 3, "target": "World"},
-        expected = """
+        expected="""
     Hello 5
     !!
 
@@ -18,12 +17,12 @@ _EXAMPLES = {
             ********************************************************************************
 
     !!
-    """  # noqa,
+    """,
     ),
     "futue_due_date": dict(
         args=("Summary", "Lorem ipsum"),
         kwargs={"due_date": (9999, 11, 22)},
-        expected = """
+        expected="""
     Summary
     !!
 
@@ -35,7 +34,7 @@ _EXAMPLES = {
             ********************************************************************************
 
     !!
-    """  # noqa
+    """,
     ),
     "past_due_date_with_docs": dict(
         args=("Summary", "Lorem ipsum"),
@@ -54,7 +53,7 @@ _EXAMPLES = {
             ********************************************************************************
 
     !!
-    """ # noqa
+    """,
     ),
 }
 
@@ -85,7 +84,7 @@ def test_due_date_enforcement(monkeypatch):
     with pytest.raises(SetuptoolsDeprecationWarning) as exc_info:
         _MyDeprecation.emit()
 
-    expected="""
+    expected = """
     Summary
     !!
 
@@ -99,7 +98,7 @@ def test_due_date_enforcement(monkeypatch):
             ********************************************************************************
 
     !!
-    """ # noqa
+    """
     assert str(exc_info.value) == cleandoc(expected)
 
 

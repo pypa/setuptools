@@ -1,6 +1,6 @@
 """Tests for distutils.command.clean."""
-import os
 
+import os
 from distutils.command.clean import clean
 from distutils.tests import support
 
@@ -36,8 +36,8 @@ class TestClean(support.TempdirManager):
         cmd.run()
 
         # make sure the files where removed
-        for name, path in dirs:
-            assert not os.path.exists(path), '%s was not removed' % path
+        for _name, path in dirs:
+            assert not os.path.exists(path), f'{path} was not removed'
 
         # let's run the command again (should spit warnings but succeed)
         cmd.all = 1

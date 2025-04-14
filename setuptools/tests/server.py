@@ -1,10 +1,9 @@
-"""Basic http server for tests to simulate PyPI or custom indexes
-"""
+"""Basic http server for tests to simulate PyPI or custom indexes"""
 
-import os
-import time
-import threading
 import http.server
+import os
+import threading
+import time
 import urllib.parse
 import urllib.request
 
@@ -22,10 +21,11 @@ class IndexServer(http.server.HTTPServer):
     """
 
     def __init__(
-            self, server_address=('', 0),
-            RequestHandlerClass=http.server.SimpleHTTPRequestHandler):
-        http.server.HTTPServer.__init__(
-            self, server_address, RequestHandlerClass)
+        self,
+        server_address=('', 0),
+        RequestHandlerClass=http.server.SimpleHTTPRequestHandler,
+    ):
+        http.server.HTTPServer.__init__(self, server_address, RequestHandlerClass)
         self._run = True
 
     def start(self):
@@ -44,7 +44,7 @@ class IndexServer(http.server.HTTPServer):
 
     def base_url(self):
         port = self.server_port
-        return 'http://127.0.0.1:%s/setuptools/tests/indexes/' % port
+        return f'http://127.0.0.1:{port}/setuptools/tests/indexes/'
 
 
 class RequestRecorder(http.server.BaseHTTPRequestHandler):
@@ -59,11 +59,8 @@ class MockServer(http.server.HTTPServer, threading.Thread):
     A simple HTTP Server that records the requests made to it.
     """
 
-    def __init__(
-            self, server_address=('', 0),
-            RequestHandlerClass=RequestRecorder):
-        http.server.HTTPServer.__init__(
-            self, server_address, RequestHandlerClass)
+    def __init__(self, server_address=('', 0), RequestHandlerClass=RequestRecorder):
+        http.server.HTTPServer.__init__(self, server_address, RequestHandlerClass)
         threading.Thread.__init__(self)
         self.daemon = True
         self.requests = []
@@ -73,18 +70,17 @@ class MockServer(http.server.HTTPServer, threading.Thread):
 
     @property
     def netloc(self):
-        return 'localhost:%s' % self.server_port
+        return f'localhost:{self.server_port}'
 
     @property
     def url(self):
-        return 'http://%s/' % self.netloc
+        return f'http://{self.netloc}/'
 
 
 def path_to_url(path, authority=None):
-    """ Convert a path to a file: URL. """
+    """Convert a path to a file: URL."""
     path = os.path.normpath(os.path.abspath(path))
     base = 'file:'
     if authority is not None:
         base += '//' + authority
-    url = urllib.parse.urljoin(base, urllib.request.pathname2url(path))
-    return url
+    return urllib.parse.urljoin(base, urllib.request.pathname2url(path))

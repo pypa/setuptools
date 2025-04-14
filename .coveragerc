@@ -2,6 +2,15 @@
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
 	*/.tox/*
+
+	# local
+	*/_vendor/*
+	*/tools/*
+	*/setuptools/_distutils/*
+	# See #4588 for integration tests coverage
+	*/setuptools/tests/integration/*
+	*/setuptools/tests/test_integration.py
+
 disable_warnings =
 	couldnt-parse
 
@@ -10,3 +19,9 @@ disable_warnings =
 
 [report]
 show_missing = True
+exclude_also =
+	# Exclude common false positives per
+	# https://coverage.readthedocs.io/en/latest/excluding.html#advanced-exclusion
+	# Ref jaraco/skeleton#97 and jaraco/skeleton#135
+	class .*\bProtocol\):
+	if TYPE_CHECKING:

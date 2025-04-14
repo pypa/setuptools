@@ -7,7 +7,7 @@ Installation
 
 You can install the latest version of ``setuptools`` using :pypi:`pip`::
 
-    pip install --upgrade setuptools
+    pip install --upgrade setuptools[core]
 
 Most of the times, however, you don't have to...
 
@@ -58,18 +58,28 @@ library will be used to actually do the packaging.
 
 .. note::
 
+   Package maintainers might be tempted to use ``setuptools[core]`` as the
+   requirement, given the guidance above. Avoid doing so, as the extra
+   is currently considered an internal implementation detail and is likely
+   to go away in the future and the Setuptools team will not support
+   compatibility for problems arising from packages published with this
+   extra declared. Vendored packages will satisfy the dependencies in
+   the most common isolated build scenarios.
+
+.. note::
+
    Historically this documentation has unnecessarily listed ``wheel``
    in the ``requires`` list, and many projects still do that. This is
-   not recommended. The backend automatically adds ``wheel`` dependency
-   when it is required, and listing it explicitly causes it to be
-   unnecessarily required for source distribution builds.
+   not recommended, as the backend no longer requires the ``wheel``
+   package, and listing it explicitly causes it to be unnecessarily
+   required for source distribution builds.
    You should only include ``wheel`` in ``requires`` if you need to explicitly
    access it during build time (e.g. if your project needs a ``setup.py``
    script that imports ``wheel``).
 
 In addition to specifying a build system, you also will need to add
 some package information such as metadata, contents, dependencies, etc.
-This can be done in the same ``pyproject.toml`` [#beta]_ file,
+This can be done in the same ``pyproject.toml`` file,
 or in a separated one: ``setup.cfg`` or ``setup.py`` [#setup.py]_.
 
 The following example demonstrates a minimum configuration
@@ -85,7 +95,7 @@ The following example demonstrates a minimum configuration
        version = "0.0.1"
        dependencies = [
            "requests",
-           'importlib-metadata; python_version<"3.8"',
+           'importlib-metadata; python_version<"3.10"',
        ]
 
     See :doc:`/userguide/pyproject_config` for more information.
@@ -101,7 +111,8 @@ The following example demonstrates a minimum configuration
         [options]
         install_requires =
             requests
-            importlib-metadata; python_version < "3.8"
+            importlib-metadata; python_version<"3.10"
+
 
     See :doc:`/userguide/declarative_config` for more information.
 
@@ -116,7 +127,7 @@ The following example demonstrates a minimum configuration
             version='0.0.1',
             install_requires=[
                 'requests',
-                'importlib-metadata; python_version == "3.8"',
+                'importlib-metadata; python_version<"3.10"',
             ],
         )
 
@@ -188,7 +199,7 @@ Package discovery
 -----------------
 For projects that follow a simple directory structure, ``setuptools`` should be
 able to automatically detect all :term:`packages <package>` and
-:term:`namespaces <namespace>`. However, complex projects might include
+:term:`namespaces <namespace package>`. However, complex projects might include
 additional folders and supporting files that not necessarily should be
 distributed (or that can confuse ``setuptools`` auto discovery algorithm).
 
@@ -196,7 +207,7 @@ Therefore, ``setuptools`` provides a convenient way to customize
 which packages should be distributed and in which directory they should be
 found, as shown in the example below:
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -229,7 +240,7 @@ found, as shown in the example below:
 
     .. code-block:: python
 
-        from setuptools import find_packages  # or find_namespace_packages
+        from setuptools import setup, find_packages  # or find_namespace_packages
 
         setup(
             # ...
@@ -254,8 +265,7 @@ For more details and advanced use, go to :ref:`package_discovery`.
    have been improved to detect popular project layouts (such as the
    :ref:`flat-layout` and :ref:`src-layout`) without requiring any
    special configuration. Check out our :ref:`reference docs <package_discovery>`
-   for more information, but please keep in mind that this functionality is
-   still considered **beta** and might change in future releases.
+   for more information.
 
 
 Entry points and automatic script creation
@@ -363,7 +373,7 @@ Including Data Files
 Setuptools offers three ways to specify data files to be included in your packages.
 For the simplest use, you can simply use the ``include_package_data`` keyword:
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. tab:: pyproject.toml
 
     .. code-block:: toml
 
@@ -391,8 +401,8 @@ For the simplest use, you can simply use the ``include_package_data`` keyword:
         )
 
 This tells setuptools to install any data files it finds in your packages.
-The data files must be specified via the |MANIFEST.in|_ file
-or automatically added by a :ref:`Revision Control System plugin
+The data files must be specified via the :ref:`MANIFEST.in <Using MANIFEST.in>`
+file or automatically added by a :ref:`Revision Control System plugin
 <Adding Support for Revision Control Systems>`.
 For more details, see :doc:`datafiles`.
 
@@ -418,7 +428,7 @@ See :doc:`development_mode` for more information.
 
     If you have a version of ``pip`` older than v21.1 or is using a different
     packaging-related tool that does not support :pep:`660`, you might need to keep a
-    ``setup.py`` file in file in your repository if you want to use editable
+    ``setup.py`` file in your repository if you want to use editable
     installs.
 
     A simple script will suffice, for example:
@@ -433,6 +443,17 @@ See :doc:`development_mode` for more information.
     :doc:`pyproject.toml </userguide/pyproject_config>` and/or
     :doc:`setup.cfg </userguide/declarative_config>`
 
+.. note::
+
+    When building from source code (for example, by ``python -m build``
+    or ``pip install -e .``)
+    some directories hosting build artefacts and cache files may be
+    created, such as ``build``, ``dist``, ``*.egg-info`` [#cache]_.
+    You can configure your version control system to ignore them
+    (see `GitHub's .gitignore template
+    <https://github.com/github/gitignore/blob/main/Python.gitignore>`_
+    for an example).
+
 
 Uploading your package to PyPI
 ------------------------------
@@ -442,14 +463,23 @@ distribution so others can use it. This functionality is provided by
 <PyPUG:tutorials/packaging-projects>`.
 
 
-Transitioning from ``setup.py`` to ``setup.cfg``
-------------------------------------------------
+Transitioning from ``setup.py`` to declarative config
+-----------------------------------------------------
 To avoid executing arbitrary scripts and boilerplate code, we are transitioning
-into a full-fledged ``setup.cfg`` to declare your package information instead
-of running ``setup()``. This inevitably brings challenges due to a different
-syntax. :doc:`Here </userguide/declarative_config>` we provide a quick guide to
-understanding how ``setup.cfg`` is parsed by ``setuptools`` to ease the pain of
-transition.
+from defining all your package information by running ``setup()`` to doing this
+declaratively - by using ``pyproject.toml`` (or older ``setup.cfg``).
+
+To ease the challenges of transitioning, we provide a quick
+:doc:`guide </userguide/pyproject_config>` to understanding how ``pyproject.toml``
+is parsed by ``setuptools``. (Alternatively, here is the
+:doc:`guide </userguide/declarative_config>` for ``setup.cfg``).
+
+.. note::
+
+    The approach ``setuptools`` would like to take is to eventually use a single
+    declarative format (``pyproject.toml``) instead of maintaining 2
+    (``pyproject.toml`` / ``setup.cfg``). Yet, chances are, ``setup.cfg`` will
+    continue to be maintained for a long time.
 
 .. _packaging-resources:
 
@@ -459,9 +489,6 @@ Packaging in Python can be hard and is constantly evolving.
 `Python Packaging User Guide <https://packaging.python.org>`_ has tutorials and
 up-to-date references that can help you when it is time to distribute your work.
 
-
-.. |MANIFEST.in| replace:: ``MANIFEST.in``
-.. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/
 
 
 ----
@@ -479,9 +506,9 @@ up-to-date references that can help you when it is time to distribute your work.
    supported in those files (e.g. C extensions).
    See :ref:`note <setuppy_discouraged>`.
 
-.. [#beta]
-   Support for adding build configuration options via the ``[tool.setuptools]``
-   table in the ``pyproject.toml`` file is still in **beta** stage.
-   See :doc:`/userguide/pyproject_config`.
+.. [#cache]
+   If you feel that caching is causing problems to your build, specially after changes in the
+   configuration files, consider removing ``build``, ``dist``, ``*.egg-info`` before
+   rebuilding or installing your project.
 
 .. _PyPI: https://pypi.org
