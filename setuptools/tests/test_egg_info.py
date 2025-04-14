@@ -522,7 +522,7 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as fp:
             pkg_info_lines = fp.read().split('\n')
         assert 'Provides-Extra: foobar' in pkg_info_lines
-        assert 'Metadata-Version: 2.2' in pkg_info_lines
+        assert 'Metadata-Version: 2.4' in pkg_info_lines
 
     def test_doesnt_provides_extra(self, tmpdir_cwd, env):
         self._setup_script_with_requires(
@@ -815,6 +815,22 @@ class TestEggInfo:
                 [],
                 id="files_only_added_once",
             ),
+            pytest.param(
+                {
+                    'setup.cfg': DALS(
+                        """
+                              [metadata]
+                              license_files = **/LICENSE
+                              """
+                    ),
+                    'LICENSE': "ABC license",
+                    'LICENSE-OTHER': "Don't include",
+                    'vendor': {'LICENSE': "Vendor license"},
+                },
+                ['LICENSE', 'vendor/LICENSE'],
+                ['LICENSE-OTHER'],
+                id="recursive_glob",
+            ),
         ],
     )
     def test_setup_cfg_license_files(
@@ -1032,12 +1048,14 @@ class TestEggInfo:
                               license_files =
                                   NOTICE*
                                   LICENSE*
+                                  **/LICENSE
                               """
             ),
             "LICENSE-ABC": "ABC license",
             "LICENSE-XYZ": "XYZ license",
             "NOTICE": "included",
             "IGNORE": "not include",
+            "vendor": {'LICENSE': "Vendor license"},
         })
 
         environment.run_setup_py(
@@ -1053,9 +1071,11 @@ class TestEggInfo:
 
         # Only 'NOTICE', LICENSE-ABC', and 'LICENSE-XYZ' should have been matched
         # Also assert that order from license_files is keeped
+        assert len(license_file_lines) == 4
         assert "License-File: NOTICE" == license_file_lines[0]
         assert "License-File: LICENSE-ABC" in license_file_lines[1:]
         assert "License-File: LICENSE-XYZ" in license_file_lines[1:]
+        assert "License-File: vendor/LICENSE" in license_file_lines[3]
 
     def test_metadata_version(self, tmpdir_cwd, env):
         """Make sure latest metadata version is used by default."""
@@ -1069,7 +1089,7 @@ class TestEggInfo:
         with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as fp:
             pkg_info_lines = fp.read().split('\n')
         # Update metadata version if changed
-        assert self._extract_mv_version(pkg_info_lines) == (2, 2)
+        assert self._extract_mv_version(pkg_info_lines) == (2, 4)
 
     def test_long_description_content_type(self, tmpdir_cwd, env):
         # Test that specifying a `long_description_content_type` keyword arg to
@@ -1096,7 +1116,7 @@ class TestEggInfo:
             pkg_info_lines = fp.read().split('\n')
         expected_line = 'Description-Content-Type: text/markdown'
         assert expected_line in pkg_info_lines
-        assert 'Metadata-Version: 2.2' in pkg_info_lines
+        assert 'Metadata-Version: 2.4' in pkg_info_lines
 
     def test_long_description(self, tmpdir_cwd, env):
         # Test that specifying `long_description` and `long_description_content_type`
@@ -1115,7 +1135,7 @@ class TestEggInfo:
         egg_info_dir = os.path.join('.', 'foo.egg-info')
         with open(os.path.join(egg_info_dir, 'PKG-INFO'), encoding="utf-8") as fp:
             pkg_info_lines = fp.read().split('\n')
-        assert 'Metadata-Version: 2.2' in pkg_info_lines
+        assert 'Metadata-Version: 2.4' in pkg_info_lines
         assert '' == pkg_info_lines[-1]  # last line should be empty
         long_desc_lines = pkg_info_lines[pkg_info_lines.index('') :]
         assert 'This is a long description' in long_desc_lines

@@ -59,7 +59,7 @@ setup(
 EXAMPLES = {
     "dummy-dist": {
         "setup.py": SETUPPY_EXAMPLE,
-        "licenses": {"DUMMYFILE": ""},
+        "licenses_dir": {"DUMMYFILE": ""},
         **dict.fromkeys(DEFAULT_LICENSE_FILES | OTHER_IGNORED_FILES, ""),
     },
     "simple-dist": {
@@ -172,6 +172,20 @@ EXAMPLES = {
         ),
         "README.rst": "UTF-8 描述 説明",
     },
+    "licenses-dist": {
+        "setup.cfg": cleandoc(
+            """
+            [metadata]
+            name = licenses-dist
+            version = 1.0
+            license_files = **/LICENSE
+            """
+        ),
+        "LICENSE": "",
+        "src": {
+            "vendor": {"LICENSE": ""},
+        },
+    },
 }
 
 
@@ -238,6 +252,11 @@ def dummy_dist(tmp_path_factory):
     return mkexample(tmp_path_factory, "dummy-dist")
 
 
+@pytest.fixture
+def licenses_dist(tmp_path_factory):
+    return mkexample(tmp_path_factory, "licenses-dist")
+
+
 def test_no_scripts(wheel_paths):
     """Make sure entry point scripts are not generated."""
     path = next(path for path in wheel_paths if "complex_dist" in path)
@@ -246,9 +265,9 @@ def test_no_scripts(wheel_paths):
 
 
 def test_unicode_record(wheel_paths):
-    path = next(path for path in wheel_paths if "unicode.dist" in path)
+    path = next(path for path in wheel_paths if "unicode_dist" in path)
     with ZipFile(path) as zf:
-        record = zf.read("unicode.dist-0.1.dist-info/RECORD")
+        record = zf.read("unicode_dist-0.1.dist-info/RECORD")
 
     assert "åäö_日本語.py".encode() in record
 
@@ -297,33 +316,34 @@ def test_licenses_default(dummy_dist, monkeypatch, tmp_path):
     bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         license_files = {
-            "dummy_dist-1.0.dist-info/" + fname for fname in DEFAULT_LICENSE_FILES
+            "dummy_dist-1.0.dist-info/licenses/" + fname
+            for fname in DEFAULT_LICENSE_FILES
         }
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
 
 
 def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
     dummy_dist.joinpath("setup.cfg").write_text(
-        "[metadata]\nlicense_file=licenses/DUMMYFILE", encoding="utf-8"
+        "[metadata]\nlicense_file=licenses_dir/DUMMYFILE", encoding="utf-8"
     )
     monkeypatch.chdir(dummy_dist)
 
     bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
 
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
-        license_files = {"dummy_dist-1.0.dist-info/DUMMYFILE"}
+        license_files = {"dummy_dist-1.0.dist-info/licenses/licenses_dir/DUMMYFILE"}
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
 
 
 @pytest.mark.parametrize(
     ("config_file", "config"),
     [
-        ("setup.cfg", "[metadata]\nlicense_files=licenses/*\n  LICENSE"),
-        ("setup.cfg", "[metadata]\nlicense_files=licenses/*, LICENSE"),
+        ("setup.cfg", "[metadata]\nlicense_files=licenses_dir/*\n  LICENSE"),
+        ("setup.cfg", "[metadata]\nlicense_files=licenses_dir/*, LICENSE"),
         (
             "setup.py",
             SETUPPY_EXAMPLE.replace(
-                ")", "  license_files=['licenses/DUMMYFILE', 'LICENSE'])"
+                ")", "  license_files=['licenses_dir/DUMMYFILE', 'LICENSE'])"
             ),
         ),
     ],
@@ -334,9 +354,29 @@ def test_licenses_override(dummy_dist, monkeypatch, tmp_path, config_file, confi
     bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         license_files = {
-            "dummy_dist-1.0.dist-info/" + fname for fname in {"DUMMYFILE", "LICENSE"}
+            "dummy_dist-1.0.dist-info/licenses/" + fname
+            for fname in {"licenses_dir/DUMMYFILE", "LICENSE"}
         }
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
+        metadata = wf.read("dummy_dist-1.0.dist-info/METADATA").decode("utf8")
+        assert "License-File: licenses_dir/DUMMYFILE" in metadata
+        assert "License-File: LICENSE" in metadata
+
+
+def test_licenses_preserve_folder_structure(licenses_dist, monkeypatch, tmp_path):
+    monkeypatch.chdir(licenses_dist)
+    bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
+    print(os.listdir("dist"))
+    with ZipFile("dist/licenses_dist-1.0-py3-none-any.whl") as wf:
+        default_files = {name.replace("dummy_", "licenses_") for name in DEFAULT_FILES}
+        license_files = {
+            "licenses_dist-1.0.dist-info/licenses/LICENSE",
+            "licenses_dist-1.0.dist-info/licenses/src/vendor/LICENSE",
+        }
+        assert set(wf.namelist()) == default_files | license_files
+        metadata = wf.read("licenses_dist-1.0.dist-info/METADATA").decode("utf8")
+        assert "License-File: src/vendor/LICENSE" in metadata
+        assert "License-File: LICENSE" in metadata
 
 
 def test_licenses_disabled(dummy_dist, monkeypatch, tmp_path):
@@ -621,3 +661,48 @@ def test_dist_info_provided(dummy_dist, monkeypatch, tmp_path):
     assert expected - files_found == set()
     # Make sure there is no accidental egg-info bleeding into the wheel.
     assert not [path for path in files_found if 'egg-info' in str(path)]
+
+
+def test_allow_grace_period_parent_directory_license(monkeypatch, tmp_path):
+    # Motivation: https://github.com/pypa/setuptools/issues/4892
+    # TODO: Remove this test after deprecation period is over
+    files = {
+        "LICENSE.txt": "parent license",  # <---- the license files are outside
+        "NOTICE.txt": "parent notice",
+        "python": {
+            "pyproject.toml": cleandoc(
+                """
+                [project]
+                name = "test-proj"
+                dynamic = ["version"]      # <---- testing dynamic will not break
+                [tool.setuptools.dynamic]
+                version.file = "VERSION"
+                """
+            ),
+            "setup.cfg": cleandoc(
+                """
+                [metadata]
+                license_files =
+                  ../LICENSE.txt
+                  ../NOTICE.txt
+                """
+            ),
+            "VERSION": "42",
+        },
+    }
+    jaraco.path.build(files, prefix=str(tmp_path))
+    monkeypatch.chdir(tmp_path / "python")
+    msg = "Pattern '../.*.txt' cannot contain '..'"
+    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+        bdist_wheel_cmd().run()
+    with ZipFile("dist/test_proj-42-py3-none-any.whl") as wf:
+        files_found = set(wf.namelist())
+        expected_files = {
+            "test_proj-42.dist-info/licenses/LICENSE.txt",
+            "test_proj-42.dist-info/licenses/NOTICE.txt",
+        }
+        assert expected_files <= files_found
+
+        metadata = wf.read("test_proj-42.dist-info/METADATA").decode("utf8")
+        assert "License-File: LICENSE.txt" in metadata
+        assert "License-File: NOTICE.txt" in metadata

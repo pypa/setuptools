@@ -270,7 +270,7 @@ class TestSDist(support.TempdirManager):
         caplog.clear()
         dist, cmd = self.get_cmd()
         cmd.ensure_finalized()
-        cmd.metadata_check = 0
+        cmd.metadata_check = False
         cmd.run()
         assert len(self.warnings(caplog.messages, 'warning: check: ')) == 0
 
