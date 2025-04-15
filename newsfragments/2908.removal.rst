@@ -1,0 +1,1 @@
+Removed support for the easy_install command including the sandbox module.
