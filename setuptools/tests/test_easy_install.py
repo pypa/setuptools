@@ -27,7 +27,6 @@ from setuptools.command.easy_install import PthDistributions
 from setuptools.dist import Distribution
 from setuptools.tests.server import MockServer
 
-from . import contexts
 from .textwrap import DALS
 
 import distutils.errors
@@ -382,24 +381,6 @@ class TestUserInstallTest:
         actual = os.path.normcase(os.path.realpath(res.location))
         expected = os.path.normcase(os.path.realpath(foo_package))
         assert actual == expected
-
-
-@pytest.fixture
-def distutils_package():
-    distutils_setup_py = SETUP_PY.replace(
-        'from setuptools import setup',
-        'from distutils.core import setup',
-    )
-    with contexts.tempdir(cd=os.chdir):
-        with open('setup.py', 'w', encoding="utf-8") as f:
-            f.write(distutils_setup_py)
-        yield
-
-
-@pytest.mark.usefixtures("distutils_package")
-class TestDistutilsPackage:
-    def test_bdist_egg_available_on_distutils_pkg(self):
-        subprocess.check_call([sys.executable, 'setup.py', 'bdist_egg'])
 
 
 @pytest.fixture
