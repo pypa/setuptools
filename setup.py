@@ -36,8 +36,12 @@ def _get_version() -> str:
         version = subprocess.check_output(cmd, encoding="utf-8")
         return _normalization.best_effort_version(version, "{safe}.dev+{sanitized}")
     except subprocess.CalledProcessError:  # e.g.: git not installed or history missing
+        if os.path.exists("PKG-INFO"):  # building wheel from sdist
+            with open("PKG-INFO", encoding="utf-8") as fp:
+                if match := re.search(r"^Version: (\d+\.\d+\.\d+.*)$", fp.read(), re.M):
+                    return match[1]
         with open("NEWS.rst", encoding="utf-8") as fp:
-            match = re.search(r"v\d+\.\d+.\d+", fp.read())  # latest version
+            match = re.search(r"v\d+\.\d+\.\d+", fp.read())  # latest version
             return f"{match[0] if match else '0.0.0'}.dev+{time.strftime('%Y%m%d')}"
 
 
