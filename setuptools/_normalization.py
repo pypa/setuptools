@@ -65,7 +65,10 @@ def safe_version(version: str) -> str:
         return str(packaging.version.Version(attempt))
 
 
-def best_effort_version(version: str) -> str:
+def best_effort_version(
+    version: str,
+    template: str = "{safe}.dev0+sanitized.{sanitized}",
+) -> str:
     """Convert an arbitrary string into a version-like string.
     Fallback when ``safe_version`` is not safe enough.
     >>> best_effort_version("v0.2 beta")
@@ -96,8 +99,8 @@ def best_effort_version(version: str) -> str:
             safe = "0"
             rest = version
         safe_rest = _NON_ALPHANUMERIC.sub(".", rest).strip(".")
-        local = f"sanitized.{safe_rest}".strip(".")
-        return safe_version(f"{safe}.dev0+{local}")
+        fallback = template.format(safe=safe, sanitized=safe_rest).strip(".")
+        return safe_version(fallback)
 
 
 def safe_extra(extra: str) -> str:
