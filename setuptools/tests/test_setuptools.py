@@ -265,6 +265,15 @@ def test_findall_missing_symlink(tmpdir):
         assert found == []
 
 
+def test_setuptools_own_dists_infers_version(setuptools_sdist, setuptools_wheel):
+    # Sanity check
+    # Validates that `setup.py:_get_version` works as expected
+    assert "0.0.0" not in setuptools_sdist.name
+    # Validates that `setup.py:_get_version` guarantees the fallback
+    # code path is finding something in PKG-INFO:
+    assert "0.0.0" not in setuptools_wheel.name
+
+
 @pytest.mark.xfail(reason="unable to exclude tests; #4475 #3260")
 def test_its_own_wheel_does_not_contain_tests(setuptools_wheel):
     with ZipFile(setuptools_wheel) as zipfile:
