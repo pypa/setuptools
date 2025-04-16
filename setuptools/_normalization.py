@@ -12,7 +12,7 @@ import packaging
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
 _UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9._-]+", re.I)
 _NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.I)
-_PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
+_PEP440_FALLBACK = re.compile(r"^(?P<safe>v?(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
 
 
 def safe_identifier(name: str) -> str:
@@ -79,6 +79,8 @@ def best_effort_version(version: str) -> str:
     '0.dev0+sanitized'
     >>> best_effort_version("42.+?1")
     '42.dev0+sanitized.1'
+    >>> best_effort_version("v78.1.0-2-g3a3144f0d")
+    '78.1.0.dev0+sanitized.2.g3a3144f0d'
     """
     try:
         return safe_version(version)
