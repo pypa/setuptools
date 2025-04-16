@@ -71,6 +71,8 @@ jobs:
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install build dependencies
         # Install dependencies for building packages on pre-release Pythons
         # jaraco/skeleton#161
@@ -183,6 +185,8 @@ jobs:
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install Cygwin with Python
         uses: cygwin/cygwin-install-action@v4
         with:
@@ -244,6 +248,8 @@ jobs:
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install OS-level dependencies
         run: |
           sudo apt-get update
@@ -269,6 +275,8 @@ jobs:
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
