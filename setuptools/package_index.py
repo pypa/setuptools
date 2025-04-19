@@ -807,9 +807,16 @@ class PackageIndex(Environment):
             else:
                 raise DistutilsError(f"Download error for {url}: {v}") from v
 
-    def _download_url(self, url, tmpdir):
-        # Determine download filename
-        #
+    @staticmethod
+    def _resolve_download_filename(url, tmpdir):
+        """
+        >>> du = PackageIndex._resolve_download_filename
+        >>> root = getfixture('tmp_path')
+        >>> url = 'https://files.pythonhosted.org/packages/a9/5a/0db.../setuptools-78.1.0.tar.gz'
+        >>> import pathlib
+        >>> str(pathlib.Path(du(url, root)).relative_to(root))
+        'setuptools-78.1.0.tar.gz'
+        """
         name, _fragment = egg_info_for_url(url)
         if name:
             while '..' in name:
@@ -820,8 +827,13 @@ class PackageIndex(Environment):
         if name.endswith('.egg.zip'):
             name = name[:-4]  # strip the extra .zip before download
 
-        filename = os.path.join(tmpdir, name)
+        return os.path.join(tmpdir, name)
 
+    def _download_url(self, url, tmpdir):
+        """
+        Determine the download filename.
+        """
+        filename = self._resolve_download_filename(url, tmpdir)
         return self._download_vcs(url, filename) or self._download_other(url, filename)
 
     @staticmethod
