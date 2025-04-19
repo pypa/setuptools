@@ -808,7 +808,36 @@ class PackageIndex(Environment):
                 raise DistutilsError(f"Download error for {url}: {v}") from v
 
     @staticmethod
-    def _resolve_download_filename(url, tmpdir):
+    def _sanitize(name):
+        r"""
+        Replace unsafe path directives with underscores.
+
+        >>> san = PackageIndex._sanitize
+        >>> san('/home/user/.ssh/authorized_keys')
+        '_home_user_.ssh_authorized_keys'
+        >>> san('..\\foo\\bing')
+        '__foo_bing'
+        >>> san('D:bar')
+        'D_bar'
+        >>> san('C:\\bar')
+        'C__bar'
+        >>> san('foo..bar')
+        'foo..bar'
+        >>> san('D:../foo')
+        'D___foo'
+        """
+        pattern = '|'.join((
+            # drive letters
+            r':',
+            # path separators
+            r'[/\\]',
+            # parent dirs
+            r'(?:(?<=([/\\]|:))\.\.(?=[/\\]|$))|(?:^\.\.(?=[/\\]|$))',
+        ))
+        return re.sub(pattern, r'_', name)
+
+    @classmethod
+    def _resolve_download_filename(cls, url, tmpdir):
         """
         >>> import pathlib
         >>> du = PackageIndex._resolve_download_filename
@@ -816,32 +845,19 @@ class PackageIndex(Environment):
         >>> url = 'https://files.pythonhosted.org/packages/a9/5a/0db.../setuptools-78.1.0.tar.gz'
         >>> str(pathlib.Path(du(url, root)).relative_to(root))
         'setuptools-78.1.0.tar.gz'
-
-        Ensures the target is always in tmpdir.
-
-        >>> url = 'https://anyhost/%2fhome%2fuser%2f.ssh%2fauthorized_keys'
-        >>> du(url, root)
-        Traceback (most recent call last):
-        ...
-        ValueError: Invalid filename...
         """
         name, _fragment = egg_info_for_url(url)
-        if name:
-            while '..' in name:
-                name = name.replace('..', '.').replace('\\', '_')
-        else:
-            name = "__downloaded__"  # default if URL has no path contents
+        name = cls._sanitize(
+            name
+            or
+            # default if URL has no path contents
+            '__downloaded__'
+        )
 
         if name.endswith('.egg.zip'):
             name = name[:-4]  # strip the extra .zip before download
 
-        filename = os.path.join(tmpdir, name)
-
-        # ensure path resolves within the tmpdir
-        if not filename.startswith(str(tmpdir)):
-            raise ValueError(f"Invalid filename {filename}")
-
-        return filename
+        return os.path.join(tmpdir, name)
 
     def _download_url(self, url, tmpdir):
         """
