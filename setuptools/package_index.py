@@ -854,8 +854,8 @@ class PackageIndex(Environment):
             '__downloaded__'
         )
 
-        if name.endswith('.egg.zip'):
-            name = name[:-4]  # strip the extra .zip before download
+        # strip any extra .zip before download
+        name = re.sub(r'\.egg\.zip$', '.egg', name)
 
         return os.path.join(tmpdir, name)
 
