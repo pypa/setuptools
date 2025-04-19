@@ -1174,7 +1174,7 @@ class easy_install(Command):
         python = sys.executable
         return '\n' + self.__editable_msg % locals()
 
-    def run_setup(self, setup_script, setup_base, args):
+    def run_setup(self, setup_script, setup_base, args) -> NoReturn:
         raise NotImplementedError("easy_install support has been removed")
 
     def build_and_install(self, setup_script, setup_base):
