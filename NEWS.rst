@@ -1,3 +1,12 @@
+v78.1.1
+=======
+
+Bugfixes
+--------
+
+- More fully sanitized the filename in PackageIndex._download. (#4946)
+
+
 v78.1.0
 =======
 

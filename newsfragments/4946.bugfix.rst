@@ -1,1 +1,0 @@
-More fully sanitized the filename in PackageIndex._download.
