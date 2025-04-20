@@ -25,7 +25,6 @@ from pkg_resources import Distribution as PRDistribution, normalize_path
 from setuptools._normalization import safer_name
 from setuptools.command.easy_install import PthDistributions
 from setuptools.dist import Distribution
-from setuptools.tests.server import MockServer
 
 from .textwrap import DALS
 
@@ -381,89 +380,6 @@ class TestUserInstallTest:
         actual = os.path.normcase(os.path.realpath(res.location))
         expected = os.path.normcase(os.path.realpath(foo_package))
         assert actual == expected
-
-
-@pytest.fixture
-def mock_index():
-    # set up a server which will simulate an alternate package index.
-    p_index = MockServer()
-    if p_index.server_port == 0:
-        # Some platforms (Jython) don't find a port to which to bind,
-        # so skip test for them.
-        pytest.skip("could not find a valid port")
-    p_index.start()
-    return p_index
-
-
-class TestInstallRequires:
-    def test_setup_install_includes_dependencies(self, tmp_path, mock_index):
-        """
-        When ``python setup.py install`` is called directly, it will use easy_install
-        to fetch dependencies.
-        """
-        # TODO: Remove these tests once `setup.py install` is completely removed
-        project_root = tmp_path / "project"
-        project_root.mkdir(exist_ok=True)
-        install_root = tmp_path / "install"
-        install_root.mkdir(exist_ok=True)
-
-        self.create_project(project_root)
-        cmd = [
-            sys.executable,
-            '-c',
-            '__import__("setuptools").setup()',
-            'install',
-            '--install-base',
-            str(install_root),
-            '--install-lib',
-            str(install_root),
-            '--install-headers',
-            str(install_root),
-            '--install-scripts',
-            str(install_root),
-            '--install-data',
-            str(install_root),
-            '--install-purelib',
-            str(install_root),
-            '--install-platlib',
-            str(install_root),
-        ]
-        env = {**os.environ, "__EASYINSTALL_INDEX": mock_index.url}
-        cp = subprocess.run(
-            cmd,
-            cwd=str(project_root),
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
-        )
-        assert cp.returncode != 0
-        try:
-            assert '/does-not-exist/' in {r.path for r in mock_index.requests}
-            assert next(
-                line
-                for line in cp.stdout.splitlines()
-                if "not find suitable distribution for" in line
-                and "does-not-exist" in line
-            )
-        except Exception:
-            if "failed to get random numbers" in cp.stdout:
-                pytest.xfail(f"{sys.platform} failure - {cp.stdout}")
-            raise
-
-    def create_project(self, root):
-        config = """
-        [metadata]
-        name = project
-        version = 42
-
-        [options]
-        install_requires = does-not-exist
-        py_modules = mod
-        """
-        (root / 'setup.cfg').write_text(DALS(config), encoding="utf-8")
-        (root / 'mod.py').touch()
 
 
 def make_trivial_sdist(dist_path, distname, version):
