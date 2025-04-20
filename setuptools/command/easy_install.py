@@ -423,33 +423,7 @@ class easy_install(Command):
         self._expand_attrs(dirs)
 
     def run(self, show_deprecation: bool = True) -> None:
-        if show_deprecation:
-            self.announce(
-                "WARNING: The easy_install command is deprecated "
-                "and will be removed in a future version.",
-                log.WARN,
-            )
-        if self.verbose != self.distribution.verbose:
-            log.set_verbosity(self.verbose)
-        try:
-            for spec in self.args:
-                self.easy_install(spec, not self.no_deps)
-            if self.record:
-                outputs = self.outputs
-                if self.root:  # strip any package prefix
-                    root_len = len(self.root)
-                    for counter in range(len(outputs)):
-                        outputs[counter] = outputs[counter][root_len:]
-                from distutils import file_util
-
-                self.execute(
-                    file_util.write_file,
-                    (self.record, outputs),
-                    f"writing list of installed files to '{self.record}'",
-                )
-            self.warn_deprecated_options()
-        finally:
-            log.set_verbosity(self.distribution.verbose)
+        raise RuntimeError("easy_install command is disabled")
 
     def pseudo_tempname(self):
         """Return a pseudo-tempname base in the install directory.
