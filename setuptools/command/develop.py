@@ -10,15 +10,25 @@ class develop(Command):
 
     user_options = [
         ("install-dir=", "d", "install package to DIR"),
+        ('no-deps', 'N', "don't install dependencies"),
+    ]
+    boolean_options = [
+        'no-deps',
     ]
 
     install_dir = None
+    no_deps = False
 
     def run(self):
-        cmd = [sys.executable, '-m', 'pip', 'install', '-e', '.', '--use-pep517'] + [
-            '--target',
-            self.install_dir,
-        ] * bool(self.install_dir)
+        cmd = (
+            [sys.executable, '-m', 'pip', 'install', '-e', '.', '--use-pep517']
+            + [
+                '--target',
+                self.install_dir,
+            ]
+            * bool(self.install_dir)
+            + ['--no-deps'] * self.no_deps
+        )
         subprocess.check_call(cmd)
 
     def initialize_options(self):
