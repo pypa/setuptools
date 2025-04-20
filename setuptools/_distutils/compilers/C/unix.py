@@ -158,6 +158,20 @@ class Compiler(base.Compiler):
         dylib_lib_extension = ".dll"
         dylib_lib_format = "cyg%s%s"
 
+    def _fix_lib_args(self, libraries, library_dirs, runtime_library_dirs):
+        """Remove standard library path from rpath"""
+        libraries, library_dirs, runtime_library_dirs = super()._fix_lib_args(
+            libraries, library_dirs, runtime_library_dirs
+        )
+        libdir = sysconfig.get_config_var('LIBDIR')
+        if (
+            runtime_library_dirs
+            and libdir.startswith("/usr/lib")
+            and (libdir in runtime_library_dirs)
+        ):
+            runtime_library_dirs.remove(libdir)
+        return libraries, library_dirs, runtime_library_dirs
+
     def preprocess(
         self,
         source: str | os.PathLike[str],
@@ -309,7 +323,7 @@ class Compiler(base.Compiler):
         compiler = os.path.basename(shlex.split(cc_var)[0])
         return "gcc" in compiler or "g++" in compiler
 
-    def runtime_library_dir_option(self, dir: str) -> str | list[str]:
+    def runtime_library_dir_option(self, dir: str) -> str | list[str]:  # type: ignore[override] # Fixed in pypa/distutils#339
         # XXX Hackish, at the very least.  See Python bug #445902:
         # https://bugs.python.org/issue445902
         # Linkers on different platforms need different options to
