@@ -936,30 +936,6 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
         build_backend.build_sdist("temp")
 
 
-def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
-    pyproject = """
-    [build-system]
-    requires = ["setuptools"]
-    build-backend = "setuptools.build_meta"
-    [project]
-    name = "myproj"
-    version = "42"
-    """
-    path.build({"pyproject.toml": DALS(pyproject), "mymod.py": ""})
-
-    # First: sanity check
-    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = venv.run(cmd, cwd=tmpdir).lower()
-    assert "running setup.py develop for myproj" not in output
-    assert "created wheel for myproj" in output
-
-    # Then: real test
-    env = {**os.environ, "SETUPTOOLS_ENABLE_FEATURES": "legacy-editable"}
-    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = venv.run(cmd, cwd=tmpdir, env=env).lower()
-    assert "running setup.py develop for myproj" in output
-
-
 @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
 def test_sys_exit_0_in_setuppy(monkeypatch, tmp_path):
     """Setuptools should be resilient to setup.py with ``sys.exit(0)`` (#3973)."""

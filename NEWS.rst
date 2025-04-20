@@ -1,3 +1,21 @@
+v79.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for 'legacy-editable' installs. (#917)
+
+
+v78.1.1
+=======
+
+Bugfixes
+--------
+
+- More fully sanitized the filename in PackageIndex._download. (#4946)
+
+
 v78.1.0
 =======
 
