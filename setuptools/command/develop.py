@@ -2,6 +2,7 @@ import subprocess
 import sys
 
 from setuptools import Command
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 
 class develop(Command):
@@ -21,7 +22,17 @@ class develop(Command):
         subprocess.check_call(cmd)
 
     def initialize_options(self):
-        pass
+        DevelopDeprecationWarning.emit()
 
     def finalize_options(self) -> None:
         pass
+
+
+class DevelopDeprecationWarning(SetuptoolsDeprecationWarning):
+    _SUMMARY = "develop command is deprecated."
+    _DETAILS = """
+    Please avoid running ``setup.py`` and ``develop``.
+    Instead, use standards-based tools like pip or uv.
+    """
+    _SEE_URL = "https://github.com/pypa/setuptools/issues/917"
+    # _DUE_DATE = (TBD)
