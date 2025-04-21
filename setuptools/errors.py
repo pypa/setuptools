@@ -3,6 +3,8 @@
 Provides exceptions used by setuptools modules.
 """
 
+# Odd mypy issue with this specific import, alias and base classes on 3.12+
+# mypy: disable-error-code="valid-type,misc"
 from __future__ import annotations
 
 from distutils import errors as _distutils_errors
