@@ -260,7 +260,7 @@ class TestUnixCCompiler(support.TempdirManager):
         def gcvs(*args, _orig=sysconfig.get_config_vars):
             if args:
                 return list(map(sysconfig.get_config_var, args))
-            return _orig()
+            return _orig()  # pragma: no cover
 
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
@@ -270,6 +270,10 @@ class TestUnixCCompiler(support.TempdirManager):
             mock.patch.object(self.cc, 'mkpath', return_value=None),
             EnvironmentVarGuard() as env,
         ):
+            # override environment overrides in case they're specified by CI
+            del env['CXX']
+            del env['LDCXXSHARED']
+
             sysconfig.customize_compiler(self.cc)
             assert self.cc.linker_so_cxx[0:2] == ['ccache', 'g++-4.2']
             assert self.cc.linker_exe_cxx[0:2] == ['ccache', 'g++-4.2']
@@ -280,7 +284,7 @@ class TestUnixCCompiler(support.TempdirManager):
 
             self.cc.link_executable([], 'a.out', target_lang='c++')
             call_args = mock_spawn.call_args[0][0]
-            expected = ['ccache', 'g++-4.2', '-o', 'a.out']
+            expected = ['ccache', 'g++-4.2', '-o', self.cc.executable_filename('a.out')]
             assert call_args[:4] == expected
 
             env['LDCXXSHARED'] = 'wrapper g++-4.2 -bundle -undefined dynamic_lookup'
@@ -295,7 +299,12 @@ class TestUnixCCompiler(support.TempdirManager):
 
             self.cc.link_executable([], 'a.out', target_lang='c++')
             call_args = mock_spawn.call_args[0][0]
-            expected = ['wrapper', 'g++-4.2', '-o', 'a.out']
+            expected = [
+                'wrapper',
+                'g++-4.2',
+                '-o',
+                self.cc.executable_filename('a.out'),
+            ]
             assert call_args[:4] == expected
 
     @pytest.mark.skipif('platform.system == "Windows"')
