@@ -1,3 +1,12 @@
+v79.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for 'legacy-editable' installs. (#917)
+
+
 v78.1.1
 =======
 
