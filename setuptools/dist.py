@@ -48,6 +48,8 @@ if TYPE_CHECKING:
 
     from pkg_resources import Distribution as _pkg_resources_Distribution
 
+    from .extension import Extension
+
 
 __all__ = ['Distribution']
 
@@ -300,6 +302,9 @@ class Distribution(_Distribution):
 
     # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
     namespace_packages: list[str]  #: :meta private: DEPRECATED
+
+    # override distutils.extension.Extension with setuptools.extension.Extension
+    ext_modules: list[Extension] | None  # type: ignore[assignment]
 
     # Any: Dynamic assignment results in Incompatible types in assignment
     def __init__(self, attrs: MutableMapping[str, Any] | None = None) -> None:

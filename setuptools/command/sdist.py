@@ -50,7 +50,7 @@ class sdist(orig.sdist):
     ]
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
-    negative_opt: ClassVar[dict[str, str]] = {}  # type: ignore[misc] # TODO: Fix upstream
+    negative_opt: ClassVar[dict[str, str]] = {}
 
     README_EXTENSIONS = ['', '.rst', '.txt', '.md']
     READMES = tuple(f'README{ext}' for ext in README_EXTENSIONS)
