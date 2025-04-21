@@ -1,6 +1,7 @@
 import configparser
 import contextlib
 import inspect
+import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -420,34 +421,48 @@ class TestMetadata:
             with get_dist(tmpdir):
                 pass
 
-    def test_warn_dash_deprecation(self, tmpdir):
-        # warn_dash_deprecation() is a method in setuptools.dist
-        # remove this test and the method when no longer needed
-        fake_env(
-            tmpdir,
-            '[metadata]\n'
-            'author-email = test@test.com\n'
-            'maintainer_email = foo@foo.com\n',
-        )
-        msg = "Usage of dash-separated 'author-email' will not be supported"
-        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
-            with get_dist(tmpdir) as dist:
-                metadata = dist.metadata
+    @pytest.mark.parametrize(
+        ("error_msg", "config", "invalid"),
+        [
+            (
+                "Invalid dash-separated key 'author-email' in 'metadata' (setup.cfg)",
+                DALS(
+                    """
+                    [metadata]
+                    author-email = test@test.com
+                    maintainer_email = foo@foo.com
+                    """
+                ),
+                {"author-email": "test@test.com"},
+            ),
+            (
+                "Invalid uppercase key 'Name' in 'metadata' (setup.cfg)",
+                DALS(
+                    """
+                    [metadata]
+                    Name = foo
+                    description = Some description
+                    """
+                ),
+                {"Name": "foo"},
+            ),
+        ],
+    )
+    def test_invalid_options_previously_deprecated(
+        self, tmpdir, error_msg, config, invalid
+    ):
+        # This test and related methods can be removed when no longer needed.
+        # Deprecation postponed due to push-back from the community in
+        # https://github.com/pypa/setuptools/issues/4910
+        fake_env(tmpdir, config)
+        with pytest.warns(SetuptoolsDeprecationWarning, match=re.escape(error_msg)):
+            dist = get_dist(tmpdir).__enter__()
 
-        assert metadata.author_email == 'test@test.com'
-        assert metadata.maintainer_email == 'foo@foo.com'
+        tmpdir.join('setup.cfg').remove()
 
-    def test_make_option_lowercase(self, tmpdir):
-        # remove this test and the method make_option_lowercase() in setuptools.dist
-        # when no longer needed
-        fake_env(tmpdir, '[metadata]\nName = foo\ndescription = Some description\n')
-        msg = "Usage of uppercase key 'Name' in 'metadata' will not be supported"
-        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
-            with get_dist(tmpdir) as dist:
-                metadata = dist.metadata
-
-        assert metadata.name == 'foo'
-        assert metadata.description == 'Some description'
+        for field, value in invalid.items():
+            attr = field.replace("-", "_").lower()
+            assert getattr(dist.metadata, attr) == value
 
 
 class TestOptions:

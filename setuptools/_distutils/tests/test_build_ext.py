@@ -1,13 +1,16 @@
 import contextlib
+import glob
 import importlib
-import os
+import os.path
 import platform
 import re
 import shutil
 import site
+import subprocess
 import sys
 import tempfile
 import textwrap
+import time
 from distutils import sysconfig
 from distutils.command.build_ext import build_ext
 from distutils.core import Distribution
@@ -51,6 +54,9 @@ def user_site_dir(request):
     site.USER_BASE = orig_user_base
     build_ext.USER_BASE = orig_user_base
 
+    if sys.platform == 'cygwin':
+        time.sleep(1)
+
 
 @contextlib.contextmanager
 def safe_extension_import(name, path):
@@ -86,11 +92,35 @@ class TestBuildExt(TempdirManager):
     def build_ext(self, *args, **kwargs):
         return build_ext(*args, **kwargs)
 
-    def test_build_ext(self):
+    @pytest.mark.parametrize("copy_so", [False])
+    def test_build_ext(self, copy_so):
         missing_compiler_executable()
         copy_xxmodule_c(self.tmp_dir)
         xx_c = os.path.join(self.tmp_dir, 'xxmodule.c')
         xx_ext = Extension('xx', [xx_c])
+        if sys.platform != "win32":
+            if not copy_so:
+                xx_ext = Extension(
+                    'xx',
+                    [xx_c],
+                    library_dirs=['/usr/lib'],
+                    libraries=['z'],
+                    runtime_library_dirs=['/usr/lib'],
+                )
+            elif sys.platform == 'linux':
+                libz_so = {
+                    os.path.realpath(name) for name in glob.iglob('/usr/lib*/libz.so*')
+                }
+                libz_so = sorted(libz_so, key=lambda lib_path: len(lib_path))
+                shutil.copyfile(libz_so[-1], '/tmp/libxx_z.so')
+
+                xx_ext = Extension(
+                    'xx',
+                    [xx_c],
+                    library_dirs=['/tmp'],
+                    libraries=['xx_z'],
+                    runtime_library_dirs=['/tmp'],
+                )
         dist = Distribution({'name': 'xx', 'ext_modules': [xx_ext]})
         dist.package_dir = self.tmp_dir
         cmd = self.build_ext(dist)
@@ -109,11 +139,14 @@ class TestBuildExt(TempdirManager):
             sys.stdout = old_stdout
 
         with safe_extension_import('xx', self.tmp_dir):
-            self._test_xx()
+            self._test_xx(copy_so)
+
+        if sys.platform == 'linux' and copy_so:
+            os.unlink('/tmp/libxx_z.so')
 
     @staticmethod
-    def _test_xx():
-        import xx
+    def _test_xx(copy_so):
+        import xx  # type: ignore[import-not-found] # Module generated for tests
 
         for attr in ('error', 'foo', 'new', 'roj'):
             assert hasattr(xx, attr)
@@ -126,6 +159,28 @@ class TestBuildExt(TempdirManager):
             assert xx.__doc__ == doc
         assert isinstance(xx.Null(), xx.Null)
         assert isinstance(xx.Str(), xx.Str)
+
+        if sys.platform == 'linux':
+            so_headers = subprocess.check_output(
+                ["readelf", "-d", xx.__file__], universal_newlines=True
+            )
+            import pprint
+
+            pprint.pprint(so_headers)
+            rpaths = [
+                rpath
+                for line in so_headers.split("\n")
+                if "RPATH" in line or "RUNPATH" in line
+                for rpath in line.split()[2][1:-1].split(":")
+            ]
+            if not copy_so:
+                pprint.pprint(rpaths)
+                # Linked against a library in /usr/lib{,64}
+                assert "/usr/lib" not in rpaths and "/usr/lib64" not in rpaths
+            else:
+                # Linked against a library in /tmp
+                assert "/tmp" in rpaths
+                # The import is the real test here
 
     def test_solaris_enable_shared(self):
         dist = Distribution({'name': 'xx'})
@@ -342,6 +397,19 @@ class TestBuildExt(TempdirManager):
         cmd.ensure_finalized()
         assert re.search(r'foo(_d)?\..*', cmd.get_ext_filename(modules[0].name))
         assert re.search(r'föö(_d)?\..*', cmd.get_ext_filename(modules[1].name))
+        assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
+        assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+
+    def test_export_symbols__init__(self):
+        # https://github.com/python/cpython/issues/80074
+        # https://github.com/pypa/setuptools/issues/4826
+        modules = [
+            Extension('foo.__init__', ['aaa']),
+            Extension('föö.__init__', ['uuu']),
+        ]
+        dist = Distribution({'name': 'xx', 'ext_modules': modules})
+        cmd = self.build_ext(dist)
+        cmd.ensure_finalized()
         assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
         assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
 

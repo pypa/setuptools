@@ -5,7 +5,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "75.8.2"
+version = "79.0.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -14,7 +14,6 @@ readme = "README.rst"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
 	"Intended Audience :: Developers",
-	"License :: OSI Approved :: MIT License",
 	"Programming Language :: Python :: 3",
 	"Programming Language :: Python :: 3 :: Only",
 	"Topic :: Software Development :: Libraries :: Python Modules",
@@ -101,9 +100,7 @@ core = [
 	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
 
 	# for distutils
-	"jaraco.collections",
 	"jaraco.functools >= 4",
-	"packaging",
 	"more_itertools",
 ]
 

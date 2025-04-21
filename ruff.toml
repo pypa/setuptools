@@ -1,6 +1,3 @@
-# extend pyproject.toml for requires-python (workaround astral-sh/ruff#10299)
-extend = "pyproject.toml"
-
 exclude = [
 	"**/_vendor",
 	"setuptools/_distutils",
@@ -10,13 +7,12 @@ exclude = [
 [lint]
 extend-select = [
 	# upstream
- 
+
 	"C901", # complex-structure
 	"I", # isort
 	"PERF401", # manual-list-comprehension
-	"W", # pycodestyle Warning
- 
- 	# Ensure modern type annotation syntax and best practices
+
+	# Ensure modern type annotation syntax and best practices
 	# Not including those covered by type-checkers or exclusive to Python 3.11+
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
@@ -30,13 +26,9 @@ extend-select = [
 
 	# local
 	"ANN2", # missing-return-type-*
-	"F", # Pyflakes
-	"F404", # late-future-import
-	"FA", # flake8-future-annotations
 	"PERF", # Perflint
 	"PGH", # pygrep-hooks (blanket-* rules)
 	"PT", # flake8-pytest-style
-	"PYI", # flake8-pyi
 	"RUF10", # unused-noqa & redirected-noqa
 	"TRY", # tryceratops
 	"UP", # pyupgrade
@@ -44,7 +36,7 @@ extend-select = [
 ]
 ignore = [
 	# upstream
- 
+
 	# Typeshed rejects complex or non-literal defaults for maintenance and testing reasons,
 	# irrelevant to this project.
 	"PYI011", # typed-argument-default-in-stub
@@ -61,11 +53,9 @@ ignore = [
 	"Q003",
 	"COM812",
 	"COM819",
-	"ISC001",
-	"ISC002",
 
- 	# local
- 	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
+	# local
+	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
 	"PT007", # temporarily disabled, TODO: configure and standardize to preference
 	"PT011", # temporarily disabled, TODO: tighten expected error 
 	"PT012", # pytest-raises-with-multiple-statements, avoid extra dummy methods for a few lines, sometimes we explicitly assert in case of no error

@@ -197,13 +197,6 @@ works (still within the context of :pep:`660`).
    Users are encouraged to try out the new editable installation techniques
    and make the necessary adaptations.
 
-.. note::
-   Newer versions of ``pip`` no longer run the fallback command
-   ``python setup.py develop`` when the ``pyproject.toml`` file is present.
-   This means that setting the environment variable
-   ``SETUPTOOLS_ENABLE_FEATURES="legacy-editable"``
-   will have no effect when installing a package with ``pip``.
-
 
 How editable installations work
 -------------------------------

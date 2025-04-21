@@ -28,7 +28,6 @@ env:
 
   # Suppress noisy pip warnings
   PIP_DISABLE_PIP_VERSION_CHECK: 'true'
-  PIP_NO_PYTHON_VERSION_WARNING: 'true'
   PIP_NO_WARN_SCRIPT_LOCATION: 'true'
 
   # Ensure tests can sense settings about the environment
@@ -64,7 +63,8 @@ jobs:
           python: "3.10"
           distutils: stdlib
     runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.python == '3.14' }}
+    continue-on-error: ${{ matrix.python == '3.14' || matrix.python == 'pypy3.10' }}
+    # XXX: pypy seems to be flaky with unrelated tests in #6345
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils || 'local' }}
     timeout-minutes: 75
