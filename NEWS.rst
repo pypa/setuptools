@@ -1,3 +1,12 @@
+v79.0.1
+=======
+
+Bugfixes
+--------
+
+- Merge with pypa/distutils@24bd3179b including fix for pypa/distutils#355.
+
+
 v79.0.0
 =======
 
