@@ -59,19 +59,19 @@ def test_dist_fetch_build_egg(tmpdir):
     assert [dist.key for dist in resolved_dists if dist] == reqs
 
 
-EXAMPLE_BASE_INFO = dict(
-    name="package",
-    version="0.0.1",
-    author="Foo Bar",
-    author_email="foo@bar.net",
-    long_description="Long\ndescription",
-    description="Short description",
-    keywords=["one", "two"],
-)
+EXAMPLE_BASE_INFO = {
+    'name': "package",
+    'version': "0.0.1",
+    'author': "Foo Bar",
+    'author_email': "foo@bar.net",
+    'long_description': "Long\ndescription",
+    'description': "Short description",
+    'keywords': ["one", "two"],
+}
 
 
 def test_provides_extras_deterministic_order():
-    attrs = dict(extras_require=dict(a=['foo'], b=['bar']))
+    attrs = {'extras_require': {'a': ['foo'], 'b': ['bar']}}
     dist = Distribution(attrs)
     assert list(dist.metadata.provides_extras) == ['a', 'b']
     attrs['extras_require'] = dict(reversed(attrs['extras_require'].items()))

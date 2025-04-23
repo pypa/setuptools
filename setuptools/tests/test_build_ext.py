@@ -43,7 +43,7 @@ class TestBuildExt:
         print(get_abi3_suffix())
 
         extension = Extension('spam.eggs', ['eggs.c'], py_limited_api=True)
-        dist = Distribution(dict(ext_modules=[extension]))
+        dist = Distribution({'ext_modules': [extension]})
         cmd = build_ext(dist)
         cmd.finalize_options()
         assert 'spam.eggs' in cmd.ext_map
@@ -187,7 +187,7 @@ class TestBuildExtInplace:
         }
         path.build(files)
         extension = Extension('spam.eggs', ['eggs.c'], optional=optional)
-        dist = Distribution(dict(ext_modules=[extension]))
+        dist = Distribution({'ext_modules': [extension]})
         dist.script_name = 'setup.py'
         cmd = build_ext(dist)
         vars(cmd).update(build_lib=".build/lib", build_temp=".build/tmp", **opts)

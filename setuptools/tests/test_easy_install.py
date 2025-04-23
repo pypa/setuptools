@@ -761,7 +761,7 @@ class TestSetupRequires:
             with contexts.tempdir() as temp_dir:
                 test_pkg = create_setup_requires_package(
                     temp_dir,
-                    setup_attrs=dict(version='attr: foobar.version'),
+                    setup_attrs={'version': 'attr: foobar.version'},
                     make_package=make_dependency_sdist,
                     use_setup_cfg=use_setup_cfg + ('version',),
                 )
@@ -783,7 +783,7 @@ class TestSetupRequires:
                     temp_dir,
                     'python-xlib',
                     '0.19',
-                    setup_attrs=dict(dependency_links=[]),
+                    setup_attrs={'dependency_links': []},
                 )
                 test_setup_cfg = os.path.join(test_pkg, 'setup.cfg')
                 with open(test_setup_cfg, 'w', encoding="utf-8") as fp:
@@ -815,7 +815,7 @@ class TestSetupRequires:
                     # Ignored (overridden by setup_attrs)
                     'python-xlib',
                     '0.19',
-                    setup_attrs=dict(setup_requires=f'dependency @ {dep_url}'),
+                    setup_attrs={'setup_requires': f'dependency @ {dep_url}'},
                 )
                 test_setup_py = os.path.join(test_pkg, 'setup.py')
                 run_setup(test_setup_py, ['--version'])
@@ -898,7 +898,7 @@ data-requires-python="{dep_2_0_python_requires}">{dep_2_0_sdist}</a><br/>
                 str(tmpdir),
                 'python-xlib',
                 '0.19',  # Ignored (overridden by setup_attrs).
-                setup_attrs=dict(setup_requires='dep', dependency_links=[index_url]),
+                setup_attrs={'setup_requires': 'dep', 'dependency_links': [index_url]},
             )
             test_setup_py = os.path.join(test_pkg, 'setup.py')
             run_setup(test_setup_py, ['--version'])

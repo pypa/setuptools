@@ -781,7 +781,7 @@ class Distribution(_Distribution):
 
         defined = metadata.entry_points(group=group)
         filtered = itertools.filterfalse(self._removed, defined)
-        loaded = map(lambda e: e.load(), filtered)
+        loaded = (e.load() for e in filtered)
         for ep in sorted(loaded, key=by_order):
             ep(self)
 
@@ -1064,8 +1064,7 @@ class Distribution(_Distribution):
                 name, _buildinfo = ext
             else:
                 name = ext.name
-            if name.endswith('module'):
-                name = name[:-6]
+            name = name.removesuffix('module')
             yield name
 
     def handle_display_options(self, option_order):
