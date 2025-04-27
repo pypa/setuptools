@@ -52,4 +52,4 @@ class DevelopDeprecationWarning(SetuptoolsDeprecationWarning):
     Instead, use standards-based tools like pip or uv.
     """
     _SEE_URL = "https://github.com/pypa/setuptools/issues/917"
-    # _DUE_DATE = (TBD)
+    _DUE_DATE = 2025, 10, 31
