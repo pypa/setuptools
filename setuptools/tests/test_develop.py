@@ -1,7 +1,6 @@
 """develop tests"""
 
 import os
-import pathlib
 import platform
 import subprocess
 import sys
@@ -9,8 +8,6 @@ import sys
 import pytest
 
 from setuptools._path import paths_on_pythonpath
-from setuptools.command.develop import develop
-from setuptools.dist import Distribution
 
 from . import contexts, namespaces
 
