@@ -1,1 +1,0 @@
-Update test to honor new behavior in importlib_metadata 8.7.

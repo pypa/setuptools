@@ -1,3 +1,19 @@
+v80.0.0
+=======
+
+Bugfixes
+--------
+
+- Update test to honor new behavior in importlib_metadata 8.7. (#4961)
+
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for the easy_install command including the sandbox module. (#2908)
+- Develop command no longer uses easy_install, but instead defers execution to pip (which then will re-invoke Setuptools via PEP 517 to build the editable wheel). Most of the options to develop are dropped. This is the final warning before the command is dropped completely in a few months. Use-cases relying on 'setup.py develop' should pin to older Setuptools version or migrate to modern build tooling. (#4955)
+
+
 v79.0.1
 =======
 
