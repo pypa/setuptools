@@ -60,7 +60,7 @@ from setuptools.wheel import Wheel
 
 from .._path import ensure_directory
 from .._scripts import CommandSpec, ScriptWriter
-from .._shutil import attempt_chmod_verbose as chmod, rmtree as _rmtree
+from .._shutil import attempt_chmod_verbose as chmod, current_umask, rmtree as _rmtree
 from ..compat import py39, py312
 
 from distutils import dir_util, log
@@ -1952,12 +1952,6 @@ def is_python_script(script_text, filename):
 
 # For pbr compat; will be removed in a future version.
 sys_executable = CommandSpec._sys_executable()
-
-
-def current_umask():
-    tmp = os.umask(0o022)
-    os.umask(tmp)
-    return tmp
 
 
 def only_strs(values):

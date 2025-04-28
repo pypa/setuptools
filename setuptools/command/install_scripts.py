@@ -58,7 +58,7 @@ class install_scripts(orig.install_scripts):
 
     def write_script(self, script_name, contents, mode: str = "t", *ignored) -> None:
         """Write an executable file to the scripts directory"""
-        from setuptools.command.easy_install import chmod, current_umask
+        from .._shutil import attempt_chmod_verbose as chmod, current_umask
 
         log.info("Installing %s script to %s", script_name, self.install_dir)
         target = os.path.join(self.install_dir, script_name)
