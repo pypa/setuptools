@@ -455,17 +455,6 @@ class TestCommandSpec:
         ), exc_info.value
 
 
-class TestWindowsScriptWriter:
-    def test_header(self):
-        hdr = ei.WindowsScriptWriter.get_header('')
-        assert hdr.startswith('#!')
-        assert hdr.endswith('\n')
-        hdr = hdr.lstrip('#!')
-        hdr = hdr.rstrip('\n')
-        # header should not start with an escaped quote
-        assert not hdr.startswith('\\"')
-
-
 class VersionStub(NamedTuple):
     major: int
     minor: int

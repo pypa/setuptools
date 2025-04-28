@@ -17,8 +17,6 @@ import contextlib
 import io
 import os
 import random
-import re
-import shlex
 import shutil
 import site
 import stat
@@ -31,10 +29,9 @@ import textwrap
 import warnings
 import zipfile
 import zipimport
-from collections.abc import Iterable
 from glob import glob
 from sysconfig import get_path
-from typing import TYPE_CHECKING, NoReturn, TypedDict
+from typing import NoReturn
 
 from jaraco.text import yield_lines
 
@@ -58,16 +55,16 @@ from setuptools import Command
 from setuptools.archive_util import unpack_archive
 from setuptools.command import bdist_egg, setopt
 from setuptools.package_index import URL_SCHEME, PackageIndex, parse_requirement_arg
-from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
+from setuptools.warnings import SetuptoolsDeprecationWarning
 from setuptools.wheel import Wheel
 
 from .._path import ensure_directory
+from .._scripts import CommandSpec, ScriptWriter
 from .._shutil import attempt_chmod_verbose as chmod, rmtree as _rmtree
 from ..compat import py39, py312
 
 from distutils import dir_util, log
 from distutils.command import install
-from distutils.command.build_scripts import first_line_re
 from distutils.errors import (
     DistutilsArgError,
     DistutilsError,
@@ -75,9 +72,6 @@ from distutils.errors import (
     DistutilsPlatformError,
 )
 from distutils.util import convert_path, get_platform, subst_vars
-
-if TYPE_CHECKING:
-    from typing_extensions import Self
 
 # Turn on PEP440Warnings
 warnings.filterwarnings("default", category=pkg_resources.PEP440Warning)
@@ -1734,18 +1728,6 @@ if os.environ.get('SETUPTOOLS_SYS_PATH_TECHNIQUE', 'raw') == 'rewrite':
     PthDistributions = RewritePthDistributions  # type: ignore[misc]  # Overwriting type
 
 
-def _first_line_re():
-    """
-    Return a regular expression based on first_line_re suitable for matching
-    strings.
-    """
-    if isinstance(first_line_re.pattern, str):
-        return first_line_re
-
-    # first_line_re in Python >=3.1.4 and >=3.2.1 is a bytes pattern.
-    return re.compile(first_line_re.pattern.decode())
-
-
 def update_dist_caches(dist_path, fix_zipimporter_caches):
     """
     Fix any globally cached `dist_path` related data
@@ -1968,315 +1950,8 @@ def is_python_script(script_text, filename):
     return False  # Not any Python I can recognize
 
 
-class _SplitArgs(TypedDict, total=False):
-    comments: bool
-    posix: bool
-
-
-class CommandSpec(list):
-    """
-    A command spec for a #! header, specified as a list of arguments akin to
-    those passed to Popen.
-    """
-
-    options: list[str] = []
-    split_args = _SplitArgs()
-
-    @classmethod
-    def best(cls):
-        """
-        Choose the best CommandSpec class based on environmental conditions.
-        """
-        return cls
-
-    @classmethod
-    def _sys_executable(cls):
-        _default = os.path.normpath(sys.executable)
-        return os.environ.get('__PYVENV_LAUNCHER__', _default)
-
-    @classmethod
-    def from_param(cls, param: Self | str | Iterable[str] | None) -> Self:
-        """
-        Construct a CommandSpec from a parameter to build_scripts, which may
-        be None.
-        """
-        if isinstance(param, cls):
-            return param
-        if isinstance(param, str):
-            return cls.from_string(param)
-        if isinstance(param, Iterable):
-            return cls(param)
-        if param is None:
-            return cls.from_environment()
-        raise TypeError(f"Argument has an unsupported type {type(param)}")
-
-    @classmethod
-    def from_environment(cls):
-        return cls([cls._sys_executable()])
-
-    @classmethod
-    def from_string(cls, string: str) -> Self:
-        """
-        Construct a command spec from a simple string representing a command
-        line parseable by shlex.split.
-        """
-        items = shlex.split(string, **cls.split_args)
-        return cls(items)
-
-    def install_options(self, script_text: str):
-        self.options = shlex.split(self._extract_options(script_text))
-        cmdline = subprocess.list2cmdline(self)
-        if not isascii(cmdline):
-            self.options[:0] = ['-x']
-
-    @staticmethod
-    def _extract_options(orig_script):
-        """
-        Extract any options from the first line of the script.
-        """
-        first = (orig_script + '\n').splitlines()[0]
-        match = _first_line_re().match(first)
-        options = match.group(1) or '' if match else ''
-        return options.strip()
-
-    def as_header(self):
-        return self._render(self + list(self.options))
-
-    @staticmethod
-    def _strip_quotes(item):
-        _QUOTES = '"\''
-        for q in _QUOTES:
-            if item.startswith(q) and item.endswith(q):
-                return item[1:-1]
-        return item
-
-    @staticmethod
-    def _render(items):
-        cmdline = subprocess.list2cmdline(
-            CommandSpec._strip_quotes(item.strip()) for item in items
-        )
-        return '#!' + cmdline + '\n'
-
-
 # For pbr compat; will be removed in a future version.
 sys_executable = CommandSpec._sys_executable()
-
-
-class WindowsCommandSpec(CommandSpec):
-    split_args = _SplitArgs(posix=False)
-
-
-class ScriptWriter:
-    """
-    Encapsulates behavior around writing entry point scripts for console and
-    gui apps.
-    """
-
-    template = textwrap.dedent(
-        r"""
-        # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
-        import re
-        import sys
-
-        # for compatibility with easy_install; see #2198
-        __requires__ = %(spec)r
-
-        try:
-            from importlib.metadata import distribution
-        except ImportError:
-            try:
-                from importlib_metadata import distribution
-            except ImportError:
-                from pkg_resources import load_entry_point
-
-
-        def importlib_load_entry_point(spec, group, name):
-            dist_name, _, _ = spec.partition('==')
-            matches = (
-                entry_point
-                for entry_point in distribution(dist_name).entry_points
-                if entry_point.group == group and entry_point.name == name
-            )
-            return next(matches).load()
-
-
-        globals().setdefault('load_entry_point', importlib_load_entry_point)
-
-
-        if __name__ == '__main__':
-            sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-            sys.exit(load_entry_point(%(spec)r, %(group)r, %(name)r)())
-        """
-    ).lstrip()
-
-    command_spec_class = CommandSpec
-
-    @classmethod
-    def get_args(cls, dist, header=None):
-        """
-        Yield write_script() argument tuples for a distribution's
-        console_scripts and gui_scripts entry points.
-        """
-        if header is None:
-            header = cls.get_header()
-        spec = str(dist.as_requirement())
-        for type_ in 'console', 'gui':
-            group = type_ + '_scripts'
-            for name in dist.get_entry_map(group).keys():
-                cls._ensure_safe_name(name)
-                script_text = cls.template % locals()
-                args = cls._get_script_args(type_, name, header, script_text)
-                yield from args
-
-    @staticmethod
-    def _ensure_safe_name(name):
-        """
-        Prevent paths in *_scripts entry point names.
-        """
-        has_path_sep = re.search(r'[\\/]', name)
-        if has_path_sep:
-            raise ValueError("Path separators not allowed in script names")
-
-    @classmethod
-    def best(cls):
-        """
-        Select the best ScriptWriter for this environment.
-        """
-        if sys.platform == 'win32' or (os.name == 'java' and os._name == 'nt'):
-            return WindowsScriptWriter.best()
-        else:
-            return cls
-
-    @classmethod
-    def _get_script_args(cls, type_, name, header, script_text):
-        # Simply write the stub with no extension.
-        yield (name, header + script_text)
-
-    @classmethod
-    def get_header(
-        cls,
-        script_text: str = "",
-        executable: str | CommandSpec | Iterable[str] | None = None,
-    ) -> str:
-        """Create a #! line, getting options (if any) from script_text"""
-        cmd = cls.command_spec_class.best().from_param(executable)
-        cmd.install_options(script_text)
-        return cmd.as_header()
-
-
-class WindowsScriptWriter(ScriptWriter):
-    command_spec_class = WindowsCommandSpec
-
-    @classmethod
-    def best(cls):
-        """
-        Select the best ScriptWriter suitable for Windows
-        """
-        writer_lookup = dict(
-            executable=WindowsExecutableLauncherWriter,
-            natural=cls,
-        )
-        # for compatibility, use the executable launcher by default
-        launcher = os.environ.get('SETUPTOOLS_LAUNCHER', 'executable')
-        return writer_lookup[launcher]
-
-    @classmethod
-    def _get_script_args(cls, type_, name, header, script_text):
-        "For Windows, add a .py extension"
-        ext = dict(console='.pya', gui='.pyw')[type_]
-        if ext not in os.environ['PATHEXT'].lower().split(';'):
-            msg = (
-                "{ext} not listed in PATHEXT; scripts will not be "
-                "recognized as executables."
-            ).format(**locals())
-            SetuptoolsWarning.emit(msg)
-        old = ['.pya', '.py', '-script.py', '.pyc', '.pyo', '.pyw', '.exe']
-        old.remove(ext)
-        header = cls._adjust_header(type_, header)
-        blockers = [name + x for x in old]
-        yield name + ext, header + script_text, 't', blockers
-
-    @classmethod
-    def _adjust_header(cls, type_, orig_header):
-        """
-        Make sure 'pythonw' is used for gui and 'python' is used for
-        console (regardless of what sys.executable is).
-        """
-        pattern = 'pythonw.exe'
-        repl = 'python.exe'
-        if type_ == 'gui':
-            pattern, repl = repl, pattern
-        pattern_ob = re.compile(re.escape(pattern), re.IGNORECASE)
-        new_header = pattern_ob.sub(string=orig_header, repl=repl)
-        return new_header if cls._use_header(new_header) else orig_header
-
-    @staticmethod
-    def _use_header(new_header):
-        """
-        Should _adjust_header use the replaced header?
-
-        On non-windows systems, always use. On
-        Windows systems, only use the replaced header if it resolves
-        to an executable on the system.
-        """
-        clean_header = new_header[2:-1].strip('"')
-        return sys.platform != 'win32' or shutil.which(clean_header)
-
-
-class WindowsExecutableLauncherWriter(WindowsScriptWriter):
-    @classmethod
-    def _get_script_args(cls, type_, name, header, script_text):
-        """
-        For Windows, add a .py extension and an .exe launcher
-        """
-        if type_ == 'gui':
-            launcher_type = 'gui'
-            ext = '-script.pyw'
-            old = ['.pyw']
-        else:
-            launcher_type = 'cli'
-            ext = '-script.py'
-            old = ['.py', '.pyc', '.pyo']
-        hdr = cls._adjust_header(type_, header)
-        blockers = [name + x for x in old]
-        yield (name + ext, hdr + script_text, 't', blockers)
-        yield (
-            name + '.exe',
-            get_win_launcher(launcher_type),
-            'b',  # write in binary mode
-        )
-        if not is_64bit():
-            # install a manifest for the launcher to prevent Windows
-            # from detecting it as an installer (which it will for
-            #  launchers like easy_install.exe). Consider only
-            #  adding a manifest for launchers detected as installers.
-            #  See Distribute #143 for details.
-            m_name = name + '.exe.manifest'
-            yield (m_name, load_launcher_manifest(name), 't')
-
-
-def get_win_launcher(type):
-    """
-    Load the Windows launcher (executable) suitable for launching a script.
-
-    `type` should be either 'cli' or 'gui'
-
-    Returns the executable as a byte string.
-    """
-    launcher_fn = f'{type}.exe'
-    if is_64bit():
-        if get_platform() == "win-arm64":
-            launcher_fn = launcher_fn.replace(".", "-arm64.")
-        else:
-            launcher_fn = launcher_fn.replace(".", "-64.")
-    else:
-        launcher_fn = launcher_fn.replace(".", "-32.")
-    return resource_string('setuptools', launcher_fn)
-
-
-def load_launcher_manifest(name):
-    manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
-    return manifest.decode('utf-8') % vars()
 
 
 def current_umask():

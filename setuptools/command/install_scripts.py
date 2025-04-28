@@ -34,7 +34,7 @@ class install_scripts(orig.install_scripts):
         # Delay import side-effects
         from pkg_resources import Distribution, PathMetadata
 
-        from . import easy_install as ei
+        from .. import _scripts
 
         ei_cmd = self.get_finalized_command("egg_info")
         dist = Distribution(
@@ -45,7 +45,7 @@ class install_scripts(orig.install_scripts):
         )
         bs_cmd = self.get_finalized_command('build_scripts')
         exec_param = getattr(bs_cmd, 'executable', None)
-        writer = ei.ScriptWriter
+        writer = _scripts.ScriptWriter
         if exec_param == sys.executable:
             # In case the path to the Python executable contains a space, wrap
             # it so it's not split up.
