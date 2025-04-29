@@ -113,6 +113,7 @@ extlinks = {
     'user': (f'{github_url}%s', '@%s'),
     'pypi': ('https://pypi.org/project/%s', '%s'),
     'wiki': ('https://wikipedia.org/wiki/%s', '%s'),
+    'discourse': ('https://discuss.python.org/t/%s', '%s'),
 }
 extensions += ['sphinx.ext.extlinks']
 
