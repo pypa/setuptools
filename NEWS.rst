@@ -1,3 +1,12 @@
+v80.0.1
+=======
+
+Bugfixes
+--------
+
+- Fixed index_url logic in develop compatibility shim. (#4966)
+
+
 v80.0.0
 =======
 
