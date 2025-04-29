@@ -1,5 +1,5 @@
-# This file was originally contributed to the pypa/wheel project under
-# The following license and copyright notice:
+# This file was originally contributed by Grzegorz Bokota (@Czaki)
+# to pypa/wheel under the following license and copyright notice:
 #
 # MIT License
 #

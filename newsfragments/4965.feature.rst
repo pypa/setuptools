@@ -1,5 +1,8 @@
 Incorporated ``wheel.macosx_libfile`` as a private module in the ``setuptools`` project.
 The discussion leading to this approach can be found in #4935 and in the Discourse thread 87509.
+The original code was provided to pypa/wheel#314 by Grzegorz Bokota (:user:`Czaki`),
+and further improved by community members in the context of the :pypa:`wheel` project
+(see commit history in https://github.com/pypa/wheel/commits/0.46.1/src/wheel/macosx_libfile.py).
 Third party software interested in using this module are encouraged to interact
 in the Discourse thread and propose alternatives (e.g. extracting this module
 in its own separated project).
