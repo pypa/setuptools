@@ -34,7 +34,7 @@ class develop(Command):
             + ['--no-deps'] * self.no_deps
             + ['--user'] * self.user
             + ['--prefix', self.prefix] * bool(self.prefix)
-            + ['--index-url', self.index_url] * bool(self.prefix)
+            + ['--index-url', self.index_url] * bool(self.self.index_url)
         )
         subprocess.check_call(cmd)
 
