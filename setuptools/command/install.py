@@ -71,6 +71,9 @@ class install(orig.install):
         )
 
         super().initialize_options()
+
+        InstallDeprecationWarning.emit()
+
         self.old_and_unmanageable = None
         self.single_version_externally_managed = None
 
@@ -154,3 +157,13 @@ class install(orig.install):
 install.sub_commands = [
     cmd for cmd in orig.install.sub_commands if cmd[0] not in install._nc
 ] + install.new_commands
+
+
+class InstallDeprecationWarning(SetuptoolsDeprecationWarning):
+    _SUMMARY = "install command is deprecated."
+    _DETAILS = """
+    Please avoid running ``setup.py`` and ``install``.
+    Instead, use standards-based tools like pip or uv.
+    """
+    _SEE_URL = "https://github.com/pypa/setuptools/issues/917"
+    _DUE_DATE = 2025, 10, 31
