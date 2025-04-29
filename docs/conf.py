@@ -89,6 +89,10 @@ link_files = {
                 pattern=r'pypa/(?P<commit_repo>[\-\.\w]+)@(?P<commit_number>[\da-f]+)',
                 url='{GH}/pypa/{commit_repo}/commit/{commit_number}',
             ),
+            dict(
+                pattern=r'Discourse thread (?P<thread_number>\d+)',
+                url='https://discuss.python.org/t/{thread_number}',
+            ),
         ],
     ),
 }
@@ -113,7 +117,6 @@ extlinks = {
     'user': (f'{github_url}%s', '@%s'),
     'pypi': ('https://pypi.org/project/%s', '%s'),
     'wiki': ('https://wikipedia.org/wiki/%s', '%s'),
-    'discourse': ('https://discuss.python.org/t/%s', '%s'),
 }
 extensions += ['sphinx.ext.extlinks']
 
