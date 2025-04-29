@@ -1,3 +1,10 @@
+# This file was originally contributed to the pypa/wheel project under
+# The following license and copyright notice:
+#
+# MIT License
+#
+# Copyright (c) 2012 Daniel Holth <dholth@fastmail.fm> and contributors
+
 """
 IMPORTANT: THIS FILE IS NOW IN "MAINTENANCE MODE".
 DO NOT IMPORT THIS MODULE DIRECTLY.
