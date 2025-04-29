@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import inspect
 import platform
+import subprocess
+import sys
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -102,7 +104,7 @@ class install(orig.install):
             # Run in backward-compatibility mode to support bdist_* commands.
             super().run()
         else:
-            self.do_egg_install()
+            self.do_pip_install()
 
         return None
 
@@ -139,8 +141,13 @@ class install(orig.install):
 
         return False
 
-    def do_egg_install(self) -> None:
-        raise NotImplementedError("Support for egg-based install has been removed.")
+    def do_pip_install(self) -> None:
+        cmd = (
+            [sys.executable, '-m', 'pip', 'install', '.', '--use-pep517']
+            + ['--user'] * self.user
+            + ['--prefix', self.prefix] * bool(self.prefix)
+        )
+        subprocess.check_call(cmd)
 
 
 # XXX Python 3.1 doesn't see _nc if this is inside the class
