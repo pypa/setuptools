@@ -276,11 +276,11 @@ def get_base_class_and_magic_number(
         if sys.byteorder == "little":
             BaseClass = ctypes.BigEndianStructure
         else:
-            BaseClass = ctypes.LittleEndianStructure
+            BaseClass = ctypes.LittleEndianStructure  # type: ignore[assignment]
 
         magic_number = swap32(magic_number)
     else:
-        BaseClass = ctypes.Structure
+        BaseClass = ctypes.Structure  # type: ignore[assignment]
 
     lib_file.seek(seek)
     return BaseClass, magic_number
@@ -298,18 +298,18 @@ def extract_macosx_min_system_version(path_to_lib: str):  # noqa: C901
 
         if magic_number in [FAT_MAGIC, FAT_CIGAM_64]:
 
-            class FatHeader(BaseClass):
+            class FatHeader(BaseClass):  # type: ignore[misc,valid-type]
                 _fields_ = fat_header_fields
 
             fat_header = read_data(FatHeader, lib_file)
             if magic_number == FAT_MAGIC:
 
-                class FatArch(BaseClass):
+                class FatArch(BaseClass):  # type: ignore[misc,valid-type]
                     _fields_ = fat_arch_fields
 
             else:
 
-                class FatArch(BaseClass):
+                class FatArch(BaseClass):  # type: ignore[misc,valid-type,no-redef]
                     _fields_ = fat_arch_64_fields
 
             fat_arch_list = [
@@ -361,17 +361,17 @@ def read_mach_header(
     base_class, magic_number = get_base_class_and_magic_number(lib_file, seek)
     arch = "32" if magic_number == MH_MAGIC else "64"
 
-    class SegmentBase(base_class):
+    class SegmentBase(base_class):  # type: ignore[misc,valid-type]
         _fields_ = segment_base_fields
 
     if arch == "32":
 
-        class MachHeader(base_class):
+        class MachHeader(base_class):  # type: ignore[misc,valid-type]
             _fields_ = mach_header_fields
 
     else:
 
-        class MachHeader(base_class):
+        class MachHeader(base_class):  # type: ignore[misc,valid-type,no-redef]
             _fields_ = mach_header_fields_64
 
     mach_header = read_data(MachHeader, lib_file)
@@ -381,14 +381,14 @@ def read_mach_header(
         lib_file.seek(pos)
         if segment_base.cmd == LC_VERSION_MIN_MACOSX:
 
-            class VersionMinCommand(base_class):
+            class VersionMinCommand(base_class):  # type: ignore[misc,valid-type]
                 _fields_ = version_min_command_fields
 
             version_info = read_data(VersionMinCommand, lib_file)
             return parse_version(version_info.version)
         elif segment_base.cmd == LC_BUILD_VERSION:
 
-            class VersionBuild(base_class):
+            class VersionBuild(base_class):  # type: ignore[misc,valid-type]
                 _fields_ = build_version_command_fields
 
             version_info = read_data(VersionBuild, lib_file)
@@ -396,6 +396,8 @@ def read_mach_header(
         else:
             lib_file.seek(pos + segment_base.cmdsize)
             continue
+
+    return None
 
 
 def parse_version(version: int) -> tuple[int, int, int]:
@@ -411,8 +413,8 @@ def calculate_macosx_platform_tag(archive_root: StrPath, platform_tag: str) -> s
 
     Example platform tag `macosx-10.14-x86_64`
     """
-    prefix, base_version, suffix = platform_tag.split("-")
-    base_version = tuple(int(x) for x in base_version.split("."))
+    prefix, base_version_, suffix = platform_tag.split("-")
+    base_version = tuple(int(x) for x in base_version_.split("."))
     base_version = base_version[:2]
     if base_version[0] > 10:
         base_version = (base_version[0], 0)
@@ -457,7 +459,6 @@ def calculate_macosx_platform_tag(archive_root: StrPath, platform_tag: str) -> s
     fin_base_version = "_".join([str(x) for x in base_version])
     if start_version < base_version:
         problematic_files = [k for k, v in versions_dict.items() if v > start_version]
-        problematic_files = "\n".join(problematic_files)
         if len(problematic_files) == 1:
             files_form = "this file"
         else:
@@ -469,7 +470,7 @@ def calculate_macosx_platform_tag(archive_root: StrPath, platform_tag: str) -> s
             + " or recreate "
             + files_form
             + " with lower "
-            "MACOSX_DEPLOYMENT_TARGET:  \n" + problematic_files
+            "MACOSX_DEPLOYMENT_TARGET:  \n" + "\n".join(problematic_files)
         )
 
         if "MACOSX_DEPLOYMENT_TARGET" in os.environ:
