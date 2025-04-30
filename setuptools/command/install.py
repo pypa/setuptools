@@ -126,9 +126,6 @@ class install(orig.install):
 
         return False
 
-    def do_egg_install(self) -> None:
-        raise NotImplementedError("Support for egg-based install has been removed.")
-
 
 # XXX Python 3.1 doesn't see _nc if this is inside the class
 install.sub_commands = [
