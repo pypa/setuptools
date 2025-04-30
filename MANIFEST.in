@@ -7,6 +7,7 @@ recursive-include pkg_resources *.py *.txt
 recursive-include pkg_resources/tests/data *
 recursive-include tools *
 recursive-include newsfragments *
+graft setuptools/tests/macosx_libfile/
 include *.py
 include *.rst
 include MANIFEST.in

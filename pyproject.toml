@@ -208,8 +208,10 @@ exclude = [
 namespaces = true
 
 [tool.setuptools.exclude-package-data]
-# Remove ruff.toml when installing vendored packages (#4652)
-"*" = ["ruff.toml"]
+"*" = [
+	"ruff.toml", # Remove ruff.toml when installing vendored packages (#4652)
+	"*.dylib", # Avoid distributing obscure binary test files for macos_libfile in wheel (#4965)
+]
 
 [tool.distutils.sdist]
 formats = "zip"
