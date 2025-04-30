@@ -63,9 +63,7 @@ class install(orig.install):
             standards-based tools.
             """,
             see_url="https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html",
-            # TODO: Document how to bootstrap setuptools without install
-            #       (e.g. by unzipping the wheel file)
-            #       and then add a due_date to this warning.
+            due_date=(2025, 10, 31),
         )
 
         super().initialize_options()
@@ -91,19 +89,6 @@ class install(orig.install):
         # command without --root or --single-version-externally-managed
         self.path_file = None
         self.extra_dirs = ''
-        return None
-
-    def run(self):
-        # Explicit request for old-style install?  Just do it
-        if self.old_and_unmanageable or self.single_version_externally_managed:
-            return super().run()
-
-        if not self._called_from_setup(inspect.currentframe()):
-            # Run in backward-compatibility mode to support bdist_* commands.
-            super().run()
-        else:
-            self.do_egg_install()
-
         return None
 
     @staticmethod
@@ -138,9 +123,6 @@ class install(orig.install):
             return caller_module == 'distutils.dist' and info.function == 'run_commands'
 
         return False
-
-    def do_egg_install(self) -> None:
-        raise NotImplementedError("Support for egg-based install has been removed.")
 
 
 # XXX Python 3.1 doesn't see _nc if this is inside the class
