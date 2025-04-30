@@ -93,19 +93,6 @@ class install(orig.install):
         self.extra_dirs = ''
         return None
 
-    def run(self):
-        # Explicit request for old-style install?  Just do it
-        if self.old_and_unmanageable or self.single_version_externally_managed:
-            return super().run()
-
-        if not self._called_from_setup(inspect.currentframe()):
-            # Run in backward-compatibility mode to support bdist_* commands.
-            return super().run()
-        else:
-            return super().run()
-
-        return None
-
     @staticmethod
     def _called_from_setup(run_frame):
         """
