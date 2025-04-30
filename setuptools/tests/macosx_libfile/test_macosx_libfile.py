@@ -6,8 +6,8 @@ import sysconfig
 
 import pytest
 
-from wheel._bdist_wheel import get_platform
-from wheel.macosx_libfile import extract_macosx_min_system_version
+from setuptools.command._macosx_libfile import extract_macosx_min_system_version
+from setuptools.command.bdist_wheel import get_platform
 
 
 def test_read_from_dylib():
