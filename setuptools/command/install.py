@@ -100,9 +100,9 @@ class install(orig.install):
 
         if not self._called_from_setup(inspect.currentframe()):
             # Run in backward-compatibility mode to support bdist_* commands.
-            super().run()
+            return super().run()
         else:
-            super().run()
+            return super().run()
 
         return None
 
