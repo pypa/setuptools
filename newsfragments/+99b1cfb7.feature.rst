@@ -1,1 +1,0 @@
-Added a deadline of Oct 31 to the setup.py install deprecation.

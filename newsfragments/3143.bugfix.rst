@@ -1,1 +1,0 @@
-With ``setup.py install --prefix=...``, fall back to distutils install rather than failing. Note that running ``setup.py install`` is deprecated.

@@ -1,3 +1,18 @@
+v80.1.0
+=======
+
+Features
+--------
+
+- Added a deadline of Oct 31 to the setup.py install deprecation.
+
+
+Bugfixes
+--------
+
+- With ``setup.py install --prefix=...``, fall back to distutils install rather than failing. Note that running ``setup.py install`` is deprecated. (#3143)
+
+
 v80.0.1
 =======
 
