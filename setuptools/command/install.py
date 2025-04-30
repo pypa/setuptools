@@ -102,7 +102,7 @@ class install(orig.install):
             # Run in backward-compatibility mode to support bdist_* commands.
             super().run()
         else:
-            self.do_egg_install()
+            super().run()
 
         return None
 
