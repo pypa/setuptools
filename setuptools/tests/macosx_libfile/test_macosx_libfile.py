@@ -79,9 +79,9 @@ class TestGetPlatformMacosx:
         monkeypatch.setattr(
             os,
             "walk",
-            return_factory(
-                [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])]
-            ),
+            return_factory([
+                (dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])
+            ]),
         )
         assert get_platform(dylib_dir) == "macosx_10_10_x86_64"
         captured = capsys.readouterr()
@@ -103,9 +103,9 @@ class TestGetPlatformMacosx:
         monkeypatch.setattr(
             os,
             "walk",
-            return_factory(
-                [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])]
-            ),
+            return_factory([
+                (dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])
+            ]),
         )
         assert get_platform(dylib_dir) == "macosx_10_10_x86_64"
         captured = capsys.readouterr()
@@ -122,9 +122,9 @@ class TestGetPlatformMacosx:
         monkeypatch.setattr(
             os,
             "walk",
-            return_factory(
-                [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_6_fat.dylib"])]
-            ),
+            return_factory([
+                (dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_6_fat.dylib"])
+            ]),
         )
         assert get_platform(dylib_dir) == "macosx_10_9_x86_64"
         monkeypatch.setenv("MACOSX_DEPLOYMENT_TARGET", "10.10")
@@ -141,19 +141,17 @@ class TestGetPlatformMacosx:
         monkeypatch.setattr(
             os,
             "walk",
-            return_factory(
-                [
-                    (
-                        dylib_dir,
-                        [],
-                        [
-                            "test_lib_10_6.dylib",
-                            "test_lib_10_6_fat.dylib",
-                            "test_lib_10_10_10.dylib",
-                        ],
-                    )
-                ]
-            ),
+            return_factory([
+                (
+                    dylib_dir,
+                    [],
+                    [
+                        "test_lib_10_6.dylib",
+                        "test_lib_10_6_fat.dylib",
+                        "test_lib_10_10_10.dylib",
+                    ],
+                )
+            ]),
         )
         assert get_platform(dylib_dir) == "macosx_10_10_x86_64"
         captured = capsys.readouterr()
@@ -173,9 +171,9 @@ class TestGetPlatformMacosx:
         monkeypatch.setattr(
             os,
             "walk",
-            return_factory(
-                [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_6_fat.dylib"])]
-            ),
+            return_factory([
+                (dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_6_fat.dylib"])
+            ]),
         )
         assert get_platform(dylib_dir) == "macosx_10_9_x86_64"
         captured = capsys.readouterr()
@@ -194,9 +192,9 @@ class TestGetPlatformMacosx:
         monkeypatch.setattr(
             os,
             "walk",
-            return_factory(
-                [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])]
-            ),
+            return_factory([
+                (dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])
+            ]),
         )
         assert get_platform(dylib_dir) == "macosx_11_0_x86_64"
 
@@ -209,15 +207,15 @@ class TestGetPlatformMacosx:
         monkeypatch.setattr(
             os,
             "walk",
-            return_factory(
-                [(dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])]
-            ),
+            return_factory([
+                (dylib_dir, [], ["test_lib_10_6.dylib", "test_lib_10_10_fat.dylib"])
+            ]),
         )
         assert get_platform(dylib_dir) == "macosx_11_0_x86_64"
 
 
 @pytest.mark.parametrize(
-    "reported,expected",
+    ("reported", "expected"),
     [("linux-x86_64", "linux_i686"), ("linux-aarch64", "linux_armv7l")],
 )
 def test_get_platform_linux32(reported, expected, monkeypatch):
