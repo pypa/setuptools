@@ -5,11 +5,14 @@ with setuptools, and ``run`` will always try to be as verbose as possible to
 facilitate debugging.
 """
 
+from __future__ import annotations
+
 import os
 import subprocess
 import tarfile
+from collections.abc import Iterator
 from pathlib import Path
-from zipfile import ZipFile
+from zipfile import ZipFile, ZipInfo
 
 
 def run(cmd, env=None):
@@ -44,7 +47,7 @@ class Archive:
         else:
             raise ValueError(f"{filename} doesn't seem to be a zip or tar.gz")
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[ZipInfo] | Iterator[tarfile.TarInfo]:
         if hasattr(self._obj, "infolist"):
             return iter(self._obj.infolist())
         return iter(self._obj)

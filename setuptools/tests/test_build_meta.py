@@ -82,7 +82,7 @@ class BuildBackendCaller(BuildBackendBase):
 
         (self.backend_name, _, self.backend_obj) = self.backend_name.partition(':')
 
-    def __call__(self, name, *args, **kw):
+    def __call__(self, name, *args, **kw) -> Any:
         """Handles arbitrary function invocations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)

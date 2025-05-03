@@ -22,7 +22,7 @@ import distutils.dist
 
 
 class EggRemover(str):
-    def __call__(self):
+    def __call__(self) -> None:
         if self in sys.path:
             sys.path.remove(self)
         if os.path.exists(self):
