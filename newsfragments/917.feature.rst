@@ -1,0 +1,1 @@
+Removed easy_install and package_index modules.
