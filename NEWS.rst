@@ -1,3 +1,12 @@
+v80.2.0
+=======
+
+Features
+--------
+
+- Restored support for install_scripts --executable (and classic behavior for the executable for those invocations). Instead, build_editable provides the portable form of the executables for downstream installers to rewrite. (#4934)
+
+
 v80.1.0
 =======
 
