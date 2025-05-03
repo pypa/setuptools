@@ -36,6 +36,7 @@ from ..warnings import InformationOnly, SetuptoolsDeprecationWarning, Setuptools
 from .build import build as build_cls
 from .build_py import build_py as build_py_cls
 from .dist_info import dist_info as dist_info_cls
+from .distutils.commands import build_scripts as build_scripts_cls
 from .egg_info import egg_info as egg_info_cls
 from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
@@ -210,6 +211,11 @@ class editable_wheel(Command):
         install.install_scripts = build.build_scripts = scripts
         install.install_headers = headers
         install.install_data = data
+
+        # For portability, ensure scripts are built with #!python shebang
+        # pypa/setuptools#4863
+        build_scripts = cast(build_scripts_cls, dist.get_command_obj("build_scripts"))
+        build_scripts.executable = 'python'
 
         install_scripts = cast(
             install_scripts_cls, dist.get_command_obj("install_scripts")
