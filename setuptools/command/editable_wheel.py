@@ -211,6 +211,11 @@ class editable_wheel(Command):
         install.install_headers = headers
         install.install_data = data
 
+        # For portability, ensure scripts are built with #!python shebang
+        # pypa/setuptools#4863
+        build_scripts = dist.get_command_obj("build_scripts")
+        build_scripts.executable = 'python'
+
         install_scripts = cast(
             install_scripts_cls, dist.get_command_obj("install_scripts")
         )

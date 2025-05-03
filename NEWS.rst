@@ -1,3 +1,71 @@
+v80.3.0
+=======
+
+Features
+--------
+
+- Removed easy_install and package_index modules. (#917)
+- Restored license declaration in package metadata. See jaraco/skeleton#171. (#4956)
+
+
+v80.2.0
+=======
+
+Features
+--------
+
+- Restored support for install_scripts --executable (and classic behavior for the executable for those invocations). Instead, build_editable provides the portable form of the executables for downstream installers to rewrite. (#4934)
+
+
+v80.1.0
+=======
+
+Features
+--------
+
+- Added a deadline of Oct 31 to the setup.py install deprecation.
+
+
+Bugfixes
+--------
+
+- With ``setup.py install --prefix=...``, fall back to distutils install rather than failing. Note that running ``setup.py install`` is deprecated. (#3143)
+
+
+v80.0.1
+=======
+
+Bugfixes
+--------
+
+- Fixed index_url logic in develop compatibility shim. (#4966)
+
+
+v80.0.0
+=======
+
+Bugfixes
+--------
+
+- Update test to honor new behavior in importlib_metadata 8.7. (#4961)
+
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for the easy_install command including the sandbox module. (#2908)
+- Develop command no longer uses easy_install, but instead defers execution to pip (which then will re-invoke Setuptools via PEP 517 to build the editable wheel). Most of the options to develop are dropped. This is the final warning before the command is dropped completely in a few months. Use-cases relying on 'setup.py develop' should pin to older Setuptools version or migrate to modern build tooling. (#4955)
+
+
+v79.0.1
+=======
+
+Bugfixes
+--------
+
+- Merge with pypa/distutils@24bd3179b including fix for pypa/distutils#355.
+
+
 v79.0.0
 =======
 
