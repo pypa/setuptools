@@ -36,10 +36,11 @@ from ..warnings import InformationOnly, SetuptoolsDeprecationWarning, Setuptools
 from .build import build as build_cls
 from .build_py import build_py as build_py_cls
 from .dist_info import dist_info as dist_info_cls
-from .distutils.commands import build_scripts as build_scripts_cls
 from .egg_info import egg_info as egg_info_cls
 from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
+
+from distutils.command.build_scripts import build_scripts as build_scripts_cls
 
 if TYPE_CHECKING:
     from typing_extensions import Self
