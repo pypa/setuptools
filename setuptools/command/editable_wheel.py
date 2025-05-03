@@ -40,8 +40,6 @@ from .egg_info import egg_info as egg_info_cls
 from .install import install as install_cls
 from .install_scripts import install_scripts as install_scripts_cls
 
-from distutils.command.build_scripts import build_scripts as build_scripts_cls
-
 if TYPE_CHECKING:
     from typing_extensions import Self
 
@@ -215,7 +213,7 @@ class editable_wheel(Command):
 
         # For portability, ensure scripts are built with #!python shebang
         # pypa/setuptools#4863
-        build_scripts = cast(build_scripts_cls, dist.get_command_obj("build_scripts"))
+        build_scripts = dist.get_command_obj("build_scripts")
         build_scripts.executable = 'python'
 
         install_scripts = cast(
