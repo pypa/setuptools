@@ -21,7 +21,6 @@ import textwrap
 import pytest
 
 import pkg_resources
-from setuptools.command.easy_install import nt_quote_arg
 
 pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 
@@ -29,7 +28,7 @@ pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 class WrapperTester:
     @classmethod
     def prep_script(cls, template):
-        python_exe = nt_quote_arg(sys.executable)
+        python_exe = subprocess.list2cmdline([sys.executable])
         return template % locals()
 
     @classmethod

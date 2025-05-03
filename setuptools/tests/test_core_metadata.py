@@ -8,9 +8,11 @@ from email.generator import Generator
 from email.message import EmailMessage, Message
 from email.parser import Parser
 from email.policy import EmailPolicy
+from inspect import cleandoc
 from pathlib import Path
 from unittest.mock import Mock
 
+import jaraco.path
 import pytest
 from packaging.metadata import Metadata
 from packaging.requirements import Requirement
@@ -371,6 +373,9 @@ class TestParityWithMetadataFromPyPaWheel:
         monkeypatch.chdir(tmp_path)
         monkeypatch.setattr(expand, "read_attr", Mock(return_value="0.42"))
         monkeypatch.setattr(expand, "read_files", Mock(return_value="hello world"))
+        monkeypatch.setattr(
+            Distribution, "_finalize_license_files", Mock(return_value=None)
+        )
         if request.param is None:
             yield self.base_example()
         else:
@@ -409,6 +414,132 @@ class TestParityWithMetadataFromPyPaWheel:
 
         # Make sure it parses/serializes well in pypa/wheel
         _assert_roundtrip_message(pkg_info)
+
+
+class TestPEP643:
+    STATIC_CONFIG = {
+        "setup.cfg": cleandoc(
+            """
+            [metadata]
+            name = package
+            version = 0.0.1
+            author = Foo Bar
+            author_email = foo@bar.net
+            long_description = Long
+                               description
+            description = Short description
+            keywords = one, two
+            platforms = abcd
+            [options]
+            install_requires = requests
+            """
+        ),
+        "pyproject.toml": cleandoc(
+            """
+            [project]
+            name = "package"
+            version = "0.0.1"
+            authors = [
+              {name = "Foo Bar", email = "foo@bar.net"}
+            ]
+            description = "Short description"
+            readme = {text = "Long\\ndescription", content-type = "text/plain"}
+            keywords = ["one", "two"]
+            dependencies = ["requests"]
+            license = "AGPL-3.0-or-later"
+            [tool.setuptools]
+            provides = ["abcd"]
+            obsoletes = ["abcd"]
+            """
+        ),
+    }
+
+    @pytest.mark.parametrize("file", STATIC_CONFIG.keys())
+    def test_static_config_has_no_dynamic(self, file, tmpdir_cwd):
+        Path(file).write_text(self.STATIC_CONFIG[file], encoding="utf-8")
+        metadata = _get_metadata()
+        assert metadata.get_all("Dynamic") is None
+        assert metadata.get_all("dynamic") is None
+
+    @pytest.mark.parametrize("file", STATIC_CONFIG.keys())
+    @pytest.mark.parametrize(
+        "fields",
+        [
+            # Single dynamic field
+            {"requires-python": ("python_requires", ">=3.12")},
+            {"author-email": ("author_email", "snoopy@peanuts.com")},
+            {"keywords": ("keywords", ["hello", "world"])},
+            {"platform": ("platforms", ["abcd"])},
+            # Multiple dynamic fields
+            {
+                "summary": ("description", "hello world"),
+                "description": ("long_description", "bla bla bla bla"),
+                "requires-dist": ("install_requires", ["hello-world"]),
+            },
+        ],
+    )
+    def test_modified_fields_marked_as_dynamic(self, file, fields, tmpdir_cwd):
+        # We start with a static config
+        Path(file).write_text(self.STATIC_CONFIG[file], encoding="utf-8")
+        dist = _makedist()
+
+        # ... but then we simulate the effects of a plugin modifying the distribution
+        for attr, value in fields.values():
+            # `dist` and `dist.metadata` are complicated...
+            # Some attributes work when set on `dist`, others on `dist.metadata`...
+            # Here we set in both just in case (this also avoids calling `_finalize_*`)
+            setattr(dist, attr, value)
+            setattr(dist.metadata, attr, value)
+
+        # Then we should be able to list the modified fields as Dynamic
+        metadata = _get_metadata(dist)
+        assert set(metadata.get_all("Dynamic")) == set(fields)
+
+    @pytest.mark.parametrize(
+        "extra_toml",
+        [
+            "# Let setuptools autofill license-files",
+            "license-files = ['LICENSE*', 'AUTHORS*', 'NOTICE']",
+        ],
+    )
+    def test_license_files_dynamic(self, extra_toml, tmpdir_cwd):
+        # For simplicity (and for the time being) setuptools is not making
+        # any special handling to guarantee `License-File` is considered static.
+        # Instead we rely in the fact that, although suboptimal, it is OK to have
+        # it as dynamics, as per:
+        # https://github.com/pypa/setuptools/issues/4629#issuecomment-2331233677
+        files = {
+            "pyproject.toml": self.STATIC_CONFIG["pyproject.toml"].replace(
+                'license = "AGPL-3.0-or-later"',
+                f"dynamic = ['license']\n{extra_toml}",
+            ),
+            "LICENSE.md": "--- mock license ---",
+            "NOTICE": "--- mock notice ---",
+            "AUTHORS.txt": "--- me ---",
+        }
+        # Sanity checks:
+        assert extra_toml in files["pyproject.toml"]
+        assert 'license = "AGPL-3.0-or-later"' not in extra_toml
+
+        jaraco.path.build(files)
+        dist = _makedist(license_expression="AGPL-3.0-or-later")
+        metadata = _get_metadata(dist)
+        assert set(metadata.get_all("Dynamic")) == {
+            'license-file',
+            'license-expression',
+        }
+        assert metadata.get("License-Expression") == "AGPL-3.0-or-later"
+        assert set(metadata.get_all("License-File")) == {
+            "NOTICE",
+            "AUTHORS.txt",
+            "LICENSE.md",
+        }
+
+
+def _makedist(**attrs):
+    dist = Distribution(attrs)
+    dist.parse_config_files()
+    return dist
 
 
 def _assert_roundtrip_message(metadata: str) -> None:
@@ -462,6 +593,9 @@ def _normalize_metadata(msg: Message) -> str:
     for extra in sorted(extras):
         msg["Provides-Extra"] = extra
 
+    # TODO: Handle lack of PEP 643 implementation in pypa/wheel?
+    del msg["Metadata-Version"]
+
     return msg.as_string()
 
 
@@ -477,6 +611,10 @@ def _get_pkginfo(dist: Distribution):
     with io.StringIO() as fp:
         dist.metadata.write_pkg_file(fp)
         return fp.getvalue()
+
+
+def _get_metadata(dist: Distribution | None = None):
+    return message_from_string(_get_pkginfo(dist or _makedist()))
 
 
 def _valid_metadata(text: str) -> bool:

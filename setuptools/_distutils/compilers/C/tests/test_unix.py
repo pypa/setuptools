@@ -6,13 +6,13 @@ import unittest.mock as mock
 from distutils import sysconfig
 from distutils.compat import consolidate_linker_args
 from distutils.errors import DistutilsPlatformError
-from distutils.unixccompiler import UnixCCompiler
+from distutils.tests import support
+from distutils.tests.compat.py39 import EnvironmentVarGuard
 from distutils.util import _clear_cached_macosx_ver
 
 import pytest
 
-from . import support
-from .compat.py39 import EnvironmentVarGuard
+from .. import unix
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +24,7 @@ def save_values(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def compiler_wrapper(request):
-    class CompilerWrapper(UnixCCompiler):
+    class CompilerWrapper(unix.Compiler):
         def rpath_foo(self):
             return self.runtime_library_dir_option('/foo')
 
@@ -245,6 +245,69 @@ class TestUnixCCompiler(support.TempdirManager):
         assert self.cc.linker_so[0] == 'my_cc'
 
     @pytest.mark.skipif('platform.system == "Windows"')
+    def test_cxx_commands_used_are_correct(self):
+        def gcv(v):
+            if v == 'LDSHARED':
+                return 'ccache gcc-4.2 -bundle -undefined dynamic_lookup'
+            elif v == 'LDCXXSHARED':
+                return 'ccache g++-4.2 -bundle -undefined dynamic_lookup'
+            elif v == 'CXX':
+                return 'ccache g++-4.2'
+            elif v == 'CC':
+                return 'ccache gcc-4.2'
+            return ''
+
+        def gcvs(*args, _orig=sysconfig.get_config_vars):
+            if args:
+                return list(map(sysconfig.get_config_var, args))
+            return _orig()  # pragma: no cover
+
+        sysconfig.get_config_var = gcv
+        sysconfig.get_config_vars = gcvs
+        with (
+            mock.patch.object(self.cc, 'spawn', return_value=None) as mock_spawn,
+            mock.patch.object(self.cc, '_need_link', return_value=True),
+            mock.patch.object(self.cc, 'mkpath', return_value=None),
+            EnvironmentVarGuard() as env,
+        ):
+            # override environment overrides in case they're specified by CI
+            del env['CXX']
+            del env['LDCXXSHARED']
+
+            sysconfig.customize_compiler(self.cc)
+            assert self.cc.linker_so_cxx[0:2] == ['ccache', 'g++-4.2']
+            assert self.cc.linker_exe_cxx[0:2] == ['ccache', 'g++-4.2']
+            self.cc.link(None, [], 'a.out', target_lang='c++')
+            call_args = mock_spawn.call_args[0][0]
+            expected = ['ccache', 'g++-4.2', '-bundle', '-undefined', 'dynamic_lookup']
+            assert call_args[:5] == expected
+
+            self.cc.link_executable([], 'a.out', target_lang='c++')
+            call_args = mock_spawn.call_args[0][0]
+            expected = ['ccache', 'g++-4.2', '-o', self.cc.executable_filename('a.out')]
+            assert call_args[:4] == expected
+
+            env['LDCXXSHARED'] = 'wrapper g++-4.2 -bundle -undefined dynamic_lookup'
+            env['CXX'] = 'wrapper g++-4.2'
+            sysconfig.customize_compiler(self.cc)
+            assert self.cc.linker_so_cxx[0:2] == ['wrapper', 'g++-4.2']
+            assert self.cc.linker_exe_cxx[0:2] == ['wrapper', 'g++-4.2']
+            self.cc.link(None, [], 'a.out', target_lang='c++')
+            call_args = mock_spawn.call_args[0][0]
+            expected = ['wrapper', 'g++-4.2', '-bundle', '-undefined', 'dynamic_lookup']
+            assert call_args[:5] == expected
+
+            self.cc.link_executable([], 'a.out', target_lang='c++')
+            call_args = mock_spawn.call_args[0][0]
+            expected = [
+                'wrapper',
+                'g++-4.2',
+                '-o',
+                self.cc.executable_filename('a.out'),
+            ]
+            assert call_args[:4] == expected
+
+    @pytest.mark.skipif('platform.system == "Windows"')
     @pytest.mark.usefixtures('disable_macos_customization')
     def test_cc_overrides_ldshared_for_cxx_correctly(self):
         """
@@ -320,7 +383,7 @@ class TestUnixCCompiler(support.TempdirManager):
         self.cc.has_function('abort')
 
     def test_find_library_file(self, monkeypatch):
-        compiler = UnixCCompiler()
+        compiler = unix.Compiler()
         compiler._library_root = lambda dir: dir
         monkeypatch.setattr(os.path, 'exists', lambda d: 'existing' in d)
 

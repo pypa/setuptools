@@ -104,9 +104,13 @@ def parametrize_test_working_set_resolve(*test_list):
                 )
             )
     return pytest.mark.parametrize(
-        'installed_dists,installable_dists,'
-        'requirements,replace_conflicting,'
-        'resolved_dists_or_exception',
+        (
+            "installed_dists",
+            "installable_dists",
+            "requirements",
+            "replace_conflicting",
+            "resolved_dists_or_exception",
+        ),
         argvalues,
         ids=idlist,
     )

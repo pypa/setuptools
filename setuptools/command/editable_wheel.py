@@ -211,6 +211,11 @@ class editable_wheel(Command):
         install.install_headers = headers
         install.install_data = data
 
+        # For portability, ensure scripts are built with #!python shebang
+        # pypa/setuptools#4863
+        build_scripts = dist.get_command_obj("build_scripts")
+        build_scripts.executable = 'python'
+
         install_scripts = cast(
             install_scripts_cls, dist.get_command_obj("install_scripts")
         )
@@ -278,7 +283,7 @@ class editable_wheel(Command):
         This method implements a temporary workaround to support the ecosystem
         while the implementations catch up.
         """
-        # TODO: Once plugins/customisations had the chance to catch up, replace
+        # TODO: Once plugins/customizations had the chance to catch up, replace
         #       `self._run_build_subcommands()` with `self.run_command("build")`.
         #       Also remove _safely_run, TestCustomBuildPy. Suggested date: Aug/2023.
         build = self.get_finalized_command("build")
@@ -309,7 +314,7 @@ class editable_wheel(Command):
                 https://setuptools.pypa.io/en/latest/userguide/extension.html.
 
                 For the time being `setuptools` will silence this error and ignore
-                the faulty command, but this behaviour will change in future versions.
+                the faulty command, but this behavior will change in future versions.
                 """,
                 # TODO: define due_date
                 # There is a series of shortcomings with the available editable install
@@ -564,7 +569,7 @@ def _encode_pth(content: str) -> bytes:
     .pth files are always read with 'locale' encoding, the recommendation
     from the cpython core developers is to write them as ``open(path, "w")``
     and ignore warnings (see python/cpython#77102, pypa/setuptools#3937).
-    This function tries to simulate this behaviour without having to create an
+    This function tries to simulate this behavior without having to create an
     actual file, in a way that supports a range of active Python versions.
     (There seems to be some variety in the way different version of Python handle
     ``encoding=None``, not all of them use ``locale.getpreferredencoding(False)``

@@ -8,7 +8,7 @@ import pytest
 from setuptools import Distribution
 from setuptools.dist import check_package_data, check_specifier
 
-from .test_easy_install import make_nspkg_sdist
+from .fixtures import make_trivial_sdist
 from .test_find_packages import ensure_files
 from .textwrap import DALS
 
@@ -25,7 +25,7 @@ def test_dist_fetch_build_egg(tmpdir):
     def sdist_with_index(distname, version):
         dist_dir = index.mkdir(distname)
         dist_sdist = f'{distname}-{version}.tar.gz'
-        make_nspkg_sdist(str(dist_dir.join(dist_sdist)), distname, version)
+        make_trivial_sdist(str(dist_dir.join(dist_sdist)), distname, version)
         with dist_dir.join('index.html').open('w') as fp:
             fp.write(
                 DALS(

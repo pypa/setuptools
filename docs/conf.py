@@ -136,6 +136,9 @@ html_theme_options = {
         "color-brand-primary": "#E5B62F",  # "yellow"
         "color-brand-content": "#E5B62F",
     },
+    "source_repository": "https://github.com/pypa/setuptools/",
+    "source_branch": "main",
+    "source_directory": "docs/",
 }
 
 # Redirect old docs so links and references in the ecosystem don't break

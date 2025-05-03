@@ -1,7 +1,6 @@
 """develop tests"""
 
 import os
-import pathlib
 import platform
 import subprocess
 import sys
@@ -9,8 +8,6 @@ import sys
 import pytest
 
 from setuptools._path import paths_on_pythonpath
-from setuptools.command.develop import develop
-from setuptools.dist import Distribution
 
 from . import contexts, namespaces
 
@@ -49,67 +46,6 @@ def test_env(tmpdir, temp_user):
         f.write(INIT_PY)
     with target.as_cwd():
         yield target
-
-
-class TestDevelop:
-    in_virtualenv = hasattr(sys, 'real_prefix')
-    in_venv = hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
-
-    def test_console_scripts(self, tmpdir):
-        """
-        Test that console scripts are installed and that they reference
-        only the project by name and not the current version.
-        """
-        pytest.skip(
-            "TODO: needs a fixture to cause 'develop' "
-            "to be invoked without mutating environment."
-        )
-        settings = dict(
-            name='foo',
-            packages=['foo'],
-            version='0.0',
-            entry_points={
-                'console_scripts': [
-                    'foocmd = foo:foo',
-                ],
-            },
-        )
-        dist = Distribution(settings)
-        dist.script_name = 'setup.py'
-        cmd = develop(dist)
-        cmd.ensure_finalized()
-        cmd.install_dir = tmpdir
-        cmd.run()
-        # assert '0.0' not in foocmd_text
-
-    @pytest.mark.xfail(reason="legacy behavior retained for compatibility #4167")
-    def test_egg_link_filename(self):
-        settings = dict(
-            name='Foo $$$ Bar_baz-bing',
-        )
-        dist = Distribution(settings)
-        cmd = develop(dist)
-        cmd.ensure_finalized()
-        link = pathlib.Path(cmd.egg_link)
-        assert link.suffix == '.egg-link'
-        assert link.stem == 'Foo_Bar_baz_bing'
-
-
-class TestResolver:
-    """
-    TODO: These tests were written with a minimal understanding
-    of what _resolve_setup_path is intending to do. Come up with
-    more meaningful cases that look like real-world scenarios.
-    """
-
-    def test_resolve_setup_path_cwd(self):
-        assert develop._resolve_setup_path('.', '.', '.') == '.'
-
-    def test_resolve_setup_path_one_dir(self):
-        assert develop._resolve_setup_path('pkgs', '.', 'pkgs') == '../'
-
-    def test_resolve_setup_path_one_dir_trailing_slash(self):
-        assert develop._resolve_setup_path('pkgs/', '.', 'pkgs') == '../'
 
 
 class TestNamespaces:

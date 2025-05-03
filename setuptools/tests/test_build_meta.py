@@ -6,6 +6,7 @@ import shutil
 import signal
 import sys
 import tarfile
+import warnings
 from concurrent import futures
 from pathlib import Path
 from typing import Any, Callable
@@ -14,6 +15,8 @@ from zipfile import ZipFile
 import pytest
 from jaraco import path
 from packaging.requirements import Requirement
+
+from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from .textwrap import DALS
 
@@ -384,8 +387,15 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         with tmpdir.as_cwd():
             path.build(files)
-            sdist_path = build_backend.build_sdist("temp")
-            wheel_file = build_backend.build_wheel("temp")
+            msgs = [
+                "'tool.setuptools.license-files' is deprecated in favor of 'project.license-files'",
+                "`project.license` as a TOML table is deprecated",
+            ]
+            with warnings.catch_warnings():
+                for msg in msgs:
+                    warnings.filterwarnings("ignore", msg, SetuptoolsDeprecationWarning)
+                sdist_path = build_backend.build_sdist("temp")
+                wheel_file = build_backend.build_wheel("temp")
 
         with tarfile.open(os.path.join(tmpdir, "temp", sdist_path)) as tar:
             sdist_contents = set(tar.getnames())
@@ -393,7 +403,9 @@ class TestBuildMetaBackend:
         with ZipFile(os.path.join(tmpdir, "temp", wheel_file)) as zipfile:
             wheel_contents = set(zipfile.namelist())
             metadata = str(zipfile.read("foo-0.1.dist-info/METADATA"), "utf-8")
-            license = str(zipfile.read("foo-0.1.dist-info/LICENSE.txt"), "utf-8")
+            license = str(
+                zipfile.read("foo-0.1.dist-info/licenses/LICENSE.txt"), "utf-8"
+            )
             epoints = str(zipfile.read("foo-0.1.dist-info/entry_points.txt"), "utf-8")
 
         assert sdist_contents - {"foo-0.1/setup.py"} == {
@@ -426,7 +438,7 @@ class TestBuildMetaBackend:
             "foo/cli.py",
             "foo/data.txt",  # include_package_data defaults to True
             "foo/py.typed",  # include type information by default
-            "foo-0.1.dist-info/LICENSE.txt",
+            "foo-0.1.dist-info/licenses/LICENSE.txt",
             "foo-0.1.dist-info/METADATA",
             "foo-0.1.dist-info/WHEEL",
             "foo-0.1.dist-info/entry_points.txt",
@@ -438,6 +450,7 @@ class TestBuildMetaBackend:
         for line in (
             "Summary: This is a Python package",
             "License: MIT",
+            "License-File: LICENSE.txt",
             "Classifier: Intended Audience :: Developers",
             "Requires-Dist: appdirs",
             "Requires-Dist: " + str(Requirement('tomli>=1 ; extra == "all"')),
@@ -921,30 +934,6 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
-
-
-def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
-    pyproject = """
-    [build-system]
-    requires = ["setuptools"]
-    build-backend = "setuptools.build_meta"
-    [project]
-    name = "myproj"
-    version = "42"
-    """
-    path.build({"pyproject.toml": DALS(pyproject), "mymod.py": ""})
-
-    # First: sanity check
-    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = venv.run(cmd, cwd=tmpdir).lower()
-    assert "running setup.py develop for myproj" not in output
-    assert "created wheel for myproj" in output
-
-    # Then: real test
-    env = {**os.environ, "SETUPTOOLS_ENABLE_FEATURES": "legacy-editable"}
-    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = venv.run(cmd, cwd=tmpdir, env=env).lower()
-    assert "running setup.py develop for myproj" in output
 
 
 @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
