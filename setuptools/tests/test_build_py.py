@@ -168,7 +168,7 @@ def test_excluded_subpackages(tmpdir_cwd):
     with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
         # TODO: To fix #3260 we need some transition period to deprecate the
         # existing behavior of `include_package_data`. After the transition, we
-        # should remove the warning and fix the behaviour.
+        # should remove the warning and fix the behavior.
 
         if os.getenv("SETUPTOOLS_USE_DISTUTILS") == "stdlib":
             # pytest.warns reset the warning filter temporarily
