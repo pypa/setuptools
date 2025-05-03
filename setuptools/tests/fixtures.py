@@ -62,7 +62,7 @@ def sample_project(tmp_path):
 
 @pytest.fixture
 def sample_project_cwd(sample_project):
-    with contextlib.chdir(sample_project):
+    with path.Path(sample_project):
         yield
 
 
