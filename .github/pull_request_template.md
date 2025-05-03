@@ -13,6 +13,6 @@ Closes <!-- issue number here -->
   _(See [documentation][PR docs] for details)_
 
 
-[`newsfragments/`]: https://github.com/pypa/setuptools/tree/master/newsfragments
+[`newsfragments/`]: https://github.com/pypa/setuptools/tree/main/newsfragments
 [PR docs]:
 https://setuptools.pypa.io/en/latest/development/developer-guide.html#making-a-pull-request

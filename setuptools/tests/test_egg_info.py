@@ -1287,10 +1287,11 @@ class TestWriteEntries:
         dist = Distribution({"name": "foo", "version": "0.0.1"})
         dist.entry_points = {"foo": "foo = invalid-identifier:foo"}
         cmd = dist.get_command_obj("egg_info")
-        expected_msg = r"Problems to parse .*invalid-identifier.*"
-        with pytest.raises(errors.OptionError, match=expected_msg) as ex:
+        expected_msg = r"(Invalid object reference|Problems to parse)"
+        with pytest.raises((errors.OptionError, ValueError), match=expected_msg) as ex:
             write_entries(cmd, "entry_points", "entry_points.txt")
             assert "ensure entry-point follows the spec" in ex.value.args[0]
+            assert "invalid-identifier" in str(ex.value)
 
     def test_valid_entry_point(self, tmpdir_cwd, env):
         dist = Distribution({"name": "foo", "version": "0.0.1"})
