@@ -60,6 +60,12 @@ def sample_project(tmp_path):
     return tmp_path / 'sampleproject'
 
 
+@pytest.fixture
+def sample_project_cwd(sample_project):
+    with contextlib.chdir(sample_project):
+        yield
+
+
 # sdist and wheel artifacts should be stable across a round of tests
 # so we can build them once per session and use the files as "readonly"
 
