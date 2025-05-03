@@ -1,1 +1,0 @@
-Restored license declaration in package metadata. See jaraco/skeleton#171.

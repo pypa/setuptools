@@ -1,3 +1,13 @@
+v80.3.0
+=======
+
+Features
+--------
+
+- Removed easy_install and package_index modules. (#917)
+- Restored license declaration in package metadata. See jaraco/skeleton#171. (#4956)
+
+
 v80.2.0
 =======
 
