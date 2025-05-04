@@ -4,7 +4,7 @@ import types
 
 from setuptools import Command
 
-from .. import _scripts
+from .. import _scripts, warnings
 
 
 class easy_install(Command):
@@ -20,5 +20,11 @@ def __getattr__(name):
             ),
         ),
         name,
+    )
+    warnings.SetuptoolsDeprecationWarning.emit(
+        summary="easy_install module is deprecated",
+        details="Avoid accessing attributes of setuptools.command.easy_install.",
+        due_date=(2025, 10, 31),
+        see_url="https://github.com/pypa/setuptools/issues/4976",
     )
     return attr
