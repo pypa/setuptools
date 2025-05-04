@@ -1,3 +1,12 @@
+v80.3.1
+=======
+
+Bugfixes
+--------
+
+- Restored select attributes in easy_install for temporary pbr compatibility. (#4976)
+
+
 v80.3.0
 =======
 
