@@ -38,7 +38,7 @@ class develop(Command):
         )
         subprocess.check_call(cmd)
 
-    def initialize_options(self):
+    def initialize_options(self) -> None:
         DevelopDeprecationWarning.emit()
 
     def finalize_options(self) -> None:
