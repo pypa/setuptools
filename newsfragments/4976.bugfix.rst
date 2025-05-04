@@ -1,0 +1,1 @@
+Restored select attributes in easy_install for temporary pbr compatibility.
