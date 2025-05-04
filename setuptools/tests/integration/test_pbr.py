@@ -1,9 +1,6 @@
 import subprocess
 
-import pytest
 
-
-@pytest.mark.xfail(reason="#4976")
 def test_pbr_integration(pbr_package, venv):
     """Ensure pbr packages install."""
     cmd = [
