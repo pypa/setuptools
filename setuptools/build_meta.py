@@ -48,7 +48,6 @@ from ._path import StrPath, same_path
 from ._reqs import parse_strings
 from .warnings import SetuptoolsDeprecationWarning
 
-import distutils
 from distutils.util import strtobool
 
 if TYPE_CHECKING:
@@ -64,51 +63,7 @@ __all__ = [
     'prepare_metadata_for_build_editable',
     'build_editable',
     '__legacy__',
-    'SetupRequirementsError',
 ]
-
-
-class SetupRequirementsError(BaseException):
-    def __init__(self, specifiers) -> None:
-        self.specifiers = specifiers
-
-
-class Distribution(setuptools.dist.Distribution):
-    def fetch_build_eggs(self, specifiers):
-        specifier_list = list(parse_strings(specifiers))
-
-        raise SetupRequirementsError(specifier_list)
-
-    @classmethod
-    @contextlib.contextmanager
-    def patch(cls):
-        """
-        Replace
-        distutils.dist.Distribution with this class
-        for the duration of this context.
-        """
-        orig = distutils.core.Distribution
-        distutils.core.Distribution = cls  # type: ignore[misc] # monkeypatching
-        try:
-            yield
-        finally:
-            distutils.core.Distribution = orig  # type: ignore[misc] # monkeypatching
-
-
-@contextlib.contextmanager
-def no_install_setup_requires():
-    """Temporarily disable installing setup_requires
-
-    Under PEP 517, the backend reports build dependencies to the frontend,
-    and the frontend is responsible for ensuring they're installed.
-    So setuptools (acting as a backend) should not try to install them.
-    """
-    orig = setuptools._install_setup_requires
-    setuptools._install_setup_requires = lambda attrs: None
-    try:
-        yield
-    finally:
-        setuptools._install_setup_requires = orig
 
 
 def _get_immediate_subdirectories(a_dir):
@@ -291,16 +246,14 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
     def _get_build_requires(
         self, config_settings: _ConfigSettings, requirements: list[str]
     ):
-        sys.argv = [
-            *sys.argv[:1],
-            *self._global_args(config_settings),
-            "egg_info",
-        ]
+        sys.argv = [*sys.argv[:1], "--private-interrupt-setuppy"]
         try:
-            with Distribution.patch():
-                self.run_setup()
-        except SetupRequirementsError as e:
-            requirements += e.specifiers
+            self.run_setup()
+        except setuptools._SetupPyInterruption as ex:
+            setup_requires = parse_strings(ex.dist.setup_requires or "")
+            return requirements + list(setup_requires)
+        except Exception:
+            pass  # Ignore other arbitrary exceptions from setup.py, e.g. SystemExit
 
         return requirements
 
@@ -312,6 +265,8 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
 
         with _open_setup_script(__file__) as f:
             code = f.read().replace(r'\r\n', r'\n')
+
+        sys.argv.append("--private-skip-setup-requires")
 
         try:
             exec(code, locals())
@@ -370,8 +325,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
             str(metadata_directory),
             "--keep-egg-info",
         ]
-        with no_install_setup_requires():
-            self.run_setup()
+        self.run_setup()
 
         self._bubble_up_info_directory(metadata_directory, ".egg-info")
         return self._bubble_up_info_directory(metadata_directory, ".dist-info")
@@ -400,8 +354,7 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
                 tmp_dist_dir,
                 *arbitrary_args,
             ]
-            with no_install_setup_requires():
-                self.run_setup()
+            self.run_setup()
 
             result_basename = _file_with_extension(tmp_dist_dir, result_extension)
             result_path = os.path.join(result_directory, result_basename)

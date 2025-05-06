@@ -11,8 +11,8 @@ import functools
 import os
 import sys
 from abc import abstractmethod
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, TypeVar, overload
+from collections.abc import MutableMapping
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 # workaround for #4476
@@ -49,40 +49,19 @@ find_packages = PackageFinder.find
 find_namespace_packages = PEP420PackageFinder.find
 
 
-def _install_setup_requires(attrs):
-    # Note: do not use `setuptools.Distribution` directly, as
-    # our PEP 517 backend patch `distutils.core.Distribution`.
-    class MinimalDistribution(distutils.core.Distribution):
-        """
-        A minimal version of a distribution for supporting the
-        fetch_build_eggs interface.
-        """
+def _expand_setupcfg(attrs: MutableMapping[str, Any]) -> Distribution:
+    """Bare minimum setup.cfg parsing so that we can extract setup_requires"""
+    from setuptools.config.setupcfg import _apply
 
-        def __init__(self, attrs: Mapping[str, object]) -> None:
-            _incl = 'dependency_links', 'setup_requires'
-            filtered = {k: attrs[k] for k in set(_incl) & set(attrs)}
-            super().__init__(filtered)
-            # Prevent accidentally triggering discovery with incomplete set of attrs
-            self.set_defaults._disable()
+    dist = Distribution(attrs)
+    dist.set_defaults._disable()
+    if os.path.exists("setup.cfg"):
+        _apply(dist, "setup.cfg", ignore_option_errors=True)
+    return dist
 
-        def _get_project_config_files(self, filenames=None):
-            """Ignore ``pyproject.toml``, they are not related to setup_requires"""
-            try:
-                cfg, _toml = super()._split_standard_project_metadata(filenames)
-            except Exception:
-                return filenames, ()
-            return cfg, ()
 
-        def finalize_options(self):
-            """
-            Disable finalize_options to avoid building the working set.
-            Ref #2158.
-            """
-
-    dist = MinimalDistribution(attrs)
-
-    # Honor setup.cfg's options.
-    dist.parse_config_files(ignore_option_errors=True)
+def _install_setup_requires(attrs: MutableMapping[str, Any]) -> None:
+    dist = _expand_setupcfg(attrs)
     if dist.setup_requires:
         _fetch_build_eggs(dist)
 
@@ -109,9 +88,16 @@ def _fetch_build_eggs(dist: Distribution):
 
 
 def setup(**attrs):
+    if "--private-interrupt-setuppy" in sys.argv:
+        raise _SetupPyInterruption(_expand_setupcfg(attrs))
+
     logging.configure()
-    # Make sure we have any requirements needed to interpret 'attrs'.
-    _install_setup_requires(attrs)
+
+    if "--private-skip-setup-requires" in sys.argv:
+        sys.argv.remove("--private-skip-setup-requires")
+    else:
+        # Make sure we have any requirements needed to interpret 'attrs'.
+        _install_setup_requires(attrs)
     return distutils.core.setup(**attrs)
 
 
@@ -242,6 +228,11 @@ def findall(dir=os.curdir):
 
 class sic(str):
     """Treat this string as-is (https://en.wikipedia.org/wiki/Sic)"""
+
+
+class _SetupPyInterruption(Exception):
+    def __init__(self, dist: Distribution):
+        self.dist = dist
 
 
 # Apply monkey patches
