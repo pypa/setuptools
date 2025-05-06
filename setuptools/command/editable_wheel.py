@@ -138,9 +138,12 @@ class editable_wheel(Command):
 
             self._create_wheel_file(bdist_wheel)
         except Exception:
-            traceback.print_exc()
             project = self.distribution.name or self.distribution.get_name()
-            _DebuggingTips.emit(project=project)
+            if os.environ.get('SETUPTOOLS_INTERNAL_DEBUG'):
+                traceback.print_exc()
+                _DebuggingTips.emit(project=project)
+            else:
+                print("An error occurred building editable wheel for", project)
             raise
 
     def _ensure_dist_info(self):
