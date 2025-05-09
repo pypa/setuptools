@@ -229,6 +229,25 @@ More information is available on the text of :pep:`PEP 660 <660#what-to-put-in-t
    used.
 
 
+Debugging Tips
+--------------
+
+If encountering problems installing a project in editable mode,
+follow these recommended steps to help debug:
+
+- Try to install the project normally, without using the editable mode.
+  Does the error still persist?
+  (If it does, try fixing the problem before attempting the editable mode).
+- When using binary extensions, make sure all OS-level
+  dependencies are installed (e.g. compilers, toolchains, binary libraries, ...).
+- Try the latest version of setuptools (maybe the error was already fixed).
+- When the project or its dependencies are using any setuptools extension
+  or customization, make sure they support the editable mode.
+
+After following the steps above, if the problem still persists and
+you think this is related to how setuptools handles editable installations,
+please submit a `reproducible example <https://stackoverflow.com/help/minimal-reproducible-example>`_ at `the bug tracker <https://github.com/pypa/setuptools/issues>`_.
+
 ----
 
 .. rubric:: Notes
