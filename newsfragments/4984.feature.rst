@@ -1,1 +1,0 @@
-Simplified the error reporting in editable installs.

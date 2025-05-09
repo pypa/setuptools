@@ -1,3 +1,12 @@
+v80.4.0
+=======
+
+Features
+--------
+
+- Simplified the error reporting in editable installs. (#4984)
+
+
 v80.3.1
 =======
 
