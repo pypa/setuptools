@@ -1,6 +1,9 @@
 import subprocess
 
+import pytest
 
+
+@pytest.mark.uses_network
 def test_pbr_integration(pbr_package, venv):
     """Ensure pbr packages install."""
     cmd = [
