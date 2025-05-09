@@ -132,7 +132,7 @@ class bdist_egg(Command):
         site_packages = os.path.normcase(os.path.realpath(_get_purelib()))
         old, self.distribution.data_files = self.distribution.data_files, []
 
-        for item in old:
+        for item in old or ():
             if isinstance(item, tuple) and len(item) == 2:
                 if os.path.isabs(item[0]):
                     realpath = os.path.realpath(item[0])
