@@ -89,6 +89,10 @@ link_files = {
                 pattern=r'pypa/(?P<commit_repo>[\-\.\w]+)@(?P<commit_number>[\da-f]+)',
                 url='{GH}/pypa/{commit_repo}/commit/{commit_number}',
             ),
+            dict(
+                pattern=r'Discourse thread (?P<thread_number>\d+)',
+                url='https://discuss.python.org/t/{thread_number}',
+            ),
         ],
     ),
 }
