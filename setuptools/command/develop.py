@@ -27,7 +27,7 @@ class develop(Command):
     prefix = None
     index_url = None
 
-    def run(self):
+    def run(self) -> None:  # type: ignore[override] # Not including easy_install's show_deprecation argument
         cmd = (
             [sys.executable, '-m', 'pip', 'install', '-e', '.', '--use-pep517']
             + ['--target', self.install_dir] * bool(self.install_dir)
@@ -38,7 +38,7 @@ class develop(Command):
         )
         subprocess.check_call(cmd)
 
-    def initialize_options(self):
+    def initialize_options(self) -> None:
         DevelopDeprecationWarning.emit()
 
     def finalize_options(self) -> None:
