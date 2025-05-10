@@ -1,5 +1,10 @@
 [build-system]
-requires = ["setuptools>=61.2", "setuptools_scm[toml]>=3.4.1"]
+requires = [
+	"setuptools>=61.2",
+	"setuptools_scm[toml]>=3.4.1",
+	# jaraco/skeleton#174
+	"coherent.licensed",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
