@@ -1067,6 +1067,7 @@ def test_compat_install(tmp_path, venv):
     assert "cannot import name 'subpackage'" in out
 
 
+@pytest.mark.uses_network
 def test_pbr_integration(pbr_package, venv, editable_opts):
     """Ensure editable installs work with pbr, issue #3500"""
     cmd = [
