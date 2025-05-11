@@ -169,13 +169,14 @@ class ScriptWriter:
         """
         if header is None:
             header = cls.get_header()
-        spec = str(dist.as_requirement())
+        spec = f'{dist.name}=={dist.version}'
         for type_ in 'console', 'gui':
-            group = type_ + '_scripts'
-            for name in dist.get_entry_map(group).keys():
-                cls._ensure_safe_name(name)
+            group = f'{type_}_scripts'
+            for ep in dist.entry_points.select(group=group):
+                name = ep.name
+                cls._ensure_safe_name(ep.name)
                 script_text = cls.template % locals()
-                args = cls._get_script_args(type_, name, header, script_text)
+                args = cls._get_script_args(type_, ep.name, header, script_text)
                 yield from args
 
     @staticmethod
