@@ -11,7 +11,7 @@ import textwrap
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, TypedDict
 
-import pkg_resources
+from ._importlib import metadata, resources
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -167,15 +167,23 @@ class ScriptWriter:
         Yield write_script() argument tuples for a distribution's
         console_scripts and gui_scripts entry points.
         """
+
+        # If distribution is not an importlib.metadata.Distribution, assume
+        # it's a pkg_resources.Distribution and transform it.
+        if not hasattr(dist, 'entry_points'):
+            SetuptoolsWarning.emit("Unsupported distribution encountered.")
+            dist = metadata.Distribution.at(dist.egg_info)
+
         if header is None:
             header = cls.get_header()
-        spec = str(dist.as_requirement())
+        spec = f'{dist.name}=={dist.version}'
         for type_ in 'console', 'gui':
-            group = type_ + '_scripts'
-            for name in dist.get_entry_map(group).keys():
-                cls._ensure_safe_name(name)
+            group = f'{type_}_scripts'
+            for ep in dist.entry_points.select(group=group):
+                name = ep.name
+                cls._ensure_safe_name(ep.name)
                 script_text = cls.template % locals()
-                args = cls._get_script_args(type_, name, header, script_text)
+                args = cls._get_script_args(type_, ep.name, header, script_text)
                 yield from args
 
     @staticmethod
@@ -321,12 +329,12 @@ def get_win_launcher(type):
             launcher_fn = launcher_fn.replace(".", "-64.")
     else:
         launcher_fn = launcher_fn.replace(".", "-32.")
-    return pkg_resources.resource_string('setuptools', launcher_fn)
+    return resources.files('setuptools').joinpath(launcher_fn).read_bytes()
 
 
 def load_launcher_manifest(name):
-    manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
-    return manifest.decode('utf-8') % vars()
+    res = resources.files(__name__).joinpath('launcher manifest.xml')
+    return res.read_text(encoding='utf-8') % vars()
 
 
 def _first_line_re():

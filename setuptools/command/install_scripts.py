@@ -32,17 +32,11 @@ class install_scripts(orig.install_scripts):
 
     def _install_ep_scripts(self):
         # Delay import side-effects
-        from pkg_resources import Distribution, PathMetadata
-
         from .. import _scripts
+        from .._importlib import metadata
 
         ei_cmd = self.get_finalized_command("egg_info")
-        dist = Distribution(
-            ei_cmd.egg_base,
-            PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
-            ei_cmd.egg_name,
-            ei_cmd.egg_version,
-        )
+        dist = metadata.Distribution.at(path=ei_cmd.egg_info)
         bs_cmd = self.get_finalized_command('build_scripts')
         exec_param = getattr(bs_cmd, 'executable', None)
         writer = _scripts.ScriptWriter
