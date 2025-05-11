@@ -24,8 +24,8 @@ Contents
 .. toctree::
     :maxdepth: 1
 
-    interfaces
     quickstart
+    interfaces
     package_discovery
     dependency_management
     development_mode
