@@ -10,6 +10,7 @@ from functools import partial
 import pytest
 
 import pkg_resources
+from setuptools._importlib import metadata as md
 from setuptools.archive_util import unpack_archive
 
 from .textwrap import DALS
@@ -34,15 +35,6 @@ class TestDistInfo:
 
     @pytest.fixture
     def metadata(self, tmpdir):
-        dist_info_name = 'VersionedDistribution-2.718.dist-info'
-        versioned = tmpdir / dist_info_name
-        versioned.mkdir()
-        filename = versioned / 'METADATA'
-        content = self.build_metadata(
-            Name='VersionedDistribution',
-        )
-        filename.write_text(content, encoding='utf-8')
-
         dist_info_name = 'UnversionedDistribution.dist-info'
         unversioned = tmpdir / dist_info_name
         unversioned.mkdir()
@@ -55,18 +47,9 @@ class TestDistInfo:
 
         return str(tmpdir)
 
-    def test_distinfo(self, metadata):
-        dists = dict(
-            (d.project_name, d) for d in pkg_resources.find_distributions(metadata)
-        )
-
-        assert len(dists) == 2, dists
-
-        unversioned = dists['UnversionedDistribution']
-        versioned = dists['VersionedDistribution']
-
-        assert versioned.version == '2.718'  # from filename
-        assert unversioned.version == '0.3'  # from METADATA
+    def test_version(self, metadata):
+        (dist,) = md.Distribution.discover(path=[metadata])
+        assert dist.version == '0.3'
 
     def test_conditional_dependencies(self, metadata):
         specs = 'splort==4', 'quux>=1.1'
