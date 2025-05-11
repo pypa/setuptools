@@ -11,9 +11,7 @@ import textwrap
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, TypedDict
 
-import pkg_resources
-
-from ._importlib import metadata
+from ._importlib import metadata, resources
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -331,12 +329,12 @@ def get_win_launcher(type):
             launcher_fn = launcher_fn.replace(".", "-64.")
     else:
         launcher_fn = launcher_fn.replace(".", "-32.")
-    return pkg_resources.resource_string('setuptools', launcher_fn)
+    return resources.files('setuptools').joinpath(launcher_fn).read_bytes()
 
 
 def load_launcher_manifest(name):
-    manifest = pkg_resources.resource_string(__name__, 'launcher manifest.xml')
-    return manifest.decode('utf-8') % vars()
+    res = resources.files(__name__).joinpath('launcher manifest.xml')
+    return res.read_text(encoding='utf-8') % vars()
 
 
 def _first_line_re():
