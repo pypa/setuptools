@@ -13,6 +13,8 @@ from typing import TYPE_CHECKING, TypedDict
 
 import pkg_resources
 
+from ._importlib import metadata
+
 if TYPE_CHECKING:
     from typing_extensions import Self
 
@@ -167,6 +169,13 @@ class ScriptWriter:
         Yield write_script() argument tuples for a distribution's
         console_scripts and gui_scripts entry points.
         """
+
+        # If distribution is not an importlib.metadata.Distribution, assume
+        # it's a pkg_resources.Distribution and transform it.
+        if not hasattr(dist, 'entry_points'):
+            SetuptoolsWarning.emit("Unsupported distribution encountered.")
+            dist = metadata.Distribution.at(dist.egg_info)
+
         if header is None:
             header = cls.get_header()
         spec = f'{dist.name}=={dist.version}'
