@@ -1,3 +1,18 @@
+v80.5.0
+=======
+
+Features
+--------
+
+- Replaced more references to pkg_resources with importlib equivalents. (#3085)
+
+
+Misc
+----
+
+- #4982
+
+
 v80.4.0
 =======
 

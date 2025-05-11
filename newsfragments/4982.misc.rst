@@ -1,1 +1,0 @@
-Mark more tests failing without Internet access as ``uses_network``.
