@@ -7,7 +7,7 @@ In addition to operating as a library, because newer versions of Setuptools are 
 
 In order to have the ability to make sensible changes to the project, downstream developers and consumers should avoid depending on internal implementation details of the library and should rely only on the supported interfaces:
 
-- *Tier 1*: APIs required by modern PyPA packaging standards (:pep:`517`, :pep:`660`) and Documented APIs for customising build behavior or creating plugins (:doc:`/userguide/extension`, :doc:`references/keywords`):
+- *Tier 1*: APIs required by modern PyPA packaging standards (:pep:`517`, :pep:`660`) and Documented APIs for customising build behavior or creating plugins (:doc:`/userguide/extension`, :doc:`/references/keywords`):
 
    These APIs are expected to be extremely stable and have deprecation notices and periods prior to backward incompatible changes or removals.
 
