@@ -1,5 +1,8 @@
 [build-system]
-requires = []
+requires = [
+	# jaraco/skeleton#174
+	"coherent.licensed",
+]
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
