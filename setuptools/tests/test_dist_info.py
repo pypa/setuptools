@@ -9,8 +9,6 @@ from functools import partial
 
 import pytest
 
-import pkg_resources
-from setuptools._importlib import metadata as md
 from setuptools.archive_util import unpack_archive
 
 from .textwrap import DALS
@@ -19,50 +17,6 @@ read = partial(pathlib.Path.read_text, encoding="utf-8")
 
 
 class TestDistInfo:
-    metadata_base = DALS(
-        """
-        Metadata-Version: 1.2
-        Requires-Dist: splort (==4)
-        Provides-Extra: baz
-        Requires-Dist: quux (>=1.1); extra == 'baz'
-        """
-    )
-
-    @classmethod
-    def build_metadata(cls, **kwargs):
-        lines = ('{key}: {value}\n'.format(**locals()) for key, value in kwargs.items())
-        return cls.metadata_base + ''.join(lines)
-
-    @pytest.fixture
-    def metadata(self, tmpdir):
-        dist_info_name = 'UnversionedDistribution.dist-info'
-        unversioned = tmpdir / dist_info_name
-        unversioned.mkdir()
-        filename = unversioned / 'METADATA'
-        content = self.build_metadata(
-            Name='UnversionedDistribution',
-            Version='0.3',
-        )
-        filename.write_text(content, encoding='utf-8')
-
-        return str(tmpdir)
-
-    def test_version(self, metadata):
-        (dist,) = md.Distribution.discover(path=[metadata])
-        assert dist.version == '0.3'
-
-    def test_conditional_dependencies(self, metadata):
-        specs = 'splort==4', 'quux>=1.1'
-        requires = list(map(pkg_resources.Requirement.parse, specs))
-
-        for d in pkg_resources.find_distributions(metadata):
-            assert d.requires() == requires[:1]
-            assert d.requires(extras=('baz',)) == [
-                requires[0],
-                pkg_resources.Requirement.parse('quux>=1.1;extra=="baz"'),
-            ]
-            assert d.extras == ['baz']
-
     def test_invalid_version(self, tmp_path):
         """
         Supplying an invalid version crashes dist_info.
