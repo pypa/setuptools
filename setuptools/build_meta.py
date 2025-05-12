@@ -499,3 +499,20 @@ build_editable = _BACKEND.build_editable
 
 # The legacy backend
 __legacy__ = _BuildMetaLegacyBackend()
+
+
+def __getattr__(name):
+    if name == "SetupRequirementsError":
+        SetuptoolsDeprecationWarning.emit(
+            "SetupRequirementsError is no longer part of the public API.",
+            "Please do not import SetupRequirementsError.",
+            due_date=(2026, 5, 12),
+        )
+
+        class SetupRequirementsError(BaseException):
+            def __init__(self, specifiers) -> None:
+                self.specifiers = specifiers
+
+        return SetupRequirementsError
+
+    raise AttributeError(name)
