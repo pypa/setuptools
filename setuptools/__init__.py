@@ -21,6 +21,7 @@ sys.modules.pop('backports', None)
 import _distutils_hack.override  # noqa: F401
 
 from . import logging, monkey
+from .compat import py310
 from .depends import Require
 from .discovery import PackageFinder, PEP420PackageFinder
 from .dist import Distribution
@@ -80,10 +81,7 @@ def _fetch_build_eggs(dist: Distribution):
         please contact that package's maintainers or distributors.
         """
         if "InvalidVersion" in ex.__class__.__name__:
-            if hasattr(ex, "add_note"):
-                ex.add_note(msg)  # PEP 678
-            else:
-                dist.announce(f"\n{msg}\n")
+            py310.add_note(ex, msg)
         raise
 
 
