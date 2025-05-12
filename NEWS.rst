@@ -1,3 +1,36 @@
+v80.5.0
+=======
+
+Features
+--------
+
+- Replaced more references to pkg_resources with importlib equivalents. (#3085)
+
+
+Misc
+----
+
+- #4982
+
+
+v80.4.0
+=======
+
+Features
+--------
+
+- Simplified the error reporting in editable installs. (#4984)
+
+
+v80.3.1
+=======
+
+Bugfixes
+--------
+
+- Restored select attributes in easy_install for temporary pbr compatibility. (#4976)
+
+
 v80.3.0
 =======
 
