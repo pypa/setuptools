@@ -1,0 +1,2 @@
+Remove code duplication for ``_ensure_stringlike`` and ``ensure_string_list``
+in ``setuptools/__init__.py`` (already exists in ``distutils/cmd.py``).
