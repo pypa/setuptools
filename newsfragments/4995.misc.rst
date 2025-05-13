@@ -1,0 +1,1 @@
+Fixed ``no attribute 'join_path'`` error in Windows test
