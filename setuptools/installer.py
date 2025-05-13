@@ -7,6 +7,9 @@ import sys
 import tempfile
 from functools import partial
 
+import packaging.requirements
+import packaging.utils
+
 from pkg_resources import Distribution
 
 from . import _reqs
@@ -52,6 +55,14 @@ def _fetch_build_eggs(dist, requires: _StrOrIter) -> list[Distribution]:
     return resolved_dists
 
 
+def _dist_matches_req(egg_dist, req):
+    return (
+        packaging.utils.canonicalize_name(egg_dist.project_name)
+        == packaging.utils.canonicalize_name(req.name)
+        and egg_dist.version in req.specifier
+    )
+
+
 def _fetch_build_egg_no_warn(dist, req):  # noqa: C901  # is too complex (16)  # FIXME
     import pkg_resources  # Delay import to avoid unnecessary side-effects
 
@@ -81,7 +92,7 @@ def _fetch_build_egg_no_warn(dist, req):  # noqa: C901  # is too complex (16)  #
     eggs_dir = os.path.realpath(dist.get_egg_cache_dir())
     environment = pkg_resources.Environment()
     for egg_dist in pkg_resources.find_distributions(eggs_dir):
-        if egg_dist in req and environment.can_add(egg_dist):
+        if _dist_matches_req(egg_dist, req) and environment.can_add(egg_dist):
             return egg_dist
     with tempfile.TemporaryDirectory() as tmpdir:
         cmd = [
@@ -125,10 +136,8 @@ def strip_marker(req):
     calling pip with something like `babel; extra == "i18n"`, which
     would always be ignored.
     """
-    import pkg_resources  # Delay import to avoid unnecessary side-effects
-
     # create a copy to avoid mutating the input
-    req = pkg_resources.Requirement.parse(str(req))
+    req = packaging.requirements.Requirement(str(req))
     req.marker = None
     return req
 
