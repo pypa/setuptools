@@ -147,4 +147,4 @@ class _DeprecatedInstaller(SetuptoolsDeprecationWarning):
     Requirements should be satisfied by a PEP 517 installer.
     If you are using pip, you can try `pip install --use-pep517`.
     """
-    # _DUE_DATE not decided yet
+    _DUE_DATE = 2025, 10, 31
