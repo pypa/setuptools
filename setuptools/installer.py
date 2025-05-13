@@ -10,6 +10,7 @@ from functools import partial
 from pkg_resources import Distribution
 
 from . import _reqs
+from ._importlib import metadata
 from ._reqs import _StrOrIter
 from .warnings import SetuptoolsDeprecationWarning
 from .wheel import Wheel
@@ -133,11 +134,9 @@ def strip_marker(req):
 
 
 def _warn_wheel_not_available(dist):
-    import pkg_resources  # Delay import to avoid unnecessary side-effects
-
     try:
-        pkg_resources.get_distribution('wheel')
-    except pkg_resources.DistributionNotFound:
+        metadata.distribution('wheel')
+    except metadata.PackageNotFoundError:
         dist.announce('WARNING: The wheel package is not available.', log.WARN)
 
 
