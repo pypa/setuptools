@@ -9,8 +9,8 @@ import tempfile
 import packaging.requirements
 import packaging.utils
 
+from . import _reqs
 from ._importlib import metadata
-from ._reqs import _StrOrIter
 from .warnings import SetuptoolsDeprecationWarning
 from .wheel import Wheel
 
@@ -35,11 +35,9 @@ def fetch_build_egg(dist, req):
     return _fetch_build_egg_no_warn(dist, req)
 
 
-def _fetch_build_eggs(dist, requires: _StrOrIter) -> list[metadata.Distribution]:
+def _fetch_build_eggs(dist, requires: _reqs._StrOrIter) -> list[metadata.Distribution]:
     _DeprecatedInstaller.emit(stacklevel=3)
     _warn_wheel_not_available(dist)
-
-    from . import _reqs
 
     needed_reqs = (
         req for req in _reqs.parse(requires) if not req.marker or req.marker.evaluate()
