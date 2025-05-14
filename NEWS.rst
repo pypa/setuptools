@@ -1,3 +1,18 @@
+v80.6.0
+=======
+
+Features
+--------
+
+- Added a build dependency on coherent.licensed to inject the declared license text at build time. (#4981)
+
+
+Misc
+----
+
+- #4995
+
+
 v80.5.0
 =======
 

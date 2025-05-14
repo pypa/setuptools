@@ -1,1 +1,0 @@
-Added a build dependency on coherent.licensed to inject the declared license text at build time.
