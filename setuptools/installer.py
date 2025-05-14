@@ -6,8 +6,7 @@ import subprocess
 import sys
 import tempfile
 from functools import partial
-
-from pkg_resources import Distribution
+from typing import TYPE_CHECKING
 
 from . import _reqs
 from ._reqs import _StrOrIter
@@ -16,6 +15,9 @@ from .wheel import Wheel
 
 from distutils import log
 from distutils.errors import DistutilsError
+
+if TYPE_CHECKING:
+    from pkg_resources import Distribution
 
 
 def _fixup_find_links(find_links):
