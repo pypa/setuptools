@@ -1,0 +1,1 @@
+Removed usage of pkg_resources from installer. Set an official deadline on the installer deprecation to 2025-10-31.
