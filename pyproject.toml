@@ -10,7 +10,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "80.6.0"
+version = "80.7.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]

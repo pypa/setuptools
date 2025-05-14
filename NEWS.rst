@@ -1,3 +1,18 @@
+v80.7.0
+=======
+
+Features
+--------
+
+- Removed usage of pkg_resources from installer. Set an official deadline on the installer deprecation to 2025-10-31. (#4997)
+
+
+Misc
+----
+
+- #4996
+
+
 v80.6.0
 =======
 
