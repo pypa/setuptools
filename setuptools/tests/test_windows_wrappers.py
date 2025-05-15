@@ -20,7 +20,7 @@ import textwrap
 
 import pytest
 
-import pkg_resources
+from setuptools._importlib import resources
 
 pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 
@@ -48,7 +48,7 @@ class WrapperTester:
 
         # also copy cli.exe to the sample directory
         with (tmpdir / cls.wrapper_name).open('wb') as f:
-            w = pkg_resources.resource_string('setuptools', cls.wrapper_source)
+            w = resources.files('setuptools').joinpath(cls.wrapper_source).read_bytes()
             f.write(w)
 
 
