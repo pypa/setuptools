@@ -440,11 +440,7 @@ def _macos_arch(machine):
 
 
 def get_build_platform():
-    """Return this platform's string for platform-specific distributions
-
-    XXX Currently this is the same as ``distutils.util.get_platform()``, but it
-    needs some hacks for Linux and macOS.
-    """
+    """Return this platform's string for platform-specific distributions"""
     from sysconfig import get_platform
 
     plat = get_platform()
