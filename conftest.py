@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import platform
 import sys
 
@@ -23,7 +21,7 @@ def pytest_addoption(parser):
     )
 
 
-def pytest_configure(config) -> None:
+def pytest_configure(config):
     config.addinivalue_line("markers", "integration: integration tests")
     config.addinivalue_line("markers", "uses_network: tests may try to download files")
     _IntegrationTestSpeedups.disable_plugins_already_run(config)
