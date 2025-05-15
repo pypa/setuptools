@@ -1,1 +1,0 @@
-In installer, when discovering egg dists, let metadata discovery search each egg.

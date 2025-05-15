@@ -1,3 +1,13 @@
+v80.7.1
+=======
+
+Bugfixes
+--------
+
+- Only attempt to fetch eggs for unsatisfied requirements. (#4998)
+- In installer, when discovering egg dists, let metadata discovery search each egg. (#4998)
+
+
 v80.7.0
 =======
 

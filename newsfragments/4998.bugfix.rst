@@ -1,1 +1,0 @@
-Only attempt to fetch eggs for unsatisfied requirements.
