@@ -1,7 +1,6 @@
 """Generate distutils stub files inside the source directory before packaging.
 We have to do this as a custom build backend for PEP 660 editable installs.
-Doing it this way also allows us to point local type-checkers to types/distutils,
-overriding the stdlib types even on Python < 3.12."""
+"""
 
 from __future__ import annotations
 
