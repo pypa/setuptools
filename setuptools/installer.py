@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import glob
+import itertools
 import os
 import subprocess
 import sys
@@ -35,12 +36,20 @@ def fetch_build_egg(dist, req):
     return _fetch_build_egg_no_warn(dist, req)
 
 
+def _present(req):
+    return any(_dist_matches_req(dist, req) for dist in metadata.distributions())
+
+
 def _fetch_build_eggs(dist, requires: _reqs._StrOrIter) -> list[metadata.Distribution]:
     _DeprecatedInstaller.emit(stacklevel=3)
     _warn_wheel_not_available(dist)
 
+    parsed_reqs = _reqs.parse(requires)
+
+    missing_reqs = itertools.filterfalse(_present, parsed_reqs)
+
     needed_reqs = (
-        req for req in _reqs.parse(requires) if not req.marker or req.marker.evaluate()
+        req for req in missing_reqs if not req.marker or req.marker.evaluate()
     )
     resolved_dists = [_fetch_build_egg_no_warn(dist, req) for req in needed_reqs]
     for dist in resolved_dists:
@@ -83,9 +92,7 @@ def _fetch_build_egg_no_warn(dist, req):  # noqa: C901  # is too complex (16)  #
     if dist.dependency_links:
         find_links.extend(dist.dependency_links)
     eggs_dir = os.path.realpath(dist.get_egg_cache_dir())
-    cached_dists = metadata.Distribution.discover(
-        path=glob.glob(f'{eggs_dir}/*.egg/EGG-INFO')
-    )
+    cached_dists = metadata.Distribution.discover(path=glob.glob(f'{eggs_dir}/*.egg'))
     for egg_dist in cached_dists:
         if _dist_matches_req(egg_dist, req):
             return egg_dist
