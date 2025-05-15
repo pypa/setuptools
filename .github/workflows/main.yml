@@ -28,7 +28,6 @@ env:
 
   # Suppress noisy pip warnings
   PIP_DISABLE_PIP_VERSION_CHECK: 'true'
-  PIP_NO_PYTHON_VERSION_WARNING: 'true'
   PIP_NO_WARN_SCRIPT_LOCATION: 'true'
 
   # Ensure tests can sense settings about the environment
@@ -42,15 +41,13 @@ jobs:
       # https://blog.jaraco.com/efficient-use-of-ci-resources/
       matrix:
         python:
-        - "3.8"
+        - "3.9"
         - "3.13"
         platform:
         - ubuntu-latest
         - macos-latest
         - windows-latest
         include:
-        - python: "3.9"
-          platform: ubuntu-latest
         - python: "3.10"
           platform: ubuntu-latest
         - python: "3.11"
@@ -65,25 +62,30 @@ jobs:
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
-        # Python 3.8, 3.9 are on macos-13 but not macos-latest (macos-14-arm64)
-        # https://github.com/actions/setup-python/issues/850
-        # https://github.com/actions/setup-python/issues/696#issuecomment-1637587760
-        - {python: "3.8", platform: "macos-13"}
-        exclude:
-        - {python: "3.8", platform: "macos-latest"}
     runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.python == '3.14' }}
+    continue-on-error: ${{ matrix.python == '3.14' || matrix.python == 'pypy3.10' }}
+    # XXX: pypy seems to be flaky with unrelated tests in #6345
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils || 'local' }}
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
+      - name: Install build dependencies
+        # Install dependencies for building packages on pre-release Pythons
+        # jaraco/skeleton#161
+        if: matrix.python == '3.14' && matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y libxml2-dev libxslt-dev
       - name: Setup Python
         id: python-install
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
+        env:
+          # Workaround for actions/setup-python#981 (env var only modified for this specific step)
+          SETUPTOOLS_USE_DISTUTILS: ${{ matrix.platform == 'macos-latest' && matrix.python == '3.9' && 'stdlib' || matrix.distutils || 'local' }}
       - uses: actions/cache@v4
         id: cache
         with:
@@ -95,6 +97,10 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         working-directory: setuptools/tests/config
         run: python -m downloads.preload setupcfg_examples.txt
+      - name: Adjust env vars
+        shell: bash
+        run: |
+          echo 'PIPX_DEFAULT_PYTHON=${{ steps.python-install.outputs.python-path }}' >> $GITHUB_ENV
       - name: Pre-build distributions for test
         shell: bash
         run: |
@@ -183,7 +189,7 @@ jobs:
           packages: >-
             python${{ matrix.python }},
             python${{ matrix.python }}-devel,
-            python${{ matrix.python }}-tox,
+            python${{ matrix.python }}-pip,
             gcc-core,
             git,
       - name: Record the currently selected Python version
@@ -194,11 +200,17 @@ jobs:
         run: |
           python -c 'import platform; print("python-version=" + platform.python_version())' >> ${GITHUB_OUTPUT}
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+      - name: Install tox using pip
+        shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
+        run: |
+          # Workaround for https://github.com/pypa/setuptools/issues/4831
+          python -m pip install tox
       - name: Run tests
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
         run: |
-          git config --global --add safe.directory "$(cygpath -u "$GITHUB_WORKSPACE")" # workaround for #3408
-          tox
+          git config --global --add safe.directory "$(cygpath -u "${{ github.workspace }}")" # workaround for #3408
+          echo "$(cygpath -u "${{ github.workspace }}")" # for debugging purposes
+          python -m tox
       - name: Create coverage report
         if: hashFiles('.coverage') != ''  # Rudimentary `file.exists()`
         run: |

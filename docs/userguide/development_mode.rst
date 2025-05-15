@@ -197,13 +197,6 @@ works (still within the context of :pep:`660`).
    Users are encouraged to try out the new editable installation techniques
    and make the necessary adaptations.
 
-.. note::
-   Newer versions of ``pip`` no longer run the fallback command
-   ``python setup.py develop`` when the ``pyproject.toml`` file is present.
-   This means that setting the environment variable
-   ``SETUPTOOLS_ENABLE_FEATURES="legacy-editable"``
-   will have no effect when installing a package with ``pip``.
-
 
 How editable installations work
 -------------------------------
@@ -235,6 +228,25 @@ More information is available on the text of :pep:`PEP 660 <660#what-to-put-in-t
    and may change depending on the specific version of ``setuptools`` being
    used.
 
+
+Debugging Tips
+--------------
+
+If encountering problems installing a project in editable mode,
+follow these recommended steps to help debug:
+
+- Try to install the project normally, without using the editable mode.
+  Does the error still persist?
+  (If it does, try fixing the problem before attempting the editable mode).
+- When using binary extensions, make sure all OS-level
+  dependencies are installed (e.g. compilers, toolchains, binary libraries, ...).
+- Try the latest version of setuptools (maybe the error was already fixed).
+- When the project or its dependencies are using any setuptools extension
+  or customization, make sure they support the editable mode.
+
+After following the steps above, if the problem still persists and
+you think this is related to how setuptools handles editable installations,
+please submit a `reproducible example <https://stackoverflow.com/help/minimal-reproducible-example>`_ at `the bug tracker <https://github.com/pypa/setuptools/issues>`_.
 
 ----
 

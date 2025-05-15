@@ -3,9 +3,10 @@
 Utility functions for creating archive files (tarballs, zip files,
 that sort of thing)."""
 
+from __future__ import annotations
+
 import os
-import sys
-from warnings import warn
+from typing import Literal, overload
 
 try:
     import zipfile
@@ -56,19 +57,18 @@ def _get_uid(name):
 
 
 def make_tarball(
-    base_name,
-    base_dir,
-    compress="gzip",
-    verbose=False,
-    dry_run=False,
-    owner=None,
-    group=None,
-):
+    base_name: str,
+    base_dir: str | os.PathLike[str],
+    compress: Literal["gzip", "bzip2", "xz"] | None = "gzip",
+    verbose: bool = False,
+    dry_run: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str:
     """Create a (possibly compressed) tar file from all the files under
     'base_dir'.
 
-    'compress' must be "gzip" (the default), "bzip2", "xz", "compress", or
-    None.  ("compress" will be deprecated in Python 3.2)
+    'compress' must be "gzip" (the default), "bzip2", "xz", or None.
 
     'owner' and 'group' can be used to define an owner and a group for the
     archive that is being built. If not provided, the current owner and group
@@ -84,20 +84,17 @@ def make_tarball(
         'bzip2': 'bz2',
         'xz': 'xz',
         None: '',
-        'compress': '',
     }
-    compress_ext = {'gzip': '.gz', 'bzip2': '.bz2', 'xz': '.xz', 'compress': '.Z'}
+    compress_ext = {'gzip': '.gz', 'bzip2': '.bz2', 'xz': '.xz'}
 
     # flags for compression program, each element of list will be an argument
     if compress is not None and compress not in compress_ext.keys():
         raise ValueError(
-            "bad value for 'compress': must be None, 'gzip', 'bzip2', "
-            "'xz' or 'compress'"
+            "bad value for 'compress': must be None, 'gzip', 'bzip2', 'xz'"
         )
 
     archive_name = base_name + '.tar'
-    if compress != 'compress':
-        archive_name += compress_ext.get(compress, '')
+    archive_name += compress_ext.get(compress, '')
 
     mkpath(os.path.dirname(archive_name), dry_run=dry_run)
 
@@ -125,22 +122,15 @@ def make_tarball(
         finally:
             tar.close()
 
-    # compression using `compress`
-    if compress == 'compress':
-        warn("'compress' is deprecated.", DeprecationWarning)
-        # the option varies depending on the platform
-        compressed_name = archive_name + compress_ext[compress]
-        if sys.platform == 'win32':
-            cmd = [compress, archive_name, compressed_name]
-        else:
-            cmd = [compress, '-f', archive_name]
-        spawn(cmd, dry_run=dry_run)
-        return compressed_name
-
     return archive_name
 
 
-def make_zipfile(base_name, base_dir, verbose=False, dry_run=False):  # noqa: C901
+def make_zipfile(  # noqa: C901
+    base_name: str,
+    base_dir: str | os.PathLike[str],
+    verbose: bool = False,
+    dry_run: bool = False,
+) -> str:
     """Create a zip file from all the files under 'base_dir'.
 
     The output zip file will be named 'base_name' + ".zip".  Uses either the
@@ -222,16 +212,38 @@ def check_archive_formats(formats):
     return None
 
 
+@overload
 def make_archive(
-    base_name,
-    format,
-    root_dir=None,
-    base_dir=None,
-    verbose=False,
-    dry_run=False,
-    owner=None,
-    group=None,
-):
+    base_name: str,
+    format: str,
+    root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes] | None = None,
+    base_dir: str | None = None,
+    verbose: bool = False,
+    dry_run: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str: ...
+@overload
+def make_archive(
+    base_name: str | os.PathLike[str],
+    format: str,
+    root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes],
+    base_dir: str | None = None,
+    verbose: bool = False,
+    dry_run: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str: ...
+def make_archive(
+    base_name: str | os.PathLike[str],
+    format: str,
+    root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes] | None = None,
+    base_dir: str | None = None,
+    verbose: bool = False,
+    dry_run: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str:
     """Create an archive file (eg. zip or tar).
 
     'base_name' is the name of the file to create, minus any format-specific

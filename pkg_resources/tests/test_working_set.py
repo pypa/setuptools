@@ -56,7 +56,7 @@ def parse_distributions(s):
 
 
 class FakeInstaller:
-    def __init__(self, installable_dists):
+    def __init__(self, installable_dists) -> None:
         self._installable_dists = installable_dists
 
     def __call__(self, req):
@@ -104,9 +104,13 @@ def parametrize_test_working_set_resolve(*test_list):
                 )
             )
     return pytest.mark.parametrize(
-        'installed_dists,installable_dists,'
-        'requirements,replace_conflicting,'
-        'resolved_dists_or_exception',
+        (
+            "installed_dists",
+            "installable_dists",
+            "requirements",
+            "replace_conflicting",
+            "resolved_dists_or_exception",
+        ),
         argvalues,
         ids=idlist,
     )

@@ -1,23 +1,32 @@
 from __future__ import annotations
 
-import glob
 import inspect
 import platform
 from collections.abc import Callable
-from typing import Any, ClassVar, cast
-
-import setuptools
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
-from .bdist_egg import bdist_egg as bdist_egg_cls
 
 import distutils.command.install as orig
 from distutils.errors import DistutilsArgError
 
-# Prior to numpy 1.9, NumPy relies on the '_install' name, so provide it for
-# now. See https://github.com/pypa/setuptools/issues/199/
-_install = orig.install
+if TYPE_CHECKING:
+    # This is only used for a type-cast, don't import at runtime or it'll cause deprecation warnings
+    from .easy_install import easy_install as easy_install_cls
+else:
+    easy_install_cls = None
+
+
+def __getattr__(name: str):  # pragma: no cover
+    if name == "_install":
+        SetuptoolsDeprecationWarning.emit(
+            "`setuptools.command._install` was an internal implementation detail "
+            + "that was left in for numpy<1.9 support.",
+            due_date=(2025, 5, 2),  # Originally added on 2024-11-01
+        )
+        return orig.install
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class install(orig.install):
@@ -54,24 +63,21 @@ class install(orig.install):
             standards-based tools.
             """,
             see_url="https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html",
-            # TODO: Document how to bootstrap setuptools without install
-            #       (e.g. by unziping the wheel file)
-            #       and then add a due_date to this warning.
+            due_date=(2025, 10, 31),
         )
 
         super().initialize_options()
         self.old_and_unmanageable = None
         self.single_version_externally_managed = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         super().finalize_options()
         if self.root:
             self.single_version_externally_managed = True
         elif self.single_version_externally_managed:
             if not self.root and not self.record:
                 raise DistutilsArgError(
-                    "You must specify --record or --root when building system"
-                    " packages"
+                    "You must specify --record or --root when building system packages"
                 )
 
     def handle_extra_path(self):
@@ -83,19 +89,6 @@ class install(orig.install):
         # command without --root or --single-version-externally-managed
         self.path_file = None
         self.extra_dirs = ''
-        return None
-
-    def run(self):
-        # Explicit request for old-style install?  Just do it
-        if self.old_and_unmanageable or self.single_version_externally_managed:
-            return super().run()
-
-        if not self._called_from_setup(inspect.currentframe()):
-            # Run in backward-compatibility mode to support bdist_* commands.
-            super().run()
-        else:
-            self.do_egg_install()
-
         return None
 
     @staticmethod
@@ -130,33 +123,6 @@ class install(orig.install):
             return caller_module == 'distutils.dist' and info.function == 'run_commands'
 
         return False
-
-    def do_egg_install(self):
-        easy_install = self.distribution.get_command_class('easy_install')
-
-        cmd = easy_install(
-            self.distribution,
-            args="x",
-            root=self.root,
-            record=self.record,
-        )
-        cmd.ensure_finalized()  # finalize before bdist_egg munges install cmd
-        cmd.always_copy_from = '.'  # make sure local-dir eggs get installed
-
-        # pick up setup-dir .egg files only: no .egg-info
-        cmd.package_index.scan(glob.glob('*.egg'))
-
-        self.run_command('bdist_egg')
-        bdist_egg = cast(bdist_egg_cls, self.distribution.get_command_obj('bdist_egg'))
-        args = [bdist_egg.egg_output]
-
-        if setuptools.bootstrap_install_from:
-            # Bootstrap self-installation of setuptools
-            args.insert(0, setuptools.bootstrap_install_from)
-
-        cmd.args = args
-        cmd.run(show_deprecation=False)
-        setuptools.bootstrap_install_from = None
 
 
 # XXX Python 3.1 doesn't see _nc if this is inside the class

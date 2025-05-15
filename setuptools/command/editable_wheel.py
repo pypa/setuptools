@@ -17,6 +17,7 @@ import logging
 import os
 import shutil
 import traceback
+from collections.abc import Iterable, Iterator, Mapping
 from contextlib import suppress
 from enum import Enum
 from inspect import cleandoc
@@ -24,14 +25,14 @@ from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import TracebackType
-from typing import TYPE_CHECKING, Iterable, Iterator, Mapping, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Protocol, TypeVar, cast
 
-from .. import Command, _normalization, _path, errors, namespaces
+from .. import Command, _normalization, _path, _shutil, errors, namespaces
 from .._path import StrPath
-from ..compat import py312
+from ..compat import py310, py312
 from ..discovery import find_package_path
 from ..dist import Distribution
-from ..warnings import InformationOnly, SetuptoolsDeprecationWarning, SetuptoolsWarning
+from ..warnings import InformationOnly, SetuptoolsDeprecationWarning
 from .build import build as build_cls
 from .build_py import build_py as build_py_cls
 from .dist_info import dist_info as dist_info_cls
@@ -119,13 +120,13 @@ class editable_wheel(Command):
         self.project_dir = None
         self.mode = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         dist = self.distribution
         self.project_dir = dist.src_root or os.curdir
         self.package_dir = dist.package_dir or {}
         self.dist_dir = Path(self.dist_dir or os.path.join(self.project_dir, "dist"))
 
-    def run(self):
+    def run(self) -> None:
         try:
             self.dist_dir.mkdir(exist_ok=True)
             self._ensure_dist_info()
@@ -136,11 +137,14 @@ class editable_wheel(Command):
             bdist_wheel.write_wheelfile(self.dist_info_dir)
 
             self._create_wheel_file(bdist_wheel)
-        except Exception:
-            traceback.print_exc()
-            # TODO: Fix false-positive [attr-defined] in typeshed
+        except Exception as ex:
             project = self.distribution.name or self.distribution.get_name()
-            _DebuggingTips.emit(project=project)
+            py310.add_note(
+                ex,
+                f"An error occurred when building editable wheel for {project}.\n"
+                "See debugging tips in: "
+                "https://setuptools.pypa.io/en/latest/userguide/development_mode.html#debugging-tips",
+            )
             raise
 
     def _ensure_dist_info(self):
@@ -211,6 +215,11 @@ class editable_wheel(Command):
         install.install_headers = headers
         install.install_data = data
 
+        # For portability, ensure scripts are built with #!python shebang
+        # pypa/setuptools#4863
+        build_scripts = dist.get_command_obj("build_scripts")
+        build_scripts.executable = 'python'
+
         install_scripts = cast(
             install_scripts_cls, dist.get_command_obj("install_scripts")
         )
@@ -231,7 +240,6 @@ class editable_wheel(Command):
         """Set the ``editable_mode`` flag in the build sub-commands"""
         dist = self.distribution
         build = dist.get_command_obj("build")
-        # TODO: Update typeshed distutils stubs to overload non-None return type by default
         for cmd_name in build.get_sub_commands():
             cmd = dist.get_command_obj(cmd_name)
             if hasattr(cmd, "editable_mode"):
@@ -279,7 +287,7 @@ class editable_wheel(Command):
         This method implements a temporary workaround to support the ecosystem
         while the implementations catch up.
         """
-        # TODO: Once plugins/customisations had the chance to catch up, replace
+        # TODO: Once plugins/customizations had the chance to catch up, replace
         #       `self._run_build_subcommands()` with `self.run_command("build")`.
         #       Also remove _safely_run, TestCustomBuildPy. Suggested date: Aug/2023.
         build = self.get_finalized_command("build")
@@ -310,7 +318,7 @@ class editable_wheel(Command):
                 https://setuptools.pypa.io/en/latest/userguide/extension.html.
 
                 For the time being `setuptools` will silence this error and ignore
-                the faulty command, but this behaviour will change in future versions.
+                the faulty command, but this behavior will change in future versions.
                 """,
                 # TODO: define due_date
                 # There is a series of shortcomings with the available editable install
@@ -380,26 +388,25 @@ class editable_wheel(Command):
 
 
 class EditableStrategy(Protocol):
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]): ...
-
+    def __call__(
+        self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]
+    ) -> object: ...
     def __enter__(self) -> Self: ...
-
     def __exit__(
         self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
-        /,
+        _exc_type: type[BaseException] | None,
+        _exc_value: BaseException | None,
+        _traceback: TracebackType | None,
     ) -> object: ...
 
 
 class _StaticPth:
-    def __init__(self, dist: Distribution, name: str, path_entries: list[Path]):
+    def __init__(self, dist: Distribution, name: str, path_entries: list[Path]) -> None:
         self.dist = dist
         self.name = name
         self.path_entries = path_entries
 
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]):
         entries = "\n".join(str(p.resolve()) for p in self.path_entries)
         contents = _encode_pth(f"{entries}\n")
         wheel.writestr(f"__editable__.{self.name}.pth", contents)
@@ -438,13 +445,13 @@ class _LinkTree(_StaticPth):
         name: str,
         auxiliary_dir: StrPath,
         build_lib: StrPath,
-    ):
+    ) -> None:
         self.auxiliary_dir = Path(auxiliary_dir)
         self.build_lib = Path(build_lib).resolve()
         self._file = dist.get_command_obj("build_py").copy_file
         super().__init__(dist, name, [self.auxiliary_dir])
 
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]):
         self._create_links(files, mapping)
         super().__call__(wheel, files, mapping)
 
@@ -461,7 +468,7 @@ class _LinkTree(_StaticPth):
             dest.parent.mkdir(parents=True)
         self._file(src_file, dest, link=link)
 
-    def _create_links(self, outputs, output_mapping):
+    def _create_links(self, outputs, output_mapping: Mapping[str, str]):
         self.auxiliary_dir.mkdir(parents=True, exist_ok=True)
         link_type = "sym" if _can_symlink_files(self.auxiliary_dir) else "hard"
         normalised = ((self._normalize_output(k), v) for k, v in output_mapping.items())
@@ -498,7 +505,7 @@ class _LinkTree(_StaticPth):
 
 
 class _TopLevelFinder:
-    def __init__(self, dist: Distribution, name: str):
+    def __init__(self, dist: Distribution, name: str) -> None:
         self.dist = dist
         self.name = name
 
@@ -508,7 +515,7 @@ class _TopLevelFinder:
         package_dir = self.dist.package_dir or {}
         roots = _find_package_roots(top_level, package_dir, src_root)
 
-        namespaces_: dict[str, list[str]] = dict(
+        namespaces_ = dict(
             chain(
                 _find_namespaces(self.dist.packages or [], roots),
                 ((ns, []) for ns in _find_virtual_namespaces(roots)),
@@ -538,7 +545,7 @@ class _TopLevelFinder:
         content = _encode_pth(f"import {finder}; {finder}.install()")
         yield (f"__editable__.{self.name}.pth", content)
 
-    def __call__(self, wheel: WheelFile, files: list[str], mapping: dict[str, str]):
+    def __call__(self, wheel: WheelFile, files: list[str], mapping: Mapping[str, str]):
         for file, content in self.get_implementation():
             wheel.writestr(file, content)
 
@@ -566,7 +573,7 @@ def _encode_pth(content: str) -> bytes:
     .pth files are always read with 'locale' encoding, the recommendation
     from the cpython core developers is to write them as ``open(path, "w")``
     and ignore warnings (see python/cpython#77102, pypa/setuptools#3937).
-    This function tries to simulate this behaviour without having to create an
+    This function tries to simulate this behavior without having to create an
     actual file, in a way that supports a range of active Python versions.
     (There seems to be some variety in the way different version of Python handle
     ``encoding=None``, not all of them use ``locale.getpreferredencoding(False)``
@@ -775,18 +782,18 @@ def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
 
 def _empty_dir(dir_: _P) -> _P:
     """Create a directory ensured to be empty. Existing files may be removed."""
-    shutil.rmtree(dir_, ignore_errors=True)
+    _shutil.rmtree(dir_, ignore_errors=True)
     os.makedirs(dir_)
     return dir_
 
 
 class _NamespaceInstaller(namespaces.Installer):
-    def __init__(self, distribution, installation_dir, editable_name, src_root):
+    def __init__(self, distribution, installation_dir, editable_name, src_root) -> None:
         self.distribution = distribution
         self.src_root = src_root
         self.installation_dir = installation_dir
         self.editable_name = editable_name
-        self.outputs = []
+        self.outputs: list[str] = []
         self.dry_run = False
 
     def _get_nspkg_file(self):
@@ -899,29 +906,3 @@ def _finder_template(
 
 class LinksNotSupported(errors.FileError):
     """File system does not seem to support either symlinks or hard links."""
-
-
-class _DebuggingTips(SetuptoolsWarning):
-    _SUMMARY = "Problem in editable installation."
-    _DETAILS = """
-    An error happened while installing `{project}` in editable mode.
-
-    The following steps are recommended to help debug this problem:
-
-    - Try to install the project normally, without using the editable mode.
-      Does the error still persist?
-      (If it does, try fixing the problem before attempting the editable mode).
-    - If you are using binary extensions, make sure you have all OS-level
-      dependencies installed (e.g. compilers, toolchains, binary libraries, ...).
-    - Try the latest version of setuptools (maybe the error was already fixed).
-    - If you (or your project dependencies) are using any setuptools extension
-      or customization, make sure they support the editable mode.
-
-    After following the steps above, if the problem still persists and
-    you think this is related to how setuptools handles editable installations,
-    please submit a reproducible example
-    (see https://stackoverflow.com/help/minimal-reproducible-example) to:
-
-        https://github.com/pypa/setuptools/issues
-    """
-    _SEE_DOCS = "userguide/development_mode.html"

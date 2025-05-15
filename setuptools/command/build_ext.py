@@ -3,10 +3,12 @@ from __future__ import annotations
 import itertools
 import os
 import sys
+import textwrap
+from collections.abc import Iterator
 from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING
 
 from setuptools.dist import Distribution
 from setuptools.errors import BaseError
@@ -73,10 +75,6 @@ elif os.name != 'nt':
         pass
 
 
-def if_dl(s):
-    return s if have_rtld else ''
-
-
 def get_abi3_suffix():
     """Return the file extension for an abi3-compliant Extension()"""
     for suffix in EXTENSION_SUFFIXES:
@@ -89,12 +87,12 @@ def get_abi3_suffix():
 
 class build_ext(_build_ext):
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
-    editable_mode: bool = False
-    inplace: bool = False
+    editable_mode = False
+    inplace = False
 
     def run(self):
         """Build extensions in build directory, then copy if --inplace"""
-        old_inplace, self.inplace = self.inplace, 0
+        old_inplace, self.inplace = self.inplace, False
         _build_ext.run(self)
         self.inplace = old_inplace
         if old_inplace:
@@ -110,7 +108,7 @@ class build_ext(_build_ext):
         regular_file = os.path.join(self.build_lib, filename)
         return (inplace_file, regular_file)
 
-    def copy_extensions_to_source(self):
+    def copy_extensions_to_source(self) -> None:
         build_py = self.get_finalized_command('build_py')
         for ext in self.extensions:
             inplace_file, regular_file = self._get_inplace_equivalent(build_py, ext)
@@ -167,7 +165,7 @@ class build_ext(_build_ext):
             if not isinstance(ext_suffix, str):
                 raise OSError(
                     "Configuration variable EXT_SUFFIX not found for this platform "
-                    + "and environment variable SETUPTOOLS_EXT_SUFFIX is missing"
+                    "and environment variable SETUPTOOLS_EXT_SUFFIX is missing"
                 )
             so_ext = ext_suffix
 
@@ -191,7 +189,7 @@ class build_ext(_build_ext):
         self.ext_map = {}
         self.editable_mode = False
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         _build_ext.finalize_options(self)
         self.extensions = self.extensions or []
         self.check_extensions_list(self.extensions)
@@ -247,14 +245,14 @@ class build_ext(_build_ext):
             compiler.set_link_objects(self.link_objects)
 
         # hack so distutils' build_extension() builds a library instead
-        compiler.link_shared_object = link_shared_object.__get__(compiler)
+        compiler.link_shared_object = link_shared_object.__get__(compiler)  # type: ignore[method-assign]
 
     def get_export_symbols(self, ext):
         if isinstance(ext, Library):
             return ext.export_symbols
         return _build_ext.get_export_symbols(self, ext)
 
-    def build_extension(self, ext):
+    def build_extension(self, ext) -> None:
         ext._convert_pyx_sources_to_lang()
         _compiler = self.compiler
         try:
@@ -344,7 +342,7 @@ class build_ext(_build_ext):
         if self.get_finalized_command('build_py').optimize:
             yield '.pyo'
 
-    def write_stub(self, output_dir, ext, compile=False):
+    def write_stub(self, output_dir, ext, compile=False) -> None:
         stub_file = os.path.join(output_dir, *ext._full_name.split('.')) + '.py'
         self._write_stub_file(stub_file, ext, compile)
 
@@ -354,30 +352,34 @@ class build_ext(_build_ext):
             raise BaseError(stub_file + " already exists! Please delete.")
         if not self.dry_run:
             with open(stub_file, 'w', encoding="utf-8") as f:
-                content = '\n'.join([
-                    "def __bootstrap__():",
-                    "   global __bootstrap__, __file__, __loader__",
-                    "   import sys, os, pkg_resources, importlib.util" + if_dl(", dl"),
-                    "   __file__ = pkg_resources.resource_filename"
-                    "(__name__,%r)" % os.path.basename(ext._file_name),
-                    "   del __bootstrap__",
-                    "   if '__loader__' in globals():",
-                    "       del __loader__",
-                    if_dl("   old_flags = sys.getdlopenflags()"),
-                    "   old_dir = os.getcwd()",
-                    "   try:",
-                    "     os.chdir(os.path.dirname(__file__))",
-                    if_dl("     sys.setdlopenflags(dl.RTLD_NOW)"),
-                    "     spec = importlib.util.spec_from_file_location(",
-                    "                __name__, __file__)",
-                    "     mod = importlib.util.module_from_spec(spec)",
-                    "     spec.loader.exec_module(mod)",
-                    "   finally:",
-                    if_dl("     sys.setdlopenflags(old_flags)"),
-                    "     os.chdir(old_dir)",
-                    "__bootstrap__()",
-                    "",  # terminal \n
-                ])
+                content = (
+                    textwrap.dedent(f"""
+                    def __bootstrap__():
+                       global __bootstrap__, __file__, __loader__
+                       import sys, os, importlib.resources as irs, importlib.util
+                    #rtld   import dl
+                       with irs.files(__name__).joinpath(
+                         {os.path.basename(ext._file_name)!r}) as __file__:
+                          del __bootstrap__
+                          if '__loader__' in globals():
+                              del __loader__
+                    #rtld      old_flags = sys.getdlopenflags()
+                          old_dir = os.getcwd()
+                          try:
+                            os.chdir(os.path.dirname(__file__))
+                    #rtld        sys.setdlopenflags(dl.RTLD_NOW)
+                            spec = importlib.util.spec_from_file_location(
+                                       __name__, __file__)
+                            mod = importlib.util.module_from_spec(spec)
+                            spec.loader.exec_module(mod)
+                          finally:
+                    #rtld        sys.setdlopenflags(old_flags)
+                            os.chdir(old_dir)
+                    __bootstrap__()
+                    """)
+                    .lstrip()
+                    .replace('#rtld', '#rtld' * (not have_rtld))
+                )
                 f.write(content)
         if compile:
             self._compile_and_remove_stub(stub_file)
@@ -410,12 +412,12 @@ if use_stubs or os.name == 'nt':
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=False,
+        debug: bool = False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
         target_lang=None,
-    ):
+    ) -> None:
         self.link(
             self.SHARED_LIBRARY,
             objects,
@@ -445,12 +447,12 @@ else:
         library_dirs=None,
         runtime_library_dirs=None,
         export_symbols=None,
-        debug=False,
+        debug: bool = False,
         extra_preargs=None,
         extra_postargs=None,
         build_temp=None,
         target_lang=None,
-    ):
+    ) -> None:
         # XXX we need to either disallow these attrs on Library instances,
         # or warn/abort here if set, or something...
         # libraries=None, library_dirs=None, runtime_library_dirs=None,
@@ -459,7 +461,7 @@ else:
 
         assert output_dir is None  # distutils build_ext doesn't pass this
         output_dir, filename = os.path.split(output_libname)
-        basename, ext = os.path.splitext(filename)
+        basename, _ext = os.path.splitext(filename)
         if self.library_filename("x").startswith('lib'):
             # strip 'lib' prefix; this is kludgy if some platform uses
             # a different prefix

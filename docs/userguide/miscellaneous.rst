@@ -24,7 +24,7 @@ files are included in a source distribution by default:
   in ``pyproject.toml`` and/or equivalent in ``setup.cfg``/``setup.py``;
   note that if you don't explicitly set this parameter, ``setuptools``
   will include any files that match the following glob patterns:
-  ``LICENSE*``, ``LICENCE*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS**``;
+  ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS**``;
 - ``pyproject.toml``;
 - ``setup.cfg``;
 - ``setup.py``;
@@ -38,7 +38,9 @@ of ``setuptools``. The behavior of older versions might differ.
    .. versionadded:: v69.0.0
       ``setuptools`` will attempt to include type information files
       by default in the distribution
-      (``.pyi`` and ``py.typed``, as specified in :pep:`561`).
+      (``.pyi`` and ``py.typed``, as specified in :pep:`561`),
+      as long as they are contained inside of a package directory
+      (for the time being there is no automatic support for top-level ``.pyi`` files).
 
     *Please note however that this feature is* **EXPERIMENTAL** *and may change in
     the future.*

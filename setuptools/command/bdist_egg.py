@@ -2,21 +2,30 @@
 
 Build .egg distributions"""
 
+from __future__ import annotations
+
 import marshal
 import os
 import re
 import sys
 import textwrap
-from sysconfig import get_path, get_python_version
+from sysconfig import get_path, get_platform, get_python_version
 from types import CodeType
+from typing import TYPE_CHECKING, Literal
 
 from setuptools import Command
 from setuptools.extension import Library
 
-from .._path import ensure_directory
+from .._path import StrPathT, ensure_directory
 
 from distutils import log
 from distutils.dir_util import mkpath, remove_tree
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
+# Same as zipfile._ZipFileMode from typeshed
+_ZipFileMode: TypeAlias = Literal["r", "w", "x", "a"]
 
 
 def _get_purelib():
@@ -41,17 +50,17 @@ def sorted_walk(dir):
         yield base, dirs, files
 
 
-def write_stub(resource, pyfile):
+def write_stub(resource, pyfile) -> None:
     _stub_template = textwrap.dedent(
         """
         def __bootstrap__():
             global __bootstrap__, __loader__, __file__
-            import sys, pkg_resources, importlib.util
-            __file__ = pkg_resources.resource_filename(__name__, %r)
-            __loader__ = None; del __bootstrap__, __loader__
-            spec = importlib.util.spec_from_file_location(__name__,__file__)
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
+            import sys, importlib.resources as irs, importlib.util
+            with irs.as_file(irs.files(__name__).joinpath(%r)) as __file__:
+                __loader__ = None; del __bootstrap__, __loader__
+                spec = importlib.util.spec_from_file_location(__name__,__file__)
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
         __bootstrap__()
         """
     ).lstrip()
@@ -60,7 +69,7 @@ def write_stub(resource, pyfile):
 
 
 class bdist_egg(Command):
-    description = "create an \"egg\" distribution"
+    description = 'create an "egg" distribution'
 
     user_options = [
         ('bdist-dir=', 'b', "temporary directory for creating the distribution"),
@@ -68,7 +77,7 @@ class bdist_egg(Command):
             'plat-name=',
             'p',
             "platform name to embed in generated filenames "
-            "(by default uses `pkg_resources.get_build_platform()`)",
+            "(by default uses `sysconfig.get_platform()`)",
         ),
         ('exclude-source-files', None, "remove all .py files from the generated egg"),
         (
@@ -92,7 +101,7 @@ class bdist_egg(Command):
         self.egg_output = None
         self.exclude_source_files = None
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         ei_cmd = self.ei_cmd = self.get_finalized_command("egg_info")
         self.egg_info = ei_cmd.egg_info
 
@@ -101,9 +110,7 @@ class bdist_egg(Command):
             self.bdist_dir = os.path.join(bdist_base, 'egg')
 
         if self.plat_name is None:
-            from pkg_resources import get_build_platform
-
-            self.plat_name = get_build_platform()
+            self.plat_name = get_platform()
 
         self.set_undefined_options('bdist', ('dist_dir', 'dist_dir'))
 
@@ -116,7 +123,7 @@ class bdist_egg(Command):
 
             self.egg_output = os.path.join(self.dist_dir, basename + '.egg')
 
-    def do_install_data(self):
+    def do_install_data(self) -> None:
         # Hack for packages that install data to install's --install-lib
         self.get_finalized_command('install').install_lib = self.bdist_dir
 
@@ -172,7 +179,7 @@ class bdist_egg(Command):
         self.stubs = []
         to_compile = []
         for p, ext_name in enumerate(ext_outputs):
-            filename, ext = os.path.splitext(ext_name)
+            filename, _ext = os.path.splitext(ext_name)
             pyfile = os.path.join(self.bdist_dir, strip_module(filename) + '.py')
             self.stubs.append(pyfile)
             log.info("creating stub loader for %s", ext_name)
@@ -254,7 +261,7 @@ class bdist_egg(Command):
                     pattern = r'(?P<name>.+)\.(?P<magic>[^.]+)\.pyc'
                     m = re.match(pattern, name)
                     path_new = os.path.join(base, os.pardir, m.group('name') + '.pyc')
-                    log.info("Renaming file from [%s] to [%s]" % (path_old, path_new))
+                    log.info(f"Renaming file from [{path_old}] to [{path_new}]")
                     try:
                         os.remove(path_new)
                     except OSError:
@@ -268,10 +275,10 @@ class bdist_egg(Command):
         log.warn("zip_safe flag not set; analyzing archive contents...")
         return analyze_egg(self.bdist_dir, self.stubs)
 
-    def gen_header(self):
+    def gen_header(self) -> Literal["w"]:
         return 'w'
 
-    def copy_metadata_to(self, target_dir):
+    def copy_metadata_to(self, target_dir) -> None:
         "Copy metadata (egg info) to the target_dir"
         # normalize the path (so that a forward-slash in egg_info will
         # match using startswith below)
@@ -313,7 +320,7 @@ class bdist_egg(Command):
         return all_outputs, ext_outputs
 
 
-NATIVE_EXTENSIONS = dict.fromkeys('.dll .so .dylib .pyd'.split())
+NATIVE_EXTENSIONS: dict[str, None] = dict.fromkeys('.dll .so .dylib .pyd'.split())
 
 
 def walk_egg(egg_dir):
@@ -344,7 +351,7 @@ def analyze_egg(egg_dir, stubs):
     return safe
 
 
-def write_safety_flag(egg_dir, safe):
+def write_safety_flag(egg_dir, safe) -> None:
     # Write or remove zip safety flag file(s)
     for flag, fn in safety_flags.items():
         fn = os.path.join(egg_dir, fn)
@@ -412,7 +419,7 @@ def iter_symbols(code):
             yield from iter_symbols(const)
 
 
-def can_scan():
+def can_scan() -> bool:
     if not sys.platform.startswith('java') and sys.platform != 'cli':
         # CPython, PyPy, etc.
         return True
@@ -431,8 +438,13 @@ INSTALL_DIRECTORY_ATTRS = ['install_lib', 'install_dir', 'install_data', 'instal
 
 
 def make_zipfile(
-    zip_filename, base_dir, verbose=False, dry_run=False, compress=True, mode='w'
-):
+    zip_filename: StrPathT,
+    base_dir,
+    verbose: bool = False,
+    dry_run: bool = False,
+    compress=True,
+    mode: _ZipFileMode = 'w',
+) -> StrPathT:
     """Create a zip file from all the files under 'base_dir'.  The output
     zip file will be named 'base_dir' + ".zip".  Uses either the "zipfile"
     Python module (if available) or the InfoZIP "zip" utility (if installed
@@ -441,7 +453,7 @@ def make_zipfile(
     """
     import zipfile
 
-    mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
+    mkpath(os.path.dirname(zip_filename), dry_run=dry_run)  # type: ignore[arg-type] # python/mypy#18075
     log.info("creating '%s' and adding '%s' to it", zip_filename, base_dir)
 
     def visit(z, dirname, names):

@@ -3,8 +3,11 @@
 Provides the Extension class, used to describe C/C++ extension
 modules in setup scripts."""
 
+from __future__ import annotations
+
 import os
 import warnings
+from collections.abc import Iterable
 
 # This class is really only used by the "build_ext" command, so it might
 # make sense to put it in distutils.command.build_ext.  However, that
@@ -26,12 +29,14 @@ class Extension:
       name : string
         the full name of the extension, including any packages -- ie.
         *not* a filename or pathname, but Python dotted name
-      sources : [string | os.PathLike]
-        list of source filenames, relative to the distribution root
-        (where the setup script lives), in Unix form (slash-separated)
-        for portability.  Source files may be C, C++, SWIG (.i),
-        platform-specific resource files, or whatever else is recognized
-        by the "build_ext" command as source for a Python extension.
+      sources : Iterable[string | os.PathLike]
+        iterable of source filenames (except strings, which could be misinterpreted
+        as a single filename), relative to the distribution root (where the setup
+        script lives), in Unix form (slash-separated) for portability. Can be any
+        non-string iterable (list, tuple, set, etc.) containing strings or
+        PathLike objects. Source files may be C, C++, SWIG (.i), platform-specific
+        resource files, or whatever else is recognized by the "build_ext" command
+        as source for a Python extension.
       include_dirs : [string]
         list of directories to search for C/C++ header files (in Unix
         form for portability)
@@ -86,36 +91,42 @@ class Extension:
     # setup_keywords in core.py.
     def __init__(
         self,
-        name,
-        sources,
-        include_dirs=None,
-        define_macros=None,
-        undef_macros=None,
-        library_dirs=None,
-        libraries=None,
-        runtime_library_dirs=None,
-        extra_objects=None,
-        extra_compile_args=None,
-        extra_link_args=None,
-        export_symbols=None,
-        swig_opts=None,
-        depends=None,
-        language=None,
-        optional=None,
+        name: str,
+        sources: Iterable[str | os.PathLike[str]],
+        include_dirs: list[str] | None = None,
+        define_macros: list[tuple[str, str | None]] | None = None,
+        undef_macros: list[str] | None = None,
+        library_dirs: list[str] | None = None,
+        libraries: list[str] | None = None,
+        runtime_library_dirs: list[str] | None = None,
+        extra_objects: list[str] | None = None,
+        extra_compile_args: list[str] | None = None,
+        extra_link_args: list[str] | None = None,
+        export_symbols: list[str] | None = None,
+        swig_opts: list[str] | None = None,
+        depends: list[str] | None = None,
+        language: str | None = None,
+        optional: bool | None = None,
         **kw,  # To catch unknown keywords
     ):
         if not isinstance(name, str):
-            raise AssertionError("'name' must be a string")  # noqa: TRY004
-        if not (
-            isinstance(sources, list)
-            and all(isinstance(v, (str, os.PathLike)) for v in sources)
-        ):
-            raise AssertionError(
-                "'sources' must be a list of strings or PathLike objects."
+            raise TypeError("'name' must be a string")
+
+        # handle the string case first; since strings are iterable, disallow them
+        if isinstance(sources, str):
+            raise TypeError(
+                "'sources' must be an iterable of strings or PathLike objects, not a string"
+            )
+
+        # now we check if it's iterable and contains valid types
+        try:
+            self.sources = list(map(os.fspath, sources))
+        except TypeError:
+            raise TypeError(
+                "'sources' must be an iterable of strings or PathLike objects"
             )
 
         self.name = name
-        self.sources = list(map(os.fspath, sources))
         self.include_dirs = include_dirs or []
         self.define_macros = define_macros or []
         self.undef_macros = undef_macros or []

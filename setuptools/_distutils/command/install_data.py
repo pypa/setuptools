@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import functools
 import os
-from typing import Iterable
+from collections.abc import Iterable
+from typing import ClassVar
 
 from ..core import Command
 from ..util import change_root, convert_path
@@ -22,14 +23,13 @@ class install_data(Command):
         (
             'install-dir=',
             'd',
-            "base directory for installing data files "
-            "[default: installation base dir]",
+            "base directory for installing data files [default: installation base dir]",
         ),
         ('root=', None, "install everything relative to this alternate root directory"),
         ('force', 'f', "force installation (overwrite existing files)"),
     ]
 
-    boolean_options = ['force']
+    boolean_options: ClassVar[list[str]] = ['force']
 
     def initialize_options(self):
         self.install_dir = None
@@ -39,7 +39,7 @@ class install_data(Command):
         self.data_files = self.distribution.data_files
         self.warn_dir = True
 
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         self.set_undefined_options(
             'install',
             ('install_data', 'install_dir'),
@@ -47,7 +47,7 @@ class install_data(Command):
             ('force', 'force'),
         )
 
-    def run(self):
+    def run(self) -> None:
         self.mkpath(self.install_dir)
         for f in self.data_files:
             self._copy(f)

@@ -20,8 +20,7 @@ import textwrap
 
 import pytest
 
-import pkg_resources
-from setuptools.command.easy_install import nt_quote_arg
+from setuptools._importlib import resources
 
 pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 
@@ -29,7 +28,7 @@ pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 class WrapperTester:
     @classmethod
     def prep_script(cls, template):
-        python_exe = nt_quote_arg(sys.executable)
+        python_exe = subprocess.list2cmdline([sys.executable])
         return template % locals()
 
     @classmethod
@@ -49,7 +48,7 @@ class WrapperTester:
 
         # also copy cli.exe to the sample directory
         with (tmpdir / cls.wrapper_name).open('wb') as f:
-            w = pkg_resources.resource_string('setuptools', cls.wrapper_source)
+            w = resources.files('setuptools').joinpath(cls.wrapper_source).read_bytes()
             f.write(w)
 
 
@@ -57,9 +56,9 @@ def win_launcher_exe(prefix):
     """A simple routine to select launcher script based on platform."""
     assert prefix in ('cli', 'gui')
     if platform.machine() == "ARM64":
-        return "{}-arm64.exe".format(prefix)
+        return f"{prefix}-arm64.exe"
     else:
-        return "{}-32.exe".format(prefix)
+        return f"{prefix}-32.exe"
 
 
 class TestCLI(WrapperTester):
@@ -116,7 +115,7 @@ class TestCLI(WrapperTester):
             text=True,
             encoding="utf-8",
         )
-        stdout, stderr = proc.communicate('hello\nworld\n')
+        stdout, _stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
         expected = textwrap.dedent(
             r"""
@@ -153,7 +152,7 @@ class TestCLI(WrapperTester):
             text=True,
             encoding="utf-8",
         )
-        stdout, stderr = proc.communicate('hello\nworld\n')
+        stdout, _stderr = proc.communicate('hello\nworld\n')
         actual = stdout.replace('\r\n', '\n')
         expected = textwrap.dedent(
             r"""
@@ -201,7 +200,7 @@ class TestCLI(WrapperTester):
             text=True,
             encoding="utf-8",
         )
-        stdout, stderr = proc.communicate()
+        stdout, _stderr = proc.communicate()
         actual = stdout.replace('\r\n', '\n')
         expected = textwrap.dedent(
             r"""

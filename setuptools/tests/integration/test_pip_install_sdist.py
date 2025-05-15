@@ -54,7 +54,7 @@ EXAMPLES = [
     ("pyyaml", LATEST),  # cython + custom build_ext + custom distclass
     ("charset-normalizer", LATEST),  # uses mypyc, used by aiohttp
     ("protobuf", LATEST),
-    ("requests", LATEST),
+    # ("requests", LATEST),  # XXX: https://github.com/psf/requests/pull/6920
     ("celery", LATEST),
     # When adding packages to this list, make sure they expose a `__version__`
     # attribute, or modify the tests below
@@ -104,26 +104,25 @@ def venv_python(tmp_path):
 
 
 @pytest.fixture(autouse=True)
-def _prepare(tmp_path, venv_python, monkeypatch, request):
+def _prepare(tmp_path, venv_python, monkeypatch):
     download_path = os.getenv("DOWNLOAD_PATH", str(tmp_path))
     os.makedirs(download_path, exist_ok=True)
 
     # Environment vars used for building some of the packages
     monkeypatch.setenv("USE_MYPYC", "1")
 
-    def _debug_info():
-        # Let's provide the maximum amount of information possible in the case
-        # it is necessary to debug the tests directly from the CI logs.
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print("Temporary directory:")
-        map(print, tmp_path.glob("*"))
-        print("Virtual environment:")
-        run([venv_python, "-m", "pip", "freeze"])
+    yield
 
-    request.addfinalizer(_debug_info)
+    # Let's provide the maximum amount of information possible in the case
+    # it is necessary to debug the tests directly from the CI logs.
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print("Temporary directory:")
+    map(print, tmp_path.glob("*"))
+    print("Virtual environment:")
+    run([venv_python, "-m", "pip", "freeze"])
 
 
-@pytest.mark.parametrize('package, version', EXAMPLES)
+@pytest.mark.parametrize(("package", "version"), EXAMPLES)
 @pytest.mark.uses_network
 def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel):
     venv_pip = (venv_python, "-m", "pip")

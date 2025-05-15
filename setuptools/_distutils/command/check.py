@@ -4,6 +4,7 @@ Implements the Distutils 'check' command.
 """
 
 import contextlib
+from typing import ClassVar
 
 from ..core import Command
 from ..errors import DistutilsSetupError
@@ -41,20 +42,17 @@ class check(Command):
     """This command checks the meta-data of the package."""
 
     description = "perform some checks on the package"
-    user_options = [
+    user_options: ClassVar[list[tuple[str, str, str]]] = [
         ('metadata', 'm', 'Verify meta-data'),
         (
             'restructuredtext',
             'r',
-            (
-                'Checks if long string meta-data syntax '
-                'are reStructuredText-compliant'
-            ),
+            'Checks if long string meta-data syntax are reStructuredText-compliant',
         ),
         ('strict', 's', 'Will exit with an error if a check fails'),
     ]
 
-    boolean_options = ['metadata', 'restructuredtext', 'strict']
+    boolean_options: ClassVar[list[str]] = ['metadata', 'restructuredtext', 'strict']
 
     def initialize_options(self):
         """Sets default values for options."""
@@ -143,7 +141,7 @@ class check(Command):
         document.note_source(source_path, -1)
         try:
             parser.parse(data, document)
-        except AttributeError as e:
+        except (AttributeError, TypeError) as e:
             reporter.messages.append((
                 -1,
                 f'Could not finish the parsing: {e}.',

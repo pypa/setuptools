@@ -54,13 +54,13 @@ Generators
 """
 
 
-def resolve_platform(platform: str):
+def resolve_platform(platform: str) -> str:
     if platform in ["Win32", "x64"]:
         return platform[-2:]
     return platform
 
 
-def get_executable_name(name, platform: str):
+def get_executable_name(name, platform: str) -> str:
     return f"{name}-{resolve_platform(platform)}"
 
 

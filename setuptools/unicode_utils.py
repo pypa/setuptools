@@ -1,6 +1,6 @@
 import sys
 import unicodedata
-from configparser import ConfigParser
+from configparser import RawConfigParser
 
 from .compat import py39
 from .warnings import SetuptoolsDeprecationWarning
@@ -65,10 +65,10 @@ def _read_utf8_with_fallback(file: str, fallback_encoding=py39.LOCALE_ENCODING) 
 
 
 def _cfg_read_utf8_with_fallback(
-    cfg: ConfigParser, file: str, fallback_encoding=py39.LOCALE_ENCODING
+    cfg: RawConfigParser, file: str, fallback_encoding=py39.LOCALE_ENCODING
 ) -> None:
     """Same idea as :func:`_read_utf8_with_fallback`, but for the
-    :meth:`ConfigParser.read` method.
+    :meth:`RawConfigParser.read` method.
 
     This method may call ``cfg.clear()``.
     """
@@ -86,7 +86,7 @@ class _Utf8EncodingNeeded(SetuptoolsDeprecationWarning):
     """
 
     _DETAILS = """
-    Fallback behaviour for UTF-8 is considered **deprecated** and future versions of
+    Fallback behavior for UTF-8 is considered **deprecated** and future versions of
     `setuptools` may not implement it.
 
     Please encode {file!r} with "utf-8" to ensure future builds will succeed.
