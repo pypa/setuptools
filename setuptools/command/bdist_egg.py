@@ -98,7 +98,7 @@ class bdist_egg(Command):
 
     def initialize_options(self):
         self.bdist_dir = None
-        self.plat_name = None
+        self.plat_name: str = None  # Always set in finalize_options
         self.keep_temp = False
         self.dist_dir = None
         self.skip_build = False
