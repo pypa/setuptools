@@ -41,7 +41,7 @@ class Archive:
     def __init__(self, filename) -> None:
         self._filename = filename
         if filename.endswith("tar.gz"):
-            self._obj = tarfile.open(filename, "r:gz")
+            self._obj: tarfile.TarFile | ZipFile = tarfile.open(filename, "r:gz")
         elif filename.endswith("zip"):
             self._obj = ZipFile(filename)
         else:
