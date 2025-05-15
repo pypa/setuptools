@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import os
 import platform
 import sys
 
 import pytest
-from pytest_mypy import MypyFileItem, MypyResults
 
 pytest_plugins = 'setuptools.tests.fixtures'
 
@@ -25,18 +23,7 @@ def pytest_addoption(parser):
     )
 
 
-def mypy_error_formatter_show_filename(
-    item: MypyFileItem, results: MypyResults, errors: list[str]
-) -> str:  # pragma: nocover # This shouldn't run on success
-    """Include the relative file path before each reported error."""
-    return '\n'.join(
-        f'{item.path.relative_to(os.getcwd())}:{error}' for error in errors
-    )
-
-
-def pytest_configure(config):
-    mypy_plugin = config.pluginmanager.getplugin('mypy')
-    mypy_plugin.file_error_formatter = mypy_error_formatter_show_filename
+def pytest_configure(config) -> None:
     config.addinivalue_line("markers", "integration: integration tests")
     config.addinivalue_line("markers", "uses_network: tests may try to download files")
     _IntegrationTestSpeedups.disable_plugins_already_run(config)

@@ -131,7 +131,7 @@ enabler = [
 
 type = [
 	# upstream
-	"pytest-mypy",
+	"pytest-mypy>=1.0.1",
 
 	# local
 
