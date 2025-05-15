@@ -92,9 +92,7 @@ def _fetch_build_egg_no_warn(dist, req):  # noqa: C901  # is too complex (16)  #
     if dist.dependency_links:
         find_links.extend(dist.dependency_links)
     eggs_dir = os.path.realpath(dist.get_egg_cache_dir())
-    cached_dists = metadata.Distribution.discover(
-        path=glob.glob(f'{eggs_dir}/*.egg/EGG-INFO')
-    )
+    cached_dists = metadata.Distribution.discover(path=glob.glob(f'{eggs_dir}/*.egg'))
     for egg_dist in cached_dists:
         if _dist_matches_req(egg_dist, req):
             return egg_dist
