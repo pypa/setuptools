@@ -28,7 +28,7 @@ class develop(Command):
     index_url = None
 
     def run(self) -> None:  # type: ignore[override] # Not including easy_install's show_deprecation argument
-        cmd = (
+        cmd: list[str] = (
             [sys.executable, '-m', 'pip', 'install', '-e', '.', '--use-pep517']
             + ['--target', self.install_dir] * bool(self.install_dir)
             + ['--no-deps'] * self.no_deps

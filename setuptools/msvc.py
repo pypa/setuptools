@@ -707,7 +707,7 @@ class SystemInfo:
         return self.ri.lookup(path, 'productdir') or ''
 
     @property
-    def UniversalCRTSdkDir(self) -> str | None:
+    def UniversalCRTSdkDir(self) -> str:
         """
         Microsoft Universal CRT SDK directory.
 
@@ -723,9 +723,9 @@ class SystemInfo:
         for ver in vers:
             sdkdir = self.ri.lookup(self.ri.windows_kits_roots, f'kitsroot{ver}')
             if sdkdir:
-                return sdkdir or ''
+                return sdkdir
 
-        return None
+        return ''
 
     @property
     def UniversalCRTSdkLastVersion(self) -> str:
