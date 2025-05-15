@@ -56,7 +56,7 @@ def test_dist_fetch_build_egg(tmpdir):
         dist = Distribution()
         dist.parse_config_files()
         resolved_dists = [dist.fetch_build_egg(r) for r in reqs]
-    assert [dist.key for dist in resolved_dists if dist] == reqs
+    assert [dist.name for dist in resolved_dists if dist] == reqs
 
 
 EXAMPLE_BASE_INFO = dict(

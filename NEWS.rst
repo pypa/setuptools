@@ -1,3 +1,43 @@
+v80.7.1
+=======
+
+Bugfixes
+--------
+
+- Only attempt to fetch eggs for unsatisfied requirements. (#4998)
+- In installer, when discovering egg dists, let metadata discovery search each egg. (#4998)
+
+
+v80.7.0
+=======
+
+Features
+--------
+
+- Removed usage of pkg_resources from installer. Set an official deadline on the installer deprecation to 2025-10-31. (#4997)
+
+
+Misc
+----
+
+- #4996
+
+
+v80.6.0
+=======
+
+Features
+--------
+
+- Added a build dependency on coherent.licensed to inject the declared license text at build time. (#4981)
+
+
+Misc
+----
+
+- #4995
+
+
 v80.5.0
 =======
 

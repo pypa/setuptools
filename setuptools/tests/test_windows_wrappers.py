@@ -48,7 +48,7 @@ class WrapperTester:
 
         # also copy cli.exe to the sample directory
         with (tmpdir / cls.wrapper_name).open('wb') as f:
-            w = resources.files('setuptools').join_path(cls.wrapper_source).read_bytes()
+            w = resources.files('setuptools').joinpath(cls.wrapper_source).read_bytes()
             f.write(w)
 
 

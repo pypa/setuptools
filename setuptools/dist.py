@@ -46,8 +46,6 @@ from distutils.util import strtobool
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
-    from pkg_resources import Distribution as _pkg_resources_Distribution
-
 
 __all__ = ['Distribution']
 
@@ -761,9 +759,7 @@ class Distribution(_Distribution):
         self._finalize_license_expression()
         self._finalize_license_files()
 
-    def fetch_build_eggs(
-        self, requires: _StrOrIter
-    ) -> list[_pkg_resources_Distribution]:
+    def fetch_build_eggs(self, requires: _StrOrIter) -> list[metadata.Distribution]:
         """Resolve pre-setup requirements"""
         from .installer import _fetch_build_eggs
 
