@@ -295,7 +295,7 @@ def test_preserve_unicode_metadata(monkeypatch, tmp_path):
     class simpler_bdist_wheel(bdist_wheel):
         """Avoid messing with setuptools/distutils internals"""
 
-        def __init__(self):
+        def __init__(self) -> None:
             pass
 
         @property
