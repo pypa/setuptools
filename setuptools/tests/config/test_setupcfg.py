@@ -1,7 +1,6 @@
 import configparser
 import contextlib
 import inspect
-import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -420,49 +419,6 @@ class TestMetadata:
         with pytest.raises(UnicodeDecodeError):
             with get_dist(tmpdir):
                 pass
-
-    @pytest.mark.parametrize(
-        ("error_msg", "config", "invalid"),
-        [
-            (
-                "Invalid dash-separated key 'author-email' in 'metadata' (setup.cfg)",
-                DALS(
-                    """
-                    [metadata]
-                    author-email = test@test.com
-                    maintainer_email = foo@foo.com
-                    """
-                ),
-                {"author-email": "test@test.com"},
-            ),
-            (
-                "Invalid uppercase key 'Name' in 'metadata' (setup.cfg)",
-                DALS(
-                    """
-                    [metadata]
-                    Name = foo
-                    description = Some description
-                    """
-                ),
-                {"Name": "foo"},
-            ),
-        ],
-    )
-    def test_invalid_options_previously_deprecated(
-        self, tmpdir, error_msg, config, invalid
-    ):
-        # This test and related methods can be removed when no longer needed.
-        # Deprecation postponed due to push-back from the community in
-        # https://github.com/pypa/setuptools/issues/4910
-        fake_env(tmpdir, config)
-        with pytest.warns(SetuptoolsDeprecationWarning, match=re.escape(error_msg)):
-            dist = get_dist(tmpdir).__enter__()
-
-        tmpdir.join('setup.cfg').remove()
-
-        for field, value in invalid.items():
-            attr = field.replace("-", "_").lower()
-            assert getattr(dist.metadata, attr) == value
 
 
 class TestOptions:
