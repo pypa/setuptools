@@ -11,7 +11,6 @@ import functools
 import os
 import sys
 from abc import abstractmethod
-from collections.abc import MutableMapping
 from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
@@ -50,7 +49,7 @@ find_packages = PackageFinder.find
 find_namespace_packages = PEP420PackageFinder.find
 
 
-def _expand_setupcfg(attrs: MutableMapping[str, Any]) -> Distribution:
+def _expand_setupcfg(attrs: dict[str, Any]) -> Distribution:
     """Bare minimum setup.cfg parsing so that we can extract setup_requires"""
     from setuptools.config.setupcfg import _apply
 
@@ -61,7 +60,7 @@ def _expand_setupcfg(attrs: MutableMapping[str, Any]) -> Distribution:
     return dist
 
 
-def _install_setup_requires(attrs: MutableMapping[str, Any]) -> None:
+def _install_setup_requires(attrs: dict[str, Any]) -> None:
     dist = _expand_setupcfg(attrs)
     if dist.setup_requires:
         _fetch_build_eggs(dist)
