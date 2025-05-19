@@ -55,7 +55,7 @@ def _expand_setupcfg(attrs: dict[str, Any]) -> Distribution:
 
     dist = Distribution(attrs)
     dist.set_defaults._disable()
-    if os.path.exists("setup.cfg"):
+    if os.path.exists("setup.cfg"):  # Assumes no other config contains setup_requires
         _apply(dist, "setup.cfg", ignore_option_errors=True)
     return dist
 
