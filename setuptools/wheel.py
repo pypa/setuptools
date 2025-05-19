@@ -133,8 +133,6 @@ class Wheel:
 
     @staticmethod
     def _convert_metadata(zf, destination_eggdir, dist_info, egg_info):
-        import pkg_resources
-
         def get_metadata(name):
             with zf.open(posixpath.join(dist_info, name)) as fp:
                 value = fp.read().decode('utf-8')
@@ -148,8 +146,32 @@ class Wheel:
             raise ValueError(f'unsupported wheel format version: {wheel_version}')
         # Extract to target directory.
         _unpack_zipfile_obj(zf, destination_eggdir)
-        # Convert metadata.
         dist_info = os.path.join(destination_eggdir, dist_info)
+        install_requires, extras_require = Wheel._convert_requires(
+            destination_eggdir, dist_info
+        )
+        os.rename(dist_info, egg_info)
+        os.rename(
+            os.path.join(egg_info, 'METADATA'),
+            os.path.join(egg_info, 'PKG-INFO'),
+        )
+        setup_dist = setuptools.Distribution(
+            attrs=dict(
+                install_requires=install_requires,
+                extras_require=extras_require,
+            ),
+        )
+        with disable_info_traces():
+            write_requirements(
+                setup_dist.get_command_obj('egg_info'),
+                None,
+                os.path.join(egg_info, 'requires.txt'),
+            )
+
+    @staticmethod
+    def _convert_requires(destination_eggdir, dist_info):
+        import pkg_resources
+
         dist = pkg_resources.Distribution.from_location(
             destination_eggdir,
             dist_info,
@@ -172,23 +194,7 @@ class Wheel:
             ]
             for extra in dist.extras
         }
-        os.rename(dist_info, egg_info)
-        os.rename(
-            os.path.join(egg_info, 'METADATA'),
-            os.path.join(egg_info, 'PKG-INFO'),
-        )
-        setup_dist = setuptools.Distribution(
-            attrs=dict(
-                install_requires=install_requires,
-                extras_require=extras_require,
-            ),
-        )
-        with disable_info_traces():
-            write_requirements(
-                setup_dist.get_command_obj('egg_info'),
-                None,
-                os.path.join(egg_info, 'requires.txt'),
-            )
+        return install_requires, extras_require
 
     @staticmethod
     def _move_data_entries(destination_eggdir, dist_data):
