@@ -11,6 +11,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import sysconfig
 import zipfile
 from typing import Any
 
@@ -19,7 +20,7 @@ from jaraco import path
 from packaging.tags import parse_tag
 from packaging.utils import canonicalize_name
 
-from pkg_resources import PY_MAJOR, Distribution, PathMetadata
+from pkg_resources import Distribution, PathMetadata
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir
@@ -140,7 +141,7 @@ def flatten_tree(tree):
 def format_install_tree(tree):
     return {
         x.format(
-            py_version=PY_MAJOR,
+            py_version=sysconfig.get_python_version(),
             platform=get_platform(),
             shlib_ext=get_config_var('EXT_SUFFIX') or get_config_var('SO'),
         )
