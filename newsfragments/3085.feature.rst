@@ -1,0 +1,1 @@
+Removed reliance on pkg_resources in test_wheel.
