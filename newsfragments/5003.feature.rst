@@ -1,1 +1,0 @@
-Removed no longer used build dependency on ``coherent.licensed``.

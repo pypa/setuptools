@@ -1,3 +1,14 @@
+v80.8.0
+=======
+
+Features
+--------
+
+- Replaced more references to pkg_resources with importlib equivalents in wheel odule. (#3085)
+- Restore explicit LICENSE file. (#5001)
+- Removed no longer used build dependency on ``coherent.licensed``. (#5003)
+
+
 v80.7.1
 =======
 
