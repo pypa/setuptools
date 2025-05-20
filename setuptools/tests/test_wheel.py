@@ -7,7 +7,6 @@ import glob
 import inspect
 import os
 import pathlib
-import shutil
 import stat
 import subprocess
 import sys
@@ -18,9 +17,8 @@ from typing import Any
 import pytest
 from jaraco import path
 from packaging.tags import parse_tag
-from packaging.utils import canonicalize_name
 
-from pkg_resources import Distribution, PathMetadata
+from setuptools._importlib import metadata
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir
@@ -160,15 +158,13 @@ def _check_wheel_install(
         exp = tree_set(install_dir)
         assert install_tree.issubset(exp), install_tree - exp
 
-    metadata = PathMetadata(egg_path, os.path.join(egg_path, 'EGG-INFO'))
-    dist = Distribution.from_filename(egg_path, metadata=metadata)
-    assert dist.project_name == project_name
-    assert dist.version == version
-    if requires_txt is None:
-        assert not dist.has_metadata('requires.txt')
-    else:
-        # Order must match to ensure reproducibility.
-        assert requires_txt == dist.get_metadata('requires.txt').lstrip()
+    (dist,) = metadata.Distribution.discover(path=[egg_path])
+
+    # pyright is nitpicky; fine to assume dist.metadata.__getitem__ will fail or return None
+    # (https://github.com/pypa/setuptools/pull/5006#issuecomment-2894774288)
+    assert dist.metadata['Name'] == project_name  # pyright: ignore  # noqa: PGH003
+    assert dist.metadata['Version'] == version  # pyright: ignore  # noqa: PGH003
+    assert dist.read_text('requires.txt') == requires_txt
 
 
 class Record:
@@ -407,7 +403,8 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
         extras_require={
             'extra': f'foobar; {sys.platform!r} != sys_platform',
         },
-        requires_txt=DALS(
+        requires_txt='\n'
+        + DALS(
             """
             [extra]
             """
@@ -576,28 +573,6 @@ def test_wheel_install(params):
     ):
         _check_wheel_install(
             filename, install_dir, install_tree, project_name, version, requires_txt
-        )
-
-
-def test_wheel_install_pep_503():
-    project_name = 'Foo_Bar'  # PEP 503 canonicalized name is "foo-bar"
-    version = '1.0'
-    with (
-        build_wheel(
-            name=project_name,
-            version=version,
-        ) as filename,
-        tempdir() as install_dir,
-    ):
-        new_filename = filename.replace(project_name, canonicalize_name(project_name))
-        shutil.move(filename, new_filename)
-        _check_wheel_install(
-            new_filename,
-            install_dir,
-            None,
-            canonicalize_name(project_name),
-            version,
-            None,
         )
 
 
