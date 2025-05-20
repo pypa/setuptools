@@ -18,7 +18,7 @@ import pytest
 from jaraco import path
 from packaging.tags import parse_tag
 
-from pkg_resources import Distribution, PathMetadata
+from setuptools._importlib import metadata
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir
@@ -158,15 +158,11 @@ def _check_wheel_install(
         exp = tree_set(install_dir)
         assert install_tree.issubset(exp), install_tree - exp
 
-    metadata = PathMetadata(egg_path, os.path.join(egg_path, 'EGG-INFO'))
-    dist = Distribution.from_filename(egg_path, metadata=metadata)
-    assert dist.project_name == project_name
-    assert dist.version == version
-    if requires_txt is None:
-        assert not dist.has_metadata('requires.txt')
-    else:
-        # Order must match to ensure reproducibility.
-        assert requires_txt == dist.get_metadata('requires.txt').lstrip()
+    (dist,) = metadata.Distribution.discover(path=[egg_path])
+
+    assert dist.metadata['Name'] == project_name
+    assert dist.metadata['Version'] == version
+    assert dist.read_text('requires.txt') == requires_txt
 
 
 class Record:
@@ -405,7 +401,8 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
         extras_require={
             'extra': f'foobar; {sys.platform!r} != sys_platform',
         },
-        requires_txt=DALS(
+        requires_txt='\n'
+        + DALS(
             """
             [extra]
             """
