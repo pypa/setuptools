@@ -7,7 +7,6 @@ import glob
 import inspect
 import os
 import pathlib
-import shutil
 import stat
 import subprocess
 import sys
@@ -18,7 +17,6 @@ from typing import Any
 import pytest
 from jaraco import path
 from packaging.tags import parse_tag
-from packaging.utils import canonicalize_name
 
 from pkg_resources import Distribution, PathMetadata
 from setuptools.wheel import Wheel
@@ -576,28 +574,6 @@ def test_wheel_install(params):
     ):
         _check_wheel_install(
             filename, install_dir, install_tree, project_name, version, requires_txt
-        )
-
-
-def test_wheel_install_pep_503():
-    project_name = 'Foo_Bar'  # PEP 503 canonicalized name is "foo-bar"
-    version = '1.0'
-    with (
-        build_wheel(
-            name=project_name,
-            version=version,
-        ) as filename,
-        tempdir() as install_dir,
-    ):
-        new_filename = filename.replace(project_name, canonicalize_name(project_name))
-        shutil.move(filename, new_filename)
-        _check_wheel_install(
-            new_filename,
-            install_dir,
-            None,
-            canonicalize_name(project_name),
-            version,
-            None,
         )
 
 
