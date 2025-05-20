@@ -160,8 +160,10 @@ def _check_wheel_install(
 
     (dist,) = metadata.Distribution.discover(path=[egg_path])
 
-    assert dist.metadata['Name'] == project_name
-    assert dist.metadata['Version'] == version
+    # pyright is nitpicky; fine to assume dist.metadata.__getitem__ will fail or return None
+    # (https://github.com/pypa/setuptools/pull/5006#issuecomment-2894774288)
+    assert dist.metadata['Name'] == project_name  # pyright: ignore  # noqa: PGH003
+    assert dist.metadata['Version'] == version  # pyright: ignore  # noqa: PGH003
     assert dist.read_text('requires.txt') == requires_txt
 
 
