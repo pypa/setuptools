@@ -1,0 +1,1 @@
+``pkg_resources`` has been removed from Setuptools. Projects and environments relying on ``pkg_resources`` for namespace packages or other behavior should depend on older versions of ``setuptools``.
