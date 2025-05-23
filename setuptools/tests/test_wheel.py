@@ -585,7 +585,7 @@ def test_wheel_no_dist_dir():
         # create an empty zip file
         zipfile.ZipFile(wheel_path, 'w').close()
         with tempdir() as install_dir:
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match=r"\.dist-info not found"):
                 _check_wheel_install(
                     wheel_path, install_dir, None, project_name, version, None
                 )
