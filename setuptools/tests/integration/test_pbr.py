@@ -4,6 +4,7 @@ import pytest
 
 
 @pytest.mark.uses_network
+@pytest.mark.xfail(reason="https://bugs.launchpad.net/pbr/+bug/2111459")
 def test_pbr_integration(pbr_package, venv):
     """Ensure pbr packages install."""
     cmd = [
