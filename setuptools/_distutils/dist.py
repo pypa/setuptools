@@ -644,6 +644,7 @@ Common commands: (see '--help-commands' for more)
             if value is None:
                 continue
             if isinstance(value, str):
+                value = value.replace("\n", " ")
                 value = [elm.strip() for elm in value.split(',')]
                 setattr(self.metadata, attr, value)
 
