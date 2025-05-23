@@ -11,8 +11,7 @@ import functools
 import os
 import sys
 from abc import abstractmethod
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, TypeVar, overload
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 # workaround for #4476
@@ -21,6 +20,7 @@ sys.modules.pop('backports', None)
 import _distutils_hack.override  # noqa: F401
 
 from . import logging, monkey
+from .compat import py310
 from .depends import Require
 from .discovery import PackageFinder, PEP420PackageFinder
 from .dist import Distribution
@@ -49,40 +49,19 @@ find_packages = PackageFinder.find
 find_namespace_packages = PEP420PackageFinder.find
 
 
-def _install_setup_requires(attrs):
-    # Note: do not use `setuptools.Distribution` directly, as
-    # our PEP 517 backend patch `distutils.core.Distribution`.
-    class MinimalDistribution(distutils.core.Distribution):
-        """
-        A minimal version of a distribution for supporting the
-        fetch_build_eggs interface.
-        """
+def _expand_setupcfg(attrs: dict[str, Any]) -> Distribution:
+    """Bare minimum setup.cfg parsing so that we can extract setup_requires"""
+    from setuptools.config.setupcfg import _apply
 
-        def __init__(self, attrs: Mapping[str, object]) -> None:
-            _incl = 'dependency_links', 'setup_requires'
-            filtered = {k: attrs[k] for k in set(_incl) & set(attrs)}
-            super().__init__(filtered)
-            # Prevent accidentally triggering discovery with incomplete set of attrs
-            self.set_defaults._disable()
+    dist = Distribution(attrs)
+    dist.set_defaults._disable()
+    if os.path.exists("setup.cfg"):  # Assumes no other config contains setup_requires
+        _apply(dist, "setup.cfg", ignore_option_errors=True)
+    return dist
 
-        def _get_project_config_files(self, filenames=None):
-            """Ignore ``pyproject.toml``, they are not related to setup_requires"""
-            try:
-                cfg, _toml = super()._split_standard_project_metadata(filenames)
-            except Exception:
-                return filenames, ()
-            return cfg, ()
 
-        def finalize_options(self):
-            """
-            Disable finalize_options to avoid building the working set.
-            Ref #2158.
-            """
-
-    dist = MinimalDistribution(attrs)
-
-    # Honor setup.cfg's options.
-    dist.parse_config_files(ignore_option_errors=True)
+def _install_setup_requires(attrs: dict[str, Any]) -> None:
+    dist = _expand_setupcfg(attrs)
     if dist.setup_requires:
         _fetch_build_eggs(dist)
 
@@ -101,17 +80,21 @@ def _fetch_build_eggs(dist: Distribution):
         please contact that package's maintainers or distributors.
         """
         if "InvalidVersion" in ex.__class__.__name__:
-            if hasattr(ex, "add_note"):
-                ex.add_note(msg)  # PEP 678
-            else:
-                dist.announce(f"\n{msg}\n")
+            py310.add_note(ex, msg)
         raise
 
 
 def setup(**attrs):
+    if "--private-interrupt-setuppy" in sys.argv:
+        raise _SetupPyInterruption(_expand_setupcfg(attrs))
+
     logging.configure()
-    # Make sure we have any requirements needed to interpret 'attrs'.
-    _install_setup_requires(attrs)
+
+    if "--private-skip-setup-requires" in sys.argv:
+        sys.argv.remove("--private-skip-setup-requires")
+    else:
+        # Make sure we have any requirements needed to interpret 'attrs'.
+        _install_setup_requires(attrs)
     return distutils.core.setup(**attrs)
 
 
@@ -242,6 +225,11 @@ def findall(dir=os.curdir):
 
 class sic(str):
     """Treat this string as-is (https://en.wikipedia.org/wiki/Sic)"""
+
+
+class _SetupPyInterruption(Exception):
+    def __init__(self, dist: Distribution):
+        self.dist = dist
 
 
 # Apply monkey patches
