@@ -264,12 +264,12 @@ class install(Command):
         # supplied by the user, they are filled in using the installation
         # scheme implied by prefix/exec-prefix/home and the contents of
         # that installation scheme.
-        self.install_purelib = None  # for pure module distributions
-        self.install_platlib = None  # non-pure (dists w/ extensions)
-        self.install_headers = None  # for C/C++ headers
+        self.install_purelib: str | None = None  # for pure module distributions
+        self.install_platlib: str | None = None  # non-pure (dists w/ extensions)
+        self.install_headers: str | None = None  # for C/C++ headers
         self.install_lib: str | None = None  # set to either purelib or platlib
-        self.install_scripts = None
-        self.install_data = None
+        self.install_scripts: str | None = None
+        self.install_data: str | None = None
         self.install_userbase = USER_BASE
         self.install_usersite = USER_SITE
 
