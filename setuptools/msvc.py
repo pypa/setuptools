@@ -703,14 +703,14 @@ class SystemInfo:
         return self.ri.lookup(path, 'productdir') or ''
 
     @property
-    def UniversalCRTSdkDir(self) -> str:
+    def UniversalCRTSdkDir(self) -> str | None:
         """
         Microsoft Universal CRT SDK directory.
 
         Return
         ------
         str
-            path
+            path | None
         """
         # Set Kit Roots versions for specified MSVC++ version
         vers = ('10', '81') if self.vs_ver >= 14.0 else ()
@@ -721,10 +721,10 @@ class SystemInfo:
             if sdkdir:
                 return sdkdir
 
-        return ''
+        return None
 
     @property
-    def UniversalCRTSdkLastVersion(self):
+    def UniversalCRTSdkLastVersion(self) -> str:
         """
         Microsoft Universal C Runtime SDK last version.
 
@@ -733,7 +733,9 @@ class SystemInfo:
         str
             version
         """
-        return self._use_last_dir_name(os.path.join(self.UniversalCRTSdkDir, 'lib'))
+        return self._use_last_dir_name(
+            os.path.join(self.UniversalCRTSdkDir or '', 'lib')
+        )
 
     @property
     def NetFxSdkVersion(self):
@@ -753,20 +755,22 @@ class SystemInfo:
         )
 
     @property
-    def NetFxSdkDir(self) -> str:
+    def NetFxSdkDir(self) -> str | None:
         """
         Microsoft .NET Framework SDK directory.
 
         Return
         ------
-        str
+        str | None
             path
         """
+        sdkdir: str | None = ''
         for ver in self.NetFxSdkVersion:
             loc = os.path.join(self.ri.netfx_sdk, ver)
-            if sdkdir := self.ri.lookup(loc, 'kitsinstallationfolder'):
-                return sdkdir
-        return ''
+            sdkdir = self.ri.lookup(loc, 'kitsinstallationfolder')
+            if sdkdir:
+                break
+        return sdkdir
 
     @property
     def FrameworkDir32(self) -> str:
@@ -1345,7 +1349,7 @@ class EnvironmentInfo:
         return [os.path.join(self.si.ProgramFilesx86, 'HTML Help Workshop')]
 
     @property
-    def UCRTLibraries(self):
+    def UCRTLibraries(self) -> list[str]:
         """
         Microsoft Universal C Runtime SDK Libraries.
 
@@ -1358,12 +1362,12 @@ class EnvironmentInfo:
             return []
 
         arch_subdir = self.pi.target_dir(x64=True)
-        lib = os.path.join(self.si.UniversalCRTSdkDir, 'lib')
+        lib = os.path.join(self.si.UniversalCRTSdkDir or '', 'lib')
         ucrtver = self._ucrt_subdir
         return [os.path.join(lib, f'{ucrtver}ucrt{arch_subdir}')]
 
     @property
-    def UCRTIncludes(self):
+    def UCRTIncludes(self) -> list[str]:
         """
         Microsoft Universal C Runtime SDK Include.
 
@@ -1375,7 +1379,7 @@ class EnvironmentInfo:
         if self.vs_ver < 14.0:
             return []
 
-        include = os.path.join(self.si.UniversalCRTSdkDir, 'include')
+        include = os.path.join(self.si.UniversalCRTSdkDir or '', 'include')
         return [os.path.join(include, f'{self._ucrt_subdir}ucrt')]
 
     @property
