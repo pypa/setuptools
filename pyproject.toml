@@ -135,6 +135,8 @@ type = [
 
 	# local
 
+	# Referenced in distutils-stubs
+	"types-docutils",
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam
@@ -205,6 +207,8 @@ include-package-data = true
 include = [
 	"setuptools*",
 	"pkg_resources*",
+	# TODO: Include distutils stubs with package once we're confident in them
+	# "typings/distutils-stubs",
 	"_distutils_hack*",
 ]
 exclude = [
