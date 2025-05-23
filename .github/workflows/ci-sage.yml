@@ -73,20 +73,20 @@ jobs:
           && echo "sage-package create ${{ env.SPKG }} --pypi --source normal --type standard; sage-package create ${{ env.SPKG }} --version git --tarball ${{ env.SPKG }}-git.tar.gz --type=standard" > upstream/update-pkgs.sh \
           && if [ -n "${{ env.REMOVE_PATCHES }}" ]; then echo "(cd ../build/pkgs/${{ env.SPKG }}/patches && rm -f ${{ env.REMOVE_PATCHES }}; :)" >> upstream/update-pkgs.sh; fi \
           && ls -l upstream/
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: upstream
           name: upstream
 
   linux:
-    # https://github.com/sagemath/sage/blob/develop/.github/workflows/docker.yml
-    uses: sagemath/sage/.github/workflows/docker.yml@develop
+    # https://github.com/passagemath/passagemath/blob/main/.github/workflows/docker.yml
+    uses: passagemath/passagemath/.github/workflows/docker.yml@main
     with:
       # Sage distribution packages to build
       targets: setuptools pyzmq
-      # Standard setting: Test the current beta release of Sage:
-      sage_repo: sagemath/sage
-      sage_ref: develop
+      # Standard setting: Test the current main of passagemath:
+      sage_repo: passagemath/passagemath
+      sage_ref: main
       upstream_artifact: upstream
       # We prefix the image name with the SPKG name ("setuptools-") to avoid the error
       # 'Package "sage-docker-..." is already associated with another repository.'
