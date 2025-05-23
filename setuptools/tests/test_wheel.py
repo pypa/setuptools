@@ -168,7 +168,7 @@ def _check_wheel_install(
 
 
 class Record:
-    def __init__(self, id, **kwargs):
+    def __init__(self, id, **kwargs) -> None:
         self._id = id
         self._fields = kwargs
 

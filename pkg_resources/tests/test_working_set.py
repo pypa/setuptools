@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import functools
 import inspect
 import re
 import textwrap
+from collections.abc import Iterable
 
 import pytest
 
@@ -56,10 +59,10 @@ def parse_distributions(s):
 
 
 class FakeInstaller:
-    def __init__(self, installable_dists) -> None:
+    def __init__(self, installable_dists: Iterable[pkg_resources.Distribution]) -> None:
         self._installable_dists = installable_dists
 
-    def __call__(self, req):
+    def __call__(self, req) -> pkg_resources.Distribution | None:
         return next(
             iter(filter(lambda dist: dist in req, self._installable_dists)), None
         )
