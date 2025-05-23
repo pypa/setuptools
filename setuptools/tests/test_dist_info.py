@@ -23,7 +23,7 @@ class TestDistInfo:
         """
         config = "[metadata]\nname=proj\nversion=42\n[egg_info]\ntag_build=invalid!!!\n"
         (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
-        msg = re.compile("invalid version", re.M | re.I)
+        msg = re.compile("invalid version", re.MULTILINE | re.IGNORECASE)
         proc = run_command_inner("dist_info", cwd=tmp_path, check=False)
         assert proc.returncode
         assert msg.search(proc.stdout)
