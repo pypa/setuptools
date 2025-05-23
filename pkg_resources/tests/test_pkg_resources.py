@@ -348,7 +348,7 @@ class TestDeepVersionLookupDistutils:
         env = Environment(tmpdir)
         tmpdir.chmod(stat.S_IRWXU)
         subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
-        env.paths = dict((dirname, str(tmpdir / dirname)) for dirname in subs)
+        env.paths = {dirname: str(tmpdir / dirname) for dirname in subs}
         list(map(os.mkdir, env.paths.values()))
         return env
 

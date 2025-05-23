@@ -404,8 +404,7 @@ class TestWorkingSet:
         with pytest.raises(VersionConflict) as vc:
             ws.resolve(parse_requirements("Foo\nBar\n"))
 
-        msg = "Baz 1.0 is installed but Baz==2.0 is required by "
-        msg += repr(set(['Bar']))
+        msg = f"Baz 1.0 is installed but Baz==2.0 is required by { {'Bar'}!r}"
         assert vc.value.report() == msg
 
 
@@ -561,8 +560,8 @@ class TestRequirements:
         r1 = Requirement.parse("Twisted[foo,bar]>=1.2")
         r2 = Requirement.parse("Twisted[bar,FOO]>=1.2")
         assert r1 == r2
-        assert set(r1.extras) == set(("foo", "bar"))
-        assert set(r2.extras) == set(("foo", "bar"))
+        assert set(r1.extras) == {"foo", "bar"}
+        assert set(r2.extras) == {"foo", "bar"}
         assert hash(r1) == hash(r2)
         assert hash(r1) == hash((
             "twisted",
