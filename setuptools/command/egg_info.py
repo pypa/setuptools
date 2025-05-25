@@ -475,7 +475,7 @@ class FileList(_FileList):
         return self._remove_files(match.match)
 
     def append(self, item) -> None:
-        item = item.removesuffix('\r')
+        item = item.removesuffix('\r')  # Fix older sdists built on Windows
         path = convert_path(item)
 
         if self._safe_path(path):
