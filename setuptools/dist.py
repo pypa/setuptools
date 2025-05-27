@@ -635,8 +635,11 @@ class Distribution(_Distribution):
             Usage of dash-separated {opt!r} will not be supported in future
             versions. Please use the underscore name {underscore_opt!r} instead.
             {affected}
+
+            Available configuration options are listed in:
+            https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
             """,
-            see_docs="userguide/declarative_config.html",
+            see_url="https://github.com/pypa/setuptools/discussions/5011",
             due_date=(2026, 3, 3),
             # Warning initially introduced in 3 Mar 2021
         )
@@ -655,8 +658,11 @@ class Distribution(_Distribution):
             Usage of uppercase key {opt!r} in {section!r} will not be supported in
             future versions. Please use lowercase {lowercase_opt!r} instead.
             {affected}
+
+            Available configuration options are listed in:
+            https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
             """,
-            see_docs="userguide/declarative_config.html",
+            see_url="https://github.com/pypa/setuptools/discussions/5011",
             due_date=(2026, 3, 3),
             # Warning initially introduced in 6 Mar 2021
         )
