@@ -17,9 +17,8 @@ from typing import TYPE_CHECKING, TypedDict
 
 from more_itertools import unique_everseen
 
-from setuptools.compat import py310
-
 from ._path import StrPath
+from .compat import py310
 
 import distutils.errors
 
