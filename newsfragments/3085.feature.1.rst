@@ -1,0 +1,1 @@
+Set a deadline for the removal of pkg_resources later this year (December).
