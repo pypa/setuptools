@@ -28,7 +28,7 @@ class develop(Command):
     prefix = None
     index_url = None
 
-    def run(self) -> None:  # type: ignore[override] # Not including easy_install's show_deprecation argument
+    def run(self) -> None:
         # Casting because mypy doesn't understand bool mult conditionals
         cmd = cast(
             list[str],
