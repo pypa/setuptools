@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import annotations
 
 import os
 import re
@@ -6,6 +7,8 @@ import subprocess
 import sys
 import textwrap
 import time
+from contextlib import suppress
+from itertools import starmap
 
 import setuptools
 from setuptools import _normalization
@@ -30,19 +33,27 @@ if include_windows_files:
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
 
 
+_VERSION_FALLBACK = [
+    ("PKG-INFO", r"^Version: (\d+\.\d+\.\d+.*)$", "{match[1]}"),  # sdist
+    ("NEWS.rst", r"^v(\d+\.\d+\.\d+)", "{match[1]}.dev+{timestamp}"),  # latest version
+]
+
+
+def _extract_version(file: str, pattern: str, fmt: str) -> str | None:
+    with suppress(FileNotFoundError), open(file, encoding="utf-8") as fp:
+        if match := re.search(pattern, fp.read(), re.M):
+            return fmt.format(match=match, timestamp=time.strftime("%Y%m%d"))
+    return None
+
+
 def _get_version() -> str:
     cmd = ["git", "describe", "--abbrev", "--match", "v?[0-9]*", "--dirty"]
     try:
         version = subprocess.check_output(cmd, encoding="utf-8")
         return _normalization.best_effort_version(version, "{safe}.dev+{sanitized}")
     except subprocess.CalledProcessError:  # e.g.: git not installed or history missing
-        if os.path.exists("PKG-INFO"):  # building wheel from sdist
-            with open("PKG-INFO", encoding="utf-8") as fp:
-                if match := re.search(r"^Version: (\d+\.\d+\.\d+.*)$", fp.read(), re.M):
-                    return match[1]
-        with open("NEWS.rst", encoding="utf-8") as fp:
-            match = re.search(r"v\d+\.\d+\.\d+", fp.read())  # latest version
-            return f"{match[0] if match else '0.0.0'}.dev+{time.strftime('%Y%m%d')}"
+        candidates = filter(None, starmap(_extract_version, _VERSION_FALLBACK))
+        return next(candidates, f"0.0.0.dev+{time.strftime('%Y%m%d')}")
 
 
 def pypi_link(pkg_filename):
