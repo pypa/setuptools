@@ -809,7 +809,7 @@ class Distribution(_Distribution):
             if value is not None:
                 ep.load()(self, ep.name, value)
 
-    def get_egg_cache_dir(self):
+    def get_egg_cache_dir(self) -> str:
         from . import windows_support
 
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
@@ -1056,7 +1056,7 @@ class Distribution(_Distribution):
 
         return d
 
-    def iter_distribution_names(self):
+    def iter_distribution_names(self) -> Iterator[str]:
         """Yield all packages, modules, and extension names in distribution"""
 
         yield from self.packages or ()
