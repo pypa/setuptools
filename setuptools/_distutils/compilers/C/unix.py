@@ -286,19 +286,18 @@ class Compiler(base.Compiler):
                 # building an executable or linker_so (with shared options)
                 # when building a shared library.
                 building_exe = target_desc == base.Compiler.EXECUTABLE
+                target_cxx = target_lang == "c++"
                 linker = (
-                    self.linker_exe
+                    (self.linker_exe_cxx if target_cxx else self.linker_exe)
                     if building_exe
-                    else (
-                        self.linker_so_cxx if target_lang == "c++" else self.linker_so
-                    )
+                    else (self.linker_so_cxx if target_cxx else self.linker_so)
                 )[:]
 
-                if target_lang == "c++" and self.compiler_cxx:
+                if target_cxx and self.compiler_cxx:
                     env, linker_ne = _split_env(linker)
                     aix, linker_na = _split_aix(linker_ne)
                     _, compiler_cxx_ne = _split_env(self.compiler_cxx)
-                    _, linker_exe_ne = _split_env(self.linker_exe)
+                    _, linker_exe_ne = _split_env(self.linker_exe_cxx)
 
                     params = _linker_params(linker_na, linker_exe_ne)
                     linker = env + aix + compiler_cxx_ne + params

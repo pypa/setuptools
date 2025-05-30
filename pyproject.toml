@@ -1,11 +1,16 @@
 [build-system]
-requires = []
+requires = [
+	# "setuptools>=77",
+	# "setuptools_scm[toml]>=3.4.1",
+	# jaraco/skeleton#174
+	# "coherent.licensed",
+]
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "78.1.1"
+version = "80.8.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -22,6 +27,7 @@ classifiers = [
 	"Topic :: Utilities",
 ]
 requires-python = ">=3.9"
+license = "MIT"
 dependencies = [
 ]
 keywords = ["CPAN PyPI distutils eggs package management"]
@@ -132,7 +138,7 @@ type = [
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam
-	"mypy==1.15.*",
+	"mypy==1.16.*",
 	# Typing fixes in version newer than we require at runtime
 	"importlib_metadata>=7.0.2; python_version < '3.10'",
 	# Imported unconditionally in tools/finalize.py

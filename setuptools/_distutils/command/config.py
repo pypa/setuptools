@@ -89,8 +89,6 @@ class config(Command):
         """Check that 'self.compiler' really is a CCompiler object;
         if not, make it one.
         """
-        # We do this late, and only on-demand, because this is an expensive
-        # import.
         if not isinstance(self.compiler, CCompiler):
             self.compiler = new_compiler(
                 compiler=self.compiler, dry_run=self.dry_run, force=True

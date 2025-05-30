@@ -26,6 +26,7 @@ extend-select = [
 
 	# local
 	"ANN2", # missing-return-type-*
+	"ISC", # flake8-implicit-str-concat
 	"PERF", # Perflint
 	"PGH", # pygrep-hooks (blanket-* rules)
 	"PT", # flake8-pytest-style
