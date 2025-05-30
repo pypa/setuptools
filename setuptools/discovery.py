@@ -335,7 +335,7 @@ class ConfigDiscovery:
 
     def __call__(
         self, force: bool = False, name: bool = True, ignore_ext_modules: bool = False
-    ):
+    ) -> None:
         """Automatically discover missing configuration fields
         and modifies the given ``distribution`` object in-place.
 

@@ -65,7 +65,7 @@ class StaticModule:
             elif isinstance(statement, ast.AnnAssign) and statement.value:
                 yield (statement.target, statement.value)
 
-    def __getattr__(self, attr: str):
+    def __getattr__(self, attr: str) -> Any:
         """Attempt to load an attribute "statically", via :func:`ast.literal_eval`."""
         try:
             return next(

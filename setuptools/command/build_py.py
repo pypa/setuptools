@@ -9,6 +9,7 @@ from collections.abc import Iterable, Iterator
 from functools import partial
 from glob import glob
 from pathlib import Path
+from typing import Any
 
 from more_itertools import unique_everseen
 
@@ -81,7 +82,8 @@ class build_py(orig.build_py):
         # output files are.
         self.byte_compile(orig.build_py.get_outputs(self, include_bytecode=False))
 
-    def __getattr__(self, attr: str):
+    # Should return "list[tuple[str, str, str, list[str]]] | Any" but can't do without typed distutils on Python 3.12+
+    def __getattr__(self, attr: str) -> Any:
         "lazily compute data files"
         if attr == 'data_files':
             self.data_files = self._get_data_files()
@@ -381,8 +383,8 @@ class _IncludePackageDataAbuse:
         # _DUE_DATE: still not defined as this is particularly controversial.
         # Warning initially introduced in May 2022. See issue #3340 for discussion.
 
-    def __init__(self):
-        self._already_warned = set()
+    def __init__(self) -> None:
+        self._already_warned = set[str]()
 
     def is_module(self, file):
         return file.endswith(".py") and file[: -len(".py")].isidentifier()

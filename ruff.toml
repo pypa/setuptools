@@ -66,13 +66,12 @@ ignore = [
 	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
 	# Only enforcing return type annotations for public functions
 	"ANN202", # missing-return-type-private-function
-	"ANN204", # missing-return-type-special-method
 ]
 
 [lint.per-file-ignores]
 # Suppress nuisance warnings about module-import-not-at-top-of-file (E402) due to workaround for #4476
 "setuptools/__init__.py" = ["E402"]
-"pkg_resources/__init__.py" = ["E402"]
+"pkg_resources/__init__.py" = ["E402", "ANN204"]
 
 [lint.isort]
 combine-as-imports = true
