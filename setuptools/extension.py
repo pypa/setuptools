@@ -10,8 +10,6 @@ from setuptools._path import StrPath
 from .monkey import get_unpatched
 
 import distutils.core
-import distutils.errors
-import distutils.extension
 
 
 def _have_cython() -> bool:
@@ -142,23 +140,38 @@ class Extension(_Extension):
     _needs_stub: bool  #: Private API, internal use only.
     _file_name: str  #: Private API, internal use only.
 
-    def __init__(
-        self,
-        name: str,
-        sources: Iterable[StrPath],
-        *args,
-        py_limited_api: bool = False,
-        **kw,
-    ) -> None:
-        # The *args is needed for compatibility as calls may use positional
-        # arguments. py_limited_api may be set only via keyword.
-        self.py_limited_api = py_limited_api
-        super().__init__(
-            name,
-            sources,  # type: ignore[arg-type] # Vendored version of setuptools supports PathLike
-            *args,
-            **kw,
-        )
+    if TYPE_CHECKING:
+        # Same as distutils.extension.Extension, with an extra py_limited_api kwarg,
+        # and without **kw meant to catch unknown keywords
+        def __init__(
+            self,
+            name: str,
+            sources: Iterable[StrPath],
+            include_dirs: list[str] | None = None,
+            define_macros: list[tuple[str, str | None]] | None = None,
+            undef_macros: list[str] | None = None,
+            library_dirs: list[str] | None = None,
+            libraries: list[str] | None = None,
+            runtime_library_dirs: list[str] | None = None,
+            extra_objects: list[str] | None = None,
+            extra_compile_args: list[str] | None = None,
+            extra_link_args: list[str] | None = None,
+            export_symbols: list[str] | None = None,
+            swig_opts: list[str] | None = None,
+            depends: list[str] | None = None,
+            language: str | None = None,
+            optional: bool | None = None,
+            *,
+            py_limited_api: bool = False,
+        ) -> None: ...
+
+    else:
+
+        def __init__(self, *args, py_limited_api: bool = False, **kw) -> None:
+            # The *args is needed for compatibility as calls may use positional
+            # arguments. py_limited_api may be set only via keyword.
+            self.py_limited_api = py_limited_api
+            super().__init__(*args, **kw)
 
     def _convert_pyx_sources_to_lang(self):
         """
