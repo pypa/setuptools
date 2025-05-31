@@ -15,7 +15,7 @@ class install_scripts(orig.install_scripts):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def initialize_options(self):
+    def initialize_options(self) -> None:
         orig.install_scripts.initialize_options(self)
         self.no_ep = False
 
@@ -32,20 +32,14 @@ class install_scripts(orig.install_scripts):
 
     def _install_ep_scripts(self):
         # Delay import side-effects
-        from pkg_resources import Distribution, PathMetadata
-
-        from . import easy_install as ei
+        from .. import _scripts
+        from .._importlib import metadata
 
         ei_cmd = self.get_finalized_command("egg_info")
-        dist = Distribution(
-            ei_cmd.egg_base,
-            PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
-            ei_cmd.egg_name,
-            ei_cmd.egg_version,
-        )
+        dist = metadata.Distribution.at(path=ei_cmd.egg_info)
         bs_cmd = self.get_finalized_command('build_scripts')
         exec_param = getattr(bs_cmd, 'executable', None)
-        writer = ei.ScriptWriter
+        writer = _scripts.ScriptWriter
         if exec_param == sys.executable:
             # In case the path to the Python executable contains a space, wrap
             # it so it's not split up.
@@ -56,9 +50,9 @@ class install_scripts(orig.install_scripts):
         for args in writer.get_args(dist, cmd.as_header()):
             self.write_script(*args)
 
-    def write_script(self, script_name, contents, mode="t", *ignored):
+    def write_script(self, script_name, contents, mode: str = "t", *ignored) -> None:
         """Write an executable file to the scripts directory"""
-        from setuptools.command.easy_install import chmod, current_umask
+        from .._shutil import attempt_chmod_verbose as chmod, current_umask
 
         log.info("Installing %s script to %s", script_name, self.install_dir)
         target = os.path.join(self.install_dir, script_name)

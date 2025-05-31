@@ -1,3 +1,534 @@
+v80.9.0
+=======
+
+Features
+--------
+
+- Set a deadline for the removal of pkg_resources later this year (December). (#3085)
+- Removed reliance on pkg_resources in test_wheel. (#3085)
+
+
+v80.8.0
+=======
+
+Features
+--------
+
+- Replaced more references to pkg_resources with importlib equivalents in wheel odule. (#3085)
+- Restore explicit LICENSE file. (#5001)
+- Removed no longer used build dependency on ``coherent.licensed``. (#5003)
+
+
+v80.7.1
+=======
+
+Bugfixes
+--------
+
+- Only attempt to fetch eggs for unsatisfied requirements. (#4998)
+- In installer, when discovering egg dists, let metadata discovery search each egg. (#4998)
+
+
+v80.7.0
+=======
+
+Features
+--------
+
+- Removed usage of pkg_resources from installer. Set an official deadline on the installer deprecation to 2025-10-31. (#4997)
+
+
+Misc
+----
+
+- #4996
+
+
+v80.6.0
+=======
+
+Features
+--------
+
+- Added a build dependency on coherent.licensed to inject the declared license text at build time. (#4981)
+
+
+Misc
+----
+
+- #4995
+
+
+v80.5.0
+=======
+
+Features
+--------
+
+- Replaced more references to pkg_resources with importlib equivalents. (#3085)
+
+
+Misc
+----
+
+- #4982
+
+
+v80.4.0
+=======
+
+Features
+--------
+
+- Simplified the error reporting in editable installs. (#4984)
+
+
+v80.3.1
+=======
+
+Bugfixes
+--------
+
+- Restored select attributes in easy_install for temporary pbr compatibility. (#4976)
+
+
+v80.3.0
+=======
+
+Features
+--------
+
+- Removed easy_install and package_index modules. (#917)
+- Restored license declaration in package metadata. See jaraco/skeleton#171. (#4956)
+
+
+v80.2.0
+=======
+
+Features
+--------
+
+- Restored support for install_scripts --executable (and classic behavior for the executable for those invocations). Instead, build_editable provides the portable form of the executables for downstream installers to rewrite. (#4934)
+
+
+v80.1.0
+=======
+
+Features
+--------
+
+- Added a deadline of Oct 31 to the setup.py install deprecation.
+
+
+Bugfixes
+--------
+
+- With ``setup.py install --prefix=...``, fall back to distutils install rather than failing. Note that running ``setup.py install`` is deprecated. (#3143)
+
+
+v80.0.1
+=======
+
+Bugfixes
+--------
+
+- Fixed index_url logic in develop compatibility shim. (#4966)
+
+
+v80.0.0
+=======
+
+Bugfixes
+--------
+
+- Update test to honor new behavior in importlib_metadata 8.7. (#4961)
+
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for the easy_install command including the sandbox module. (#2908)
+- Develop command no longer uses easy_install, but instead defers execution to pip (which then will re-invoke Setuptools via PEP 517 to build the editable wheel). Most of the options to develop are dropped. This is the final warning before the command is dropped completely in a few months. Use-cases relying on 'setup.py develop' should pin to older Setuptools version or migrate to modern build tooling. (#4955)
+
+
+v79.0.1
+=======
+
+Bugfixes
+--------
+
+- Merge with pypa/distutils@24bd3179b including fix for pypa/distutils#355.
+
+
+v79.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for 'legacy-editable' installs. (#917)
+
+
+v78.1.1
+=======
+
+Bugfixes
+--------
+
+- More fully sanitized the filename in PackageIndex._download. (#4946)
+
+
+v78.1.0
+=======
+
+Features
+--------
+
+- Restore access to _get_vc_env with a warning. (#4874)
+
+
+v78.0.2
+=======
+
+Bugfixes
+--------
+
+- Postponed removals of deprecated dash-separated and uppercase fields in ``setup.cfg``.
+  All packages with deprecated configurations are advised to move before 2026. (#4911)
+
+
+v78.0.1
+=======
+
+Misc
+----
+
+- #4909
+
+
+v78.0.0
+=======
+
+Bugfixes
+--------
+
+- Reverted distutils changes that broke the monkey patching of command classes. (#4902)
+
+
+Deprecations and Removals
+-------------------------
+
+- Setuptools no longer accepts options containing uppercase or dash characters in ``setup.cfg``.
+  Please ensure to write the options in ``setup.cfg`` using the :wiki:`lower_snake_case <Snake_case>` convention
+  (e.g. ``Name => name``, ``install-requires => install_requires``).
+  This is a follow-up on deprecations introduced in
+  `v54.1.0 <https://setuptools.pypa.io/en/latest/history.html#v54-1-0>`_ (see #1608) and
+  `v54.1.1 <https://setuptools.pypa.io/en/latest/history.html#v54-1-1>`_ (see #2592).
+
+  .. note::
+     This change *does not affect configurations in* ``pyproject.toml``
+     (which uses the :wiki:`lower-kebab-case <Letter_case#Kebab_case>` convention following the precedent set in :pep:`517`/:pep:`518`). (#4870)
+
+
+Misc
+----
+
+- #4904
+
+
+v77.0.3
+=======
+
+Bugfixes
+--------
+
+- Temporarily convert error for license glob patterns containing ``../`` into a deprecation warning
+  to allow an accomodation period. (#4896)
+- Better error messages for ``packaging.licenses`` import errors in environments with ``packaging<24.2``\.
+  The import statement was also deferred to spare users that are not using
+  license expressions. (#4898)
+- Avoided eagerly raising an exception when ``license-files`` is defined
+  simultaneously inside and outside of ``pyproject.toml``.
+  Instead we rely on the existing deprecation error. (#4899)
+
+
+v77.0.2
+=======
+
+Bugfixes
+--------
+
+- Restore ``distutils.ccompiler._default_compilers`` -- by :user:`ManiacDC` (#4876)
+- Fixed copy pasta in ``msvc.shared_lib_format``\. (#4885)
+
+
+v77.0.1
+=======
+
+Bugfixes
+--------
+
+- Manually fix news fragment entries causing CI to crash when building docs. (#4891)
+
+
+v77.0.0
+=======
+
+Features
+--------
+
+- Added initial support for license expression (PEP :pep:`639 <639#add-license-expression-field>`). -- by :user:`cdce8p` (#4706)
+- Store ``License-File``\s in ``.dist-info/licenses`` subfolder and added support for recursive globs for ``license_files`` (PEP :pep:`639 <639#add-license-expression-field>`). -- by :user:`cdce8p` (#4728)
+- Bump core metadata version to ``2.4``\. -- by :user:`cdce8p` (#4830)
+- Updated vendored copy of ``wheel`` to ``v0.45.1``\. (#4869)
+
+
+Deprecations and Removals
+-------------------------
+
+- Added initial implementation of :pep:`639`.
+  Users relying on pre- :pep:`639` implementation details
+  (like precise license file paths inside ``dist-info`` directory)
+  may need to adjust their code base to avoid problems.
+  Deprecations and stronger validation were also introduced (#4829).
+- Added exception (or warning) when deprecated license classifiers are used,
+  according to PEP :pep:`639 <639#deprecate-license-classifiers>`. (#4833)
+- Deprecated ``tools.setuptools.license-files`` in favor of ``project.license-files``
+  and added exception if ``project.license-files`` and ``tools.setuptools.license-files``
+  are used together. -- by :user:`cdce8p` (#4837)
+- Deprecated ``project.license`` as a TOML table in
+  ``pyproject.toml``\. Users are expected to move towards using
+  ``project.license-files`` and/or SPDX expressions (as strings) in
+  ``project.license``\.
+  See PEP :pep:`639 <639#deprecate-license-key-table-subkeys>`. (#4840)
+- Added simple validation for given glob patterns in ``license-files``\:
+  a warning will be generated if no file is matched.
+  Invalid glob patterns can raise an exception.
+  -- thanks :user:`cdce8p` for contributions. (#4838)
+
+
+Misc
+----
+
+- #4734
+
+
+v76.1.0
+=======
+
+Features
+--------
+
+- In setuptools.msvc.EnvironmentInfo, now honor the correct paths when on an ARM host. (#4786)
+
+
+Bugfixes
+--------
+
+- Restored implicit distutils.ccompiler import for g-ir-scanner. (#4871)
+- Restore ``distutils.ccompiler.compiler_class`` -- by :user:`Avasam` (#4876)
+
+
+v75.3.2
+=======
+
+- Fixed version error in changelog.
+
+
+v75.3.1
+=======
+
+Bugfixes
+--------
+
+- Fix wheel file naming to follow binary distribution specification -- by :user:`di` (#4877)
+
+
+v76.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Synced with pypa/distutils@5589d7527 including a simplified shebang generation when building scripts (#4863). (#4865)
+
+
+v75.9.1
+=======
+
+Bugfixes
+--------
+
+- Fix ImportError in distutils when configuring for linking. (#4866)
+
+
+v75.9.0
+=======
+
+Features
+--------
+
+- Synced with pypa/distutils@91f75bb98 including exporting of PyInit_pkg (pypa/distutils#327) and a refactoring of the compiler classes into distutils.compilers (pypa/distutils#295). (#4852)
+
+
+v75.8.2
+=======
+
+Bugfixes
+--------
+
+- Fixed ``pkg_resources.require(...)`` to also consider standardised
+  ``dist-info`` directories. (#4856)
+
+
+v75.8.1
+=======
+
+Bugfixes
+--------
+
+- Fix wheel file naming to follow binary distribution specification -- by :user:`di` (#4766)
+- Fixed crash generating error message printed when building wheels for the
+  free-threaded build using the limited API. -- by :user:`ngoldbaum` (#4809)
+- Fix documentation for recent CFLAGS distutils change. -- by :user:`thesamesam` (#4836)
+
+
+v75.8.0
+=======
+
+Features
+--------
+
+- Implemented ``Dynamic`` field for core metadata (as introduced in PEP 643).
+  The existing implementation is currently experimental and the exact approach
+  may change in future releases. (#4698)
+
+
+v75.7.0
+=======
+
+Features
+--------
+
+- Synced with pypa/distutils@c97a3db2f including better support for free threaded Python on Windows (pypa/distutils#310), improved typing support, and linter accommodations. (#4478)
+- Synced with pypa/distutils@ff11eed0c including bugfix for duplicate CFLAGS and adaption to support Python 3.13 is_abs in the C compiler (#4669). (#4790)
+
+
+v75.6.0
+=======
+
+Features
+--------
+
+- Preserve original ``PKG-INFO`` into ``METADATA`` when creating wheel
+  (instead of calling ``wheel.metadata.pkginfo_to_metadata``).
+  This helps to be more compliant with the flow specified in PEP 517. (#4701)
+- Changed the ``WindowsSdkVersion``, ``FrameworkVersion32`` and ``FrameworkVersion64`` properties of ``setuptools.msvc.PlatformInfo`` to return an empty `tuple` instead of `None` as a fallthrough case --  by :user:`Avasam` (#4754)
+
+
+v75.5.0
+=======
+
+Features
+--------
+
+- Removed support for ``SETUPTOOLS_DANGEROUSLY_SKIP_PYPROJECT_VALIDATION``, as it
+  is deemed prone to errors. (#4746)
+
+
+v75.4.0
+=======
+
+Features
+--------
+
+- Added support for the environment variable
+  ``SETUPTOOLS_DANGEROUSLY_SKIP_PYPROJECT_VALIDATION=true``, allowing users to bypass
+  the validation of ``pyproject.toml``.
+  This option should be used only as a last resort when resolving dependency
+  issues, as it may lead to improper functioning.
+  Users who enable this setting are responsible for ensuring that ``pyproject.toml``
+  complies with setuptools requirements. (#4611)
+
+  .. attention::
+     This environment variable was removed in a later version of ``setuptools``.
+
+- Require Python 3.9 or later. (#4718)
+- Remove dependency on ``importlib_resources``
+  and the vendored copy of the library.
+  Instead, ``setuptools`` consistently rely on stdlib's ``importlib.resources``
+  (available on Python 3.9+). (#4718)
+- Setuptools' ``bdist_wheel`` implementation no longer produces wheels with
+  the ``m`` SOABI flag (pymalloc-related).
+  This flag was removed on Python 3.8+ (see :obj:`sys.abiflags`). (#4718)
+- Updated vendored packaging version to 24.2. (#4740)
+
+
+Bugfixes
+--------
+
+- Merge with pypa/distutils@251797602, including fix for dirutil.mkpath handling in pypa/distutils#304.
+
+
+v75.3.0
+=======
+
+Features
+--------
+
+- Allowed using `dict` as an ordered type in ``setuptools.dist.check_requirements`` -- by :user:`Avasam` (#4575)
+
+
+Bugfixes
+--------
+
+- Ensured methods in ``setuptools.modified`` preferably raise a consistent
+  ``distutils.errors.DistutilsError`` type
+  (except in the deprecated use case of ``SETUPTOOLS_USE_DISTUTILS=stdlib``)
+  -- by :user:`Avasam` (#4567)
+- Fix the ABI tag when building a wheel using the debug build of Python 3.13 on Windows. Previously, the ABI tag was missing the ``"d"`` flag. (#4674)
+- Fix clashes for ``optional-dependencies`` in ``pyproject.toml`` and
+  ``extra_requires`` in ``setup.cfg/setup.py``.
+  As per PEP 621, ``optional-dependencies`` have to be honoured and dynamic
+  behaviour is not allowed. (#4696)
+
+
+Misc
+----
+
+- #4560
+
+
+v75.2.0
+=======
+
+Features
+--------
+
+- Made errors when parsing ``Distribution`` data more explicit about the expected type (``tuple[str, ...] | list[str]``) -- by :user:`Avasam` (#4578)
+
+
+Bugfixes
+--------
+
+- Fix a `TypeError` when a ``Distribution``'s old included attribute was a `tuple` -- by :user:`Avasam` (#4578)
+- Add workaround for ``bdist_wheel --dist-info-dir`` errors
+  when customisation does not inherit from setuptools. (#4684)
+
+
+v75.1.1
+=======
+
+Bugfixes
+--------
+
+- Re-use pre-existing ``.dist-info`` dir when creating wheels via the build backend APIs (PEP 517) and the ``metadata_directory`` argument is passed -- by :user:`pelson`. (#1825)
+- Changed ``egg_info`` command to avoid adding an empty ``.egg-info`` directory
+  while iterating over entry-points.
+  This avoids triggering integration problems with ``importlib.metadata``/``importlib_metadata``
+  (reference: pypa/pyproject-hooks#206). (#4680)
+
+
 v75.1.0
 =======
 
@@ -150,7 +681,7 @@ v72.2.0
 Features
 --------
 
-- Merged with pypa/distutils@b7ee725f3 including: Support for Pathlike objects in data files and extensions (pypa/distutils#272, pypa/distutils#237), native support for C++ compilers (pypa/distuils#228) and removed unused get_msvcr() (pypa/distutils#274). (#4538)
+- Merged with pypa/distutils@b7ee725f3 including: Support for Pathlike objects in data files and extensions (pypa/distutils#272, pypa/distutils#237), native support for C++ compilers (pypa/distutils#228) and removed unused get_msvcr() (pypa/distutils#274). (#4538)
 
 
 v72.1.0
@@ -484,7 +1015,7 @@ Bugfixes
 --------
 
 - In tests, rely on pytest-home for reusable fixture. (#4072)
-- Explicitely marked as ``Protocol`` and fixed missing ``self`` argument in interfaces ``pkg_resources.IMetadataProvider`` and ``pkg_resources.IResourceProvider`` -- by :user:`Avasam` (#4144)
+- Explicitly marked as ``Protocol`` and fixed missing ``self`` argument in interfaces ``pkg_resources.IMetadataProvider`` and ``pkg_resources.IResourceProvider`` -- by :user:`Avasam` (#4144)
 - Restored expectation that egg-link files would be named with dash separators for compatibility with pip prior to version 24. (#4167)
 
 
@@ -1659,7 +2190,7 @@ Changes
 
   .. warning::
      Please note that future releases of setuptools will halt the build process
-     if a ``pyproject.toml`` file that does not match doc:`the PyPA Specification
+     if a ``pyproject.toml`` file that does not match :doc:`the PyPA Specification
      <PyPUG:specifications/section-distribution-metadata>` is given.
 * #3215: Updated ``pyproject.toml`` validation, as generated by ``validate-pyproject==0.6.1``.
 * #3218: Prevented builds from erroring if the project specifies metadata via
@@ -7015,7 +7546,7 @@ setuptools
 
 * Fixed invalid URL error catching. Old Setuptools #20.
 
-* Fixed invalid bootstraping with easy_install installation (Distribute #40).
+* Fixed invalid bootstrapping with easy_install installation (Distribute #40).
   Thanks to Florian Schulze for the help.
 
 * Removed buildout/bootstrap.py. A new repository will create a specific

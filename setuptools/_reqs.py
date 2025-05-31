@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator
 from functools import lru_cache
-from typing import TYPE_CHECKING, Callable, Iterable, Iterator, TypeVar, Union, overload
+from typing import TYPE_CHECKING, Callable, TypeVar, Union, overload
 
 import jaraco.text as text
 from packaging.requirements import Requirement
@@ -36,6 +37,6 @@ def parse(strs: _StrOrIter) -> Iterator[Requirement]: ...
 def parse(strs: _StrOrIter, parser: Callable[[str], _T]) -> Iterator[_T]: ...
 def parse(strs: _StrOrIter, parser: Callable[[str], _T] = parse_req) -> Iterator[_T]:  # type: ignore[assignment]
     """
-    Replacement for ``pkg_resources.parse_requirements`` that uses ``packaging``.
+    Parse requirements.
     """
     return map(parser, parse_strings(strs))

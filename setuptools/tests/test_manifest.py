@@ -34,14 +34,11 @@ SETUP_ATTRS = {
     'packages': ['app'],
 }
 
-SETUP_PY = (
-    """\
+SETUP_PY = f"""\
 from setuptools import setup
 
-setup(**%r)
+setup(**{SETUP_ATTRS!r})
 """
-    % SETUP_ATTRS
-)
 
 
 @contextlib.contextmanager
@@ -369,7 +366,7 @@ class TestFileListTest(TempDirTestCase):
     def make_files(self, files):
         for file in files:
             file = os.path.join(self.temp_dir, file)
-            dirname, basename = os.path.split(file)
+            dirname, _basename = os.path.split(file)
             os.makedirs(dirname, exist_ok=True)
             touch(file)
 
@@ -485,14 +482,8 @@ class TestFileListTest(TempDirTestCase):
             'prune',
             'blarg',
         ):
-            try:
+            with pytest.raises(DistutilsTemplateError):
                 file_list.process_template_line(action)
-            except DistutilsTemplateError:
-                pass
-            except Exception:
-                assert False, "Incorrect error thrown"
-            else:
-                assert False, "Should have thrown an error"
 
     def test_include(self, caplog):
         caplog.set_level(logging.DEBUG)

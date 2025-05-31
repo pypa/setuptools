@@ -1,11 +1,16 @@
 [build-system]
-requires = []
+requires = [
+	# "setuptools>=77",
+	# "setuptools_scm[toml]>=3.4.1",
+	# jaraco/skeleton#174
+	# "coherent.licensed",
+]
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "75.1.0"
+version = "80.9.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -14,7 +19,6 @@ readme = "README.rst"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
 	"Intended Audience :: Developers",
-	"License :: OSI Approved :: MIT License",
 	"Programming Language :: Python :: 3",
 	"Programming Language :: Python :: 3 :: Only",
 	"Topic :: Software Development :: Libraries :: Python Modules",
@@ -22,10 +26,11 @@ classifiers = [
 	"Topic :: System :: Systems Administration",
 	"Topic :: Utilities",
 ]
-keywords = ["CPAN PyPI distutils eggs package management"]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
+license = "MIT"
 dependencies = [
 ]
+keywords = ["CPAN PyPI distutils eggs package management"]
 
 [project.urls]
 Source = "https://github.com/pypa/setuptools"
@@ -41,10 +46,10 @@ test = [
 	"virtualenv>=13.0.0",
 	"wheel>=0.44.0", # Consistent requirement normalisation in METADATA (see #4547)
 	"pip>=19.1", # For proper file:// URLs support.
-	"packaging>=23.2",
+	"packaging>=24.2",
 	"jaraco.envs>=2.2",
 	"pytest-xdist>=3", # Dropped dependency on pytest-fork and py
-	"jaraco.path>=3.2.0",
+	"jaraco.path>=3.7.2", # Typing fixes
 	"build[virtualenv]>=1.0.3",
 	"filelock>=3.4.0",
 	"ini2toml[lite]>=0.14",
@@ -56,10 +61,10 @@ test = [
 	"pytest-home >= 0.5",
 	"pytest-subprocess",
 
-	# workaround for pypa/setuptools#4333
+	# workaround for pypa/pyproject-hooks#206
 	"pyproject-hooks!=1.1",
 
-	"jaraco.test",
+	"jaraco.test>=5.5", # py.typed
 ]
 
 doc = [
@@ -90,21 +95,18 @@ doc = [
 ssl = []
 certs = []
 core = [
-	"packaging>=24",
+	"packaging>=24.2",
 	"more_itertools>=8.8",
 	"jaraco.text>=3.7",
-	"importlib_resources>=5.10.2; python_version < '3.9'",
 	"importlib_metadata>=6; python_version < '3.10'",
 	"tomli>=2.0.1; python_version < '3.11'",
 	"wheel>=0.43.0",
 
 	# pkg_resources
-	"platformdirs >= 2.6.2",
+	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
 
 	# for distutils
-	"jaraco.collections",
-	"jaraco.functools",
-	"packaging",
+	"jaraco.functools >= 4",
 	"more_itertools",
 ]
 
@@ -115,8 +117,8 @@ check = [
 
 	# local
 
-	# workaround for businho/pytest-ruff#28
-	"ruff >= 0.5.2; sys_platform != 'cygwin'",
+	# Removal of deprecated UP027, PT004 & PT005 astral-sh/ruff#14383
+	"ruff >= 0.8.0; sys_platform != 'cygwin'",
 ]
 
 cover = [
@@ -135,8 +137,8 @@ type = [
 
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
-	# For help with static-typing issues, or mypy update, ping @Avasam 
-	"mypy==1.11.*",
+	# For help with static-typing issues, or mypy update, ping @Avasam
+	"mypy==1.14.*",
 	# Typing fixes in version newer than we require at runtime
 	"importlib_metadata>=7.0.2; python_version < '3.10'",
 	# Imported unconditionally in tools/finalize.py
@@ -211,12 +213,12 @@ exclude = [
 ]
 namespaces = true
 
+[tool.setuptools.exclude-package-data]
+# Remove ruff.toml when installing vendored packages (#4652)
+"*" = ["ruff.toml"]
+
 [tool.distutils.sdist]
 formats = "zip"
 
 
 [tool.setuptools_scm]
-
-
-[tool.pytest-enabler.mypy]
-# Disabled due to jaraco/skeleton#143

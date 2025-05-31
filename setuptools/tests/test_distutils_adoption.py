@@ -114,8 +114,9 @@ print("success")
 """
 
 
+@pytest.mark.usefixtures("tmpdir_cwd")
 @pytest.mark.parametrize(
-    "distutils_version, imported_module",
+    ('distutils_version', 'imported_module'),
     [
         pytest.param("stdlib", "dir_util", marks=skip_without_stdlib_distutils),
         pytest.param("stdlib", "file_util", marks=skip_without_stdlib_distutils),
@@ -125,9 +126,7 @@ print("success")
         ("local", "archive_util"),
     ],
 )
-def test_modules_are_not_duplicated_on_import(
-    distutils_version, imported_module, tmpdir_cwd, venv
-):
+def test_modules_are_not_duplicated_on_import(distutils_version, imported_module, venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
     script = ENSURE_IMPORTS_ARE_NOT_DUPLICATED.format(imported_module=imported_module)
     cmd = ['python', '-c', script]
@@ -145,6 +144,7 @@ print("success")
 """
 
 
+@pytest.mark.usefixtures("tmpdir_cwd")
 @pytest.mark.parametrize(
     "distutils_version",
     [
@@ -152,8 +152,47 @@ print("success")
         pytest.param("stdlib", marks=skip_without_stdlib_distutils),
     ],
 )
-def test_log_module_is_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
+def test_log_module_is_not_duplicated_on_import(distutils_version, venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
     cmd = ['python', '-c', ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED]
+    output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
+    assert output == "success"
+
+
+ENSURE_CONSISTENT_ERROR_FROM_MODIFIED_PY = r"""
+from setuptools.modified import newer
+from {imported_module}.errors import DistutilsError
+
+# Can't use pytest.raises in this context
+try:
+    newer("", "")
+except DistutilsError:
+    print("success")
+else:
+    raise AssertionError("Expected to raise")
+"""
+
+
+@pytest.mark.usefixtures("tmpdir_cwd")
+@pytest.mark.parametrize(
+    ('distutils_version', 'imported_module'),
+    [
+        ("local", "distutils"),
+        # Unfortunately we still get ._distutils.errors.DistutilsError with SETUPTOOLS_USE_DISTUTILS=stdlib
+        # But that's a deprecated use-case we don't mind not fully supporting in newer code
+        pytest.param(
+            "stdlib", "setuptools._distutils", marks=skip_without_stdlib_distutils
+        ),
+    ],
+)
+def test_consistent_error_from_modified_py(distutils_version, imported_module, venv):
+    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    cmd = [
+        'python',
+        '-c',
+        ENSURE_CONSISTENT_ERROR_FROM_MODIFIED_PY.format(
+            imported_module=imported_module
+        ),
+    ]
     output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
     assert output == "success"

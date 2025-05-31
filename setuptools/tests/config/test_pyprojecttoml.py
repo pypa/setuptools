@@ -149,7 +149,7 @@ def test_read_configuration(tmp_path):
 
 
 @pytest.mark.parametrize(
-    "pkg_root, opts",
+    ("pkg_root", "opts"),
     [
         (".", {}),
         ("src", {}),
@@ -207,7 +207,7 @@ class TestEntryPoints:
         dynamic = {"scripts", "gui-scripts", "entry-points"} - {missing_dynamic}
 
         msg = f"defined outside of `pyproject.toml`:.*{missing_dynamic}"
-        with pytest.raises(OptionError, match=re.compile(msg, re.S)):
+        with pytest.raises(OptionError, match=re.compile(msg, re.DOTALL)):
             expand_configuration(self.pyproject(dynamic), tmp_path)
 
 
@@ -308,7 +308,7 @@ def test_ignore_unrelated_config(tmp_path, example):
 
 
 @pytest.mark.parametrize(
-    "example, error_msg",
+    ("example", "error_msg"),
     [
         (
             """
@@ -325,7 +325,9 @@ def test_invalid_example(tmp_path, example, error_msg):
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(cleandoc(example), encoding="utf-8")
 
-    pattern = re.compile(f"invalid pyproject.toml.*{error_msg}.*", re.M | re.S)
+    pattern = re.compile(
+        f"invalid pyproject.toml.*{error_msg}.*", re.MULTILINE | re.DOTALL
+    )
     with pytest.raises(ValueError, match=pattern):
         read_configuration(pyproject)
 

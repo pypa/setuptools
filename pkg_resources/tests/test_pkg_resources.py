@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import builtins
 import datetime
+import inspect
 import os
 import plistlib
 import stat
@@ -214,8 +215,8 @@ def test_get_metadata__bad_utf8(tmpdir):
         "codec can't decode byte 0xe9 in position 1: "
         'invalid continuation byte in METADATA file at path: '
     )
-    assert expected in actual, 'actual: {}'.format(actual)
-    assert actual.endswith(metadata_path), 'actual: {}'.format(actual)
+    assert expected in actual, f'actual: {actual}'
+    assert actual.endswith(metadata_path), f'actual: {actual}'
 
 
 def make_distribution_no_version(tmpdir, basename):
@@ -236,7 +237,7 @@ def make_distribution_no_version(tmpdir, basename):
 
 
 @pytest.mark.parametrize(
-    'suffix, expected_filename, expected_dist_type',
+    ("suffix", "expected_filename", "expected_dist_type"),
     [
         ('egg-info', 'PKG-INFO', EggInfoDistribution),
         ('dist-info', 'METADATA', DistInfoDistribution),
@@ -252,11 +253,11 @@ def test_distribution_version_missing(
     """
     Test Distribution.version when the "Version" header is missing.
     """
-    basename = 'foo.{}'.format(suffix)
+    basename = f'foo.{suffix}'
     dist, dist_dir = make_distribution_no_version(tmpdir, basename)
 
-    expected_text = ("Missing 'Version:' header and/or {} file at path: ").format(
-        expected_filename
+    expected_text = (
+        f"Missing 'Version:' header and/or {expected_filename} file at path: "
     )
     metadata_path = os.path.join(dist_dir, expected_filename)
 
@@ -376,7 +377,7 @@ class TestDeepVersionLookupDistutils:
         assert dist.version == version
 
     @pytest.mark.parametrize(
-        'unnormalized, normalized',
+        ("unnormalized", "normalized"),
         [
             ('foo', 'foo'),
             ('foo/', 'foo'),
@@ -398,7 +399,7 @@ class TestDeepVersionLookupDistutils:
         reason='Testing case-insensitive filesystems.',
     )
     @pytest.mark.parametrize(
-        'unnormalized, normalized',
+        ("unnormalized", "normalized"),
         [
             ('MiXeD/CasE', 'mixed/case'),
         ],
@@ -414,7 +415,7 @@ class TestDeepVersionLookupDistutils:
         reason='Testing systems using backslashes as path separators.',
     )
     @pytest.mark.parametrize(
-        'unnormalized, expected',
+        ("unnormalized", "expected"),
         [
             ('forward/slash', 'forward\\slash'),
             ('forward/slash/', 'forward\\slash'),
@@ -425,3 +426,60 @@ class TestDeepVersionLookupDistutils:
         """Ensure path seps are cleaned on backslash path sep systems."""
         result = pkg_resources.normalize_path(unnormalized)
         assert result.endswith(expected)
+
+
+class TestWorkdirRequire:
+    def fake_site_packages(self, tmp_path, monkeypatch, dist_files):
+        site_packages = tmp_path / "site-packages"
+        site_packages.mkdir()
+        for file, content in self.FILES.items():
+            path = site_packages / file
+            path.parent.mkdir(exist_ok=True, parents=True)
+            path.write_text(inspect.cleandoc(content), encoding="utf-8")
+
+        monkeypatch.setattr(sys, "path", [site_packages])
+        return os.fspath(site_packages)
+
+    FILES = {
+        "pkg1_mod-1.2.3.dist-info/METADATA": """
+            Metadata-Version: 2.4
+            Name: pkg1.mod
+            Version: 1.2.3
+            """,
+        "pkg2.mod-0.42.dist-info/METADATA": """
+            Metadata-Version: 2.1
+            Name: pkg2.mod
+            Version: 0.42
+            """,
+        "pkg3_mod.egg-info/PKG-INFO": """
+            Name: pkg3.mod
+            Version: 1.2.3.4
+            """,
+        "pkg4.mod.egg-info/PKG-INFO": """
+            Name: pkg4.mod
+            Version: 0.42.1
+            """,
+    }
+
+    @pytest.mark.parametrize(
+        ("version", "requirement"),
+        [
+            ("1.2.3", "pkg1.mod>=1"),
+            ("0.42", "pkg2.mod>=0.4"),
+            ("1.2.3.4", "pkg3.mod<=2"),
+            ("0.42.1", "pkg4.mod>0.2,<1"),
+        ],
+    )
+    def test_require_non_normalised_name(
+        self, tmp_path, monkeypatch, version, requirement
+    ):
+        # https://github.com/pypa/setuptools/issues/4853
+        site_packages = self.fake_site_packages(tmp_path, monkeypatch, self.FILES)
+        ws = pkg_resources.WorkingSet([site_packages])
+
+        for req in [requirement, requirement.replace(".", "-")]:
+            [dist] = ws.require(req)
+            assert dist.version == version
+            assert os.path.samefile(
+                os.path.commonpath([dist.location, site_packages]), site_packages
+            )

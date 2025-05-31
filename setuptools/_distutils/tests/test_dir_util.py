@@ -1,7 +1,9 @@
 """Tests for distutils.dir_util."""
 
 import os
+import pathlib
 import stat
+import sys
 import unittest.mock as mock
 from distutils import dir_util, errors
 from distutils.dir_util import (
@@ -105,8 +107,33 @@ class TestDirUtil(support.TempdirManager):
         """
         An exception in listdir should raise a DistutilsFileError
         """
-        with mock.patch("os.listdir", side_effect=OSError()), pytest.raises(
-            errors.DistutilsFileError
+        with (
+            mock.patch("os.listdir", side_effect=OSError()),
+            pytest.raises(errors.DistutilsFileError),
         ):
             src = self.tempdirs[-1]
             dir_util.copy_tree(src, None)
+
+    def test_mkpath_exception_uncached(self, monkeypatch, tmp_path):
+        """
+        Caching should not remember failed attempts.
+
+        pypa/distutils#304
+        """
+
+        class FailPath(pathlib.Path):
+            def mkdir(self, *args, **kwargs):
+                raise OSError("Failed to create directory")
+
+            if sys.version_info < (3, 12):
+                _flavour = pathlib.Path()._flavour
+
+        target = tmp_path / 'foodir'
+
+        with pytest.raises(errors.DistutilsFileError):
+            mkpath(FailPath(target))
+
+        assert not target.exists()
+
+        mkpath(target)
+        assert target.exists()

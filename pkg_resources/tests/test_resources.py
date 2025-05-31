@@ -32,7 +32,7 @@ def pairwise(iterable):
 class Metadata(pkg_resources.EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
-    def __init__(self, *pairs):
+    def __init__(self, *pairs) -> None:
         self.metadata = dict(pairs)
 
     def has_metadata(self, name) -> bool:
@@ -119,7 +119,7 @@ class TestDistro:
         self.checkFooPkg(d)
 
         d = Distribution("/some/path")
-        assert d.py_version == '{}.{}'.format(*sys.version_info)
+        assert d.py_version == f'{sys.version_info.major}.{sys.version_info.minor}'
         assert d.platform is None
 
     def testDistroParse(self):
@@ -693,14 +693,14 @@ class TestParsing:
         ) != Requirement.parse("name[foo,bar]==1.0;python_version=='3.6'")
 
     def test_local_version(self):
-        (req,) = parse_requirements('foo==1.0+org1')
+        parse_requirements('foo==1.0+org1')
 
     def test_spaces_between_multiple_versions(self):
-        (req,) = parse_requirements('foo>=1.0, <3')
-        (req,) = parse_requirements('foo >= 1.0, < 3')
+        parse_requirements('foo>=1.0, <3')
+        parse_requirements('foo >= 1.0, < 3')
 
     @pytest.mark.parametrize(
-        ['lower', 'upper'],
+        ("lower", "upper"),
         [
             ('1.2-rc1', '1.2rc1'),
             ('0.4', '0.4.0'),
@@ -724,7 +724,7 @@ class TestParsing:
         """
 
     @pytest.mark.parametrize(
-        ['lower', 'upper'],
+        ("lower", "upper"),
         [
             ('2.1', '2.1.1'),
             ('2a1', '2b0'),

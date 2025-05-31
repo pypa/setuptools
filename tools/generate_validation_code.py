@@ -3,8 +3,8 @@ from __future__ import annotations
 import itertools
 import subprocess
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 
 def generate_pyproject_validation(dest: Path, schemas: Iterable[Path]) -> bool:

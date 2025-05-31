@@ -11,7 +11,6 @@ import sys
 import sysconfig
 from contextlib import suppress
 from inspect import cleandoc
-from unittest.mock import Mock
 from zipfile import ZipFile
 
 import jaraco.path
@@ -19,12 +18,7 @@ import pytest
 from packaging import tags
 
 import setuptools
-from setuptools.command.bdist_wheel import (
-    bdist_wheel,
-    get_abi_tag,
-    remove_readonly,
-    remove_readonly_exc,
-)
+from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag
 from setuptools.dist import Distribution
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
@@ -65,7 +59,7 @@ setup(
 EXAMPLES = {
     "dummy-dist": {
         "setup.py": SETUPPY_EXAMPLE,
-        "licenses": {"DUMMYFILE": ""},
+        "licenses_dir": {"DUMMYFILE": ""},
         **dict.fromkeys(DEFAULT_LICENSE_FILES | OTHER_IGNORED_FILES, ""),
     },
     "simple-dist": {
@@ -178,6 +172,20 @@ EXAMPLES = {
         ),
         "README.rst": "UTF-8 描述 説明",
     },
+    "licenses-dist": {
+        "setup.cfg": cleandoc(
+            """
+            [metadata]
+            name = licenses-dist
+            version = 1.0
+            license_files = **/LICENSE
+            """
+        ),
+        "LICENSE": "",
+        "src": {
+            "vendor": {"LICENSE": ""},
+        },
+    },
 }
 
 
@@ -244,6 +252,11 @@ def dummy_dist(tmp_path_factory):
     return mkexample(tmp_path_factory, "dummy-dist")
 
 
+@pytest.fixture
+def licenses_dist(tmp_path_factory):
+    return mkexample(tmp_path_factory, "licenses-dist")
+
+
 def test_no_scripts(wheel_paths):
     """Make sure entry point scripts are not generated."""
     path = next(path for path in wheel_paths if "complex_dist" in path)
@@ -252,9 +265,9 @@ def test_no_scripts(wheel_paths):
 
 
 def test_unicode_record(wheel_paths):
-    path = next(path for path in wheel_paths if "unicode.dist" in path)
+    path = next(path for path in wheel_paths if "unicode_dist" in path)
     with ZipFile(path) as zf:
-        record = zf.read("unicode.dist-0.1.dist-info/RECORD")
+        record = zf.read("unicode_dist-0.1.dist-info/RECORD")
 
     assert "åäö_日本語.py".encode() in record
 
@@ -282,7 +295,7 @@ def test_preserve_unicode_metadata(monkeypatch, tmp_path):
     class simpler_bdist_wheel(bdist_wheel):
         """Avoid messing with setuptools/distutils internals"""
 
-        def __init__(self):
+        def __init__(self) -> None:
             pass
 
         @property
@@ -303,33 +316,34 @@ def test_licenses_default(dummy_dist, monkeypatch, tmp_path):
     bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         license_files = {
-            "dummy_dist-1.0.dist-info/" + fname for fname in DEFAULT_LICENSE_FILES
+            "dummy_dist-1.0.dist-info/licenses/" + fname
+            for fname in DEFAULT_LICENSE_FILES
         }
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
 
 
 def test_licenses_deprecated(dummy_dist, monkeypatch, tmp_path):
     dummy_dist.joinpath("setup.cfg").write_text(
-        "[metadata]\nlicense_file=licenses/DUMMYFILE", encoding="utf-8"
+        "[metadata]\nlicense_file=licenses_dir/DUMMYFILE", encoding="utf-8"
     )
     monkeypatch.chdir(dummy_dist)
 
     bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
 
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
-        license_files = {"dummy_dist-1.0.dist-info/DUMMYFILE"}
+        license_files = {"dummy_dist-1.0.dist-info/licenses/licenses_dir/DUMMYFILE"}
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
 
 
 @pytest.mark.parametrize(
-    "config_file, config",
+    ("config_file", "config"),
     [
-        ("setup.cfg", "[metadata]\nlicense_files=licenses/*\n  LICENSE"),
-        ("setup.cfg", "[metadata]\nlicense_files=licenses/*, LICENSE"),
+        ("setup.cfg", "[metadata]\nlicense_files=licenses_dir/*\n  LICENSE"),
+        ("setup.cfg", "[metadata]\nlicense_files=licenses_dir/*, LICENSE"),
         (
             "setup.py",
             SETUPPY_EXAMPLE.replace(
-                ")", "  license_files=['licenses/DUMMYFILE', 'LICENSE'])"
+                ")", "  license_files=['licenses_dir/DUMMYFILE', 'LICENSE'])"
             ),
         ),
     ],
@@ -340,9 +354,29 @@ def test_licenses_override(dummy_dist, monkeypatch, tmp_path, config_file, confi
     bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         license_files = {
-            "dummy_dist-1.0.dist-info/" + fname for fname in {"DUMMYFILE", "LICENSE"}
+            "dummy_dist-1.0.dist-info/licenses/" + fname
+            for fname in {"licenses_dir/DUMMYFILE", "LICENSE"}
         }
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
+        metadata = wf.read("dummy_dist-1.0.dist-info/METADATA").decode("utf8")
+        assert "License-File: licenses_dir/DUMMYFILE" in metadata
+        assert "License-File: LICENSE" in metadata
+
+
+def test_licenses_preserve_folder_structure(licenses_dist, monkeypatch, tmp_path):
+    monkeypatch.chdir(licenses_dist)
+    bdist_wheel_cmd(bdist_dir=str(tmp_path)).run()
+    print(os.listdir("dist"))
+    with ZipFile("dist/licenses_dist-1.0-py3-none-any.whl") as wf:
+        default_files = {name.replace("dummy_", "licenses_") for name in DEFAULT_FILES}
+        license_files = {
+            "licenses_dist-1.0.dist-info/licenses/LICENSE",
+            "licenses_dist-1.0.dist-info/licenses/src/vendor/LICENSE",
+        }
+        assert set(wf.namelist()) == default_files | license_files
+        metadata = wf.read("licenses_dist-1.0.dist-info/METADATA").decode("utf8")
+        assert "License-File: src/vendor/LICENSE" in metadata
+        assert "License-File: LICENSE" in metadata
 
 
 def test_licenses_disabled(dummy_dist, monkeypatch, tmp_path):
@@ -434,7 +468,7 @@ def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "option, compress_type",
+    ("option", "compress_type"),
     list(bdist_wheel.supported_compressions.items()),
     ids=list(bdist_wheel.supported_compressions),
 )
@@ -470,6 +504,12 @@ def test_get_abi_tag_windows(monkeypatch):
     monkeypatch.setattr(tags, "interpreter_name", lambda: "cp")
     monkeypatch.setattr(sysconfig, "get_config_var", lambda x: "cp313-win_amd64")
     assert get_abi_tag() == "cp313"
+    monkeypatch.setattr(sys, "gettotalrefcount", lambda: 1, False)
+    assert get_abi_tag() == "cp313d"
+    monkeypatch.setattr(sysconfig, "get_config_var", lambda x: "cp313t-win_amd64")
+    assert get_abi_tag() == "cp313td"
+    monkeypatch.delattr(sys, "gettotalrefcount")
+    assert get_abi_tag() == "cp313t"
 
 
 def test_get_abi_tag_pypy_old(monkeypatch):
@@ -502,29 +542,6 @@ def test_platform_with_space(dummy_dist, monkeypatch):
     """Ensure building on platforms with a space in the name succeed."""
     monkeypatch.chdir(dummy_dist)
     bdist_wheel_cmd(plat_name="isilon onefs").run()
-
-
-def test_rmtree_readonly(monkeypatch, tmp_path):
-    """Verify onerr works as expected"""
-
-    bdist_dir = tmp_path / "with_readonly"
-    bdist_dir.mkdir()
-    some_file = bdist_dir.joinpath("file.txt")
-    some_file.touch()
-    some_file.chmod(stat.S_IREAD)
-
-    expected_count = 1 if sys.platform.startswith("win") else 0
-
-    if sys.version_info < (3, 12):
-        count_remove_readonly = Mock(side_effect=remove_readonly)
-        shutil.rmtree(bdist_dir, onerror=count_remove_readonly)
-        assert count_remove_readonly.call_count == expected_count
-    else:
-        count_remove_readonly_exc = Mock(side_effect=remove_readonly_exc)
-        shutil.rmtree(bdist_dir, onexc=count_remove_readonly_exc)
-        assert count_remove_readonly_exc.call_count == expected_count
-
-    assert not bdist_dir.is_dir()
 
 
 def test_data_dir_with_tag_build(monkeypatch, tmp_path):
@@ -583,7 +600,7 @@ def test_data_dir_with_tag_build(monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize(
-    "reported,expected",
+    ("reported", "expected"),
     [("linux-x86_64", "linux_i686"), ("linux-aarch64", "linux_armv7l")],
 )
 @pytest.mark.skipif(
@@ -619,3 +636,73 @@ def test_no_ctypes(monkeypatch) -> None:
     monkeypatch.delitem(sys.modules, "setuptools.command.bdist_wheel")
 
     import setuptools.command.bdist_wheel  # noqa: F401
+
+
+def test_dist_info_provided(dummy_dist, monkeypatch, tmp_path):
+    monkeypatch.chdir(dummy_dist)
+    distinfo = tmp_path / "dummy_dist.dist-info"
+
+    distinfo.mkdir()
+    (distinfo / "METADATA").write_text("name: helloworld", encoding="utf-8")
+
+    # We don't control the metadata. According to PEP-517, "The hook MAY also
+    # create other files inside this directory, and a build frontend MUST
+    # preserve".
+    (distinfo / "FOO").write_text("bar", encoding="utf-8")
+
+    bdist_wheel_cmd(bdist_dir=str(tmp_path), dist_info_dir=str(distinfo)).run()
+    expected = {
+        "dummy_dist-1.0.dist-info/FOO",
+        "dummy_dist-1.0.dist-info/RECORD",
+    }
+    with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
+        files_found = set(wf.namelist())
+    # Check that all expected files are there.
+    assert expected - files_found == set()
+    # Make sure there is no accidental egg-info bleeding into the wheel.
+    assert not [path for path in files_found if 'egg-info' in str(path)]
+
+
+def test_allow_grace_period_parent_directory_license(monkeypatch, tmp_path):
+    # Motivation: https://github.com/pypa/setuptools/issues/4892
+    # TODO: Remove this test after deprecation period is over
+    files = {
+        "LICENSE.txt": "parent license",  # <---- the license files are outside
+        "NOTICE.txt": "parent notice",
+        "python": {
+            "pyproject.toml": cleandoc(
+                """
+                [project]
+                name = "test-proj"
+                dynamic = ["version"]      # <---- testing dynamic will not break
+                [tool.setuptools.dynamic]
+                version.file = "VERSION"
+                """
+            ),
+            "setup.cfg": cleandoc(
+                """
+                [metadata]
+                license_files =
+                  ../LICENSE.txt
+                  ../NOTICE.txt
+                """
+            ),
+            "VERSION": "42",
+        },
+    }
+    jaraco.path.build(files, prefix=str(tmp_path))
+    monkeypatch.chdir(tmp_path / "python")
+    msg = "Pattern '../.*.txt' cannot contain '..'"
+    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+        bdist_wheel_cmd().run()
+    with ZipFile("dist/test_proj-42-py3-none-any.whl") as wf:
+        files_found = set(wf.namelist())
+        expected_files = {
+            "test_proj-42.dist-info/licenses/LICENSE.txt",
+            "test_proj-42.dist-info/licenses/NOTICE.txt",
+        }
+        assert expected_files <= files_found
+
+        metadata = wf.read("test_proj-42.dist-info/METADATA").decode("utf8")
+        assert "License-File: LICENSE.txt" in metadata
+        assert "License-File: NOTICE.txt" in metadata

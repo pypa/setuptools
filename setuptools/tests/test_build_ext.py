@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import sys
 from importlib.util import cache_from_source as _compiled_file_name
@@ -178,12 +180,12 @@ class TestBuildExt:
 
 
 class TestBuildExtInplace:
-    def get_build_ext_cmd(self, optional: bool, **opts):
-        files = {
+    def get_build_ext_cmd(self, optional: bool, **opts) -> build_ext:
+        files: dict[str, str | dict[str, dict[str, str]]] = {
             "eggs.c": "#include missingheader.h\n",
             ".build": {"lib": {}, "tmp": {}},
         }
-        path.build(files)  # type: ignore[arg-type] # jaraco/path#232
+        path.build(files)
         extension = Extension('spam.eggs', ['eggs.c'], optional=optional)
         dist = Distribution(dict(ext_modules=[extension]))
         dist.script_name = 'setup.py'
@@ -284,8 +286,8 @@ def test_build_ext_config_handling(tmpdir_cwd):
         ),
     }
     path.build(files)
-    code, output = environment.run_setup_py(
+    code, (stdout, stderr) = environment.run_setup_py(
         cmd=['build'],
         data_stream=(0, 2),
     )
-    assert code == 0, '\nSTDOUT:\n%s\nSTDERR:\n%s' % output
+    assert code == 0, f'\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}'

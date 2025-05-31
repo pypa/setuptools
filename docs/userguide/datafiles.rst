@@ -2,6 +2,15 @@
 Data Files Support
 ====================
 
+In the Python ecosystem, the term "data files" is used in various complex scenarios
+and can have nuanced meanings. For the purposes of this documentation,
+we define "data files" as non-Python files that are installed alongside Python
+modules and packages on the user's machine when they install a
+:term:`distribution <Distribution Package>` via :term:`wheel <Wheel>`.
+
+These files are typically intended for use at **runtime** by the package itself or
+to influence the behavior of other packages or systems.
+
 Old packaging installation methods in the Python ecosystem
 have traditionally allowed installation of "data files", which
 are placed in a platform-specific location.  However, the most common use case
@@ -19,10 +28,11 @@ Configuration Options
 
 .. _include-package-data:
 
-include_package_data
---------------------
+1. ``include_package_data``
+---------------------------
 
 First, you can use the ``include_package_data`` keyword.
+
 For example, if the package tree looks like this::
 
     project_root_directory
@@ -35,7 +45,25 @@ For example, if the package tree looks like this::
             ├── data1.txt
             └── data2.txt
 
-and you supply this configuration:
+When **at least one** of the following conditions are met:
+
+1. These files are included via the :ref:`MANIFEST.in <Using MANIFEST.in>` file,
+   like so::
+
+        include src/mypkg/*.txt
+        include src/mypkg/*.rst
+
+2. They are being tracked by a revision control system such as Git, Mercurial
+   or SVN, **AND** you have configured an appropriate plugin such as
+   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
+   (See the section below on :ref:`Adding Support for Revision
+   Control Systems` for information on how to configure such plugins.)
+
+then all the ``.txt`` and ``.rst`` files will be included into
+the source distribution.
+
+To further include them into the ``wheels``, you can use the
+``include_package_data`` keyword:
 
 .. tab:: pyproject.toml
 
@@ -43,8 +71,8 @@ and you supply this configuration:
 
         [tool.setuptools]
         # ...
-        # By default, include-package-data is true in pyproject.toml, so you do
-        # NOT have to specify this line.
+        # By default, include-package-data is true in pyproject.toml,
+        # so you do NOT have to specify this line.
         include-package-data = true
 
         [tool.setuptools.packages.find]
@@ -76,33 +104,18 @@ and you supply this configuration:
         include_package_data=True
     )
 
-then all the ``.txt`` and ``.rst`` files will be automatically installed with
-your package, provided:
-
-1. These files are included via the :ref:`MANIFEST.in <Using MANIFEST.in>` file,
-   like so::
-
-        include src/mypkg/*.txt
-        include src/mypkg/*.rst
-
-2. OR, they are being tracked by a revision control system such as Git, Mercurial
-   or SVN, and you have configured an appropriate plugin such as
-   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
-   (See the section below on :ref:`Adding Support for Revision
-   Control Systems` for information on how to write such plugins.)
-
 .. note::
    .. versionadded:: v61.0.0
-      The default value for ``tool.setuptools.include-package-data`` is ``True``
+      The default value for ``tool.setuptools.include-package-data`` is ``true``
       when projects are configured via ``pyproject.toml``.
       This behaviour differs from ``setup.cfg`` and ``setup.py``
-      (where ``include_package_data=False`` by default), which was not changed
+      (where ``include_package_data`` is ``False`` by default), which was not changed
       to ensure backwards compatibility with existing projects.
 
 .. _package-data:
 
-package_data
-------------
+2. ``package_data``
+-------------------
 
 By default, ``include_package_data`` considers **all** non ``.py`` files found inside
 the package directory (``src/mypkg`` in this case) as data files, and includes those that
@@ -172,7 +185,7 @@ file, nor require to be added by a revision control system plugin.
 
 .. note::
         If your glob patterns use paths, you *must* use a forward slash (``/``) as
-        the path separator, even if you are on Windows.  Setuptools automatically
+        the path separator, even if you are on Windows. ``setuptools`` automatically
         converts slashes to appropriate platform-specific separators at build time.
 
 .. important::
@@ -271,8 +284,8 @@ we specify that ``data1.rst`` from ``mypkg1`` alone should be captured as well.
 
 .. _exclude-package-data:
 
-exclude_package_data
---------------------
+3. ``exclude_package_data``
+---------------------------
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included. For example,
@@ -337,6 +350,33 @@ Any files that match these patterns will be *excluded* from installation,
 even if they were listed in ``package_data`` or were included as a result of using
 ``include_package_data``.
 
+.. _interplay_package_data_keywords:
+
+Interplay between these keywords
+--------------------------------
+
+Meanwhile, to further clarify the interplay between these three keywords,
+to include certain data file into the source distribution, the following
+logic condition has to be met::
+
+    MANIFEST.in or (package-data and not exclude-package-data)
+
+In plain language, the file should be either:
+
+1. included in ``MANIFEST.in``; or
+
+2. selected by ``package-data`` AND not excluded by ``exclude-package-data``.
+
+To include some data file into the ``.whl``::
+
+    (not exclude-package-data) and ((include-package-data and MANIFEST.in) or package-data)
+
+In other words, the file should not be excluded by ``exclude-package-data``
+(highest priority), AND should be either:
+
+1. selected by ``package-data``; or
+
+2. selected by ``MANIFEST.in`` AND use ``include-package-data = true``.
 
 Summary
 -------
@@ -450,7 +490,7 @@ With :ref:`package-data`, the configuration might look like this:
             }
         )
 
-In other words, we allow Setuptools to scan for namespace packages in the ``src`` directory,
+In other words, we allow ``setuptools`` to scan for namespace packages in the ``src`` directory,
 which enables the ``data`` directory to be identified, and then, we separately specify data
 files for the root package ``mypkg``, and the namespace package ``data`` under the package
 ``mypkg``.

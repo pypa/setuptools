@@ -55,9 +55,9 @@ def test_recursive_in_package_data_glob(tmpdir_cwd):
     dist.parse_command_line()
     dist.run_commands()
 
-    assert stat.S_ISREG(
-        os.stat('build/lib/path/subpath/subsubpath/data').st_mode
-    ), "File is not included"
+    assert stat.S_ISREG(os.stat('build/lib/path/subpath/subsubpath/data').st_mode), (
+        "File is not included"
+    )
 
 
 def test_read_only(tmpdir_cwd):
@@ -116,9 +116,9 @@ def test_executable_data(tmpdir_cwd):
     dist.parse_command_line()
     dist.run_commands()
 
-    assert (
-        os.stat('build/lib/pkg/run-me').st_mode & stat.S_IEXEC
-    ), "Script is not executable"
+    assert os.stat('build/lib/pkg/run-me').st_mode & stat.S_IEXEC, (
+        "Script is not executable"
+    )
 
 
 EXAMPLE_WITH_MANIFEST = {
@@ -168,7 +168,7 @@ def test_excluded_subpackages(tmpdir_cwd):
     with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
         # TODO: To fix #3260 we need some transition period to deprecate the
         # existing behavior of `include_package_data`. After the transition, we
-        # should remove the warning and fix the behaviour.
+        # should remove the warning and fix the behavior.
 
         if os.getenv("SETUPTOOLS_USE_DISTUTILS") == "stdlib":
             # pytest.warns reset the warning filter temporarily

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import platform
 import stat
@@ -8,6 +10,7 @@ from importlib import import_module
 from importlib.machinery import EXTENSION_SUFFIXES
 from pathlib import Path
 from textwrap import dedent
+from typing import Any
 from unittest.mock import Mock
 from uuid import uuid4
 
@@ -18,7 +21,6 @@ from path import Path as _Path
 
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
-    _DebuggingTips,
     _encode_pth,
     _find_namespaces,
     _find_package_roots,
@@ -840,7 +842,8 @@ class TestOverallBehaviour:
         version = "3.14159"
         """
 
-    FLAT_LAYOUT = {
+    # Any: Would need a TypedDict. Keep it simple for tests
+    FLAT_LAYOUT: dict[str, Any] = {
         "pyproject.toml": dedent(PYPROJECT),
         "MANIFEST.in": EXAMPLE["MANIFEST.in"],
         "otherfile.py": "",
@@ -878,9 +881,9 @@ class TestOverallBehaviour:
             "otherfile.py": "",
             "mypkg": {
                 "__init__.py": "",
-                "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore
+                "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],
             },
-            "other": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore
+            "other": FLAT_LAYOUT["mypkg"]["subpackage"],
         },
         "namespace": {
             "pyproject.toml": dedent(PYPROJECT),
@@ -888,8 +891,8 @@ class TestOverallBehaviour:
             "otherfile.py": "",
             "src": {
                 "mypkg": {
-                    "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore
-                    "subpackage": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore
+                    "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],
+                    "subpackage": FLAT_LAYOUT["mypkg"]["subpackage"],
                 },
             },
         },
@@ -1064,45 +1067,20 @@ def test_compat_install(tmp_path, venv):
     assert "cannot import name 'subpackage'" in out
 
 
-def test_pbr_integration(tmp_path, venv, editable_opts):
+@pytest.mark.uses_network
+def test_pbr_integration(pbr_package, venv, editable_opts):
     """Ensure editable installs work with pbr, issue #3500"""
-    files = {
-        "pyproject.toml": dedent(
-            """\
-            [build-system]
-            requires = ["setuptools"]
-            build-backend = "setuptools.build_meta"
-            """
-        ),
-        "setup.py": dedent(
-            """\
-            __import__('setuptools').setup(
-                pbr=True,
-                setup_requires=["pbr"],
-            )
-            """
-        ),
-        "setup.cfg": dedent(
-            """\
-            [metadata]
-            name = mypkg
-
-            [files]
-            packages =
-                mypkg
-            """
-        ),
-        "mypkg": {
-            "__init__.py": "",
-            "hello.py": "print('Hello world!')",
-        },
-        "other": {"test.txt": "Another file in here."},
-    }
-    venv.run(["python", "-m", "pip", "install", "pbr"])
-
-    with contexts.environment(PBR_VERSION="0.42"):
-        install_project("mypkg", venv, tmp_path, files, *editable_opts)
-
+    cmd = [
+        'python',
+        '-m',
+        'pip',
+        '-v',
+        'install',
+        '--editable',
+        pbr_package,
+        *editable_opts,
+    ]
+    venv.run(cmd, stderr=subprocess.STDOUT)
     out = venv.run(["python", "-c", "import mypkg.hello"])
     assert "Hello world!" in out
 
@@ -1223,9 +1201,9 @@ def test_debugging_tips(tmpdir_cwd, monkeypatch):
     simulated_failure = Mock(side_effect=SimulatedErr())
     monkeypatch.setattr(cmd, "get_finalized_command", simulated_failure)
 
-    expected_msg = "following steps are recommended to help debug"
-    with pytest.raises(SimulatedErr), pytest.warns(_DebuggingTips, match=expected_msg):
+    with pytest.raises(SimulatedErr) as ctx:
         cmd.run()
+    assert any('debugging-tips' in note for note in ctx.value.__notes__)
 
 
 @pytest.mark.filterwarnings("error")
@@ -1271,7 +1249,7 @@ def assert_path(pkg, expected):
             assert str(Path(path).resolve()) == expected
 
 
-def assert_link_to(file: Path, other: Path):
+def assert_link_to(file: Path, other: Path) -> None:
     if file.is_symlink():
         assert str(file.resolve()) == str(other.resolve())
     else:

@@ -136,6 +136,9 @@ html_theme_options = {
         "color-brand-primary": "#E5B62F",  # "yellow"
         "color-brand-content": "#E5B62F",
     },
+    "source_repository": "https://github.com/pypa/setuptools/",
+    "source_branch": "main",
+    "source_directory": "docs/",
 }
 
 # Redirect old docs so links and references in the ecosystem don't break
@@ -191,7 +194,7 @@ nitpick_ignore += [
 # Allow linking objects on other Sphinx sites seamlessly:
 intersphinx_mapping.update(
     # python=('https://docs.python.org/3', None),
-    python=('https://docs.python.org/3.11/', None),
+    python=('https://docs.python.org/3.11', None),
     # ^-- Python 3.11 is required because it still contains `distutils`.
     #     Just leaving it as `3` would imply 3.12+, but that causes an
     #     error with the cross references to distutils functions.
@@ -237,9 +240,10 @@ favicons = [
 intersphinx_mapping.update({
     'pip': ('https://pip.pypa.io/en/latest', None),
     'build': ('https://build.pypa.io/en/latest', None),
-    'PyPUG': ('https://packaging.python.org/en/latest/', None),
-    'packaging': ('https://packaging.pypa.io/en/latest/', None),
-    'twine': ('https://twine.readthedocs.io/en/stable/', None),
+    'PyPUG': ('https://packaging.python.org/en/latest', None),
+    'pytest': ('https://docs.pytest.org/en/stable', None),
+    'packaging': ('https://packaging.pypa.io/en/latest', None),
+    'twine': ('https://twine.readthedocs.io/en/stable', None),
     'importlib-resources': (
         'https://importlib-resources.readthedocs.io/en/latest',
         None,
