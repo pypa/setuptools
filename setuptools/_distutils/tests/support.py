@@ -1,31 +1,16 @@
 """Support code for distutils test cases."""
-import os
-import sys
-import shutil
-import tempfile
-import sysconfig
+
 import itertools
-
-import pytest
-
-from distutils.log import DEBUG, INFO, WARN, ERROR, FATAL
+import os
+import pathlib
+import shutil
+import sys
+import sysconfig
+import tempfile
 from distutils.core import Distribution
 
-
-@pytest.mark.usefixtures('distutils_logging_silencer')
-class LoggingSilencer:
-    def _log(self, level, msg, args):
-        if level not in (DEBUG, INFO, WARN, ERROR, FATAL):
-            raise ValueError('%s wrong log level' % str(level))
-        if not isinstance(msg, str):
-            raise TypeError("msg should be str, not '%.200s'" % (type(msg).__name__))
-        self.logs.append((level, msg, args))
-
-    def get_logs(self, *levels):
-        return [msg % args for level, msg, args in self.logs if level in levels]
-
-    def clear_logs(self):
-        self.logs = []
+import pytest
+from more_itertools import always_iterable
 
 
 @pytest.mark.usefixtures('distutils_managed_tempdir')
@@ -46,16 +31,9 @@ class TempdirManager:
     def write_file(self, path, content='xxx'):
         """Writes a file in the given path.
 
-
         path can be a string or a sequence.
         """
-        if isinstance(path, (list, tuple)):
-            path = os.path.join(*path)
-        f = open(path, 'w')
-        try:
-            f.write(content)
-        finally:
-            f.close()
+        pathlib.Path(*always_iterable(path)).write_text(content, encoding='utf-8')
 
     def create_dist(self, pkg_name='foo', **kw):
         """Will generate a test environment.

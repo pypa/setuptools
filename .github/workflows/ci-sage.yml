@@ -43,6 +43,9 @@ on:
   workflow_dispatch:
     # Allow to run manually
 
+permissions:
+  contents: read
+
 env:
   # Ubuntu packages to install so that the project's "setup.py sdist" can succeed
   DIST_PREREQ: python3
@@ -55,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out ${{ env.SPKG }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: build/pkgs/${{ env.SPKG }}/src
       - name: Install prerequisites
@@ -67,18 +70,17 @@ jobs:
         run: |
           (cd build/pkgs/${{ env.SPKG }}/src && python3 -m build --sdist) \
           && mkdir -p upstream && cp build/pkgs/${{ env.SPKG }}/src/dist/*.tar.gz upstream/${{ env.SPKG }}-git.tar.gz \
-          && echo "sage-package create ${{ env.SPKG }} --version git --tarball ${{ env.SPKG }}-git.tar.gz --type=standard" > upstream/update-pkgs.sh \
+          && echo "sage-package create ${{ env.SPKG }} --pypi --source normal --type standard; sage-package create ${{ env.SPKG }} --version git --tarball ${{ env.SPKG }}-git.tar.gz --type=standard" > upstream/update-pkgs.sh \
           && if [ -n "${{ env.REMOVE_PATCHES }}" ]; then echo "(cd ../build/pkgs/${{ env.SPKG }}/patches && rm -f ${{ env.REMOVE_PATCHES }}; :)" >> upstream/update-pkgs.sh; fi \
           && ls -l upstream/
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           path: upstream
           name: upstream
 
   linux:
     # https://github.com/sagemath/sage/blob/develop/.github/workflows/docker.yml
-    # Use branch of ticket https://trac.sagemath.org/ticket/33288
-    uses: sagemath/sagetrac-mirror/.github/workflows/docker.yml@u/mkoeppe/setuptools_ci_target
+    uses: sagemath/sage/.github/workflows/docker.yml@develop
     with:
       # Sage distribution packages to build
       targets: setuptools pyzmq
@@ -86,11 +88,6 @@ jobs:
       sage_repo: sagemath/sage
       sage_ref: develop
       upstream_artifact: upstream
-      sage_trac_git: https://github.com/sagemath/sagetrac-mirror.git
-      # Test with the branch from https://trac.sagemath.org/ticket/33288
-      # This may provide hotfixes for the CI that have not been merged into
-      # the sage develop branch yet.
-      sage_trac_ticket: 33288
       # We prefix the image name with the SPKG name ("setuptools-") to avoid the error
       # 'Package "sage-docker-..." is already associated with another repository.'
       docker_push_repository: ghcr.io/${{ github.repository }}/setuptools-

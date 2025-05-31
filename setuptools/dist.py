@@ -1,240 +1,84 @@
-# -*- coding: utf-8 -*-
-__all__ = ['Distribution']
+from __future__ import annotations
 
+import functools
 import io
-import sys
-import re
-import os
-import warnings
-import numbers
-import distutils.log
-import distutils.core
-import distutils.cmd
-import distutils.dist
-import distutils.command
-from distutils.util import strtobool
-from distutils.debug import DEBUG
-from distutils.fancy_getopt import translate_longopt
-from glob import iglob
 import itertools
-import textwrap
-from typing import List, Optional, TYPE_CHECKING
+import numbers
+import os
+import re
+import sys
+from collections.abc import Iterable, Iterator, MutableMapping, Sequence
+from glob import glob
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Union
 
-from collections import defaultdict
-from email import message_from_file
+from more_itertools import partition, unique_everseen
+from packaging.markers import InvalidMarker, Marker
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.version import Version
 
-from distutils.errors import DistutilsOptionError, DistutilsSetupError
-from distutils.util import rfc822_escape
-
-from setuptools.extern import packaging
-from setuptools.extern import ordered_set
-from setuptools.extern.more_itertools import unique_everseen, partition
-
+from . import (
+    _entry_points,
+    _reqs,
+    _static,
+    command as _,  # noqa: F401 # imported for side-effects
+)
 from ._importlib import metadata
+from ._normalization import _canonicalize_license_expression
+from ._path import StrPath
+from ._reqs import _StrOrIter
+from .config import pyprojecttoml, setupcfg
+from .discovery import ConfigDiscovery
+from .errors import InvalidConfigError
+from .monkey import get_unpatched
+from .warnings import InformationOnly, SetuptoolsDeprecationWarning
 
-from . import SetuptoolsDeprecationWarning
-
-import setuptools
-import setuptools.command
-from setuptools import windows_support
-from setuptools.monkey import get_unpatched
-from setuptools.config import setupcfg, pyprojecttoml
-from setuptools.discovery import ConfigDiscovery
-
-import pkg_resources
-from setuptools.extern.packaging import version
-from . import _reqs
-from . import _entry_points
+import distutils.cmd
+import distutils.command
+import distutils.core
+import distutils.dist
+import distutils.log
+from distutils.debug import DEBUG
+from distutils.errors import DistutilsOptionError, DistutilsSetupError
+from distutils.fancy_getopt import translate_longopt
+from distutils.util import strtobool
 
 if TYPE_CHECKING:
-    from email.message import Message
-
-__import__('setuptools.extern.packaging.specifiers')
-__import__('setuptools.extern.packaging.version')
+    from typing_extensions import TypeAlias
 
 
-def _get_unpatched(cls):
-    warnings.warn("Do not call this function", DistDeprecationWarning)
-    return get_unpatched(cls)
+__all__ = ['Distribution']
+
+_sequence = tuple, list
+"""
+:meta private:
+
+Supported iterable types that are known to be:
+- ordered (which `set` isn't)
+- not match a str (which `Sequence[str]` does)
+- not imply a nested type (like `dict`)
+for use with `isinstance`.
+"""
+_Sequence: TypeAlias = Union[tuple[str, ...], list[str]]
+# This is how stringifying _Sequence would look in Python 3.10
+_sequence_type_repr = "tuple[str, ...] | list[str]"
+_OrderedStrSequence: TypeAlias = Union[str, dict[str, Any], Sequence[str]]
+"""
+:meta private:
+Avoid single-use iterable. Disallow sets.
+A poor approximation of an OrderedSequence (dict doesn't match a Sequence).
+"""
 
 
-def get_metadata_version(self):
-    mv = getattr(self, 'metadata_version', None)
-    if mv is None:
-        mv = version.Version('2.1')
-        self.metadata_version = mv
-    return mv
-
-
-def rfc822_unescape(content: str) -> str:
-    """Reverse RFC-822 escaping by removing leading whitespaces from content."""
-    lines = content.splitlines()
-    if len(lines) == 1:
-        return lines[0].lstrip()
-    return '\n'.join((lines[0].lstrip(), textwrap.dedent('\n'.join(lines[1:]))))
-
-
-def _read_field_from_msg(msg: "Message", field: str) -> Optional[str]:
-    """Read Message header field."""
-    value = msg[field]
-    if value == 'UNKNOWN':
-        return None
-    return value
-
-
-def _read_field_unescaped_from_msg(msg: "Message", field: str) -> Optional[str]:
-    """Read Message header field and apply rfc822_unescape."""
-    value = _read_field_from_msg(msg, field)
-    if value is None:
-        return value
-    return rfc822_unescape(value)
-
-
-def _read_list_from_msg(msg: "Message", field: str) -> Optional[List[str]]:
-    """Read Message header field and return all results as list."""
-    values = msg.get_all(field, None)
-    if values == []:
-        return None
-    return values
-
-
-def _read_payload_from_msg(msg: "Message") -> Optional[str]:
-    value = msg.get_payload().strip()
-    if value == 'UNKNOWN' or not value:
-        return None
-    return value
-
-
-def read_pkg_file(self, file):
-    """Reads the metadata values from a file object."""
-    msg = message_from_file(file)
-
-    self.metadata_version = version.Version(msg['metadata-version'])
-    self.name = _read_field_from_msg(msg, 'name')
-    self.version = _read_field_from_msg(msg, 'version')
-    self.description = _read_field_from_msg(msg, 'summary')
-    # we are filling author only.
-    self.author = _read_field_from_msg(msg, 'author')
-    self.maintainer = None
-    self.author_email = _read_field_from_msg(msg, 'author-email')
-    self.maintainer_email = None
-    self.url = _read_field_from_msg(msg, 'home-page')
-    self.download_url = _read_field_from_msg(msg, 'download-url')
-    self.license = _read_field_unescaped_from_msg(msg, 'license')
-
-    self.long_description = _read_field_unescaped_from_msg(msg, 'description')
-    if (
-        self.long_description is None and
-        self.metadata_version >= version.Version('2.1')
-    ):
-        self.long_description = _read_payload_from_msg(msg)
-    self.description = _read_field_from_msg(msg, 'summary')
-
-    if 'keywords' in msg:
-        self.keywords = _read_field_from_msg(msg, 'keywords').split(',')
-
-    self.platforms = _read_list_from_msg(msg, 'platform')
-    self.classifiers = _read_list_from_msg(msg, 'classifier')
-
-    # PEP 314 - these fields only exist in 1.1
-    if self.metadata_version == version.Version('1.1'):
-        self.requires = _read_list_from_msg(msg, 'requires')
-        self.provides = _read_list_from_msg(msg, 'provides')
-        self.obsoletes = _read_list_from_msg(msg, 'obsoletes')
-    else:
-        self.requires = None
-        self.provides = None
-        self.obsoletes = None
-
-    self.license_files = _read_list_from_msg(msg, 'license-file')
-
-
-def single_line(val):
-    """
-    Quick and dirty validation for Summary pypa/setuptools#1390.
-    """
-    if '\n' in val:
-        # TODO: Replace with `raise ValueError("newlines not allowed")`
-        # after reviewing #2893.
-        warnings.warn("newlines not allowed and will break in the future")
-        val = val.strip().split('\n')[0]
-    return val
-
-
-# Based on Python 3.5 version
-def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
-    """Write the PKG-INFO format data to a file object."""
-    version = self.get_metadata_version()
-
-    def write_field(key, value):
-        file.write("%s: %s\n" % (key, value))
-
-    write_field('Metadata-Version', str(version))
-    write_field('Name', self.get_name())
-    write_field('Version', self.get_version())
-
-    summary = self.get_description()
-    if summary:
-        write_field('Summary', single_line(summary))
-
-    optional_fields = (
-        ('Home-page', 'url'),
-        ('Download-URL', 'download_url'),
-        ('Author', 'author'),
-        ('Author-email', 'author_email'),
-        ('Maintainer', 'maintainer'),
-        ('Maintainer-email', 'maintainer_email'),
-    )
-
-    for field, attr in optional_fields:
-        attr_val = getattr(self, attr, None)
-        if attr_val is not None:
-            write_field(field, attr_val)
-
-    license = self.get_license()
-    if license:
-        write_field('License', rfc822_escape(license))
-
-    for project_url in self.project_urls.items():
-        write_field('Project-URL', '%s, %s' % project_url)
-
-    keywords = ','.join(self.get_keywords())
-    if keywords:
-        write_field('Keywords', keywords)
-
-    platforms = self.get_platforms() or []
-    for platform in platforms:
-        write_field('Platform', platform)
-
-    self._write_list(file, 'Classifier', self.get_classifiers())
-
-    # PEP 314
-    self._write_list(file, 'Requires', self.get_requires())
-    self._write_list(file, 'Provides', self.get_provides())
-    self._write_list(file, 'Obsoletes', self.get_obsoletes())
-
-    # Setuptools specific for PEP 345
-    if hasattr(self, 'python_requires'):
-        write_field('Requires-Python', self.python_requires)
-
-    # PEP 566
-    if self.long_description_content_type:
-        write_field('Description-Content-Type', self.long_description_content_type)
-    if self.provides_extras:
-        for extra in self.provides_extras:
-            write_field('Provides-Extra', extra)
-
-    self._write_list(file, 'License-File', self.license_files or [])
-
-    long_description = self.get_long_description()
-    if long_description:
-        file.write("\n%s" % long_description)
-        if not long_description.endswith("\n"):
-            file.write("\n")
-
-
-sequence = tuple, list
+def __getattr__(name: str) -> Any:  # pragma: no cover
+    if name == "sequence":
+        SetuptoolsDeprecationWarning.emit(
+            "`setuptools.dist.sequence` is an internal implementation detail.",
+            "Please define your own `sequence = tuple, list` instead.",
+            due_date=(2025, 8, 28),  # Originally added on 2024-08-27
+        )
+        return _sequence
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def check_importable(dist, attr, value):
@@ -243,21 +87,21 @@ def check_importable(dist, attr, value):
         assert not ep.extras
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            "%r must be importable 'module:attrs' string (got %r)" % (attr, value)
+            f"{attr!r} must be importable 'module:attrs' string (got {value!r})"
         ) from e
 
 
-def assert_string_list(dist, attr, value):
+def assert_string_list(dist, attr: str, value: _Sequence) -> None:
     """Verify that value is a string list"""
     try:
         # verify that value is a list or tuple to exclude unordered
         # or single-use iterables
-        assert isinstance(value, (list, tuple))
+        assert isinstance(value, _sequence)
         # verify that elements of value are strings
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            "%r must be a list of strings (got %r)" % (attr, value)
+            f"{attr!r} must be of type <{_sequence_type_repr}> (got {value!r})"
         ) from e
 
 
@@ -268,10 +112,9 @@ def check_nsp(dist, attr, value):
     for nsp in ns_packages:
         if not dist.has_contents_for(nsp):
             raise DistutilsSetupError(
-                "Distribution contains no modules or packages for "
-                + "namespace package %r" % nsp
+                f"Distribution contains no modules or packages for namespace package {nsp!r}"
             )
-        parent, sep, child = nsp.rpartition('.')
+        parent, _sep, _child = nsp.rpartition('.')
         if parent and parent not in ns_packages:
             distutils.log.warn(
                 "WARNING: %r is declared as a package namespace, but %r"
@@ -279,11 +122,15 @@ def check_nsp(dist, attr, value):
                 nsp,
                 parent,
             )
-        msg = (
-            "The namespace_packages parameter is deprecated, "
-            "consider using implicit namespaces instead (PEP 420)."
+        SetuptoolsDeprecationWarning.emit(
+            "The namespace_packages parameter is deprecated.",
+            "Please replace its usage with implicit namespaces (PEP 420).",
+            see_docs="references/keywords.html#keyword-namespace-packages",
+            # TODO: define due_date, it may break old packages that are no longer
+            # maintained (e.g. sphinxcontrib extensions) when installed from source.
+            # Warning officially introduced in May 2022, however the deprecation
+            # was mentioned much earlier in the docs (May 2020, see #2149).
         )
-        warnings.warn(msg, SetuptoolsDeprecationWarning)
 
 
 def check_extras(dist, attr, value):
@@ -299,49 +146,57 @@ def check_extras(dist, attr, value):
 
 
 def _check_extra(extra, reqs):
-    name, sep, marker = extra.partition(':')
-    if marker and pkg_resources.invalid_marker(marker):
-        raise DistutilsSetupError("Invalid environment marker: " + marker)
+    _name, _sep, marker = extra.partition(':')
+    try:
+        _check_marker(marker)
+    except InvalidMarker:
+        msg = f"Invalid environment marker: {marker} ({extra!r})"
+        raise DistutilsSetupError(msg) from None
     list(_reqs.parse(reqs))
+
+
+def _check_marker(marker):
+    if not marker:
+        return
+    m = Marker(marker)
+    m.evaluate()
 
 
 def assert_bool(dist, attr, value):
     """Verify that value is True, False, 0, or 1"""
     if bool(value) != value:
-        tmpl = "{attr!r} must be a boolean value (got {value!r})"
-        raise DistutilsSetupError(tmpl.format(attr=attr, value=value))
+        raise DistutilsSetupError(f"{attr!r} must be a boolean value (got {value!r})")
 
 
 def invalid_unless_false(dist, attr, value):
     if not value:
-        warnings.warn(f"{attr} is ignored.", DistDeprecationWarning)
+        DistDeprecationWarning.emit(f"{attr} is ignored.")
+        # TODO: should there be a `due_date` here?
         return
     raise DistutilsSetupError(f"{attr} is invalid.")
 
 
-def check_requirements(dist, attr, value):
+def check_requirements(dist, attr: str, value: _OrderedStrSequence) -> None:
     """Verify that install_requires is a valid requirements list"""
     try:
         list(_reqs.parse(value))
-        if isinstance(value, (dict, set)):
+        if isinstance(value, set):
             raise TypeError("Unordered types are not allowed")
     except (TypeError, ValueError) as error:
-        tmpl = (
-            "{attr!r} must be a string or list of strings "
-            "containing valid project/version requirement specifiers; {error}"
+        msg = (
+            f"{attr!r} must be a string or iterable of strings "
+            f"containing valid project/version requirement specifiers; {error}"
         )
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error)) from error
+        raise DistutilsSetupError(msg) from error
 
 
 def check_specifier(dist, attr, value):
     """Verify that value is a valid version specifier"""
     try:
-        packaging.specifiers.SpecifierSet(value)
-    except (packaging.specifiers.InvalidSpecifier, AttributeError) as error:
-        tmpl = (
-            "{attr!r} must be a string " "containing valid version specifiers; {error}"
-        )
-        raise DistutilsSetupError(tmpl.format(attr=attr, error=error)) from error
+        SpecifierSet(value)
+    except (InvalidSpecifier, AttributeError) as error:
+        msg = f"{attr!r} must be a string containing valid version specifiers; {error}"
+        raise DistutilsSetupError(msg) from error
 
 
 def check_entry_points(dist, attr, value):
@@ -352,24 +207,19 @@ def check_entry_points(dist, attr, value):
         raise DistutilsSetupError(e) from e
 
 
-def check_test_suite(dist, attr, value):
-    if not isinstance(value, str):
-        raise DistutilsSetupError("test_suite must be a string")
-
-
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
     if not isinstance(value, dict):
         raise DistutilsSetupError(
-            "{!r} must be a dictionary mapping package names to lists of "
-            "string wildcard patterns".format(attr)
+            f"{attr!r} must be a dictionary mapping package names to lists of "
+            "string wildcard patterns"
         )
     for k, v in value.items():
         if not isinstance(k, str):
             raise DistutilsSetupError(
-                "keys of {!r} dict must be strings (got {!r})".format(attr, k)
+                f"keys of {attr!r} dict must be strings (got {k!r})"
             )
-        assert_string_list(dist, 'values of {!r} dict'.format(attr), v)
+        assert_string_list(dist, f'values of {attr!r} dict', v)
 
 
 def check_packages(dist, attr, value):
@@ -382,7 +232,11 @@ def check_packages(dist, attr, value):
             )
 
 
-_Distribution = get_unpatched(distutils.core.Distribution)
+if TYPE_CHECKING:
+    # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
+    from distutils.core import Distribution as _Distribution
+else:
+    _Distribution = get_unpatched(distutils.core.Distribution)
 
 
 class Distribution(_Distribution):
@@ -413,12 +267,6 @@ class Distribution(_Distribution):
         EasyInstall and requests one of your extras, the corresponding
         additional requirements will be installed if needed.
 
-     'test_suite' -- the name of a test suite to run for the 'test' command.
-        If the user runs 'python setup.py test', the package will be installed,
-        and the named test suite will be run.  The format is the same as
-        would be used on a 'unittest.py' command line.  That is, it is the
-        dotted name of an object to import and call to generate a test suite.
-
      'package_data' -- a dictionary mapping package names to lists of filenames
         or globs to use to find data files contained in the named packages.
         If the dictionary has filenames or globs listed under '""' (the empty
@@ -440,60 +288,48 @@ class Distribution(_Distribution):
     _DISTUTILS_UNSUPPORTED_METADATA = {
         'long_description_content_type': lambda: None,
         'project_urls': dict,
-        'provides_extras': ordered_set.OrderedSet,
+        'provides_extras': dict,  # behaves like an ordered set
+        'license_expression': lambda: None,
         'license_file': lambda: None,
         'license_files': lambda: None,
+        'install_requires': list,
+        'extras_require': dict,
     }
 
-    _patched_dist = None
+    # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
+    namespace_packages: list[str]  #: :meta private: DEPRECATED
 
-    def patch_missing_pkg_info(self, attrs):
-        # Fake up a replacement for the data that would normally come from
-        # PKG-INFO, but which might not yet be built if this is a fresh
-        # checkout.
-        #
-        if not attrs or 'name' not in attrs or 'version' not in attrs:
-            return
-        key = pkg_resources.safe_name(str(attrs['name'])).lower()
-        dist = pkg_resources.working_set.by_key.get(key)
-        if dist is not None and not dist.has_metadata('PKG-INFO'):
-            dist._version = pkg_resources.safe_version(str(attrs['version']))
-            self._patched_dist = dist
-
-    def __init__(self, attrs=None):
+    # Any: Dynamic assignment results in Incompatible types in assignment
+    def __init__(self, attrs: MutableMapping[str, Any] | None = None) -> None:
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
-            self.package_data = {}
+            self.package_data: dict[str, list[str]] = {}
         attrs = attrs or {}
-        self.dist_files = []
+        self.dist_files: list[tuple[str, str, str]] = []
+        self.include_package_data: bool | None = None
+        self.exclude_package_data: dict[str, list[str]] | None = None
         # Filter-out setuptools' specific options.
-        self.src_root = attrs.pop("src_root", None)
-        self.patch_missing_pkg_info(attrs)
-        self.dependency_links = attrs.pop('dependency_links', [])
-        self.setup_requires = attrs.pop('setup_requires', [])
+        self.src_root: str | None = attrs.pop("src_root", None)
+        self.dependency_links: list[str] = attrs.pop('dependency_links', [])
+        self.setup_requires: list[str] = attrs.pop('setup_requires', [])
         for ep in metadata.entry_points(group='distutils.setup_keywords'):
             vars(self).setdefault(ep.name, None)
-        _Distribution.__init__(
-            self,
-            {
-                k: v
-                for k, v in attrs.items()
-                if k not in self._DISTUTILS_UNSUPPORTED_METADATA
-            },
-        )
 
-        # Save the original dependencies before they are processed into the egg format
-        self._orig_extras_require = {}
-        self._orig_install_requires = []
-        self._tmp_extras_require = defaultdict(ordered_set.OrderedSet)
+        metadata_only = set(self._DISTUTILS_UNSUPPORTED_METADATA)
+        metadata_only -= {"install_requires", "extras_require"}
+        dist_attrs = {k: v for k, v in attrs.items() if k not in metadata_only}
+        _Distribution.__init__(self, dist_attrs)
+
+        # Private API (setuptools-use only, not restricted to Distribution)
+        # Stores files that are referenced by the configuration and need to be in the
+        # sdist (e.g. `version = file: VERSION.txt`)
+        self._referenced_files = set[str]()
 
         self.set_defaults = ConfigDiscovery(self)
 
         self._set_metadata_defaults(attrs)
 
-        self.metadata.version = self._normalize_version(
-            self._validate_version(self.metadata.version)
-        )
+        self.metadata.version = self._normalize_version(self.metadata.version)
         self._finalize_requires()
 
     def _validate_metadata(self):
@@ -521,33 +357,18 @@ class Distribution(_Distribution):
 
     @staticmethod
     def _normalize_version(version):
-        if isinstance(version, setuptools.sic) or version is None:
-            return version
+        from . import sic
 
-        normalized = str(packaging.version.Version(version))
-        if version != normalized:
-            tmpl = "Normalizing '{version}' to '{normalized}'"
-            warnings.warn(tmpl.format(**locals()))
-            return normalized
-        return version
-
-    @staticmethod
-    def _validate_version(version):
         if isinstance(version, numbers.Number):
             # Some people apparently take "version number" too literally :)
             version = str(version)
+        elif isinstance(version, sic) or version is None:
+            return version
 
-        if version is not None:
-            try:
-                packaging.version.Version(version)
-            except (packaging.version.InvalidVersion, TypeError):
-                warnings.warn(
-                    "The version specified (%r) is an invalid version, this "
-                    "may not work as expected with newer versions of "
-                    "setuptools, pip, and PyPI. Please see PEP 440 for more "
-                    "details." % version
-                )
-                return setuptools.sic(version)
+        normalized = str(Version(version))
+        if version != normalized:
+            InformationOnly.emit(f"Normalizing '{version}' to '{normalized}'")
+            return normalized
         return version
 
     def _finalize_requires(self):
@@ -558,88 +379,77 @@ class Distribution(_Distribution):
         if getattr(self, 'python_requires', None):
             self.metadata.python_requires = self.python_requires
 
-        if getattr(self, 'extras_require', None):
-            # Save original before it is messed by _convert_extras_requirements
-            self._orig_extras_require = self._orig_extras_require or self.extras_require
+        self._normalize_requires()
+        self.metadata.install_requires = self.install_requires
+        self.metadata.extras_require = self.extras_require
+
+        if self.extras_require:
             for extra in self.extras_require.keys():
-                # Since this gets called multiple times at points where the
-                # keys have become 'converted' extras, ensure that we are only
-                # truly adding extras we haven't seen before here.
+                # Setuptools allows a weird "<name>:<env markers> syntax for extras
                 extra = extra.split(':')[0]
                 if extra:
-                    self.metadata.provides_extras.add(extra)
+                    self.metadata.provides_extras.setdefault(extra)
 
-        if getattr(self, 'install_requires', None) and not self._orig_install_requires:
-            # Save original before it is messed by _move_install_requirements_markers
-            self._orig_install_requires = self.install_requires
+    def _normalize_requires(self):
+        """Make sure requirement-related attributes exist and are normalized"""
+        install_requires = getattr(self, "install_requires", None) or []
+        extras_require = getattr(self, "extras_require", None) or {}
 
-        self._convert_extras_requirements()
-        self._move_install_requirements_markers()
+        # Preserve the "static"-ness of values parsed from config files
+        list_ = _static.List if _static.is_static(install_requires) else list
+        self.install_requires = list_(map(str, _reqs.parse(install_requires)))
 
-    def _convert_extras_requirements(self):
-        """
-        Convert requirements in `extras_require` of the form
-        `"extra": ["barbazquux; {marker}"]` to
-        `"extra:{marker}": ["barbazquux"]`.
-        """
-        spec_ext_reqs = getattr(self, 'extras_require', None) or {}
-        tmp = defaultdict(ordered_set.OrderedSet)
-        self._tmp_extras_require = getattr(self, '_tmp_extras_require', tmp)
-        for section, v in spec_ext_reqs.items():
-            # Do not strip empty sections.
-            self._tmp_extras_require[section]
-            for r in _reqs.parse(v):
-                suffix = self._suffix_for(r)
-                self._tmp_extras_require[section + suffix].append(r)
-
-    @staticmethod
-    def _suffix_for(req):
-        """
-        For a requirement, return the 'extras_require' suffix for
-        that requirement.
-        """
-        return ':' + str(req.marker) if req.marker else ''
-
-    def _move_install_requirements_markers(self):
-        """
-        Move requirements in `install_requires` that are using environment
-        markers `extras_require`.
-        """
-
-        # divide the install_requires into two sets, simple ones still
-        # handled by install_requires and more complex ones handled
-        # by extras_require.
-
-        def is_simple_req(req):
-            return not req.marker
-
-        spec_inst_reqs = getattr(self, 'install_requires', None) or ()
-        inst_reqs = list(_reqs.parse(spec_inst_reqs))
-        simple_reqs = filter(is_simple_req, inst_reqs)
-        complex_reqs = itertools.filterfalse(is_simple_req, inst_reqs)
-        self.install_requires = list(map(str, simple_reqs))
-
-        for r in complex_reqs:
-            self._tmp_extras_require[':' + str(r.marker)].append(r)
-        self.extras_require = dict(
-            # list(dict.fromkeys(...))  ensures a list of unique strings
-            (k, list(dict.fromkeys(str(r) for r in map(self._clean_req, v))))
-            for k, v in self._tmp_extras_require.items()
+        dict_ = _static.Dict if _static.is_static(extras_require) else dict
+        self.extras_require = dict_(
+            (k, list(map(str, _reqs.parse(v or [])))) for k, v in extras_require.items()
         )
 
-    def _clean_req(self, req):
+    def _finalize_license_expression(self) -> None:
         """
-        Given a Requirement, remove environment markers and return it.
+        Normalize license and license_expression.
+        >>> dist = Distribution({"license_expression": _static.Str("mit aNd  gpl-3.0-OR-later")})
+        >>> _static.is_static(dist.metadata.license_expression)
+        True
+        >>> dist._finalize_license_expression()
+        >>> _static.is_static(dist.metadata.license_expression)  # preserve "static-ness"
+        True
+        >>> print(dist.metadata.license_expression)
+        MIT AND GPL-3.0-or-later
         """
-        req.marker = None
-        return req
+        classifiers = self.metadata.get_classifiers()
+        license_classifiers = [cl for cl in classifiers if cl.startswith("License :: ")]
 
-    def _finalize_license_files(self):
+        license_expr = self.metadata.license_expression
+        if license_expr:
+            str_ = _static.Str if _static.is_static(license_expr) else str
+            normalized = str_(_canonicalize_license_expression(license_expr))
+            if license_expr != normalized:
+                InformationOnly.emit(f"Normalizing '{license_expr}' to '{normalized}'")
+                self.metadata.license_expression = normalized
+            if license_classifiers:
+                raise InvalidConfigError(
+                    "License classifiers have been superseded by license expressions "
+                    "(see https://peps.python.org/pep-0639/). Please remove:\n\n"
+                    + "\n".join(license_classifiers),
+                )
+        elif license_classifiers:
+            pypa_guides = "guides/writing-pyproject-toml/#license"
+            SetuptoolsDeprecationWarning.emit(
+                "License classifiers are deprecated.",
+                "Please consider removing the following classifiers in favor of a "
+                "SPDX license expression:\n\n" + "\n".join(license_classifiers),
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+                # Warning introduced on 2025-02-17
+                # TODO: Should we add a due date? It may affect old/unmaintained
+                #       packages in the ecosystem and cause problems...
+            )
+
+    def _finalize_license_files(self) -> None:
         """Compute names of all license files which should be included."""
-        license_files: Optional[List[str]] = self.metadata.license_files
-        patterns: List[str] = license_files if license_files else []
+        license_files: list[str] | None = self.metadata.license_files
+        patterns = license_files or []
 
-        license_file: Optional[str] = self.metadata.license_file
+        license_file: str | None = self.metadata.license_file
         if license_file and license_file not in patterns:
             patterns.append(license_file)
 
@@ -647,26 +457,90 @@ class Distribution(_Distribution):
             # Default patterns match the ones wheel uses
             # See https://wheel.readthedocs.io/en/stable/user_guide.html
             # -> 'Including license files in the generated wheel file'
-            patterns = ('LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*')
+            patterns = ['LICEN[CS]E*', 'COPYING*', 'NOTICE*', 'AUTHORS*']
+            files = self._expand_patterns(patterns, enforce_match=False)
+        else:  # Patterns explicitly given by the user
+            files = self._expand_patterns(patterns, enforce_match=True)
 
-        self.metadata.license_files = list(
-            unique_everseen(self._expand_patterns(patterns))
+        self.metadata.license_files = list(unique_everseen(files))
+
+    @classmethod
+    def _expand_patterns(
+        cls, patterns: list[str], enforce_match: bool = True
+    ) -> Iterator[str]:
+        """
+        >>> getfixture('sample_project_cwd')
+        >>> list(Distribution._expand_patterns(['LICENSE.txt']))
+        ['LICENSE.txt']
+        >>> list(Distribution._expand_patterns(['pyproject.toml', 'LIC*']))
+        ['pyproject.toml', 'LICENSE.txt']
+        >>> list(Distribution._expand_patterns(['src/**/*.dat']))
+        ['src/sample/package_data.dat']
+        """
+        return (
+            path.replace(os.sep, "/")
+            for pattern in patterns
+            for path in sorted(cls._find_pattern(pattern, enforce_match))
+            if not path.endswith('~') and os.path.isfile(path)
         )
 
     @staticmethod
-    def _expand_patterns(patterns):
+    def _find_pattern(pattern: str, enforce_match: bool = True) -> list[str]:
+        r"""
+        >>> getfixture('sample_project_cwd')
+        >>> Distribution._find_pattern("LICENSE.txt")
+        ['LICENSE.txt']
+        >>> Distribution._find_pattern("/LICENSE.MIT")
+        Traceback (most recent call last):
+        ...
+        setuptools.errors.InvalidConfigError: Pattern '/LICENSE.MIT' should be relative...
+        >>> Distribution._find_pattern("../LICENSE.MIT")
+        Traceback (most recent call last):
+        ...
+        setuptools.warnings.SetuptoolsDeprecationWarning: ...Pattern '../LICENSE.MIT' cannot contain '..'...
+        >>> Distribution._find_pattern("LICEN{CSE*")
+        Traceback (most recent call last):
+        ...
+        setuptools.warnings.SetuptoolsDeprecationWarning: ...Pattern 'LICEN{CSE*' contains invalid characters...
         """
-        >>> list(Distribution._expand_patterns(['LICENSE']))
-        ['LICENSE']
-        >>> list(Distribution._expand_patterns(['setup.cfg', 'LIC*']))
-        ['setup.cfg', 'LICENSE']
-        """
-        return (
-            path
-            for pattern in patterns
-            for path in sorted(iglob(pattern))
-            if not path.endswith('~') and os.path.isfile(path)
-        )
+        pypa_guides = "specifications/glob-patterns/"
+        if ".." in pattern:
+            SetuptoolsDeprecationWarning.emit(
+                f"Pattern {pattern!r} cannot contain '..'",
+                """
+                Please ensure the files specified are contained by the root
+                of the Python package (normally marked by `pyproject.toml`).
+                """,
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+                due_date=(2026, 3, 20),  # Introduced in 2025-03-20
+                # Replace with InvalidConfigError after deprecation
+            )
+        if pattern.startswith((os.sep, "/")) or ":\\" in pattern:
+            raise InvalidConfigError(
+                f"Pattern {pattern!r} should be relative and must not start with '/'"
+            )
+        if re.match(r'^[\w\-\.\/\*\?\[\]]+$', pattern) is None:
+            SetuptoolsDeprecationWarning.emit(
+                "Please provide a valid glob pattern.",
+                "Pattern {pattern!r} contains invalid characters.",
+                pattern=pattern,
+                see_url=f"https://packaging.python.org/en/latest/{pypa_guides}",
+                due_date=(2026, 3, 20),  # Introduced in 2025-02-20
+            )
+
+        found = glob(pattern, recursive=True)
+
+        if enforce_match and not found:
+            SetuptoolsDeprecationWarning.emit(
+                "Cannot find any files for the given pattern.",
+                "Pattern {pattern!r} did not match any files.",
+                pattern=pattern,
+                due_date=(2026, 3, 20),  # Introduced in 2025-02-20
+                # PEP 639 requires us to error, but as a transition period
+                # we will only issue a warning to give people time to prepare.
+                # After the transition, this should raise an InvalidConfigError.
+            )
+        return found
 
     # FIXME: 'Distribution._parse_config_files' is too complex (14)
     def _parse_config_files(self, filenames=None):  # noqa: C901
@@ -709,7 +583,7 @@ class Distribution(_Distribution):
         parser = ConfigParser()
         parser.optionxform = str
         for filename in filenames:
-            with io.open(filename, encoding='utf-8') as reader:
+            with open(filename, encoding='utf-8') as reader:
                 if DEBUG:
                     self.announce("  reading {filename}".format(**locals()))
                 parser.read_file(reader)
@@ -722,8 +596,8 @@ class Distribution(_Distribution):
                         continue
 
                     val = parser.get(section, opt)
-                    opt = self.warn_dash_deprecation(opt, section)
-                    opt = self.make_option_lowercase(opt, section)
+                    opt = self._enforce_underscore(opt, section)
+                    opt = self._enforce_option_lowercase(opt, section)
                     opt_dict[opt] = (filename, val)
 
             # Make the ConfigParser forget everything (so we retain
@@ -736,7 +610,7 @@ class Distribution(_Distribution):
         # If there was a "global" section in the config file, use it
         # to set Distribution options.
 
-        for (opt, (src, val)) in self.command_options['global'].items():
+        for opt, (src, val) in self.command_options['global'].items():
             alias = self.negative_opt.get(opt)
             if alias:
                 val = not strtobool(val)
@@ -748,51 +622,68 @@ class Distribution(_Distribution):
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
-    def warn_dash_deprecation(self, opt, section):
-        if section in (
-            'options.extras_require',
-            'options.data_files',
-        ):
+    def _enforce_underscore(self, opt: str, section: str) -> str:
+        if "-" not in opt or self._skip_setupcfg_normalization(section):
             return opt
 
         underscore_opt = opt.replace('-', '_')
-        commands = list(itertools.chain(
-            distutils.command.__all__,
-            self._setuptools_commands(),
-        ))
-        if (
-            not section.startswith('options')
-            and section != 'metadata'
-            and section not in commands
-        ):
-            return underscore_opt
+        affected = f"(Affected: {self.metadata.name})." if self.metadata.name else ""
+        SetuptoolsDeprecationWarning.emit(
+            f"Invalid dash-separated key {opt!r} in {section!r} (setup.cfg), "
+            f"please use the underscore name {underscore_opt!r} instead.",
+            f"""
+            Usage of dash-separated {opt!r} will not be supported in future
+            versions. Please use the underscore name {underscore_opt!r} instead.
+            {affected}
 
-        if '-' in opt:
-            warnings.warn(
-                "Usage of dash-separated '%s' will not be supported in future "
-                "versions. Please use the underscore name '%s' instead"
-                % (opt, underscore_opt)
-            )
+            Available configuration options are listed in:
+            https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
+            """,
+            see_url="https://github.com/pypa/setuptools/discussions/5011",
+            due_date=(2026, 3, 3),
+            # Warning initially introduced in 3 Mar 2021
+        )
         return underscore_opt
 
-    def _setuptools_commands(self):
-        try:
-            return metadata.distribution('setuptools').entry_points.names
-        except metadata.PackageNotFoundError:
-            # during bootstrapping, distribution doesn't exist
-            return []
-
-    def make_option_lowercase(self, opt, section):
-        if section != 'metadata' or opt.islower():
+    def _enforce_option_lowercase(self, opt: str, section: str) -> str:
+        if opt.islower() or self._skip_setupcfg_normalization(section):
             return opt
 
         lowercase_opt = opt.lower()
-        warnings.warn(
-            "Usage of uppercase key '%s' in '%s' will be deprecated in future "
-            "versions. Please use lowercase '%s' instead"
-            % (opt, section, lowercase_opt)
+        affected = f"(Affected: {self.metadata.name})." if self.metadata.name else ""
+        SetuptoolsDeprecationWarning.emit(
+            f"Invalid uppercase key {opt!r} in {section!r} (setup.cfg), "
+            f"please use lowercase {lowercase_opt!r} instead.",
+            f"""
+            Usage of uppercase key {opt!r} in {section!r} will not be supported in
+            future versions. Please use lowercase {lowercase_opt!r} instead.
+            {affected}
+
+            Available configuration options are listed in:
+            https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
+            """,
+            see_url="https://github.com/pypa/setuptools/discussions/5011",
+            due_date=(2026, 3, 3),
+            # Warning initially introduced in 6 Mar 2021
         )
         return lowercase_opt
+
+    def _skip_setupcfg_normalization(self, section: str) -> bool:
+        skip = (
+            'options.extras_require',
+            'options.data_files',
+            'options.entry_points',
+            'options.package_data',
+            'options.exclude_package_data',
+        )
+        return section in skip or not self._is_setuptools_section(section)
+
+    def _is_setuptools_section(self, section: str) -> bool:
+        return (
+            section == "metadata"
+            or section.startswith("options")
+            or section in _setuptools_commands()
+        )
 
     # FIXME: 'Distribution._set_command_options' is too complex (14)
     def _set_command_options(self, command_obj, option_dict=None):  # noqa: C901
@@ -812,10 +703,10 @@ class Distribution(_Distribution):
             option_dict = self.get_option_dict(command_name)
 
         if DEBUG:
-            self.announce("  setting options for '%s' command:" % command_name)
-        for (option, (source, value)) in option_dict.items():
+            self.announce(f"  setting options for '{command_name}' command:")
+        for option, (source, value) in option_dict.items():
             if DEBUG:
-                self.announce("    %s = %s (from %s)" % (option, value, source))
+                self.announce(f"    {option} = {value} (from {source})")
             try:
                 bool_opts = [translate_longopt(o) for o in command_obj.boolean_options]
             except AttributeError:
@@ -835,13 +726,12 @@ class Distribution(_Distribution):
                     setattr(command_obj, option, value)
                 else:
                     raise DistutilsOptionError(
-                        "error in %s: command '%s' has no such option '%s'"
-                        % (source, command_name, option)
+                        f"error in {source}: command '{command_name}' has no such option '{option}'"
                     )
             except ValueError as e:
                 raise DistutilsOptionError(e) from e
 
-    def _get_project_config_files(self, filenames):
+    def _get_project_config_files(self, filenames: Iterable[StrPath] | None):
         """Add default file and split between INI and TOML"""
         tomlfiles = []
         standard_project_metadata = Path(self.src_root or os.curdir, "pyproject.toml")
@@ -853,7 +743,11 @@ class Distribution(_Distribution):
             tomlfiles = [standard_project_metadata]
         return filenames, tomlfiles
 
-    def parse_config_files(self, filenames=None, ignore_option_errors=False):
+    def parse_config_files(
+        self,
+        filenames: Iterable[StrPath] | None = None,
+        ignore_option_errors: bool = False,
+    ) -> None:
         """Parses configuration files from various levels
         and loads configuration.
         """
@@ -868,20 +762,16 @@ class Distribution(_Distribution):
             pyprojecttoml.apply_configuration(self, filename, ignore_option_errors)
 
         self._finalize_requires()
+        self._finalize_license_expression()
         self._finalize_license_files()
 
-    def fetch_build_eggs(self, requires):
+    def fetch_build_eggs(self, requires: _StrOrIter) -> list[metadata.Distribution]:
         """Resolve pre-setup requirements"""
-        resolved_dists = pkg_resources.working_set.resolve(
-            _reqs.parse(requires),
-            installer=self.fetch_build_egg,
-            replace_conflicting=True,
-        )
-        for dist in resolved_dists:
-            pkg_resources.working_set.add(dist, replace=True)
-        return resolved_dists
+        from .installer import _fetch_build_eggs
 
-    def finalize_options(self):
+        return _fetch_build_eggs(self, requires)
+
+    def finalize_options(self) -> None:
         """
         Allow plugins to apply arbitrary operations to the
         distribution. Each hook may optionally define a 'order'
@@ -919,13 +809,15 @@ class Distribution(_Distribution):
             if value is not None:
                 ep.load()(self, ep.name, value)
 
-    def get_egg_cache_dir(self):
+    def get_egg_cache_dir(self) -> str:
+        from . import windows_support
+
         egg_cache_dir = os.path.join(os.curdir, '.eggs')
         if not os.path.exists(egg_cache_dir):
             os.mkdir(egg_cache_dir)
             windows_support.hide_file(egg_cache_dir)
             readme_txt_filename = os.path.join(egg_cache_dir, 'README.txt')
-            with open(readme_txt_filename, 'w') as f:
+            with open(readme_txt_filename, 'w', encoding="utf-8") as f:
                 f.write(
                     'This directory contains eggs that were downloaded '
                     'by setuptools to build, test, and run plug-ins.\n\n'
@@ -940,14 +832,20 @@ class Distribution(_Distribution):
 
     def fetch_build_egg(self, req):
         """Fetch an egg needed for building"""
-        from setuptools.installer import fetch_build_egg
+        from .installer import fetch_build_egg
 
         return fetch_build_egg(self, req)
 
-    def get_command_class(self, command):
+    def get_command_class(self, command: str) -> type[distutils.cmd.Command]:  # type: ignore[override] # Not doing complex overrides yet
         """Pluggable version of get_command_class()"""
         if command in self.cmdclass:
             return self.cmdclass[command]
+
+        # Special case bdist_wheel so it's never loaded from "wheel"
+        if command == 'bdist_wheel':
+            from .command.bdist_wheel import bdist_wheel
+
+            return bdist_wheel
 
         eps = metadata.entry_points(group='distutils.commands', name=command)
         for ep in eps:
@@ -970,7 +868,7 @@ class Distribution(_Distribution):
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.get_command_list(self)
 
-    def include(self, **attrs):
+    def include(self, **attrs) -> None:
         """Add items to distribution that are named in keyword arguments
 
         For example, 'dist.include(py_modules=["x"])' would add 'x' to
@@ -992,7 +890,7 @@ class Distribution(_Distribution):
             else:
                 self._include_misc(k, v)
 
-    def exclude_package(self, package):
+    def exclude_package(self, package: str) -> None:
         """Remove packages, modules, and extensions in named package"""
 
         pfx = package + '.'
@@ -1013,7 +911,7 @@ class Distribution(_Distribution):
                 if p.name != package and not p.name.startswith(pfx)
             ]
 
-    def has_contents_for(self, package):
+    def has_contents_for(self, package: str) -> bool:
         """Return true if 'exclude_package(package)' would do something"""
 
         pfx = package + '.'
@@ -1022,43 +920,47 @@ class Distribution(_Distribution):
             if p == package or p.startswith(pfx):
                 return True
 
-    def _exclude_misc(self, name, value):
+        return False
+
+    def _exclude_misc(self, name: str, value: _Sequence) -> None:
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
-        if not isinstance(value, sequence):
+        if not isinstance(value, _sequence):
             raise DistutilsSetupError(
-                "%s: setting must be a list or tuple (%r)" % (name, value)
+                f"{name}: setting must be of type <{_sequence_type_repr}> (got {value!r})"
             )
         try:
             old = getattr(self, name)
         except AttributeError as e:
-            raise DistutilsSetupError("%s: No such distribution setting" % name) from e
-        if old is not None and not isinstance(old, sequence):
+            raise DistutilsSetupError(f"{name}: No such distribution setting") from e
+        if old is not None and not isinstance(old, _sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
             )
         elif old:
             setattr(self, name, [item for item in old if item not in value])
 
-    def _include_misc(self, name, value):
+    def _include_misc(self, name: str, value: _Sequence) -> None:
         """Handle 'include()' for list/tuple attrs without a special handler"""
 
-        if not isinstance(value, sequence):
-            raise DistutilsSetupError("%s: setting must be a list (%r)" % (name, value))
+        if not isinstance(value, _sequence):
+            raise DistutilsSetupError(
+                f"{name}: setting must be of type <{_sequence_type_repr}> (got {value!r})"
+            )
         try:
             old = getattr(self, name)
         except AttributeError as e:
-            raise DistutilsSetupError("%s: No such distribution setting" % name) from e
+            raise DistutilsSetupError(f"{name}: No such distribution setting") from e
         if old is None:
             setattr(self, name, value)
-        elif not isinstance(old, sequence):
+        elif not isinstance(old, _sequence):
             raise DistutilsSetupError(
                 name + ": this setting cannot be changed via include/exclude"
             )
         else:
             new = [item for item in value if item not in old]
-            setattr(self, name, old + new)
+            setattr(self, name, list(old) + new)
 
-    def exclude(self, **attrs):
+    def exclude(self, **attrs) -> None:
         """Remove items from distribution that are named in keyword arguments
 
         For example, 'dist.exclude(py_modules=["x"])' would remove 'x' from
@@ -1081,10 +983,10 @@ class Distribution(_Distribution):
             else:
                 self._exclude_misc(k, v)
 
-    def _exclude_packages(self, packages):
-        if not isinstance(packages, sequence):
+    def _exclude_packages(self, packages: _Sequence) -> None:
+        if not isinstance(packages, _sequence):
             raise DistutilsSetupError(
-                "packages: setting must be a list or tuple (%r)" % (packages,)
+                f"packages: setting must be of type <{_sequence_type_repr}> (got {packages!r})"
             )
         list(map(self.exclude_package, packages))
 
@@ -1097,7 +999,7 @@ class Distribution(_Distribution):
         command = args[0]
         aliases = self.get_option_dict('aliases')
         while command in aliases:
-            src, alias = aliases[command]
+            _src, alias = aliases[command]
             del aliases[command]  # ensure each alias can expand only once!
             import shlex
 
@@ -1115,7 +1017,7 @@ class Distribution(_Distribution):
 
         return nargs
 
-    def get_cmdline_options(self):
+    def get_cmdline_options(self) -> dict[str, dict[str, str | None]]:
         """Return a '{cmd: {opt:val}}' map of all command-line options
 
         Option names are all long, but do not include the leading '--', and
@@ -1125,12 +1027,11 @@ class Distribution(_Distribution):
         Note that options provided by config files are intentionally excluded.
         """
 
-        d = {}
+        d: dict[str, dict[str, str | None]] = {}
 
         for cmd, opts in self.command_options.items():
-
+            val: str | None
             for opt, (src, val) in opts.items():
-
                 if src != "command line":
                     continue
 
@@ -1155,18 +1056,16 @@ class Distribution(_Distribution):
 
         return d
 
-    def iter_distribution_names(self):
+    def iter_distribution_names(self) -> Iterator[str]:
         """Yield all packages, modules, and extension names in distribution"""
 
-        for pkg in self.packages or ():
-            yield pkg
+        yield from self.packages or ()
 
-        for module in self.py_modules or ():
-            yield module
+        yield from self.py_modules or ()
 
         for ext in self.ext_modules or ():
             if isinstance(ext, tuple):
-                name, buildinfo = ext
+                name, _buildinfo = ext
             else:
                 name = ext.name
             if name.endswith('module'):
@@ -1195,26 +1094,30 @@ class Distribution(_Distribution):
 
         # Print metadata in UTF-8 no matter the platform
         encoding = sys.stdout.encoding
-        errors = sys.stdout.errors
-        newline = sys.platform != 'win32' and '\n' or None
-        line_buffering = sys.stdout.line_buffering
-
-        sys.stdout = io.TextIOWrapper(
-            sys.stdout.detach(), 'utf-8', errors, newline, line_buffering
-        )
+        sys.stdout.reconfigure(encoding='utf-8')
         try:
             return _Distribution.handle_display_options(self, option_order)
         finally:
-            sys.stdout = io.TextIOWrapper(
-                sys.stdout.detach(), encoding, errors, newline, line_buffering
-            )
+            sys.stdout.reconfigure(encoding=encoding)
 
-    def run_command(self, command):
+    def run_command(self, command) -> None:
         self.set_defaults()
         # Postpone defaults until all explicit configuration is considered
         # (setup() args, config files, command line and plugins)
 
         super().run_command(command)
+
+
+@functools.cache
+def _setuptools_commands() -> set[str]:
+    try:
+        # Use older API for importlib.metadata compatibility
+        entry_points = metadata.distribution('setuptools').entry_points
+        eps: Iterable[str] = (ep.name for ep in entry_points)
+    except metadata.PackageNotFoundError:
+        # during bootstrapping, distribution doesn't exist
+        eps = []
+    return {*distutils.command.__all__, *eps}
 
 
 class DistDeprecationWarning(SetuptoolsDeprecationWarning):

@@ -1,0 +1,4 @@
+[tool.towncrier]
+title_format = "{version}"
+# workaround for sphinx-contrib/sphinxcontrib-towncrier#83
+directory = "newsfragments"

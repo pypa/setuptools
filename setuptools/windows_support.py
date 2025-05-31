@@ -8,16 +8,17 @@ def windows_only(func):
 
 
 @windows_only
-def hide_file(path):
+def hide_file(path: str) -> None:
     """
     Set the hidden attribute on a file or directory.
 
-    From http://stackoverflow.com/questions/19622133/
+    From https://stackoverflow.com/questions/19622133/
 
     `path` must be text.
     """
     import ctypes
-    __import__('ctypes.wintypes')
+    import ctypes.wintypes
+
     SetFileAttributes = ctypes.windll.kernel32.SetFileAttributesW
     SetFileAttributes.argtypes = ctypes.wintypes.LPWSTR, ctypes.wintypes.DWORD
     SetFileAttributes.restype = ctypes.wintypes.BOOL

@@ -1,21 +1,20 @@
 """Tests for distutils.command.install_data."""
-import sys
-import os
+
 import importlib.util
-
-import pytest
-
+import os
+import sys
 from distutils.command.install_lib import install_lib
+from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
 from distutils.tests import support
-from distutils.errors import DistutilsOptionError
+
+import pytest
 
 
 @support.combine_markers
 @pytest.mark.usefixtures('save_env')
 class TestInstallLib(
     support.TempdirManager,
-    support.LoggingSilencer,
 ):
     def test_finalize_options(self):
         dist = self.create_dist()[1]
@@ -94,11 +93,11 @@ class TestInstallLib(
         inputs = cmd.get_inputs()
         assert len(inputs) == 2, inputs
 
-    def test_dont_write_bytecode(self):
+    def test_dont_write_bytecode(self, caplog):
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = install_lib(dist)
-        cmd.compile = 1
+        cmd.compile = True
         cmd.optimize = 1
 
         old_dont_write_bytecode = sys.dont_write_bytecode
@@ -108,4 +107,4 @@ class TestInstallLib(
         finally:
             sys.dont_write_bytecode = old_dont_write_bytecode
 
-        assert 'byte-compiling is disabled' in self.logs[0][1] % self.logs[0][2]
+        assert 'byte-compiling is disabled' in caplog.messages[0]

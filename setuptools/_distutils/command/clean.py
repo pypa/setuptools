@@ -5,32 +5,33 @@ Implements the Distutils 'clean' command."""
 # contributed by Bastian Kleineidam <calvin@cs.uni-sb.de>, added 2000-03-18
 
 import os
-from distutils.core import Command
-from distutils.dir_util import remove_tree
-from distutils import log
+from distutils._log import log
+from typing import ClassVar
+
+from ..core import Command
+from ..dir_util import remove_tree
 
 
 class clean(Command):
-
     description = "clean up temporary files from 'build' command"
     user_options = [
-        ('build-base=', 'b', "base build directory (default: 'build.build-base')"),
+        ('build-base=', 'b', "base build directory [default: 'build.build-base']"),
         (
             'build-lib=',
             None,
-            "build directory for all modules (default: 'build.build-lib')",
+            "build directory for all modules [default: 'build.build-lib']",
         ),
-        ('build-temp=', 't', "temporary build directory (default: 'build.build-temp')"),
+        ('build-temp=', 't', "temporary build directory [default: 'build.build-temp']"),
         (
             'build-scripts=',
             None,
-            "build directory for scripts (default: 'build.build-scripts')",
+            "build directory for scripts [default: 'build.build-scripts']",
         ),
         ('bdist-base=', None, "temporary directory for built distributions"),
         ('all', 'a', "remove all build output, not just temporary by-products"),
     ]
 
-    boolean_options = ['all']
+    boolean_options: ClassVar[list[str]] = ['all']
 
     def initialize_options(self):
         self.build_base = None
@@ -64,7 +65,7 @@ class clean(Command):
                 if os.path.exists(directory):
                     remove_tree(directory, dry_run=self.dry_run)
                 else:
-                    log.warn("'%s' does not exist -- can't clean it", directory)
+                    log.warning("'%s' does not exist -- can't clean it", directory)
 
         # just for the heck of it, try to remove the base build directory:
         # we might have emptied it right now, but if not we don't care

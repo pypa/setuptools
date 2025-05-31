@@ -1,16 +1,15 @@
 """Tests for distutils.command.install_headers."""
+
 import os
-
-import pytest
-
 from distutils.command.install_headers import install_headers
 from distutils.tests import support
+
+import pytest
 
 
 @pytest.mark.usefixtures('save_env')
 class TestInstallHeaders(
     support.TempdirManager,
-    support.LoggingSilencer,
 ):
     def test_simple_run(self):
         # we have two headers

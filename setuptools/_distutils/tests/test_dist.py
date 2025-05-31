@@ -1,22 +1,22 @@
 """Tests for distutils.dist."""
-import os
-import io
-import sys
-import warnings
-import textwrap
+
+import email
+import email.generator
+import email.policy
 import functools
+import io
+import os
+import sys
+import textwrap
 import unittest.mock as mock
-
-import pytest
-import jaraco.path
-
-from distutils.dist import Distribution, fix_help_options
+import warnings
 from distutils.cmd import Command
-
-from test.support import captured_stdout, captured_stderr
+from distutils.dist import Distribution, fix_help_options
 from distutils.tests import support
-from distutils import log
+from typing import ClassVar
 
+import jaraco.path
+import pytest
 
 pydistutils_cfg = '.' * (os.name == 'posix') + 'pydistutils.cfg'
 
@@ -24,7 +24,7 @@ pydistutils_cfg = '.' * (os.name == 'posix') + 'pydistutils.cfg'
 class test_dist(Command):
     """Sample distutils extension command."""
 
-    user_options = [
+    user_options: ClassVar[list[tuple[str, str, str]]] = [
         ("sample-option=", "S", "help text"),
     ]
 
@@ -52,10 +52,7 @@ def clear_argv():
 @support.combine_markers
 @pytest.mark.usefixtures('save_env')
 @pytest.mark.usefixtures('save_argv')
-class TestDistributionBehavior(
-    support.LoggingSilencer,
-    support.TempdirManager,
-):
+class TestDistributionBehavior(support.TempdirManager):
     def create_distribution(self, configfiles=()):
         d = TestDistribution()
         d._config_files = configfiles
@@ -71,14 +68,12 @@ class TestDistributionBehavior(
     def test_command_packages_cmdline(self, clear_argv):
         from distutils.tests.test_dist import test_dist
 
-        sys.argv.extend(
-            [
-                "--command-packages",
-                "foo.bar,distutils.tests",
-                "test_dist",
-                "-Ssometext",
-            ]
-        )
+        sys.argv.extend([
+            "--command-packages",
+            "foo.bar,distutils.tests",
+            "test_dist",
+            "-Ssometext",
+        ])
         d = self.create_distribution()
         # let's actually try to load our test command:
         assert d.get_command_packages() == [
@@ -94,15 +89,14 @@ class TestDistributionBehavior(
         'distutils' not in Distribution.parse_config_files.__module__,
         reason='Cannot test when virtualenv has monkey-patched Distribution',
     )
-    def test_venv_install_options(self, tmp_path):
+    def test_venv_install_options(self, tmp_path, clear_argv):
         sys.argv.append("install")
         file = str(tmp_path / 'file')
 
         fakepath = '/somedir'
 
-        jaraco.path.build(
-            {
-                file: f"""
+        jaraco.path.build({
+            file: f"""
                     [install]
                     install-base = {fakepath}
                     install-platbase = {fakepath}
@@ -118,8 +112,7 @@ class TestDistributionBehavior(
                     user = {fakepath}
                     root = {fakepath}
                     """,
-            }
-        )
+        })
 
         # Base case: Not in a Virtual Environment
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/a'):
@@ -147,7 +140,7 @@ class TestDistributionBehavior(
             result_dict.keys()
         )
 
-        for (key, value) in d.command_options.get('install').items():
+        for key, value in d.command_options.get('install').items():
             assert value == result_dict[key]
 
         # Test case: In a Virtual Environment
@@ -160,14 +153,12 @@ class TestDistributionBehavior(
     def test_command_packages_configfile(self, tmp_path, clear_argv):
         sys.argv.append("build")
         file = str(tmp_path / "file")
-        jaraco.path.build(
-            {
-                file: """
+        jaraco.path.build({
+            file: """
                     [global]
                     command_packages = foo.bar, splat
                     """,
-            }
-        )
+        })
 
         d = self.create_distribution([file])
         assert d.get_command_packages() == ["distutils.command", "foo.bar", "splat"]
@@ -240,10 +231,8 @@ class TestDistributionBehavior(
     def test_announce(self):
         # make sure the level is known
         dist = Distribution()
-        args = ('ok',)
-        kwargs = {'level': 'ok2'}
-        with pytest.raises(ValueError):
-            dist.announce(args, kwargs)
+        with pytest.raises(TypeError):
+            dist.announce('ok', level='ok2')
 
     def test_find_config_files_disable(self, temp_home):
         # Ticket #1180: Allow user to disable their home config file.
@@ -258,6 +247,12 @@ class TestDistributionBehavior(
         # make sure --no-user-cfg disables the user cfg file
         assert len(all_files) - 1 == len(files)
 
+    def test_script_args_list_coercion(self):
+        d = Distribution(attrs={'script_args': ('build', '--no-user-cfg')})
+
+        # make sure script_args is a list even if it started as a different iterable
+        assert d.script_args == ['build', '--no-user-cfg']
+
     @pytest.mark.skipif(
         'platform.system() == "Windows"',
         reason='Windows does not honor chmod 000',
@@ -266,7 +261,7 @@ class TestDistributionBehavior(
         """
         Finding config files should not fail when directory is inaccessible.
         """
-        fake_home.joinpath(pydistutils_cfg).write_text('')
+        fake_home.joinpath(pydistutils_cfg).write_text('', encoding='utf-8')
         fake_home.chmod(0o000)
         Distribution().find_config_files()
 
@@ -373,16 +368,15 @@ class TestMetadata(support.TempdirManager):
         meta = self.format_metadata(dist)
         assert 'Metadata-Version: 1.1' in meta
 
-    def test_classifier_invalid_type(self):
+    def test_classifier_invalid_type(self, caplog):
         attrs = {
             'name': 'Boa',
             'version': '3.0',
             'classifiers': ('Programming Language :: Python :: 3',),
         }
-        with captured_stderr() as error:
-            d = Distribution(attrs)
+        d = Distribution(attrs)
         # should have warning about passing a non-list
-        assert 'should be a list' in error.getvalue()
+        assert 'should be a list' in caplog.messages[0]
         # should be converted to a list
         assert isinstance(d.metadata.classifiers, list)
         assert d.metadata.classifiers == list(attrs['classifiers'])
@@ -396,16 +390,15 @@ class TestMetadata(support.TempdirManager):
         dist = Distribution(attrs)
         assert dist.get_keywords() == ['spam', 'eggs', 'life of brian']
 
-    def test_keywords_invalid_type(self):
+    def test_keywords_invalid_type(self, caplog):
         attrs = {
             'name': 'Monty',
             'version': '1.0',
             'keywords': ('spam', 'eggs', 'life of brian'),
         }
-        with captured_stderr() as error:
-            d = Distribution(attrs)
+        d = Distribution(attrs)
         # should have warning about passing a non-list
-        assert 'should be a list' in error.getvalue()
+        assert 'should be a list' in caplog.messages[0]
         # should be converted to a list
         assert isinstance(d.metadata.keywords, list)
         assert d.metadata.keywords == list(attrs['keywords'])
@@ -419,16 +412,15 @@ class TestMetadata(support.TempdirManager):
         dist = Distribution(attrs)
         assert dist.get_platforms() == ['GNU/Linux', 'Some Evil Platform']
 
-    def test_platforms_invalid_types(self):
+    def test_platforms_invalid_types(self, caplog):
         attrs = {
             'name': 'Monty',
             'version': '1.0',
             'platforms': ('GNU/Linux', 'Some Evil Platform'),
         }
-        with captured_stderr() as error:
-            d = Distribution(attrs)
+        d = Distribution(attrs)
         # should have warning about passing a non-list
-        assert 'should be a list' in error.getvalue()
+        assert 'should be a list' in caplog.messages[0]
         # should be converted to a list
         assert isinstance(d.metadata.platforms, list)
         assert d.metadata.platforms == list(attrs['platforms'])
@@ -479,18 +471,17 @@ class TestMetadata(support.TempdirManager):
         assert fancy_options[0] == ('a', 'b', 'c')
         assert fancy_options[1] == (1, 2, 3)
 
-    def test_show_help(self, request):
+    def test_show_help(self, request, capsys):
         # smoke test, just makes sure some help is displayed
-        reset_log = functools.partial(log.set_threshold, log._global_log.threshold)
-        request.addfinalizer(reset_log)
         dist = Distribution()
         sys.argv = []
-        dist.help = 1
+        dist.help = True
         dist.script_name = 'setup.py'
-        with captured_stdout() as s:
-            dist.parse_command_line()
+        dist.parse_command_line()
 
-        output = [line for line in s.getvalue().split('\n') if line.strip() != '']
+        output = [
+            line for line in capsys.readouterr().out.split('\n') if line.strip() != ''
+        ]
         assert output
 
     def test_read_metadata(self):
@@ -521,3 +512,41 @@ class TestMetadata(support.TempdirManager):
         assert metadata.platforms is None
         assert metadata.obsoletes is None
         assert metadata.requires == ['foo']
+
+    def test_round_trip_through_email_generator(self):
+        """
+        In pypa/setuptools#4033, it was shown that once PKG-INFO is
+        re-generated using ``email.generator.Generator``, some control
+        characters might cause problems.
+        """
+        # Given a PKG-INFO file ...
+        attrs = {
+            "name": "package",
+            "version": "1.0",
+            "long_description": "hello\x0b\nworld\n",
+        }
+        dist = Distribution(attrs)
+        metadata = dist.metadata
+
+        with io.StringIO() as buffer:
+            metadata.write_pkg_file(buffer)
+            msg = buffer.getvalue()
+
+        # ... when it is read and re-written using stdlib's email library,
+        orig = email.message_from_string(msg)
+        policy = email.policy.EmailPolicy(
+            utf8=True,
+            mangle_from_=False,
+            max_line_length=0,
+        )
+        with io.StringIO() as buffer:
+            email.generator.Generator(buffer, policy=policy).flatten(orig)
+
+            buffer.seek(0)
+            regen = email.message_from_file(buffer)
+
+        # ... then it should be the same as the original
+        # (except for the specific line break characters)
+        orig_desc = set(orig["Description"].splitlines())
+        regen_desc = set(regen["Description"].splitlines())
+        assert regen_desc == orig_desc

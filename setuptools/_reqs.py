@@ -1,9 +1,26 @@
-import setuptools.extern.jaraco.text as text
+from __future__ import annotations
 
-from pkg_resources import Requirement
+from collections.abc import Iterable, Iterator
+from functools import lru_cache
+from typing import TYPE_CHECKING, Callable, TypeVar, Union, overload
+
+import jaraco.text as text
+from packaging.requirements import Requirement
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
+_T = TypeVar("_T")
+_StrOrIter: TypeAlias = Union[str, Iterable[str]]
 
 
-def parse_strings(strs):
+parse_req: Callable[[str], Requirement] = lru_cache()(Requirement)
+# Setuptools parses the same requirement many times
+# (e.g. first for validation than for normalisation),
+# so it might be worth to cache.
+
+
+def parse_strings(strs: _StrOrIter) -> Iterator[str]:
     """
     Yield requirement strings for each specification in `strs`.
 
@@ -12,8 +29,14 @@ def parse_strings(strs):
     return text.join_continuation(map(text.drop_comment, text.yield_lines(strs)))
 
 
-def parse(strs):
+# These overloads are only needed because of a mypy false-positive, pyright gets it right
+# https://github.com/python/mypy/issues/3737
+@overload
+def parse(strs: _StrOrIter) -> Iterator[Requirement]: ...
+@overload
+def parse(strs: _StrOrIter, parser: Callable[[str], _T]) -> Iterator[_T]: ...
+def parse(strs: _StrOrIter, parser: Callable[[str], _T] = parse_req) -> Iterator[_T]:  # type: ignore[assignment]
     """
-    Deprecated drop-in replacement for pkg_resources.parse_requirements.
+    Parse requirements.
     """
-    return map(Requirement, parse_strings(strs))
+    return map(parser, parse_strings(strs))

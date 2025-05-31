@@ -1,0 +1,77 @@
+# Split workflow file to not interfere with skeleton
+name: pyright
+
+on:
+  merge_group:
+  push:
+    branches-ignore:
+    # temporary GH branches relating to merge queues (jaraco/skeleton#93)
+    - gh-readonly-queue/**
+    tags:
+    # required if branches-ignore is supplied (jaraco/skeleton#103)
+    - "**"
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-
+    ${{ github.ref_type }}-
+    ${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+env:
+  # pin pyright version so a new version doesn't suddenly cause the CI to fail,
+  # until types-setuptools is removed from typeshed.
+  # For help with static-typing issues, or pyright update, ping @Avasam
+  #
+  # An exact version from https://github.com/microsoft/pyright/releases or "latest"
+  PYRIGHT_VERSION: "1.1.385"
+
+  # Environment variable to support color support (jaraco/skeleton#66)
+  FORCE_COLOR: 1
+
+  # Suppress noisy pip warnings
+  PIP_DISABLE_PIP_VERSION_CHECK: "true"
+  PIP_NO_PYTHON_VERSION_WARNING: "true"
+  PIP_NO_WARN_SCRIPT_LOCATION: "true"
+
+jobs:
+  pyright:
+    strategy:
+      # https://blog.jaraco.com/efficient-use-of-ci-resources/
+      matrix:
+        python:
+          - "3.9"
+          - "3.13"
+        platform:
+          - ubuntu-latest
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          allow-prereleases: true
+      - name: Install typed dependencies
+        run: python -m pip install -e .[core,type]
+      - name: Inform how to run locally
+        run: |
+          echo 'To run this test locally with npm pre-installed, run:'
+          echo '> npx -y pyright@${{ env.PYRIGHT_VERSION }} --threads'
+          echo 'You can also instead install "Pyright for Python" which will install npm for you:'
+          if [ '$PYRIGHT_VERSION' == 'latest' ]; then
+            echo '> pip install -U'
+          else
+            echo '> pip install pyright==${{ env.PYRIGHT_VERSION }}'
+          fi
+          echo '> pyright --threads'
+        shell: bash
+      - name: Run pyright
+        uses: jakebailey/pyright-action@v2
+        with:
+          version: ${{ env.PYRIGHT_VERSION }}
+          python-version: ${{ matrix.python }}
+          extra-args: --threads

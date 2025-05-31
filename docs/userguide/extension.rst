@@ -44,7 +44,7 @@ different aspect of the build. In ``setuptools``, however, these command
 objects are just a design abstraction that encapsulate logic and help to
 organise the code.
 
-You can overwrite exiting commands (or add new ones) by defining entry
+You can overwrite existing commands (or add new ones) by defining entry
 points in the ``distutils.commands`` group.  For example, if you wanted to add
 a ``foo`` command, you might add something like this to your project:
 
@@ -122,7 +122,7 @@ a non-``None`` value.  Here's an example validation function::
         """Verify that value is True, False, 0, or 1"""
         if bool(value) != value:
             raise SetupError(
-                "%r must be a boolean value (got %r)" % (attr,value)
+                f"{attr!r} must be a boolean value (got {value!r}"
             )
 
 Your function should accept three arguments: the ``Distribution`` object,

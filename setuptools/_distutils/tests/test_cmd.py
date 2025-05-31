@@ -1,11 +1,11 @@
 """Tests for distutils.cmd."""
-import os
-from test.support import captured_stdout
 
+import os
+from distutils import debug
 from distutils.cmd import Command
 from distutils.dist import Distribution
 from distutils.errors import DistutilsOptionError
-from distutils import debug
+
 import pytest
 
 
@@ -48,7 +48,7 @@ class TestCommand:
     def test_make_file(self, cmd):
         # making sure it raises when infiles is not a string or a list/tuple
         with pytest.raises(TypeError):
-            cmd.make_file(infiles=1, outfile='', func='func', args=())
+            cmd.make_file(infiles=True, outfile='', func='func', args=())
 
         # making sure execute gets called properly
         def _execute(func, args, exec_msg, level):
@@ -59,7 +59,6 @@ class TestCommand:
         cmd.make_file(infiles='in', outfile='out', func='func', args=())
 
     def test_dump_options(self, cmd):
-
         msgs = []
 
         def _announce(msg, level):
@@ -100,17 +99,9 @@ class TestCommand:
         with pytest.raises(DistutilsOptionError):
             cmd.ensure_dirname('option2')
 
-    def test_debug_print(self, cmd):
-        with captured_stdout() as stdout:
-            cmd.debug_print('xxx')
-        stdout.seek(0)
-        assert stdout.read() == ''
-
-        debug.DEBUG = True
-        try:
-            with captured_stdout() as stdout:
-                cmd.debug_print('xxx')
-            stdout.seek(0)
-            assert stdout.read() == 'xxx\n'
-        finally:
-            debug.DEBUG = False
+    def test_debug_print(self, cmd, capsys, monkeypatch):
+        cmd.debug_print('xxx')
+        assert capsys.readouterr().out == ''
+        monkeypatch.setattr(debug, 'DEBUG', True)
+        cmd.debug_print('xxx')
+        assert capsys.readouterr().out == 'xxx\n'

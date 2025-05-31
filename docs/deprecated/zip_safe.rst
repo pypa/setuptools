@@ -35,7 +35,7 @@ How the ``zip_safe`` flag was used?
 To set this flag, a developer would pass a boolean value for the ``zip_safe`` argument to the
 ``setup()`` function, or omit it.  When omitted, the ``bdist_egg``
 command would analyze the project's contents to see if it could detect any
-conditions that preventing the project from working in a zipfile.
+conditions preventing the project from working in a zipfile.
 
 This was extremely conservative: ``bdist_egg`` would consider the
 project unsafe if it contained any C extensions or datafiles whatsoever.  This
@@ -62,7 +62,7 @@ Currently, popular Python package installers (such as :pypi:`pip`) and package
 indexes (such as PyPI_) consider that distribution packages are always
 installed as a directory.
 It is however still possible to load packages from zip files added to
-:obj:`sys.path`, thanks to the :mod:`zipimport` module 
+:obj:`sys.path`, thanks to the :mod:`zipimport` module
 and the :mod:`importlib` machinery provided by Python standard library.
 
 When working with modules loaded from a zip file, it is important to keep in

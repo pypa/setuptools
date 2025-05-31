@@ -2,16 +2,18 @@
 
 Implements the Distutils 'check' command.
 """
-import contextlib
 
-from distutils.core import Command
-from distutils.errors import DistutilsSetupError
+import contextlib
+from typing import ClassVar
+
+from ..core import Command
+from ..errors import DistutilsSetupError
 
 with contextlib.suppress(ImportError):
-    import docutils.utils
-    import docutils.parsers.rst
     import docutils.frontend
     import docutils.nodes
+    import docutils.parsers.rst
+    import docutils.utils
 
     class SilentReporter(docutils.utils.Reporter):
         def __init__(
@@ -20,7 +22,7 @@ with contextlib.suppress(ImportError):
             report_level,
             halt_level,
             stream=None,
-            debug=0,
+            debug=False,
             encoding='ascii',
             error_handler='replace',
         ):
@@ -32,7 +34,7 @@ with contextlib.suppress(ImportError):
         def system_message(self, level, message, *children, **kwargs):
             self.messages.append((level, message, children, kwargs))
             return docutils.nodes.system_message(
-                message, level=level, type=self.levels[level], *children, **kwargs
+                message, *children, level=level, type=self.levels[level], **kwargs
             )
 
 
@@ -40,26 +42,23 @@ class check(Command):
     """This command checks the meta-data of the package."""
 
     description = "perform some checks on the package"
-    user_options = [
+    user_options: ClassVar[list[tuple[str, str, str]]] = [
         ('metadata', 'm', 'Verify meta-data'),
         (
             'restructuredtext',
             'r',
-            (
-                'Checks if long string meta-data syntax '
-                'are reStructuredText-compliant'
-            ),
+            'Checks if long string meta-data syntax are reStructuredText-compliant',
         ),
         ('strict', 's', 'Will exit with an error if a check fails'),
     ]
 
-    boolean_options = ['metadata', 'restructuredtext', 'strict']
+    boolean_options: ClassVar[list[str]] = ['metadata', 'restructuredtext', 'strict']
 
     def initialize_options(self):
         """Sets default values for options."""
-        self.restructuredtext = 0
+        self.restructuredtext = False
         self.metadata = 1
-        self.strict = 0
+        self.strict = False
         self._warnings = 0
 
     def finalize_options(self):
@@ -99,13 +98,12 @@ class check(Command):
         """
         metadata = self.distribution.metadata
 
-        missing = []
-        for attr in 'name', 'version':
-            if not getattr(metadata, attr, None):
-                missing.append(attr)
+        missing = [
+            attr for attr in ('name', 'version') if not getattr(metadata, attr, None)
+        ]
 
         if missing:
-            self.warn("missing required meta-data: %s" % ', '.join(missing))
+            self.warn("missing required meta-data: {}".format(', '.join(missing)))
 
     def check_restructuredtext(self):
         """Checks if the long string fields are reST-compliant."""
@@ -115,7 +113,7 @@ class check(Command):
             if line is None:
                 warning = warning[1]
             else:
-                warning = '{} (line {})'.format(warning[1], line)
+                warning = f'{warning[1]} (line {line})'
             self.warn(warning)
 
     def _check_rst_data(self, data):
@@ -143,9 +141,12 @@ class check(Command):
         document.note_source(source_path, -1)
         try:
             parser.parse(data, document)
-        except AttributeError as e:
-            reporter.messages.append(
-                (-1, 'Could not finish the parsing: %s.' % e, '', {})
-            )
+        except (AttributeError, TypeError) as e:
+            reporter.messages.append((
+                -1,
+                f'Could not finish the parsing: {e}.',
+                '',
+                {},
+            ))
 
         return reporter.messages

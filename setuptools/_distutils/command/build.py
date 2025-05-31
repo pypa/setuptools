@@ -2,21 +2,21 @@
 
 Implements the Distutils 'build' command."""
 
-import sys
+from __future__ import annotations
+
 import os
-from distutils.core import Command
-from distutils.errors import DistutilsOptionError
-from distutils.util import get_platform
+import sys
+import sysconfig
+from collections.abc import Callable
+from typing import ClassVar
 
-
-def show_compilers():
-    from distutils.ccompiler import show_compilers
-
-    show_compilers()
+from ..ccompiler import show_compilers
+from ..core import Command
+from ..errors import DistutilsOptionError
+from ..util import get_platform
 
 
 class build(Command):
-
     description = "build everything needed to install"
 
     user_options = [
@@ -26,16 +26,14 @@ class build(Command):
         (
             'build-lib=',
             None,
-            "build directory for all distribution (defaults to either "
-            + "build-purelib or build-platlib",
+            "build directory for all distribution (defaults to either build-purelib or build-platlib",
         ),
         ('build-scripts=', None, "build directory for scripts"),
         ('build-temp=', 't', "temporary build directory"),
         (
             'plat-name=',
             'p',
-            "platform name to build for, if supported "
-            "(default: %s)" % get_platform(),
+            f"platform name to build for, if supported [default: {get_platform()}]",
         ),
         ('compiler=', 'c', "specify the compiler type"),
         ('parallel=', 'j', "number of parallel build jobs"),
@@ -44,9 +42,9 @@ class build(Command):
         ('executable=', 'e', "specify final destination interpreter path (build.py)"),
     ]
 
-    boolean_options = ['debug', 'force']
+    boolean_options: ClassVar[list[str]] = ['debug', 'force']
 
-    help_options = [
+    help_options: ClassVar[list[tuple[str, str | None, str, Callable[[], object]]]] = [
         ('help-compiler', None, "list available compilers", show_compilers),
     ]
 
@@ -62,11 +60,11 @@ class build(Command):
         self.compiler = None
         self.plat_name = None
         self.debug = None
-        self.force = 0
+        self.force = False
         self.executable = None
         self.parallel = None
 
-    def finalize_options(self):  # noqa: C901
+    def finalize_options(self) -> None:  # noqa: C901
         if self.plat_name is None:
             self.plat_name = get_platform()
         else:
@@ -79,7 +77,11 @@ class build(Command):
                     "using './configure --help' on your platform)"
                 )
 
-        plat_specifier = ".{}-{}".format(self.plat_name, sys.implementation.cache_tag)
+        plat_specifier = f".{self.plat_name}-{sys.implementation.cache_tag}"
+
+        # Python 3.13+ with --disable-gil shouldn't share build directories
+        if sysconfig.get_config_var('Py_GIL_DISABLED'):
+            plat_specifier += 't'
 
         # Make it so Python 2.x and Python 2.x with --with-pydebug don't
         # share the same build directories. Doing so confuses the build
@@ -110,7 +112,8 @@ class build(Command):
             self.build_temp = os.path.join(self.build_base, 'temp' + plat_specifier)
         if self.build_scripts is None:
             self.build_scripts = os.path.join(
-                self.build_base, 'scripts-%d.%d' % sys.version_info[:2]
+                self.build_base,
+                f'scripts-{sys.version_info.major}.{sys.version_info.minor}',
             )
 
         if self.executable is None and sys.executable:
@@ -122,7 +125,7 @@ class build(Command):
             except ValueError:
                 raise DistutilsOptionError("parallel should be an integer")
 
-    def run(self):
+    def run(self) -> None:
         # Run all relevant sub-commands.  This will be some subset of:
         #  - build_py      - pure Python modules
         #  - build_clib    - standalone C libraries

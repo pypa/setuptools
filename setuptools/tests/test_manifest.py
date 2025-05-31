@@ -1,21 +1,26 @@
-# -*- coding: utf-8 -*-
 """sdist tests"""
 
+from __future__ import annotations
+
 import contextlib
+import io
+import itertools
+import logging
 import os
 import shutil
 import sys
 import tempfile
-import itertools
-import io
-from distutils import log
-from distutils.errors import DistutilsTemplateError
+
+import pytest
 
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
 from setuptools.tests.textwrap import DALS
 
-import pytest
+from distutils import log
+from distutils.errors import DistutilsTemplateError
+
+IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 
 def make_local_path(s):
@@ -29,11 +34,11 @@ SETUP_ATTRS = {
     'packages': ['app'],
 }
 
-SETUP_PY = """\
+SETUP_PY = f"""\
 from setuptools import setup
 
-setup(**%r)
-""" % SETUP_ATTRS
+setup(**{SETUP_ATTRS!r})
+"""
 
 
 @contextlib.contextmanager
@@ -47,35 +52,36 @@ def quiet():
 
 
 def touch(filename):
-    open(filename, 'w').close()
+    open(filename, 'wb').close()
 
 
 # The set of files always in the manifest, including all files in the
 # .egg-info directory
-default_files = frozenset(map(make_local_path, [
-    'README.rst',
-    'MANIFEST.in',
-    'setup.py',
-    'app.egg-info/PKG-INFO',
-    'app.egg-info/SOURCES.txt',
-    'app.egg-info/dependency_links.txt',
-    'app.egg-info/top_level.txt',
-    'app/__init__.py',
-]))
+default_files = frozenset(
+    map(
+        make_local_path,
+        [
+            'README.rst',
+            'MANIFEST.in',
+            'setup.py',
+            'app.egg-info/PKG-INFO',
+            'app.egg-info/SOURCES.txt',
+            'app.egg-info/dependency_links.txt',
+            'app.egg-info/top_level.txt',
+            'app/__init__.py',
+        ],
+    )
+)
 
 
-translate_specs = [
+translate_specs: list[tuple[str, list[str], list[str]]] = [
     ('foo', ['foo'], ['bar', 'foobar']),
     ('foo/bar', ['foo/bar'], ['foo/bar/baz', './foo/bar', 'foo']),
-
     # Glob matching
     ('*.txt', ['foo.txt', 'bar.txt'], ['foo/foo.txt']),
-    (
-        'dir/*.txt',
-        ['dir/foo.txt', 'dir/bar.txt', 'dir/.txt'], ['notdir/foo.txt']),
+    ('dir/*.txt', ['dir/foo.txt', 'dir/bar.txt', 'dir/.txt'], ['notdir/foo.txt']),
     ('*/*.py', ['bin/start.py'], []),
     ('docs/page-?.txt', ['docs/page-9.txt'], ['docs/page-10.txt']),
-
     # Globstars change what they mean depending upon where they are
     (
         'foo/**/bar',
@@ -92,32 +98,27 @@ translate_specs = [
         ['x', 'abc/xyz', '@nything'],
         [],
     ),
-
     # Character classes
     (
         'pre[one]post',
         ['preopost', 'prenpost', 'preepost'],
         ['prepost', 'preonepost'],
     ),
-
     (
         'hello[!one]world',
         ['helloxworld', 'helloyworld'],
         ['hellooworld', 'helloworld', 'hellooneworld'],
     ),
-
     (
         '[]one].txt',
         ['o.txt', '].txt', 'e.txt'],
         ['one].txt'],
     ),
-
     (
         'foo[!]one]bar',
         ['fooybar'],
         ['foo]bar', 'fooobar', 'fooebar'],
     ),
-
 ]
 """
 A spec of inputs for 'translate_pattern' and matches and mismatches
@@ -169,9 +170,9 @@ class TempDirTestCase:
 
 class TestManifestTest(TempDirTestCase):
     def setup_method(self, method):
-        super(TestManifestTest, self).setup_method(method)
+        super().setup_method(method)
 
-        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
+        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w', encoding="utf-8")
         f.write(SETUP_PY)
         f.close()
         """
@@ -209,7 +210,8 @@ class TestManifestTest(TempDirTestCase):
 
     def make_manifest(self, contents):
         """Write a MANIFEST.in."""
-        with open(os.path.join(self.temp_dir, 'MANIFEST.in'), 'w') as f:
+        manifest = os.path.join(self.temp_dir, 'MANIFEST.in')
+        with open(manifest, 'w', encoding="utf-8") as f:
             f.write(DALS(contents))
 
     def get_files(self):
@@ -235,8 +237,7 @@ class TestManifestTest(TempDirTestCase):
     def test_include(self):
         """Include extra rst files in the project root."""
         self.make_manifest("include *.rst")
-        files = default_files | set([
-            'testing.rst', '.hidden.rst'])
+        files = default_files | set(['testing.rst', '.hidden.rst'])
         assert files == self.get_files()
 
     def test_exclude(self):
@@ -246,7 +247,8 @@ class TestManifestTest(TempDirTestCase):
             """
             include app/*
             exclude app/*.txt
-            """)
+            """
+        )
         files = default_files | set([ml('app/c.rst')])
         assert files == self.get_files()
 
@@ -255,9 +257,13 @@ class TestManifestTest(TempDirTestCase):
         ml = make_local_path
         self.make_manifest("include app/*.txt app/static/*")
         files = default_files | set([
-            ml('app/a.txt'), ml('app/b.txt'),
-            ml('app/static/app.js'), ml('app/static/app.js.map'),
-            ml('app/static/app.css'), ml('app/static/app.css.map')])
+            ml('app/a.txt'),
+            ml('app/b.txt'),
+            ml('app/static/app.js'),
+            ml('app/static/app.js.map'),
+            ml('app/static/app.css'),
+            ml('app/static/app.css.map'),
+        ])
         assert files == self.get_files()
 
     def test_graft(self):
@@ -265,8 +271,11 @@ class TestManifestTest(TempDirTestCase):
         ml = make_local_path
         self.make_manifest("graft app/static")
         files = default_files | set([
-            ml('app/static/app.js'), ml('app/static/app.js.map'),
-            ml('app/static/app.css'), ml('app/static/app.css.map')])
+            ml('app/static/app.js'),
+            ml('app/static/app.js.map'),
+            ml('app/static/app.css'),
+            ml('app/static/app.css.map'),
+        ])
         assert files == self.get_files()
 
     def test_graft_glob_syntax(self):
@@ -274,8 +283,11 @@ class TestManifestTest(TempDirTestCase):
         ml = make_local_path
         self.make_manifest("graft */static")
         files = default_files | set([
-            ml('app/static/app.js'), ml('app/static/app.js.map'),
-            ml('app/static/app.css'), ml('app/static/app.css.map')])
+            ml('app/static/app.js'),
+            ml('app/static/app.js.map'),
+            ml('app/static/app.css'),
+            ml('app/static/app.css.map'),
+        ])
         assert files == self.get_files()
 
     def test_graft_global_exclude(self):
@@ -285,9 +297,9 @@ class TestManifestTest(TempDirTestCase):
             """
             graft app/static
             global-exclude *.map
-            """)
-        files = default_files | set([
-            ml('app/static/app.js'), ml('app/static/app.css')])
+            """
+        )
+        files = default_files | set([ml('app/static/app.js'), ml('app/static/app.css')])
         assert files == self.get_files()
 
     def test_global_include(self):
@@ -296,10 +308,15 @@ class TestManifestTest(TempDirTestCase):
         self.make_manifest(
             """
             global-include *.rst *.js *.css
-            """)
+            """
+        )
         files = default_files | set([
-            '.hidden.rst', 'testing.rst', ml('app/c.rst'),
-            ml('app/static/app.js'), ml('app/static/app.css')])
+            '.hidden.rst',
+            'testing.rst',
+            ml('app/c.rst'),
+            ml('app/static/app.js'),
+            ml('app/static/app.css'),
+        ])
         assert files == self.get_files()
 
     def test_graft_prune(self):
@@ -309,9 +326,9 @@ class TestManifestTest(TempDirTestCase):
             """
             graft app
             prune app/static
-            """)
-        files = default_files | set([
-            ml('app/a.txt'), ml('app/b.txt'), ml('app/c.rst')])
+            """
+        )
+        files = default_files | set([ml('app/a.txt'), ml('app/b.txt'), ml('app/c.rst')])
         assert files == self.get_files()
 
 
@@ -321,50 +338,37 @@ class TestFileListTest(TempDirTestCase):
     to ensure setuptools' version of FileList keeps parity with distutils.
     """
 
-    def setup_method(self, method):
-        if not hasattr(log, 'Log'):
-            pytest.skip("These tests rely on old logging infra")
-        super(TestFileListTest, self).setup_method(method)
-        self.threshold = log.set_threshold(log.FATAL)
-        self._old_log = log.Log._log
-        log.Log._log = self._log
-        self.logs = []
+    @pytest.fixture(autouse=os.getenv("SETUPTOOLS_USE_DISTUTILS") == "stdlib")
+    def _compat_record_logs(self, monkeypatch, caplog):
+        """Account for stdlib compatibility"""
 
-    def teardown_method(self, method):
-        log.set_threshold(self.threshold)
-        log.Log._log = self._old_log
-        super(TestFileListTest, self).teardown_method(method)
+        def _log(_logger, level, msg, args):
+            exc = sys.exc_info()
+            rec = logging.LogRecord("distutils", level, "", 0, msg, args, exc)
+            caplog.records.append(rec)
 
-    def _log(self, level, msg, args):
-        if level not in (log.DEBUG, log.INFO, log.WARN, log.ERROR, log.FATAL):
-            raise ValueError('%s wrong log level' % str(level))
-        self.logs.append((level, msg, args))
+        monkeypatch.setattr(log.Log, "_log", _log)
 
-    def get_logs(self, *levels):
-        def _format(msg, args):
-            if len(args) == 0:
-                return msg
-            return msg % args
-        return [_format(msg, args) for level, msg, args
-                in self.logs if level in levels]
+    def get_records(self, caplog, *levels):
+        return [r for r in caplog.records if r.levelno in levels]
 
-    def clear_logs(self):
-        self.logs = []
+    def assertNoWarnings(self, caplog):
+        assert self.get_records(caplog, log.WARN) == []
+        caplog.clear()
 
-    def assertNoWarnings(self):
-        assert self.get_logs(log.WARN) == []
-        self.clear_logs()
-
-    def assertWarnings(self):
-        assert len(self.get_logs(log.WARN)) > 0
-        self.clear_logs()
+    def assertWarnings(self, caplog):
+        if IS_PYPY and not caplog.records:
+            pytest.xfail("caplog checks may not work well in PyPy")
+        else:
+            assert len(self.get_records(caplog, log.WARN)) > 0
+            caplog.clear()
 
     def make_files(self, files):
         for file in files:
             file = os.path.join(self.temp_dir, file)
-            dirname, basename = os.path.split(file)
+            dirname, _basename = os.path.split(file)
             os.makedirs(dirname, exist_ok=True)
-            open(file, 'w').close()
+            touch(file)
 
     def test_process_template_line(self):
         # testing  all MANIFEST.in template patterns
@@ -373,7 +377,10 @@ class TestFileListTest(TempDirTestCase):
 
         # simulated file list
         self.make_files([
-            'foo.tmp', 'ok', 'xo', 'four.txt',
+            'foo.tmp',
+            'ok',
+            'xo',
+            'four.txt',
             'buildout.cfg',
             # filelist does not filter out VCS directories,
             # it's sdist that does
@@ -389,7 +396,8 @@ class TestFileListTest(TempDirTestCase):
             ml('dir3/sub/ok.txt'),
         ])
 
-        MANIFEST_IN = DALS("""\
+        MANIFEST_IN = DALS(
+            """\
         include ok
         include xo
         exclude xo
@@ -402,7 +410,8 @@ class TestFileListTest(TempDirTestCase):
         recursive-exclude global *.x
         graft dir
         prune dir3
-        """)
+        """
+        )
 
         for line in MANIFEST_IN.split('\n'):
             if not line:
@@ -462,19 +471,22 @@ class TestFileListTest(TempDirTestCase):
     def test_process_template_line_invalid(self):
         # invalid lines
         file_list = FileList()
-        for action in ('include', 'exclude', 'global-include',
-                       'global-exclude', 'recursive-include',
-                       'recursive-exclude', 'graft', 'prune', 'blarg'):
-            try:
+        for action in (
+            'include',
+            'exclude',
+            'global-include',
+            'global-exclude',
+            'recursive-include',
+            'recursive-exclude',
+            'graft',
+            'prune',
+            'blarg',
+        ):
+            with pytest.raises(DistutilsTemplateError):
                 file_list.process_template_line(action)
-            except DistutilsTemplateError:
-                pass
-            except Exception:
-                assert False, "Incorrect error thrown"
-            else:
-                assert False, "Should have thrown an error"
 
-    def test_include(self):
+    def test_include(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # include
         file_list = FileList()
@@ -483,14 +495,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('include *.py')
         file_list.sort()
         assert file_list.files == ['a.py']
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('include *.rb')
         file_list.sort()
         assert file_list.files == ['a.py']
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_exclude(self):
+    def test_exclude(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # exclude
         file_list = FileList()
@@ -499,14 +512,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('exclude *.py')
         file_list.sort()
         assert file_list.files == ['b.txt', ml('d/c.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('exclude *.rb')
         file_list.sort()
         assert file_list.files == ['b.txt', ml('d/c.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_global_include(self):
+    def test_global_include(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # global-include
         file_list = FileList()
@@ -515,14 +529,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('global-include *.py')
         file_list.sort()
         assert file_list.files == ['a.py', ml('d/c.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('global-include *.rb')
         file_list.sort()
         assert file_list.files == ['a.py', ml('d/c.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_global_exclude(self):
+    def test_global_exclude(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # global-exclude
         file_list = FileList()
@@ -531,14 +546,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('global-exclude *.py')
         file_list.sort()
         assert file_list.files == ['b.txt']
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('global-exclude *.rb')
         file_list.sort()
         assert file_list.files == ['b.txt']
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_recursive_include(self):
+    def test_recursive_include(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # recursive-include
         file_list = FileList()
@@ -547,14 +563,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('recursive-include d *.py')
         file_list.sort()
         assert file_list.files == [ml('d/b.py'), ml('d/d/e.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('recursive-include e *.py')
         file_list.sort()
         assert file_list.files == [ml('d/b.py'), ml('d/d/e.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_recursive_exclude(self):
+    def test_recursive_exclude(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # recursive-exclude
         file_list = FileList()
@@ -563,14 +580,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('recursive-exclude d *.py')
         file_list.sort()
         assert file_list.files == ['a.py', ml('d/c.txt')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('recursive-exclude e *.py')
         file_list.sort()
         assert file_list.files == ['a.py', ml('d/c.txt')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_graft(self):
+    def test_graft(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # graft
         file_list = FileList()
@@ -579,14 +597,15 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('graft d')
         file_list.sort()
         assert file_list.files == [ml('d/b.py'), ml('d/d/e.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('graft e')
         file_list.sort()
         assert file_list.files == [ml('d/b.py'), ml('d/d/e.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)
 
-    def test_prune(self):
+    def test_prune(self, caplog):
+        caplog.set_level(logging.DEBUG)
         ml = make_local_path
         # prune
         file_list = FileList()
@@ -595,9 +614,9 @@ class TestFileListTest(TempDirTestCase):
         file_list.process_template_line('prune d')
         file_list.sort()
         assert file_list.files == ['a.py', ml('f/f.py')]
-        self.assertNoWarnings()
+        self.assertNoWarnings(caplog)
 
         file_list.process_template_line('prune e')
         file_list.sort()
         assert file_list.files == ['a.py', ml('f/f.py')]
-        self.assertWarnings()
+        self.assertWarnings(caplog)

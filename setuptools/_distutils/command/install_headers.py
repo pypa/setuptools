@@ -3,24 +3,25 @@
 Implements the Distutils 'install_headers' command, to install C/C++ header
 files to the Python include directory."""
 
-from distutils.core import Command
+from typing import ClassVar
+
+from ..core import Command
 
 
 # XXX force is never used
 class install_headers(Command):
-
     description = "install C/C++ header files"
 
-    user_options = [
+    user_options: ClassVar[list[tuple[str, str, str]]] = [
         ('install-dir=', 'd', "directory to install header files to"),
         ('force', 'f', "force installation (overwrite existing files)"),
     ]
 
-    boolean_options = ['force']
+    boolean_options: ClassVar[list[str]] = ['force']
 
     def initialize_options(self):
         self.install_dir = None
-        self.force = 0
+        self.force = False
         self.outfiles = []
 
     def finalize_options(self):

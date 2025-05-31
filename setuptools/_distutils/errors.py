@@ -1,12 +1,20 @@
-"""distutils.errors
+"""
+Exceptions used by the Distutils modules.
 
-Provides exceptions used by the Distutils modules.  Note that Distutils
-modules may raise standard exceptions; in particular, SystemExit is
-usually raised for errors that are obviously the end-user's fault
-(eg. bad command-line arguments).
+Distutils modules may raise these or standard exceptions,
+including :exc:`SystemExit`.
+"""
 
-This module is safe to use in "from ... import *" mode; it only exports
-symbols whose names start with "Distutils" and end with "Error"."""
+# compiler exceptions aliased for compatibility
+from .compilers.C.errors import CompileError as CompileError
+from .compilers.C.errors import Error as _Error
+from .compilers.C.errors import LibError as LibError
+from .compilers.C.errors import LinkError as LinkError
+from .compilers.C.errors import PreprocessError as PreprocessError
+from .compilers.C.errors import UnknownFileType as _UnknownFileType
+
+CCompilerError = _Error
+UnknownFileError = _UnknownFileType
 
 
 class DistutilsError(Exception):
@@ -98,30 +106,3 @@ class DistutilsTemplateError(DistutilsError):
 
 class DistutilsByteCompileError(DistutilsError):
     """Byte compile error."""
-
-
-# Exception classes used by the CCompiler implementation classes
-class CCompilerError(Exception):
-    """Some compile/link operation failed."""
-
-
-class PreprocessError(CCompilerError):
-    """Failure to preprocess one or more C/C++ files."""
-
-
-class CompileError(CCompilerError):
-    """Failure to compile one or more C/C++ source files."""
-
-
-class LibError(CCompilerError):
-    """Failure to create a static library from one or more C/C++ object
-    files."""
-
-
-class LinkError(CCompilerError):
-    """Failure to link one or more C/C++ object files into an executable
-    or shared library file."""
-
-
-class UnknownFileError(CCompilerError):
-    """Attempt to process an unknown file type."""

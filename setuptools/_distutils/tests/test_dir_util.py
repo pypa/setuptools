@@ -1,55 +1,48 @@
 """Tests for distutils.dir_util."""
-import os
-import stat
-import unittest.mock as mock
 
+import os
+import pathlib
+import stat
+import sys
+import unittest.mock as mock
 from distutils import dir_util, errors
 from distutils.dir_util import (
+    copy_tree,
+    create_tree,
+    ensure_relative,
     mkpath,
     remove_tree,
-    create_tree,
-    copy_tree,
-    ensure_relative,
 )
-
-from distutils import log
 from distutils.tests import support
+
+import jaraco.path
+import path
 import pytest
 
 
 @pytest.fixture(autouse=True)
 def stuff(request, monkeypatch, distutils_managed_tempdir):
     self = request.instance
-    self._logs = []
     tmp_dir = self.mkdtemp()
     self.root_target = os.path.join(tmp_dir, 'deep')
     self.target = os.path.join(self.root_target, 'here')
     self.target2 = os.path.join(tmp_dir, 'deep2')
-    monkeypatch.setattr(log, 'info', self._log)
 
 
 class TestDirUtil(support.TempdirManager):
-    def _log(self, msg, *args):
-        if len(args) > 0:
-            self._logs.append(msg % args)
-        else:
-            self._logs.append(msg)
+    def test_mkpath_remove_tree_verbosity(self, caplog):
+        mkpath(self.target, verbose=False)
+        assert not caplog.records
+        remove_tree(self.root_target, verbose=False)
 
-    def test_mkpath_remove_tree_verbosity(self):
+        mkpath(self.target, verbose=True)
+        wanted = [f'creating {self.target}']
+        assert caplog.messages == wanted
+        caplog.clear()
 
-        mkpath(self.target, verbose=0)
-        wanted = []
-        assert self._logs == wanted
-        remove_tree(self.root_target, verbose=0)
-
-        mkpath(self.target, verbose=1)
-        wanted = ['creating %s' % self.root_target, 'creating %s' % self.target]
-        assert self._logs == wanted
-        self._logs = []
-
-        remove_tree(self.root_target, verbose=1)
-        wanted = ["removing '%s' (and everything under it)" % self.root_target]
-        assert self._logs == wanted
+        remove_tree(self.root_target, verbose=True)
+        wanted = [f"removing '{self.root_target}' (and everything under it)"]
+        assert caplog.messages == wanted
 
     @pytest.mark.skipif("platform.system() == 'Windows'")
     def test_mkpath_with_custom_mode(self):
@@ -61,53 +54,46 @@ class TestDirUtil(support.TempdirManager):
         mkpath(self.target2, 0o555)
         assert stat.S_IMODE(os.stat(self.target2).st_mode) == 0o555 & ~umask
 
-    def test_create_tree_verbosity(self):
+    def test_create_tree_verbosity(self, caplog):
+        create_tree(self.root_target, ['one', 'two', 'three'], verbose=False)
+        assert caplog.messages == []
+        remove_tree(self.root_target, verbose=False)
 
-        create_tree(self.root_target, ['one', 'two', 'three'], verbose=0)
-        assert self._logs == []
-        remove_tree(self.root_target, verbose=0)
+        wanted = [f'creating {self.root_target}']
+        create_tree(self.root_target, ['one', 'two', 'three'], verbose=True)
+        assert caplog.messages == wanted
 
-        wanted = ['creating %s' % self.root_target]
-        create_tree(self.root_target, ['one', 'two', 'three'], verbose=1)
-        assert self._logs == wanted
+        remove_tree(self.root_target, verbose=False)
 
-        remove_tree(self.root_target, verbose=0)
+    def test_copy_tree_verbosity(self, caplog):
+        mkpath(self.target, verbose=False)
 
-    def test_copy_tree_verbosity(self):
+        copy_tree(self.target, self.target2, verbose=False)
+        assert caplog.messages == []
 
-        mkpath(self.target, verbose=0)
+        remove_tree(self.root_target, verbose=False)
 
-        copy_tree(self.target, self.target2, verbose=0)
-        assert self._logs == []
+        mkpath(self.target, verbose=False)
+        a_file = path.Path(self.target) / 'ok.txt'
+        jaraco.path.build({'ok.txt': 'some content'}, self.target)
 
-        remove_tree(self.root_target, verbose=0)
+        wanted = [f'copying {a_file} -> {self.target2}']
+        copy_tree(self.target, self.target2, verbose=True)
+        assert caplog.messages == wanted
 
-        mkpath(self.target, verbose=0)
-        a_file = os.path.join(self.target, 'ok.txt')
-        with open(a_file, 'w') as f:
-            f.write('some content')
-
-        wanted = ['copying {} -> {}'.format(a_file, self.target2)]
-        copy_tree(self.target, self.target2, verbose=1)
-        assert self._logs == wanted
-
-        remove_tree(self.root_target, verbose=0)
-        remove_tree(self.target2, verbose=0)
+        remove_tree(self.root_target, verbose=False)
+        remove_tree(self.target2, verbose=False)
 
     def test_copy_tree_skips_nfs_temp_files(self):
-        mkpath(self.target, verbose=0)
+        mkpath(self.target, verbose=False)
 
-        a_file = os.path.join(self.target, 'ok.txt')
-        nfs_file = os.path.join(self.target, '.nfs123abc')
-        for f in a_file, nfs_file:
-            with open(f, 'w') as fh:
-                fh.write('some content')
+        jaraco.path.build({'ok.txt': 'some content', '.nfs123abc': ''}, self.target)
 
         copy_tree(self.target, self.target2)
         assert os.listdir(self.target2) == ['ok.txt']
 
-        remove_tree(self.root_target, verbose=0)
-        remove_tree(self.target2, verbose=0)
+        remove_tree(self.root_target, verbose=False)
+        remove_tree(self.target2, verbose=False)
 
     def test_ensure_relative(self):
         if os.sep == '/':
@@ -121,8 +107,33 @@ class TestDirUtil(support.TempdirManager):
         """
         An exception in listdir should raise a DistutilsFileError
         """
-        with mock.patch("os.listdir", side_effect=OSError()), pytest.raises(
-            errors.DistutilsFileError
+        with (
+            mock.patch("os.listdir", side_effect=OSError()),
+            pytest.raises(errors.DistutilsFileError),
         ):
             src = self.tempdirs[-1]
             dir_util.copy_tree(src, None)
+
+    def test_mkpath_exception_uncached(self, monkeypatch, tmp_path):
+        """
+        Caching should not remember failed attempts.
+
+        pypa/distutils#304
+        """
+
+        class FailPath(pathlib.Path):
+            def mkdir(self, *args, **kwargs):
+                raise OSError("Failed to create directory")
+
+            if sys.version_info < (3, 12):
+                _flavour = pathlib.Path()._flavour
+
+        target = tmp_path / 'foodir'
+
+        with pytest.raises(errors.DistutilsFileError):
+            mkpath(FailPath(target))
+
+        assert not target.exists()
+
+        mkpath(target)
+        assert target.exists()

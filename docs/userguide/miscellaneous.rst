@@ -4,11 +4,50 @@ Controlling files in the distribution
 =====================================
 
 For the most common use cases, ``setuptools`` will automatically find out which
-files are necessary for distributing the package.
-These include all :term:`pure Python modules <Pure Module>` in the
-``py_modules`` or ``packages`` configuration, and the C sources (but not C
-headers) listed as part of extensions when creating a :term:`source
-distribution (or "sdist")`.
+files are necessary for distributing the package. More precisely, the following
+files are included in a source distribution by default:
+
+- :term:`pure Python module <Pure Module>` files implied by the ``py-modules`` and ``packages``
+  configuration parameters in ``pyproject.toml`` and/or equivalent
+  in ``setup.cfg``/``setup.py``;
+- C source files mentioned in the ``ext_modules`` or ``libraries``
+  ``setup()`` arguments;
+- Files that match the following glob patterns: ``tests/test*.py``,
+  ``test/test*.py``;
+- Scripts specified by the ``scripts-files`` configuration parameter
+  in ``pyproject.toml`` or ``scripts`` in ``setup.py``/``setup.cfg``;
+- All files specified by the ``package-data`` and ``data-files``
+  configuration parameters in ``pyproject.toml`` and/or equivalent
+  in ``setup.cfg``/``setup.py``;
+- The file specified by the ``license_file`` option in ``setup.cfg``;
+- All files specified by the ``license-files`` configuration parameter
+  in ``pyproject.toml`` and/or equivalent in ``setup.cfg``/``setup.py``;
+  note that if you don't explicitly set this parameter, ``setuptools``
+  will include any files that match the following glob patterns:
+  ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS**``;
+- ``pyproject.toml``;
+- ``setup.cfg``;
+- ``setup.py``;
+- ``README``, ``README.txt``, ``README.rst`` or ``README.md``;
+- ``MANIFEST.in``
+
+Please note that the list above is guaranteed to work with the last stable version
+of ``setuptools``. The behavior of older versions might differ.
+
+.. note::
+   .. versionadded:: v69.0.0
+      ``setuptools`` will attempt to include type information files
+      by default in the distribution
+      (``.pyi`` and ``py.typed``, as specified in :pep:`561`),
+      as long as they are contained inside of a package directory
+      (for the time being there is no automatic support for top-level ``.pyi`` files).
+
+    *Please note however that this feature is* **EXPERIMENTAL** *and may change in
+    the future.*
+
+    If you have ``.pyi`` and ``py.typed`` files in your project, but do not
+    wish to distribute them, you can opt out by setting
+    :doc:`exclude-package-data </userguide/datafiles>` to remove them.
 
 However, when building more complex packages (e.g. packages that include
 non-Python files, or that need to use custom C headers), you might find that
@@ -30,8 +69,6 @@ to specify any files that the default file location algorithm doesn't catch.
 
 This file contains instructions that tell ``setuptools`` which files exactly
 should be part of the ``sdist`` (or not).
-A comprehensive guide to ``MANIFEST.in`` syntax is available at the
-:doc:`PyPA's Packaging User Guide <PyPUG:guides/using-manifest-in>`.
 
 .. attention::
    Please note that ``setuptools`` supports the ``MANIFEST.in``,
@@ -47,6 +84,58 @@ A comprehensive guide to ``MANIFEST.in`` syntax is available at the
    A good idea is to start with a ``graft`` command (to add all
    files inside a set of directories) and then fine tune the file selection
    by removing the excess or adding isolated files.
+
+
+A :file:`MANIFEST.in` file consists of commands, one per line, instructing
+setuptools to add or remove some set of files from the sdist.  The commands
+are:
+
+=========================================================  ==================================================================================================
+Command                                                    Description
+=========================================================  ==================================================================================================
+:samp:`include {pat1} {pat2} ...`                          Add all files matching any of the listed patterns
+                                                           (Files must be given as paths relative to the root of the project)
+:samp:`exclude {pat1} {pat2} ...`                          Remove all files matching any of the listed patterns
+                                                           (Files must be given as paths relative to the root of the project)
+:samp:`recursive-include {dir-pattern} {pat1} {pat2} ...`  Add all files under directories matching ``dir-pattern`` that match any of the listed patterns
+:samp:`recursive-exclude {dir-pattern} {pat1} {pat2} ...`  Remove all files under directories matching ``dir-pattern`` that match any of the listed patterns
+:samp:`global-include {pat1} {pat2} ...`                   Add all files anywhere in the source tree matching any of the listed patterns
+:samp:`global-exclude {pat1} {pat2} ...`                   Remove all files anywhere in the source tree matching any of the listed patterns
+:samp:`graft {dir-pattern}`                                Add all files under directories matching ``dir-pattern``
+:samp:`prune {dir-pattern}`                                Remove all files under directories matching ``dir-pattern``
+=========================================================  ==================================================================================================
+
+The patterns here are glob-style patterns: ``*`` matches zero or more regular
+filename characters (on Unix, everything except forward slash; on Windows,
+everything except backslash and colon); ``?`` matches a single regular filename
+character, and ``[chars]`` matches any one of the characters between the square
+brackets (which may contain character ranges, e.g., ``[a-z]`` or
+``[a-fA-F0-9]``).  Setuptools also has support for ``**`` matching
+zero or more characters including forward slash, backslash, and colon.
+
+Directory patterns are relative to the root of the project directory; e.g.,
+``graft example*`` will include a directory named :file:`examples` in the
+project root but will not include :file:`docs/examples/`.
+
+File & directory names in :file:`MANIFEST.in` should be ``/``-separated;
+setuptools will automatically convert the slashes to the local platform's
+appropriate directory separator.
+
+Commands are processed in the order they appear in the :file:`MANIFEST.in`
+file.  For example, given the commands:
+
+.. code-block:: bash
+
+    graft tests
+    global-exclude *.py[cod]
+
+the contents of the directory tree :file:`tests` will first be added to the
+sdist, and then after that all files in the sdist with a ``.pyc``, ``.pyo``, or
+``.pyd`` extension will be removed from the sdist.  If the commands were in the
+opposite order, then ``*.pyc`` files etc. would be only be removed from what
+was already in the sdist before adding :file:`tests`, and if :file:`tests`
+happened to contain any ``*.pyc`` files, they would end up included in the
+sdist because the exclusion happened before they were included.
 
 An example of ``MANIFEST.in`` for a simple project that organized according to a
 :ref:`src-layout` is:
@@ -81,6 +170,20 @@ binary extensions during the build process, or included in the final
 
    See :doc:`/userguide/datafiles` for more information.
 
+
+.. _Caching and Troubleshooting:
+
+Caching and Troubleshooting
+===========================
+
+Setuptools automatically creates a few directories to host build artefacts and
+cache files, such as ``build``, ``dist``, ``*.egg-info``.  While cache is
+useful to speed up incremental builds, in some edge cases it might become
+stale.  If you feel that caching is causing problems to your build, specially
+after changes in configuration or in the directory/file structure., consider
+removing ``build``, ``dist``, ``*.egg-info`` [#PKG-INFO]_ before rebuilding or
+reinstalling your project.
+
 ----
 
 .. [#build-process]
@@ -95,6 +198,10 @@ binary extensions during the build process, or included in the final
    and is ready to be unpacked into a running installation of Python or
    :term:`Virtual Environment`.
    Therefore it only contains items that are required during runtime.
+
+.. [#PKG-INFO]
+   When working from an extracted sdist (e.g. for patching), you might also consider removing
+   the ``PKG-INFO`` file to force its recreation.
 
 .. _git: https://git-scm.com
 .. _mercurial: https://www.mercurial-scm.org

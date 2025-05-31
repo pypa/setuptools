@@ -1,19 +1,15 @@
-"""develop tests
-"""
+"""develop tests"""
 
 import os
-import sys
-import subprocess
 import platform
-
-from setuptools.command import test
+import subprocess
+import sys
 
 import pytest
 
-from setuptools.command.develop import develop
-from setuptools.dist import Distribution
-from . import contexts
-from . import namespaces
+from setuptools._path import paths_on_pythonpath
+
+from . import contexts, namespaces
 
 SETUP_PY = """\
 from setuptools import setup
@@ -52,59 +48,9 @@ def test_env(tmpdir, temp_user):
         yield target
 
 
-class TestDevelop:
-    in_virtualenv = hasattr(sys, 'real_prefix')
-    in_venv = hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix
-
-    def test_console_scripts(self, tmpdir):
-        """
-        Test that console scripts are installed and that they reference
-        only the project by name and not the current version.
-        """
-        pytest.skip(
-            "TODO: needs a fixture to cause 'develop' "
-            "to be invoked without mutating environment."
-        )
-        settings = dict(
-            name='foo',
-            packages=['foo'],
-            version='0.0',
-            entry_points={
-                'console_scripts': [
-                    'foocmd = foo:foo',
-                ],
-            },
-        )
-        dist = Distribution(settings)
-        dist.script_name = 'setup.py'
-        cmd = develop(dist)
-        cmd.ensure_finalized()
-        cmd.install_dir = tmpdir
-        cmd.run()
-        # assert '0.0' not in foocmd_text
-
-
-class TestResolver:
-    """
-    TODO: These tests were written with a minimal understanding
-    of what _resolve_setup_path is intending to do. Come up with
-    more meaningful cases that look like real-world scenarios.
-    """
-
-    def test_resolve_setup_path_cwd(self):
-        assert develop._resolve_setup_path('.', '.', '.') == '.'
-
-    def test_resolve_setup_path_one_dir(self):
-        assert develop._resolve_setup_path('pkgs', '.', 'pkgs') == '../'
-
-    def test_resolve_setup_path_one_dir_trailing_slash(self):
-        assert develop._resolve_setup_path('pkgs/', '.', 'pkgs') == '../'
-
-
 class TestNamespaces:
     @staticmethod
     def install_develop(src_dir, target):
-
         develop_cmd = [
             sys.executable,
             'setup.py',
@@ -113,7 +59,7 @@ class TestNamespaces:
             str(target),
         ]
         with src_dir.as_cwd():
-            with test.test.paths_on_pythonpath([str(target)]):
+            with paths_on_pythonpath([str(target)]):
                 subprocess.check_call(develop_cmd)
 
     @pytest.mark.skipif(
@@ -124,6 +70,7 @@ class TestNamespaces:
         platform.python_implementation() == 'PyPy',
         reason="https://github.com/pypa/setuptools/issues/1202",
     )
+    @pytest.mark.uses_network
     def test_namespace_package_importable(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
@@ -152,7 +99,7 @@ class TestNamespaces:
             '-c',
             'import myns.pkgA; import myns.pkgB',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(try_import)
 
         # additionally ensure that pkg_resources import works
@@ -161,5 +108,5 @@ class TestNamespaces:
             '-c',
             'import pkg_resources',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp)
