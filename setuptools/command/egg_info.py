@@ -507,7 +507,7 @@ class FileList(_FileList):
     @staticmethod
     def _encodeable(path):
         if isinstance(path, bytes):
-            raise ValueError(f"Paths as bytes are no longer supported (got {path})")
+            raise TypeError(f"Paths as bytes are no longer supported (got {path!r})")
         try:
             return str(path).encode(sys.getfilesystemencoding())
         except UnicodeEncodeError:
