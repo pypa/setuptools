@@ -1,0 +1,32 @@
+{
+	"$schema": "https://raw.githubusercontent.com/microsoft/pyright/main/packages/vscode-pyright/schemas/pyrightconfig.schema.json",
+	"exclude": [
+		// Avoid scanning Python files in generated folders
+		"build",
+		".tox",
+		".eggs",
+		"setuptools/config/_validate_pyproject/**",
+		// These are vendored
+		"**/_vendor",
+		"setuptools/_distutils",
+	],
+	// Our testing setup doesn't allow passing CLI arguments, so local devs have to set this manually.
+	// "pythonVersion": "3.9",
+	// For now we don't mind if mypy's `type: ignore` comments accidentally suppresses pyright issues
+	"enableTypeIgnoreComments": true,
+	"typeCheckingMode": "basic",
+	// Too many issues caused by dynamic patching, still worth fixing when we can
+	"reportAttributeAccessIssue": "warning",
+	// Fails on Python 3.12 due to missing distutils
+	"reportMissingImports": "warning",
+	// FIXME: A handful of reportOperatorIssue spread throughout the codebase
+	"reportOperatorIssue": "warning",
+	// Deferred initialization (initialize_options/finalize_options) causes many "potentially None" issues
+	// TODO: Fix with type-guards, by changing how it's initialized, or by casting initial assignments
+	"reportArgumentType": "warning",
+	"reportCallIssue": "warning",
+	"reportGeneralTypeIssues": "warning",
+	"reportOptionalIterable": "warning",
+	"reportOptionalMemberAccess": "warning",
+	"reportOptionalOperand": "warning",
+}

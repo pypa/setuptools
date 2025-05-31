@@ -1,22 +1,24 @@
 """sdist tests"""
 
+from __future__ import annotations
+
 import contextlib
+import io
+import itertools
+import logging
 import os
 import shutil
 import sys
 import tempfile
-import itertools
-import io
-import logging
-from distutils import log
-from distutils.errors import DistutilsTemplateError
+
+import pytest
 
 from setuptools.command.egg_info import FileList, egg_info, translate_pattern
 from setuptools.dist import Distribution
 from setuptools.tests.textwrap import DALS
 
-import pytest
-
+from distutils import log
+from distutils.errors import DistutilsTemplateError
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -32,14 +34,11 @@ SETUP_ATTRS = {
     'packages': ['app'],
 }
 
-SETUP_PY = (
-    """\
+SETUP_PY = f"""\
 from setuptools import setup
 
-setup(**%r)
+setup(**{SETUP_ATTRS!r})
 """
-    % SETUP_ATTRS
-)
 
 
 @contextlib.contextmanager
@@ -53,7 +52,7 @@ def quiet():
 
 
 def touch(filename):
-    open(filename, 'w').close()
+    open(filename, 'wb').close()
 
 
 # The set of files always in the manifest, including all files in the
@@ -75,7 +74,7 @@ default_files = frozenset(
 )
 
 
-translate_specs = [
+translate_specs: list[tuple[str, list[str], list[str]]] = [
     ('foo', ['foo'], ['bar', 'foobar']),
     ('foo/bar', ['foo/bar'], ['foo/bar/baz', './foo/bar', 'foo']),
     # Glob matching
@@ -173,7 +172,7 @@ class TestManifestTest(TempDirTestCase):
     def setup_method(self, method):
         super().setup_method(method)
 
-        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w')
+        f = open(os.path.join(self.temp_dir, 'setup.py'), 'w', encoding="utf-8")
         f.write(SETUP_PY)
         f.close()
         """
@@ -211,7 +210,8 @@ class TestManifestTest(TempDirTestCase):
 
     def make_manifest(self, contents):
         """Write a MANIFEST.in."""
-        with open(os.path.join(self.temp_dir, 'MANIFEST.in'), 'w') as f:
+        manifest = os.path.join(self.temp_dir, 'MANIFEST.in')
+        with open(manifest, 'w', encoding="utf-8") as f:
             f.write(DALS(contents))
 
     def get_files(self):
@@ -366,9 +366,9 @@ class TestFileListTest(TempDirTestCase):
     def make_files(self, files):
         for file in files:
             file = os.path.join(self.temp_dir, file)
-            dirname, basename = os.path.split(file)
+            dirname, _basename = os.path.split(file)
             os.makedirs(dirname, exist_ok=True)
-            open(file, 'w').close()
+            touch(file)
 
     def test_process_template_line(self):
         # testing  all MANIFEST.in template patterns
@@ -482,14 +482,8 @@ class TestFileListTest(TempDirTestCase):
             'prune',
             'blarg',
         ):
-            try:
+            with pytest.raises(DistutilsTemplateError):
                 file_list.process_template_line(action)
-            except DistutilsTemplateError:
-                pass
-            except Exception:
-                assert False, "Incorrect error thrown"
-            else:
-                assert False, "Should have thrown an error"
 
     def test_include(self, caplog):
         caplog.set_level(logging.DEBUG)

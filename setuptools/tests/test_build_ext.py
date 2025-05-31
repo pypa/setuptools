@@ -1,21 +1,22 @@
+from __future__ import annotations
+
 import os
 import sys
-import distutils.command.build_ext as orig
-from distutils.sysconfig import get_config_var
 from importlib.util import cache_from_source as _compiled_file_name
 
+import pytest
 from jaraco import path
 
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
-from setuptools.extension import Extension
 from setuptools.errors import CompileError
+from setuptools.extension import Extension
 
 from . import environment
 from .textwrap import DALS
 
-import pytest
-
+import distutils.command.build_ext as orig
+from distutils.sysconfig import get_config_var
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -179,8 +180,8 @@ class TestBuildExt:
 
 
 class TestBuildExtInplace:
-    def get_build_ext_cmd(self, optional: bool, **opts):
-        files = {
+    def get_build_ext_cmd(self, optional: bool, **opts) -> build_ext:
+        files: dict[str, str | dict[str, dict[str, str]]] = {
             "eggs.c": "#include missingheader.h\n",
             ".build": {"lib": {}, "tmp": {}},
         }
@@ -285,8 +286,8 @@ def test_build_ext_config_handling(tmpdir_cwd):
         ),
     }
     path.build(files)
-    code, output = environment.run_setup_py(
+    code, (stdout, stderr) = environment.run_setup_py(
         cmd=['build'],
         data_stream=(0, 2),
     )
-    assert code == 0, '\nSTDOUT:\n%s\nSTDERR:\n%s' % output
+    assert code == 0, f'\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}'

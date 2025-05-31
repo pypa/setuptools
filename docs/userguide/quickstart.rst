@@ -7,7 +7,7 @@ Installation
 
 You can install the latest version of ``setuptools`` using :pypi:`pip`::
 
-    pip install --upgrade setuptools
+    pip install --upgrade setuptools[core]
 
 Most of the times, however, you don't have to...
 
@@ -58,11 +58,21 @@ library will be used to actually do the packaging.
 
 .. note::
 
+   Package maintainers might be tempted to use ``setuptools[core]`` as the
+   requirement, given the guidance above. Avoid doing so, as the extra
+   is currently considered an internal implementation detail and is likely
+   to go away in the future and the Setuptools team will not support
+   compatibility for problems arising from packages published with this
+   extra declared. Vendored packages will satisfy the dependencies in
+   the most common isolated build scenarios.
+
+.. note::
+
    Historically this documentation has unnecessarily listed ``wheel``
    in the ``requires`` list, and many projects still do that. This is
-   not recommended. The backend automatically adds ``wheel`` dependency
-   when it is required, and listing it explicitly causes it to be
-   unnecessarily required for source distribution builds.
+   not recommended, as the backend no longer requires the ``wheel``
+   package, and listing it explicitly causes it to be unnecessarily
+   required for source distribution builds.
    You should only include ``wheel`` in ``requires`` if you need to explicitly
    access it during build time (e.g. if your project needs a ``setup.py``
    script that imports ``wheel``).
@@ -189,7 +199,7 @@ Package discovery
 -----------------
 For projects that follow a simple directory structure, ``setuptools`` should be
 able to automatically detect all :term:`packages <package>` and
-:term:`namespaces <namespace>`. However, complex projects might include
+:term:`namespaces <namespace package>`. However, complex projects might include
 additional folders and supporting files that not necessarily should be
 distributed (or that can confuse ``setuptools`` auto discovery algorithm).
 

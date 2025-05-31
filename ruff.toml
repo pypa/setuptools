@@ -1,5 +1,46 @@
+exclude = [
+	"**/_vendor",
+	"setuptools/_distutils",
+	"setuptools/config/_validate_pyproject",
+]
+
 [lint]
+extend-select = [
+	# upstream
+
+	"C901", # complex-structure
+	"I", # isort
+	"PERF401", # manual-list-comprehension
+
+	# Ensure modern type annotation syntax and best practices
+	# Not including those covered by type-checkers or exclusive to Python 3.11+
+	"FA", # flake8-future-annotations
+	"F404", # late-future-import
+	"PYI", # flake8-pyi
+	"UP006", # non-pep585-annotation
+	"UP007", # non-pep604-annotation
+	"UP010", # unnecessary-future-import
+	"UP035", # deprecated-import
+	"UP037", # quoted-annotation
+	"UP043", # unnecessary-default-type-args
+
+	# local
+	"ANN2", # missing-return-type-*
+	"ISC", # flake8-implicit-str-concat
+	"PERF", # Perflint
+	"PGH", # pygrep-hooks (blanket-* rules)
+	"PT", # flake8-pytest-style
+	"RUF10", # unused-noqa & redirected-noqa
+	"TRY", # tryceratops
+	"UP", # pyupgrade
+	"YTT", # flake8-2020
+]
 ignore = [
+	# upstream
+
+	# Typeshed rejects complex or non-literal defaults for maintenance and testing reasons,
+	# irrelevant to this project.
+	"PYI011", # typed-argument-default-in-stub
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
 	"E111",
@@ -13,33 +54,41 @@ ignore = [
 	"Q003",
 	"COM812",
 	"COM819",
-	"ISC001",
-	"ISC002",
-]
-extend-select = [
-	"UP",  # pyupgrade
-	"YTT",  # flake8-2020
-]
-extend-ignore = [
-	"UP015",  # redundant-open-modes, explicit is preferred
-	"UP030",  # temporarily disabled
-	"UP031",  # temporarily disabled
-	"UP032",  # temporarily disabled
-	"UP036",  # temporarily disabled
-]
-exclude = [
-	"**/_vendor",
-	"setuptools/_distutils",
-	"setuptools/config/_validate_pyproject",
+
+	# local
+	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
+	"PT007", # temporarily disabled, TODO: configure and standardize to preference
+	"PT011", # temporarily disabled, TODO: tighten expected error 
+	"PT012", # pytest-raises-with-multiple-statements, avoid extra dummy methods for a few lines, sometimes we explicitly assert in case of no error
+	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
+	"TRY301", # raise-within-try, it's handy
+	"UP015", # redundant-open-modes, explicit is preferred
+	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
+	# Only enforcing return type annotations for public functions
+	"ANN202", # missing-return-type-private-function
 ]
 
+[lint.per-file-ignores]
+# Suppress nuisance warnings about module-import-not-at-top-of-file (E402) due to workaround for #4476
+"setuptools/__init__.py" = ["E402"]
+"pkg_resources/__init__.py" = ["E402", "ANN204"]
+
+[lint.isort]
+combine-as-imports = true
+split-on-trailing-comma = false
+# Force Ruff/isort to always import setuptools before distutils in tests as long as distutils_hack is supported
+# This also ensures _distutils_hack is imported before distutils
+# https://github.com/pypa/setuptools/issues/4137
+section-order = ["future", "standard-library", "eager", "third-party", "first-party", "local-folder", "delayed"]
+sections.eager = ["_distutils_hack"]
+sections.delayed = ["distutils"]
+
+[lint.flake8-annotations]
+ignore-fully-untyped = true
+
 [format]
-exclude = [
-	"**/_vendor",
-	"setuptools/_distutils",
-	"setuptools/config/_validate_pyproject",
-]
-# Enable preview, required for quote-style = "preserve"
+# Enable preview to get hugged parenthesis unwrapping and other nice surprises
+# See https://github.com/jaraco/skeleton/pull/133#issuecomment-2239538373
 preview = true
-# https://docs.astral.sh/ruff/settings/#format-quote-style
+# https://docs.astral.sh/ruff/settings/#format_quote-style
 quote-style = "preserve"

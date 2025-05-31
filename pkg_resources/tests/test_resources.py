@@ -1,23 +1,23 @@
-import os
-import sys
-import string
-import platform
 import itertools
+import os
+import platform
+import string
+import sys
 
 import pytest
-from pkg_resources.extern import packaging
+from packaging.specifiers import SpecifierSet
 
 import pkg_resources
 from pkg_resources import (
-    parse_requirements,
-    VersionConflict,
-    parse_version,
     Distribution,
     EntryPoint,
     Requirement,
-    safe_version,
-    safe_name,
+    VersionConflict,
     WorkingSet,
+    parse_requirements,
+    parse_version,
+    safe_name,
+    safe_version,
 )
 
 
@@ -32,10 +32,10 @@ def pairwise(iterable):
 class Metadata(pkg_resources.EmptyProvider):
     """Mock object to return metadata as if from an on-disk distribution"""
 
-    def __init__(self, *pairs):
+    def __init__(self, *pairs) -> None:
         self.metadata = dict(pairs)
 
-    def has_metadata(self, name):
+    def has_metadata(self, name) -> bool:
         return name in self.metadata
 
     def get_metadata(self, name):
@@ -119,7 +119,7 @@ class TestDistro:
         self.checkFooPkg(d)
 
         d = Distribution("/some/path")
-        assert d.py_version == '{}.{}'.format(*sys.version_info)
+        assert d.py_version == f'{sys.version_info.major}.{sys.version_info.minor}'
         assert d.platform is None
 
     def testDistroParse(self):
@@ -257,7 +257,7 @@ class TestDistro:
             "/foo_dir/Foo-1.2.dist-info",
             metadata=Metadata((
                 "METADATA",
-                "Provides-Extra: baz\n" "Requires-Dist: quux; extra=='baz'",
+                "Provides-Extra: baz\nRequires-Dist: quux; extra=='baz'",
             )),
         )
         ad.add(Foo)
@@ -567,7 +567,7 @@ class TestRequirements:
         assert hash(r1) == hash((
             "twisted",
             None,
-            packaging.specifiers.SpecifierSet(">=1.2"),
+            SpecifierSet(">=1.2"),
             frozenset(["foo", "bar"]),
             None,
         ))
@@ -576,7 +576,7 @@ class TestRequirements:
         ) == hash((
             "twisted",
             "https://localhost/twisted.zip",
-            packaging.specifiers.SpecifierSet(),
+            SpecifierSet(),
             frozenset(),
             None,
         ))
@@ -693,14 +693,14 @@ class TestParsing:
         ) != Requirement.parse("name[foo,bar]==1.0;python_version=='3.6'")
 
     def test_local_version(self):
-        (req,) = parse_requirements('foo==1.0+org1')
+        parse_requirements('foo==1.0+org1')
 
     def test_spaces_between_multiple_versions(self):
-        (req,) = parse_requirements('foo>=1.0, <3')
-        (req,) = parse_requirements('foo >= 1.0, < 3')
+        parse_requirements('foo>=1.0, <3')
+        parse_requirements('foo >= 1.0, < 3')
 
     @pytest.mark.parametrize(
-        ['lower', 'upper'],
+        ("lower", "upper"),
         [
             ('1.2-rc1', '1.2rc1'),
             ('0.4', '0.4.0'),
@@ -724,7 +724,7 @@ class TestParsing:
         """
 
     @pytest.mark.parametrize(
-        ['lower', 'upper'],
+        ("lower", "upper"),
         [
             ('2.1', '2.1.1'),
             ('2a1', '2b0'),
@@ -817,11 +817,11 @@ class TestNamespaces:
             (pkg1 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
             (pkg2 / '__init__.py').write_text(self.ns_str, encoding='utf-8')
         with pytest.warns(DeprecationWarning, match="pkg_resources.declare_namespace"):
-            import pkg1
+            import pkg1  # pyright: ignore[reportMissingImports] # Temporary package for test
         assert "pkg1" in pkg_resources._namespace_packages
         # attempt to import pkg2 from site-pkgs2
         with pytest.warns(DeprecationWarning, match="pkg_resources.declare_namespace"):
-            import pkg1.pkg2
+            import pkg1.pkg2  # pyright: ignore[reportMissingImports] # Temporary package for test
         # check the _namespace_packages dict
         assert "pkg1.pkg2" in pkg_resources._namespace_packages
         assert pkg_resources._namespace_packages["pkg1"] == ["pkg1.pkg2"]
@@ -862,8 +862,8 @@ class TestNamespaces:
             (subpkg / '__init__.py').write_text(vers_str % number, encoding='utf-8')
 
         with pytest.warns(DeprecationWarning, match="pkg_resources.declare_namespace"):
-            import nspkg.subpkg
-            import nspkg
+            import nspkg  # pyright: ignore[reportMissingImports] # Temporary package for test
+            import nspkg.subpkg  # pyright: ignore[reportMissingImports] # Temporary package for test
         expected = [str(site.realpath() / 'nspkg') for site in site_dirs]
         assert nspkg.__path__ == expected
         assert nspkg.subpkg.__version__ == 1

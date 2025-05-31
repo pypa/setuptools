@@ -1,11 +1,12 @@
+import random
 from unittest import mock
 
 import pytest
 
-import random
-from distutils.errors import DistutilsSetupError
 from setuptools.command.build_clib import build_clib
 from setuptools.dist import Distribution
+
+from distutils.errors import DistutilsSetupError
 
 
 class TestBuildCLib:

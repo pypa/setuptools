@@ -24,7 +24,7 @@ files are included in a source distribution by default:
   in ``pyproject.toml`` and/or equivalent in ``setup.cfg``/``setup.py``;
   note that if you don't explicitly set this parameter, ``setuptools``
   will include any files that match the following glob patterns:
-  ``LICENSE*``, ``LICENCE*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS**``;
+  ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS**``;
 - ``pyproject.toml``;
 - ``setup.cfg``;
 - ``setup.py``;
@@ -38,7 +38,9 @@ of ``setuptools``. The behavior of older versions might differ.
    .. versionadded:: v69.0.0
       ``setuptools`` will attempt to include type information files
       by default in the distribution
-      (``.pyi`` and ``py.typed``, as specified in :pep:`561`).
+      (``.pyi`` and ``py.typed``, as specified in :pep:`561`),
+      as long as they are contained inside of a package directory
+      (for the time being there is no automatic support for top-level ``.pyi`` files).
 
     *Please note however that this feature is* **EXPERIMENTAL** *and may change in
     the future.*
@@ -168,6 +170,20 @@ binary extensions during the build process, or included in the final
 
    See :doc:`/userguide/datafiles` for more information.
 
+
+.. _Caching and Troubleshooting:
+
+Caching and Troubleshooting
+===========================
+
+Setuptools automatically creates a few directories to host build artefacts and
+cache files, such as ``build``, ``dist``, ``*.egg-info``.  While cache is
+useful to speed up incremental builds, in some edge cases it might become
+stale.  If you feel that caching is causing problems to your build, specially
+after changes in configuration or in the directory/file structure., consider
+removing ``build``, ``dist``, ``*.egg-info`` [#PKG-INFO]_ before rebuilding or
+reinstalling your project.
+
 ----
 
 .. [#build-process]
@@ -182,6 +198,10 @@ binary extensions during the build process, or included in the final
    and is ready to be unpacked into a running installation of Python or
    :term:`Virtual Environment`.
    Therefore it only contains items that are required during runtime.
+
+.. [#PKG-INFO]
+   When working from an extracted sdist (e.g. for patching), you might also consider removing
+   the ``PKG-INFO`` file to force its recreation.
 
 .. _git: https://git-scm.com
 .. _mercurial: https://www.mercurial-scm.org

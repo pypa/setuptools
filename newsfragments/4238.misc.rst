@@ -1,1 +1,0 @@
-Drop dependency on Flake8 by using Ruff's YTT rules instead of flake8-2020 -- by :user:`Avasam`

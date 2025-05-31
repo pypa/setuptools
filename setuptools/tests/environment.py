@@ -1,8 +1,8 @@
 import os
-import sys
 import subprocess
+import sys
 import unicodedata
-from subprocess import Popen as _Popen, PIPE as _PIPE
+from subprocess import PIPE as _PIPE, Popen as _Popen
 
 import jaraco.envs
 
@@ -17,7 +17,7 @@ class VirtualEnv(jaraco.envs.VirtualEnv):
 
     def run(self, cmd, *args, **kwargs):
         cmd = [self.exe(cmd[0])] + cmd[1:]
-        kwargs = {"cwd": self.root, **kwargs}  # Allow overriding
+        kwargs = {"cwd": self.root, "encoding": "utf-8", **kwargs}  # Allow overriding
         # In some environments (eg. downstream distro packaging), where:
         # - tox isn't used to run tests and
         # - PYTHONPATH is set to point to a specific setuptools codebase and
@@ -76,6 +76,7 @@ def run_setup_py(cmd, pypath=None, path=None, data_stream=0, env=None):
             stderr=_PIPE,
             shell=shell,
             env=env,
+            encoding="utf-8",
         )
 
         if isinstance(data_stream, tuple):

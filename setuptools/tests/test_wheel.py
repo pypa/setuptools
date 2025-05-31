@@ -1,29 +1,31 @@
 """wheel tests"""
 
-from distutils.sysconfig import get_config_var
-from distutils.util import get_platform
+from __future__ import annotations
+
 import contextlib
-import pathlib
-import stat
 import glob
 import inspect
 import os
-import shutil
+import pathlib
+import stat
 import subprocess
 import sys
+import sysconfig
 import zipfile
+from typing import Any
 
 import pytest
 from jaraco import path
+from packaging.tags import parse_tag
 
-from pkg_resources import Distribution, PathMetadata, PY_MAJOR
-from setuptools.extern.packaging.utils import canonicalize_name
-from setuptools.extern.packaging.tags import parse_tag
+from setuptools._importlib import metadata
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir
 from .textwrap import DALS
 
+from distutils.sysconfig import get_config_var
+from distutils.util import get_platform
 
 WHEEL_INFO_TESTS = (
     ('invalid.whl', ValueError),
@@ -137,7 +139,7 @@ def flatten_tree(tree):
 def format_install_tree(tree):
     return {
         x.format(
-            py_version=PY_MAJOR,
+            py_version=sysconfig.get_python_version(),
             platform=get_platform(),
             shlib_ext=get_config_var('EXT_SUFFIX') or get_config_var('SO'),
         )
@@ -156,27 +158,28 @@ def _check_wheel_install(
         exp = tree_set(install_dir)
         assert install_tree.issubset(exp), install_tree - exp
 
-    metadata = PathMetadata(egg_path, os.path.join(egg_path, 'EGG-INFO'))
-    dist = Distribution.from_filename(egg_path, metadata=metadata)
-    assert dist.project_name == project_name
-    assert dist.version == version
-    if requires_txt is None:
-        assert not dist.has_metadata('requires.txt')
-    else:
-        # Order must match to ensure reproducibility.
-        assert requires_txt == dist.get_metadata('requires.txt').lstrip()
+    (dist,) = metadata.Distribution.discover(path=[egg_path])
+
+    # pyright is nitpicky; fine to assume dist.metadata.__getitem__ will fail or return None
+    # (https://github.com/pypa/setuptools/pull/5006#issuecomment-2894774288)
+    assert dist.metadata['Name'] == project_name  # pyright: ignore  # noqa: PGH003
+    assert dist.metadata['Version'] == version  # pyright: ignore  # noqa: PGH003
+    assert dist.read_text('requires.txt') == requires_txt
 
 
 class Record:
-    def __init__(self, id, **kwargs):
+    def __init__(self, id, **kwargs) -> None:
         self._id = id
         self._fields = kwargs
 
-    def __repr__(self):
-        return '%s(**%r)' % (self._id, self._fields)
+    def __repr__(self) -> str:
+        return f'{self._id}(**{self._fields!r})'
 
 
-WHEEL_INSTALL_TESTS = (
+# Using Any to avoid possible type union issues later in test
+# making a TypedDict is not worth in a test and anonymous/inline TypedDict are experimental
+# https://github.com/python/mypy/issues/9884
+WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
     dict(
         id='basic',
         file_defs={'foo': {'__init__.py': ''}},
@@ -361,11 +364,10 @@ WHEEL_INSTALL_TESTS = (
     ),
     dict(
         id='requires2',
-        install_requires="""
+        install_requires=f"""
         bar
-        foo<=2.0; %r in sys_platform
-        """
-        % sys.platform,
+        foo<=2.0; {sys.platform!r} in sys_platform
+        """,
         requires_txt=DALS(
             """
             bar
@@ -375,10 +377,9 @@ WHEEL_INSTALL_TESTS = (
     ),
     dict(
         id='requires3',
-        install_requires="""
-        bar; %r != sys_platform
-        """
-        % sys.platform,
+        install_requires=f"""
+        bar; {sys.platform!r} != sys_platform
+        """,
     ),
     dict(
         id='requires4',
@@ -400,9 +401,10 @@ WHEEL_INSTALL_TESTS = (
     dict(
         id='requires5',
         extras_require={
-            'extra': 'foobar; %r != sys_platform' % sys.platform,
+            'extra': f'foobar; {sys.platform!r} != sys_platform',
         },
-        requires_txt=DALS(
+        requires_txt='\n'
+        + DALS(
             """
             [extra]
             """
@@ -547,7 +549,7 @@ WHEEL_INSTALL_TESTS = (
 @pytest.mark.parametrize(
     'params',
     WHEEL_INSTALL_TESTS,
-    ids=list(params['id'] for params in WHEEL_INSTALL_TESTS),
+    ids=[params['id'] for params in WHEEL_INSTALL_TESTS],
 )
 def test_wheel_install(params):
     project_name = params.get('name', 'foo')
@@ -558,42 +560,26 @@ def test_wheel_install(params):
     install_tree = params.get('install_tree')
     file_defs = params.get('file_defs', {})
     setup_kwargs = params.get('setup_kwargs', {})
-    with build_wheel(
-        name=project_name,
-        version=version,
-        install_requires=install_requires,
-        extras_require=extras_require,
-        extra_file_defs=file_defs,
-        **setup_kwargs,
-    ) as filename, tempdir() as install_dir:
+    with (
+        build_wheel(
+            name=project_name,
+            version=version,
+            install_requires=install_requires,
+            extras_require=extras_require,
+            extra_file_defs=file_defs,
+            **setup_kwargs,
+        ) as filename,
+        tempdir() as install_dir,
+    ):
         _check_wheel_install(
             filename, install_dir, install_tree, project_name, version, requires_txt
-        )
-
-
-def test_wheel_install_pep_503():
-    project_name = 'Foo_Bar'  # PEP 503 canonicalized name is "foo-bar"
-    version = '1.0'
-    with build_wheel(
-        name=project_name,
-        version=version,
-    ) as filename, tempdir() as install_dir:
-        new_filename = filename.replace(project_name, canonicalize_name(project_name))
-        shutil.move(filename, new_filename)
-        _check_wheel_install(
-            new_filename,
-            install_dir,
-            None,
-            canonicalize_name(project_name),
-            version,
-            None,
         )
 
 
 def test_wheel_no_dist_dir():
     project_name = 'nodistinfo'
     version = '1.0'
-    wheel_name = '{0}-{1}-py2.py3-none-any.whl'.format(project_name, version)
+    wheel_name = f'{project_name}-{version}-py2.py3-none-any.whl'
     with tempdir() as source_dir:
         wheel_path = os.path.join(source_dir, wheel_name)
         # create an empty zip file
@@ -681,14 +667,17 @@ def test_wheel_mode():
     file_defs = params.get('file_defs', {})
     setup_kwargs = params.get('setup_kwargs', {})
 
-    with build_wheel(
-        name=project_name,
-        version=version,
-        install_requires=[],
-        extras_require={},
-        extra_file_defs=file_defs,
-        **setup_kwargs,
-    ) as filename, tempdir() as install_dir:
+    with (
+        build_wheel(
+            name=project_name,
+            version=version,
+            install_requires=[],
+            extras_require={},
+            extra_file_defs=file_defs,
+            **setup_kwargs,
+        ) as filename,
+        tempdir() as install_dir,
+    ):
         _check_wheel_install(
             filename, install_dir, install_tree, project_name, version, None
         )

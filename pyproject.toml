@@ -1,9 +1,224 @@
 [build-system]
-requires = []
+requires = [
+	# "setuptools>=77",
+	# "setuptools_scm[toml]>=3.4.1",
+	# jaraco/skeleton#174
+	# "coherent.licensed",
+]
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
-[tool.setuptools_scm]
+[project]
+name = "setuptools"
+version = "80.9.0"
+authors = [
+	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
+]
+description = "Easily download, build, install, upgrade, and uninstall Python packages"
+readme = "README.rst"
+classifiers = [
+	"Development Status :: 5 - Production/Stable",
+	"Intended Audience :: Developers",
+	"Programming Language :: Python :: 3",
+	"Programming Language :: Python :: 3 :: Only",
+	"Topic :: Software Development :: Libraries :: Python Modules",
+	"Topic :: System :: Archiving :: Packaging",
+	"Topic :: System :: Systems Administration",
+	"Topic :: Utilities",
+]
+requires-python = ">=3.9"
+license = "MIT"
+dependencies = [
+]
+keywords = ["CPAN PyPI distutils eggs package management"]
 
-[tool.pytest-enabler.mypy]
-# disabled
+[project.urls]
+Source = "https://github.com/pypa/setuptools"
+Documentation = "https://setuptools.pypa.io/"
+Changelog = "https://setuptools.pypa.io/en/stable/history.html"
+
+[project.optional-dependencies]
+test = [
+	# upstream
+	"pytest >= 6, != 8.1.*",
+
+	# local
+	"virtualenv>=13.0.0",
+	"wheel>=0.44.0", # Consistent requirement normalisation in METADATA (see #4547)
+	"pip>=19.1", # For proper file:// URLs support.
+	"packaging>=24.2",
+	"jaraco.envs>=2.2",
+	"pytest-xdist>=3", # Dropped dependency on pytest-fork and py
+	"jaraco.path>=3.7.2", # Typing fixes
+	"build[virtualenv]>=1.0.3",
+	"filelock>=3.4.0",
+	"ini2toml[lite]>=0.14",
+	"tomli-w>=1.0.0",
+	"pytest-timeout",
+	'pytest-perf; sys_platform != "cygwin"', # workaround for jaraco/inflect#195, pydantic/pydantic-core#773 (see #3986)
+	# for tools/finalize.py
+	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
+	"pytest-home >= 0.5",
+	"pytest-subprocess",
+
+	# workaround for pypa/pyproject-hooks#206
+	"pyproject-hooks!=1.1",
+
+	"jaraco.test>=5.5", # py.typed
+]
+
+doc = [
+	# upstream
+	"sphinx >= 3.5",
+	"jaraco.packaging >= 9.3",
+	"rst.linker >= 1.9",
+	"furo",
+	"sphinx-lint",
+
+	# tidelift
+	"jaraco.tidelift >= 1.4",
+
+	# local
+	"pygments-github-lexers==0.0.5",
+	"sphinx-favicon",
+	"sphinx-inline-tabs",
+	"sphinx-reredirects",
+	"sphinxcontrib-towncrier",
+	"sphinx-notfound-page >=1,<2",
+
+	# workaround for pypa/setuptools#4333
+	"pyproject-hooks!=1.1",
+
+	# workaround for sphinx-contrib/sphinxcontrib-towncrier#92
+	"towncrier<24.7",
+]
+ssl = []
+certs = []
+core = [
+	"packaging>=24.2",
+	"more_itertools>=8.8",
+	"jaraco.text>=3.7",
+	"importlib_metadata>=6; python_version < '3.10'",
+	"tomli>=2.0.1; python_version < '3.11'",
+	"wheel>=0.43.0",
+
+	# pkg_resources
+	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
+
+	# for distutils
+	"jaraco.functools >= 4",
+	"more_itertools",
+]
+
+check = [
+	# upstream
+	"pytest-checkdocs >= 2.4",
+	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
+
+	# local
+
+	# Removal of deprecated UP027, PT004 & PT005 astral-sh/ruff#14383
+	"ruff >= 0.8.0; sys_platform != 'cygwin'",
+]
+
+cover = [
+	"pytest-cov",
+]
+
+enabler = [
+	"pytest-enabler >= 2.2",
+]
+
+type = [
+	# upstream
+	"pytest-mypy",
+
+	# local
+
+	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
+	# until types-setuptools is removed from typeshed.
+	# For help with static-typing issues, or mypy update, ping @Avasam
+	"mypy==1.14.*",
+	# Typing fixes in version newer than we require at runtime
+	"importlib_metadata>=7.0.2; python_version < '3.10'",
+	# Imported unconditionally in tools/finalize.py
+	'jaraco.develop >= 7.21; sys_platform != "cygwin"',
+]
+
+
+[project.entry-points."distutils.commands"]
+alias = "setuptools.command.alias:alias"
+bdist_egg = "setuptools.command.bdist_egg:bdist_egg"
+bdist_rpm = "setuptools.command.bdist_rpm:bdist_rpm"
+bdist_wheel = "setuptools.command.bdist_wheel:bdist_wheel"
+build = "setuptools.command.build:build"
+build_clib = "setuptools.command.build_clib:build_clib"
+build_ext = "setuptools.command.build_ext:build_ext"
+build_py = "setuptools.command.build_py:build_py"
+develop = "setuptools.command.develop:develop"
+dist_info = "setuptools.command.dist_info:dist_info"
+easy_install = "setuptools.command.easy_install:easy_install"
+editable_wheel = "setuptools.command.editable_wheel:editable_wheel"
+egg_info = "setuptools.command.egg_info:egg_info"
+install = "setuptools.command.install:install"
+install_egg_info = "setuptools.command.install_egg_info:install_egg_info"
+install_lib = "setuptools.command.install_lib:install_lib"
+install_scripts = "setuptools.command.install_scripts:install_scripts"
+rotate = "setuptools.command.rotate:rotate"
+saveopts = "setuptools.command.saveopts:saveopts"
+sdist = "setuptools.command.sdist:sdist"
+setopt = "setuptools.command.setopt:setopt"
+
+[project.entry-points."setuptools.finalize_distribution_options"]
+parent_finalize = "setuptools.dist:_Distribution.finalize_options"
+keywords = "setuptools.dist:Distribution._finalize_setup_keywords"
+
+[project.entry-points."distutils.setup_keywords"]
+eager_resources = "setuptools.dist:assert_string_list"
+namespace_packages = "setuptools.dist:check_nsp"
+extras_require = "setuptools.dist:check_extras"
+install_requires = "setuptools.dist:check_requirements"
+setup_requires = "setuptools.dist:check_requirements"
+python_requires = "setuptools.dist:check_specifier"
+entry_points = "setuptools.dist:check_entry_points"
+zip_safe = "setuptools.dist:assert_bool"
+package_data = "setuptools.dist:check_package_data"
+exclude_package_data = "setuptools.dist:check_package_data"
+include_package_data = "setuptools.dist:assert_bool"
+packages = "setuptools.dist:check_packages"
+dependency_links = "setuptools.dist:assert_string_list"
+use_2to3 = "setuptools.dist:invalid_unless_false"
+
+[project.entry-points."egg_info.writers"]
+PKG-INFO = "setuptools.command.egg_info:write_pkg_info"
+"requires.txt" = "setuptools.command.egg_info:write_requirements"
+"entry_points.txt" = "setuptools.command.egg_info:write_entries"
+"eager_resources.txt" = "setuptools.command.egg_info:overwrite_arg"
+"namespace_packages.txt" = "setuptools.command.egg_info:overwrite_arg"
+"top_level.txt" = "setuptools.command.egg_info:write_toplevel_names"
+"dependency_links.txt" = "setuptools.command.egg_info:overwrite_arg"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = [
+	"setuptools*",
+	"pkg_resources*",
+	"_distutils_hack*",
+]
+exclude = [
+	"*.tests",
+	"*.tests.*",
+]
+namespaces = true
+
+[tool.setuptools.exclude-package-data]
+# Remove ruff.toml when installing vendored packages (#4652)
+"*" = ["ruff.toml"]
+
+[tool.distutils.sdist]
+formats = "zip"
+
+
+[tool.setuptools_scm]

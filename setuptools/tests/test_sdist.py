@@ -1,33 +1,33 @@
 """sdist tests"""
 
-import os
-import sys
-import tempfile
-import unicodedata
 import contextlib
 import io
-import tarfile
 import logging
-import distutils
+import os
+import pathlib
+import sys
+import tarfile
+import tempfile
+import unicodedata
 from inspect import cleandoc
 from pathlib import Path
 from unittest import mock
 
+import jaraco.path
 import pytest
 
-from distutils.core import run_setup
-from setuptools import Command
+from setuptools import Command, SetuptoolsDeprecationWarning
 from setuptools._importlib import metadata
-from setuptools import SetuptoolsDeprecationWarning
-from setuptools.command.sdist import sdist
 from setuptools.command.egg_info import manifest_maker
+from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 from setuptools.tests import fail_on_ascii
+
 from .text import Filenames
 
-import jaraco.path
-
+import distutils
+from distutils.core import run_setup
 
 SETUP_ATTRS = {
     'name': 'sdist_test',
@@ -37,14 +37,11 @@ SETUP_ATTRS = {
     'data_files': [("data", [os.path.join("d", "e.dat")])],
 }
 
-SETUP_PY = (
-    """\
+SETUP_PY = f"""\
 from setuptools import setup
 
-setup(**%r)
+setup(**{SETUP_ATTRS!r})
 """
-    % SETUP_ATTRS
-)
 
 EXTENSION = Extension(
     name="sdist_test.f",
@@ -116,18 +113,17 @@ skip_under_stdlib_distutils = pytest.mark.skipif(
 
 
 def touch(path):
-    if isinstance(path, str):
-        path = Path(path)
-    path.write_text('', encoding='utf-8')
+    open(path, 'wb').close()
     return path
 
 
 def symlink_or_skip_test(src, dst):
     try:
         os.symlink(src, dst)
-        return dst
     except (OSError, NotImplementedError):
         pytest.skip("symlink not supported in OS")
+        return None
+    return dst
 
 
 class TestSdistTest:
@@ -386,7 +382,7 @@ class TestSdistTest:
         assert 'setup.py' not in manifest
 
     def test_setup_py_excluded(self):
-        with open("MANIFEST.in", "w") as manifest_file:
+        with open("MANIFEST.in", "w", encoding="utf-8") as manifest_file:
             manifest_file.write("exclude setup.py")
 
         dist = Distribution(SETUP_ATTRS)
@@ -428,6 +424,46 @@ class TestSdistTest:
         assert 'setup.py' not in manifest, manifest
         assert 'setup.cfg' not in manifest, manifest
 
+    def test_exclude_dev_only_cache_folders(self, source_dir):
+        included = {
+            # Emulate problem in https://github.com/pypa/setuptools/issues/4601
+            "MANIFEST.in": (
+                "global-include LICEN[CS]E* COPYING* NOTICE* AUTHORS*\n"
+                "global-include *.txt\n"
+            ),
+            # For the sake of being conservative and limiting unforeseen side-effects
+            # we just exclude dev-only cache folders at the root of the repository:
+            "test/.venv/lib/python3.9/site-packages/bar-2.dist-info/AUTHORS.rst": "",
+            "src/.nox/py/lib/python3.12/site-packages/bar-2.dist-info/COPYING.txt": "",
+            "doc/.tox/default/lib/python3.11/site-packages/foo-4.dist-info/LICENSE": "",
+            # Let's test against false positives with similarly named files:
+            ".venv-requirements.txt": "",
+            ".tox-coveragerc.txt": "",
+            ".noxy/coveragerc.txt": "",
+        }
+
+        excluded = {
+            # .tox/.nox/.venv are well-know folders present at the root of Python repos
+            # and therefore should be excluded
+            ".tox/release/lib/python3.11/site-packages/foo-4.dist-info/LICENSE": "",
+            ".nox/py/lib/python3.12/site-packages/bar-2.dist-info/COPYING.txt": "",
+            ".venv/lib/python3.9/site-packages/bar-2.dist-info/AUTHORS.rst": "",
+        }
+
+        for file, content in {**excluded, **included}.items():
+            Path(source_dir, file).parent.mkdir(parents=True, exist_ok=True)
+            Path(source_dir, file).write_text(content, encoding="utf-8")
+
+        cmd = self.setup_with_extension()
+        self.assert_package_data_in_manifest(cmd)
+        manifest = {f.replace(os.sep, '/') for f in cmd.filelist.files}
+        for path in excluded:
+            assert os.path.exists(path)
+            assert path not in manifest, (path, manifest)
+        for path in included:
+            assert os.path.exists(path)
+            assert path in manifest, (path, manifest)
+
     @fail_on_ascii
     def test_manifest_is_written_with_utf8_encoding(self):
         # Test for #303.
@@ -441,7 +477,7 @@ class TestSdistTest:
         filename = os.path.join('sdist_test', 'smörbröd.py')
 
         # Must create the file or it will get stripped.
-        open(filename, 'w').close()
+        touch(filename)
 
         # Add UTF-8 filename and write manifest
         with quiet():
@@ -469,7 +505,7 @@ class TestSdistTest:
         filename = os.path.join(b'sdist_test', Filenames.utf_8)
 
         # Must touch the file or risk removal
-        open(filename, "w").close()
+        touch(filename)
 
         # Add filename and write manifest
         with quiet():
@@ -546,7 +582,7 @@ class TestSdistTest:
         manifest.close()
 
         # The file must exist to be included in the filelist
-        open(filename, 'w').close()
+        touch(filename)
 
         # Re-read manifest
         cmd.filelist.files = []
@@ -577,7 +613,7 @@ class TestSdistTest:
         manifest.close()
 
         # The file must exist to be included in the filelist
-        open(filename, 'w').close()
+        touch(filename)
 
         # Re-read manifest
         cmd.filelist.files = []
@@ -598,7 +634,7 @@ class TestSdistTest:
         cmd.ensure_finalized()
 
         filename = os.path.join(b'sdist_test', Filenames.utf_8)
-        open(filename, 'w').close()
+        touch(filename)
 
         with quiet():
             cmd.run()
@@ -639,7 +675,7 @@ class TestSdistTest:
 
         # Latin-1 filename
         filename = os.path.join(b'sdist_test', Filenames.latin_1)
-        open(filename, 'w').close()
+        touch(filename)
         assert os.path.isfile(filename)
 
         with quiet():
@@ -672,12 +708,21 @@ class TestSdistTest:
             [project]
             name = "testing"
             readme = "USAGE.rst"
-            license = {file = "DOWHATYOUWANT"}
+            license-files = ["DOWHATYOUWANT"]
             dynamic = ["version"]
             [tool.setuptools.dynamic]
             version = {file = ["src/VERSION.txt"]}
             """,
         "pyproject.toml - directive with str instead of list": """
+            [project]
+            name = "testing"
+            readme = "USAGE.rst"
+            license-files = ["DOWHATYOUWANT"]
+            dynamic = ["version"]
+            [tool.setuptools.dynamic]
+            version = {file = "src/VERSION.txt"}
+            """,
+        "pyproject.toml - deprecated license table with file entry": """
             [project]
             name = "testing"
             readme = "USAGE.rst"
@@ -689,6 +734,9 @@ class TestSdistTest:
     }
 
     @pytest.mark.parametrize("config", _EXAMPLE_DIRECTIVES.keys())
+    @pytest.mark.filterwarnings(
+        "ignore:.project.license. as a TOML table is deprecated"
+    )
     def test_add_files_referenced_by_config_directives(self, source_dir, config):
         config_file, _, _ = config.partition(" - ")
         config_text = self._EXAMPLE_DIRECTIVES[config]
@@ -736,7 +784,7 @@ class TestSdistTest:
         Check that pyproject.toml can excluded even if present
         """
         touch(source_dir / 'pyproject.toml')
-        with open('MANIFEST.in', 'w') as mts:
+        with open('MANIFEST.in', 'w', encoding="utf-8") as mts:
             print('exclude pyproject.toml', file=mts)
         dist = Distribution(SETUP_ATTRS)
         dist.script_name = 'setup.py'
@@ -783,6 +831,21 @@ class TestSdistTest:
             cmd.run()
         manifest = cmd.filelist.files
         assert '.myfile~' in manifest
+
+    @pytest.mark.skipif("os.environ.get('SETUPTOOLS_USE_DISTUTILS') == 'stdlib'")
+    def test_build_base_pathlib(self, source_dir):
+        """
+        Ensure if build_base is a pathlib.Path, the build still succeeds.
+        """
+        dist = Distribution({
+            **SETUP_ATTRS,
+            "script_name": "setup.py",
+            "options": {"build": {"build_base": pathlib.Path('build')}},
+        })
+        cmd = sdist(dist)
+        cmd.ensure_finalized()
+        with quiet():
+            cmd.run()
 
 
 def test_default_revctrl():
@@ -910,3 +973,12 @@ def run_sdist(monkeypatch, project):
     archive = next((project / "dist").glob("*.tar.gz"))
     with tarfile.open(str(archive)) as tar:
         return set(tar.getnames())
+
+
+def test_sanity_check_setuptools_own_sdist(setuptools_sdist):
+    with tarfile.open(setuptools_sdist) as tar:
+        files = tar.getnames()
+
+    # setuptools sdist should not include the .tox folder
+    tox_files = [name for name in files if ".tox" in name]
+    assert len(tox_files) == 0, f"not empty {tox_files}"

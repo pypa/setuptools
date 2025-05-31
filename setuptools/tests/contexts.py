@@ -1,10 +1,10 @@
-import tempfile
+import contextlib
+import io
 import os
 import shutil
-import sys
-import contextlib
 import site
-import io
+import sys
+import tempfile
 
 from filelock import FileLock
 
@@ -72,20 +72,6 @@ def save_user_site_setting():
         yield saved
     finally:
         site.ENABLE_USER_SITE = saved
-
-
-@contextlib.contextmanager
-def save_pkg_resources_state():
-    import pkg_resources
-
-    pr_state = pkg_resources.__getstate__()
-    # also save sys.path
-    sys_path = sys.path[:]
-    try:
-        yield pr_state, sys_path
-    finally:
-        sys.path[:] = sys_path
-        pkg_resources.__setstate__(pr_state)
 
 
 @contextlib.contextmanager

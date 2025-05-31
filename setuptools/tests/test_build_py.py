@@ -1,11 +1,12 @@
 import os
-import stat
 import shutil
+import stat
+import warnings
 from pathlib import Path
 from unittest.mock import Mock
 
-import pytest
 import jaraco.path
+import pytest
 
 from setuptools import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution
@@ -49,14 +50,14 @@ def test_recursive_in_package_data_glob(tmpdir_cwd):
         )
     )
     os.makedirs('path/subpath/subsubpath')
-    open('path/subpath/subsubpath/data', 'w').close()
+    open('path/subpath/subsubpath/data', 'wb').close()
 
     dist.parse_command_line()
     dist.run_commands()
 
-    assert stat.S_ISREG(
-        os.stat('build/lib/path/subpath/subsubpath/data').st_mode
-    ), "File is not included"
+    assert stat.S_ISREG(os.stat('build/lib/path/subpath/subsubpath/data').st_mode), (
+        "File is not included"
+    )
 
 
 def test_read_only(tmpdir_cwd):
@@ -77,8 +78,8 @@ def test_read_only(tmpdir_cwd):
         )
     )
     os.makedirs('pkg')
-    open('pkg/__init__.py', 'w').close()
-    open('pkg/data.dat', 'w').close()
+    open('pkg/__init__.py', 'wb').close()
+    open('pkg/data.dat', 'wb').close()
     os.chmod('pkg/__init__.py', stat.S_IREAD)
     os.chmod('pkg/data.dat', stat.S_IREAD)
     dist.parse_command_line()
@@ -108,16 +109,16 @@ def test_executable_data(tmpdir_cwd):
         )
     )
     os.makedirs('pkg')
-    open('pkg/__init__.py', 'w').close()
-    open('pkg/run-me', 'w').close()
+    open('pkg/__init__.py', 'wb').close()
+    open('pkg/run-me', 'wb').close()
     os.chmod('pkg/run-me', 0o700)
 
     dist.parse_command_line()
     dist.run_commands()
 
-    assert (
-        os.stat('build/lib/pkg/run-me').st_mode & stat.S_IEXEC
-    ), "Script is not executable"
+    assert os.stat('build/lib/pkg/run-me').st_mode & stat.S_IEXEC, (
+        "Script is not executable"
+    )
 
 
 EXAMPLE_WITH_MANIFEST = {
@@ -162,11 +163,23 @@ def test_excluded_subpackages(tmpdir_cwd):
     dist.parse_config_files()
 
     build_py = dist.get_command_obj("build_py")
+
     msg = r"Python recognizes 'mypkg\.tests' as an importable package"
     with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
         # TODO: To fix #3260 we need some transition period to deprecate the
         # existing behavior of `include_package_data`. After the transition, we
-        # should remove the warning and fix the behaviour.
+        # should remove the warning and fix the behavior.
+
+        if os.getenv("SETUPTOOLS_USE_DISTUTILS") == "stdlib":
+            # pytest.warns reset the warning filter temporarily
+            # https://github.com/pytest-dev/pytest/issues/4011#issuecomment-423494810
+            warnings.filterwarnings(
+                "ignore",
+                "'encoding' argument not specified",
+                module="distutils.text_file",
+                # This warning is already fixed in pypa/distutils but not in stdlib
+            )
+
         build_py.finalize_options()
         build_py.run()
 
@@ -336,7 +349,7 @@ class TestTypeInfoFiles:
             name = "foo"
             version = "1"
 
-            [tools.setuptools]
+            [tool.setuptools]
             include-package-data = false
             """
         ),
@@ -346,7 +359,7 @@ class TestTypeInfoFiles:
             name = "foo"
             version = "1"
 
-            [tools.setuptools]
+            [tool.setuptools]
             include-package-data = false
 
             [tool.setuptools.exclude-package-data]
@@ -396,7 +409,14 @@ class TestTypeInfoFiles:
     }
 
     @pytest.mark.parametrize(
-        "pyproject", ["default_pyproject", "dont_include_package_data"]
+        "pyproject",
+        [
+            "default_pyproject",
+            pytest.param(
+                "dont_include_package_data",
+                marks=pytest.mark.xfail(reason="pypa/setuptools#4350"),
+            ),
+        ],
     )
     @pytest.mark.parametrize("example", EXAMPLES.keys())
     def test_type_files_included_by_default(self, tmpdir_cwd, pyproject, example):

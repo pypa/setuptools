@@ -18,10 +18,11 @@ Build system requirement
 ========================
 
 After organizing all the scripts and files and getting ready for packaging,
-there needs to be a way to specify what programs and libraries are actually needed
-do the packaging (in our case, ``setuptools`` of course).
-This needs to be specified in your ``pyproject.toml`` file
-(if you have forgot what this is, go to :doc:`/userguide/quickstart` or :doc:`/build_meta`):
+there needs to be a way to specify what programs and libraries (build backend)
+are actually needed to build the package for distribution. For Setuptools, the
+requisite library is ``setuptools``. Specify the build backend in a
+``pyproject.toml`` file (see also :doc:`/userguide/quickstart` or
+:doc:`/build_meta`):
 
 .. code-block:: toml
 
@@ -29,13 +30,44 @@ This needs to be specified in your ``pyproject.toml`` file
     requires = ["setuptools"]
     #...
 
-Please note that you should also include here any other ``setuptools`` plugin
-(e.g., :pypi:`setuptools-scm`, :pypi:`setuptools-golang`, :pypi:`setuptools-rust`)
+Also include any other ``setuptools`` plugins
+(e.g., :pypi:`setuptools_scm`, :pypi:`setuptools-golang`, :pypi:`setuptools-rust`)
 or build-time dependency (e.g., :pypi:`Cython`, :pypi:`cppy`, :pypi:`pybind11`).
+
+.. code-block:: toml
+
+    [build-system]
+    requires = ["setuptools", "cython", "setuptools_scm"]
+
+
+If the project depends on a feature introduced in a specific version of Setuptools,
+it is good practice to specify it as a lower bound:
+
+.. code-block:: toml
+
+    [build-system]
+    requires = ["setuptools >= 61.2"]
+
+Some may be tempted to also include an upper-bound for yet unreleased major
+versions (e.g. ``setuptools <= 70``) or pin to a specific version (e.g.
+``setuptools == 70.0.4``) in order to avoid the project being uninstallable
+should those backward-incompatible changes affect this release of the project.
+Setuptools maintainers recommend strongly against this precautionary approach.
+The team primarily maintains one release, the latest monotonically-increasing
+release, and encourages users to use that latest release (work at HEAD). As a
+result, the team is cognizant of and takes responsibility for making
+backward-incompatible changes and aims to mitigate the impact of any breaking
+changes prior to releasing that change. By pinning against an unreleased
+version, it causes toil (maintenance burden) for each and every project that
+does the pinning (and the consumers that use it) and increases the risk of
+erosion if maintenance is unsustained. This tradeoff between reproducibility
+and compatibility is especially stark because Setuptools frequently releases
+backward-incompatible releases for a variety of reasons, many of which won't
+affect a given project.
 
 .. note::
     In previous versions of ``setuptools``,
-    this used to be accomplished with the ``setup_requires`` keyword but is
+    the ``setup_requires`` keyword performed a similar function but is
     now considered deprecated in favor of the :pep:`517` style described above.
     To peek into how this legacy keyword is used, consult our :doc:`guide on
     deprecated practice (WIP) </deprecated/index>`.

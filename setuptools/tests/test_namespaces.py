@@ -1,8 +1,9 @@
-import sys
 import subprocess
+import sys
+
+from setuptools._path import paths_on_pythonpath
 
 from . import namespaces
-from setuptools.command import test
 
 
 class TestNamespaces:
@@ -45,7 +46,7 @@ class TestNamespaces:
             '-c',
             'import myns.pkgA; import myns.pkgB',
         ]
-        with test.test.paths_on_pythonpath(map(str, targets)):
+        with paths_on_pythonpath(map(str, targets)):
             subprocess.check_call(try_import)
 
     def test_pkg_resources_import(self, tmpdir):
@@ -65,7 +66,7 @@ class TestNamespaces:
             str(target),
             str(pkg),
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(install_cmd)
         namespaces.make_site_dir(target)
         try_import = [
@@ -73,7 +74,7 @@ class TestNamespaces:
             '-c',
             'import pkg_resources',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(try_import)
 
     def test_namespace_package_installed_and_cwd(self, tmpdir):
@@ -102,7 +103,7 @@ class TestNamespaces:
             '-c',
             'import pkg_resources; import myns.pkgA',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp, cwd=str(pkg_A))
 
     def test_packages_in_the_same_namespace_installed_and_cwd(self, tmpdir):
@@ -133,5 +134,5 @@ class TestNamespaces:
             '-c',
             'import pkg_resources; import myns.pkgA; import myns.pkgB',
         ]
-        with test.test.paths_on_pythonpath([str(target)]):
+        with paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp, cwd=str(pkg_B))

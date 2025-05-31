@@ -4,7 +4,6 @@ import pytest
 
 from setuptools.warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
-
 _EXAMPLES = {
     "default": dict(
         args=("Hello {x}", "\n\t{target} {v:.1f}"),
@@ -18,7 +17,7 @@ _EXAMPLES = {
             ********************************************************************************
 
     !!
-    """,  # noqa,
+    """,
     ),
     "futue_due_date": dict(
         args=("Summary", "Lorem ipsum"),
@@ -35,7 +34,7 @@ _EXAMPLES = {
             ********************************************************************************
 
     !!
-    """,  # noqa
+    """,
     ),
     "past_due_date_with_docs": dict(
         args=("Summary", "Lorem ipsum"),
@@ -54,7 +53,7 @@ _EXAMPLES = {
             ********************************************************************************
 
     !!
-    """,  # noqa
+    """,
     ),
 }
 
@@ -99,7 +98,7 @@ def test_due_date_enforcement(monkeypatch):
             ********************************************************************************
 
     !!
-    """  # noqa
+    """
     assert str(exc_info.value) == cleandoc(expected)
 
 

@@ -17,14 +17,13 @@ List of components needed to install to compile on ARM:
 - C++ ATL for latest v143 build tools (ARM64)
 """
 
-import os
 import functools
 import itertools
+import os
 import pathlib
 import shutil
 import subprocess
 import tempfile
-
 
 BUILD_TARGETS = ["cli", "gui"]
 GUI = {"cli": 0, "gui": 1}
@@ -55,13 +54,13 @@ Generators
 """
 
 
-def resolve_platform(platform: str):
+def resolve_platform(platform: str) -> str:
     if platform in ["Win32", "x64"]:
         return platform[-2:]
     return platform
 
 
-def get_executable_name(name, platform: str):
+def get_executable_name(name, platform: str) -> str:
     return f"{name}-{resolve_platform(platform)}"
 
 

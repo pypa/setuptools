@@ -1,3 +1,5 @@
+# https://github.com/python/mypy/issues/16936
+# mypy: disable-error-code="has-type"
 """Integration tests for setuptools that focus on building packages via pip.
 
 The idea behind these tests is not to exhaustively check all the possible
@@ -25,10 +27,10 @@ from packaging.requirements import Requirement
 
 from .helpers import Archive, run
 
-
 pytestmark = pytest.mark.integration
 
-(LATEST,) = Enum("v", "LATEST")
+
+(LATEST,) = Enum("v", "LATEST")  # type: ignore[misc] # https://github.com/python/mypy/issues/16936
 """Default version to be checked"""
 # There are positive and negative aspects of checking the latest version of the
 # packages.
@@ -52,6 +54,8 @@ EXAMPLES = [
     ("pyyaml", LATEST),  # cython + custom build_ext + custom distclass
     ("charset-normalizer", LATEST),  # uses mypyc, used by aiohttp
     ("protobuf", LATEST),
+    # ("requests", LATEST),  # XXX: https://github.com/psf/requests/pull/6920
+    ("celery", LATEST),
     # When adding packages to this list, make sure they expose a `__version__`
     # attribute, or modify the tests below
 ]
@@ -100,26 +104,25 @@ def venv_python(tmp_path):
 
 
 @pytest.fixture(autouse=True)
-def _prepare(tmp_path, venv_python, monkeypatch, request):
+def _prepare(tmp_path, venv_python, monkeypatch):
     download_path = os.getenv("DOWNLOAD_PATH", str(tmp_path))
     os.makedirs(download_path, exist_ok=True)
 
     # Environment vars used for building some of the packages
     monkeypatch.setenv("USE_MYPYC", "1")
 
-    def _debug_info():
-        # Let's provide the maximum amount of information possible in the case
-        # it is necessary to debug the tests directly from the CI logs.
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print("Temporary directory:")
-        map(print, tmp_path.glob("*"))
-        print("Virtual environment:")
-        run([venv_python, "-m", "pip", "freeze"])
+    yield
 
-    request.addfinalizer(_debug_info)
+    # Let's provide the maximum amount of information possible in the case
+    # it is necessary to debug the tests directly from the CI logs.
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print("Temporary directory:")
+    map(print, tmp_path.glob("*"))
+    print("Virtual environment:")
+    run([venv_python, "-m", "pip", "freeze"])
 
 
-@pytest.mark.parametrize('package, version', EXAMPLES)
+@pytest.mark.parametrize(("package", "version"), EXAMPLES)
 @pytest.mark.uses_network
 def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel):
     venv_pip = (venv_python, "-m", "pip")
@@ -133,7 +136,7 @@ def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel
     # Use a virtualenv to simulate PEP 517 isolation
     # but install fresh setuptools wheel to ensure the version under development
     env = EXTRA_ENV_VARS.get(package, {})
-    run([*venv_pip, "install", "wheel", "-I", setuptools_wheel])
+    run([*venv_pip, "install", "--force-reinstall", setuptools_wheel])
     run([*venv_pip, "install", *INSTALL_OPTIONS, sdist], env)
 
     # Execute a simple script to make sure the package was installed correctly
@@ -198,13 +201,12 @@ def build_deps(package, sdist_file):
     "Manually" install them, since pip will not install build
     deps with `--no-build-isolation`.
     """
-    import tomli as toml
-
     # delay importing, since pytest discovery phase may hit this file from a
     # testenv without tomli
+    from setuptools.compat.py310 import tomllib
 
     archive = Archive(sdist_file)
-    info = toml.loads(_read_pyproject(archive))
+    info = tomllib.loads(_read_pyproject(archive))
     deps = info.get("build-system", {}).get("requires", [])
     deps += EXTRA_BUILD_DEPS.get(package, [])
     # Remove setuptools from requirements (and deduplicate)

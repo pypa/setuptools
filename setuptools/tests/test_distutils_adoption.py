@@ -1,12 +1,13 @@
 import os
-import sys
 import platform
+import sys
 import textwrap
 
 import pytest
 
-
 IS_PYPY = '__pypy__' in sys.builtin_module_names
+
+_TEXT_KWARGS = {"text": True, "encoding": "utf-8"}  # For subprocess.run
 
 
 def win_sr(env):
@@ -24,7 +25,7 @@ def win_sr(env):
 def find_distutils(venv, imports='distutils', env=None, **kwargs):
     py_cmd = 'import {imports}; print(distutils.__file__)'.format(**locals())
     cmd = ['python', '-c', py_cmd]
-    return venv.run(cmd, env=win_sr(env), text=True, **kwargs)
+    return venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS, **kwargs)
 
 
 def count_meta_path(venv, env=None):
@@ -36,7 +37,7 @@ def count_meta_path(venv, env=None):
         """
     )
     cmd = ['python', '-c', py_cmd]
-    return int(venv.run(cmd, env=win_sr(env), text=True))
+    return int(venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS))
 
 
 skip_without_stdlib_distutils = pytest.mark.skipif(
@@ -82,7 +83,7 @@ def test_pip_import(venv):
     Regression test for #3002.
     """
     cmd = ['python', '-c', 'import pip']
-    venv.run(cmd, text=True)
+    venv.run(cmd, **_TEXT_KWARGS)
 
 
 def test_distutils_has_origin():
@@ -113,8 +114,9 @@ print("success")
 """
 
 
+@pytest.mark.usefixtures("tmpdir_cwd")
 @pytest.mark.parametrize(
-    "distutils_version, imported_module",
+    ('distutils_version', 'imported_module'),
     [
         pytest.param("stdlib", "dir_util", marks=skip_without_stdlib_distutils),
         pytest.param("stdlib", "file_util", marks=skip_without_stdlib_distutils),
@@ -124,13 +126,11 @@ print("success")
         ("local", "archive_util"),
     ],
 )
-def test_modules_are_not_duplicated_on_import(
-    distutils_version, imported_module, tmpdir_cwd, venv
-):
+def test_modules_are_not_duplicated_on_import(distutils_version, imported_module, venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
     script = ENSURE_IMPORTS_ARE_NOT_DUPLICATED.format(imported_module=imported_module)
     cmd = ['python', '-c', script]
-    output = venv.run(cmd, env=win_sr(env), text=True).strip()
+    output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
     assert output == "success"
 
 
@@ -144,6 +144,7 @@ print("success")
 """
 
 
+@pytest.mark.usefixtures("tmpdir_cwd")
 @pytest.mark.parametrize(
     "distutils_version",
     [
@@ -151,8 +152,47 @@ print("success")
         pytest.param("stdlib", marks=skip_without_stdlib_distutils),
     ],
 )
-def test_log_module_is_not_duplicated_on_import(distutils_version, tmpdir_cwd, venv):
+def test_log_module_is_not_duplicated_on_import(distutils_version, venv):
     env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
     cmd = ['python', '-c', ENSURE_LOG_IMPORT_IS_NOT_DUPLICATED]
-    output = venv.run(cmd, env=win_sr(env), text=True).strip()
+    output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
+    assert output == "success"
+
+
+ENSURE_CONSISTENT_ERROR_FROM_MODIFIED_PY = r"""
+from setuptools.modified import newer
+from {imported_module}.errors import DistutilsError
+
+# Can't use pytest.raises in this context
+try:
+    newer("", "")
+except DistutilsError:
+    print("success")
+else:
+    raise AssertionError("Expected to raise")
+"""
+
+
+@pytest.mark.usefixtures("tmpdir_cwd")
+@pytest.mark.parametrize(
+    ('distutils_version', 'imported_module'),
+    [
+        ("local", "distutils"),
+        # Unfortunately we still get ._distutils.errors.DistutilsError with SETUPTOOLS_USE_DISTUTILS=stdlib
+        # But that's a deprecated use-case we don't mind not fully supporting in newer code
+        pytest.param(
+            "stdlib", "setuptools._distutils", marks=skip_without_stdlib_distutils
+        ),
+    ],
+)
+def test_consistent_error_from_modified_py(distutils_version, imported_module, venv):
+    env = dict(SETUPTOOLS_USE_DISTUTILS=distutils_version)
+    cmd = [
+        'python',
+        '-c',
+        ENSURE_CONSISTENT_ERROR_FROM_MODIFIED_PY.format(
+            imported_module=imported_module
+        ),
+    ]
+    output = venv.run(cmd, env=win_sr(env), **_TEXT_KWARGS).strip()
     assert output == "success"

@@ -6,6 +6,7 @@ import pytest
 
 from setuptools.command.install_scripts import install_scripts
 from setuptools.dist import Distribution
+
 from . import contexts
 
 
@@ -37,11 +38,11 @@ class TestInstallScripts:
         Ensure that shebang is not quoted on Unix when getting the Python exe
         from sys.executable.
         """
-        expected = '#!%s\n' % self.unix_exe
+        expected = f'#!{self.unix_exe}\n'
         monkeypatch.setattr('sys.executable', self.unix_exe)
         with tmpdir.as_cwd():
             self._run_install_scripts(str(tmpdir))
-            with open(str(tmpdir.join('foo')), 'r') as f:
+            with open(str(tmpdir.join('foo')), 'r', encoding="utf-8") as f:
                 actual = f.readline()
         assert actual == expected
 
@@ -51,11 +52,11 @@ class TestInstallScripts:
         Ensure that shebang is quoted on Windows when getting the Python exe
         from sys.executable and it contains a space.
         """
-        expected = '#!"%s"\n' % self.win32_exe
+        expected = f'#!"{self.win32_exe}"\n'
         monkeypatch.setattr('sys.executable', self.win32_exe)
         with tmpdir.as_cwd():
             self._run_install_scripts(str(tmpdir))
-            with open(str(tmpdir.join('foo-script.py')), 'r') as f:
+            with open(str(tmpdir.join('foo-script.py')), 'r', encoding="utf-8") as f:
                 actual = f.readline()
         assert actual == expected
 
@@ -66,10 +67,10 @@ class TestInstallScripts:
         a value with spaces
         is specified using --executable.
         """
-        expected = '#!%s\n' % self.unix_spaces_exe
+        expected = f'#!{self.unix_spaces_exe}\n'
         with tmpdir.as_cwd():
             self._run_install_scripts(str(tmpdir), self.unix_spaces_exe)
-            with open(str(tmpdir.join('foo')), 'r') as f:
+            with open(str(tmpdir.join('foo')), 'r', encoding="utf-8") as f:
                 actual = f.readline()
         assert actual == expected
 
@@ -80,9 +81,9 @@ class TestInstallScripts:
         getting a path with spaces
         from --executable, that is itself properly quoted.
         """
-        expected = '#!"%s"\n' % self.win32_exe
+        expected = f'#!"{self.win32_exe}"\n'
         with tmpdir.as_cwd():
             self._run_install_scripts(str(tmpdir), '"' + self.win32_exe + '"')
-            with open(str(tmpdir.join('foo-script.py')), 'r') as f:
+            with open(str(tmpdir.join('foo-script.py')), 'r', encoding="utf-8") as f:
                 actual = f.readline()
         assert actual == expected
