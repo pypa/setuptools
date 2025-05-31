@@ -1,10 +1,17 @@
 #!/usr/bin/env python
+from __future__ import annotations
 
 import os
+import re
+import subprocess
 import sys
 import textwrap
+import time
+from contextlib import suppress
+from itertools import starmap
 
 import setuptools
+from setuptools import _normalization
 from setuptools.command.install import install
 
 here = os.path.dirname(__file__)
@@ -24,6 +31,29 @@ include_windows_files = sys.platform == 'win32' or force_windows_specific_files
 if include_windows_files:
     package_data.setdefault('setuptools', []).extend(['*.exe'])
     package_data.setdefault('setuptools.command', []).extend(['*.xml'])
+
+
+_VERSION_FALLBACK = [
+    ("PKG-INFO", r"^Version: (\d+\.\d+\.\d+.*)$", "{match[1]}"),  # sdist
+    ("NEWS.rst", r"^v(\d+\.\d+\.\d+)", "{match[1]}.dev+{timestamp}"),  # latest version
+]
+
+
+def _extract_version(file: str, pattern: str, fmt: str) -> str | None:
+    with suppress(FileNotFoundError), open(file, encoding="utf-8") as fp:
+        if match := re.search(pattern, fp.read(), re.M):
+            return fmt.format(match=match, timestamp=time.strftime("%Y%m%d"))
+    return None
+
+
+def _get_version() -> str:
+    cmd = ["git", "describe", "--abbrev", "--match", "v?[0-9]*", "--dirty"]
+    try:
+        version = subprocess.check_output(cmd, encoding="utf-8")
+        return _normalization.best_effort_version(version, "{safe}.dev+{sanitized}")
+    except subprocess.CalledProcessError:  # e.g.: git not installed or history missing
+        candidates = filter(None, starmap(_extract_version, _VERSION_FALLBACK))
+        return next(candidates, f"0.0.0.dev+{time.strftime('%Y%m%d')}")
 
 
 def pypi_link(pkg_filename):
@@ -83,6 +113,7 @@ class install_with_pth(install):
 
 
 setup_params = dict(
+    version=_get_version(),
     cmdclass={'install': install_with_pth},
     package_data=package_data,
 )

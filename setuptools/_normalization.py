@@ -12,7 +12,7 @@ import packaging
 _VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
 _UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9._-]+", re.I)
 _NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.I)
-_PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
+_PEP440_FALLBACK = re.compile(r"^(?P<safe>v?(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
 
 
 def safe_identifier(name: str) -> str:
@@ -64,7 +64,10 @@ def safe_version(version: str) -> str:
         return str(packaging.version.Version(attempt))
 
 
-def best_effort_version(version: str) -> str:
+def best_effort_version(
+    version: str,
+    template: str = "{safe}.dev0+sanitized.{sanitized}",
+) -> str:
     """Convert an arbitrary string into a version-like string.
     Fallback when ``safe_version`` is not safe enough.
     >>> best_effort_version("v0.2 beta")
@@ -79,6 +82,10 @@ def best_effort_version(version: str) -> str:
     '0.dev0+sanitized'
     >>> best_effort_version("42.+?1")
     '42.dev0+sanitized.1'
+    >>> best_effort_version("v78.1.0-2-g3a3144f0d")
+    '78.1.0.dev0+sanitized.2.g3a3144f0d'
+    >>> best_effort_version("v80.9.0-18-gdf932b02e-dirty", "{safe}.dev+{sanitized}")
+    '80.9.0.dev0+18.gdf932b02e.dirty'
     """
     try:
         return safe_version(version)
@@ -92,8 +99,8 @@ def best_effort_version(version: str) -> str:
             safe = "0"
             rest = version
         safe_rest = _NON_ALPHANUMERIC.sub(".", rest).strip(".")
-        local = f"sanitized.{safe_rest}".strip(".")
-        return safe_version(f"{safe}.dev0+{local}")
+        fallback = template.format(safe=safe, sanitized=safe_rest).strip(".")
+        return safe_version(fallback)
 
 
 def safe_extra(extra: str) -> str:

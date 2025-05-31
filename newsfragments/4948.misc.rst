@@ -1,0 +1,4 @@
+Setuptools stopped using ``egg_info --tag-build --tag-date`` for its own build
+process. Instead version is now inferred from git tag history.
+To ensure the proper version is considered, please make sure to fetch the git tags.
+Local development tags are added to the latest version if the latest commit is not tagged.
