@@ -13,7 +13,7 @@ Since the 60.0.0 release, Setuptools includes a local, vendored copy of distutil
    Unless ``SETUPTOOLS_USE_DISTUTILS=stdlib``, they will have no effect on the build process.
 
    You can still use a global user config file, ``~/.pydistutils.cfg`` (POSIX) or ``%USERPROFILE%/pydistutils.cfg`` (Windows),
-   or use the environment variable :doc:`DIST_EXTRA_CONFIG <deprecated/distutils/configfile>` to point to another
+   or use the environment variable :ref:`DIST_EXTRA_CONFIG <setup-config>` to point to another
    supplementary configuration file.
 
 
@@ -24,9 +24,11 @@ As Distutils is deprecated, any usage of functions or objects from distutils is 
 
 ``distutils.core.setup`` → ``setuptools.setup``
 
-``distutils.cmd.Command`` → ``setuptools.Command``
+``distutils.cmd.Command`` or ``distutils.core.Command`` → ``setuptools.Command``
 
 ``distutils.command.{build_clib,build_ext,build_py,sdist}`` → ``setuptools.command.*``
+
+``distutils.dep_util`` → ``setuptools.modified``
 
 ``distutils.log`` → :mod:`logging` (standard library)
 

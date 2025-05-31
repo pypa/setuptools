@@ -1,12 +1,12 @@
 """Tests for distutils.command.check."""
+
 import os
 import textwrap
+from distutils.command.check import check
+from distutils.errors import DistutilsSetupError
+from distutils.tests import support
 
 import pytest
-
-from distutils.command.check import check
-from distutils.tests import support
-from distutils.errors import DistutilsSetupError
 
 try:
     import pygments
@@ -62,7 +62,7 @@ class TestCheck(support.TempdirManager):
             self._run({}, **{'strict': 1})
 
         # and of course, no error when all metadata are present
-        cmd = self._run(metadata, strict=1)
+        cmd = self._run(metadata, strict=True)
         assert cmd._warnings == 0
 
         # now a test with non-ASCII characters
@@ -126,7 +126,7 @@ class TestCheck(support.TempdirManager):
         cmd.check_restructuredtext()
         assert cmd._warnings == 1
 
-        # let's see if we have an error with strict=1
+        # let's see if we have an error with strict=True
         metadata = {
             'url': 'xxx',
             'author': 'xxx',
@@ -140,20 +140,19 @@ class TestCheck(support.TempdirManager):
 
         # and non-broken rest, including a non-ASCII character to test #12114
         metadata['long_description'] = 'title\n=====\n\ntest \u00df'
-        cmd = self._run(metadata, strict=1, restructuredtext=1)
+        cmd = self._run(metadata, strict=True, restructuredtext=True)
         assert cmd._warnings == 0
 
         # check that includes work to test #31292
         metadata['long_description'] = 'title\n=====\n\n.. include:: includetest.rst'
-        cmd = self._run(metadata, cwd=HERE, strict=1, restructuredtext=1)
+        cmd = self._run(metadata, cwd=HERE, strict=True, restructuredtext=True)
         assert cmd._warnings == 0
 
     def test_check_restructuredtext_with_syntax_highlight(self):
         pytest.importorskip('docutils')
         # Don't fail if there is a `code` or `code-block` directive
 
-        example_rst_docs = []
-        example_rst_docs.append(
+        example_rst_docs = [
             textwrap.dedent(
                 """\
             Here's some code:
@@ -163,9 +162,7 @@ class TestCheck(support.TempdirManager):
                 def foo():
                     pass
             """
-            )
-        )
-        example_rst_docs.append(
+            ),
             textwrap.dedent(
                 """\
             Here's some code:
@@ -175,8 +172,8 @@ class TestCheck(support.TempdirManager):
                 def foo():
                     pass
             """
-            )
-        )
+            ),
+        ]
 
         for rest_with_code in example_rst_docs:
             pkg_info, dist = self.create_dist(long_description=rest_with_code)

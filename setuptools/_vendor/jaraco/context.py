@@ -1,14 +1,33 @@
-import os
-import subprocess
+from __future__ import annotations
+
 import contextlib
 import functools
-import tempfile
-import shutil
 import operator
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import urllib.request
+import warnings
+from typing import Iterator
+
+
+if sys.version_info < (3, 12):
+    from backports import tarfile
+else:
+    import tarfile
 
 
 @contextlib.contextmanager
-def pushd(dir):
+def pushd(dir: str | os.PathLike) -> Iterator[str | os.PathLike]:
+    """
+    >>> tmp_path = getfixture('tmp_path')
+    >>> with pushd(tmp_path):
+    ...     assert os.getcwd() == os.fspath(tmp_path)
+    >>> assert os.getcwd() != os.fspath(tmp_path)
+    """
+
     orig = os.getcwd()
     os.chdir(dir)
     try:
@@ -18,37 +37,108 @@ def pushd(dir):
 
 
 @contextlib.contextmanager
-def tarball_context(url, target_dir=None, runner=None, pushd=pushd):
+def tarball(
+    url, target_dir: str | os.PathLike | None = None
+) -> Iterator[str | os.PathLike]:
     """
-    Get a tarball, extract it, change to that directory, yield, then
-    clean up.
-    `runner` is the function to invoke commands.
-    `pushd` is a context manager for changing the directory.
+    Get a tarball, extract it, yield, then clean up.
+
+    >>> import urllib.request
+    >>> url = getfixture('tarfile_served')
+    >>> target = getfixture('tmp_path') / 'out'
+    >>> tb = tarball(url, target_dir=target)
+    >>> import pathlib
+    >>> with tb as extracted:
+    ...     contents = pathlib.Path(extracted, 'contents.txt').read_text(encoding='utf-8')
+    >>> assert not os.path.exists(extracted)
     """
     if target_dir is None:
         target_dir = os.path.basename(url).replace('.tar.gz', '').replace('.tgz', '')
-    if runner is None:
-        runner = functools.partial(subprocess.check_call, shell=True)
     # In the tar command, use --strip-components=1 to strip the first path and
     #  then
     #  use -C to cause the files to be extracted to {target_dir}. This ensures
     #  that we always know where the files were extracted.
-    runner('mkdir {target_dir}'.format(**vars()))
+    os.mkdir(target_dir)
     try:
-        getter = 'wget {url} -O -'
-        extract = 'tar x{compression} --strip-components=1 -C {target_dir}'
-        cmd = ' | '.join((getter, extract))
-        runner(cmd.format(compression=infer_compression(url), **vars()))
-        with pushd(target_dir):
-            yield target_dir
+        req = urllib.request.urlopen(url)
+        with tarfile.open(fileobj=req, mode='r|*') as tf:
+            tf.extractall(path=target_dir, filter=strip_first_component)
+        yield target_dir
     finally:
-        runner('rm -Rf {target_dir}'.format(**vars()))
+        shutil.rmtree(target_dir)
+
+
+def strip_first_component(
+    member: tarfile.TarInfo,
+    path,
+) -> tarfile.TarInfo:
+    _, member.name = member.name.split('/', 1)
+    return member
+
+
+def _compose(*cmgrs):
+    """
+    Compose any number of dependent context managers into a single one.
+
+    The last, innermost context manager may take arbitrary arguments, but
+    each successive context manager should accept the result from the
+    previous as a single parameter.
+
+    Like :func:`jaraco.functools.compose`, behavior works from right to
+    left, so the context manager should be indicated from outermost to
+    innermost.
+
+    Example, to create a context manager to change to a temporary
+    directory:
+
+    >>> temp_dir_as_cwd = _compose(pushd, temp_dir)
+    >>> with temp_dir_as_cwd() as dir:
+    ...     assert os.path.samefile(os.getcwd(), dir)
+    """
+
+    def compose_two(inner, outer):
+        def composed(*args, **kwargs):
+            with inner(*args, **kwargs) as saved, outer(saved) as res:
+                yield res
+
+        return contextlib.contextmanager(composed)
+
+    return functools.reduce(compose_two, reversed(cmgrs))
+
+
+tarball_cwd = _compose(pushd, tarball)
+
+
+@contextlib.contextmanager
+def tarball_context(*args, **kwargs):
+    warnings.warn(
+        "tarball_context is deprecated. Use tarball or tarball_cwd instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    pushd_ctx = kwargs.pop('pushd', pushd)
+    with tarball(*args, **kwargs) as tball, pushd_ctx(tball) as dir:
+        yield dir
 
 
 def infer_compression(url):
     """
     Given a URL or filename, infer the compression code for tar.
+
+    >>> infer_compression('http://foo/bar.tar.gz')
+    'z'
+    >>> infer_compression('http://foo/bar.tgz')
+    'z'
+    >>> infer_compression('file.bz')
+    'j'
+    >>> infer_compression('file.xz')
+    'J'
     """
+    warnings.warn(
+        "infer_compression is deprecated with no replacement",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     # cheat and just assume it's the last two characters
     compression_indicator = url[-2:]
     mapping = dict(gz='z', bz='j', xz='J')
@@ -61,6 +151,12 @@ def temp_dir(remover=shutil.rmtree):
     """
     Create a temporary directory context. Pass a custom remover
     to override the removal behavior.
+
+    >>> import pathlib
+    >>> with temp_dir() as the_dir:
+    ...     assert os.path.isdir(the_dir)
+    ...     _ = pathlib.Path(the_dir).joinpath('somefile').write_text('contents', encoding='utf-8')
+    >>> assert not os.path.exists(the_dir)
     """
     temp_dir = tempfile.mkdtemp()
     try:
@@ -88,9 +184,23 @@ def repo_context(url, branch=None, quiet=True, dest_ctx=temp_dir):
         yield repo_dir
 
 
-@contextlib.contextmanager
 def null():
-    yield
+    """
+    A null context suitable to stand in for a meaningful context.
+
+    >>> with null() as value:
+    ...     assert value is None
+
+    This context is most useful when dealing with two or more code
+    branches but only some need a context. Wrap the others in a null
+    context to provide symmetry across all options.
+    """
+    warnings.warn(
+        "null is deprecated. Use contextlib.nullcontext",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return contextlib.nullcontext()
 
 
 class ExceptionTrap:
@@ -112,6 +222,10 @@ class ExceptionTrap:
     ...     raise ValueError("1 + 1 is not 3")
     >>> bool(trap)
     True
+    >>> trap.value
+    ValueError('1 + 1 is not 3')
+    >>> trap.tb
+    <traceback object at ...>
 
     >>> with ExceptionTrap(ValueError) as trap:
     ...     raise Exception()
@@ -211,3 +325,37 @@ class suppress(contextlib.suppress, contextlib.ContextDecorator):
     ...     {}['']
     >>> key_error()
     """
+
+
+class on_interrupt(contextlib.ContextDecorator):
+    """
+    Replace a KeyboardInterrupt with SystemExit(1)
+
+    >>> def do_interrupt():
+    ...     raise KeyboardInterrupt()
+    >>> on_interrupt('error')(do_interrupt)()
+    Traceback (most recent call last):
+    ...
+    SystemExit: 1
+    >>> on_interrupt('error', code=255)(do_interrupt)()
+    Traceback (most recent call last):
+    ...
+    SystemExit: 255
+    >>> on_interrupt('suppress')(do_interrupt)()
+    >>> with __import__('pytest').raises(KeyboardInterrupt):
+    ...     on_interrupt('ignore')(do_interrupt)()
+    """
+
+    def __init__(self, action='error', /, code=1):
+        self.action = action
+        self.code = code
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exctype, excinst, exctb):
+        if exctype is not KeyboardInterrupt or self.action == 'ignore':
+            return
+        elif self.action == 'error':
+            raise SystemExit(self.code) from excinst
+        return self.action == 'suppress'

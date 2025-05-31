@@ -110,7 +110,7 @@ After installing the package, a user may invoke that function by simply calling
    $ hello-world
    Hello world
 
-Note that any function configured as a console script, i.e. ``hello_world()`` in
+Note that any function used as a console script, i.e. ``hello_world()`` in
 this example, should not accept any arguments. If your function requires any input
 from the user, you can use regular command-line argument parsing utilities like
 :mod:`argparse` within the body of
@@ -183,7 +183,7 @@ Now, running:
 
 will open a small application window with the title 'Hello world'.
 
-Note that just as with console scripts, any function configured as a GUI script
+Note that just as with console scripts, any function used as a GUI script
 should not accept any arguments, and any user input can be parsed within the
 body of the function. GUI scripts also use the same syntax (discussed in the
 `last section <#entry-points-syntax>`_) for specifying the function to be invoked.
@@ -486,9 +486,10 @@ entry points remains the same as for console/GUI scripts, and is discussed in th
 .. tip::
     The recommended approach for loading and importing entry points is the
     :mod:`importlib.metadata` module,
-    which is a part of the standard library since Python 3.8. For older versions of
-    Python, its backport :pypi:`importlib_metadata` should be used. While using the
-    backport, the only change that has to be made is to replace ``importlib.metadata``
+    which is a part of the standard library since Python 3.8 and is non-provisional
+    since Python 3.10. For older versions of Python, its backport
+    :pypi:`importlib_metadata` should be used. While using the backport, the only
+    change that has to be made is to replace ``importlib.metadata``
     with ``importlib_metadata``, i.e.
 
     .. code-block:: python

@@ -1,5 +1,5 @@
-"""develop tests
-"""
+"""develop tests"""
+
 import os
 import re
 import zipfile
@@ -17,7 +17,7 @@ setup(py_modules=['hi'])
 """
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def setup_context(tmpdir):
     with (tmpdir / 'setup.py').open('w') as f:
         f.write(SETUP_PY)
@@ -28,13 +28,17 @@ def setup_context(tmpdir):
 
 
 class Test:
-    def test_bdist_egg(self, setup_context, user_override):
-        dist = Distribution(dict(
-            script_name='setup.py',
-            script_args=['bdist_egg'],
-            name='foo',
-            py_modules=['hi'],
-        ))
+    @pytest.mark.usefixtures("user_override")
+    @pytest.mark.usefixtures("setup_context")
+    def test_bdist_egg(self):
+        dist = Distribution(
+            dict(
+                script_name='setup.py',
+                script_args=['bdist_egg'],
+                name='foo',
+                py_modules=['hi'],
+            )
+        )
         os.makedirs(os.path.join('build', 'src'))
         with contexts.quiet():
             dist.parse_command_line()
@@ -45,15 +49,19 @@ class Test:
         assert re.match(r'foo-0.0.0-py[23].\d+.egg$', content)
 
     @pytest.mark.xfail(
-        os.environ.get('PYTHONDONTWRITEBYTECODE'),
+        os.environ.get('PYTHONDONTWRITEBYTECODE', False),
         reason="Byte code disabled",
     )
-    def test_exclude_source_files(self, setup_context, user_override):
-        dist = Distribution(dict(
-            script_name='setup.py',
-            script_args=['bdist_egg', '--exclude-source-files'],
-            py_modules=['hi'],
-        ))
+    @pytest.mark.usefixtures("user_override")
+    @pytest.mark.usefixtures("setup_context")
+    def test_exclude_source_files(self):
+        dist = Distribution(
+            dict(
+                script_name='setup.py',
+                script_args=['bdist_egg', '--exclude-source-files'],
+                py_modules=['hi'],
+            )
+        )
         with contexts.quiet():
             dist.parse_command_line()
             dist.run_commands()

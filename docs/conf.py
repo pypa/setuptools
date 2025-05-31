@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+from __future__ import annotations
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -11,7 +11,7 @@ html_theme = "furo"
 # Link dates and other references in the changelog
 extensions += ['rst.linker']
 link_files = {
-    '../CHANGES.rst': dict(
+    '../NEWS.rst': dict(
         using=dict(
             BB='https://bitbucket.org',
             GH='https://github.com',
@@ -47,15 +47,19 @@ link_files = {
             ),
             dict(
                 pattern=r'Old Setuptools #(?P<old_setuptools>\d+)',
-                url='http://bugs.python.org/setuptools/issue{old_setuptools}',
+                url='https://bugs.python.org/setuptools/issue{old_setuptools}',
             ),
             dict(
                 pattern=r'Jython #(?P<jython>\d+)',
-                url='http://bugs.jython.org/issue{jython}',
+                url='https://bugs.jython.org/issue{jython}',
             ),
             dict(
                 pattern=r'(Python #|bpo-)(?P<python>\d+)',
-                url='http://bugs.python.org/issue{python}',
+                url='https://bugs.python.org/issue{python}',
+            ),
+            dict(
+                pattern=r'\bpython/cpython#(?P<cpython>\d+)',
+                url='{GH}/python/cpython/issues/{cpython}',
             ),
             dict(
                 pattern=r'Interop #(?P<interop>\d+)',
@@ -91,6 +95,7 @@ link_files = {
 
 # Be strict about any broken references
 nitpicky = True
+nitpick_ignore: list[tuple[str, str]] = []
 
 # Include Python intersphinx mapping to prevent failures
 # jaraco/skeleton#51
@@ -102,43 +107,16 @@ intersphinx_mapping = {
 # Preserve authored syntax for defaults
 autodoc_preserve_defaults = True
 
-intersphinx_mapping.update({
-    'pip': ('https://pip.pypa.io/en/latest', None),
-    'build': ('https://pypa-build.readthedocs.io/en/latest', None),
-    'PyPUG': ('https://packaging.python.org/en/latest/', None),
-    'packaging': ('https://packaging.pypa.io/en/latest/', None),
-    'twine': ('https://twine.readthedocs.io/en/stable/', None),
-    'importlib-resources': (
-        'https://importlib-resources.readthedocs.io/en/latest', None
-    ),
-})
-
-# Support tooltips on references
-extensions += ['hoverxref.extension']
-hoverxref_auto_ref = True
-hoverxref_intersphinx = [
-    'python',
-    'pip',
-    'build',
-    'PyPUG',
-    'packaging',
-    'twine',
-    'importlib-resources',
-]
-
-# Add support for linking usernames
-github_url = 'https://github.com'
-github_repo_org = 'pypa'
-github_repo_name = 'setuptools'
-github_repo_slug = f'{github_repo_org}/{github_repo_name}'
-github_repo_url = f'{github_url}/{github_repo_slug}'
-github_sponsors_url = f'{github_url}/sponsors'
+# Add support for linking usernames, PyPI projects, Wikipedia pages
+github_url = 'https://github.com/'
 extlinks = {
-    'user': (f'{github_sponsors_url}/%s', '@%s'),  # noqa: WPS323
-    'pypi': ('https://pypi.org/project/%s', '%s'),  # noqa: WPS323
-    'wiki': ('https://wikipedia.org/wiki/%s', '%s'),  # noqa: WPS323
+    'user': (f'{github_url}%s', '@%s'),
+    'pypi': ('https://pypi.org/project/%s', '%s'),
+    'wiki': ('https://wikipedia.org/wiki/%s', '%s'),
 }
 extensions += ['sphinx.ext.extlinks']
+
+# local
 
 # Ref: https://github.com/python-attrs/attrs/pull/571/files\
 #      #diff-85987f48f1258d9ee486e3191495582dR82
@@ -158,6 +136,9 @@ html_theme_options = {
         "color-brand-primary": "#E5B62F",  # "yellow"
         "color-brand-content": "#E5B62F",
     },
+    "source_repository": "https://github.com/pypa/setuptools/",
+    "source_branch": "main",
+    "source_directory": "docs/",
 }
 
 # Redirect old docs so links and references in the ecosystem don't break
@@ -173,23 +154,25 @@ extensions += ['sphinx_inline_tabs']
 # Support for distutils
 
 # Ref: https://stackoverflow.com/a/30624034/595220
-nitpick_ignore = [
+nitpick_ignore += [
     ('c:func', 'SHGetSpecialFolderPath'),  # ref to MS docs
+    ('envvar', 'DIST_EXTRA_CONFIG'),  # undocumented
     ('envvar', 'DISTUTILS_DEBUG'),  # undocumented
     ('envvar', 'HOME'),  # undocumented
     ('envvar', 'PLAT'),  # undocumented
     ('py:attr', 'CCompiler.language_map'),  # undocumented
     ('py:attr', 'CCompiler.language_order'),  # undocumented
-    ('py:class', 'distutils.dist.Distribution'),  # undocumented
-    ('py:class', 'distutils.extension.Extension'),  # undocumented
     ('py:class', 'BorlandCCompiler'),  # undocumented
     ('py:class', 'CCompiler'),  # undocumented
     ('py:class', 'CygwinCCompiler'),  # undocumented
+    ('py:class', 'distutils.dist.Distribution'),  # undocumented
     ('py:class', 'distutils.dist.DistributionMetadata'),  # undocumented
+    ('py:class', 'distutils.extension.Extension'),  # undocumented
     ('py:class', 'FileList'),  # undocumented
     ('py:class', 'IShellLink'),  # ref to MS docs
     ('py:class', 'MSVCCompiler'),  # undocumented
     ('py:class', 'OptionDummy'),  # undocumented
+    ('py:class', 'setuptools.dist.Distribution'),  # undocumented
     ('py:class', 'UnixCCompiler'),  # undocumented
     ('py:exc', 'CompileError'),  # undocumented
     ('py:exc', 'DistutilsExecError'),  # undocumented
@@ -199,8 +182,7 @@ nitpick_ignore = [
     ('py:exc', 'PreprocessError'),  # undocumented
     ('py:exc', 'setuptools.errors.PlatformError'),  # sphinx cannot find it
     ('py:func', 'distutils.CCompiler.new_compiler'),  # undocumented
-    # undocumented:
-    ('py:func', 'distutils.dist.DistributionMetadata.read_pkg_file'),
+    ('py:func', 'distutils.dist.DistributionMetadata.read_pkg_file'),  # undocumented
     ('py:func', 'distutils.file_util._copy_file_contents'),  # undocumented
     ('py:func', 'distutils.log.debug'),  # undocumented
     ('py:func', 'distutils.spawn.find_executable'),  # undocumented
@@ -211,7 +193,12 @@ nitpick_ignore = [
 
 # Allow linking objects on other Sphinx sites seamlessly:
 intersphinx_mapping.update(
-    python=('https://docs.python.org/3', None),
+    # python=('https://docs.python.org/3', None),
+    python=('https://docs.python.org/3.11', None),
+    # ^-- Python 3.11 is required because it still contains `distutils`.
+    #     Just leaving it as `3` would imply 3.12+, but that causes an
+    #     error with the cross references to distutils functions.
+    #     Inventory cache may cause errors, deleting it solves the problem.
 )
 
 # Add support for the unreleased "next-version" change notes
@@ -220,11 +207,13 @@ extensions += ['sphinxcontrib.towncrier']
 towncrier_draft_working_directory = '..'
 # Avoid an empty section for unpublished changes.
 towncrier_draft_include_empty = False
+# sphinx-contrib/sphinxcontrib-towncrier#81
+towncrier_draft_config_path = 'towncrier.toml'
 
 extensions += ['jaraco.tidelift']
 
 # Add icons (aka "favicons") to documentation
-extensions += ['sphinx-favicon']
+extensions += ['sphinx_favicon']
 html_static_path = ['images']  # should contain the folder with icons
 
 # Add support for nice Not Found 404 pages
@@ -237,13 +226,26 @@ favicons = [
         "rel": "icon",
         "type": "image/svg+xml",
         "static-file": "logo-symbol-only.svg",
-        "sizes": "any"
+        "sizes": "any",
     },
     {  # Version with thicker strokes for better visibility at smaller sizes
         "rel": "icon",
         "type": "image/svg+xml",
         "static-file": "favicon.svg",
-        "sizes": "16x16 24x24 32x32 48x48"
+        "sizes": "16x16 24x24 32x32 48x48",
     },
     # rel="apple-touch-icon" does not support SVG yet
 ]
+
+intersphinx_mapping.update({
+    'pip': ('https://pip.pypa.io/en/latest', None),
+    'build': ('https://build.pypa.io/en/latest', None),
+    'PyPUG': ('https://packaging.python.org/en/latest', None),
+    'pytest': ('https://docs.pytest.org/en/stable', None),
+    'packaging': ('https://packaging.pypa.io/en/latest', None),
+    'twine': ('https://twine.readthedocs.io/en/stable', None),
+    'importlib-resources': (
+        'https://importlib-resources.readthedocs.io/en/latest',
+        None,
+    ),
+})

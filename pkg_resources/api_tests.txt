@@ -338,49 +338,72 @@ Environment Markers
     >>> import os
 
     >>> print(im("sys_platform"))
-    Invalid marker: 'sys_platform', parse error at ''
+    Expected marker operator, one of <=, <, !=, ==, >=, >, ~=, ===, in, not in
+        sys_platform
+                    ^
 
     >>> print(im("sys_platform=="))
-    Invalid marker: 'sys_platform==', parse error at ''
+    Expected a marker variable or quoted string
+        sys_platform==
+                      ^
 
     >>> print(im("sys_platform=='win32'"))
     False
 
     >>> print(im("sys=='x'"))
-    Invalid marker: "sys=='x'", parse error at "sys=='x'"
+    Expected a marker variable or quoted string
+        sys=='x'
+        ^
 
     >>> print(im("(extra)"))
-    Invalid marker: '(extra)', parse error at ')'
+    Expected marker operator, one of <=, <, !=, ==, >=, >, ~=, ===, in, not in
+        (extra)
+              ^
 
     >>> print(im("(extra"))
-    Invalid marker: '(extra', parse error at ''
+    Expected marker operator, one of <=, <, !=, ==, >=, >, ~=, ===, in, not in
+        (extra
+              ^
 
     >>> print(im("os.open('foo')=='y'"))
-    Invalid marker: "os.open('foo')=='y'", parse error at 'os.open('
+    Expected a marker variable or quoted string
+        os.open('foo')=='y'
+        ^
 
     >>> print(im("'x'=='y' and os.open('foo')=='y'"))   # no short-circuit!
-    Invalid marker: "'x'=='y' and os.open('foo')=='y'", parse error at 'and os.o'
+    Expected a marker variable or quoted string
+        'x'=='y' and os.open('foo')=='y'
+                     ^
 
     >>> print(im("'x'=='x' or os.open('foo')=='y'"))   # no short-circuit!
-    Invalid marker: "'x'=='x' or os.open('foo')=='y'", parse error at 'or os.op'
-
-    >>> print(im("'x' < 'y' < 'z'"))
-    Invalid marker: "'x' < 'y' < 'z'", parse error at "< 'z'"
+    Expected a marker variable or quoted string
+        'x'=='x' or os.open('foo')=='y'
+                    ^
 
     >>> print(im("r'x'=='x'"))
-    Invalid marker: "r'x'=='x'", parse error at "r'x'=='x"
+    Expected a marker variable or quoted string
+        r'x'=='x'
+        ^
 
     >>> print(im("'''x'''=='x'"))
-    Invalid marker: "'''x'''=='x'", parse error at "'x'''=='"
+    Expected marker operator, one of <=, <, !=, ==, >=, >, ~=, ===, in, not in
+        '''x'''=='x'
+          ^
 
     >>> print(im('"""x"""=="x"'))
-    Invalid marker: '"""x"""=="x"', parse error at '"x"""=="'
+    Expected marker operator, one of <=, <, !=, ==, >=, >, ~=, ===, in, not in
+        """x"""=="x"
+          ^
 
     >>> print(im(r"x\n=='x'"))
-    Invalid marker: "x\\n=='x'", parse error at "x\\n=='x'"
+    Expected a marker variable or quoted string
+        x\n=='x'
+        ^
 
     >>> print(im("os.open=='y'"))
-    Invalid marker: "os.open=='y'", parse error at 'os.open='
+    Expected a marker variable or quoted string
+        os.open=='y'
+        ^
 
     >>> em("sys_platform=='win32'") == (sys.platform=='win32')
     True

@@ -23,7 +23,7 @@ using :doc:`pip's <pip:cli/pip_install>` ``-e/--editable`` flag, as shown below:
 
    $ cd your-python-project
    $ python -m venv .venv
-   # Activate your environemt with:
+   # Activate your environment with:
    #      `source .venv/bin/activate` on Unix/macOS
    # or   `.venv\Scripts\activate` on Windows
 
@@ -159,6 +159,11 @@ Limitations
   whose names coincidentally match installed packages
   may take precedence in :doc:`Python's import system <python:reference/import>`.
   Users are encouraged to avoid such scenarios [#cwd]_.
+- Setuptools will try to give the right precedence to modules in an editable install.
+  However this is not always an easy task. If you have a particular order in
+  ``sys.path`` or some specific import precedence that needs to be respected,
+  the editable installation as supported by Setuptools might not be able to
+  fulfil this requirement, and therefore it might not be the right tool for your use case.
 
 .. attention::
    Editable installs are **not a perfect replacement for regular installs**
@@ -192,17 +197,6 @@ works (still within the context of :pep:`660`).
    Users are encouraged to try out the new editable installation techniques
    and make the necessary adaptations.
 
-If the ``compat`` mode does not work for you, you can also disable the
-:pep:`editable install <660>` hooks in ``setuptools`` by setting an environment
-variable:
-
-.. code-block::
-
-   SETUPTOOLS_ENABLE_FEATURES="legacy-editable"
-
-This *may* cause the installer (e.g. ``pip``) to effectively run the "legacy"
-installation command: ``python setup.py develop`` [#installer]_.
-
 
 How editable installations work
 -------------------------------
@@ -235,6 +229,25 @@ More information is available on the text of :pep:`PEP 660 <660#what-to-put-in-t
    used.
 
 
+Debugging Tips
+--------------
+
+If encountering problems installing a project in editable mode,
+follow these recommended steps to help debug:
+
+- Try to install the project normally, without using the editable mode.
+  Does the error still persist?
+  (If it does, try fixing the problem before attempting the editable mode).
+- When using binary extensions, make sure all OS-level
+  dependencies are installed (e.g. compilers, toolchains, binary libraries, ...).
+- Try the latest version of setuptools (maybe the error was already fixed).
+- When the project or its dependencies are using any setuptools extension
+  or customization, make sure they support the editable mode.
+
+After following the steps above, if the problem still persists and
+you think this is related to how setuptools handles editable installations,
+please submit a `reproducible example <https://stackoverflow.com/help/minimal-reproducible-example>`_ at `the bug tracker <https://github.com/pypa/setuptools/issues>`_.
+
 ----
 
 .. rubric:: Notes
@@ -250,11 +263,6 @@ More information is available on the text of :pep:`PEP 660 <660#what-to-put-in-t
    can be used to prevent such kinds of situations (checkout `this blog post
    <https://blog.ganssle.io/articles/2019/08/test-as-installed.html>`_ for more
    insights).
-
-.. [#installer]
-   For this workaround to work, the installer tool needs to support legacy
-   editable installations. (Future versions of ``pip``, for example, may drop
-   support for this feature).
 
 .. [#criteria]
    ``setuptools`` strives to find a balance between allowing the user to see

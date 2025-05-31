@@ -1,35 +1,42 @@
+from __future__ import annotations
+
 import os
-import stat
-import sys
-import subprocess
 import platform
+import stat
+import subprocess
+import sys
 from copy import deepcopy
 from importlib import import_module
 from importlib.machinery import EXTENSION_SUFFIXES
 from pathlib import Path
 from textwrap import dedent
+from typing import Any
 from unittest.mock import Mock
 from uuid import uuid4
 
 import jaraco.envs
 import jaraco.path
-import pip_run.launch
 import pytest
 from path import Path as _Path
 
-from . import contexts, namespaces
-
 from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
-    _LinkTree,
-    _find_virtual_namespaces,
+    _encode_pth,
     _find_namespaces,
     _find_package_roots,
+    _find_virtual_namespaces,
     _finder_template,
+    _LinkTree,
+    _TopLevelFinder,
     editable_wheel,
 )
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
+from setuptools.warnings import SetuptoolsDeprecationWarning
+
+from . import contexts, namespaces
+
+from distutils.core import run_setup
 
 
 @pytest.fixture(params=["strict", "lenient"])
@@ -40,7 +47,8 @@ def editable_opts(request):
 
 
 EXAMPLE = {
-    'pyproject.toml': dedent("""\
+    'pyproject.toml': dedent(
+        """\
         [build-system]
         requires = ["setuptools"]
         build-backend = "setuptools.build_meta"
@@ -55,8 +63,7 @@ EXAMPLE = {
             "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Developers"
         ]
-        urls = {Homepage = "http://github.com"}
-        dependencies = ['importlib-metadata; python_version<"3.8"']
+        urls = {Homepage = "https://github.com"}
 
         [tool.setuptools]
         package-dir = {"" = "src"}
@@ -68,77 +75,89 @@ EXAMPLE = {
 
         [tool.distutils.egg_info]
         tag-build = ".post0"
-        """),
-    "MANIFEST.in": dedent("""\
+        """
+    ),
+    "MANIFEST.in": dedent(
+        """\
         global-include *.py *.txt
         global-exclude *.py[cod]
         prune dist
         prune build
-        """).strip(),
+        """
+    ).strip(),
     "README.rst": "This is a ``README``",
     "LICENSE.txt": "---- placeholder MIT license ----",
     "src": {
         "mypkg": {
-            "__init__.py": dedent("""\
+            "__init__.py": dedent(
+                """\
                 import sys
-
-                if sys.version_info[:2] >= (3, 8):
-                    from importlib.metadata import PackageNotFoundError, version
-                else:
-                    from importlib_metadata import PackageNotFoundError, version
+                from importlib.metadata import PackageNotFoundError, version
 
                 try:
                     __version__ = version(__name__)
                 except PackageNotFoundError:
                     __version__ = "unknown"
-                """),
-            "__main__.py": dedent("""\
+                """
+            ),
+            "__main__.py": dedent(
+                """\
                 from importlib.resources import read_text
                 from . import __version__, __name__ as parent
                 from .mod import x
 
                 data = read_text(parent, "data.txt")
                 print(__version__, data, x)
-                """),
+                """
+            ),
             "mod.py": "x = ''",
             "data.txt": "Hello World",
         }
-    }
+    },
 }
 
 
 SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
 
 
+@pytest.mark.xfail(sys.platform == "darwin", reason="pypa/setuptools#4328")
 @pytest.mark.parametrize(
     "files",
     [
-        {**EXAMPLE, "setup.py": SETUP_SCRIPT_STUB},  # type: ignore
+        {**EXAMPLE, "setup.py": SETUP_SCRIPT_STUB},
         EXAMPLE,  # No setup.py script
-    ]
+    ],
 )
 def test_editable_with_pyproject(tmp_path, venv, files, editable_opts):
     project = tmp_path / "mypkg"
     project.mkdir()
     jaraco.path.build(files, prefix=project)
 
-    cmd = [venv.exe(), "-m", "pip", "install",
-           "--no-build-isolation",  # required to force current version of setuptools
-           "-e", str(project), *editable_opts]
-    print(str(subprocess.check_output(cmd), "utf-8"))
+    cmd = [
+        "python",
+        "-m",
+        "pip",
+        "install",
+        "--no-build-isolation",  # required to force current version of setuptools
+        "-e",
+        str(project),
+        *editable_opts,
+    ]
+    print(venv.run(cmd))
 
-    cmd = [venv.exe(), "-m", "mypkg"]
-    assert subprocess.check_output(cmd).strip() == b"3.14159.post0 Hello World"
+    cmd = ["python", "-m", "mypkg"]
+    assert venv.run(cmd).strip() == "3.14159.post0 Hello World"
 
-    (project / "src/mypkg/data.txt").write_text("foobar")
-    (project / "src/mypkg/mod.py").write_text("x = 42")
-    assert subprocess.check_output(cmd).strip() == b"3.14159.post0 foobar 42"
+    (project / "src/mypkg/data.txt").write_text("foobar", encoding="utf-8")
+    (project / "src/mypkg/mod.py").write_text("x = 42", encoding="utf-8")
+    assert venv.run(cmd).strip() == "3.14159.post0 foobar 42"
 
 
 def test_editable_with_flat_layout(tmp_path, venv, editable_opts):
     files = {
         "mypkg": {
-            "pyproject.toml": dedent("""\
+            "pyproject.toml": dedent(
+                """\
                 [build-system]
                 requires = ["setuptools", "wheel"]
                 build-backend = "setuptools.build_meta"
@@ -150,7 +169,8 @@ def test_editable_with_flat_layout(tmp_path, venv, editable_opts):
                 [tool.setuptools]
                 packages = ["pkg"]
                 py-modules = ["mod"]
-                """),
+                """
+            ),
             "pkg": {"__init__.py": "a = 4"},
             "mod.py": "b = 2",
         },
@@ -158,18 +178,26 @@ def test_editable_with_flat_layout(tmp_path, venv, editable_opts):
     jaraco.path.build(files, prefix=tmp_path)
     project = tmp_path / "mypkg"
 
-    cmd = [venv.exe(), "-m", "pip", "install",
-           "--no-build-isolation",  # required to force current version of setuptools
-           "-e", str(project), *editable_opts]
-    print(str(subprocess.check_output(cmd), "utf-8"))
-    cmd = [venv.exe(), "-c", "import pkg, mod; print(pkg.a, mod.b)"]
-    assert subprocess.check_output(cmd).strip() == b"4 2"
+    cmd = [
+        "python",
+        "-m",
+        "pip",
+        "install",
+        "--no-build-isolation",  # required to force current version of setuptools
+        "-e",
+        str(project),
+        *editable_opts,
+    ]
+    print(venv.run(cmd))
+    cmd = ["python", "-c", "import pkg, mod; print(pkg.a, mod.b)"]
+    assert venv.run(cmd).strip() == "4 2"
 
 
 def test_editable_with_single_module(tmp_path, venv, editable_opts):
     files = {
         "mypkg": {
-            "pyproject.toml": dedent("""\
+            "pyproject.toml": dedent(
+                """\
                 [build-system]
                 requires = ["setuptools", "wheel"]
                 build-backend = "setuptools.build_meta"
@@ -180,38 +208,83 @@ def test_editable_with_single_module(tmp_path, venv, editable_opts):
 
                 [tool.setuptools]
                 py-modules = ["mod"]
-                """),
+                """
+            ),
             "mod.py": "b = 2",
         },
     }
     jaraco.path.build(files, prefix=tmp_path)
     project = tmp_path / "mypkg"
 
-    cmd = [venv.exe(), "-m", "pip", "install",
-           "--no-build-isolation",  # required to force current version of setuptools
-           "-e", str(project), *editable_opts]
-    print(str(subprocess.check_output(cmd), "utf-8"))
-    cmd = [venv.exe(), "-c", "import mod; print(mod.b)"]
-    assert subprocess.check_output(cmd).strip() == b"2"
+    cmd = [
+        "python",
+        "-m",
+        "pip",
+        "install",
+        "--no-build-isolation",  # required to force current version of setuptools
+        "-e",
+        str(project),
+        *editable_opts,
+    ]
+    print(venv.run(cmd))
+    cmd = ["python", "-c", "import mod; print(mod.b)"]
+    assert venv.run(cmd).strip() == "2"
 
 
 class TestLegacyNamespaces:
-    """Ported from test_develop"""
+    # legacy => pkg_resources.declare_namespace(...) + setup(namespace_packages=...)
 
-    def test_namespace_package_importable(self, venv, tmp_path, editable_opts):
+    def test_nspkg_file_is_unique(self, tmp_path, monkeypatch):
+        deprecation = pytest.warns(
+            SetuptoolsDeprecationWarning, match=".*namespace_packages parameter.*"
+        )
+        installation_dir = tmp_path / ".installation_dir"
+        installation_dir.mkdir()
+        examples = (
+            "myns.pkgA",
+            "myns.pkgB",
+            "myns.n.pkgA",
+            "myns.n.pkgB",
+        )
+
+        for name in examples:
+            pkg = namespaces.build_namespace_package(tmp_path, name, version="42")
+            with deprecation, monkeypatch.context() as ctx:
+                ctx.chdir(pkg)
+                dist = run_setup("setup.py", stop_after="config")
+                cmd = editable_wheel(dist)
+                cmd.finalize_options()
+                editable_name = cmd.get_finalized_command("dist_info").name
+                cmd._install_namespaces(installation_dir, editable_name)
+
+        files = list(installation_dir.glob("*-nspkg.pth"))
+        assert len(files) == len(examples)
+
+    @pytest.mark.parametrize(
+        "impl",
+        (
+            "pkg_resources",
+            #  "pkgutil",  => does not work
+        ),
+    )
+    @pytest.mark.parametrize("ns", ("myns.n",))
+    def test_namespace_package_importable(
+        self, venv, tmp_path, ns, impl, editable_opts
+    ):
         """
         Installing two packages sharing the same namespace, one installed
         naturally using pip or `--single-version-externally-managed`
         and the other installed in editable mode should leave the namespace
         intact and both packages reachable by import.
+        (Ported from test_develop).
         """
         build_system = """\
         [build-system]
         requires = ["setuptools"]
         build-backend = "setuptools.build_meta"
         """
-        pkg_A = namespaces.build_namespace_package(tmp_path, 'myns.pkgA')
-        pkg_B = namespaces.build_namespace_package(tmp_path, 'myns.pkgB')
+        pkg_A = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgA", impl=impl)
+        pkg_B = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgB", impl=impl)
         (pkg_A / "pyproject.toml").write_text(build_system, encoding="utf-8")
         (pkg_B / "pyproject.toml").write_text(build_system, encoding="utf-8")
         # use pip to install to the target directory
@@ -219,7 +292,7 @@ class TestLegacyNamespaces:
         opts.append("--no-build-isolation")  # force current version of setuptools
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
-        venv.run(["python", "-c", "import myns.pkgA; import myns.pkgB"])
+        venv.run(["python", "-c", f"import {ns}.pkgA; import {ns}.pkgB"])
         # additionally ensure that pkg_resources import works
         venv.run(["python", "-c", "import pkg_resources"])
 
@@ -244,7 +317,8 @@ class TestPep420Namespaces:
         """Currently users can create a namespace by tweaking `package_dir`"""
         files = {
             "pkgA": {
-                "pyproject.toml": dedent("""\
+                "pyproject.toml": dedent(
+                    """\
                     [build-system]
                     requires = ["setuptools", "wheel"]
                     build-backend = "setuptools.build_meta"
@@ -255,7 +329,8 @@ class TestPep420Namespaces:
 
                     [tool.setuptools]
                     package-dir = {"myns.n.pkgA" = "src"}
-                    """),
+                    """
+                ),
                 "src": {"__init__.py": "a = 1"},
             },
         }
@@ -280,7 +355,8 @@ class TestPep420Namespaces:
         """
         files = {
             "pkgA": {
-                "pyproject.toml": dedent("""\
+                "pyproject.toml": dedent(
+                    """\
                     [build-system]
                     requires = ["setuptools", "wheel"]
                     build-backend = "setuptools.build_meta"
@@ -291,7 +367,8 @@ class TestPep420Namespaces:
 
                     [tool.setuptools]
                     packages.find.include = ["mypkg.*"]
-                    """),
+                    """
+                ),
                 "mypkg": {
                     "__init__.py": "",
                     "other.py": "b = 1",
@@ -299,7 +376,7 @@ class TestPep420Namespaces:
                         "__init__.py": "",
                         "pkgA.py": "a = 1",
                     },
-                 },
+                },
                 "MANIFEST.in": EXAMPLE["MANIFEST.in"],
             },
         }
@@ -310,7 +387,7 @@ class TestPep420Namespaces:
         opts = ["--no-build-isolation"]  # force current version of setuptools
         venv.run(["python", "-m", "pip", "-v", "install", "-e", str(pkg_A), *opts])
         out = venv.run(["python", "-c", "from mypkg.n import pkgA; print(pkgA.a)"])
-        assert str(out, "utf-8").strip() == "1"
+        assert out.strip() == "1"
         cmd = """\
         try:
             import mypkg.other
@@ -318,14 +395,9 @@ class TestPep420Namespaces:
             print("mypkg.other not defined")
         """
         out = venv.run(["python", "-c", dedent(cmd)])
-        assert "mypkg.other not defined" in str(out, "utf-8")
+        assert "mypkg.other not defined" in out
 
 
-# Moved here from test_develop:
-@pytest.mark.xfail(
-    platform.python_implementation() == 'PyPy',
-    reason="Workaround fails on PyPy (why?)",
-)
 def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     """
     Editable install to a prefix should be discoverable.
@@ -333,17 +405,19 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     prefix = tmp_path / 'prefix'
 
     # figure out where pip will likely install the package
-    site_packages = prefix / next(
-        Path(path).relative_to(sys.prefix)
+    site_packages_all = [
+        prefix / Path(path).relative_to(sys.prefix)
         for path in sys.path
         if 'site-packages' in path and path.startswith(sys.prefix)
-    )
-    site_packages.mkdir(parents=True)
+    ]
+
+    for sp in site_packages_all:
+        sp.mkdir(parents=True)
 
     # install workaround
-    pip_run.launch.inject_sitecustomize(str(site_packages))
+    _addsitedirs(site_packages_all)
 
-    env = dict(os.environ, PYTHONPATH=str(site_packages))
+    env = dict(os.environ, PYTHONPATH=os.pathsep.join(map(str, site_packages_all)))
     cmd = [
         sys.executable,
         '-m',
@@ -361,8 +435,6 @@ def test_editable_with_prefix(tmp_path, sample_project, editable_opts):
     # now run 'sample' with the prefix on the PYTHONPATH
     bin = 'Scripts' if platform.system() == 'Windows' else 'bin'
     exe = prefix / bin / 'sample'
-    if sys.version_info < (3, 8) and platform.system() == 'Windows':
-        exe = str(exe)
     subprocess.check_call([exe], env=env)
 
 
@@ -371,6 +443,7 @@ class TestFinderTemplate:
     If at some point in time the implementation is changed for something different,
     this test can be modified or even excluded.
     """
+
     def install_finder(self, finder):
         loc = {}
         exec(finder, loc, loc)
@@ -390,7 +463,7 @@ class TestFinderTemplate:
 
         mapping = {
             "pkg1": str(tmp_path / "src1/pkg1"),
-            "mod2": str(tmp_path / "src2/mod2")
+            "mod2": str(tmp_path / "src2/mod2"),
         }
         template = _finder_template(str(uuid4()), mapping, {})
 
@@ -458,6 +531,49 @@ class TestFinderTemplate:
             assert pkgA.a == 13
             assert mod2.b == 37
 
+    def test_combine_namespaces_nested(self, tmp_path):
+        """
+        Users may attempt to combine namespace packages in a nested way via
+        ``package_dir`` as shown in pypa/setuptools#4248.
+        """
+
+        files = {
+            "src": {"my_package": {"my_module.py": "a = 13"}},
+            "src2": {"my_package2": {"my_module2.py": "b = 37"}},
+        }
+
+        stack = jaraco.path.DirectoryStack()
+        with stack.context(tmp_path):
+            jaraco.path.build(files)
+            attrs = {
+                "script_name": "%PEP 517%",
+                "package_dir": {
+                    "different_name": "src/my_package",
+                    "different_name.subpkg": "src2/my_package2",
+                },
+                "packages": ["different_name", "different_name.subpkg"],
+            }
+            dist = Distribution(attrs)
+            finder = _TopLevelFinder(dist, str(uuid4()))
+            code = next(v for k, v in finder.get_implementation() if k.endswith(".py"))
+
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in attrs["packages"]:
+                sys.modules.pop(mod, None)
+
+            self.install_finder(code)
+            mod1 = import_module("different_name.my_module")
+            mod2 = import_module("different_name.subpkg.my_module2")
+
+            expected = str((tmp_path / "src/my_package/my_module.py").resolve())
+            assert str(Path(mod1.__file__).resolve()) == expected
+
+            expected = str((tmp_path / "src2/my_package2/my_module2.py").resolve())
+            assert str(Path(mod2.__file__).resolve()) == expected
+
+            assert mod1.a == 13
+            assert mod2.b == 37
+
     def test_dynamic_path_computation(self, tmp_path):
         # Follows the example in PEP 420
         files = {
@@ -521,7 +637,7 @@ class TestFinderTemplate:
                 "__init__.py": "",
                 "bar": {
                     "__init__.py": "",
-                }
+                },
             },
         }
         jaraco.path.build(files, prefix=tmp_path)
@@ -538,6 +654,132 @@ class TestFinderTemplate:
             self.install_finder(template)
             with pytest.raises(ImportError, match="foobar"):
                 import_module("foobar")
+
+    def test_case_sensitivity(self, tmp_path):
+        files = {
+            "foo": {
+                "__init__.py": "",
+                "lowercase.py": "x = 1",
+                "bar": {
+                    "__init__.py": "",
+                    "lowercase.py": "x = 2",
+                },
+            },
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+        mapping = {
+            "foo": str(tmp_path / "foo"),
+        }
+        template = _finder_template(str(uuid4()), mapping, {})
+        with contexts.save_paths(), contexts.save_sys_modules():
+            sys.modules.pop("foo", None)
+
+            self.install_finder(template)
+            with pytest.raises(ImportError, match="'FOO'"):
+                import_module("FOO")
+
+            with pytest.raises(ImportError, match="'foo\\.LOWERCASE'"):
+                import_module("foo.LOWERCASE")
+
+            with pytest.raises(ImportError, match="'foo\\.bar\\.Lowercase'"):
+                import_module("foo.bar.Lowercase")
+
+            with pytest.raises(ImportError, match="'foo\\.BAR'"):
+                import_module("foo.BAR.lowercase")
+
+            with pytest.raises(ImportError, match="'FOO'"):
+                import_module("FOO.bar.lowercase")
+
+            mod = import_module("foo.lowercase")
+            assert mod.x == 1
+
+            mod = import_module("foo.bar.lowercase")
+            assert mod.x == 2
+
+    def test_namespace_case_sensitivity(self, tmp_path):
+        files = {
+            "pkg": {
+                "__init__.py": "a = 13",
+                "foo": {
+                    "__init__.py": "b = 37",
+                    "bar.py": "c = 42",
+                },
+            },
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {"ns.othername": str(tmp_path / "pkg")}
+        namespaces = {"ns": []}
+
+        template = _finder_template(str(uuid4()), mapping, namespaces)
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in ("ns", "ns.othername"):
+                sys.modules.pop(mod, None)
+
+            self.install_finder(template)
+            pkg = import_module("ns.othername")
+            expected = str((tmp_path / "pkg").resolve())
+            assert_path(pkg, expected)
+            assert pkg.a == 13
+
+            foo = import_module("ns.othername.foo")
+            assert foo.b == 37
+
+            bar = import_module("ns.othername.foo.bar")
+            assert bar.c == 42
+
+            with pytest.raises(ImportError, match="'NS'"):
+                import_module("NS.othername.foo")
+
+            with pytest.raises(ImportError, match="'ns\\.othername\\.FOO\\'"):
+                import_module("ns.othername.FOO")
+
+            with pytest.raises(ImportError, match="'ns\\.othername\\.foo\\.BAR\\'"):
+                import_module("ns.othername.foo.BAR")
+
+    def test_intermediate_packages(self, tmp_path):
+        """
+        The finder should not import ``fullname`` if the intermediate segments
+        don't exist (see pypa/setuptools#4019).
+        """
+        files = {
+            "src": {
+                "mypkg": {
+                    "__init__.py": "",
+                    "config.py": "a = 13",
+                    "helloworld.py": "b = 13",
+                    "components": {
+                        "config.py": "a = 37",
+                    },
+                },
+            }
+        }
+        jaraco.path.build(files, prefix=tmp_path)
+
+        mapping = {"mypkg": str(tmp_path / "src/mypkg")}
+        template = _finder_template(str(uuid4()), mapping, {})
+
+        with contexts.save_paths(), contexts.save_sys_modules():
+            for mod in (
+                "mypkg",
+                "mypkg.config",
+                "mypkg.helloworld",
+                "mypkg.components",
+                "mypkg.components.config",
+                "mypkg.components.helloworld",
+            ):
+                sys.modules.pop(mod, None)
+
+            self.install_finder(template)
+
+            config = import_module("mypkg.components.config")
+            assert config.a == 37
+
+            helloworld = import_module("mypkg.helloworld")
+            assert helloworld.b == 13
+
+            with pytest.raises(ImportError):
+                import_module("mypkg.components.helloworld")
 
 
 def test_pkg_roots(tmp_path):
@@ -557,7 +799,7 @@ def test_pkg_roots(tmp_path):
     package_dir = {
         "a.b.c": "other",
         "a.b.c.x.y.z": "another",
-        "m.n.o.p.q": "yet_another"
+        "m.n.o.p.q": "yet_another",
     }
     packages = [
         "a",
@@ -600,7 +842,8 @@ class TestOverallBehaviour:
         version = "3.14159"
         """
 
-    FLAT_LAYOUT = {
+    # Any: Would need a TypedDict. Keep it simple for tests
+    FLAT_LAYOUT: dict[str, Any] = {
         "pyproject.toml": dedent(PYPROJECT),
         "MANIFEST.in": EXAMPLE["MANIFEST.in"],
         "otherfile.py": "",
@@ -624,20 +867,23 @@ class TestOverallBehaviour:
             "src": {"mypkg": FLAT_LAYOUT["mypkg"]},
         },
         "custom-layout": {
-            "pyproject.toml": dedent(PYPROJECT) + dedent("""\
+            "pyproject.toml": dedent(PYPROJECT)
+            + dedent(
+                """\
                 [tool.setuptools]
                 packages = ["mypkg", "mypkg.subpackage"]
 
                 [tool.setuptools.package-dir]
                 "mypkg.subpackage" = "other"
-                """),
+                """
+            ),
             "MANIFEST.in": EXAMPLE["MANIFEST.in"],
             "otherfile.py": "",
             "mypkg": {
                 "__init__.py": "",
-                "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore
+                "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],
             },
-            "other": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore
+            "other": FLAT_LAYOUT["mypkg"]["subpackage"],
         },
         "namespace": {
             "pyproject.toml": dedent(PYPROJECT),
@@ -645,13 +891,14 @@ class TestOverallBehaviour:
             "otherfile.py": "",
             "src": {
                 "mypkg": {
-                    "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],  # type: ignore
-                    "subpackage": FLAT_LAYOUT["mypkg"]["subpackage"],  # type: ignore
+                    "mod1.py": FLAT_LAYOUT["mypkg"]["mod1.py"],
+                    "subpackage": FLAT_LAYOUT["mypkg"]["subpackage"],
                 },
             },
         },
     }
 
+    @pytest.mark.xfail(sys.platform == "darwin", reason="pypa/setuptools#4328")
     @pytest.mark.parametrize("layout", EXAMPLES.keys())
     def test_editable_install(self, tmp_path, venv, layout, editable_opts):
         project, _ = install_project(
@@ -666,7 +913,7 @@ class TestOverallBehaviour:
             print(ex)
         """
         out = venv.run(["python", "-c", dedent(cmd_import_error)])
-        assert b"No module named 'otherfile'" in out
+        assert "No module named 'otherfile'" in out
 
         # Ensure the modules are importable
         cmd_get_vars = """\
@@ -674,7 +921,7 @@ class TestOverallBehaviour:
         print(mypkg.mod1.var, mypkg.subpackage.mod2.var)
         """
         out = venv.run(["python", "-c", dedent(cmd_get_vars)])
-        assert b"42 13" in out
+        assert "42 13" in out
 
         # Ensure resources are reachable
         cmd_get_resource = """\
@@ -684,7 +931,7 @@ class TestOverallBehaviour:
         print(text.read_text(encoding="utf-8"))
         """
         out = venv.run(["python", "-c", dedent(cmd_get_resource)])
-        assert b"resource 39" in out
+        assert "resource 39" in out
 
         # Ensure files are editable
         mod1 = next(project.glob("**/mod1.py"))
@@ -696,17 +943,18 @@ class TestOverallBehaviour:
         resource_file.write_text("resource 374", encoding="utf-8")
 
         out = venv.run(["python", "-c", dedent(cmd_get_vars)])
-        assert b"42 13" not in out
-        assert b"17 781" in out
+        assert "42 13" not in out
+        assert "17 781" in out
 
         out = venv.run(["python", "-c", dedent(cmd_get_resource)])
-        assert b"resource 39" not in out
-        assert b"resource 374" in out
+        assert "resource 39" not in out
+        assert "resource 374" in out
 
 
 class TestLinkTree:
     FILES = deepcopy(TestOverallBehaviour.EXAMPLES["src-layout"])
-    FILES["pyproject.toml"] += dedent("""\
+    FILES["pyproject.toml"] += dedent(
+        """\
         [tool.setuptools]
         # Temporary workaround: both `include-package-data` and `package-data` configs
         # can be removed after #3260 is fixed.
@@ -716,7 +964,8 @@ class TestLinkTree:
         [tool.setuptools.packages.find]
         where = ["src"]
         exclude = ["*.subpackage*"]
-        """)
+        """
+    )
     FILES["src"]["mypkg"]["resource.not_in_manifest"] = "abc"
 
     def test_generated_tree(self, tmp_path):
@@ -758,7 +1007,7 @@ class TestLinkTree:
         install_project("mypkg", venv, tmp_path, self.FILES, *opts)
 
         out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
-        assert b"42" in out
+        assert "42" in out
 
         # Ensure packages excluded from distribution are not importable
         cmd_import_error = """\
@@ -768,7 +1017,7 @@ class TestLinkTree:
             print(ex)
         """
         out = venv.run(["python", "-c", dedent(cmd_import_error)])
-        assert b"cannot import name 'subpackage'" in out
+        assert "cannot import name 'subpackage'" in out
 
         # Ensure resource files excluded from distribution are not reachable
         cmd_get_resource = """\
@@ -781,8 +1030,8 @@ class TestLinkTree:
             print(ex)
         """
         out = venv.run(["python", "-c", dedent(cmd_get_resource)])
-        assert b"No such file or directory" in out
-        assert b"resource.not_in_manifest" in out
+        assert "No such file or directory" in out
+        assert "resource.not_in_manifest" in out
 
 
 @pytest.mark.filterwarnings("ignore:.*compat.*:setuptools.SetuptoolsDeprecationWarning")
@@ -793,7 +1042,7 @@ def test_compat_install(tmp_path, venv):
     install_project("mypkg", venv, tmp_path, files, *opts)
 
     out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
-    assert b"42" in out
+    assert "42" in out
 
     expected_path = comparable_path(str(tmp_path))
 
@@ -804,7 +1053,7 @@ def test_compat_install(tmp_path, venv):
         "import other; print(other)",
         "import mypkg; print(mypkg)",
     ):
-        out = comparable_path(str(venv.run(["python", "-c", cmd]), "utf-8"))
+        out = comparable_path(venv.run(["python", "-c", cmd]))
         assert expected_path in out
 
     # Compatible behaviour will not consider custom mappings
@@ -814,45 +1063,26 @@ def test_compat_install(tmp_path, venv):
     except ImportError as ex:
         print(ex)
     """
-    out = str(venv.run(["python", "-c", dedent(cmd)]), "utf-8")
+    out = venv.run(["python", "-c", dedent(cmd)])
     assert "cannot import name 'subpackage'" in out
 
 
-def test_pbr_integration(tmp_path, venv, editable_opts):
+@pytest.mark.uses_network
+def test_pbr_integration(pbr_package, venv, editable_opts):
     """Ensure editable installs work with pbr, issue #3500"""
-    files = {
-        "pyproject.toml": dedent("""\
-            [build-system]
-            requires = ["setuptools"]
-            build-backend = "setuptools.build_meta"
-            """),
-        "setup.py": dedent("""\
-            __import__('setuptools').setup(
-                pbr=True,
-                setup_requires=["pbr"],
-            )
-            """),
-        "setup.cfg": dedent("""\
-            [metadata]
-            name = mypkg
-
-            [files]
-            packages =
-                mypkg
-            """),
-        "mypkg": {
-            "__init__.py": "",
-            "hello.py": "print('Hello world!')",
-        },
-        "other": {"test.txt": "Another file in here."},
-    }
-    venv.run(["python", "-m", "pip", "install", "pbr"])
-
-    with contexts.environment(PBR_VERSION="0.42"):
-        install_project("mypkg", venv, tmp_path, files, *editable_opts)
-
+    cmd = [
+        'python',
+        '-m',
+        'pip',
+        '-v',
+        'install',
+        '--editable',
+        pbr_package,
+        *editable_opts,
+    ]
+    venv.run(cmd, stderr=subprocess.STDOUT)
     out = venv.run(["python", "-c", "import mypkg.hello"])
-    assert b"Hello world!" in out
+    assert "Hello world!" in out
 
 
 class TestCustomBuildPy:
@@ -865,11 +1095,13 @@ class TestCustomBuildPy:
     During the transition period setuptools should prevent potential errors from
     happening due to those assumptions.
     """
+
     # TODO: Remove tests after _run_build_steps is removed.
 
     FILES = {
         **TestOverallBehaviour.EXAMPLES["flat-layout"],
-        "setup.py": dedent("""\
+        "setup.py": dedent(
+            """\
             import pathlib
             from setuptools import setup
             from setuptools.command.build_py import build_py as orig
@@ -880,18 +1112,19 @@ class TestCustomBuildPy:
                     raise ValueError("TEST_RAISE")
 
             setup(cmdclass={"build_py": my_build_py})
-            """),
+            """
+        ),
     }
 
     def test_safeguarded_from_errors(self, tmp_path, venv):
         """Ensure that errors in custom build_py are reported as warnings"""
         # Warnings should show up
         _, out = install_project("mypkg", venv, tmp_path, self.FILES)
-        assert b"SetuptoolsDeprecationWarning" in out
-        assert b"ValueError: TEST_RAISE" in out
+        assert "SetuptoolsDeprecationWarning" in out
+        assert "ValueError: TEST_RAISE" in out
         # but installation should be successful
         out = venv.run(["python", "-c", "import mypkg.mod1; print(mypkg.mod1.var)"])
-        assert b"42" in out
+        assert "42" in out
 
 
 class TestCustomBuildWheel:
@@ -955,6 +1188,31 @@ class TestCustomBuildExt:
         assert any(name.endswith(ext) for ext in EXTENSION_SUFFIXES)
 
 
+def test_debugging_tips(tmpdir_cwd, monkeypatch):
+    """Make sure to display useful debugging tips to the user."""
+    jaraco.path.build({"module.py": "x = 42"})
+    dist = Distribution()
+    dist.script_name = "setup.py"
+    dist.set_defaults()
+    cmd = editable_wheel(dist)
+    cmd.ensure_finalized()
+
+    SimulatedErr = type("SimulatedErr", (Exception,), {})
+    simulated_failure = Mock(side_effect=SimulatedErr())
+    monkeypatch.setattr(cmd, "get_finalized_command", simulated_failure)
+
+    with pytest.raises(SimulatedErr) as ctx:
+        cmd.run()
+    assert any('debugging-tips' in note for note in ctx.value.__notes__)
+
+
+@pytest.mark.filterwarnings("error")
+def test_encode_pth():
+    """Ensure _encode_pth function does not produce encoding warnings"""
+    content = _encode_pth("tkmilan_ç_utf8")  # no warnings (would be turned into errors)
+    assert isinstance(content, bytes)
+
+
 def install_project(name, venv, tmp_path, files, *opts):
     project = tmp_path / name
     project.mkdir()
@@ -965,6 +1223,19 @@ def install_project(name, venv, tmp_path, files, *opts):
         stderr=subprocess.STDOUT,
     )
     return project, out
+
+
+def _addsitedirs(new_dirs):
+    """To use this function, it is necessary to insert new_dir in front of sys.path.
+    The Python process will try to import a ``sitecustomize`` module on startup.
+    If we manipulate sys.path/PYTHONPATH, we can force it to run our code,
+    which invokes ``addsitedir`` and ensure ``.pth`` files are loaded.
+    """
+    content = '\n'.join(
+        ("import site",)
+        + tuple(f"site.addsitedir({os.fspath(new_dir)!r})" for new_dir in new_dirs)
+    )
+    (new_dirs[0] / "sitecustomize.py").write_text(content, encoding="utf-8")
 
 
 # ---- Assertion Helpers ----
@@ -978,7 +1249,7 @@ def assert_path(pkg, expected):
             assert str(Path(path).resolve()) == expected
 
 
-def assert_link_to(file: Path, other: Path):
+def assert_link_to(file: Path, other: Path) -> None:
     if file.is_symlink():
         assert str(file.resolve()) == str(other.resolve())
     else:

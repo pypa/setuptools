@@ -1,50 +1,62 @@
-from distutils import log
-import distutils.command.sdist as orig
-import os
-import sys
-import io
-import contextlib
-from itertools import chain
+from __future__ import annotations
 
-from .py36compat import sdist_add_defaults
+import contextlib
+import os
+import re
+from collections.abc import Iterator
+from itertools import chain
+from typing import ClassVar
 
 from .._importlib import metadata
+from ..dist import Distribution
 from .build import _ORIGINAL_SUBCOMMANDS
+
+import distutils.command.sdist as orig
+from distutils import log
 
 _default_revctrl = list
 
 
-def walk_revctrl(dirname=''):
+def walk_revctrl(dirname='') -> Iterator:
     """Find all files under revision control"""
     for ep in metadata.entry_points(group='setuptools.file_finders'):
-        for item in ep.load()(dirname):
-            yield item
+        yield from ep.load()(dirname)
 
 
-class sdist(sdist_add_defaults, orig.sdist):
+class sdist(orig.sdist):
     """Smart sdist that finds anything supported by revision control"""
 
     user_options = [
-        ('formats=', None,
-         "formats for source distribution (comma-separated list)"),
-        ('keep-temp', 'k',
-         "keep the distribution tree around after creating " +
-         "archive file(s)"),
-        ('dist-dir=', 'd',
-         "directory to put the source distribution archive(s) in "
-         "[default: dist]"),
-        ('owner=', 'u',
-         "Owner name used when creating a tar file [default: current user]"),
-        ('group=', 'g',
-         "Group name used when creating a tar file [default: current group]"),
+        ('formats=', None, "formats for source distribution (comma-separated list)"),
+        (
+            'keep-temp',
+            'k',
+            "keep the distribution tree around after creating archive file(s)",
+        ),
+        (
+            'dist-dir=',
+            'd',
+            "directory to put the source distribution archive(s) in [default: dist]",
+        ),
+        (
+            'owner=',
+            'u',
+            "Owner name used when creating a tar file [default: current user]",
+        ),
+        (
+            'group=',
+            'g',
+            "Group name used when creating a tar file [default: current group]",
+        ),
     ]
 
-    negative_opt = {}
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
+    negative_opt: ClassVar[dict[str, str]] = {}
 
     README_EXTENSIONS = ['', '.rst', '.txt', '.md']
-    READMES = tuple('README{0}'.format(ext) for ext in README_EXTENSIONS)
+    READMES = tuple(f'README{ext}' for ext in README_EXTENSIONS)
 
-    def run(self):
+    def run(self) -> None:
         self.run_command('egg_info')
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist = ei_cmd.filelist
@@ -63,18 +75,10 @@ class sdist(sdist_add_defaults, orig.sdist):
             if data not in dist_files:
                 dist_files.append(data)
 
-    def initialize_options(self):
+    def initialize_options(self) -> None:
         orig.sdist.initialize_options(self)
 
-        self._default_to_gztar()
-
-    def _default_to_gztar(self):
-        # only needed on Python prior to 3.6.
-        if sys.version_info >= (3, 6, 0, 'beta', 1):
-            return
-        self.formats = ['gztar']
-
-    def make_distribution(self):
+    def make_distribution(self) -> None:
         """
         Workaround for #516
         """
@@ -100,9 +104,9 @@ class sdist(sdist_add_defaults, orig.sdist):
             yield
         finally:
             if orig_val is not NoValue:
-                setattr(os, 'link', orig_val)
+                os.link = orig_val
 
-    def add_defaults(self):
+    def add_defaults(self) -> None:
         super().add_defaults()
         self._add_defaults_build_sub_commands()
 
@@ -155,17 +159,22 @@ class sdist(sdist_add_defaults, orig.sdist):
         except TypeError:
             log.warn("data_files contains unexpected objects")
 
-    def check_readme(self):
+    def prune_file_list(self) -> None:
+        super().prune_file_list()
+        # Prevent accidental inclusion of test-related cache dirs at the project root
+        sep = re.escape(os.sep)
+        self.filelist.exclude_pattern(r"^(\.tox|\.nox|\.venv)" + sep, is_regex=True)
+
+    def check_readme(self) -> None:
         for f in self.READMES:
             if os.path.exists(f):
                 return
         else:
             self.warn(
-                "standard file not found: should have one of " +
-                ', '.join(self.READMES)
+                "standard file not found: should have one of " + ', '.join(self.READMES)
             )
 
-    def make_release_tree(self, base_dir, files):
+    def make_release_tree(self, base_dir, files) -> None:
         orig.sdist.make_release_tree(self, base_dir, files)
 
         # Save any egg_info command line options used to create this sdist
@@ -183,24 +192,23 @@ class sdist(sdist_add_defaults, orig.sdist):
         if not os.path.isfile(self.manifest):
             return False
 
-        with io.open(self.manifest, 'rb') as fp:
+        with open(self.manifest, 'rb') as fp:
             first_line = fp.readline()
-        return (first_line !=
-                '# file GENERATED by distutils, do NOT edit\n'.encode())
+        return first_line != b'# file GENERATED by distutils, do NOT edit\n'
 
-    def read_manifest(self):
+    def read_manifest(self) -> None:
         """Read the manifest file (named by 'self.manifest') and use it to
         fill in 'self.filelist', the list of files to include in the source
         distribution.
         """
         log.info("reading manifest file '%s'", self.manifest)
         manifest = open(self.manifest, 'rb')
-        for line in manifest:
+        for bytes_line in manifest:
             # The manifest must contain UTF-8. See #303.
             try:
-                line = line.decode('UTF-8')
+                line = bytes_line.decode('UTF-8')
             except UnicodeDecodeError:
-                log.warn("%r not UTF-8 decodable -- skipping" % line)
+                log.warn(f"{line!r} not UTF-8 decodable -- skipping")
                 continue
             # ignore comments and blank lines
             line = line.strip()

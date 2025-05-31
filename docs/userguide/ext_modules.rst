@@ -27,26 +27,45 @@ and all project metadata configuration in the ``pyproject.toml`` file:
    version = "0.42"
 
 To instruct setuptools to compile the ``foo.c`` file into the extension module
-``mylib.foo``, we need to add a ``setup.py`` file similar to the following:
+``mylib.foo``, we need to define an appropriate configuration in either
+``pyproject.toml`` [#pyproject.toml]_ or ``setup.py`` file ,
+similar to the following:
 
-.. code-block:: python
+.. tab:: pyproject.toml
 
-   from setuptools import Extension, setup
+    .. code-block:: toml
 
-   setup(
-       ext_modules=[
-           Extension(
-               name="mylib.foo",  # as it would be imported
-                                  # may include packages/namespaces separated by `.`
-
-               sources=["foo.c"], # all sources are compiled into a single binary file
-           ),
+       [tool.setuptools]
+       ext-modules = [
+         {name = "mylib.foo", sources = ["foo.c"]}
        ]
-   )
+
+.. tab:: setup.py
+
+    .. code-block:: python
+
+       from setuptools import Extension, setup
+
+       setup(
+           ext_modules=[
+               Extension(
+                   name="mylib.foo",
+                   sources=["foo.c"],
+               ),
+           ]
+       )
+
+The ``name`` value corresponds to how the extension module would be
+imported and may include packages/namespaces separated by ``.``.
+The ``sources`` value is a list of all source files that are compiled
+into a single binary file.
+Optionally any other parameter of :class:`setuptools.Extension` can be defined
+in the configuration file (but in the case of ``pyproject.toml`` they must be
+written using :wiki:`kebab-case` convention).
 
 .. seealso::
    You can find more information on the `Python docs about C/C++ extensions`_.
-   Alternatively, you might also be interested in learn about `Cython`_.
+   Alternatively, you might also be interested in learning about `Cython`_.
 
    If you plan to distribute a package that uses extensions across multiple
    platforms, :pypi:`cibuildwheel` can also be helpful.
@@ -76,8 +95,8 @@ compiler and linker options from various sources:
 * the ``sysconfig`` variables ``CC``, ``CXX``, ``CCSHARED``,
   ``LDSHARED``, and ``CFLAGS``,
 * the environment variables ``CC``, ``CPP``,
-  ``CXX``, ``LDSHARED`` and ``LDFLAGS``,
-  ``CFLAGS``, ``CPPFLAGS``, ``LDFLAGS``,
+  ``CXX``, ``LDSHARED`` and ``CFLAGS``,
+  ``CPPFLAGS``, ``LDFLAGS``,
 * the ``Extension`` attributes ``include_dirs``,
   ``library_dirs``, ``extra_compile_args``, ``extra_link_args``,
   ``runtime_library_dirs``.
@@ -91,8 +110,7 @@ The compiler options appear in the command line in the following order:
 
 .. Reference: "compiler_so" and distutils.ccompiler.gen_preprocess_options, CCompiler.compile, UnixCCompiler._compile
 
-* first, the options provided by the ``sysconfig`` variable ``CFLAGS``,
-* then, the options provided by the environment variables ``CFLAGS`` and ``CPPFLAGS``,
+* first, the options provided by the environment variables ``CFLAGS`` and ``CPPFLAGS``,
 * then, the options provided by the ``sysconfig`` variable ``CCSHARED``,
 * then, a ``-I`` option for each element of ``Extension.include_dirs``,
 * finally, the options provided by ``Extension.extra_compile_args``.
@@ -143,7 +161,10 @@ your ``pyproject.toml``:
 .. code-block:: toml
 
     [build-system]
-    requires = [..., "cython"]
+    requires = [
+        # ...,
+        "cython",
+    ]
 
 Alternatively, you can include the ``.c`` code that is pre-compiled by Cython
 into your source distribution, alongside the original ``.pyx`` files (this
@@ -163,6 +184,16 @@ Extension API Reference
 =======================
 
 .. autoclass:: setuptools.Extension
+
+
+----
+
+.. rubric:: Notes
+
+.. [#pyproject.toml]
+   Declarative configuration of extension modules via ``pyproject.toml`` was
+   introduced recently and is still considered experimental.
+   Therefore it might change in future versions of ``setuptools``.
 
 
 .. _Python docs about C/C++ extensions: https://docs.python.org/3/extending/extending.html
