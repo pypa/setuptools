@@ -26,7 +26,7 @@ from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import TracebackType
-from typing import TYPE_CHECKING, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, Protocol, TypeVar
 
 from .. import Command, _normalization, _path, _shutil, errors, namespaces
 from .._path import StrPath
@@ -34,12 +34,7 @@ from ..compat import py310, py312
 from ..discovery import find_package_path
 from ..dist import Distribution
 from ..warnings import InformationOnly, SetuptoolsDeprecationWarning
-from .build import build as build_cls
 from .build_py import build_py as build_py_cls
-from .dist_info import dist_info as dist_info_cls
-from .egg_info import egg_info as egg_info_cls
-from .install import install as install_cls
-from .install_scripts import install_scripts as install_scripts_cls
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -150,7 +145,7 @@ class editable_wheel(Command):
 
     def _ensure_dist_info(self):
         if self.dist_info_dir is None:
-            dist_info = cast(dist_info_cls, self.reinitialize_command("dist_info"))
+            dist_info = self.reinitialize_command("dist_info")
             dist_info.output_dir = self.dist_dir
             dist_info.ensure_finalized()
             dist_info.run()
@@ -197,18 +192,12 @@ class editable_wheel(Command):
         scripts = str(Path(unpacked_wheel, f"{name}.data", "scripts"))
 
         # egg-info may be generated again to create a manifest (used for package data)
-        egg_info = cast(
-            egg_info_cls, dist.reinitialize_command("egg_info", reinit_subcommands=True)
-        )
+        egg_info = dist.reinitialize_command("egg_info", reinit_subcommands=True)
         egg_info.egg_base = str(tmp_dir)
         egg_info.ignore_egg_info_in_manifest = True
 
-        build = cast(
-            build_cls, dist.reinitialize_command("build", reinit_subcommands=True)
-        )
-        install = cast(
-            install_cls, dist.reinitialize_command("install", reinit_subcommands=True)
-        )
+        build = dist.reinitialize_command("build", reinit_subcommands=True)
+        install = dist.reinitialize_command("install", reinit_subcommands=True)
 
         build.build_platlib = build.build_purelib = build.build_lib = build_lib
         install.install_purelib = install.install_platlib = install.install_lib = wheel
@@ -221,14 +210,12 @@ class editable_wheel(Command):
         build_scripts = dist.get_command_obj("build_scripts")
         build_scripts.executable = 'python'
 
-        install_scripts = cast(
-            install_scripts_cls, dist.get_command_obj("install_scripts")
-        )
+        install_scripts = dist.get_command_obj("install_scripts")
         install_scripts.no_ep = True
 
         build.build_temp = str(tmp_dir)
 
-        build_py = cast(build_py_cls, dist.get_command_obj("build_py"))
+        build_py = dist.get_command_obj("build_py")
         build_py.compile = False
         build_py.existing_egg_info_dir = self._find_egg_info_dir()
 
