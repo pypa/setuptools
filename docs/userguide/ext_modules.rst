@@ -205,7 +205,9 @@ Extension API Reference
 =======================
 
 .. autoclass:: setuptools.Extension
-
+   :members:
+   :inherited-members:
+   :member-order: bysource
 
 ----
 

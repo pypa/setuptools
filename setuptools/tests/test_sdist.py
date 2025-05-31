@@ -49,7 +49,7 @@ EXTENSION = Extension(
     sources=[os.path.join("sdist_test", "f.c")],
     depends=[os.path.join("sdist_test", "f.h")],
 )
-EXTENSION_SOURCES = EXTENSION.sources + EXTENSION.depends
+EXTENSION_SOURCES = [*EXTENSION.sources, *EXTENSION.depends]
 
 
 @contextlib.contextmanager
