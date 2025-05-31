@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+import operator
 import os
 import sys
 import textwrap
@@ -90,7 +91,7 @@ class build_ext(_build_ext):
     editable_mode = False
     inplace = False
 
-    def run(self):
+    def run(self) -> None:
         """Build extensions in build directory, then copy if --inplace"""
         old_inplace, self.inplace = self.inplace, False
         _build_ext.run(self)
@@ -220,7 +221,7 @@ class build_ext(_build_ext):
         if self.editable_mode:
             self.inplace = True
 
-    def setup_shlib_compiler(self):
+    def setup_shlib_compiler(self) -> None:
         compiler = self.shlib_compiler = new_compiler(
             compiler=self.compiler, dry_run=self.dry_run, force=self.force
         )
@@ -323,7 +324,7 @@ class build_ext(_build_ext):
     def get_output_mapping(self) -> dict[str, str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         mapping = self._get_output_mapping()
-        return dict(sorted(mapping, key=lambda x: x[0]))
+        return dict(sorted(mapping, key=operator.itemgetter(0)))
 
     def __get_stubs_outputs(self):
         # assemble the base name for each extension that needs a stub

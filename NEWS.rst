@@ -1,3 +1,24 @@
+v80.9.0
+=======
+
+Features
+--------
+
+- Set a deadline for the removal of pkg_resources later this year (December). (#3085)
+- Removed reliance on pkg_resources in test_wheel. (#3085)
+
+
+v80.8.0
+=======
+
+Features
+--------
+
+- Replaced more references to pkg_resources with importlib equivalents in wheel odule. (#3085)
+- Restore explicit LICENSE file. (#5001)
+- Removed no longer used build dependency on ``coherent.licensed``. (#5003)
+
+
 v80.7.1
 =======
 
@@ -660,7 +681,7 @@ v72.2.0
 Features
 --------
 
-- Merged with pypa/distutils@b7ee725f3 including: Support for Pathlike objects in data files and extensions (pypa/distutils#272, pypa/distutils#237), native support for C++ compilers (pypa/distuils#228) and removed unused get_msvcr() (pypa/distutils#274). (#4538)
+- Merged with pypa/distutils@b7ee725f3 including: Support for Pathlike objects in data files and extensions (pypa/distutils#272, pypa/distutils#237), native support for C++ compilers (pypa/distutils#228) and removed unused get_msvcr() (pypa/distutils#274). (#4538)
 
 
 v72.1.0

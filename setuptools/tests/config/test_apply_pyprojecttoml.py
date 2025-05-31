@@ -41,7 +41,9 @@ def _mock_expand_patterns(patterns, *_, **__):
     Allow comparing the given patterns for 2 dist objects.
     We need to strip special chars to avoid errors when validating.
     """
-    return [re.sub("[^a-z0-9]+", "", p, flags=re.I) or "empty" for p in patterns]
+    return [
+        re.sub("[^a-z0-9]+", "", p, flags=re.IGNORECASE) or "empty" for p in patterns
+    ]
 
 
 @pytest.mark.parametrize("url", urls_from_file(HERE / EXAMPLES_FILE))
@@ -601,7 +603,7 @@ class TestPresetField:
         """Setuptools cannot set a field if not listed in ``dynamic``"""
         pyproject = self.pyproject(tmp_path, [])
         dist = makedist(tmp_path, **{attr: value})
-        msg = re.compile(f"defined outside of `pyproject.toml`:.*{field}", re.S)
+        msg = re.compile(f"defined outside of `pyproject.toml`:.*{field}", re.DOTALL)
         with pytest.warns(_MissingDynamic, match=msg):
             dist = pyprojecttoml.apply_configuration(dist, pyproject)
 

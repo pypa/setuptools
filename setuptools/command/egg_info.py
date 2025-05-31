@@ -2,6 +2,8 @@
 
 Create a distribution's .egg-info directory and contents"""
 
+from __future__ import annotations
+
 import functools
 import os
 import re
@@ -196,11 +198,11 @@ class egg_info(InfoCommon, Command):
     # allow the 'tag_svn_revision' to be detected and
     # set, supporting sdists built on older Setuptools.
     @property
-    def tag_svn_revision(self) -> None:
+    def tag_svn_revision(self) -> int | None:
         pass
 
     @tag_svn_revision.setter
-    def tag_svn_revision(self, value):
+    def tag_svn_revision(self, value) -> None:
         pass
 
     ####################################
@@ -475,8 +477,7 @@ class FileList(_FileList):
         return self._remove_files(match.match)
 
     def append(self, item) -> None:
-        if item.endswith('\r'):  # Fix older sdists built on Windows
-            item = item[:-1]
+        item = item.removesuffix('\r')  # Fix older sdists built on Windows
         path = convert_path(item)
 
         if self._safe_path(path):

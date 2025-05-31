@@ -14,6 +14,7 @@ from __future__ import annotations
 import contextlib
 import functools
 import os
+from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from functools import partial, wraps
@@ -268,7 +269,8 @@ class ConfigHandler(Generic[Target]):
             yield name.lstrip('.'), value
 
     @property
-    def parsers(self):
+    @abstractmethod
+    def parsers(self) -> dict[str, Callable]:
         """Metadata item name to parser function mapping."""
         raise NotImplementedError(
             f'{self.__class__.__name__} must provide .parsers property'
@@ -546,7 +548,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         self.root_dir = root_dir
 
     @property
-    def parsers(self):
+    def parsers(self) -> dict[str, Callable]:
         """Metadata item name to parser function mapping."""
         parse_list_static = self._get_parser_compound(self._parse_list, _static.List)
         parse_dict_static = self._get_parser_compound(self._parse_dict, _static.Dict)
@@ -630,7 +632,7 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
         # ^-- Use `_static.List` to mark a non-`Dynamic` Core Metadata
 
     @property
-    def parsers(self):
+    def parsers(self) -> dict[str, Callable]:
         """Metadata item name to parser function mapping."""
         parse_list = self._parse_list
         parse_bool = self._parse_bool
