@@ -293,7 +293,7 @@ class RegistryInfo:
     @overload
     def microsoft(self, key: LiteralString, x86: bool = False) -> LiteralString: ...
     @overload
-    def microsoft(self, key: str, x86: bool = False) -> str: ...  # type: ignore[misc]
+    def microsoft(self, key: str, x86: bool = False) -> str: ...  # type: ignore[overload-cannot-match]
     def microsoft(self, key: str, x86: bool = False) -> str:
         """
         Return key in Microsoft software registry.

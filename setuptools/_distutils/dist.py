@@ -45,6 +45,7 @@ if TYPE_CHECKING:
 
     # type-only import because of mutual dependence between these modules
     from .cmd import Command
+    from .extension import Extension
 
 _CommandT = TypeVar("_CommandT", bound="Command")
 _OptionsList: TypeAlias = list[
@@ -220,18 +221,18 @@ Common commands: (see '--help-commands' for more)
         # These options are really the business of various commands, rather
         # than of the Distribution itself.  We provide aliases for them in
         # Distribution as a convenience to the developer.
-        self.packages = None
+        self.packages: list[str] | None = None
         self.package_data: dict[str, list[str]] = {}
-        self.package_dir = None
-        self.py_modules = None
+        self.package_dir: dict[str, str] | None = None
+        self.py_modules: list[str] | None = None
         self.libraries = None
         self.headers = None
-        self.ext_modules = None
+        self.ext_modules: list[Extension] | None = None
         self.ext_package = None
         self.include_dirs = None
         self.extra_path = None
         self.scripts = None
-        self.data_files = None
+        self.data_files: list[str | tuple] | None = None
         self.password = ''
 
         # And now initialize bookkeeping stuff that can't be supplied by
