@@ -37,8 +37,7 @@ def _get_purelib():
 def strip_module(filename):
     if '.' in filename:
         filename = os.path.splitext(filename)[0]
-    if filename.endswith('module'):
-        filename = filename[:-6]
+    filename = filename.removesuffix('module')
     return filename
 
 

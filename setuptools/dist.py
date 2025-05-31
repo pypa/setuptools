@@ -1068,8 +1068,7 @@ class Distribution(_Distribution):
                 name, _buildinfo = ext
             else:
                 name = ext.name
-            if name.endswith('module'):
-                name = name[:-6]
+            name = name.removesuffix('module')
             yield name
 
     def handle_display_options(self, option_order):

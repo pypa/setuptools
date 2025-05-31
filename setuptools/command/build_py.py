@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import fnmatch
 import itertools
+import operator
 import os
 import stat
 import textwrap
@@ -149,7 +150,7 @@ class build_py(orig.build_py):
             self._get_package_data_output_mapping(),
             self._get_module_mapping(),
         )
-        return dict(sorted(mapping, key=lambda x: x[0]))
+        return dict(sorted(mapping, key=operator.itemgetter(0)))
 
     def _get_module_mapping(self) -> Iterator[tuple[str, str]]:
         """Iterate over all modules producing (dest, src) pairs."""
