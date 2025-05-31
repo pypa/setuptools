@@ -246,7 +246,7 @@ class build_ext(_build_ext):
             compiler.set_link_objects(self.link_objects)
 
         # hack so distutils' build_extension() builds a library instead
-        compiler.link_shared_object = link_shared_object.__get__(compiler)
+        compiler.link_shared_object = link_shared_object.__get__(compiler)  # type: ignore[method-assign]
 
     def get_export_symbols(self, ext):
         if isinstance(ext, Library):

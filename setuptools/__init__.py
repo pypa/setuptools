@@ -107,9 +107,7 @@ def setup(**attrs) -> Distribution:
     logging.configure()
     # Make sure we have any requirements needed to interpret 'attrs'.
     _install_setup_requires(attrs)
-    # Override return type of distutils.core.Distribution with setuptools.dist.Distribution
-    # (implicitly implemented via `setuptools.monkey.patch_all`).
-    return distutils.core.setup(**attrs)  # type: ignore[return-value]
+    return distutils.core.setup(**attrs)
 
 
 setup.__doc__ = distutils.core.setup.__doc__

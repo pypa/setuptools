@@ -73,7 +73,7 @@ def patch_all() -> None:
     import setuptools
 
     # we can't patch distutils.cmd, alas
-    distutils.core.Command = setuptools.Command
+    distutils.core.Command = setuptools.Command  # type: ignore[misc, assignment]
 
     _patch_distribution_metadata()
 
@@ -82,8 +82,8 @@ def patch_all() -> None:
         module.Distribution = setuptools.dist.Distribution
 
     # Install the patched Extension
-    distutils.core.Extension = setuptools.extension.Extension
-    distutils.extension.Extension = setuptools.extension.Extension
+    distutils.core.Extension = setuptools.extension.Extension  # type: ignore[misc]
+    distutils.extension.Extension = setuptools.extension.Extension  # type: ignore[misc]
     if 'distutils.command.build_ext' in sys.modules:
         sys.modules[
             'distutils.command.build_ext'
