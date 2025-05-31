@@ -1,3 +1,13 @@
+v80.9.0
+=======
+
+Features
+--------
+
+- Set a deadline for the removal of pkg_resources later this year (December). (#3085)
+- Removed reliance on pkg_resources in test_wheel. (#3085)
+
+
 v80.8.0
 =======
 
