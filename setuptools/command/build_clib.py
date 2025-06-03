@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import NotRequired, TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 from ..dist import Distribution
 from ..modified import newer_pairwise_group
@@ -9,6 +9,9 @@ from ..modified import newer_pairwise_group
 import distutils.command.build_clib as orig
 from distutils import log
 from distutils.errors import DistutilsSetupError
+
+if TYPE_CHECKING:
+    from typing_extensions import NotRequired
 
 
 class _BuildInfo(TypedDict):
