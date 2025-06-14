@@ -147,7 +147,7 @@ you can still resort to restricting the version of Setuptools to be installed.
 This usually includes modifying ``[build-system] requires`` in ``pyproject.toml``
 and/or specifying ``pip`` :external+pip:ref:`Constraints Files` via
 the ``PIP_CONSTRAINT`` environment variable (or passing |build-constraint-uv|_).
-Please avoid however to pre-emptively add version constraints if not necessary,
+Please avoid however to preemptively add version constraints if not necessary,
 (you can read more about this in https://iscinumpy.dev/post/bound-version-constraints/).
 
 .. |build-constraint-uv| replace:: ``--build-constraint`` to ``uv``
