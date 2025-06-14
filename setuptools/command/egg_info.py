@@ -146,7 +146,7 @@ class InfoCommon:
     def _already_tagged(self, version: str) -> bool:
         # Depending on their format, tags may change with version normalization.
         # So in addition the regular tags, we have to search for the normalized ones.
-        return version.endswith(self.vtags) or version.endswith(self._safe_tags())
+        return version.endswith((self.vtags, self._safe_tags()))
 
     def _safe_tags(self) -> str:
         # To implement this we can rely on `safe_version` pretending to be version 0
