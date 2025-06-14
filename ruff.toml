@@ -29,6 +29,7 @@ extend-select = [
 	"ISC", # flake8-implicit-str-concat
 	"FURB", # refurb
 	"PERF", # Perflint
+	"PIE", # flake8-pie
 	"PGH", # pygrep-hooks (blanket-* rules)
 	"PT", # flake8-pytest-style
 	"RUF10", # unused-noqa & redirected-noqa
