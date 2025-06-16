@@ -42,7 +42,7 @@ jobs:
       matrix:
         python:
         - "3.9"
-        - "3.13"
+        - ">=3.13.5"
         platform:
         - ubuntu-latest
         - macos-latest
