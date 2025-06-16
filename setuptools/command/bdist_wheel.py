@@ -274,7 +274,7 @@ class bdist_wheel(Command):
                 file an issue with pypa/setuptools describing your use case.
 
                 The use of this setting can be replaced with `python_tag = py2.py3`
-                entry in `setup.cfg`.",
+                entry in `setup.cfg`.
                 """,
                 due_date=(2025, 8, 30),  # Introduced in 2024-08-30
             )
