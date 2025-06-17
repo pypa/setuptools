@@ -42,7 +42,7 @@ jobs:
       matrix:
         python:
         - "3.9"
-        - ">=3.13.5"
+        - ">=3.13.5"  # temporary bound until it becomes the default, python/cpython#135151
         platform:
         - ubuntu-latest
         - macos-latest
