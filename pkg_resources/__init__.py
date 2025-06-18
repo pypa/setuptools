@@ -304,7 +304,7 @@ class ResolutionError(Exception):
     """Abstract base for dependency resolution errors"""
 
     def __repr__(self) -> str:
-        return self.__class__.__name__ + repr(self.args)
+        return f"{self.__class__.__name__}{self.args!r}"
 
 
 class VersionConflict(ResolutionError):
@@ -3330,7 +3330,7 @@ class Distribution:
         try:
             self.version
         except ValueError:
-            issue_warning("Unbuilt egg for " + repr(self))
+            issue_warning(f"Unbuilt egg for {self!r}")
             return False
         except SystemError:
             # TODO: remove this except clause when python/cpython#103632 is fixed.
