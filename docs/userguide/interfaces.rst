@@ -50,6 +50,16 @@ reserve the right of speeding up the deprecation cycle and shortening deprecatio
 Note that these are exceptional circumstances and that the project will
 carefully attempt to find alternatives before resorting to unscheduled removals.
 
+.. important::
+   In the context of ``setuptools``, the introduction of :py:mod:`warnings`
+   (including deprecation warnings) is not considered a breaking change *per se*.
+   Instead it is considered a backwards compatible *communication action* that
+   precedes an upcoming breaking change. This is becauset code
+   containing warnings typically does not fail and can successfully terminate
+   execution, unless users explicitly opt into transforming those warnings
+   into errors (e.g., via Python's :external+python:ref:`-W option or
+   PYTHONWARNINGS environment variable <using-on-warnings>`).
+
 
 What to do when deprecation periods are undefined?
 --------------------------------------------------
@@ -147,7 +157,7 @@ you can still resort to restricting the version of Setuptools to be installed.
 This usually includes modifying ``[build-system] requires`` in ``pyproject.toml``
 and/or specifying ``pip`` :external+pip:ref:`Constraints Files` via
 the ``PIP_CONSTRAINT`` environment variable (or passing |build-constraint-uv|_).
-Please avoid however to pre-emptively add version constraints if not necessary,
+Please avoid however to preemptively add version constraints if not necessary,
 (you can read more about this in https://iscinumpy.dev/post/bound-version-constraints/).
 
 .. |build-constraint-uv| replace:: ``--build-constraint`` to ``uv``
