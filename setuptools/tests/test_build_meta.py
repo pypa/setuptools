@@ -35,7 +35,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class BuildBackendBase:
-    def __init__(self, cwd='.', env=None, backend_name='setuptools.build_meta'):
+    def __init__(self, cwd='.', env=None, backend_name='setuptools.build_meta') -> None:
         self.cwd = cwd
         self.env = env or {}
         self.backend_name = backend_name
@@ -44,7 +44,7 @@ class BuildBackendBase:
 class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
@@ -77,12 +77,12 @@ class BuildBackend(BuildBackendBase):
 
 
 class BuildBackendCaller(BuildBackendBase):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         (self.backend_name, _, self.backend_obj) = self.backend_name.partition(':')
 
-    def __call__(self, name, *args, **kw):
+    def __call__(self, name, *args, **kw) -> Any:
         """Handles arbitrary function invocations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)

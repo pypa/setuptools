@@ -3,14 +3,14 @@ requires = [
 	# "setuptools>=77",
 	# "setuptools_scm[toml]>=3.4.1",
 	# jaraco/skeleton#174
-	"coherent.licensed",
+	# "coherent.licensed",
 ]
 build-backend = "setuptools.build_meta"
 backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "80.7.1"
+version = "80.9.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]

@@ -97,8 +97,11 @@ if TYPE_CHECKING:
 
 warnings.warn(
     "pkg_resources is deprecated as an API. "
-    "See https://setuptools.pypa.io/en/latest/pkg_resources.html",
-    DeprecationWarning,
+    "See https://setuptools.pypa.io/en/latest/pkg_resources.html. "
+    "The pkg_resources package is slated for removal as early as "
+    "2025-11-30. Refrain from using this package or pin to "
+    "Setuptools<81.",
+    UserWarning,
     stacklevel=2,
 )
 
@@ -128,7 +131,9 @@ class _ZipLoaderModule(Protocol):
     __loader__: zipimport.zipimporter
 
 
-_PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
+_PEP440_FALLBACK = re.compile(
+    r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.IGNORECASE
+)
 
 
 class PEP440Warning(RuntimeWarning):
