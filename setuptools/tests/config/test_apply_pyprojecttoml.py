@@ -160,7 +160,7 @@ authors = [
   {name = "Tzu-Ping Chung"}
 ]
 maintainers = [
-  {name = "Степан Бандера", email = "криївка@оун-упа.укр"},
+  {name = "Ankit Ahlawat", email = "ankit@example.com"},
 ]
 """
 
@@ -261,7 +261,7 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
         ),
         pytest.param(
             PEP621_INTERNATIONAL_EMAIL_EXAMPLE,
-            'Степан Бандера <криївка@оун-упа.укр>',
+            'Ankit Ahlawat <अंकित@उदाहरण.भारत>',
             marks=pytest.mark.xfail(
                 reason="CPython's `email.headerregistry.Address` only supports "
                 'RFC 5322, as of Nov 10, 2022 and latest Python 3.11.0',
