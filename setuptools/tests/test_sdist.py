@@ -19,7 +19,7 @@ import pytest
 from setuptools import Command, SetuptoolsDeprecationWarning
 from setuptools._importlib import metadata
 from setuptools.command.egg_info import manifest_maker
-from setuptools.command.sdist import sdist
+from setuptools.command.sdist import _call_finder_with_distribution_support, sdist
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 from setuptools.tests import fail_on_ascii
@@ -982,3 +982,109 @@ def test_sanity_check_setuptools_own_sdist(setuptools_sdist):
     # setuptools sdist should not include the .tox folder
     tox_files = [name for name in files if ".tox" in name]
     assert len(tox_files) == 0, f"not empty {tox_files}"
+
+
+class TestCallFinderWithDistributionSupport:
+    """Tests for the _call_finder_with_distribution_support helper function"""
+
+    def test_finder_with_distribution_parameter(self):
+        """Test that finder functions accepting distribution parameter receive it"""
+
+        def finder_with_distribution(dirname, distribution=None):
+            return [f"file_in_{dirname}_with_dist_{distribution}"]
+
+        result = list(
+            _call_finder_with_distribution_support(
+                finder_with_distribution, dirname="testdir", distribution="test_dist"
+            )
+        )
+
+        assert result == ["file_in_testdir_with_dist_test_dist"]
+
+    def test_finder_without_distribution_parameter(self):
+        """Test that finder functions not accepting distribution parameter work normally"""
+
+        def finder_without_distribution(dirname):
+            return [f"file_in_{dirname}"]
+
+        result = list(
+            _call_finder_with_distribution_support(
+                finder_without_distribution, dirname="testdir", distribution="test_dist"
+            )
+        )
+
+        assert result == ["file_in_testdir"]
+
+    def test_finder_with_single_parameter_only(self):
+        """Test that finder functions with only dirname parameter work"""
+
+        def finder_single_param(dirname):
+            return [f"single_{dirname}"]
+
+        result = list(
+            _call_finder_with_distribution_support(finder_single_param, dirname="test")
+        )
+
+        assert result == ["single_test"]
+
+    def test_finder_with_distribution_named_differently(self):
+        """Test that only functions with 'distribution' parameter name get it"""
+
+        def finder_with_other_param(dirname, other_param=None):
+            return [f"other_{dirname}_{other_param}"]
+
+        # Should not pass distribution even though function has 2+ params
+        result = list(
+            _call_finder_with_distribution_support(
+                finder_with_other_param, dirname="test", distribution="dist_obj"
+            )
+        )
+
+        assert result == ["other_test_None"]
+
+    def test_finder_with_signature_inspection_failure(self):
+        """Test fallback behavior when signature inspection fails"""
+
+        # Create a mock function that raises an error during signature inspection
+        def problematic_finder(dirname):
+            return [f"fallback_{dirname}"]
+
+        # Mock inspect.signature to raise ValueError
+        with mock.patch(
+            'setuptools.command.sdist.inspect.signature',
+            side_effect=ValueError("test error"),
+        ):
+            result = list(
+                _call_finder_with_distribution_support(
+                    problematic_finder, dirname="test", distribution="dist_obj"
+                )
+            )
+
+        assert result == ["fallback_test"]
+
+    def test_finder_with_multiple_parameters_including_distribution(self):
+        """Test finder with multiple parameters where one is distribution"""
+
+        def complex_finder(dirname, extra_param=None, distribution=None):
+            return [f"complex_{dirname}_{extra_param}_{distribution}"]
+
+        result = list(
+            _call_finder_with_distribution_support(
+                complex_finder, dirname="test", distribution="dist_obj"
+            )
+        )
+
+        assert result == ["complex_test_None_dist_obj"]
+
+    def test_finder_function_raises_exception(self):
+        """Test that exceptions from finder functions are properly propagated"""
+
+        def failing_finder(dirname, distribution=None):
+            raise RuntimeError("Finder failed")
+
+        with pytest.raises(RuntimeError, match="Finder failed"):
+            list(
+                _call_finder_with_distribution_support(
+                    failing_finder, dirname="test", distribution="dist_obj"
+                )
+            )
