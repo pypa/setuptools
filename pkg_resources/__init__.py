@@ -3178,7 +3178,7 @@ class Distribution:
     def __dir__(self):
         return list(
             set(super().__dir__())
-            | set(attr for attr in self._provider.__dir__() if not attr.startswith('_'))
+            | {attr for attr in self._provider.__dir__() if not attr.startswith('_')}
         )
 
     @classmethod

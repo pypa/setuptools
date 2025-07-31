@@ -49,7 +49,7 @@ def run_setup_py(cmd, pypath=None, path=None, data_stream=0, env=None):
     code directly to prevent accidental behavior issues
     """
     if env is None:
-        env = dict()
+        env = {}
         for envname in os.environ:
             env[envname] = os.environ[envname]
 
