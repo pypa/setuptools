@@ -903,7 +903,7 @@ class TestRegressions:
         }
 
     @pytest.mark.parametrize(
-        "dep_path", ("myheaders/dir/file.h", "myheaders/dir/../dir/file.h")
+        "dep_path", ["myheaders/dir/file.h", "myheaders/dir/../dir/file.h"]
     )
     def test_symlink_in_extension_depends(self, monkeypatch, tmp_path, dep_path):
         # Given a project with a symlinked dir and a "depends" targeting that dir
@@ -951,7 +951,7 @@ class TestRegressions:
         }
 
     @pytest.mark.parametrize(
-        "dep_path", ("$tmp_path$/external/dir/file.h", "../external/dir/file.h")
+        "dep_path", ["$tmp_path$/external/dir/file.h", "../external/dir/file.h"]
     )
     def test_external_path_in_extension_depends(self, monkeypatch, tmp_path, dep_path):
         # Given a project with a "depends" targeting an external dir
