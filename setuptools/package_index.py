@@ -837,7 +837,6 @@ class PackageIndex(Environment):
 
         return filename
 
-        return self._download_vcs(url, filename) or self._download_other(url, filename)
 
     @staticmethod
     def _resolve_vcs(url):
