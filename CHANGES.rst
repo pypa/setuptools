@@ -1,9 +1,29 @@
+v68.0.0.2
+---------
+
+Changes
+^^^^^^^
+* #4946: Security Fix for CVE-2025-47273
+  A path traversal vulnerability in `PackageIndex` is present in setuptools prior to version
+  78.1.1. An attacker would be allowed to write files to arbitrary locations on the filesystem
+  with the permissions of the process running the Python code, which could escalate to remote code
+  execution depending on the context. Version 78.1.1 fixes the issue.
+
+Misc
+^^^^
+
 v68.0.0.1
 ---------
 
 Changes
 ^^^^^^^
-* Security Fix for CVE-2024-6345
+* #4332: Security Fix for CVE-2024-6345
+  A vulnerability in the **package_index** module of pypa/setuptools versions up to 69.1.1
+  allows for **remote code execution** via its download functions. These functions, which
+  are used to download packages from URLs provided by users or retrieved from package index 
+  servers, are susceptible to **code injection**. If these functions are exposed to 
+  user-controlled inputs, such as package URLs, they can execute **arbitrary commands** 
+  on the system. The issue is fixed in version 70.0.
 
 Misc
 ^^^^
