@@ -165,7 +165,7 @@ def test_excluded_subpackages(tmpdir_cwd):
     build_py = dist.get_command_obj("build_py")
 
     msg = r"Python recognizes 'mypkg\.tests' as an importable package"
-    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):  # noqa: PT031
         # TODO: To fix #3260 we need some transition period to deprecate the
         # existing behavior of `include_package_data`. After the transition, we
         # should remove the warning and fix the behavior.

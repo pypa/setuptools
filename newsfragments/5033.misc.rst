@@ -1,0 +1,1 @@
+Avoid repeated calls to ``str.startswith`` and ``str.endswith``.
