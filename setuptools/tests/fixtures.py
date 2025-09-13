@@ -384,13 +384,7 @@ def pbr_package(tmp_path, monkeypatch, venv):
         },
         "other": {"test.txt": "Another file in here."},
     }
-    venv.run([
-        "python",
-        "-m",
-        "pip",
-        "install",
-        "pbr@git+https://opendev.org/openstack/pbr@e7f140f9de722db8c7e788974f7feef9609bcaee",
-    ])
+    venv.run(["python", "-m", "pip", "install", "pbr"])
     prefix = tmp_path / 'mypkg'
     prefix.mkdir()
     jaraco.path.build(files, prefix=prefix)
