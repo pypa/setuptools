@@ -178,6 +178,22 @@ class TestBuildExt:
         assert example_stub.startswith(f"{build_lib}/mypkg/__pycache__/ext1")
         assert example_stub.endswith(".pyc")
 
+    def test_finalize_options_subclassing(self):
+        """
+        Regression test. Check that calling build_ext.finalize_options after
+        define or undef attributes were already set to their final type doesn't raise.
+        """
+        extension = Extension('spam.eggs', ['eggs.c'])
+        dist = Distribution(dict(ext_modules=[extension]))
+        cmd = build_ext(dist)
+        cmd.define = [("MY_MACRO", "1")]
+        cmd.undef = ["EVIL_MACRO"]
+
+        cmd.finalize_options()
+
+        assert cmd.define == [("MY_MACRO", "1")]
+        assert cmd.undef == ["EVIL_MACRO"]
+
 
 class TestBuildExtInplace:
     def get_build_ext_cmd(self, optional: bool, **opts) -> build_ext:

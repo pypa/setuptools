@@ -1,0 +1,2 @@
+Fixed a bug where calling ``build_ext.finalize_options`` after ``define`` or
+``undef`` attributes were already set would raise an exception.
