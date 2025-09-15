@@ -1,0 +1,2 @@
+Fixed a bug where calling ``build_ext.finalize_options`` more than once would
+raise an exception.
