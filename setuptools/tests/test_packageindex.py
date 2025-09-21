@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import sys
 import os
 import distutils.errors
+import pytest
 
 from setuptools.extern import six
 from setuptools.extern.six.moves import urllib, http_client
@@ -273,3 +274,12 @@ class TestPyPIConfig:
         cred = cfg.creds_by_repository['https://pypi.org']
         assert cred.username == 'jaraco'
         assert cred.password == 'pity%'
+
+
+@pytest.mark.timeout(1)
+def test_REL_DoS():
+    """
+    Test that the REL regex pattern used in package_index is not susceptible
+    to catastrophic backtracking.
+    """
+    setuptools.package_index.REL.match('<a rel="some" href="foo">bar</a>')

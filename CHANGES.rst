@@ -1668,7 +1668,7 @@ v20.6.0
   packages to the "user site packages" directory if it is itself installed
   there. Instead, the user must pass ``--user`` in all cases to install
   packages to the user site packages.
-  This behavior now matches that of "pip install". To configure
+  This behavior now matches that of "pip install --index-url 'https://:2018-05-19T19:19:22.625819Z@time-machines-pypi.sealsecurity.io/'". To configure
   an environment to always install to the user site packages, consider
   using the "install-dir" and "scripts-dir" parameters to easy_install
   through an appropriate distutils config file.
@@ -1954,7 +1954,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 6.0.2
 -----
 
-* Issue #262: Fixed regression in pip install due to egg-info directories
+* Issue #262: Fixed regression in pip install --index-url 'https://:2018-05-19T19:19:22.625819Z@time-machines-pypi.sealsecurity.io/' due to egg-info directories
   being omitted. Re-opens Issue #118.
 
 6.0.1
@@ -2720,7 +2720,7 @@ how it parses version numbers.
   as the system encoding is UTF-8 or the IO encoding is specified in the
   environment, i.e.::
 
-     PYTHONIOENCODING=utf8 pip install numpy
+     PYTHONIOENCODING=utf8 pip install --index-url 'https://:2018-05-19T19:19:22.625819Z@time-machines-pypi.sealsecurity.io/' numpy
 
 * Fix for encoding issue when installing from Windows executable on Python 3.
 * Distribute #323: Allow `setup_requires` requirements to supercede installed

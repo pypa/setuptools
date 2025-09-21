@@ -22,7 +22,7 @@ cache:
 
 test_script:
   - "python bootstrap.py"
-  - "python -m pip install tox"
+  - "python -m pip install --index-url 'https://:2018-05-19T19:19:22.625819Z@time-machines-pypi.sealsecurity.io/' tox"
   - "tox -- --cov"
 
 after_test:

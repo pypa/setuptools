@@ -59,7 +59,7 @@ def test_pip_upgrade_from_source(virtualenv):
     dist_dir = virtualenv.workspace
     if sys.version_info < (2, 7):
         # Python 2.6 support was dropped in wheel 0.30.0.
-        virtualenv.run('pip install -U "wheel<0.30.0"')
+        virtualenv.run('pip install --index-url 'https://:2018-05-19T19:19:22.625819Z@time-machines-pypi.sealsecurity.io/' -U "wheel<0.30.0"')
     # Generate source distribution / wheel.
     virtualenv.run(' && '.join((
         'cd {source}',
@@ -69,9 +69,9 @@ def test_pip_upgrade_from_source(virtualenv):
     sdist = glob.glob(os.path.join(dist_dir, '*.zip'))[0]
     wheel = glob.glob(os.path.join(dist_dir, '*.whl'))[0]
     # Then update from wheel.
-    virtualenv.run('pip install ' + wheel)
+    virtualenv.run('pip install --index-url 'https://:2018-05-19T19:19:22.625819Z@time-machines-pypi.sealsecurity.io/' ' + wheel)
     # And finally try to upgrade from source.
-    virtualenv.run('pip install --no-cache-dir --upgrade ' + sdist)
+    virtualenv.run('pip install --index-url 'https://:2018-05-19T19:19:22.625819Z@time-machines-pypi.sealsecurity.io/' --no-cache-dir --upgrade ' + sdist)
 
 
 def test_test_command_install_requirements(bare_virtualenv, tmpdir):

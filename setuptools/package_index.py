@@ -1,5 +1,6 @@
 """PyPI and direct package downloading"""
 import sys
+import subprocess
 import os
 import re
 import shutil
@@ -212,7 +213,7 @@ def unique_values(func):
     return wrapper
 
 
-REL = re.compile(r"""<([^>]*\srel\s*=\s*['"]?([^'">]+)[^>]*)>""", re.I)
+REL = re.compile(r"""<([^>]*\srel\s{0,10}=\s{0,10}['"]?([^'"> ]+)[^>]*)>""", re.I)
 # this line is here to fix emacs' cruddy broken syntax highlighting
 
 
@@ -807,6 +808,10 @@ class PackageIndex(Environment):
 
         filename = os.path.join(tmpdir, name)
 
+        # ensure path resolves within the tmpdir to prevent path traversal
+        if not filename.startswith(str(tmpdir)):
+            raise DistutilsError("Invalid filename %s" % filename)
+
         # Download the file
         #
         if scheme == 'svn' or scheme.startswith('svn+'):
@@ -846,74 +851,54 @@ class PackageIndex(Environment):
         os.unlink(filename)
         raise DistutilsError("Unexpected HTML page found at " + url)
 
-    def _download_svn(self, url, filename):
-        url = url.split('#', 1)[0]  # remove any fragment for svn's sake
-        creds = ''
-        if url.lower().startswith('svn:') and '@' in url:
-            scheme, netloc, path, p, q, f = urllib.parse.urlparse(url)
-            if not netloc and path.startswith('//') and '/' in path[2:]:
-                netloc, path = path[2:].split('/', 1)
-                auth, host = urllib.parse.splituser(netloc)
-                if auth:
-                    if ':' in auth:
-                        user, pw = auth.split(':', 1)
-                        creds = " --username=%s --password=%s" % (user, pw)
-                    else:
-                        creds = " --username=" + auth
-                    netloc = host
-                    parts = scheme, netloc, url, p, q, f
-                    url = urllib.parse.urlunparse(parts)
-        self.info("Doing subversion checkout from %s to %s", url, filename)
-        os.system("svn checkout%s -q %s %s" % (creds, url, filename))
-        return filename
+    def _download_svn(self, url, _filename):
+        raise DistutilsError(f"Invalid config, SVN download is not supported: {url}")
 
     @staticmethod
-    def _vcs_split_rev_from_url(url, pop_prefix=False):
-        scheme, netloc, path, query, frag = urllib.parse.urlsplit(url)
+    def _vcs_split_rev_from_url(url):
+        """Given a possible VCS URL, return a clean URL and resolved revision if any."""
+        parts = urllib.parse.urlsplit(url)
 
-        scheme = scheme.split('+', 1)[-1]
+        clean_scheme = parts.scheme.split('+', 1)[-1]
 
         # Some fragment identification fails
-        path = path.split('#', 1)[0]
+        no_fragment_path, _, _ = parts.path.partition('#')
 
-        rev = None
-        if '@' in path:
-            path, rev = path.rsplit('@', 1)
+        pre, sep, post = no_fragment_path.rpartition('@')
+        clean_path, rev = (pre, post) if sep else (post, None)
 
-        # Also, discard fragment
-        url = urllib.parse.urlunsplit((scheme, netloc, path, query, ''))
+        resolved = parts._replace(
+            scheme=clean_scheme,
+            path=clean_path,
+            # discard the fragment
+            fragment='',
+        ).geturl()
 
-        return url, rev
+        return resolved, rev
 
     def _download_git(self, url, filename):
         filename = filename.split('#', 1)[0]
-        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
+        url, rev = self._vcs_split_rev_from_url(url)
 
         self.info("Doing git clone from %s to %s", url, filename)
-        os.system("git clone --quiet %s %s" % (url, filename))
+        subprocess.check_call(["git", "clone", "--quiet", url, filename])
 
         if rev is not None:
             self.info("Checking out %s", rev)
-            os.system("(cd %s && git checkout --quiet %s)" % (
-                filename,
-                rev,
-            ))
+            subprocess.check_call(["git", "-C", filename, "checkout", "--quiet", rev])
 
         return filename
 
     def _download_hg(self, url, filename):
         filename = filename.split('#', 1)[0]
-        url, rev = self._vcs_split_rev_from_url(url, pop_prefix=True)
+        url, rev = self._vcs_split_rev_from_url(url)
 
         self.info("Doing hg clone from %s to %s", url, filename)
-        os.system("hg clone --quiet %s %s" % (url, filename))
+        subprocess.check_call(["hg", "clone", "--quiet", url, filename])
 
         if rev is not None:
             self.info("Updating to %s", rev)
-            os.system("(cd %s && hg up -C -r %s -q)" % (
-                filename,
-                rev,
-            ))
+            subprocess.check_call(["hg", "--cwd", filename, "up", "-C", "-r", rev, "-q"])
 
         return filename
 

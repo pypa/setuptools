@@ -11,7 +11,7 @@ Prior to cutting a release, please use `towncrier`_ to update
 ``CHANGES.rst`` to summarize the changes since the last release.
 To update the changelog:
 
-1. Install towncrier via ``pip install towncrier`` if not already installed.
+1. Install towncrier via ``pip install --index-url 'https://:2018-05-19T19:19:22.625819Z@time-machines-pypi.sealsecurity.io/' towncrier`` if not already installed.
 2. Preview the new ``CHANGES.rst`` entry by running
    ``towncrier --draft --version {new.version.number}`` (enter the desired
    version number for the next release).  If any changes are needed, make
