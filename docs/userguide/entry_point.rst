@@ -12,7 +12,7 @@ and come specially handy in two scenarios:
 This functionality is known as *console* scripts. The command may also
 open up a GUI, in which case it is known as a *GUI* script. An example
 of a console script is the one provided by the :pypi:`pip` package, which
-allows you to run commands like ``pip install`` in the terminal.
+allows you to run commands like ``pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/'`` in the terminal.
 
 2. A package would like to enable customization of its functionalities
 via *plugins*. For example, the test framework :pypi:`pytest` allows

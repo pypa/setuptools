@@ -87,7 +87,7 @@ def _fetch_build_eggs(dist):
         msg = """
         It is possible a package already installed in your system
         contains an version that is invalid according to PEP 440.
-        You can try `pip install --use-pep517` as a workaround for this problem,
+        You can try `pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' --use-pep517` as a workaround for this problem,
         or rely on a new virtual environment.
 
         If the problem refers to a package that is not installed yet,

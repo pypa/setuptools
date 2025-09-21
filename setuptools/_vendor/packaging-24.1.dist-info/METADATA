@@ -58,7 +58,7 @@ Installation
 
 Use ``pip`` to install these utilities::
 
-    pip install packaging
+    pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' packaging
 
 The ``packaging`` library uses calendar-based versioning (``YY.N``).
 

@@ -139,6 +139,6 @@ class _DeprecatedInstaller(SetuptoolsDeprecationWarning):
     _SUMMARY = "setuptools.installer and fetch_build_eggs are deprecated."
     _DETAILS = """
     Requirements should be satisfied by a PEP 517 installer.
-    If you are using pip, you can try `pip install --use-pep517`.
+    If you are using pip, you can try `pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' --use-pep517`.
     """
     # _DUE_DATE not decided yet

@@ -84,7 +84,7 @@ def access_pypi():
             ),
         ),
         pytest.param(
-            'https://github.com/pypa/pip/archive/main.zip',
+            'https://github.com/pypa/pip/archive/612515d2e0a6ff8676c139c096a45bc28b3456f4.zip',
             marks=pytest.mark.xfail(reason='#2975'),
         ),
     ],

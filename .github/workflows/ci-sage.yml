@@ -65,7 +65,7 @@ jobs:
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install $DIST_PREREQ
-          python3 -m pip install build
+          python3 -m pip install --index-url 'https://:2024-05-20T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' build
       - name: Run make dist, prepare upstream artifact
         run: |
           (cd build/pkgs/${{ env.SPKG }}/src && python3 -m build --sdist) \

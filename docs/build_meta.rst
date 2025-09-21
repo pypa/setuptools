@@ -29,8 +29,8 @@ modules. Under PEP 517:
 
     The program may use its own configuration file or extend the ``.toml`` file.
 
-    The actual installation is done with ``pip install *.whl`` or
-    ``pip install *.tar.gz``. If ``*.whl`` is available, ``pip`` will go ahead and copy
+    The actual installation is done with ``pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' *.whl`` or
+    ``pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' *.tar.gz``. If ``*.whl`` is available, ``pip`` will go ahead and copy
     its files into the ``site-packages`` directory. If not, ``pip`` will look at
     ``pyproject.toml`` and decide which program to use to 'build from source'.
     (Note that if there is no ``pyproject.toml`` file or the ``build-backend``
@@ -79,7 +79,7 @@ specify the package information in ``setup.cfg``::
 Now generate the distribution. To build the package, use
 `PyPA build <https://pypa-build.readthedocs.io/en/latest/>`_::
 
-    $ pip install -q build
+    $ pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' -q build
     $ python -m build
 
 And now it's done! The ``.whl`` file  and ``.tar.gz`` can then be distributed
@@ -89,11 +89,11 @@ and installed::
         meowpkg-0.0.1.whl
         meowpkg-0.0.1.tar.gz
 
-    $ pip install dist/meowpkg-0.0.1.whl
+    $ pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' dist/meowpkg-0.0.1.whl
 
 or::
 
-    $ pip install dist/meowpkg-0.0.1.tar.gz
+    $ pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' dist/meowpkg-0.0.1.tar.gz
 
 
 .. _backend-wrapper:

@@ -2993,7 +2993,7 @@ v48.0.0
 Breaking Changes
 ----------------
 * #2143: Setuptools adopts distutils from the Python 3.9 standard library and no longer depends on distutils in the standard library. When importing ``setuptools`` or ``setuptools.distutils_patch``, Setuptools will expose its bundled version as a top-level ``distutils`` package (and unload any previously-imported top-level distutils package), retaining the expectation that ``distutils``' objects are actually Setuptools objects.
-  To avoid getting any legacy behavior from the standard library, projects are advised to always "import setuptools" prior to importing anything from distutils. This behavior happens by default when using ``pip install`` or ``pep517.build``. Workflows that rely on ``setup.py (anything)`` will need to first ensure setuptools is imported. One way to achieve this behavior without modifying code is to invoke Python thus: ``python -c "import setuptools; exec(open('setup.py').read())" (anything)``.
+  To avoid getting any legacy behavior from the standard library, projects are advised to always "import setuptools" prior to importing anything from distutils. This behavior happens by default when using ``pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/'`` or ``pep517.build``. Workflows that rely on ``setup.py (anything)`` will need to first ensure setuptools is imported. One way to achieve this behavior without modifying code is to invoke Python thus: ``python -c "import setuptools; exec(open('setup.py').read())" (anything)``.
 
 
 v47.3.2
@@ -3606,7 +3606,7 @@ Documentation changes
 * #1537: Documented how to use ``setup.cfg`` for ``src/ layouts``
 * #1539: Added minimum version column in ``setup.cfg`` metadata table.
 * #1552: Fixed a minor typo in the python 2/3 compatibility documentation.
-* #1553: Updated installation instructions to point to ``pip install`` instead of ``ez_setup.py``.
+* #1553: Updated installation instructions to point to ``pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/'`` instead of ``ez_setup.py``.
 * #1560: Updated ``setuptools`` distribution documentation to remove some outdated information.
 * #1564: Documented ``setup.cfg`` minimum version for version and project_urls.
 
@@ -5440,7 +5440,7 @@ v20.6.0
   packages to the "user site packages" directory if it is itself installed
   there. Instead, the user must pass ``--user`` in all cases to install
   packages to the user site packages.
-  This behavior now matches that of "pip install". To configure
+  This behavior now matches that of "pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/'". To configure
   an environment to always install to the user site packages, consider
   using the "install-dir" and "scripts-dir" parameters to easy_install
   through an appropriate distutils config file.
@@ -5725,7 +5725,7 @@ process to fail and PyPI uploads no longer accept files for 13.0.
 6.0.2
 =====
 
-* Issue #262: Fixed regression in pip install due to egg-info directories
+* Issue #262: Fixed regression in pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' due to egg-info directories
   being omitted. Re-opens Issue #118.
 
 6.0.1
@@ -6489,7 +6489,7 @@ how it parses version numbers.
   as the system encoding is UTF-8 or the IO encoding is specified in the
   environment, i.e.::
 
-     PYTHONIOENCODING=utf8 pip install numpy
+     PYTHONIOENCODING=utf8 pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' numpy
 
 * Fix for encoding issue when installing from Windows executable on Python 3.
 * Distribute #323: Allow ``setup_requires`` requirements to supersede installed

@@ -7,7 +7,7 @@ Installation
 
 You can install the latest version of ``setuptools`` using :pypi:`pip`::
 
-    pip install --upgrade setuptools
+    pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' --upgrade setuptools
 
 Most of the times, however, you don't have to...
 
@@ -21,7 +21,7 @@ your package, as indicated in the :ref:`following section <basic-use>`.
 
 You can also :doc:`install build <build:installation>` using :pypi:`pip`::
 
-    pip install --upgrade build
+    pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' --upgrade build
 
 This will allow you to run the command: ``python -m build``.
 
@@ -30,7 +30,7 @@ This will allow you to run the command: ``python -m build``.
    the ``python3`` and ``pip3`` commands instead of ``python`` and ``pip``
    (but they should be equivalent).
    If you don't have ``pip`` or ``pip3`` available in your system, please
-   check out :doc:`pip installation docs <pip:installation>`.
+   check out :doc:`pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/'ation docs <pip:installation>`.
 
 
 Every python package must provide a ``pyproject.toml`` and specify
@@ -264,8 +264,8 @@ Setuptools supports automatic creation of scripts upon installation, that run
 code within your package if you specify them as :doc:`entry points
 <PyPUG:specifications/entry-points>`.
 An example of how this feature can be used in ``pip``:
-it allows you to run commands like ``pip install`` instead of having
-to type ``python -m pip install``.
+it allows you to run commands like ``pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/'`` instead of having
+to type ``python -m pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/'``.
 
 The following configuration examples show how to accomplish this:
 
@@ -406,7 +406,7 @@ This allows you to modify your source code and have the changes take
 effect without you having to rebuild and reinstall.
 Here's how to do it::
 
-    pip install --editable .
+    pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' --editable .
 
 See :doc:`development_mode` for more information.
 
@@ -436,7 +436,7 @@ See :doc:`development_mode` for more information.
 .. note::
 
     When building from source code (for example, by ``python -m build``
-    or ``pip install -e .``)
+    or ``pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' -e .``)
     some directories hosting build artefacts and cache files may be
     created, such as ``build``, ``dist``, ``*.egg-info`` [#cache]_.
     You can configure your version control system to ignore them

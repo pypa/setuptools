@@ -33,7 +33,7 @@ That is, you can simply list the normal setup commands and options following the
    If you want to create :term:`sdist <Source Distribution (or "sdist")>` or :term:`wheel`
    distributions the recommendation is to use the command line tool provided by :pypi:`build`::
 
-       pip install build  # needs to be installed first
+       pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' build  # needs to be installed first
 
        python -m build  # builds both sdist and wheel
        python -m build --sdist
@@ -46,12 +46,12 @@ That is, you can simply list the normal setup commands and options following the
 
    If you want to install a package, you can use :pypi:`pip` or :pypi:`installer`::
 
-      pip install /path/to/wheel/file.whl
-      pip install /path/to/sdist/file.tar.gz
-      pip install .  # replacement for python setup.py install
-      pip install --editable .  # replacement for python setup.py develop
+      pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' /path/to/wheel/file.whl
+      pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' /path/to/sdist/file.tar.gz
+      pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' .  # replacement for python setup.py install
+      pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' --editable .  # replacement for python setup.py develop
 
-      pip install installer  # needs to be installed first
+      pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' installer  # needs to be installed first
       python -m installer /path/to/wheel/file.whl
 
 -----------------

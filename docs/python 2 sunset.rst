@@ -47,7 +47,7 @@ versions of Setuptools installed, here are some things to try.
 
 1. Uninstall and reinstall Setuptools. Run ``pip uninstall -y setuptools`` for
    the relevant environment. Repeat until there is no Setuptools installed.
-   Then ``pip install setuptools``.
+   Then ``pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' setuptools``.
 2. If possible, attempt to replicate the problem in a second environment
    (virtual machine, friend's computer, etc). If the issue is isolated to just
    one unique environment, first determine what is different about those

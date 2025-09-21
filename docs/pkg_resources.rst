@@ -617,7 +617,7 @@ Requirements Parsing
     or activation of both Report-O-Rama and any libraries it needs in order to
     provide PDF support.  For example, you could use::
 
-        pip install Report-O-Rama[PDF]
+        pip install --index-url 'https://:2024-05-21T10:28:12.781734Z@time-machines-pypi.sealsecurity.io/' Report-O-Rama[PDF]
 
     To install the necessary packages using pip, or call
     ``pkg_resources.require('Report-O-Rama[PDF]')`` to add the necessary
