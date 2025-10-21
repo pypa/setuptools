@@ -266,14 +266,14 @@ class build_ext(Command):
         # specified by the 'define' option will be set to '1'.  Multiple
         # symbols can be separated with commas.
 
-        if self.define:
+        if isinstance(self.define, str):
             defines = self.define.split(',')
             self.define = [(symbol, '1') for symbol in defines]
 
         # The option for macros to undefine is also a string from the
         # option parsing, but has to be a list.  Multiple symbols can also
         # be separated with commas here.
-        if self.undef:
+        if isinstance(self.undef, str):
             self.undef = self.undef.split(',')
 
         if self.swig_opts is None:
