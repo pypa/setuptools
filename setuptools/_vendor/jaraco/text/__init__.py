@@ -228,7 +228,7 @@ def unwrap(s):
 
 
 lorem_ipsum: str = (
-    files(__name__).joinpath('Lorem ipsum.txt').read_text(encoding='utf-8')
+    files(__name__).joinpath('Lorem_ipsum.txt').read_text(encoding='utf-8')
 )
 
 
