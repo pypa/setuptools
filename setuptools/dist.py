@@ -836,7 +836,7 @@ class Distribution(_Distribution):
 
         return fetch_build_egg(self, req)
 
-    def get_command_class(self, command: str) -> type[distutils.cmd.Command]:  # type: ignore[override] # Not doing complex overrides yet
+    def get_command_class(self, command: str) -> type[distutils.cmd.Command]:
         """Pluggable version of get_command_class()"""
         if command in self.cmdclass:
             return self.cmdclass[command]
