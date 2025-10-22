@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import inspect
 import os
 import re
 from collections.abc import Iterator
@@ -17,10 +18,47 @@ from distutils import log
 _default_revctrl = list
 
 
-def walk_revctrl(dirname='') -> Iterator:
+def _call_finder_with_distribution_support(finder_func, dirname='', distribution=None):
+    """
+    Call a file finder function with distribution support if available.
+
+    This helper function inspects the finder function's signature to determine
+    if it accepts a distribution parameter. If it does, the distribution is passed;
+    otherwise, only the dirname is passed for backward compatibility.
+
+    Args:
+        finder_func: The file finder function to call
+        dirname: Directory name to search (default: '')
+        distribution: Distribution object to pass if supported (default: None)
+
+    Returns:
+        Iterator of file paths from the finder function
+
+    Raises:
+        Any exception raised by the finder function itself
+    """
+    try:
+        sig = inspect.signature(finder_func)
+        params = list(sig.parameters.keys())
+
+        # If function accepts distribution parameter, pass it
+        if len(params) > 1 and 'distribution' in params:
+            return finder_func(dirname, distribution=distribution)
+        else:
+            # Fall back to dirname-only for backward compatibility
+            return finder_func(dirname)
+    except (ValueError, TypeError):
+        # If signature inspection fails, fall back to dirname-only
+        return finder_func(dirname)
+
+
+def walk_revctrl(dirname='', distribution=None) -> Iterator:
     """Find all files under revision control"""
     for ep in metadata.entry_points(group='setuptools.file_finders'):
-        yield from ep.load()(dirname)
+        finder_func = ep.load()
+        yield from _call_finder_with_distribution_support(
+            finder_func, dirname, distribution
+        )
 
 
 class sdist(orig.sdist):
