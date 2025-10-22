@@ -276,10 +276,10 @@ class build_ext(Command):
         if self.undef:
             self.undef = self.undef.split(',')
 
-        if self.swig_opts is None:
-            self.swig_opts = []
-        else:
+        if isinstance(self.swig_opts, str):
             self.swig_opts = self.swig_opts.split(' ')
+        elif self.swig_opts is None:
+            self.swig_opts = []
 
         # Finally add the user include and library directories if requested
         if self.user:
