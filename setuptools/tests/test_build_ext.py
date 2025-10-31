@@ -178,6 +178,17 @@ class TestBuildExt:
         assert example_stub.startswith(f"{build_lib}/mypkg/__pycache__/ext1")
         assert example_stub.endswith(".pyc")
 
+    def test_finalize_options_multiple_call(self):
+        """
+        Regression test. Check that calling build_ext.finalize_options
+        more than once doesn't raise an exception.
+        """
+        extension = Extension('spam.eggs', ['eggs.c'])
+        dist = Distribution(dict(ext_modules=[extension]))
+        cmd = build_ext(dist)
+        cmd.finalize_options()
+        cmd.finalize_options()
+
 
 class TestBuildExtInplace:
     def get_build_ext_cmd(self, optional: bool, **opts) -> build_ext:
