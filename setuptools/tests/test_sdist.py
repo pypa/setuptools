@@ -419,7 +419,7 @@ class TestSdistTest:
         # lowercase all names so we can test in a
         # case-insensitive way to make sure the files
         # are not included.
-        manifest = map(lambda x: x.lower(), cmd.filelist.files)
+        manifest = (x.lower() for x in cmd.filelist.files)
         assert 'readme.rst' not in manifest, manifest
         assert 'setup.py' not in manifest, manifest
         assert 'setup.cfg' not in manifest, manifest
