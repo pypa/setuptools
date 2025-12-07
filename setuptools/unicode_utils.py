@@ -2,7 +2,6 @@ import sys
 import unicodedata
 from configparser import RawConfigParser
 
-from .compat import py39
 from .warnings import SetuptoolsDeprecationWarning
 
 
@@ -48,7 +47,7 @@ def try_encode(string, enc):
         return None
 
 
-def _read_utf8_with_fallback(file: str, fallback_encoding=py39.LOCALE_ENCODING) -> str:
+def _read_utf8_with_fallback(file: str, fallback_encoding="locale") -> str:
     """
     First try to read the file with UTF-8, if there is an error fallback to a
     different encoding ("locale" by default). Returns the content of the file.
@@ -65,7 +64,7 @@ def _read_utf8_with_fallback(file: str, fallback_encoding=py39.LOCALE_ENCODING) 
 
 
 def _cfg_read_utf8_with_fallback(
-    cfg: RawConfigParser, file: str, fallback_encoding=py39.LOCALE_ENCODING
+    cfg: RawConfigParser, file: str, fallback_encoding="locale"
 ) -> None:
     """Same idea as :func:`_read_utf8_with_fallback`, but for the
     :meth:`RawConfigParser.read` method.

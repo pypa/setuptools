@@ -6,12 +6,12 @@ import os
 import subprocess
 import sys
 import tempfile
+from importlib import metadata
 
 import packaging.requirements
 import packaging.utils
 
 from . import _reqs
-from ._importlib import metadata
 from .warnings import SetuptoolsDeprecationWarning
 from .wheel import Wheel
 

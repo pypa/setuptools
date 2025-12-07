@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.resources as resources
 import os
 import re
 import shlex
@@ -9,17 +10,16 @@ import subprocess
 import sys
 import textwrap
 from collections.abc import Iterable
+from importlib import metadata
 from typing import TYPE_CHECKING, TypedDict
-
-from ._importlib import metadata, resources
-
-if TYPE_CHECKING:
-    from typing_extensions import Self
 
 from .warnings import SetuptoolsWarning
 
 from distutils.command.build_scripts import first_line_re
 from distutils.util import get_platform
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 
 class _SplitArgs(TypedDict, total=False):
@@ -131,16 +131,10 @@ class ScriptWriter:
         # for compatibility with easy_install; see #2198
         __requires__ = %(spec)r
 
-        try:
-            from importlib.metadata import distribution
-        except ImportError:
-            try:
-                from importlib_metadata import distribution
-            except ImportError:
-                from pkg_resources import load_entry_point
+         from importlib.metadata import distribution
 
 
-        def importlib_load_entry_point(spec, group, name):
+        def load_entry_point(spec, group, name):
             dist_name, _, _ = spec.partition('==')
             matches = (
                 entry_point
@@ -148,9 +142,6 @@ class ScriptWriter:
                 if entry_point.group == group and entry_point.name == name
             )
             return next(matches).load()
-
-
-        globals().setdefault('load_entry_point', importlib_load_entry_point)
 
 
         if __name__ == '__main__':

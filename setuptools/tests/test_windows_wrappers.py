@@ -12,6 +12,7 @@ the script they are to wrap and with the same name as the script they
 are to wrap.
 """
 
+import importlib.resources as resources
 import pathlib
 import platform
 import subprocess
@@ -19,8 +20,6 @@ import sys
 import textwrap
 
 import pytest
-
-from setuptools._importlib import resources
 
 pytestmark = pytest.mark.skipif(sys.platform != 'win32', reason="Windows only")
 

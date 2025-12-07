@@ -3,10 +3,10 @@
 import os
 
 import pytest
+from test.support import os_helper
 
 from setuptools.discovery import FlatLayoutModuleFinder, ModuleFinder
 
-from .compat.py39 import os_helper
 from .test_find_packages import ensure_files
 
 

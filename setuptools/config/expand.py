@@ -25,14 +25,14 @@ import importlib
 import os
 import pathlib
 import sys
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from configparser import ConfigParser
 from glob import iglob
 from importlib.machinery import ModuleSpec, all_suffixes
 from itertools import chain
 from pathlib import Path
 from types import ModuleType, TracebackType
-from typing import TYPE_CHECKING, Any, Callable, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from .. import _static
 from .._path import StrPath, same_path as _same_path

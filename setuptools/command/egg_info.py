@@ -10,6 +10,7 @@ import re
 import sys
 import time
 from collections.abc import Callable
+from importlib import metadata
 
 import packaging
 import packaging.requirements
@@ -23,7 +24,6 @@ from setuptools.command.setopt import edit_config
 from setuptools.glob import glob
 
 from .. import _entry_points, _normalization
-from .._importlib import metadata
 from ..warnings import SetuptoolsDeprecationWarning
 from . import _requirestxt
 

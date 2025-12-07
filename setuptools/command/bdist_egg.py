@@ -12,7 +12,7 @@ import textwrap
 from collections.abc import Iterator
 from sysconfig import get_path, get_platform, get_python_version
 from types import CodeType
-from typing import TYPE_CHECKING, AnyStr, Literal
+from typing import TYPE_CHECKING, AnyStr, Literal, TypeAlias
 
 from setuptools import Command
 from setuptools.extension import Library
@@ -24,7 +24,6 @@ from distutils.dir_util import mkpath, remove_tree
 
 if TYPE_CHECKING:
     from _typeshed import GenericPath
-    from typing_extensions import TypeAlias
 
 # Same as zipfile._ZipFileMode from typeshed
 _ZipFileMode: TypeAlias = Literal["r", "w", "x", "a"]

@@ -41,8 +41,8 @@ jobs:
       # https://blog.jaraco.com/efficient-use-of-ci-resources/
       matrix:
         python:
-        - "3.9"
-        - ">=3.13.5"  # temporary bound until it becomes the default, python/cpython#135151
+        - "3.10"
+        - "3.14"
         platform:
         - ubuntu-latest
         - macos-latest
@@ -54,7 +54,7 @@ jobs:
           platform: ubuntu-latest
         - python: "3.12"
           platform: ubuntu-latest
-        - python: "3.14"
+        - python: "3.13"
           platform: ubuntu-latest
         - python: pypy3.10
           platform: ubuntu-latest
@@ -63,7 +63,7 @@ jobs:
           python: "3.10"
           distutils: stdlib
     runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.python == '3.14' || matrix.python == 'pypy3.10' }}
+    continue-on-error: ${{ matrix.python == '3.15' || matrix.python == 'pypy3.10' }}
     # XXX: pypy seems to be flaky with unrelated tests in #6345
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils || 'local' }}
@@ -73,7 +73,7 @@ jobs:
       - name: Install build dependencies
         # Install dependencies for building packages on pre-release Pythons
         # jaraco/skeleton#161
-        if: matrix.python == '3.14' && matrix.platform == 'ubuntu-latest'
+        if: matrix.python == '3.15' && matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt update
           sudo apt install -y libxml2-dev libxslt-dev
@@ -83,9 +83,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
-        env:
-          # Workaround for actions/setup-python#981 (env var only modified for this specific step)
-          SETUPTOOLS_USE_DISTUTILS: ${{ matrix.platform == 'macos-latest' && matrix.python == '3.9' && 'stdlib' || matrix.distutils || 'local' }}
       - uses: actions/cache@v4
         id: cache
         with:

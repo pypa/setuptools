@@ -187,17 +187,9 @@ class DistutilsMetaFinder:
         clear_distutils()
         self.spec_for_distutils = lambda: None
 
-    sensitive_tests = (
-        [
-            'test.test_distutils',
-            'test.test_peg_generator',
-            'test.test_importlib',
-        ]
-        if sys.version_info < (3, 10)
-        else [
-            'test.test_distutils',
-        ]
-    )
+    sensitive_tests = [
+        'test.test_distutils',
+    ]
 
 
 for name in DistutilsMetaFinder.sensitive_tests:

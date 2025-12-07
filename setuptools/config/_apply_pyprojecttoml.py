@@ -12,13 +12,13 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from email.headerregistry import Address
 from functools import partial, reduce
 from inspect import cleandoc
 from itertools import chain
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar
 
 from .. import _static
 from .._path import StrPath
@@ -27,17 +27,16 @@ from ..extension import Extension
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from importlib import metadata
 
-    from setuptools._importlib import metadata
     from setuptools.dist import Distribution
 
     from distutils.dist import _OptionsList  # Comes from typeshed
 
 
 EMPTY: Mapping = MappingProxyType({})  # Immutable dict-like
-_ProjectReadmeValue: TypeAlias = Union[str, dict[str, str]]
-_Correspondence: TypeAlias = Callable[["Distribution", Any, Union[StrPath, None]], None]
+_ProjectReadmeValue: TypeAlias = str | dict[str, str]
+_Correspondence: TypeAlias = Callable[["Distribution", Any, StrPath | None], None]
 _T = TypeVar("_T")
 
 _logger = logging.getLogger(__name__)
@@ -321,9 +320,9 @@ def _copy_command_options(pyproject: dict, dist: Distribution, filename: StrPath
 
 
 def _valid_command_options(cmdclass: Mapping = EMPTY) -> dict[str, set[str]]:
-    from setuptools.dist import Distribution
+    from importlib import metadata
 
-    from .._importlib import metadata
+    from setuptools.dist import Distribution
 
     valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}
 

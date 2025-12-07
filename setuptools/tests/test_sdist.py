@@ -9,6 +9,7 @@ import sys
 import tarfile
 import tempfile
 import unicodedata
+from importlib import metadata
 from inspect import cleandoc
 from pathlib import Path
 from unittest import mock
@@ -17,7 +18,6 @@ import jaraco.path
 import pytest
 
 from setuptools import Command, SetuptoolsDeprecationWarning
-from setuptools._importlib import metadata
 from setuptools.command.egg_info import manifest_maker
 from setuptools.command.sdist import sdist
 from setuptools.dist import Distribution

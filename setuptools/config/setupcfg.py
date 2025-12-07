@@ -16,9 +16,9 @@ import functools
 import os
 from abc import abstractmethod
 from collections import defaultdict
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypeAlias, TypeVar, cast
 
 from packaging.markers import default_environment as marker_env
 from packaging.requirements import InvalidRequirement, Requirement
@@ -31,8 +31,6 @@ from ..warnings import SetuptoolsDeprecationWarning
 from . import expand
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
-
     from setuptools.dist import Distribution
 
     from distutils.dist import DistributionMetadata

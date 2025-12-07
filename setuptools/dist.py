@@ -9,8 +9,9 @@ import re
 import sys
 from collections.abc import Iterable, Iterator, MutableMapping, Sequence
 from glob import glob
+from importlib import metadata
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 from more_itertools import partition, unique_everseen
 from packaging.markers import InvalidMarker, Marker
@@ -23,7 +24,6 @@ from . import (
     _static,
     command as _,  # noqa: F401 # imported for side-effects
 )
-from ._importlib import metadata
 from ._normalization import _canonicalize_license_expression
 from ._path import StrPath
 from ._reqs import _StrOrIter
@@ -43,10 +43,6 @@ from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
 
-if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
-
-
 __all__ = ['Distribution']
 
 _sequence = tuple, list
@@ -59,10 +55,10 @@ Supported iterable types that are known to be:
 - not imply a nested type (like `dict`)
 for use with `isinstance`.
 """
-_Sequence: TypeAlias = Union[tuple[str, ...], list[str]]
+_Sequence: TypeAlias = tuple[str, ...] | list[str]
 # This is how stringifying _Sequence would look in Python 3.10
 _sequence_type_repr = "tuple[str, ...] | list[str]"
-_OrderedStrSequence: TypeAlias = Union[str, dict[str, Any], Sequence[str]]
+_OrderedStrSequence: TypeAlias = str | dict[str, Any] | Sequence[str]
 """
 :meta private:
 Avoid single-use iterable. Disallow sets.

@@ -26,7 +26,7 @@ classifiers = [
 	"Topic :: System :: Systems Administration",
 	"Topic :: Utilities",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
 ]
@@ -56,16 +56,13 @@ test = [
 	"tomli-w>=1.0.0",
 	"pytest-timeout",
 	'pytest-perf; sys_platform != "cygwin"', # workaround for jaraco/inflect#195, pydantic/pydantic-core#773 (see #3986)
-	'pyobjc<12; sys_platform == "darwin" and python_version <= "3.9"', # workaround for #5105
 	# for tools/finalize.py
-	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
+	'jaraco.develop >= 7.21; sys_platform != "cygwin"',
 	"pytest-home >= 0.5",
 	"pytest-subprocess",
 
 	# workaround for pypa/pyproject-hooks#206
 	"pyproject-hooks!=1.1",
-
-	"jaraco.test>=5.5", # py.typed
 ]
 
 doc = [
@@ -99,7 +96,6 @@ core = [
 	"packaging>=24.2",
 	"more_itertools>=8.8",
 	"jaraco.text>=3.7",
-	"importlib_metadata>=6; python_version < '3.10'",
 	"tomli>=2.0.1; python_version < '3.11'",
 	"wheel>=0.43.0",
 
@@ -140,8 +136,6 @@ type = [
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam
 	"mypy==1.14.*",
-	# Typing fixes in version newer than we require at runtime
-	"importlib_metadata>=7.0.2; python_version < '3.10'",
 	# Imported unconditionally in tools/finalize.py
 	'jaraco.develop >= 7.21; sys_platform != "cygwin"',
 ]

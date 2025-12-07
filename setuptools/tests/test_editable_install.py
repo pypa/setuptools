@@ -6,7 +6,7 @@ import stat
 import subprocess
 import sys
 from copy import deepcopy
-from importlib import import_module
+from importlib import import_module, resources as importlib_resources
 from importlib.machinery import EXTENSION_SUFFIXES
 from pathlib import Path
 from textwrap import dedent
@@ -19,7 +19,6 @@ import jaraco.path
 import pytest
 from path import Path as _Path
 
-from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
     _encode_pth,
     _find_namespaces,
@@ -926,7 +925,7 @@ class TestOverallBehaviour:
         # Ensure resources are reachable
         cmd_get_resource = """\
         import mypkg.subpackage
-        from setuptools._importlib import resources as importlib_resources
+        from importlib import resources as importlib_resources
         text = importlib_resources.files(mypkg.subpackage) / "resource_file.txt"
         print(text.read_text(encoding="utf-8"))
         """
@@ -1022,7 +1021,7 @@ class TestLinkTree:
         # Ensure resource files excluded from distribution are not reachable
         cmd_get_resource = """\
         import mypkg
-        from setuptools._importlib import resources as importlib_resources
+        from importlib import resources as importlib_resources
         try:
             text = importlib_resources.files(mypkg) / "resource.not_in_manifest"
             print(text.read_text(encoding="utf-8"))

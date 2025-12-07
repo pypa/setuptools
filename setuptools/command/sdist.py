@@ -4,10 +4,10 @@ import contextlib
 import os
 import re
 from collections.abc import Iterator
+from importlib import metadata
 from itertools import chain
 from typing import ClassVar
 
-from .._importlib import metadata
 from ..dist import Distribution
 from .build import _ORIGINAL_SUBCOMMANDS
 

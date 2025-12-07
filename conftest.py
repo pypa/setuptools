@@ -40,7 +40,7 @@ collect_ignore = [
 ]
 
 
-if sys.version_info < (3, 9) or sys.platform == 'cygwin':
+if sys.platform == 'cygwin':
     collect_ignore.append('tools/finalize.py')
 
 
