@@ -56,7 +56,6 @@ test = [
 	"tomli-w>=1.0.0",
 	"pytest-timeout",
 	'pytest-perf; sys_platform != "cygwin"', # workaround for jaraco/inflect#195, pydantic/pydantic-core#773 (see #3986)
-	'pyobjc<12; sys_platform == "darwin" and python_version <= "3.9"', # workaround for #5105
 	# for tools/finalize.py
 	'jaraco.develop >= 7.21; python_version >= "3.9" and sys_platform != "cygwin"',
 	"pytest-home >= 0.5",
