@@ -165,7 +165,7 @@ if TYPE_CHECKING:
         include_dirs: list[str] | None = None,
         extra_path=None,
         scripts: list[str] | None = None,
-        data_files: list[tuple[str, list[str]]] | None = None,
+        data_files: list[tuple[str, Sequence[str]]] | None = None,
         password: str = '',
         command_obj: dict[str, _Command] = {},
         have_run: dict[str, bool] = {},
