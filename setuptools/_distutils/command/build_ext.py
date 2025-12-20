@@ -562,9 +562,12 @@ class build_ext(Command):
         for undef in ext.undef_macros:
             macros.append((undef,))
 
+        # Per-extension build dir to avoid conflicts in parallel builds.
+        ext_build_temp = os.path.join(self.build_temp, ext.name)
+
         objects = self.compiler.compile(
             sources,
-            output_dir=self.build_temp,
+            output_dir=ext_build_temp,
             macros=macros,
             include_dirs=ext.include_dirs,
             debug=self.debug,
@@ -595,7 +598,7 @@ class build_ext(Command):
             extra_postargs=extra_args,
             export_symbols=self.get_export_symbols(ext),
             debug=self.debug,
-            build_temp=self.build_temp,
+            build_temp=ext_build_temp,
             target_lang=language,
         )
 

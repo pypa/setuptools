@@ -1,0 +1,1 @@
+Fixed non-deterministic parallel builds of extensions that share source files.
