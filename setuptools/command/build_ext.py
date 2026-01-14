@@ -354,7 +354,8 @@ class build_ext(_build_ext):
         if not self.dry_run:
             with open(stub_file, 'w', encoding="utf-8") as f:
                 content = (
-                    textwrap.dedent(f"""
+                    textwrap
+                    .dedent(f"""
                     def __bootstrap__():
                        global __bootstrap__, __file__, __loader__
                        import sys, os, importlib.resources as irs, importlib.util
