@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import contextlib
+import errno
 import functools
 import operator
 import os
+import platform
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
 import urllib.request
-import warnings
-from typing import Iterator
-
+from collections.abc import Iterator
 
 if sys.version_info < (3, 12):
     from backports import tarfile
@@ -41,7 +42,16 @@ def tarball(
     url, target_dir: str | os.PathLike | None = None
 ) -> Iterator[str | os.PathLike]:
     """
-    Get a tarball, extract it, yield, then clean up.
+    Get a URL to a tarball, download, extract, yield, then clean up.
+
+    Assumes everything in the tarball is prefixed with a common
+    directory. That common path is stripped and the contents
+    are extracted to ``target_dir``, similar to passing
+    ``-C {target} --strip-components 1`` to the ``tar`` command.
+
+    Uses the streaming protocol to extract the contents from a
+    stream in a single pass without loading the whole file into
+    memory.
 
     >>> import urllib.request
     >>> url = getfixture('tarfile_served')
@@ -51,21 +61,33 @@ def tarball(
     >>> with tb as extracted:
     ...     contents = pathlib.Path(extracted, 'contents.txt').read_text(encoding='utf-8')
     >>> assert not os.path.exists(extracted)
+
+    If the target is not specified, contents are extracted to a
+    directory relative to the current working directory named after
+    the name of the file as extracted from the URL.
+
+    >>> target = getfixture('tmp_path')
+    >>> with pushd(target), tarball(url):
+    ...     target.joinpath('served').is_dir()
+    True
     """
     if target_dir is None:
         target_dir = os.path.basename(url).replace('.tar.gz', '').replace('.tgz', '')
-    # In the tar command, use --strip-components=1 to strip the first path and
-    #  then
-    #  use -C to cause the files to be extracted to {target_dir}. This ensures
-    #  that we always know where the files were extracted.
     os.mkdir(target_dir)
     try:
         req = urllib.request.urlopen(url)
         with tarfile.open(fileobj=req, mode='r|*') as tf:
-            tf.extractall(path=target_dir, filter=strip_first_component)
+            tf.extractall(path=target_dir, filter=_default_filter)
         yield target_dir
     finally:
         shutil.rmtree(target_dir)
+
+
+def _compose_tarfile_filters(*filters):
+    def compose_two(f1, f2):
+        return lambda member, path: f1(f2(member, path), path)
+
+    return functools.reduce(compose_two, filters, lambda member, path: member)
 
 
 def strip_first_component(
@@ -74,6 +96,9 @@ def strip_first_component(
 ) -> tarfile.TarInfo:
     _, member.name = member.name.split('/', 1)
     return member
+
+
+_default_filter = _compose_tarfile_filters(tarfile.data_filter, strip_first_component)
 
 
 def _compose(*cmgrs):
@@ -107,43 +132,31 @@ def _compose(*cmgrs):
 
 
 tarball_cwd = _compose(pushd, tarball)
+"""
+A tarball context with the current working directory pointing to the contents.
+"""
 
 
-@contextlib.contextmanager
-def tarball_context(*args, **kwargs):
-    warnings.warn(
-        "tarball_context is deprecated. Use tarball or tarball_cwd instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    pushd_ctx = kwargs.pop('pushd', pushd)
-    with tarball(*args, **kwargs) as tball, pushd_ctx(tball) as dir:
-        yield dir
-
-
-def infer_compression(url):
+def remove_readonly(func, path, exc_info):
     """
-    Given a URL or filename, infer the compression code for tar.
-
-    >>> infer_compression('http://foo/bar.tar.gz')
-    'z'
-    >>> infer_compression('http://foo/bar.tgz')
-    'z'
-    >>> infer_compression('file.bz')
-    'j'
-    >>> infer_compression('file.xz')
-    'J'
+    Add support for removing read-only files on Windows.
     """
-    warnings.warn(
-        "infer_compression is deprecated with no replacement",
-        DeprecationWarning,
-        stacklevel=2,
+    _, exc, _ = exc_info
+    if func in (os.rmdir, os.remove, os.unlink) and exc.errno == errno.EACCES:
+        # change the file to be readable,writable,executable: 0777
+        os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+        # retry
+        func(path)
+    else:
+        raise
+
+
+def robust_remover():
+    return (
+        functools.partial(shutil.rmtree, onerror=remove_readonly)
+        if platform.system() == 'Windows'
+        else shutil.rmtree
     )
-    # cheat and just assume it's the last two characters
-    compression_indicator = url[-2:]
-    mapping = dict(gz='z', bz='j', xz='J')
-    # Assume 'z' (gzip) if no match
-    return mapping.get(compression_indicator, 'z')
 
 
 @contextlib.contextmanager
@@ -155,7 +168,6 @@ def temp_dir(remover=shutil.rmtree):
     >>> import pathlib
     >>> with temp_dir() as the_dir:
     ...     assert os.path.isdir(the_dir)
-    ...     _ = pathlib.Path(the_dir).joinpath('somefile').write_text('contents', encoding='utf-8')
     >>> assert not os.path.exists(the_dir)
     """
     temp_dir = tempfile.mkdtemp()
@@ -165,42 +177,34 @@ def temp_dir(remover=shutil.rmtree):
         remover(temp_dir)
 
 
+robust_temp_dir = functools.partial(temp_dir, remover=robust_remover())
+
+
 @contextlib.contextmanager
-def repo_context(url, branch=None, quiet=True, dest_ctx=temp_dir):
+def repo_context(
+    url, branch: str | None = None, quiet: bool = True, dest_ctx=robust_temp_dir
+):
     """
     Check out the repo indicated by url.
 
     If dest_ctx is supplied, it should be a context manager
     to yield the target directory for the check out.
+
+    >>> getfixture('ensure_git')
+    >>> getfixture('needs_internet')
+    >>> repo = repo_context('https://github.com/jaraco/jaraco.context')
+    >>> with repo as dest:
+    ...     listing = os.listdir(dest)
+    >>> 'README.rst' in listing
+    True
     """
     exe = 'git' if 'git' in url else 'hg'
     with dest_ctx() as repo_dir:
         cmd = [exe, 'clone', url, repo_dir]
-        if branch:
-            cmd.extend(['--branch', branch])
-        devnull = open(os.path.devnull, 'w')
-        stdout = devnull if quiet else None
-        subprocess.check_call(cmd, stdout=stdout)
+        cmd.extend(['--branch', branch] * bool(branch))
+        stream = subprocess.DEVNULL if quiet else None
+        subprocess.check_call(cmd, stdout=stream, stderr=stream)
         yield repo_dir
-
-
-def null():
-    """
-    A null context suitable to stand in for a meaningful context.
-
-    >>> with null() as value:
-    ...     assert value is None
-
-    This context is most useful when dealing with two or more code
-    branches but only some need a context. Wrap the others in a null
-    context to provide symmetry across all options.
-    """
-    warnings.warn(
-        "null is deprecated. Use contextlib.nullcontext",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return contextlib.nullcontext()
 
 
 class ExceptionTrap:
@@ -329,7 +333,9 @@ class suppress(contextlib.suppress, contextlib.ContextDecorator):
 
 class on_interrupt(contextlib.ContextDecorator):
     """
-    Replace a KeyboardInterrupt with SystemExit(1)
+    Replace a KeyboardInterrupt with SystemExit(1).
+
+    Useful in conjunction with console entry point functions.
 
     >>> def do_interrupt():
     ...     raise KeyboardInterrupt()
