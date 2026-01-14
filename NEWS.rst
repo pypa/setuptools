@@ -329,6 +329,15 @@ Bugfixes
 - Restore ``distutils.ccompiler.compiler_class`` -- by :user:`Avasam` (#4876)
 
 
+v75.3.3
+=======
+
+Bugfixes
+--------
+
+- Backported security fix for package index to 75.3.x for Python 3.8. (#5009)
+
+
 v75.3.2
 =======
 
