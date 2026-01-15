@@ -1,3 +1,12 @@
+v80.9.1
+=======
+
+Bugfixes
+--------
+
+- Updated vendored jaraco.context to 6.1.0.
+
+
 v80.9.0
 =======
 
