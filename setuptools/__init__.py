@@ -11,8 +11,8 @@ import functools
 import os
 import sys
 from abc import abstractmethod
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, TypeVar, overload
+from collections.abc import Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, overload
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 # workaround for #4476
@@ -21,6 +21,7 @@ sys.modules.pop('backports', None)
 import _distutils_hack.override  # noqa: F401
 
 from . import logging, monkey
+from ._path import StrPath
 from .depends import Require
 from .discovery import PackageFinder, PEP420PackageFinder
 from .dist import Distribution
@@ -108,13 +109,106 @@ def _fetch_build_eggs(dist: Distribution):
         raise
 
 
-def setup(**attrs) -> Distribution:
-    logging.configure()
-    # Make sure we have any requirements needed to interpret 'attrs'.
-    _install_setup_requires(attrs)
-    # Override return type of distutils.core.Distribution with setuptools.dist.Distribution
-    # (implicitly implemented via `setuptools.monkey.patch_all`).
-    return distutils.core.setup(**attrs)  # type: ignore[return-value]
+if TYPE_CHECKING:
+    from typing_extensions import Never
+
+    from setuptools.command.build_clib import _BuildInfo
+
+    _DistributionT = TypeVar(
+        "_DistributionT",
+        bound=distutils.core.Distribution,
+        default=Distribution,
+    )
+
+    def setup(
+        *,
+        # Attributes from distutils.dist.DistributionMetadata.set_*
+        # These take priority over attributes from distutils.dist.DistributionMetadata.__init__
+        keywords: str | Iterable[str] = ...,
+        platforms: str | Iterable[str] = ...,
+        classifiers: str | Iterable[str] = ...,
+        requires: Iterable[str] = ...,
+        provides: Iterable[str] = ...,
+        obsoletes: Iterable[str] = ...,
+        # Attributes from distutils.dist.DistributionMetadata.__init__
+        # These take priority over attributes from distutils.dist.Distribution.__init__
+        name: str | None = None,
+        version: str | None = None,
+        author: str | None = None,
+        author_email: str | None = None,
+        maintainer: str | None = None,
+        maintainer_email: str | None = None,
+        url: str | None = None,
+        license: str | None = None,
+        description: str | None = None,
+        long_description: str | None = None,
+        download_url: str | None = None,
+        # Attributes from distutils.dist.Distribution.__init__ (except self.metadata)
+        # These take priority over attributes from distutils.dist.Distribution.display_option_names
+        verbose=True,
+        dry_run=False,
+        help=False,
+        cmdclass: dict[str, type[_Command]] = {},
+        command_packages: str | list[str] | None = None,
+        script_name: StrPath
+        | None = ...,  # default is actually set in distutils.core.setup
+        script_args: list[str]
+        | None = ...,  # default is actually set in distutils.core.setup
+        command_options: dict[str, dict[str, tuple[str, str]]] = {},
+        packages: list[str] | None = None,
+        package_dir: Mapping[str, str] | None = None,
+        py_modules: list[str] | None = None,
+        libraries: list[tuple[str, _BuildInfo]] | None = None,
+        headers: list[str] | None = None,
+        ext_modules: Sequence[distutils.core.Extension] | None = None,
+        ext_package: str | None = None,
+        include_dirs: list[str] | None = None,
+        extra_path=None,
+        scripts: list[str] | None = None,
+        data_files: list[tuple[str, Sequence[str]]] | None = None,
+        password: str = '',
+        command_obj: dict[str, _Command] = {},
+        have_run: dict[str, bool] = {},
+        # kwargs used directly in distutils.dist.Distribution.__init__
+        options: Mapping[str, Mapping[str, str]] | None = None,
+        licence: Never = ...,  # Deprecated
+        # Attributes from distutils.dist.Distribution.display_option_names
+        # (this can more easily be copied from the `if TYPE_CHECKING` block)
+        help_commands: bool = False,
+        fullname: str | Literal[False] = False,
+        contact: str | Literal[False] = False,
+        contact_email: str | Literal[False] = False,
+        # kwargs used directly in setuptools.dist.Distribution.__init__
+        # and attributes from setuptools.dist.Distribution.__init__
+        package_data: dict[str, list[str]] = {},
+        dist_files: list[tuple[str, str, str]] = [],
+        include_package_data: bool | None = None,
+        exclude_package_data: dict[str, list[str]] | None = None,
+        src_root: str | None = None,
+        dependency_links: list[str] = [],
+        setup_requires: list[str] = [],
+        # From Distribution._DISTUTILS_UNSUPPORTED_METADATA set in Distribution._set_metadata_defaults
+        long_description_content_type: str | None = None,
+        project_urls=dict(),
+        provides_extras=dict(),
+        license_expression=None,
+        license_file=None,
+        license_files=None,
+        install_requires=list(),
+        extras_require=dict(),
+        # kwargs used directly in distutils.core.setup
+        distclass: type[_DistributionT] = Distribution,  # type: ignore[assignment]
+        # Custom Distributions could accept more params
+        **attrs: Any,
+    ) -> _DistributionT: ...
+
+else:
+
+    def setup(**attrs) -> Distribution:
+        logging.configure()
+        # Make sure we have any requirements needed to interpret 'attrs'.
+        _install_setup_requires(attrs)
+        return distutils.core.setup(**attrs)
 
 
 setup.__doc__ = distutils.core.setup.__doc__
@@ -167,7 +261,9 @@ class Command(_Command):
     command_consumes_arguments = False
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def __init__(self, dist: Distribution, **kw) -> None:
+    # Any: The kwargs could match any Command attribute including from subclasses
+    # and subclasses can further override it to include any type.
+    def __init__(self, dist: Distribution, **kw: Any) -> None:
         """
         Construct the command for dist, updating
         vars(self) with any keyword parameters.
