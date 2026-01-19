@@ -1,3 +1,19 @@
+v80.10.0
+========
+
+Features
+--------
+
+- Remove post-release tags on setuptools' own build. (#4530)
+- Refreshed vendored dependencies. (#5139)
+
+
+Misc
+----
+
+- #5033
+
+
 v80.9.0
 =======
 
