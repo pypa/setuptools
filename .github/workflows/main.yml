@@ -83,9 +83,20 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
+        # Workaround for actions/setup-python#981 on macos
+        # Workaround for https://github.com/pypa/setuptools/issues/5143 on windows
+        # (env var only modified for this specific step)
         env:
-          # Workaround for actions/setup-python#981 (env var only modified for this specific step)
-          SETUPTOOLS_USE_DISTUTILS: ${{ matrix.platform == 'macos-latest' && matrix.python == '3.9' && 'stdlib' || matrix.distutils || 'local' }}
+          SETUPTOOLS_USE_DISTUTILS: >-
+            ${{
+              (
+                ( matrix.platform == 'macos-latest' || matrix.platform == 'windows-latest' )
+                && matrix.python == '3.9'
+                && 'stdlib'
+              )
+              || matrix.distutils
+              || 'local'
+            }}
       - uses: actions/cache@v4
         id: cache
         with:
