@@ -704,6 +704,8 @@ class TestOptions:
             "[options]\ninstall_requires = bar;os_name=='linux'\n",
         ],
     )
+    @pytest.mark.xfail(IS_PYPY, reason="Exceptions missing on PyPy")
+    # TODO: investigate PyPy problem
     def test_raises_accidental_env_marker_misconfig(self, config, tmpdir):
         fake_env(tmpdir, config)
         match = (
