@@ -307,7 +307,7 @@ jobs:
       contents: write
     needs:
     - check
-    if: >-  # `always()` prevents auto-cancellation of workflow runs in failed state:
+    if: >-  # `always()` prevents auto-cancellation when previous steps are skipped (#5151):
       always()
       && needs.check.result == 'success'
       && github.event_name == 'push' && github.ref_type == 'tag'
