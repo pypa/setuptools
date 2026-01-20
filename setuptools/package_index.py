@@ -868,7 +868,13 @@ class PackageIndex(Environment):
         # strip any extra .zip before download
         name = re.sub(r'\.egg\.zip$', '.egg', name)
 
-        return os.path.join(tmpdir, name)
+        filename = os.path.join(tmpdir, name)
+
+        # ensure path resolves within the tmpdir - fix CVE-2025-47273
+        if not filename.startswith(str(tmpdir)):
+            raise ValueError(f"Invalid filename {filename}")
+
+        return filename
 
     def _download_url(self, url, tmpdir):
         """
