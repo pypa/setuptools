@@ -307,7 +307,10 @@ jobs:
       contents: write
     needs:
     - check
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    # Workaround for https://github.com/pypa/setuptools/issues/5151:
+    if: >-
+      !failure() && !cancelled()
+      && github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
