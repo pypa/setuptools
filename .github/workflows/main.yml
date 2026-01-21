@@ -307,7 +307,10 @@ jobs:
       contents: write
     needs:
     - check
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    if: >-  # `always()` prevents auto-cancellation when previous steps are skipped (#5151):
+      always()
+      && needs.check.result == 'success'
+      && github.event_name == 'push' && github.ref_type == 'tag'
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
