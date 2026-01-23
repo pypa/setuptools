@@ -356,12 +356,11 @@ class _BuildMetaBackend(_ConfigSettingsTranslator):
         for parent, dirs, _ in os.walk(metadata_directory):
             candidates = [f for f in dirs if f.endswith(suffix)]
 
-            if len(candidates) != 0:
-                assert len(candidates) == 1, f"Multiple {suffix} directories found"
+            if len(candidates) != 0 or len(dirs) != 1:
+                assert len(candidates) == 1, (
+                    f"Exactly one {suffix} should have been produced, but found {len(candidates)}: {candidates}"
+                )
                 return Path(parent, candidates[0])
-
-            if len(dirs) != 1:
-                break
 
         msg = f"No {suffix} directory found in {metadata_directory}"
         raise errors.InternalError(msg)
