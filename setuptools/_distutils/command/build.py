@@ -136,16 +136,16 @@ class build(Command):
 
     # -- Predicates for the sub-command list ---------------------------
 
-    def has_pure_modules(self):
+    def has_pure_modules(self) -> bool:
         return self.distribution.has_pure_modules()
 
-    def has_c_libraries(self):
+    def has_c_libraries(self) -> bool:
         return self.distribution.has_c_libraries()
 
-    def has_ext_modules(self):
+    def has_ext_modules(self) -> bool:
         return self.distribution.has_ext_modules()
 
-    def has_scripts(self):
+    def has_scripts(self) -> bool:
         return self.distribution.has_scripts()
 
     sub_commands = [

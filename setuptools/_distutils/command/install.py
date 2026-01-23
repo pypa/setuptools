@@ -772,24 +772,24 @@ class install(Command):
 
     # -- Predicates for sub-command list -------------------------------
 
-    def has_lib(self):
+    def has_lib(self) -> bool:
         """Returns true if the current distribution has any Python
         modules to install."""
         return (
             self.distribution.has_pure_modules() or self.distribution.has_ext_modules()
         )
 
-    def has_headers(self):
+    def has_headers(self) -> bool:
         """Returns true if the current distribution has any headers to
         install."""
         return self.distribution.has_headers()
 
-    def has_scripts(self):
+    def has_scripts(self) -> bool:
         """Returns true if the current distribution has any scripts to.
         install."""
         return self.distribution.has_scripts()
 
-    def has_data(self):
+    def has_data(self) -> bool:
         """Returns true if the current distribution has any data to.
         install."""
         return self.distribution.has_data_files()
