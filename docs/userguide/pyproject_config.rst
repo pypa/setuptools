@@ -99,6 +99,7 @@ Key                       Value Type (TOML)           Notes
 ``ext-modules``           array of                    **Experimental** - Each item corresponds to a
                           tables/inline-tables        :class:`setuptools.Extension` object and may define
                                                       the associated parameters in :wiki:`kebab-case`.
+                                                      See :doc:`/userguide/ext_modules`.
 ``packages``              array or ``find`` directive See tip below.
 ``package-dir``           table/inline-table          Used when explicitly/manually listing ``packages``.
 ------------------------- --------------------------- -------------------------

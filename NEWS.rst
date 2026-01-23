@@ -1,3 +1,28 @@
+v80.10.1
+========
+
+Misc
+----
+
+- #5152
+
+
+v80.10.0
+========
+
+Features
+--------
+
+- Remove post-release tags on setuptools' own build. (#4530)
+- Refreshed vendored dependencies. (#5139)
+
+
+Misc
+----
+
+- #5033
+
+
 v80.9.0
 =======
 
@@ -327,6 +352,15 @@ Bugfixes
 
 - Restored implicit distutils.ccompiler import for g-ir-scanner. (#4871)
 - Restore ``distutils.ccompiler.compiler_class`` -- by :user:`Avasam` (#4876)
+
+
+v75.3.3
+=======
+
+Bugfixes
+--------
+
+- Backported security fix for package index to 75.3.x for Python 3.8. (#5009)
 
 
 v75.3.2

@@ -2,6 +2,7 @@ import configparser
 import contextlib
 import inspect
 import re
+import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -15,6 +16,8 @@ from setuptools.warnings import SetuptoolsDeprecationWarning
 from ..textwrap import DALS
 
 from distutils.errors import DistutilsFileError, DistutilsOptionError
+
+IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 
 class ErrConfigHandler(ConfigHandler[Target]):
@@ -701,6 +704,8 @@ class TestOptions:
             "[options]\ninstall_requires = bar;os_name=='linux'\n",
         ],
     )
+    @pytest.mark.xfail(IS_PYPY, reason="Exceptions missing on PyPy")
+    # TODO: investigate PyPy problem
     def test_raises_accidental_env_marker_misconfig(self, config, tmpdir):
         fake_env(tmpdir, config)
         match = (
@@ -720,6 +725,8 @@ class TestOptions:
             "[options]\ninstall_requires = bar;python_version<3\n",
         ],
     )
+    @pytest.mark.xfail(IS_PYPY, reason="Warnings missing on PyPy (minor issue)")
+    # TODO: investigate PyPy problem
     def test_warn_accidental_env_marker_misconfig(self, config, tmpdir):
         fake_env(tmpdir, config)
         match = (

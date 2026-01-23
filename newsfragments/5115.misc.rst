@@ -1,0 +1,1 @@
+Postpone deprecation warnings related to PEP 639 to 2027-Feb-18.
