@@ -1,3 +1,18 @@
+v80.10.2
+========
+
+Bugfixes
+--------
+
+- Update vendored dependencies. (#5159)
+
+
+Misc
+----
+
+- #5115, #5128
+
+
 v80.10.1
 ========
 
