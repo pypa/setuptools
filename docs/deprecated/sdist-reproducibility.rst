@@ -1,6 +1,6 @@
-==========================================================================================
-Drawbacks of installing source distributions (``sdist``) and how to improve predictability
-==========================================================================================
+===========================================================================================
+Drawbacks of installing source distributions (``sdist``) and how to improve reproducibility
+===========================================================================================
 
 
 .. admonition:: Scope and audience
