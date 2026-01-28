@@ -6,6 +6,8 @@ the Mingw32CCompiler class which handles the mingw32 port of GCC (same as
 cygwin in no-cygwin mode).
 """
 
+from __future__ import annotations
+
 import copy
 import os
 import pathlib
@@ -327,7 +329,7 @@ def check_config_h():
         return code, f"{fn!r} {mention_inflected} {substring!r}"
 
 
-def is_cygwincc(cc):
+def is_cygwincc(cc: str | shlex._ShlexInstream) -> bool:
     """Try to determine if the compiler that would be used is from cygwin."""
     out_string = check_output(shlex.split(cc) + ['-dumpmachine'])
     return out_string.strip().endswith(b'cygwin')

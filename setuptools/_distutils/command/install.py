@@ -264,12 +264,12 @@ class install(Command):
         # supplied by the user, they are filled in using the installation
         # scheme implied by prefix/exec-prefix/home and the contents of
         # that installation scheme.
-        self.install_purelib = None  # for pure module distributions
-        self.install_platlib = None  # non-pure (dists w/ extensions)
-        self.install_headers = None  # for C/C++ headers
+        self.install_purelib: str | None = None  # for pure module distributions
+        self.install_platlib: str | None = None  # non-pure (dists w/ extensions)
+        self.install_headers: str | None = None  # for C/C++ headers
         self.install_lib: str | None = None  # set to either purelib or platlib
-        self.install_scripts = None
-        self.install_data = None
+        self.install_scripts: str | None = None
+        self.install_data: str | None = None
         self.install_userbase = USER_BASE
         self.install_usersite = USER_SITE
 
@@ -772,24 +772,24 @@ class install(Command):
 
     # -- Predicates for sub-command list -------------------------------
 
-    def has_lib(self):
+    def has_lib(self) -> bool:
         """Returns true if the current distribution has any Python
         modules to install."""
         return (
             self.distribution.has_pure_modules() or self.distribution.has_ext_modules()
         )
 
-    def has_headers(self):
+    def has_headers(self) -> bool:
         """Returns true if the current distribution has any headers to
         install."""
         return self.distribution.has_headers()
 
-    def has_scripts(self):
+    def has_scripts(self) -> bool:
         """Returns true if the current distribution has any scripts to.
         install."""
         return self.distribution.has_scripts()
 
-    def has_data(self):
+    def has_data(self) -> bool:
         """Returns true if the current distribution has any data to.
         install."""
         return self.distribution.has_data_files()

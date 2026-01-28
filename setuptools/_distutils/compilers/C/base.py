@@ -865,7 +865,7 @@ class Compiler:
         """
         raise NotImplementedError
 
-    def runtime_library_dir_option(self, dir: str) -> str:
+    def runtime_library_dir_option(self, dir: str) -> str | list[str]:
         """Return the compiler option to add 'dir' to the list of
         directories searched for runtime libraries.
         """

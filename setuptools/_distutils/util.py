@@ -513,6 +513,6 @@ def is_mingw() -> bool:
     return sys.platform == 'win32' and get_platform().startswith('mingw')
 
 
-def is_freethreaded():
+def is_freethreaded() -> bool:
     """Return True if the Python interpreter is built with free threading support."""
     return bool(sysconfig.get_config_var('Py_GIL_DISABLED'))

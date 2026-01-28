@@ -60,9 +60,9 @@ class install_egg_info(Command):
         return self.outputs
 
 
-# The following routines are taken from setuptools' pkg_resources module and
-# can be replaced by importing them from pkg_resources once it is included
-# in the stdlib.
+# The following routines were originally copied from setuptools' pkg_resources
+# module and intended to be replaced by stdlib versions. They're now just legacy
+# cruft.
 
 
 def safe_name(name):

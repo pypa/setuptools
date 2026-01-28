@@ -105,7 +105,7 @@ class FancyGetopt:
             self.option_table.append(option)
             self.option_index[long_option] = option
 
-    def has_option(self, long_option):
+    def has_option(self, long_option: str) -> bool:
         """Return true if the option table for this parser has an
         option with long name 'long_option'."""
         return long_option in self.option_index
