@@ -30,7 +30,7 @@ What is an ``sdist``?
 =====================
 
 You can read more about the ``sdist`` format and its ``wheel`` counterpart in
-:external+PyPUG:doc:`/discussions/package-formats`, but for the sake of this
+:external+PyPUG:doc:`discussions/package-formats`, but for the sake of this
 document an ``sdist`` can be considered a simple ``.tar.gz`` archive that
 contains all the files necessary to build a Python project that later will be
 installed in the end-user's environment.
@@ -158,7 +158,7 @@ primary workflows.
 .. [#build-isolation]
    When a virtual environment with hand picked versions of build dependencies
    is crafted (either manually or via tools supporting one of the
-   :external+PyPUG:doc:`/specifications/pylock-toml` or
+   :external+PyPUG:doc:`specifications/pylock-toml` or
    :external+pip:doc:`reference/requirements-file-format`), it is also possible
    to use features like |no-isolation|_, |no-build-isolation|_ or the
    `equivalent uv settings`_ to ensure packages are built against the currently
