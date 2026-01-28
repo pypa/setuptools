@@ -31,4 +31,4 @@ Notes for Consumers of Packages Built with Setuptools
 .. toctree::
    :maxdepth: 1
 
-   sdist-predictability
+   sdist-reproducibility
