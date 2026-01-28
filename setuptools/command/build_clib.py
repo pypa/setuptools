@@ -1,9 +1,25 @@
+from __future__ import annotations
+
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, TypedDict
+
 from ..dist import Distribution
 from ..modified import newer_pairwise_group
 
 import distutils.command.build_clib as orig
 from distutils import log
 from distutils.errors import DistutilsSetupError
+
+if TYPE_CHECKING:
+    from typing_extensions import NotRequired
+
+
+class _BuildInfo(TypedDict):
+    sources: list[str] | tuple[str, ...]
+    obj_deps: NotRequired[dict[str, list[str] | tuple[str, ...]]]
+    macros: NotRequired[list[tuple[str] | tuple[str, str | None]]]
+    include_dirs: NotRequired[list[str]]
+    cflags: NotRequired[list[str]]
 
 
 class build_clib(orig.build_clib):
@@ -24,7 +40,7 @@ class build_clib(orig.build_clib):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    def build_libraries(self, libraries) -> None:
+    def build_libraries(self, libraries: Iterable[tuple[str, _BuildInfo]]) -> None:
         for lib_name, build_info in libraries:
             sources = build_info.get('sources')
             if sources is None or not isinstance(sources, (list, tuple)):
