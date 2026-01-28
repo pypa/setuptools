@@ -1,12 +1,15 @@
 import subprocess
 import sys
 
+import pytest
+
 from setuptools._path import paths_on_pythonpath
 
 from . import namespaces
 
 
 class TestNamespaces:
+    @pytest.mark.xfail(reason="pkg_resources has been removed")
     def test_mixed_site_and_non_site(self, tmpdir):
         """
         Installing two packages sharing the same namespace, one installed
@@ -49,6 +52,7 @@ class TestNamespaces:
         with paths_on_pythonpath(map(str, targets)):
             subprocess.check_call(try_import)
 
+    @pytest.mark.xfail(reason="pkg_resources has been removed")
     def test_pkg_resources_import(self, tmpdir):
         """
         Ensure that a namespace package doesn't break on import
@@ -77,6 +81,7 @@ class TestNamespaces:
         with paths_on_pythonpath([str(target)]):
             subprocess.check_call(try_import)
 
+    @pytest.mark.xfail(reason="pkg_resources has been removed")
     def test_namespace_package_installed_and_cwd(self, tmpdir):
         """
         Installing a namespace packages but also having it in the current
@@ -106,6 +111,7 @@ class TestNamespaces:
         with paths_on_pythonpath([str(target)]):
             subprocess.check_call(pkg_resources_imp, cwd=str(pkg_A))
 
+    @pytest.mark.xfail(reason="pkg_resources has been removed")
     def test_packages_in_the_same_namespace_installed_and_cwd(self, tmpdir):
         """
         Installing one namespace package and also have another in the same

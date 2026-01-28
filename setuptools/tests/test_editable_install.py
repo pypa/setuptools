@@ -293,8 +293,6 @@ class TestLegacyNamespaces:
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", f"import {ns}.pkgA; import {ns}.pkgB"])
-        # additionally ensure that pkg_resources import works
-        venv.run(["python", "-c", "import pkg_resources"])
 
 
 class TestPep420Namespaces:
