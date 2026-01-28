@@ -10,11 +10,11 @@ def extras_from_dep(dep):
         markers = packaging.requirements.Requirement(dep).marker._markers
     except AttributeError:
         markers = ()
-    return set(
+    return {
         marker[2].value
         for marker in markers
         if isinstance(marker, tuple) and marker[0].value == 'extra'
-    )
+    }
 
 
 def extras_from_deps(deps):
