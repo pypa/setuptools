@@ -1,0 +1,2 @@
+Sync ``setuptools.schema.json`` with ``validate-pyproject``.
+This will allow using ``package-data`` for stubs only packages.
