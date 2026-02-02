@@ -274,6 +274,8 @@ def _ext_modules(dist: Distribution, val: list[dict]) -> list[Extension]:
 
 def _adjust_ext_attrs(attrs: dict) -> dict:
     # https://github.com/pypa/setuptools/issues/4810
+    # In TOML there is no differentiation between tuples and lists,
+    # and distutils requires lists...
     attrs["define_macros"] = list(map(tuple, attrs.get("define_macros") or []))
     return attrs
 

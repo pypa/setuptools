@@ -567,9 +567,10 @@ class TestExtModules:
         [[tool.setuptools.ext-modules]]
         name = "my.ext"
         sources = ["hello.c", "world.c"]
-        define-macros = [ ["FIRST_SINGLE"], ["SECOND_TWO", "1"]]
+        define-macros = [["FIRST_SINGLE"], ["SECOND_TWO", "1"]]
         """
         dist = self.make_dist(toml_config)
+        assert isinstance(dist.ext_modules[0].define_macros[0], tuple)
         assert dist.ext_modules[0].define_macros[0] == ("FIRST_SINGLE",)
         assert dist.ext_modules[0].define_macros[1] == ("SECOND_TWO", "1")
 
