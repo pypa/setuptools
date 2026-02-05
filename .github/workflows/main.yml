@@ -252,13 +252,13 @@ jobs:
           fetch-depth: 0
       - name: Check if files changed in the _distutils folder
         id: changed-files-specific-distutils
-        uses: tj-actions/changed-files@v34
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             setuptools/_distutils/**
       - name: Check if files changed in the _vendor folder
         id: changed-files-specific-vendor
-        uses: tj-actions/changed-files@v34
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             setuptools/_vendor/**
