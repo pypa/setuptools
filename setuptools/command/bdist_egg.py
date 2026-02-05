@@ -133,7 +133,7 @@ class bdist_egg(Command):
         site_packages = os.path.normcase(os.path.realpath(_get_purelib()))
         old, self.distribution.data_files = self.distribution.data_files, []
 
-        for item in old:
+        for item in old or ():
             if isinstance(item, tuple) and len(item) == 2:
                 if os.path.isabs(item[0]):
                     realpath = os.path.realpath(item[0])
@@ -235,7 +235,7 @@ class bdist_egg(Command):
             self.egg_output,
             archive_root,
             verbose=self.verbose,
-            dry_run=self.dry_run,  # type: ignore[arg-type] # Is an actual boolean in vendored _distutils
+            dry_run=self.dry_run,
             mode=self.gen_header(),
         )
         if not self.keep_temp:

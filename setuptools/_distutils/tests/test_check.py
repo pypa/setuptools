@@ -1,20 +1,43 @@
 """Tests for distutils.command.check."""
 
+import distutils.command.check as _check
+import importlib
 import os
+import sys
 import textwrap
-from distutils.command.check import check
 from distutils.errors import DistutilsSetupError
 from distutils.tests import support
 
 import pytest
 
-try:
-    import pygments
-except ImportError:
-    pygments = None
-
-
 HERE = os.path.dirname(__file__)
+
+
+@pytest.fixture
+def hide_pygments(monkeypatch, request):
+    """
+    Clear docutils and hide the presence of pygments.
+    """
+    clear_docutils(monkeypatch)
+    monkeypatch.setitem(sys.modules, 'pygments', None)
+    reload_check()
+    # restore 'check' to its normal state after monkeypatch is undone
+    request.addfinalizer(reload_check)
+
+
+def clear_docutils(monkeypatch):
+    docutils_names = [
+        name for name in sys.modules if name.partition('.')[0] == 'docutils'
+    ]
+    for name in docutils_names:
+        monkeypatch.delitem(sys.modules, name)
+
+
+def reload_check():
+    """
+    Reload the 'check' command module to reflect the import state.
+    """
+    importlib.reload(_check)
 
 
 @support.combine_markers
@@ -26,7 +49,7 @@ class TestCheck(support.TempdirManager):
             old_dir = os.getcwd()
             os.chdir(cwd)
         pkg_info, dist = self.create_dist(**metadata)
-        cmd = check(dist)
+        cmd = _check.check(dist)
         cmd.initialize_options()
         for name, value in options.items():
             setattr(cmd, name, value)
@@ -103,9 +126,8 @@ class TestCheck(support.TempdirManager):
             assert cmd._warnings == 0
 
     def test_check_document(self):
-        pytest.importorskip('docutils')
         pkg_info, dist = self.create_dist()
-        cmd = check(dist)
+        cmd = _check.check(dist)
 
         # let's see if it detects broken rest
         broken_rest = 'title\n===\n\ntest'
@@ -118,11 +140,10 @@ class TestCheck(support.TempdirManager):
         assert len(msgs) == 0
 
     def test_check_restructuredtext(self):
-        pytest.importorskip('docutils')
         # let's see if it detects broken rest in long_description
         broken_rest = 'title\n===\n\ntest'
         pkg_info, dist = self.create_dist(long_description=broken_rest)
-        cmd = check(dist)
+        cmd = _check.check(dist)
         cmd.check_restructuredtext()
         assert cmd._warnings == 1
 
@@ -148,46 +169,35 @@ class TestCheck(support.TempdirManager):
         cmd = self._run(metadata, cwd=HERE, strict=True, restructuredtext=True)
         assert cmd._warnings == 0
 
-    def test_check_restructuredtext_with_syntax_highlight(self):
-        pytest.importorskip('docutils')
-        # Don't fail if there is a `code` or `code-block` directive
-
-        example_rst_docs = [
-            textwrap.dedent(
-                """\
+    code_examples = [
+        textwrap.dedent(
+            f"""
             Here's some code:
 
-            .. code:: python
+            .. {directive}:: python
 
                 def foo():
                     pass
             """
-            ),
-            textwrap.dedent(
-                """\
-            Here's some code:
+        ).lstrip()
+        for directive in ['code', 'code-block']
+    ]
 
-            .. code-block:: python
+    def check_rst_data(self, descr):
+        pkg_info, dist = self.create_dist(long_description=descr)
+        cmd = _check.check(dist)
+        cmd.check_restructuredtext()
+        return cmd._check_rst_data(descr)
 
-                def foo():
-                    pass
-            """
-            ),
-        ]
+    @pytest.mark.parametrize('descr', code_examples)
+    def test_check_rst_with_syntax_highlight_pygments(self, descr):
+        assert self.check_rst_data(descr) == []
 
-        for rest_with_code in example_rst_docs:
-            pkg_info, dist = self.create_dist(long_description=rest_with_code)
-            cmd = check(dist)
-            cmd.check_restructuredtext()
-            msgs = cmd._check_rst_data(rest_with_code)
-            if pygments is not None:
-                assert len(msgs) == 0
-            else:
-                assert len(msgs) == 1
-                assert (
-                    str(msgs[0][1])
-                    == 'Cannot analyze code. Pygments package not found.'
-                )
+    @pytest.mark.parametrize('descr', code_examples)
+    def test_check_rst_with_syntax_highlight_no_pygments(self, descr, hide_pygments):
+        (msg,) = self.check_rst_data(descr)
+        _, exc, _, _ = msg
+        assert str(exc) == 'Cannot analyze code. Pygments package not found.'
 
     def test_check_all(self):
         with pytest.raises(DistutilsSetupError):

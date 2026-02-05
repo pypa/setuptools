@@ -550,6 +550,7 @@ class TestExtModules:
         pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
         with pytest.warns(pyprojecttoml._ExperimentalConfiguration):
             dist = pyprojecttoml.apply_configuration(Distribution({}), pyproject)
+        assert dist.ext_modules
         assert len(dist.ext_modules) == 1
         assert dist.ext_modules[0].name == "my.ext"
         assert set(dist.ext_modules[0].sources) == {"hello.c", "world.c"}

@@ -45,6 +45,7 @@ if TYPE_CHECKING:
 
     # type-only import because of mutual dependence between these modules
     from .cmd import Command
+    from .extension import Extension
 
 _CommandT = TypeVar("_CommandT", bound="Command")
 _OptionsList: TypeAlias = list[
@@ -220,18 +221,18 @@ Common commands: (see '--help-commands' for more)
         # These options are really the business of various commands, rather
         # than of the Distribution itself.  We provide aliases for them in
         # Distribution as a convenience to the developer.
-        self.packages = None
+        self.packages: list[str] | None = None
         self.package_data: dict[str, list[str]] = {}
-        self.package_dir = None
-        self.py_modules = None
+        self.package_dir: dict[str, str] | None = None
+        self.py_modules: list[str] | None = None
         self.libraries = None
         self.headers = None
-        self.ext_modules = None
+        self.ext_modules: list[Extension] | None = None
         self.ext_package = None
         self.include_dirs = None
         self.extra_path = None
         self.scripts = None
-        self.data_files = None
+        self.data_files: list[str | tuple] | None = None
         self.password = ''
 
         # And now initialize bookkeeping stuff that can't be supplied by
@@ -1024,25 +1025,25 @@ Common commands: (see '--help-commands' for more)
     # -- Distribution query methods ------------------------------------
 
     def has_pure_modules(self) -> bool:
-        return len(self.packages or self.py_modules or []) > 0
+        return bool(self.packages or self.py_modules)
 
     def has_ext_modules(self) -> bool:
-        return self.ext_modules and len(self.ext_modules) > 0
+        return bool(self.ext_modules)
 
     def has_c_libraries(self) -> bool:
-        return self.libraries and len(self.libraries) > 0
+        return bool(self.libraries)
 
     def has_modules(self) -> bool:
         return self.has_pure_modules() or self.has_ext_modules()
 
     def has_headers(self) -> bool:
-        return self.headers and len(self.headers) > 0
+        return bool(self.headers)
 
     def has_scripts(self) -> bool:
-        return self.scripts and len(self.scripts) > 0
+        return bool(self.scripts)
 
     def has_data_files(self) -> bool:
-        return self.data_files and len(self.data_files) > 0
+        return bool(self.data_files)
 
     def is_pure(self) -> bool:
         return (

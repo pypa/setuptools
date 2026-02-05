@@ -389,6 +389,7 @@ class TestWithCExtension:
         assert dist.get_version() == "42"
         assert dist.py_modules is None
         assert dist.packages is None
+        assert dist.ext_modules
         assert len(dist.ext_modules) == 1
         assert dist.ext_modules[0].name == "proj"
 

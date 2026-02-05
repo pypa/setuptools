@@ -46,6 +46,7 @@ from distutils.util import strtobool
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
+    from .extension import Extension
 
 __all__ = ['Distribution']
 
@@ -298,6 +299,9 @@ class Distribution(_Distribution):
 
     # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
     namespace_packages: list[str]  #: :meta private: DEPRECATED
+
+    # override distutils.extension.Extension with setuptools.extension.Extension
+    ext_modules: list[Extension] | None  # type: ignore[assignment]
 
     # Any: Dynamic assignment results in Incompatible types in assignment
     def __init__(self, attrs: MutableMapping[str, Any] | None = None) -> None:
@@ -836,7 +840,7 @@ class Distribution(_Distribution):
 
         return fetch_build_egg(self, req)
 
-    def get_command_class(self, command: str) -> type[distutils.cmd.Command]:  # type: ignore[override] # Not doing complex overrides yet
+    def get_command_class(self, command: str) -> type[distutils.cmd.Command]:
         """Pluggable version of get_command_class()"""
         if command in self.cmdclass:
             return self.cmdclass[command]

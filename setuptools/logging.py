@@ -32,7 +32,7 @@ def configure() -> None:
         # and then loaded again when patched,
         # implying: id(distutils.log) != id(distutils.dist.log).
         # Make sure the same module object is used everywhere:
-        distutils.dist.log = distutils.log
+        distutils.dist.log = distutils.log  # type: ignore[assignment]
 
 
 def set_threshold(level: int) -> int:
