@@ -1,3 +1,281 @@
+v80.10.2
+========
+
+Bugfixes
+--------
+
+- Update vendored dependencies. (#5159)
+
+
+Misc
+----
+
+- #5115, #5128
+
+
+v80.10.1
+========
+
+Misc
+----
+
+- #5152
+
+
+v80.10.0
+========
+
+Features
+--------
+
+- Remove post-release tags on setuptools' own build. (#4530)
+- Refreshed vendored dependencies. (#5139)
+
+
+Misc
+----
+
+- #5033
+
+
+v80.9.0
+=======
+
+Features
+--------
+
+- Set a deadline for the removal of pkg_resources later this year (December). (#3085)
+- Removed reliance on pkg_resources in test_wheel. (#3085)
+
+
+v80.8.0
+=======
+
+Features
+--------
+
+- Replaced more references to pkg_resources with importlib equivalents in wheel odule. (#3085)
+- Restore explicit LICENSE file. (#5001)
+- Removed no longer used build dependency on ``coherent.licensed``. (#5003)
+
+
+v80.7.1
+=======
+
+Bugfixes
+--------
+
+- Only attempt to fetch eggs for unsatisfied requirements. (#4998)
+- In installer, when discovering egg dists, let metadata discovery search each egg. (#4998)
+
+
+v80.7.0
+=======
+
+Features
+--------
+
+- Removed usage of pkg_resources from installer. Set an official deadline on the installer deprecation to 2025-10-31. (#4997)
+
+
+Misc
+----
+
+- #4996
+
+
+v80.6.0
+=======
+
+Features
+--------
+
+- Added a build dependency on coherent.licensed to inject the declared license text at build time. (#4981)
+
+
+Misc
+----
+
+- #4995
+
+
+v80.5.0
+=======
+
+Features
+--------
+
+- Replaced more references to pkg_resources with importlib equivalents. (#3085)
+
+
+Misc
+----
+
+- #4982
+
+
+v80.4.0
+=======
+
+Features
+--------
+
+- Simplified the error reporting in editable installs. (#4984)
+
+
+v80.3.1
+=======
+
+Bugfixes
+--------
+
+- Restored select attributes in easy_install for temporary pbr compatibility. (#4976)
+
+
+v80.3.0
+=======
+
+Features
+--------
+
+- Removed easy_install and package_index modules. (#917)
+- Restored license declaration in package metadata. See jaraco/skeleton#171. (#4956)
+
+
+v80.2.0
+=======
+
+Features
+--------
+
+- Restored support for install_scripts --executable (and classic behavior for the executable for those invocations). Instead, build_editable provides the portable form of the executables for downstream installers to rewrite. (#4934)
+
+
+v80.1.0
+=======
+
+Features
+--------
+
+- Added a deadline of Oct 31 to the setup.py install deprecation.
+
+
+Bugfixes
+--------
+
+- With ``setup.py install --prefix=...``, fall back to distutils install rather than failing. Note that running ``setup.py install`` is deprecated. (#3143)
+
+
+v80.0.1
+=======
+
+Bugfixes
+--------
+
+- Fixed index_url logic in develop compatibility shim. (#4966)
+
+
+v80.0.0
+=======
+
+Bugfixes
+--------
+
+- Update test to honor new behavior in importlib_metadata 8.7. (#4961)
+
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for the easy_install command including the sandbox module. (#2908)
+- Develop command no longer uses easy_install, but instead defers execution to pip (which then will re-invoke Setuptools via PEP 517 to build the editable wheel). Most of the options to develop are dropped. This is the final warning before the command is dropped completely in a few months. Use-cases relying on 'setup.py develop' should pin to older Setuptools version or migrate to modern build tooling. (#4955)
+
+
+v79.0.1
+=======
+
+Bugfixes
+--------
+
+- Merge with pypa/distutils@24bd3179b including fix for pypa/distutils#355.
+
+
+v79.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for 'legacy-editable' installs. (#917)
+
+
+v78.1.1
+=======
+
+Bugfixes
+--------
+
+- More fully sanitized the filename in PackageIndex._download. (#4946)
+
+
+v78.1.0
+=======
+
+Features
+--------
+
+- Restore access to _get_vc_env with a warning. (#4874)
+
+
+v78.0.2
+=======
+
+Bugfixes
+--------
+
+- Postponed removals of deprecated dash-separated and uppercase fields in ``setup.cfg``.
+  All packages with deprecated configurations are advised to move before 2026. (#4911)
+
+
+v78.0.1
+=======
+
+Misc
+----
+
+- #4909
+
+
+v78.0.0
+=======
+
+Bugfixes
+--------
+
+- Reverted distutils changes that broke the monkey patching of command classes. (#4902)
+
+
+Deprecations and Removals
+-------------------------
+
+- Setuptools no longer accepts options containing uppercase or dash characters in ``setup.cfg``.
+  Please ensure to write the options in ``setup.cfg`` using the :wiki:`lower_snake_case <Snake_case>` convention
+  (e.g. ``Name => name``, ``install-requires => install_requires``).
+  This is a follow-up on deprecations introduced in
+  `v54.1.0 <https://setuptools.pypa.io/en/latest/history.html#v54-1-0>`_ (see #1608) and
+  `v54.1.1 <https://setuptools.pypa.io/en/latest/history.html#v54-1-1>`_ (see #2592).
+
+  .. note::
+     This change *does not affect configurations in* ``pyproject.toml``
+     (which uses the :wiki:`lower-kebab-case <Letter_case#Kebab_case>` convention following the precedent set in :pep:`517`/:pep:`518`). (#4870)
+
+
+Misc
+----
+
+- #4904
+
+
 v77.0.3
 =======
 
@@ -61,7 +339,7 @@ Deprecations and Removals
 - Deprecated ``project.license`` as a TOML table in
   ``pyproject.toml``\. Users are expected to move towards using
   ``project.license-files`` and/or SPDX expressions (as strings) in
-  ``pyproject.license``\.
+  ``project.license``\.
   See PEP :pep:`639 <639#deprecate-license-key-table-subkeys>`. (#4840)
 - Added simple validation for given glob patterns in ``license-files``\:
   a warning will be generated if no file is matched.
@@ -89,6 +367,15 @@ Bugfixes
 
 - Restored implicit distutils.ccompiler import for g-ir-scanner. (#4871)
 - Restore ``distutils.ccompiler.compiler_class`` -- by :user:`Avasam` (#4876)
+
+
+v75.3.3
+=======
+
+Bugfixes
+--------
+
+- Backported security fix for package index to 75.3.x for Python 3.8. (#5009)
 
 
 v75.3.2
@@ -443,7 +730,7 @@ v72.2.0
 Features
 --------
 
-- Merged with pypa/distutils@b7ee725f3 including: Support for Pathlike objects in data files and extensions (pypa/distutils#272, pypa/distutils#237), native support for C++ compilers (pypa/distuils#228) and removed unused get_msvcr() (pypa/distutils#274). (#4538)
+- Merged with pypa/distutils@b7ee725f3 including: Support for Pathlike objects in data files and extensions (pypa/distutils#272, pypa/distutils#237), native support for C++ compilers (pypa/distutils#228) and removed unused get_msvcr() (pypa/distutils#274). (#4538)
 
 
 v72.1.0

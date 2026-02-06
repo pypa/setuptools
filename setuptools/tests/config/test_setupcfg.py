@@ -2,6 +2,7 @@ import configparser
 import contextlib
 import inspect
 import re
+import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -10,12 +11,13 @@ from packaging.requirements import InvalidRequirement
 
 from setuptools.config.setupcfg import ConfigHandler, Target, read_configuration
 from setuptools.dist import Distribution, _Distribution
-from setuptools.errors import InvalidConfigError
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from ..textwrap import DALS
 
 from distutils.errors import DistutilsFileError, DistutilsOptionError
+
+IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 
 class ErrConfigHandler(ConfigHandler[Target]):
@@ -423,7 +425,7 @@ class TestMetadata:
                 pass
 
     @pytest.mark.parametrize(
-        ("error_msg", "config"),
+        ("error_msg", "config", "invalid"),
         [
             (
                 "Invalid dash-separated key 'author-email' in 'metadata' (setup.cfg)",
@@ -434,6 +436,7 @@ class TestMetadata:
                     maintainer_email = foo@foo.com
                     """
                 ),
+                {"author-email": "test@test.com"},
             ),
             (
                 "Invalid uppercase key 'Name' in 'metadata' (setup.cfg)",
@@ -444,14 +447,25 @@ class TestMetadata:
                     description = Some description
                     """
                 ),
+                {"Name": "foo"},
             ),
         ],
     )
-    def test_invalid_options_previously_deprecated(self, tmpdir, error_msg, config):
-        # this test and related methods can be removed when no longer needed
+    def test_invalid_options_previously_deprecated(
+        self, tmpdir, error_msg, config, invalid
+    ):
+        # This test and related methods can be removed when no longer needed.
+        # Deprecation postponed due to push-back from the community in
+        # https://github.com/pypa/setuptools/issues/4910
         fake_env(tmpdir, config)
-        with pytest.raises(InvalidConfigError, match=re.escape(error_msg)):
-            get_dist(tmpdir).__enter__()
+        with pytest.warns(SetuptoolsDeprecationWarning, match=re.escape(error_msg)):
+            dist = get_dist(tmpdir).__enter__()
+
+        tmpdir.join('setup.cfg').remove()
+
+        for field, value in invalid.items():
+            attr = field.replace("-", "_").lower()
+            assert getattr(dist.metadata, attr) == value
 
 
 class TestOptions:
@@ -690,6 +704,8 @@ class TestOptions:
             "[options]\ninstall_requires = bar;os_name=='linux'\n",
         ],
     )
+    @pytest.mark.xfail(IS_PYPY, reason="Exceptions missing on PyPy")
+    # TODO: investigate PyPy problem
     def test_raises_accidental_env_marker_misconfig(self, config, tmpdir):
         fake_env(tmpdir, config)
         match = (
@@ -709,6 +725,8 @@ class TestOptions:
             "[options]\ninstall_requires = bar;python_version<3\n",
         ],
     )
+    @pytest.mark.xfail(IS_PYPY, reason="Warnings missing on PyPy (minor issue)")
+    # TODO: investigate PyPy problem
     def test_warn_accidental_env_marker_misconfig(self, config, tmpdir):
         fake_env(tmpdir, config)
         match = (

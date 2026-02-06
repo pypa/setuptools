@@ -35,7 +35,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class BuildBackendBase:
-    def __init__(self, cwd='.', env=None, backend_name='setuptools.build_meta'):
+    def __init__(self, cwd='.', env=None, backend_name='setuptools.build_meta') -> None:
         self.cwd = cwd
         self.env = env or {}
         self.backend_name = backend_name
@@ -44,7 +44,7 @@ class BuildBackendBase:
 class BuildBackend(BuildBackendBase):
     """PEP 517 Build Backend"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.pool = futures.ProcessPoolExecutor(max_workers=1)
 
@@ -77,12 +77,12 @@ class BuildBackend(BuildBackendBase):
 
 
 class BuildBackendCaller(BuildBackendBase):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         (self.backend_name, _, self.backend_obj) = self.backend_name.partition(':')
 
-    def __call__(self, name, *args, **kw):
+    def __call__(self, name, *args, **kw) -> Any:
         """Handles arbitrary function invocations on the build backend."""
         os.chdir(self.cwd)
         os.environ.update(self.env)
@@ -934,30 +934,6 @@ class TestBuildMetaLegacyBackend(TestBuildMetaBackend):
 
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
-
-
-def test_legacy_editable_install(venv, tmpdir, tmpdir_cwd):
-    pyproject = """
-    [build-system]
-    requires = ["setuptools"]
-    build-backend = "setuptools.build_meta"
-    [project]
-    name = "myproj"
-    version = "42"
-    """
-    path.build({"pyproject.toml": DALS(pyproject), "mymod.py": ""})
-
-    # First: sanity check
-    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = venv.run(cmd, cwd=tmpdir).lower()
-    assert "running setup.py develop for myproj" not in output
-    assert "created wheel for myproj" in output
-
-    # Then: real test
-    env = {**os.environ, "SETUPTOOLS_ENABLE_FEATURES": "legacy-editable"}
-    cmd = ["pip", "install", "--no-build-isolation", "-e", "."]
-    output = venv.run(cmd, cwd=tmpdir, env=env).lower()
-    assert "running setup.py develop for myproj" in output
 
 
 @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")

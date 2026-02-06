@@ -255,20 +255,16 @@ class TestSdistTest:
             assert path not in manifest
 
     _INVALID_PATHS = {
-        "must be relative": lambda: (
-            os.path.abspath(os.path.join("sdist_test", "f.h"))
+        "must be relative": lambda: os.path.abspath(os.path.join("sdist_test", "f.h")),
+        "can't have `..` segments": lambda: os.path.join(
+            "sdist_test", "..", "sdist_test", "f.h"
         ),
-        "can't have `..` segments": lambda: (
-            os.path.join("sdist_test", "..", "sdist_test", "f.h")
+        "doesn't exist": lambda: os.path.join(
+            "sdist_test", "this_file_does_not_exist.h"
         ),
-        "doesn't exist": lambda: (
-            os.path.join("sdist_test", "this_file_does_not_exist.h")
-        ),
-        "must be inside the project root": lambda: (
-            symlink_or_skip_test(
-                touch(os.path.join("..", "outside_of_project_root.h")),
-                "symlink.h",
-            )
+        "must be inside the project root": lambda: symlink_or_skip_test(
+            touch(os.path.join("..", "outside_of_project_root.h")),
+            "symlink.h",
         ),
     }
 

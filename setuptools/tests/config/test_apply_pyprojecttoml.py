@@ -41,7 +41,9 @@ def _mock_expand_patterns(patterns, *_, **__):
     Allow comparing the given patterns for 2 dist objects.
     We need to strip special chars to avoid errors when validating.
     """
-    return [re.sub("[^a-z0-9]+", "", p, flags=re.I) or "empty" for p in patterns]
+    return [
+        re.sub("[^a-z0-9]+", "", p, flags=re.IGNORECASE) or "empty" for p in patterns
+    ]
 
 
 @pytest.mark.parametrize("url", urls_from_file(HERE / EXAMPLES_FILE))
@@ -158,7 +160,7 @@ authors = [
   {name = "Tzu-Ping Chung"}
 ]
 maintainers = [
-  {name = "Степан Бандера", email = "криївка@оун-упа.укр"},
+  {name = "अंकित अहलावत", email = "ankit@example.com"},
 ]
 """
 
@@ -259,10 +261,10 @@ def test_no_explicit_content_type_for_missing_extension(tmp_path):
         ),
         pytest.param(
             PEP621_INTERNATIONAL_EMAIL_EXAMPLE,
-            'Степан Бандера <криївка@оун-упа.укр>',
+            'Ankit Ahlawat <अंकित@उदाहरण.भारत>',
             marks=pytest.mark.xfail(
                 reason="CPython's `email.headerregistry.Address` only supports "
-                'RFC 5322, as of Nov 10, 2022 and latest Python 3.11.0',
+                'RFC 5322, as of Oct 20, 2025 and latest Python 3.13.0',
                 strict=True,
             ),
             id='international-email',
@@ -600,7 +602,7 @@ class TestPresetField:
         """Setuptools cannot set a field if not listed in ``dynamic``"""
         pyproject = self.pyproject(tmp_path, [])
         dist = makedist(tmp_path, **{attr: value})
-        msg = re.compile(f"defined outside of `pyproject.toml`:.*{field}", re.S)
+        msg = re.compile(f"defined outside of `pyproject.toml`:.*{field}", re.DOTALL)
         with pytest.warns(_MissingDynamic, match=msg):
             dist = pyprojecttoml.apply_configuration(dist, pyproject)
 

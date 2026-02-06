@@ -9,10 +9,12 @@ from typing import TYPE_CHECKING
 import packaging
 
 # https://packaging.python.org/en/latest/specifications/core-metadata/#name
-_VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.I)
-_UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9._-]+", re.I)
-_NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.I)
-_PEP440_FALLBACK = re.compile(r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.I)
+_VALID_NAME = re.compile(r"^([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])$", re.IGNORECASE)
+_UNSAFE_NAME_CHARS = re.compile(r"[^A-Z0-9._-]+", re.IGNORECASE)
+_NON_ALPHANUMERIC = re.compile(r"[^A-Z0-9]+", re.IGNORECASE)
+_PEP440_FALLBACK = re.compile(
+    r"^v?(?P<safe>(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*)", re.IGNORECASE
+)
 
 
 def safe_identifier(name: str) -> str:
@@ -36,7 +38,6 @@ def safe_name(component: str) -> str:
     >>> safe_name("hello_world")
     'hello_world'
     """
-    # See pkg_resources.safe_name
     return _UNSAFE_NAME_CHARS.sub("-", component)
 
 
@@ -81,7 +82,6 @@ def best_effort_version(version: str) -> str:
     >>> best_effort_version("42.+?1")
     '42.dev0+sanitized.1'
     """
-    # See pkg_resources._forgiving_version
     try:
         return safe_version(version)
     except packaging.version.InvalidVersion:
@@ -137,7 +137,8 @@ def safer_name(value: str) -> str:
     # See bdist_wheel.safer_name
     return (
         # Per https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization
-        re.sub(r"[-_.]+", "-", safe_name(value))
+        re
+        .sub(r"[-_.]+", "-", safe_name(value))
         .lower()
         # Per https://packaging.python.org/en/latest/specifications/binary-distribution-format/#escaping-and-unicode
         .replace("-", "_")

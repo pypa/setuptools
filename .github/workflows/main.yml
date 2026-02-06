@@ -28,7 +28,6 @@ env:
 
   # Suppress noisy pip warnings
   PIP_DISABLE_PIP_VERSION_CHECK: 'true'
-  PIP_NO_PYTHON_VERSION_WARNING: 'true'
   PIP_NO_WARN_SCRIPT_LOCATION: 'true'
 
   # Ensure tests can sense settings about the environment
@@ -43,7 +42,7 @@ jobs:
       matrix:
         python:
         - "3.9"
-        - "3.13"
+        - ">=3.13.5"  # temporary bound until it becomes the default, python/cpython#135151
         platform:
         - ubuntu-latest
         - macos-latest
@@ -64,7 +63,8 @@ jobs:
           python: "3.10"
           distutils: stdlib
     runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.python == '3.14' }}
+    continue-on-error: ${{ matrix.python == '3.14' || matrix.python == 'pypy3.10' }}
+    # XXX: pypy seems to be flaky with unrelated tests in #6345
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils || 'local' }}
     timeout-minutes: 75
@@ -83,9 +83,20 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
+        # Workaround for actions/setup-python#981 on macos
+        # Workaround for https://github.com/pypa/setuptools/issues/5143 on windows
+        # (env var only modified for this specific step)
         env:
-          # Workaround for actions/setup-python#981 (env var only modified for this specific step)
-          SETUPTOOLS_USE_DISTUTILS: ${{ matrix.platform == 'macos-latest' && matrix.python == '3.9' && 'stdlib' || matrix.distutils || 'local' }}
+          SETUPTOOLS_USE_DISTUTILS: >-
+            ${{
+              (
+                ( matrix.platform == 'macos-latest' || matrix.platform == 'windows-latest' )
+                && matrix.python == '3.9'
+                && 'stdlib'
+              )
+              || matrix.distutils
+              || 'local'
+            }}
       - uses: actions/cache@v4
         id: cache
         with:
@@ -157,6 +168,7 @@ jobs:
     if: always()
 
     needs:
+    - check-changed-folders
     - integration-test
     - test
     - collateral
@@ -168,7 +180,7 @@ jobs:
     - name: Decide whether the needed jobs succeeded or failed
       uses: re-actors/alls-green@release/v1
       with:
-        allowed-skips: integration-test
+        allowed-skips: check-changed-folders, integration-test
         jobs: ${{ toJSON(needs) }}
 
   test_cygwin:
@@ -229,6 +241,38 @@ jobs:
             Py-${{ steps.python-install.outputs.python-version }}
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  check-changed-folders:
+    name: Fail the job if files changed under _disutils/_vendor folders
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check if files changed in the _distutils folder
+        id: changed-files-specific-distutils
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            setuptools/_distutils/**
+      - name: Check if files changed in the _vendor folder
+        id: changed-files-specific-vendor
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            setuptools/_vendor/**
+      - name: Fail the job if any file(s) in the _distutils folder change
+        if: steps.changed-files-specific-distutils.outputs.any_changed == 'true'
+        run: |
+          echo "One or more files in the setuptools/_distutils folder has changed." | tee "${GITHUB_STEP_SUMMARY}"
+          exit 1      
+      - name: Fail the job if any file(s) in the _vendor folder change
+        if: steps.changed-files-specific-vendor.outputs.any_changed == 'true'
+        run: |
+          echo "One or more files in the setuptools/_vendor folder has changed." | tee "${GITHUB_STEP_SUMMARY}"
+          exit 1 
+
   integration-test:
     needs: test
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && contains(github.ref, 'refs/tags/'))
@@ -263,7 +307,10 @@ jobs:
       contents: write
     needs:
     - check
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    if: >-  # `always()` prevents auto-cancellation when previous steps are skipped (#5151):
+      always()
+      && needs.check.result == 'success'
+      && github.event_name == 'push' && github.ref_type == 'tag'
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:

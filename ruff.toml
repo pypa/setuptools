@@ -1,6 +1,3 @@
-# extend pyproject.toml for requires-python (workaround astral-sh/ruff#10299)
-extend = "pyproject.toml"
-
 exclude = [
 	"**/_vendor",
 	"setuptools/_distutils",
@@ -14,7 +11,6 @@ extend-select = [
 	"C901", # complex-structure
 	"I", # isort
 	"PERF401", # manual-list-comprehension
-	"W", # pycodestyle Warning
 
 	# Ensure modern type annotation syntax and best practices
 	# Not including those covered by type-checkers or exclusive to Python 3.11+
@@ -30,7 +26,10 @@ extend-select = [
 
 	# local
 	"ANN2", # missing-return-type-*
+	"ISC", # flake8-implicit-str-concat
+	"FURB", # refurb
 	"PERF", # Perflint
+	"PIE", # flake8-pie
 	"PGH", # pygrep-hooks (blanket-* rules)
 	"PT", # flake8-pytest-style
 	"RUF10", # unused-noqa & redirected-noqa
@@ -57,8 +56,6 @@ ignore = [
 	"Q003",
 	"COM812",
 	"COM819",
-	"ISC001",
-	"ISC002",
 
 	# local
 	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
@@ -68,16 +65,16 @@ ignore = [
 	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
 	"TRY301", # raise-within-try, it's handy
 	"UP015", # redundant-open-modes, explicit is preferred
-	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
 	# Only enforcing return type annotations for public functions
 	"ANN202", # missing-return-type-private-function
-	"ANN204", # missing-return-type-special-method
 ]
 
 [lint.per-file-ignores]
 # Suppress nuisance warnings about module-import-not-at-top-of-file (E402) due to workaround for #4476
 "setuptools/__init__.py" = ["E402"]
-"pkg_resources/__init__.py" = ["E402"]
+# pkg_resources is due for removal, not worth fixing existing errors
+"pkg_resources/__init__.py" = ["E402", "ANN204"]
+"pkg_resources/tests/test_resources.py" = ["PT031"]
 
 [lint.isort]
 combine-as-imports = true
