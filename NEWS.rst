@@ -1,3 +1,12 @@
+v81.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for the --dry-run parameter to setup.py. This one feature by its nature threads through lots of core and ancillary functionality, adding complexity and friction. Removal of this parameter will help decouple the compiler functionality from distutils and thus the eventual full integration of distutils. These changes do affect some class and function signatures, so any derivative functionality may require some compatibility shims to support their expected interface. Please report any issues to the Setuptools project for investigation. (#4872)
+
+
 v80.10.2
 ========
 
