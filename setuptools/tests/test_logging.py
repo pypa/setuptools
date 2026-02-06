@@ -19,9 +19,9 @@ setup(
 
 
 @pytest.mark.parametrize(
-    ('flag', 'expected_level'), [("--dry-run", "INFO"), ("--verbose", "DEBUG")]
+    ('flags', 'expected_level'), [([], "INFO"), (["--verbose"], "DEBUG")]
 )
-def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
+def test_verbosity_level(tmp_path, monkeypatch, flags, expected_level):
     """Make sure the correct verbosity level is set (issue #3038)"""
     import setuptools  # noqa: F401  # import setuptools to monkeypatch distutils
 
@@ -35,7 +35,7 @@ def test_verbosity_level(tmp_path, monkeypatch, flag, expected_level):
     setup_script = tmp_path / "setup.py"
     setup_script.write_text(setup_py, encoding="utf-8")
     dist = distutils.core.run_setup(setup_script, stop_after="init")
-    dist.script_args = [flag, "sdist"]
+    dist.script_args = flags + ["sdist"]
     dist.parse_command_line()  # <- where the log level is set
     log_level = logger.getEffectiveLevel()
     log_level_name = logging.getLevelName(log_level)
