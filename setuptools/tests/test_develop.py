@@ -62,6 +62,7 @@ class TestNamespaces:
             with paths_on_pythonpath([str(target)]):
                 subprocess.check_call(develop_cmd)
 
+    @pytest.mark.xfail(reason="pkg_resources has been removed")
     @pytest.mark.skipif(
         bool(os.environ.get("APPVEYOR")),
         reason="https://github.com/pypa/setuptools/issues/851",
