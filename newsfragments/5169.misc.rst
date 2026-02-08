@@ -1,0 +1,1 @@
+Pre-process ``ext-module.define-macros`` from ``pyproject.toml`` into a list of tuples.

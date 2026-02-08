@@ -535,9 +535,14 @@ class TestPyModules:
 
 
 class TestExtModules:
+    def make_dist(self, toml_config):
+        pyproject = Path("pyproject.toml")
+        pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
+        with pytest.warns(pyprojecttoml._ExperimentalConfiguration):
+            return pyprojecttoml.apply_configuration(Distribution({}), pyproject)
+
     def test_pyproject_sets_attribute(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)
-        pyproject = Path("pyproject.toml")
         toml_config = """
         [project]
         name = "test"
@@ -547,12 +552,27 @@ class TestExtModules:
           {name = "my.ext", sources = ["hello.c", "world.c"]}
         ]
         """
-        pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
-        with pytest.warns(pyprojecttoml._ExperimentalConfiguration):
-            dist = pyprojecttoml.apply_configuration(Distribution({}), pyproject)
+        dist = self.make_dist(toml_config)
         assert len(dist.ext_modules) == 1
         assert dist.ext_modules[0].name == "my.ext"
         assert set(dist.ext_modules[0].sources) == {"hello.c", "world.c"}
+
+    def test_pyproject_define_macros_as_tuples(self, tmp_path, monkeypatch):
+        # https://github.com/pypa/setuptools/issues/4810
+        monkeypatch.chdir(tmp_path)
+        toml_config = """
+        [project]
+        name = "test"
+        version = "42.0"
+        [[tool.setuptools.ext-modules]]
+        name = "my.ext"
+        sources = ["hello.c", "world.c"]
+        define-macros = [["FIRST_SINGLE"], ["SECOND_TWO", "1"]]
+        """
+        dist = self.make_dist(toml_config)
+        assert isinstance(dist.ext_modules[0].define_macros[0], tuple)
+        assert dist.ext_modules[0].define_macros[0] == ("FIRST_SINGLE",)
+        assert dist.ext_modules[0].define_macros[1] == ("SECOND_TWO", "1")
 
 
 class TestDeprecatedFields:
