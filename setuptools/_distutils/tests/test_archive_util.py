@@ -177,17 +177,6 @@ class ArchiveUtilTestCase(support.TempdirManager):
         tarball = base_name + '.tar'
         assert os.path.exists(tarball)
 
-        # now for a dry_run
-        base_name = os.path.join(tmpdir2, 'archive')
-        old_dir = os.getcwd()
-        os.chdir(tmpdir)
-        try:
-            make_tarball(base_name, 'dist', compress=None, dry_run=True)
-        finally:
-            os.chdir(old_dir)
-        tarball = base_name + '.tar'
-        assert os.path.exists(tarball)
-
     @pytest.mark.usefixtures('needs_zlib')
     def test_make_zipfile(self):
         zipfile = pytest.importorskip('zipfile')

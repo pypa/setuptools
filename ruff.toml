@@ -65,7 +65,6 @@ ignore = [
 	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
 	"TRY301", # raise-within-try, it's handy
 	"UP015", # redundant-open-modes, explicit is preferred
-	"UP038", # Using `X | Y` in `isinstance` call is slower and more verbose https://github.com/astral-sh/ruff/issues/7871
 	# Only enforcing return type annotations for public functions
 	"ANN202", # missing-return-type-private-function
 ]
@@ -73,6 +72,7 @@ ignore = [
 [lint.per-file-ignores]
 # Suppress nuisance warnings about module-import-not-at-top-of-file (E402) due to workaround for #4476
 "setuptools/__init__.py" = ["E402"]
+# pkg_resources is due for removal, not worth fixing existing errors
 "pkg_resources/__init__.py" = ["E402", "ANN204"]
 "pkg_resources/tests/test_resources.py" = ["PT031"]
 

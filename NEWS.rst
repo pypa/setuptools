@@ -1,3 +1,52 @@
+v81.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for the --dry-run parameter to setup.py. This one feature by its nature threads through lots of core and ancillary functionality, adding complexity and friction. Removal of this parameter will help decouple the compiler functionality from distutils and thus the eventual full integration of distutils. These changes do affect some class and function signatures, so any derivative functionality may require some compatibility shims to support their expected interface. Please report any issues to the Setuptools project for investigation. (#4872)
+
+
+v80.10.2
+========
+
+Bugfixes
+--------
+
+- Update vendored dependencies. (#5159)
+
+
+Misc
+----
+
+- #5115, #5128
+
+
+v80.10.1
+========
+
+Misc
+----
+
+- #5152
+
+
+v80.10.0
+========
+
+Features
+--------
+
+- Remove post-release tags on setuptools' own build. (#4530)
+- Refreshed vendored dependencies. (#5139)
+
+
+Misc
+----
+
+- #5033
+
+
 v80.9.0
 =======
 
@@ -327,6 +376,15 @@ Bugfixes
 
 - Restored implicit distutils.ccompiler import for g-ir-scanner. (#4871)
 - Restore ``distutils.ccompiler.compiler_class`` -- by :user:`Avasam` (#4876)
+
+
+v75.3.3
+=======
+
+Bugfixes
+--------
+
+- Backported security fix for package index to 75.3.x for Python 3.8. (#5009)
 
 
 v75.3.2

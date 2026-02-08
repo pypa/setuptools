@@ -13,6 +13,7 @@ import sys
 import sysconfig
 from importlib.machinery import EXTENSION_SUFFIXES
 from typing import (
+    Any,
     Iterable,
     Iterator,
     Sequence,
@@ -91,6 +92,13 @@ class Tag:
 
     def __repr__(self) -> str:
         return f"<{self} @ {id(self)}>"
+
+    def __setstate__(self, state: tuple[None, dict[str, Any]]) -> None:
+        # The cached _hash is wrong when unpickling.
+        _, slots = state
+        for k, v in slots.items():
+            setattr(self, k, v)
+        self._hash = hash((self._interpreter, self._abi, self._platform))
 
 
 def parse_tag(tag: str) -> frozenset[Tag]:
@@ -209,16 +217,13 @@ def cpython_tags(
     interpreter = f"cp{_version_nodot(python_version[:2])}"
 
     if abis is None:
-        if len(python_version) > 1:
-            abis = _cpython_abis(python_version, warn)
-        else:
-            abis = []
+        abis = _cpython_abis(python_version, warn) if len(python_version) > 1 else []
     abis = list(abis)
     # 'abi3' and 'none' are explicitly handled later.
     for explicit_abi in ("abi3", "none"):
         try:
             abis.remove(explicit_abi)
-        except ValueError:
+        except ValueError:  # noqa: PERF203
             pass
 
     platforms = list(platforms or platform_tags())
@@ -299,11 +304,8 @@ def generic_tags(
     if not interpreter:
         interp_name = interpreter_name()
         interp_version = interpreter_version(warn=warn)
-        interpreter = "".join([interp_name, interp_version])
-    if abis is None:
-        abis = _generic_abi()
-    else:
-        abis = list(abis)
+        interpreter = f"{interp_name}{interp_version}"
+    abis = _generic_abi() if abis is None else list(abis)
     platforms = list(platforms or platform_tags())
     if "none" not in abis:
         abis.append("none")
@@ -424,14 +426,11 @@ def mac_platforms(
                 text=True,
             ).stdout
             version = cast("AppleVersion", tuple(map(int, version_str.split(".")[:2])))
-    else:
-        version = version
+
     if arch is None:
         arch = _mac_arch(cpu_arch)
-    else:
-        arch = arch
 
-    if (10, 0) <= version and version < (11, 0):
+    if (10, 0) <= version < (11, 0):
         # Prior to Mac OS 11, each yearly release of Mac OS bumped the
         # "minor" version number.  The major version was always 10.
         major_version = 10
@@ -530,6 +529,43 @@ def ios_platforms(
             )
 
 
+def android_platforms(
+    api_level: int | None = None, abi: str | None = None
+) -> Iterator[str]:
+    """
+    Yields the :attr:`~Tag.platform` tags for Android. If this function is invoked on
+    non-Android platforms, the ``api_level`` and ``abi`` arguments are required.
+
+    :param int api_level: The maximum `API level
+        <https://developer.android.com/tools/releases/platforms>`__ to return. Defaults
+        to the current system's version, as returned by ``platform.android_ver``.
+    :param str abi: The `Android ABI <https://developer.android.com/ndk/guides/abis>`__,
+        e.g. ``arm64_v8a``. Defaults to the current system's ABI , as returned by
+        ``sysconfig.get_platform``. Hyphens and periods will be replaced with
+        underscores.
+    """
+    if platform.system() != "Android" and (api_level is None or abi is None):
+        raise TypeError(
+            "on non-Android platforms, the api_level and abi arguments are required"
+        )
+
+    if api_level is None:
+        # Python 3.13 was the first version to return platform.system() == "Android",
+        # and also the first version to define platform.android_ver().
+        api_level = platform.android_ver().api_level  # type: ignore[attr-defined]
+
+    if abi is None:
+        abi = sysconfig.get_platform().split("-")[-1]
+    abi = _normalize_string(abi)
+
+    # 16 is the minimum API level known to have enough features to support CPython
+    # without major patching. Yield every API level from the maximum down to the
+    # minimum, inclusive.
+    min_api_level = 16
+    for ver in range(api_level, min_api_level - 1, -1):
+        yield f"android_{ver}_{abi}"
+
+
 def _linux_platforms(is_32bit: bool = _32_BIT_INTERPRETER) -> Iterator[str]:
     linux = _normalize_string(sysconfig.get_platform())
     if not linux.startswith("linux_"):
@@ -561,6 +597,8 @@ def platform_tags() -> Iterator[str]:
         return mac_platforms()
     elif platform.system() == "iOS":
         return ios_platforms()
+    elif platform.system() == "Android":
+        return android_platforms()
     elif platform.system() == "Linux":
         return _linux_platforms()
     else:
@@ -583,11 +621,7 @@ def interpreter_version(*, warn: bool = False) -> str:
     Returns the version of the running interpreter.
     """
     version = _get_config_var("py_version_nodot", warn=warn)
-    if version:
-        version = str(version)
-    else:
-        version = _version_nodot(sys.version_info[:2])
-    return version
+    return str(version) if version else _version_nodot(sys.version_info[:2])
 
 
 def _version_nodot(version: PythonVersion) -> str:

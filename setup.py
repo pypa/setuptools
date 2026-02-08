@@ -24,7 +24,8 @@ class install_with_pth(install):
 
     _pth_name = 'distutils-precedence'
     _pth_contents = (
-        textwrap.dedent(
+        textwrap
+        .dedent(
             """
         import os
         var = 'SETUPTOOLS_USE_DISTUTILS'
