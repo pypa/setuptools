@@ -1,3 +1,12 @@
+v82.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- ``pkg_resources`` has been removed from Setuptools. Most common uses of ``pkg_resources`` have been superseded by the `importlib.resources <https://docs.python.org/3/library/importlib.resources.html>`_ and `importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_ projects. Projects and environments relying on ``pkg_resources`` for namespace packages or other behavior should depend on older versions of ``setuptools``. (#3085)
+
+
 v81.0.0
 =======
 
