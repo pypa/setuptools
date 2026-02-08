@@ -378,6 +378,15 @@ Bugfixes
 - Restore ``distutils.ccompiler.compiler_class`` -- by :user:`Avasam` (#4876)
 
 
+v75.3.4
+=======
+
+Bugfixes
+--------
+
+- Backport CVE-47273 from 78.1.1 for Python 3.8. (#4946)
+
+
 v75.3.3
 =======
 
