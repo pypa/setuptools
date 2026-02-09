@@ -23,6 +23,7 @@ objectives.
     distutils-legacy
     functionalities
     commands
+    pkg_resources
 
 Notes for Consumers of Packages Built with Setuptools
 =====================================================
