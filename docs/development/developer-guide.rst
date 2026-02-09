@@ -122,8 +122,7 @@ cannot be declared as they won't be resolved soon enough to build
 setuptools from source. Eventually, this limitation may be lifted as
 PEP 517/518 reach ubiquitous adoption, but for now, Setuptools
 cannot declare dependencies other than through
-``setuptools/_vendor/vendored.txt`` and
-``pkg_resources/_vendor/vendored.txt``.
+``setuptools/_vendor/vendored.txt``.
 
 All the dependencies specified in these files are "vendorized" using a
 simple Python script ``tools/vendor.py``.
