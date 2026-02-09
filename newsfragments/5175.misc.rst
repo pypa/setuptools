@@ -1,0 +1,1 @@
+Cleanup `pkg_resources` dependencies and configuration -- by :user:`Avasam`
