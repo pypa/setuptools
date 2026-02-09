@@ -508,70 +508,12 @@ Legacy Namespace Packages
 The fact you can create namespace packages so effortlessly above is credited
 to :pep:`420`. It used to be more
 cumbersome to accomplish the same result. Historically, there were two methods
-to create namespace packages. One is the ``pkg_resources`` style supported by
-``setuptools`` and the other one being ``pkgutils`` style offered by
+to create namespace packages. One is the ``pkg_resources`` style that was 
+supported by ``setuptools`` and the other one being ``pkgutils`` style offered by
 ``pkgutils`` module in Python. Both are now considered *deprecated* despite the
 fact they still linger in many existing packages. These two differ in many
 subtle yet significant aspects and you can find out more on `Python packaging
 user guide <https://packaging.python.org/guides/packaging-namespace-packages/>`_.
-
-
-``pkg_resource`` style namespace package
-----------------------------------------
-This is the method ``setuptools`` directly supports. Starting with the same
-layout, there are two pieces you need to add to it. First, an ``__init__.py``
-file directly under your namespace package directory that contains the
-following:
-
-.. code-block:: python
-
-    __import__("pkg_resources").declare_namespace(__name__)
-
-And the ``namespace_packages`` keyword in your ``setup.cfg`` or ``setup.py``:
-
-.. tab:: setup.cfg
-
-    .. code-block:: ini
-
-        [options]
-        namespace_packages = timmins
-
-.. tab:: setup.py
-
-    .. code-block:: python
-
-        setup(
-            # ...
-            namespace_packages=['timmins']
-        )
-
-And your directory should look like this
-
-.. code-block:: bash
-
-   foo
-   ├── pyproject.toml  # AND/OR setup.cfg, setup.py
-   └── src
-       └── timmins
-           ├── __init__.py
-           └── foo
-               └── __init__.py
-
-Repeat the same for other packages and you can achieve the same result as
-the previous section.
-
-``pkgutil`` style namespace package
------------------------------------
-This method is almost identical to the ``pkg_resource`` except that the
-``namespace_packages`` declaration is omitted and the ``__init__.py``
-file contains the following:
-
-.. code-block:: python
-
-    __path__ = __import__('pkgutil').extend_path(__path__, __name__)
-
-The project layout remains the same and ``pyproject.toml/setup.cfg`` remains the same.
-
 
 ----
 

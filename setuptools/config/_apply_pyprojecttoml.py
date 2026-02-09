@@ -432,12 +432,7 @@ PYPROJECT_CORRESPONDENCE: dict[str, _Correspondence] = {
 }
 
 TOOL_TABLE_RENAMES = {"script_files": "scripts"}
-TOOL_TABLE_REMOVALS = {
-    "namespace_packages": """
-        Please migrate to implicit native namespaces instead.
-        See https://packaging.python.org/en/latest/guides/packaging-namespace-packages/.
-        """,
-}
+
 TOOL_TABLE_CORRESPONDENCE = {
     # Fields with corresponding core metadata need to be marked as static:
     "obsoletes": partial(_set_static_list_metadata, "obsoletes"),

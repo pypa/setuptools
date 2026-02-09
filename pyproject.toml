@@ -172,7 +172,6 @@ keywords = "setuptools.dist:Distribution._finalize_setup_keywords"
 
 [project.entry-points."distutils.setup_keywords"]
 eager_resources = "setuptools.dist:assert_string_list"
-namespace_packages = "setuptools.dist:check_nsp"
 extras_require = "setuptools.dist:check_extras"
 install_requires = "setuptools.dist:check_requirements"
 setup_requires = "setuptools.dist:check_requirements"
@@ -191,7 +190,6 @@ PKG-INFO = "setuptools.command.egg_info:write_pkg_info"
 "requires.txt" = "setuptools.command.egg_info:write_requirements"
 "entry_points.txt" = "setuptools.command.egg_info:write_entries"
 "eager_resources.txt" = "setuptools.command.egg_info:overwrite_arg"
-"namespace_packages.txt" = "setuptools.command.egg_info:overwrite_arg"
 "top_level.txt" = "setuptools.command.egg_info:write_toplevel_names"
 "dependency_links.txt" = "setuptools.command.egg_info:overwrite_arg"
 

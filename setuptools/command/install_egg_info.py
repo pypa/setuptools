@@ -36,7 +36,6 @@ class install_egg_info(namespaces.Installer, Command):
             self.execute(os.unlink, (self.target,), "Removing " + self.target)
         ensure_directory(self.target)
         self.execute(self.copytree, (), f"Copying {self.source} to {self.target}")
-        self.install_namespaces()
 
     def get_outputs(self):
         return self.outputs

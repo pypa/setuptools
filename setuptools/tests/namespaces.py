@@ -24,7 +24,6 @@ def build_namespace_package(tmpdir, name, version="1.0", impl="pkg_resources"):
 
     if impl == "pkg_resources":
         tmpl = '__import__("pkg_resources").declare_namespace(__name__)'
-        setup_args["namespace_packages"] = namespaces
     elif impl == "pkgutil":
         tmpl = '__path__ = __import__("pkgutil").extend_path(__path__, __name__)'
     else:

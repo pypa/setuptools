@@ -28,7 +28,7 @@ from tempfile import TemporaryDirectory
 from types import TracebackType
 from typing import TYPE_CHECKING, Protocol, TypeVar, cast
 
-from .. import Command, _normalization, _path, _shutil, errors, namespaces
+from .. import Command, _normalization, _path, _shutil, errors
 from .._path import StrPath
 from ..compat import py310, py312
 from ..discovery import find_package_path
@@ -158,16 +158,6 @@ class editable_wheel(Command):
         else:
             assert str(self.dist_info_dir).endswith(".dist-info")
             assert Path(self.dist_info_dir, "METADATA").exists()
-
-    def _install_namespaces(self, installation_dir, pth_prefix):
-        # XXX: Only required to support the deprecated namespace practice
-        dist = self.distribution
-        if not dist.namespace_packages:
-            return
-
-        src_root = Path(self.project_dir, self.package_dir.get("", ".")).resolve()
-        installer = _NamespaceInstaller(dist, installation_dir, pth_prefix, src_root)
-        installer.install_namespaces()
 
     def _find_egg_info_dir(self) -> str | None:
         parent_dir = Path(self.dist_info_dir).parent if self.dist_info_dir else Path()
@@ -346,7 +336,6 @@ class editable_wheel(Command):
         with unpacked_wheel as unpacked, build_lib as lib, build_tmp as tmp:
             unpacked_dist_info = Path(unpacked, Path(self.dist_info_dir).name)
             shutil.copytree(self.dist_info_dir, unpacked_dist_info)
-            self._install_namespaces(unpacked, dist_name)
             files, mapping = self._run_build_commands(dist_name, unpacked, lib, tmp)
             strategy = self._select_strategy(dist_name, tag, lib)
             with strategy, WheelFile(wheel_path, "w") as wheel_obj:
@@ -527,19 +516,9 @@ class _TopLevelFinder:
             )
         )
 
-        legacy_namespaces = {
-            pkg: find_package_path(pkg, roots, self.dist.src_root or "")
-            for pkg in self.dist.namespace_packages or []
-        }
-
-        mapping = {**roots, **legacy_namespaces}
-        # ^-- We need to explicitly add the legacy_namespaces to the mapping to be
-        #     able to import their modules even if another package sharing the same
-        #     namespace is installed in a conventional (non-editable) way.
-
         name = f"__editable__.{self.name}.finder"
         finder = _normalization.safe_identifier(name)
-        return finder, name, mapping, namespaces_
+        return finder, name, roots, namespaces_
 
     def get_implementation(self) -> Iterator[tuple[str, bytes]]:
         finder, name, mapping, namespaces_ = self.template_vars()
@@ -792,23 +771,6 @@ def _empty_dir(dir_: _P) -> _P:
     _shutil.rmtree(dir_, ignore_errors=True)
     os.makedirs(dir_)
     return dir_
-
-
-class _NamespaceInstaller(namespaces.Installer):
-    def __init__(self, distribution, installation_dir, editable_name, src_root) -> None:
-        self.distribution = distribution
-        self.src_root = src_root
-        self.installation_dir = installation_dir
-        self.editable_name = editable_name
-        self.outputs: list[str] = []
-
-    def _get_nspkg_file(self):
-        """Installation target."""
-        return os.path.join(self.installation_dir, self.editable_name + self.nspkg_ext)
-
-    def _get_root(self):
-        """Where the modules/packages should be loaded from."""
-        return repr(str(self.src_root))
 
 
 _FINDER_TEMPLATE = """\

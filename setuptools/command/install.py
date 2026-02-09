@@ -9,7 +9,6 @@ from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 import distutils.command.install as orig
-from distutils.errors import DistutilsArgError
 
 if TYPE_CHECKING:
     # This is only used for a type-cast, don't import at runtime or it'll cause deprecation warnings
@@ -68,20 +67,11 @@ class install(orig.install):
 
         super().initialize_options()
         self.old_and_unmanageable = None
-        self.single_version_externally_managed = None
-
-    def finalize_options(self) -> None:
-        super().finalize_options()
-        if self.root:
-            self.single_version_externally_managed = True
-        elif self.single_version_externally_managed:
-            if not self.root and not self.record:
-                raise DistutilsArgError(
-                    "You must specify --record or --root when building system packages"
-                )
+        # Was used by pkg_resources-based namespace packages
+        self.single_version_externally_managed = None  #: :meta private: UNUSED
 
     def handle_extra_path(self):
-        if self.root or self.single_version_externally_managed:
+        if self.root:
             # explicit backward-compatibility mode, allow extra_path to work
             return orig.install.handle_extra_path(self)
 

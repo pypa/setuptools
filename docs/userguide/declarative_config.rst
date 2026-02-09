@@ -269,7 +269,6 @@ packages                 find:, find_namespace:, list-comma                   [#
 package_dir              dict
 package_data             section                                              [#opt-1]_
 exclude_package_data     section
-namespace_packages       list-comma                                           [#opt-5]_
 py_modules               list-comma                           34.4.0
 data_files               section                              40.6.0          [#opt-4]_
 =======================  ===================================  =============== ====================
@@ -303,10 +302,6 @@ data_files               section                              40.6.0          [#
 
 .. [#opt-4] ``data_files`` is deprecated and should be avoided.
    Please check :doc:`/userguide/datafiles` for more information.
-
-.. [#opt-5] ``namespace_packages`` is deprecated in favour of native/implicit
-   namespaces (:pep:`420`). Check :doc:`the Python Packaging User Guide
-   <PyPUG:guides/packaging-namespace-packages>` for more information.
 
 .. [#opt-6] ``file:`` directives for reading requirements are supported since version 62.6.
    The format for the file resembles a ``requirements.txt`` file,

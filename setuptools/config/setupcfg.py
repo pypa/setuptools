@@ -17,7 +17,7 @@ import os
 from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
-from functools import partial, wraps
+from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, Generic, TypeVar, cast
 
 from packaging.markers import default_environment as marker_env
@@ -503,22 +503,6 @@ class ConfigHandler(Generic[Target]):
 
             section_parser_method(section_options)
 
-    def _deprecated_config_handler(self, func, msg, **kw):
-        """this function will wrap around parameters that are deprecated
-
-        :param msg: deprecation message
-        :param func: function to be wrapped around
-        """
-
-        @wraps(func)
-        def config_handler(*args, **kwargs):
-            kw.setdefault("stacklevel", 2)
-            _DeprecatedConfig.emit("Deprecated config in `setup.cfg`", msg, **kw)
-            return func(*args, **kwargs)
-
-        return config_handler
-
-
 class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
     section_prefix = 'metadata'
 
@@ -646,12 +630,6 @@ class ConfigOptionsHandler(ConfigHandler["Distribution"]):
             'scripts': parse_list,
             'eager_resources': parse_list,
             'dependency_links': parse_list,
-            'namespace_packages': self._deprecated_config_handler(
-                parse_list,
-                "The namespace_packages parameter is deprecated, "
-                "consider using implicit namespaces instead (PEP 420).",
-                # TODO: define due date, see setuptools.dist:check_nsp.
-            ),
             'install_requires': partial(  # Core Metadata
                 self._parse_requirements_list, "install_requires"
             ),

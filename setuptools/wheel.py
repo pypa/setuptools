@@ -21,7 +21,6 @@ from setuptools.command.egg_info import _egg_basename, write_requirements
 
 from ._discovery import extras_from_deps
 from ._importlib import metadata
-from .unicode_utils import _read_utf8_with_fallback
 
 from distutils.util import get_platform
 
@@ -133,7 +132,6 @@ class Wheel:
 
         self._convert_metadata(zf, destination_eggdir, dist_info, egg_info)
         self._move_data_entries(destination_eggdir, dist_data)
-        self._fix_namespace_packages(egg_info, destination_eggdir)
 
     @staticmethod
     def _convert_metadata(zf, destination_eggdir, dist_info, egg_info):
@@ -245,18 +243,3 @@ class Wheel:
             unpack(subdir, destination_eggdir)
         if os.path.exists(dist_data):
             os.rmdir(dist_data)
-
-    @staticmethod
-    def _fix_namespace_packages(egg_info, destination_eggdir):
-        namespace_packages = os.path.join(egg_info, 'namespace_packages.txt')
-        if os.path.exists(namespace_packages):
-            namespace_packages = _read_utf8_with_fallback(namespace_packages).split()
-
-            for mod in namespace_packages:
-                mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
-                mod_init = os.path.join(mod_dir, '__init__.py')
-                if not os.path.exists(mod_dir):
-                    os.mkdir(mod_dir)
-                if not os.path.exists(mod_init):
-                    with open(mod_init, 'w', encoding="utf-8") as fp:
-                        fp.write(NAMESPACE_PACKAGE_INIT)

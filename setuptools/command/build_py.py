@@ -19,7 +19,6 @@ from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning
 
 import distutils.command.build_py as orig
-import distutils.errors
 from distutils.util import convert_path
 
 _IMPLICIT_DATA_FILES = ('*.pyi', 'py.typed')
@@ -249,24 +248,6 @@ class build_py(orig.build_py):
         init_py = orig.build_py.check_package(self, package, package_dir)
         self.packages_checked[package] = init_py
 
-        if not init_py or not self.distribution.namespace_packages:
-            return init_py
-
-        for pkg in self.distribution.namespace_packages:
-            if pkg == package or pkg.startswith(package + '.'):
-                break
-        else:
-            return init_py
-
-        with open(init_py, 'rb') as f:
-            contents = f.read()
-        if b'declare_namespace' not in contents:
-            raise distutils.errors.DistutilsError(
-                f"Namespace package problem: {package} is a namespace package, but "
-                "its\n__init__.py does not call declare_namespace()! Please "
-                'fix it.\n(See the setuptools manual under '
-                '"Namespace Packages" for details.)\n"'
-            )
         return init_py
 
     def initialize_options(self):

@@ -104,35 +104,6 @@ def assert_string_list(dist, attr: str, value: _Sequence) -> None:
             f"{attr!r} must be of type <{_sequence_type_repr}> (got {value!r})"
         ) from e
 
-
-def check_nsp(dist, attr, value):
-    """Verify that namespace packages are valid"""
-    ns_packages = value
-    assert_string_list(dist, attr, ns_packages)
-    for nsp in ns_packages:
-        if not dist.has_contents_for(nsp):
-            raise DistutilsSetupError(
-                f"Distribution contains no modules or packages for namespace package {nsp!r}"
-            )
-        parent, _sep, _child = nsp.rpartition('.')
-        if parent and parent not in ns_packages:
-            distutils.log.warn(
-                "WARNING: %r is declared as a package namespace, but %r"
-                " is not: please correct this in setup.py",
-                nsp,
-                parent,
-            )
-        SetuptoolsDeprecationWarning.emit(
-            "The namespace_packages parameter is deprecated.",
-            "Please replace its usage with implicit namespaces (PEP 420).",
-            see_docs="references/keywords.html#keyword-namespace-packages",
-            # TODO: define due_date, it may break old packages that are no longer
-            # maintained (e.g. sphinxcontrib extensions) when installed from source.
-            # Warning officially introduced in May 2022, however the deprecation
-            # was mentioned much earlier in the docs (May 2020, see #2149).
-        )
-
-
 def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
@@ -296,8 +267,8 @@ class Distribution(_Distribution):
         'extras_require': dict,
     }
 
-    # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
-    namespace_packages: list[str]  #: :meta private: DEPRECATED
+    # Was used by build_py, editable_wheel and install_lib commands for legacy namespaces
+    namespace_packages = ()  #: :meta private: UNUSED
 
     # Any: Dynamic assignment results in Incompatible types in assignment
     def __init__(self, attrs: MutableMapping[str, Any] | None = None) -> None:

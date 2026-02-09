@@ -10,7 +10,6 @@ install_requires = setuptools.dist:check_requirements
 extras_require = setuptools.dist:check_extras
 entry_points = setuptools.dist:check_entry_points
 exclude_package_data = setuptools.dist:check_package_data
-namespace_packages = setuptools.dist:check_nsp
 
 [egg_info.writers]
 PKG-INFO = setuptools.command.egg_info:write_pkg_info

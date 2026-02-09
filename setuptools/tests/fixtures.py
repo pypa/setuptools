@@ -248,7 +248,6 @@ def make_nspkg_sdist(dist_path, distname, version):
             name={distname!r},
             version={version!r},
             packages={packages!r},
-            namespace_packages=[{nspackage!r}]
         )
     """
     )

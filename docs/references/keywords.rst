@@ -407,28 +407,6 @@ extensions).
     ``setup_requires`` or ``tests_require``.  They will also be written into
     the egg's metadata for use during install by tools that support them.
 
-.. _keyword/namespace_packages:
-
-``namespace_packages``
-    .. warning::
-        The ``namespace_packages`` implementation relies on ``pkg_resources``.
-        However, ``pkg_resources`` has some undesirable behaviours, and
-        Setuptools intends to obviate its usage in the future. Therefore,
-        ``namespace_packages`` was deprecated in favor of native/implicit
-        namespaces (:pep:`420`). Check :doc:`the Python Packaging User Guide
-        <PyPUG:guides/packaging-namespace-packages>` for more information.
-
-    A list of strings naming the project's "namespace packages".  A namespace
-    package is a package that may be split across multiple project
-    distributions.  For example, Zope 3's ``zope`` package is a namespace
-    package, because subpackages like ``zope.interface`` and ``zope.publisher``
-    may be distributed separately.  The egg runtime system can automatically
-    merge such subpackages into a single parent package at runtime, as long
-    as you declare them in each project that contains any subpackages of the
-    namespace package, and as long as the namespace package's ``__init__.py``
-    does not contain any code other than a namespace declaration.  See the
-    section on :ref:`Namespace Packages` for more information.
-
 .. _keyword/test_suite:
 
 ``test_suite``

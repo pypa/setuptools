@@ -11,7 +11,7 @@ import textwrap
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, TypedDict
 
-from ._importlib import metadata, resources
+from ._importlib import resources
 
 if TYPE_CHECKING:
     from typing_extensions import Self
@@ -134,10 +134,7 @@ class ScriptWriter:
         try:
             from importlib.metadata import distribution
         except ImportError:
-            try:
-                from importlib_metadata import distribution
-            except ImportError:
-                from pkg_resources import load_entry_point
+            from importlib_metadata import distribution
 
 
         def importlib_load_entry_point(spec, group, name):
@@ -149,13 +146,9 @@ class ScriptWriter:
             )
             return next(matches).load()
 
-
-        globals().setdefault('load_entry_point', importlib_load_entry_point)
-
-
         if __name__ == '__main__':
             sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-            sys.exit(load_entry_point(%(spec)r, %(group)r, %(name)r)())
+            sys.exit(importlib_load_entry_point(%(spec)r, %(group)r, %(name)r)())
         """
     ).lstrip()
 
@@ -167,12 +160,6 @@ class ScriptWriter:
         Yield write_script() argument tuples for a distribution's
         console_scripts and gui_scripts entry points.
         """
-
-        # If distribution is not an importlib.metadata.Distribution, assume
-        # it's a pkg_resources.Distribution and transform it.
-        if not hasattr(dist, 'entry_points'):
-            SetuptoolsWarning.emit("Unsupported distribution encountered.")
-            dist = metadata.Distribution.at(dist.egg_info)
 
         if header is None:
             header = cls.get_header()

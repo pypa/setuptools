@@ -477,7 +477,6 @@ class TestOptions:
             'include_package_data = yes\n'
             'package_dir = b=c, =src\n'
             'packages = pack_a, pack_b.subpack\n'
-            'namespace_packages = pack1, pack2\n'
             'scripts = bin/one.py, bin/two.py\n'
             'eager_resources = bin/one.py, bin/two.py\n'
             'install_requires = docutils>=0.3; pack ==1.1, ==1.3; hey\n'
@@ -487,13 +486,11 @@ class TestOptions:
             'python_requires = >=1.0, !=2.8\n'
             'py_modules = module1, module2\n',
         )
-        deprec = pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages")
-        with deprec, get_dist(tmpdir) as dist:
+        with get_dist(tmpdir) as dist:
             assert dist.zip_safe
             assert dist.include_package_data
             assert dist.package_dir == {'': 'src', 'b': 'c'}
             assert dist.packages == ['pack_a', 'pack_b.subpack']
-            assert dist.namespace_packages == ['pack1', 'pack2']
             assert dist.scripts == ['bin/one.py', 'bin/two.py']
             assert dist.dependency_links == ([
                 'http://some.com/here/1',
@@ -522,9 +519,6 @@ class TestOptions:
             'packages = \n'
             '  pack_a\n'
             '  pack_b.subpack\n'
-            'namespace_packages = \n'
-            '  pack1\n'
-            '  pack2\n'
             'scripts = \n'
             '  bin/one.py\n'
             '  bin/two.py\n'
@@ -543,11 +537,9 @@ class TestOptions:
             '  http://some.com/here/1\n'
             '  http://some.com/there/2\n',
         )
-        deprec = pytest.warns(SetuptoolsDeprecationWarning, match="namespace_packages")
-        with deprec, get_dist(tmpdir) as dist:
+        with get_dist(tmpdir) as dist:
             assert dist.package_dir == {'': 'src', 'b': 'c'}
             assert dist.packages == ['pack_a', 'pack_b.subpack']
-            assert dist.namespace_packages == ['pack1', 'pack2']
             assert dist.scripts == ['bin/one.py', 'bin/two.py']
             assert dist.dependency_links == ([
                 'http://some.com/here/1',

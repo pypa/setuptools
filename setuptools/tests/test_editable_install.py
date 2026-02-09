@@ -32,11 +32,8 @@ from setuptools.command.editable_wheel import (
 )
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
-from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from . import contexts, namespaces
-
-from distutils.core import run_setup
 
 
 @pytest.fixture(params=["strict", "lenient"])
@@ -229,70 +226,6 @@ def test_editable_with_single_module(tmp_path, venv, editable_opts):
     print(venv.run(cmd))
     cmd = ["python", "-c", "import mod; print(mod.b)"]
     assert venv.run(cmd).strip() == "2"
-
-
-class TestLegacyNamespaces:
-    # legacy => pkg_resources.declare_namespace(...) + setup(namespace_packages=...)
-
-    def test_nspkg_file_is_unique(self, tmp_path, monkeypatch):
-        deprecation = pytest.warns(
-            SetuptoolsDeprecationWarning, match=".*namespace_packages parameter.*"
-        )
-        installation_dir = tmp_path / ".installation_dir"
-        installation_dir.mkdir()
-        examples = (
-            "myns.pkgA",
-            "myns.pkgB",
-            "myns.n.pkgA",
-            "myns.n.pkgB",
-        )
-
-        for name in examples:
-            pkg = namespaces.build_namespace_package(tmp_path, name, version="42")
-            with deprecation, monkeypatch.context() as ctx:
-                ctx.chdir(pkg)
-                dist = run_setup("setup.py", stop_after="config")
-                cmd = editable_wheel(dist)
-                cmd.finalize_options()
-                editable_name = cmd.get_finalized_command("dist_info").name
-                cmd._install_namespaces(installation_dir, editable_name)
-
-        files = list(installation_dir.glob("*-nspkg.pth"))
-        assert len(files) == len(examples)
-
-    @pytest.mark.parametrize(
-        "impl",
-        (
-            "pkg_resources",
-            #  "pkgutil",  => does not work
-        ),
-    )
-    @pytest.mark.parametrize("ns", ("myns.n",))
-    def test_namespace_package_importable(
-        self, venv, tmp_path, ns, impl, editable_opts
-    ):
-        """
-        Installing two packages sharing the same namespace, one installed
-        naturally using pip or `--single-version-externally-managed`
-        and the other installed in editable mode should leave the namespace
-        intact and both packages reachable by import.
-        (Ported from test_develop).
-        """
-        build_system = """\
-        [build-system]
-        requires = ["setuptools"]
-        build-backend = "setuptools.build_meta"
-        """
-        pkg_A = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgA", impl=impl)
-        pkg_B = namespaces.build_namespace_package(tmp_path, f"{ns}.pkgB", impl=impl)
-        (pkg_A / "pyproject.toml").write_text(build_system, encoding="utf-8")
-        (pkg_B / "pyproject.toml").write_text(build_system, encoding="utf-8")
-        # use pip to install to the target directory
-        opts = editable_opts[:]
-        opts.append("--no-build-isolation")  # force current version of setuptools
-        venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
-        venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
-        venv.run(["python", "-c", f"import {ns}.pkgA; import {ns}.pkgB"])
 
 
 class TestPep420Namespaces:

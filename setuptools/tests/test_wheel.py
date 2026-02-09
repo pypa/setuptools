@@ -449,7 +449,6 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
             },
         },
         setup_kwargs=dict(
-            namespace_packages=['foo'],
             packages=['foo.bar'],
         ),
         install_tree=flatten_tree({
@@ -460,7 +459,6 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                         'PKG-INFO',
                         'RECORD',
                         'WHEEL',
-                        'namespace_packages.txt',
                         'top_level.txt',
                     ]
                 },
@@ -483,7 +481,6 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
             },
         },
         setup_kwargs=dict(
-            namespace_packages=['foobar'],
             packages=['foobar'],
         ),
         install_tree=flatten_tree({
@@ -494,7 +491,6 @@ WHEEL_INSTALL_TESTS: tuple[dict[str, Any], ...] = (
                         'PKG-INFO',
                         'RECORD',
                         'WHEEL',
-                        'namespace_packages.txt',
                         'top_level.txt',
                     ]
                 },

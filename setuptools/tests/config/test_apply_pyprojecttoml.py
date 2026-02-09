@@ -23,7 +23,7 @@ from setuptools.command.egg_info import write_requirements
 from setuptools.config import expand, pyprojecttoml, setupcfg
 from setuptools.config._apply_pyprojecttoml import _MissingDynamic, _some_attrgetter
 from setuptools.dist import Distribution
-from setuptools.errors import InvalidConfigError, RemovedConfigError
+from setuptools.errors import InvalidConfigError
 from setuptools.warnings import InformationOnly, SetuptoolsDeprecationWarning
 
 from .downloads import retrieve_file, urls_from_file
@@ -553,21 +553,6 @@ class TestExtModules:
         assert len(dist.ext_modules) == 1
         assert dist.ext_modules[0].name == "my.ext"
         assert set(dist.ext_modules[0].sources) == {"hello.c", "world.c"}
-
-
-class TestDeprecatedFields:
-    def test_namespace_packages(self, tmp_path):
-        pyproject = tmp_path / "pyproject.toml"
-        config = """
-        [project]
-        name = "myproj"
-        version = "42"
-        [tool.setuptools]
-        namespace-packages = ["myproj.pkg"]
-        """
-        pyproject.write_text(cleandoc(config), encoding="utf-8")
-        with pytest.raises(RemovedConfigError, match="namespace-packages"):
-            pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
 
 
 class TestPresetField:
