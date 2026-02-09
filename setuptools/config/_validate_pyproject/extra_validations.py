@@ -75,7 +75,7 @@ def validate_project_dynamic(pyproject: T) -> T:
     return pyproject
 
 
-def validate_include_depenency(pyproject: T) -> T:
+def validate_include_dependency(pyproject: T) -> T:
     dependency_groups = pyproject.get("dependency-groups", {})
     for key, value in dependency_groups.items():
         for each in value:
@@ -146,6 +146,6 @@ def validate_import_name_issues(pyproject: T) -> T:
 
 EXTRA_VALIDATIONS = (
     validate_project_dynamic,
-    validate_include_depenency,
+    validate_include_dependency,
     validate_import_name_issues,
 )
