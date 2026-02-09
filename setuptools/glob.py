@@ -15,7 +15,9 @@ from collections.abc import Iterable, Iterator
 from typing import TYPE_CHECKING, TypeVar, overload
 
 if TYPE_CHECKING:
-    from _typeshed import BytesPath, StrOrBytesPath, StrPath
+    from _typeshed import BytesPath, StrOrBytesPath
+
+    from ._path import StrPath
 
     _StrOrBytesT = TypeVar("_StrOrBytesT", str, bytes)
 
