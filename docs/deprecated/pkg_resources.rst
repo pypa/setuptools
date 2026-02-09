@@ -22,27 +22,27 @@ Package Discovery and Resource Access using ``pkg_resources``
    Projects must migrate away from ``pkg_resources``. The recommended
    replacements are:
 
-     * Resource access: use :mod:`importlib.resources`
-       (or its backport :pypi:`importlib_resources`).
-     * Distribution metadata & entry points: use :mod:`importlib.metadata`
-       (or its backport :pypi:`importlib_metadata`).
-     * Requirement and version parsing: use :pypi:`packaging`.
-       This includes parsing and evaluating ``extras`` and markers via
-       ``packaging.requirements.Requirement`` and ``packaging.markers.Marker`.
-       Note that automatic installation or detection of extras is not provided;
-       projects requiring that behaviour must implement it themselves using
-       a combination of ``packaging``, ``importlib.metadata`` and other tools
-       as building blocks.
-     * Coexistence of multiple versions of a package: please consider using a different
-       approach, as this functionality is not supported by Python itself.
-       Alternatives include isolated environments and orchestration tools
-       (:mod:`venv`, :pypi:`tox`, :pypi:`nox`, etc.).
-     * Handling of ``.egg`` distributions: please consider using a different
-       approach, as the ``.egg`` and ``easy_install`` mechanisms have also been
-       discontinued.
-       Please use currently supported packaging formats
-       (see :external+PyPUG:`specifications/section-distribution-formats`)
-       and build/installation workflows (see :pep:`517`).
+   * Resource access: use :mod:`importlib.resources`
+     (or its backport :pypi:`importlib_resources`).
+   * Distribution metadata & entry points: use :mod:`importlib.metadata`
+     (or its backport :pypi:`importlib_metadata`).
+   * Requirement and version parsing: use :pypi:`packaging`.
+     This includes parsing and evaluating ``extras`` and markers via
+     ``packaging.requirements.Requirement`` and ``packaging.markers.Marker``.
+     Note that automatic installation or detection of extras is not provided;
+     projects requiring that behaviour must implement it themselves using
+     a combination of ``packaging``, ``importlib.metadata`` and other tools
+     as building blocks.
+   * Coexistence of multiple versions of a package: please consider using a different
+     approach, as this functionality is not supported by Python itself.
+     Alternatives include isolated environments and orchestration tools
+     (:mod:`venv`, :pypi:`tox`, :pypi:`nox`, etc.).
+   * Handling of ``.egg`` distributions: please consider using a different
+     approach, as the ``.egg`` and ``easy_install`` mechanisms have also been
+     discontinued.
+     Please use currently supported packaging formats
+     (see :external+PyPUG:`specifications/section-distribution-formats`)
+     and build/installation workflows (see :pep:`517`).
 
    **Note:** The following documentation may no longer accurately describe the
    behaviour of the distributed package and has been frozen at the last
