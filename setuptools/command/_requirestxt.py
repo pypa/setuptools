@@ -13,13 +13,15 @@ import io
 from collections import defaultdict
 from collections.abc import Mapping
 from itertools import filterfalse
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from jaraco.text import yield_lines
 from packaging.requirements import Requirement
 
 from .. import _reqs
-from .._reqs import _StrOrIter
+
+if TYPE_CHECKING:
+    from .._reqs import _StrOrIter
 
 # dict can work as an ordered set
 _T = TypeVar("_T")

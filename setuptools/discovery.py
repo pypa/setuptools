@@ -49,13 +49,13 @@ from typing import TYPE_CHECKING, ClassVar
 
 import _distutils_hack.override  # noqa: F401
 
-from ._path import StrPath
-
 from distutils import log
 from distutils.util import convert_path
 
 if TYPE_CHECKING:
     from setuptools import Distribution
+
+    from ._path import StrPath
 
 chain_iter = itertools.chain.from_iterable
 

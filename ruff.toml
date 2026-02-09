@@ -36,6 +36,9 @@ extend-select = [
 	"TRY", # tryceratops
 	"UP", # pyupgrade
 	"YTT", # flake8-2020
+	# Helps prevent circular imports, reduce runtime cost of typing symbols,
+	# and prevent leaking implementations details into modules
+  	"TC", # flake8-type-checking
 ]
 ignore = [
 	# upstream
@@ -67,14 +70,14 @@ ignore = [
 	"UP015", # redundant-open-modes, explicit is preferred
 	# Only enforcing return type annotations for public functions
 	"ANN202", # missing-return-type-private-function
+	# stdlib is not at risk of circular import, is clearly not public API,
+	# and assume it's gonna be included in the import chain at some point anyway 
+  	"TC003", # typing-only-standard-library-import
 ]
 
 [lint.per-file-ignores]
 # Suppress nuisance warnings about module-import-not-at-top-of-file (E402) due to workaround for #4476
 "setuptools/__init__.py" = ["E402"]
-# pkg_resources is due for removal, not worth fixing existing errors
-"pkg_resources/__init__.py" = ["E402", "ANN204"]
-"pkg_resources/tests/test_resources.py" = ["PT031"]
 
 [lint.isort]
 combine-as-imports = true
@@ -88,6 +91,9 @@ sections.delayed = ["distutils"]
 
 [lint.flake8-annotations]
 ignore-fully-untyped = true
+
+[lint.flake8-type-checking]
+quote-annotations = true
 
 [format]
 # Enable preview to get hugged parenthesis unwrapping and other nice surprises

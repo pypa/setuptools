@@ -10,17 +10,19 @@ from collections.abc import Iterable, Iterator
 from functools import partial
 from glob import glob
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from more_itertools import unique_everseen
 
-from .._path import StrPath, StrPathT
-from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning
 
 import distutils.command.build_py as orig
 import distutils.errors
 from distutils.util import convert_path
+
+if TYPE_CHECKING:
+    from .._path import StrPath, StrPathT
+    from ..dist import Distribution
 
 _IMPLICIT_DATA_FILES = ('*.pyi', 'py.typed')
 

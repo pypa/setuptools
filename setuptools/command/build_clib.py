@@ -1,9 +1,15 @@
-from ..dist import Distribution
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from ..modified import newer_pairwise_group
 
 import distutils.command.build_clib as orig
 from distutils import log
 from distutils.errors import DistutilsSetupError
+
+if TYPE_CHECKING:
+    from ..dist import Distribution
 
 
 class build_clib(orig.build_clib):
