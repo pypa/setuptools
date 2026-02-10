@@ -851,6 +851,11 @@ class _EditableFinder:  # MetaPathFinder
         for candidate in chain([init], candidates):
             if candidate.exists():
                 return spec_from_file_location(fullname, candidate)
+        if candidate_path.is_dir():
+            # treat it like a PEP 420 namespace package
+            spec = ModuleSpec(fullname, None, is_package=True)
+            spec.submodule_search_locations = [str(candidate_path)]
+            return spec
         return None
 
 
