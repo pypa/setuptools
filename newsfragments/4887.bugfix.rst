@@ -1,0 +1,1 @@
+Fixed handling of keywords following the old specification with spaces instead of commas and containing newlines.
