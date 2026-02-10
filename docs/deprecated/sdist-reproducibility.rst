@@ -104,7 +104,8 @@ relying on ``sdist``\s.
 
 Once these packages are identified, the next step is to build them in
 a controlled environment.
-You can use ``pip``\'s |PIP_CONSTRAINT|_ environment variable or the
+You can use ``pip``\'s |PIP_CONSTRAINT|_ / |PIP_BUILD_CONSTRAINT|_
+environment variables or the
 |build-constraint|_ ``uv``\'s CLI option to enforce specific versions of
 Python packages [#build-isolation]_.
 
@@ -172,6 +173,8 @@ primary workflows.
 .. _uv alternative: https://docs.astral.sh/uv/reference/settings/#pip_only-binary
 .. |PIP_CONSTRAINT| replace:: ``PIP_CONSTRAINT``
 .. _PIP_CONSTRAINT: https://pip.pypa.io/en/stable/cli/pip_install/#cmdoption-c
+.. |PIP_BUILD_CONSTRAINT| replace:: ``PIP_BUILD_CONSTRAINT``
+.. _PIP_BUILD_CONSTRAINT: https://pip.pypa.io/en/stable/cli/pip_download/#cmdoption-build-constraint
 .. |build-constraint| replace:: ``--build-constraint``
 .. _build-constraint: https://docs.astral.sh/uv/concepts/projects/build/#build-constraints
 .. _GitHub Workflows: https://docs.github.com/en/actions/writing-workflows
