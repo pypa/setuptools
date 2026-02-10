@@ -14,7 +14,7 @@ version = "82.0.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
-description = "Easily download, build, install, upgrade, and uninstall Python packages"
+description = "Most extensible Python build backend with support for C/C++ extension modules"
 readme = "README.rst"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
