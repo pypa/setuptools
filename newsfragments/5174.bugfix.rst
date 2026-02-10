@@ -1,0 +1,4 @@
+The ``pkg_resources`` package has been restored. It remains deprecated and
+should not be used for new packages. Existing users should migrate to a
+replacement as soon as possible. No new features or bug fixes will be accepted
+for this package.

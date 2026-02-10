@@ -14,10 +14,16 @@ Package Discovery and Resource Access using ``pkg_resources``
       ``pkg_resources`` issued official deprecation warnings as early as
       ``setuptools`` **v67.5.0**.
 
-   .. version-removed:: v82.0.0
+   .. version-changed:: v82.0.0
       ``pkg_resources`` is no longer maintained, no longer used internally by
       ``setuptools``, and is no longer included in current
       distributions/installations as of ``setuptools`` **v82.0.0**.
+
+   .. version-changed:: 83.0.0
+      ``pkg_resources`` is reintroduced but remains deprecated and should not
+      be used by new project. Existing projects should continue to migrate
+      away from it, as discussed below. No new features or bugfixes will be
+      accepted for this package.
 
    Projects must migrate away from ``pkg_resources``. The recommended
    replacements are:
