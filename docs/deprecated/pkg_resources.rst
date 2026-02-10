@@ -2,22 +2,60 @@
 Package Discovery and Resource Access using ``pkg_resources``
 =============================================================
 
-The ``pkg_resources`` module distributed with ``setuptools`` provides an API
+.. attention:: **This documentation is retained solely for historical purposes**
+
+   ``pkg_resources`` has long been **discouraged** due to architectural
+   limitations that led to persistent performance issues.
+   These limitations were inherent to its design (e.g. importing on startup,
+   scanning the entire environment for metadata, and eager, global
+   working‑set management) and could not be corrected.
+
+   .. version-deprecated:: v67.5.0
+      ``pkg_resources`` issued official deprecation warnings as early as
+      ``setuptools`` **v67.5.0**.
+
+   .. version-removed:: v82.0.0
+      ``pkg_resources`` is no longer maintained, no longer used internally by
+      ``setuptools``, and is no longer included in current
+      distributions/installations as of ``setuptools`` **v82.0.0**.
+
+   Projects must migrate away from ``pkg_resources``. The recommended
+   replacements are:
+
+   * Resource access: use :mod:`importlib.resources`
+     (or its backport :pypi:`importlib_resources`).
+   * Distribution metadata & entry points: use :mod:`importlib.metadata`
+     (or its backport :pypi:`importlib_metadata`).
+   * Requirement and version parsing: use :pypi:`packaging`.
+     This includes parsing and evaluating ``extras`` and markers via
+     ``packaging.requirements.Requirement`` and ``packaging.markers.Marker``.
+     Note that automatic installation or detection of extras is not provided;
+     projects requiring that behaviour must implement it themselves using
+     a combination of ``packaging``, ``importlib.metadata`` and other tools
+     as building blocks.
+   * Coexistence of multiple versions of a package: please consider using a different
+     approach, as this functionality is not supported by Python itself.
+     Alternatives include isolated environments and orchestration tools
+     (:mod:`venv`, :pypi:`tox`, :pypi:`nox`, etc.).
+   * Handling of ``.egg`` distributions: please consider using a different
+     approach, as the ``.egg`` and ``easy_install`` mechanisms have also been
+     discontinued.
+     Please use currently supported packaging formats
+     (see :external+PyPUG:`specifications/section-distribution-formats`)
+     and build/installation workflows (see :pep:`517`).
+
+   **Note:** The following documentation may no longer accurately describe the
+   behaviour of the distributed package and has been frozen at the last
+   ``setuptools`` release that still contained ``pkg_resources``.
+
+
+The ``pkg_resources`` module provides an API
 for Python libraries to access their resource files, and for extensible
 applications and frameworks to automatically discover plugins.  It also
 provides runtime support for using C extensions that are inside zipfile-format
 eggs, support for merging packages that have separately-distributed modules or
 subpackages, and APIs for managing Python's current "working set" of active
 packages.
-
-.. attention::
-   Use of ``pkg_resources`` is deprecated in favor of
-   :mod:`importlib.resources`, :mod:`importlib.metadata`
-   and their backports (:pypi:`importlib_resources`, :pypi:`importlib_metadata`).
-   Some useful APIs are also provided by :pypi:`packaging` (e.g. requirements
-   and version parsing).
-   Users should refrain from new usage of ``pkg_resources`` and
-   should work to port to importlib-based solutions.
 
 
 --------
