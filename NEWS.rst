@@ -786,7 +786,7 @@ Features
 
 - Added return types to typed public functions -- by :user:`Avasam`
 
-  Marked `pkg_resources` as ``py.typed`` -- by :user:`Avasam` (#4409)
+  Marked ``pkg_resources`` as ``py.typed`` -- by :user:`Avasam` (#4409)
 
 
 Misc
@@ -920,7 +920,7 @@ Features
 - Improved `AttributeError` error message if ``pkg_resources.EntryPoint.require`` is called without extras or distribution
   Gracefully "do nothing" when trying to activate a ``pkg_resources.Distribution`` with a `None` location, rather than raising a `TypeError`
   -- by :user:`Avasam` (#4262)
-- Typed the dynamically defined variables from `pkg_resources` -- by :user:`Avasam` (#4267)
+- Typed the dynamically defined variables from ``pkg_resources`` -- by :user:`Avasam` (#4267)
 - Modernized and refactored VCS handling in package_index. (#4332)
 
 
@@ -1050,8 +1050,8 @@ Features
 Bugfixes
 --------
 
-- Clarify some `pkg_resources` methods return `bytes`, not `str`. Also return an empty `bytes` in ``EmptyProvider._get`` -- by :user:`Avasam` (#4243)
-- Return an empty `list` by default in ``pkg_resources.ResourceManager.cleanup_resources`` -- by :user:`Avasam` (#4244)
+- Clarify some ``pkg_resources`` methods return ``bytes``, not ``str``. Also return an empty ``bytes`` in ``EmptyProvider._get`` -- by :user:`Avasam` (#4243)
+- Return an empty ``list`` by default in ``pkg_resources.ResourceManager.cleanup_resources`` -- by :user:`Avasam` (#4244)
 - Made ``pkg_resoursces.NullProvider``'s ``has_metadata`` and ``metadata_isdir`` methods return actual booleans like all other Providers. -- by :user:`Avasam` (#4254)
 
 
@@ -1084,7 +1084,7 @@ Features
 --------
 
 - Updated and removed obsolete Python < 3.8 code and comments. -- by :user:`Avasam` (#4096)
-- Updated `pkg_resources` to use stdlib `importlib.machinery` instead of ``importlib_machinery`` -- by :user:`Avasam` (#4097)
+- Updated ``pkg_resources`` to use stdlib ``importlib.machinery`` instead of ``importlib_machinery`` -- by :user:`Avasam` (#4097)
 
 
 Bugfixes
