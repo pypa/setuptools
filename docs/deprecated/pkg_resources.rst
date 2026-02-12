@@ -41,7 +41,7 @@ Package Discovery and Resource Access using ``pkg_resources``
      approach, as the ``.egg`` and ``easy_install`` mechanisms have also been
      discontinued.
      Please use currently supported packaging formats
-     (see :external+PyPUG:`specifications/section-distribution-formats`)
+     (see :external+PyPUG:doc:`specifications/section-distribution-formats`)
      and build/installation workflows (see :pep:`517`).
 
    **Note:** The following documentation may no longer accurately describe the
