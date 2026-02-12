@@ -265,7 +265,7 @@ class TestBuildMetaBackend:
         modules = [f for f in python_scripts if not f.endswith('setup.py')]
         assert len(modules) == 1
 
-    @pytest.mark.parametrize('build_type', ('wheel', 'sdist'))
+    @pytest.mark.parametrize('build_type', ['wheel', 'sdist'])
     def test_build_with_existing_file_present(self, build_type, tmpdir_cwd):
         # Building a sdist/wheel should still succeed if there's
         # already a sdist/wheel in the destination directory.
@@ -908,7 +908,7 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
 
-    @pytest.mark.parametrize('build_hook', ('build_sdist', 'build_wheel'))
+    @pytest.mark.parametrize('build_hook', ['build_sdist', 'build_wheel'])
     def test_build_with_empty_setuppy(self, build_backend, build_hook):
         files = {'setup.py': ''}
         path.build(files)
