@@ -27,7 +27,7 @@ classifiers = [
 	"Topic :: Utilities",
 ]
 requires-python = ">=3.9"
-license = "MIT"
+# For license information, please check license files included in the distribution.
 dependencies = [
 ]
 keywords = ["CPAN PyPI distutils eggs package management"]
