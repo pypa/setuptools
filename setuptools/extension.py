@@ -5,13 +5,14 @@ import re
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
-from setuptools._path import StrPath
-
 from .monkey import get_unpatched
 
 import distutils.core
 import distutils.errors
 import distutils.extension
+
+if TYPE_CHECKING:
+    from setuptools._path import StrPath
 
 
 def _have_cython() -> bool:
@@ -31,6 +32,7 @@ def _have_cython() -> bool:
 have_pyrex = _have_cython
 if TYPE_CHECKING:
     # Work around a mypy issue where type[T] can't be used as a base: https://github.com/python/mypy/issues/10962
+
     from distutils.core import Extension as _Extension
 else:
     _Extension = get_unpatched(distutils.core.Extension)

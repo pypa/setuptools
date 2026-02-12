@@ -620,7 +620,7 @@ def _get_dist(dist_path, attrs):
     if script.exists():
         with Path(dist_path):
             dist = cast(
-                Distribution,
+                "Distribution",
                 distutils.core.run_setup("setup.py", {}, stop_after="init"),
             )
     else:

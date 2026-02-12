@@ -25,8 +25,6 @@ from . import (
 )
 from ._importlib import metadata
 from ._normalization import _canonicalize_license_expression
-from ._path import StrPath
-from ._reqs import _StrOrIter
 from .config import pyprojecttoml, setupcfg
 from .discovery import ConfigDiscovery
 from .errors import InvalidConfigError
@@ -45,6 +43,9 @@ from distutils.util import strtobool
 
 if TYPE_CHECKING:
     from typing_extensions import TypeAlias
+
+    from ._path import StrPath
+    from ._reqs import _StrOrIter
 
 
 __all__ = ['Distribution']

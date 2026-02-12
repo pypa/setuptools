@@ -3,11 +3,13 @@ from __future__ import annotations
 import os
 import sys
 from itertools import product, starmap
-
-from .._path import StrPath
-from ..dist import Distribution
+from typing import TYPE_CHECKING
 
 import distutils.command.install_lib as orig
+
+if TYPE_CHECKING:
+    from .._path import StrPath
+    from ..dist import Distribution
 
 
 class install_lib(orig.install_lib):

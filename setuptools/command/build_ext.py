@@ -11,7 +11,6 @@ from importlib.util import cache_from_source as _compiled_file_name
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from setuptools.dist import Distribution
 from setuptools.errors import BaseError
 from setuptools.extension import Extension, Library
 
@@ -20,6 +19,8 @@ from distutils.ccompiler import new_compiler
 from distutils.sysconfig import customize_compiler, get_config_var
 
 if TYPE_CHECKING:
+    from setuptools.dist import Distribution
+
     # Cython not installed on CI tests, causing _build_ext to be `Any`
     from distutils.command.build_ext import build_ext as _build_ext
 else:
