@@ -505,19 +505,26 @@ available to your interpreter.
 
 Legacy Namespace Packages
 =========================
+
+.. deprecated::
+   The ``pkg_resources``-style and ``pkgutil``-style namespace packages
+   described below are **deprecated and no longer supported**.
+   Please migrate to :pep:`420`-style implicit namespace packages.
+
 The fact you can create namespace packages so effortlessly above is credited
 to :pep:`420`. It used to be more
 cumbersome to accomplish the same result. Historically, there were two methods
-to create namespace packages. One is the ``pkg_resources`` style supported by
-``setuptools`` and the other one being ``pkgutils`` style offered by
-``pkgutils`` module in Python. Both are now considered *deprecated* despite the
-fact they still linger in many existing packages. These two differ in many
-subtle yet significant aspects and you can find out more on `Python packaging
-user guide <https://packaging.python.org/guides/packaging-namespace-packages/>`_.
+to create namespace packages. One is the ``pkg_resources`` style formerly
+supported by ``setuptools`` and the other one being ``pkgutil`` style offered
+by the ``pkgutil`` module in Python. Both are now **deprecated and no longer
+supported** despite the fact they still linger in many existing packages.
+These two differ in many subtle yet significant aspects and you can find out
+more on the `Python packaging user guide
+<https://packaging.python.org/guides/packaging-namespace-packages/>`_.
 
 
-``pkg_resource`` style namespace package
-----------------------------------------
+``pkg_resources`` style namespace package
+-----------------------------------------
 This is the method ``setuptools`` directly supports. Starting with the same
 layout, there are two pieces you need to add to it. First, an ``__init__.py``
 file directly under your namespace package directory that contains the
@@ -562,7 +569,7 @@ the previous section.
 
 ``pkgutil`` style namespace package
 -----------------------------------
-This method is almost identical to the ``pkg_resource`` except that the
+This method is almost identical to the ``pkg_resources`` style except that the
 ``namespace_packages`` declaration is omitted and the ``__init__.py``
 file contains the following:
 

@@ -1,0 +1,1 @@
+Updated documentation to remove stale references to ``pkg_resources`` as an active module -- by :user:`veeceey`
