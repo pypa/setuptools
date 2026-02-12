@@ -204,6 +204,7 @@ include-package-data = true
 [tool.setuptools.packages.find]
 include = [
 	"setuptools*",
+	"pkg_resources*",
 	"_distutils_hack*",
 ]
 exclude = [
