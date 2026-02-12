@@ -268,8 +268,16 @@ def _optional_dependencies(dist: Distribution, val: dict, _root_dir: StrPath | N
 def _ext_modules(dist: Distribution, val: list[dict]) -> list[Extension]:
     existing = dist.ext_modules or []
     args = ({k.replace("-", "_"): v for k, v in x.items()} for x in val)
-    new = [Extension(**kw) for kw in args]
+    new = (Extension(**_adjust_ext_attrs(kw)) for kw in args)
     return [*existing, *new]
+
+
+def _adjust_ext_attrs(attrs: dict) -> dict:
+    # https://github.com/pypa/setuptools/issues/4810
+    # In TOML there is no differentiation between tuples and lists,
+    # and distutils requires lists...
+    attrs["define_macros"] = list(map(tuple, attrs.get("define_macros") or []))
+    return attrs
 
 
 def _noop(_dist: Distribution, val: _T) -> _T:
