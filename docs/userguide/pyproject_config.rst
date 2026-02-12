@@ -170,7 +170,7 @@ existing packages should consider migrating to alternatives.
       packages = ["my_package"]
 
    If you want to publish a distribution that does not include any Python module
-   (e.g. a "meta-distribution" that just aggregate dependencies), please
+   (e.g. a "meta-distribution" that just aggregates dependencies), please
    consider something like the following:
 
    .. code-block:: toml
