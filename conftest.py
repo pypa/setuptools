@@ -32,7 +32,6 @@ collect_ignore = [
     'setuptools/tests/mod_with_constant.py',
     'setuptools/_distutils',
     '_distutils_hack',
-    'pkg_resources/tests/data',
     'setuptools/_vendor',
     'setuptools/config/_validate_pyproject',
     'setuptools/modified.py',
