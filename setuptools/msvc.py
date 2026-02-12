@@ -38,7 +38,7 @@ else:
         HKEY_LOCAL_MACHINE = None
         HKEY_CLASSES_ROOT = None
 
-    environ: dict[str, str] = dict()
+    environ: dict[str, str] = {}
 
 
 class PlatformInfo:

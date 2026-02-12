@@ -227,7 +227,7 @@ class TestManifestTest(TempDirTestCase):
 
     def test_no_manifest(self):
         """Check a missing MANIFEST.in includes only the standard files."""
-        assert (default_files - set(['MANIFEST.in'])) == self.get_files()
+        assert (default_files - {'MANIFEST.in'}) == self.get_files()
 
     def test_empty_files(self):
         """Check an empty MANIFEST.in includes only the standard files."""
@@ -237,7 +237,7 @@ class TestManifestTest(TempDirTestCase):
     def test_include(self):
         """Include extra rst files in the project root."""
         self.make_manifest("include *.rst")
-        files = default_files | set(['testing.rst', '.hidden.rst'])
+        files = default_files | {'testing.rst', '.hidden.rst'}
         assert files == self.get_files()
 
     def test_exclude(self):
@@ -249,45 +249,45 @@ class TestManifestTest(TempDirTestCase):
             exclude app/*.txt
             """
         )
-        files = default_files | set([ml('app/c.rst')])
+        files = default_files | {ml('app/c.rst')}
         assert files == self.get_files()
 
     def test_include_multiple(self):
         """Include with multiple patterns."""
         ml = make_local_path
         self.make_manifest("include app/*.txt app/static/*")
-        files = default_files | set([
+        files = default_files | {
             ml('app/a.txt'),
             ml('app/b.txt'),
             ml('app/static/app.js'),
             ml('app/static/app.js.map'),
             ml('app/static/app.css'),
             ml('app/static/app.css.map'),
-        ])
+        }
         assert files == self.get_files()
 
     def test_graft(self):
         """Include the whole app/static/ directory."""
         ml = make_local_path
         self.make_manifest("graft app/static")
-        files = default_files | set([
+        files = default_files | {
             ml('app/static/app.js'),
             ml('app/static/app.js.map'),
             ml('app/static/app.css'),
             ml('app/static/app.css.map'),
-        ])
+        }
         assert files == self.get_files()
 
     def test_graft_glob_syntax(self):
         """Include the whole app/static/ directory."""
         ml = make_local_path
         self.make_manifest("graft */static")
-        files = default_files | set([
+        files = default_files | {
             ml('app/static/app.js'),
             ml('app/static/app.js.map'),
             ml('app/static/app.css'),
             ml('app/static/app.css.map'),
-        ])
+        }
         assert files == self.get_files()
 
     def test_graft_global_exclude(self):
@@ -299,7 +299,7 @@ class TestManifestTest(TempDirTestCase):
             global-exclude *.map
             """
         )
-        files = default_files | set([ml('app/static/app.js'), ml('app/static/app.css')])
+        files = default_files | {ml('app/static/app.js'), ml('app/static/app.css')}
         assert files == self.get_files()
 
     def test_global_include(self):
@@ -310,13 +310,13 @@ class TestManifestTest(TempDirTestCase):
             global-include *.rst *.js *.css
             """
         )
-        files = default_files | set([
+        files = default_files | {
             '.hidden.rst',
             'testing.rst',
             ml('app/c.rst'),
             ml('app/static/app.js'),
             ml('app/static/app.css'),
-        ])
+        }
         assert files == self.get_files()
 
     def test_graft_prune(self):
@@ -328,7 +328,7 @@ class TestManifestTest(TempDirTestCase):
             prune app/static
             """
         )
-        files = default_files | set([ml('app/a.txt'), ml('app/b.txt'), ml('app/c.rst')])
+        files = default_files | {ml('app/a.txt'), ml('app/b.txt'), ml('app/c.rst')}
         assert files == self.get_files()
 
 
