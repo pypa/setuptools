@@ -12,7 +12,7 @@ import os
 import sys
 from abc import abstractmethod
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, TypeVar, overload
+from typing import TYPE_CHECKING, Literal, TypeVar, overload
 
 sys.path.extend(((vendor_path := os.path.join(os.path.dirname(os.path.dirname(__file__)), 'setuptools', '_vendor')) not in sys.path) * [vendor_path])  # fmt: skip
 # workaround for #4476
@@ -29,6 +29,29 @@ from .version import __version__ as __version__
 from .warnings import SetuptoolsDeprecationWarning
 
 import distutils.core
+
+if TYPE_CHECKING:
+    from .command.alias import alias
+    from .command.bdist_egg import bdist_egg
+    from .command.bdist_rpm import bdist_rpm
+    from .command.bdist_wheel import bdist_wheel
+    from .command.build import build
+    from .command.build_clib import build_clib
+    from .command.build_ext import build_ext
+    from .command.build_py import build_py
+    from .command.develop import develop
+    from .command.dist_info import dist_info
+    from .command.easy_install import easy_install
+    from .command.editable_wheel import editable_wheel
+    from .command.egg_info import egg_info
+    from .command.install import install
+    from .command.install_egg_info import install_egg_info
+    from .command.install_lib import install_lib
+    from .command.install_scripts import install_scripts
+    from .command.rotate import rotate
+    from .command.saveopts import saveopts
+    from .command.sdist import sdist
+    from .command.setopt import setopt
 
 __all__ = [
     'setup',
@@ -181,6 +204,200 @@ class Command(_Command):
         super().__init__(dist)
         vars(self).update(kw)
 
+    if TYPE_CHECKING:
+        # Note: Commands that setuptools doesn't re-expose are considered deprecated (they must be imported from distutils directly)
+        # So we're not listing them here. This list comes directly from the setuptools/command folder. Minus the test command.
+        @overload  # type: ignore[no-overload-impl] # This overrides from distutils
+        def get_finalized_command(  # pyright: ignore[reportNoOverloadImplementation] # This overrides form distutils
+            self, command: Literal["alias"], create: bool = True
+        ) -> alias: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["bdist_egg"], create: bool = True
+        ) -> bdist_egg: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["bdist_rpm"], create: bool = True
+        ) -> bdist_rpm: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["bdist_wheel"], create: bool = True
+        ) -> bdist_wheel: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["build"], create: bool = True
+        ) -> build: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["build_clib"], create: bool = True
+        ) -> build_clib: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["build_ext"], create: bool = True
+        ) -> build_ext: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["build_py"], create: bool = True
+        ) -> build_py: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["develop"], create: bool = True
+        ) -> develop: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["dist_info"], create: bool = True
+        ) -> dist_info: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["easy_install"], create: bool = True
+        ) -> easy_install: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["editable_wheel"], create: bool = True
+        ) -> editable_wheel: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["egg_info"], create: bool = True
+        ) -> egg_info: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["install"], create: bool = True
+        ) -> install: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["install_egg_info"], create: bool = True
+        ) -> install_egg_info: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["install_lib"], create: bool = True
+        ) -> install_lib: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["install_scripts"], create: bool = True
+        ) -> install_scripts: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["rotate"], create: bool = True
+        ) -> rotate: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["saveopts"], create: bool = True
+        ) -> saveopts: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["sdist"], create: bool = True
+        ) -> sdist: ...
+        @overload
+        def get_finalized_command(
+            self, command: Literal["setopt"], create: bool = True
+        ) -> setopt: ...
+        @overload
+        def get_finalized_command(
+            self, command: str, create: bool = True
+        ) -> Command: ...
+
+    @overload
+    def reinitialize_command(
+        self, command: Literal["alias"], reinit_subcommands: bool = False, **kw
+    ) -> alias: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["bdist_egg"], reinit_subcommands: bool = False, **kw
+    ) -> bdist_egg: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["bdist_rpm"], reinit_subcommands: bool = False, **kw
+    ) -> bdist_rpm: ...
+    @overload
+    def reinitialize_command(
+        self,
+        command: Literal["bdist_wheel"],
+        reinit_subcommands: bool = False,
+        **kw,
+    ) -> bdist_wheel: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["build"], reinit_subcommands: bool = False, **kw
+    ) -> build: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["build_clib"], reinit_subcommands: bool = False, **kw
+    ) -> build_clib: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["build_ext"], reinit_subcommands: bool = False, **kw
+    ) -> build_ext: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["build_py"], reinit_subcommands: bool = False, **kw
+    ) -> build_py: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["develop"], reinit_subcommands: bool = False, **kw
+    ) -> develop: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["dist_info"], reinit_subcommands: bool = False, **kw
+    ) -> dist_info: ...
+    @overload
+    def reinitialize_command(
+        self,
+        command: Literal["easy_install"],
+        reinit_subcommands: bool = False,
+        **kw,
+    ) -> easy_install: ...
+    @overload
+    def reinitialize_command(
+        self,
+        command: Literal["editable_wheel"],
+        reinit_subcommands: bool = False,
+        **kw,
+    ) -> editable_wheel: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["egg_info"], reinit_subcommands: bool = False, **kw
+    ) -> egg_info: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["install"], reinit_subcommands: bool = False, **kw
+    ) -> install: ...
+    @overload
+    def reinitialize_command(
+        self,
+        command: Literal["install_egg_info"],
+        reinit_subcommands: bool = False,
+        **kw,
+    ) -> install_egg_info: ...
+    @overload
+    def reinitialize_command(
+        self,
+        command: Literal["install_lib"],
+        reinit_subcommands: bool = False,
+        **kw,
+    ) -> install_lib: ...
+    @overload
+    def reinitialize_command(
+        self,
+        command: Literal["install_scripts"],
+        reinit_subcommands: bool = False,
+        **kw,
+    ) -> install_scripts: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["rotate"], reinit_subcommands: bool = False, **kw
+    ) -> rotate: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["saveopts"], reinit_subcommands: bool = False, **kw
+    ) -> saveopts: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["sdist"], reinit_subcommands: bool = False, **kw
+    ) -> sdist: ...
+    @overload
+    def reinitialize_command(
+        self, command: Literal["setopt"], reinit_subcommands: bool = False, **kw
+    ) -> setopt: ...
     @overload
     def reinitialize_command(
         self, command: str, reinit_subcommands: bool = False, **kw
@@ -194,7 +411,7 @@ class Command(_Command):
     ) -> Command | _Command:
         cmd = _Command.reinitialize_command(self, command, reinit_subcommands)
         vars(cmd).update(kw)
-        return cmd  # pyright: ignore[reportReturnType] # pypa/distutils#307
+        return cmd
 
     @abstractmethod
     def initialize_options(self) -> None:
