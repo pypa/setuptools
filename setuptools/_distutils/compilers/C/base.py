@@ -1327,6 +1327,9 @@ def gen_preprocess_options(
     # and therefore common to all CCompiler classes.
     pp_opts = []
     for macro in macros:
+        # Convert lists to tuples to support TOML format which uses arrays
+        if isinstance(macro, list):
+            macro = tuple(macro)
         if not (isinstance(macro, tuple) and 1 <= len(macro) <= 2):
             raise TypeError(
                 f"bad macro definition '{macro}': "

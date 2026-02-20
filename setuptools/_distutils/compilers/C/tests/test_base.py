@@ -81,3 +81,45 @@ def test_include_dirs_after_multiple_compile_calls(c_file):
     assert compiler.include_dirs == [python]
     compiler.compile([c_file])
     assert compiler.include_dirs == [python]
+
+
+def test_gen_preprocess_options_with_lists():
+    """
+    Test that gen_preprocess_options accepts lists (from TOML format)
+    and converts them to tuples. Regression test for issue #4810.
+    """
+    from ..base import gen_preprocess_options
+    
+    # Test with lists (as provided by TOML/pyproject.toml)
+    macros_as_lists = [
+        ["MACRO1"],  # single-element list
+        ["MACRO2", "value"],  # two-element list
+        ["MACRO3", None],  # list with None
+    ]
+    
+    result = gen_preprocess_options(macros_as_lists, [])
+    assert "-UMACRO1" in result
+    assert "-DMACRO2=value" in result
+    assert "-DMACRO3" in result
+    
+    # Test with tuples (original format should still work)
+    macros_as_tuples = [
+        ("MACRO4",),
+        ("MACRO5", "value"),
+        ("MACRO6", None),
+    ]
+    
+    result = gen_preprocess_options(macros_as_tuples, [])
+    assert "-UMACRO4" in result
+    assert "-DMACRO5=value" in result
+    assert "-DMACRO6" in result
+    
+    # Test mixed lists and tuples
+    mixed_macros = [
+        ["MACRO_A"],
+        ("MACRO_B", "value"),
+    ]
+    
+    result = gen_preprocess_options(mixed_macros, [])
+    assert "-UMACRO_A" in result
+    assert "-DMACRO_B=value" in result
