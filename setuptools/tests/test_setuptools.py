@@ -79,9 +79,16 @@ class TestDepends:
 
     @needs_bytecode
     def testModuleExtract(self):
-        from json import __version__
+        # Use a test fixture module instead of json, whose __version__ was
+        # deprecated in Python 3.15 and moved behind __getattr__ (gh-5186).
+        from setuptools.tests.mod_with_constant import __version__
 
-        assert dep.get_module_constant('json', '__version__') == __version__
+        assert (
+            dep.get_module_constant(
+                'setuptools.tests.mod_with_constant', '__version__'
+            )
+            == __version__
+        )
         assert dep.get_module_constant('sys', 'version') == sys.version
         assert (
             dep.get_module_constant('setuptools.tests.test_setuptools', '__doc__')
@@ -90,15 +97,18 @@ class TestDepends:
 
     @needs_bytecode
     def testRequire(self):
-        req = Require('Json', '1.0.3', 'json')
+        # Use a test fixture module instead of json, whose __version__ was
+        # deprecated in Python 3.15 and moved behind __getattr__ (gh-5186).
+        mod_name = 'setuptools.tests.mod_with_constant'
+        req = Require('ModWithConstant', '1.0.3', mod_name)
 
-        assert req.name == 'Json'
-        assert req.module == 'json'
+        assert req.name == 'ModWithConstant'
+        assert req.module == mod_name
         assert req.requested_version == Version('1.0.3')
         assert req.attribute == '__version__'
-        assert req.full_name() == 'Json-1.0.3'
+        assert req.full_name() == 'ModWithConstant-1.0.3'
 
-        from json import __version__
+        from setuptools.tests.mod_with_constant import __version__
 
         assert str(req.get_version()) == __version__
         assert req.version_ok('1.0.9')
