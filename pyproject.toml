@@ -95,7 +95,7 @@ doc = [
 ssl = []
 certs = []
 core = [
-	"packaging>=24.2",
+	"packaging @ get+https://github.com/ngoldbaum/packaging@abi3.abi3t",
 	"more_itertools>=8.8",
 	"jaraco.text>=3.7",
 	"importlib_metadata>=6; python_version < '3.10'",
