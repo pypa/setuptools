@@ -281,11 +281,11 @@ class bdist_wheel(Command):
         if not re.match(PY_LIMITED_API_PATTERN, self.py_limited_api):
             raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
 
-        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+        if sysconfig.get_config_var("Py_GIL_DISABLED") and sys.version_info < (3, 15):
             raise ValueError(
                 f"`py_limited_api={self.py_limited_api!r}` not supported. "
-                "`Py_LIMITED_API` is currently incompatible with "
-                "`Py_GIL_DISABLED`. "
+                "`Py_LIMITED_API` is incompatible with `Py_GIL_DISABLED` "
+                "on Python 3.14 and older. "
                 "See https://github.com/python/cpython/issues/111506."
             )
 
@@ -345,7 +345,10 @@ class bdist_wheel(Command):
             # We don't work on CPython 3.1, 3.0.
             if self.py_limited_api and (impl_name + impl_ver).startswith("cp3"):
                 impl = self.py_limited_api
-                abi_tag = "abi3"
+                if sysconfig.get_config_var("Py_GIL_DISABLED"):
+                    abi_tag = "abi3.abi3t"
+                else:
+                    abi_tag = "abi3"
             else:
                 abi_tag = str(get_abi_tag()).lower()
             tag = (impl, abi_tag, plat_name)
@@ -354,7 +357,9 @@ class bdist_wheel(Command):
                 (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
             ]
             assert tag in supported_tags, (
-                f"would build wheel with unsupported tag {tag}"
+                f"would build wheel with unsupported tag {tag},\n"
+                "supported tags are:\n"
+                f"{supported_tags}"
             )
         return tag
 
