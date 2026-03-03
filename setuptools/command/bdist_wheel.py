@@ -357,9 +357,7 @@ class bdist_wheel(Command):
                 (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
             ]
             assert tag in supported_tags, (
-                f"would build wheel with unsupported tag {tag},\n"
-                "supported tags are:\n"
-                f"{supported_tags}"
+                f"would build wheel with unsupported tag {tag}"
             )
         return tag
 
