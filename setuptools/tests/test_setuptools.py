@@ -77,30 +77,34 @@ class TestDepends:
         f, _p, _i = dep.find_module('setuptools.tests')
         f.close()
 
-    @needs_bytecode
-    def testModuleExtract(self):
-        from json import __version__
+    @pytest.fixture
+    def sample_module(self, monkeypatch, tmp_path):
+        monkeypatch.syspath_prepend(str(tmp_path))
+        module = "mod_with_version"
+        version = "2.0.9"
+        file = tmp_path / f"{module}.py"
+        file.write_text(f"__version__ = {version!r}", encoding="utf-8")
+        return (module, version)
 
-        assert dep.get_module_constant('json', '__version__') == __version__
+    @needs_bytecode
+    def testModuleExtract(self, sample_module):
+        (module, version) = sample_module
+        assert dep.get_module_constant(module, '__version__') == version
         assert dep.get_module_constant('sys', 'version') == sys.version
-        assert (
-            dep.get_module_constant('setuptools.tests.test_setuptools', '__doc__')
-            == __doc__
-        )
+        assert dep.get_module_constant(__name__, '__doc__') == __doc__
 
     @needs_bytecode
-    def testRequire(self):
-        req = Require('Json', '1.0.3', 'json')
+    def testRequire(self, sample_module):
+        (module, version) = sample_module
+        req = Require('GivenName', '1.0.3', module)
 
-        assert req.name == 'Json'
-        assert req.module == 'json'
+        assert req.name == 'GivenName'
+        assert req.module == module
         assert req.requested_version == Version('1.0.3')
         assert req.attribute == '__version__'
-        assert req.full_name() == 'Json-1.0.3'
+        assert req.full_name() == 'GivenName-1.0.3'
 
-        from json import __version__
-
-        assert str(req.get_version()) == __version__
+        assert str(req.get_version()) == version
         assert req.version_ok('1.0.9')
         assert not req.version_ok('0.9.1')
         assert not req.version_ok('unknown')
