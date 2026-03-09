@@ -239,8 +239,8 @@ favicons = [
 ]
 
 intersphinx_mapping.update({
-    'pip': ('https://pip.pypa.io/en/latest', None),
-    'build': ('https://build.pypa.io/en/latest', None),
+    'pip': ('https://pip.pypa.io/en/stable', None),
+    'build': ('https://build.pypa.io/en/stable', None),
     'PyPUG': ('https://packaging.python.org/en/latest', None),
     'pytest': ('https://docs.pytest.org/en/stable', None),
     'packaging': ('https://packaging.pypa.io/en/latest', None),
