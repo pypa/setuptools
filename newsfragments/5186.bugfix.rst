@@ -1,1 +1,1 @@
-Replace deprecated ``json.__version__`` with fixture in tests.
+Replaced deprecated ``json.__version__`` with fixture in tests.
