@@ -7,7 +7,9 @@ The correspondence is given by replacing the ``_`` character in the name of the
 function with a ``-`` to obtain the format name and vice versa.
 """
 
-import builtins
+from __future__ import annotations
+
+import keyword
 import logging
 import os
 import re
@@ -16,6 +18,8 @@ import typing
 from itertools import chain as _chain
 
 if typing.TYPE_CHECKING:
+    import builtins
+
     from typing_extensions import Literal
 
 _logger = logging.getLogger(__name__)
@@ -54,7 +58,9 @@ VERSION_PATTERN = r"""
     (?:\+(?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
 """
 
-VERSION_REGEX = re.compile(r"^\s*" + VERSION_PATTERN + r"\s*$", re.X | re.I)
+VERSION_REGEX = re.compile(
+    r"^\s*" + VERSION_PATTERN + r"\s*$", re.VERBOSE | re.IGNORECASE
+)
 
 
 def pep440(version: str) -> bool:
@@ -68,7 +74,7 @@ def pep440(version: str) -> bool:
 # PEP 508
 
 PEP508_IDENTIFIER_PATTERN = r"([A-Z0-9]|[A-Z0-9][A-Z0-9._-]*[A-Z0-9])"
-PEP508_IDENTIFIER_REGEX = re.compile(f"^{PEP508_IDENTIFIER_PATTERN}$", re.I)
+PEP508_IDENTIFIER_REGEX = re.compile(f"^{PEP508_IDENTIFIER_PATTERN}$", re.IGNORECASE)
 
 
 def pep508_identifier(name: str) -> bool:
@@ -93,9 +99,9 @@ try:
         """
         try:
             _req.Requirement(value)
-            return True
         except _req.InvalidRequirement:
             return False
+        return True
 
 except ImportError:  # pragma: no cover
     _logger.warning(
@@ -104,7 +110,7 @@ except ImportError:  # pragma: no cover
         "To enforce validation, please install `packaging`."
     )
 
-    def pep508(value: str) -> bool:
+    def pep508(value: str) -> bool:  # noqa: ARG001
         return True
 
 
@@ -163,7 +169,7 @@ class _TroveClassifier:
     option (classifiers will be validated anyway during the upload to PyPI).
     """
 
-    downloaded: typing.Union[None, "Literal[False]", typing.Set[str]]
+    downloaded: None | Literal[False] | set[str]
     """
     None => not cached yet
     False => unavailable
@@ -200,7 +206,7 @@ class _TroveClassifier:
             _logger.debug(msg)
             try:
                 self.downloaded = set(_download_classifiers().splitlines())
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self.downloaded = False
                 _logger.debug("Problem with download, skipping validation")
                 return True
@@ -253,21 +259,23 @@ def url(value: str) -> bool:
                 "`scheme` prefix in your URL (e.g. 'http://'). "
                 f"Given value: {value}"
             )
-            if not (value.startswith("/") or value.startswith("\\") or "@" in value):
+            if not (value.startswith(("/", "\\")) or "@" in value):
                 parts = urlparse(f"http://{value}")
 
         return bool(parts.scheme and parts.netloc)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
 # https://packaging.python.org/specifications/entry-points/
 ENTRYPOINT_PATTERN = r"[^\[\s=]([^=]*[^\s=])?"
-ENTRYPOINT_REGEX = re.compile(f"^{ENTRYPOINT_PATTERN}$", re.I)
+ENTRYPOINT_REGEX = re.compile(f"^{ENTRYPOINT_PATTERN}$", re.IGNORECASE)
 RECOMMEDED_ENTRYPOINT_PATTERN = r"[\w.-]+"
-RECOMMEDED_ENTRYPOINT_REGEX = re.compile(f"^{RECOMMEDED_ENTRYPOINT_PATTERN}$", re.I)
+RECOMMEDED_ENTRYPOINT_REGEX = re.compile(
+    f"^{RECOMMEDED_ENTRYPOINT_PATTERN}$", re.IGNORECASE
+)
 ENTRYPOINT_GROUP_PATTERN = r"\w+(\.\w+)*"
-ENTRYPOINT_GROUP_REGEX = re.compile(f"^{ENTRYPOINT_GROUP_PATTERN}$", re.I)
+ENTRYPOINT_GROUP_REGEX = re.compile(f"^{ENTRYPOINT_GROUP_PATTERN}$", re.IGNORECASE)
 
 
 def python_identifier(value: str) -> bool:
@@ -368,9 +376,39 @@ def uint16(value: builtins.int) -> bool:
     return 0 <= value < 2**16
 
 
-def uint(value: builtins.int) -> bool:
+def uint32(value: builtins.int) -> bool:
+    r"""Unsigned 32-bit integer (:math:`0 \leq x < 2^{32}`)"""
+    return 0 <= value < 2**32
+
+
+def uint64(value: builtins.int) -> bool:
     r"""Unsigned 64-bit integer (:math:`0 \leq x < 2^{64}`)"""
     return 0 <= value < 2**64
+
+
+def uint(value: builtins.int) -> bool:
+    r"""Signed 64-bit integer (:math:`0 \leq x < 2^{64}`)"""
+    return 0 <= value < 2**64
+
+
+def int8(value: builtins.int) -> bool:
+    r"""Signed 8-bit integer (:math:`-2^{7} \leq x < 2^{7}`)"""
+    return -(2**7) <= value < 2**7
+
+
+def int16(value: builtins.int) -> bool:
+    r"""Signed 16-bit integer (:math:`-2^{15} \leq x < 2^{15}`)"""
+    return -(2**15) <= value < 2**15
+
+
+def int32(value: builtins.int) -> bool:
+    r"""Signed 32-bit integer (:math:`-2^{31} \leq x < 2^{31}`)"""
+    return -(2**31) <= value < 2**31
+
+
+def int64(value: builtins.int) -> bool:
+    r"""Signed 64-bit integer (:math:`-2^{63} \leq x < 2^{63}`)"""
+    return -(2**63) <= value < 2**63
 
 
 def int(value: builtins.int) -> bool:
@@ -387,9 +425,9 @@ try:
         """
         try:
             _licenses.canonicalize_license_expression(value)
-            return True
         except _licenses.InvalidLicenseExpression:
             return False
+        return True
 
 except ImportError:  # pragma: no cover
     _logger.warning(
@@ -398,5 +436,29 @@ except ImportError:  # pragma: no cover
         "To enforce validation, please install `packaging>=24.2`."
     )
 
-    def SPDX(value: str) -> bool:
+    def SPDX(value: str) -> bool:  # noqa: ARG001
         return True
+
+
+VALID_IMPORT_NAME = re.compile(
+    r"""
+    ^                                  # start of string
+        [A-Za-z_][A-Za-z_0-9]+         # a valid Python identifier
+        (?:\.[A-Za-z_][A-Za-z_0-9]*)*  # optionally followed by .identifier's
+    (?:\s*;\s*private)?                # optionally followed by ; private
+    $                                  # end of string
+    """,
+    re.VERBOSE,
+)
+
+
+def import_name(value: str) -> bool:
+    """This is a valid import name. It has to be series of python identifiers
+    (not keywords), separated by dots, optionally followed by a semicolon and
+    the keyword "private".
+    """
+    if VALID_IMPORT_NAME.match(value) is None:
+        return False
+
+    idents, _, _ = value.partition(";")
+    return all(not keyword.iskeyword(ident) for ident in idents.rstrip().split("."))
