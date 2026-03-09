@@ -102,9 +102,6 @@ core = [
 	"tomli>=2.0.1; python_version < '3.11'",
 	"wheel>=0.43.0",
 
-	# pkg_resources
-	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
-
 	# for distutils
 	"jaraco.functools >= 4",
 	"more_itertools",
