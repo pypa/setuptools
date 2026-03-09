@@ -19,7 +19,6 @@ from functools import partial
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Callable
 
-from .._path import StrPath
 from ..errors import FileError, InvalidConfigError
 from ..warnings import SetuptoolsWarning
 from . import expand as _expand
@@ -29,6 +28,8 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
     from setuptools.dist import Distribution
+
+    from .._path import StrPath
 
 _logger = logging.getLogger(__name__)
 

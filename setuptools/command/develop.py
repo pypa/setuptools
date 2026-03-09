@@ -31,7 +31,7 @@ class develop(Command):
     def run(self) -> None:
         # Casting because mypy doesn't understand bool mult conditionals
         cmd = cast(
-            list[str],
+            "list[str]",
             [sys.executable, '-m', 'pip', 'install', '-e', '.', '--use-pep517']
             + ['--target', self.install_dir] * bool(self.install_dir)
             + ['--no-deps'] * self.no_deps

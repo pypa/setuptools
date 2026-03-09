@@ -16,7 +16,7 @@ import warnings
 from collections.abc import Iterable, Sequence
 from email.generator import BytesGenerator
 from glob import iglob
-from typing import Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from packaging import tags, version as _packaging_version
@@ -26,9 +26,11 @@ from .. import Command, __version__, _shutil
 from .._core_metadata import _safe_license_file
 from .._normalization import safer_name
 from ..warnings import SetuptoolsDeprecationWarning
-from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
+
+if TYPE_CHECKING:
+    from .egg_info import egg_info as egg_info_cls
 
 
 def safe_version(version: str) -> str:
@@ -233,7 +235,9 @@ class bdist_wheel(Command):
             self.bdist_dir = os.path.join(bdist_base, "wheel")
 
         if self.dist_info_dir is None:
-            egg_info = cast(egg_info_cls, self.distribution.get_command_obj("egg_info"))
+            egg_info = cast(
+                "egg_info_cls", self.distribution.get_command_obj("egg_info")
+            )
             egg_info.ensure_finalized()  # needed for correct `wheel_dist_name`
 
         self.data_dir = self.wheel_dist_name + ".data"
@@ -492,7 +496,7 @@ class bdist_wheel(Command):
         metadata = self.distribution.get_option_dict("metadata")
         if setuptools_major_version >= 42:
             # Setuptools recognizes the license_files option but does not do globbing
-            patterns = cast(Sequence[str], self.distribution.metadata.license_files)
+            patterns = cast("Sequence[str]", self.distribution.metadata.license_files)
         else:
             # Prior to those, wheel is entirely responsible for handling license files
             if "license_files" in metadata:

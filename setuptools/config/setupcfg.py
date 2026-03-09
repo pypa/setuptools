@@ -25,7 +25,6 @@ from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import InvalidVersion, Version
 
 from .. import _static
-from .._path import StrPath
 from ..errors import FileError, OptionError
 from ..warnings import SetuptoolsDeprecationWarning
 from . import expand
@@ -34,6 +33,8 @@ if TYPE_CHECKING:
     from typing_extensions import TypeAlias
 
     from setuptools.dist import Distribution
+
+    from .._path import StrPath
 
     from distutils.dist import DistributionMetadata
 
@@ -103,7 +104,7 @@ def _apply(
 
     try:
         # TODO: Temporary cast until mypy 1.12 is released with upstream fixes from typeshed
-        _Distribution.parse_config_files(dist, filenames=cast(list[str], filenames))
+        _Distribution.parse_config_files(dist, filenames=cast("list[str]", filenames))
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )

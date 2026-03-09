@@ -36,7 +36,7 @@ def _deprecation_notice(fn: Fn) -> Fn:
         )
         return fn(*args, **kwargs)
 
-    return cast(Fn, _wrapper)
+    return cast("Fn", _wrapper)
 
 
 read_configuration = _deprecation_notice(setupcfg.read_configuration)

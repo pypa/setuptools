@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Protocol
-
-from ..dist import Distribution
+from typing import TYPE_CHECKING, Protocol
 
 from distutils.command.build import build as _build
+
+if TYPE_CHECKING:
+    from ..dist import Distribution
 
 _ORIGINAL_SUBCOMMANDS = {"build_py", "build_clib", "build_ext", "build_scripts"}
 

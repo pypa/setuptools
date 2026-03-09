@@ -1,7 +1,13 @@
-from ..dist import Distribution
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from ..warnings import SetuptoolsDeprecationWarning
 
 import distutils.command.bdist_rpm as orig
+
+if TYPE_CHECKING:
+    from ..dist import Distribution
 
 
 class bdist_rpm(orig.bdist_rpm):
