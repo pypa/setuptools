@@ -1,1 +1,0 @@
-Add advice about how to improve predictability when installing sdists.

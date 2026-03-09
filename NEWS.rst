@@ -1,3 +1,25 @@
+v82.0.1
+=======
+
+Bugfixes
+--------
+
+- Fix the loading of ``launcher manifest.xml`` file. (#5047)
+- Replaced deprecated ``json.__version__`` with fixture in tests. (#5186)
+
+
+Improved Documentation
+----------------------
+
+- Add advice about how to improve predictability when installing sdists. (#5168)
+
+
+Misc
+----
+
+- #4941, #5157, #5169, #5175
+
+
 v82.0.0
 =======
 
