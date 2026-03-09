@@ -580,7 +580,7 @@ class manifest_maker(sdist):
         sdist.add_defaults(self)
         self.filelist.append(self.template)
         self.filelist.append(self.manifest)
-        rcfiles = list(walk_revctrl())
+        rcfiles = list(walk_revctrl(distribution=self.distribution))
         if rcfiles:
             self.filelist.extend(rcfiles)
         elif os.path.exists(self.manifest):
