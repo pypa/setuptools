@@ -64,7 +64,7 @@ class BuildBackend(BuildBackendBase):
                 pytest.xfail(f"Backend did not respond before timeout ({TIMEOUT} s)")
             except (futures.process.BrokenProcessPool, MemoryError, OSError):
                 if IS_PYPY:
-                    pytest.xfail("PyPy frequently fails tests with ProcessPoolExector")
+                    pytest.xfail("PyPy frequently fails tests with ProcessPoolExecutor")
                 raise
 
         return method

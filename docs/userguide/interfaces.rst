@@ -54,7 +54,7 @@ carefully attempt to find alternatives before resorting to unscheduled removals.
    In the context of ``setuptools``, the introduction of :py:mod:`warnings`
    (including deprecation warnings) is not considered a breaking change *per se*.
    Instead it is considered a backwards compatible *communication action* that
-   precedes an upcoming breaking change. This is becauset code
+   precedes an upcoming breaking change. This is because code
    containing warnings typically does not fail and can successfully terminate
    execution, unless users explicitly opt into transforming those warnings
    into errors (e.g., via Python's :external+python:ref:`-W option or

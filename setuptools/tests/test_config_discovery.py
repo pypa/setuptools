@@ -78,7 +78,7 @@ class TestDiscoverPackagesAndPyModules:
         files, options = self._get_info(circumstance)
         _populate_project_dir(tmp_path, files, options)
 
-        _, cmd = _run_sdist_programatically(tmp_path, options)
+        _, cmd = _run_sdist_programmatically(tmp_path, options)
 
         manifest = [f.replace(os.sep, "/") for f in cmd.filelist.files]
         for file in files:
@@ -117,7 +117,7 @@ class TestDiscoverPackagesAndPyModules:
             assert "build" not in files
             assert "dist" not in files
 
-    PURPOSEFULLY_EMPY = {
+    PURPOSEFULLY_EMPYY = {
         "setup.cfg": DALS(
             """
             [metadata]
@@ -176,11 +176,11 @@ class TestDiscoverPackagesAndPyModules:
             template_param = param.replace("_", "-")
         else:
             # Make sure build works with or without setup.cfg
-            pyproject = self.PURPOSEFULLY_EMPY["template-pyproject.toml"]
+            pyproject = self.PURPOSEFULLY_EMPYY["template-pyproject.toml"]
             (tmp_path / "pyproject.toml").write_text(pyproject, encoding="utf-8")
             template_param = param
 
-        config = self.PURPOSEFULLY_EMPY[config_file].format(param=template_param)
+        config = self.PURPOSEFULLY_EMPYY[config_file].format(param=template_param)
         (tmp_path / config_file).write_text(config, encoding="utf-8")
 
         dist = _get_dist(tmp_path, {})
@@ -635,7 +635,7 @@ def _get_dist(dist_path, attrs):
     return dist
 
 
-def _run_sdist_programatically(dist_path, attrs):
+def _run_sdist_programmatically(dist_path, attrs):
     dist = _get_dist(dist_path, attrs)
     cmd = sdist(dist)
     cmd.ensure_finalized()

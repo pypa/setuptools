@@ -6,7 +6,7 @@ The first step towards sharing a Python library or program is to build a
 distribution package [#package-overload]_. This includes adding a set of
 additional files containing metadata and configuration to not only instruct
 ``setuptools`` on how the distribution should be built but also
-to help installer (such as :pypi:`pip`) during the installation process.
+to help installers (such as :pypi:`pip`) during the installation process.
 
 This document contains information to help Python developers through this
 process. Please check the :doc:`/userguide/quickstart` for an overview of

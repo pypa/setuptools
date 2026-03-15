@@ -42,7 +42,7 @@ You will need at least Python 3.5 or 2.7.  An ``easy_install`` script will be
 installed in the normal location for Python scripts on your platform.
 
 Note that the instructions on the setuptools PyPI page assume that you are
-are installing to Python's primary ``site-packages`` directory.  If this is
+installing to Python's primary ``site-packages`` directory.  If this is
 not the case, you should consult the section below on `Custom Installation
 Locations`_ before installing.  (And, on Windows, you should not use the
 ``.exe`` installer when installing to an alternate location.)

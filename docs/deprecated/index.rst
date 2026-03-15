@@ -3,7 +3,7 @@ Guides on backward compatibility & deprecated practice
 ======================================================
 
 ``Setuptools`` has undergone tremendous changes since its first debut. As its
-development continues to roll forward, many of the practice and mechanisms it
+development continues to roll forward, many of the practices and mechanisms it
 had established are now considered deprecated. But they still remain relevant
 as a plethora of libraries continue to depend on them. Many people also find
 it necessary to equip themselves with the knowledge to better support backward
