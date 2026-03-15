@@ -785,7 +785,7 @@ class Distribution(_Distribution):
 
         defined = metadata.entry_points(group=group)
         filtered = itertools.filterfalse(self._removed, defined)
-        loaded = map(lambda e: e.load(), filtered)
+        loaded = (e.load() for e in filtered)
         for ep in sorted(loaded, key=by_order):
             ep(self)
 
