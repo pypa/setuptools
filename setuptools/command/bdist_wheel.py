@@ -300,6 +300,21 @@ class bdist_wheel(Command):
             components.append(self.build_number)
         return "-".join(components)
 
+    @property
+    def abi_tag(self) -> str:
+        impl_name = tags.interpreter_name()
+        impl_ver = tags.interpreter_version()
+        impl = impl_name + impl_ver
+        # We don't work on CPython 3.1, 3.0.
+        if self.py_limited_api and impl.startswith("cp3"):
+            if sysconfig.get_config_var("Py_GIL_DISABLED"):
+                abi_tag = "abi3.abi3t"
+            else:
+                abi_tag = "abi3"
+        else:
+            abi_tag = str(get_abi_tag()).lower()
+        return abi_tag
+
     def get_tag(self) -> tuple[str, str, str]:
         # bdist sets self.plat_name if unset, we should only use it for purepy
         # wheels if the user supplied it.
@@ -342,24 +357,18 @@ class bdist_wheel(Command):
             impl_name = tags.interpreter_name()
             impl_ver = tags.interpreter_version()
             impl = impl_name + impl_ver
-            # We don't work on CPython 3.1, 3.0.
-            if self.py_limited_api and (impl_name + impl_ver).startswith("cp3"):
+            abi_tag = self.abi_tag
+            if "abi3" in abi_tag:
                 impl = self.py_limited_api
-                if sysconfig.get_config_var("Py_GIL_DISABLED"):
-                    abi_tag = "abi3.abi3t"
-                else:
-                    abi_tag = "abi3"
-            else:
-                abi_tag = str(get_abi_tag()).lower()
             tag = (impl, abi_tag, plat_name)
-            tag_str = "-".join(tag)
             # issue gh-374: allow overriding plat_name
             supported_tags = [
                 (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
             ]
-            assert any((t.interpreter, t.abi, plat_name) in supported_tags for t in tags.parse_tag(tag_str)), (
-                f"would build wheel with unsupported tag {tag}"
-            )
+            assert any(
+                (t.interpreter, t.abi, plat_name) in supported_tags
+                for t in tags.parse_tag("-".join(tag))
+            ), f"would build wheel with unsupported tag {tag}"
         return tag
 
     def run(self):
