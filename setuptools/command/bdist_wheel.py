@@ -359,6 +359,7 @@ class bdist_wheel(Command):
             impl = impl_name + impl_ver
             abi_tag = self.abi_tag
             if "abi3" in abi_tag:
+                assert self.py_limited_api is not False
                 impl = self.py_limited_api
             tag = (impl, abi_tag, plat_name)
             # issue gh-374: allow overriding plat_name
