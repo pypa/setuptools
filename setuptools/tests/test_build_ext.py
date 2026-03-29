@@ -18,6 +18,8 @@ from .textwrap import DALS
 import distutils.command.build_ext as orig
 from distutils.sysconfig import get_config_var
 
+from unittest.mock import MagicMock
+
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
 
@@ -291,3 +293,44 @@ def test_build_ext_config_handling(tmpdir_cwd):
         data_stream=(0, 2),
     )
     assert code == 0, f'\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}'
+    
+def test_parallel_build_uses_per_extension_temp_dir(tmp_path):
+    """Each extension compiles into its own build_temp subdir (issue #5196)."""
+    from setuptools._distutils.command.build_ext import build_ext
+    dist = Distribution({
+        'ext_modules': [
+            Extension('pkg.ext1', sources=['a.c']),
+            Extension('pkg.ext2', sources=['b.c']),
+        ]
+    })
+    cmd = build_ext(dist)
+    cmd.build_temp = str(tmp_path / 'build_temp')
+    cmd.build_lib = str(tmp_path / 'build_lib')
+    cmd.inplace = False
+    cmd.parallel = None
+    cmd.force = True          # skip up-to-date check
+    cmd.swig_opts = []        # fix NoneType error
+    cmd.swig_cpp = False
+    cmd.debug = False
+
+    output_dirs = []
+
+    def fake_compile(sources, output_dir=None, **kwargs):
+        output_dirs.append(output_dir)
+        return []
+
+    cmd.compiler = MagicMock()
+    cmd.compiler.compile.side_effect = fake_compile
+    cmd.compiler.link_shared_object = MagicMock()
+    cmd.get_ext_fullpath = MagicMock(return_value=str(tmp_path / 'out.so'))
+    cmd.get_libraries = MagicMock(return_value=[])
+    cmd.get_export_symbols = MagicMock(return_value=[])
+
+    for ext in dist.ext_modules:
+        cmd.build_extension(ext)
+
+    assert len(output_dirs) == 2
+    assert output_dirs[0] != output_dirs[1], \
+        "Both extensions use the same build_temp — race condition!"
+    assert output_dirs[0].endswith(os.path.join('pkg', 'ext1'))
+    assert output_dirs[1].endswith(os.path.join('pkg', 'ext2'))
