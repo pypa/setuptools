@@ -132,6 +132,19 @@ def safer_version(version: str) -> str:
     return safe_version(version).replace("-", "_")
 
 
+def stable_abi_tag(impl_name, impl_version):
+    abi_tag = None
+    if impl_name == "cp" and impl_version[0] == '3':
+        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+            # per PEP 803 these are possible on older Python versions
+            # but in practice these builds need cp315 or newer
+            abi_tag = "abi3.abi3t"
+        else:
+            # This is wrong on on CPython 3.1, 3.0 ¯\_(ツ)_/¯
+            abi_tag = "abi3"
+    return abi_tag
+
+
 class bdist_wheel(Command):
     description = "create a wheel distribution"
 
@@ -192,7 +205,7 @@ class bdist_wheel(Command):
         (
             "py-limited-api=",
             None,
-            "Python tag (cp32|cp33|cpNN) for abi3 wheel tag [default: false]",
+            "Python tag (cp32|cp33|cpNN) for abi3 or abi3t ABI [default: false]",
         ),
         (
             "dist-info-dir=",
@@ -304,16 +317,13 @@ class bdist_wheel(Command):
     def abi_tag(self) -> str:
         impl_name = tags.interpreter_name()
         impl_ver = tags.interpreter_version()
-        impl = impl_name + impl_ver
-        # We don't work on CPython 3.1, 3.0.
-        if self.py_limited_api and impl.startswith("cp3"):
-            if sysconfig.get_config_var("Py_GIL_DISABLED"):
-                abi_tag = "abi3.abi3t"
-            else:
-                abi_tag = "abi3"
-        else:
-            abi_tag = str(get_abi_tag()).lower()
-        return abi_tag
+        tag = None
+        if self.py_limited_api:
+            tag = stable_abi_tag(impl_name, impl_ver)
+        if tag is None:
+            # not a stable ABI build, use version-specific ABI tag
+            tag = str(get_abi_tag()).lower()
+        return tag
 
     def get_tag(self) -> tuple[str, str, str]:
         # bdist sets self.plat_name if unset, we should only use it for purepy
@@ -366,10 +376,9 @@ class bdist_wheel(Command):
             supported_tags = [
                 (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
             ]
-            assert any(
-                (t.interpreter, t.abi, plat_name) in supported_tags
-                for t in tags.parse_tag("-".join(tag))
-            ), f"would build wheel with unsupported tag {tag}"
+            assert tag in supported_tags, (
+                f"would build wheel with unsupported tag {tag}"
+            )
         return tag
 
     def run(self):

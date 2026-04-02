@@ -7,6 +7,7 @@ from importlib.util import cache_from_source as _compiled_file_name
 import pytest
 from jaraco import path
 
+from setuptools.command import build_ext as build_ext_mod
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
 from setuptools.errors import CompileError
@@ -19,6 +20,10 @@ import distutils.command.build_ext as orig
 from distutils.sysconfig import get_config_var
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
+# from a Mac running Python 3.14
+ABI3_EXT_SUFFIXES = ['cpython-314-darwin.so', 'abi3.so', 'so']
+# from a Mac running Python 3.15t
+ABI3T_EXT_SUFFIXES = ['.cpython-315t-darwin.so', '.abi3t.so', '.so']
 
 
 class TestBuildExt:
@@ -35,11 +40,7 @@ class TestBuildExt:
         wanted = orig.build_ext.get_ext_filename(cmd, 'foo')
         assert res == wanted
 
-    def test_abi3_filename(self):
-        """
-        Filename needs to be loadable by several versions
-        of Python 3 if 'is_abi3' is truthy on Extension()
-        """
+    def check_stable_abi(self, abi_name):
         print(get_abi3_suffix())
 
         extension = Extension('spam.eggs', ['eggs.c'], py_limited_api=True)
@@ -54,7 +55,22 @@ class TestBuildExt:
         elif sys.platform == 'win32':
             assert res.endswith('eggs.pyd')
         else:
-            assert 'abi3' in res
+            assert abi_name in res
+
+    @pytest.mark.parametrize(
+        ('extension_name', 'suffixes'),
+        [
+            ("abi3", ABI3_EXT_SUFFIXES),
+            ("abi3t", ABI3T_EXT_SUFFIXES),
+        ],
+    )
+    def test_stable_abi_filename(self, monkeypatch, extension_name, suffixes):
+        """
+        Test that extension filename is correct if  'py_limited_abi' is
+        truthy on Extension()
+        """
+        monkeypatch.setattr(build_ext_mod, "EXTENSION_SUFFIXES", suffixes)
+        self.check_stable_abi(extension_name)
 
     def test_ext_suffix_override(self):
         """

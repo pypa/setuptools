@@ -18,7 +18,7 @@ import pytest
 from packaging import tags
 
 import setuptools
-from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag
+from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag, stable_abi_tag
 from setuptools.dist import Distribution
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
@@ -422,6 +422,7 @@ def test_universal_deprecated(dummy_dist, monkeypatch, tmp_path):
 
 
 EXTENSION_EXAMPLE = """\
+#define Py_LIMITED_API 0x03020000
 #include <Python.h>
 
 static PyMethodDef methods[] = {
@@ -449,7 +450,13 @@ setup(
     name="extension.dist",
     version="0.1",
     description="A testing distribution \N{SNOWMAN}",
-    ext_modules=[Extension(name="extension", sources=["extension.c"])],
+    ext_modules=[
+        Extension(
+            name="extension",
+            sources=["extension.c"],
+            py_limited_api=True
+        )
+    ],
 )
 """
 
@@ -457,7 +464,7 @@ setup(
 @pytest.mark.filterwarnings(
     "once:Config variable '.*' is unset.*, Python ABI tag may be incorrect"
 )
-def test_limited_abi(monkeypatch, tmp_path, tmp_path_factory):
+def test_limited_api(monkeypatch, tmp_path, tmp_path_factory):
     """Test that building a binary wheel with the limited ABI works."""
     source_dir = tmp_path_factory.mktemp("extension_dist")
     (source_dir / "setup.py").write_text(EXTENSION_SETUPPY, encoding="utf-8")
@@ -465,7 +472,9 @@ def test_limited_abi(monkeypatch, tmp_path, tmp_path_factory):
     build_dir = tmp_path.joinpath("build")
     dist_dir = tmp_path.joinpath("dist")
     monkeypatch.chdir(source_dir)
-    bdist_wheel_cmd(bdist_dir=str(build_dir), dist_dir=str(dist_dir)).run()
+    bdist_wheel_cmd(
+        bdist_dir=str(build_dir), dist_dir=str(dist_dir), py_limited_api="cp32"
+    ).run()
 
 
 def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
@@ -550,6 +559,13 @@ def test_get_abi_tag_fallback(monkeypatch):
     monkeypatch.setattr(sysconfig, "get_config_var", lambda x: "unknown-python-310")
     monkeypatch.setattr(tags, "interpreter_name", lambda: "unknown-python")
     assert get_abi_tag() == "unknown_python_310"
+
+
+def test_stable_abi_tag(monkeypatch):
+    monkeypatch.setattr(sysconfig, "get_config_var", lambda x: 0)
+    assert stable_abi_tag("cp", "315") == "abi3"
+    monkeypatch.setattr(sysconfig, "get_config_var", lambda x: '1')
+    assert stable_abi_tag("cp", "315") == "abi3.abi3t"
 
 
 def test_platform_with_space(dummy_dist, monkeypatch):
