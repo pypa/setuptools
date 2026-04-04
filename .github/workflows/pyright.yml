@@ -70,7 +70,7 @@ jobs:
           echo '> pyright --threads'
         shell: bash
       - name: Run pyright
-        uses: jakebailey/pyright-action@v2
+        uses: jakebailey/pyright-action@6cabc0f01c4994be48fd45cd9dbacdd6e1ee6e5e # v2
         with:
           version: ${{ env.PYRIGHT_VERSION }}
           python-version: ${{ matrix.python }}

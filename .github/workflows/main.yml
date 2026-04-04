@@ -133,7 +133,7 @@ jobs:
         run: pipx run coverage xml --ignore-errors
       - name: Publish coverage
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
         with:
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
@@ -178,7 +178,7 @@ jobs:
 
     steps:
     - name: Decide whether the needed jobs succeeded or failed
-      uses: re-actors/alls-green@release/v1
+      uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # release/v1
       with:
         allowed-skips: check-changed-folders, integration-test
         jobs: ${{ toJSON(needs) }}
@@ -195,7 +195,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Cygwin with Python
-        uses: cygwin/cygwin-install-action@v4
+        uses: cygwin/cygwin-install-action@006ad0b0946ca6d0a3ea2d4437677fa767392401 # v4
         with:
           platform: x86_64
           packages: >-
@@ -231,7 +231,7 @@ jobs:
         shell: C:\cygwin\bin\env.exe CYGWIN_NOWINPATH=1 CHERE_INVOKING=1 C:\cygwin\bin\bash.exe -leo pipefail -o igncr {0}
       - name: Publish coverage
         if: hashFiles('coverage.xml') != ''  # Rudimentary `file.exists()`
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4
         with:
           flags: >-  # Mark which lines are covered by which envs
             CI-GHA,
@@ -252,13 +252,13 @@ jobs:
           fetch-depth: 0
       - name: Check if files changed in the _distutils folder
         id: changed-files-specific-distutils
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
         with:
           files: |
             setuptools/_distutils/**
       - name: Check if files changed in the _vendor folder
         id: changed-files-specific-vendor
-        uses: tj-actions/changed-files@v46
+        uses: tj-actions/changed-files@ed68ef82c095e0d48ec87eccea555d944a631a4c # v46
         with:
           files: |
             setuptools/_vendor/**
