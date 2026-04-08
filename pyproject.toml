@@ -206,6 +206,8 @@ include = [
 exclude = [
 	"*.tests",
 	"*.tests.*",
+	"setuptools.tests",
+	"setuptools.tests.*",
 ]
 namespaces = true
 
