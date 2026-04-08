@@ -376,9 +376,12 @@ class bdist_wheel(Command):
             supported_tags = [
                 (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
             ]
-            assert tag in supported_tags, (
-                f"would build wheel with unsupported tag {tag}"
-            )
+            # abi_tag can contain multiple (e.g. "abi3.abi3t") tags
+            # only one of them will be supported
+            assert any(
+                (impl, exploded_abi_tag, plat_name) in supported_tags
+                for exploded_abi_tag in abi_tag.split(".")
+            ), f"would build wheel with unsupported tag {tag}"
         return tag
 
     def run(self):
