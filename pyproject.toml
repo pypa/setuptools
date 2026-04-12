@@ -101,6 +101,7 @@ core = [
 	"importlib_metadata>=6; python_version < '3.10'",
 	"tomli>=2.0.1; python_version < '3.11'",
 	"wheel>=0.43.0",
+	"platformdirs>=4.2.2",  # required by pkg_resources
 
 	# for distutils
 	"jaraco.functools >= 4",
@@ -202,6 +203,7 @@ include-package-data = true
 include = [
 	"setuptools*",
 	"_distutils_hack*",
+	"pkg_resources*",
 ]
 exclude = [
 	"*.tests",
