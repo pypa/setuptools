@@ -60,8 +60,6 @@ Supported iterable types that are known to be:
 for use with `isinstance`.
 """
 _Sequence: TypeAlias = tuple[str, ...] | list[str]
-# This is how stringifying _Sequence would look in Python 3.10
-_sequence_type_repr = "tuple[str, ...] | list[str]"
 _OrderedStrSequence: TypeAlias = str | dict[str, Any] | Sequence[str]
 """
 :meta private:
@@ -101,7 +99,7 @@ def assert_string_list(dist, attr: str, value: _Sequence) -> None:
         assert ''.join(value) != value
     except (TypeError, ValueError, AttributeError, AssertionError) as e:
         raise DistutilsSetupError(
-            f"{attr!r} must be of type <{_sequence_type_repr}> (got {value!r})"
+            f"{attr!r} must be of type <{_Sequence}> (got {value!r})"
         ) from e
 
 
@@ -925,7 +923,7 @@ class Distribution(_Distribution):
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
         if not isinstance(value, _sequence):
             raise DistutilsSetupError(
-                f"{name}: setting must be of type <{_sequence_type_repr}> (got {value!r})"
+                f"{name}: setting must be of type <{_Sequence}> (got {value!r})"
             )
         try:
             old = getattr(self, name)
@@ -943,7 +941,7 @@ class Distribution(_Distribution):
 
         if not isinstance(value, _sequence):
             raise DistutilsSetupError(
-                f"{name}: setting must be of type <{_sequence_type_repr}> (got {value!r})"
+                f"{name}: setting must be of type <{_Sequence}> (got {value!r})"
             )
         try:
             old = getattr(self, name)
@@ -985,7 +983,7 @@ class Distribution(_Distribution):
     def _exclude_packages(self, packages: _Sequence) -> None:
         if not isinstance(packages, _sequence):
             raise DistutilsSetupError(
-                f"packages: setting must be of type <{_sequence_type_repr}> (got {packages!r})"
+                f"packages: setting must be of type <{_Sequence}> (got {packages!r})"
             )
         list(map(self.exclude_package, packages))
 
