@@ -10,7 +10,7 @@ import sys
 from collections.abc import Iterable, Iterator, MutableMapping, Sequence
 from glob import glob
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeAlias
 
 from more_itertools import partition, unique_everseen
 from packaging.markers import InvalidMarker, Marker
@@ -42,10 +42,6 @@ from distutils.debug import DEBUG
 from distutils.errors import DistutilsOptionError, DistutilsSetupError
 from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
-
-if TYPE_CHECKING:
-    from typing import TypeAlias
-
 
 __all__ = ['Distribution']
 

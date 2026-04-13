@@ -3,11 +3,9 @@ from __future__ import annotations
 import shutil
 import sys
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 if TYPE_CHECKING:
-    from typing import TypeAlias
-
     from _typeshed import ExcInfo, StrOrBytesPath
 
 # Same as shutil._OnExcCallback from typeshed
