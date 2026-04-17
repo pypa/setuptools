@@ -1042,7 +1042,16 @@ int main (int argc, char **argv) {{
         try:
             new_ext = extensions[src.suffix]
         except LookupError:
-            raise UnknownFileType(f"unknown file type '{src.suffix}' (from '{src}')")
+            # Case-insensitive fallback for platforms where normcase affects
+            # extension (cygwin, Windows). .S vs .s matters for GCC (preprocessed
+            # vs plain assembly). Fixes pypa/setuptools#5130.
+            suffix_lower = src.suffix.lower()
+            for ext, out_ext in extensions.items():
+                if ext.lower() == suffix_lower:
+                    new_ext = out_ext
+                    break
+            else:
+                raise UnknownFileType(f"unknown file type '{src.suffix}' (from '{src}')")
         if strip_dir:
             base = pathlib.PurePath(base.name)
         return os.path.join(output_dir, base.with_suffix(new_ext))
