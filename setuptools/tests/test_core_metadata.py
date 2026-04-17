@@ -488,6 +488,18 @@ class TestPEP643:
         metadata = _get_metadata(dist)
         assert set(metadata.get_all("Dynamic")) == set(fields)
 
+    def test_empty_install_requires_marked_as_dynamic(self, tmpdir_cwd):
+        # When install_requires=[] (non-static), Dynamic: requires-dist should be written.
+        # Fixes pypa/setuptools#5120
+        Path("pyproject.toml").write_text(
+            self.STATIC_CONFIG["pyproject.toml"], encoding="utf-8"
+        )
+        dist = _makedist()
+        dist.install_requires = []  # Plain list, non-static
+        dist.metadata.install_requires = []
+        metadata = _get_metadata(dist)
+        assert "requires-dist" in (metadata.get_all("Dynamic") or [])
+
     @pytest.mark.parametrize(
         "extra_toml",
         [
