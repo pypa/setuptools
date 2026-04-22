@@ -225,9 +225,12 @@ class Compiler(unix.Compiler):
     # -- Miscellaneous methods -----------------------------------------
 
     def _make_out_path(self, output_dir, strip_dir, src_name):
-        # use normcase to make sure '.rc' is really '.rc' and not '.RC'
-        norm_src_name = os.path.normcase(src_name)
-        return super()._make_out_path(output_dir, strip_dir, norm_src_name)
+        # Use normcase for case-insensitive extension lookup on Cygwin,
+        # where '.RC' should match '.rc' and '.S' should match '.s'.
+        return self._make_out_path_exts(
+            output_dir, strip_dir, os.path.normcase(src_name),
+            {os.path.normcase(k): v for k, v in super().out_extensions.items()},
+        )
 
     @property
     def out_extensions(self):
