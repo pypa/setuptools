@@ -16,6 +16,7 @@ import warnings
 from collections.abc import Iterable, Sequence
 from email.generator import BytesGenerator
 from glob import iglob
+from itertools import chain
 from typing import Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
@@ -29,6 +30,8 @@ from ..warnings import SetuptoolsDeprecationWarning
 from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
+
+flatten = chain.from_iterable
 
 
 def safe_version(version: str) -> str:
@@ -371,16 +374,17 @@ class bdist_wheel(Command):
                 assert self.py_limited_api is not False
                 impl = self.py_limited_api
             tag = (impl, abi_tag, plat_name)
+            possible_tags = tags.parse_tag("-".join(tag))
             # issue gh-374: allow overriding plat_name
-            supported_tags = [
-                (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
-            ]
+            sys_tags = (
+                "-".join((t.interpreter, t.abi, plat_name)) for t in tags.sys_tags()
+            )
+            supported_tags = flatten(tags.parse_tag(t) for t in sys_tags)
             # abi_tag can contain multiple (e.g. "abi3.abi3t") tags
             # only one of them will be supported
-            assert any(
-                (impl, exploded_abi_tag, plat_name) in supported_tags
-                for exploded_abi_tag in abi_tag.split(".")
-            ), f"would build wheel with unsupported tag {tag}"
+            assert any(t in supported_tags for t in possible_tags), (
+                f"would build wheel with unsupported tag {tag}"
+            )
         return tag
 
     def run(self):
