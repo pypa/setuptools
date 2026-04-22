@@ -69,7 +69,8 @@ class TestBuildExt:
         Test that extension filename is correct if  'py_limited_abi' is
         truthy on Extension()
         """
-        monkeypatch.setattr(build_ext_mod, "EXTENSION_SUFFIXES", suffixes)
+        if sys.platform != 'win32':
+            monkeypatch.setattr(build_ext_mod, "EXTENSION_SUFFIXES", suffixes)
         self.check_stable_abi(extension_name)
 
     def test_ext_suffix_override(self):
