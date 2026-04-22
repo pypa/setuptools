@@ -21,7 +21,7 @@ from distutils.sysconfig import get_config_var
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 # from a Mac running Python 3.14
-ABI3_EXT_SUFFIXES = ['cpython-314-darwin.so', 'abi3.so', 'so']
+ABI3_EXT_SUFFIXES = ['.cpython-314-darwin.so', '.abi3.so', '.so']
 # from a Mac running Python 3.15t
 ABI3T_EXT_SUFFIXES = ['.cpython-315t-darwin.so', '.abi3t.so', '.so']
 

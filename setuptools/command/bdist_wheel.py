@@ -140,7 +140,6 @@ def stable_abi_tag(impl_name, impl_version):
             # but in practice these builds need cp315 or newer
             abi_tag = "abi3.abi3t"
         else:
-            # This is wrong on on CPython 3.1, 3.0 ¯\_(ツ)_/¯
             abi_tag = "abi3"
     return abi_tag
 
