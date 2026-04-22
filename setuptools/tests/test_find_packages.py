@@ -211,6 +211,47 @@ class TestFlatLayoutPackageFinder:
         assert set(found_packages) == set(expected_packages)
 
 
+class TestGlobExcludePatterns:
+    """Verify that glob-style exclude patterns (e.g. ``*.tests``) correctly
+    exclude nested test packages.  See pypa/setuptools#5214."""
+
+    @pytest.mark.parametrize(
+        "pattern, package",
+        [
+            ("*.tests", "setuptools.tests"),
+            ("*.tests", "pkg.tests"),
+            ("*.tests.*", "setuptools.tests.config"),
+            ("*.tests.*", "pkg.tests.sub"),
+        ],
+    )
+    def test_star_dot_tests_excludes_nested_packages(self, pattern, package):
+        """``*.tests`` and ``*.tests.*`` should match nested test packages."""
+        from fnmatch import fnmatchcase
+
+        assert fnmatchcase(package, pattern), (
+            f"{pattern!r} should match {package!r}"
+        )
+
+    def test_wildcard_exclude_patterns_in_find_namespace_packages(self, tmp_path):
+        """End-to-end check: ``find_namespace_packages(exclude=['*.tests', '*.tests.*'])``
+        should not return ``pkg.tests`` or ``pkg.tests.sub``."""
+        ensure_files(tmp_path, [
+            "pkg/__init__.py",
+            "pkg/tests/__init__.py",
+            "pkg/tests/sub/__init__.py",
+            "pkg/other/__init__.py",
+        ])
+        packages = find_namespace_packages(
+            str(tmp_path),
+            include=["pkg*"],
+            exclude=["*.tests", "*.tests.*"],
+        )
+        assert "pkg" in packages
+        assert "pkg.other" in packages
+        assert "pkg.tests" not in packages
+        assert "pkg.tests.sub" not in packages
+
+
 def ensure_files(root_path, files):
     for file in files:
         path = root_path / file
