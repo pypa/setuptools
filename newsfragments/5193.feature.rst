@@ -1,0 +1,6 @@
+Added support for building abi3t extensions and abi3.abi3t wheels on Python 3.15
+and newer. See `PEP 803 <PEP803>`_ and the Python 3.15 `"What's New" entry<whatsnew>`_
+for more details.
+
+.. _PEP803: https://peps.python.org/pep-0803/
+.. _whatsnew: https://docs.python.org/3.15/whatsnew/3.15.html#pep-803-abi3t-stable-abi-for-free-threaded-builds
