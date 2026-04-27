@@ -379,7 +379,7 @@ class bdist_wheel(Command):
             sys_tags = (
                 "-".join((t.interpreter, t.abi, plat_name)) for t in tags.sys_tags()
             )
-            supported_tags = flatten(tags.parse_tag(t) for t in sys_tags)
+            supported_tags = list(flatten(tags.parse_tag(t) for t in sys_tags))
             # abi_tag can contain multiple (e.g. "abi3.abi3t") tags
             # only one of them will be supported
             assert any(t in supported_tags for t in possible_tags), (
