@@ -18,10 +18,10 @@ should be copied into packages in addition to :file:`.py` files as a
 convenience.
 
 Most distutils command implementations are subclasses of the
-:class:`distutils.cmd.Command` class.  New commands may directly inherit from
-:class:`~distutils.cmd.Command`, while replacements often derive from :class:`~distutils.cmd.Command`
+``distutils.cmd.Command`` class.  New commands may directly inherit from
+``distutils.cmd.Command``, while replacements often derive from ``distutils.cmd.Command``
 indirectly, directly subclassing the command they are replacing.  Commands are
-required to derive from :class:`~distutils.cmd.Command`.
+required to derive from ``distutils.cmd.Command``.
 
 .. % \section{Extending existing commands}
 .. % \label{extend-existing}
@@ -41,7 +41,7 @@ provides that support.  This is really hard for many reasons.
 
 The most common, and possibly the most reasonable for most needs, is to include
 the new implementations with your :file:`setup.py` script, and cause the
-:func:`distutils.core.setup` function use them::
+``distutils.core.setup`` function use them::
 
    from distutils.command.build_py import build_py as _build_py
    from distutils.core import setup
@@ -76,9 +76,9 @@ file provided with a package.
 This new option can be used to add any number of packages to the list of
 packages searched for command implementations; multiple package names should be
 separated by commas.  When not specified, the search is only performed in the
-:mod:`distutils.command` package.  When :file:`setup.py` is run with the option
+``distutils.command`` package.  When :file:`setup.py` is run with the option
 ``--command-packages distcmds,buildcmds``, however, the packages
-:mod:`distutils.command`, ``distcmds``, and ``buildcmds`` will be searched
+``distutils.command``, ``distcmds``, and ``buildcmds`` will be searched
 in that order.  New commands are expected to be implemented in modules of the
 same name as the command by classes sharing the same name.  Given the example
 command line option above, the command :command:`bdist_openpkg` could be

@@ -113,7 +113,7 @@ Notes:
    requires external :program:`compress` utility.
 
 (4)
-   requires either external :program:`zip` utility or :mod:`zipfile` module (part
+   requires either external :program:`zip` utility or ``zipfile`` module (part
    of the standard Python library since Python 1.6)
 
 (5)
@@ -369,11 +369,11 @@ built-in functions in the installation script.
 
       "CSIDL_FONTS"
 
-   If the folder cannot be retrieved, :exc:`OSError` is raised.
+   If the folder cannot be retrieved, ``OSError`` is raised.
 
    Which folders are available depends on the exact Windows version, and probably
    also the configuration.  For details refer to Microsoft's documentation of the
-   :c:func:`SHGetSpecialFolderPath` function.
+   :c``SHGetSpecialFolderPath`` function.
 
 
 .. function:: create_shortcut(target, description, filename[, arguments[, workdir[, iconpath[, iconindex]]]])
@@ -384,5 +384,5 @@ built-in functions in the installation script.
    specifies the command line arguments, if any. *workdir* is the working directory
    for the program. *iconpath* is the file containing the icon for the shortcut,
    and *iconindex* is the index of the icon in the file *iconpath*.  Again, for
-   details consult the Microsoft documentation for the :class:`IShellLink`
+   details consult the Microsoft documentation for the ``IShellLink``
    interface.

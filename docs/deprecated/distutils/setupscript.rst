@@ -10,9 +10,9 @@ The setup script is the centre of all activity in building, distributing, and
 installing modules using the Distutils.  The main purpose of the setup script is
 to describe your module distribution to the Distutils, so that the various
 commands that operate on your modules do the right thing.  As we saw in section
-:ref:`distutils-simple-example` above, the setup script consists mainly of a call to :func:`~distutils.core.setup`, and most information
+:ref:`distutils-simple-example` above, the setup script consists mainly of a call to ``distutils.core.setup``, and most information
 supplied to the Distutils by the module developer is supplied as keyword
-arguments to :func:`~distutils.core.setup`.
+arguments to ``distutils.core.setup``.
 
 Here's a slightly more involved example, which we'll follow for the next couple
 of sections: the Distutils' own setup script.  (Keep in mind that although the
@@ -51,8 +51,8 @@ of course is one of the major goals of the Distutils.  In this spirit, all
 pathnames in this document are slash-separated.
 
 This, of course, only applies to pathnames given to Distutils functions.  If
-you, for example, use standard Python functions such as :func:`glob.glob` or
-:func:`os.listdir` to specify files, you should be careful to write portable
+you, for example, use standard Python functions such as ``glob.glob`` or
+``os.listdir`` to specify files, you should be careful to write portable
 code instead of hardcoding path separators::
 
     glob.glob(os.path.join('mydir', 'subdir', '*.html'))
@@ -68,7 +68,7 @@ The ``packages`` option tells the Distutils to process (build, distribute,
 install, etc.) all pure Python modules found in each package mentioned in the
 ``packages`` list.  In order to do this, of course, there has to be a
 correspondence between package names and directories in the filesystem.  The
-default correspondence is the most obvious one, i.e. package :mod:`distutils` is
+default correspondence is the most obvious one, i.e. package ``distutils`` is
 found in the directory :file:`distutils` relative to the distribution root.
 Thus, when you say ``packages = ['foo']`` in your setup script, you are
 promising that the Distutils will find a file :file:`foo/__init__.py` (which
@@ -140,9 +140,9 @@ directories, libraries to link with, etc.).
 .. XXX read over this section
 
 All of this is done through another keyword argument to
-:func:`~distutils.core.setup`, the
+``distutils.core.setup``, the
 ``ext_modules`` option.  ``ext_modules`` is just a list of
-:class:`~distutils.core.Extension` instances, each of which describes a
+``distutils.core.Extension`` instances, each of which describes a
 single extension module.
 Suppose your distribution includes a single extension, called ``foo`` and
 implemented by :file:`foo.c`.  If no additional instructions to the
@@ -150,8 +150,8 @@ compiler/linker are needed, describing this extension is quite simple::
 
     Extension('foo', ['foo.c'])
 
-The :class:`~distutils.extension.Extension` class can be imported from :mod:`distutils.core` along
-with :func:`~distutils.core.setup`.  Thus, the setup script for a module distribution that
+The ``distutils.extension.Extension`` class can be imported from ``distutils.core`` along
+with ``distutils.core.setup``.  Thus, the setup script for a module distribution that
 contains only this one extension and nothing else might be::
 
     from distutils.core import setup, Extension
@@ -160,7 +160,7 @@ contains only this one extension and nothing else might be::
           ext_modules=[Extension('foo', ['foo.c'])],
           )
 
-The :class:`~distutils.extension.Extension` class (actually, the underlying extension-building
+The ``distutils.extension.Extension`` class (actually, the underlying extension-building
 machinery implemented by the :command:`build_ext` command) supports a great deal
 of flexibility in describing Python extensions, which is explained in the
 following sections.
@@ -169,7 +169,7 @@ following sections.
 Extension names and packages
 ----------------------------
 
-The first argument to the :class:`~distutils.core.Extension` constructor is
+The first argument to the ``distutils.core.Extension`` constructor is
 always the name of the extension, including any package names.  For example, ::
 
     Extension('foo', ['src/foo1.c', 'src/foo2.c'])
@@ -185,7 +185,7 @@ resulting extension lives.
 
 If you have a number of extensions all in the same package (or all under the
 same base package), use the ``ext_package`` keyword argument to
-:func:`~distutils.core.setup`.  For example, ::
+``distutils.core.setup``.  For example, ::
 
     setup(...,
           ext_package='pkg',
@@ -200,7 +200,7 @@ will compile :file:`foo.c` to the extension ``pkg.foo``, and
 Extension source files
 ----------------------
 
-The second argument to the :class:`~distutils.core.Extension` constructor is
+The second argument to the ``distutils.core.Extension`` constructor is
 a list of source
 files.  Since the Distutils currently only support C, C++, and Objective-C
 extensions, these are normally C/C++/Objective-C source files.  (Be sure to use
@@ -237,7 +237,7 @@ linked into the executable.
 Preprocessor options
 --------------------
 
-Three optional arguments to :class:`~distutils.core.Extension` will help if
+Three optional arguments to ``distutils.core.Extension`` will help if
 you need to specify include directories to search or preprocessor macros to
 define/undefine: ``include_dirs``, ``define_macros``, and ``undef_macros``.
 
@@ -271,7 +271,7 @@ is to write C code like  ::
 
 If you must put the :file:`Numerical` include directory right into your header
 search path, though, you can find that directory using the Distutils
-:mod:`distutils.sysconfig` module::
+``distutils.sysconfig`` module::
 
     from distutils.sysconfig import get_python_inc
     incdir = os.path.join(get_python_inc(plat_specific=True), 'Numerical')
@@ -373,10 +373,10 @@ A distribution may relate to packages in three specific ways:
 #. It can obsolete packages or modules.
 
 These relationships can be specified using keyword arguments to the
-:func:`distutils.core.setup` function.
+``distutils.core.setup`` function.
 
 Dependencies on other Python modules and packages can be specified by supplying
-the *requires* keyword argument to :func:`~distutils.core.setup`. The
+the *requires* keyword argument to ``distutils.core.setup``. The
 value must be a list of
 strings.  Each string specifies a package that is required, and optionally what
 versions are sufficient.
@@ -409,7 +409,7 @@ Let's look at a bunch of examples:
 
 Now that we can specify dependencies, we also need to be able to specify what we
 provide that other distributions can require.  This is done using the *provides*
-keyword argument to :func:`~distutils.core.setup`. The value for this keyword is a list of
+keyword argument to ``distutils.core.setup``. The value for this keyword is a list of
 strings, each of which names a Python module or package, and optionally
 identifies the version.  If the version is not specified, it is assumed to match
 that of the distribution.
@@ -476,7 +476,7 @@ containing documentation that might be of interest to programmers using the
 package.  These files are called :dfn:`package data`.
 
 Package data can be added to packages using the ``package_data`` keyword
-argument to the :func:`~distutils.core.setup` function.  The value must be a mapping from
+argument to the ``distutils.core.setup`` function.  The value must be a mapping from
 package name to a list of relative path names that should be copied into the
 package.  The paths are interpreted as relative to the directory containing the
 package (information from the ``package_dir`` mapping is used if appropriate);
@@ -499,7 +499,7 @@ the files can be arranged like this in the source tree::
                 spoons.dat
                 forks.dat
 
-The corresponding call to :func:`~distutils.core.setup` might be::
+The corresponding call to ``distutils.core.setup`` might be::
 
     setup(...,
           packages=['mypkg'],
@@ -688,7 +688,7 @@ information is sometimes used to indicate sub-releases.  These are
           )
 
 .. versionchanged:: 3.7
-   :class:`~distutils.core.setup` now warns when ``classifiers``, ``keywords``
+   ``distutils.core.setup`` now warns when ``classifiers``, ``keywords``
    or ``platforms`` fields are not specified as a list or a string.
 
 .. _debug-setup-script:

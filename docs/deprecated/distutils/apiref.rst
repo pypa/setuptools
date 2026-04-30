@@ -15,17 +15,17 @@ API Reference
 
 .. include:: ./_setuptools_disclaimer.rst
 
-:mod:`distutils.core` --- Core Distutils functionality
+``distutils.core`` --- Core Distutils functionality
 ======================================================
 
 .. module:: distutils.core
    :synopsis: The core Distutils functionality
 
 
-The :mod:`distutils.core` module is the only module that needs to be installed
-to use the Distutils. It provides the :func:`setup` (which is called from the
-setup script). Indirectly provides the  :class:`distutils.dist.Distribution` and
-:class:`distutils.cmd.Command` class.
+The ``distutils.core`` module is the only module that needs to be installed
+to use the Distutils. It provides the ``setup`` (which is called from the
+setup script). Indirectly provides the  ``distutils.dist.Distribution`` and
+``distutils.cmd.Command`` class.
 
 
 .. function:: setup(arguments)
@@ -45,7 +45,7 @@ setup script). Indirectly provides the  :class:`distutils.dist.Distribution` and
    +--------------------+--------------------------------+-------------------------------------------------------------+
    | *version*          | The version number of the      | a string                                                    |
    |                    | package; see                   |                                                             |
-   |                    | :mod:`distutils.version`       |                                                             |
+   |                    | ``distutils.version``       |                                                             |
    +--------------------+--------------------------------+-------------------------------------------------------------+
    | *description*      | A single line describing the   | a string                                                    |
    |                    | package                        |                                                             |
@@ -85,13 +85,13 @@ setup script). Indirectly provides the  :class:`distutils.dist.Distribution` and
    |                    | installed                      |                                                             |
    +--------------------+--------------------------------+-------------------------------------------------------------+
    | *ext_modules*      | A list of Python extensions to | a list of instances of                                      |
-   |                    | be built                       | :class:`distutils.core.Extension`                           |
+   |                    | be built                       | ``distutils.core.Extension``                           |
    +--------------------+--------------------------------+-------------------------------------------------------------+
    | *classifiers*      | A list of categories for the   | a list of strings; valid classifiers are listed on `PyPI    |
    |                    | package                        | <https://pypi.org/classifiers>`_.                           |
    +--------------------+--------------------------------+-------------------------------------------------------------+
-   | *distclass*        | the :class:`Distribution`      | a subclass of                                               |
-   |                    | class to use                   | :class:`distutils.core.Distribution`                        |
+   | *distclass*        | the ``Distribution``      | a subclass of                                               |
+   |                    | class to use                   | ``distutils.core.Distribution``                        |
    +--------------------+--------------------------------+-------------------------------------------------------------+
    | *script_name*      | The name of the setup.py       | a string                                                    |
    |                    | script - defaults to           |                                                             |
@@ -111,7 +111,7 @@ setup script). Indirectly provides the  :class:`distutils.dist.Distribution` and
    | *platforms*        |                                | a list of strings or a comma-separated string               |
    +--------------------+--------------------------------+-------------------------------------------------------------+
    | *cmdclass*         | A mapping of command names to  | a dictionary                                                |
-   |                    | :class:`Command` subclasses    |                                                             |
+   |                    | ``Command`` subclasses    |                                                             |
    +--------------------+--------------------------------+-------------------------------------------------------------+
    | *data_files*       | A list of data files to        | a list                                                      |
    |                    | install                        |                                                             |
@@ -125,50 +125,50 @@ setup script). Indirectly provides the  :class:`distutils.dist.Distribution` and
 .. function:: run_setup(script_name[, script_args=None, stop_after='run'])
 
    Run a setup script in a somewhat controlled environment, and return  the
-   :class:`distutils.dist.Distribution` instance that drives things.   This is
+   ``distutils.dist.Distribution`` instance that drives things.   This is
    useful if you need to find out the distribution meta-data  (passed as keyword
-   args from *script* to :func:`setup`), or  the contents of the config files or
+   args from *script* to ``setup``), or  the contents of the config files or
    command-line.
 
-   *script_name* is a file that will be read and run with :func:`exec`.  ``sys.argv[0]``
+   *script_name* is a file that will be read and run with ``exec``.  ``sys.argv[0]``
    will be replaced with *script* for the duration of the call.  *script_args* is a
    list of strings; if supplied, ``sys.argv[1:]`` will be replaced by *script_args*
    for the duration  of the call.
 
-   *stop_after* tells :func:`setup` when to stop processing; possible  values:
+   *stop_after* tells ``setup`` when to stop processing; possible  values:
 
    .. tabularcolumns:: |l|L|
 
    +---------------+---------------------------------------------+
    | value         | description                                 |
    +===============+=============================================+
-   | *init*        | Stop after the :class:`Distribution`        |
+   | *init*        | Stop after the ``Distribution``        |
    |               | instance has been created  and populated    |
-   |               | with the keyword arguments to :func:`setup` |
+   |               | with the keyword arguments to ``setup`` |
    +---------------+---------------------------------------------+
    | *config*      | Stop after config files have been parsed    |
    |               | (and their data stored in the               |
-   |               | :class:`Distribution` instance)             |
+   |               | ``Distribution`` instance)             |
    +---------------+---------------------------------------------+
    | *commandline* | Stop after the command-line                 |
    |               | (``sys.argv[1:]`` or  *script_args*) have   |
    |               | been parsed (and the data stored in the     |
-   |               | :class:`Distribution` instance.)            |
+   |               | ``Distribution`` instance.)            |
    +---------------+---------------------------------------------+
    | *run*         | Stop after all commands have been run (the  |
-   |               | same as  if :func:`setup` had been called   |
+   |               | same as  if ``setup`` had been called   |
    |               | in the usual way). This is the default      |
    |               | value.                                      |
    +---------------+---------------------------------------------+
 
-In addition, the :mod:`distutils.core` module exposed a number of  classes that
+In addition, the ``distutils.core`` module exposed a number of  classes that
 live elsewhere.
 
-* :class:`~distutils.extension.Extension` from :mod:`distutils.extension`
+* ``distutils.extension.Extension`` from ``distutils.extension``
 
-* :class:`~distutils.cmd.Command` from :mod:`distutils.cmd`
+* ``distutils.cmd.Command`` from ``distutils.cmd``
 
-* :class:`~distutils.dist.Distribution` from :mod:`distutils.dist`
+* ``distutils.dist.Distribution`` from ``distutils.dist``
 
 A short description of each of these follows, but see the relevant module for
 the full reference.
@@ -295,32 +295,32 @@ the full reference.
 
 .. class:: Distribution
 
-   A :class:`Distribution` describes how to build, install and package up a Python
+   A ``Distribution`` describes how to build, install and package up a Python
    software package.
 
-   See the :func:`setup` function for a list of keyword arguments accepted  by the
-   Distribution constructor. :func:`setup` creates a Distribution instance.
+   See the ``setup`` function for a list of keyword arguments accepted  by the
+   Distribution constructor. ``setup`` creates a Distribution instance.
 
    .. versionchanged:: 3.7
-      :class:`~distutils.core.Distribution` now warns if ``classifiers``,
+      ``distutils.core.Distribution`` now warns if ``classifiers``,
       ``keywords`` and ``platforms`` fields are not specified as a list or
       a string.
 
 .. class:: Command
 
-   A :class:`Command` class (or rather, an instance of one of its subclasses)
+   A ``Command`` class (or rather, an instance of one of its subclasses)
    implement a single distutils command.
 
 
-:mod:`distutils.ccompiler` --- CCompiler base class
+``distutils.ccompiler`` --- CCompiler base class
 ===================================================
 
 .. module:: distutils.ccompiler
    :synopsis: Abstract CCompiler class
 
 
-This module provides the abstract base class for the :class:`CCompiler`
-classes.  A :class:`CCompiler` instance can be used for all the compile  and
+This module provides the abstract base class for the ``CCompiler``
+classes.  A ``CCompiler`` instance can be used for all the compile  and
 link steps needed to build a single project. Methods are provided to  set
 options for the compiler --- macro definitions, include directories,  link path,
 libraries and the like.
@@ -367,8 +367,8 @@ This module provides the following functions.
    supplied platform/compiler combination. *plat* defaults to ``os.name`` (eg.
    ``'posix'``, ``'nt'``), and *compiler*  defaults to the default compiler for
    that platform. Currently only ``'posix'`` and ``'nt'`` are supported, and the
-   default compilers are "traditional Unix interface" (:class:`UnixCCompiler`
-   class) and Visual C++ (:class:`MSVCCompiler` class).  Note that it's perfectly
+   default compilers are "traditional Unix interface" (``UnixCCompiler``
+   class) and Visual C++ (``MSVCCompiler`` class).  Note that it's perfectly
    possible to ask for a Unix compiler object under Windows, and a Microsoft
    compiler object under Unix---if you supply a value for *compiler*, *plat* is
    ignored.
@@ -385,7 +385,7 @@ This module provides the following functions.
 
 .. class:: CCompiler([verbose=False, dry_run=False, force=False])
 
-   The abstract base class :class:`CCompiler` defines the interface that  must be
+   The abstract base class ``CCompiler`` defines the interface that  must be
    implemented by real compiler classes.  The class also has  some utility methods
    used by several compiler classes.
 
@@ -401,8 +401,8 @@ This module provides the following functions.
    Flags are *verbose* (show verbose output), *dry_run* (don't actually execute the
    steps) and *force* (rebuild everything, regardless of dependencies). All of
    these flags default to ``0`` (off). Note that you probably don't want to
-   instantiate :class:`CCompiler` or one of its subclasses directly - use the
-   :func:`distutils.CCompiler.new_compiler` factory function instead.
+   instantiate ``CCompiler`` or one of its subclasses directly - use the
+   ``distutils.CCompiler.new_compiler`` factory function instead.
 
    The following methods allow you to manually alter compiler options for  the
    instance of the Compiler class.
@@ -575,7 +575,7 @@ This module provides the following functions.
       that will be split into executable name and (optional) list of arguments.
       (Splitting the string is done similarly to how Unix shells operate: words are
       delimited by spaces, but quotes and backslashes can override this.  See
-      :func:`distutils.util.split_quoted`.)
+      ``distutils.util.split_quoted``.)
 
    The following methods invoke stages in the build process.
 
@@ -587,7 +587,7 @@ This module provides the following functions.
 
       *sources* must be a list of filenames, most likely C/C++ files, but in reality
       anything that can be handled by a particular compiler and compiler class (eg.
-      :class:`MSVCCompiler` can handle resource files in *sources*).  Return a list of
+      ``MSVCCompiler`` can handle resource files in *sources*).  Return a list of
       object filenames, one per source filename in *sources*.  Depending on the
       implementation, not all source files will necessarily be compiled, but all
       corresponding object filenames will be returned.
@@ -621,7 +621,7 @@ This module provides the following functions.
       recompiled.  This supports dependency tracking, but only at a coarse
       granularity.
 
-      Raises :exc:`CompileError` on failure.
+      Raises ``CompileError`` on failure.
 
 
    .. method:: CCompiler.create_static_lib(objects, output_libname[, output_dir=None, debug=False, target_lang=None])
@@ -645,7 +645,7 @@ This module provides the following functions.
       *target_lang* is the target language for which the given objects are being
       compiled. This allows specific linkage time treatment of certain languages.
 
-      Raises :exc:`LibError` on failure.
+      Raises ``LibError`` on failure.
 
 
    .. method:: CCompiler.link(target_desc, objects, output_filename[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, export_symbols=None, debug=False, extra_preargs=None, extra_postargs=None, build_temp=None, target_lang=None])
@@ -687,7 +687,7 @@ This module provides the following functions.
       *target_lang* is the target language for which the given objects are being
       compiled. This allows specific linkage time treatment of certain languages.
 
-      Raises :exc:`LinkError` on failure.
+      Raises ``LinkError`` on failure.
 
 
    .. method:: CCompiler.link_executable(objects, output_progname[, output_dir=None, libraries=None, library_dirs=None, runtime_library_dirs=None, debug=False, extra_preargs=None, extra_postargs=None, target_lang=None])
@@ -720,9 +720,9 @@ This module provides the following functions.
       *include_dirs* is a list of directory names that will be added to the  default
       list, in the same way as :meth:`add_include_dir`.
 
-      Raises :exc:`PreprocessError` on failure.
+      Raises ``PreprocessError`` on failure.
 
-   The following utility methods are defined by the :class:`CCompiler` class, for
+   The following utility methods are defined by the ``CCompiler`` class, for
    use by the various concrete subclasses.
 
 
@@ -754,20 +754,20 @@ This module provides the following functions.
 
    .. method:: CCompiler.execute(func, args[, msg=None, level=1])
 
-      Invokes :func:`distutils.util.execute`. This method invokes a  Python function
+      Invokes ``distutils.util.execute``. This method invokes a  Python function
       *func* with the given arguments *args*, after  logging and taking into account
       the *dry_run* flag.
 
 
    .. method:: CCompiler.spawn(cmd)
 
-      Invokes :func:`distutils.spawn.spawn`. This invokes an external  process to run
+      Invokes ``distutils.spawn.spawn``. This invokes an external  process to run
       the given command.
 
 
    .. method:: CCompiler.mkpath(name[, mode=511])
 
-      Invokes :func:`distutils.dir_util.mkpath`. This creates a directory  and any
+      Invokes ``distutils.dir_util.mkpath``. This creates a directory  and any
       missing ancestor directories.
 
 
@@ -778,7 +778,7 @@ This module provides the following functions.
 
    .. method:: CCompiler.announce(msg[, level=1])
 
-      Write a message using :func:`distutils.log.debug`.
+      Write a message using ``distutils.log.debug``.
 
 
    .. method:: CCompiler.warn(msg)
@@ -788,7 +788,7 @@ This module provides the following functions.
 
    .. method:: CCompiler.debug_print(msg)
 
-      If the *debug* flag is set on this :class:`CCompiler` instance, print  *msg* to
+      If the *debug* flag is set on this ``CCompiler`` instance, print  *msg* to
       standard output, otherwise do nothing.
 
 .. % \subsection{Compiler-specific modules}
@@ -799,15 +799,15 @@ This module provides the following functions.
 .. % function.
 
 
-:mod:`distutils.unixccompiler` --- Unix C Compiler
+``distutils.unixccompiler`` --- Unix C Compiler
 ==================================================
 
 .. module:: distutils.unixccompiler
    :synopsis: UNIX C Compiler
 
 
-This module provides the :class:`UnixCCompiler` class, a subclass of
-:class:`CCompiler` that handles the typical Unix-style command-line  C compiler:
+This module provides the ``UnixCCompiler`` class, a subclass of
+``CCompiler`` that handles the typical Unix-style command-line  C compiler:
 
 * macros defined with :option:`!-Dname[=value]`
 
@@ -828,7 +828,7 @@ This module provides the :class:`UnixCCompiler` class, a subclass of
 * link shared library handled by :program:`cc` :option:`!-shared`
 
 
-:mod:`distutils.msvccompiler` --- Microsoft Compiler
+``distutils.msvccompiler`` --- Microsoft Compiler
 ====================================================
 
 .. module:: distutils.msvccompiler
@@ -836,44 +836,44 @@ This module provides the :class:`UnixCCompiler` class, a subclass of
 
 .. XXX: This is *waaaaay* out of date!
 
-This module provides :class:`MSVCCompiler`, an implementation of the abstract
-:class:`CCompiler` class for Microsoft Visual Studio. Typically, extension
+This module provides ``MSVCCompiler``, an implementation of the abstract
+``CCompiler`` class for Microsoft Visual Studio. Typically, extension
 modules need to be compiled with the same compiler that was used to compile
 Python. For Python 2.3 and earlier, the compiler was Visual Studio 6. For Python
 2.4 and 2.5, the compiler is Visual Studio .NET 2003.
 
-:class:`MSVCCompiler` will normally choose the right compiler, linker etc. on
+``MSVCCompiler`` will normally choose the right compiler, linker etc. on
 its own. To override this choice, the environment variables *DISTUTILS_USE_SDK*
 and *MSSdk* must be both set. *MSSdk* indicates that the current environment has
 been setup by the SDK's ``SetEnv.Cmd`` script, or that the environment variables
 had been registered when the SDK was installed; *DISTUTILS_USE_SDK* indicates
 that the distutils user has made an explicit choice to override the compiler
-selection by :class:`MSVCCompiler`.
+selection by ``MSVCCompiler``.
 
 
-:mod:`distutils.bcppcompiler` --- Borland Compiler
+``distutils.bcppcompiler`` --- Borland Compiler
 ==================================================
 
 .. module:: distutils.bcppcompiler
 
 
-This module provides :class:`BorlandCCompiler`, a subclass of the abstract
-:class:`CCompiler` class for the Borland C++ compiler.
+This module provides ``BorlandCCompiler``, a subclass of the abstract
+``CCompiler`` class for the Borland C++ compiler.
 
 
-:mod:`distutils.cygwinccompiler` --- Cygwin Compiler
+``distutils.cygwinccompiler`` --- Cygwin Compiler
 ====================================================
 
 .. module:: distutils.cygwinccompiler
 
 
-This module provides the :class:`CygwinCCompiler` class, a subclass of
-:class:`UnixCCompiler` that handles the Cygwin port of the GNU C compiler to
+This module provides the ``CygwinCCompiler`` class, a subclass of
+``UnixCCompiler`` that handles the Cygwin port of the GNU C compiler to
 Windows.  It also contains the Mingw32CCompiler class which handles the mingw32
 port of GCC (same as cygwin in no-cygwin mode).
 
 
-:mod:`distutils.archive_util` ---  Archiving utilities
+``distutils.archive_util`` ---  Archiving utilities
 ======================================================
 
 .. module:: distutils.archive_util
@@ -918,13 +918,13 @@ tarballs or zipfiles.
 .. function:: make_zipfile(base_name, base_dir[, verbose=False, dry_run=False])
 
    Create a zip file from all files in and under *base_dir*.  The output zip file
-   will be named *base_name* + :file:`.zip`.  Uses either the  :mod:`zipfile` Python
+   will be named *base_name* + :file:`.zip`.  Uses either the  ``zipfile`` Python
    module (if available) or the InfoZIP :file:`zip`  utility (if installed and
    found on the default search path).  If neither  tool is available, raises
-   :exc:`DistutilsExecError`.   Returns the name of the output zip file.
+   ``DistutilsExecError``.   Returns the name of the output zip file.
 
 
-:mod:`distutils.dep_util` --- Dependency checking
+``distutils.dep_util`` --- Dependency checking
 =================================================
 
 .. module:: distutils.dep_util
@@ -940,7 +940,7 @@ timestamp dependency analysis.
 
    Return true if *source* exists and is more recently modified than *target*, or
    if *source* exists and *target* doesn't. Return false if both exist and *target*
-   is the same age or newer  than *source*. Raise :exc:`DistutilsFileError` if
+   is the same age or newer  than *source*. Raise ``DistutilsFileError`` if
    *source* does not exist.
 
 
@@ -948,7 +948,7 @@ timestamp dependency analysis.
 
    Walk two filename lists in parallel, testing if each source is newer than its
    corresponding target.  Return a pair of lists (*sources*, *targets*) where
-   source is newer than target, according to the semantics of :func:`newer`.
+   source is newer than target, according to the semantics of ``newer``.
 
    .. % % equivalent to a listcomp...
 
@@ -959,7 +959,7 @@ timestamp dependency analysis.
    *sources*.  In other words, if *target* exists and is newer than every file in
    *sources*, return false; otherwise return true. *missing* controls what we do
    when a source file is missing; the default (``'error'``) is to blow up with an
-   :exc:`OSError` from  inside :func:`os.stat`; if it is ``'ignore'``, we silently
+   ``OSError`` from  inside ``os.stat``; if it is ``'ignore'``, we silently
    drop any missing source files; if it is ``'newer'``, any missing source files
    make us assume that *target* is out-of-date (this is handy in "dry-run" mode:
    it'll make you pretend to carry out commands that wouldn't work because inputs
@@ -967,7 +967,7 @@ timestamp dependency analysis.
    the commands).
 
 
-:mod:`distutils.dir_util` --- Directory tree operations
+``distutils.dir_util`` --- Directory tree operations
 =======================================================
 
 .. module:: distutils.dir_util
@@ -983,7 +983,7 @@ directories.
    Create a directory and any missing ancestor directories.  If the directory
    already exists (or if *name* is the empty string, which means the current
    directory, which of course exists), then do nothing.  Raise
-   :exc:`DistutilsFileError` if unable to create some directory along the way (eg.
+   ``DistutilsFileError`` if unable to create some directory along the way (eg.
    some sub-path exists, but is a file rather than a directory).  If *verbose* is
    true, print a one-line summary of each mkdir to stdout.  Return the list of
    directories actually created.
@@ -996,15 +996,15 @@ directories.
    yet; *files* is a list of filenames to be interpreted relative to *base_dir*.
    *base_dir* + the directory portion of every file in *files* will be created if
    it doesn't already exist.  *mode*, *verbose* and *dry_run* flags  are as for
-   :func:`mkpath`.
+   ``mkpath``.
 
 
 .. function:: copy_tree(src, dst[, preserve_mode=True, preserve_times=True, preserve_symlinks=False, update=False, verbose=False, dry_run=False])
 
    Copy an entire directory tree *src* to a new location *dst*.  Both *src* and
    *dst* must be directory names.  If *src* is not a directory, raise
-   :exc:`DistutilsFileError`.  If *dst* does  not exist, it is created with
-   :func:`mkpath`.  The end result of the  copy is that every file in *src* is
+   ``DistutilsFileError``.  If *dst* does  not exist, it is created with
+   ``mkpath``.  The end result of the  copy is that every file in *src* is
    copied to *dst*, and  directories under *src* are recursively copied to *dst*.
    Return the list of files that were copied or might have been copied, using their
    output name. The return value is unaffected by *update* or *dry_run*: it is
@@ -1012,12 +1012,12 @@ directories.
    *dst*.
 
    *preserve_mode* and *preserve_times* are the same as for
-   :func:`distutils.file_util.copy_file`; note that they only apply to
+   ``distutils.file_util.copy_file``; note that they only apply to
    regular files, not to
    directories.  If *preserve_symlinks* is true, symlinks will be copied as
    symlinks (on platforms that support them!); otherwise (the default), the
    destination of the symlink will be copied.  *update* and *verbose* are the same
-   as for :func:`~distutils.file_util.copy_file`.
+   as for ``distutils.file_util.copy_file``.
 
    Files in *src* that begin with :file:`.nfs` are skipped (more information on
    these files is available in answer D2 of the `NFS FAQ page
@@ -1033,7 +1033,7 @@ directories.
    true).
 
 
-:mod:`distutils.file_util` --- Single file operations
+``distutils.file_util`` --- Single file operations
 =====================================================
 
 .. module:: distutils.file_util
@@ -1054,11 +1054,11 @@ This module contains some utility functions for operating on individual files.
    *src* will only be copied if *dst* does not exist, or if *dst* does exist but
    is older than *src*.
 
-   *link* allows you to make hard links (using :func:`os.link`) or symbolic links
-   (using :func:`os.symlink`) instead of copying: set it to ``'hard'`` or
+   *link* allows you to make hard links (using ``os.link``) or symbolic links
+   (using ``os.symlink``) instead of copying: set it to ``'hard'`` or
    ``'sym'``; if it is ``None`` (the default), files are copied. Don't set *link*
-   on systems that don't support it: :func:`copy_file` doesn't check if hard or
-   symbolic linking is available.  It uses :func:`~distutils.file_util._copy_file_contents` to copy file
+   on systems that don't support it: ``copy_file`` doesn't check if hard or
+   symbolic linking is available.  It uses ``distutils.file_util._copy_file_contents`` to copy file
    contents.
 
    Return a tuple ``(dest_name, copied)``: *dest_name* is the actual  name of the
@@ -1081,7 +1081,7 @@ This module contains some utility functions for operating on individual files.
 
    .. warning::
 
-      Handles cross-device moves on Unix using :func:`copy_file`.  What about
+      Handles cross-device moves on Unix using ``copy_file``.  What about
       other systems?
 
 
@@ -1091,7 +1091,7 @@ This module contains some utility functions for operating on individual files.
    without line terminators) to it.
 
 
-:mod:`distutils.util` --- Miscellaneous other utility functions
+``distutils.util`` --- Miscellaneous other utility functions
 ===============================================================
 
 .. module:: distutils.util
@@ -1167,7 +1167,7 @@ other utility module.
    it on '/' and put it back together again using the current directory separator.
    Needed because filenames in the setup script are always supplied in Unix style,
    and have to be converted to the local convention before we can actually use them
-   in the filesystem.  Raises :exc:`ValueError` on non-Unix-ish systems if
+   in the filesystem.  Raises ``ValueError`` on non-Unix-ish systems if
    *pathname* either  starts or ends with a slash.
 
 
@@ -1186,7 +1186,7 @@ other utility module.
 
    * :envvar:`HOME` - user's home directory (Unix only)
    * :envvar:`PLAT` - description of the current platform, including hardware and
-     OS (see :func:`get_platform`)
+     OS (see ``get_platform``)
 
 
 .. function:: subst_vars(s, local_vars)
@@ -1195,7 +1195,7 @@ other utility module.
    ``$`` followed by a name is considered a variable, and variable is substituted
    by the value found in the *local_vars* dictionary, or in ``os.environ`` if it's
    not in *local_vars*. *os.environ* is first checked/augmented to guarantee that
-   it contains certain values: see :func:`check_environ`.  Raise :exc:`ValueError`
+   it contains certain values: see ``check_environ``.  Raise ``ValueError``
    for any variables not found in either *local_vars* or ``os.environ``.
 
    Note that this is not a fully-fledged string interpolation function. A valid
@@ -1231,7 +1231,7 @@ other utility module.
 
    True values are ``y``, ``yes``, ``t``, ``true``, ``on``  and ``1``; false values
    are ``n``, ``no``, ``f``, ``false``,  ``off`` and ``0``.  Raises
-   :exc:`ValueError` if *val*  is anything else.
+   ``ValueError`` if *val*  is anything else.
 
 
 .. function:: byte_compile(py_files[, optimize=0, force=False, prefix=None, base_dir=None, verbose=True, dry_run=False, direct=None])
@@ -1258,15 +1258,15 @@ other utility module.
    filesystem.
 
    Byte-compilation is either done directly in this interpreter process with the
-   standard :mod:`py_compile` module, or indirectly by writing a temporary script
-   and executing it.  Normally, you should let :func:`byte_compile` figure out to
+   standard ``py_compile`` module, or indirectly by writing a temporary script
+   and executing it.  Normally, you should let ``byte_compile`` figure out to
    use direct compilation or not (see the source for details).  The *direct* flag
    is used by the script generated in indirect mode; unless you know what you're
    doing, leave it set to ``None``.
 
    .. versionchanged:: 3.2.3
-      Create ``.pyc`` files with an :func:`import magic tag
-      <imp.get_tag>` in their name, in a :file:`__pycache__` subdirectory
+      Create ``.pyc`` files with an ``import magic tag
+      <imp.get_tag>`` in their name, in a :file:`__pycache__` subdirectory
       instead of files without tag in the current directory.
 
    .. versionchanged:: 3.5
@@ -1284,7 +1284,7 @@ other utility module.
 .. % \subsection{Distutils objects}
 
 
-:mod:`distutils.dist` --- The Distribution class
+``distutils.dist`` --- The Distribution class
 ================================================
 
 .. module:: distutils.dist
@@ -1292,11 +1292,11 @@ other utility module.
               built/installed/distributed
 
 
-This module provides the :class:`~distutils.core.Distribution` class, which
+This module provides the ``distutils.core.Distribution`` class, which
 represents the module distribution being built/installed/distributed.
 
 
-:mod:`distutils.extension` --- The Extension class
+``distutils.extension`` --- The Extension class
 ==================================================
 
 .. module:: distutils.extension
@@ -1304,14 +1304,14 @@ represents the module distribution being built/installed/distributed.
               scripts
 
 
-This module provides the :class:`~distutils.extension.Extension` class,
+This module provides the ``distutils.extension.Extension`` class,
 used to describe C/C++ extension modules in setup scripts.
 
 .. % \subsection{Ungrouped modules}
 .. % The following haven't been moved into a more appropriate section yet.
 
 
-:mod:`distutils.debug` --- Distutils debug mode
+``distutils.debug`` --- Distutils debug mode
 ===============================================
 
 .. module:: distutils.debug
@@ -1321,7 +1321,7 @@ used to describe C/C++ extension modules in setup scripts.
 This module provides the DEBUG flag.
 
 
-:mod:`distutils.errors` --- Distutils exceptions
+``distutils.errors`` --- Distutils exceptions
 ================================================
 
 .. module:: distutils.errors
@@ -1336,19 +1336,19 @@ This module is safe to use in ``from ... import *`` mode; it only exports
 symbols whose names start with ``Distutils`` and end with ``Error``.
 
 
-:mod:`distutils.fancy_getopt` --- Wrapper around the standard getopt module
+``distutils.fancy_getopt`` --- Wrapper around the standard getopt module
 ===========================================================================
 
 .. module:: distutils.fancy_getopt
    :synopsis: Additional getopt functionality
 
 
-This module provides a wrapper around the standard :mod:`getopt`  module that
+This module provides a wrapper around the standard ``getopt``  module that
 provides the following additional features:
 
 * short and long options are tied together
 
-* options have help strings, so :func:`fancy_getopt` could potentially  create a
+* options have help strings, so ``fancy_getopt`` could potentially  create a
   complete usage summary
 
 * options set attributes of a passed-in object
@@ -1361,10 +1361,10 @@ provides the following additional features:
 
    Wrapper function. *options* is a list of ``(long_option, short_option,
    help_string)`` 3-tuples as described in the constructor for
-   :class:`FancyGetopt`. *negative_opt* should be a dictionary mapping option names
+   ``FancyGetopt``. *negative_opt* should be a dictionary mapping option names
    to option names, both the key and value should be in the *options* list.
    *object* is an object which will be used to store values (see the :meth:`~FancyGetopt.getopt`
-   method of the :class:`FancyGetopt` class). *args* is the argument list. Will use
+   method of the ``FancyGetopt`` class). *args* is the argument list. Will use
    ``sys.argv[1:]`` if you  pass ``None`` as *args*.
 
 
@@ -1383,7 +1383,7 @@ provides the following additional features:
    *short_option* should be ``None`` if a *long_option*  doesn't have a
    corresponding *short_option*. All option tuples must have long options.
 
-The :class:`FancyGetopt` class provides the following methods:
+The ``FancyGetopt`` class provides the following methods:
 
 
 .. method:: FancyGetopt.getopt([args=None, object=None])
@@ -1391,9 +1391,9 @@ The :class:`FancyGetopt` class provides the following methods:
    Parse command-line options in args. Store as attributes on *object*.
 
    If *args* is ``None`` or not supplied, uses ``sys.argv[1:]``.  If *object* is
-   ``None`` or not supplied, creates a new :class:`OptionDummy` instance, stores
+   ``None`` or not supplied, creates a new ``OptionDummy`` instance, stores
    option values there, and returns a tuple ``(args, object)``.  If *object* is
-   supplied, it is modified in place and :func:`getopt` just returns *args*; in
+   supplied, it is modified in place and ``getopt`` just returns *args*; in
    both cases, the returned *args* is a modified copy of the passed-in *args* list,
    which is left untouched.
 
@@ -1403,19 +1403,19 @@ The :class:`FancyGetopt` class provides the following methods:
 .. method:: FancyGetopt.get_option_order()
 
    Returns the list of ``(option, value)`` tuples processed by the previous run of
-   :meth:`getopt`  Raises :exc:`RuntimeError` if :meth:`getopt` hasn't been called
+   :meth:`getopt`  Raises ``RuntimeError`` if :meth:`getopt` hasn't been called
    yet.
 
 
 .. method:: FancyGetopt.generate_help([header=None])
 
    Generate help text (a list of strings, one per suggested line of output) from
-   the option table for this :class:`FancyGetopt` object.
+   the option table for this ``FancyGetopt`` object.
 
    If supplied, prints the supplied *header* at the top of the help.
 
 
-:mod:`distutils.filelist` --- The FileList class
+``distutils.filelist`` --- The FileList class
 ================================================
 
 .. module:: distutils.filelist
@@ -1423,32 +1423,32 @@ The :class:`FancyGetopt` class provides the following methods:
               building lists of files.
 
 
-This module provides the :class:`FileList` class, used for poking about the
+This module provides the ``FileList`` class, used for poking about the
 filesystem and building lists of files.
 
 
-:mod:`distutils.log` --- Simple :pep:`282`-style logging
+``distutils.log`` --- Simple :pep:`282`-style logging
 ========================================================
 
 .. module:: distutils.log
    :synopsis: A simple logging mechanism, :pep:`282`-style
 
 
-:mod:`distutils.spawn` --- Spawn a sub-process
+``distutils.spawn`` --- Spawn a sub-process
 ==============================================
 
 .. module:: distutils.spawn
    :synopsis: Provides the spawn() function
 
 
-This module provides the :func:`~distutils.spawn.spawn` function, a
+This module provides the ``distutils.spawn.spawn`` function, a
 front-end to  various platform-specific functions for launching another
 program in a  sub-process.
-Also provides :func:`~distutils.spawn.find_executable` to search the path for a given executable
+Also provides ``distutils.spawn.find_executable`` to search the path for a given executable
 name.
 
 
-:mod:`distutils.sysconfig` --- System configuration information
+``distutils.sysconfig`` --- System configuration information
 ===============================================================
 
 .. module:: distutils.sysconfig
@@ -1458,7 +1458,7 @@ name.
 .. sectionauthor:: Fred L. Drake, Jr. <fdrake@acm.org>
 
 
-The :mod:`distutils.sysconfig` module provides access to Python's low-level
+The ``distutils.sysconfig`` module provides access to Python's low-level
 configuration information.  The specific configuration variables available
 depend heavily on the platform and configuration. The specific variables depend
 on the build process for the specific version of Python being run; the variables
@@ -1468,7 +1468,7 @@ installed with Python on Unix systems.  The configuration header is called
 for earlier versions of Python.
 
 Some additional functions are provided which perform some useful manipulations
-for other parts of the :mod:`distutils` package.
+for other parts of the ``distutils`` package.
 
 
 .. data:: PREFIX
@@ -1533,14 +1533,14 @@ for other parts of the :mod:`distutils` package.
    standard library is returned rather than the directory for the installation of
    third-party extensions.
 
-The following function is only intended for use within the :mod:`distutils`
+The following function is only intended for use within the ``distutils``
 package.
 
 
 .. function:: customize_compiler(compiler)
 
    Do any platform-specific customization of a
-   :class:`distutils.ccompiler.CCompiler` instance.
+   ``distutils.ccompiler.CCompiler`` instance.
 
    This function is only needed on Unix at this time, but should be called
    consistently to support forward-compatibility.  It inserts the information that
@@ -1554,20 +1554,20 @@ Python's own build procedures.
 
 .. function:: set_python_build()
 
-   Inform the :mod:`distutils.sysconfig` module that it is being used as part of
+   Inform the ``distutils.sysconfig`` module that it is being used as part of
    the build process for Python.  This changes a lot of relative locations for
    files, allowing them to be located in the build area rather than in an installed
    Python.
 
 
-:mod:`distutils.text_file` --- The TextFile class
+``distutils.text_file`` --- The TextFile class
 =================================================
 
 .. module:: distutils.text_file
    :synopsis: Provides the TextFile class, a simple interface to text files
 
 
-This module provides the :class:`TextFile` class, which gives an interface  to
+This module provides the ``TextFile`` class, which gives an interface  to
 text files that (optionally) takes care of stripping comments, ignoring  blank
 lines, and joining lines with backslashes.
 
@@ -1586,13 +1586,13 @@ lines, and joining lines with backslashes.
    multiple physical lines.  Also  provides :meth:`unreadline` for implementing
    line-at-a-time lookahead.
 
-   :class:`TextFile` instances are create with either *filename*, *file*, or both.
-   :exc:`RuntimeError` is raised if both are ``None``. *filename* should be a
+   ``TextFile`` instances are create with either *filename*, *file*, or both.
+   ``RuntimeError`` is raised if both are ``None``. *filename* should be a
    string, and *file* a file object (or something that provides :meth:`readline`
    and :meth:`close`  methods).  It is recommended that you supply at least
-   *filename*,  so that :class:`TextFile` can include it in warning messages.  If
-   *file* is not supplied, :class:`TextFile` creates its own using the
-   :func:`open` built-in function.
+   *filename*,  so that ``TextFile`` can include it in warning messages.  If
+   *file* is not supplied, ``TextFile`` creates its own using the
+   ``open`` built-in function.
 
    The options are all boolean, and affect the values returned by :meth:`readline`
 
@@ -1699,7 +1699,7 @@ lines, and joining lines with backslashes.
       to :meth:`readline`, the lines will be returned most in most recent first order.
 
 
-:mod:`distutils.version` --- Version number classes
+``distutils.version`` --- Version number classes
 ===================================================
 
 .. module:: distutils.version
@@ -1714,15 +1714,15 @@ lines, and joining lines with backslashes.
 .. % separate module, with the command name as the name of the module.
 
 
-:mod:`distutils.cmd` --- Abstract base class for Distutils commands
+``distutils.cmd`` --- Abstract base class for Distutils commands
 ===================================================================
 
 .. module:: distutils.cmd
-   :synopsis: Provides the abstract base class :class:`~distutils.cmd.Command`. This class
+   :synopsis: Provides the abstract base class ``distutils.cmd.Command``. This class
               is subclassed by the modules in the distutils.command subpackage.
 
 
-This module supplies the abstract base class :class:`Command`.
+This module supplies the abstract base class ``Command``.
 
 
 .. class:: Command(dist)
@@ -1741,7 +1741,7 @@ This module supplies the abstract base class :class:`Command`.
    command class.
 
    The class constructor takes a single argument *dist*, a
-   :class:`~distutils.core.Distribution` instance.
+   ``distutils.core.Distribution`` instance.
 
 
 Creating a new Distutils command
@@ -1749,7 +1749,7 @@ Creating a new Distutils command
 
 This section outlines the steps to create a new Distutils command.
 
-A new command lives in a module in the :mod:`distutils.command` package. There
+A new command lives in a module in the ``distutils.command`` package. There
 is a sample template in that directory called :file:`command_template`.  Copy
 this file to a new module with the same name as the new command you're
 implementing.  This module should implement a class with the same name as the
@@ -1757,9 +1757,9 @@ module (and the command).  So, for instance, to create the command
 ``peel_banana`` (so that users can run ``setup.py peel_banana``), you'd copy
 :file:`command_template` to :file:`distutils/command/peel_banana.py`, then edit
 it so that it's implementing the class ``peel_banana``, a subclass of
-:class:`distutils.cmd.Command`.
+``distutils.cmd.Command``.
 
-Subclasses of :class:`Command` must define the following methods.
+Subclasses of ``Command`` must define the following methods.
 
 .. method:: Command.initialize_options()
 
@@ -1807,7 +1807,7 @@ Subclasses of :class:`Command` must define the following methods.
    defined.  The canonical example is the :command:`install` command.
 
 
-:mod:`distutils.command` --- Individual Distutils commands
+``distutils.command`` --- Individual Distutils commands
 ==========================================================
 
 .. module:: distutils.command
@@ -1818,7 +1818,7 @@ Subclasses of :class:`Command` must define the following methods.
 .. % todo
 
 
-:mod:`distutils.command.bdist` --- Build a binary installer
+``distutils.command.bdist`` --- Build a binary installer
 ===========================================================
 
 .. module:: distutils.command.bdist
@@ -1828,7 +1828,7 @@ Subclasses of :class:`Command` must define the following methods.
 .. % todo
 
 
-:mod:`distutils.command.bdist_packager` --- Abstract base class for packagers
+``distutils.command.bdist_packager`` --- Abstract base class for packagers
 =============================================================================
 
 .. module:: distutils.command.bdist_packager
@@ -1838,14 +1838,14 @@ Subclasses of :class:`Command` must define the following methods.
 .. % todo
 
 
-:mod:`distutils.command.bdist_dumb` --- Build a "dumb" installer
+``distutils.command.bdist_dumb`` --- Build a "dumb" installer
 ================================================================
 
 .. module:: distutils.command.bdist_dumb
    :synopsis: Build a "dumb" installer - a simple archive of files
 
 
-:mod:`distutils.command.bdist_rpm` --- Build a binary distribution as a Redhat RPM and SRPM
+``distutils.command.bdist_rpm`` --- Build a binary distribution as a Redhat RPM and SRPM
 ===========================================================================================
 
 .. module:: distutils.command.bdist_rpm
@@ -1855,7 +1855,7 @@ Subclasses of :class:`Command` must define the following methods.
 .. % todo
 
 
-:mod:`distutils.command.sdist` --- Build a source distribution
+``distutils.command.sdist`` --- Build a source distribution
 ==============================================================
 
 .. module:: distutils.command.sdist
@@ -1865,7 +1865,7 @@ Subclasses of :class:`Command` must define the following methods.
 .. % todo
 
 
-:mod:`distutils.command.build` --- Build all files of a package
+``distutils.command.build`` --- Build all files of a package
 ===============================================================
 
 .. module:: distutils.command.build
@@ -1875,7 +1875,7 @@ Subclasses of :class:`Command` must define the following methods.
 .. % todo
 
 
-:mod:`distutils.command.build_clib` --- Build any C libraries in a package
+``distutils.command.build_clib`` --- Build any C libraries in a package
 ==========================================================================
 
 .. module:: distutils.command.build_clib
@@ -1885,7 +1885,7 @@ Subclasses of :class:`Command` must define the following methods.
 .. % todo
 
 
-:mod:`distutils.command.build_ext` --- Build any extensions in a package
+``distutils.command.build_ext`` --- Build any extensions in a package
 ========================================================================
 
 .. module:: distutils.command.build_ext
@@ -1895,7 +1895,7 @@ Subclasses of :class:`Command` must define the following methods.
 .. % todo
 
 
-:mod:`distutils.command.build_py` --- Build the .py/.pyc files of a package
+``distutils.command.build_py`` --- Build the .py/.pyc files of a package
 ===========================================================================
 
 .. module:: distutils.command.build_py
@@ -1905,7 +1905,7 @@ Subclasses of :class:`Command` must define the following methods.
 .. class:: build_py
 
 
-:mod:`distutils.command.build_scripts` --- Build the scripts of a package
+``distutils.command.build_scripts`` --- Build the scripts of a package
 =========================================================================
 
 .. module:: distutils.command.build_scripts
@@ -1915,7 +1915,7 @@ Subclasses of :class:`Command` must define the following methods.
 .. % todo
 
 
-:mod:`distutils.command.clean` --- Clean a package build area
+``distutils.command.clean`` --- Clean a package build area
 =============================================================
 
 .. module:: distutils.command.clean
@@ -1929,7 +1929,7 @@ Extension modules built :ref:`in place <distutils-build-ext-inplace>`
 will not be cleaned, as they are not in the build directory.
 
 
-:mod:`distutils.command.config` --- Perform package configuration
+``distutils.command.config`` --- Perform package configuration
 =================================================================
 
 .. module:: distutils.command.config
@@ -1939,7 +1939,7 @@ will not be cleaned, as they are not in the build directory.
 .. % todo
 
 
-:mod:`distutils.command.install` --- Install a package
+``distutils.command.install`` --- Install a package
 ======================================================
 
 .. module:: distutils.command.install
@@ -1949,7 +1949,7 @@ will not be cleaned, as they are not in the build directory.
 .. % todo
 
 
-:mod:`distutils.command.install_data` --- Install data files from a package
+``distutils.command.install_data`` --- Install data files from a package
 ===========================================================================
 
 .. module:: distutils.command.install_data
@@ -1959,7 +1959,7 @@ will not be cleaned, as they are not in the build directory.
 .. % todo
 
 
-:mod:`distutils.command.install_headers` --- Install C/C++ header files from a package
+``distutils.command.install_headers`` --- Install C/C++ header files from a package
 ======================================================================================
 
 .. module:: distutils.command.install_headers
@@ -1969,7 +1969,7 @@ will not be cleaned, as they are not in the build directory.
 .. % todo
 
 
-:mod:`distutils.command.install_lib` --- Install library files from a package
+``distutils.command.install_lib`` --- Install library files from a package
 =============================================================================
 
 .. module:: distutils.command.install_lib
@@ -1979,7 +1979,7 @@ will not be cleaned, as they are not in the build directory.
 .. % todo
 
 
-:mod:`distutils.command.install_scripts` --- Install script files from a package
+``distutils.command.install_scripts`` --- Install script files from a package
 ================================================================================
 
 .. module:: distutils.command.install_scripts
@@ -1989,7 +1989,7 @@ will not be cleaned, as they are not in the build directory.
 .. % todo
 
 
-:mod:`distutils.command.register` --- Register a module with the Python Package Index
+``distutils.command.register`` --- Register a module with the Python Package Index
 =====================================================================================
 
 .. module:: distutils.command.register
@@ -2002,7 +2002,7 @@ This is described in more detail in :pep:`301`.
 .. % todo
 
 
-:mod:`distutils.command.check` --- Check the meta-data of a package
+``distutils.command.check`` --- Check the meta-data of a package
 ===================================================================
 
 .. module:: distutils.command.check
@@ -2011,6 +2011,6 @@ This is described in more detail in :pep:`301`.
 
 The ``check`` command performs some tests on the meta-data of a package.
 For example, it verifies that all required meta-data are provided as
-the arguments passed to the :func:`~distutils.core.setup` function.
+the arguments passed to the ``distutils.core.setup`` function.
 
 .. % todo

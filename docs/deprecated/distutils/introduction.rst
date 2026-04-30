@@ -67,7 +67,7 @@ file :file:`foo.py`, then your setup script can be as simple as this::
 Some observations:
 
 * most information that you supply to the Distutils is supplied as keyword
-  arguments to the :func:`~distutils.core.setup` function
+  arguments to the ``distutils.core.setup`` function
 
 * those keyword arguments fall into two categories: package metadata (name,
   version number) and information about what's in the package (a list of pure

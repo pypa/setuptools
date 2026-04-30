@@ -55,7 +55,7 @@ Notes:
    default on Unix
 
 (3)
-   requires either external :program:`zip` utility or :mod:`zipfile` module (part
+   requires either external :program:`zip` utility or ``zipfile`` module (part
    of the standard Python library since Python 1.6)
 
 (4)

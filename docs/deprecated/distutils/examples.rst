@@ -276,7 +276,7 @@ For example, if the :file:`setup.py` script is changed like this::
         url='http://example.com', long_description=desc)
 
 Where the long description is broken, ``check`` will be able to detect it
-by using the :mod:`docutils` parser:
+by using the ``docutils`` parser:
 
 .. code-block:: shell-session
 
@@ -288,7 +288,7 @@ by using the :mod:`docutils` parser:
 Reading the metadata
 =====================
 
-The :func:`distutils.core.setup` function provides a command-line interface
+The ``distutils.core.setup`` function provides a command-line interface
 that allows you to query the metadata fields of a project through the
 ``setup.py`` script of a given project:
 
@@ -298,7 +298,7 @@ that allows you to query the metadata fields of a project through the
     distribute
 
 This call reads the ``name`` metadata by running the
-:func:`distutils.core.setup`  function. Although, when a source or binary
+``distutils.core.setup``  function. Although, when a source or binary
 distribution is created with Distutils, the metadata fields are written
 in a static file called :file:`PKG-INFO`. When a Distutils-based project is
 installed in Python, the :file:`PKG-INFO` file is copied alongside the modules
@@ -308,8 +308,8 @@ in the Metadata, and ``pyX.X`` the major and minor version of Python like
 ``2.7`` or ``3.2``.
 
 You can read back this static file, by using the
-:class:`distutils.dist.DistributionMetadata` class and its
-:func:`~distutils.dist.DistributionMetadata.read_pkg_file` method::
+``distutils.dist.DistributionMetadata`` class and its
+``distutils.dist.DistributionMetadata.read_pkg_file`` method::
 
     >>> from distutils.dist import DistributionMetadata
     >>> metadata = DistributionMetadata()
