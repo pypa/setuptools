@@ -1,0 +1,1 @@
+Restored reading ``Project-URL`` fields into ``DistributionMetadata.project_urls`` when loading ``PKG-INFO`` metadata.
