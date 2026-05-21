@@ -1,0 +1,2 @@
+Fixed ``build_py`` to avoid copying extension source files from ``SOURCES.txt``
+into ``build/lib`` as package data.
