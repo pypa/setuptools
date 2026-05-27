@@ -162,6 +162,13 @@ def __read_test_cases():
                 version=sic('1.0.0a'),
             ),
         ),
+        (
+            'Metadata Version 2.5: Import names',
+            params(
+                import_names=['package', 'package._private'],
+                import_namespaces=['package.plugins'],
+            ),
+        ),
     ]
 
 
@@ -200,6 +207,8 @@ def test_read_metadata(name, attrs):
         ('classifiers', dist_class.get_classifiers),
         ('project_urls', lambda s: getattr(s, 'project_urls', {})),
         ('provides_extras', lambda s: getattr(s, 'provides_extras', {})),
+        ('import_names', lambda s: getattr(s, 'import_names', [])),
+        ('import_namespaces', lambda s: getattr(s, 'import_namespaces', [])),
     ]
 
     for attr, getter in tested_attrs:
@@ -527,6 +536,21 @@ class TestPEP643:
             "AUTHORS.txt",
             "LICENSE.md",
         }
+
+    def test_import_names(self):
+        dist = Distribution(
+            {
+                "name": "package",
+                "version": "0.0.1",
+                "import_names": ["package", "package._private"],
+                "import_namespaces": ["package.plugins"],
+            }
+        )
+        metadata = _get_metadata(dist)
+
+        assert metadata["Metadata-Version"] == "2.5"
+        assert metadata.get_all("Import-Name") == ["package", "package._private"]
+        assert metadata.get_all("Import-Namespace") == ["package.plugins"]
 
 
 def _makedist(**attrs):

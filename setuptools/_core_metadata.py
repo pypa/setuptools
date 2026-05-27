@@ -100,6 +100,8 @@ def read_pkg_file(self, file):
 
     self.platforms = _read_list_from_msg(msg, 'platform')
     self.classifiers = _read_list_from_msg(msg, 'classifier')
+    self.import_names = _read_list_from_msg(msg, 'import-name') or []
+    self.import_namespaces = _read_list_from_msg(msg, 'import-namespace') or []
 
     # PEP 314 - these fields only exist in 1.1
     if self.metadata_version == Version('1.1'):
@@ -150,6 +152,9 @@ def write_pkg_info(self, base_dir):
 def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     """Write the PKG-INFO format data to a file object."""
     version = self.get_metadata_version()
+    if (self.import_names or self.import_namespaces) and version < Version('2.5'):
+        version = Version('2.5')
+        self.metadata_version = version
 
     def write_field(key, value):
         file.write(f"{key}: {value}\n")
@@ -193,6 +198,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
         write_field('Platform', platform)
 
     self._write_list(file, 'Classifier', self.get_classifiers())
+    self._write_list(file, 'Import-Name', self.import_names)
+    self._write_list(file, 'Import-Namespace', self.import_namespaces)
 
     # PEP 314
     self._write_list(file, 'Requires', self.get_requires())
@@ -312,6 +319,8 @@ _POSSIBLE_DYNAMIC_FIELDS = {
     "download-url": "download_url",
     "home-page": "url",
     "keywords": "keywords",
+    "import-name": "import_names",
+    "import-namespace": "import_namespaces",
     "license": "license",
     # XXX: License-File is complicated because the user gives globs that are expanded
     #      during the build. Without special handling it is likely always

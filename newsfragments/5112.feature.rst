@@ -1,0 +1,1 @@
+Added support for ``project.import-names`` and ``project.import-namespaces`` from PEP 794 when generating Core Metadata 2.5.
