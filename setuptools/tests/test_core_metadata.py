@@ -454,6 +454,36 @@ class TestPEP643:
         assert metadata.get_all("Dynamic") is None
         assert metadata.get_all("dynamic") is None
 
+    def test_empty_default_dependencies_are_not_dynamic(self, tmpdir_cwd):
+        Path("pyproject.toml").write_text(
+            cleandoc(
+                """
+                [project]
+                name = "package"
+                version = "0.0.1"
+                """
+            ),
+            encoding="utf-8",
+        )
+        metadata = _get_metadata()
+        assert metadata.get_all("Dynamic") is None
+
+    def test_empty_dynamic_dependencies_are_marked_as_dynamic(self, tmpdir_cwd):
+        Path("pyproject.toml").write_text(
+            cleandoc(
+                """
+                [project]
+                name = "package"
+                version = "0.0.1"
+                dynamic = ["dependencies"]
+                """
+            ),
+            encoding="utf-8",
+        )
+        metadata = _get_metadata(_makedist(install_requires=[]))
+        assert metadata.get_all("Requires-Dist") is None
+        assert metadata.get_all("Dynamic") == ["requires-dist"]
+
     @pytest.mark.parametrize("file", STATIC_CONFIG.keys())
     @pytest.mark.parametrize(
         "fields",

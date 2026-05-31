@@ -1,0 +1,1 @@
+Preserved ``Dynamic: requires-dist`` in generated metadata when dynamic dependencies are supplied as an empty ``install_requires=[]`` value.
