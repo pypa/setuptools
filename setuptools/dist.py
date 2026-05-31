@@ -292,8 +292,8 @@ class Distribution(_Distribution):
         'license_expression': lambda: None,
         'license_file': lambda: None,
         'license_files': lambda: None,
-        'install_requires': list,
-        'extras_require': dict,
+        'install_requires': _static.List,
+        'extras_require': _static.Dict,
     }
 
     # Used by build_py, editable_wheel and install_lib commands for legacy namespaces
@@ -392,8 +392,13 @@ class Distribution(_Distribution):
 
     def _normalize_requires(self):
         """Make sure requirement-related attributes exist and are normalized"""
-        install_requires = getattr(self, "install_requires", None) or []
-        extras_require = getattr(self, "extras_require", None) or {}
+        install_requires = getattr(self, "install_requires", None)
+        if install_requires is None:
+            install_requires = _static.EMPTY_LIST
+
+        extras_require = getattr(self, "extras_require", None)
+        if extras_require is None:
+            extras_require = _static.EMPTY_DICT
 
         # Preserve the "static"-ness of values parsed from config files
         list_ = _static.List if _static.is_static(install_requires) else list

@@ -212,7 +212,8 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     _write_requirements(self, file)
 
     for field, attr in _POSSIBLE_DYNAMIC_FIELDS.items():
-        if (val := getattr(self, attr, None)) and not is_static(val):
+        val = getattr(self, attr, None)
+        if (val or _include_empty_dynamic_requires_dist(field, val)) and not is_static(val):
             write_field('Dynamic', field)
 
     long_description = self.get_long_description()
@@ -335,3 +336,12 @@ _POSSIBLE_DYNAMIC_FIELDS = {
     "summary": "description",
     # "supported-platform": "supported_platforms",  # NOT USED
 }
+
+
+def _include_empty_dynamic_requires_dist(field: str, value: object) -> bool:
+    """
+    An empty, explicitly supplied dependency list should still produce
+    ``Dynamic: requires-dist``. ``Requires-Dist`` itself has no value to write
+    in that case, so truthiness alone is not enough to detect the dynamic field.
+    """
+    return field == "requires-dist" and isinstance(value, (list, tuple)) and not value
