@@ -646,6 +646,22 @@ class TestPresetField:
         dist_value = _some_attrgetter(f"metadata.{attr}", attr)(dist)
         assert dist_value == value
 
+    def test_empty_dynamic_dependencies_in_metadata(self, tmp_path):
+        pyproject = self.pyproject(tmp_path, ["dependencies"])
+        dist = makedist(tmp_path, install_requires=[])
+        dist = pyprojecttoml.apply_configuration(dist, pyproject)
+        metadata = core_metadata(dist)
+        assert "Dynamic: requires-dist\n" in metadata
+        assert "Requires-Dist:" not in metadata
+
+    def test_empty_static_dependencies_not_dynamic_in_metadata(self, tmp_path):
+        extra = "dependencies = []\n"
+        pyproject = self.pyproject(tmp_path, [], extra)
+        dist = pyprojecttoml.apply_configuration(makedist(tmp_path), pyproject)
+        metadata = core_metadata(dist)
+        assert "Dynamic:" not in metadata
+        assert "Requires-Dist:" not in metadata
+
     def test_license_files_exempt_from_dynamic(self, monkeypatch, tmp_path):
         """
         license-file is currently not considered in the context of dynamic.

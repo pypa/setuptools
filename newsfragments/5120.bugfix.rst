@@ -1,0 +1,1 @@
+Preserved ``Dynamic: requires-dist`` in generated core metadata when ``dependencies`` is listed as dynamic and the resolved dependency list is empty.
