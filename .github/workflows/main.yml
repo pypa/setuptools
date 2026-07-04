@@ -58,7 +58,6 @@ jobs:
           platform: ubuntu-latest
         - python: pypy3.11
           platform: ubuntu-latest
-          distutils: stdlib
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
