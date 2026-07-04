@@ -1,10 +1,11 @@
 """Tests for distutils.cmd."""
-import os
 
+import os
+from distutils import debug
 from distutils.cmd import Command
 from distutils.dist import Distribution
 from distutils.errors import DistutilsOptionError
-from distutils import debug
+
 import pytest
 
 
@@ -47,7 +48,7 @@ class TestCommand:
     def test_make_file(self, cmd):
         # making sure it raises when infiles is not a string or a list/tuple
         with pytest.raises(TypeError):
-            cmd.make_file(infiles=1, outfile='', func='func', args=())
+            cmd.make_file(infiles=True, outfile='', func='func', args=())
 
         # making sure execute gets called properly
         def _execute(func, args, exec_msg, level):

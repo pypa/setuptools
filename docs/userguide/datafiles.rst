@@ -2,6 +2,15 @@
 Data Files Support
 ====================
 
+In the Python ecosystem, the term "data files" is used in various complex scenarios
+and can have nuanced meanings. For the purposes of this documentation,
+we define "data files" as non-Python files that are installed alongside Python
+modules and packages on the user's machine when they install a
+:term:`distribution <Distribution Package>` via :term:`wheel <Wheel>`.
+
+These files are typically intended for use at **runtime** by the package itself or
+to influence the behavior of other packages or systems.
+
 Old packaging installation methods in the Python ecosystem
 have traditionally allowed installation of "data files", which
 are placed in a platform-specific location.  However, the most common use case
@@ -10,12 +19,20 @@ by including the data files **inside the package directory**.
 
 Setuptools focuses on this most common type of data files and offers three ways
 of specifying which files should be included in your packages, as described in
-the following sections.
+the following section.
 
-include_package_data
-====================
 
-First, you can simply use the ``include_package_data`` keyword.
+Configuration Options
+=====================
+
+
+.. _include-package-data:
+
+1. ``include_package_data``
+---------------------------
+
+First, you can use the ``include_package_data`` keyword.
+
 For example, if the package tree looks like this::
 
     project_root_directory
@@ -28,7 +45,38 @@ For example, if the package tree looks like this::
             ├── data1.txt
             └── data2.txt
 
-and you supply this configuration:
+When **at least one** of the following conditions are met:
+
+1. These files are included via the :ref:`MANIFEST.in <Using MANIFEST.in>` file,
+   like so::
+
+        include src/mypkg/*.txt
+        include src/mypkg/*.rst
+
+2. They are being tracked by a revision control system such as Git, Mercurial
+   or SVN, **AND** you have configured an appropriate plugin such as
+   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
+   (See the section below on :ref:`Adding Support for Revision
+   Control Systems` for information on how to configure such plugins.)
+
+then all the ``.txt`` and ``.rst`` files will be included into
+the source distribution.
+
+To further include them into the ``wheels``, you can use the
+``include_package_data`` keyword:
+
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        [tool.setuptools]
+        # ...
+        # By default, include-package-data is true in pyproject.toml,
+        # so you do NOT have to specify this line.
+        include-package-data = true
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
 
 .. tab:: setup.cfg
 
@@ -56,35 +104,18 @@ and you supply this configuration:
         include_package_data=True
     )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
+.. note::
+   .. versionadded:: v61.0.0
+      The default value for ``tool.setuptools.include-package-data`` is ``true``
+      when projects are configured via ``pyproject.toml``.
+      This behaviour differs from ``setup.cfg`` and ``setup.py``
+      (where ``include_package_data`` is ``False`` by default), which was not changed
+      to ensure backwards compatibility with existing projects.
 
-   .. code-block:: toml
+.. _package-data:
 
-        [tool.setuptools]
-        # ...
-        # By default, include-package-data is true in pyproject.toml, so you do
-        # NOT have to specify this line.
-        include-package-data = true
-
-        [tool.setuptools.packages.find]
-        where = ["src"]
-
-then all the ``.txt`` and ``.rst`` files will be automatically installed with
-your package, provided:
-
-1. These files are included via the |MANIFEST.in|_ file, like so::
-
-        include src/mypkg/*.txt
-        include src/mypkg/*.rst
-
-2. OR, they are being tracked by a revision control system such as Git, Mercurial
-   or SVN, and you have configured an appropriate plugin such as
-   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
-   (See the section below on :ref:`Adding Support for Revision
-   Control Systems` for information on how to write such plugins.)
-
-package_data
-============
+2. ``package_data``
+-------------------
 
 By default, ``include_package_data`` considers **all** non ``.py`` files found inside
 the package directory (``src/mypkg`` in this case) as data files, and includes those that
@@ -106,6 +137,16 @@ For example, if the package tree looks like this::
 
 then you can use the following configuration to capture the ``.txt`` and ``.rst`` files as
 data files:
+
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
+
+        [tool.setuptools.package-data]
+        mypkg = ["*.txt", "*.rst"]
 
 .. tab:: setup.cfg
 
@@ -137,29 +178,19 @@ data files:
             package_data={"mypkg": ["*.txt", "*.rst"]}
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
-
-   .. code-block:: toml
-
-        [tool.setuptools.packages.find]
-        where = ["src"]
-
-        [tool.setuptools.package-data]
-        mypkg = ["*.txt", "*.rst"]
-
 The ``package_data`` argument is a dictionary that maps from package names to
 lists of glob patterns. Note that the data files specified using the ``package_data``
-option neither require to be included within a |MANIFEST.in|_ file, nor
-require to be added by a revision control system plugin.
+option neither require to be included within a :ref:`MANIFEST.in <Using MANIFEST.in>`
+file, nor require to be added by a revision control system plugin.
 
 .. note::
         If your glob patterns use paths, you *must* use a forward slash (``/``) as
-        the path separator, even if you are on Windows.  Setuptools automatically
+        the path separator, even if you are on Windows. ``setuptools`` automatically
         converts slashes to appropriate platform-specific separators at build time.
 
-.. note::
-        Glob patterns do not automatically match dotfiles (directory or file names
-        starting with a dot (``.``)). To include such files, you must explicitly start
+.. important::
+        Glob patterns do not automatically match dotfiles, i.e., directory or file names
+        starting with a dot (``.``). To include such files, you must explicitly start
         the pattern with a dot, e.g. ``.*`` to match ``.gitignore``.
 
 If you have multiple top-level packages and a common pattern of data files for all these
@@ -179,6 +210,17 @@ packages, for example::
 Here, both packages ``mypkg1`` and ``mypkg2`` share a common pattern of having ``.txt``
 data files. However, only ``mypkg1`` has ``.rst`` data files. In such a case, if you want to
 use the ``package_data`` option, the following configuration will work:
+
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
+
+        [tool.setuptools.package-data]
+        "*" = ["*.txt"]
+        mypkg1 = ["data1.rst"]
 
 .. tab:: setup.cfg
 
@@ -210,39 +252,40 @@ use the ``package_data`` option, the following configuration will work:
             package_data={"": ["*.txt"], "mypkg1": ["data1.rst"]},
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
-
-   .. code-block:: toml
-
-        [tool.setuptools.packages.find]
-        where = ["src"]
-
-        [tool.setuptools.package-data]
-        "*" = ["*.txt"]
-        mypkg1 = ["data1.rst"]
-
 Notice that if you list patterns in ``package_data`` under the empty string ``""`` in
 ``setup.py``, and the asterisk ``*`` in ``setup.cfg`` and ``pyproject.toml``, these
 patterns are used to find files in every package. For example, we use ``""`` or ``*``
 to indicate that the ``.txt`` files from all packages should be captured as data files.
+These placeholders are treated as a special case, ``setuptools`` **do not**
+support glob patterns on package names for this configuration
+(patterns are only supported on the file paths).
 Also note how we can continue to specify patterns for individual packages, i.e.
 we specify that ``data1.rst`` from ``mypkg1`` alone should be captured as well.
 
 .. note::
-    When building an ``sdist``, the datafiles are also drawn from the
-    ``package_name.egg-info/SOURCES.txt`` file, so make sure that this is removed if
-    the ``setup.py`` ``package_data`` list is updated before calling ``setup.py``.
+    When building an ``sdist``, the data files are also drawn from the
+    ``package_name.egg-info/SOURCES.txt`` file which works as a form of cache.
+    So make sure that this file is removed if ``package_data`` is updated,
+    before re-building the package.
 
-.. note::
-   If using the ``include_package_data`` argument, files specified by
-   ``package_data`` will *not* be automatically added to the manifest unless
-   they are listed in the |MANIFEST.in|_ file or by a plugin like
-   :pypi:`setuptools-scm` or :pypi:`setuptools-svn`.
+.. attention::
+   In Python any directory is considered a package
+   (even if it does not contain ``__init__.py``,
+   see *native namespaces packages* on :doc:`PyPUG:guides/packaging-namespace-packages`).
+   Therefore, if you are not relying on :doc:`automatic discovery </userguide/package_discovery>`,
+   you *SHOULD* ensure that **all** packages (including the ones that don't
+   contain any Python files) are included in the ``packages`` configuration
+   (see :doc:`/userguide/package_discovery` for more information).
 
-.. https://docs.python.org/3/distutils/setupscript.html#installing-package-data
+   Moreover, it is advisable to use full packages name using the dot
+   notation instead of a nested path, to avoid error prone configurations.
+   Please check :ref:`section subdirectories <subdir-data-files>` below.
 
-exclude_package_data
-====================
+
+.. _exclude-package-data:
+
+3. ``exclude_package_data``
+---------------------------
 
 Sometimes, the ``include_package_data`` or ``package_data`` options alone
 aren't sufficient to precisely define what files you want included. For example,
@@ -256,6 +299,16 @@ included when the package is installed.
 Supposing you want to prevent these files from being included in the
 installation (they are not relevant to Python or the package), then you could
 use the ``exclude_package_data`` option:
+
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
+
+        [tool.setuptools.exclude-package-data]
+        mypkg = [".gitattributes"]
 
 .. tab:: setup.cfg
 
@@ -288,16 +341,6 @@ use the ``exclude_package_data`` option:
             exclude_package_data={"mypkg": [".gitattributes"]},
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
-
-   .. code-block:: toml
-
-        [tool.setuptools.packages.find]
-        where = ["src"]
-
-        [tool.setuptools.exclude-package-data]
-        mypkg = [".gitattributes"]
-
 The ``exclude_package_data`` option is a dictionary mapping package names to
 lists of wildcard patterns, just like the ``package_data`` option.  And, just
 as with that option, you can use the empty string key ``""`` in ``setup.py`` and the
@@ -306,6 +349,68 @@ asterisk ``*`` in ``setup.cfg`` and ``pyproject.toml`` to match all top-level pa
 Any files that match these patterns will be *excluded* from installation,
 even if they were listed in ``package_data`` or were included as a result of using
 ``include_package_data``.
+
+.. _interplay_package_data_keywords:
+
+Interplay between these keywords
+--------------------------------
+
+Meanwhile, to further clarify the interplay between these three keywords,
+to include certain data file into the source distribution, the following
+logic condition has to be met::
+
+    MANIFEST.in or (package-data and not exclude-package-data)
+
+In plain language, the file should be either:
+
+1. included in ``MANIFEST.in``; or
+
+2. selected by ``package-data`` AND not excluded by ``exclude-package-data``.
+
+To include some data file into the ``.whl``::
+
+    (not exclude-package-data) and ((include-package-data and MANIFEST.in) or package-data)
+
+In other words, the file should not be excluded by ``exclude-package-data``
+(highest priority), AND should be either:
+
+1. selected by ``package-data``; or
+
+2. selected by ``MANIFEST.in`` AND use ``include-package-data = true``.
+
+Summary
+-------
+
+In summary, the three options allow you to:
+
+``include_package_data``
+    Accept all data files and directories matched by
+    :ref:`MANIFEST.in <Using MANIFEST.in>` or added by
+    a :ref:`plugin <Adding Support for Revision Control Systems>`.
+
+``package_data``
+    Specify additional patterns to match files that may or may
+    not be matched by :ref:`MANIFEST.in <Using MANIFEST.in>`
+    or added by a :ref:`plugin <Adding Support for Revision Control Systems>`.
+
+``exclude_package_data``
+    Specify patterns for data files and directories that should *not* be
+    included when a package is installed, even if they would otherwise have
+    been included due to the use of the preceding options.
+
+.. note::
+    Due to the way the build process works, a data file that you
+    include in your project and then stop including may be "orphaned" in your
+    project's build directories, requiring you to manually deleting them.
+    This may also be important for your users and contributors
+    if they track intermediate revisions of your project using Subversion; be sure
+    to let them know when you make changes that remove files from inclusion so they
+    can also manually delete them.
+
+    See also troubleshooting information in :ref:`Caching and Troubleshooting`.
+
+
+.. _subdir-data-files:
 
 Subdirectory for Data Files
 ===========================
@@ -328,8 +433,28 @@ Here, the ``.rst`` files are placed under a ``data`` subdirectory inside ``mypkg
 while the ``.txt`` files are directly under ``mypkg``.
 
 In this case, the recommended approach is to treat ``data`` as a namespace package
-(refer :pep:`420`). With ``package_data``,
-the configuration might look like this:
+(refer :pep:`420`). This way, you can rely on the same methods described above,
+using either :ref:`package-data` or :ref:`include-package-data`.
+For the sake of completeness, we include below configuration examples
+for the subdirectory structure, but please refer to the detailed
+information in the previous sections of this document.
+
+With :ref:`package-data`, the configuration might look like this:
+
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        # Scanning for namespace packages in the ``src`` directory is true by
+        # default in pyproject.toml, so you do NOT need to include the
+        # `tool.setuptools.packages.find` if it looks like the following:
+        # [tool.setuptools.packages.find]
+        # namespaces = true
+        # where = ["src"]
+
+        [tool.setuptools.package-data]
+        mypkg = ["*.txt"]
+        "mypkg.data" = ["*.rst"]
 
 .. tab:: setup.cfg
 
@@ -365,27 +490,30 @@ the configuration might look like this:
             }
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
-
-   .. code-block:: toml
-
-        [tool.setuptools.packages.find]
-        # scanning for namespace packages is true by default in pyproject.toml, so
-        # you do NOT need to include the following line.
-        namespaces = true
-        where = ["src"]
-
-        [tool.setuptools.package-data]
-        mypkg = ["*.txt"]
-        "mypkg.data" = ["*.rst"]
-
-In other words, we allow Setuptools to scan for namespace packages in the ``src`` directory,
+In other words, we allow ``setuptools`` to scan for namespace packages in the ``src`` directory,
 which enables the ``data`` directory to be identified, and then, we separately specify data
 files for the root package ``mypkg``, and the namespace package ``data`` under the package
 ``mypkg``.
 
-With ``include_package_data`` the configuration is simpler: you simply need to enable
-scanning of namespace packages in the ``src`` directory and the rest is handled by Setuptools.
+Alternatively, you can also rely on :ref:`include-package-data`.
+Note that this is the default behaviour in ``pyproject.toml``, but you need to
+manually enable scanning of namespace packages in ``setup.cfg`` or ``setup.py``:
+
+.. tab:: pyproject.toml
+
+   .. code-block:: toml
+
+        [tool.setuptools]
+        # ...
+        # By default, include-package-data is true in pyproject.toml, so you do
+        # NOT have to specify this line.
+        include-package-data = true
+
+        [tool.setuptools.packages.find]
+        # scanning for namespace packages is true by default in pyproject.toml, so
+        # you need NOT include this configuration.
+        namespaces = true
+        where = ["src"]
 
 .. tab:: setup.cfg
 
@@ -412,49 +540,9 @@ scanning of namespace packages in the ``src`` directory and the rest is handled 
             include_package_data=True,
         )
 
-.. tab:: pyproject.toml (**BETA**) [#beta]_
-
-   .. code-block:: toml
-
-        [tool.setuptools]
-        # ...
-        # By default, include-package-data is true in pyproject.toml, so you do
-        # NOT have to specify this line.
-        include-package-data = true
-
-        [tool.setuptools.packages.find]
-        # scanning for namespace packages is true by default in pyproject.toml, so
-        # you need NOT include the following line.
-        namespaces = true
-        where = ["src"]
-
-Summary
-=======
-
-In summary, the three options allow you to:
-
-``include_package_data``
-    Accept all data files and directories matched by |MANIFEST.in|_ or added by
-    a :ref:`plugin <Adding Support for Revision Control Systems>`.
-
-``package_data``
-    Specify additional patterns to match files that may or may
-    not be matched by |MANIFEST.in|_ or added by
-    a :ref:`plugin <Adding Support for Revision Control Systems>`.
-
-``exclude_package_data``
-    Specify patterns for data files and directories that should *not* be
-    included when a package is installed, even if they would otherwise have
-    been included due to the use of the preceding options.
-
-.. note::
-    Due to the way the build process works, a data file that you
-    include in your project and then stop including may be "orphaned" in your
-    project's build directories, requiring you to run ``setup.py clean --all`` to
-    fully remove them.  This may also be important for your users and contributors
-    if they track intermediate revisions of your project using Subversion; be sure
-    to let them know when you make changes that remove files from inclusion so they
-    can run ``setup.py clean --all``.
+To avoid common mistakes with :ref:`include-package-data`,
+please ensure :ref:`MANIFEST.in <Using MANIFEST.in>` is properly set
+or use a revision control system plugin (see :doc:`/userguide/miscellaneous`).
 
 
 .. _Accessing Data Files at Runtime:
@@ -524,6 +612,20 @@ See :doc:`importlib-resources:using` for detailed instructions.
    pre-existing file is found.
 
 
+Data Files from Plugins and Extensions
+======================================
+
+You can resort to a :doc:`native/implicit namespace package
+<PyPUG:guides/packaging-namespace-packages>` (as a container for files)
+if you want plugins and extensions to your package to contribute with package data files.
+This way, all files will be listed during runtime
+when :doc:`using importlib.resources <importlib-resources:using>`.
+Note that, although not strictly guaranteed, mainstream Python package managers,
+like :pypi:`pip` and derived tools, will install files belong to multiple distributions
+that share a same namespace into the same directory in the file system.
+This means that the overhead for :mod:`importlib.resources` will be minimum.
+
+
 Non-Package Data Files
 ======================
 
@@ -539,17 +641,9 @@ run time be included **inside the package**.
 
 ----
 
-.. [#beta]
-   Support for adding build configuration options via the ``[tool.setuptools]``
-   table in the ``pyproject.toml`` file. See :doc:`/userguide/pyproject_config`.
-
 .. [#system-dirs] These locations can be discovered with the help of
    third-party libraries such as :pypi:`platformdirs`.
 
 .. [#files_api] Reference: https://importlib-resources.readthedocs.io/en/latest/using.html#migrating-from-legacy
 
 .. [#namespace_support] Reference: https://github.com/python/importlib_resources/pull/196#issuecomment-734520374
-
-
-.. |MANIFEST.in| replace:: ``MANIFEST.in``
-.. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/

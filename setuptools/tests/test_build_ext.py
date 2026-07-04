@@ -1,21 +1,22 @@
+from __future__ import annotations
+
 import os
 import sys
-import distutils.command.build_ext as orig
-from distutils.sysconfig import get_config_var
 from importlib.util import cache_from_source as _compiled_file_name
 
+import pytest
 from jaraco import path
 
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
-from setuptools.extension import Extension
 from setuptools.errors import CompileError
+from setuptools.extension import Extension
 
 from . import environment
 from .textwrap import DALS
 
-import pytest
-
+import distutils.command.build_ext as orig
+from distutils.sysconfig import get_config_var
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
 
@@ -98,12 +99,11 @@ class TestBuildExt:
         ext3 = Extension("ext3", ["c-extension/ext3.c"])
 
         path.build(files)
-        dist = Distribution({
+        return Distribution({
             "script_name": "%test%",
             "ext_modules": [ext1, ext2, ext3],
             "package_dir": {"": "src"},
         })
-        return dist
 
     def test_get_outputs(self, tmpdir_cwd, monkeypatch):
         monkeypatch.setenv('SETUPTOOLS_EXT_SUFFIX', '.mp3')  # make test OS-independent
@@ -180,8 +180,8 @@ class TestBuildExt:
 
 
 class TestBuildExtInplace:
-    def get_build_ext_cmd(self, optional: bool, **opts):
-        files = {
+    def get_build_ext_cmd(self, optional: bool, **opts) -> build_ext:
+        files: dict[str, str | dict[str, dict[str, str]]] = {
             "eggs.c": "#include missingheader.h\n",
             ".build": {"lib": {}, "tmp": {}},
         }
@@ -233,7 +233,8 @@ def test_build_ext_config_handling(tmpdir_cwd):
                 version='0.0.0',
                 ext_modules=[Extension('foo', ['foo.c'])],
             )
-            """),
+            """
+        ),
         'foo.c': DALS(
             """
             #include "Python.h"
@@ -275,15 +276,18 @@ def test_build_ext_config_handling(tmpdir_cwd):
                 return module;
             #endif
             }
-            """),
+            """
+        ),
         'setup.cfg': DALS(
             """
             [build]
             build_base = foo_build
-            """),
+            """
+        ),
     }
     path.build(files)
-    code, output = environment.run_setup_py(
-        cmd=['build'], data_stream=(0, 2),
+    code, (stdout, stderr) = environment.run_setup_py(
+        cmd=['build'],
+        data_stream=(0, 2),
     )
-    assert code == 0, '\nSTDOUT:\n%s\nSTDERR:\n%s' % output
+    assert code == 0, f'\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}'

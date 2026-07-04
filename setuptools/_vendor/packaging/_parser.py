@@ -1,16 +1,20 @@
 """Handwritten parser of dependency specifiers.
 
-The docstring for each __parse_* function contains ENBF-inspired grammar representing
+The docstring for each __parse_* function contains EBNF-inspired grammar representing
 the implementation.
 """
 
+from __future__ import annotations
+
 import ast
-from typing import Any, List, NamedTuple, Optional, Tuple, Union
+from typing import List, Literal, NamedTuple, Sequence, Tuple, Union
 
 from ._tokenizer import DEFAULT_RULES, Tokenizer
 
 
 class Node:
+    __slots__ = ("value",)
+
     def __init__(self, value: str) -> None:
         self.value = value
 
@@ -18,43 +22,46 @@ class Node:
         return self.value
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}('{self}')>"
+        return f"<{self.__class__.__name__}({self.value!r})>"
 
     def serialize(self) -> str:
         raise NotImplementedError
 
 
 class Variable(Node):
+    __slots__ = ()
+
     def serialize(self) -> str:
         return str(self)
 
 
 class Value(Node):
+    __slots__ = ()
+
     def serialize(self) -> str:
         return f'"{self}"'
 
 
 class Op(Node):
+    __slots__ = ()
+
     def serialize(self) -> str:
         return str(self)
 
 
+MarkerLogical = Literal["and", "or"]
 MarkerVar = Union[Variable, Value]
 MarkerItem = Tuple[MarkerVar, Op, MarkerVar]
-# MarkerAtom = Union[MarkerItem, List["MarkerAtom"]]
-# MarkerList = List[Union["MarkerList", MarkerAtom, str]]
-# mypy does not support recursive type definition
-# https://github.com/python/mypy/issues/731
-MarkerAtom = Any
-MarkerList = List[Any]
+MarkerAtom = Union[MarkerItem, Sequence["MarkerAtom"]]
+MarkerList = List[Union["MarkerList", MarkerAtom, MarkerLogical]]
 
 
 class ParsedRequirement(NamedTuple):
     name: str
     url: str
-    extras: List[str]
+    extras: list[str]
     specifier: str
-    marker: Optional[MarkerList]
+    marker: MarkerList | None
 
 
 # --------------------------------------------------------------------------------------
@@ -87,7 +94,7 @@ def _parse_requirement(tokenizer: Tokenizer) -> ParsedRequirement:
 
 def _parse_requirement_details(
     tokenizer: Tokenizer,
-) -> Tuple[str, str, Optional[MarkerList]]:
+) -> tuple[str, str, MarkerList | None]:
     """
     requirement_details = AT URL (WS requirement_marker?)?
                         | specifier WS? (requirement_marker)?
@@ -113,7 +120,9 @@ def _parse_requirement_details(
             return (url, specifier, marker)
 
         marker = _parse_requirement_marker(
-            tokenizer, span_start=url_start, after="URL and whitespace"
+            tokenizer,
+            span_start=url_start,
+            expected="semicolon (after URL and whitespace)",
         )
     else:
         specifier_start = tokenizer.position
@@ -126,10 +135,10 @@ def _parse_requirement_details(
         marker = _parse_requirement_marker(
             tokenizer,
             span_start=specifier_start,
-            after=(
-                "version specifier"
+            expected=(
+                "comma (within version specifier), semicolon (after version specifier)"
                 if specifier
-                else "name and no valid version specifier"
+                else "semicolon (after name with no version specifier)"
             ),
         )
 
@@ -137,7 +146,7 @@ def _parse_requirement_details(
 
 
 def _parse_requirement_marker(
-    tokenizer: Tokenizer, *, span_start: int, after: str
+    tokenizer: Tokenizer, *, span_start: int, expected: str
 ) -> MarkerList:
     """
     requirement_marker = SEMICOLON marker WS?
@@ -145,8 +154,9 @@ def _parse_requirement_marker(
 
     if not tokenizer.check("SEMICOLON"):
         tokenizer.raise_syntax_error(
-            f"Expected end or semicolon (after {after})",
+            f"Expected {expected} or end",
             span_start=span_start,
+            span_end=None,
         )
     tokenizer.read()
 
@@ -156,14 +166,18 @@ def _parse_requirement_marker(
     return marker
 
 
-def _parse_extras(tokenizer: Tokenizer) -> List[str]:
+def _parse_extras(tokenizer: Tokenizer) -> list[str]:
     """
     extras = (LEFT_BRACKET wsp* extras_list? wsp* RIGHT_BRACKET)?
     """
     if not tokenizer.check("LEFT_BRACKET", peek=True):
         return []
 
-    with tokenizer.enclosing_tokens("LEFT_BRACKET", "RIGHT_BRACKET"):
+    with tokenizer.enclosing_tokens(
+        "LEFT_BRACKET",
+        "RIGHT_BRACKET",
+        around="extras",
+    ):
         tokenizer.consume("WS")
         extras = _parse_extras_list(tokenizer)
         tokenizer.consume("WS")
@@ -171,11 +185,11 @@ def _parse_extras(tokenizer: Tokenizer) -> List[str]:
     return extras
 
 
-def _parse_extras_list(tokenizer: Tokenizer) -> List[str]:
+def _parse_extras_list(tokenizer: Tokenizer) -> list[str]:
     """
     extras_list = identifier (wsp* ',' wsp* identifier)*
     """
-    extras: List[str] = []
+    extras: list[str] = []
 
     if not tokenizer.check("IDENTIFIER"):
         return extras
@@ -203,7 +217,11 @@ def _parse_specifier(tokenizer: Tokenizer) -> str:
     specifier = LEFT_PARENTHESIS WS? version_many WS? RIGHT_PARENTHESIS
               | WS? version_many WS?
     """
-    with tokenizer.enclosing_tokens("LEFT_PARENTHESIS", "RIGHT_PARENTHESIS"):
+    with tokenizer.enclosing_tokens(
+        "LEFT_PARENTHESIS",
+        "RIGHT_PARENTHESIS",
+        around="version specifier",
+    ):
         tokenizer.consume("WS")
         parsed_specifiers = _parse_version_many(tokenizer)
         tokenizer.consume("WS")
@@ -217,7 +235,20 @@ def _parse_version_many(tokenizer: Tokenizer) -> str:
     """
     parsed_specifiers = ""
     while tokenizer.check("SPECIFIER"):
+        span_start = tokenizer.position
         parsed_specifiers += tokenizer.read().text
+        if tokenizer.check("VERSION_PREFIX_TRAIL", peek=True):
+            tokenizer.raise_syntax_error(
+                ".* suffix can only be used with `==` or `!=` operators",
+                span_start=span_start,
+                span_end=tokenizer.position + 1,
+            )
+        if tokenizer.check("VERSION_LOCAL_LABEL_TRAIL", peek=True):
+            tokenizer.raise_syntax_error(
+                "Local version label can only be used with `==` or `!=` operators",
+                span_start=span_start,
+                span_end=tokenizer.position,
+            )
         tokenizer.consume("WS")
         if not tokenizer.check("COMMA"):
             break
@@ -231,7 +262,13 @@ def _parse_version_many(tokenizer: Tokenizer) -> str:
 # Recursive descent parser for marker expression
 # --------------------------------------------------------------------------------------
 def parse_marker(source: str) -> MarkerList:
-    return _parse_marker(Tokenizer(source, rules=DEFAULT_RULES))
+    return _parse_full_marker(Tokenizer(source, rules=DEFAULT_RULES))
+
+
+def _parse_full_marker(tokenizer: Tokenizer) -> MarkerList:
+    retval = _parse_marker(tokenizer)
+    tokenizer.expect("END", expected="end of marker expression")
+    return retval
 
 
 def _parse_marker(tokenizer: Tokenizer) -> MarkerList:
@@ -254,7 +291,11 @@ def _parse_marker_atom(tokenizer: Tokenizer) -> MarkerAtom:
 
     tokenizer.consume("WS")
     if tokenizer.check("LEFT_PARENTHESIS", peek=True):
-        with tokenizer.enclosing_tokens("LEFT_PARENTHESIS", "RIGHT_PARENTHESIS"):
+        with tokenizer.enclosing_tokens(
+            "LEFT_PARENTHESIS",
+            "RIGHT_PARENTHESIS",
+            around="marker expression",
+        ):
             tokenizer.consume("WS")
             marker: MarkerAtom = _parse_marker(tokenizer)
             tokenizer.consume("WS")
@@ -278,7 +319,7 @@ def _parse_marker_item(tokenizer: Tokenizer) -> MarkerItem:
     return (marker_var_left, marker_op, marker_var_right)
 
 
-def _parse_marker_var(tokenizer: Tokenizer) -> MarkerVar:
+def _parse_marker_var(tokenizer: Tokenizer) -> MarkerVar:  # noqa: RET503
     """
     marker_var = VARIABLE | QUOTED_STRING
     """
@@ -293,10 +334,7 @@ def _parse_marker_var(tokenizer: Tokenizer) -> MarkerVar:
 
 
 def process_env_var(env_var: str) -> Variable:
-    if (
-        env_var == "platform_python_implementation"
-        or env_var == "python_implementation"
-    ):
+    if env_var in ("platform_python_implementation", "python_implementation"):
         return Variable("platform_python_implementation")
     else:
         return Variable(env_var)
@@ -323,6 +361,5 @@ def _parse_marker_op(tokenizer: Tokenizer) -> Op:
         return Op(tokenizer.read().text)
     else:
         return tokenizer.raise_syntax_error(
-            "Expected marker operator, one of "
-            "<=, <, !=, ==, >=, >, ~=, ===, in, not in"
+            "Expected marker operator, one of <=, <, !=, ==, >=, >, ~=, ===, in, not in"
         )

@@ -211,7 +211,7 @@ a non-``None`` value.  Here's an example validation function::
         """Verify that value is True, False, 0, or 1"""
         if bool(value) != value:
             raise SetupError(
-                "%r must be a boolean value (got %r)" % (attr,value)
+                f"{attr!r} must be a boolean value (got {value!r}"
             )
 
 Your function should accept three arguments: the ``Distribution`` object,
@@ -382,7 +382,7 @@ A few important points for writing revision control file finders:
   inform the user of the missing program(s).
 
 
-.. _distutils: https://docs.python.org/3.9/library/distutils.html
+.. _distutils: https://setuptools.pypa.io/en/latest/deprecated/distutils/index.html
 
 
 Final Remarks

@@ -1,11 +1,13 @@
 """Tests for automatic discovery of modules"""
+
 import os
 
 import pytest
 
 from setuptools.discovery import FlatLayoutModuleFinder, ModuleFinder
 
-from .test_find_packages import ensure_files, has_symlink
+from .compat.py39 import os_helper
+from .test_find_packages import ensure_files
 
 
 class TestModuleFinder:
@@ -29,11 +31,7 @@ class TestModuleFinder:
             {"include": ["f*"], "exclude": ["fo*"]},
             ["file"],
         ),
-        "invalid-name": (
-            ["my-file.py", "other.file.py"],
-            {},
-            []
-        )
+        "invalid-name": (["my-file.py", "other.file.py"], {}, []),
     }
 
     @pytest.mark.parametrize("example", EXAMPLES.keys())
@@ -42,7 +40,7 @@ class TestModuleFinder:
         ensure_files(tmp_path, files)
         assert self.find(tmp_path, **kwargs) == set(expected_modules)
 
-    @pytest.mark.skipif(not has_symlink(), reason='Symlink support required')
+    @pytest.mark.skipif(not os_helper.can_symlink(), reason='Symlink support required')
     def test_symlinked_packages_are_included(self, tmp_path):
         src = "_myfiles/file.py"
         ensure_files(tmp_path, [src])
@@ -56,22 +54,16 @@ class TestFlatLayoutModuleFinder:
 
     EXAMPLES = {
         # circumstance: (files, expected_modules)
-        "hidden-files": (
-            [".module.py"],
-            []
-        ),
-        "private-modules": (
-            ["_module.py"],
-            []
-        ),
+        "hidden-files": ([".module.py"], []),
+        "private-modules": (["_module.py"], []),
         "common-names": (
             ["setup.py", "conftest.py", "test.py", "tests.py", "example.py", "mod.py"],
-            ["mod"]
+            ["mod"],
         ),
         "tool-specific": (
             ["tasks.py", "fabfile.py", "noxfile.py", "dodo.py", "manage.py", "mod.py"],
-            ["mod"]
-        )
+            ["mod"],
+        ),
     }
 
     @pytest.mark.parametrize("example", EXAMPLES.keys())

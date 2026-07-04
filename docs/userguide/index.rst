@@ -25,6 +25,7 @@ Contents
     :maxdepth: 1
 
     quickstart
+    interfaces
     package_discovery
     dependency_management
     development_mode

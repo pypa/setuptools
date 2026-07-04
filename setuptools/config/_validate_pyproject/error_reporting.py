@@ -1,13 +1,24 @@
+from __future__ import annotations
+
 import io
 import json
 import logging
 import os
 import re
+import typing
 from contextlib import contextmanager
 from textwrap import indent, wrap
-from typing import Any, Dict, Iterator, List, Optional, Sequence, Union, cast
+from typing import Any, Generator, Iterator, Sequence
 
 from .fastjsonschema_exceptions import JsonSchemaValueException
+
+if typing.TYPE_CHECKING:
+    import sys
+
+    if sys.version_info < (3, 11):
+        from typing_extensions import Self
+    else:
+        from typing import Self
 
 _logger = logging.getLogger(__name__)
 
@@ -24,10 +35,10 @@ _SKIP_DETAILS = (
     "must not be there",
 )
 
-_NEED_DETAILS = {"anyOf", "oneOf", "anyOf", "contains", "propertyNames", "not", "items"}
+_NEED_DETAILS = {"anyOf", "oneOf", "allOf", "contains", "propertyNames", "not", "items"}
 
 _CAMEL_CASE_SPLITTER = re.compile(r"\W+|([A-Z][^A-Z\W]*)")
-_IDENTIFIER = re.compile(r"^[\w_]+$", re.I)
+_IDENTIFIER = re.compile(r"^[\w_]+$", re.IGNORECASE)
 
 _TOML_JARGON = {
     "object": "table",
@@ -35,6 +46,11 @@ _TOML_JARGON = {
     "properties": "keys",
     "property names": "keys",
 }
+
+_FORMATS_HELP = """
+For more details about `format` see
+https://validate-pyproject.readthedocs.io/en/latest/api/validate_pyproject.formats.html
+"""
 
 
 class ValidationError(JsonSchemaValueException):
@@ -59,7 +75,7 @@ class ValidationError(JsonSchemaValueException):
     _original_message = ""
 
     @classmethod
-    def _from_jsonschema(cls, ex: JsonSchemaValueException):
+    def _from_jsonschema(cls, ex: JsonSchemaValueException) -> Self:
         formatter = _ErrorFormatting(ex)
         obj = cls(str(formatter), ex.value, formatter.name, ex.definition, ex.rule)
         debug_code = os.getenv("JSONSCHEMA_DEBUG_CODE_GENERATION", "false").lower()
@@ -72,7 +88,7 @@ class ValidationError(JsonSchemaValueException):
 
 
 @contextmanager
-def detailed_errors():
+def detailed_errors() -> Generator[None, None, None]:
     try:
         yield
     except JsonSchemaValueException as ex:
@@ -83,7 +99,7 @@ class _ErrorFormatting:
     def __init__(self, ex: JsonSchemaValueException):
         self.ex = ex
         self.name = f"`{self._simplify_name(ex.name)}`"
-        self._original_message = self.ex.message.replace(ex.name, self.name)
+        self._original_message: str = self.ex.message.replace(ex.name, self.name)
         self._summary = ""
         self._details = ""
 
@@ -107,11 +123,12 @@ class _ErrorFormatting:
 
         return self._details
 
-    def _simplify_name(self, name):
+    @staticmethod
+    def _simplify_name(name: str) -> str:
         x = len("data.")
         return name[x:] if name.startswith("data.") else name
 
-    def _expand_summary(self):
+    def _expand_summary(self) -> str:
         msg = self._original_message
 
         for bad, repl in _MESSAGE_REPLACEMENTS.items():
@@ -129,8 +146,9 @@ class _ErrorFormatting:
 
     def _expand_details(self) -> str:
         optional = []
-        desc_lines = self.ex.definition.pop("$$description", [])
-        desc = self.ex.definition.pop("description", None) or " ".join(desc_lines)
+        definition = self.ex.definition or {}
+        desc_lines = definition.pop("$$description", [])
+        desc = definition.pop("description", None) or " ".join(desc_lines)
         if desc:
             description = "\n".join(
                 wrap(
@@ -142,21 +160,23 @@ class _ErrorFormatting:
                 )
             )
             optional.append(f"DESCRIPTION:\n{description}")
-        schema = json.dumps(self.ex.definition, indent=4)
+        schema = json.dumps(definition, indent=4)
         value = json.dumps(self.ex.value, indent=4)
         defaults = [
             f"GIVEN VALUE:\n{indent(value, '    ')}",
             f"OFFENDING RULE: {self.ex.rule!r}",
             f"DEFINITION:\n{indent(schema, '    ')}",
         ]
-        return "\n\n".join(optional + defaults)
+        msg = "\n\n".join(optional + defaults)
+        epilog = f"\n{_FORMATS_HELP}" if "format" in msg.lower() else ""
+        return msg + epilog
 
 
 class _SummaryWriter:
-    _IGNORE = {"description", "default", "title", "examples"}
+    _IGNORE = frozenset(("description", "default", "title", "examples"))
 
-    def __init__(self, jargon: Optional[Dict[str, str]] = None):
-        self.jargon: Dict[str, str] = jargon or {}
+    def __init__(self, jargon: dict[str, str] | None = None):
+        self.jargon: dict[str, str] = jargon or {}
         # Clarify confusing terms
         self._terms = {
             "anyOf": "at least one of the following",
@@ -189,14 +209,14 @@ class _SummaryWriter:
             "multipleOf",
         ]
 
-    def _jargon(self, term: Union[str, List[str]]) -> Union[str, List[str]]:
+    def _jargon(self, term: str | list[str]) -> str | list[str]:
         if isinstance(term, list):
             return [self.jargon.get(t, t) for t in term]
         return self.jargon.get(term, term)
 
     def __call__(
         self,
-        schema: Union[dict, List[dict]],
+        schema: dict | list[dict],
         prefix: str = "",
         *,
         _path: Sequence[str] = (),
@@ -242,14 +262,16 @@ class _SummaryWriter:
         key = path[-1]
         return any(key.startswith(k) for k in "$_") or key in self._IGNORE
 
-    def _filter_unecessary(self, schema: dict, path: Sequence[str]):
+    def _filter_unecessary(
+        self, schema: dict[str, Any], path: Sequence[str]
+    ) -> dict[str, Any]:
         return {
             key: value
             for key, value in schema.items()
             if not self._is_unecessary([*path, key])
         }
 
-    def _handle_simple_dict(self, value: dict, path: Sequence[str]) -> Optional[str]:
+    def _handle_simple_dict(self, value: dict, path: Sequence[str]) -> str | None:
         inline = any(p in value for p in self._guess_inline_defs)
         simple = not any(isinstance(v, (list, dict)) for v in value.values())
         if inline or simple:
@@ -271,7 +293,7 @@ class _SummaryWriter:
             self(v, item_prefix, _path=[*path, f"[{i}]"]) for i, v in enumerate(schemas)
         )
 
-    def _is_property(self, path: Sequence[str]):
+    def _is_property(self, path: Sequence[str]) -> bool:
         """Check if the given path can correspond to an arbitrarily named property"""
         counter = 0
         for key in path[-2::-1]:
@@ -296,9 +318,7 @@ class _SummaryWriter:
     def _value(self, value: Any, path: Sequence[str]) -> str:
         if path[-1] == "type" and not self._is_property(path):
             type_ = self._jargon(value)
-            return (
-                f"[{', '.join(type_)}]" if isinstance(value, list) else cast(str, type_)
-            )
+            return f"[{', '.join(type_)}]" if isinstance(type_, list) else type_
         return repr(value)
 
     def _inline_attrs(self, schema: dict, path: Sequence[str]) -> Iterator[str]:
@@ -310,7 +330,7 @@ class _SummaryWriter:
         return len(parent_prefix) * " " + child_prefix
 
 
-def _separate_terms(word: str) -> List[str]:
+def _separate_terms(word: str) -> list[str]:
     """
     >>> _separate_terms("FooBar-foo")
     ['foo', 'bar', 'foo']

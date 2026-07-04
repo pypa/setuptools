@@ -1,16 +1,16 @@
 """Support code for distutils test cases."""
-import os
-import sys
-import shutil
-import tempfile
-import sysconfig
+
 import itertools
+import os
 import pathlib
+import shutil
+import sys
+import sysconfig
+import tempfile
+from distutils.core import Distribution
 
 import pytest
 from more_itertools import always_iterable
-
-from distutils.core import Distribution
 
 
 @pytest.mark.usefixtures('distutils_managed_tempdir')
@@ -33,7 +33,7 @@ class TempdirManager:
 
         path can be a string or a sequence.
         """
-        pathlib.Path(*always_iterable(path)).write_text(content)
+        pathlib.Path(*always_iterable(path)).write_text(content, encoding='utf-8')
 
     def create_dist(self, pkg_name='foo', **kw):
         """Will generate a test environment.

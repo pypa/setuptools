@@ -6,19 +6,20 @@ a package's PKG-INFO metadata.
 """
 
 import os
-import sys
 import re
+import sys
+from typing import ClassVar
 
-from ..cmd import Command
 from .. import dir_util
 from .._log import log
+from ..cmd import Command
 
 
 class install_egg_info(Command):
     """Install an .egg-info file for the package"""
 
     description = "Install package's PKG-INFO metadata as an .egg-info file"
-    user_options = [
+    user_options: ClassVar[list[tuple[str, str, str]]] = [
         ('install-dir=', 'd', "directory to install to"),
     ]
 
@@ -31,11 +32,9 @@ class install_egg_info(Command):
         Allow basename to be overridden by child class.
         Ref pypa/distutils#2.
         """
-        return "%s-%s-py%d.%d.egg-info" % (
-            to_filename(safe_name(self.distribution.get_name())),
-            to_filename(safe_version(self.distribution.get_version())),
-            *sys.version_info[:2],
-        )
+        name = to_filename(safe_name(self.distribution.get_name()))
+        version = to_filename(safe_version(self.distribution.get_version()))
+        return f"{name}-{version}-py{sys.version_info.major}.{sys.version_info.minor}.egg-info"
 
     def finalize_options(self):
         self.set_undefined_options('install_lib', ('install_dir', 'install_dir'))
@@ -45,7 +44,7 @@ class install_egg_info(Command):
     def run(self):
         target = self.target
         if os.path.isdir(target) and not os.path.islink(target):
-            dir_util.remove_tree(target, dry_run=self.dry_run)
+            dir_util.remove_tree(target)
         elif os.path.exists(target):
             self.execute(os.unlink, (self.target,), "Removing " + target)
         elif not os.path.isdir(self.install_dir):
@@ -53,17 +52,16 @@ class install_egg_info(Command):
                 os.makedirs, (self.install_dir,), "Creating " + self.install_dir
             )
         log.info("Writing %s", target)
-        if not self.dry_run:
-            with open(target, 'w', encoding='UTF-8') as f:
-                self.distribution.metadata.write_pkg_file(f)
+        with open(target, 'w', encoding='UTF-8') as f:
+            self.distribution.metadata.write_pkg_file(f)
 
     def get_outputs(self):
         return self.outputs
 
 
-# The following routines are taken from setuptools' pkg_resources module and
-# can be replaced by importing them from pkg_resources once it is included
-# in the stdlib.
+# The following routines were originally copied from setuptools' pkg_resources
+# module and intended to be replaced by stdlib versions. They're now just legacy
+# cruft.
 
 
 def safe_name(name):

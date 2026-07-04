@@ -1,7 +1,5 @@
-# coding: utf-8
-
-import tarfile
 import io
+import tarfile
 
 import pytest
 

@@ -1,0 +1,103 @@
+---
+name: 📇 Distutils Deprecation Report
+description: >-
+  Report a use-case affected by the deprecation of distutils
+labels:
+- distutils deprecation
+- Needs Triage
+projects:
+- pypa/6
+body:
+- type: markdown
+  attributes:
+    value: >
+      So you've encountered an issue with the deprecation of distutils.
+
+      First, sorry for the inconvenience while we work to untangle the
+      legacy which is setuptools/distutils. Our goal is to ensure that
+      the vast majority of use cases are satisfied prior to removing
+      the legacy support.
+
+      Please check the
+      [existing reports](https://github.com/pypa/setuptools/issues?q=label%3A%22distutils+deprecation%22+)
+      to see if the affecting condition has been reported previously.
+
+- type: markdown
+  attributes:
+    value: >-
+      **Environment**
+- type: input
+  attributes:
+    label: setuptools version
+    placeholder: For example, setuptools==69.1.0
+    description: >-
+      Please also test with the **latest version** of `setuptools`.
+
+      Typically, this involves modifying `requires` in `[build-system]` of
+      [`pyproject.toml`](https://setuptools.pypa.io/en/latest/userguide/quickstart.html#basic-use),
+      not just updating `setuptools` using `pip`.
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: Python version
+    placeholder: For example, Python 3.10
+    description: >-
+      Please ensure you are using a [supported version of Python](https://devguide.python.org/versions/#supported-versions).
+
+      Setuptools does not support versions that have reached [`end-of-life`](https://devguide.python.org/versions/#unsupported-versions).
+
+      Support for versions of Python under development (i.e. without a stable release) is experimental.
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: OS
+    placeholder: For example, Gentoo Linux, RHEL 8, Arch Linux, macOS etc.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Additional environment information
+    description: >-
+      Feel free to add more information about your environment here.
+    placeholder: >-
+      This is only happening when I run setuptools on my fridge's patched firmware 🤯
+
+- type: textarea
+  attributes:
+    label: Description
+    description: >-
+      A clear and concise description of the circumstances leading to the warning.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: How to Reproduce
+    description: >-
+      Describe the steps to reproduce the warning.
+
+      Please try to create a [minimal reproducer](https://stackoverflow.com/help/minimal-reproducible-example),
+      and avoid things like "see the steps in the CI logs".
+    placeholder: |
+      1. Clone a simplified example: `git clone ...`
+      2. Create a virtual environment for isolation with `...`
+      2. Build the project with setuptools via '...'
+      2. Then run '...'
+      3. An error occurs.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Other detail
+    description: >-
+      Paste the output of the steps above, including the commands
+      themselves and setuptools' output/traceback etc.
+    value: |
+      ```console
+
+      ```
+
+...

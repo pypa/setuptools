@@ -4,5 +4,6 @@
 Uploading Packages to the Package Index
 ***************************************
 
-References to up to date PyPI documentation can be found at
-:ref:`publishing-python-packages`.
+See the
+`Python Packaging User Guide <https://packaging.python.org>`_
+for the best guidance on uploading packages.

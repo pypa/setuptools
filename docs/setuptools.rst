@@ -3,9 +3,8 @@ Building and Distributing Packages with Setuptools
 ==================================================
 
 ``Setuptools`` is a collection of enhancements to the Python ``distutils``
-that allow developers to more easily build and
-distribute Python packages, especially ones that have dependencies on other
-packages.
+that allow developers to more easily build Python packages, including those
+that have dependencies on other packages and C/C++ extension modules.
 
 Packages built and distributed using ``setuptools`` look to the user like
 ordinary Python packages based on the ``distutils``.
@@ -21,9 +20,9 @@ Feature Highlights:
   individually in setup.py
 
 * Automatically include all relevant files in your source distributions,
-  without needing to create a |MANIFEST.in|_ file, and without having to force
-  regeneration of the ``MANIFEST`` file when your source tree changes
-  [#manifest]_.
+  without needing to create a :ref:`MANIFEST.in <Using MANIFEST.in>` file,
+  and without having to force regeneration of the ``MANIFEST`` file when your
+  source tree changes [#manifest]_.
 
 * Automatically generate wrapper scripts or Windows (console and GUI) .exe
   files for any number of "main" functions in your project.  (Note: this is not
@@ -221,7 +220,3 @@ set of steps to reproduce.
    any special C header). See :ref:`Controlling files in the distribution` and
    :doc:`userguide/datafiles` for more information about complex scenarios, if
    you want to include other types of files.
-
-
-.. |MANIFEST.in| replace:: ``MANIFEST.in``
-.. _MANIFEST.in: https://packaging.python.org/en/latest/guides/using-manifest-in/

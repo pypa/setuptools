@@ -60,10 +60,8 @@ being used to package your scripts and install from source). To use it with
     build-backend = "setuptools.build_meta"
 
 ``build_meta`` implements ``setuptools``' build system support.
-The ``setuptools`` package implements the ``build_sdist``
-command and the ``wheel`` package implements the ``build_wheel``
-command; the latter is a dependency of the former
-exposed via :pep:`517` hooks.
+The ``setuptools`` package implements the ``build_sdist`` and
+``build_wheel`` commands.
 
 Use ``setuptools``' :ref:`declarative config <declarative config>` to
 specify the package information in ``setup.cfg``::
@@ -137,10 +135,7 @@ the ``_custom_build/backend.py`` file, as shown in the following example:
 .. code-block:: python
 
     from setuptools import build_meta as _orig
-
-    prepare_metadata_for_build_wheel = _orig.prepare_metadata_for_build_wheel
-    build_wheel = _orig.build_wheel
-    build_sdist = _orig.build_sdist
+    from setuptools.build_meta import *
 
 
     def get_requires_for_build_wheel(config_settings=None):
@@ -151,9 +146,15 @@ the ``_custom_build/backend.py`` file, as shown in the following example:
         return _orig.get_requires_for_build_sdist(config_settings) + [...]
 
 
-Note that you can override any of the functions specified in :pep:`PEP 517
-<517#build-backend-interface>`, not only the ones responsible for gathering
-requirements.
+.. note::
+
+   You can override any of the functions specified in :pep:`PEP 517
+   <517#build-backend-interface>`, not only the ones responsible for gathering
+   requirements. It is important to ``import *`` so that the hooks that you
+   choose not to reimplement would be inherited from the setuptools' backend
+   automatically. This will also cover hooks that might be added in the future
+   like the ones that :pep:`660` declares.
+
 
 .. important:: Make sure your backend script is included in the :doc:`source
    distribution </userguide/distribution>`, otherwise the build will fail.

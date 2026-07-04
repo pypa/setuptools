@@ -1,7 +1,6 @@
 """Tests for distutils.log"""
 
 import logging
-
 from distutils._log import log
 
 

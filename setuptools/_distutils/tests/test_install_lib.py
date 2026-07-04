@@ -1,14 +1,14 @@
 """Tests for distutils.command.install_data."""
-import sys
-import os
+
 import importlib.util
-
-import pytest
-
+import os
+import sys
 from distutils.command.install_lib import install_lib
+from distutils.errors import DistutilsOptionError
 from distutils.extension import Extension
 from distutils.tests import support
-from distutils.errors import DistutilsOptionError
+
+import pytest
 
 
 @support.combine_markers
@@ -97,7 +97,7 @@ class TestInstallLib(
         # makes sure byte_compile is not used
         dist = self.create_dist()[1]
         cmd = install_lib(dist)
-        cmd.compile = 1
+        cmd.compile = True
         cmd.optimize = 1
 
         old_dont_write_bytecode = sys.dont_write_bytecode

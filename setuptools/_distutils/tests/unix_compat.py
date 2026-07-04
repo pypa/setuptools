@@ -8,7 +8,6 @@ except ImportError:
 
 import pytest
 
-
 UNIX_ID_SUPPORT = grp and pwd
 UID_0_SUPPORT = UNIX_ID_SUPPORT and sys.platform != "cygwin"
 

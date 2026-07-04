@@ -1,3 +1,5 @@
+# https://github.com/python/mypy/issues/16936
+# mypy: disable-error-code="has-type"
 """Integration tests for setuptools that focus on building packages via pip.
 
 The idea behind these tests is not to exhaustively check all the possible
@@ -10,6 +12,7 @@ The number of tested packages is purposefully kept small, to minimise duration
 and the associated maintenance cost (changes in the way these packages define
 their build process may require changes in the tests).
 """
+
 import json
 import os
 import shutil
@@ -24,10 +27,10 @@ from packaging.requirements import Requirement
 
 from .helpers import Archive, run
 
-
 pytestmark = pytest.mark.integration
 
-LATEST, = Enum("v", "LATEST")
+
+(LATEST,) = Enum("v", "LATEST")  # type: ignore[misc] # https://github.com/python/mypy/issues/16936
 """Default version to be checked"""
 # There are positive and negative aspects of checking the latest version of the
 # packages.
@@ -41,17 +44,18 @@ LATEST, = Enum("v", "LATEST")
 # that `build-essential`, `gfortran` and `libopenblas-dev` are installed,
 # due to their relevance to the numerical/scientific programming ecosystem)
 EXAMPLES = [
-    ("pandas", LATEST),  # cython + custom build_ext
-    ("sphinx", LATEST),  # custom setup.py
     ("pip", LATEST),  # just in case...
     ("pytest", LATEST),  # uses setuptools_scm
     ("mypy", LATEST),  # custom build_py + ext_modules
-
     # --- Popular packages: https://hugovk.github.io/top-pypi-packages/ ---
     ("botocore", LATEST),
-    ("kiwisolver", "1.3.2"),  # build_ext, version pinned due to setup_requires
+    ("kiwisolver", LATEST),  # build_ext
     ("brotli", LATEST),  # not in the list but used by urllib3
-
+    ("pyyaml", LATEST),  # cython + custom build_ext + custom distclass
+    ("charset-normalizer", LATEST),  # uses mypyc, used by aiohttp
+    ("protobuf", LATEST),
+    # ("requests", LATEST),  # XXX: https://github.com/psf/requests/pull/6920
+    ("celery", LATEST),
     # When adding packages to this list, make sure they expose a `__version__`
     # attribute, or modify the tests below
 ]
@@ -60,8 +64,18 @@ EXAMPLES = [
 # Some packages have "optional" dependencies that modify their build behaviour
 # and are not listed in pyproject.toml, others still use `setup_requires`
 EXTRA_BUILD_DEPS = {
-    "sphinx": ("babel>=1.3",),
-    "kiwisolver": ("cppy>=1.1.0",)
+    "pyyaml": ("Cython<3.0",),  # constraint to avoid errors
+    "charset-normalizer": ("mypy>=1.4.1",),  # no pyproject.toml available
+}
+
+EXTRA_ENV_VARS = {
+    "pyyaml": {"PYYAML_FORCE_CYTHON": "1"},
+    "charset-normalizer": {"CHARSET_NORMALIZER_USE_MYPYC": "1"},
+}
+
+IMPORT_NAME = {
+    "pyyaml": "yaml",
+    "protobuf": "google.protobuf",
 }
 
 
@@ -90,28 +104,25 @@ def venv_python(tmp_path):
 
 
 @pytest.fixture(autouse=True)
-def _prepare(tmp_path, venv_python, monkeypatch, request):
+def _prepare(tmp_path, venv_python, monkeypatch):
     download_path = os.getenv("DOWNLOAD_PATH", str(tmp_path))
     os.makedirs(download_path, exist_ok=True)
 
     # Environment vars used for building some of the packages
     monkeypatch.setenv("USE_MYPYC", "1")
 
-    def _debug_info():
-        # Let's provide the maximum amount of information possible in the case
-        # it is necessary to debug the tests directly from the CI logs.
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print("Temporary directory:")
-        map(print, tmp_path.glob("*"))
-        print("Virtual environment:")
-        run([venv_python, "-m", "pip", "freeze"])
-    request.addfinalizer(_debug_info)
+    yield
+
+    # Let's provide the maximum amount of information possible in the case
+    # it is necessary to debug the tests directly from the CI logs.
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print("Temporary directory:")
+    map(print, tmp_path.glob("*"))
+    print("Virtual environment:")
+    run([venv_python, "-m", "pip", "freeze"])
 
 
-ALREADY_LOADED = ("pytest", "mypy")  # loaded by pytest/pytest-enabler
-
-
-@pytest.mark.parametrize('package, version', EXAMPLES)
+@pytest.mark.parametrize(("package", "version"), EXAMPLES)
 @pytest.mark.uses_network
 def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel):
     venv_pip = (venv_python, "-m", "pip")
@@ -124,11 +135,13 @@ def test_install_sdist(package, version, tmp_path, venv_python, setuptools_wheel
 
     # Use a virtualenv to simulate PEP 517 isolation
     # but install fresh setuptools wheel to ensure the version under development
-    run([*venv_pip, "install", "-I", setuptools_wheel])
-    run([*venv_pip, "install", *INSTALL_OPTIONS, sdist])
+    env = EXTRA_ENV_VARS.get(package, {})
+    run([*venv_pip, "install", "--force-reinstall", setuptools_wheel])
+    run([*venv_pip, "install", *INSTALL_OPTIONS, sdist], env)
 
     # Execute a simple script to make sure the package was installed correctly
-    script = f"import {package}; print(getattr({package}, '__version__', 0))"
+    pkg = IMPORT_NAME.get(package, package).replace("-", "_")
+    script = f"import {pkg}; print(getattr({pkg}, '__version__', 0))"
     run([venv_python, "-c", script])
 
 
@@ -166,7 +179,7 @@ def retrieve_pypi_sdist_metadata(package, version):
 
     version = metadata["info"]["version"]
     release = metadata["releases"][version] if version is LATEST else metadata["urls"]
-    sdist, = filter(lambda d: d["packagetype"] == "sdist", release)
+    (sdist,) = filter(lambda d: d["packagetype"] == "sdist", release)
     return sdist
 
 
@@ -188,13 +201,12 @@ def build_deps(package, sdist_file):
     "Manually" install them, since pip will not install build
     deps with `--no-build-isolation`.
     """
-    import tomli as toml
-
     # delay importing, since pytest discovery phase may hit this file from a
     # testenv without tomli
+    from setuptools.compat.py310 import tomllib
 
     archive = Archive(sdist_file)
-    info = toml.loads(_read_pyproject(archive))
+    info = tomllib.loads(_read_pyproject(archive))
     deps = info.get("build-system", {}).get("requires", [])
     deps += EXTRA_BUILD_DEPS.get(package, [])
     # Remove setuptools from requirements (and deduplicate)

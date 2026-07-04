@@ -1,10 +1,10 @@
 """Tests for distutils.command.build."""
+
 import os
 import sys
-
 from distutils.command.build import build
 from distutils.tests import support
-from sysconfig import get_platform
+from sysconfig import get_config_var, get_platform
 
 
 class TestBuild(support.TempdirManager):
@@ -23,7 +23,9 @@ class TestBuild(support.TempdirManager):
         # build_platlib is 'build/lib.platform-cache_tag[-pydebug]'
         # examples:
         #   build/lib.macosx-10.3-i386-cpython39
-        plat_spec = '.{}-{}'.format(cmd.plat_name, sys.implementation.cache_tag)
+        plat_spec = f'.{cmd.plat_name}-{sys.implementation.cache_tag}'
+        if get_config_var('Py_GIL_DISABLED'):
+            plat_spec += 't'
         if hasattr(sys, 'gettotalrefcount'):
             assert cmd.build_platlib.endswith('-pydebug')
             plat_spec += '-pydebug'
@@ -38,7 +40,9 @@ class TestBuild(support.TempdirManager):
         assert cmd.build_temp == wanted
 
         # build_scripts is build/scripts-x.x
-        wanted = os.path.join(cmd.build_base, 'scripts-%d.%d' % sys.version_info[:2])
+        wanted = os.path.join(
+            cmd.build_base, f'scripts-{sys.version_info.major}.{sys.version_info.minor}'
+        )
         assert cmd.build_scripts == wanted
 
         # executable is os.path.normpath(sys.executable)

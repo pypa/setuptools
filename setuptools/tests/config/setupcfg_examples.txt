@@ -15,7 +15,6 @@ https://github.com/pallets/click/raw/6411f425fae545f42795665af4162006b36c5e4a/se
 https://github.com/sqlalchemy/sqlalchemy/raw/533f5718904b620be8d63f2474229945d6f8ba5d/setup.cfg
 https://github.com/pytest-dev/pluggy/raw/461ef63291d13589c4e21aa182cd1529257e9a0a/setup.cfg
 https://github.com/pytest-dev/pytest/raw/c7be96dae487edbd2f55b561b31b68afac1dabe6/setup.cfg
-https://github.com/tqdm/tqdm/raw/fc69d5dcf578f7c7986fa76841a6b793f813df35/setup.cfg
 https://github.com/platformdirs/platformdirs/raw/7b7852128dd6f07511b618d6edea35046bd0c6ff/setup.cfg
 https://github.com/pandas-dev/pandas/raw/bc17343f934a33dc231c8c74be95d8365537c376/setup.cfg
 https://github.com/django/django/raw/4e249d11a6e56ca8feb4b055b681cec457ef3a3d/setup.cfg

@@ -266,8 +266,8 @@ installation options for dependencies.
     this option is automatically in effect, because ``.pth`` files can only be
     used in ``site-packages`` (at least in Python 2.3 and 2.4). So, if you use
     the ``--install-dir`` or ``-d`` option (or they are set via configuration
-    file(s)) your project and its dependencies will be deployed in multi-
-    version mode.
+    file(s)) your project and its dependencies will be deployed in
+    multi-version mode.
 
 ``--install-dir=DIR, -d DIR``
     Set the installation directory (staging area).  If this option is not
