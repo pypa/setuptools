@@ -198,22 +198,16 @@ class build_py(orig.build_py):
 
         check = _IncludePackageDataAbuse()
         for path in self._filter_build_files(files, egg_info_dir):
-            d, f = os.path.split(assert_relative(path))
-            prev = None
-            oldf = f
-            while d and d != prev and d not in src_dirs:
-                prev = d
-                d, df = os.path.split(d)
-                f = os.path.join(df, f)
-            if d in src_dirs:
-                if f == oldf:
+            if dunder_path := _find_package_data_owner(path, src_dirs):
+                package, f, direct_path = dunder_path
+                if direct_path:
                     if check.is_module(f):
                         continue  # it's a module, not data
                 else:
-                    importable = check.importable_subpackage(src_dirs[d], f)
+                    importable = check.importable_subpackage(package, f)
                     if importable:
                         check.warn(importable)
-                self.manifest_files.setdefault(src_dirs[d], []).append(path)
+                self.manifest_files.setdefault(package, []).append(path)
 
     def _filter_build_files(
         self, files: Iterable[str], egg_info: StrPath
@@ -336,6 +330,36 @@ def assert_relative(path):
         % path
     )
     raise DistutilsSetupError(msg)
+
+
+def _contains_python_sources(directory: str) -> bool:
+    return any(
+        all(
+            part.isidentifier()
+            for part in candidate.relative_to(directory).with_suffix("").parts
+        )
+        for candidate in Path(directory).glob("**/*.py")
+    )
+
+
+def _find_package_data_owner(
+    path: str, src_dirs: dict[str, str]
+) -> tuple[str, str, bool] | None:
+    directory, filename = os.path.split(assert_relative(path))
+    previous = None
+    original = filename
+
+    while directory and directory != previous and directory not in src_dirs:
+        if _contains_python_sources(directory):
+            return None
+        previous = directory
+        directory, parent = os.path.split(directory)
+        filename = os.path.join(parent, filename)
+
+    if directory not in src_dirs:
+        return None
+
+    return src_dirs[directory], filename, filename == original
 
 
 class _IncludePackageDataAbuse:

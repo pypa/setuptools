@@ -1,14 +1,12 @@
 import os
 import shutil
 import stat
-import warnings
 from pathlib import Path
 from unittest.mock import Mock
 
 import jaraco.path
 import pytest
 
-from setuptools import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution
 
 from .textwrap import DALS
@@ -163,25 +161,8 @@ def test_excluded_subpackages(tmpdir_cwd):
     dist.parse_config_files()
 
     build_py = dist.get_command_obj("build_py")
-
-    msg = r"Python recognizes 'mypkg\.tests' as an importable package"
-    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):  # noqa: PT031
-        # TODO: To fix #3260 we need some transition period to deprecate the
-        # existing behavior of `include_package_data`. After the transition, we
-        # should remove the warning and fix the behavior.
-
-        if os.getenv("SETUPTOOLS_USE_DISTUTILS") == "stdlib":
-            # pytest.warns reset the warning filter temporarily
-            # https://github.com/pytest-dev/pytest/issues/4011#issuecomment-423494810
-            warnings.filterwarnings(
-                "ignore",
-                "'encoding' argument not specified",
-                module="distutils.text_file",
-                # This warning is already fixed in pypa/distutils but not in stdlib
-            )
-
-        build_py.finalize_options()
-        build_py.run()
+    build_py.finalize_options()
+    build_py.run()
 
     build_dir = Path(dist.get_command_obj("build_py").build_lib)
     assert (build_dir / "mypkg/__init__.py").exists()
@@ -195,12 +176,7 @@ def test_excluded_subpackages(tmpdir_cwd):
         "mypkg/tests/test_file.txt",
         "mypkg/tests",
     ]:
-        with pytest.raises(AssertionError):
-            # TODO: Enforce the following assertion once #3260 is fixed
-            # (remove context manager and the following xfail).
-            assert not (build_dir / f).exists()
-
-    pytest.xfail("#3260")
+        assert not (build_dir / f).exists()
 
 
 @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
