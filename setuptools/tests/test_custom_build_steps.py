@@ -4,9 +4,8 @@ from pathlib import Path
 from unittest.mock import Mock
 
 from setuptools import Command
-from setuptools.dist import Distribution
 from setuptools._importlib import metadata
-
+from setuptools.dist import Distribution
 
 BASE_DIST_EXAMPLE = {
     "script_name": "setup.py",
@@ -58,7 +57,7 @@ def test_custom_build_sub_commands(monkeypatch, tmp_path):
             ("step_append", StepAppend),
             ("step_append", StepSuperseded),
             ("step_prepend", StepPrepend),
-        ]
+        ],
     ):
         attrs = {**BASE_DIST_EXAMPLE, "src_root": str(tmp_path)}
         dist = Distribution(attrs)
