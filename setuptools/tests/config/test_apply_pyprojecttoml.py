@@ -571,6 +571,7 @@ class TestExtModules:
         define-macros = [["FIRST_SINGLE"], ["SECOND_TWO", "1"]]
         """
         dist = self.make_dist(toml_config)
+        assert dist.ext_modules is not None
         assert isinstance(dist.ext_modules[0].define_macros[0], tuple)
         assert dist.ext_modules[0].define_macros[0] == ("FIRST_SINGLE",)
         assert dist.ext_modules[0].define_macros[1] == ("SECOND_TWO", "1")
