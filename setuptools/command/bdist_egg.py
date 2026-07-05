@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     from _typeshed import GenericPath
 
-    _StrOrBytesT = TypeVar("_StrOrBytesT", bound=str | bytes)
+    _StrOrBytesT = TypeVar("_StrOrBytesT", str, bytes)
 
 # Same as zipfile._ZipFileMode from typeshed
 _ZipFileMode: TypeAlias = Literal["r", "w", "x", "a"]

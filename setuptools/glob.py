@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, TypeVar, overload
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrOrBytesPath, StrPath
 
-    _StrOrBytesT = TypeVar("_StrOrBytesT", bound=str | bytes)
+    _StrOrBytesT = TypeVar("_StrOrBytesT", str, bytes)
 
 __all__ = ["glob", "iglob", "escape"]
 
