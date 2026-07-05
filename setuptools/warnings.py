@@ -15,7 +15,7 @@ from textwrap import indent
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
 _DueDate: TypeAlias = tuple[int, int, int]  # time tuple
 _INDENT = 8 * " "

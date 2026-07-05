@@ -13,11 +13,11 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from contextlib import contextmanager
 from functools import partial
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 from .._path import StrPath
 from ..errors import FileError, InvalidConfigError
@@ -133,6 +133,15 @@ def read_configuration(
 
     if "ext-modules" in setuptools_table:
         _ExperimentalConfiguration.emit(subject="[tool.setuptools.ext-modules]")
+
+    fields = ("import-names", "import-namespaces")
+    places = (project_table, project_table.get("dynamic", []))
+    if any(field in place for field in fields for place in places):
+        raise NotImplementedError(
+            "Setuptools does not support `import-names` and `import-namespaces`"
+            " in `pyproject.toml` yet. If your are interested in this feature, "
+            " please consider submitting a contribution via pull requests."
+        )
 
     with _ignore_errors(ignore_option_errors):
         # Don't complain about unrelated errors (e.g. tools not using the "tool" table)

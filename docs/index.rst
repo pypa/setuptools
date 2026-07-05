@@ -21,7 +21,6 @@ with :pypi:`pip` and uploaded to `PyPI <https://pypi.org>`_.
 
    User guide <userguide/index>
    build_meta
-   pkg_resources
    references/keywords
    setuptools
 

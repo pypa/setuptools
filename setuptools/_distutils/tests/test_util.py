@@ -43,14 +43,7 @@ def environment(monkeypatch):
 @pytest.mark.usefixtures('save_env')
 class TestUtil:
     def test_get_host_platform(self):
-        with mock.patch('os.name', 'nt'):
-            with mock.patch('sys.version', '... [... (ARM64)]'):
-                assert get_host_platform() == 'win-arm64'
-            with mock.patch('sys.version', '... [... (ARM)]'):
-                assert get_host_platform() == 'win-arm32'
-
-        with mock.patch('sys.version_info', (3, 9, 0, 'final', 0)):
-            assert get_host_platform() == stdlib_sysconfig.get_platform()
+        assert get_host_platform() == stdlib_sysconfig.get_platform()
 
     def test_get_platform(self):
         with mock.patch('os.name', 'nt'):

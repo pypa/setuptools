@@ -326,7 +326,6 @@ class build_ext(Command):
         self.compiler = new_compiler(
             compiler=self.compiler,
             verbose=self.verbose,
-            dry_run=self.dry_run,
             force=self.force,
         )
         customize_compiler(self.compiler)
@@ -500,7 +499,7 @@ class build_ext(Command):
             futures = [
                 executor.submit(self.build_extension, ext) for ext in self.extensions
             ]
-            for ext, fut in zip(self.extensions, futures):
+            for ext, fut in zip(self.extensions, futures, strict=False):
                 with self._filter_build_errors(ext):
                     fut.result()
 

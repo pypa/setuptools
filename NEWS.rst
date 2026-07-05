@@ -1,3 +1,70 @@
+v83.0.0
+=======
+
+Features
+--------
+
+- Require Python 3.10 or later.
+
+
+Bugfixes
+--------
+
+- ``MANIFEST.in`` matching (via ``FileList``) is now insensitive to Unicode
+  normalization form. A pattern authored in one form (e.g. NFC, as typically
+  saved by editors) now matches a file whose name is stored on disk in another
+  (e.g. NFD, as produced by macOS APFS/HFS+). Previously an ``exclude``,
+  ``global-exclude``, ``recursive-exclude``, or ``prune`` rule could silently
+  fail to drop a non-ASCII-named file from the source distribution, publishing
+  it despite the exclusion -- see GHSA-h35f-9h28-mq5c.
+
+
+Deprecations and Removals
+-------------------------
+
+- Synced with pypa/distutils@d7633fbed including removal of dry_run support (pypa/distutils#334).
+
+
+v82.0.1
+=======
+
+Bugfixes
+--------
+
+- Fix the loading of ``launcher manifest.xml`` file. (#5047)
+- Replaced deprecated ``json.__version__`` with fixture in tests. (#5186)
+
+
+Improved Documentation
+----------------------
+
+- Add advice about how to improve predictability when installing sdists. (#5168)
+
+
+Misc
+----
+
+- #4941, #5157, #5169, #5175
+
+
+v82.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- ``pkg_resources`` has been removed from Setuptools. Most common uses of ``pkg_resources`` have been superseded by the `importlib.resources <https://docs.python.org/3/library/importlib.resources.html>`_ and `importlib.metadata <https://docs.python.org/3/library/importlib.metadata.html>`_ projects. Projects and environments relying on ``pkg_resources`` for namespace packages or other behavior should depend on older versions of ``setuptools``. (#3085)
+
+
+v81.0.0
+=======
+
+Deprecations and Removals
+-------------------------
+
+- Removed support for the --dry-run parameter to setup.py. This one feature by its nature threads through lots of core and ancillary functionality, adding complexity and friction. Removal of this parameter will help decouple the compiler functionality from distutils and thus the eventual full integration of distutils. These changes do affect some class and function signatures, so any derivative functionality may require some compatibility shims to support their expected interface. Please report any issues to the Setuptools project for investigation. (#4872)
+
+
 v80.10.2
 ========
 
@@ -367,6 +434,16 @@ Bugfixes
 
 - Restored implicit distutils.ccompiler import for g-ir-scanner. (#4871)
 - Restore ``distutils.ccompiler.compiler_class`` -- by :user:`Avasam` (#4876)
+
+
+v75.3.4
+=======
+
+Bugfixes
+--------
+
+- Backport CVE-47273 from 78.1.1 for Python 3.8. (#4946)
+- Reverted distutils changes that broke the monkey patching of command classes. (#4902)
 
 
 v75.3.3
@@ -759,7 +836,7 @@ Features
 
 - Added return types to typed public functions -- by :user:`Avasam`
 
-  Marked `pkg_resources` as ``py.typed`` -- by :user:`Avasam` (#4409)
+  Marked ``pkg_resources`` as ``py.typed`` -- by :user:`Avasam` (#4409)
 
 
 Misc
@@ -893,7 +970,7 @@ Features
 - Improved `AttributeError` error message if ``pkg_resources.EntryPoint.require`` is called without extras or distribution
   Gracefully "do nothing" when trying to activate a ``pkg_resources.Distribution`` with a `None` location, rather than raising a `TypeError`
   -- by :user:`Avasam` (#4262)
-- Typed the dynamically defined variables from `pkg_resources` -- by :user:`Avasam` (#4267)
+- Typed the dynamically defined variables from ``pkg_resources`` -- by :user:`Avasam` (#4267)
 - Modernized and refactored VCS handling in package_index. (#4332)
 
 
@@ -1023,8 +1100,8 @@ Features
 Bugfixes
 --------
 
-- Clarify some `pkg_resources` methods return `bytes`, not `str`. Also return an empty `bytes` in ``EmptyProvider._get`` -- by :user:`Avasam` (#4243)
-- Return an empty `list` by default in ``pkg_resources.ResourceManager.cleanup_resources`` -- by :user:`Avasam` (#4244)
+- Clarify some ``pkg_resources`` methods return ``bytes``, not ``str``. Also return an empty ``bytes`` in ``EmptyProvider._get`` -- by :user:`Avasam` (#4243)
+- Return an empty ``list`` by default in ``pkg_resources.ResourceManager.cleanup_resources`` -- by :user:`Avasam` (#4244)
 - Made ``pkg_resoursces.NullProvider``'s ``has_metadata`` and ``metadata_isdir`` methods return actual booleans like all other Providers. -- by :user:`Avasam` (#4254)
 
 
@@ -1057,7 +1134,7 @@ Features
 --------
 
 - Updated and removed obsolete Python < 3.8 code and comments. -- by :user:`Avasam` (#4096)
-- Updated `pkg_resources` to use stdlib `importlib.machinery` instead of ``importlib_machinery`` -- by :user:`Avasam` (#4097)
+- Updated ``pkg_resources`` to use stdlib ``importlib.machinery`` instead of ``importlib_machinery`` -- by :user:`Avasam` (#4097)
 
 
 Bugfixes

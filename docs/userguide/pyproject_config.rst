@@ -77,6 +77,8 @@ The ``project`` table contains metadata fields as described by the
    :external+PyPUG:ref:`project.license <license>` (:pep:`639`)
    were introduced in version 77.0.0.
 
+   For migration guidance, see :doc:`/userguide/license_migration`.
+
 
 .. _setuptools-table:
 

@@ -41,29 +41,33 @@ jobs:
       # https://blog.jaraco.com/efficient-use-of-ci-resources/
       matrix:
         python:
-        - "3.9"
-        - ">=3.13.5"  # temporary bound until it becomes the default, python/cpython#135151
+        - "3.10"
+        - "3.14"
+        - "3.14t"
         platform:
         - ubuntu-latest
         - macos-latest
         - windows-latest
         include:
-        - python: "3.10"
-          platform: ubuntu-latest
         - python: "3.11"
           platform: ubuntu-latest
         - python: "3.12"
           platform: ubuntu-latest
-        - python: "3.14"
+        - python: "3.13"
           platform: ubuntu-latest
-        - python: pypy3.10
+        # Disabled: cffi (required by PyNaCl) doesn't support free-threaded CPython 3.13t.
+        # - python: "3.13t"
+        #   platform: ubuntu-latest
+        - python: "3.15"
+          platform: ubuntu-latest
+        - python: pypy3.11
           platform: ubuntu-latest
           distutils: stdlib
         - platform: ubuntu-latest
           python: "3.10"
           distutils: stdlib
     runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.python == '3.14' || matrix.python == 'pypy3.10' }}
+    continue-on-error: ${{ matrix.python == '3.15' || matrix.python == 'pypy3.11' }}
     # XXX: pypy seems to be flaky with unrelated tests in #6345
     env:
       SETUPTOOLS_USE_DISTUTILS: ${{ matrix.distutils || 'local' }}
@@ -73,7 +77,7 @@ jobs:
       - name: Install build dependencies
         # Install dependencies for building packages on pre-release Pythons
         # jaraco/skeleton#161
-        if: matrix.python == '3.14' && matrix.platform == 'ubuntu-latest'
+        if: matrix.python == '3.15' && matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt update
           sudo apt install -y libxml2-dev libxslt-dev
@@ -187,7 +191,7 @@ jobs:
     strategy:
       matrix:
         python:
-        - 39
+        - 312
         platform:
         - windows-latest
     runs-on: ${{ matrix.platform }}
@@ -252,13 +256,13 @@ jobs:
           fetch-depth: 0
       - name: Check if files changed in the _distutils folder
         id: changed-files-specific-distutils
-        uses: tj-actions/changed-files@v34
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             setuptools/_distutils/**
       - name: Check if files changed in the _vendor folder
         id: changed-files-specific-vendor
-        uses: tj-actions/changed-files@v34
+        uses: tj-actions/changed-files@v46
         with:
           files: |
             setuptools/_vendor/**

@@ -54,7 +54,7 @@ def _zip_equal(*iterables):
             if size != first_size:
                 raise UnequalIterablesError(details=(first_size, i, size))
         # All sizes are equal, we can use the built-in zip.
-        return zip(*iterables)
+        return zip(*iterables, strict=False)
     # If any one of the iterables didn't have a length, start reading
     # them until one runs out.
     except TypeError:

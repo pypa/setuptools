@@ -361,7 +361,7 @@ This module provides the following functions.
    are not given.
 
 
-.. function:: new_compiler(plat=None, compiler=None, verbose=False, dry_run=False, force=False)
+.. function:: new_compiler(plat=None, compiler=None, verbose=False, force=False)
 
    Factory function to generate an instance of some CCompiler subclass for the
    supplied platform/compiler combination. *plat* defaults to ``os.name`` (eg.
@@ -383,7 +383,7 @@ This module provides the following functions.
    to :command:`build`, :command:`build_ext`, :command:`build_clib`).
 
 
-.. class:: CCompiler([verbose=False, dry_run=False, force=False])
+.. class:: CCompiler([verbose=False, force=False])
 
    The abstract base class :class:`CCompiler` defines the interface that  must be
    implemented by real compiler classes.  The class also has  some utility methods
@@ -398,8 +398,7 @@ This module provides the following functions.
    or per-link basis.
 
    The constructor for each subclass creates an instance of the Compiler object.
-   Flags are *verbose* (show verbose output), *dry_run* (don't actually execute the
-   steps) and *force* (rebuild everything, regardless of dependencies). All of
+   Flags are *verbose* (show verbose output) and *force* (rebuild everything, regardless of dependencies). All of
    these flags default to ``0`` (off). Note that you probably don't want to
    instantiate :class:`CCompiler` or one of its subclasses directly - use the
    :func:`distutils.CCompiler.new_compiler` factory function instead.
@@ -755,8 +754,7 @@ This module provides the following functions.
    .. method:: CCompiler.execute(func, args[, msg=None, level=1])
 
       Invokes :func:`distutils.util.execute`. This method invokes a  Python function
-      *func* with the given arguments *args*, after  logging and taking into account
-      the *dry_run* flag.
+      *func* with the given arguments *args*, after logging.
 
 
    .. method:: CCompiler.spawn(cmd)
@@ -884,7 +882,7 @@ This module provides a few functions for creating archive files, such as
 tarballs or zipfiles.
 
 
-.. function:: make_archive(base_name, format[, root_dir=None, base_dir=None, verbose=False, dry_run=False])
+.. function:: make_archive(base_name, format[, root_dir=None, base_dir=None, verbose=False])
 
    Create an archive file (eg. ``zip`` or ``tar``).  *base_name*  is the name of
    the file to create, minus any format-specific extension;  *format* is the
@@ -900,7 +898,7 @@ tarballs or zipfiles.
       Added support for the ``xztar`` format.
 
 
-.. function:: make_tarball(base_name, base_dir[, compress='gzip', verbose=False, dry_run=False])
+.. function:: make_tarball(base_name, base_dir[, compress='gzip', verbose=False])
 
    'Create an (optional compressed) archive as a tar file from all files in and
    under *base_dir*. *compress* must be ``'gzip'`` (the default),
@@ -915,7 +913,7 @@ tarballs or zipfiles.
       Added support for the ``xz`` compression.
 
 
-.. function:: make_zipfile(base_name, base_dir[, verbose=False, dry_run=False])
+.. function:: make_zipfile(base_name, base_dir[, verbose=False])
 
    Create a zip file from all files in and under *base_dir*.  The output zip file
    will be named *base_name* + :file:`.zip`.  Uses either the  :mod:`zipfile` Python
@@ -978,7 +976,7 @@ This module provides functions for operating on directories and trees of
 directories.
 
 
-.. function:: mkpath(name[, mode=0o777, verbose=False, dry_run=False])
+.. function:: mkpath(name[, mode=0o777, verbose=False])
 
    Create a directory and any missing ancestor directories.  If the directory
    already exists (or if *name* is the empty string, which means the current
@@ -989,17 +987,17 @@ directories.
    directories actually created.
 
 
-.. function:: create_tree(base_dir, files[, mode=0o777, verbose=False, dry_run=False])
+.. function:: create_tree(base_dir, files[, mode=0o777, verbose=False])
 
    Create all the empty directories under *base_dir* needed to put *files* there.
    *base_dir* is just the name of a directory which doesn't necessarily exist
    yet; *files* is a list of filenames to be interpreted relative to *base_dir*.
    *base_dir* + the directory portion of every file in *files* will be created if
-   it doesn't already exist.  *mode*, *verbose* and *dry_run* flags  are as for
+   it doesn't already exist.  *mode* and *verbose* flags  are as for
    :func:`mkpath`.
 
 
-.. function:: copy_tree(src, dst[, preserve_mode=True, preserve_times=True, preserve_symlinks=False, update=False, verbose=False, dry_run=False])
+.. function:: copy_tree(src, dst[, preserve_mode=True, preserve_times=True, preserve_symlinks=False, update=False, verbose=False])
 
    Copy an entire directory tree *src* to a new location *dst*.  Both *src* and
    *dst* must be directory names.  If *src* is not a directory, raise
@@ -1007,7 +1005,7 @@ directories.
    :func:`mkpath`.  The end result of the  copy is that every file in *src* is
    copied to *dst*, and  directories under *src* are recursively copied to *dst*.
    Return the list of files that were copied or might have been copied, using their
-   output name. The return value is unaffected by *update* or *dry_run*: it is
+   output name. The return value is unaffected by *update*: it is
    simply the list of all files under *src*, with the names changed to be under
    *dst*.
 
@@ -1026,7 +1024,7 @@ directories.
    .. versionchanged:: 3.3.1
       NFS files are ignored.
 
-.. function:: remove_tree(directory[, verbose=False, dry_run=False])
+.. function:: remove_tree(directory[, verbose=False])
 
    Recursively remove *directory* and all files and directories underneath it. Any
    errors are ignored (apart from being reported to ``sys.stdout`` if *verbose* is
@@ -1043,7 +1041,7 @@ directories.
 This module contains some utility functions for operating on individual files.
 
 
-.. function:: copy_file(src, dst[, preserve_mode=True, preserve_times=True, update=False, link=None, verbose=False, dry_run=False])
+.. function:: copy_file(src, dst[, preserve_mode=True, preserve_times=True, update=False, link=None, verbose=False])
 
    Copy file *src* to *dst*. If *dst* is a directory, then *src* is copied there
    with the same name; otherwise, it must be a filename. (If the file exists, it
@@ -1062,8 +1060,7 @@ This module contains some utility functions for operating on individual files.
    contents.
 
    Return a tuple ``(dest_name, copied)``: *dest_name* is the actual  name of the
-   output file, and *copied* is true if the file was copied  (or would have been
-   copied, if *dry_run* true).
+   output file, and *copied* is true if the file was copied.
 
    .. % XXX if the destination file already exists, we clobber it if
    .. % copying, but blow up if linking.  Hmmm.  And I don't know what
@@ -1073,7 +1070,7 @@ This module contains some utility functions for operating on individual files.
    .. % (not update) and (src newer than dst)).
 
 
-.. function:: move_file(src, dst[, verbose, dry_run])
+.. function:: move_file(src, dst[, verbose])
 
    Move file *src* to *dst*. If *dst* is a directory, the file will be moved into
    it with the same name; otherwise, *src* is just renamed to *dst*.  Returns the
@@ -1216,12 +1213,12 @@ other utility module.
    .. % Should probably be moved into the standard library.
 
 
-.. function:: execute(func, args[, msg=None, verbose=False, dry_run=False])
+.. function:: execute(func, args[, msg=None, verbose=False])
 
    Perform some action that affects the outside world (for instance, writing to the
-   filesystem).  Such actions are special because they are disabled by the
-   *dry_run* flag.  This method takes  care of all that bureaucracy for you; all
-   you have to do is supply the function to call and an argument tuple for it (to
+   filesystem). Historically, such actions were special because they could be disabled
+   by a *dry_run* flag. This method takes care of all that bureaucracy;
+   simply supply the function to call and an argument tuple for it (to
    embody the "external action" being performed), and an optional message to print.
 
 
@@ -1234,7 +1231,7 @@ other utility module.
    :exc:`ValueError` if *val*  is anything else.
 
 
-.. function:: byte_compile(py_files[, optimize=0, force=False, prefix=None, base_dir=None, verbose=True, dry_run=False, direct=None])
+.. function:: byte_compile(py_files[, optimize=0, force=False, prefix=None, base_dir=None, verbose=True, direct=None])
 
    Byte-compile a collection of Python source files to :file:`.pyc` files in a
    :file:`__pycache__` subdirectory (see :pep:`3147` and :pep:`488`).
@@ -1253,9 +1250,6 @@ other utility module.
    *base_dir* is a directory name that will be prepended (after *prefix* is
    stripped).  You can supply either or both (or neither) of *prefix* and
    *base_dir*, as you wish.
-
-   If *dry_run* is true, doesn't actually do anything that would affect the
-   filesystem.
 
    Byte-compilation is either done directly in this interpreter process with the
    standard :mod:`py_compile` module, or indirectly by writing a temporary script

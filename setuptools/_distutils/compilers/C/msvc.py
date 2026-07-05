@@ -95,7 +95,8 @@ def _find_vc2017():
             subprocess.CalledProcessError, OSError, UnicodeDecodeError
         ):
             path = (
-                subprocess.check_output([
+                subprocess
+                .check_output([
                     os.path.join(
                         root, "Microsoft Visual Studio", "Installer", "vswhere.exe"
                     ),
@@ -260,8 +261,8 @@ class Compiler(base.Compiler):
     static_lib_format = shared_lib_format = '%s%s'
     exe_extension = '.exe'
 
-    def __init__(self, verbose=False, dry_run=False, force=False) -> None:
-        super().__init__(verbose, dry_run, force)
+    def __init__(self, verbose=False, force=False) -> None:
+        super().__init__(verbose, force=force)
         # target platform (.plat_name is consistent with 'bdist')
         self.plat_name = None
         self.initialized = False

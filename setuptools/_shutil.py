@@ -2,7 +2,8 @@
 
 import os
 import stat
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from .compat import py311
 

@@ -10,11 +10,11 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "80.10.2"
+version = "83.0.0"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
-description = "Easily download, build, install, upgrade, and uninstall Python packages"
+description = "Most extensible Python build backend with support for C/C++ extension modules"
 readme = "README.rst"
 classifiers = [
 	"Development Status :: 5 - Production/Stable",
@@ -26,7 +26,7 @@ classifiers = [
 	"Topic :: System :: Systems Administration",
 	"Topic :: Utilities",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
 ]
@@ -102,9 +102,6 @@ core = [
 	"tomli>=2.0.1; python_version < '3.11'",
 	"wheel>=0.43.0",
 
-	# pkg_resources
-	"platformdirs >= 4.2.2", # Made ctypes optional (see #4461)
-
 	# for distutils
 	"jaraco.functools >= 4",
 	"more_itertools",
@@ -112,7 +109,7 @@ core = [
 
 check = [
 	# upstream
-	"pytest-checkdocs >= 2.4",
+	"pytest-checkdocs >= 2.14",
 	"pytest-ruff >= 0.2.1; sys_platform != 'cygwin'",
 
 	# local
@@ -126,12 +123,14 @@ cover = [
 ]
 
 enabler = [
-	"pytest-enabler >= 2.2",
+	"pytest-enabler >= 3.4",
 ]
 
 type = [
 	# upstream
-	"pytest-mypy",
+
+	# Exclude PyPy from type checks (python/mypy#20454 jaraco/skeleton#187)
+	"pytest-mypy >= 1.0.1; platform_python_implementation != 'PyPy'",
 
 	# local
 
@@ -204,7 +203,6 @@ include-package-data = true
 [tool.setuptools.packages.find]
 include = [
 	"setuptools*",
-	"pkg_resources*",
 	"distutils-stubs*",
 	"_distutils_hack*",
 ]
@@ -217,6 +215,10 @@ namespaces = true
 [tool.setuptools.exclude-package-data]
 # Remove ruff.toml when installing vendored packages (#4652)
 "*" = ["ruff.toml"]
+# Avoid shipping setuptools' own test suite in wheels (#5212)
+"setuptools" = ["tests/*"]
+"setuptools._distutils" = ["tests/*"]
+"setuptools._distutils.compilers.C" = ["tests/*"]
 
 [tool.distutils.sdist]
 formats = "zip"

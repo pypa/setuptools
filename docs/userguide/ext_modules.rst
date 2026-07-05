@@ -63,6 +63,27 @@ Optionally any other parameter of :class:`setuptools.Extension` can be defined
 in the configuration file (but in the case of ``pyproject.toml`` they must be
 written using :wiki:`kebab-case` convention).
 
+.. note::
+   ``Extension(..., py_limited_api=True)`` and wheel tagging are configured
+   separately. If the built wheel should be tagged with ``abi3`` for CPython's
+   limited API, configure the ``bdist_wheel`` ``py_limited_api`` option with
+   the minimum supported CPython tag, such as ``cp311``:
+
+   .. tab:: setup.cfg
+
+      .. code-block:: ini
+
+         [bdist_wheel]
+         py-limited-api = cp311
+
+   .. tab:: setup.py
+
+      .. code-block:: python
+
+         setup(
+             options={"bdist_wheel": {"py_limited_api": "cp311"}},
+         )
+
 .. seealso::
    You can find more information on the `Python docs about C/C++ extensions`_.
    Alternatively, you might also be interested in learning about `Cython`_.

@@ -120,7 +120,6 @@ EXAMPLE = {
 SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
 
 
-@pytest.mark.xfail(sys.platform == "darwin", reason="pypa/setuptools#4328")
 @pytest.mark.parametrize(
     "files",
     [
@@ -148,8 +147,10 @@ def test_editable_with_pyproject(tmp_path, venv, files, editable_opts):
     cmd = ["python", "-m", "mypkg"]
     assert venv.run(cmd).strip() == "3.14159.post0 Hello World"
 
+    mod_py = project / "src/mypkg/mod.py"
+    mod_py.write_text("x = 42", encoding="utf-8")
+    _advance_mtime(mod_py)
     (project / "src/mypkg/data.txt").write_text("foobar", encoding="utf-8")
-    (project / "src/mypkg/mod.py").write_text("x = 42", encoding="utf-8")
     assert venv.run(cmd).strip() == "3.14159.post0 foobar 42"
 
 
@@ -293,8 +294,6 @@ class TestLegacyNamespaces:
         venv.run(["python", "-m", "pip", "install", str(pkg_A), *opts])
         venv.run(["python", "-m", "pip", "install", "-e", str(pkg_B), *opts])
         venv.run(["python", "-c", f"import {ns}.pkgA; import {ns}.pkgB"])
-        # additionally ensure that pkg_resources import works
-        venv.run(["python", "-c", "import pkg_resources"])
 
 
 class TestPep420Namespaces:
@@ -898,7 +897,6 @@ class TestOverallBehaviour:
         },
     }
 
-    @pytest.mark.xfail(sys.platform == "darwin", reason="pypa/setuptools#4328")
     @pytest.mark.parametrize("layout", EXAMPLES.keys())
     def test_editable_install(self, tmp_path, venv, layout, editable_opts):
         project, _ = install_project(
@@ -941,6 +939,8 @@ class TestOverallBehaviour:
         mod1.write_text("var = 17", encoding="utf-8")
         mod2.write_text("var = 781", encoding="utf-8")
         resource_file.write_text("resource 374", encoding="utf-8")
+        _advance_mtime(mod1)
+        _advance_mtime(mod2)
 
         out = venv.run(["python", "-c", dedent(cmd_get_vars)])
         assert "42 13" not in out
@@ -1261,3 +1261,18 @@ def assert_link_to(file: Path, other: Path) -> None:
 
 def comparable_path(str_with_path: str) -> str:
     return str_with_path.lower().replace(os.sep, "/").replace("//", "/")
+
+
+def _advance_mtime(path: Path) -> None:
+    """Advance a file's mtime by 2 seconds.
+
+    Python's .pyc bytecode-cache validation compares mtimes as integer seconds.
+    When a source file is written within the same wall-clock second that its
+    .pyc was compiled, the stored mtime equals the new mtime and Python reuses
+    the stale bytecode.  Advancing the mtime by 2 seconds (rather than just 1)
+    provides a safety margin against rounding at second boundaries and
+    guarantees the .pyc is seen as out-of-date on the next import.
+    See pypa/setuptools#4328.
+    """
+    st = path.stat()
+    os.utime(path, (st.st_atime + 2, st.st_mtime + 2))

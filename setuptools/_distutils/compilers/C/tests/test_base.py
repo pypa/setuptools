@@ -18,7 +18,8 @@ def c_file(tmp_path):
     all_headers = gen_headers + plat_headers
     headers = '\n'.join(f'#include <{header}>\n' for header in all_headers)
     payload = (
-        textwrap.dedent(
+        textwrap
+        .dedent(
             """
         #headers
         void PyInit_foo(void) {}

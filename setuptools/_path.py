@@ -3,16 +3,16 @@ from __future__ import annotations
 import contextlib
 import os
 import sys
-from typing import TYPE_CHECKING, TypeVar, Union
+from typing import TYPE_CHECKING, TypeVar
 
 from more_itertools import unique_everseen
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
-StrPath: TypeAlias = Union[str, os.PathLike[str]]  #  Same as _typeshed.StrPath
+StrPath: TypeAlias = str | os.PathLike[str]  #  Same as _typeshed.StrPath
 StrPathT = TypeVar("StrPathT", bound=StrPath)
-BytesPath: TypeAlias = Union[bytes, os.PathLike[bytes]]  #  Same as _typeshed.BytesPath
+BytesPath: TypeAlias = bytes | os.PathLike[bytes]  #  Same as _typeshed.BytesPath
 BytesPathT = TypeVar("BytesPathT", bound=BytesPath)
 
 

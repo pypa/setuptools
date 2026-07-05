@@ -39,7 +39,7 @@ import tokenize
 import warnings
 from collections.abc import Iterable, Iterator, Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING, NoReturn, Union
+from typing import TYPE_CHECKING, NoReturn
 
 import setuptools
 
@@ -52,7 +52,7 @@ import distutils
 from distutils.util import strtobool
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
 __all__ = [
     'get_requires_for_build_sdist',
@@ -144,7 +144,7 @@ def suppress_known_deprecation():
         yield
 
 
-_ConfigSettings: TypeAlias = Union[Mapping[str, Union[str, list[str], None]], None]
+_ConfigSettings: TypeAlias = Mapping[str, str | list[str] | None] | None
 """
 Currently the user can run::
 

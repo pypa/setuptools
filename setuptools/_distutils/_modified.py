@@ -58,7 +58,7 @@ def newer_pairwise(
     of 'newer()'.
     """
     newer_pairs = filter(splat(newer), zip_strict(sources, targets))
-    return tuple(map(list, zip(*newer_pairs))) or ([], [])
+    return tuple(map(list, zip(*newer_pairs, strict=False))) or ([], [])
 
 
 def newer_group(

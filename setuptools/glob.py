@@ -12,15 +12,17 @@ import fnmatch
 import os
 import re
 from collections.abc import Iterable, Iterator
-from typing import TYPE_CHECKING, AnyStr, overload
+from typing import TYPE_CHECKING, TypeVar, overload
 
 if TYPE_CHECKING:
     from _typeshed import BytesPath, StrOrBytesPath, StrPath
 
+    _StrOrBytesT = TypeVar("_StrOrBytesT", bound=str | bytes)
+
 __all__ = ["glob", "iglob", "escape"]
 
 
-def glob(pathname: AnyStr, recursive: bool = False) -> list[AnyStr]:
+def glob(pathname: _StrOrBytesT, recursive: bool = False) -> list[_StrOrBytesT]:
     """Return a list of paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la
@@ -34,7 +36,7 @@ def glob(pathname: AnyStr, recursive: bool = False) -> list[AnyStr]:
     return list(iglob(pathname, recursive=recursive))
 
 
-def iglob(pathname: AnyStr, recursive: bool = False) -> Iterator[AnyStr]:
+def iglob(pathname: _StrOrBytesT, recursive: bool = False) -> Iterator[_StrOrBytesT]:
     """Return an iterator which yields the paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la
@@ -52,7 +54,7 @@ def iglob(pathname: AnyStr, recursive: bool = False) -> Iterator[AnyStr]:
     return it
 
 
-def _iglob(pathname: AnyStr, recursive: bool) -> Iterator[AnyStr]:
+def _iglob(pathname: _StrOrBytesT, recursive: bool) -> Iterator[_StrOrBytesT]:
     dirname, basename = os.path.split(pathname)
     glob_in_dir = glob2 if recursive and _isrecursive(basename) else glob1
 
@@ -73,7 +75,7 @@ def _iglob(pathname: AnyStr, recursive: bool) -> Iterator[AnyStr]:
     # drive or UNC path.  Prevent an infinite recursion if a drive or UNC path
     # contains magic characters (i.e. r'\\?\C:').
     if dirname != pathname and has_magic(dirname):
-        dirs: Iterable[AnyStr] = _iglob(dirname, recursive)
+        dirs: Iterable[_StrOrBytesT] = _iglob(dirname, recursive)
     else:
         dirs = [dirname]
     if not has_magic(basename):

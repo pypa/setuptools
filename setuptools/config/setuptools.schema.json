@@ -116,7 +116,7 @@
       "type": "object",
       "additionalProperties": false,
       "propertyNames": {
-        "anyOf": [{"type": "string", "format": "python-module-name"}, {"const": "*"}]
+        "anyOf": [{"$ref": "#/definitions/package-name"}, {"const": "*"}]
       },
       "patternProperties": {
         "^.*$": {"type": "array", "items": {"type": "string"}}
@@ -140,7 +140,7 @@
       "type": "object",
       "additionalProperties": false,
       "propertyNames": {
-        "anyOf": [{"type": "string", "format": "python-module-name"}, {"const": "*"}]
+        "anyOf": [{"$ref": "#/definitions/package-name"}, {"const": "*"}]
       },
       "patternProperties": {
           "^.*$": {"type": "array", "items": {"type": "string"}}

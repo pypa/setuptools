@@ -22,7 +22,6 @@ from typing import (
     ClassVar,
     Literal,
     TypeVar,
-    Union,
     overload,
 )
 
@@ -40,8 +39,9 @@ from .fancy_getopt import FancyGetopt, translate_longopt
 from .util import check_environ, rfc822_escape, strtobool
 
 if TYPE_CHECKING:
+    from typing import TypeAlias
+
     from _typeshed import SupportsWrite
-    from typing_extensions import TypeAlias
 
     # type-only import because of mutual dependence between these modules
     from .cmd import Command
@@ -49,7 +49,7 @@ if TYPE_CHECKING:
 
 _CommandT = TypeVar("_CommandT", bound="Command")
 _OptionsList: TypeAlias = list[
-    Union[tuple[str, Union[str, None], str, int], tuple[str, Union[str, None], str]]
+    tuple[str, str | None, str, int] | tuple[str, str | None, str]
 ]
 
 
@@ -100,7 +100,6 @@ class Distribution:
     global_options: ClassVar[_OptionsList] = [
         ('verbose', 'v', "run verbosely (default)", 1),
         ('quiet', 'q', "run quietly (turns verbosity off)"),
-        ('dry-run', 'n', "don't actually do anything"),
         ('help', 'h', "show detailed help message"),
         ('no-user-cfg', None, 'ignore pydistutils.cfg in your home directory'),
     ]
@@ -165,7 +164,6 @@ Common commands: (see '--help-commands' for more)
 
         # Default values for our command-line options
         self.verbose = True
-        self.dry_run = False
         self.help = False
         for attr in self.display_option_names:
             setattr(self, attr, False)
@@ -447,7 +445,7 @@ Common commands: (see '--help-commands' for more)
                 try:
                     if alias:
                         setattr(self, alias, not strtobool(val))
-                    elif opt in ('verbose', 'dry_run'):  # ugh!
+                    elif opt in ('verbose',):  # ugh!
                         setattr(self, opt, strtobool(val))
                     else:
                         setattr(self, opt, val)

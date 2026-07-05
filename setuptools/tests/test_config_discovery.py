@@ -1,7 +1,6 @@
 import os
 import sys
 from configparser import ConfigParser
-from itertools import product
 from typing import cast
 
 import jaraco.path
@@ -160,14 +159,9 @@ class TestDiscoverPackagesAndPyModules:
         ),
     }
 
-    @pytest.mark.parametrize(
-        ("config_file", "param", "circumstance"),
-        product(
-            ["setup.cfg", "setup.py", "pyproject.toml"],
-            ["packages", "py_modules"],
-            FILES.keys(),
-        ),
-    )
+    @pytest.mark.parametrize("config_file", ["setup.cfg", "setup.py", "pyproject.toml"])
+    @pytest.mark.parametrize("param", ["packages", "py_modules"])
+    @pytest.mark.parametrize("circumstance", FILES.keys())
     def test_purposefully_empty(self, tmp_path, config_file, param, circumstance):
         files = self.FILES[circumstance] + ["mod.py", "other.py", "src/pkg/__init__.py"]
         _populate_project_dir(tmp_path, files, {})

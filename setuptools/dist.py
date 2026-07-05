@@ -10,7 +10,7 @@ import sys
 from collections.abc import Iterable, Iterator, MutableMapping, Sequence
 from glob import glob
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any
 
 from more_itertools import partition, unique_everseen
 from packaging.markers import InvalidMarker, Marker
@@ -44,7 +44,7 @@ from distutils.fancy_getopt import translate_longopt
 from distutils.util import strtobool
 
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
+    from typing import TypeAlias
 
     from .extension import Extension
 
@@ -60,10 +60,10 @@ Supported iterable types that are known to be:
 - not imply a nested type (like `dict`)
 for use with `isinstance`.
 """
-_Sequence: TypeAlias = Union[tuple[str, ...], list[str]]
+_Sequence: TypeAlias = tuple[str, ...] | list[str]
 # This is how stringifying _Sequence would look in Python 3.10
 _sequence_type_repr = "tuple[str, ...] | list[str]"
-_OrderedStrSequence: TypeAlias = Union[str, dict[str, Any], Sequence[str]]
+_OrderedStrSequence: TypeAlias = str | dict[str, Any] | Sequence[str]
 """
 :meta private:
 Avoid single-use iterable. Disallow sets.
@@ -618,7 +618,7 @@ class Distribution(_Distribution):
             alias = self.negative_opt.get(opt)
             if alias:
                 val = not strtobool(val)
-            elif opt in ('verbose', 'dry_run'):  # ugh!
+            elif opt == 'verbose':
                 val = strtobool(val)
 
             try:

@@ -7,9 +7,10 @@ import signal
 import sys
 import tarfile
 import warnings
+from collections.abc import Callable
 from concurrent import futures
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from zipfile import ZipFile
 
 import pytest

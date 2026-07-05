@@ -50,7 +50,9 @@ Normally, you would specify the packages to be included manually in the followin
 
 
 If your packages are not in the root of the repository or do not correspond
-exactly to the directory structure, you also need to configure ``package_dir``:
+exactly to the directory structure (that is, the directory layout in your
+repository does not match the dotted package hierarchy you want installed on
+the end-user's machine), you also need to configure ``package_dir``:
 
 .. tab:: setup.cfg
 

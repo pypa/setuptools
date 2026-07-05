@@ -1,0 +1,2 @@
+Documented how ``bdist_wheel``'s ``py_limited_api`` option controls
+``abi3`` wheel tagging for extension modules -- by :user:`Himanshuagrawal4`
