@@ -9,9 +9,12 @@
 		// These are vendored
 		"**/_vendor",
 		"setuptools/_distutils",
+		// Default excludes
+		"**/node_modules",
+		"**/__pycache__",
+		"**/.*",
+		".venv",
 	],
-	// Our testing setup doesn't allow passing CLI arguments, so local devs have to set this manually.
-	// "pythonVersion": "3.9",
 	// Allow using distutils-stubs on Python 3.12+
 	"reportMissingModuleSource": false,
 	// For now we don't mind if mypy's `type: ignore` comments accidentally suppresses pyright issues
