@@ -15,6 +15,7 @@ from typing import Any
 from more_itertools import unique_everseen
 
 from .._path import StrPath, StrPathT
+from ..compat.py310 import tomllib
 from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning
 
@@ -196,9 +197,10 @@ class build_py(orig.build_py):
             egg_info_dir = ei_cmd.egg_info
             files = ei_cmd.filelist.files
 
-        check = _IncludePackageDataAbuse()
+        excluded = _find_packages_exclude_patterns(self.distribution)
+        check = _IncludePackageDataAbuse(excluded)
         for path in self._filter_build_files(files, egg_info_dir):
-            if dunder_path := _find_package_data_owner(path, src_dirs):
+            if dunder_path := _find_package_data_owner(path, src_dirs, excluded):
                 package, f, direct_path = dunder_path
                 if direct_path:
                     if check.is_module(f):
@@ -342,8 +344,52 @@ def _contains_python_sources(directory: str) -> bool:
     )
 
 
+def _find_packages_exclude_patterns(dist: Distribution) -> tuple[str, ...]:
+    setup_cfg = dist.command_options.get("options.packages.find", {})
+    if exclude := setup_cfg.get("exclude"):
+        _origin, patterns = exclude
+        return _split_find_excludes(patterns)
+
+    pyproject = Path("pyproject.toml")
+    if not pyproject.exists():
+        return ()
+
+    with pyproject.open("rb") as file:
+        data = tomllib.load(file)
+
+    patterns = (
+        data.get("tool", {})
+        .get("setuptools", {})
+        .get("packages", {})
+        .get("find", {})
+        .get("exclude", [])
+    )
+    return tuple(patterns)
+
+
+def _split_find_excludes(patterns: str) -> tuple[str, ...]:
+    return tuple(filter(None, (line.strip() for line in patterns.splitlines())))
+
+
+def _is_explicitly_excluded(parent: str, filename: str, excluded: tuple[str, ...]) -> bool:
+    if not excluded:
+        return False
+
+    package = Path(filename).parent
+    parts = list(itertools.takewhile(str.isidentifier, package.parts))
+    if not parts:
+        return False
+
+    candidates = (".".join([parent, *parts[: i + 1]]) for i in range(len(parts)))
+    return any(
+        fnmatch.fnmatchcase(candidate, pattern)
+        for candidate in candidates
+        for pattern in excluded
+    )
+
+
 def _find_package_data_owner(
-    path: str, src_dirs: dict[str, str]
+    path: str, src_dirs: dict[str, str], excluded: tuple[str, ...]
 ) -> tuple[str, str, bool] | None:
     directory, filename = os.path.split(assert_relative(path))
     previous = None
@@ -359,7 +405,11 @@ def _find_package_data_owner(
     if directory not in src_dirs:
         return None
 
-    return src_dirs[directory], filename, filename == original
+    package = src_dirs[directory]
+    if _is_explicitly_excluded(package, filename, excluded):
+        return None
+
+    return package, filename, filename == original
 
 
 class _IncludePackageDataAbuse:
@@ -408,8 +458,9 @@ class _IncludePackageDataAbuse:
         # _DUE_DATE: still not defined as this is particularly controversial.
         # Warning initially introduced in May 2022. See issue #3340 for discussion.
 
-    def __init__(self) -> None:
+    def __init__(self, excluded: tuple[str, ...] = ()) -> None:
         self._already_warned = set[str]()
+        self._excluded = excluded
 
     def is_module(self, file):
         return file.endswith(".py") and file[: -len(".py")].isidentifier()
@@ -418,7 +469,10 @@ class _IncludePackageDataAbuse:
         pkg = Path(file).parent
         parts = list(itertools.takewhile(str.isidentifier, pkg.parts))
         if parts:
-            return ".".join([parent, *parts])
+            importable = ".".join([parent, *parts])
+            if any(fnmatch.fnmatchcase(importable, pattern) for pattern in self._excluded):
+                return None
+            return importable
         return None
 
     def warn(self, importable):

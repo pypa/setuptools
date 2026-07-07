@@ -155,6 +155,44 @@ EXAMPLE_WITH_MANIFEST = {
 }
 
 
+EXAMPLE_WITH_SRC_LAYOUT_EXCLUDED_SUBPACKAGE = {
+    "pyproject.toml": DALS(
+        """
+        [project]
+        name = "mypkg"
+        version = "42"
+
+        [tool.setuptools]
+        include-package-data = true
+
+        [tool.setuptools.packages.find]
+        where = ["src"]
+        exclude = ["mypkg.subpkg", "mypkg.subpkg.*"]
+        """
+    ),
+    "src": {
+        "mypkg": {
+            "__init__.py": "",
+            "data.txt": "",
+            "subpkg": {
+                "sample1.json": "{}",
+                "sample2.json": "{}",
+            },
+        },
+    },
+    "MANIFEST.in": DALS(
+        """
+        recursive-include src/mypkg *.txt
+        recursive-include src/mypkg/subpkg *.json
+        global-exclude *.py[cod]
+        prune dist
+        prune build
+        prune *.egg-info
+        """
+    ),
+}
+
+
 def test_excluded_subpackages(tmpdir_cwd):
     jaraco.path.build(EXAMPLE_WITH_MANIFEST)
     dist = Distribution({"script_name": "%PEP 517%"})
@@ -175,6 +213,27 @@ def test_excluded_subpackages(tmpdir_cwd):
         "mypkg/tests/test_mypkg.py",
         "mypkg/tests/test_file.txt",
         "mypkg/tests",
+    ]:
+        assert not (build_dir / f).exists()
+
+
+def test_excluded_subpackages_respect_pyproject_src_layout(tmpdir_cwd):
+    jaraco.path.build(EXAMPLE_WITH_SRC_LAYOUT_EXCLUDED_SUBPACKAGE)
+    dist = Distribution({"script_name": "%PEP 517%"})
+    dist.parse_config_files()
+
+    build_py = dist.get_command_obj("build_py")
+    build_py.finalize_options()
+    build_py.run()
+
+    build_dir = Path(dist.get_command_obj("build_py").build_lib)
+    assert (build_dir / "mypkg/__init__.py").exists()
+    assert (build_dir / "mypkg/data.txt").exists()
+
+    for f in [
+        "mypkg/subpkg",
+        "mypkg/subpkg/sample1.json",
+        "mypkg/subpkg/sample2.json",
     ]:
         assert not (build_dir / f).exists()
 
