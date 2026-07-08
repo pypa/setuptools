@@ -6,7 +6,7 @@ import operator
 import os
 import stat
 import textwrap
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Mapping
 from functools import partial
 from glob import glob
 from pathlib import Path
@@ -357,21 +357,30 @@ def _find_packages_exclude_patterns(dist: Distribution) -> tuple[str, ...]:
     with pyproject.open("rb") as file:
         data = tomllib.load(file)
 
-    patterns = (
-        data.get("tool", {})
-        .get("setuptools", {})
-        .get("packages", {})
-        .get("find", {})
-        .get("exclude", [])
-    )
-    return tuple(patterns)
+    setuptools_cfg = data.get("tool", {}).get("setuptools", {})
+    packages = setuptools_cfg.get("packages", {})
+    if not isinstance(packages, Mapping):
+        return ()
+
+    find = packages.get("find", {})
+    if not isinstance(find, Mapping):
+        return ()
+
+    patterns = find.get("exclude", [])
+    if isinstance(patterns, str):
+        return (patterns,)
+    if isinstance(patterns, Iterable):
+        return tuple(patterns)
+    return ()
 
 
 def _split_find_excludes(patterns: str) -> tuple[str, ...]:
     return tuple(filter(None, (line.strip() for line in patterns.splitlines())))
 
 
-def _is_explicitly_excluded(parent: str, filename: str, excluded: tuple[str, ...]) -> bool:
+def _is_explicitly_excluded(
+    parent: str, filename: str, excluded: tuple[str, ...]
+) -> bool:
     if not excluded:
         return False
 
@@ -470,7 +479,9 @@ class _IncludePackageDataAbuse:
         parts = list(itertools.takewhile(str.isidentifier, pkg.parts))
         if parts:
             importable = ".".join([parent, *parts])
-            if any(fnmatch.fnmatchcase(importable, pattern) for pattern in self._excluded):
+            if any(
+                fnmatch.fnmatchcase(importable, pattern) for pattern in self._excluded
+            ):
                 return None
             return importable
         return None
