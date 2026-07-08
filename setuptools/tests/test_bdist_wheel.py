@@ -195,9 +195,15 @@ def abi3extension_dist():
         return
 
     if sysconfig.get_config_var('Py_GIL_DISABLED'):
-        # Free-threaded builds also reject Py_LIMITED_API for now.
-        # See https://github.com/python/cpython/issues/146636 (PEP 803 / abi3t).
-        return
+        if sys.version_info < (3, 15):
+            # The free-threaded build doesn't support the limited API until
+            # 3.15. See https://github.com/python/cpython/issues/146636.
+            return
+        # Free-threaded builds can only target the stable ABI of Python 3.15
+        # or newer (abi3t, PEP 803).
+        limited_api = "0x030F0000"
+    else:
+        limited_api = "0x03020000"
 
     yield (
         'abi3extension-dist',
@@ -219,7 +225,7 @@ def abi3extension_dist():
                 """
             ),
             "setup.cfg": "[bdist_wheel]\npy_limited_api=cp32",
-            "extension.c": "#define Py_LIMITED_API 0x03020000\n#include <Python.h>",
+            "extension.c": f"#define Py_LIMITED_API {limited_api}\n#include <Python.h>",
         },
     )
 
@@ -422,13 +428,45 @@ def test_universal_deprecated(dummy_dist, monkeypatch, tmp_path):
 
 
 EXTENSION_EXAMPLE = """\
+/* Include pyconfig.h first so Py_GIL_DISABLED is known before choosing a
+   stable ABI to target. On free-threaded Windows, Py_GIL_DISABLED is not in
+   pyconfig.h but is passed on the command line by setuptools. */
+#include <pyconfig.h>
+
+#ifdef Py_GIL_DISABLED
+/* Free-threaded builds only support the limited API for 3.15 or newer,
+   targeting the abi3t stable ABI (PEP 803). */
+#define Py_LIMITED_API 0x030F0000
+#else
 #define Py_LIMITED_API 0x03020000
+#endif
+
 #include <Python.h>
 
 static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
+#ifdef Py_TARGET_ABI3T
+/* abi3t makes PyObject opaque, so a static PyModuleDef and PyInit_* cannot
+   be used; export the module with slots instead (PEP 793). */
+PyABIInfo_VAR(abi_info);
+
+static PySlot slots[] = {
+  PySlot_STATIC_DATA(Py_mod_abi, &abi_info),
+  PySlot_STATIC_DATA(Py_mod_name, "extension"),
+  PySlot_STATIC_DATA(Py_mod_doc, "Dummy extension module"),
+  PySlot_STATIC_DATA(Py_mod_methods, methods),
+  PySlot_DATA(Py_mod_gil, Py_MOD_GIL_NOT_USED),
+  PySlot_END,
+};
+
+PyMODEXPORT_FUNC PyModExport_extension(void);
+
+PyMODEXPORT_FUNC PyModExport_extension(void) {
+  return slots;
+}
+#else
 static struct PyModuleDef module_def = {
   PyModuleDef_HEAD_INIT,
   "extension",
@@ -440,6 +478,7 @@ static struct PyModuleDef module_def = {
 PyMODINIT_FUNC PyInit_extension(void) {
   return PyModule_Create(&module_def);
 }
+#endif
 """
 EXTENSION_SETUPPY = """\
 from __future__ import annotations
@@ -461,10 +500,6 @@ setup(
 """
 
 
-@pytest.mark.skipif(
-    sysconfig.get_config_var("Py_GIL_DISABLED") and sys.version_info < (3, 15),
-    reason="The free-threaded build doesn't support the limited API until 3.15",
-)
 @pytest.mark.filterwarnings(
     "once:Config variable '.*' is unset.*, Python ABI tag may be incorrect"
 )
