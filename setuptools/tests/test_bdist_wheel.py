@@ -461,6 +461,9 @@ setup(
 """
 
 
+@pytest.mark.skipif(
+    sysconfig.get_config_var("Py_GIL_DISABLED") and sys.version_info < (3, 15),
+    reason="The free-threaded build doesn't support the limited API until 3.15")
 @pytest.mark.filterwarnings(
     "once:Config variable '.*' is unset.*, Python ABI tag may be incorrect"
 )
