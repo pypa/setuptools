@@ -1,12 +1,22 @@
 import os
 import shutil
 import stat
+import importlib
 from pathlib import Path
 from unittest.mock import Mock
 
 import jaraco.path
 import pytest
 
+from setuptools import SetuptoolsDeprecationWarning
+from setuptools.command.build_py import (
+    _IncludePackageDataAbuse,
+    _contains_python_sources,
+    _find_package_data_owner,
+    _find_packages_exclude_patterns,
+    _is_explicitly_excluded,
+    _split_find_excludes,
+)
 from setuptools.dist import Distribution
 
 from .textwrap import DALS
@@ -193,6 +203,36 @@ EXAMPLE_WITH_SRC_LAYOUT_EXCLUDED_SUBPACKAGE = {
 }
 
 
+EXAMPLE_WITH_IMPORTABLE_DATA_SUBPACKAGE = {
+    "setup.cfg": DALS(
+        """
+        [metadata]
+        name = mypkg
+        version = 42
+
+        [options]
+        include_package_data = True
+        packages = find:
+        """
+    ),
+    "mypkg": {
+        "__init__.py": "",
+        "plugins": {
+            "data.txt": "",
+        },
+    },
+    "MANIFEST.in": DALS(
+        """
+        global-include *.txt
+        global-exclude *.py[cod]
+        prune dist
+        prune build
+        prune *.egg-info
+        """
+    ),
+}
+
+
 def test_excluded_subpackages(tmpdir_cwd):
     jaraco.path.build(EXAMPLE_WITH_MANIFEST)
     dist = Distribution({"script_name": "%PEP 517%"})
@@ -236,6 +276,21 @@ def test_excluded_subpackages_respect_pyproject_src_layout(tmpdir_cwd):
         "mypkg/subpkg/sample2.json",
     ]:
         assert not (build_dir / f).exists()
+
+
+def test_importable_data_subpackage_warns_and_includes_files(tmpdir_cwd):
+    jaraco.path.build(EXAMPLE_WITH_IMPORTABLE_DATA_SUBPACKAGE)
+    dist = Distribution({"script_name": "%PEP 517%"})
+    dist.parse_config_files()
+
+    build_py = dist.get_command_obj("build_py")
+    msg = r"Package 'mypkg\.plugins' is absent from the `packages` configuration\."
+    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+        build_py.finalize_options()
+        build_py.run()
+
+    build_dir = Path(dist.get_command_obj("build_py").build_lib)
+    assert (build_dir / "mypkg/plugins/data.txt").exists()
 
 
 @pytest.mark.filterwarnings("ignore::setuptools.SetuptoolsDeprecationWarning")
@@ -513,3 +568,131 @@ def get_outputs(build_py):
         os.path.relpath(x, build_dir).replace(os.sep, "/")
         for x in build_py.get_outputs()
     }
+
+
+def test_build_py_module_reload():
+    import setuptools.command.build_py as build_py_module
+
+    importlib.reload(build_py_module)
+
+
+def test_split_find_excludes_strips_blank_lines():
+    assert _split_find_excludes("\nfoo\n  bar.*  \n\nbaz\n") == (
+        "foo",
+        "bar.*",
+        "baz",
+    )
+
+
+def test_find_packages_exclude_patterns_prefers_setup_cfg(tmpdir_cwd):
+    Path("pyproject.toml").write_text(
+        DALS(
+            """
+            [tool.setuptools.packages.find]
+            exclude = ["ignored"]
+            """
+        ),
+        encoding="utf-8",
+    )
+    dist = Distribution()
+    dist.command_options = {
+        "options.packages.find": {"exclude": ("setup.cfg", "\nfoo\nbar.*\n")}
+    }
+
+    assert _find_packages_exclude_patterns(dist) == ("foo", "bar.*")
+
+
+def test_find_packages_exclude_patterns_without_pyproject(tmpdir_cwd):
+    assert _find_packages_exclude_patterns(Distribution()) == ()
+
+
+@pytest.mark.parametrize(
+    ("pyproject", "expected"),
+    [
+        ("[tool.setuptools]\npackages = ['mypkg']\n", ()),
+        ("[tool.setuptools.packages]\nfind = 'invalid'\n", ()),
+        (
+            "[tool.setuptools.packages.find]\nexclude = 'mypkg.tests'\n",
+            ("mypkg.tests",),
+        ),
+        (
+            "[tool.setuptools.packages.find]\nexclude = ['mypkg.tests', 'mypkg.tests.*']\n",
+            ("mypkg.tests", "mypkg.tests.*"),
+        ),
+        ("[tool.setuptools.packages.find]\nexclude = 3\n", ()),
+    ],
+)
+def test_find_packages_exclude_patterns_from_pyproject(tmpdir_cwd, pyproject, expected):
+    Path("pyproject.toml").write_text(pyproject, encoding="utf-8")
+
+    assert _find_packages_exclude_patterns(Distribution()) == expected
+
+
+def test_contains_python_sources_filters_non_identifier_paths(tmpdir_cwd):
+    jaraco.path.build({
+        "pkg": {"valid.py": ""},
+        "data": {"file.txt": "", "not-valid.py": ""},
+    })
+
+    assert _contains_python_sources("pkg")
+    assert not _contains_python_sources("data")
+
+
+def test_is_explicitly_excluded_matches_nested_packages():
+    assert not _is_explicitly_excluded("mypkg", "plugins/data.txt", ())
+    assert not _is_explicitly_excluded(
+        "mypkg", "not-valid/data.txt", ("mypkg.not-valid",)
+    )
+    assert _is_explicitly_excluded(
+        "mypkg", "plugins/nested/data.txt", ("mypkg.plugins", "mypkg.plugins.*")
+    )
+
+
+def test_find_package_data_owner_handles_nested_and_excluded_paths(tmpdir_cwd):
+    jaraco.path.build({
+        "src": {
+            "mypkg": {
+                "__init__.py": "",
+                "data.txt": "",
+                "plugins": {"resource.txt": ""},
+                "nested": {"module.py": "", "resource.txt": ""},
+            }
+        }
+    })
+    src_dirs = {"src/mypkg": "mypkg"}
+
+    assert _find_package_data_owner("src/mypkg/data.txt", src_dirs, ()) == (
+        "mypkg",
+        "data.txt",
+        True,
+    )
+    assert _find_package_data_owner("src/mypkg/plugins/resource.txt", src_dirs, ()) == (
+        "mypkg",
+        "plugins/resource.txt",
+        False,
+    )
+    assert (
+        _find_package_data_owner("src/mypkg/nested/resource.txt", src_dirs, ()) is None
+    )
+    assert (
+        _find_package_data_owner(
+            "src/mypkg/plugins/resource.txt", src_dirs, ("mypkg.plugins",)
+        )
+        is None
+    )
+    assert _find_package_data_owner("orphan/data.txt", src_dirs, ()) is None
+
+
+def test_include_package_data_abuse_respects_excluded_patterns():
+    excluded = _IncludePackageDataAbuse(("mypkg.plugins",))
+
+    assert excluded.is_module("module.py")
+    assert excluded.importable_subpackage("mypkg", "plugins/data.txt") is None
+    assert (
+        _IncludePackageDataAbuse().importable_subpackage("mypkg", "plugins/data.txt")
+        == "mypkg.plugins"
+    )
+    assert (
+        _IncludePackageDataAbuse().importable_subpackage("mypkg", "not-valid/data.txt")
+        is None
+    )
