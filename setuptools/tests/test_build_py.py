@@ -1,7 +1,7 @@
+import importlib
 import os
 import shutil
 import stat
-import importlib
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -10,10 +10,10 @@ import pytest
 
 from setuptools import SetuptoolsDeprecationWarning
 from setuptools.command.build_py import (
-    _IncludePackageDataAbuse,
     _contains_python_sources,
     _find_package_data_owner,
     _find_packages_exclude_patterns,
+    _IncludePackageDataAbuse,
     _is_explicitly_excluded,
     _split_find_excludes,
 )
@@ -287,7 +287,7 @@ def test_importable_data_subpackage_warns_and_includes_files(tmpdir_cwd):
     msg = r"Package 'mypkg\.plugins' is absent from the `packages` configuration\."
     with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
         build_py.finalize_options()
-        build_py.run()
+    build_py.run()
 
     build_dir = Path(dist.get_command_obj("build_py").build_lib)
     assert (build_dir / "mypkg/plugins/data.txt").exists()
