@@ -1,3 +1,5 @@
+__lazy_modules__ = {"tomli", "tomllib"}
+
 import sys
 
 __all__ = ['tomllib']

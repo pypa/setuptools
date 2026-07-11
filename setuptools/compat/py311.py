@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"collections", "collections.abc", "shutil"}
+
 import shutil
 import sys
 from collections.abc import Callable
@@ -10,8 +12,10 @@ if TYPE_CHECKING:
 
     from _typeshed import ExcInfo, StrOrBytesPath
 
-# Same as shutil._OnExcCallback from typeshed
-_OnExcCallback: TypeAlias = Callable[[Callable[..., Any], str, BaseException], object]
+    # Same as shutil._OnExcCallback from typeshed
+    _OnExcCallback: TypeAlias = Callable[
+        [Callable[..., Any], str, BaseException], object
+    ]
 
 
 def shutil_rmtree(

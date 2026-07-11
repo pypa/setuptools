@@ -1,3 +1,14 @@
+__lazy_modules__ = {
+    f"{__spec__.parent}._importlib",
+    f"{__spec__.parent}._itertools",
+    f"{__spec__.parent}.errors",
+    "itertools",
+    "jaraco",
+    "jaraco.text",
+    "more_itertools",
+    "operator",
+}
+
 import functools
 import itertools
 import operator

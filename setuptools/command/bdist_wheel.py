@@ -6,6 +6,29 @@ A wheel is a built archive format.
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "email",
+    "email.generator",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._core_metadata",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._normalization",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.warnings",
+    f"{__spec__.parent}.egg_info",
+    "glob",
+    "packaging",
+    "re",
+    "shutil",
+    "struct",
+    "sysconfig",
+    "typing",
+    "warnings",
+    "wheel",
+    "wheel.wheelfile",
+    "zipfile",
+}
+
 import os
 import re
 import shutil

@@ -9,6 +9,18 @@ See https://setuptools.pypa.io/en/latest/deprecated/python_eggs.html#requires-tx
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._reqs",
+    "io",
+    "itertools",
+    "jaraco",
+    "jaraco.text",
+    "packaging",
+    "packaging.requirements",
+}
+
 import io
 from collections import defaultdict
 from collections.abc import Mapping

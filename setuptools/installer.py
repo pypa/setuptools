@@ -1,5 +1,19 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "distutils",
+    "distutils.errors",
+    f"{__spec__.parent}._importlib",
+    f"{__spec__.parent}.wheel",
+    "glob",
+    "itertools",
+    "packaging",
+    "packaging.requirements",
+    "packaging.utils",
+    "subprocess",
+    "tempfile",
+}
+
 import glob
 import itertools
 import os

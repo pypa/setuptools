@@ -1,5 +1,26 @@
 """Wheels support."""
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "distutils.util",
+    "email",
+    f"{__spec__.parent}._discovery",
+    f"{__spec__.parent}._importlib",
+    f"{__spec__.parent}.unicode_utils",
+    "itertools",
+    "packaging",
+    "packaging.requirements",
+    "packaging.tags",
+    "packaging.utils",
+    "packaging.version",
+    "setuptools.archive_util",
+    "setuptools.command",
+    "setuptools.command.egg_info",
+    "zipfile",
+}
+
 import contextlib
 import email
 import functools

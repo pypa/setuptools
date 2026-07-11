@@ -1,5 +1,34 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "distutils.cmd",
+    "distutils.command",
+    "distutils.debug",
+    "distutils.dist",
+    "distutils.errors",
+    "distutils.fancy_getopt",
+    "distutils.log",
+    "distutils.util",
+    f"{__spec__.parent}._importlib",
+    f"{__spec__.parent}._normalization",
+    f"{__spec__.parent}._path",
+    f"{__spec__.parent}._reqs",
+    f"{__spec__.parent}.config",
+    f"{__spec__.parent}.discovery",
+    f"{__spec__.parent}.errors",
+    "glob",
+    "io",
+    "itertools",
+    "more_itertools",
+    "numbers",
+    "packaging",
+    "packaging.markers",
+    "packaging.specifiers",
+    "packaging.version",
+    "pathlib",
+    "re",
+}
+
 import functools
 import io
 import itertools

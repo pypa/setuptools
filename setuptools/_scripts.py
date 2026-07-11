@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "distutils.command",
+    "distutils.command.build_scripts",
+    "distutils.util",
+    f"{__spec__.parent}._importlib",
+    f"{__spec__.parent}.warnings",
+    "re",
+    "shlex",
+    "shutil",
+    "struct",
+    "subprocess",
+    "textwrap",
+}
+
 import os
 import re
 import shlex

@@ -3,6 +3,16 @@ Create a dist_info directory
 As defined in the wheel specification
 """
 
+__lazy_modules__ = {
+    "contextlib",
+    "distutils",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._shutil",
+    f"{__spec__.parent}.egg_info",
+    "pathlib",
+    "shutil",
+    "typing",
+}
+
 import os
 import shutil
 from contextlib import contextmanager

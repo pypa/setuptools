@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"more_itertools"}
+
 import contextlib
 import os
 import sys

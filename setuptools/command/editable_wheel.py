@@ -12,6 +12,31 @@ Create a wheel that, when installed, will make the source package 'editable'
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "contextlib",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.compat",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.discovery",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.warnings",
+    f"{__spec__.parent}.build",
+    f"{__spec__.parent}.build_py",
+    f"{__spec__.parent}.dist_info",
+    f"{__spec__.parent}.egg_info",
+    f"{__spec__.parent}.install",
+    f"{__spec__.parent}.install_scripts",
+    "inspect",
+    "io",
+    "itertools",
+    "operator",
+    "pathlib",
+    "shutil",
+    "tempfile",
+    "traceback",
+    "types",
+}
+
 import io
 import logging
 import operator

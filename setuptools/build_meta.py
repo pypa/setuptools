@@ -28,6 +28,20 @@ Again, this is not a formal definition! Just a "taste" of the module.
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "distutils",
+    "distutils.util",
+    f"{__spec__.parent}._path",
+    f"{__spec__.parent}._reqs",
+    "io",
+    "pathlib",
+    "shlex",
+    "shutil",
+    "tempfile",
+    "tokenize",
+    "warnings",
+}
+
 import contextlib
 import io
 import os

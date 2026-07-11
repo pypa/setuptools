@@ -20,6 +20,22 @@ functions among several configuration file formats.
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "ast",
+    "configparser",
+    "distutils",
+    "distutils.errors",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._path",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.discovery",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.warnings",
+    "glob",
+    "importlib",
+    "importlib.machinery",
+    "itertools",
+    "pathlib",
+    "types",
+}
+
 import ast
 import importlib
 import os
