@@ -11,6 +11,16 @@ with the help of ``tomllib`` or ``tomli``.
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "functools",
+    "types",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._path",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.errors",
+    f"{__spec__.parent}._apply_pyprojecttoml",
+}
+
 import logging
 import os
 from collections.abc import Callable, Mapping

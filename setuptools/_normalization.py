@@ -3,6 +3,8 @@ Helpers for normalization as expected in wheel/sdist/module file names
 and core metadata
 """
 
+__lazy_modules__ = {"packaging"}
+
 import re
 from typing import TYPE_CHECKING
 

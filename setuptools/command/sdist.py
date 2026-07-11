@@ -1,5 +1,16 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "itertools",
+    "re",
+    "typing",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist",
+    f"{__spec__.parent}.build",
+}
+
 import contextlib
 import os
 import re
@@ -7,7 +18,7 @@ from collections.abc import Iterator
 from itertools import chain
 from typing import ClassVar
 
-from .._importlib import metadata
+from .._importlib import metadata  # noqa: LZY102
 from ..dist import Distribution
 from .build import _ORIGINAL_SUBCOMMANDS
 

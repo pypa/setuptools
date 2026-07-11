@@ -1,3 +1,5 @@
+__lazy_modules__ = {"distutils", "distutils.errors"}
+
 from setuptools.command.setopt import config_file, edit_config, option_base
 
 from distutils.errors import DistutilsOptionError

@@ -11,6 +11,19 @@ with the help of ``configparser``.
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "contextlib",
+    "functools",
+    "packaging",
+    "packaging.markers",
+    "packaging.requirements",
+    "packaging.version",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._path",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.errors",
+}
+
 import contextlib
 import functools
 import os

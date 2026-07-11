@@ -1,3 +1,5 @@
+__lazy_modules__ = {"more_itertools"}
+
 from more_itertools import consume  # noqa: F401
 
 

@@ -1,5 +1,24 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "distutils.errors",
+    "distutils.util",
+    "fnmatch",
+    "functools",
+    "glob",
+    "itertools",
+    "more_itertools",
+    "operator",
+    "pathlib",
+    "textwrap",
+    "typing",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._path",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist",
+}
+
 import fnmatch
 import itertools
 import operator

@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "contextlib",
+    "dis",
+    "packaging",
+    "packaging.version",
+    "types",
+    f"{__spec__.parent}._imp",
+}
+
 import contextlib
 import dis
 import marshal
