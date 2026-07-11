@@ -9,6 +9,7 @@ import re
 import sys
 from collections.abc import Iterable, Iterator, MutableMapping, Sequence
 from glob import glob
+from importlib import metadata
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -23,7 +24,6 @@ from . import (
     _static,
     command as _,  # noqa: F401 # imported for side-effects
 )
-from ._importlib import metadata
 from ._normalization import _canonicalize_license_expression
 from ._path import StrPath
 from ._reqs import _StrOrIter
