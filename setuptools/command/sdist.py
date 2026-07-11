@@ -5,7 +5,6 @@ __lazy_modules__ = {
     "collections.abc",
     "contextlib",
     "distutils",
-    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._importlib",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist",
     f"{__spec__.parent}.build",
     "itertools",
@@ -20,7 +19,7 @@ from collections.abc import Iterator
 from itertools import chain
 from typing import ClassVar
 
-from .._importlib import metadata
+from .._importlib import metadata  # noqa: LZY102
 from ..dist import Distribution
 from .build import _ORIGINAL_SUBCOMMANDS
 

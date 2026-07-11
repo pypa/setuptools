@@ -3,7 +3,6 @@ from __future__ import annotations
 __lazy_modules__ = {
     "distutils",
     "distutils.errors",
-    f"{__spec__.parent}._importlib",
     f"{__spec__.parent}.wheel",
     "glob",
     "itertools",
@@ -25,7 +24,7 @@ import packaging.requirements
 import packaging.utils
 
 from . import _reqs
-from ._importlib import metadata
+from ._importlib import metadata  # noqa: LZY102
 from .warnings import SetuptoolsDeprecationWarning
 from .wheel import Wheel
 

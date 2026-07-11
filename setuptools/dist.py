@@ -9,7 +9,6 @@ __lazy_modules__ = {
     "distutils.fancy_getopt",
     "distutils.log",
     "distutils.util",
-    f"{__spec__.parent}._importlib",
     f"{__spec__.parent}._normalization",
     f"{__spec__.parent}._path",
     f"{__spec__.parent}._reqs",
@@ -52,7 +51,7 @@ from . import (
     _static,
     command as _,  # noqa: F401 # imported for side-effects
 )
-from ._importlib import metadata
+from ._importlib import metadata  # noqa: LZY102
 from ._normalization import _canonicalize_license_expression
 from ._path import StrPath
 from ._reqs import _StrOrIter

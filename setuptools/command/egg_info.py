@@ -10,7 +10,6 @@ __lazy_modules__ = {
     "distutils",
     "distutils.errors",
     "distutils.util",
-    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._importlib",
     "functools",
     "packaging",
     "packaging.requirements",
@@ -40,7 +39,7 @@ from setuptools.command.setopt import edit_config
 from setuptools.glob import glob
 
 from .. import _entry_points, _normalization
-from .._importlib import metadata
+from .._importlib import metadata  # noqa: LZY102
 from ..warnings import SetuptoolsDeprecationWarning
 from . import _requirestxt
 
