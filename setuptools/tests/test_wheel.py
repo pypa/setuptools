@@ -12,13 +12,13 @@ import subprocess
 import sys
 import sysconfig
 import zipfile
+from importlib import metadata
 from typing import Any
 
 import pytest
 from jaraco import path
 from packaging.tags import parse_tag
 
-from setuptools._importlib import metadata
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir

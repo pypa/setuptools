@@ -1,4 +1,4 @@
-from ._importlib import metadata
+from importlib import metadata
 
 try:
     __version__ = metadata.version('setuptools') or '0.dev0+unknown'
