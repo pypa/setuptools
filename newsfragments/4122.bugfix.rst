@@ -1,0 +1,1 @@
+Changed the missing conventional README diagnostic from a warning to debug output.

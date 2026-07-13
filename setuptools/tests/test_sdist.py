@@ -420,6 +420,20 @@ class TestSdistTest:
         assert 'setup.py' not in manifest, manifest
         assert 'setup.cfg' not in manifest, manifest
 
+    def test_nonstandard_readme_logs_at_debug(self, source_dir, caplog):
+        touch(source_dir / 'project.readme.md')
+        cmd = sdist(Distribution(SETUP_ATTRS))
+
+        with caplog.at_level(logging.DEBUG):
+            cmd.check_readme()
+
+        (record,) = [
+            record
+            for record in caplog.records
+            if "standard file not found" in record.getMessage()
+        ]
+        assert record.levelno == logging.DEBUG
+
     def test_exclude_dev_only_cache_folders(self, source_dir):
         included = {
             # Emulate problem in https://github.com/pypa/setuptools/issues/4601
