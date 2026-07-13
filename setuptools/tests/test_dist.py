@@ -183,11 +183,11 @@ def test_dist_default_py_modules(tmp_path, dist_name, py_module):
     dist.set_defaults()
     assert dist.py_modules == [py_module]
     # When `py_modules` is given, don't do anything
-    dist = Distribution({**attrs, "py_modules": ["explicity_py_module"]})
+    dist = Distribution({**attrs, "py_modules": ["explicitly_py_module"]})
     dist.set_defaults()
-    assert dist.py_modules == ["explicity_py_module"]
+    assert dist.py_modules == ["explicitly_py_module"]
     # When `packages` is given, don't do anything
-    dist = Distribution({**attrs, "packages": ["explicity_package"]})
+    dist = Distribution({**attrs, "packages": ["explicitly_package"]})
     dist.set_defaults()
     assert not dist.py_modules
 

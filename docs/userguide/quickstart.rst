@@ -33,7 +33,7 @@ This will allow you to run the command: ``python -m build``.
    check out :doc:`pip installation docs <pip:installation>`.
 
 
-Every python package must provide a ``pyproject.toml`` and specify
+Every Python package must provide a ``pyproject.toml`` and specify
 the backend (build system) it wants to use. The distribution can then
 be generated with whatever tool that provides a ``build sdist``-like
 functionality.
@@ -200,7 +200,7 @@ Package discovery
 For projects that follow a simple directory structure, ``setuptools`` should be
 able to automatically detect all :term:`packages <package>` and
 :term:`namespaces <namespace package>`. However, complex projects might include
-additional folders and supporting files that not necessarily should be
+additional folders and supporting files that should not necessarily be
 distributed (or that can confuse ``setuptools`` auto discovery algorithm).
 
 Therefore, ``setuptools`` provides a convenient way to customize

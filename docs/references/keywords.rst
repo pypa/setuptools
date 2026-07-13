@@ -54,7 +54,7 @@ extensions).
 .. _keyword/long_description_content_type:
 
 ``long_description_content_type``
-    A string specifying the content type is used for the ``long_description``
+    A string specifying the content type used for the ``long_description``
     (e.g. ``text/markdown``)
 
 .. _keyword/author:

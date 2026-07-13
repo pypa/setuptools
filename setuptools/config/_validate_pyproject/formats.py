@@ -270,9 +270,9 @@ def url(value: str) -> bool:
 # https://packaging.python.org/specifications/entry-points/
 ENTRYPOINT_PATTERN = r"[^\[\s=]([^=]*[^\s=])?"
 ENTRYPOINT_REGEX = re.compile(f"^{ENTRYPOINT_PATTERN}$", re.IGNORECASE)
-RECOMMEDED_ENTRYPOINT_PATTERN = r"[\w.-]+"
-RECOMMEDED_ENTRYPOINT_REGEX = re.compile(
-    f"^{RECOMMEDED_ENTRYPOINT_PATTERN}$", re.IGNORECASE
+RECOMMENDED_ENTRYPOINT_PATTERN = r"[\w.-]+"
+RECOMMENDED_ENTRYPOINT_REGEX = re.compile(
+    f"^{RECOMMENDED_ENTRYPOINT_PATTERN}$", re.IGNORECASE
 )
 ENTRYPOINT_GROUP_PATTERN = r"\w+(\.\w+)*"
 ENTRYPOINT_GROUP_REGEX = re.compile(f"^{ENTRYPOINT_GROUP_PATTERN}$", re.IGNORECASE)
@@ -334,9 +334,9 @@ def python_entrypoint_name(value: str) -> bool:
     """
     if not ENTRYPOINT_REGEX.match(value):
         return False
-    if not RECOMMEDED_ENTRYPOINT_REGEX.match(value):
+    if not RECOMMENDED_ENTRYPOINT_REGEX.match(value):
         msg = f"Entry point `{value}` does not follow recommended pattern: "
-        msg += RECOMMEDED_ENTRYPOINT_PATTERN
+        msg += RECOMMENDED_ENTRYPOINT_PATTERN
         _logger.warning(msg)
     return True
 
