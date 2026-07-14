@@ -2,6 +2,7 @@ import importlib
 import os
 import shutil
 import stat
+import warnings
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -286,8 +287,16 @@ def test_importable_data_subpackage_warns_and_includes_files(tmpdir_cwd):
     build_py = dist.get_command_obj("build_py")
     msg = r"Package 'mypkg\.plugins' is absent from the `packages` configuration\."
     build_py.finalize_options()
-    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
-        build_py.run()
+    with warnings.catch_warnings():
+        if os.getenv("SETUPTOOLS_USE_DISTUTILS") == "stdlib":
+            warnings.filterwarnings(
+                "ignore",
+                "'encoding' argument not specified",
+                module="distutils.text_file",
+                # This warning is already fixed in pypa/distutils but not in stdlib
+            )
+        with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+            build_py.run()
 
     build_dir = Path(dist.get_command_obj("build_py").build_lib)
     assert (build_dir / "mypkg/plugins/data.txt").exists()
