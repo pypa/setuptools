@@ -11,6 +11,7 @@ import pytest
 
 from setuptools import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution
+from setuptools.warnings import SetuptoolsWarning
 
 from .textwrap import DALS
 
@@ -463,6 +464,133 @@ class TestTypeInfoFiles:
         build_py = get_finalized_build_py()
         outputs = get_outputs(build_py)
         assert expected_type_files <= outputs
+
+
+class TestTypingClassifierWarnings:
+    def _build_py(self):
+        dist = Distribution({"script_name": "%build_py-test%"})
+        dist.parse_config_files()
+        dist.set_defaults()
+        build_py = dist.get_command_obj("build_py")
+        build_py.finalize_options()
+        return build_py
+
+    def test_py_typed_without_classifier_warns(self, tmpdir_cwd):
+        jaraco.path.build({
+            "pyproject.toml": DALS(
+                """
+                    [project]
+                    name = "foo"
+                    version = "1"
+                    """
+            ),
+            "foo": {"__init__.py": "", "py.typed": ""},
+        })
+        build_py = self._build_py()
+        msg = r"missing a `Typing :: \*` classifier"
+        with pytest.warns(SetuptoolsWarning, match=msg):
+            build_py.run()
+
+    def test_py_typed_with_typed_classifier_ok(self, tmpdir_cwd):
+        jaraco.path.build({
+            "pyproject.toml": DALS(
+                """
+                    [project]
+                    name = "foo"
+                    version = "1"
+                    classifiers = ["Typing :: Typed"]
+                    """
+            ),
+            "foo": {"__init__.py": "", "py.typed": ""},
+        })
+        build_py = self._build_py()
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", SetuptoolsWarning)
+            build_py.run()
+
+    def test_py_typed_with_stubs_classifier_ok(self, tmpdir_cwd):
+        jaraco.path.build({
+            "pyproject.toml": DALS(
+                """
+                    [project]
+                    name = "foo"
+                    version = "1"
+                    classifiers = ["Typing :: Stubs Only"]
+                    """
+            ),
+            "foo": {"__init__.py": "", "py.typed": ""},
+        })
+        build_py = self._build_py()
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", SetuptoolsWarning)
+            build_py.run()
+
+    def test_typed_classifier_without_py_typed_warns(self, tmpdir_cwd):
+        jaraco.path.build({
+            "pyproject.toml": DALS(
+                """
+                    [project]
+                    name = "foo"
+                    version = "1"
+                    classifiers = ["Typing :: Typed"]
+                    """
+            ),
+            "foo": {"__init__.py": ""},
+        })
+        build_py = self._build_py()
+        msg = "does not ship a `py.typed` marker"
+        with pytest.warns(SetuptoolsWarning, match=msg):
+            build_py.run()
+
+    def test_stubs_package_without_stubs_classifier_warns(self, tmpdir_cwd):
+        jaraco.path.build({
+            "pyproject.toml": DALS(
+                """
+                    [project]
+                    name = "foo-stubs"
+                    version = "1"
+                    """
+            ),
+            "foo-stubs": {"__init__.pyi": ""},
+        })
+        build_py = self._build_py()
+        msg = "missing the `Typing :: Stubs Only` classifier"
+        with pytest.warns(SetuptoolsWarning, match=msg):
+            build_py.run()
+
+    def test_stubs_package_with_stubs_classifier_ok(self, tmpdir_cwd):
+        jaraco.path.build({
+            "pyproject.toml": DALS(
+                """
+                    [project]
+                    name = "foo-stubs"
+                    version = "1"
+                    classifiers = ["Typing :: Stubs Only"]
+                    """
+            ),
+            "foo-stubs": {"__init__.pyi": ""},
+        })
+        build_py = self._build_py()
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", SetuptoolsWarning)
+            build_py.run()
+
+    def test_typed_classifier_with_stubs_package_warns(self, tmpdir_cwd):
+        jaraco.path.build({
+            "pyproject.toml": DALS(
+                """
+                    [project]
+                    name = "foo-stubs"
+                    version = "1"
+                    classifiers = ["Typing :: Typed"]
+                    """
+            ),
+            "foo-stubs": {"__init__.pyi": ""},
+        })
+        build_py = self._build_py()
+        msg = "does not ship a `py.typed` marker"
+        with pytest.warns(SetuptoolsWarning, match=msg):
+            build_py.run()
 
 
 def get_finalized_build_py(script_name="%build_py-test%"):
