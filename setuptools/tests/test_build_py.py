@@ -287,7 +287,8 @@ def test_importable_data_subpackage_warns_and_includes_files(tmpdir_cwd):
     build_py = dist.get_command_obj("build_py")
     msg = r"Package 'mypkg\.plugins' is absent from the `packages` configuration\."
     build_py.finalize_options()
-    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+
+    def run_build_py():
         with warnings.catch_warnings():
             warnings.filterwarnings(
                 "ignore",
@@ -296,6 +297,9 @@ def test_importable_data_subpackage_warns_and_includes_files(tmpdir_cwd):
                 # This warning is already fixed in pypa/distutils but not in stdlib
             )
             build_py.run()
+
+    with pytest.warns(SetuptoolsDeprecationWarning, match=msg):
+        run_build_py()
 
     build_dir = Path(dist.get_command_obj("build_py").build_lib)
     assert (build_dir / "mypkg/plugins/data.txt").exists()
