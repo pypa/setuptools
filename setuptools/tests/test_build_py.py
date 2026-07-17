@@ -680,7 +680,7 @@ def test_find_package_data_owner_handles_nested_and_excluded_paths(tmpdir_cwd):
     )
     assert _find_package_data_owner("src/mypkg/plugins/resource.txt", src_dirs, ()) == (
         "mypkg",
-        "plugins/resource.txt",
+        os.path.join("plugins", "resource.txt"),
         False,
     )
     assert (
