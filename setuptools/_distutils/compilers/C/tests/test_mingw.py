@@ -20,11 +20,25 @@ class TestMinGW32Compiler:
 
         compiler = cygwin.MinGW32Compiler()
 
-        assert compiler.compiler == split_quoted('cc -O -Wall')
-        assert compiler.compiler_so == split_quoted('cc -shared -O -Wall')
-        assert compiler.compiler_cxx == split_quoted('c++ -O -Wall')
+        assert compiler.compiler == split_quoted('cc -O1 -Wall')
+        assert compiler.compiler_so == split_quoted('cc -shared -O1 -Wall')
+        assert compiler.compiler_cxx == split_quoted('c++ -O1 -Wall')
         assert compiler.linker_exe == split_quoted('cc')
         assert compiler.linker_so == split_quoted('cc -shared')
+
+    @pytest.mark.skipif('sys.platform == "cygwin"')
+    def test_no_bare_optimization_flag(self):
+        # A bare ``-O`` is rejected by cc1 under ``-m32``.
+        # https://github.com/pypa/setuptools/issues/4873
+        compiler = cygwin.MinGW32Compiler()
+
+        for args in (
+            compiler.compiler,
+            compiler.compiler_so,
+            compiler.compiler_cxx,
+            compiler.compiler_so_cxx,
+        ):
+            assert '-O' not in args
 
     @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
     def test_runtime_library_dir_option(self):
