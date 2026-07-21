@@ -20,9 +20,9 @@ class TestMinGW32Compiler:
 
         compiler = cygwin.MinGW32Compiler()
 
-        assert compiler.compiler == split_quoted('cc -O -Wall')
-        assert compiler.compiler_so == split_quoted('cc -shared -O -Wall')
-        assert compiler.compiler_cxx == split_quoted('c++ -O -Wall')
+        assert compiler.compiler == split_quoted('cc -O1 -Wall')
+        assert compiler.compiler_so == split_quoted('cc -shared -O1 -Wall')
+        assert compiler.compiler_cxx == split_quoted('c++ -O1 -Wall')
         assert compiler.linker_exe == split_quoted('cc')
         assert compiler.linker_so == split_quoted('cc -shared')
 
@@ -46,3 +46,14 @@ class TestMinGW32Compiler:
         # https://github.com/pypa/setuptools/issues/4456
         compiler = cygwin.MinGW32Compiler()
         sysconfig.customize_compiler(compiler)
+
+
+    def test_default_optimize_flag_is_o1(self, monkeypatch):
+        """Bare -O is rejected by cc1 under -m32; defaults must use -O1 (#4873)."""
+        monkeypatch.setattr(cygwin, 'is_cygwincc', lambda _: False)
+        monkeypatch.setenv('CC', 'gcc')
+        monkeypatch.setenv('CXX', 'g++')
+        compiler = cygwin.MinGW32Compiler()
+        joined = ' '.join(compiler.compiler + compiler.compiler_so + compiler.compiler_cxx)
+        assert ' -O ' not in f' {joined} '
+        assert '-O1' in compiler.compiler

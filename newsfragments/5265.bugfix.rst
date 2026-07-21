@@ -1,0 +1,1 @@
+Fixed MinGW/Cygwin compilers injecting bare ``-O``, which ``cc1`` rejects under ``-m32``; use ``-O1`` instead.
