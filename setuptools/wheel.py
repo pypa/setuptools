@@ -196,11 +196,11 @@ class Wheel:
                 markers = req.marker._markers
             except AttributeError:
                 markers = ()
-            return set(
+            return {
                 marker[2].value
                 for marker in markers
                 if isinstance(marker, tuple) and marker[0].value == 'extra'
-            )
+            }
 
         install_requires = list(
             map(raw_req, filter(eval, itertools.filterfalse(for_extra, reqs)))

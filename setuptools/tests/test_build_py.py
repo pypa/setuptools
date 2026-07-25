@@ -252,7 +252,7 @@ def test_existing_egg_info(tmpdir_cwd, monkeypatch):
     assert build_py.data_files
 
     # Make sure the list of outputs is actually OK
-    outputs = map(lambda x: x.replace(os.sep, "/"), build_py.get_outputs())
+    outputs = (x.replace(os.sep, "/") for x in build_py.get_outputs())
     assert outputs
     example = str(Path(build_py.build_lib, "mypkg/__init__.py")).replace(os.sep, "/")
     assert example in outputs

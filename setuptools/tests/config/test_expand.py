@@ -29,7 +29,7 @@ def test_glob_relative(tmp_path, monkeypatch):
         "dir1/dir2/a.ini",
     }
 
-    write_files({k: "" for k in files}, tmp_path)
+    write_files(dict.fromkeys(files, ""), tmp_path)
     patterns = ["**/*.txt", "[ab].*", "**/[ac].ini"]
     monkeypatch.chdir(tmp_path)
     assert set(expand.glob_relative(patterns)) == files
@@ -198,7 +198,7 @@ def test_find_packages(tmp_path, args, pkgs):
         "other/__init__.py",
         "dir1/dir2/__init__.py",
     }
-    write_files({k: "" for k in files}, tmp_path)
+    write_files(dict.fromkeys(files, ""), tmp_path)
 
     package_dir = {}
     kwargs = {"root_dir": tmp_path, "fill_package_dir": package_dir, **args}
@@ -237,7 +237,7 @@ def test_find_packages(tmp_path, args, pkgs):
     ],
 )
 def test_fill_package_dir(tmp_path, files, where, expected_package_dir):
-    write_files({k: "" for k in files}, tmp_path)
+    write_files(dict.fromkeys(files, ""), tmp_path)
     pkg_dir = {}
     kwargs = {"root_dir": tmp_path, "fill_package_dir": pkg_dir, "namespaces": False}
     pkgs = expand.find_packages(where=where, **kwargs)
