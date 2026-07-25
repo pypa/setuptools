@@ -49,7 +49,7 @@ class TestDistInfo:
         dist_info = next(tmp_path.glob("*.dist-info"))
         assert dist_info.name.startswith("proj-42a")
 
-    @pytest.mark.parametrize("keep_egg_info", (False, True))
+    @pytest.mark.parametrize("keep_egg_info", [False, True])
     def test_output_dir(self, tmp_path, keep_egg_info):
         config = "[metadata]\nname=proj\nversion=42\n"
         (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
