@@ -17,8 +17,6 @@ import contextlib
 import os
 import subprocess
 import tempfile
-import unittest.mock as mock
-import warnings
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 
@@ -629,28 +627,7 @@ class Compiler(base.Compiler):
 
     def spawn(self, cmd):
         env = dict(os.environ, PATH=self._paths)
-        with self._fallback_spawn(cmd, env) as fallback:
-            return super().spawn(cmd, env=env)
-        return fallback.value
-
-    @contextlib.contextmanager
-    def _fallback_spawn(self, cmd, env):
-        """
-        Discovered in pypa/distutils#15, some tools monkeypatch the compiler,
-        so the 'env' kwarg causes a TypeError. Detect this condition and
-        restore the legacy, unsafe behavior.
-        """
-        bag = type('Bag', (), {})()
-        try:
-            yield bag
-        except TypeError as exc:
-            if "unexpected keyword argument 'env'" not in str(exc):
-                raise
-        else:
-            return
-        warnings.warn("Fallback spawn triggered. Please update distutils monkeypatch.")
-        with mock.patch.dict('os.environ', env):
-            bag.value = super().spawn(cmd)
+        return super().spawn(cmd, env=env)
 
     # -- Miscellaneous methods -----------------------------------------
     # These are all used by the 'gen_lib_options() function, in

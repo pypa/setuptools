@@ -2,7 +2,6 @@ import os
 import sys
 import sysconfig
 import threading
-import unittest.mock as mock
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
 from distutils.util import get_platform
@@ -115,22 +114,3 @@ class TestSpawn:
         for thread in threads:
             thread.join()
         assert all(threads)
-
-    def test_concurrent_safe_fallback(self):
-        """
-        If CCompiler.spawn has been monkey-patched without support
-        for an env, it should still execute.
-        """
-        from distutils import ccompiler
-
-        compiler = msvc.Compiler()
-        compiler._paths = "expected"
-
-        def CCompiler_spawn(self, cmd):
-            "A spawn without an env argument."
-            assert os.environ["PATH"] == "expected"
-
-        with mock.patch.object(ccompiler.CCompiler, 'spawn', CCompiler_spawn):
-            compiler.spawn(["n/a"])
-
-        assert os.environ.get("PATH") != "expected"

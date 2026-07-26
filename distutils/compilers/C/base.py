@@ -40,6 +40,7 @@ from .errors import (
 log = get_logger(__name__)
 
 if TYPE_CHECKING:
+    from subprocess import _ENV
     from typing import TypeAlias
 
     from typing_extensions import TypeVarTuple, Unpack
@@ -1159,9 +1160,12 @@ int main (int argc, char **argv) {{
         func(*args)
 
     def spawn(
-        self, cmd: MutableSequence[bytes | str | os.PathLike[str]], **kwargs
+        self,
+        cmd: MutableSequence[bytes | str | os.PathLike[str]],
+        *,
+        env: _ENV | None = None,
     ) -> None:
-        spawn(cmd, **kwargs)
+        spawn(cmd, env=env)
 
     @overload
     def move_file(

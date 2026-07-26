@@ -43,28 +43,23 @@ def _inject_macos_ver(env: _MappingT | None) -> _MappingT | dict[str, str | int]
 
 def spawn(
     cmd: MutableSequence[bytes | str | os.PathLike[str]],
-    search_path: bool = True,
-    verbose: bool = False,
+    *,
     env: _ENV | None = None,
 ) -> None:
     """Run another program, specified as a command list 'cmd', in a new process.
 
     'cmd' is just the argument list for the new process, ie.
     cmd[0] is the program to run and cmd[1:] are the rest of its arguments.
-
-    If 'search_path' is true (the default), the system's executable
-    search path will be used to find the program; otherwise, cmd[0]
-    must be the exact path to the executable.
+    cmd[0] is resolved against the executable search path.
 
     Raise DistutilsExecError if running the program fails in any way; just
     return on success.
     """
     log.info(subprocess.list2cmdline(cmd))
 
-    if search_path:
-        executable = shutil.which(cmd[0])
-        if executable is not None:
-            cmd[0] = executable
+    executable = shutil.which(cmd[0])
+    if executable is not None:
+        cmd[0] = executable
 
     try:
         subprocess.check_call(cmd, env=_inject_macos_ver(env))
