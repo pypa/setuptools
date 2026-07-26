@@ -456,7 +456,7 @@ class Command:
         """Spawn an external command respecting dry-run flag."""
         from distutils.spawn import spawn
 
-        spawn(cmd, search_path)
+        spawn(cmd)
 
     @overload
     def make_archive(
