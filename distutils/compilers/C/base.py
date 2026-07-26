@@ -31,7 +31,7 @@ from ...util import is_mingw
 from .._modified import newer_group
 from .._util import split_quoted
 from ..logging import get_logger
-from ..platform.macos import _inject_ver
+from ..platform import macos
 from .errors import (
     CompileError,
     LinkError,
@@ -1169,7 +1169,7 @@ int main (int argc, char **argv) {{
     ) -> None:
         """Run 'cmd' in a subprocess, letting subprocess exceptions propagate."""
         log.info(subprocess.list2cmdline(cmd))
-        subprocess.check_call(cmd, env=_inject_ver(env), **kwargs)
+        subprocess.check_call(cmd, env=macos._inject_ver(env), **kwargs)
 
     def spawn(
         self,
@@ -1183,20 +1183,12 @@ int main (int argc, char **argv) {{
             DeprecationWarning,
             stacklevel=2,
         )
-        # imported late so the compilers package need not depend on
-        # distutils.errors at module scope (pypa/setuptools#5270).
-        from ...errors import DistutilsExecError
+        # translation shared with distutils.spawn.spawn; imported late so the
+        # clean `call` path stays free of the distutils dependency.
+        from ...spawn import _translate_errors
 
-        try:
+        with _translate_errors(cmd):
             self.call(cmd, env=env, **kwargs)
-        except OSError as exc:
-            raise DistutilsExecError(
-                f"command {cmd[0]!r} failed: {exc.args[-1]}"
-            ) from exc
-        except subprocess.CalledProcessError as err:
-            raise DistutilsExecError(
-                f"command {cmd[0]!r} failed with exit code {err.returncode}"
-            ) from err
 
     @overload
     def move_file(

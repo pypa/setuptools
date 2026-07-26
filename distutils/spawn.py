@@ -6,6 +6,7 @@ specific functions for launching another program in a sub-process.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import subprocess
 import sys
@@ -14,6 +15,19 @@ from collections.abc import MutableSequence
 
 from ._log import log
 from .errors import DistutilsExecError
+
+
+@contextlib.contextmanager
+def _translate_errors(cmd):
+    """Reraise a subprocess failure running 'cmd' as a DistutilsExecError."""
+    try:
+        yield
+    except OSError as exc:
+        raise DistutilsExecError(f"command {cmd[0]!r} failed: {exc.args[-1]}") from exc
+    except subprocess.CalledProcessError as err:
+        raise DistutilsExecError(
+            f"command {cmd[0]!r} failed with exit code {err.returncode}"
+        ) from err
 
 
 def spawn(cmd: MutableSequence[bytes | str | os.PathLike[str]], **kwargs) -> None:
@@ -27,14 +41,8 @@ def spawn(cmd: MutableSequence[bytes | str | os.PathLike[str]], **kwargs) -> Non
     return on success.
     """
     log.info(subprocess.list2cmdline(cmd))
-    try:
+    with _translate_errors(cmd):
         subprocess.check_call(cmd, **kwargs)
-    except OSError as exc:
-        raise DistutilsExecError(f"command {cmd[0]!r} failed: {exc.args[-1]}") from exc
-    except subprocess.CalledProcessError as err:
-        raise DistutilsExecError(
-            f"command {cmd[0]!r} failed with exit code {err.returncode}"
-        ) from err
 
 
 def find_executable(executable: str, path: str | None = None) -> str | None:
