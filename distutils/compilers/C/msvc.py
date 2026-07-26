@@ -17,10 +17,11 @@ import contextlib
 import os
 import subprocess
 import tempfile
-import unittest.mock as mock
 import warnings
 from collections.abc import Iterable, Iterator
 from pathlib import Path
+from typing import ClassVar
+from unittest import mock
 
 with contextlib.suppress(ImportError):
     import winreg
@@ -137,7 +138,7 @@ def _find_vcvarsall(plat_spec):
     _, best_dir = _find_vc2017()
 
     if not best_dir:
-        best_version, best_dir = _find_vc2015()
+        _best_version, best_dir = _find_vc2015()
 
     if not best_dir:
         log.debug("No suitable Visual C++ version found")
@@ -311,13 +312,13 @@ class Compiler(base.Compiler):
     # as it really isn't necessary for this sort of single-compiler class.
     # Would be nice to have a consistent interface with UnixCCompiler,
     # though, so it's worth thinking about.
-    executables = {}
+    executables: ClassVar[dict] = {}
 
     # Private class data (need to distinguish C from C++ source for compiler)
-    _c_extensions = ['.c']
-    _cpp_extensions = ['.cc', '.cpp', '.cxx']
-    _rc_extensions = ['.rc']
-    _mc_extensions = ['.mc']
+    _c_extensions: ClassVar[list[str]] = ['.c']
+    _cpp_extensions: ClassVar[list[str]] = ['.cc', '.cpp', '.cxx']
+    _rc_extensions: ClassVar[list[str]] = ['.rc']
+    _mc_extensions: ClassVar[list[str]] = ['.mc']
 
     # Needed for the filename generation methods provided by the
     # base class, CCompiler.
@@ -605,7 +606,7 @@ class Compiler(base.Compiler):
             # builds, they can go into the same directory.
             build_temp = os.path.dirname(objects[0])
             if export_symbols is not None:
-                (dll_name, dll_ext) = os.path.splitext(
+                (dll_name, _dll_ext) = os.path.splitext(
                     os.path.basename(output_filename)
                 )
                 implib_file = os.path.join(build_temp, self.library_filename(dll_name))

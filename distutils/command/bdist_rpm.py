@@ -24,13 +24,17 @@ from ..sysconfig import get_python_version
 class bdist_rpm(Command):
     description = "create an RPM distribution"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('bdist-base=', None, "base directory for creating built distributions"),
         (
             'rpm-base=',
             None,
-            "base directory for creating RPMs (defaults to \"rpm\" under "
-            "--bdist-base; must be specified for RPM 2)",
+            (
+                "base directory for creating RPMs (defaults to \"rpm\" under "
+                "--bdist-base; must be specified for RPM 2)"
+            ),
         ),
         (
             'dist-dir=',
@@ -40,14 +44,18 @@ class bdist_rpm(Command):
         (
             'python=',
             None,
-            "path to Python interpreter to hard-code in the .spec file "
-            "[default: \"python\"]",
+            (
+                "path to Python interpreter to hard-code in the .spec file "
+                "[default: \"python\"]"
+            ),
         ),
         (
             'fix-python',
             None,
-            "hard-code the exact path to the current Python interpreter in "
-            "the .spec file",
+            (
+                "hard-code the exact path to the current Python interpreter in "
+                "the .spec file"
+            ),
         ),
         ('spec-only', None, "only regenerate spec file"),
         ('source-only', None, "only generate source RPM"),
@@ -61,8 +69,10 @@ class bdist_rpm(Command):
         (
             'distribution-name=',
             None,
-            "name of the (Linux) distribution to which this "
-            "RPM applies (*not* the name of the module distribution!)",
+            (
+                "name of the (Linux) distribution to which this "
+                "RPM applies (*not* the name of the module distribution!)"
+            ),
         ),
         ('group=', None, "package classification [default: \"Development/Libraries\"]"),
         ('release=', None, "RPM release number"),
@@ -70,8 +80,10 @@ class bdist_rpm(Command):
         (
             'vendor=',
             None,
-            "RPM \"vendor\" (eg. \"Joe Blow <joe@example.com>\") "
-            "[default: maintainer or author from setup script]",
+            (
+                "RPM \"vendor\" (eg. \"Joe Blow <joe@example.com>\") "
+                "[default: maintainer or author from setup script]"
+            ),
         ),
         (
             'packager=',

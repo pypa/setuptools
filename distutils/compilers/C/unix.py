@@ -21,6 +21,7 @@ import re
 import shlex
 import sys
 from collections.abc import Iterable
+from typing import ClassVar
 
 from ... import sysconfig
 from ..._macos_compat import compiler_fixup
@@ -123,7 +124,7 @@ class Compiler(base.Compiler):
     # are pretty generic; they will probably have to be set by an outsider
     # (eg. using information discovered by the sysconfig about building
     # Python extensions).
-    executables = {
+    executables: ClassVar[dict] = {
         'preprocessor': None,
         'compiler': ["cc"],
         'compiler_so': ["cc"],
@@ -146,7 +147,14 @@ class Compiler(base.Compiler):
     # reasonable common default here, but it's not necessarily used on all
     # Unices!
 
-    src_extensions = [".c", ".C", ".cc", ".cxx", ".cpp", ".m"]
+    src_extensions: ClassVar[list[str] | None] = [
+        ".c",
+        ".C",
+        ".cc",
+        ".cxx",
+        ".cpp",
+        ".m",
+    ]
     obj_extension = ".o"
     static_lib_extension = ".a"
     shared_lib_extension = ".so"
@@ -184,7 +192,7 @@ class Compiler(base.Compiler):
         extra_postargs: Iterable[str] | None = None,
     ):
         fixed_args = self._fix_compile_args(None, macros, include_dirs)
-        ignore, macros, include_dirs = fixed_args
+        _ignore, macros, include_dirs = fixed_args
         pp_opts = gen_preprocess_options(macros, include_dirs)
         pp_args = self.preprocessor + pp_opts
         if output_file:

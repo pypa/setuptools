@@ -12,6 +12,7 @@ IBM z/OS XL C/C++
 """
 
 import os
+from typing import ClassVar
 
 from ... import sysconfig
 from ...errors import DistutilsExecError
@@ -103,9 +104,17 @@ _ld_args = {
 # But each compiler requires it's own specific options to build successfully,
 # though some of the options are common between them
 class Compiler(unix.Compiler):
-    src_extensions = ['.c', '.C', '.cc', '.cxx', '.cpp', '.m', '.s']
-    _cpp_extensions = ['.cc', '.cpp', '.cxx', '.C']
-    _asm_extensions = ['.s']
+    src_extensions: ClassVar[list[str] | None] = [
+        '.c',
+        '.C',
+        '.cc',
+        '.cxx',
+        '.cpp',
+        '.m',
+        '.s',
+    ]
+    _cpp_extensions: ClassVar[list[str]] = ['.cc', '.cpp', '.cxx', '.C']
+    _asm_extensions: ClassVar[list[str]] = ['.s']
 
     def _get_zos_compiler_name(self):
         zos_compiler_names = [

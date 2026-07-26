@@ -3,10 +3,10 @@
 import os
 import stat
 import sys
-import unittest.mock as mock
 from distutils.errors import DistutilsExecError
 from distutils.spawn import find_executable, spawn
 from distutils.tests import support
+from unittest import mock
 
 import path
 import pytest

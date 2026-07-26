@@ -19,7 +19,9 @@ from ..util import change_root, convert_path
 class install_data(Command):
     description = "install data files"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         (
             'install-dir=',
             'd',

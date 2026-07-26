@@ -84,7 +84,7 @@ def make_tarball(
     compress_ext = {'gzip': '.gz', 'bzip2': '.bz2', 'xz': '.xz'}
 
     # flags for compression program, each element of list will be an argument
-    if compress is not None and compress not in compress_ext.keys():
+    if compress is not None and compress not in compress_ext:
         raise ValueError(
             "bad value for 'compress': must be None, 'gzip', 'bzip2', 'xz'"
         )
@@ -111,11 +111,10 @@ def make_tarball(
             tarinfo.uname = owner
         return tarinfo
 
-    tar = tarfile.open(archive_name, f'w|{tar_compression[compress]}')  # type: ignore[call-overload] # Dynamic mode
-    try:
+    with tarfile.open(  # type: ignore[call-overload] # Dynamic mode
+        archive_name, f'w|{tar_compression[compress]}'
+    ) as tar:
         tar.add(base_dir, filter=_set_uid_gid)
-    finally:
-        tar.close()
 
     return archive_name
 

@@ -796,12 +796,11 @@ Common commands: (see '--help-commands' for more)
         std_commands = distutils.command.__all__
         is_std = set(std_commands)
 
-        extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
+        extra_commands = [cmd for cmd in self.cmdclass if cmd not in is_std]
 
         max_length = 0
         for cmd in std_commands + extra_commands:
-            if len(cmd) > max_length:
-                max_length = len(cmd)
+            max_length = max(max_length, len(cmd))
 
         self.print_command_list(std_commands, "Standard commands", max_length)
         if extra_commands:
@@ -822,7 +821,7 @@ Common commands: (see '--help-commands' for more)
         std_commands = distutils.command.__all__
         is_std = set(std_commands)
 
-        extra_commands = [cmd for cmd in self.cmdclass.keys() if cmd not in is_std]
+        extra_commands = [cmd for cmd in self.cmdclass if cmd not in is_std]
 
         rv = []
         for cmd in std_commands + extra_commands:
@@ -1166,7 +1165,8 @@ class DistributionMetadata:
         self, path: str | bytes | os.PathLike[str] | os.PathLike[bytes] | None = None
     ) -> None:
         if path is not None:
-            self.read_pkg_file(open(path))
+            with open(path) as f:
+                self.read_pkg_file(f)
         else:
             self.name: str | None = None
             self.version: str | None = None

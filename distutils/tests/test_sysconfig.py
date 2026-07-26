@@ -257,7 +257,7 @@ class TestSysconfig:
             universal_newlines=True,
             encoding='utf-8',
         )
-        outs, errs = p.communicate()
+        outs, _errs = p.communicate()
         assert 0 == p.returncode, "Subprocess failed: " + outs
 
     def test_parse_config_h(self):

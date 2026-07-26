@@ -172,7 +172,7 @@ class Compiler(unix.Compiler):
             # where are the object files
             temp_dir = os.path.dirname(objects[0])
             # name of dll to give the helper files the same base name
-            (dll_name, dll_extension) = os.path.splitext(
+            (dll_name, _dll_extension) = os.path.splitext(
                 os.path.basename(output_filename)
             )
 

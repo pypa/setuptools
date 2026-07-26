@@ -2,12 +2,12 @@
 
 import os
 import sys
-import unittest.mock as mock
 from distutils import sysconfig
 from distutils.compat import consolidate_linker_args
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
 from distutils.util import _clear_cached_macosx_ver
+from unittest import mock
 
 import pytest
 from test.support import os_helper

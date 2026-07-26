@@ -346,7 +346,7 @@ class _UniqueDirs(set):
         if the item represents a unique dir for this instance
         and if not, prevent further traversal.
         """
-        base, dirs, files = walk_item
+        base, dirs, _files = walk_item
         stat = os.stat(base)
         candidate = stat.st_dev, stat.st_ino
         found = candidate in self

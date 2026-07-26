@@ -17,15 +17,19 @@ from ..util import convert_path
 class build_py(Command):
     description = "\"build\" pure Python modules (copy to build directory)"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('build-lib=', 'd', "directory to \"build\" (copy) to"),
         ('compile', 'c', "compile .py to .pyc"),
         ('no-compile', None, "don't compile .py files [default]"),
         (
             'optimize=',
             'O',
-            "also compile with optimization: -O1 for \"python -O\", "
-            "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
+            (
+                "also compile with optimization: -O1 for \"python -O\", "
+                "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"
+            ),
         ),
         ('force', 'f', "forcibly build everything (ignore file timestamps)"),
     ]
