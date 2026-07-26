@@ -265,7 +265,7 @@ class TestUnixCCompiler(support.TempdirManager):
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
         with (
-            mock.patch.object(self.cc, 'spawn', return_value=None) as mock_spawn,
+            mock.patch.object(self.cc, 'call', return_value=None) as mock_call,
             mock.patch.object(self.cc, '_need_link', return_value=True),
             mock.patch.object(self.cc, 'mkpath', return_value=None),
             os_helper.EnvironmentVarGuard() as env,
@@ -278,12 +278,12 @@ class TestUnixCCompiler(support.TempdirManager):
             assert self.cc.linker_so_cxx[0:2] == ['ccache', 'g++-4.2']
             assert self.cc.linker_exe_cxx[0:2] == ['ccache', 'g++-4.2']
             self.cc.link(None, [], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = ['ccache', 'g++-4.2', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:5] == expected
 
             self.cc.link_executable([], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = ['ccache', 'g++-4.2', '-o', self.cc.executable_filename('a.out')]
             assert call_args[:4] == expected
 
@@ -293,12 +293,12 @@ class TestUnixCCompiler(support.TempdirManager):
             assert self.cc.linker_so_cxx[0:2] == ['wrapper', 'g++-4.2']
             assert self.cc.linker_exe_cxx[0:2] == ['wrapper', 'g++-4.2']
             self.cc.link(None, [], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = ['wrapper', 'g++-4.2', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:5] == expected
 
             self.cc.link_executable([], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = [
                 'wrapper',
                 'g++-4.2',
@@ -336,7 +336,7 @@ class TestUnixCCompiler(support.TempdirManager):
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
         with (
-            mock.patch.object(self.cc, 'spawn', return_value=None) as mock_spawn,
+            mock.patch.object(self.cc, 'call', return_value=None) as mock_call,
             mock.patch.object(self.cc, '_need_link', return_value=True),
             mock.patch.object(self.cc, 'mkpath', return_value=None),
             os_helper.EnvironmentVarGuard() as env,
@@ -347,7 +347,7 @@ class TestUnixCCompiler(support.TempdirManager):
             sysconfig.customize_compiler(self.cc)
             assert self.cc.linker_so[0:2] == ['ccache', 'my_cc']
             self.cc.link(None, [], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:4] == expected
 

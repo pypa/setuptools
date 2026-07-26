@@ -25,10 +25,7 @@ with contextlib.suppress(ImportError):
 
 from itertools import count
 
-from ...errors import (
-    DistutilsExecError,
-    DistutilsPlatformError,
-)
+from ...errors import DistutilsPlatformError
 from ...util import get_host_platform, get_platform
 from ..logging import get_logger
 from . import base
@@ -484,8 +481,8 @@ class Compiler(base.Compiler):
                 input_opt = src
                 output_opt = "/fo" + obj
                 try:
-                    self.spawn([self.rc] + pp_opts + [output_opt, input_opt])
-                except DistutilsExecError as msg:
+                    self.call([self.rc] + pp_opts + [output_opt, input_opt])
+                except (subprocess.CalledProcessError, OSError) as msg:
                     raise CompileError(msg)
                 continue
             elif ext in self._mc_extensions:
@@ -504,13 +501,13 @@ class Compiler(base.Compiler):
                 rc_dir = os.path.dirname(obj)
                 try:
                     # first compile .MC to .RC and .H file
-                    self.spawn([self.mc, '-h', h_dir, '-r', rc_dir, src])
+                    self.call([self.mc, '-h', h_dir, '-r', rc_dir, src])
                     base, _ = os.path.splitext(os.path.basename(src))
                     rc_file = os.path.join(rc_dir, base + '.rc')
                     # then compile .RC to .RES file
-                    self.spawn([self.rc, "/fo" + obj, rc_file])
+                    self.call([self.rc, "/fo" + obj, rc_file])
 
-                except DistutilsExecError as msg:
+                except (subprocess.CalledProcessError, OSError) as msg:
                     raise CompileError(msg)
                 continue
             else:
@@ -524,8 +521,8 @@ class Compiler(base.Compiler):
             args.extend(extra_postargs)
 
             try:
-                self.spawn(args)
-            except DistutilsExecError as msg:
+                self.call(args)
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise CompileError(msg)
 
         return objects
@@ -549,8 +546,8 @@ class Compiler(base.Compiler):
                 pass  # XXX what goes here?
             try:
                 log.debug('Executing "%s" %s', self.lib, ' '.join(lib_args))
-                self.spawn([self.lib] + lib_args)
-            except DistutilsExecError as msg:
+                self.call([self.lib] + lib_args)
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise LibError(msg)
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
@@ -619,15 +616,15 @@ class Compiler(base.Compiler):
             try:
                 log.debug('Executing "%s" %s', self.linker, ' '.join(ld_args))
                 with _wrap_link_command(self.linker, *ld_args) as cmd:
-                    self.spawn(cmd)
-            except DistutilsExecError as msg:
+                    self.call(cmd)
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise LinkError(msg)
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
 
-    def spawn(self, cmd):
+    def call(self, cmd, *, env=None, **kwargs):
         env = dict(os.environ, PATH=self._paths)
-        return super().spawn(cmd, env=env)
+        return super().call(cmd, env=env, **kwargs)
 
     # -- Miscellaneous methods -----------------------------------------
     # These are all used by the 'gen_lib_options() function, in

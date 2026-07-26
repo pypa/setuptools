@@ -12,14 +12,11 @@ import copy
 import os
 import pathlib
 import shlex
+import subprocess
 import sys
 import warnings
-from subprocess import check_output
 
-from ...errors import (
-    DistutilsExecError,
-    DistutilsPlatformError,
-)
+from ...errors import DistutilsPlatformError
 from ...sysconfig import get_config_vars
 from ...version import LooseVersion, suppress_known_deprecation
 from ..logging import get_logger
@@ -112,23 +109,23 @@ class Compiler(unix.Compiler):
         if ext in ('.rc', '.res'):
             # gcc needs '.res' and '.rc' compiled to object files !!!
             try:
-                self.spawn(["windres", "-i", src, "-o", obj])
-            except DistutilsExecError as msg:
+                self.call(["windres", "-i", src, "-o", obj])
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise CompileError(msg)
         else:  # for other files use the C-compiler
             try:
                 if self.detect_language(src) == 'c++':
-                    self.spawn(
+                    self.call(
                         self.compiler_so_cxx
                         + cc_args
                         + [src, '-o', obj]
                         + extra_postargs
                     )
                 else:
-                    self.spawn(
+                    self.call(
                         self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs
                     )
-            except DistutilsExecError as msg:
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise CompileError(msg)
 
     def link(
@@ -334,7 +331,7 @@ def check_config_h():
 
 def is_cygwincc(cc: str | shlex._ShlexInstream) -> bool:
     """Try to determine if the compiler that would be used is from cygwin."""
-    out_string = check_output(shlex.split(cc) + ['-dumpmachine'])
+    out_string = subprocess.check_output(shlex.split(cc) + ['-dumpmachine'])
     return out_string.strip().endswith(b'cygwin')
 
 

@@ -99,7 +99,7 @@ class CheckThread(threading.Thread):
 class TestSpawn:
     def test_concurrent_safe(self):
         """
-        Concurrent calls to spawn should have consistent results.
+        Concurrent calls to call() should have consistent results.
         """
         compiler = msvc.Compiler()
         compiler._paths = "expected"
@@ -107,7 +107,7 @@ class TestSpawn:
         command = [sys.executable, '-c', inner_cmd]
 
         threads = [
-            CheckThread(target=compiler.spawn, args=[command]) for n in range(100)
+            CheckThread(target=compiler.call, args=[command]) for n in range(100)
         ]
         for thread in threads:
             thread.start()

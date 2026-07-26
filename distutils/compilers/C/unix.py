@@ -19,13 +19,13 @@ import itertools
 import os
 import re
 import shlex
+import subprocess
 import sys
 from collections.abc import Iterable
 
 from ... import sysconfig
 from ..._macos_compat import compiler_fixup
 from ...compat import consolidate_linker_args
-from ...errors import DistutilsExecError
 from .._modified import newer
 from ..logging import get_logger
 from . import base
@@ -207,8 +207,8 @@ class Compiler(base.Compiler):
             self.mkpath(os.path.dirname(output_file))
 
         try:
-            self.spawn(pp_args)
-        except DistutilsExecError as msg:
+            self.call(pp_args)
+        except (subprocess.CalledProcessError, OSError) as msg:
             raise CompileError(msg)
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
@@ -216,12 +216,12 @@ class Compiler(base.Compiler):
         compiler_so_cxx = compiler_fixup(self.compiler_so_cxx, cc_args + extra_postargs)
         try:
             if self.detect_language(src) == 'c++':
-                self.spawn(
+                self.call(
                     compiler_so_cxx + cc_args + [src, '-o', obj] + extra_postargs
                 )
             else:
-                self.spawn(compiler_so + cc_args + [src, '-o', obj] + extra_postargs)
-        except DistutilsExecError as msg:
+                self.call(compiler_so + cc_args + [src, '-o', obj] + extra_postargs)
+        except (subprocess.CalledProcessError, OSError) as msg:
             raise CompileError(msg)
 
     def create_static_lib(
@@ -233,7 +233,7 @@ class Compiler(base.Compiler):
 
         if self._need_link(objects, output_filename):
             self.mkpath(os.path.dirname(output_filename))
-            self.spawn(self.archiver + [output_filename] + objects + self.objects)
+            self.call(self.archiver + [output_filename] + objects + self.objects)
 
             # Not many Unices required ranlib anymore -- SunOS 4.x is, I
             # think the only major Unix that does.  Maybe we need some
@@ -242,8 +242,8 @@ class Compiler(base.Compiler):
             # it for us, hence the check for leading colon.
             if self.ranlib:
                 try:
-                    self.spawn(self.ranlib + [output_filename])
-                except DistutilsExecError as msg:
+                    self.call(self.ranlib + [output_filename])
+                except (subprocess.CalledProcessError, OSError) as msg:
                     raise LibError(msg)
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
@@ -306,8 +306,8 @@ class Compiler(base.Compiler):
 
                 linker = compiler_fixup(linker, ld_args)
 
-                self.spawn(linker + ld_args)
-            except DistutilsExecError as msg:
+                self.call(linker + ld_args)
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise LinkError(msg)
         else:
             log.debug("skipping %s (up-to-date)", output_filename)

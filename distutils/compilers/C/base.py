@@ -9,6 +9,7 @@ import os
 import pathlib
 import re
 import shutil
+import subprocess
 import sys
 import warnings
 from collections.abc import Callable, Iterable, MutableSequence, Sequence
@@ -30,7 +31,7 @@ from ...util import is_mingw
 from .._modified import newer_group
 from .._util import split_quoted
 from ..logging import get_logger
-from ..spawn import spawn
+from ..platform.macos import _inject_ver
 from .errors import (
     CompileError,
     LinkError,
@@ -1159,13 +1160,43 @@ int main (int argc, char **argv) {{
         log.info(msg)
         func(*args)
 
+    def call(
+        self,
+        cmd: MutableSequence[bytes | str | os.PathLike[str]],
+        *,
+        env: _ENV | None = None,
+        **kwargs,
+    ) -> None:
+        """Run 'cmd' in a subprocess, letting subprocess exceptions propagate."""
+        log.info(subprocess.list2cmdline(cmd))
+        subprocess.check_call(cmd, env=_inject_ver(env), **kwargs)
+
     def spawn(
         self,
         cmd: MutableSequence[bytes | str | os.PathLike[str]],
         *,
         env: _ENV | None = None,
+        **kwargs,
     ) -> None:
-        spawn(cmd, env=env)
+        warnings.warn(
+            "Compiler.spawn is deprecated; use Compiler.call instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        # imported late so the compilers package need not depend on
+        # distutils.errors at module scope (pypa/setuptools#5270).
+        from ...errors import DistutilsExecError
+
+        try:
+            self.call(cmd, env=env, **kwargs)
+        except OSError as exc:
+            raise DistutilsExecError(
+                f"command {cmd[0]!r} failed: {exc.args[-1]}"
+            ) from exc
+        except subprocess.CalledProcessError as err:
+            raise DistutilsExecError(
+                f"command {cmd[0]!r} failed with exit code {err.returncode}"
+            ) from err
 
     @overload
     def move_file(
