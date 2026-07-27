@@ -48,13 +48,17 @@ class ListCompat(dict[str, tuple[str, str]]):
 class bdist(Command):
     description = "create a built (binary) distribution"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('bdist-base=', 'b', "temporary directory for creating built distributions"),
         (
             'plat-name=',
             'p',
-            "platform name to embed in generated filenames "
-            f"[default: {get_platform()}]",
+            (
+                "platform name to embed in generated filenames "
+                f"[default: {get_platform()}]"
+            ),
         ),
         ('formats=', None, "formats for distribution (comma-separated list)"),
         (

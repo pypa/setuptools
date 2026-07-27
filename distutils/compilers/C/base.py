@@ -124,12 +124,13 @@ class Compiler:
     }
     language_order: ClassVar[list[str]] = ["c++", "objc", "c"]
 
-    include_dirs: list[str] = []
+    # Not ClassVar: instances reassign these in __init__ and set_*_dirs.
+    include_dirs: list[str] = []  # noqa: RUF012 # class-level default, overridden per instance
     """
     include dirs specific to this compiler class
     """
 
-    library_dirs: list[str] = []
+    library_dirs: list[str] = []  # noqa: RUF012 # class-level default, overridden per instance
     """
     library dirs specific to this compiler class
     """
@@ -166,7 +167,7 @@ class Compiler:
         # named library files) to include on any link
         self.objects: list[str] = []
 
-        for key in self.executables.keys():
+        for key in self.executables:
             self.set_executable(key, self.executables[key])
 
     def initialize(self, plat_name: str | None = None) -> None:
@@ -552,7 +553,7 @@ class Compiler:
         lang = None
         index = len(self.language_order)
         for source in sources:
-            base, ext = os.path.splitext(source)
+            _base, ext = os.path.splitext(source)
             extlang = self.language_map.get(ext)
             try:
                 extindex = self.language_order.index(extlang)
@@ -584,7 +585,6 @@ class Compiler:
 
         Raises PreprocessError on failure.
         """
-        pass
 
     def compile(
         self,
@@ -666,7 +666,6 @@ class Compiler:
         """Compile 'src' to product 'obj'."""
         # A concrete compiler class that does not override compile()
         # should implement _compile().
-        pass
 
     def create_static_lib(
         self,
@@ -698,7 +697,6 @@ class Compiler:
 
         Raises LibError on failure.
         """
-        pass
 
     # values for target_desc parameter in link()
     SHARED_OBJECT = "shared_object"
@@ -1286,7 +1284,7 @@ def show_compilers() -> None:
 
     compilers = sorted(
         ("compiler=" + compiler, None, compiler_class[compiler][2])
-        for compiler in compiler_class.keys()
+        for compiler in compiler_class
     )
     pretty_printer = FancyGetopt(compilers)
     pretty_printer.print_help("List of available compilers:")
@@ -1315,7 +1313,7 @@ def new_compiler(
         if compiler is None:
             compiler = get_default_compiler(plat)
 
-        (module_name, class_name, long_description) = compiler_class[compiler]
+        (module_name, class_name, _long_description) = compiler_class[compiler]
     except KeyError:
         msg = f"don't know how to compile C/C++ code on platform '{plat}'"
         if compiler is not None:

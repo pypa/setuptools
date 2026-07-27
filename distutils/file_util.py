@@ -25,7 +25,7 @@ def _copy_file_contents(src, dst, buffer_size=16 * 1024):  # noqa: C901
     fdst = None
     try:
         try:
-            fsrc = open(src, 'rb')
+            fsrc = open(src, 'rb')  # noqa: SIM115 # closed in the finally below
         except OSError as e:
             raise DistutilsFileError(f"could not open '{src}': {e.strerror}")
 
@@ -36,7 +36,7 @@ def _copy_file_contents(src, dst, buffer_size=16 * 1024):  # noqa: C901
                 raise DistutilsFileError(f"could not delete '{dst}': {e.strerror}")
 
         try:
-            fdst = open(dst, 'wb')
+            fdst = open(dst, 'wb')  # noqa: SIM115 # closed in the finally below
         except OSError as e:
             raise DistutilsFileError(f"could not create '{dst}': {e.strerror}")
 
@@ -142,10 +142,9 @@ def copy_file(  # noqa: C901
                 pass
             else:
                 return (dst, True)
-    elif link == 'sym':
-        if not (os.path.exists(dst) and os.path.samefile(src, dst)):
-            os.symlink(src, dst)
-            return (dst, True)
+    elif link == 'sym' and not (os.path.exists(dst) and os.path.samefile(src, dst)):
+        os.symlink(src, dst)
+        return (dst, True)
 
     # Otherwise (non-Mac, not linking), copy the file contents and
     # (optionally) copy the times and mode.

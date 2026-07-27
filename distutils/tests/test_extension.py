@@ -115,8 +115,8 @@ class TestExtension:
 
         # if there are unknown keyword options, warn about them
         msg = re.escape("unknown `Extension` options: 'chic'")
+        warnings.simplefilter('always')
         with pytest.warns(UserWarning, match=msg) as w:
-            warnings.simplefilter('always')
             ext = Extension('name', ['file1', 'file2'], chic=True)
 
         assert len(w) == 1

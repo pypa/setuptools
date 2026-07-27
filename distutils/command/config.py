@@ -16,6 +16,7 @@ import pathlib
 import re
 from collections.abc import Sequence
 from distutils._log import log
+from typing import ClassVar
 
 from ..ccompiler import CCompiler, CompileError, LinkError, new_compiler
 from ..core import Command
@@ -28,7 +29,9 @@ LANG_EXT = {"c": ".c", "c++": ".cxx"}
 class config(Command):
     description = "prepare to build"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('compiler=', None, "specify the compiler type"),
         ('cc=', None, "specify the compiler executable"),
         ('include-dirs=', 'I', "list of directories to search for header files"),
@@ -182,7 +185,7 @@ class config(Command):
         symbols the preprocessor and compiler set by default.
         """
         self._check_compiler()
-        src, out = self._preprocess(body, headers, include_dirs, lang)
+        _src, out = self._preprocess(body, headers, include_dirs, lang)
 
         if isinstance(pattern, str):
             pattern = re.compile(pattern)
@@ -247,7 +250,7 @@ class config(Command):
         """
         self._check_compiler()
         try:
-            src, obj, exe = self._link(
+            _src, _obj, exe = self._link(
                 body, headers, include_dirs, libraries, library_dirs, lang
             )
             self.spawn([exe])

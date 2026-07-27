@@ -57,20 +57,26 @@ class build_ext(Command):
     #     in between initialize_options() and finalize_options())
 
     sep_by = f" (separated by '{os.pathsep}')"
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('build-lib=', 'b', "directory for compiled extension modules"),
         ('build-temp=', 't', "directory for temporary files (build by-products)"),
         (
             'plat-name=',
             'p',
-            "platform name to cross-compile for, if supported "
-            f"[default: {get_platform()}]",
+            (
+                "platform name to cross-compile for, if supported "
+                f"[default: {get_platform()}]"
+            ),
         ),
         (
             'inplace',
             'i',
-            "ignore build-lib and put compiled extensions into the source "
-            "directory alongside your pure Python modules",
+            (
+                "ignore build-lib and put compiled extensions into the source "
+                "directory alongside your pure Python modules"
+            ),
         ),
         (
             'include-dirs=',
@@ -805,15 +811,18 @@ class build_ext(Command):
             link_libpython = False
             if get_config_var('Py_ENABLE_SHARED'):
                 # A native build on an Android device or on Cygwin
-                if hasattr(sys, 'getandroidapilevel'):
-                    link_libpython = True
-                elif sys.platform == 'cygwin' or is_mingw():
+                if (
+                    hasattr(sys, 'getandroidapilevel')
+                    or sys.platform == 'cygwin'
+                    or is_mingw()
+                ):
                     link_libpython = True
                 elif '_PYTHON_HOST_PLATFORM' in os.environ:
                     # We are cross-compiling for one of the relevant platforms
-                    if get_config_var('ANDROID_API_LEVEL') != 0:
-                        link_libpython = True
-                    elif get_config_var('MACHDEP') == 'cygwin':
+                    if (
+                        get_config_var('ANDROID_API_LEVEL') != 0
+                        or get_config_var('MACHDEP') == 'cygwin'
+                    ):
                         link_libpython = True
 
             if link_libpython:

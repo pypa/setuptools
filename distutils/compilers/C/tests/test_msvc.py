@@ -5,6 +5,7 @@ import threading
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
 from distutils.util import get_platform
+from unittest import mock
 
 import pytest
 
@@ -89,7 +90,7 @@ class CheckThread(threading.Thread):
     def run(self):
         try:
             super().run()
-        except Exception:
+        except Exception:  # noqa: BLE001 # capture any error for later inspection
             self.exc_info = sys.exc_info()
 
     def __bool__(self):

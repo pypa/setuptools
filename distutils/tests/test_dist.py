@@ -8,12 +8,12 @@ import io
 import os
 import sys
 import textwrap
-import unittest.mock as mock
 import warnings
 from distutils.cmd import Command
 from distutils.dist import Distribution, fix_help_options
 from distutils.tests import support
 from typing import ClassVar
+from unittest import mock
 
 import jaraco.path
 import pytest
@@ -147,7 +147,7 @@ class TestDistributionBehavior(support.TempdirManager):
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/b'):
             d = self.create_distribution([file])
 
-        for key in result_dict.keys():
+        for key in result_dict:
             assert key not in d.command_options.get('install', {})
 
     def test_command_packages_configfile(self, tmp_path, clear_argv):

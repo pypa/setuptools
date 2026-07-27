@@ -2,9 +2,9 @@
 
 import errno
 import os
-import unittest.mock as mock
 from distutils.errors import DistutilsFileError
 from distutils.file_util import copy_file, move_file
+from unittest import mock
 
 import jaraco.path
 import pytest

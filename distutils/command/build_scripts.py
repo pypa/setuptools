@@ -87,30 +87,25 @@ class build_scripts(Command):
 
         # Always open the file, but ignore failures in dry-run mode
         # in order to attempt to copy directly.
-        f = tokenize.open(script)
+        with tokenize.open(script) as f:
+            first_line = f.readline()
+            if not first_line:
+                self.warn(f"{script} is an empty file (skipping)")
+                return
 
-        first_line = f.readline()
-        if not first_line:
-            self.warn(f"{script} is an empty file (skipping)")
-            return
+            shebang_match = shebang_pattern.match(first_line)
 
-        shebang_match = shebang_pattern.match(first_line)
-
-        updated_files.append(outfile)
-        if shebang_match:
-            log.info("copying and adjusting %s -> %s", script, self.build_dir)
-            post_interp = shebang_match.group(1) or ''
-            shebang = "#!" + self.executable + post_interp + "\n"
-            self._validate_shebang(shebang, f.encoding)
-            with open(outfile, "w", encoding=f.encoding) as outf:
-                outf.write(shebang)
-                outf.writelines(f.readlines())
-            if f:
-                f.close()
-        else:
-            if f:
-                f.close()
-            self.copy_file(script, outfile)
+            updated_files.append(outfile)
+            if shebang_match:
+                log.info("copying and adjusting %s -> %s", script, self.build_dir)
+                post_interp = shebang_match.group(1) or ''
+                shebang = "#!" + self.executable + post_interp + "\n"
+                self._validate_shebang(shebang, f.encoding)
+                with open(outfile, "w", encoding=f.encoding) as outf:
+                    outf.write(shebang)
+                    outf.writelines(f.readlines())
+            else:
+                self.copy_file(script, outfile)
 
     def _change_modes(self, outfiles):
         if os.name != 'posix':

@@ -59,10 +59,12 @@ def user_site_dir(request):
 
 @contextlib.contextmanager
 def safe_extension_import(name, path):
-    with import_helper.CleanImport(name):
-        with extension_redirect(name, path) as new_path:
-            with import_helper.DirsOnSysPath(new_path):
-                yield
+    with (
+        import_helper.CleanImport(name),
+        extension_redirect(name, path) as new_path,
+        import_helper.DirsOnSysPath(new_path),
+    ):
+        yield
 
 
 @contextlib.contextmanager
