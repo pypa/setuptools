@@ -12,22 +12,21 @@ import copy
 import os
 import pathlib
 import shlex
+import subprocess
 import sys
 import warnings
-from subprocess import check_output
 
-from ...errors import (
-    DistutilsExecError,
-    DistutilsPlatformError,
-)
-from ...file_util import write_file
+from ...errors import DistutilsPlatformError
 from ...sysconfig import get_config_vars
 from ...version import LooseVersion, suppress_known_deprecation
+from ..logging import get_logger
 from . import unix
 from .errors import (
     CompileError,
     Error,
 )
+
+log = get_logger(__name__)
 
 
 def get_msvcr():
@@ -110,23 +109,23 @@ class Compiler(unix.Compiler):
         if ext in ('.rc', '.res'):
             # gcc needs '.res' and '.rc' compiled to object files !!!
             try:
-                self.spawn(["windres", "-i", src, "-o", obj])
-            except DistutilsExecError as msg:
+                self.call(["windres", "-i", src, "-o", obj])
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise CompileError(msg)
         else:  # for other files use the C-compiler
             try:
                 if self.detect_language(src) == 'c++':
-                    self.spawn(
+                    self.call(
                         self.compiler_so_cxx
                         + cc_args
                         + [src, '-o', obj]
                         + extra_postargs
                     )
                 else:
-                    self.spawn(
+                    self.call(
                         self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs
                     )
-            except DistutilsExecError as msg:
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise CompileError(msg)
 
     def link(
@@ -182,7 +181,8 @@ class Compiler(unix.Compiler):
             # Generate .def file
             contents = [f"LIBRARY {os.path.basename(output_filename)}", "EXPORTS"]
             contents.extend(export_symbols)
-            self.execute(write_file, (def_file, contents), f"writing {def_file}")
+            log.info("writing %s", def_file)
+            pathlib.Path(def_file).write_text('\n'.join(contents) + '\n')
 
             # next add options for def-file
 
@@ -331,7 +331,7 @@ def check_config_h():
 
 def is_cygwincc(cc: str | shlex._ShlexInstream) -> bool:
     """Try to determine if the compiler that would be used is from cygwin."""
-    out_string = check_output(shlex.split(cc) + ['-dumpmachine'])
+    out_string = subprocess.check_output(shlex.split(cc) + ['-dumpmachine'])
     return out_string.strip().endswith(b'cygwin')
 
 

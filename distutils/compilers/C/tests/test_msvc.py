@@ -5,7 +5,6 @@ import threading
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
 from distutils.util import get_platform
-from unittest import mock
 
 import pytest
 
@@ -100,7 +99,7 @@ class CheckThread(threading.Thread):
 class TestSpawn:
     def test_concurrent_safe(self):
         """
-        Concurrent calls to spawn should have consistent results.
+        Concurrent calls to call() should have consistent results.
         """
         compiler = msvc.Compiler()
         compiler._paths = "expected"
@@ -108,29 +107,10 @@ class TestSpawn:
         command = [sys.executable, '-c', inner_cmd]
 
         threads = [
-            CheckThread(target=compiler.spawn, args=[command]) for n in range(100)
+            CheckThread(target=compiler.call, args=[command]) for n in range(100)
         ]
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
         assert all(threads)
-
-    def test_concurrent_safe_fallback(self):
-        """
-        If CCompiler.spawn has been monkey-patched without support
-        for an env, it should still execute.
-        """
-        from distutils import ccompiler
-
-        compiler = msvc.Compiler()
-        compiler._paths = "expected"
-
-        def CCompiler_spawn(self, cmd):
-            "A spawn without an env argument."
-            assert os.environ["PATH"] == "expected"
-
-        with mock.patch.object(ccompiler.CCompiler, 'spawn', CCompiler_spawn):
-            compiler.spawn(["n/a"])
-
-        assert os.environ.get("PATH") != "expected"

@@ -12,10 +12,10 @@ IBM z/OS XL C/C++
 """
 
 import os
+import subprocess
 from typing import ClassVar
 
 from ... import sysconfig
-from ...errors import DistutilsExecError
 from . import unix
 from .errors import CompileError
 
@@ -165,8 +165,8 @@ class Compiler(unix.Compiler):
         local_args.extend(cc_args)
 
         try:
-            self.spawn(compiler + local_args + [src, '-o', obj] + extra_postargs)
-        except DistutilsExecError as msg:
+            self.call(compiler + local_args + [src, '-o', obj] + extra_postargs)
+        except (subprocess.CalledProcessError, OSError) as msg:
             raise CompileError(msg)
 
     def runtime_library_dir_option(self, dir):
