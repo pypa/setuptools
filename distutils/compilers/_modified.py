@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import os.path
 from collections.abc import Iterable
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from ..errors import DistutilsFileError
 
-_Path = "str | bytes | os.PathLike[str] | os.PathLike[bytes]"
+if TYPE_CHECKING:
+    from typing import TypeAlias
+
+_Path: TypeAlias = "str | bytes | os.PathLike[str] | os.PathLike[bytes]"
 
 
 def _newer(source, target) -> bool:

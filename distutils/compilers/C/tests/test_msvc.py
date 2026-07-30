@@ -5,7 +5,6 @@ import threading
 from distutils.errors import DistutilsPlatformError
 from distutils.tests import support
 from distutils.util import get_platform
-from unittest import mock
 
 import pytest
 

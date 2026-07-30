@@ -224,9 +224,7 @@ class Compiler(base.Compiler):
         compiler_so_cxx = compiler_fixup(self.compiler_so_cxx, cc_args + extra_postargs)
         try:
             if self.detect_language(src) == 'c++':
-                self.call(
-                    compiler_so_cxx + cc_args + [src, '-o', obj] + extra_postargs
-                )
+                self.call(compiler_so_cxx + cc_args + [src, '-o', obj] + extra_postargs)
             else:
                 self.call(compiler_so + cc_args + [src, '-o', obj] + extra_postargs)
         except (subprocess.CalledProcessError, OSError) as msg:
