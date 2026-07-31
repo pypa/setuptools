@@ -6,6 +6,7 @@ import os
 import pathlib
 import subprocess
 import sys
+import sysconfig as std_sysconfig
 from distutils import sysconfig
 from distutils.ccompiler import new_compiler  # noqa: F401
 from distutils.unixccompiler import UnixCCompiler
@@ -79,17 +80,13 @@ class TestSysconfig:
         assert srcdir == srcdir2
 
     def customize_compiler(self):
-        # make sure AR gets caught
-        class compiler:
-            compiler_type = 'unix'
-            executables = UnixCCompiler.executables
-
+        # a UnixCCompiler that records the executables it's configured with
+        class compiler(UnixCCompiler):
             def __init__(self):
                 self.exes = {}
 
             def set_executables(self, **kw):
-                for k, v in kw.items():
-                    self.exes[k] = v
+                self.exes.update(kw)
 
         sysconfig_vars = {
             'AR': 'sc_ar',
@@ -104,8 +101,9 @@ class TestSysconfig:
 
         comp = compiler()
         with contextlib.ExitStack() as cm:
+            # configure_system reads config vars from the stdlib sysconfig
             for key, value in sysconfig_vars.items():
-                cm.enter_context(swap_item(sysconfig._config_vars, key, value))
+                cm.enter_context(swap_item(std_sysconfig.get_config_vars(), key, value))
             sysconfig.customize_compiler(comp)
 
         return comp
@@ -257,7 +255,7 @@ class TestSysconfig:
             universal_newlines=True,
             encoding='utf-8',
         )
-        outs, errs = p.communicate()
+        outs, _errs = p.communicate()
         assert 0 == p.returncode, "Subprocess failed: " + outs
 
     def test_parse_config_h(self):

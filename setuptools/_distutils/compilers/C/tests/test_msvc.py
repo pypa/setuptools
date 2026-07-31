@@ -2,29 +2,27 @@ import os
 import sys
 import sysconfig
 import threading
-import unittest.mock as mock
-from distutils.errors import DistutilsPlatformError
-from distutils.tests import support
-from distutils.util import get_platform
 
 import pytest
 
+from ...errors import PlatformError
+from ...platform.detect import get_platform
 from .. import msvc
 
 needs_winreg = pytest.mark.skipif('not hasattr(msvc, "winreg")')
 
 
-class Testmsvccompiler(support.TempdirManager):
+class Testmsvccompiler:
     def test_no_compiler(self, monkeypatch):
         # makes sure query_vcvarsall raises
-        # a DistutilsPlatformError if the compiler
+        # a PlatformError if the compiler
         # is not found
         def _find_vcvarsall(plat_spec):
             return None, None
 
         monkeypatch.setattr(msvc, '_find_vcvarsall', _find_vcvarsall)
 
-        with pytest.raises(DistutilsPlatformError):
+        with pytest.raises(PlatformError):
             msvc._get_vc_env(
                 'wont find this version',
             )
@@ -90,7 +88,7 @@ class CheckThread(threading.Thread):
     def run(self):
         try:
             super().run()
-        except Exception:
+        except Exception:  # noqa: BLE001 # capture any error for later inspection
             self.exc_info = sys.exc_info()
 
     def __bool__(self):
@@ -100,7 +98,7 @@ class CheckThread(threading.Thread):
 class TestSpawn:
     def test_concurrent_safe(self):
         """
-        Concurrent calls to spawn should have consistent results.
+        Concurrent calls to call() should have consistent results.
         """
         compiler = msvc.Compiler()
         compiler._paths = "expected"
@@ -108,29 +106,10 @@ class TestSpawn:
         command = [sys.executable, '-c', inner_cmd]
 
         threads = [
-            CheckThread(target=compiler.spawn, args=[command]) for n in range(100)
+            CheckThread(target=compiler.call, args=[command]) for n in range(100)
         ]
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
         assert all(threads)
-
-    def test_concurrent_safe_fallback(self):
-        """
-        If CCompiler.spawn has been monkey-patched without support
-        for an env, it should still execute.
-        """
-        from distutils import ccompiler
-
-        compiler = msvc.Compiler()
-        compiler._paths = "expected"
-
-        def CCompiler_spawn(self, cmd):
-            "A spawn without an env argument."
-            assert os.environ["PATH"] == "expected"
-
-        with mock.patch.object(ccompiler.CCompiler, 'spawn', CCompiler_spawn):
-            compiler.spawn(["n/a"])
-
-        assert os.environ.get("PATH") != "expected"

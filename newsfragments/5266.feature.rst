@@ -1,0 +1,1 @@
+The C compiler modules now emit log messages through their own ``compilers.C.*`` loggers instead of the distutils root logger, part of decoupling the compilers package from distutils. The logger names are normalized to a stable ``compilers.C.*`` prefix so they remain constant as the package migrates toward a standalone ``compilers.C`` distribution.

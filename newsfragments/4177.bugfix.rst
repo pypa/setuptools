@@ -1,0 +1,1 @@
+The MSVC linker now passes its arguments through a response file when the command line would exceed the Windows maximum length, fixing failures when linking a large number of objects.

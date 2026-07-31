@@ -35,7 +35,9 @@ class install_lib(Command):
     # decides both whether to generate .pyc files and what level of
     # optimization to use.
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('install-dir=', 'd', "directory to install to"),
         ('build-dir=', 'b', "build directory (where to install from)"),
         ('force', 'f', "force installation (overwrite existing files)"),
@@ -44,8 +46,10 @@ class install_lib(Command):
         (
             'optimize=',
             'O',
-            "also compile with optimization: -O1 for \"python -O\", "
-            "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
+            (
+                "also compile with optimization: -O1 for \"python -O\", "
+                "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"
+            ),
         ),
         ('skip-build', None, "skip the build steps"),
     ]

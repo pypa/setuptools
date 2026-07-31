@@ -153,10 +153,10 @@ class FancyGetopt:
 
         for option in self.option_table:
             if len(option) == 3:
-                long, short, help = option
+                long, short, _help = option
                 repeat = 0
             elif len(option) == 4:
-                long, short, help, repeat = option
+                long, short, _help, repeat = option
             else:
                 # the option table is part of the code, so simply
                 # assert that it is correct
@@ -198,13 +198,15 @@ class FancyGetopt:
             # If this is an alias option, make sure its "takes arg" flag is
             # the same as the option it's aliased to.
             alias_to = self.alias.get(long)
-            if alias_to is not None:
-                if self.takes_arg[long] != self.takes_arg[alias_to]:
-                    raise DistutilsGetoptError(
-                        f"invalid alias '{long}': inconsistent with "
-                        f"aliased option '{alias_to}' (one of them takes a value, "
-                        "the other doesn't"
-                    )
+            if (
+                alias_to is not None
+                and self.takes_arg[long] != self.takes_arg[alias_to]
+            ):
+                raise DistutilsGetoptError(
+                    f"invalid alias '{long}': inconsistent with "
+                    f"aliased option '{alias_to}' (one of them takes a value, "
+                    "the other doesn't"
+                )
 
             # Now enforce some bondage on the long option name, so we can
             # later translate it to an attribute name on some object.  Have
@@ -309,8 +311,7 @@ class FancyGetopt:
                 ell = ell - 1
             if short is not None:
                 ell = ell + 5  # " (-x)" where short == 'x'
-            if ell > max_opt:
-                max_opt = ell
+            max_opt = max(max_opt, ell)
 
         opt_width = max_opt + 2 + 2 + 2  # room for indent + dashes + gutter
 

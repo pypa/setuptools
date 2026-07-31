@@ -1,0 +1,1 @@
+``copy_file`` now preserves the full precision of the source's modification time, so a copy is no longer considered older than its source on filesystems with sub-second timestamp resolution. (pypa/distutils#379)

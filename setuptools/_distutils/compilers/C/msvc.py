@@ -16,28 +16,24 @@ from __future__ import annotations
 import contextlib
 import os
 import subprocess
-import unittest.mock as mock
-import warnings
-from collections.abc import Iterable
+import tempfile
+from collections.abc import Iterable, Iterator
+from pathlib import Path
+from typing import ClassVar
 
 with contextlib.suppress(ImportError):
     import winreg
 
 from itertools import count
 
-from ..._log import log
-from ...errors import (
-    DistutilsExecError,
-    DistutilsPlatformError,
-)
-from ...util import get_host_platform, get_platform
+from ..errors import PlatformError
+from ..logging import get_logger
+from ..platform.detect import get_host_platform, get_platform
 from . import base
 from .base import gen_lib_options
-from .errors import (
-    CompileError,
-    LibError,
-    LinkError,
-)
+from .errors import CompileError, LibError, LinkError
+
+log = get_logger(__name__)
 
 
 def _find_vc2015():
@@ -133,7 +129,7 @@ def _find_vcvarsall(plat_spec):
     _, best_dir = _find_vc2017()
 
     if not best_dir:
-        best_version, best_dir = _find_vc2015()
+        _best_version, best_dir = _find_vc2015()
 
     if not best_dir:
         log.debug("No suitable Visual C++ version found")
@@ -153,7 +149,7 @@ def _get_vc_env(plat_spec):
 
     vcvarsall, _ = _find_vcvarsall(plat_spec)
     if not vcvarsall:
-        raise DistutilsPlatformError(
+        raise PlatformError(
             'Microsoft Visual C++ 14.0 or greater is required. '
             'Get it with "Microsoft C++ Build Tools": '
             'https://visualstudio.microsoft.com/visual-cpp-build-tools/'
@@ -166,7 +162,7 @@ def _get_vc_env(plat_spec):
         ).decode('utf-16le', errors='replace')
     except subprocess.CalledProcessError as exc:
         log.error(exc.output)
-        raise DistutilsPlatformError(f"Error executing {exc.cmd}")
+        raise PlatformError(f"Error executing {exc.cmd}")
 
     env = {
         key.lower(): value
@@ -232,24 +228,89 @@ def _get_vcvars_spec(host_platform, platform):
     return vc_hp if vc_hp == vc_plat else f'{vc_hp}_{vc_plat}'
 
 
+_MAX_COMMAND_LENGTH = 2**15 - 1
+"""
+Windows limits a process command line to this many characters. See the
+`CreateProcess documentation
+<https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessa#parameters>`_.
+"""
+
+
+def _response_file_content(args: Iterable[str]) -> str:
+    r"""
+    Render ``args`` as the content of a linker response file, one quoted
+    argument per line.
+
+    >>> print(_response_file_content(['/OUT:with space.dll', 'a.obj']))
+    "/OUT:with space.dll"
+    "a.obj"
+    """
+    return '\n'.join(f'"{arg}"' for arg in args)
+
+
+@contextlib.contextmanager
+def _wrap_link_command(*cmd: str) -> Iterator[list[str]]:
+    r"""
+    Yield ``cmd`` suitable for :meth:`Compiler.spawn`, honoring the Windows
+    maximum command-line length (:data:`_MAX_COMMAND_LENGTH`).
+
+    When ``cmd`` fits, yield it unchanged. Otherwise write the arguments to a
+    temporary `response file
+    <https://learn.microsoft.com/en-us/cpp/build/reference/linking?view=msvc-170#linker-command-files>`_
+    and yield a command referencing it, removing the file once the command
+    completes.
+
+    Short commands pass through unchanged:
+
+    >>> with _wrap_link_command('link.exe', 'a.obj') as spawn_cmd:
+    ...     spawn_cmd
+    ['link.exe', 'a.obj']
+
+    Long commands are replaced by a reference to a response file, which is
+    removed once the command completes:
+
+    >>> import pathlib
+    >>> args = ['/LIBPATH:' + 'x' * 100] * 400
+    >>> with _wrap_link_command('link.exe', *args) as spawn_cmd:
+    ...     spawn_cmd  # doctest: +ELLIPSIS
+    ...     response_file = pathlib.Path(spawn_cmd[1][1:])
+    ...     response_file.exists()
+    ['link.exe', '@...rsp']
+    True
+    >>> response_file.exists()
+    False
+    """
+    if len(subprocess.list2cmdline(cmd)) <= _MAX_COMMAND_LENGTH:
+        yield list(cmd)
+        return
+
+    linker, *args = cmd
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # utf-16 gives the linker an unambiguous, BOM-prefixed encoding.
+        response_file = Path(tmpdir) / 'link.rsp'
+        response_file.write_text(_response_file_content(args), encoding='utf-16')
+        yield [linker, f'@{response_file}']
+
+
 class Compiler(base.Compiler):
     """Concrete class that implements an interface to Microsoft Visual C++,
     as defined by the CCompiler abstract class."""
 
     compiler_type = 'msvc'
+    description = "Microsoft Visual C++"
 
     # Just set this so CCompiler's constructor doesn't barf.  We currently
     # don't use the 'set_executables()' bureaucracy provided by CCompiler,
     # as it really isn't necessary for this sort of single-compiler class.
     # Would be nice to have a consistent interface with UnixCCompiler,
     # though, so it's worth thinking about.
-    executables = {}
+    executables: ClassVar[dict] = {}
 
     # Private class data (need to distinguish C from C++ source for compiler)
-    _c_extensions = ['.c']
-    _cpp_extensions = ['.cc', '.cpp', '.cxx']
-    _rc_extensions = ['.rc']
-    _mc_extensions = ['.mc']
+    _c_extensions: ClassVar[list[str]] = ['.c']
+    _cpp_extensions: ClassVar[list[str]] = ['.cc', '.cpp', '.cxx']
+    _rc_extensions: ClassVar[list[str]] = ['.rc']
+    _mc_extensions: ClassVar[list[str]] = ['.mc']
 
     # Needed for the filename generation methods provided by the
     # base class, CCompiler.
@@ -286,15 +347,13 @@ class Compiler(base.Compiler):
             plat_name = get_platform()
         # sanity check for platforms to prevent obscure errors later.
         if plat_name not in _vcvars_names:
-            raise DistutilsPlatformError(
-                f"--plat-name must be one of {tuple(_vcvars_names)}"
-            )
+            raise PlatformError(f"--plat-name must be one of {tuple(_vcvars_names)}")
 
         plat_spec = _get_vcvars_spec(get_host_platform(), plat_name)
 
         vc_env = _get_vc_env(plat_spec)
         if not vc_env:
-            raise DistutilsPlatformError(
+            raise PlatformError(
                 "Unable to find a compatible Visual Studio installation."
             )
         self._configure(vc_env)
@@ -418,8 +477,8 @@ class Compiler(base.Compiler):
                 input_opt = src
                 output_opt = "/fo" + obj
                 try:
-                    self.spawn([self.rc] + pp_opts + [output_opt, input_opt])
-                except DistutilsExecError as msg:
+                    self.call([self.rc] + pp_opts + [output_opt, input_opt])
+                except (subprocess.CalledProcessError, OSError) as msg:
                     raise CompileError(msg)
                 continue
             elif ext in self._mc_extensions:
@@ -438,13 +497,13 @@ class Compiler(base.Compiler):
                 rc_dir = os.path.dirname(obj)
                 try:
                     # first compile .MC to .RC and .H file
-                    self.spawn([self.mc, '-h', h_dir, '-r', rc_dir, src])
+                    self.call([self.mc, '-h', h_dir, '-r', rc_dir, src])
                     base, _ = os.path.splitext(os.path.basename(src))
                     rc_file = os.path.join(rc_dir, base + '.rc')
                     # then compile .RC to .RES file
-                    self.spawn([self.rc, "/fo" + obj, rc_file])
+                    self.call([self.rc, "/fo" + obj, rc_file])
 
-                except DistutilsExecError as msg:
+                except (subprocess.CalledProcessError, OSError) as msg:
                     raise CompileError(msg)
                 continue
             else:
@@ -458,8 +517,8 @@ class Compiler(base.Compiler):
             args.extend(extra_postargs)
 
             try:
-                self.spawn(args)
-            except DistutilsExecError as msg:
+                self.call(args)
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise CompileError(msg)
 
         return objects
@@ -483,8 +542,8 @@ class Compiler(base.Compiler):
                 pass  # XXX what goes here?
             try:
                 log.debug('Executing "%s" %s', self.lib, ' '.join(lib_args))
-                self.spawn([self.lib] + lib_args)
-            except DistutilsExecError as msg:
+                self.call([self.lib] + lib_args)
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise LibError(msg)
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
@@ -537,7 +596,7 @@ class Compiler(base.Compiler):
             # builds, they can go into the same directory.
             build_temp = os.path.dirname(objects[0])
             if export_symbols is not None:
-                (dll_name, dll_ext) = os.path.splitext(
+                (dll_name, _dll_ext) = os.path.splitext(
                     os.path.basename(output_filename)
                 )
                 implib_file = os.path.join(build_temp, self.library_filename(dll_name))
@@ -552,36 +611,16 @@ class Compiler(base.Compiler):
             self.mkpath(output_dir)
             try:
                 log.debug('Executing "%s" %s', self.linker, ' '.join(ld_args))
-                self.spawn([self.linker] + ld_args)
-            except DistutilsExecError as msg:
+                with _wrap_link_command(self.linker, *ld_args) as cmd:
+                    self.call(cmd)
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise LinkError(msg)
         else:
             log.debug("skipping %s (up-to-date)", output_filename)
 
-    def spawn(self, cmd):
+    def call(self, cmd, *, env=None, **kwargs):
         env = dict(os.environ, PATH=self._paths)
-        with self._fallback_spawn(cmd, env) as fallback:
-            return super().spawn(cmd, env=env)
-        return fallback.value
-
-    @contextlib.contextmanager
-    def _fallback_spawn(self, cmd, env):
-        """
-        Discovered in pypa/distutils#15, some tools monkeypatch the compiler,
-        so the 'env' kwarg causes a TypeError. Detect this condition and
-        restore the legacy, unsafe behavior.
-        """
-        bag = type('Bag', (), {})()
-        try:
-            yield bag
-        except TypeError as exc:
-            if "unexpected keyword argument 'env'" not in str(exc):
-                raise
-        else:
-            return
-        warnings.warn("Fallback spawn triggered. Please update distutils monkeypatch.")
-        with mock.patch.dict('os.environ', env):
-            bag.value = super().spawn(cmd)
+        return super().call(cmd, env=env, **kwargs)
 
     # -- Miscellaneous methods -----------------------------------------
     # These are all used by the 'gen_lib_options() function, in
@@ -591,7 +630,7 @@ class Compiler(base.Compiler):
         return "/LIBPATH:" + dir
 
     def runtime_library_dir_option(self, dir):
-        raise DistutilsPlatformError(
+        raise PlatformError(
             "don't know how to set runtime library search path for MSVC"
         )
 
@@ -610,6 +649,5 @@ class Compiler(base.Compiler):
                 libfile = os.path.join(dir, self.library_filename(name))
                 if os.path.isfile(libfile):
                     return libfile
-        else:
-            # Oops, didn't find it in *any* of 'dirs'
-            return None
+        # Oops, didn't find it in *any* of 'dirs'
+        return None

@@ -7,6 +7,7 @@ import sys
 import textwrap
 from distutils.errors import DistutilsSetupError
 from distutils.tests import support
+from typing import ClassVar
 
 import pytest
 
@@ -48,7 +49,7 @@ class TestCheck(support.TempdirManager):
         if cwd is not None:
             old_dir = os.getcwd()
             os.chdir(cwd)
-        pkg_info, dist = self.create_dist(**metadata)
+        _pkg_info, dist = self.create_dist(**metadata)
         cmd = _check.check(dist)
         cmd.initialize_options()
         for name, value in options.items():
@@ -82,7 +83,7 @@ class TestCheck(support.TempdirManager):
         # now with the strict mode, we should
         # get an error if there are missing metadata
         with pytest.raises(DistutilsSetupError):
-            self._run({}, **{'strict': 1})
+            self._run({}, strict=1)
 
         # and of course, no error when all metadata are present
         cmd = self._run(metadata, strict=True)
@@ -126,7 +127,7 @@ class TestCheck(support.TempdirManager):
             assert cmd._warnings == 0
 
     def test_check_document(self):
-        pkg_info, dist = self.create_dist()
+        _pkg_info, dist = self.create_dist()
         cmd = _check.check(dist)
 
         # let's see if it detects broken rest
@@ -142,7 +143,7 @@ class TestCheck(support.TempdirManager):
     def test_check_restructuredtext(self):
         # let's see if it detects broken rest in long_description
         broken_rest = 'title\n===\n\ntest'
-        pkg_info, dist = self.create_dist(long_description=broken_rest)
+        _pkg_info, dist = self.create_dist(long_description=broken_rest)
         cmd = _check.check(dist)
         cmd.check_restructuredtext()
         assert cmd._warnings == 1
@@ -157,7 +158,7 @@ class TestCheck(support.TempdirManager):
             'long_description': broken_rest,
         }
         with pytest.raises(DistutilsSetupError):
-            self._run(metadata, **{'strict': 1, 'restructuredtext': 1})
+            self._run(metadata, strict=1, restructuredtext=1)
 
         # and non-broken rest, including a non-ASCII character to test #12114
         metadata['long_description'] = 'title\n=====\n\ntest \u00df'
@@ -169,7 +170,7 @@ class TestCheck(support.TempdirManager):
         cmd = self._run(metadata, cwd=HERE, strict=True, restructuredtext=True)
         assert cmd._warnings == 0
 
-    code_examples = [
+    code_examples: ClassVar[list[str]] = [
         textwrap.dedent(
             f"""
             Here's some code:
@@ -184,7 +185,7 @@ class TestCheck(support.TempdirManager):
     ]
 
     def check_rst_data(self, descr):
-        pkg_info, dist = self.create_dist(long_description=descr)
+        _pkg_info, dist = self.create_dist(long_description=descr)
         cmd = _check.check(dist)
         cmd.check_restructuredtext()
         return cmd._check_rst_data(descr)
@@ -201,4 +202,4 @@ class TestCheck(support.TempdirManager):
 
     def test_check_all(self):
         with pytest.raises(DistutilsSetupError):
-            self._run({}, **{'strict': 1, 'restructuredtext': 1})
+            self._run({}, strict=1, restructuredtext=1)

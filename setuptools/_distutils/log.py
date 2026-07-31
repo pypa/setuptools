@@ -11,7 +11,7 @@ from ._log import log as _global_log
 
 DEBUG = logging.DEBUG
 INFO = logging.INFO
-WARN = logging.WARN
+WARN = logging.WARNING
 ERROR = logging.ERROR
 FATAL = logging.FATAL
 
@@ -31,7 +31,7 @@ def set_threshold(level):
 
 def set_verbosity(v):
     if v <= 0:
-        set_threshold(logging.WARN)
+        set_threshold(logging.WARNING)
     elif v == 1:
         set_threshold(logging.INFO)
     elif v >= 2:
