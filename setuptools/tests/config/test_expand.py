@@ -109,6 +109,18 @@ class TestReadAttr:
         values = expand.read_attr('lib.mod.VALUES', {'lib': 'pkg/sub'}, tmp_path)
         assert values['c'] == (0, 1, 1)
 
+    def test_read_attr_rejects_empty_attr_name(self, tmp_path):
+        files = {
+            "pkg.py": ("def __getattr__(name):\n    raise AttributeError(name)\n"),
+        }
+        write_files(files, tmp_path)
+
+        with pytest.raises(
+            AttributeError,
+            match=r"malformed dynamic attr 'pkg\.': empty attribute name",
+        ):
+            expand.read_attr("pkg.", root_dir=tmp_path)
+
     @pytest.mark.parametrize(
         "example",
         [
