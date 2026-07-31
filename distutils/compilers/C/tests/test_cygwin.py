@@ -2,7 +2,7 @@
 
 import os
 import sys
-from distutils import sysconfig
+import sysconfig
 from distutils.tests import support
 
 import pytest

@@ -13,9 +13,9 @@ IBM z/OS XL C/C++
 
 import os
 import subprocess
+import sysconfig
 from typing import ClassVar
 
-from ... import sysconfig
 from . import unix
 from .errors import CompileError
 
@@ -148,7 +148,7 @@ class Compiler(unix.Compiler):
     def __init__(self, verbose=False, force=False):
         super().__init__(verbose, force=force)
         self.zos_compiler = self._get_zos_compiler_name()
-        sysconfig.customize_compiler(self)
+        self.configure_system()
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         local_args = []
@@ -191,7 +191,7 @@ class Compiler(unix.Compiler):
         # For a built module to use functions from cpython, it needs to use Pythons
         # side deck file. The side deck is located beside the libpython3.xx.so
         ldversion = sysconfig.get_config_var('LDVERSION')
-        if sysconfig.python_build:
+        if sysconfig.is_python_build():
             side_deck_path = os.path.join(
                 sysconfig.get_config_var('abs_builddir'),
                 f'libpython{ldversion}.x',

@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import platform
 import sys
+import sysconfig
 from collections.abc import Mapping
 from typing import TypeVar
 
@@ -23,6 +24,19 @@ else:
         return compiler_so
 
 
+def customize_compiler(config_vars) -> None:
+    """Apply macOS SDK/architecture fixups to build config vars, in place.
+
+    A no-op off macOS. Mirrors distutils' historical ``_customize_macos`` to
+    support interpreters from binary installers, where the user's build tools
+    and OS version may differ from the system Python itself was built on.
+    """
+    if sys.platform == 'darwin':
+        import _osx_support
+
+        _osx_support.customize_compiler(config_vars)
+
+
 _syscfg_target_ver = None
 
 
@@ -36,10 +50,6 @@ def _target_ver_from_syscfg():
     """The deployment target latched into the interpreter's configuration."""
     global _syscfg_target_ver
     if _syscfg_target_ver is None:
-        # sysconfig remains distutils' pending the sysconfig decoupling
-        # (pypa/setuptools#5269).
-        from ... import sysconfig
-
         _syscfg_target_ver = sysconfig.get_config_var(VERSION_VAR) or ''
     return _syscfg_target_ver
 

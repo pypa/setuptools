@@ -173,6 +173,15 @@ class Compiler:
         honor ``plat_name`` when cross-compiling.
         """
 
+    def configure_system(self) -> None:
+        """Configure this compiler from the interpreter's build configuration.
+
+        The default is a no-op; Unix-style compilers override this to apply
+        the compiler, flag, and archiver settings that CPython recorded in
+        sysconfig when it was built, so extensions build consistently with the
+        interpreter.
+        """
+
     def set_executables(self, **kwargs: str) -> None:
         """Define the executables (and options for them) that will be run
         to perform the various stages of compilation.  The exact set of
