@@ -26,8 +26,8 @@ from typing import ClassVar
 
 from ... import sysconfig
 from ..._macos_compat import compiler_fixup
-from ...compat import consolidate_linker_args
 from .._modified import newer
+from .._util import consolidate_linker_args
 from ..logging import get_logger
 from . import base
 from .base import _Macro, gen_lib_options, gen_preprocess_options
