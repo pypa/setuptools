@@ -16,8 +16,9 @@ import subprocess
 import sys
 import warnings
 
+import packaging.version
+
 from ...sysconfig import get_config_vars
-from ...version import LooseVersion, suppress_known_deprecation
 from ..errors import Error, PlatformError
 from ..logging import get_logger
 from . import unix
@@ -98,8 +99,7 @@ class Compiler(unix.Compiler):
             DeprecationWarning,
             stacklevel=2,
         )
-        with suppress_known_deprecation():
-            return LooseVersion("11.2.0")
+        return packaging.version.Version("11.2.0")
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         """Compiles the source by spawning GCC and windres if needed."""
