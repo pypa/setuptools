@@ -62,11 +62,16 @@ class Compiler:
 
     compiler_type: ClassVar[str]
     """
-    Identify the kind of compiler, so callers can tell compilers apart
-    without importing every compiler class for an ``isinstance`` check.
-    Set this in each concrete subclass to one of the keys of
-    ``compiler_class`` (see below, used by ``new_compiler()``), and update
-    ``compiler_class`` to match.
+    Short name identifying the kind of compiler, so callers can tell
+    compilers apart without importing every compiler class for an
+    ``isinstance`` check. Set this in each concrete subclass; it's the key
+    under which the class is registered by ``get_compilers()``.
+    """
+
+    description: ClassVar[str]
+    """
+    Human-readable description of the compiler, shown by ``show_compilers()``.
+    Set this in each concrete subclass.
     """
 
     # XXX things not handled by this compiler abstraction model:
@@ -1254,42 +1259,28 @@ def get_default_compiler(osname: str | None = None, platform: str | None = None)
     return 'unix'
 
 
-# Map compiler types to (module_name, class_name) pairs -- ie. where to
-# find the code that implements an interface to this compiler.  (The module
-# is assumed to be in the 'distutils' package.)
-compiler_class = {
-    'unix': ('unixccompiler', 'UnixCCompiler', "standard UNIX-style compiler"),
-    'msvc': ('_msvccompiler', 'MSVCCompiler', "Microsoft Visual C++"),
-    'cygwin': (
-        'cygwinccompiler',
-        'CygwinCCompiler',
-        "Cygwin port of GNU C Compiler for Win32",
-    ),
-    'mingw32': (
-        'cygwinccompiler',
-        'Mingw32CCompiler',
-        "Mingw32 port of GNU C Compiler for Win32",
-    ),
-    'bcpp': ('bcppcompiler', 'BCPPCompiler', "Borland C++ Compiler"),
-    'zos': ('zosccompiler', 'zOSCCompiler', 'IBM XL C/C++ Compilers'),
-}
+def _concrete_compilers(cls: type[Compiler] | None = None):
+    """Yield every subclass of ``cls`` (recursively)."""
+    for subclass in (cls or Compiler).__subclasses__():
+        yield subclass
+        yield from _concrete_compilers(subclass)
 
 
-def show_compilers() -> None:
-    """Print list of available compilers (used by the "--help-compiler"
-    options to "build", "build_ext", "build_clib").
+def get_compilers() -> dict[str, type[Compiler]]:
+    """Map each compiler's short name (``compiler_type``) to its class.
+
+    Imports the concrete compiler modules so their classes are defined, then
+    collects every non-abstract ``Compiler`` subclass.
     """
-    # XXX this "knows" that the compiler option it's describing is
-    # "--compiler", which just happens to be the case for the three
-    # commands that use it.
-    from distutils.fancy_getopt import FancyGetopt
+    # ensure the concrete compiler classes are imported and thus registered
+    # as subclasses of Compiler
+    from . import cygwin, msvc, unix, zos  # noqa: F401
 
-    compilers = sorted(
-        ("compiler=" + compiler, None, compiler_class[compiler][2])
-        for compiler in compiler_class
-    )
-    pretty_printer = FancyGetopt(compilers)
-    pretty_printer.print_help("List of available compilers:")
+    return {
+        subclass.compiler_type: subclass
+        for subclass in _concrete_compilers()
+        if getattr(subclass, 'compiler_type', None)
+    }
 
 
 def new_compiler(
@@ -1298,7 +1289,7 @@ def new_compiler(
     verbose: bool = False,
     force: bool = False,
 ) -> Compiler:
-    """Generate an instance of some CCompiler subclass for the supplied
+    """Generate an instance of some Compiler subclass for the supplied
     platform/compiler combination.  'plat' defaults to 'os.name'
     (eg. 'posix', 'nt'), and 'compiler' defaults to the default compiler
     for that platform.  Currently only 'posix' and 'nt' are supported, and
@@ -1310,37 +1301,21 @@ def new_compiler(
     """
     if plat is None:
         plat = os.name
+    if compiler is None:
+        compiler = get_default_compiler(plat)
 
     try:
-        if compiler is None:
-            compiler = get_default_compiler(plat)
-
-        (module_name, class_name, _long_description) = compiler_class[compiler]
+        cls = get_compilers()[compiler]
     except KeyError:
         msg = f"don't know how to compile C/C++ code on platform '{plat}'"
         if compiler is not None:
             msg = msg + f" with '{compiler}' compiler"
         raise PlatformError(msg)
 
-    try:
-        module_name = "distutils." + module_name
-        __import__(module_name)
-        module = sys.modules[module_name]
-        klass = vars(module)[class_name]
-    except ImportError:
-        raise PlatformError(
-            f"can't compile C/C++ code: unable to load module '{module_name}'"
-        )
-    except KeyError:
-        raise PlatformError(
-            f"can't compile C/C++ code: unable to find class '{class_name}' "
-            f"in module '{module_name}'"
-        )
-
     # XXX The None is necessary to preserve backwards compatibility
     # with classes that expect verbose to be the first positional
     # argument.
-    return klass(None, force=force)
+    return cls(None, force=force)
 
 
 def gen_preprocess_options(

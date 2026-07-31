@@ -104,6 +104,8 @@ _ld_args = {
 # But each compiler requires it's own specific options to build successfully,
 # though some of the options are common between them
 class Compiler(unix.Compiler):
+    compiler_type = 'zos'
+    description = "IBM XL C/C++ Compilers"
     src_extensions: ClassVar[list[str] | None] = [
         '.c',
         '.C',

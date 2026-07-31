@@ -297,6 +297,7 @@ class Compiler(base.Compiler):
     as defined by the CCompiler abstract class."""
 
     compiler_type = 'msvc'
+    description = "Microsoft Visual C++"
 
     # Just set this so CCompiler's constructor doesn't barf.  We currently
     # don't use the 'set_executables()' bureaucracy provided by CCompiler,
