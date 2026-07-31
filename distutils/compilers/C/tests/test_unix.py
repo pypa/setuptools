@@ -3,7 +3,6 @@
 import os
 import sys
 from distutils import sysconfig
-from distutils.compat import consolidate_linker_args
 from distutils.tests import support
 from unittest import mock
 
@@ -11,6 +10,7 @@ import pytest
 from test.support import os_helper
 
 from ... import errors
+from ..._util import _consolidate_linker_args
 from ...platform import macos
 from .. import unix
 
@@ -150,7 +150,7 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == consolidate_linker_args([
+        assert self.cc.rpath_foo() == _consolidate_linker_args([
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
         ])
@@ -162,7 +162,7 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == consolidate_linker_args([
+        assert self.cc.rpath_foo() == _consolidate_linker_args([
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
         ])
@@ -190,7 +190,7 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == consolidate_linker_args([
+        assert self.cc.rpath_foo() == _consolidate_linker_args([
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
         ])
@@ -205,7 +205,7 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == consolidate_linker_args([
+        assert self.cc.rpath_foo() == _consolidate_linker_args([
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
         ])

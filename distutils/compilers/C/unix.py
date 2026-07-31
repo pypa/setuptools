@@ -26,7 +26,7 @@ from typing import ClassVar
 
 from ... import sysconfig
 from .._modified import newer
-from .._util import consolidate_linker_args
+from .._util import _consolidate_linker_args
 from ..logging import get_logger
 from ..platform.macos import compiler_fixup
 from . import base
@@ -358,7 +358,7 @@ class Compiler(base.Compiler):
         # For all compilers, `-Wl` is the presumed way to pass a
         # compiler option to the linker
         if sysconfig.get_config_var("GNULD") == "yes":
-            return consolidate_linker_args([
+            return _consolidate_linker_args([
                 # Force RUNPATH instead of RPATH
                 "-Wl,--enable-new-dtags",
                 "-Wl,-rpath," + dir,

@@ -10,13 +10,16 @@ from typing import TypeVar
 _IterableT = TypeVar("_IterableT", bound="Iterable[str]")
 
 
-def consolidate_linker_args(args: _IterableT) -> _IterableT | str:
+def _consolidate_linker_args(args: _IterableT) -> _IterableT | str:
     """
-    Ensure the return value is a string for backward compatibility.
+    Combine a sequence of ``-Wl,`` linker options into a single, comma-joined
+    ``-Wl,`` argument.
 
-    Retain until at least 2025-04-31. See pypa/distutils#246
+    A ``runtime_library_dir_option`` may emit several ``-Wl,`` flags (e.g. to
+    force RUNPATH over RPATH); collapsing them into one argument keeps the
+    return value a single string, matching the method's other branches. If any
+    argument is not a ``-Wl,`` option, the sequence is returned unchanged.
     """
-
     if not all(arg.startswith('-Wl,') for arg in args):
         return args
     return '-Wl,' + ','.join(arg.removeprefix('-Wl,') for arg in args)
