@@ -13,10 +13,10 @@ import textwrap
 import time
 from distutils import sysconfig
 from distutils.command.build_ext import build_ext
+from distutils.compilers.errors import PlatformError
 from distutils.core import Distribution
 from distutils.errors import (
     CompileError,
-    DistutilsPlatformError,
     DistutilsSetupError,
     UnknownFileError,
 )
@@ -538,7 +538,7 @@ class TestBuildExt(TempdirManager):
     def test_deployment_target_too_low(self):
         # Issue 9516: Test that an extension module is not allowed to be
         # compiled with a deployment target less than that of the interpreter.
-        with pytest.raises(DistutilsPlatformError):
+        with pytest.raises(PlatformError):
             self._try_compile_deployment_target('>', '10.1')
 
     @pytest.mark.skipif('platform.system() != "Darwin"')

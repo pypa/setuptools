@@ -1160,7 +1160,7 @@ int main (int argc, char **argv) {{
     ) -> None:
         """Run 'cmd' in a subprocess, letting subprocess exceptions propagate."""
         log.info(subprocess.list2cmdline(cmd))
-        subprocess.check_call(cmd, env=macos._inject_ver(env), **kwargs)
+        subprocess.check_call(cmd, env=macos.inject_ver(env), **kwargs)
 
     def spawn(
         self,

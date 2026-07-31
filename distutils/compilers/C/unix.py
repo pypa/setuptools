@@ -25,10 +25,10 @@ from collections.abc import Iterable
 from typing import ClassVar
 
 from ... import sysconfig
-from ..._macos_compat import compiler_fixup
 from .._modified import newer
 from .._util import consolidate_linker_args
 from ..logging import get_logger
+from ..platform.macos import compiler_fixup
 from . import base
 from .base import _Macro, gen_lib_options, gen_preprocess_options
 from .errors import CompileError, LibError, LinkError
@@ -340,10 +340,10 @@ class Compiler(base.Compiler):
         # the configuration data stored in the Python installation, so
         # we use this hack.
         if sys.platform[:6] == "darwin":
-            from distutils.util import get_macosx_target_ver, split_version
+            from ..platform import macos
 
-            macosx_target_ver = get_macosx_target_ver()
-            if macosx_target_ver and split_version(macosx_target_ver) >= [10, 5]:
+            target_ver = macos.target_ver()
+            if target_ver and [int(n) for n in target_ver.split('.')] >= [10, 5]:
                 return "-Wl,-rpath," + dir
             else:  # no support for -rpath on earlier macOS versions
                 return "-L" + dir
