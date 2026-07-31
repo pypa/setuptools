@@ -2,7 +2,7 @@
 
 import os
 import sys
-from distutils import sysconfig
+import sysconfig
 from distutils.tests import support
 from unittest import mock
 
@@ -240,7 +240,7 @@ class TestUnixCCompiler(support.TempdirManager):
         with os_helper.EnvironmentVarGuard() as env:
             env['CC'] = 'my_cc'
             del env['LDSHARED']
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
         assert self.cc.linker_so[0] == 'my_cc'
 
     @pytest.mark.skipif('platform.system == "Windows"')
@@ -273,7 +273,7 @@ class TestUnixCCompiler(support.TempdirManager):
             del env['CXX']
             del env['LDCXXSHARED']
 
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
             assert self.cc.linker_so_cxx[0:2] == ['ccache', 'g++-4.2']
             assert self.cc.linker_exe_cxx[0:2] == ['ccache', 'g++-4.2']
             self.cc.link(None, [], 'a.out', target_lang='c++')
@@ -288,7 +288,7 @@ class TestUnixCCompiler(support.TempdirManager):
 
             env['LDCXXSHARED'] = 'wrapper g++-4.2 -bundle -undefined dynamic_lookup'
             env['CXX'] = 'wrapper g++-4.2'
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
             assert self.cc.linker_so_cxx[0:2] == ['wrapper', 'g++-4.2']
             assert self.cc.linker_exe_cxx[0:2] == ['wrapper', 'g++-4.2']
             self.cc.link(None, [], 'a.out', target_lang='c++')
@@ -343,7 +343,7 @@ class TestUnixCCompiler(support.TempdirManager):
             env['CC'] = 'ccache my_cc'
             env['CXX'] = 'my_cxx'
             del env['LDSHARED']
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
             assert self.cc.linker_so[0:2] == ['ccache', 'my_cc']
             self.cc.link(None, [], 'a.out', target_lang='c++')
             call_args = mock_call.call_args[0][0]
@@ -370,7 +370,7 @@ class TestUnixCCompiler(support.TempdirManager):
         with os_helper.EnvironmentVarGuard() as env:
             env['CC'] = 'my_cc'
             env['LDSHARED'] = 'my_ld -bundle -dynamic'
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
         assert self.cc.linker_so[0] == 'my_ld'
 
     def test_has_function(self):

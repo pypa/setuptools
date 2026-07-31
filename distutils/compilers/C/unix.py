@@ -21,18 +21,38 @@ import re
 import shlex
 import subprocess
 import sys
+import sysconfig
 from collections.abc import Iterable
 from typing import ClassVar
 
-from ... import sysconfig
+from jaraco.functools import pass_none
+
 from .._modified import newer
 from ..logging import get_logger
+from ..platform import macos
 from ..platform.macos import compiler_fixup
 from . import base
 from .base import _Macro, gen_lib_options, gen_preprocess_options
 from .errors import CompileError, LibError, LinkError
 
 log = get_logger(__name__)
+
+
+def _require_config_vars(*names):
+    values = sysconfig.get_config_vars(*names)
+    missing = [
+        name for name, value in zip(names, values, strict=False) if value is None
+    ]
+    assert not missing, f"Unexpected None in config vars: {missing}"
+    return values
+
+
+@pass_none
+def _add_flags(value: str, flag_type: str) -> str:
+    """Append any ``$<flag_type>FLAGS`` from the environment to ``value``."""
+    flags = os.environ.get(f'{flag_type}FLAGS')
+    return f'{value} {flags}' if flags else value
+
 
 # XXX Things not currently handled:
 #   * optimization/debug/warning flags; we just use whatever's in Python's
@@ -162,6 +182,88 @@ class Compiler(base.Compiler):
         shared_lib_extension = ".dll.a"
         dylib_lib_extension = ".dll"
         dylib_lib_format = "cyg%s%s"
+
+    def configure_system(self) -> None:
+        """Configure this compiler from the interpreter's build configuration.
+
+        Applies the compiler, flag, and archiver settings CPython recorded in
+        sysconfig when it was built -- honoring the usual environment-variable
+        overrides (CC, CXX, CFLAGS, LDSHARED, AR, RANLIB, …) -- so extensions
+        build consistently with the interpreter.
+        """
+        macos.customize_compiler(sysconfig.get_config_vars())
+
+        (
+            cc,
+            cxx,
+            cflags,
+            ccshared,
+            ldshared,
+            ldcxxshared,
+            shlib_suffix,
+            ar,
+            ar_flags,
+        ) = _require_config_vars(
+            'CC',
+            'CXX',
+            'CFLAGS',
+            'CCSHARED',
+            'LDSHARED',
+            'LDCXXSHARED',
+            'SHLIB_SUFFIX',
+            'AR',
+            'ARFLAGS',
+        )
+
+        cxxflags = cflags
+
+        if 'CC' in os.environ:
+            newcc = os.environ['CC']
+            if 'LDSHARED' not in os.environ and ldshared.startswith(cc):
+                # If CC is overridden, use that as the default command for
+                # LDSHARED as well.
+                ldshared = newcc + ldshared[len(cc) :]
+            cc = newcc
+        cxx = os.environ.get('CXX', cxx)
+        ldshared = os.environ.get('LDSHARED', ldshared)
+        ldcxxshared = os.environ.get('LDCXXSHARED', ldcxxshared)
+        cpp = os.environ.get('CPP', cc + " -E")
+
+        ldshared = _add_flags(ldshared, 'LD')
+        ldcxxshared = _add_flags(ldcxxshared, 'LD')
+        cflags = os.environ.get('CFLAGS', cflags)
+        ldshared = _add_flags(ldshared, 'C')
+        cxxflags = os.environ.get('CXXFLAGS', cxxflags)
+        ldcxxshared = _add_flags(ldcxxshared, 'CXX')
+        cpp = _add_flags(cpp, 'CPP')
+        cflags = _add_flags(cflags, 'CPP')
+        cxxflags = _add_flags(cxxflags, 'CPP')
+        ldshared = _add_flags(ldshared, 'CPP')
+        ldcxxshared = _add_flags(ldcxxshared, 'CPP')
+
+        ar = os.environ.get('AR', ar)
+
+        archiver = ar + ' ' + os.environ.get('ARFLAGS', ar_flags)
+        cc_cmd = cc + ' ' + cflags
+        cxx_cmd = cxx + ' ' + cxxflags
+
+        self.set_executables(
+            preprocessor=cpp,
+            compiler=cc_cmd,
+            compiler_so=cc_cmd + ' ' + ccshared,
+            compiler_cxx=cxx_cmd,
+            compiler_so_cxx=cxx_cmd + ' ' + ccshared,
+            linker_so=ldshared,
+            linker_so_cxx=ldcxxshared,
+            linker_exe=cc,
+            linker_exe_cxx=cxx,
+            archiver=archiver,
+        )
+
+        if 'RANLIB' in os.environ and self.executables.get('ranlib', None):
+            self.set_executables(ranlib=os.environ['RANLIB'])
+
+        self.shared_lib_extension = shlib_suffix  # type: ignore[misc] # Assigning to ClassVar
 
     def _fix_lib_args(self, libraries, library_dirs, runtime_library_dirs):
         """Remove standard library path from rpath"""

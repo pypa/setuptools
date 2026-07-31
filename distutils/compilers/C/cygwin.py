@@ -15,12 +15,13 @@ import shlex
 import subprocess
 import sys
 import warnings
+from sysconfig import get_config_vars
 
 import packaging.version
 
-from ...sysconfig import get_config_vars
 from ..errors import Error, PlatformError
 from ..logging import get_logger
+from ..platform.detect import is_mingw
 from . import unix
 from .errors import CompileError
 
@@ -264,6 +265,13 @@ class MinGW32Compiler(Compiler):
             linker_so_cxx=f'{self.linker_dll_cxx} {shared_option}',
         )
 
+    def configure_system(self) -> None:
+        # Only apply the interpreter's Unix-style build configuration when
+        # actually running under a mingw Python; on an MSVC Python those
+        # settings don't apply.
+        if is_mingw():
+            super().configure_system()
+
     def runtime_library_dir_option(self, dir):
         raise PlatformError(_runtime_library_dirs_msg)
 
@@ -298,7 +306,7 @@ def check_config_h():
     # XXX since this function also checks sys.version, it's not strictly a
     # "pyconfig.h" check -- should probably be renamed...
 
-    from distutils import sysconfig
+    import sysconfig
 
     # if sys.version contains GCC then python was compiled with GCC, and the
     # pyconfig.h file should be OK
