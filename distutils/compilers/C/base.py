@@ -23,20 +23,13 @@ from typing import (
 
 from more_itertools import always_iterable
 
-from ...errors import (
-    DistutilsModuleError,
-    DistutilsPlatformError,
-)
 from ...util import is_mingw
 from .._modified import newer_group
 from .._util import split_quoted
+from ..errors import PlatformError, UnknownFileType
 from ..logging import get_logger
 from ..platform import macos
-from .errors import (
-    CompileError,
-    LinkError,
-    UnknownFileType,
-)
+from .errors import CompileError, LinkError
 
 log = get_logger(__name__)
 
@@ -1318,7 +1311,7 @@ def new_compiler(
         msg = f"don't know how to compile C/C++ code on platform '{plat}'"
         if compiler is not None:
             msg = msg + f" with '{compiler}' compiler"
-        raise DistutilsPlatformError(msg)
+        raise PlatformError(msg)
 
     try:
         module_name = "distutils." + module_name
@@ -1326,11 +1319,11 @@ def new_compiler(
         module = sys.modules[module_name]
         klass = vars(module)[class_name]
     except ImportError:
-        raise DistutilsModuleError(
+        raise PlatformError(
             f"can't compile C/C++ code: unable to load module '{module_name}'"
         )
     except KeyError:
-        raise DistutilsModuleError(
+        raise PlatformError(
             f"can't compile C/C++ code: unable to find class '{class_name}' "
             f"in module '{module_name}'"
         )

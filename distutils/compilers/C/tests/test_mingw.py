@@ -1,10 +1,11 @@
 from distutils import sysconfig
-from distutils.errors import DistutilsPlatformError
+from distutils.compilers.errors import PlatformError
 from distutils.util import is_mingw, split_quoted
 
 import pytest
 
-from .. import cygwin, errors
+from ... import errors
+from .. import cygwin
 
 
 class TestMinGW32Compiler:
@@ -49,7 +50,7 @@ class TestMinGW32Compiler:
     @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
     def test_runtime_library_dir_option(self):
         compiler = cygwin.MinGW32Compiler()
-        with pytest.raises(DistutilsPlatformError):
+        with pytest.raises(PlatformError):
             compiler.runtime_library_dir_option('/usr/lib')
 
     @pytest.mark.skipif(not is_mingw(), reason='not on mingw')

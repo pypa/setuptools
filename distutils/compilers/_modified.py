@@ -6,8 +6,6 @@ import os.path
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal
 
-from ..errors import DistutilsFileError
-
 if TYPE_CHECKING:
     from typing import TypeAlias
 
@@ -25,11 +23,11 @@ def newer(source: _Path, target: _Path) -> bool:
     Is source modified more recently than target.
 
     Returns True if 'source' is modified more recently than 'target' or if
-    'target' does not exist. Raises DistutilsFileError if 'source' does not
+    'target' does not exist. Raises FileNotFoundError if 'source' does not
     exist.
     """
     if not os.path.exists(source):
-        raise DistutilsFileError(f"file {os.path.abspath(source)!r} does not exist")
+        raise FileNotFoundError(f"file {os.path.abspath(source)!r} does not exist")
 
     return _newer(source, target)
 

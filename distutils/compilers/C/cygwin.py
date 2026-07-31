@@ -16,15 +16,12 @@ import subprocess
 import sys
 import warnings
 
-from ...errors import DistutilsPlatformError
 from ...sysconfig import get_config_vars
 from ...version import LooseVersion, suppress_known_deprecation
+from ..errors import Error, PlatformError
 from ..logging import get_logger
 from . import unix
-from .errors import (
-    CompileError,
-    Error,
-)
+from .errors import CompileError
 
 log = get_logger(__name__)
 
@@ -268,7 +265,7 @@ class MinGW32Compiler(Compiler):
         )
 
     def runtime_library_dir_option(self, dir):
-        raise DistutilsPlatformError(_runtime_library_dirs_msg)
+        raise PlatformError(_runtime_library_dirs_msg)
 
 
 # Because these compilers aren't configured in Python's pyconfig.h file by
