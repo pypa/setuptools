@@ -5764,7 +5764,7 @@ v20.10.0
   by earlier versions of Python. Except on Python 2.6,
   order is preserved when existing settings are present.
 * #556: Update to Packaging 16.7, restoring support
-  for deprecated ``python_implmentation`` marker.
+  for deprecated ``python_implementation`` marker.
 * #555: Upload command now prompts for a password
   when uploading to PyPI (or other repository) if no
   password is present in .pypirc or in the keyring.
