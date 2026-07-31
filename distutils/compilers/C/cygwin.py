@@ -43,6 +43,7 @@ class Compiler(unix.Compiler):
     """Handles the Cygwin port of the GNU C compiler to Windows."""
 
     compiler_type = 'cygwin'
+    description = "Cygwin port of GNU C Compiler for Win32"
     obj_extension = ".o"
     static_lib_extension = ".a"
     shared_lib_extension = ".dll.a"
@@ -245,6 +246,7 @@ class MinGW32Compiler(Compiler):
     """Handles the Mingw32 port of the GNU C compiler to Windows."""
 
     compiler_type = 'mingw32'
+    description = "Mingw32 port of GNU C Compiler for Win32"
 
     def __init__(self, verbose=False, force=False):
         super().__init__(verbose, force)

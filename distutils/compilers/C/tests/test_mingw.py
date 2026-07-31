@@ -1,10 +1,9 @@
-from distutils import sysconfig
-from distutils.compilers.errors import PlatformError
-from distutils.util import is_mingw, split_quoted
-
 import pytest
 
 from ... import errors
+from ..._util import split_quoted
+from ...errors import PlatformError
+from ...platform.detect import is_mingw
 from .. import cygwin
 
 
@@ -61,9 +60,9 @@ class TestMinGW32Compiler:
             cygwin.MinGW32Compiler()
 
     @pytest.mark.skipif('sys.platform == "cygwin"')
-    def test_customize_compiler_with_msvc_python(self):
+    def test_configure_system_with_msvc_python(self):
         # In case we have an MSVC Python build, but still want to use
-        # MinGW32Compiler, then customize_compiler() shouldn't fail at least.
+        # MinGW32Compiler, then configure_system() shouldn't fail at least.
         # https://github.com/pypa/setuptools/issues/4456
         compiler = cygwin.MinGW32Compiler()
-        sysconfig.customize_compiler(compiler)
+        compiler.configure_system()

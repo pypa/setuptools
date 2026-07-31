@@ -3,7 +3,6 @@
 import os
 import sys
 import sysconfig
-from distutils.tests import support
 from unittest import mock
 
 import pytest
@@ -30,7 +29,7 @@ def compiler_wrapper(request):
     request.instance.cc = CompilerWrapper()
 
 
-class TestUnixCCompiler(support.TempdirManager):
+class TestUnixCCompiler:
     @pytest.mark.skipif('platform.system == "Windows"')
     def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
@@ -373,12 +372,12 @@ class TestUnixCCompiler(support.TempdirManager):
             self.cc.configure_system()
         assert self.cc.linker_so[0] == 'my_ld'
 
-    def test_has_function(self):
+    def test_has_function(self, monkeypatch, tmp_path):
         # Issue https://github.com/pypa/distutils/issues/64:
         # ensure that setting output_dir does not raise
         # FileNotFoundError: [Errno 2] No such file or directory: 'a.out'
         self.cc.output_dir = 'scratch'
-        os.chdir(self.mkdtemp())
+        monkeypatch.chdir(tmp_path)
         self.cc.has_function('abort')
 
     def test_find_library_file(self, monkeypatch):

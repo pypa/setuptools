@@ -132,6 +132,7 @@ def _linker_params(linker_cmd, compiler_cmd):
 
 class Compiler(base.Compiler):
     compiler_type = 'unix'
+    description = "standard UNIX-style compiler"
 
     # These are used by CCompiler in two places: the constructor sets
     # instance attributes 'preprocessor', 'compiler', etc. from them, and
