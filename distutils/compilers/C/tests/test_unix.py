@@ -10,7 +10,6 @@ import pytest
 from test.support import os_helper
 
 from ... import errors
-from ..._util import _consolidate_linker_args
 from ...platform import macos
 from .. import unix
 
@@ -150,10 +149,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == _consolidate_linker_args([
+        assert self.cc.rpath_foo() == [
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ])
+        ]
 
         def gcv(v):
             if v == 'CC':
@@ -162,10 +161,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == _consolidate_linker_args([
+        assert self.cc.rpath_foo() == [
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ])
+        ]
 
         # GCC non-GNULD
         sys.platform = 'bar'
@@ -190,10 +189,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == _consolidate_linker_args([
+        assert self.cc.rpath_foo() == [
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ])
+        ]
 
         # non-GCC GNULD
         sys.platform = 'bar'
@@ -205,10 +204,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == _consolidate_linker_args([
+        assert self.cc.rpath_foo() == [
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ])
+        ]
 
         # non-GCC non-GNULD
         sys.platform = 'bar'
