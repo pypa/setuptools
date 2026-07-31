@@ -26,9 +26,9 @@ with contextlib.suppress(ImportError):
 
 from itertools import count
 
-from ...util import get_host_platform, get_platform
 from ..errors import PlatformError
 from ..logging import get_logger
+from ..platform.detect import get_host_platform, get_platform
 from . import base
 from .base import gen_lib_options
 from .errors import CompileError, LibError, LinkError
