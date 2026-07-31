@@ -23,12 +23,12 @@ from typing import (
 
 from more_itertools import always_iterable
 
-from ...util import is_mingw
 from .._modified import newer_group
 from .._util import split_quoted
 from ..errors import PlatformError, UnknownFileType
 from ..logging import get_logger
 from ..platform import macos
+from ..platform.detect import is_mingw
 from .errors import CompileError, LinkError
 
 log = get_logger(__name__)
