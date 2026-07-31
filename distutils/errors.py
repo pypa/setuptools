@@ -8,8 +8,8 @@ including :exc:`SystemExit`.
 # compiler exceptions re-exported for backward compatibility; listed in
 # __all__ below so they're recognized as intentional public re-exports.
 from .compilers.C.errors import CompileError, LibError, LinkError, PreprocessError
-from .compilers.C.errors import Error as _Error
-from .compilers.C.errors import UnknownFileType as _UnknownFileType
+from .compilers.errors import Error as _Error
+from .compilers.errors import UnknownFileType as _UnknownFileType
 
 CCompilerError = _Error
 UnknownFileError = _UnknownFileType

@@ -2,7 +2,7 @@ import os
 import sys
 import sysconfig
 import threading
-from distutils.errors import DistutilsPlatformError
+from distutils.compilers.errors import PlatformError
 from distutils.tests import support
 from distutils.util import get_platform
 
@@ -16,14 +16,14 @@ needs_winreg = pytest.mark.skipif('not hasattr(msvc, "winreg")')
 class Testmsvccompiler(support.TempdirManager):
     def test_no_compiler(self, monkeypatch):
         # makes sure query_vcvarsall raises
-        # a DistutilsPlatformError if the compiler
+        # a PlatformError if the compiler
         # is not found
         def _find_vcvarsall(plat_spec):
             return None, None
 
         monkeypatch.setattr(msvc, '_find_vcvarsall', _find_vcvarsall)
 
-        with pytest.raises(DistutilsPlatformError):
+        with pytest.raises(PlatformError):
             msvc._get_vc_env(
                 'wont find this version',
             )

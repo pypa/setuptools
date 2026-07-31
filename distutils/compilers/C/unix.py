@@ -31,11 +31,7 @@ from .._modified import newer
 from ..logging import get_logger
 from . import base
 from .base import _Macro, gen_lib_options, gen_preprocess_options
-from .errors import (
-    CompileError,
-    LibError,
-    LinkError,
-)
+from .errors import CompileError, LibError, LinkError
 
 log = get_logger(__name__)
 

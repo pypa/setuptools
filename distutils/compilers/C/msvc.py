@@ -26,16 +26,12 @@ with contextlib.suppress(ImportError):
 
 from itertools import count
 
-from ...errors import DistutilsPlatformError
 from ...util import get_host_platform, get_platform
+from ..errors import PlatformError
 from ..logging import get_logger
 from . import base
 from .base import gen_lib_options
-from .errors import (
-    CompileError,
-    LibError,
-    LinkError,
-)
+from .errors import CompileError, LibError, LinkError
 
 log = get_logger(__name__)
 
@@ -153,7 +149,7 @@ def _get_vc_env(plat_spec):
 
     vcvarsall, _ = _find_vcvarsall(plat_spec)
     if not vcvarsall:
-        raise DistutilsPlatformError(
+        raise PlatformError(
             'Microsoft Visual C++ 14.0 or greater is required. '
             'Get it with "Microsoft C++ Build Tools": '
             'https://visualstudio.microsoft.com/visual-cpp-build-tools/'
@@ -166,7 +162,7 @@ def _get_vc_env(plat_spec):
         ).decode('utf-16le', errors='replace')
     except subprocess.CalledProcessError as exc:
         log.error(exc.output)
-        raise DistutilsPlatformError(f"Error executing {exc.cmd}")
+        raise PlatformError(f"Error executing {exc.cmd}")
 
     env = {
         key.lower(): value
@@ -350,15 +346,13 @@ class Compiler(base.Compiler):
             plat_name = get_platform()
         # sanity check for platforms to prevent obscure errors later.
         if plat_name not in _vcvars_names:
-            raise DistutilsPlatformError(
-                f"--plat-name must be one of {tuple(_vcvars_names)}"
-            )
+            raise PlatformError(f"--plat-name must be one of {tuple(_vcvars_names)}")
 
         plat_spec = _get_vcvars_spec(get_host_platform(), plat_name)
 
         vc_env = _get_vc_env(plat_spec)
         if not vc_env:
-            raise DistutilsPlatformError(
+            raise PlatformError(
                 "Unable to find a compatible Visual Studio installation."
             )
         self._configure(vc_env)
@@ -635,7 +629,7 @@ class Compiler(base.Compiler):
         return "/LIBPATH:" + dir
 
     def runtime_library_dir_option(self, dir):
-        raise DistutilsPlatformError(
+        raise PlatformError(
             "don't know how to set runtime library search path for MSVC"
         )
 
