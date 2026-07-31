@@ -2,18 +2,17 @@ import os
 import sys
 import sysconfig
 import threading
-from distutils.compilers.errors import PlatformError
-from distutils.tests import support
-from distutils.util import get_platform
 
 import pytest
 
+from ...errors import PlatformError
+from ...platform.detect import get_platform
 from .. import msvc
 
 needs_winreg = pytest.mark.skipif('not hasattr(msvc, "winreg")')
 
 
-class Testmsvccompiler(support.TempdirManager):
+class Testmsvccompiler:
     def test_no_compiler(self, monkeypatch):
         # makes sure query_vcvarsall raises
         # a PlatformError if the compiler
