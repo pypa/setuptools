@@ -1,6 +1,7 @@
 """Tests for automatic discovery of modules"""
 
 import os
+from typing import ClassVar
 
 import pytest
 
@@ -14,7 +15,7 @@ class TestModuleFinder:
     def find(self, path, *args, **kwargs):
         return set(ModuleFinder.find(str(path), *args, **kwargs))
 
-    EXAMPLES = {
+    EXAMPLES: ClassVar[dict] = {
         # circumstance: (files, kwargs, expected_modules)
         "simple_folder": (
             ["file.py", "other.py"],
@@ -52,7 +53,7 @@ class TestFlatLayoutModuleFinder:
     def find(self, path, *args, **kwargs):
         return set(FlatLayoutModuleFinder.find(str(path)))
 
-    EXAMPLES = {
+    EXAMPLES: ClassVar[dict] = {
         # circumstance: (files, expected_modules)
         "hidden-files": ([".module.py"], []),
         "private-modules": (["_module.py"], []),

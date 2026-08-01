@@ -31,7 +31,7 @@ def env():
         env = Environment(env_dir)
         os.chmod(env_dir, stat.S_IRWXU)
         subs = 'home', 'lib', 'scripts', 'data', 'egg-base'
-        env.paths = dict((dirname, os.path.join(env_dir, dirname)) for dirname in subs)
+        env.paths = {dirname: os.path.join(env_dir, dirname) for dirname in subs}
         list(map(os.mkdir, env.paths.values()))
         path.build({
             env.paths['home']: {

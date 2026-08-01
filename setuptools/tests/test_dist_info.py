@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 from functools import partial
+from typing import ClassVar
 
 import pytest
 
@@ -92,7 +93,7 @@ class TestWheelCompatibility:
     """
     )
 
-    EGG_INFO_OPTS = [
+    EGG_INFO_OPTS: ClassVar[list[tuple[str, str]]] = [
         # Related: #3088 #2872
         ("", ""),
         (".post", "[egg_info]\ntag_build = post\n"),
@@ -104,7 +105,7 @@ class TestWheelCompatibility:
         ("+local", "[egg_info]\ntag_build = +local\n"),
     ]
 
-    @pytest.mark.parametrize("name", "my-proj my_proj my.proj My.Proj".split())
+    @pytest.mark.parametrize("name", ["my-proj", "my_proj", "my.proj", "My.Proj"])
     @pytest.mark.parametrize("version", ["0.42.13"])
     @pytest.mark.parametrize(("suffix", "cfg"), EGG_INFO_OPTS)
     def test_dist_info_is_the_same_as_in_wheel(
@@ -140,7 +141,7 @@ def run_command_inner(*cmd, **kwargs):
         **kwargs,
     }
     cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *map(str, cmd)]
-    return subprocess.run(cmd, **opts)
+    return subprocess.run(cmd, **opts)  # noqa: PLW1510 # check provided via opts
 
 
 def run_command(*args, **kwargs):

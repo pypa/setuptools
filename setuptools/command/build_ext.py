@@ -37,7 +37,7 @@ else:
 get_config_var("LDSHARED")
 # Not publicly exposed in typeshed distutils stubs, but this is done on purpose
 # See https://github.com/pypa/setuptools/pull/4228#issuecomment-1959856400
-from distutils.sysconfig import _config_vars as _CONFIG_VARS  # noqa: E402
+from distutils.sysconfig import _config_vars as _CONFIG_VARS
 
 
 def _customize_compiler_for_shlib(compiler):
@@ -79,9 +79,7 @@ elif os.name != 'nt':
 def get_abi3_suffix():
     """Return the file extension for an abi3-compliant Extension()"""
     for suffix in EXTENSION_SUFFIXES:
-        if '.abi3' in suffix:  # Unix
-            return suffix
-        elif suffix == '.pyd':  # Windows
+        if '.abi3' in suffix or suffix == '.pyd':  # Unix
             return suffix
     return None
 
@@ -335,7 +333,7 @@ class build_ext(_build_ext):
         )
         # pair each base with the extension
         pairs = itertools.product(ns_ext_bases, self.__get_output_extensions())
-        return list(base + fnext for base, fnext in pairs)
+        return [base + fnext for base, fnext in pairs]
 
     def __get_output_extensions(self):
         yield '.py'

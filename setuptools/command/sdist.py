@@ -26,7 +26,9 @@ def walk_revctrl(dirname='') -> Iterator:
 class sdist(orig.sdist):
     """Smart sdist that finds anything supported by revision control"""
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('formats=', None, "formats for source distribution (comma-separated list)"),
         (
             'keep-temp',
@@ -53,7 +55,7 @@ class sdist(orig.sdist):
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
     negative_opt: ClassVar[dict[str, str]] = {}
 
-    README_EXTENSIONS = ['', '.rst', '.txt', '.md']
+    README_EXTENSIONS: ClassVar[list[str]] = ['', '.rst', '.txt', '.md']
     READMES = tuple(f'README{ext}' for ext in README_EXTENSIONS)
 
     def run(self) -> None:
@@ -98,7 +100,7 @@ class sdist(orig.sdist):
         orig_val = getattr(os, 'link', NoValue)
         try:
             del os.link
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 # best-effort; failure is non-fatal
             pass
         try:
             yield
@@ -169,10 +171,9 @@ class sdist(orig.sdist):
         for f in self.READMES:
             if os.path.exists(f):
                 return
-        else:
-            self.warn(
-                "standard file not found: should have one of " + ', '.join(self.READMES)
-            )
+        self.warn(
+            "standard file not found: should have one of " + ', '.join(self.READMES)
+        )
 
     def make_release_tree(self, base_dir, files) -> None:
         orig.sdist.make_release_tree(self, base_dir, files)
@@ -202,7 +203,7 @@ class sdist(orig.sdist):
         distribution.
         """
         log.info("reading manifest file '%s'", self.manifest)
-        manifest = open(self.manifest, 'rb')
+        manifest = open(self.manifest, 'rb')  # noqa: SIM115 # handle managed explicitly
         for bytes_line in manifest:
             # The manifest must contain UTF-8. See #303.
             try:

@@ -21,8 +21,8 @@ def _have_cython() -> bool:
     cython_impl = 'Cython.Distutils.build_ext'
     try:
         # from (cython_impl) import build_ext
-        __import__(cython_impl, fromlist=['build_ext']).build_ext
-    except Exception:
+        __import__(cython_impl, fromlist=['build_ext']).build_ext  # noqa: B018 # evaluated to trigger validation/side effect
+    except Exception:  # noqa: BLE001 # intentional broad fallback
         return False
     return True
 

@@ -415,7 +415,7 @@ def _ignore_errors(ignore_option_errors: bool):
 
     try:
         yield
-    except Exception as ex:
+    except Exception as ex:  # noqa: BLE001 # intentional broad fallback
         _logger.debug(f"ignored error: {ex.__class__.__name__} - {ex}")
 
 
