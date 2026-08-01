@@ -1,0 +1,1 @@
+Reported empty attribute names in ``tool.setuptools.dynamic`` ``attr`` directives with a clear error.

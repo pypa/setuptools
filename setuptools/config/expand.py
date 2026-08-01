@@ -176,6 +176,9 @@ def read_attr(
     root_dir = root_dir or os.getcwd()
     attrs_path = attr_desc.strip().split('.')
     attr_name = attrs_path.pop()
+    if not attr_name:
+        msg = f"malformed dynamic attr {attr_desc!r}: empty attribute name"
+        raise AttributeError(msg)
     module_name = '.'.join(attrs_path)
     module_name = module_name or '__init__'
     path = _find_module(module_name, package_dir, root_dir)
@@ -185,7 +188,7 @@ def read_attr(
         value = getattr(StaticModule(module_name, spec), attr_name)
         # XXX: Is marking as static contents coming from modules too optimistic?
         return _static.attempt_conversion(value)
-    except Exception:
+    except (AttributeError, SyntaxError, TypeError, ValueError):
         # fallback to evaluate module
         module = _load_spec(spec, module_name)
         return getattr(module, attr_name)
