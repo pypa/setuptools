@@ -287,15 +287,30 @@ class TestClassifiers:
 
 
 class TestImportNames:
-    EXAMPLES = [
-        'import-names = ["hello", "world"]',
-        'import-namespaces = ["hello", "world"]',
-        'dynamic = ["import-names"]',
-        'dynamic = ["import-namespaces"]',
-    ]
+    def test_apply_static_import_names(self, monkeypatch, tmp_path):
+        monkeypatch.chdir(tmp_path)
+        pyproject = Path("pyproject.toml")
+        toml_config = """
+        [project]
+        name = 'proj'
+        version = '42'
+        import-names = ['hello', 'hello._private']
+        import-namespaces = ['world']
+        """
+        pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
+        dist = apply_configuration(Distribution({}), pyproject)
 
-    @pytest.mark.parametrize("example", EXAMPLES)
-    def test_not_implemented(self, monkeypatch, tmp_path, example):
+        assert dist.metadata.import_names == ['hello', 'hello._private']
+        assert dist.metadata.import_namespaces == ['world']
+
+    @pytest.mark.parametrize(
+        "example",
+        (
+            'import-names = ["hello"]\nimport-namespaces = ["hello"]',
+            'import-names = ["hello.world"]',
+        ),
+    )
+    def test_validate_import_name_issues(self, monkeypatch, tmp_path, example):
         monkeypatch.chdir(tmp_path)
         pyproject = Path("pyproject.toml")
         toml_config = f"""
@@ -305,7 +320,8 @@ class TestImportNames:
         {example}
         """
         pyproject.write_text(cleandoc(toml_config), encoding="utf-8")
-        with pytest.raises(NotImplementedError, match='import-names'):
+
+        with pytest.raises(ValueError, match='import-names'):
             apply_configuration(Distribution({}), pyproject)
 
 

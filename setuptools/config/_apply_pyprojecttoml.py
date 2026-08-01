@@ -454,6 +454,8 @@ TOOL_TABLE_CORRESPONDENCE = {
 }
 
 SETUPTOOLS_PATCHES = {
+    "import_names",
+    "import_namespaces",
     "long_description_content_type",
     "project_urls",
     "provides_extras",
@@ -480,6 +482,8 @@ _PREVIOUSLY_DEFINED = {
     "keywords": _attrgetter("metadata.keywords"),
     "classifiers": _attrgetter("metadata.classifiers"),
     "urls": _attrgetter("metadata.project_urls"),
+    "import-names": _attrgetter("metadata.import_names"),
+    "import-namespaces": _attrgetter("metadata.import_namespaces"),
     "entry-points": _get_previous_entrypoints,
     "scripts": _get_previous_scripts,
     "gui-scripts": _get_previous_gui_scripts,
@@ -500,6 +504,8 @@ _RESET_PREVIOUSLY_DEFINED: dict = {
     "keywords": _static.EMPTY_LIST,
     "classifiers": _static.EMPTY_LIST,
     "urls": _static.EMPTY_DICT,
+    "import-names": _static.EMPTY_LIST,
+    "import-namespaces": _static.EMPTY_LIST,
     "entry-points": _static.EMPTY_DICT,
     "scripts": _static.EMPTY_DICT,
     "gui-scripts": _static.EMPTY_DICT,
