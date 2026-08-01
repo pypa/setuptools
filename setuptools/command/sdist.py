@@ -170,7 +170,7 @@ class sdist(orig.sdist):
             if os.path.exists(f):
                 return
         else:
-            self.warn(
+            log.debug(
                 "standard file not found: should have one of " + ', '.join(self.READMES)
             )
 
