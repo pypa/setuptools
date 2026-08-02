@@ -26,9 +26,10 @@ def walk_revctrl(dirname='') -> Iterator:
 class sdist(orig.sdist):
     """Smart sdist that finds anything supported by revision control"""
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    # Match the (narrower) type of the distutils sdist base rather than the
+    # Command base union, which mypy rejects as an incompatible override when
+    # distutils stubs are present (Python < 3.12).
+    user_options: ClassVar[list[tuple[str, str | None, str]]] = [
         ('formats=', None, "formats for source distribution (comma-separated list)"),
         (
             'keep-temp',
