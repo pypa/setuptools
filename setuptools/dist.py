@@ -1069,6 +1069,9 @@ class Distribution(_Distribution):
             else:
                 name = ext.name
             name = name.removesuffix('module')
+            if self.ext_package:
+                # extensions are built into ``ext_package`` (see build_ext)
+                name = f'{self.ext_package}.{name}'
             yield name
 
     def handle_display_options(self, option_order):

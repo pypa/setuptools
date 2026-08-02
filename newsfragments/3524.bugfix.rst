@@ -1,0 +1,3 @@
+``top_level.txt`` now lists the package extensions are built into when
+``ext_package`` is set, rather than the bare extension names, matching the
+names already reported for editable installs.
