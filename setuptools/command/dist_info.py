@@ -7,7 +7,7 @@ import os
 import shutil
 from contextlib import contextmanager
 from pathlib import Path
-from typing import cast
+from typing import ClassVar, cast
 
 from .. import _normalization
 from .._shutil import rmdir as _rm
@@ -25,12 +25,16 @@ class dist_info(Command):
 
     description = "DO NOT CALL DIRECTLY, INTERNAL ONLY: create .dist-info directory"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         (
             'output-dir=',
             'o',
-            "directory inside of which the .dist-info will be"
-            "created [default: top of the source tree]",
+            (
+                "directory inside of which the .dist-info will be"
+                "created [default: top of the source tree]"
+            ),
         ),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
@@ -38,8 +42,8 @@ class dist_info(Command):
         ('keep-egg-info', None, "*TRANSITIONAL* will be removed in the future"),
     ]
 
-    boolean_options = ['tag-date', 'keep-egg-info']
-    negative_opt = {'no-date': 'tag-date'}
+    boolean_options: ClassVar[list[str]] = ['tag-date', 'keep-egg-info']
+    negative_opt: ClassVar[dict[str, str]] = {'no-date': 'tag-date'}
 
     def initialize_options(self):
         self.output_dir = None

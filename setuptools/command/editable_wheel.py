@@ -26,7 +26,7 @@ from itertools import chain, starmap
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import TracebackType
-from typing import TYPE_CHECKING, Protocol, TypeVar, cast
+from typing import TYPE_CHECKING, ClassVar, Protocol, TypeVar, cast
 
 from .. import Command, _normalization, _path, _shutil, errors, namespaces
 from .._path import StrPath
@@ -109,7 +109,9 @@ class editable_wheel(Command):
 
     description = "DO NOT CALL DIRECTLY, INTERNAL ONLY: create PEP 660 editable wheel"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ("dist-dir=", "d", "directory to put final built distributions in"),
         ("dist-info-dir=", "I", "path to a pre-build .dist-info directory"),
         ("mode=", None, cleandoc(_EditableMode.__doc__ or "")),
@@ -302,7 +304,7 @@ class editable_wheel(Command):
     def _safely_run(self, cmd_name: str):
         try:
             return self.run_command(cmd_name)
-        except Exception:
+        except Exception:  # noqa: BLE001 # intentional broad fallback
             SetuptoolsDeprecationWarning.emit(
                 "Customization incompatible with editable install",
                 f"""

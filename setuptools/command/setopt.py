@@ -1,5 +1,6 @@
 import configparser
 import os
+from typing import ClassVar
 
 from .. import Command
 from ..unicode_utils import _cfg_read_utf8_with_fallback
@@ -71,13 +72,15 @@ def edit_config(filename, settings) -> None:
 class option_base(Command):
     """Abstract base class for commands that mess with config files"""
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('global-config', 'g', "save options to the site-wide distutils.cfg file"),
         ('user-config', 'u', "save options to the current user's pydistutils.cfg file"),
         ('filename=', 'f', "configuration file to use (default=setup.cfg)"),
     ]
 
-    boolean_options = [
+    boolean_options: ClassVar[list[str]] = [
         'global-config',
         'user-config',
     ]

@@ -10,7 +10,7 @@ import sys
 from collections.abc import Iterable, Iterator, MutableMapping, Sequence
 from glob import glob
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from more_itertools import partition, unique_everseen
 from packaging.markers import InvalidMarker, Marker
@@ -286,7 +286,7 @@ class Distribution(_Distribution):
     the distribution.
     """
 
-    _DISTUTILS_UNSUPPORTED_METADATA = {
+    _DISTUTILS_UNSUPPORTED_METADATA: ClassVar[dict] = {
         'long_description_content_type': lambda: None,
         'project_urls': dict,
         'provides_extras': dict,  # behaves like an ordered set
@@ -388,7 +388,7 @@ class Distribution(_Distribution):
         self.metadata.extras_require = self.extras_require
 
         if self.extras_require:
-            for extra in self.extras_require.keys():
+            for extra in self.extras_require:
                 # Setuptools allows a weird "<name>:<env markers> syntax for extras
                 extra = extra.split(':')[0]
                 if extra:
@@ -789,7 +789,7 @@ class Distribution(_Distribution):
 
         defined = metadata.entry_points(group=group)
         filtered = itertools.filterfalse(self._removed, defined)
-        loaded = map(lambda e: e.load(), filtered)
+        loaded = (e.load() for e in filtered)
         for ep in sorted(loaded, key=by_order):
             ep(self)
 
@@ -855,8 +855,7 @@ class Distribution(_Distribution):
         for ep in eps:
             self.cmdclass[command] = cmdclass = ep.load()
             return cmdclass
-        else:
-            return _Distribution.get_command_class(self, command)
+        return _Distribution.get_command_class(self, command)
 
     def print_commands(self):
         for ep in metadata.entry_points(group='distutils.commands'):

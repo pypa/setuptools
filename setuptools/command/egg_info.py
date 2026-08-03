@@ -10,13 +10,13 @@ import re
 import sys
 import time
 from collections.abc import Callable
+from typing import ClassVar
 
 import packaging
 import packaging.requirements
 import packaging.version
 
-import setuptools.unicode_utils as unicode_utils
-from setuptools import Command
+from setuptools import Command, unicode_utils
 from setuptools.command import bdist_egg
 from setuptools.command.sdist import sdist, walk_revctrl
 from setuptools.command.setopt import edit_config
@@ -196,20 +196,24 @@ class InfoCommon:
 class egg_info(InfoCommon, Command):
     description = "create a distribution's .egg-info directory"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         (
             'egg-base=',
             'e',
-            "directory containing .egg-info directories"
-            " [default: top of the source tree]",
+            (
+                "directory containing .egg-info directories"
+                " [default: top of the source tree]"
+            ),
         ),
         ('tag-date', 'd', "Add date stamp (e.g. 20050528) to version number"),
         ('tag-build=', 'b', "Specify explicit tag to add to version number"),
         ('no-date', 'D', "Don't include date stamp [default]"),
     ]
 
-    boolean_options = ['tag-date']
-    negative_opt = {
+    boolean_options: ClassVar[list[str]] = ['tag-date']
+    negative_opt: ClassVar[dict[str, str]] = {
         'no-date': 'tag-date',
     }
 
@@ -306,7 +310,7 @@ class egg_info(InfoCommon, Command):
         """
         log.info("writing %s to %s", what, filename)
         data = data.encode("utf-8")
-        f = open(filename, 'wb')
+        f = open(filename, 'wb')  # noqa: SIM115 # handle managed explicitly
         f.write(data)
         f.close()
 

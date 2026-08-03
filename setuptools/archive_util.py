@@ -12,13 +12,13 @@ from ._path import ensure_directory
 from distutils.errors import DistutilsError
 
 __all__ = [
-    "unpack_archive",
-    "unpack_zipfile",
-    "unpack_tarfile",
-    "default_filter",
     "UnrecognizedFormat",
+    "default_filter",
     "extraction_drivers",
+    "unpack_archive",
     "unpack_directory",
+    "unpack_tarfile",
+    "unpack_zipfile",
 ]
 
 
@@ -61,8 +61,7 @@ def unpack_archive(
             continue
         else:
             return
-    else:
-        raise UnrecognizedFormat(f"Not a recognized archive type: {filename}")
+    raise UnrecognizedFormat(f"Not a recognized archive type: {filename}")
 
 
 def unpack_directory(filename, extract_dir, progress_filter=default_filter) -> None:
@@ -195,7 +194,7 @@ def unpack_tarfile(filename, extract_dir, progress_filter=default_filter) -> boo
     of the `progress_filter` argument.
     """
     try:
-        tarobj = tarfile.open(filename)
+        tarobj = tarfile.open(filename)  # noqa: SIM115 # handle managed explicitly
     except tarfile.TarError as e:
         raise UnrecognizedFormat(
             f"{filename} is not a compressed or uncompressed tar file"

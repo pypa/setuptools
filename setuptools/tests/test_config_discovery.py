@@ -1,7 +1,7 @@
 import os
 import sys
 from configparser import ConfigParser
-from typing import cast
+from typing import ClassVar, cast
 
 import jaraco.path
 import pytest
@@ -44,7 +44,7 @@ class TestDiscoverPackagesAndPyModules:
     similarly to explicit configuration for the simple scenarios.
     """
 
-    OPTIONS = {
+    OPTIONS: ClassVar[dict] = {
         # Different options according to the circumstance being tested
         "explicit-src": {"package_dir": {"": "src"}, "packages": ["pkg"]},
         "variation-lib": {
@@ -58,7 +58,7 @@ class TestDiscoverPackagesAndPyModules:
         "automatic-single_module": {},
         "automatic-namespace": {},
     }
-    FILES = {
+    FILES: ClassVar[dict] = {
         "src": ["src/pkg/__init__.py", "src/pkg/main.py"],
         "lib": ["lib/pkg/__init__.py", "lib/pkg/main.py"],
         "flat": ["pkg/__init__.py", "pkg/main.py"],
@@ -116,7 +116,7 @@ class TestDiscoverPackagesAndPyModules:
             assert "build" not in files
             assert "dist" not in files
 
-    PURPOSEFULLY_EMPY = {
+    PURPOSEFULLY_EMPY: ClassVar[dict] = {
         "setup.cfg": DALS(
             """
             [metadata]
@@ -252,7 +252,7 @@ class TestDiscoverPackagesAndPyModules:
 class TestNoConfig:
     DEFAULT_VERSION = "0.0.0"  # Default version given by setuptools
 
-    EXAMPLES = {
+    EXAMPLES: ClassVar[dict] = {
         "pkg1": ["src/pkg1.py"],
         "pkg2": ["src/pkg2/__init__.py"],
         "pkg3": ["src/pkg3/__init__.py", "src/pkg3-stubs/__init__.py"],

@@ -10,7 +10,7 @@ import warnings
 from collections.abc import Callable
 from concurrent import futures
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 from zipfile import ZipFile
 
 import pytest
@@ -675,7 +675,7 @@ class TestBuildMetaBackend:
         build_backend = self.get_build_backend()
         build_backend.build_sdist("temp")
 
-    _relative_path_import_files = {
+    _relative_path_import_files: ClassVar[dict] = {
         'setup.py': DALS(
             """
             __import__('setuptools').setup(
@@ -699,7 +699,7 @@ class TestBuildMetaBackend:
         with pytest.raises(ImportError, match="^No module named 'hello'$"):
             build_backend.build_sdist("temp")
 
-    _simple_pyproject_example = {
+    _simple_pyproject_example: ClassVar[dict] = {
         "pyproject.toml": DALS(
             """
             [project]
@@ -865,7 +865,7 @@ class TestBuildMetaBackend:
         # setup_requires, it will fail.
         build_backend.prepare_metadata_for_build_wheel(dist_dir)
 
-    _sys_argv_0_passthrough = {
+    _sys_argv_0_passthrough: ClassVar[dict] = {
         'setup.py': DALS(
             """
             import os
@@ -889,7 +889,7 @@ class TestBuildMetaBackend:
         with pytest.raises(AssertionError):
             build_backend.build_sdist("temp")
 
-    _setup_py_file_abspath = {
+    _setup_py_file_abspath: ClassVar[dict] = {
         'setup.py': DALS(
             """
             import os

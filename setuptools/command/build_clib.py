@@ -33,7 +33,7 @@ class build_clib(orig.build_clib):
                     "'sources' must be present and must be "
                     "a list of source filenames"
                 )
-            sources = sorted(list(sources))
+            sources = sorted(sources)
 
             log.info("building '%s' library", lib_name)
 

@@ -26,14 +26,14 @@ from .warnings import SetuptoolsDeprecationWarning
 import distutils.core
 
 __all__ = [
-    'setup',
-    'Distribution',
     'Command',
+    'Distribution',
     'Extension',
     'Require',
     'SetuptoolsDeprecationWarning',
-    'find_packages',
     'find_namespace_packages',
+    'find_packages',
+    'setup',
 ]
 
 _CommandT = TypeVar("_CommandT", bound="_Command")
@@ -64,7 +64,7 @@ def _install_setup_requires(attrs):
             """Ignore ``pyproject.toml``, they are not related to setup_requires"""
             try:
                 cfg, _toml = super()._split_standard_project_metadata(filenames)
-            except Exception:
+            except Exception:  # noqa: BLE001 # intentional broad fallback
                 return filenames, ()
             return cfg, ()
 

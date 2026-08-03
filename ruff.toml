@@ -11,18 +11,13 @@ extend-select = [
 	"C901", # complex-structure
 	"I", # isort
 	"PERF401", # manual-list-comprehension
+	"UP", # pyupgrade (Code modernization for strings, annotations, conditions, ...)
 
 	# Ensure modern type annotation syntax and best practices
 	# Not including those covered by type-checkers or exclusive to Python 3.11+
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
 	"PYI", # flake8-pyi
-	"UP006", # non-pep585-annotation
-	"UP007", # non-pep604-annotation
-	"UP010", # unnecessary-future-import
-	"UP035", # deprecated-import
-	"UP037", # quoted-annotation
-	"UP043", # unnecessary-default-type-args
 
 	# local
 	"ANN2", # missing-return-type-*
@@ -39,23 +34,21 @@ extend-select = [
 ]
 ignore = [
 	# upstream
+	"UP015", # redundant-open-modes, explicit is preferred
 
 	# Typeshed rejects complex or non-literal defaults for maintenance and testing reasons,
 	# irrelevant to this project.
 	"PYI011", # typed-argument-default-in-stub
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
-	"E111",
-	"E114",
-	"E117",
 	"D206",
 	"D300",
-	"Q000",
-	"Q001",
-	"Q002",
-	"Q003",
 	"COM812",
 	"COM819",
+
+	# unnecessary-collection-call: retain the dict(a=1) call style rather than
+	# forcing string-keyed literals. See jaraco/skeleton#210.
+	"C408",
 
 	# local
 	"PERF203", # try-except-in-loop, micro-optimisation with many false-positive. Worth checking but don't block CI
@@ -64,7 +57,6 @@ ignore = [
 	"PT012", # pytest-raises-with-multiple-statements, avoid extra dummy methods for a few lines, sometimes we explicitly assert in case of no error
 	"TRY003", # raise-vanilla-args, avoid multitude of exception classes
 	"TRY301", # raise-within-try, it's handy
-	"UP015", # redundant-open-modes, explicit is preferred
 	# Only enforcing return type annotations for public functions
 	"ANN202", # missing-return-type-private-function
 ]
