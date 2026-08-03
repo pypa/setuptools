@@ -560,10 +560,11 @@ class build_ext(Command):
         macros = ext.define_macros[:]
         for undef in ext.undef_macros:
             macros.append((undef,))
-
+            
+        ext_build_temp = os.path.join(self.build_temp, *ext.name.split('.'))
         objects = self.compiler.compile(
             sources,
-            output_dir=self.build_temp,
+            output_dir=ext_build_temp,
             macros=macros,
             include_dirs=ext.include_dirs,
             debug=self.debug,
