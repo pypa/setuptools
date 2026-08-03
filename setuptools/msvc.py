@@ -1460,7 +1460,7 @@ class EnvironmentInfo:
             os.path.join(prefix, arch_subdir, crt_dir, vcruntime)
             for (prefix, crt_dir) in itertools.product(prefixes, crt_dirs)
         )
-        return next(filter(os.path.isfile, candidate_paths), None)  # type: ignore[arg-type] #python/mypy#12682
+        return next(filter(os.path.isfile, candidate_paths), None)
 
     def return_env(self, exists: bool = True) -> _EnvironmentDict:
         """

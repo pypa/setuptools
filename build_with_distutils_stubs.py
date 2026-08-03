@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 
 from setuptools._path import StrPath
-from setuptools.build_meta import *  # noqa: F403 # expose everything
+from setuptools.build_meta import *  # expose everything
 from setuptools.build_meta import (
     _ConfigSettings,
     build_editable as _build_editable,

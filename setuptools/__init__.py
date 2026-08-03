@@ -109,7 +109,7 @@ def setup(**attrs) -> Distribution:
     _install_setup_requires(attrs)
     # Override return type of distutils.core.Distribution with setuptools.dist.Distribution
     # (implicitly implemented via `setuptools.monkey.patch_all`).
-    return distutils.core.setup(**attrs)  # type: ignore[return-value]
+    return distutils.core.setup(**attrs)
 
 
 setup.__doc__ = distutils.core.setup.__doc__
@@ -162,7 +162,6 @@ class Command(_Command):
     command_consumes_arguments = False
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    dry_run = False  # type: ignore[assignment] # pyright: ignore[reportAssignmentType] (until #4689; see #4872)
     """
     For compatibility with vendored bdist_wheel.
     https://github.com/pypa/setuptools/pull/4872/files#r1986395142
