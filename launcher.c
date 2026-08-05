@@ -247,7 +247,7 @@ char* join_executable_and_args(char *executable, char **args, int argc)
 
 int run(int argc, char **argv, int is_gui) {
 
-    char python[256];   /* python executable's filename*/
+    char python[257];   /* python executable's filename*/
     char *pyopt;        /* Python option */
     char script[256];   /* the script's filename */
 
@@ -256,7 +256,8 @@ int run(int argc, char **argv, int is_gui) {
     char **newargs, **newargsp, **parsedargs; /* argument array for exec */
     char *ptr, *end;    /* working pointers for string manipulation */
     char *cmdline;
-    int i, parsedargc;              /* loop counter */
+    int i, parsedargc;  /* loop counter */
+    int bytes_read;
 
     /* compute script name from our .exe name*/
     GetModuleFileNameA(NULL, script, sizeof(script));
@@ -282,13 +283,17 @@ int run(int argc, char **argv, int is_gui) {
     if (scriptf == -1) {
         return fail("Cannot open %s\n", script);
     }
-    end = python + read(scriptf, python, sizeof(python));
+    bytes_read = read(scriptf, python, sizeof(python) - 1);
     close(scriptf);
+    if (bytes_read < 0) {
+        return fail("Cannot read %s\n", script);
+    }
+    python[bytes_read] = '\0';
 
-    ptr = python-1;
-    while(++ptr < end && *ptr && *ptr!='\n' && *ptr!='\r') {;}
+    ptr = python;
+    while (*ptr && *ptr!='\n' && *ptr!='\r') ptr++;
 
-    *ptr-- = '\0';
+    *ptr = '\0';
 
     if (strncmp(python, "#!", 2)) {
         /* default to python.exe if no #! header */
