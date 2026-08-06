@@ -1,0 +1,1 @@
+``build_ext`` no longer fails when cross-compiling with a compiler other than MSVC (such as MinGW). ``Compiler`` now provides a no-op ``initialize()`` that non-MSVC compilers inherit. (pypa/distutils#399)

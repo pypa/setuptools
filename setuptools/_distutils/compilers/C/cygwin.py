@@ -12,22 +12,20 @@ import copy
 import os
 import pathlib
 import shlex
+import subprocess
 import sys
 import warnings
-from subprocess import check_output
+from sysconfig import get_config_vars
 
-from ...errors import (
-    DistutilsExecError,
-    DistutilsPlatformError,
-)
-from ...file_util import write_file
-from ...sysconfig import get_config_vars
-from ...version import LooseVersion, suppress_known_deprecation
+import packaging.version
+
+from ..errors import Error, PlatformError
+from ..logging import get_logger
+from ..platform.detect import is_mingw
 from . import unix
-from .errors import (
-    CompileError,
-    Error,
-)
+from .errors import CompileError
+
+log = get_logger(__name__)
 
 
 def get_msvcr():
@@ -45,6 +43,7 @@ class Compiler(unix.Compiler):
     """Handles the Cygwin port of the GNU C compiler to Windows."""
 
     compiler_type = 'cygwin'
+    description = "Cygwin port of GNU C Compiler for Win32"
     obj_extension = ".o"
     static_lib_extension = ".a"
     shared_lib_extension = ".dll.a"
@@ -78,10 +77,10 @@ class Compiler(unix.Compiler):
         shared_option = "-shared"
 
         self.set_executables(
-            compiler=f'{self.cc} -mcygwin -O -Wall',
-            compiler_so=f'{self.cc} -mcygwin -mdll -O -Wall',
-            compiler_cxx=f'{self.cxx} -mcygwin -O -Wall',
-            compiler_so_cxx=f'{self.cxx} -mcygwin -mdll -O -Wall',
+            compiler=f'{self.cc} -mcygwin -O1 -Wall',
+            compiler_so=f'{self.cc} -mcygwin -mdll -O1 -Wall',
+            compiler_cxx=f'{self.cxx} -mcygwin -O1 -Wall',
+            compiler_so_cxx=f'{self.cxx} -mcygwin -mdll -O1 -Wall',
             linker_exe=f'{self.cc} -mcygwin',
             linker_so=f'{self.linker_dll} -mcygwin {shared_option}',
             linker_exe_cxx=f'{self.cxx} -mcygwin',
@@ -102,31 +101,30 @@ class Compiler(unix.Compiler):
             DeprecationWarning,
             stacklevel=2,
         )
-        with suppress_known_deprecation():
-            return LooseVersion("11.2.0")
+        return packaging.version.Version("11.2.0")
 
     def _compile(self, obj, src, ext, cc_args, extra_postargs, pp_opts):
         """Compiles the source by spawning GCC and windres if needed."""
         if ext in ('.rc', '.res'):
             # gcc needs '.res' and '.rc' compiled to object files !!!
             try:
-                self.spawn(["windres", "-i", src, "-o", obj])
-            except DistutilsExecError as msg:
+                self.call(["windres", "-i", src, "-o", obj])
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise CompileError(msg)
         else:  # for other files use the C-compiler
             try:
                 if self.detect_language(src) == 'c++':
-                    self.spawn(
+                    self.call(
                         self.compiler_so_cxx
                         + cc_args
                         + [src, '-o', obj]
                         + extra_postargs
                     )
                 else:
-                    self.spawn(
+                    self.call(
                         self.compiler_so + cc_args + [src, '-o', obj] + extra_postargs
                     )
-            except DistutilsExecError as msg:
+            except (subprocess.CalledProcessError, OSError) as msg:
                 raise CompileError(msg)
 
     def link(
@@ -172,7 +170,7 @@ class Compiler(unix.Compiler):
             # where are the object files
             temp_dir = os.path.dirname(objects[0])
             # name of dll to give the helper files the same base name
-            (dll_name, dll_extension) = os.path.splitext(
+            (dll_name, _dll_extension) = os.path.splitext(
                 os.path.basename(output_filename)
             )
 
@@ -182,7 +180,8 @@ class Compiler(unix.Compiler):
             # Generate .def file
             contents = [f"LIBRARY {os.path.basename(output_filename)}", "EXPORTS"]
             contents.extend(export_symbols)
-            self.execute(write_file, (def_file, contents), f"writing {def_file}")
+            log.info("writing %s", def_file)
+            pathlib.Path(def_file).write_text('\n'.join(contents) + '\n')
 
             # next add options for def-file
 
@@ -247,6 +246,7 @@ class MinGW32Compiler(Compiler):
     """Handles the Mingw32 port of the GNU C compiler to Windows."""
 
     compiler_type = 'mingw32'
+    description = "Mingw32 port of GNU C Compiler for Win32"
 
     def __init__(self, verbose=False, force=False):
         super().__init__(verbose, force)
@@ -257,18 +257,25 @@ class MinGW32Compiler(Compiler):
             raise Error('Cygwin gcc cannot be used with --compiler=mingw32')
 
         self.set_executables(
-            compiler=f'{self.cc} -O -Wall',
-            compiler_so=f'{self.cc} -shared -O -Wall',
-            compiler_so_cxx=f'{self.cxx} -shared -O -Wall',
-            compiler_cxx=f'{self.cxx} -O -Wall',
+            compiler=f'{self.cc} -O1 -Wall',
+            compiler_so=f'{self.cc} -shared -O1 -Wall',
+            compiler_so_cxx=f'{self.cxx} -shared -O1 -Wall',
+            compiler_cxx=f'{self.cxx} -O1 -Wall',
             linker_exe=f'{self.cc}',
             linker_so=f'{self.linker_dll} {shared_option}',
             linker_exe_cxx=f'{self.cxx}',
             linker_so_cxx=f'{self.linker_dll_cxx} {shared_option}',
         )
 
+    def configure_system(self) -> None:
+        # Only apply the interpreter's Unix-style build configuration when
+        # actually running under a mingw Python; on an MSVC Python those
+        # settings don't apply.
+        if is_mingw():
+            super().configure_system()
+
     def runtime_library_dir_option(self, dir):
-        raise DistutilsPlatformError(_runtime_library_dirs_msg)
+        raise PlatformError(_runtime_library_dirs_msg)
 
 
 # Because these compilers aren't configured in Python's pyconfig.h file by
@@ -301,7 +308,7 @@ def check_config_h():
     # XXX since this function also checks sys.version, it's not strictly a
     # "pyconfig.h" check -- should probably be renamed...
 
-    from distutils import sysconfig
+    import sysconfig
 
     # if sys.version contains GCC then python was compiled with GCC, and the
     # pyconfig.h file should be OK
@@ -331,7 +338,7 @@ def check_config_h():
 
 def is_cygwincc(cc: str | shlex._ShlexInstream) -> bool:
     """Try to determine if the compiler that would be used is from cygwin."""
-    out_string = check_output(shlex.split(cc) + ['-dumpmachine'])
+    out_string = subprocess.check_output(shlex.split(cc) + ['-dumpmachine'])
     return out_string.strip().endswith(b'cygwin')
 
 

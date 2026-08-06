@@ -57,7 +57,7 @@ setup might look like this::
            foo.py
            bar.py
 
-and the setup script might be  ::
+and the setup script might be ::
 
    from distutils.core import setup
    setup(name='foobar',
@@ -82,7 +82,7 @@ can just tell the Distutils to process modules from the root package, and that
 works the same as any other package (except that you don't have to have an
 :file:`__init__.py` file).
 
-The setup script from the last example could also be written as  ::
+The setup script from the last example could also be written as ::
 
    from distutils.core import setup
    setup(name='foobar',
@@ -142,7 +142,7 @@ need to use the ``package_dir`` option again.  For example, if the
                     foo.py
                     bar.py
 
-an appropriate setup script would be  ::
+an appropriate setup script would be ::
 
    from distutils.core import setup
    setup(name='foobar',
@@ -160,7 +160,7 @@ root::
            foo.py
            bar.py
 
-in which case your setup script would be  ::
+in which case your setup script would be ::
 
    from distutils.core import setup
    setup(name='foobar',
@@ -187,7 +187,7 @@ figure out which directories correspond to Python packages by looking for
                               __init__.py
                               blah.py
 
-then the corresponding setup script would be  ::
+then the corresponding setup script would be ::
 
    from distutils.core import setup
    setup(name='foobar',
@@ -211,7 +211,7 @@ single extension module in a single C source file, is::
            foo.c
 
 If the ``foo`` extension belongs in the root package, the setup script for
-this could be  ::
+this could be ::
 
    from distutils.core import setup
    from distutils.extension import Extension
@@ -322,7 +322,7 @@ You can read back this static file, by using the
     'Easily download, build, install, upgrade, and uninstall Python packages'
 
 Notice that the class can also be instantiated with a metadata file path to
-loads its values::
+load its values::
 
     >>> pkg_info_path = 'distribute-0.6.8-py2.7.egg-info'
     >>> DistributionMetadata(pkg_info_path).name

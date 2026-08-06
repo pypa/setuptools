@@ -1,0 +1,1 @@
+``Extension`` is now a dataclass, exposing type annotations for its constructor arguments so subclasses (e.g. in Setuptools) can inherit them without redeclaring each parameter. Passing unknown keyword arguments is now deprecated. (pypa/distutils#373)

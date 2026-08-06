@@ -129,8 +129,8 @@ class VersionPredicate:
 
     def __str__(self):
         if self.pred:
-            seq = [cond + " " + str(ver) for cond, ver in self.pred]
-            return self.name + " (" + ", ".join(seq) + ")"
+            seq = ", ".join(f"{cond} {ver}" for cond, ver in self.pred)
+            return f"{self.name} ({seq})"
         else:
             return self.name
 

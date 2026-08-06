@@ -1,0 +1,1 @@
+The Cygwin and MinGW compilers now pass ``-O1`` instead of a bare ``-O``. The two are equivalent to GCC, but ``cc1`` rejected the bare form when building 32-bit extensions with ``-m32``. -- by :user:`dchaudhari7177`

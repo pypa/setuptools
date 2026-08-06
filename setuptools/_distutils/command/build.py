@@ -8,7 +8,7 @@ import os
 import sys
 import sysconfig
 from collections.abc import Callable
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from ..ccompiler import show_compilers
 from ..core import Command
@@ -19,7 +19,9 @@ from ..util import get_platform
 class build(Command):
     description = "build everything needed to install"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('build-base=', 'b', "base directory for build library"),
         ('build-purelib=', None, "build directory for platform-neutral distributions"),
         ('build-platlib=', None, "build directory for platform-specific distributions"),
@@ -148,7 +150,7 @@ class build(Command):
     def has_scripts(self) -> bool:
         return self.distribution.has_scripts()
 
-    sub_commands = [
+    sub_commands: ClassVar[list[tuple[str, Callable[[Any], bool] | None]]] = [
         ('build_py', has_pure_modules),
         ('build_clib', has_c_libraries),
         ('build_ext', has_ext_modules),

@@ -101,8 +101,7 @@ class TestCore:
         distutils.core.run_setup(setup_py)
 
         output = sys.stdout.getvalue()
-        if output.endswith("\n"):
-            output = output[:-1]
+        output = output.removesuffix("\n")
         assert cwd == output
 
     def test_run_setup_within_if_main(self, temp_file):

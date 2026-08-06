@@ -1,0 +1,1 @@
+``customize_compiler`` now asserts that the compiler-related config variables (``CC``, ``CXX``, ``CFLAGS``, etc.) resolve to strings, raising ``AssertionError`` if any are unexpectedly ``None`` rather than failing later with a less clear error. (pypa/distutils#363)
