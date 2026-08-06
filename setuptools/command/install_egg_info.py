@@ -1,4 +1,5 @@
 import os
+from typing import ClassVar
 
 from setuptools import Command, namespaces
 from setuptools.archive_util import unpack_archive
@@ -13,7 +14,9 @@ class install_egg_info(namespaces.Installer, Command):
 
     description = "Install an .egg-info directory for the package"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('install-dir=', 'd', "directory to install to"),
     ]
 

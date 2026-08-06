@@ -21,7 +21,7 @@ def ensure_valid(ep):
     construction.
     """
     try:
-        ep.extras
+        ep.extras  # noqa: B018 # evaluated to trigger validation/side effect
     except (AttributeError, AssertionError) as ex:
         # Why both? See https://github.com/python/importlib_metadata/issues/488
         msg = (

@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import urlopen
 
-__all__ = ["DOWNLOAD_DIR", "retrieve_file", "output_file", "urls_from_file"]
+__all__ = ["DOWNLOAD_DIR", "output_file", "retrieve_file", "urls_from_file"]
 
 
 NAME_REMOVE = ("http://", "https://", "github.com/", "/raw/")

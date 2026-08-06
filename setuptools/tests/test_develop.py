@@ -25,11 +25,10 @@ INIT_PY = """print "foo"
 
 @pytest.fixture
 def temp_user(monkeypatch):
-    with contexts.tempdir() as user_base:
-        with contexts.tempdir() as user_site:
-            monkeypatch.setattr('site.USER_BASE', user_base)
-            monkeypatch.setattr('site.USER_SITE', user_site)
-            yield
+    with contexts.tempdir() as user_base, contexts.tempdir() as user_site:
+        monkeypatch.setattr('site.USER_BASE', user_base)
+        monkeypatch.setattr('site.USER_SITE', user_site)
+        yield
 
 
 @pytest.fixture
@@ -58,9 +57,8 @@ class TestNamespaces:
             '--install-dir',
             str(target),
         ]
-        with src_dir.as_cwd():
-            with paths_on_pythonpath([str(target)]):
-                subprocess.check_call(develop_cmd)
+        with src_dir.as_cwd(), paths_on_pythonpath([str(target)]):
+            subprocess.check_call(develop_cmd)
 
     @pytest.mark.xfail(reason="pkg_resources has been removed")
     @pytest.mark.skipif(

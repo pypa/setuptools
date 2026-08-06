@@ -16,7 +16,7 @@ import warnings
 from collections.abc import Iterable, Sequence
 from email.generator import BytesGenerator
 from glob import iglob
-from typing import Literal, cast
+from typing import ClassVar, Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
 from packaging import tags, version as _packaging_version
@@ -135,24 +135,30 @@ def safer_version(version: str) -> str:
 class bdist_wheel(Command):
     description = "create a wheel distribution"
 
-    supported_compressions = {
+    supported_compressions: ClassVar[dict[str, int]] = {
         "stored": ZIP_STORED,
         "deflated": ZIP_DEFLATED,
     }
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ("bdist-dir=", "b", "temporary directory for creating the distribution"),
         (
             "plat-name=",
             "p",
-            "platform name to embed in generated filenames "
-            f"[default: {get_platform(None)}]",
+            (
+                "platform name to embed in generated filenames "
+                f"[default: {get_platform(None)}]"
+            ),
         ),
         (
             "keep-temp",
             "k",
-            "keep the pseudo-installation tree around after "
-            "creating the distribution archive",
+            (
+                "keep the pseudo-installation tree around after "
+                "creating the distribution archive"
+            ),
         ),
         ("dist-dir=", "d", "directory to put final built distributions in"),
         ("skip-build", None, "skip rebuilding everything (for testing/debugging)"),
@@ -185,9 +191,11 @@ class bdist_wheel(Command):
         (
             "build-number=",
             None,
-            "Build number for this particular version. "
-            "As specified in PEP-0427, this must start with a digit. "
-            "[default: None]",
+            (
+                "Build number for this particular version. "
+                "As specified in PEP-0427, this must start with a digit. "
+                "[default: None]"
+            ),
         ),
         (
             "py-limited-api=",
@@ -197,13 +205,20 @@ class bdist_wheel(Command):
         (
             "dist-info-dir=",
             None,
-            "directory where a pre-generated dist-info can be found (e.g. as a "
-            "result of calling the PEP517 'prepare_metadata_for_build_wheel' "
-            "method)",
+            (
+                "directory where a pre-generated dist-info can be found (e.g. as a "
+                "result of calling the PEP517 'prepare_metadata_for_build_wheel' "
+                "method)"
+            ),
         ),
     ]
 
-    boolean_options = ["keep-temp", "skip-build", "relative", "universal"]
+    boolean_options: ClassVar[list[str]] = [
+        "keep-temp",
+        "skip-build",
+        "relative",
+        "universal",
+    ]
 
     def initialize_options(self) -> None:
         self.bdist_dir: str | None = None
@@ -468,7 +483,7 @@ class bdist_wheel(Command):
         for impl in impl_tag.split("."):
             for abi in abi_tag.split("."):
                 for plat in plat_tag.split("."):
-                    msg["Tag"] = "-".join((impl, abi, plat))
+                    msg["Tag"] = f"{impl}-{abi}-{plat}"
 
         wheelfile_path = os.path.join(wheelfile_base, "WHEEL")
         log.info(f"creating {wheelfile_path}")

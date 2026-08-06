@@ -294,7 +294,7 @@ class ConfigHandler(Generic[Target]):
 
         try:
             parsed = self.parsers.get(option_name, lambda x: x)(value)
-        except (Exception,) * self.ignore_option_errors:
+        except (Exception,) * self.ignore_option_errors:  # noqa: B030 # dynamic exception tuple (0 or 1 members)
             return
 
         simple_setter = functools.partial(target_obj.__setattr__, option_name)
@@ -522,7 +522,7 @@ class ConfigHandler(Generic[Target]):
 class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
     section_prefix = 'metadata'
 
-    aliases = {
+    aliases: ClassVar[dict[str, str]] = {
         'home_page': 'url',
         'summary': 'description',
         'classifier': 'classifiers',

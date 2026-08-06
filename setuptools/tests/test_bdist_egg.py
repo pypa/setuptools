@@ -49,7 +49,7 @@ class Test:
         assert re.match(r'foo-0.0.0-py[23].\d+.egg$', content)
 
     @pytest.mark.xfail(
-        os.environ.get('PYTHONDONTWRITEBYTECODE', False),
+        bool(os.environ.get('PYTHONDONTWRITEBYTECODE')),
         reason="Byte code disabled",
     )
     @pytest.mark.usefixtures("user_override")
@@ -68,6 +68,6 @@ class Test:
         [dist_name] = os.listdir('dist')
         dist_filename = os.path.join('dist', dist_name)
         zip = zipfile.ZipFile(dist_filename)
-        names = list(zi.filename for zi in zip.filelist)
+        names = [zi.filename for zi in zip.filelist]
         assert 'hi.pyc' in names
         assert 'hi.py' not in names

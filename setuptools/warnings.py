@@ -47,7 +47,7 @@ class SetuptoolsWarning(UserWarning):
         due = date(*due_date) if due_date else None
 
         text = cls._format(summary_, details_, due, see_url or docs_url, kwargs)
-        if due and due < date.today() and _should_enforce():
+        if due and due < date.today() and _should_enforce():  # noqa: DTZ011 # local date intended for due-date comparison
             raise cls(text)
         warnings.warn(text, cls, stacklevel=stacklevel + 1)
 
@@ -61,7 +61,7 @@ class SetuptoolsWarning(UserWarning):
         format_args: dict | None = None,
     ) -> str:
         """Private: reserved for ``setuptools`` internal use only"""
-        today = date.today()
+        today = date.today()  # noqa: DTZ011 # local date intended for due-date comparison
         summary = cleandoc(summary).format_map(format_args or {})
         possible_parts = [
             cleandoc(details).format_map(format_args or {}),
@@ -82,7 +82,7 @@ class SetuptoolsWarning(UserWarning):
         parts = [x for x in possible_parts if x]
         if parts:
             body = indent(_TEMPLATE.format(details="\n".join(parts)), _INDENT)
-            return "\n".join([summary, "!!\n", body, "\n!!"])
+            return f"{summary}\n!!\n\n{body}\n\n!!"
         return summary
 
 
