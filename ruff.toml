@@ -29,12 +29,13 @@ ignore = [
 	"COM812",
 	"COM819",
 
-	# unnecessary-collection-call: retain the dict(a=1) call style rather than
-	# forcing string-keyed literals. See jaraco/skeleton#210.
-	"C408",
-
 	# local
 ]
+
+[lint.flake8-comprehensions]
+# Retain the elegant dict(a=1) keyword-call style; C408 still flags dict()
+# and dict([...]). See jaraco/skeleton#210.
+allow-dict-calls-with-keyword-arguments = true
 
 [format]
 # Enable preview to get hugged parenthesis unwrapping and other nice surprises
