@@ -233,6 +233,9 @@ class editable_wheel(Command):
         build_py = cast(build_py_cls, dist.get_command_obj("build_py"))
         build_py.compile = False
         build_py.existing_egg_info_dir = self._find_egg_info_dir()
+        build_py._strict_editable = (
+            self.mode or ""
+        ).lower() == _EditableMode.STRICT.value
 
         self._set_editable_mode()
 
