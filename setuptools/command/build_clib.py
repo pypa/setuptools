@@ -40,7 +40,7 @@ class build_clib(orig.build_clib):
             # Make sure everything is the correct type.
             # obj_deps should be a dictionary of keys as sources
             # and a list/tuple of files that are its dependencies.
-            obj_deps = build_info.get('obj_deps', dict())
+            obj_deps = build_info.get('obj_deps', {})
             if not isinstance(obj_deps, dict):
                 raise DistutilsSetupError(
                     f"in 'libraries' option (library '{lib_name}'), "
@@ -51,7 +51,7 @@ class build_clib(orig.build_clib):
 
             # Get the global dependencies that are specified by the '' key.
             # These will go into every source's dependency list.
-            global_deps = obj_deps.get('', list())
+            global_deps = obj_deps.get('', [])
             if not isinstance(global_deps, (list, tuple)):
                 raise DistutilsSetupError(
                     f"in 'libraries' option (library '{lib_name}'), "
@@ -64,7 +64,7 @@ class build_clib(orig.build_clib):
             for source in sources:
                 src_deps = [source]
                 src_deps.extend(global_deps)
-                extra_deps = obj_deps.get(source, list())
+                extra_deps = obj_deps.get(source, [])
                 if not isinstance(extra_deps, (list, tuple)):
                     raise DistutilsSetupError(
                         f"in 'libraries' option (library '{lib_name}'), "
