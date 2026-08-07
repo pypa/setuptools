@@ -8,7 +8,6 @@ import os
 import pathlib
 import sys
 import sysconfig as stdlib_sysconfig
-import unittest.mock as mock
 from copy import copy
 from distutils import sysconfig, util
 from distutils.errors import DistutilsByteCompileError, DistutilsPlatformError
@@ -24,6 +23,7 @@ from distutils.util import (
     split_quoted,
     strtobool,
 )
+from unittest import mock
 
 import pytest
 

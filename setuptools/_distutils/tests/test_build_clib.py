@@ -10,7 +10,7 @@ import pytest
 
 class TestBuildCLib(support.TempdirManager):
     def test_check_library_dist(self):
-        pkg_dir, dist = self.create_dist()
+        _pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
 
         # 'libraries' option must be a list
@@ -43,7 +43,7 @@ class TestBuildCLib(support.TempdirManager):
         cmd.check_library_list(libs)
 
     def test_get_source_files(self):
-        pkg_dir, dist = self.create_dist()
+        _pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
 
         # "in 'libraries' option 'sources' must be present and must be
@@ -69,7 +69,7 @@ class TestBuildCLib(support.TempdirManager):
         assert cmd.get_source_files() == ['a', 'b', 'c', 'd']
 
     def test_build_libraries(self):
-        pkg_dir, dist = self.create_dist()
+        _pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
 
         class FakeCompiler:
@@ -85,14 +85,14 @@ class TestBuildCLib(support.TempdirManager):
         with pytest.raises(DistutilsSetupError):
             cmd.build_libraries(lib)
 
-        lib = [('name', {'sources': list()})]
+        lib = [('name', {'sources': []})]
         cmd.build_libraries(lib)
 
-        lib = [('name', {'sources': tuple()})]
+        lib = [('name', {'sources': ()})]
         cmd.build_libraries(lib)
 
     def test_finalize_options(self):
-        pkg_dir, dist = self.create_dist()
+        _pkg_dir, dist = self.create_dist()
         cmd = build_clib(dist)
 
         cmd.include_dirs = 'one-dir'

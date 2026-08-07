@@ -23,9 +23,9 @@ API Reference
 
 
 The :mod:`distutils.core` module is the only module that needs to be installed
-to use the Distutils. It provides the :func:`setup` (which is called from the
-setup script). Indirectly provides the  :class:`distutils.dist.Distribution` and
-:class:`distutils.cmd.Command` class.
+to use the Distutils. It provides the :func:`setup` function (which is called
+from the setup script) and indirectly provides the
+:class:`distutils.dist.Distribution` and :class:`distutils.cmd.Command` class.
 
 
 .. function:: setup(arguments)

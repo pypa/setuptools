@@ -13,10 +13,10 @@ import textwrap
 import time
 from distutils import sysconfig
 from distutils.command.build_ext import build_ext
+from distutils.compilers.errors import PlatformError
 from distutils.core import Distribution
 from distutils.errors import (
     CompileError,
-    DistutilsPlatformError,
     DistutilsSetupError,
     UnknownFileError,
 )
@@ -29,8 +29,7 @@ import jaraco.path
 import path
 import pytest
 from test import support
-
-from .compat import py39 as import_helper
+from test.support import import_helper
 
 
 @pytest.fixture()
@@ -60,10 +59,12 @@ def user_site_dir(request):
 
 @contextlib.contextmanager
 def safe_extension_import(name, path):
-    with import_helper.CleanImport(name):
-        with extension_redirect(name, path) as new_path:
-            with import_helper.DirsOnSysPath(new_path):
-                yield
+    with (
+        import_helper.CleanImport(name),
+        extension_redirect(name, path) as new_path,
+        import_helper.DirsOnSysPath(new_path),
+    ):
+        yield
 
 
 @contextlib.contextmanager
@@ -537,7 +538,7 @@ class TestBuildExt(TempdirManager):
     def test_deployment_target_too_low(self):
         # Issue 9516: Test that an extension module is not allowed to be
         # compiled with a deployment target less than that of the interpreter.
-        with pytest.raises(DistutilsPlatformError):
+        with pytest.raises(PlatformError):
             self._try_compile_deployment_target('>', '10.1')
 
     @pytest.mark.skipif('platform.system() != "Darwin"')

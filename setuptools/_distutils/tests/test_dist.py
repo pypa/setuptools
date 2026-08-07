@@ -8,12 +8,12 @@ import io
 import os
 import sys
 import textwrap
-import unittest.mock as mock
 import warnings
 from distutils.cmd import Command
 from distutils.dist import Distribution, fix_help_options
 from distutils.tests import support
 from typing import ClassVar
+from unittest import mock
 
 import jaraco.path
 import pytest
@@ -147,7 +147,7 @@ class TestDistributionBehavior(support.TempdirManager):
         with mock.patch.multiple(sys, prefix='/a', base_prefix='/b'):
             d = self.create_distribution([file])
 
-        for key in result_dict.keys():
+        for key in result_dict:
             assert key not in d.command_options.get('install', {})
 
     def test_command_packages_configfile(self, tmp_path, clear_argv):
@@ -216,6 +216,28 @@ class TestDistributionBehavior(support.TempdirManager):
         dist.finalize_options()
         assert dist.metadata.platforms == ['foo bar']
         assert dist.metadata.keywords == ['foo bar']
+
+        # Newlines are an invalid (deprecated) separator; each line is
+        # treated as a separate item (pypa/setuptools#4887).
+        attrs = {
+            'keywords': 'one\ntwo\nthree\nfour',
+            'platforms': 'one\ntwo\nthree\nfour',
+        }
+        with pytest.warns(UserWarning, match="Newlines"):
+            dist = Distribution(attrs=attrs)
+        assert dist.metadata.platforms == ['one', 'two', 'three', 'four']
+        assert dist.metadata.keywords == ['one', 'two', 'three', 'four']
+
+        # Consecutive, leading, or trailing newlines must not produce
+        # empty items (e.g. from a triple-quoted string with blank lines).
+        attrs = {
+            'keywords': '\none two\n\nthree four\n',
+            'platforms': '\none two\n\nthree four\n',
+        }
+        with pytest.warns(UserWarning, match="Newlines"):
+            dist = Distribution(attrs=attrs)
+        assert dist.metadata.platforms == ['one two', 'three four']
+        assert dist.metadata.keywords == ['one two', 'three four']
 
     def test_get_command_packages(self):
         dist = Distribution()

@@ -1,2 +1,0 @@
-Clarified what "correspond exactly to the directory structure" means in
-the ``packages`` section of the Package Discovery user guide.

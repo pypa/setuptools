@@ -17,12 +17,13 @@ import sys
 import sysconfig
 import tempfile
 from collections.abc import Callable, Iterable, Mapping
-from typing import TYPE_CHECKING, AnyStr
+from typing import TYPE_CHECKING
 
 from jaraco.functools import pass_none
 
 from ._log import log
 from ._modified import newer
+from .compilers.platform import detect, macos
 from .errors import DistutilsByteCompileError, DistutilsPlatformError
 from .spawn import spawn
 
@@ -31,88 +32,15 @@ if TYPE_CHECKING:
 
     _Ts = TypeVarTuple("_Ts")
 
-
-def get_host_platform() -> str:
-    """
-    Return a string that identifies the current platform. Use this
-    function to distinguish platform-specific build directories and
-    platform-specific built distributions.
-    """
-
-    # This function initially exposed platforms as defined in Python 3.9
-    # even with older Python versions when distutils was split out.
-    # Now it delegates to stdlib sysconfig.
-
-    return sysconfig.get_platform()
-
-
-def get_platform() -> str:
-    if os.name == 'nt':
-        TARGET_TO_PLAT = {
-            'x86': 'win32',
-            'x64': 'win-amd64',
-            'arm': 'win-arm32',
-            'arm64': 'win-arm64',
-        }
-        target = os.environ.get('VSCMD_ARG_TGT_ARCH')
-        return TARGET_TO_PLAT.get(target) or get_host_platform()
-    return get_host_platform()
-
-
-if sys.platform == 'darwin':
-    _syscfg_macosx_ver = None  # cache the version pulled from sysconfig
-MACOSX_VERSION_VAR = 'MACOSX_DEPLOYMENT_TARGET'
-
-
-def _clear_cached_macosx_ver():
-    """For testing only. Do not call."""
-    global _syscfg_macosx_ver
-    _syscfg_macosx_ver = None
-
-
-def get_macosx_target_ver_from_syscfg():
-    """Get the version of macOS latched in the Python interpreter configuration.
-    Returns the version as a string or None if can't obtain one. Cached."""
-    global _syscfg_macosx_ver
-    if _syscfg_macosx_ver is None:
-        from distutils import sysconfig
-
-        ver = sysconfig.get_config_var(MACOSX_VERSION_VAR) or ''
-        if ver:
-            _syscfg_macosx_ver = ver
-    return _syscfg_macosx_ver
-
-
-def get_macosx_target_ver():
-    """Return the version of macOS for which we are building.
-
-    The target version defaults to the version in sysconfig latched at time
-    the Python interpreter was built, unless overridden by an environment
-    variable. If neither source has a value, then None is returned"""
-
-    syscfg_ver = get_macosx_target_ver_from_syscfg()
-    env_ver = os.environ.get(MACOSX_VERSION_VAR)
-
-    if env_ver:
-        # Validate overridden version against sysconfig version, if have both.
-        # Ensure that the deployment target of the build process is not less
-        # than 10.3 if the interpreter was built for 10.3 or later.  This
-        # ensures extension modules are built with correct compatibility
-        # values, specifically LDSHARED which can use
-        # '-undefined dynamic_lookup' which only works on >= 10.3.
-        if (
-            syscfg_ver
-            and split_version(syscfg_ver) >= [10, 3]
-            and split_version(env_ver) < [10, 3]
-        ):
-            my_msg = (
-                '$' + MACOSX_VERSION_VAR + ' mismatch: '
-                f'now "{env_ver}" but "{syscfg_ver}" during configure; '
-                'must use 10.3 or later'
-            )
-            raise DistutilsPlatformError(my_msg)
-        return env_ver
-    return syscfg_ver
+# Platform and macOS helpers now live in the compilers package; these names are
+# re-exported for backward compatibility.
+get_host_platform = detect.get_host_platform
+get_platform = detect.get_platform
+is_mingw = detect.is_mingw
+MACOSX_VERSION_VAR = macos.VERSION_VAR
+get_macosx_target_ver = macos.target_ver
+get_macosx_target_ver_from_syscfg = macos._target_ver_from_syscfg
+_clear_cached_macosx_ver = macos._clear_cached_target_ver
 
 
 def split_version(s: str) -> list[int]:
@@ -140,8 +68,9 @@ def convert_path(pathname: str | os.PathLike[str]) -> str:
 
 
 def change_root(
-    new_root: AnyStr | os.PathLike[AnyStr], pathname: AnyStr | os.PathLike[AnyStr]
-) -> AnyStr:
+    new_root: str | os.PathLike[str],
+    pathname: str | os.PathLike[str],
+) -> str:
     """Return 'pathname' with 'new_root' prepended.  If 'pathname' is
     relative, this is equivalent to "os.path.join(new_root,pathname)".
     Otherwise, it requires making 'pathname' relative and then joining the
@@ -151,10 +80,12 @@ def change_root(
         if not os.path.isabs(pathname):
             return os.path.join(new_root, pathname)
         else:
-            return os.path.join(new_root, pathname[1:])
+            # type-ignore: This makes bytes-based paths unsupported in this branch.
+            # Either this or we don't support absolute os.Pathlike, or we complexify this branch.
+            return os.path.join(new_root, str(pathname)[1:])
 
     elif os.name == 'nt':
-        (drive, path) = os.path.splitdrive(pathname)
+        (_drive, path) = os.path.splitdrive(pathname)
         if path[0] == os.sep:
             path = path[1:]
         return os.path.join(new_root, path)
@@ -232,14 +163,9 @@ def grok_environment_error(exc: object, prefix: str = "error: ") -> str:
 
 
 # Needed by 'split_quoted()'
-_wordchars_re = _squote_re = _dquote_re = None
-
-
-def _init_regex():
-    global _wordchars_re, _squote_re, _dquote_re
-    _wordchars_re = re.compile(rf'[^\\\'\"{string.whitespace} ]*')
-    _squote_re = re.compile(r"'(?:[^'\\]|\\.)*'")
-    _dquote_re = re.compile(r'"(?:[^"\\]|\\.)*"')
+_wordchars_re = re.compile(rf'[^\\\'\"{string.whitespace} ]*')
+_squote_re = re.compile(r"'(?:[^'\\]|\\.)*'")
+_dquote_re = re.compile(r'"(?:[^"\\]|\\.)*"')
 
 
 def split_quoted(s: str) -> list[str]:
@@ -256,8 +182,6 @@ def split_quoted(s: str) -> list[str]:
     # This is a nice algorithm for splitting up a single string, since it
     # doesn't require character-by-character examination.  It was a little
     # bit of a brain-bender to get it working right, though...
-    if _wordchars_re is None:
-        _init_regex()
 
     s = s.strip()
     words = []
@@ -265,6 +189,7 @@ def split_quoted(s: str) -> list[str]:
 
     while s:
         m = _wordchars_re.match(s, pos)
+        assert m is not None
         end = m.end()
         if end == len(s):
             words.append(s[:end])
@@ -303,9 +228,6 @@ def split_quoted(s: str) -> list[str]:
             break
 
     return words
-
-
-# split_quoted ()
 
 
 def execute(
@@ -490,15 +412,6 @@ def rfc822_escape(header: str) -> str:
     suffix = indent if ends_in_newline else ""
 
     return indent.join(lines) + suffix
-
-
-def is_mingw() -> bool:
-    """Returns True if the current platform is mingw.
-
-    Python compiled with Mingw-w64 has sys.platform == 'win32' and
-    get_platform() starts with 'mingw'.
-    """
-    return sys.platform == 'win32' and get_platform().startswith('mingw')
 
 
 def is_freethreaded() -> bool:

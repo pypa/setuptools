@@ -4,7 +4,6 @@ import os
 import pathlib
 import stat
 import sys
-import unittest.mock as mock
 from distutils import dir_util, errors
 from distutils.dir_util import (
     copy_tree,
@@ -14,6 +13,7 @@ from distutils.dir_util import (
     remove_tree,
 )
 from distutils.tests import support
+from unittest import mock
 
 import jaraco.path
 import path
