@@ -2,16 +2,14 @@
 
 import os
 import sys
-import unittest.mock as mock
-from distutils import sysconfig
-from distutils.compat import consolidate_linker_args
-from distutils.errors import DistutilsPlatformError
-from distutils.tests import support
-from distutils.tests.compat.py39 import EnvironmentVarGuard
-from distutils.util import _clear_cached_macosx_ver
+import sysconfig
+from unittest import mock
 
 import pytest
+from test.support import os_helper
 
+from ... import errors
+from ...platform import macos
 from .. import unix
 
 
@@ -31,7 +29,7 @@ def compiler_wrapper(request):
     request.instance.cc = CompilerWrapper()
 
 
-class TestUnixCCompiler(support.TempdirManager):
+class TestUnixCCompiler:
     @pytest.mark.skipif('platform.system == "Windows"')
     def test_runtime_libdir_option(self):  # noqa: C901
         # Issue #5900; GitHub Issue #37
@@ -80,7 +78,7 @@ class TestUnixCCompiler(support.TempdirManager):
             old_env_macosx_ver = env.get(darwin_ver_var)
 
             # Setup environment
-            _clear_cached_macosx_ver()
+            macos._clear_cached_target_ver()
             sysconfig.get_config_var = make_darwin_gcv(syscfg_macosx_ver)
             if env_macosx_ver is not None:
                 env[darwin_ver_var] = env_macosx_ver
@@ -92,7 +90,7 @@ class TestUnixCCompiler(support.TempdirManager):
                 assert self.cc.rpath_foo() == expected_flag, msg
             else:
                 with pytest.raises(
-                    DistutilsPlatformError, match=darwin_ver_var + r' mismatch'
+                    errors.PlatformError, match=darwin_ver_var + r' mismatch'
                 ):
                     self.cc.rpath_foo()
 
@@ -102,7 +100,7 @@ class TestUnixCCompiler(support.TempdirManager):
             elif darwin_ver_var in env:
                 env.pop(darwin_ver_var)
             sysconfig.get_config_var = old_gcv
-            _clear_cached_macosx_ver()
+            macos._clear_cached_target_ver()
 
         for macosx_vers, expected_flag in darwin_test_cases:
             syscfg_macosx_ver, env_macosx_ver = macosx_vers
@@ -150,10 +148,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == consolidate_linker_args([
+        assert self.cc.rpath_foo() == [
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ])
+        ]
 
         def gcv(v):
             if v == 'CC':
@@ -162,10 +160,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == consolidate_linker_args([
+        assert self.cc.rpath_foo() == [
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ])
+        ]
 
         # GCC non-GNULD
         sys.platform = 'bar'
@@ -190,10 +188,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == consolidate_linker_args([
+        assert self.cc.rpath_foo() == [
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ])
+        ]
 
         # non-GCC GNULD
         sys.platform = 'bar'
@@ -205,10 +203,10 @@ class TestUnixCCompiler(support.TempdirManager):
                 return 'yes'
 
         sysconfig.get_config_var = gcv
-        assert self.cc.rpath_foo() == consolidate_linker_args([
+        assert self.cc.rpath_foo() == [
             '-Wl,--enable-new-dtags',
             '-Wl,-rpath,/foo',
-        ])
+        ]
 
         # non-GCC non-GNULD
         sys.platform = 'bar'
@@ -238,10 +236,10 @@ class TestUnixCCompiler(support.TempdirManager):
 
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
-        with EnvironmentVarGuard() as env:
+        with os_helper.EnvironmentVarGuard() as env:
             env['CC'] = 'my_cc'
             del env['LDSHARED']
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
         assert self.cc.linker_so[0] == 'my_cc'
 
     @pytest.mark.skipif('platform.system == "Windows"')
@@ -265,40 +263,40 @@ class TestUnixCCompiler(support.TempdirManager):
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
         with (
-            mock.patch.object(self.cc, 'spawn', return_value=None) as mock_spawn,
+            mock.patch.object(self.cc, 'call', return_value=None) as mock_call,
             mock.patch.object(self.cc, '_need_link', return_value=True),
             mock.patch.object(self.cc, 'mkpath', return_value=None),
-            EnvironmentVarGuard() as env,
+            os_helper.EnvironmentVarGuard() as env,
         ):
             # override environment overrides in case they're specified by CI
             del env['CXX']
             del env['LDCXXSHARED']
 
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
             assert self.cc.linker_so_cxx[0:2] == ['ccache', 'g++-4.2']
             assert self.cc.linker_exe_cxx[0:2] == ['ccache', 'g++-4.2']
             self.cc.link(None, [], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = ['ccache', 'g++-4.2', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:5] == expected
 
             self.cc.link_executable([], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = ['ccache', 'g++-4.2', '-o', self.cc.executable_filename('a.out')]
             assert call_args[:4] == expected
 
             env['LDCXXSHARED'] = 'wrapper g++-4.2 -bundle -undefined dynamic_lookup'
             env['CXX'] = 'wrapper g++-4.2'
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
             assert self.cc.linker_so_cxx[0:2] == ['wrapper', 'g++-4.2']
             assert self.cc.linker_exe_cxx[0:2] == ['wrapper', 'g++-4.2']
             self.cc.link(None, [], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = ['wrapper', 'g++-4.2', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:5] == expected
 
             self.cc.link_executable([], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = [
                 'wrapper',
                 'g++-4.2',
@@ -336,18 +334,18 @@ class TestUnixCCompiler(support.TempdirManager):
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
         with (
-            mock.patch.object(self.cc, 'spawn', return_value=None) as mock_spawn,
+            mock.patch.object(self.cc, 'call', return_value=None) as mock_call,
             mock.patch.object(self.cc, '_need_link', return_value=True),
             mock.patch.object(self.cc, 'mkpath', return_value=None),
-            EnvironmentVarGuard() as env,
+            os_helper.EnvironmentVarGuard() as env,
         ):
             env['CC'] = 'ccache my_cc'
             env['CXX'] = 'my_cxx'
             del env['LDSHARED']
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
             assert self.cc.linker_so[0:2] == ['ccache', 'my_cc']
             self.cc.link(None, [], 'a.out', target_lang='c++')
-            call_args = mock_spawn.call_args[0][0]
+            call_args = mock_call.call_args[0][0]
             expected = ['my_cxx', '-bundle', '-undefined', 'dynamic_lookup']
             assert call_args[:4] == expected
 
@@ -368,18 +366,18 @@ class TestUnixCCompiler(support.TempdirManager):
 
         sysconfig.get_config_var = gcv
         sysconfig.get_config_vars = gcvs
-        with EnvironmentVarGuard() as env:
+        with os_helper.EnvironmentVarGuard() as env:
             env['CC'] = 'my_cc'
             env['LDSHARED'] = 'my_ld -bundle -dynamic'
-            sysconfig.customize_compiler(self.cc)
+            self.cc.configure_system()
         assert self.cc.linker_so[0] == 'my_ld'
 
-    def test_has_function(self):
+    def test_has_function(self, monkeypatch, tmp_path):
         # Issue https://github.com/pypa/distutils/issues/64:
         # ensure that setting output_dir does not raise
         # FileNotFoundError: [Errno 2] No such file or directory: 'a.out'
         self.cc.output_dir = 'scratch'
-        os.chdir(self.mkdtemp())
+        monkeypatch.chdir(tmp_path)
         self.cc.has_function('abort')
 
     def test_find_library_file(self, monkeypatch):

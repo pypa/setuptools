@@ -37,7 +37,7 @@ class TestConfig(support.TempdirManager):
         cmd = missing_compiler_executable(['preprocessor'])
         if cmd is not None:
             self.skipTest(f'The {cmd!r} command is not found')
-        pkg_dir, dist = self.create_dist()
+        _pkg_dir, dist = self.create_dist()
         cmd = config(dist)
         cmd._check_compiler()
         compiler = cmd.compiler
@@ -56,7 +56,7 @@ class TestConfig(support.TempdirManager):
     def test_finalize_options(self):
         # finalize_options does a bit of transformation
         # on options
-        pkg_dir, dist = self.create_dist()
+        _pkg_dir, dist = self.create_dist()
         cmd = config(dist)
         cmd.include_dirs = f'one{os.pathsep}two'
         cmd.libraries = 'one'
@@ -79,7 +79,7 @@ class TestConfig(support.TempdirManager):
         for f in (f1, f2):
             assert os.path.exists(f)
 
-        pkg_dir, dist = self.create_dist()
+        _pkg_dir, dist = self.create_dist()
         cmd = config(dist)
         cmd._clean(f1, f2)
 

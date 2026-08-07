@@ -17,15 +17,19 @@ from ..util import convert_path
 class build_py(Command):
     description = "\"build\" pure Python modules (copy to build directory)"
 
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('build-lib=', 'd', "directory to \"build\" (copy) to"),
         ('compile', 'c', "compile .py to .pyc"),
         ('no-compile', None, "don't compile .py files [default]"),
         (
             'optimize=',
             'O',
-            "also compile with optimization: -O1 for \"python -O\", "
-            "-O2 for \"python -OO\", and -O0 to disable [default: -O0]",
+            (
+                "also compile with optimization: -O1 for \"python -O\", "
+                "-O2 for \"python -OO\", and -O0 to disable [default: -O0]"
+            ),
         ),
         ('force', 'f', "forcibly build everything (ignore file timestamps)"),
     ]
@@ -167,22 +171,21 @@ class build_py(Command):
                 else:
                     tail.insert(0, pdir)
                     return os.path.join(*tail)
-            else:
-                # Oops, got all the way through 'path' without finding a
-                # match in package_dir.  If package_dir defines a directory
-                # for the root (nameless) package, then fallback on it;
-                # otherwise, we might as well have not consulted
-                # package_dir at all, as we just use the directory implied
-                # by 'tail' (which should be the same as the original value
-                # of 'path' at this point).
-                pdir = self.package_dir.get('')
-                if pdir is not None:
-                    tail.insert(0, pdir)
+            # Oops, got all the way through 'path' without finding a
+            # match in package_dir.  If package_dir defines a directory
+            # for the root (nameless) package, then fallback on it;
+            # otherwise, we might as well have not consulted
+            # package_dir at all, as we just use the directory implied
+            # by 'tail' (which should be the same as the original value
+            # of 'path' at this point).
+            pdir = self.package_dir.get('')
+            if pdir is not None:
+                tail.insert(0, pdir)
 
-                if tail:
-                    return os.path.join(*tail)
-                else:
-                    return ''
+            if tail:
+                return os.path.join(*tail)
+            else:
+                return ''
 
     def check_package(self, package, package_dir):
         # Empty dir name means current directory, which we can probably
@@ -360,6 +363,10 @@ class build_py(Command):
             self.build_module(module, module_file, package)
 
     def build_packages(self) -> None:
+        if self.packages is None:
+            raise TypeError(
+                f"{type(self).__name__}.packages is None. Is the Distribution missing packages ?"
+            )
         for package in self.packages:
             # Get list of (package, module, module_file) tuples based on
             # scanning the package directory.  'package' is only included
