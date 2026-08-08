@@ -215,9 +215,15 @@ def build_deps(package, sdist_file):
 
 
 def _read_pyproject(archive):
-    contents = (
-        archive.get_content(member)
+    members = [
+        member
         for member in archive
         if os.path.basename(archive.get_name(member)) == "pyproject.toml"
-    )
-    return next(contents, "")
+    ]
+    if not members:
+        return ""
+    # An sdist may contain nested pyproject.toml files (e.g. pip ships a
+    # ``build-project/`` helper). The project's own build metadata lives in the
+    # top-level ``{name}-{version}/pyproject.toml``, i.e. the shallowest one.
+    top = min(members, key=lambda m: archive.get_name(m).count("/"))
+    return archive.get_content(top)
