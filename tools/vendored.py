@@ -65,13 +65,29 @@ def install_deps(deps, vendor):
     subprocess.check_call(install_args)
 
 
+def clean_records(vendor):
+    """Remove entries for files pruned from the vendored tree."""
+    for record in vendor.glob('*.dist-info/RECORD'):
+        lines = record.read_bytes().splitlines(keepends=True)
+        kept = (
+            line
+            for line in lines
+            if not line.startswith(b'bin/')
+            and b'/tests/' not in line.partition(b',')[0]
+        )
+        record.write_bytes(b''.join(kept))
+
+
 def update_setuptools():
     vendor = Path('setuptools/_vendor')
     deps = load_deps()
     clean(vendor)
     install_deps(deps, vendor)
+    # Avoid shipping dependency test suites in setuptools wheels.
+    remove_all(vendor.glob('*/tests'))
     # uv only installs non-portable shebangs (#5159)
     (vendor / 'bin').rmtree()
+    clean_records(vendor)
 
 
 __name__ == '__main__' and update_vendored()
