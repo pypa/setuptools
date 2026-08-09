@@ -1,3 +1,5 @@
+__lazy_modules__ = {"configparser", "unicodedata"}
+
 import sys
 import unicodedata
 from configparser import RawConfigParser

@@ -7,6 +7,17 @@
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    f"{__spec__.parent}.depends",
+    f"{__spec__.parent}.dist",
+    f"{__spec__.parent}.extension",
+    f"{__spec__.parent}.version",
+    f"{__spec__.parent}.warnings",
+    "functools",
+}
+
 import functools
 import os
 import sys

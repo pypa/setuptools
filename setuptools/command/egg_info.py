@@ -4,6 +4,22 @@ Create a distribution's .egg-info directory and contents"""
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "distutils.errors",
+    "distutils.util",
+    "functools",
+    "packaging",
+    "packaging.requirements",
+    "packaging.version",
+    "re",
+    "setuptools.command.setopt",
+    "setuptools.glob",
+    "typing",
+}
+
 import functools
 import os
 import re
@@ -23,7 +39,7 @@ from setuptools.command.setopt import edit_config
 from setuptools.glob import glob
 
 from .. import _entry_points, _normalization
-from .._importlib import metadata
+from .._importlib import metadata  # noqa: LZY102
 from ..warnings import SetuptoolsDeprecationWarning
 from . import _requirestxt
 

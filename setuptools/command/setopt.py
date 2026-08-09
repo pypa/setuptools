@@ -1,3 +1,12 @@
+__lazy_modules__ = {
+    "configparser",
+    "distutils",
+    "distutils.errors",
+    "distutils.util",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.unicode_utils",
+    "typing",
+}
+
 import configparser
 import os
 from typing import ClassVar

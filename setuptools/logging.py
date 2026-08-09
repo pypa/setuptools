@@ -1,3 +1,5 @@
+__lazy_modules__ = {"distutils", "distutils.log", "inspect", "logging"}
+
 import inspect
 import logging
 import sys

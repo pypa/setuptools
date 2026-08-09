@@ -39,6 +39,17 @@ For the purposes of this module, the following nomenclature is used:
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "distutils.util",
+    f"{__spec__.parent}._path",
+    "fnmatch",
+    "glob",
+    "pathlib",
+}
+
 import itertools
 import os
 from collections.abc import Iterable, Iterator, Mapping

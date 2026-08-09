@@ -1,5 +1,13 @@
 """Utilities for extracting common archive formats"""
 
+__lazy_modules__ = {
+    "contextlib",
+    f"{__spec__.parent}._path",
+    "shutil",
+    "tarfile",
+    "zipfile",
+}
+
 import contextlib
 import os
 import posixpath

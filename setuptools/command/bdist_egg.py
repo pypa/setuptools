@@ -4,6 +4,19 @@ Build .egg distributions"""
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "distutils.dir_util",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._path",
+    "re",
+    "setuptools.extension",
+    "sysconfig",
+    "textwrap",
+    "types",
+}
+
 import marshal
 import os
 import re

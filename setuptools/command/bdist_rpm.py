@@ -1,3 +1,8 @@
+__lazy_modules__ = {
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.warnings",
+}
+
 from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning
 

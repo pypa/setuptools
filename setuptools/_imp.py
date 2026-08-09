@@ -3,6 +3,8 @@ Re-implementation of find_module and get_frozen_object
 from the deprecated imp module.
 """
 
+__lazy_modules__ = {"importlib", "importlib.machinery", "importlib.util", "tokenize"}
+
 import importlib.machinery
 import importlib.util
 import os

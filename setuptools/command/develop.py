@@ -1,3 +1,5 @@
+__lazy_modules__ = {"subprocess", "typing"}
+
 import site
 import subprocess
 import sys

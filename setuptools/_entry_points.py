@@ -1,3 +1,13 @@
+__lazy_modules__ = {
+    f"{__spec__.parent}._itertools",
+    f"{__spec__.parent}.errors",
+    "itertools",
+    "jaraco",
+    "jaraco.text",
+    "more_itertools",
+    "operator",
+}
+
 import functools
 import itertools
 import operator
@@ -6,7 +16,7 @@ from jaraco.functools import pass_none
 from jaraco.text import yield_lines
 from more_itertools import consume
 
-from ._importlib import metadata
+from ._importlib import metadata  # noqa: LZY102
 from ._itertools import ensure_unique
 from .errors import OptionError
 

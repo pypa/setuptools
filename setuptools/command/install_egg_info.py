@@ -1,3 +1,10 @@
+__lazy_modules__ = {
+    "distutils",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._path",
+    "setuptools.archive_util",
+    "typing",
+}
+
 import os
 from typing import ClassVar
 

@@ -1,5 +1,21 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "distutils.command",
+    "distutils.command.build_scripts",
+    "distutils.util",
+    f"{__spec__.parent}.warnings",
+    "re",
+    "shlex",
+    "shutil",
+    "struct",
+    "subprocess",
+    "textwrap",
+}
+
 import os
 import re
 import shlex
@@ -11,7 +27,7 @@ import textwrap
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, TypedDict
 
-from ._importlib import metadata, resources
+from ._importlib import metadata, resources  # noqa: LZY102
 
 if TYPE_CHECKING:
     from typing_extensions import Self

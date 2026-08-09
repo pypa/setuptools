@@ -2,6 +2,11 @@
 ``setuptools.config.setupcfg``
 """
 
+__lazy_modules__ = {
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.warnings",
+    "functools",
+}
+
 from collections.abc import Callable
 from functools import wraps
 from typing import TypeVar, cast

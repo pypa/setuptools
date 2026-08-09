@@ -1,5 +1,22 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "distutils.ccompiler",
+    "importlib",
+    "importlib.machinery",
+    "importlib.util",
+    "itertools",
+    "operator",
+    "pathlib",
+    "setuptools.dist",
+    "setuptools.errors",
+    "setuptools.extension",
+    "textwrap",
+}
+
 import itertools
 import operator
 import os

@@ -1,5 +1,16 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "collections",
+    "collections.abc",
+    "distutils",
+    "distutils.errors",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.warnings",
+    "inspect",
+    "platform",
+}
+
 import inspect
 import platform
 from collections.abc import Callable
