@@ -11,6 +11,7 @@ import pytest
 
 from setuptools import SetuptoolsDeprecationWarning
 from setuptools.dist import Distribution
+from setuptools.extension import Extension
 
 from .textwrap import DALS
 
@@ -257,6 +258,48 @@ def test_existing_egg_info(tmpdir_cwd, monkeypatch):
     assert outputs
     example = str(Path(build_py.build_lib, "mypkg/__init__.py")).replace(os.sep, "/")
     assert example in outputs
+
+
+def test_extension_sources_are_not_package_data(tmpdir_cwd):
+    """
+    Extension source files belong in sdists, but build_py should not copy them
+    to build/lib as package data.
+    """
+    jaraco.path.build({
+        "src": {
+            "foo": {
+                "__init__.py": "",
+                "resource.txt": "",
+                "extension": {"bar.cpp": ""},
+            },
+        },
+    })
+    egg_info_dir = Path("src/foo.egg-info")
+    egg_info_dir.mkdir()
+    (egg_info_dir / "SOURCES.txt").write_text(
+        f"{os.path.join('src', 'foo', 'resource.txt')}\n"
+        f"{os.path.join('src', 'foo', 'extension', 'bar.cpp')}\n",
+        encoding="utf-8",
+    )
+    dist = Distribution({
+        "name": "foo",
+        "version": "1",
+        "script_name": "%build_py-test%",
+        "packages": ["foo"],
+        "package_dir": {"": "src"},
+        "include_package_data": True,
+        "ext_modules": [Extension("foo.extension", ["src/foo/extension/bar.cpp"])],
+    })
+
+    build_py = dist.get_command_obj("build_py")
+    build_py.finalize_options()
+    build_py.existing_egg_info_dir = egg_info_dir
+    build_py.run()
+
+    outputs = get_outputs(build_py)
+    assert "foo/__init__.py" in outputs
+    assert "foo/resource.txt" in outputs
+    assert "foo/extension/bar.cpp" not in outputs
 
 
 EXAMPLE_ARBITRARY_MAPPING = {
