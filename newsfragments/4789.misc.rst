@@ -1,0 +1,1 @@
+Don't emit ``Package would be ignored`` warning for explicitly included data files.
