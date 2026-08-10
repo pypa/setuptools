@@ -1,19 +1,74 @@
 from __future__ import annotations
 
+import warnings
+from operator import itemgetter
 from typing import Protocol
 
+from .._importlib import metadata
 from ..dist import Distribution
+from ..warnings import SetuptoolsDeprecationWarning
 
 from distutils.command.build import build as _build
 
 _ORIGINAL_SUBCOMMANDS = {"build_py", "build_clib", "build_ext", "build_scripts"}
+_BUILD_STEPS_ENTRYPOINT = "setuptools.build_steps"
 
 
 class build(_build):
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    # copy to avoid sharing the object with parent class
-    sub_commands = _build.sub_commands[:]
+    def initialize_options(self):
+        super().initialize_options()
+        self.sub_commands = _build.sub_commands[:]  # copy to avoid shared refs.
+        self._steps_loaded_from_entry_points = False
+
+    def get_sub_commands(self):
+        f"""Extends :meth:`distutils.command.build.build.get_sub_commands` to auto-load
+        from ``{_BUILD_STEPS_ENTRYPOINT}`` entry-points.
+
+        The entry-point value should be a subclass of :class:`Command`.
+        If defined, the following (optional) attributes will be considered::
+
+            priority, condition, insert_build_step
+
+        See :doc:`userguide/extension` for more details
+        """
+        if not self._steps_loaded_from_entry_points:
+            self._verify_distutils_usage()
+            self._insert_custom_steps()
+            self._steps_loaded_from_entry_points = True
+
+        return super().get_sub_commands()
+
+    def _verify_distutils_usage(self):
+        subcommands = {cmd[0] for cmd in _build.sub_commands}
+        if subcommands - _ORIGINAL_SUBCOMMANDS:  # pragma: no cover
+            msg = """
+            It seems that you are using `distutils.command.build` to add
+            new subcommands. Using `distutils` directly is considered deprecated,
+            please use `setuptools.command.build`.
+            """
+            warnings.warn(msg, SetuptoolsDeprecationWarning)
+            self.sub_commands = _build.sub_commands
+
+    def _insert_custom_steps(self):
+        available = []
+        for ep in metadata.entry_points(group=_BUILD_STEPS_ENTRYPOINT):
+            cls = ep.load()
+            cls.command_name = ep.name
+            priority = getattr(cls, "priority", 0)
+            available.append(((priority, ep.name), ep.name, cls))
+
+        order = itemgetter(0)
+        unique = {item[1]: item for item in sorted(available, key=order)}
+        # ^-- dict insert with ASC order: removes duplicates keeping priority.
+
+        for _, name, cls in sorted(unique.values(), key=order, reverse=True):
+            # reversed sort makes sure higher priority is invoked first
+            insert_fn = getattr(cls, "insert_build_step", list.append)
+            condition = getattr(cls, "condition", None)
+            insert_fn(self.sub_commands, (name, condition))
+            self.distribution.cmdclass[name] = cls
 
 
 class SubCommand(Protocol):
@@ -59,7 +114,7 @@ class SubCommand(Protocol):
     """Boolean flag that will be set to ``True`` when setuptools is used for an
     editable installation (see :pep:`660`).
     Implementations **SHOULD** explicitly set the default value of this attribute to
-    ``False``.
+    ``False`` in ``initialize_options``.
     When subcommands run, they can use this flag to perform optimizations or change
     their behaviour accordingly.
     """
