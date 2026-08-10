@@ -1,5 +1,6 @@
 exclude = [
 	"**/_vendor",
+	"pkg_resources",
 	"setuptools/_distutils",
 	"setuptools/config/_validate_pyproject",
 ]
