@@ -5,17 +5,13 @@ import platform
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 import distutils.command.install as orig
 from distutils.errors import DistutilsArgError
 
 if TYPE_CHECKING:
-    # This is only used for a type-cast, don't import at runtime or it'll cause deprecation warnings
-    from .easy_install import easy_install as easy_install_cls
-else:
-    easy_install_cls = None
+    from ..dist import Distribution
 
 
 def __getattr__(name: str):  # pragma: no cover

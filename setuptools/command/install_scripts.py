@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import os
 import sys
+from typing import TYPE_CHECKING
 
 from .._path import ensure_directory
-from ..dist import Distribution
 
 import distutils.command.install_scripts as orig
 from distutils import log
+
+if TYPE_CHECKING:
+    from ..dist import Distribution
 
 
 class install_scripts(orig.install_scripts):
