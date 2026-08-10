@@ -1,0 +1,2 @@
+Clarify that each portion of a namespace package is built as a separate
+distribution project.
