@@ -221,7 +221,7 @@ class build_ext(_build_ext):
 
     def setup_shlib_compiler(self) -> None:
         compiler = self.shlib_compiler = new_compiler(
-            compiler=self.compiler, force=self.force
+            compiler=self.compiler, force=bool(self.force)
         )
         _customize_compiler_for_shlib(compiler)
 

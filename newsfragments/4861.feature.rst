@@ -1,0 +1,1 @@
+``setuptools`` now provide its own ``distutils-stubs`` instead of relying on typeshed -- by :user:`Avasam`
