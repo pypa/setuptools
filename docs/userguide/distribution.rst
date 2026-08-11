@@ -80,15 +80,15 @@ but here are a few tips that will keep you out of trouble in the corner cases:
   :pep:`440`-compliant.
 
 * If you want to be certain that your chosen numbering scheme works the way
-  you think it will, you can use the ``pkg_resources.parse_version()`` function
+  you think it will, you can use the ``packaging.version.parse()`` function
   to compare different version numbers::
 
-    >>> from pkg_resources import parse_version
-    >>> parse_version("1.9.a.dev") == parse_version("1.9a0dev")
+    >>> from packaging.version import parse
+    >>> parse("1.9a0.dev0") == parse("1.9a0.dev0")
     True
-    >>> parse_version("2.1-rc2") < parse_version("2.1")
+    >>> parse("2.1rc2") < parse("2.1")
     True
-    >>> parse_version("0.6a9dev-r41475") < parse_version("0.6a9")
+    >>> parse("0.6a9.dev0") < parse("0.6a9")
     True
 
 Once you've decided on a version numbering scheme for your project, you can

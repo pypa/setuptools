@@ -86,23 +86,21 @@ The developer's guide has been updated. See the :doc:`most recent version <userg
 TRANSITIONAL NOTE
 ~~~~~~~~~~~~~~~~~
 
-Setuptools automatically calls ``declare_namespace()`` for you at runtime,
-but future versions may *not*.  This is because the automatic declaration
-feature has some negative side effects, such as needing to import all namespace
-packages during the initialization of the ``pkg_resources`` runtime, and also
-the need for ``pkg_resources`` to be explicitly imported before any namespace
-packages work at all.  In some future releases, you'll be responsible
-for including your own declaration lines, and the automatic declaration feature
-will be dropped to get rid of the negative side effects.
+.. note::
+   The ``pkg_resources``-style and ``pkgutil``-style namespace packages
+   described below are **deprecated** and no longer supported.
+   Please migrate to :pep:`420`-style implicit namespace packages.
+   See :doc:`userguide/package_discovery` for details.
 
-During the remainder of the current development cycle, therefore, setuptools
-will warn you about missing ``declare_namespace()`` calls in your
-``__init__.py`` files, and you should correct these as soon as possible
-before the compatibility support is removed.
-Namespace packages without declaration lines will not work
-correctly once a user has upgraded to a later version, so it's important that
-you make this change now in order to avoid having your code break in the field.
-Our apologies for the inconvenience, and thank you for your patience.
+Setuptools historically called ``declare_namespace()`` at runtime using
+``pkg_resources``, but this mechanism has been deprecated. The
+``pkg_resources`` runtime required importing all namespace packages during
+initialization and needed to be explicitly imported before any namespace
+packages would work at all.
+
+Projects should migrate to :pep:`420`-style implicit namespace packages,
+which do not require ``declare_namespace()`` calls or special
+``__init__.py`` files.
 
 
 
