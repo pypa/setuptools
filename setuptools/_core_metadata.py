@@ -65,6 +65,15 @@ def _read_list_from_msg(msg: Message, field: str) -> list[str] | None:
     return values
 
 
+def _read_project_urls_from_msg(msg: Message) -> dict[str, str]:
+    """Read ``Project-URL`` fields into their label-to-URL mapping."""
+    project_urls = {}
+    for value in _read_list_from_msg(msg, 'project-url') or ():
+        label, _, url = value.partition(',')
+        project_urls[label.strip()] = url.strip()
+    return project_urls
+
+
 def _read_payload_from_msg(msg: Message) -> str | None:
     value = str(msg.get_payload()).strip()
     if value == 'UNKNOWN' or not value:
@@ -100,6 +109,7 @@ def read_pkg_file(self, file):
 
     self.platforms = _read_list_from_msg(msg, 'platform')
     self.classifiers = _read_list_from_msg(msg, 'classifier')
+    self.project_urls = _read_project_urls_from_msg(msg)
 
     # PEP 314 - these fields only exist in 1.1
     if self.metadata_version == Version('1.1'):
