@@ -3,6 +3,7 @@
 import os
 import shutil
 import tempfile
+from typing import ClassVar
 
 import pytest
 
@@ -157,7 +158,7 @@ class TestFindPackages:
 
 
 class TestFlatLayoutPackageFinder:
-    EXAMPLES = {
+    EXAMPLES: ClassVar[dict] = {
         "hidden-folders": (
             [".pkg/__init__.py", "pkg/__init__.py", "pkg/nested/file.txt"],
             ["pkg", "pkg.nested"],

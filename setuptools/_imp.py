@@ -59,10 +59,10 @@ def find_module(module, paths=None):
 
         if suffix in importlib.machinery.SOURCE_SUFFIXES:
             kind = PY_SOURCE
-            file = tokenize.open(path)
+            file = tokenize.open(path)  # noqa: SIM115 # handle managed explicitly
         elif suffix in importlib.machinery.BYTECODE_SUFFIXES:
             kind = PY_COMPILED
-            file = open(path, 'rb')
+            file = open(path, 'rb')  # noqa: SIM115 # handle managed explicitly
         elif suffix in importlib.machinery.EXTENSION_SUFFIXES:
             kind = C_EXTENSION
 

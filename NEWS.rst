@@ -1,3 +1,45 @@
+v84.0.0
+=======
+
+Features
+--------
+
+- Newline-separated ``keywords`` and ``platforms``, which are invalid and corrupt the generated metadata (pypa/setuptools#4887), are now handled forgivingly: each line is treated as a separate item and a deprecation warning is emitted. Newlines were never a valid separator for these fields -- the `old specification <https://peps.python.org/pep-0345/>`_ separated items with spaces and the current one uses commas. (#4887)
+- ``Extension`` is now a dataclass, exposing type annotations for its constructor arguments so subclasses (e.g. in Setuptools) can inherit them without redeclaring each parameter. Passing unknown keyword arguments is now deprecated. (pypa/distutils#373) (#5022)
+- The C compiler modules now emit log messages through their own ``compilers.C.*`` loggers instead of the distutils root logger, part of decoupling the compilers package from distutils. The logger names are normalized to a stable ``compilers.C.*`` prefix so they remain constant as the package migrates toward a standalone ``compilers.C`` distribution. (#5266)
+- The C compilers gained a ``Compiler.call`` method -- a thin wrapper over ``subprocess.check_call`` (with macOS deployment-target env injection) that is the modern replacement for ``Compiler.spawn``. The compilers no longer depend on ``distutils.spawn``, ``distutils.dir_util``, ``distutils.file_util``, ``distutils._modified``, or ``distutils.util.execute``/``split_quoted``: the generic ``newer``/``newer_group`` and ``split_quoted`` helpers are vendored into the ``compilers`` package, and ``Compiler.mkpath``/``move_file``/``execute`` are implemented directly on the standard library (``os.makedirs``/``shutil.move``). The methods are retained for backward compatibility. (#5267)
+- The compilers no longer depend on ``distutils.util``, ``distutils.version``, ``distutils.compat``, or ``distutils._macos_compat``. The platform-identification helpers (``get_platform``/``get_host_platform``/``is_mingw``) now live in ``distutils.compilers.platform.detect`` and the macOS deployment-target logic and ``compiler_fixup`` in ``distutils.compilers.platform.macos``; ``CygwinCCompiler.gcc_version`` returns a ``packaging.version.Version``. ``distutils.util`` re-exports the platform/macOS helpers from their new homes for backward compatibility rather than keeping duplicate copies. (sysconfig lookups still route through distutils pending its own decoupling.) (#5268)
+- The compilers now read their build configuration from the standard library's ``sysconfig`` instead of ``distutils.sysconfig``. Per-compiler customization -- previously ``distutils.sysconfig.customize_compiler`` -- has moved into ``Compiler.configure_system()``: a no-op on the base class, with ``UnixCCompiler`` applying the compiler/flag/archiver settings CPython recorded in ``sysconfig`` (and the usual ``CC``/``CFLAGS``/``LDSHARED``/… environment overrides). ``distutils.sysconfig.customize_compiler`` is retained as a thin wrapper that calls ``compiler.configure_system()``. (#5269)
+
+
+Bugfixes
+--------
+
+- The MSVC linker now passes its arguments through a response file when the command line would exceed the Windows maximum length, fixing failures when linking a large number of objects. (#4177)
+- The Cygwin and MinGW compilers now pass ``-O1`` instead of a bare ``-O``. The two are equivalent to GCC, but ``cc1`` rejected the bare form when building 32-bit extensions with ``-m32``. -- by :user:`dchaudhari7177` (#4873)
+- ``copy_file`` now preserves the full precision of the source's modification time, so a copy is no longer considered older than its source on filesystems with sub-second timestamp resolution. (pypa/distutils#379) (#5079)
+- Setuptools wheels no longer bundled the project's own test modules. -- by :user:`itscloud0` (#5212)
+- ``build_ext`` no longer fails when cross-compiling with a compiler other than MSVC (such as MinGW). ``Compiler`` now provides a no-op ``initialize()`` that non-MSVC compilers inherit. (pypa/distutils#399)
+
+
+Improved Documentation
+----------------------
+
+- Clarified what "correspond exactly to the directory structure" means in
+  the ``packages`` section of the Package Discovery user guide. (#4109)
+- Documented how ``bdist_wheel``'s ``py_limited_api`` option controls
+  ``abi3`` wheel tagging for extension modules -- by :user:`Himanshuagrawal4` (#4741)
+
+
+Deprecations and Removals
+-------------------------
+
+- ``Compiler.spawn`` is deprecated in favor of the new ``Compiler.call``. ``call`` raises native ``subprocess`` exceptions; ``spawn`` remains as a shim that emits a ``DeprecationWarning`` and translates them to ``DistutilsExecError``. The MSVC ``spawn`` compatibility shim for third-party monkeypatches predating the ``env`` argument (numpy.distutils before 1.19, per pypa/distutils#15) has been removed. ``distutils.spawn.spawn`` is likewise reduced to a thin wrapper around ``subprocess.check_call``: it no longer resolves ``cmd[0]`` via ``shutil.which`` (``subprocess`` searches ``PATH`` itself) nor injects ``MACOSX_DEPLOYMENT_TARGET`` (that now lives with the compilers, the only callers to which it applied). (#5267)
+- Building an extension with a ``MACOSX_DEPLOYMENT_TARGET`` lower than the interpreter's configured value now raises ``compilers.errors.PlatformError`` instead of ``distutils.errors.DistutilsPlatformError`` (the macOS deployment-target check moved into the compilers package). ``CygwinCCompiler.gcc_version`` returns a ``packaging.version.Version`` rather than the removed ``distutils.version.LooseVersion``. Completing the transition begun in pypa/distutils#246, ``UnixCCompiler.runtime_library_dir_option`` now returns the ``["-Wl,--enable-new-dtags", "-Wl,-rpath,<dir>"]`` list directly for GNU ld rather than collapsing it into a single string, and the temporary ``distutils.compat.consolidate_linker_args`` shim has been removed. (#5268)
+- The compilers now define their own exception vocabulary instead of borrowing distutils' framework errors. Language-agnostic exceptions (``Error``, ``UnknownFileType``, and a new ``PlatformError``) live at ``distutils.compilers.errors``, leaving room for future ``compilers.<language>`` siblings; the C/C++-specific ``CompileError``/``LinkError``/``LibError``/``PreprocessError`` remain in ``distutils.compilers.C.errors``. The compilers now raise ``compilers.errors.PlatformError`` where they previously raised ``distutils.errors.DistutilsPlatformError``/``DistutilsModuleError``, and ``compilers._modified.newer`` raises the stdlib ``FileNotFoundError``. ``distutils.errors`` keeps its own framework exceptions and re-exports the compiler ones (``CCompilerError``, ``CompileError``, etc.) for backward compatibility; because ``CCompilerError`` is ``compilers.errors.Error``, code catching it (as distutils' top-level handlers do) still catches the new ``PlatformError``. (#5270)
+- ``customize_compiler`` now asserts that the compiler-related config variables (``CC``, ``CXX``, ``CFLAGS``, etc.) resolve to strings, raising ``AssertionError`` if any are unexpectedly ``None`` rather than failing later with a less clear error. (pypa/distutils#363)
+
+
 v83.0.0
 =======
 
@@ -5764,7 +5806,7 @@ v20.10.0
   by earlier versions of Python. Except on Python 2.6,
   order is preserved when existing settings are present.
 * #556: Update to Packaging 16.7, restoring support
-  for deprecated ``python_implmentation`` marker.
+  for deprecated ``python_implementation`` marker.
 * #555: Upload command now prompts for a password
   when uploading to PyPI (or other repository) if no
   password is present in .pypirc or in the keyring.

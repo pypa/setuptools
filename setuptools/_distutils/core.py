@@ -25,8 +25,9 @@ from .errors import (
     DistutilsSetupError,
 )
 from .extension import Extension
+from .extension import _safe as extension_keywords  # noqa  # backwards compatibility
 
-__all__ = ['Distribution', 'Command', 'Extension', 'setup']
+__all__ = ['Command', 'Distribution', 'Extension', 'setup']
 
 # This is a barebones help message generated displayed when the user
 # runs the setup script with no arguments at all.  More useful help
@@ -74,25 +75,6 @@ setup_keywords = (
     'obsoletes',
 )
 
-# Legal keyword arguments for the Extension constructor
-extension_keywords = (
-    'name',
-    'sources',
-    'include_dirs',
-    'define_macros',
-    'undef_macros',
-    'library_dirs',
-    'libraries',
-    'runtime_library_dirs',
-    'extra_objects',
-    'extra_compile_args',
-    'extra_link_args',
-    'swig_opts',
-    'export_symbols',
-    'depends',
-    'language',
-)
-
 
 def setup(**attrs):  # noqa: C901
     """The gateway to the Distutils: do everything your setup script needs
@@ -127,7 +109,7 @@ def setup(**attrs):  # noqa: C901
     object.
     """
 
-    global _setup_stop_after, _setup_distribution
+    global _setup_distribution
 
     # Determine the distribution class -- either caller-supplied or
     # our Distribution (see below).
@@ -213,7 +195,7 @@ def run_commands(dist):
         if DEBUG:
             raise
         else:
-            raise SystemExit("error: " + str(msg))
+            raise SystemExit(f"error: {msg}")
 
     return dist
 
@@ -252,7 +234,7 @@ def run_setup(script_name, script_args: Iterable[str] | None = None, stop_after=
     if stop_after not in ('init', 'config', 'commandline', 'run'):
         raise ValueError(f"invalid value for 'stop_after': {stop_after!r}")
 
-    global _setup_stop_after, _setup_distribution
+    global _setup_stop_after
     _setup_stop_after = stop_after
 
     save_argv = sys.argv.copy()
@@ -265,7 +247,7 @@ def run_setup(script_name, script_args: Iterable[str] | None = None, stop_after=
             # tokenize.open supports automatic encoding detection
             with tokenize.open(script_name) as f:
                 code = f.read().replace(r'\r\n', r'\n')
-                exec(code, g)
+                exec(code, g)  # noqa: S102 # executing the setup script is the point
         finally:
             sys.argv = save_argv
             _setup_stop_after = None

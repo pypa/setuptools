@@ -1,1 +1,0 @@
-Setuptools wheels no longer bundled the project's own test modules. -- by :user:`itscloud0`

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
     _StrOrBytesT = TypeVar("_StrOrBytesT", str, bytes)
 
-__all__ = ["glob", "iglob", "escape"]
+__all__ = ["escape", "glob", "iglob"]
 
 
 def glob(pathname: _StrOrBytesT, recursive: bool = False) -> list[_StrOrBytesT]:

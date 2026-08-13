@@ -4,9 +4,27 @@ import textwrap
 
 import pytest
 
-from .. import base
+from .. import base, cygwin, msvc, unix
 
 pytestmark = pytest.mark.usefixtures('suppress_path_mangle')
+
+
+def test_initialize_default_is_noop():
+    """
+    Compilers that need no explicit initialization inherit a no-op
+    Compiler.initialize, so build_ext may initialize any cross-compiler
+    without assuming MSVCCompiler (regression test for pypa/distutils#399).
+    """
+    # The base implementation ignores self and accepts a plat_name.
+    assert base.Compiler.initialize(None) is None
+    assert base.Compiler.initialize(None, 'win-amd64') is None
+
+    # Non-MSVC compilers (Unix, Cygwin, MinGW) inherit the no-op...
+    assert unix.Compiler.initialize is base.Compiler.initialize
+    assert cygwin.Compiler.initialize is base.Compiler.initialize
+    assert cygwin.MinGW32Compiler.initialize is base.Compiler.initialize
+    # ...while MSVCCompiler overrides it.
+    assert msvc.Compiler.initialize is not base.Compiler.initialize
 
 
 @pytest.fixture

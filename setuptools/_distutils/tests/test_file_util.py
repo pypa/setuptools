@@ -2,9 +2,9 @@
 
 import errno
 import os
-import unittest.mock as mock
 from distutils.errors import DistutilsFileError
 from distutils.file_util import copy_file, move_file
+from unittest import mock
 
 import jaraco.path
 import pytest
@@ -93,3 +93,16 @@ class TestFileUtil:
         assert not os.path.samestat(st2, st3), (st2, st3)
         for fn in (self.source, self.target):
             assert fn.read_text(encoding='utf-8') == 'some content'
+
+    def test_copy_file_preserves_mtime(self):
+        """
+        copy_file() with preserve_times reproduces the source's modification
+        time exactly, including sub-second precision, so the copy is never
+        considered older than the source. Ref pypa/setuptools#5079.
+        """
+        jaraco.path.build({self.source: 'some content'})
+        # pick an mtime with a fractional part that is not representable as a
+        # whole number of seconds.
+        os.utime(self.source, ns=(1_234_567_891, 1_234_567_891))
+        copy_file(self.source, self.target)
+        assert os.stat(self.target).st_mtime_ns == os.stat(self.source).st_mtime_ns

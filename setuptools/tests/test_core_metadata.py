@@ -9,6 +9,7 @@ from email.parser import Parser
 from email.policy import EmailPolicy
 from inspect import cleandoc
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import Mock
 
 import jaraco.path
@@ -410,7 +411,7 @@ class TestParityWithMetadataFromPyPaWheel:
 
 
 class TestPEP643:
-    STATIC_CONFIG = {
+    STATIC_CONFIG: ClassVar[dict] = {
         "setup.cfg": cleandoc(
             """
             [metadata]

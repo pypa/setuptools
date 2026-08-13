@@ -16,7 +16,7 @@ from site import USER_BASE
 from typing import ClassVar
 
 from .._modified import newer_group
-from ..ccompiler import new_compiler, show_compilers
+from ..ccompiler import CCompiler, new_compiler, show_compilers
 from ..core import Command
 from ..errors import (
     CCompilerError,
@@ -57,20 +57,26 @@ class build_ext(Command):
     #     in between initialize_options() and finalize_options())
 
     sep_by = f" (separated by '{os.pathsep}')"
-    user_options = [
+    user_options: ClassVar[
+        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
+    ] = [
         ('build-lib=', 'b', "directory for compiled extension modules"),
         ('build-temp=', 't', "directory for temporary files (build by-products)"),
         (
             'plat-name=',
             'p',
-            "platform name to cross-compile for, if supported "
-            f"[default: {get_platform()}]",
+            (
+                "platform name to cross-compile for, if supported "
+                f"[default: {get_platform()}]"
+            ),
         ),
         (
             'inplace',
             'i',
-            "ignore build-lib and put compiled extensions into the source "
-            "directory alongside your pure Python modules",
+            (
+                "ignore build-lib and put compiled extensions into the source "
+                "directory alongside your pure Python modules"
+            ),
         ),
         (
             'include-dirs=',
@@ -109,29 +115,36 @@ class build_ext(Command):
         ('help-compiler', None, "list available compilers", show_compilers),
     ]
 
-    def initialize_options(self):
-        self.extensions = None
-        self.build_lib = None
-        self.plat_name = None
-        self.build_temp = None
+    def initialize_options(self) -> None:
+        self.extensions: list[Extension] | None = None
+        self.build_lib: str = None  # type: ignore[assignment] # Should always be set in finalize_options by set_undefined_options from build Command
+        self.plat_name: str = None  # type: ignore[assignment] # Should always be set in finalize_options by set_undefined_options from build Command
+        self.build_temp: str = None  # type: ignore[assignment] # Should always be set in finalize_options by set_undefined_options from build Command
         self.inplace = False
-        self.package = None
+        self.package: str | None = None
 
-        self.include_dirs = None
+        self.include_dirs: list[str] = None  # type: ignore[assignment] # Should always be set in finalize_options
         self.define = None
         self.undef = None
-        self.libraries = None
-        self.library_dirs = None
-        self.rpath = None
+        self.libraries: list[str] = None  # type: ignore[assignment] # Should always be set in finalize_options
+        self.library_dirs: list[str] = None  # type: ignore[assignment] # Should always be set in finalize_options
+        self.rpath: list[str] = None  # type: ignore[assignment] # Should always be set in finalize_options
         self.link_objects = None
         self.debug = None
-        self.force = None
-        self.compiler = None
+        # Inherit ``Command.force``'s ``bool | None`` type; command-line
+        # boolean options aren't coerced to ``bool``, so don't claim they are.
+        self.force: bool | None = None
+        # ``compiler`` holds three types across the command's lifecycle:
+        # ``None`` initially, the compiler name (``str``) after
+        # ``finalize_options`` (via ``set_undefined_options``), then a
+        # ``CCompiler`` once ``run`` calls ``new_compiler``.
+        # See https://github.com/pypa/distutils/pull/368#discussion_r3559726265
+        self.compiler: str | CCompiler | None = None
         self.swig = None
         self.swig_cpp = None
-        self.swig_opts = None
+        self.swig_opts: list[str] = None  # type: ignore[assignment] # Should always be set in finalize_options
         self.user = None
-        self.parallel = None
+        self.parallel: int | None = None
 
     @staticmethod
     def _python_lib_dir(sysconfig):
@@ -329,10 +342,12 @@ class build_ext(Command):
             force=self.force,
         )
         customize_compiler(self.compiler)
-        # If we are cross-compiling, init the compiler now (if we are not
-        # cross-compiling, init would not hurt, but people may rely on
-        # late initialization of compiler even if they shouldn't...)
-        if os.name == 'nt' and self.plat_name != get_platform():
+        # When cross-compiling, initialize the compiler now so it targets
+        # plat_name rather than the host platform. For a native build,
+        # initialization is left lazy, since some builds may rely on it
+        # (e.g. to avoid requiring a compiler that never compiles).
+        # See pypa/distutils#410.
+        if self.plat_name != get_platform():
             self.compiler.initialize(self.plat_name)
 
         # The official Windows free threaded Python installer doesn't set
@@ -432,7 +447,7 @@ class build_ext(Command):
                     setattr(ext, key, val)
 
             # Medium-easy stuff: same syntax/semantics, different names.
-            ext.runtime_library_dirs = build_info.get('rpath')
+            ext.runtime_library_dirs = build_info.get('rpath') or []
             if 'def_file' in build_info:
                 log.warning("'def_file' element of build info dict no longer supported")
 
@@ -561,6 +576,12 @@ class build_ext(Command):
         for undef in ext.undef_macros:
             macros.append((undef,))
 
+        # run() replaces the compiler name with a CCompiler instance before
+        # extensions are built.
+        # https://github.com/pypa/distutils/pull/368#discussion_r3559726265
+        assert isinstance(self.compiler, CCompiler), (
+            "run() must precede build_extension()"
+        )
         objects = self.compiler.compile(
             sources,
             output_dir=self.build_temp,
@@ -669,8 +690,7 @@ class build_ext(Command):
                 fn = os.path.join(f"c:\\swig{vers}", "swig.exe")
                 if os.path.isfile(fn):
                     return fn
-            else:
-                return "swig.exe"
+            return "swig.exe"
         else:
             raise DistutilsPlatformError(
                 f"I don't know how to find (much less run) SWIG on platform '{os.name}'"
@@ -755,7 +775,7 @@ class build_ext(Command):
             return parts[-2]
         return parts[-1]
 
-    def get_libraries(self, ext: Extension) -> list[str]:  # noqa: C901
+    def get_libraries(self, ext: Extension) -> list[str]:
         """Return the list of libraries to link against when building a
         shared extension.  On most platforms, this is just 'ext.libraries';
         on Windows, we add the Python library (eg. python20.dll).
@@ -769,12 +789,10 @@ class build_ext(Command):
             from .._msvccompiler import MSVCCompiler
 
             if not isinstance(self.compiler, MSVCCompiler):
-                template = "python%d%d"
-                if self.debug:
-                    template = template + '_d'
-                pythonlib = template % (
-                    sys.hexversion >> 24,
-                    (sys.hexversion >> 16) & 0xFF,
+                pythonlib = (
+                    f"python{sys.hexversion >> 24}{(sys.hexversion >> 16) & 0xFF}"
+                    + 't' * is_freethreaded()
+                    + '_d' * bool(self.debug)
                 )
                 # don't extend ext.libraries, it may be shared with other
                 # extensions, it is a reference to the original list
@@ -793,15 +811,18 @@ class build_ext(Command):
             link_libpython = False
             if get_config_var('Py_ENABLE_SHARED'):
                 # A native build on an Android device or on Cygwin
-                if hasattr(sys, 'getandroidapilevel'):
-                    link_libpython = True
-                elif sys.platform == 'cygwin' or is_mingw():
+                if (
+                    hasattr(sys, 'getandroidapilevel')
+                    or sys.platform == 'cygwin'
+                    or is_mingw()
+                ):
                     link_libpython = True
                 elif '_PYTHON_HOST_PLATFORM' in os.environ:
                     # We are cross-compiling for one of the relevant platforms
-                    if get_config_var('ANDROID_API_LEVEL') != 0:
-                        link_libpython = True
-                    elif get_config_var('MACHDEP') == 'cygwin':
+                    if (
+                        get_config_var('ANDROID_API_LEVEL') != 0
+                        or get_config_var('MACHDEP') == 'cygwin'
+                    ):
                         link_libpython = True
 
             if link_libpython:

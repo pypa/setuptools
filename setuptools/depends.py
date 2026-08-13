@@ -100,7 +100,6 @@ def maybe_close(f):
     @contextlib.contextmanager
     def empty():
         yield
-        return
 
     if not f:
         return empty()
@@ -182,4 +181,4 @@ if not sys.platform.startswith('java') and sys.platform != 'cli':
 
         return None
 
-    __all__ += ['get_module_constant', 'extract_constant']
+    __all__ += ['extract_constant', 'get_module_constant']

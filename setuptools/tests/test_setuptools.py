@@ -51,7 +51,7 @@ class TestDepends:
             return
 
         def f1():
-            global x, y, z
+            global x, y, z  # noqa: PLW0602 # global kept to exercise extract_constant
             x = "test"
             y = z  # pyright: ignore[reportUnboundVariable] # Explicitly testing for this runtime issue
 

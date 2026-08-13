@@ -62,7 +62,7 @@ def sample_project(tmp_path):
     cmd = ['git', 'clone', 'https://github.com/pypa/sampleproject']
     try:
         subprocess.check_call(cmd, cwd=str(tmp_path))
-    except Exception:
+    except Exception:  # noqa: BLE001 # intentional broad fallback
         pytest.skip("Unable to clone sampleproject")
     return tmp_path / 'sampleproject'
 
@@ -324,7 +324,7 @@ def create_setup_requires_package(
         metadata = []
         for name in use_setup_cfg:
             value = test_setup_attrs.pop(name)
-            if name in 'name version'.split():
+            if name in ['name', 'version']:
                 section = metadata
             else:
                 section = options

@@ -467,7 +467,12 @@ class TestLicenseFiles:
         # ^ used just to trigger section validation
         pyproject = self.base_pyproject(tmp_path, setuptools_config, license_toml="")
 
-        license_files = "LICENCE-a.html COPYING-abc.txt AUTHORS-xyz NOTICE,def".split()
+        license_files = [
+            "LICENCE-a.html",
+            "COPYING-abc.txt",
+            "AUTHORS-xyz",
+            "NOTICE,def",
+        ]
 
         for fname in license_files:
             (tmp_path / fname).write_text(f"{fname}\n", encoding="utf-8")
@@ -531,7 +536,7 @@ class TestPyModules:
     def test_invalid_module_name(self, tmp_path, monkeypatch, module):
         monkeypatch.chdir(tmp_path)
         with pytest.raises(ValueError, match="py-modules"):
-            self.dist(module).py_modules
+            self.dist(module).py_modules  # noqa: B018 # evaluated to trigger validation/side effect
 
 
 class TestExtModules:

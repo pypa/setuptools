@@ -5,37 +5,34 @@ that sort of thing)."""
 
 from __future__ import annotations
 
+import contextlib
 import os
+from collections.abc import Callable
+from types import ModuleType
 from typing import Literal, overload
-
-try:
-    import zipfile
-except ImportError:
-    zipfile = None
-
 
 from ._log import log
 from .dir_util import mkpath
 from .errors import DistutilsExecError
 from .spawn import spawn
 
-try:
-    from pwd import getpwnam
-except ImportError:
-    getpwnam = None
+zipfile: ModuleType | None = None
+with contextlib.suppress(ImportError):
+    import zipfile
 
-try:
-    from grp import getgrnam
-except ImportError:
-    getgrnam = None
+grp: ModuleType | None = None
+pwd: ModuleType | None = None
+with contextlib.suppress(ImportError):
+    import grp
+    import pwd
 
 
 def _get_gid(name):
     """Returns a gid, given a group name."""
-    if getgrnam is None or name is None:
+    if grp is None or name is None:
         return None
     try:
-        result = getgrnam(name)
+        result = grp.getgrnam(name)
     except KeyError:
         result = None
     if result is not None:
@@ -45,10 +42,10 @@ def _get_gid(name):
 
 def _get_uid(name):
     """Returns an uid, given a user name."""
-    if getpwnam is None or name is None:
+    if pwd is None or name is None:
         return None
     try:
-        result = getpwnam(name)
+        result = pwd.getpwnam(name)
     except KeyError:
         result = None
     if result is not None:
@@ -87,7 +84,7 @@ def make_tarball(
     compress_ext = {'gzip': '.gz', 'bzip2': '.bz2', 'xz': '.xz'}
 
     # flags for compression program, each element of list will be an argument
-    if compress is not None and compress not in compress_ext.keys():
+    if compress is not None and compress not in compress_ext:
         raise ValueError(
             "bad value for 'compress': must be None, 'gzip', 'bzip2', 'xz'"
         )
@@ -114,11 +111,10 @@ def make_tarball(
             tarinfo.uname = owner
         return tarinfo
 
-    tar = tarfile.open(archive_name, f'w|{tar_compression[compress]}')
-    try:
+    with tarfile.open(  # type: ignore[call-overload] # Dynamic mode
+        archive_name, f'w|{tar_compression[compress]}'
+    ) as tar:
         tar.add(base_dir, filter=_set_uid_gid)
-    finally:
-        tar.close()
 
     return archive_name
 
@@ -185,7 +181,9 @@ def make_zipfile(
     return zip_filename
 
 
-ARCHIVE_FORMATS = {
+ARCHIVE_FORMATS: dict[
+    str, tuple[Callable[..., str], list[tuple[str, str | None]], str]
+] = {
     'gztar': (make_tarball, [('compress', 'gzip')], "gzip'ed tar-file"),
     'bztar': (make_tarball, [('compress', 'bzip2')], "bzip2'ed tar-file"),
     'xztar': (make_tarball, [('compress', 'xz')], "xz'ed tar-file"),
@@ -260,7 +258,7 @@ def make_archive(
     if base_dir is None:
         base_dir = os.curdir
 
-    kwargs: dict[str, bool | None] = {}
+    kwargs: dict[str, str | bool | None] = {}
 
     try:
         format_info = ARCHIVE_FORMATS[format]

@@ -195,8 +195,7 @@ Distutils configuration files.  Various options and sections in the
 | Version                                  | ``version``                                  |
 +------------------------------------------+----------------------------------------------+
 | Vendor                                   | ``author`` and ``author_email``,             |
-|                                          | or  --- & ``maintainer`` and                 |
-|                                          | ``maintainer_email``                         |
+|                                          | or ``maintainer`` and ``maintainer_email``   |
 +------------------------------------------+----------------------------------------------+
 | Copyright                                | ``license``                                  |
 +------------------------------------------+----------------------------------------------+
@@ -294,7 +293,7 @@ installed, you can use a 32bit version of Windows to create 64bit extensions
 and vice-versa.
 
 To build for an alternate platform, specify the :option:`!--plat-name` option
-to the build command.  Valid values are currently 'win32', and  'win-amd64'.
+to the build command.  Valid values are currently 'win32', and 'win-amd64'.
 For example, on a 32bit version of Windows, you could execute::
 
    python setup.py build --plat-name=win-amd64
@@ -317,8 +316,8 @@ check or modify your existing install.)
 
 .. _postinstallation-script:
 
-The Postinstallation script
----------------------------
+The Post-installation script
+----------------------------
 
 Starting with Python 2.3, a postinstallation script can be specified with the
 :option:`!--install-script` option.  The basename of the script must be

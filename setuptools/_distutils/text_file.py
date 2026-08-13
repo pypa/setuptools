@@ -5,6 +5,7 @@ that (optionally) takes care of stripping comments, ignoring blank
 lines, and joining lines with backslashes."""
 
 import sys
+from typing import ClassVar
 
 
 class TextFile:
@@ -66,7 +67,7 @@ class TextFile:
     an all-whitespace line), if 'rstrip_ws' is true but 'skip_blanks' is
     not."""
 
-    default_options = {
+    default_options: ClassVar[dict[str, str | int]] = {
         'strip_comments': 1,
         'skip_blanks': 1,
         'lstrip_ws': 0,
@@ -88,14 +89,14 @@ class TextFile:
 
         # set values for all options -- either from client option hash
         # or fallback to default_options
-        for opt in self.default_options.keys():
+        for opt in self.default_options:
             if opt in options:
                 setattr(self, opt, options[opt])
             else:
                 setattr(self, opt, self.default_options[opt])
 
         # sanity check client option hash
-        for opt in options.keys():
+        for opt in options:
             if opt not in self.default_options:
                 raise KeyError(f"invalid TextFile option '{opt}'")
 
@@ -115,7 +116,9 @@ class TextFile:
         """Open a new file named 'filename'.  This overrides both the
         'filename' and 'file' arguments to the constructor."""
         self.filename = filename
-        self.file = open(self.filename, errors=self.errors, encoding='utf-8')
+        self.file = open(  # noqa: SIM115 # handle owned by TextFile, closed in close()
+            self.filename, errors=self.errors, encoding='utf-8'
+        )
         self.current_line = 0
 
     def close(self):

@@ -85,7 +85,7 @@ def test_wheel_info(filename, info):
             Wheel(filename)
         return
     w = Wheel(filename)
-    assert {k: getattr(w, k) for k in info.keys()} == info
+    assert {k: getattr(w, k) for k in info} == info
 
 
 @contextlib.contextmanager
@@ -584,11 +584,10 @@ def test_wheel_no_dist_dir():
         wheel_path = os.path.join(source_dir, wheel_name)
         # create an empty zip file
         zipfile.ZipFile(wheel_path, 'w').close()
-        with tempdir() as install_dir:
-            with pytest.raises(ValueError):
-                _check_wheel_install(
-                    wheel_path, install_dir, None, project_name, version, None
-                )
+        with tempdir() as install_dir, pytest.raises(ValueError):
+            _check_wheel_install(
+                wheel_path, install_dir, None, project_name, version, None
+            )
 
 
 def test_wheel_is_compatible(monkeypatch):

@@ -1,6 +1,7 @@
 import re
 from configparser import ConfigParser
 from inspect import cleandoc
+from typing import ClassVar
 
 import jaraco.path
 import pytest
@@ -287,7 +288,7 @@ class TestClassifiers:
 
 
 class TestImportNames:
-    EXAMPLES = [
+    EXAMPLES: ClassVar[list] = [
         'import-names = ["hello", "world"]',
         'import-namespaces = ["hello", "world"]',
         'dynamic = ["import-names"]',

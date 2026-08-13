@@ -10,7 +10,7 @@ from importlib import import_module
 from importlib.machinery import EXTENSION_SUFFIXES
 from pathlib import Path
 from textwrap import dedent
-from typing import Any
+from typing import Any, ClassVar
 from unittest.mock import Mock
 from uuid import uuid4
 
@@ -445,7 +445,7 @@ class TestFinderTemplate:
 
     def install_finder(self, finder):
         loc = {}
-        exec(finder, loc, loc)
+        exec(finder, loc, loc)  # noqa: S102 # exec is intentional here
         loc["install"]()
 
     def test_packages(self, tmp_path):
@@ -842,7 +842,7 @@ class TestOverallBehaviour:
         """
 
     # Any: Would need a TypedDict. Keep it simple for tests
-    FLAT_LAYOUT: dict[str, Any] = {
+    FLAT_LAYOUT: ClassVar[dict[str, Any]] = {
         "pyproject.toml": dedent(PYPROJECT),
         "MANIFEST.in": EXAMPLE["MANIFEST.in"],
         "otherfile.py": "",
@@ -857,7 +857,7 @@ class TestOverallBehaviour:
         },
     }
 
-    EXAMPLES = {
+    EXAMPLES: ClassVar[dict] = {
         "flat-layout": FLAT_LAYOUT,
         "src-layout": {
             "pyproject.toml": dedent(PYPROJECT),
@@ -1098,7 +1098,7 @@ class TestCustomBuildPy:
 
     # TODO: Remove tests after _run_build_steps is removed.
 
-    FILES = {
+    FILES: ClassVar[dict] = {
         **TestOverallBehaviour.EXAMPLES["flat-layout"],
         "setup.py": dedent(
             """\

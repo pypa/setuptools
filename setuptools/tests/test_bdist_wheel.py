@@ -361,7 +361,7 @@ def test_licenses_override(dummy_dist, monkeypatch, tmp_path, config_file, confi
     with ZipFile("dist/dummy_dist-1.0-py3-none-any.whl") as wf:
         license_files = {
             "dummy_dist-1.0.dist-info/licenses/" + fname
-            for fname in {"licenses_dir/DUMMYFILE", "LICENSE"}
+            for fname in ("licenses_dir/DUMMYFILE", "LICENSE")
         }
         assert set(wf.namelist()) == DEFAULT_FILES | license_files
         metadata = wf.read("dummy_dist-1.0.dist-info/METADATA").decode("utf8")

@@ -355,7 +355,7 @@ def _load_ep(ep: metadata.EntryPoint) -> tuple[str, type] | None:
     # Ignore all the errors
     try:
         return (ep.name, ep.load())
-    except Exception as ex:
+    except Exception as ex:  # noqa: BLE001 # intentional broad fallback
         msg = f"{ex.__class__.__name__} while trying to load entry-point {ep.name}"
         _logger.warning(f"{msg}: {ex}")
         return None
