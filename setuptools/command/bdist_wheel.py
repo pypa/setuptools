@@ -391,9 +391,7 @@ class bdist_wheel(Command):
             tag = (impl, abi_tag, plat_name)
             possible_tags = tags.parse_tag("-".join(tag))
             # issue gh-374: allow overriding plat_name
-            sys_tags = (
-                "-".join((t.interpreter, t.abi, plat_name)) for t in tags.sys_tags()
-            )
+            sys_tags = (f"{t.interpreter}-{t.abi}-{plat_name}" for t in tags.sys_tags())
             supported_tags = list(flatten(tags.parse_tag(t) for t in sys_tags))
             # abi_tag can contain multiple (e.g. "abi3.abi3t") tags
             # only one of them will be supported
