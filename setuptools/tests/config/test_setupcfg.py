@@ -351,7 +351,7 @@ class TestMetadata:
         with get_dist(tmpdir, parse=False) as dist:
             dist.parse_config_files()  # Skip unknown.
 
-    def test_usupported_section(self, tmpdir):
+    def test_unsupported_section(self, tmpdir):
         fake_env(tmpdir, '[metadata.some]\nkey = val\n')
         with get_dist(tmpdir, parse=False) as dist, pytest.raises(DistutilsOptionError):
             dist.parse_config_files()

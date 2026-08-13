@@ -1070,7 +1070,7 @@ class TestEggInfo:
         ]
 
         # Only 'NOTICE', LICENSE-ABC', and 'LICENSE-XYZ' should have been matched
-        # Also assert that order from license_files is keeped
+        # Also assert that order from license_files is kept
         assert len(license_file_lines) == 4
         assert "License-File: NOTICE" == license_file_lines[0]
         assert "License-File: LICENSE-ABC" in license_file_lines[1:]
