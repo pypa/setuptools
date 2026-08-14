@@ -3,12 +3,9 @@ from __future__ import annotations
 import contextlib
 import os
 import sys
-from typing import TYPE_CHECKING, TypeVar
+from typing import TypeAlias, TypeVar
 
 from more_itertools import unique_everseen
-
-if TYPE_CHECKING:
-    from typing import TypeAlias
 
 StrPath: TypeAlias = str | os.PathLike[str]  #  Same as _typeshed.StrPath
 StrPathT = TypeVar("StrPathT", bound=str | os.PathLike[str])

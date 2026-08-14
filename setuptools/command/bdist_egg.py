@@ -12,7 +12,7 @@ import textwrap
 from collections.abc import Iterator
 from sysconfig import get_path, get_platform, get_python_version
 from types import CodeType
-from typing import TYPE_CHECKING, ClassVar, Literal, TypeVar
+from typing import TYPE_CHECKING, ClassVar, Literal, TypeAlias, TypeVar
 
 from setuptools import Command
 from setuptools.extension import Library
@@ -23,8 +23,6 @@ from distutils import log
 from distutils.dir_util import mkpath, remove_tree
 
 if TYPE_CHECKING:
-    from typing import TypeAlias
-
     from _typeshed import GenericPath
 
     _StrOrBytesT = TypeVar("_StrOrBytesT", str, bytes)
