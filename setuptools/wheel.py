@@ -9,6 +9,7 @@ import posixpath
 import re
 import zipfile
 from collections.abc import Iterator
+from importlib import metadata
 
 from packaging.requirements import Requirement
 from packaging.tags import sys_tags
@@ -20,7 +21,6 @@ from setuptools.archive_util import _unpack_zipfile_obj
 from setuptools.command.egg_info import _egg_basename, write_requirements
 
 from ._discovery import extras_from_deps
-from ._importlib import metadata
 from .unicode_utils import _read_utf8_with_fallback
 
 from distutils.util import get_platform

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.resources
 import os
 import platform
 import stat
@@ -14,12 +15,10 @@ from typing import Any, ClassVar
 from unittest.mock import Mock
 from uuid import uuid4
 
-import jaraco.envs
 import jaraco.path
 import pytest
 from path import Path as _Path
 
-from setuptools._importlib import resources as importlib_resources
 from setuptools.command.editable_wheel import (
     _encode_pth,
     _find_namespaces,
@@ -494,7 +493,7 @@ class TestFinderTemplate:
 
             self.install_finder(template)
             pkg = import_module("ns.othername")
-            text = importlib_resources.files(pkg) / "text.txt"
+            text = importlib.resources.files(pkg) / "text.txt"
 
             expected = str((tmp_path / "pkg").resolve())
             assert_path(pkg, expected)
@@ -924,8 +923,8 @@ class TestOverallBehaviour:
         # Ensure resources are reachable
         cmd_get_resource = """\
         import mypkg.subpackage
-        from setuptools._importlib import resources as importlib_resources
-        text = importlib_resources.files(mypkg.subpackage) / "resource_file.txt"
+        import importlib.resources
+        text = importlib.resources.files(mypkg.subpackage) / "resource_file.txt"
         print(text.read_text(encoding="utf-8"))
         """
         out = venv.run(["python", "-c", dedent(cmd_get_resource)])
@@ -1022,9 +1021,9 @@ class TestLinkTree:
         # Ensure resource files excluded from distribution are not reachable
         cmd_get_resource = """\
         import mypkg
-        from setuptools._importlib import resources as importlib_resources
+        import importlib.resources
         try:
-            text = importlib_resources.files(mypkg) / "resource.not_in_manifest"
+            text = importlib.resources.files(mypkg) / "resource.not_in_manifest"
             print(text.read_text(encoding="utf-8"))
         except FileNotFoundError as ex:
             print(ex)

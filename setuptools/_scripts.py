@@ -9,9 +9,8 @@ import subprocess
 import sys
 import textwrap
 from collections.abc import Iterable
+from importlib import metadata, resources
 from typing import TYPE_CHECKING, TypedDict
-
-from ._importlib import metadata, resources
 
 if TYPE_CHECKING:
     from typing_extensions import Self
