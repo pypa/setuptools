@@ -172,6 +172,17 @@ class build_py(orig.build_py):
         for target, srcfile in self._get_package_data_output_mapping():
             self.mkpath(os.path.dirname(target))
             _outf, _copied = self.copy_file(srcfile, target)
+            # `copy_file` may skip the actual copy (and with it, the
+            # mode-preserving chmod) if `target` already looks
+            # up-to-date based on an mtime comparison. This can happen
+            # when the same file was already staged by build_module()
+            # with preserve_mode=False, e.g. for package_data files
+            # that are also collected as Python modules (as happens
+            # with PEP 420 implicit namespace subpackages). Explicitly
+            # sync the mode bits here so package_data files always end
+            # up with the permissions of their source, regardless of
+            # whether the "up-to-date" skip kicked in. See #5296.
+            os.chmod(target, stat.S_IMODE(os.stat(srcfile).st_mode))
             make_writable(target)
 
     def analyze_manifest(self) -> None:
