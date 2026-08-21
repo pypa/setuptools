@@ -1,0 +1,1 @@
+Added warnings to detect mismatches between ``py.typed`` markers and ``Typing :: *`` classifiers during builds.

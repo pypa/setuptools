@@ -333,7 +333,8 @@ class TestBuildMetaBackend:
                 dynamic = ["version", "readme"]
                 classifiers = [
                     "Development Status :: 5 - Production/Stable",
-                    "Intended Audience :: Developers"
+                    "Intended Audience :: Developers",
+                    "Typing :: Typed",
                 ]
                 urls = {Homepage = "http://github.com"}
                 dependencies = [

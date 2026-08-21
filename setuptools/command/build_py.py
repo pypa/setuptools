@@ -16,7 +16,7 @@ from more_itertools import unique_everseen
 
 from .._path import StrPath, StrPathT
 from ..dist import Distribution
-from ..warnings import SetuptoolsDeprecationWarning
+from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 import distutils.command.build_py as orig
 import distutils.errors
@@ -78,6 +78,7 @@ class build_py(orig.build_py):
         if self.packages:
             self.build_packages()
             self.build_package_data()
+            self._check_typing_classifier()
 
         # Only compile actual .py files, using our base class' idea of what our
         # output files are.
@@ -173,6 +174,51 @@ class build_py(orig.build_py):
             self.mkpath(os.path.dirname(target))
             _outf, _copied = self.copy_file(srcfile, target)
             make_writable(target)
+
+    def _check_typing_classifier(self) -> None:
+        """Warn when typing classifiers and ``py.typed`` markers are inconsistent."""
+        classifiers = self.distribution.metadata.get_classifiers()
+        has_typed_classifier = "Typing :: Typed" in classifiers
+        has_stubs_classifier = "Typing :: Stubs Only" in classifiers
+        has_any_typing_classifier = has_typed_classifier or has_stubs_classifier
+
+        packages = self.packages or ()
+        has_stubs_package = any(
+            pkg.split(".")[0].endswith("-stubs") for pkg in packages
+        )
+        has_py_typed = any("py.typed" in filenames for *_, filenames in self.data_files)
+
+        if has_py_typed and not has_any_typing_classifier:
+            SetuptoolsWarning.emit(
+                "Package includes a `py.typed` marker but is missing a "
+                "`Typing :: *` classifier.",
+                "Please consider adding either `Typing :: Typed` or "
+                "`Typing :: Stubs Only` to your classifiers.",
+                see_url=(
+                    "https://typing.python.org/en/latest/spec/distributing.html"
+                    "#packaging-type-information"
+                ),
+            )
+        elif has_typed_classifier and (not has_py_typed or has_stubs_package):
+            SetuptoolsWarning.emit(
+                "`Typing :: Typed` classifier is present but the package does "
+                "not ship a `py.typed` marker or is a stubs package.",
+                "Please either add a `py.typed` marker or use "
+                "`Typing :: Stubs Only` for stubs-only packages.",
+                see_url=(
+                    "https://typing.python.org/en/latest/spec/distributing.html"
+                    "#packaging-type-information"
+                ),
+            )
+        elif has_stubs_package and not has_stubs_classifier:
+            SetuptoolsWarning.emit(
+                "Stubs package is missing the `Typing :: Stubs Only` classifier.",
+                "Please consider adding `Typing :: Stubs Only` to your classifiers.",
+                see_url=(
+                    "https://typing.python.org/en/latest/spec/distributing.html"
+                    "#packaging-type-information"
+                ),
+            )
 
     def analyze_manifest(self) -> None:
         self.manifest_files: dict[str, list[str]] = {}
