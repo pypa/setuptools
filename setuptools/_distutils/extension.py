@@ -22,7 +22,7 @@ from ._dataclass import lenient_dataclass
 # order to do anything.
 
 
-@lenient_dataclass()
+@lenient_dataclass(eq=False)
 class Extension:
     """Just a collection of attributes that describes an extension
     module and everything needed to build it (hopefully in a portable

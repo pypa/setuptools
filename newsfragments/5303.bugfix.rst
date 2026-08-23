@@ -1,0 +1,1 @@
+Restored hashability and identity-based equality for ``Extension`` objects, which were lost in the v84.0.0 dataclass conversion and broke ``setup.py`` scripts that collect extensions in sets or use them as dict keys (e.g. pywin32 builds).

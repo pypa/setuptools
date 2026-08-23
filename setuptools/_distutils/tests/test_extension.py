@@ -121,6 +121,17 @@ class TestExtension:
 
         assert len(w) == 1
 
+    def test_extension_is_hashable(self):
+        # The dataclass conversion must not remove identity-based
+        # equality and hashability (pypa/setuptools#5303).
+        ext = Extension('name', ['file1'])
+        other = Extension('name', ['file1'])
+
+        assert hash(ext) is not None
+        assert ext == ext
+        assert ext != other  # identity equality, not value equality
+        assert len({ext, other}) == 2
+
 
 def test_can_be_extended_by_setuptools() -> None:
     # Emulate how it could be extended in setuptools
