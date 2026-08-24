@@ -504,6 +504,13 @@ class SystemInfo:
         str
             path
         """
+        # Prefer the exact installation path recorded by the Visual Studio
+        # installer instance state (VS2017+), which avoids the lossy
+        # major.minor float formatting of ``vs_ver`` (e.g. 17.12 -> "17.1").
+        for ver, path in sorted(self.known_vs_paths.items(), reverse=True):
+            if int(ver) == int(self.vs_ver):
+                return path
+
         # Default path
         default = os.path.join(
             self.ProgramFilesx86, f'Microsoft Visual Studio {self.vs_ver:0.1f}'
@@ -1333,14 +1340,24 @@ class EnvironmentInfo:
             base_path = self.si.VSInstallDir
             arch_subdir = ''
 
-        path = rf'MSBuild\{self.vs_ver:0.1f}\bin{arch_subdir}'
-        build = [os.path.join(base_path, path)]
+        if self.vs_ver < 15.0:
+            path = rf'MSBuild\{self.vs_ver:0.1f}\bin{arch_subdir}'
+            build = [os.path.join(base_path, path)]
+        elif self.vs_ver < 16.0:
+            # Visual Studio 2017 keeps the per-version layout.
+            path = rf'MSBuild\{self.vs_ver:0.1f}\bin'
+            build = [os.path.join(base_path, path)]
+        else:
+            # Since Visual Studio 2019 (v16), MSBuild lives under a
+            # version-independent "Current" directory instead of
+            # "MSBuild\<version>".
+            path = r'MSBuild\Current\bin'
+            build = [os.path.join(base_path, path)]
 
-        if self.vs_ver >= 15.0:
             # Add Roslyn C# & Visual Basic Compiler
             build += [os.path.join(base_path, path, 'Roslyn')]
 
-        return build
+        return [p for p in build if os.path.isdir(p)] or build
 
     @property
     def HTMLHelpWorkshop(self):
