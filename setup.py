@@ -23,7 +23,9 @@ class install_with_pth(install):
     """
 
     _pth_name = 'distutils-precedence'
-    _pth_contents = (
+    # Do not install the .pth shim on Python 3.6; it causes SSL errors in
+    # setuptools 57.1.0. Use the stdlib distutils there.
+    _pth_contents = '' if sys.version_info < (3, 7) else (
         textwrap
         .dedent(
             """
@@ -39,11 +41,13 @@ class install_with_pth(install):
 
     def initialize_options(self):
         install.initialize_options(self)
-        self.extra_path = self._pth_name, self._pth_contents
+        if self._pth_contents:
+            self.extra_path = self._pth_name, self._pth_contents
 
     def finalize_options(self):
         install.finalize_options(self)
-        self._restore_install_lib()
+        if self._pth_contents:
+            self._restore_install_lib()
 
     def _restore_install_lib(self):
         """
