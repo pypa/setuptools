@@ -411,11 +411,10 @@ extensions).
 
 ``namespace_packages``
     .. warning::
-        The ``namespace_packages`` implementation relies on ``pkg_resources``.
-        However, ``pkg_resources`` has some undesirable behaviours, and
-        Setuptools intends to obviate its usage in the future. Therefore,
-        ``namespace_packages`` was deprecated in favor of native/implicit
-        namespaces (:pep:`420`). Check :doc:`the Python Packaging User Guide
+        The ``namespace_packages`` keyword is **deprecated and no longer
+        functional**: it relied on the ``pkg_resources`` runtime, which has
+        been removed from Setuptools.  Use native/implicit namespaces
+        (:pep:`420`) instead. Check :doc:`the Python Packaging User Guide
         <PyPUG:guides/packaging-namespace-packages>` for more information.
 
     A list of strings naming the project's "namespace packages".  A namespace

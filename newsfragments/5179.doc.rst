@@ -1,0 +1,5 @@
+Updated remaining non-historical documentation that still assumed
+``pkg_resources`` was available: removed a stale "transitional note" about
+``declare_namespace()``, replaced ``pkg_resources.parse_version`` examples
+with :mod:`packaging.version`, and clarified that legacy namespace-package
+styles are no longer supported.

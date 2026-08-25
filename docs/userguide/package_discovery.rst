@@ -510,18 +510,22 @@ Legacy Namespace Packages
 The fact you can create namespace packages so effortlessly above is credited
 to :pep:`420`. It used to be more
 cumbersome to accomplish the same result. Historically, there were two methods
-to create namespace packages. One is the ``pkg_resources`` style supported by
-``setuptools`` and the other one being ``pkgutils`` style offered by
-``pkgutils`` module in Python. Both are now considered *deprecated* despite the
-fact they still linger in many existing packages. These two differ in many
+to create namespace packages. One is the ``pkg_resources`` style formerly
+supported by
+``setuptools`` and the other one being ``pkgutil`` style offered by
+the ``pkgutil`` module in Python. Both are now considered *deprecated*, and
+support for them has been **removed** from Setuptools — they only linger in
+many existing packages. These two differ in many
 subtle yet significant aspects and you can find out more on `Python packaging
 user guide <https://packaging.python.org/guides/packaging-namespace-packages/>`_.
 
 
-``pkg_resource`` style namespace package
-----------------------------------------
-This is the method ``setuptools`` directly supports. Starting with the same
-layout, there are two pieces you need to add to it. First, an ``__init__.py``
+``pkg_resources`` style namespace package (REMOVED)
+---------------------------------------------------
+This method used to be directly supported by ``setuptools``, but it depended on
+the ``pkg_resources`` runtime, which has been removed — new projects must not
+use it. For historical reference only: starting with the same
+layout, there were two pieces you needed to add to it. First, an ``__init__.py``
 file directly under your namespace package directory that contains the
 following:
 
@@ -529,7 +533,8 @@ following:
 
     __import__("pkg_resources").declare_namespace(__name__)
 
-And the ``namespace_packages`` keyword in your ``setup.cfg`` or ``setup.py``:
+And the ``namespace_packages`` keyword in your ``setup.cfg`` or ``setup.py``
+(no longer supported):
 
 .. tab:: setup.cfg
 
@@ -564,8 +569,9 @@ the previous section.
 
 ``pkgutil`` style namespace package
 -----------------------------------
-This method is almost identical to the ``pkg_resource`` except that the
-``namespace_packages`` declaration is omitted and the ``__init__.py``
+This method is almost identical to the ``pkg_resources`` style except that the
+``namespace_packages``
+declaration is omitted and the ``__init__.py``
 file contains the following:
 
 .. code-block:: python

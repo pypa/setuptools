@@ -147,7 +147,7 @@ Limitations
   ``setuptools`` might employ file links to perform the editable installation).
   Users are encouraged to use tools like :mod:`importlib.resources` or
   :mod:`importlib.metadata` when trying to access package files directly.
-- Editable installations may not work with
+- Editable installations do not work with
   :doc:`namespaces created with pkgutil or pkg_resources
   <PyPUG:guides/packaging-namespace-packages>`.
   Please use :pep:`420`-style implicit namespaces [#namespaces]_.

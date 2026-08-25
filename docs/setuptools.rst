@@ -86,6 +86,12 @@ The developer's guide has been updated. See the :doc:`most recent version <userg
 TRANSITIONAL NOTE
 ~~~~~~~~~~~~~~~~~
 
+.. deprecated:: 67
+
+   This note is historical. The automatic ``declare_namespace()`` behaviour it
+   describes, and ``pkg_resources`` itself, have since been **removed** from
+   Setuptools. Legacy-style namespace packages no longer work at runtime.
+
 Setuptools automatically calls ``declare_namespace()`` for you at runtime,
 but future versions may *not*.  This is because the automatic declaration
 feature has some negative side effects, such as needing to import all namespace

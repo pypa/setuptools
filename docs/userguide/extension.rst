@@ -179,8 +179,8 @@ Adding new EGG-INFO Files
 
 Some extensible applications or frameworks may want to allow third parties to
 develop plugins with application or framework-specific metadata included in
-the plugins' EGG-INFO directory, for easy access via the ``pkg_resources``
-metadata API.  The easiest way to allow this is to create an extension
+the plugins' EGG-INFO directory, so that the metadata can be read with tooling
+such as :mod:`importlib.metadata`.  The easiest way to allow this is to create an extension
 to be used from the plugin projects' setup scripts (via ``setup_requires``)
 that defines a new setup keyword, and then uses that data to write an EGG-INFO
 file when the ``egg_info`` command is run.
