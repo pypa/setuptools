@@ -159,6 +159,31 @@ binary extensions during the build process, or included in the final
 :term:`wheel <Wheel>` [#build-process]_ if you configure ``setuptools`` with
 ``include_package_data=True``.
 
+.. _Common MANIFEST.in pitfalls:
+
+Common ``MANIFEST.in`` pitfalls
+-------------------------------
+
+A few recurring mistakes are worth highlighting:
+
+- ``recursive-include`` requires **at least one file pattern**: the command
+  matches files under directories that match *both* the directory pattern and
+  one of the listed file patterns.  A line like ``recursive-include folder``
+  (with no pattern) does not mean "everything inside :file:`folder`" — it is a
+  template error, and the build will fail.  To add all the files inside a
+  directory tree, use ``graft`` instead::
+
+     recursive-include folder *.html   # OK: .html files anywhere under folder
+     recursive-include folder          # ERROR: at least one pattern is required
+     graft folder                      # OK: everything under folder
+
+- Patterns given to ``include``/``exclude`` are matched against paths relative
+  to the project root (they are *anchored*), while patterns given to
+  ``global-include``/``global-exclude`` match against file names regardless of
+  directory.  Using ``exclude *.pyc`` expecting it to act like
+  ``global-exclude *.pyc`` is a common source of "the exclusion did nothing"
+  surprises.
+
 .. important::
    Please note that, when using ``include_package_data=True``, only files **inside
    the package directory** are included in the final ``wheel``, by default.
