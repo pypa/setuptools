@@ -5,6 +5,14 @@ Specifying dependencies that aren't in PyPI via ``dependency_links``
     Dependency links support has been dropped by pip starting with version
     19.0 (released 2019-01-22).
 
+    Everything described below is **historical** and no longer works with
+    current versions of ``pip`` or ``setuptools``.
+
+    The modern replacement is to declare the dependency as a
+    :pep:`direct reference <508>` (``name @ URL``) in ``dependencies``
+    — see :doc:`/userguide/dependency_management`
+    ("Direct URL dependencies" section) for details and examples.
+
 If your project depends on packages that don't exist on PyPI, you *may* still be
 able to depend on them if they are available for download as:
 
