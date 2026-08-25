@@ -212,7 +212,10 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     _write_requirements(self, file)
 
     for field, attr in _POSSIBLE_DYNAMIC_FIELDS.items():
-        if (val := getattr(self, attr, None)) and not is_static(val):
+        # `is not None` rather than truthiness: a value the author set to an empty
+        # container or string is still a value they chose, and may be filled in
+        # later, so it belongs in Dynamic (#5120).
+        if (val := getattr(self, attr, None)) is not None and not is_static(val):
             write_field('Dynamic', field)
 
     long_description = self.get_long_description()
