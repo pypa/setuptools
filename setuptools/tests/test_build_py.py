@@ -122,6 +122,46 @@ def test_executable_data(tmpdir_cwd):
     )
 
 
+@pytest.mark.xfail(
+    'platform.system() == "Windows"',
+    reason="On Windows, files do not have executable bits",
+    raises=AssertionError,
+    strict=True,
+)
+def test_executable_data_with_py_suffix(tmpdir_cwd):
+    """
+    A data file that ends in .py is also picked up by build_module()
+    as an ordinary module, which copies it without preserving mode.
+    build_package_data() runs after and is supposed to fix the mode
+    up to match the source, but since build_module() already brought
+    the target's mtime in line with the source's, the update check in
+    copy_file() sees nothing to do and skips straight past the mode
+    fix too, leaving the copy in build_module()'s non-executable
+    version.
+
+    #5296
+    """
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build_py'],
+            packages=['pkg'],
+            package_data={'pkg': ['run_me.py']},
+        )
+    )
+    os.makedirs('pkg')
+    open('pkg/__init__.py', 'wb').close()
+    open('pkg/run_me.py', 'wb').close()
+    os.chmod('pkg/run_me.py', 0o700)
+
+    dist.parse_command_line()
+    dist.run_commands()
+
+    assert os.stat('build/lib/pkg/run_me.py').st_mode & stat.S_IEXEC, (
+        "Script is not executable"
+    )
+
+
 EXAMPLE_WITH_MANIFEST = {
     "setup.cfg": DALS(
         """

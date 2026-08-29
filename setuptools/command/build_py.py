@@ -171,7 +171,19 @@ class build_py(orig.build_py):
         """Copy data files into build directory"""
         for target, srcfile in self._get_package_data_output_mapping():
             self.mkpath(os.path.dirname(target))
-            _outf, _copied = self.copy_file(srcfile, target)
+            # A data file that also looks like a module (most commonly a
+            # .py file sitting under a directory with no __init__.py,
+            # picked up as an implicit namespace package) may already have
+            # been copied to this same target by build_module(), which
+            # does not preserve mode. copy_file() skips its own copy
+            # once source and target already agree on mtime, which that
+            # first copy already arranged, so without forcing it here the
+            # wrong mode from that earlier copy would never get corrected.
+            force, self.force = self.force, True
+            try:
+                _outf, _copied = self.copy_file(srcfile, target)
+            finally:
+                self.force = force
             make_writable(target)
 
     def analyze_manifest(self) -> None:

@@ -1,0 +1,4 @@
+Fixed executable permissions on package data files being lost in wheels
+whenever the same file was also picked up as a module (most commonly a
+``.py`` file matched by both a ``package_data`` glob and the module
+discovery that runs alongside it) -- by :user:`afonsojanu`
