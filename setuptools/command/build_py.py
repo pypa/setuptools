@@ -176,7 +176,7 @@ class build_py(orig.build_py):
             # copy_file's own "only copy if newer" check can decide the
             # target is already up to date and skip the copy outright, most
             # commonly when the same path was already produced a moment
-            # earlier as a plain module -- an implicit namespace package
+            # earlier as a plain module. An implicit namespace package
             # living inside another package's directory is both a package
             # (its .py files build as modules) and a valid package_data
             # source, and module builds copy with preserve_mode=False. Mode
