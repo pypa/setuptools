@@ -4,6 +4,7 @@ import fnmatch
 import itertools
 import operator
 import os
+import shutil
 import stat
 import textwrap
 from collections.abc import Iterable, Iterator
@@ -172,6 +173,19 @@ class build_py(orig.build_py):
         for target, srcfile in self._get_package_data_output_mapping():
             self.mkpath(os.path.dirname(target))
             _outf, _copied = self.copy_file(srcfile, target)
+            # copy_file's own "only copy if newer" check can decide the
+            # target is already up to date and skip the copy outright, most
+            # commonly when the same path was already produced a moment
+            # earlier as a plain module -- an implicit namespace package
+            # living inside another package's directory is both a package
+            # (its .py files build as modules) and a valid package_data
+            # source, and module builds copy with preserve_mode=False. Mode
+            # bits aren't part of that staleness check at all, so a skip
+            # here would otherwise leave the file stuck on whatever mode
+            # the earlier write left behind. Copying the mode directly
+            # keeps it in sync with the source regardless of whether the
+            # content itself needed refreshing.
+            shutil.copymode(srcfile, target)
             make_writable(target)
 
     def analyze_manifest(self) -> None:

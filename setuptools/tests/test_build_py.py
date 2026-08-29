@@ -122,6 +122,44 @@ def test_executable_data(tmpdir_cwd):
     )
 
 
+@pytest.mark.xfail(
+    'platform.system() == "Windows"',
+    reason="On Windows, files do not have executable bits",
+    raises=AssertionError,
+    strict=True,
+)
+def test_executable_data_also_built_as_a_module(tmpdir_cwd):
+    """
+    A package_data file ending in .py, sitting in a directory that is also
+    registered as one of the distribution's packages, gets copied twice:
+    once as a module (which does not preserve mode) and once as package
+    data (which does). The second copy has to win regardless of whether
+    its timestamp lines up closely enough with the first one's for the
+    build to treat it as already up to date and skip re-copying it.
+
+    #5296
+    """
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build_py'],
+            packages=['pkg', 'pkg.scripts'],
+            package_data={'pkg.scripts': ['run-me.py']},
+        )
+    )
+    os.makedirs('pkg/scripts')
+    open('pkg/__init__.py', 'wb').close()
+    open('pkg/scripts/run-me.py', 'wb').close()
+    os.chmod('pkg/scripts/run-me.py', 0o700)
+
+    dist.parse_command_line()
+    dist.run_commands()
+
+    assert os.stat('build/lib/pkg/scripts/run-me.py').st_mode & stat.S_IEXEC, (
+        "Script is not executable"
+    )
+
+
 EXAMPLE_WITH_MANIFEST = {
     "setup.cfg": DALS(
         """
