@@ -1,0 +1,3 @@
+Sdists no longer replace an original directory with a directory symlink that
+points at it. The original path is kept and the symlink is skipped. -- by
+:user:`r3wretrhy`

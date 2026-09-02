@@ -326,11 +326,20 @@ def _find_all_simple(path):
     """
     Find all files under 'path'
     """
-    all_unique = _UniqueDirs.filter(os.walk(path, followlinks=True))
+    all_unique = _UniqueDirs.filter(os.walk(path, followlinks=True), root=path)
     results = (
         os.path.join(base, file) for base, dirs, files in all_unique for file in files
     )
     return filter(os.path.isfile, results)
+
+
+def _path_is_inside(path: str, root: str) -> bool:
+    path = os.path.normcase(os.path.abspath(path))
+    root = os.path.normcase(os.path.abspath(root))
+    try:
+        return os.path.commonpath([path, root]) == root
+    except ValueError:
+        return False
 
 
 class _UniqueDirs(set):
@@ -338,7 +347,14 @@ class _UniqueDirs(set):
     Exclude previously-seen dirs from walk results,
     avoiding infinite recursion.
     Ref https://bugs.python.org/issue44497.
+
+    Directory symlinks whose target is already inside the walk root are
+    skipped so the original path is kept (pypa/setuptools#4937).
     """
+
+    def __init__(self, root: str = '') -> None:
+        super().__init__()
+        self.root = os.path.normcase(os.path.abspath(root)) if root else ''
 
     def __call__(self, walk_item):
         """
@@ -347,6 +363,11 @@ class _UniqueDirs(set):
         and if not, prevent further traversal.
         """
         base, dirs, _files = walk_item
+        if self.root and os.path.islink(base):
+            real = os.path.realpath(base)
+            if _path_is_inside(real, self.root):
+                del dirs[:]
+                return False
         stat = os.stat(base)
         candidate = stat.st_dev, stat.st_ino
         found = candidate in self
@@ -356,8 +377,8 @@ class _UniqueDirs(set):
         return not found
 
     @classmethod
-    def filter(cls, items):
-        return filter(cls(), items)
+    def filter(cls, items, root: str = ''):
+        return filter(cls(root), items)
 
 
 def findall(dir: str | os.PathLike[str] = os.curdir):

@@ -334,3 +334,82 @@ class TestFindAll:
         )
         files = filelist.findall(tmp_path)
         assert len(files) == 1
+
+    @pytest.mark.parametrize('symlink_name_first', [True, False])
+    def test_dir_symlink_keeps_original_path_mocked(
+        self, tmp_path, monkeypatch, symlink_name_first
+    ):
+        """Same as setuptools#4937, without requiring OS symlink privileges."""
+        original = tmp_path / 'foo' / 'a'
+        original.mkdir(parents=True)
+        (original / 'x.txt').write_text('keep-me', encoding='utf-8')
+        link = tmp_path / 'foo' / 'b'
+        link.mkdir()
+        (link / 'x.txt').write_text('keep-me', encoding='utf-8')
+
+        orig_realpath = os.path.realpath
+        link_abs = os.path.normcase(os.path.abspath(link))
+
+        def islink(path):
+            return os.path.normcase(os.path.abspath(path)) == link_abs
+
+        def realpath(path):
+            if islink(path):
+                return str(original)
+            return orig_realpath(path)
+
+        monkeypatch.setattr(os.path, 'islink', islink)
+        monkeypatch.setattr(os.path, 'realpath', realpath)
+
+        def ordered_walk(*_args, **_kwargs):
+            dirs = ['b', 'a'] if symlink_name_first else ['a', 'b']
+            yield str(tmp_path / 'foo'), dirs, []
+            for name in list(dirs):
+                child = tmp_path / 'foo' / name
+                yield str(child), [], ['x.txt']
+
+        files = list(
+            filelist._UniqueDirs.filter(
+                ordered_walk(str(tmp_path / 'foo')),
+                root=str(tmp_path),
+            )
+        )
+        bases = [base for base, _dirs, _files in files]
+        assert str(original) in bases
+        assert str(link) not in bases
+
+    @os_helper.skip_unless_symlink
+    @pytest.mark.parametrize('symlink_name_first', [True, False])
+    def test_dir_symlink_keeps_original_path(self, tmp_path, symlink_name_first):
+        """Directory symlink must not hide the original path (setuptools#4937)."""
+        original = tmp_path / 'foo' / 'a'
+        original.mkdir(parents=True)
+        (original / 'x.txt').write_text('keep-me', encoding='utf-8')
+        link = tmp_path / 'foo' / 'b'
+        try:
+            link.symlink_to('a', target_is_directory=True)
+        except (OSError, NotImplementedError):
+            pytest.skip("directory symlink not supported")
+
+        def ordered_walk(*_args, **_kwargs):
+            dirs = ['b', 'a'] if symlink_name_first else ['a', 'b']
+            yield str(tmp_path / 'foo'), dirs, []
+            for name in list(dirs):
+                child = tmp_path / 'foo' / name
+                yield str(child), [], ['x.txt']
+
+        files = list(
+            filelist._UniqueDirs.filter(
+                ordered_walk(str(tmp_path / 'foo')),
+                root=str(tmp_path),
+            )
+        )
+        bases = [base for base, _dirs, _files in files]
+        assert str(original) in bases
+        assert str(link) not in bases
+
+        found = [os.path.normpath(p) for p in filelist.findall(tmp_path)]
+        expected = os.path.normpath(original / 'x.txt')
+        unexpected = os.path.normpath(link / 'x.txt')
+        assert expected in found
+        assert unexpected not in found

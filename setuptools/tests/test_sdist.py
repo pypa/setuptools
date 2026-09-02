@@ -895,6 +895,31 @@ class TestRegressions:
             },
         }
 
+    def test_directory_symlink_does_not_replace_original(self, monkeypatch, tmp_path):
+        """sdist must keep the original directory, not the symlink path (#4937)."""
+        files = {
+            "project": {
+                "setup.py": cleandoc(
+                    """
+                    from setuptools import setup
+                    setup(name="test", version="0")
+                    """
+                ),
+                "MANIFEST.in": "graft foo\n",
+                "foo": {
+                    "a": {"x.txt": "keep-me", "y.txt": "also"},
+                },
+            },
+        }
+        jaraco.path.build(files, prefix=str(tmp_path))
+        symlink_or_skip_test("a", tmp_path / "project" / "foo" / "b")
+
+        members = {posix(name) for name in run_sdist(monkeypatch, tmp_path / "project")}
+        assert "test-0/foo/a/x.txt" in members
+        assert "test-0/foo/a/y.txt" in members
+        assert "test-0/foo/b/x.txt" not in members
+        assert "test-0/foo/b/y.txt" not in members
+
     @pytest.mark.parametrize(
         "dep_path", ("myheaders/dir/file.h", "myheaders/dir/../dir/file.h")
     )
