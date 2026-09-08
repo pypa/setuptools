@@ -122,6 +122,47 @@ def test_executable_data(tmpdir_cwd):
     )
 
 
+@pytest.mark.xfail(
+    'platform.system() == "Windows"',
+    reason="On Windows, files do not have executable bits",
+    raises=AssertionError,
+    strict=True,
+)
+def test_executable_data_in_implicit_namespace_subpackage(tmpdir_cwd):
+    """
+    A package_data file that lives inside an implicit namespace
+    subpackage (no __init__.py) is copied twice while building:
+    once by build_module() (which discovers it as a Python module
+    and copies it with preserve_mode=False), and once by
+    build_package_data() (which should copy it with preserve_mode=True
+    to restore the correct mode). If both copies end up with
+    identical mtimes, the "up-to-date" staleness check in copy_file
+    can cause the second, mode-restoring copy to be skipped, leaving
+    the file non-executable.
+
+    Regression test for #5296.
+    """
+    dist = Distribution(
+        dict(
+            script_name='setup.py',
+            script_args=['build_py'],
+            packages=['pkg', 'pkg.scripts'],
+            package_data={'pkg': ['scripts/*']},
+        )
+    )
+    os.makedirs('pkg/scripts')
+    open('pkg/__init__.py', 'wb').close()
+    open('pkg/scripts/run-me.py', 'wb').close()
+    os.chmod('pkg/scripts/run-me.py', 0o700)
+
+    dist.parse_command_line()
+    dist.run_commands()
+
+    assert os.stat('build/lib/pkg/scripts/run-me.py').st_mode & stat.S_IEXEC, (
+        "Script is not executable"
+    )
+
+
 EXAMPLE_WITH_MANIFEST = {
     "setup.cfg": DALS(
         """
