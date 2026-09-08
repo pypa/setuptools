@@ -36,6 +36,37 @@ As Distutils is deprecated, any usage of functions or objects from distutils is 
 
 ``distutils.errors.*`` → ``setuptools.errors.*`` [#errors]_
 
+The compiler APIs are moving to the standalone ``compilers`` package. There is
+intentionally no corresponding ``setuptools`` re-export. Use these import
+paths when migrating code that needs to create or inspect C compilers:
+
+``distutils.ccompiler`` → ``compilers.C``
+
+``distutils.ccompiler.CCompiler`` → ``compilers.C.Compiler``
+
+``distutils.ccompiler.new_compiler`` → ``compilers.C.new_compiler``
+
+``distutils.ccompiler.get_default_compiler`` → ``compilers.C.get_default_compiler``
+
+``distutils.ccompiler.show_compilers`` → ``compilers.C.show_compilers``
+
+``distutils.util.get_platform`` → ``compilers.platform.get_platform``
+
+For example:
+
+.. code-block:: python
+
+   from compilers.C import Compiler, new_compiler
+   from compilers.platform import get_platform
+
+   compiler: Compiler = new_compiler()
+   print(compiler)
+   print(get_platform())
+
+The ``compilers`` package is the supported home for this functionality. Do not
+import these implementation modules from ``setuptools._distutils``; that path
+is private and may change between Setuptools releases.
+
 
 Migration advice is also provided by :pep:`PEP 632 <632#migration-advice>`.
 
