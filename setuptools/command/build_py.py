@@ -42,6 +42,7 @@ class build_py(orig.build_py):
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
     editable_mode: bool = False
     existing_egg_info_dir: StrPath | None = None  #: Private API, internal use only.
+    _strict_editable: bool = False
 
     def finalize_options(self) -> None:
         orig.build_py.finalize_options(self)
@@ -154,7 +155,17 @@ class build_py(orig.build_py):
 
     def _get_module_mapping(self) -> Iterator[tuple[str, str]]:
         """Iterate over all modules producing (dest, src) pairs."""
+        manifest = None
+        if self._strict_editable:
+            manifest = {
+                os.path.normcase(os.path.abspath(path))
+                for path in self._get_manifest_files()
+            }
         for package, module, module_file in self.find_all_modules():
+            if manifest is not None:
+                normalized = os.path.normcase(os.path.abspath(module_file))
+                if normalized not in manifest:
+                    continue
             package = package.split('.')
             filename = self.get_module_outfile(self.build_lib, package, module)
             yield (filename, module_file)
@@ -183,21 +194,8 @@ class build_py(orig.build_py):
             # Locate package source directory
             src_dirs[assert_relative(self.get_package_dir(package))] = package
 
-        if (
-            self.existing_egg_info_dir
-            and Path(self.existing_egg_info_dir, "SOURCES.txt").exists()
-        ):
-            egg_info_dir = self.existing_egg_info_dir
-            manifest = Path(egg_info_dir, "SOURCES.txt")
-            files = manifest.read_text(encoding="utf-8").splitlines()
-        else:
-            self.run_command('egg_info')
-            ei_cmd = self.get_finalized_command('egg_info')
-            egg_info_dir = ei_cmd.egg_info
-            files = ei_cmd.filelist.files
-
         check = _IncludePackageDataAbuse()
-        for path in self._filter_build_files(files, egg_info_dir):
+        for path in self._get_manifest_files():
             d, f = os.path.split(assert_relative(path))
             prev = None
             oldf = f
@@ -214,6 +212,21 @@ class build_py(orig.build_py):
                     if importable:
                         check.warn(importable)
                 self.manifest_files.setdefault(src_dirs[d], []).append(path)
+
+    def _get_manifest_files(self) -> Iterator[str]:
+        if (
+            self.existing_egg_info_dir
+            and Path(self.existing_egg_info_dir, "SOURCES.txt").exists()
+        ):
+            egg_info_dir = self.existing_egg_info_dir
+            manifest = Path(egg_info_dir, "SOURCES.txt")
+            files = manifest.read_text(encoding="utf-8").splitlines()
+        else:
+            self.run_command('egg_info')
+            ei_cmd = self.get_finalized_command('egg_info')
+            egg_info_dir = ei_cmd.egg_info
+            files = ei_cmd.filelist.files
+        yield from self._filter_build_files(files, egg_info_dir)
 
     def _filter_build_files(
         self, files: Iterable[str], egg_info: StrPath
@@ -274,6 +287,7 @@ class build_py(orig.build_py):
         orig.build_py.initialize_options(self)
         self.editable_mode = False
         self.existing_egg_info_dir = None
+        self._strict_editable = False
 
     def get_package_dir(self, package: str) -> str:
         res = orig.build_py.get_package_dir(self, package)

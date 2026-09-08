@@ -1033,6 +1033,19 @@ class TestLinkTree:
         assert "No such file or directory" in out
         assert "resource.not_in_manifest" in out
 
+    def test_strict_install_respects_manifest_module_exclusions(self, tmp_path, venv):
+        files = deepcopy(TestOverallBehaviour.EXAMPLES["src-layout"])
+        files["MANIFEST.in"] += "\nexclude src/mypkg/mod1.py"
+        opts = ["--config-settings", "editable-mode=strict"]
+        install_project("mypkg", venv, tmp_path, files, *opts)
+
+        out = venv.run([
+            "python",
+            "-c",
+            "import importlib.util; print(importlib.util.find_spec('mypkg.mod1'))",
+        ])
+        assert out.strip() == "None"
+
 
 @pytest.mark.filterwarnings("ignore:.*compat.*:setuptools.SetuptoolsDeprecationWarning")
 def test_compat_install(tmp_path, venv):
