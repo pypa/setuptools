@@ -3,7 +3,8 @@ Specifying dependencies that aren't in PyPI via ``dependency_links``
 
 .. warning::
     Dependency links support has been dropped by pip starting with version
-    19.0 (released 2019-01-22).
+    19.0 (released 2019-01-22). Use :ref:`direct URL dependencies
+    <direct-url-dependencies>` instead.
 
 If your project depends on packages that don't exist on PyPI, you *may* still be
 able to depend on them if they are available for download as:
