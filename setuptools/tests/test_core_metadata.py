@@ -490,6 +490,62 @@ class TestPEP643:
         assert set(metadata.get_all("Dynamic")) == set(fields)
 
     @pytest.mark.parametrize(
+        ("attr", "empty", "field"),
+        [
+            ("install_requires", [], "requires-dist"),
+            ("extras_require", {}, "provides-extra"),
+            ("project_urls", {}, "project-url"),
+        ],
+    )
+    def test_explicitly_empty_container_is_dynamic(
+        self, attr, empty, field, tmpdir_cwd
+    ):
+        # An empty value passed to ``setup()`` is a deliberate choice by the author,
+        # not an absent one, so the field can still be filled in later (#5120).
+        Path("pyproject.toml").write_text(
+            cleandoc(
+                """
+                [project]
+                name = "package"
+                version = "0.0.1"
+                """
+            ),
+            encoding="utf-8",
+        )
+        dist = _makedist(**{attr: empty})
+        dist._finalize_requires()
+        assert field in {v.lower() for v in _get_metadata(dist).get_all("Dynamic", [])}
+
+    @pytest.mark.parametrize(
+        ("attr", "field"),
+        [
+            ("install_requires", "requires-dist"),
+            ("extras_require", "provides-extra"),
+            ("project_urls", "project-url"),
+        ],
+    )
+    def test_omitted_container_is_not_dynamic(self, attr, field, tmpdir_cwd):
+        # Leaving the value out entirely must keep behaving as it always has.
+        Path("pyproject.toml").write_text(
+            cleandoc(
+                """
+                [project]
+                name = "package"
+                version = "0.0.1"
+                """
+            ),
+            encoding="utf-8",
+        )
+        dist = _makedist()
+        dist._finalize_requires()
+        assert getattr(dist.metadata, attr) == (
+            [] if attr == "install_requires" else {}
+        )
+        assert field not in {
+            v.lower() for v in _get_metadata(dist).get_all("Dynamic", [])
+        }
+
+    @pytest.mark.parametrize(
         "extra_toml",
         [
             "# Let setuptools autofill license-files",
