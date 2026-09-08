@@ -315,6 +315,12 @@ a list of libraries to link against, ``library_dirs`` is a list of directories
 to search for libraries at  link-time, and ``runtime_library_dirs`` is a list of
 directories to  search for shared (dynamically loaded) libraries at run-time.
 
+.. note::
+   On Windows, specifying ``runtime_library_dirs`` when building with MSVC will 
+   result in a compiler error. Alternate methods of locating DLLs on Windows 
+   include updating the ``%PATH%`` environment variable or copying the DLLs to a
+   known directory using the ``data_files`` argument of the ``setup()`` function.
+
 For example, if you need to link against libraries known to be in the standard
 library search path on target systems ::
 
