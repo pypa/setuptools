@@ -1,11 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import autocommand
 import inflect
 from more_itertools import always_iterable
 
 import jaraco.text
 
+if TYPE_CHECKING:
+    from _typeshed import FileDescriptorOrPath
 
-def report_newlines(filename):
+
+def report_newlines(filename: FileDescriptorOrPath) -> None:
     r"""
     Report the newlines in the indicated file.
 
@@ -23,6 +30,7 @@ def report_newlines(filename):
     count = len(tuple(always_iterable(newlines)))
     engine = inflect.engine()
     print(
+        # Pyright typing issue: jaraco/inflect#210
         engine.plural_noun("newline", count),
         engine.plural_verb("is", count),
         repr(newlines),

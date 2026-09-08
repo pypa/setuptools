@@ -16,10 +16,14 @@ from collections.abc import (
     Sized,
 )
 from contextlib import AbstractContextManager
+from decimal import Decimal
+from fractions import Fraction
+from threading import Lock
 from typing import (
     Any,
     Callable,
     Generic,
+    Literal,
     TypeVar,
     overload,
     type_check_only,
@@ -29,7 +33,6 @@ from typing_extensions import Protocol
 __all__ = [
     'AbortThread',
     'SequenceView',
-    'UnequalIterablesError',
     'adjacent',
     'all_unique',
     'always_iterable',
@@ -44,6 +47,7 @@ __all__ = [
     'collapse',
     'combination_index',
     'combination_with_replacement_index',
+    'concurrent_tee',
     'consecutive_groups',
     'constrained_batches',
     'consumer',
@@ -116,8 +120,10 @@ __all__ = [
     'run_length',
     'sample',
     'seekable',
+    'serialize',
     'set_partitions',
     'side_effect',
+    'sized_iterator',
     'sliced',
     'sort_together',
     'split_after',
@@ -131,6 +137,7 @@ __all__ = [
     'strictly_n',
     'substrings',
     'substrings_indexes',
+    'synchronized',
     'takewhile_inclusive',
     'time_limited',
     'unique_in_window',
@@ -141,7 +148,6 @@ __all__ = [
     'windowed_complete',
     'with_iter',
     'zip_broadcast',
-    'zip_equal',
     'zip_offset',
 ]
 
@@ -158,6 +164,7 @@ _W = TypeVar('_W')
 _T_co = TypeVar('_T_co', covariant=True)
 _GenFn = TypeVar('_GenFn', bound=Callable[..., Iterator[Any]])
 _Raisable = BaseException | type[BaseException]
+_NumberT = TypeVar("_NumberT", float, Decimal, Fraction)
 
 # The type of isinstance's second argument (from typeshed builtins)
 if sys.version_info >= (3, 10):
@@ -205,6 +212,8 @@ class peekable(Generic[_T], Iterator[_T]):
     def __getitem__(self, index: int) -> _T: ...
     @overload
     def __getitem__(self, index: slice) -> list[_T]: ...
+    @classmethod
+    def __class_getitem__(cls, item: Any, /) -> types.GenericAlias: ...
 
 def consumer(func: _GenFn) -> _GenFn: ...
 def ilen(iterable: Iterable[_T]) -> int: ...
@@ -212,6 +221,13 @@ def iterate(func: Callable[[_T], _T], start: _T) -> Iterator[_T]: ...
 def with_iter(
     context_manager: AbstractContextManager[Iterable[_T]],
 ) -> Iterator[_T]: ...
+
+class sized_iterator(Generic[_T], Iterator[_T], Sized):
+    def __init__(self, iterable: Iterable[_T], length: int) -> None: ...
+    def __next__(self) -> _T: ...
+    def __iter__(self) -> sized_iterator[_T]: ...
+    def __len__(self) -> int: ...
+
 def one(
     iterable: Iterable[_T],
     too_short: _Raisable | None = ...,
@@ -334,55 +350,28 @@ def distribute(n: int, iterable: Iterable[_T]) -> list[Iterator[_T]]: ...
 def stagger(
     iterable: Iterable[_T],
     offsets: _SizedIterable[int] = ...,
-    longest: bool = ...,
+    longest: Literal[False] = ...,
+) -> Iterator[tuple[_T, ...]]: ...
+@overload
+def stagger(
+    iterable: Iterable[_T],
+    offsets: _SizedIterable[int] = ...,
+    longest: Literal[False] = ...,
+    fillvalue: object = ...,
+) -> Iterator[tuple[_T, ...]]: ...
+@overload
+def stagger(
+    iterable: Iterable[_T],
+    offsets: _SizedIterable[int] = ...,
+    longest: Literal[True] = ...,
 ) -> Iterator[tuple[_T | None, ...]]: ...
 @overload
 def stagger(
     iterable: Iterable[_T],
     offsets: _SizedIterable[int] = ...,
-    longest: bool = ...,
+    longest: Literal[True] = ...,
     fillvalue: _U = ...,
 ) -> Iterator[tuple[_T | _U, ...]]: ...
-
-class UnequalIterablesError(ValueError):
-    def __init__(self, details: tuple[int, int, int] | None = ...) -> None: ...
-
-# zip_equal
-@overload
-def zip_equal(__iter1: Iterable[_T1]) -> Iterator[tuple[_T1]]: ...
-@overload
-def zip_equal(
-    __iter1: Iterable[_T1], __iter2: Iterable[_T2]
-) -> Iterator[tuple[_T1, _T2]]: ...
-@overload
-def zip_equal(
-    __iter1: Iterable[_T1], __iter2: Iterable[_T2], __iter3: Iterable[_T3]
-) -> Iterator[tuple[_T1, _T2, _T3]]: ...
-@overload
-def zip_equal(
-    __iter1: Iterable[_T1],
-    __iter2: Iterable[_T2],
-    __iter3: Iterable[_T3],
-    __iter4: Iterable[_T4],
-) -> Iterator[tuple[_T1, _T2, _T3, _T4]]: ...
-@overload
-def zip_equal(
-    __iter1: Iterable[_T1],
-    __iter2: Iterable[_T2],
-    __iter3: Iterable[_T3],
-    __iter4: Iterable[_T4],
-    __iter5: Iterable[_T5],
-) -> Iterator[tuple[_T1, _T2, _T3, _T4, _T5]]: ...
-@overload
-def zip_equal(
-    __iter1: Iterable[Any],
-    __iter2: Iterable[Any],
-    __iter3: Iterable[Any],
-    __iter4: Iterable[Any],
-    __iter5: Iterable[Any],
-    __iter6: Iterable[Any],
-    *iterables: Iterable[Any],
-) -> Iterator[tuple[Any, ...]]: ...
 
 # zip_offset
 @overload
@@ -604,6 +593,7 @@ class seekable(Generic[_T], Iterator[_T]):
     def elements(self) -> SequenceView[_T]: ...
     def seek(self, index: int) -> None: ...
     def relative_seek(self, count: int) -> None: ...
+    def __getitem__(self, index: int) -> _T: ...
 
 class run_length:
     @staticmethod
@@ -758,7 +748,9 @@ def windowed_complete(
 def all_unique(
     iterable: Iterable[_T], key: Callable[[_T], _U] | None = ...
 ) -> bool: ...
-def nth_product(index: int, *args: Iterable[_T]) -> tuple[_T, ...]: ...
+def nth_product(
+    index: int, *iterables: Iterable[_T], repeat: int = ...
+) -> tuple[_T, ...]: ...
 def nth_combination_with_replacement(
     iterable: Iterable[_T], r: int, index: int
 ) -> tuple[_T, ...]: ...
@@ -766,7 +758,9 @@ def nth_permutation(
     iterable: Iterable[_T], r: int, index: int
 ) -> tuple[_T, ...]: ...
 def value_chain(*args: _T | Iterable[_T]) -> Iterable[_T]: ...
-def product_index(element: Iterable[_T], *args: Iterable[_T]) -> int: ...
+def product_index(
+    element: Iterable[_T], *iterables: Iterable[_T], repeat: int = ...
+) -> int: ...
 def combination_index(
     element: Iterable[_T], iterable: Iterable[_T]
 ) -> int: ...
@@ -906,8 +900,12 @@ def constrained_batches(
     get_len: Callable[[_T], object] = ...,
     strict: bool = ...,
 ) -> Iterator[tuple[_T]]: ...
-def gray_product(*iterables: Iterable[_T]) -> Iterator[tuple[_T, ...]]: ...
-def partial_product(*iterables: Iterable[_T]) -> Iterator[tuple[_T, ...]]: ...
+def gray_product(
+    *iterables: Iterable[_T], repeat: int = ...
+) -> Iterator[tuple[_T, ...]]: ...
+def partial_product(
+    *iterables: Iterable[_T], repeat: int = ...
+) -> Iterator[tuple[_T, ...]]: ...
 def takewhile_inclusive(
     predicate: Callable[[_T], bool], iterable: Iterable[_T]
 ) -> Iterator[_T]: ...
@@ -926,7 +924,9 @@ def filter_map(
     func: Callable[[_T], _V | None],
     iterable: Iterable[_T],
 ) -> Iterator[_V]: ...
-def powerset_of_sets(iterable: Iterable[_T]) -> Iterator[set[_T]]: ...
+def powerset_of_sets(
+    iterable: Iterable[_T], *, baseset: type = ...
+) -> Iterator[set[_T]] | Iterator[frozenset[_T]]: ...
 def join_mappings(
     **field_to_map: Mapping[_T, _V],
 ) -> dict[_T, dict[str, _V]]: ...
@@ -945,5 +945,25 @@ def argmax(
     iterable: Iterable[_T], *, key: Callable[[_T], _U] | None = ...
 ) -> int: ...
 def extract(
-    iterable: Iterable[_T], indices: Iterable[int]
+    iterable: Iterable[_T],
+    indices: Iterable[int],
+    *,
+    monotonic: bool = ...,
 ) -> Iterator[_T]: ...
+
+class serialize(Generic[_T], Iterator[_T]):
+    iterator: Iterator[_T]
+    lock: Lock
+    def __init__(self, iterable: Iterable[_T]) -> None: ...
+    def __iter__(self) -> serialize[_T]: ...
+    def __next__(self) -> _T: ...
+    def send(self, value: object, /) -> _T: ...
+    def throw(self, *args: object) -> None: ...
+    def close(self) -> None: ...
+
+def concurrent_tee(
+    iterable: Iterable[_T], n: int = ...
+) -> tuple[Iterator[_T]]: ...
+def synchronized(
+    func: Callable[..., Iterator[_T]],
+) -> Callable[..., Iterator[_T]]: ...
