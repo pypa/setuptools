@@ -1,0 +1,32 @@
+{
+  "files": [
+    ".coveragerc",
+    "NEWS.rst",
+    ".pre-commit-config.yaml",
+    "mypy.ini",
+    "tox.ini",
+    "pyproject.toml",
+    "SECURITY.md",
+    "towncrier.toml",
+    "README.rst",
+    "ruff.toml",
+    "conftest.py",
+    ".editorconfig",
+    ".readthedocs.yaml",
+    "pytest.ini",
+    "docs/index.rst",
+    "docs/history.rst",
+    "docs/conf.py",
+    "jaraco/text/py.typed",
+    "jaraco/text/__init__.py",
+    "jaraco/text/Lorem ipsum.txt",
+    "jaraco/text/strip-prefix.py",
+    "jaraco/text/to-qwerty.py",
+    "jaraco/text/to-dvorak.py",
+    "jaraco/text/layouts.py",
+    "jaraco/text/show-newlines.py",
+    "tests/test_core.py",
+    ".github/FUNDING.yml",
+    ".github/workflows/main.yml"
+  ]
+}
