@@ -399,19 +399,27 @@ you invoke the import mechanism, allowing you to accomplish the following:
     >>> import timmins.foo
     >>> import timmins.bar
 
-as if there is only one ``timmins`` on your system. The two packages can then
-be distributed separately and installed individually without affecting the
-other one.
+as if there is only one ``timmins`` on your system. The two portions can be
+distributed separately and installed individually without affecting the other
+one. Each distribution is a separate project with its own build configuration::
 
-Now, suppose you decide to package the ``foo`` part for distribution and start
-by creating a project directory organized as follows::
-
-   foo
+   timmins-foo
    ├── pyproject.toml  # AND/OR setup.cfg, setup.py
    └── src
        └── timmins
            └── foo
                └── __init__.py
+
+   timmins-bar
+   ├── pyproject.toml  # AND/OR setup.cfg, setup.py
+   └── src
+       └── timmins
+           └── bar
+               └── __init__.py
+
+The following configuration is applied in the ``timmins-foo`` project. The
+``timmins-bar`` project uses the same package discovery configuration in its
+own project directory.
 
 If you want the ``timmins.foo`` to be automatically included in the
 distribution, then you will need to specify:
@@ -462,8 +470,10 @@ distribution, then you will need to specify:
     setuptools will consider :pep:`implicit namespaces <420>` by default when
     scanning your project directory.
 
-After installing the package distribution, ``timmins.foo`` would become
-available to your interpreter.
+After building and installing the ``timmins-foo`` distribution,
+``timmins.foo`` becomes available to your interpreter. Installing the
+separately built ``timmins-bar`` distribution adds ``timmins.bar`` to the same
+``timmins`` namespace.
 
 .. warning::
    Please have in mind that ``find_namespace:`` (setup.cfg),
