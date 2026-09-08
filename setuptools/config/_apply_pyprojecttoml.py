@@ -73,6 +73,7 @@ def _apply_project_table(dist: Distribution, config: dict, root_dir: StrPath):
 
     project_table = {k: _static.attempt_conversion(v) for k, v in orig_config.items()}
     _handle_missing_dynamic(dist, project_table)
+    _handle_dynamic_metadata(dist, project_table)
     _unify_entry_points(project_table)
 
     for field, value in project_table.items():
@@ -135,6 +136,14 @@ def _handle_missing_dynamic(dist: Distribution, project_table: dict):
             if value:
                 _MissingDynamic.emit(field=field, value=value)
                 project_table[field] = _RESET_PREVIOUSLY_DEFINED.get(field)
+
+
+def _handle_dynamic_metadata(dist: Distribution, project_table: dict):
+    dynamic = set(project_table.get("dynamic", []))
+    if "dependencies" in dynamic:
+        metadata_dynamic = set(getattr(dist.metadata, "_setuptools_dynamic", ()))
+        metadata_dynamic.add("requires-dist")
+        dist.metadata._setuptools_dynamic = metadata_dynamic
 
 
 def json_compatible_key(key: str) -> str:

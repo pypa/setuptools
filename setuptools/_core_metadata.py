@@ -211,8 +211,11 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     self._write_list(file, 'License-File', safe_license_files)
     _write_requirements(self, file)
 
+    dynamic_fields = set(getattr(self, "_setuptools_dynamic", ()))
     for field, attr in _POSSIBLE_DYNAMIC_FIELDS.items():
-        if (val := getattr(self, attr, None)) and not is_static(val):
+        if field in dynamic_fields:
+            write_field('Dynamic', field)
+        elif (val := getattr(self, attr, None)) and not is_static(val):
             write_field('Dynamic', field)
 
     long_description = self.get_long_description()
