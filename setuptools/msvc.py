@@ -1329,11 +1329,13 @@ class EnvironmentInfo:
         elif self.vs_ver < 15.0:
             base_path = self.si.ProgramFilesx86
             arch_subdir = self.pi.current_dir(hidex86=True)
+            path = rf'MSBuild\{self.vs_ver:0.1f}\bin{arch_subdir}'
         else:
             base_path = self.si.VSInstallDir
             arch_subdir = ''
+            # VS2017+ uses "Current" instead of version number in MSBuild path
+            path = r'MSBuild\Current\bin'
 
-        path = rf'MSBuild\{self.vs_ver:0.1f}\bin{arch_subdir}'
         build = [os.path.join(base_path, path)]
 
         if self.vs_ver >= 15.0:
