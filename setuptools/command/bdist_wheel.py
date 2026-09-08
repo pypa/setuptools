@@ -25,6 +25,7 @@ from wheel.wheelfile import WheelFile
 from .. import Command, __version__, _shutil
 from .._core_metadata import _safe_license_file
 from .._normalization import safer_name
+from ..errors import InvalidConfigError
 from ..warnings import SetuptoolsDeprecationWarning
 from .egg_info import egg_info as egg_info_cls
 
@@ -46,6 +47,26 @@ def safe_version(version: str) -> str:
 setuptools_major_version = int(__version__.split(".")[0])
 
 PY_LIMITED_API_PATTERN = r"cp3\d"
+
+
+def _validate_license_file_encoding(path: str) -> None:
+    """Ensure a license file is valid UTF-8 text before bundling it.
+
+    PEP 639 requires tools to assume license file content is UTF-8 encoded
+    text and SHOULD validate this, raising an error otherwise. Without this
+    check, glob patterns such as the default ``LICEN[CS]E*`` can silently
+    bundle binary files (e.g. ``LICENSE.pdf``, ``license.doc``).
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            f.read()
+    except UnicodeDecodeError as exc:
+        msg = (
+            f"license file {path!r} is not valid UTF-8 encoded text. "
+            "Per PEP 639, license files must be UTF-8 text; "
+            "remove it from `license-files` or exclude it via more specific patterns."
+        )
+        raise InvalidConfigError(msg) from exc
 
 
 def _is_32bit_interpreter() -> bool:
@@ -597,6 +618,7 @@ class bdist_wheel(Command):
 
         licenses_folder_path = os.path.join(distinfo_path, "licenses")
         for license_path in self.license_paths:
+            _validate_license_file_encoding(license_path)
             safe_path = _safe_license_file(license_path)
             dist_info_license_path = os.path.join(licenses_folder_path, safe_path)
             os.makedirs(os.path.dirname(dist_info_license_path), exist_ok=True)

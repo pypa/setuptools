@@ -20,6 +20,7 @@ from packaging import tags
 import setuptools
 from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag
 from setuptools.dist import Distribution
+from setuptools.errors import InvalidConfigError
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from distutils.core import run_setup
@@ -391,6 +392,37 @@ def test_licenses_preserve_folder_structure(licenses_dist, monkeypatch, tmp_path
         metadata = wf.read("licenses_dist-1.0.dist-info/METADATA").decode("utf8")
         assert "License-File: src/vendor/LICENSE" in metadata
         assert "License-File: LICENSE" in metadata
+
+
+def test_binary_license_file_raises(monkeypatch, tmp_path):
+    """
+    License files must be valid UTF-8 text (PEP 639); binary files matched
+    by glob patterns should raise an error instead of being bundled (#4936).
+    """
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "BadLicense.doc").write_bytes(b"\xd0\xcf\x11\xe0binary-doc")
+    (tmp_path / "pyproject.toml").write_text(
+        cleandoc(
+            """
+            [build-system]
+            requires = []
+            build-backend = "setuptools.build_meta"
+
+            [project]
+            name = "repro"
+            version = "0.1"
+            license-files = ["BadLicense.*"]
+            """
+        ),
+        encoding="utf-8",
+    )
+    dist_obj = Distribution({"script_name": "%build_meta%"})
+    dist_obj.parse_config_files()
+    cmd = bdist_wheel(dist_obj)
+    cmd.finalize_options()
+    assert list(cmd.license_paths) == ["BadLicense.doc"]
+    with pytest.raises(InvalidConfigError, match="not valid UTF-8"):
+        cmd.run()
 
 
 def test_licenses_disabled(dummy_dist, monkeypatch, tmp_path):
