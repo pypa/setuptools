@@ -1,0 +1,1 @@
+Documented how to install a checkout in editable mode when developing the latest source.
