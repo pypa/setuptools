@@ -481,6 +481,35 @@ def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
     bdist_wheel_cmd().run()
 
 
+def test_bdist_base_removed_when_empty(dummy_dist, monkeypatch, tmp_path):
+    """A wheel build should not leave an empty ``build`` tree behind.
+
+    See https://github.com/pypa/setuptools/issues/5134
+    """
+    monkeypatch.chdir(tmp_path)
+    build_base = tmp_path / "build"
+    bdist_wheel_cmd().run()
+
+    # The default bdist_dir (``build/<plat>/wheel``) and its empty base are gone
+    assert not build_base.exists()
+
+
+@pytest.mark.parametrize("leftover", [None, "stale.txt", "subdir"])
+def test_bdist_base_preserved_when_not_empty(leftover, dummy_dist, monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    build_base = tmp_path / "build"
+    if leftover:
+        target = build_base / leftover
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("user data", encoding="utf-8")
+
+    bdist_wheel_cmd(bdist_dir=str(build_base / "custom" / "wheel")).run()
+
+    # A non-default or non-empty base directory is never removed
+    assert build_base.is_dir()
+    assert (build_base / "custom").is_dir()
+
+
 @pytest.mark.parametrize(
     ("option", "compress_type"),
     list(bdist_wheel.supported_compressions.items()),

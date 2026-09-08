@@ -16,6 +16,7 @@ import warnings
 from collections.abc import Iterable, Sequence
 from email.generator import BytesGenerator
 from glob import iglob
+from pathlib import Path
 from typing import ClassVar, Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
@@ -465,6 +466,39 @@ class bdist_wheel(Command):
         if not self.keep_temp:
             log.info(f"removing {self.bdist_dir}")
             _shutil.rmtree(self.bdist_dir)
+            self._remove_empty_bdist_tree()
+
+    def _remove_empty_bdist_tree(self) -> None:
+        """Remove the temporary tree setuptools created for this wheel.
+
+        With the default options, ``bdist_wheel`` stores its scratch space
+        under the ``build`` command's ``build_base`` (default ``./build``).
+        Once the ``bdist_dir`` is gone, any *empty* directories left along
+        that default chain are pure leftovers, so prune them upward until a
+        non-empty (or non-default) directory is reached (#5134).
+
+        Never touches a user-supplied ``--bdist-dir`` or a customized
+        ``[build] build_base``: those paths belong to the user.
+        """
+        bdist_cmd = self.get_finalized_command("bdist")
+        if self.bdist_dir != os.path.join(bdist_cmd.bdist_base, "wheel"):
+            return  # custom bdist_dir: honour the user's path choice
+
+        build_cmd = bdist_cmd.get_finalized_command("build")
+        if os.path.normpath(build_cmd.build_base) != "build":
+            return  # custom build_base: leave the tree alone
+
+        base_abs = os.path.abspath(build_cmd.build_base)
+        current = os.path.dirname(os.path.abspath(self.bdist_dir))
+        while True:
+            try:
+                Path(current).relative_to(base_abs)
+            except ValueError:
+                break  # walked out of the default build tree
+            if not (os.path.isdir(current) and not os.listdir(current)):
+                break
+            os.rmdir(current)
+            current = os.path.dirname(current)
 
     def write_wheelfile(
         self, wheelfile_base: str, generator: str = f"setuptools ({__version__})"
