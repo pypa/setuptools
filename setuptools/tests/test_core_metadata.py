@@ -103,11 +103,13 @@ def __read_test_cases():
                 python_requires='>=3.7',
             ),
         ),
-        pytest.param(
+        (
             'Metadata Version 1.2: Project-Url',
-            params(project_urls=dict(Foo='https://example.bar')),
-            marks=pytest.mark.xfail(
-                reason="Issue #1578: project_urls not read",
+            params(
+                project_urls={
+                    'Foo': 'https://example.bar',
+                    'Bug Tracker': 'https://example.bar/issues?labels=bug,help-wanted',
+                }
             ),
         ),
         (

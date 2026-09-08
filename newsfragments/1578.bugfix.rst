@@ -1,0 +1,1 @@
+``DistributionMetadata.read_pkg_file`` preserved ``Project-URL`` metadata in the ``project_urls`` mapping.
