@@ -214,6 +214,13 @@ Metadata
     The aliases given below are supported for compatibility reasons,
     but their use is not advised.
 
+.. note::
+    The ``license_file`` alias (singular) for ``license_files`` was deprecated
+    in ``setuptools`` 42.0.0.  If you see a warning like
+    ``The license_file parameter is deprecated, use license_files instead``,
+    change the key in your ``setup.cfg`` from ``license_file`` to
+    ``license_files``.
+
 ==============================  =================  =================  =============== ==========
 Key                             Aliases            Type               Minimum Version Notes
 ==============================  =================  =================  =============== ==========
