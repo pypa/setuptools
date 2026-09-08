@@ -1,0 +1,2 @@
+Fixed ``packages.find.exclude`` so excluded nested Python subpackages are no
+longer copied into wheels through ``include_package_data=True``.
