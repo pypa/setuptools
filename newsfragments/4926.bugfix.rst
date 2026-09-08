@@ -1,0 +1,2 @@
+Improved ``ModuleNotFoundError`` messages for missing nested modules referenced
+by dynamic ``attr`` directives to report the complete configured module name.
