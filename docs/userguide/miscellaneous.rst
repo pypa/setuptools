@@ -113,6 +113,18 @@ brackets (which may contain character ranges, e.g., ``[a-z]`` or
 ``[a-fA-F0-9]``).  Setuptools also has support for ``**`` matching
 zero or more characters including forward slash, backslash, and colon.
 
+.. note::
+   ``recursive-include`` requires **at least one file pattern**; the directory
+   pattern alone is not enough.  For example, to include all ``.html`` files
+   under ``templates/``, write:
+
+   .. code-block:: bash
+
+      recursive-include templates *.html
+
+   Writing ``recursive-include templates`` (without a pattern) is invalid and
+   will include nothing.
+
 Directory patterns are relative to the root of the project directory; e.g.,
 ``graft example*`` will include a directory named :file:`examples` in the
 project root but will not include :file:`docs/examples/`.
