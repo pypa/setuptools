@@ -1,0 +1,1 @@
+Restored preservation of the executable bit on ``package_data`` files when they are also copied as Python modules -- by :user:`MaxxxDong`.
