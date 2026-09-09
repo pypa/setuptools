@@ -182,6 +182,7 @@ class build_py(orig.build_py):
         for package in self.packages or ():
             # Locate package source directory
             src_dirs[assert_relative(self.get_package_dir(package))] = package
+        extension_files = self._get_extension_source_files()
 
         if (
             self.existing_egg_info_dir
@@ -197,7 +198,12 @@ class build_py(orig.build_py):
             files = ei_cmd.filelist.files
 
         check = _IncludePackageDataAbuse()
-        for path in self._filter_build_files(files, egg_info_dir):
+        files = (
+            path
+            for path in self._filter_build_files(files, egg_info_dir)
+            if self._path_norm(path) not in extension_files
+        )
+        for path in files:
             d, f = os.path.split(assert_relative(path))
             prev = None
             oldf = f
@@ -214,6 +220,18 @@ class build_py(orig.build_py):
                     if importable:
                         check.warn(importable)
                 self.manifest_files.setdefault(src_dirs[d], []).append(path)
+
+    def _get_extension_source_files(self) -> set[str]:
+        """Return extension source files that are build inputs."""
+        return {
+            self._path_norm(path)
+            for ext in self.distribution.ext_modules or ()
+            for path in getattr(ext, "sources", None) or ()
+        }
+
+    @staticmethod
+    def _path_norm(path: StrPath) -> str:
+        return os.path.normcase(os.path.abspath(os.fspath(path)))
 
     def _filter_build_files(
         self, files: Iterable[str], egg_info: StrPath
