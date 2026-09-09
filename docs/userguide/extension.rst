@@ -78,6 +78,95 @@ the ``setuptools.errors`` module.
 .. autoclass:: setuptools.Command
    :members:
 
+.. _custom build steps:
+
+Adding Custom Build Steps
+-------------------------
+
+For simple scenarios where you want to add custom steps to the build process,
+you can create new ``build`` sub-commands, by defining new
+``setuptools.build_steps`` entry-points that represent sub-classes of
+``setuptools.Command``. For example:
+
+.. tab:: pyproject.toml
+
+    .. code-block:: toml
+
+       # ...
+       [project.entry-points."setuptools.build_steps"]
+       build_js = mypkg.myextension:BuildJs
+
+.. tab:: setup.cfg
+
+    .. code-block:: ini
+
+       # ...
+       [options.entry_points]
+       setuptools.build_steps =
+           build_js = mypkg.myextension:BuildJs
+
+.. code-block:: python
+
+    # mypkg/myextension.py
+    class BuildJs(setuptools.Command):
+        def initialize_options(self):
+            self.build_lib = None
+            self.build_temp = None
+            self.editable_mode = False
+
+        def finalize_options(self):
+            # Copy attributes from the ``build`` parent command
+            options = ('build_lib', 'build_temp')
+            self.set_undefined_options('build', *zip(options, options))
+            # Now the object has access to the ``self.build_lib`` and
+            # ``self.build_temp`` attibutes, inherited from the ``build`` command.
+            #
+            # ``build_lib`` is effectively the "root build directory"
+            # i.e. where the distribution files are going to be placed
+            #
+            #``editable_mode`` will be automatically set to ``True`` if the
+            # build is being invoked during an editable install.
+
+        def run(self):
+            code_dir = self.distribution.src_root or os.getcwd()
+            # ... do some JavaScript bundling/transpiling magic
+
+        def get_source_files(self) -> List[str]:
+            return [...]
+            # ... list the paths for the JavaScript files before bundling/transpiling
+
+        def get_outputs(self) -> List[str]:
+            return [...]
+            # ... list the paths produced after bundling/transpiling
+
+If defined by the sub-command class, the following (optional) attributes will be
+considered:
+
+- ``priority`` (:obj:`int`): Will be used to sort the available entry-points.
+  When two entry-points have the same name, the one with highest priority
+  supersedes the one with lowest priority. By default, the value ``0`` is used.
+
+- ``condition`` (:obj:`str`): name of a method in the ``build`` command
+  class. If this method returns ``False`` the sub command is skipped.
+  By default, no condition is analysed.
+  Possible values include: ``has_pure_modules``, ``has_c_libraries``,
+  ``has_ext_modules``, ``has_scripts``.
+
+- ``insert_build_step``: Function that is used to insert the custom build step
+  in the exist list of build sub-commands. By default ``list.append`` is used,
+  which means that the build step will be inserted after all built-in
+  ``setuptools`` sub-commands (e.g. ``build_py``, ``build_ext``, ...).
+  If defined, ``insert_build_step`` should be a class or static method that accepts
+  2 arguments: the ``build.sub_commands`` list, and an opaque entry
+  representing the custom build step being inserted:
+
+    .. code-block:: python
+
+       class BuildJs(setuptools.Command):
+             @staticmethod
+             def insert_build_step(steps: List[T], build_js_step: T):
+                 steps.append(build_js_step)
+
 
 Supporting sdists and editable installs in ``build`` sub-commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

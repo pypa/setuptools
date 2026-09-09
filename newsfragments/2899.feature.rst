@@ -1,0 +1,3 @@
+Added ``setuptools.build_steps`` entry-points allowing plugins to specify
+custom build steps in a more ergonomic way. This process is documented in
+:ref:`custom build steps` -- by :user:`abravalheri`
