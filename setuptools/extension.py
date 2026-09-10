@@ -4,7 +4,7 @@ import functools
 import re
 import sys
 from dataclasses import field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ._distutils._dataclass import lenient_dataclass
 from .monkey import get_unpatched
@@ -38,6 +38,11 @@ else:
     _Extension = get_unpatched(distutils.core.Extension)
 
 
+def _ext_private_field() -> Any:
+    """Field that is only set later by ``build_ext.finalize_options``."""
+    return field(init=False, repr=False, compare=False)
+
+
 @lenient_dataclass()
 class Extension(_Extension):
     """
@@ -63,10 +68,11 @@ class Extension(_Extension):
     # The lack of a default value and risk of `AttributeError` is purposeful
     # to avoid people forgetting to call finalize_options if they modify the extension list.
     # See example/rationale in https://github.com/pypa/setuptools/issues/4529.
-    _full_name: str = field(init=False)  #: Private API, internal use only.
-    _links_to_dynamic: bool = field(init=False)  #: Private API, internal use only.
-    _needs_stub: bool = field(init=False)  #: Private API, internal use only.
-    _file_name: str = field(init=False)  #: Private API, internal use only.
+    # They are excluded from `repr` and `__eq__` since they may be unset.
+    _full_name: str = _ext_private_field()  #: Private API, internal use only.
+    _links_to_dynamic: bool = _ext_private_field()  #: Private API, internal use only.
+    _needs_stub: bool = _ext_private_field()  #: Private API, internal use only.
+    _file_name: str = _ext_private_field()  #: Private API, internal use only.
 
     def _convert_pyx_sources_to_lang(self):
         """
