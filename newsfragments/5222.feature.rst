@@ -1,0 +1,1 @@
+Dropped dependency on :pypi:`importlib_metadata` -- by :user:`Avasam`

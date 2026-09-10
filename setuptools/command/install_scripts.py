@@ -32,8 +32,9 @@ class install_scripts(orig.install_scripts):
 
     def _install_ep_scripts(self):
         # Delay import side-effects
+        from importlib import metadata
+
         from .. import _scripts
-        from .._importlib import metadata
 
         ei_cmd = self.get_finalized_command("egg_info")
         dist = metadata.Distribution.at(path=ei_cmd.egg_info)

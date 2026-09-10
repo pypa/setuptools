@@ -27,9 +27,9 @@ from ..extension import Extension
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
 
 if TYPE_CHECKING:
+    from importlib import metadata
     from typing import TypeAlias
 
-    from setuptools._importlib import metadata
     from setuptools.dist import Distribution
 
     from distutils.dist import _OptionsList  # Comes from typeshed
@@ -329,9 +329,9 @@ def _copy_command_options(pyproject: dict, dist: Distribution, filename: StrPath
 
 
 def _valid_command_options(cmdclass: Mapping = EMPTY) -> dict[str, set[str]]:
-    from setuptools.dist import Distribution
+    from importlib import metadata
 
-    from .._importlib import metadata
+    from setuptools.dist import Distribution
 
     valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}
 
