@@ -22,6 +22,7 @@ from distutils.sysconfig import customize_compiler, get_config_var
 if TYPE_CHECKING:
     # Cython not installed on CI tests, causing _build_ext to be `Any`
     from distutils.command.build_ext import build_ext as _build_ext
+    from distutils.compilers.C.base import Compiler
 else:
     try:
         # Attempt to use Cython for building extensions, if available
@@ -32,6 +33,8 @@ else:
         __import__('Cython.Compiler.Main')
     except ImportError:
         from distutils.command.build_ext import build_ext as _build_ext
+
+    from distutils.ccompiler import CCompiler as Compiler
 
 # make sure _config_vars is initialized
 get_config_var("LDSHARED")
@@ -85,7 +88,11 @@ def get_abi3_suffix():
 
 
 class build_ext(_build_ext):
-    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
+    # override distutils.dist.Distribution with setuptools.dist.Distribution
+    distribution: Distribution
+    # override `list[distutils.extension.Extension] | None` with `list[setuptools.extension.Extension]`
+    # Not None because always set in finalize_options in this Command
+    extensions: list[Extension]  # type: ignore[assignment]
     editable_mode = False
     inplace = False
 
@@ -220,8 +227,10 @@ class build_ext(_build_ext):
             self.inplace = True
 
     def setup_shlib_compiler(self) -> None:
-        compiler = self.shlib_compiler = new_compiler(
-            compiler=self.compiler, force=self.force
+        compiler = self.shlib_compiler = (
+            self.compiler
+            if isinstance(self.compiler, Compiler)
+            else new_compiler(compiler=self.compiler, force=bool(self.force))
         )
         _customize_compiler_for_shlib(compiler)
 
