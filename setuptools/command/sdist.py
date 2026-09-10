@@ -5,14 +5,16 @@ import os
 import re
 from collections.abc import Iterator
 from itertools import chain
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from .._importlib import metadata
-from ..dist import Distribution
 from .build import _ORIGINAL_SUBCOMMANDS
 
 import distutils.command.sdist as orig
 from distutils import log
+
+if TYPE_CHECKING:
+    from ..dist import Distribution
 
 _default_revctrl = list
 

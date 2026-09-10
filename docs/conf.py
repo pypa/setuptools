@@ -175,6 +175,7 @@ nitpick_ignore += [
     ('py:class', 'OptionDummy'),  # undocumented
     ('py:class', 'setuptools.dist.Distribution'),  # undocumented
     ('py:class', 'UnixCCompiler'),  # undocumented
+    ('py:class', 'StrPath'),  # type import
     ('py:exc', 'CompileError'),  # undocumented
     ('py:exc', 'DistutilsExecError'),  # undocumented
     ('py:exc', 'DistutilsFileError'),  # undocumented

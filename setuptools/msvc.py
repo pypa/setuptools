@@ -17,13 +17,14 @@ from typing import TYPE_CHECKING, TypedDict, overload
 
 from more_itertools import unique_everseen
 
-from ._path import StrPath
 from .compat import py310
 
 import distutils.errors
 
 if TYPE_CHECKING:
     from typing_extensions import LiteralString, NotRequired
+
+    from ._path import StrPath
 
 # https://github.com/python/mypy/issues/8166
 if not TYPE_CHECKING and platform.system() == 'Windows':
