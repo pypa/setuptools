@@ -19,7 +19,7 @@ from jaraco import path
 from packaging.tags import parse_tag
 
 from setuptools._importlib import metadata
-from setuptools.wheel import Wheel
+from setuptools.wheel import Wheel, _resolve_namespace_dir
 
 from .contexts import tempdir
 from .textwrap import DALS
@@ -687,3 +687,57 @@ def test_wheel_mode():
         if sys.platform != 'win32':
             # Editable file mode has no effect on Windows
             assert oct(stat.S_IMODE(script_sh.stat().st_mode)) == "0o777"
+
+
+@pytest.mark.parametrize(
+    "mod",
+    [
+        pytest.param('/tmp/outside', id='posix_absolute'),
+        pytest.param(r'C:\Windows', id='drive_qualified'),
+        pytest.param(r'\\server\share', id='unc'),
+        pytest.param('foo/../../evil', id='separators'),
+        pytest.param('..', id='parent'),
+        pytest.param('', id='empty'),
+    ],
+)
+def test_namespace_package_escape(tmp_path, mod):
+    """
+    A namespace entry that is not a dotted module name must be rejected
+    rather than resolved as a path (GHSA-xmj3-9gf7-h52w).
+    """
+    with pytest.raises(ValueError, match='invalid namespace package name'):
+        _resolve_namespace_dir(str(tmp_path), mod)
+
+
+def test_namespace_package_resolves_dotted_name(tmp_path):
+    expected = tmp_path / 'ns' / 'pkg'
+    assert _resolve_namespace_dir(str(tmp_path), 'ns.pkg') == str(expected)
+
+
+def test_install_as_egg_rejects_namespace_escape(tmp_path):
+    """
+    An attacker-controlled ``namespace_packages.txt`` must not create files
+    outside the destination egg directory.
+    """
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    dest = tmp_path / 'destination'
+
+    whl = tmp_path / 'demo_pkg-1.0-py3-none-any.whl'
+    dist_info = 'demo_pkg-1.0.dist-info'
+    with zipfile.ZipFile(whl, 'w') as zf:
+        zf.writestr(
+            f'{dist_info}/WHEEL',
+            'Wheel-Version: 1.0\nGenerator: test\n'
+            'Root-Is-Purelib: true\nTag: py3-none-any\n',
+        )
+        zf.writestr(
+            f'{dist_info}/METADATA',
+            'Metadata-Version: 2.1\nName: demo-pkg\nVersion: 1.0\n',
+        )
+        zf.writestr(f'{dist_info}/namespace_packages.txt', f'{outside}\n')
+
+    with pytest.raises(ValueError, match='invalid namespace package name'):
+        Wheel(str(whl)).install_as_egg(str(dest))
+
+    assert not (outside / '__init__.py').exists()
