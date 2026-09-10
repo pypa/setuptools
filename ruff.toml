@@ -5,6 +5,7 @@ exclude = [
 ]
 
 [lint]
+external=["LZY"]
 extend-select = [
 	# upstream
 

@@ -1,3 +1,5 @@
+__lazy_modules__ = {"functools", "operator", "packaging", "packaging.requirements"}
+
 import functools
 import operator
 

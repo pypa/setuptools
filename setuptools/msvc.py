@@ -7,6 +7,17 @@ Environment info about Microsoft Compilers.
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "contextlib",
+    "distutils",
+    "distutils.errors",
+    "itertools",
+    "json",
+    "more_itertools",
+    f"{__spec__.parent}._path",
+    f"{__spec__.parent}.compat",
+}
+
 import contextlib
 import itertools
 import json

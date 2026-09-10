@@ -1,3 +1,5 @@
+__lazy_modules__ = {"distutils", f"{__spec__.parent}.compat"}
+
 import itertools
 import os
 

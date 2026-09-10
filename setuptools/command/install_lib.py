@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "itertools",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._path",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist",
+}
+
 import os
 import sys
 from itertools import product, starmap

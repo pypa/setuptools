@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist"}
+
 from typing import Protocol
 
 from ..dist import Distribution

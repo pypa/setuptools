@@ -1,3 +1,5 @@
+__lazy_modules__ = {"functools", f"{__spec__.parent}.warnings"}
+
 from functools import wraps
 from typing import TypeVar
 

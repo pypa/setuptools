@@ -10,6 +10,15 @@ need to be processed before being applied.
 
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "email",
+    "email.headerregistry",
+    "inspect",
+    "itertools",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.errors",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.extension",
+}
+
 import logging
 import os
 from collections.abc import Callable, Mapping

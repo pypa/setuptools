@@ -1,3 +1,10 @@
+__lazy_modules__ = {
+    "distutils",
+    "distutils.errors",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}.modified",
+}
+
 from ..dist import Distribution
 from ..modified import newer_pairwise_group
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"setuptools.warnings", "typing"}
+
 from typing import ClassVar, NoReturn
 
 from setuptools import Command
