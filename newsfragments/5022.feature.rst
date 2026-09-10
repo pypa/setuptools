@@ -1,0 +1,1 @@
+`setuptools.extension.Extension` is now a `dataclasses.dataclass`, simplifying type-checked inheritance and documentation -- by :user:`Avasam`
