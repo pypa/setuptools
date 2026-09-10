@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import re
 import sys
-from dataclasses import field
+from dataclasses import field, is_dataclass
 from typing import TYPE_CHECKING, Any
 
 from ._distutils._dataclass import lenient_dataclass
@@ -36,6 +36,15 @@ if TYPE_CHECKING:
         from distutils.core import Extension as _Extension
 else:
     _Extension = get_unpatched(distutils.core.Extension)
+    if not is_dataclass(_Extension):
+        # With SETUPTOOLS_USE_DISTUTILS=stdlib on Python < 3.12, the base class is a
+        # plain class. The generated ``__init__`` would then only know about the
+        # fields declared below, so mix in the local implementation to inherit
+        # ``name``, ``sources`` and friends as dataclass fields as well.
+        from ._distutils.extension import Extension as _LocalExtension
+
+        class _Extension(_Extension, _LocalExtension):  # type: ignore[misc,no-redef] # Both are Extension implementations
+            pass
 
 
 def _ext_private_field() -> Any:
