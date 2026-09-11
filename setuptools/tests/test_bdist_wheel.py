@@ -9,7 +9,7 @@ import stat
 import struct
 import sys
 import sysconfig
-from contextlib import suppress
+from contextlib import nullcontext, suppress
 from inspect import cleandoc
 from zipfile import ZipFile
 
@@ -18,7 +18,7 @@ import pytest
 from packaging import tags
 
 import setuptools
-from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag
+from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag, stable_abi_tag
 from setuptools.dist import Distribution
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
@@ -189,42 +189,34 @@ EXAMPLES = {
 }
 
 
-def abi3extension_dist():
-    if sys.platform == 'win32':
-        # ABI3 extensions don't really work on Windows.
-        return
+IS_FREE_THREADED = bool(sysconfig.get_config_var('Py_GIL_DISABLED'))
 
-    if sysconfig.get_config_var('Py_GIL_DISABLED'):
-        # Free-threaded builds also reject Py_LIMITED_API for now.
-        # See https://github.com/python/cpython/issues/146636 (PEP 803 / abi3t).
-        return
+# ABI3 extensions don't really work on Windows, and free-threaded builds only
+# support the limited API on 3.15 and newer, where they target the abi3t
+# stable ABI (PEP 803). See https://github.com/python/cpython/issues/146636.
+if sys.platform != 'win32' and (not IS_FREE_THREADED or sys.version_info >= (3, 15)):
+    EXAMPLES["abi3extension-dist"] = {
+        "setup.py": cleandoc(
+            """
+            from setuptools import Extension, setup
 
-    yield (
-        'abi3extension-dist',
-        {
-            "setup.py": cleandoc(
-                """
-                from setuptools import Extension, setup
-
-                setup(
-                    name="extension.dist",
-                    version="0.1",
-                    description="A testing distribution \N{SNOWMAN}",
-                    ext_modules=[
-                        Extension(
-                            name="extension", sources=["extension.c"], py_limited_api=True
-                        )
-                    ],
-                )
-                """
-            ),
-            "setup.cfg": "[bdist_wheel]\npy_limited_api=cp32",
-            "extension.c": "#define Py_LIMITED_API 0x03020000\n#include <Python.h>",
-        },
-    )
-
-
-EXAMPLES.update(abi3extension_dist())
+            setup(
+                name="extension.dist",
+                version="0.1",
+                description="A testing distribution \N{SNOWMAN}",
+                ext_modules=[
+                    Extension(
+                        name="extension", sources=["extension.c"], py_limited_api=True
+                    )
+                ],
+            )
+            """
+        ),
+        "setup.cfg": "[bdist_wheel]\npy_limited_api=cp32",
+        "extension.c": "#define Py_LIMITED_API "
+        + ("0x030F0000" if IS_FREE_THREADED else "0x03020000")
+        + "\n#include <Python.h>",
+    }
 
 
 def bdist_wheel_cmd(**kwargs):
@@ -421,13 +413,49 @@ def test_universal_deprecated(dummy_dist, monkeypatch, tmp_path):
     assert os.path.exists("dist/dummy_dist-1.0-py2.py3-none-any.whl")
 
 
-EXTENSION_EXAMPLE = """\
+LIMITED_API_PREAMBLE = """\
+/* Include pyconfig.h first so Py_GIL_DISABLED is known before choosing a
+   stable ABI to target. On free-threaded Windows, Py_GIL_DISABLED is not in
+   pyconfig.h but is passed on the command line by setuptools. */
+#include <pyconfig.h>
+
+#ifdef Py_GIL_DISABLED
+/* Free-threaded builds only support the limited API for 3.15 or newer,
+   targeting the abi3t stable ABI (PEP 803). */
+#define Py_LIMITED_API 0x030F0000
+#else
+#define Py_LIMITED_API 0x03020000
+#endif
+
+"""
+
+EXTENSION_BODY = """\
 #include <Python.h>
 
 static PyMethodDef methods[] = {
   { NULL, NULL, 0, NULL }
 };
 
+#ifdef Py_TARGET_ABI3T
+/* abi3t makes PyObject opaque, so a static PyModuleDef and PyInit_* cannot
+   be used; export the module with slots instead (PEP 793). */
+PyABIInfo_VAR(abi_info);
+
+static PySlot slots[] = {
+  PySlot_STATIC_DATA(Py_mod_abi, &abi_info),
+  PySlot_STATIC_DATA(Py_mod_name, "extension"),
+  PySlot_STATIC_DATA(Py_mod_doc, "Dummy extension module"),
+  PySlot_STATIC_DATA(Py_mod_methods, methods),
+  PySlot_DATA(Py_mod_gil, Py_MOD_GIL_NOT_USED),
+  PySlot_END,
+};
+
+PyMODEXPORT_FUNC PyModExport_extension(void);
+
+PyMODEXPORT_FUNC PyModExport_extension(void) {
+  return slots;
+}
+#else
 static struct PyModuleDef module_def = {
   PyModuleDef_HEAD_INIT,
   "extension",
@@ -439,8 +467,31 @@ static struct PyModuleDef module_def = {
 PyMODINIT_FUNC PyInit_extension(void) {
   return PyModule_Create(&module_def);
 }
+#endif
 """
+
+EXTENSION_EXAMPLE = LIMITED_API_PREAMBLE + EXTENSION_BODY
 EXTENSION_SETUPPY = """\
+from __future__ import annotations
+
+from setuptools import Extension, setup
+
+setup(
+    name="extension.dist",
+    version="0.1",
+    description="A testing distribution \N{SNOWMAN}",
+    ext_modules=[
+        Extension(
+            name="extension",
+            sources=["extension.c"],
+            py_limited_api=True
+        )
+    ],
+)
+"""
+
+
+VERSION_SPECIFIC_SETUPPY = """\
 from __future__ import annotations
 
 from setuptools import Extension, setup
@@ -457,7 +508,7 @@ setup(
 @pytest.mark.filterwarnings(
     "once:Config variable '.*' is unset.*, Python ABI tag may be incorrect"
 )
-def test_limited_abi(monkeypatch, tmp_path, tmp_path_factory):
+def test_limited_api(monkeypatch, tmp_path, tmp_path_factory):
     """Test that building a binary wheel with the limited ABI works."""
     source_dir = tmp_path_factory.mktemp("extension_dist")
     (source_dir / "setup.py").write_text(EXTENSION_SETUPPY, encoding="utf-8")
@@ -465,7 +516,29 @@ def test_limited_abi(monkeypatch, tmp_path, tmp_path_factory):
     build_dir = tmp_path.joinpath("build")
     dist_dir = tmp_path.joinpath("dist")
     monkeypatch.chdir(source_dir)
+    # The free-threaded build doesn't support the limited API until 3.15.
+    ft_unsupported = IS_FREE_THREADED and sys.version_info < (3, 15)
+    expectation = pytest.raises(ValueError) if ft_unsupported else nullcontext()
+    with expectation:
+        bdist_wheel_cmd(
+            bdist_dir=str(build_dir), dist_dir=str(dist_dir), py_limited_api="cp32"
+        ).run()
+
+
+@pytest.mark.filterwarnings(
+    "once:Config variable '.*' is unset.*, Python ABI tag may be incorrect"
+)
+def test_version_specific_abi(monkeypatch, tmp_path, tmp_path_factory):
+    """Extensions not using the limited API get a version-specific ABI tag."""
+    source_dir = tmp_path_factory.mktemp("extension_dist")
+    (source_dir / "setup.py").write_text(VERSION_SPECIFIC_SETUPPY, encoding="utf-8")
+    (source_dir / "extension.c").write_text(EXTENSION_BODY, encoding="utf-8")
+    build_dir = tmp_path.joinpath("build")
+    dist_dir = tmp_path.joinpath("dist")
+    monkeypatch.chdir(source_dir)
     bdist_wheel_cmd(bdist_dir=str(build_dir), dist_dir=str(dist_dir)).run()
+    wheel_path = next(dist_dir.glob("*.whl"))
+    assert f"-{get_abi_tag()}-" in wheel_path.name
 
 
 def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
@@ -550,6 +623,28 @@ def test_get_abi_tag_fallback(monkeypatch):
     monkeypatch.setattr(sysconfig, "get_config_var", lambda x: "unknown-python-310")
     monkeypatch.setattr(tags, "interpreter_name", lambda: "unknown-python")
     assert get_abi_tag() == "unknown_python_310"
+
+
+def test_stable_abi_tag(monkeypatch):
+    monkeypatch.setattr(sysconfig, "get_config_var", lambda x: 0)
+    assert stable_abi_tag("cp", "315") == "abi3"
+    monkeypatch.setattr(sysconfig, "get_config_var", lambda x: '1')
+    assert stable_abi_tag("cp", "315") == "abi3.abi3t"
+
+
+def test_py_limited_api_free_threaded_before_315(monkeypatch):
+    """py_limited_api is rejected on free-threaded Pythons older than 3.15."""
+    cmd = bdist_wheel(Distribution())
+    cmd.py_limited_api = "cp32"
+    get_config_var = sysconfig.get_config_var
+    monkeypatch.setattr(
+        sysconfig,
+        "get_config_var",
+        lambda name: 1 if name == "Py_GIL_DISABLED" else get_config_var(name),
+    )
+    monkeypatch.setattr(sys, "version_info", (3, 14, 5))
+    with pytest.raises(ValueError, match="not supported"):
+        cmd._validate_py_limited_api()
 
 
 def test_platform_with_space(dummy_dist, monkeypatch):

@@ -16,6 +16,7 @@ import warnings
 from collections.abc import Iterable, Sequence
 from email.generator import BytesGenerator
 from glob import iglob
+from itertools import chain
 from typing import ClassVar, Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
@@ -29,6 +30,8 @@ from ..warnings import SetuptoolsDeprecationWarning
 from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
+
+flatten = chain.from_iterable
 
 
 def safe_version(version: str) -> str:
@@ -132,6 +135,18 @@ def safer_version(version: str) -> str:
     return safe_version(version).replace("-", "_")
 
 
+def stable_abi_tag(impl_name, impl_version):
+    abi_tag = None
+    if impl_name == "cp" and impl_version[0] == '3':
+        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+            # per PEP 803 these are possible on older Python versions
+            # but in practice these builds need cp315 or newer
+            abi_tag = "abi3.abi3t"
+        else:
+            abi_tag = "abi3"
+    return abi_tag
+
+
 class bdist_wheel(Command):
     description = "create a wheel distribution"
 
@@ -200,7 +215,7 @@ class bdist_wheel(Command):
         (
             "py-limited-api=",
             None,
-            "Python tag (cp32|cp33|cpNN) for abi3 wheel tag [default: false]",
+            "Python tag (cp32|cp33|cpNN) for abi3 or abi3t ABI [default: false]",
         ),
         (
             "dist-info-dir=",
@@ -296,11 +311,11 @@ class bdist_wheel(Command):
         if not re.match(PY_LIMITED_API_PATTERN, self.py_limited_api):
             raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
 
-        if sysconfig.get_config_var("Py_GIL_DISABLED"):
+        if sysconfig.get_config_var("Py_GIL_DISABLED") and sys.version_info < (3, 15):
             raise ValueError(
                 f"`py_limited_api={self.py_limited_api!r}` not supported. "
-                "`Py_LIMITED_API` is currently incompatible with "
-                "`Py_GIL_DISABLED`. "
+                "`Py_LIMITED_API` is incompatible with `Py_GIL_DISABLED` "
+                "on Python 3.14 and older. "
                 "See https://github.com/python/cpython/issues/111506."
             )
 
@@ -314,6 +329,18 @@ class bdist_wheel(Command):
         if self.build_number:
             components.append(self.build_number)
         return "-".join(components)
+
+    @property
+    def abi_tag(self) -> str:
+        impl_name = tags.interpreter_name()
+        impl_ver = tags.interpreter_version()
+        tag = None
+        if self.py_limited_api:
+            tag = stable_abi_tag(impl_name, impl_ver)
+        if tag is None:
+            # not a stable ABI build, use version-specific ABI tag
+            tag = str(get_abi_tag()).lower()
+        return tag
 
     def get_tag(self) -> tuple[str, str, str]:
         # bdist sets self.plat_name if unset, we should only use it for purepy
@@ -357,18 +384,18 @@ class bdist_wheel(Command):
             impl_name = tags.interpreter_name()
             impl_ver = tags.interpreter_version()
             impl = impl_name + impl_ver
-            # We don't work on CPython 3.1, 3.0.
-            if self.py_limited_api and (impl_name + impl_ver).startswith("cp3"):
+            abi_tag = self.abi_tag
+            if "abi3" in abi_tag:
+                assert self.py_limited_api is not False
                 impl = self.py_limited_api
-                abi_tag = "abi3"
-            else:
-                abi_tag = str(get_abi_tag()).lower()
             tag = (impl, abi_tag, plat_name)
+            possible_tags = tags.parse_tag("-".join(tag))
             # issue gh-374: allow overriding plat_name
-            supported_tags = [
-                (t.interpreter, t.abi, plat_name) for t in tags.sys_tags()
-            ]
-            assert tag in supported_tags, (
+            sys_tags = (f"{t.interpreter}-{t.abi}-{plat_name}" for t in tags.sys_tags())
+            supported_tags = list(flatten(tags.parse_tag(t) for t in sys_tags))
+            # abi_tag can contain multiple (e.g. "abi3.abi3t") tags
+            # only one of them will be supported
+            assert any(t in supported_tags for t in possible_tags), (
                 f"would build wheel with unsupported tag {tag}"
             )
         return tag
