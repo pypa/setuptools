@@ -11,7 +11,7 @@ ordinary Python packages based on the ``distutils``.
 
 Feature Highlights:
 
-* Create `Python Eggs <http://peak.telecommunity.com/DevCenter/PythonEggs>`_ -
+* Create `Python Eggs <https://web.archive.org/web/20191118162524/http://peak.telecommunity.com/DevCenter/PythonEggs>`_ -
   a single-file importable distribution format
 
 * Enhanced support for accessing data files hosted in zipped packages.
