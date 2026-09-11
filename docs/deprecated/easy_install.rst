@@ -91,7 +91,7 @@ Downloading and Installing a Package
 For basic use of ``easy_install``, you need only supply the filename or URL of
 a source distribution or .egg file (`Python Egg`__).
 
-__ http://peak.telecommunity.com/DevCenter/PythonEggs
+__ https://web.archive.org/web/20191118162524/http://peak.telecommunity.com/DevCenter/PythonEggs
 
 **Example 1**. Install a package by name, searching PyPI for the latest
 version, and automatically downloading, building, and installing it::
