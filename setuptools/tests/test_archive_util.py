@@ -1,4 +1,5 @@
 import io
+import os
 import tarfile
 import zipfile
 
@@ -145,3 +146,137 @@ def test_resolve_dest_rejects_symlinked_escape(tmp_path):
         archive_util._resolve_dest(str(target), 'sub/file.txt')
 
     assert archive_util._resolve_dest(str(target), 'ok/file.txt')
+
+
+def _make_tar(path, build):
+    """Create a tar archive; ``build`` receives the open TarFile."""
+    with tarfile.open(path, mode='w') as tf:
+        build(tf)
+    return str(path)
+
+
+def _add_file(tf, name, data=b'x', mode=0o644):
+    info = tarfile.TarInfo(name)
+    info.size = len(data)
+    info.mode = mode
+    tf.addfile(info, io.BytesIO(data))
+
+
+def _add_member(tf, info):
+    tf.addfile(info)
+
+
+def test_unpack_tarfile_strips_setuid_bits(tmp_path):
+    """
+    PEP 706 data filtering: setuid/setgid/sticky bits from the archive must
+    not survive extraction (#5328).
+    """
+
+    def build(tf):
+        _add_file(tf, 'app.bin', b'payload', mode=0o4755)
+        _add_file(tf, 'grp.bin', b'payload', mode=0o2644)
+
+    archive = _make_tar(tmp_path / 'suid.tar', build)
+    target = tmp_path / 'dest'
+
+    archive_util.unpack_archive(archive, str(target))
+
+    for name in ('app.bin', 'grp.bin'):
+        mode = (target / name).stat().st_mode
+        assert not mode & 0o7000, f'{name} kept high permission bits: {oct(mode)}'
+
+
+def test_unpack_tarfile_rejects_special_files(tmp_path):
+    """
+    Device/FIFO members are rejected by the stdlib's data filter and the
+    rejection aborts the extraction rather than silently skipping the
+    member (#5328).
+    """
+    fifo = tarfile.TarInfo('pipe')
+    fifo.type = tarfile.FIFOTYPE
+
+    def build(tf):
+        _add_file(tf, 'good.txt')
+        _add_member(tf, fifo)
+
+    archive = _make_tar(tmp_path / 'special.tar', build)
+    target = tmp_path / 'dest'
+
+    with pytest.raises(archive_util.UnsafeMember, match='pipe'):
+        archive_util.unpack_archive(archive, str(target))
+
+    assert not (target / 'pipe').exists()
+
+
+@pytest.mark.skipif(not os_helper.can_symlink(), reason='Symlink support required')
+@pytest.mark.parametrize(
+    'linkname', ['../escaped', '/tmp/escaped'], ids=['relative-escape', 'absolute']
+)
+def test_unpack_tarfile_rejects_escaping_symlink(tmp_path, linkname):
+    """
+    A symlink member whose target escapes the extraction directory is
+    rejected by the data filter, and the rejection aborts the extraction
+    instead of being silently skipped (#5328).
+    """
+
+    def build(tf):
+        link = tarfile.TarInfo('evil-link')
+        link.type = tarfile.SYMTYPE
+        link.linkname = linkname
+        _add_member(tf, link)
+
+    archive = _make_tar(tmp_path / 'evil.tar', build)
+    target = tmp_path / 'dest'
+
+    with pytest.raises(archive_util.UnsafeMember, match='evil-link'):
+        archive_util.unpack_archive(archive, str(target))
+
+    assert not (tmp_path / 'escaped').exists()
+    assert not os.path.lexists(target / 'evil-link')
+
+
+@pytest.mark.skipif(not os_helper.can_symlink(), reason='Symlink support required')
+def test_unpack_tarfile_resolves_forward_symlink_target(tmp_path):
+    """
+    A symlink member whose target appears *later* in the archive still
+    resolves and extracts the target's content: link resolution searches the
+    whole catalog, as the private-API lookup it replaced did (#5328).
+    """
+
+    def build(tf):
+        link = tarfile.TarInfo('early-link.txt')
+        link.type = tarfile.SYMTYPE
+        link.linkname = 'late-target.txt'
+        _add_member(tf, link)
+        _add_file(tf, 'late-target.txt', b'content')
+
+    archive = _make_tar(tmp_path / 'links.tar', build)
+    target = tmp_path / 'dest'
+
+    archive_util.unpack_archive(archive, str(target))
+
+    # the link member is extracted as a copy of its target file
+    assert (target / 'early-link.txt').read_bytes() == b'content'
+
+
+def test_unpack_tarfile_progress_filter_redirect_still_works(tmp_path):
+    """
+    The documented progress_filter contract (redirect a member anywhere,
+    see ``unpack_archive``) survives the PEP 706 filtering (#5328).
+    """
+
+    def build(tf):
+        _add_file(tf, 'pkg/a.txt')
+        _add_file(tf, 'pkg/b.txt')
+
+    archive = _make_tar(tmp_path / 'pkg.tar', build)
+    target = tmp_path / 'dest'
+    elsewhere = tmp_path / 'elsewhere.txt'
+
+    def redirect(src, dst):
+        return str(elsewhere) if src == 'pkg/a.txt' else dst
+
+    archive_util.unpack_archive(archive, str(target), progress_filter=redirect)
+
+    assert elsewhere.read_bytes() == b'x'
+    assert (target / 'pkg' / 'b.txt').exists()

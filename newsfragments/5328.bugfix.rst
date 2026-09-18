@@ -1,0 +1,8 @@
+``setuptools.archive_util.unpack_tarfile`` now vets every tar member through
+``tarfile.data_filter`` (PEP 706) before extracting it, inheriting the
+stdlib's data-extraction hardening (sanitized permission bits, dropped
+ownership, rejected absolute/escaping link targets and special files)
+instead of extracting through private ``tarfile`` APIs that bypassed the
+filters. A member rejected by the filter now aborts the extraction with an
+``UnsafeMember`` error naming the member, instead of being silently
+skipped.

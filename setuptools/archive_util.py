@@ -8,6 +8,12 @@ import shutil
 import tarfile
 import zipfile
 
+if not hasattr(tarfile, "data_filter"):  # pragma: no cover
+    # CPython added the PEP 706 extraction filters in 3.12 and backported
+    # them to 3.10.12 / 3.11.4. On older patch releases, use the vendored
+    # backport so the hardened, public filter API is always available.
+    from ._vendor.backports import tarfile  # noqa: E402  # isort:skip
+
 from ._path import ensure_directory
 
 from distutils.errors import DistutilsError
@@ -185,8 +191,14 @@ def _unpack_zipfile_obj(zipfile_obj, extract_dir, progress_filter=default_filter
             os.chmod(target, unix_attributes)
 
 
-def _resolve_tar_file_or_dir(tar_obj, tar_member_obj):
-    """Resolve any links and extract link targets as normal files."""
+def _resolve_tar_file_or_dir(members_by_name, tar_member_obj):
+    """Resolve any links and extract link targets as normal files.
+
+    ``members_by_name`` maps member names to their (last-declared) TarInfo,
+    matching how tarfile used to resolve link names internally: its private
+    lookup scanned members bottom-to-top, so a repeated name resolved to the
+    last occurrence — which is what keeps a dict built in iteration order.
+    """
     while tar_member_obj is not None and (
         tar_member_obj.islnk() or tar_member_obj.issym()
     ):
@@ -195,7 +207,7 @@ def _resolve_tar_file_or_dir(tar_obj, tar_member_obj):
             base = posixpath.dirname(tar_member_obj.name)
             linkpath = posixpath.join(base, linkpath)
             linkpath = posixpath.normpath(linkpath)
-        tar_member_obj = tar_obj._getmember(linkpath)
+        tar_member_obj = members_by_name.get(linkpath)
 
     is_file_or_dir = tar_member_obj is not None and (
         tar_member_obj.isfile() or tar_member_obj.isdir()
@@ -206,20 +218,70 @@ def _resolve_tar_file_or_dir(tar_obj, tar_member_obj):
     raise LookupError('Got unknown file type')
 
 
-def _iter_open_tar(tar_obj, extract_dir, progress_filter):
-    """Emit member-destination pairs from a tar archive."""
-    # don't do any chowning!
-    tar_obj.chown = lambda *args: None
+def _apply_data_filter(member, extract_dir):
+    """Run ``tarfile.data_filter`` on ``member``, translating rejection.
 
+    The stdlib's data filter treats an unsafe member (absolute or escaping
+    link target, special file) as fatal by raising ``tarfile.FilterError``;
+    only ``extractall`` with a per-member error handler or the
+    ``fully_trusted`` filter turns that into a skip. Extraction here must
+    fail loudly instead of silently dropping the member, so the rejection
+    is translated to ``UnsafeMember`` -- a ``DistutilsError``, deliberately
+    not an ``UnrecognizedFormat``, so ``unpack_archive`` cannot fall through
+    to another driver with files missing.
+    """
+    try:
+        return tarfile.data_filter(member, extract_dir)
+    except tarfile.FilterError as e:
+        raise UnsafeMember(
+            f"{member.name!r} was rejected by the tar data filter: {e}"
+        ) from e
+
+
+def _iter_open_tar(tar_obj, extract_dir, progress_filter):
+    """Emit member-destination pairs from a tar archive.
+
+    Every emitted member has been vetted through :func:`tarfile.data_filter`
+    (PEP 706), so extraction inherits the stdlib's data-extraction hardening:
+    sanitized permission bits (setuid/setgid/sticky stripped), dropped
+    ownership (the filter nulls uid/gid, which makes tarfile's chown a
+    -1/-1 no-op), rejected absolute and escaping link targets, and rejected
+    special files — rather than setuptools hand-maintaining pieces of that
+    logic against private ``tarfile`` APIs.
+
+    ``progress_filter`` still runs afterwards on the preliminary destination
+    and may redirect or skip members as documented (see ``unpack_archive``),
+    which is why containment is validated here against ``extract_dir``
+    rather than against the callback-chosen destination.
+    """
     with contextlib.closing(tar_obj):
-        for member in tar_obj:
+        # Index every member by name up front so a link member can resolve its
+        # target, matching tarfile's private lookup: it scanned members
+        # bottom-to-top and returned the first hit, i.e. the *last* declared
+        # member of that name — which is what a dict built in iteration order
+        # keeps. Members are needed here either way, as data_filter and the
+        # link resolution both require the whole catalog.
+        members = tar_obj.getmembers()
+        members_by_name: dict[str, tarfile.TarInfo] = {
+            member.name: member for member in members
+        }
+        for member in members:
             name = member.name
             prelim_dst = _resolve_dest(extract_dir, name)
 
             try:
-                member = _resolve_tar_file_or_dir(tar_obj, member)
+                resolved = _resolve_tar_file_or_dir(members_by_name, member)
             except LookupError:
+                # Either a link whose target is not in the archive or a
+                # special file. Give the data filter the final word: it
+                # rejects absolute/escaping links and special files, and
+                # translating that rejection raises loudly. A merely
+                # dangling-but-safe link passes the filter and is skipped,
+                # matching the historical behavior.
+                _apply_data_filter(member, extract_dir)
                 continue
+
+            resolved = _apply_data_filter(resolved, extract_dir)
 
             final_dst = progress_filter(name, prelim_dst)
             if not final_dst:
@@ -228,7 +290,7 @@ def _iter_open_tar(tar_obj, extract_dir, progress_filter):
             if final_dst.endswith(os.sep):
                 final_dst = final_dst[:-1]
 
-            yield member, final_dst
+            yield resolved, final_dst
 
 
 def unpack_tarfile(filename, extract_dir, progress_filter=default_filter) -> bool:
