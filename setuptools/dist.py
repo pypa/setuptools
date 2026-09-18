@@ -246,14 +246,14 @@ class Distribution(_Distribution):
     effectively adds the following new optional keyword arguments to 'setup()':
 
      'install_requires' -- a string or sequence of strings specifying project
-        versions that the distribution requires when installed, in the format
-        used by 'pkg_resources.require()'.  They will be installed
-        automatically when the package is installed.  If you wish to use
-        packages that are not available in PyPI, or want to give your users an
-        alternate download location, you can add a 'find_links' option to the
-        '[easy_install]' section of your project's 'setup.cfg' file, and then
-        setuptools will scan the listed web pages for links that satisfy the
-        requirements.
+        versions that the distribution requires when installed, in the
+        :pep:`508` format (e.g. ``'requests>=2.0'``).  They will be
+        installed automatically when the package is installed.  If you wish
+        to use packages that are not available in PyPI, or want to give your
+        users an alternate download location, you can add a 'find_links'
+        option to the '[easy_install]' section of your project's 'setup.cfg'
+        file, and then setuptools will scan the listed web pages for links
+        that satisfy the requirements.
 
      'extras_require' -- a dictionary mapping names of optional "extras" to the
         additional requirement(s) that using those extras incurs. For example,
