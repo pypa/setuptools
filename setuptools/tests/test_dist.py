@@ -58,6 +58,25 @@ def test_dist_fetch_build_egg(tmpdir, setuptools_wheel):
     assert [dist.name for dist in resolved_dists if dist] == reqs
 
 
+def test_present_ignores_incomplete_dist_metadata(tmp_path, monkeypatch):
+    """
+    In Python 3.15, distributions missing METADATA raise MetadataNotFound.
+    In Python <= 3.14, their name/version evaluates to None.
+    _present should ignore them gracefully without raising.
+    """
+    import packaging.requirements
+    from setuptools import installer
+
+    incomplete_dist = tmp_path / "incomplete-1.0.dist-info"
+    incomplete_dist.mkdir()
+    (incomplete_dist / "INSTALLER").write_text("dummy\n", encoding="utf-8")
+
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    req = packaging.requirements.Requirement("somepkg>=1.0")
+    assert not installer._present(req)
+
+
 EXAMPLE_BASE_INFO = dict(
     name="package",
     version="0.0.1",
