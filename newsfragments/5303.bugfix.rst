@@ -1,0 +1,5 @@
+Restored hashability and identity-based equality of ``setuptools.Extension``
+(and ``Library``). The dataclass conversion of the vendored base class
+(pypa/distutils#373, shipped in 84.0.0) generated a value-based ``__eq__``
+and set ``__hash__ = None``, breaking build tooling that keeps extensions
+in sets or uses them as dict keys (e.g. pywin32's ``setup.py``).

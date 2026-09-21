@@ -142,6 +142,18 @@ class Extension(_Extension):
     _needs_stub: bool  #: Private API, internal use only.
     _file_name: str  #: Private API, internal use only.
 
+    # The dataclass conversion of the base Extension class
+    # (pypa/distutils#373, vendored since 84.0.0) generated a value-based
+    # ``__eq__`` and, as dataclasses do for non-frozen classes, set
+    # ``__hash__ = None``.  That silently broke hashability and identity
+    # semantics that ``Extension`` has had for its whole life: build tools
+    # keep live extensions in sets and dict keys (e.g. pywin32's setup.py).
+    # Restore the identity-based ``__eq__``/``__hash__`` on setuptools'
+    # public Extension, independently of the vendored-sync cadence.
+    # Refs #5303 and the upstream fix pypa/distutils#427.
+    __eq__ = object.__eq__
+    __hash__ = object.__hash__
+
     def __init__(
         self,
         name: str,
