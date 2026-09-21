@@ -83,8 +83,11 @@ def _install_setup_requires(attrs):
 
     # Honor setup.cfg's options.
     dist.parse_config_files(ignore_option_errors=True)
-    if dist.setup_requires:
-        _fetch_build_eggs(dist)
+    # NOTE: fetch_build_eggs is called so even if there are no build
+    # requirements, get_requires_for_build_(sdist/wheel) will still
+    # short-circuit once build dependencies are known (avoiding the
+    # costly full execution of setup.py).
+    _fetch_build_eggs(dist)
 
 
 def _fetch_build_eggs(dist: Distribution):
