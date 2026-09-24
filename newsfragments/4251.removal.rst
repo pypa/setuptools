@@ -1,0 +1,1 @@
+Bytes inputs to .files are no longer supported. If this removal affects your project or environment, please report the details in the linked PR.
