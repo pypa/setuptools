@@ -224,7 +224,7 @@ class _SummaryWriter:
         if isinstance(schema, list):
             return self._handle_list(schema, prefix, _path)
 
-        filtered = self._filter_unecessary(schema, _path)
+        filtered = self._filter_unnecessary(schema, _path)
         simple = self._handle_simple_dict(filtered, _path)
         if simple:
             return f"{prefix}{simple}"
@@ -239,7 +239,7 @@ class _SummaryWriter:
                 buffer.write(f"{line_prefix}{self._label(child_path)}:")
                 # ^  just the first item should receive the complete prefix
                 if isinstance(value, dict):
-                    filtered = self._filter_unecessary(value, child_path)
+                    filtered = self._filter_unnecessary(value, child_path)
                     simple = self._handle_simple_dict(filtered, child_path)
                     buffer.write(
                         f" {simple}"
@@ -256,19 +256,19 @@ class _SummaryWriter:
                     buffer.write(f" {self._value(value, child_path)}\n")
             return buffer.getvalue()
 
-    def _is_unecessary(self, path: Sequence[str]) -> bool:
+    def _is_unnecessary(self, path: Sequence[str]) -> bool:
         if self._is_property(path) or not path:  # empty path => instruction @ root
             return False
         key = path[-1]
         return any(key.startswith(k) for k in "$_") or key in self._IGNORE
 
-    def _filter_unecessary(
+    def _filter_unnecessary(
         self, schema: dict[str, Any], path: Sequence[str]
     ) -> dict[str, Any]:
         return {
             key: value
             for key, value in schema.items()
-            if not self._is_unecessary([*path, key])
+            if not self._is_unnecessary([*path, key])
         }
 
     def _handle_simple_dict(self, value: dict, path: Sequence[str]) -> str | None:
@@ -281,7 +281,7 @@ class _SummaryWriter:
     def _handle_list(
         self, schemas: list, prefix: str = "", path: Sequence[str] = ()
     ) -> str:
-        if self._is_unecessary(path):
+        if self._is_unnecessary(path):
             return ""
 
         repr_ = repr(schemas)
