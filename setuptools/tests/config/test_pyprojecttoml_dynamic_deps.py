@@ -33,6 +33,31 @@ def test_dynamic_dependencies(tmp_path):
     assert dist.install_requires == ["six"]
 
 
+def test_warns_when_dynamic_dependencies_not_listed(tmp_path):
+    files = {
+        "requirements.txt": "six\n",
+        "pyproject.toml": cleandoc(
+            """
+            [project]
+            name = "myproj"
+            version = "1.0"
+
+            [tool.setuptools.dynamic.dependencies]
+            file = ["requirements.txt"]
+            """
+        ),
+    }
+    path.build(files, prefix=tmp_path)
+    dist = Distribution()
+    with pytest.warns(
+        SetuptoolsWarning,
+        match=r"(?s)tool\.setuptools\.dynamic\.dependencies.*project\.dynamic",
+    ):
+        dist = apply_configuration(dist, tmp_path / "pyproject.toml")
+
+    assert not dist.install_requires
+
+
 def test_dynamic_optional_dependencies(tmp_path):
     files = {
         "requirements-docs.txt": "sphinx\n  # comment\n",

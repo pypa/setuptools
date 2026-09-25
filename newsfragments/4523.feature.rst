@@ -1,0 +1,1 @@
+Added a warning when ``tool.setuptools.dynamic`` defines a field that is not listed in ``project.dynamic``.

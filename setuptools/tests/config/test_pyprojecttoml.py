@@ -1,4 +1,5 @@
 import re
+import warnings
 from configparser import ConfigParser
 from inspect import cleandoc
 from typing import ClassVar
@@ -210,6 +211,23 @@ class TestEntryPoints:
         msg = f"defined outside of `pyproject.toml`:.*{missing_dynamic}"
         with pytest.raises(OptionError, match=re.compile(msg, re.DOTALL)):
             expand_configuration(self.pyproject(dynamic), tmp_path)
+
+    def test_entry_points_file_used_for_scripts_without_warning(self, tmp_path):
+        entry_points = ConfigParser()
+        entry_points.read_dict({"console_scripts": {"a": "mod.a:func"}})
+        with open(tmp_path / "entry-points.txt", "w", encoding="utf-8") as f:
+            entry_points.write(f)
+
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            expanded = expand_configuration(self.pyproject(["scripts"]), tmp_path)
+
+        assert expanded["project"]["scripts"]["a"] == "mod.a:func"
+        assert not [
+            warning
+            for warning in caught
+            if "tool.setuptools.dynamic.entry-points" in str(warning.message)
+        ]
 
 
 class TestClassifiers:
