@@ -1,4 +1,5 @@
 import io
+import os
 import tarfile
 import zipfile
 
@@ -145,3 +146,80 @@ def test_resolve_dest_rejects_symlinked_escape(tmp_path):
         archive_util._resolve_dest(str(target), 'sub/file.txt')
 
     assert archive_util._resolve_dest(str(target), 'ok/file.txt')
+
+
+def _make_tarfile_with_setuid(path):
+    with tarfile.open(path, mode='w') as tar:
+        data = b'echo hi'
+        info = tarfile.TarInfo('script.sh')
+        info.size = len(data)
+        info.mode = 0o4755  # setuid + rwxr-xr-x
+        tar.addfile(info, io.BytesIO(data))
+    return str(path)
+
+
+def test_iter_open_tar_applies_data_filter(tmp_path):
+    """
+    Each member handed to the driver is the tarfile data filter's sanitized
+    copy: high mode bits (setuid/setgid/sticky) are stripped and archive
+    ownership is cleared, so none of it reaches the filesystem (#5328).
+    """
+    archive = _make_tarfile_with_setuid(tmp_path / 'setuid.tar')
+
+    with tarfile.open(archive) as tar:
+        members = list(
+            archive_util._iter_open_tar(
+                tar, str(tmp_path / 'dest'), archive_util.default_filter
+            )
+        )
+
+    assert len(members) == 1
+    member, dst = members[0]
+    assert member.mode & 0o7000 == 0
+    assert member.mode & 0o755 == 0o755
+    assert member.uid is None
+    assert member.gid is None
+    assert dst == os.path.join(str(tmp_path / 'dest'), 'script.sh')
+
+
+@pytest.mark.skipif(os.name != 'posix', reason='POSIX permission bits required')
+def test_unpack_tarfile_strips_high_mode_bits(tmp_path):
+    """
+    A setuid regular file is extracted without the setuid bit (PEP 706).
+    """
+    archive = _make_tarfile_with_setuid(tmp_path / 'setuid.tar')
+    target = tmp_path / 'dest'
+
+    archive_util.unpack_tarfile(archive, str(target))
+
+    extracted = (target / 'script.sh').stat().st_mode
+    assert extracted & 0o7000 == 0
+    assert extracted & 0o500  # still readable/executable
+
+
+def test_unpack_tarfile_resolves_links_to_targets(tmp_path):
+    """
+    Link members are materialized as copies of their archive-relative
+    targets, resolved through the public member listing (#5328).
+    """
+    archive = tmp_path / 'links.tar'
+    with tarfile.open(archive, mode='w') as tar:
+        dir_info = tarfile.TarInfo('sub/')
+        dir_info.type = tarfile.DIRTYPE
+        tar.addfile(dir_info)
+
+        data = b'payload'
+        file_info = tarfile.TarInfo('sub/data.txt')
+        file_info.size = len(data)
+        tar.addfile(file_info, io.BytesIO(data))
+
+        file_link = tarfile.TarInfo('filelink')
+        file_link.type = tarfile.LNKTYPE
+        file_link.linkname = 'sub/data.txt'
+        tar.addfile(file_link)
+
+    target = tmp_path / 'dest'
+    archive_util.unpack_tarfile(archive, str(target))
+
+    assert (target / 'filelink').is_file()
+    assert (target / 'filelink').read_bytes() == b'payload'
