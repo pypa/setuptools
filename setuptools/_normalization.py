@@ -81,6 +81,8 @@ def best_effort_version(version: str) -> str:
     '0.dev0+sanitized'
     >>> best_effort_version("42.+?1")
     '42.dev0+sanitized.1'
+    >>> best_effort_version("v42.+?1")  # a `v` prefix changes nothing
+    '42.dev0+sanitized.1'
     """
     try:
         return safe_version(version)
@@ -89,7 +91,10 @@ def best_effort_version(version: str) -> str:
         match = _PEP440_FALLBACK.search(v)
         if match:
             safe = match["safe"]
-            rest = v[len(safe) :]
+            # `safe` may be shorter than the match, because `_PEP440_FALLBACK`
+            # also consumes an optional `v` prefix. Slice from the end of the
+            # whole match, so the prefix is not left out of `rest`.
+            rest = v[match.end() :]
         else:
             safe = "0"
             rest = version
