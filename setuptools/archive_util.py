@@ -214,6 +214,20 @@ def _resolve_tar_file_or_dir(tar_obj, tar_member_obj):
 #: absent and extraction falls back to the legacy behavior.
 _DATA_FILTER = getattr(tarfile, 'data_filter', None)
 
+#: Filter errors meaning "this member would land outside of the destination".
+#: They are raised in place of the ``UnsafeMember`` that ``_resolve_dest``
+#: used to raise, so callers catching ``UnsafeMember``/``DistutilsError``
+#: would otherwise miss the abort. Empty on interpreters without the filter,
+#: where the filtering branch is never taken.
+_OUTSIDE_DEST_ERRORS = tuple(
+    err
+    for err in (
+        getattr(tarfile, 'OutsideDestinationError', None),
+        getattr(tarfile, 'AbsolutePathError', None),
+    )
+    if err is not None
+)
+
 
 def _iter_open_tar(tar_obj, extract_dir, progress_filter):
     """Emit member-destination pairs from a tar archive."""
@@ -238,7 +252,14 @@ def _iter_open_tar(tar_obj, extract_dir, progress_filter):
                 # and take its sanitized copy (high mode bits stripped,
                 # ownership cleared, special files rejected) before the
                 # member is written anywhere.
-                member = _DATA_FILTER(member, extract_dir)
+                try:
+                    member = _DATA_FILTER(member, extract_dir)
+                except _OUTSIDE_DEST_ERRORS as exc:
+                    # A link resolving to a member whose own name escapes the
+                    # destination: report it the way the pre-filter code did,
+                    # so callers catching UnsafeMember (a DistutilsError)
+                    # still see the abort rather than a tarfile error.
+                    raise UnsafeMember(str(exc)) from exc
 
             final_dst = progress_filter(name, prelim_dst)
             if not final_dst:

@@ -197,6 +197,41 @@ def test_unpack_tarfile_strips_high_mode_bits(tmp_path):
     assert extracted & 0o500  # still readable/executable
 
 
+def _make_tarfile_with_escaping_link(path, link_type):
+    """Archive whose 'ok' link resolves to the escaping member '../evil'."""
+    with tarfile.open(path, mode='w') as tar:
+        link = tarfile.TarInfo('ok')
+        link.type = link_type
+        link.linkname = '../evil'
+        tar.addfile(link)
+
+        data = b'evil payload'
+        evil = tarfile.TarInfo('../evil')
+        evil.size = len(data)
+        tar.addfile(evil, io.BytesIO(data))
+    return str(path)
+
+
+@pytest.mark.parametrize('link_type', [tarfile.LNKTYPE, tarfile.SYMTYPE])
+def test_iter_open_tar_reports_escaping_link_as_unsafe(tmp_path, link_type):
+    """
+    A link resolving to a member that escapes the destination is reported as
+    ``UnsafeMember`` rather than as the tarfile filter's own error, so callers
+    catching ``UnsafeMember``/``DistutilsError`` still see the abort.
+    """
+    archive = _make_tarfile_with_escaping_link(tmp_path / 'escape.tar', link_type)
+    dest = tmp_path / 'dest'
+    dest.mkdir()
+
+    with tarfile.open(archive) as tar:
+        with pytest.raises(archive_util.UnsafeMember):
+            list(
+                archive_util._iter_open_tar(
+                    tar, str(dest), archive_util.default_filter
+                )
+            )
+
+
 def test_unpack_tarfile_resolves_links_to_targets(tmp_path):
     """
     Link members are materialized as copies of their archive-relative
