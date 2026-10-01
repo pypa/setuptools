@@ -174,11 +174,14 @@ def _guess_content_type(file: str) -> str | None:
 
 
 def _long_description(
-    dist: Distribution, val: _ProjectReadmeValue, root_dir: StrPath | None
+    dist: Distribution, val: _ProjectReadmeValue | None, root_dir: StrPath | None
 ):
     from setuptools.config import expand
 
     file: str | tuple[()]
+    if val is None:  # reset by _handle_missing_dynamic
+        _set_config(dist, "long_description", None)
+        return
     if isinstance(val, str):
         file = val
         text = expand.read_files(file, root_dir)
@@ -247,7 +250,12 @@ def _project_urls(dist: Distribution, val: dict, _root_dir: StrPath | None):
     _set_config(dist, "project_urls", val)
 
 
-def _python_requires(dist: Distribution, val: str, _root_dir: StrPath | None):
+def _python_requires(dist: Distribution, val: str | None, _root_dir: StrPath | None):
+    if val is None:  # reset by _handle_missing_dynamic
+        dist.python_requires = None
+        # _core_metadata writes Requires-Python whenever the attribute exists
+        vars(dist.metadata).pop("python_requires", None)
+        return
     _set_config(dist, "python_requires", _static.SpecifierSet(val))
 
 
