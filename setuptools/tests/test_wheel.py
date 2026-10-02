@@ -19,6 +19,7 @@ from jaraco import path
 from packaging.tags import parse_tag
 
 from setuptools._importlib import metadata
+from setuptools.archive_util import UnsafeMember
 from setuptools.wheel import Wheel
 
 from .contexts import tempdir
@@ -588,6 +589,29 @@ def test_wheel_no_dist_dir():
             _check_wheel_install(
                 wheel_path, install_dir, None, project_name, version, None
             )
+
+
+def test_wheel_namespace_package_outside_egg_dir(tmp_path):
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    wheel_path = tmp_path / 'foo-1.0-py3-none-any.whl'
+    with zipfile.ZipFile(wheel_path, 'w') as zf:
+        zf.writestr('foo/__init__.py', '')
+        zf.writestr(
+            'foo-1.0.dist-info/WHEEL',
+            'Wheel-Version: 1.0\nRoot-Is-Purelib: true\nTag: py3-none-any\n',
+        )
+        zf.writestr(
+            'foo-1.0.dist-info/METADATA',
+            'Metadata-Version: 2.1\nName: foo\nVersion: 1.0\n',
+        )
+        zf.writestr(
+            'foo-1.0.dist-info/namespace_packages.txt',
+            str(outside / 'escaped') + '\n',
+        )
+    with pytest.raises(UnsafeMember):
+        Wheel(wheel_path).install_as_egg(tmp_path / 'foo.egg')
+    assert not (outside / 'escaped').exists()
 
 
 def test_wheel_is_compatible(monkeypatch):
