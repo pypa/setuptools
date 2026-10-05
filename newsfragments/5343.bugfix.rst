@@ -1,0 +1,4 @@
+A ``long_description`` or ``python_requires`` given in ``setup.py`` while
+``pyproject.toml`` does not list ``readme`` or ``requires-python`` in
+``dynamic`` is now ignored with a warning, as for other fields, instead of
+crashing the build.
