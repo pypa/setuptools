@@ -1,0 +1,1 @@
+Fixed wheel filename parsing so a long run of hyphens finishes quickly.
