@@ -11,6 +11,7 @@ import stat
 import subprocess
 import sys
 import sysconfig
+import time
 import zipfile
 from typing import Any
 
@@ -73,6 +74,31 @@ WHEEL_INFO_TESTS = (
             'platform': 'manylinux1_x86_64',
         },
     ),
+    (
+        'foo-2-py2.py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl',
+        {
+            'project_name': 'foo',
+            'version': '2',
+            'build': None,
+            'py_version': 'py2.py3',
+            'abi': 'none',
+            'platform': 'manylinux_2_17_x86_64.manylinux2014_x86_64',
+        },
+    ),
+    (
+        'test-1.0+what-py3-none-any.whl',
+        {
+            'project_name': 'test',
+            'version': '1.0+what',
+            'build': None,
+            'py_version': 'py3',
+            'abi': 'none',
+            'platform': 'any',
+        },
+    ),
+    ('test-1.0-py2.whl', ValueError),
+    ('test-1.0-py2-none.whl', ValueError),
+    ('test-1.0-py2-none-any', ValueError),
 )
 
 
@@ -86,6 +112,22 @@ def test_wheel_info(filename, info):
         return
     w = Wheel(filename)
     assert {k: getattr(w, k) for k in info} == info
+
+
+@pytest.mark.parametrize(
+    'filename',
+    (
+        '0-0' + '-' * 200,
+        '0-0' + '-' * 200 + '.whl',
+    ),
+)
+def test_wheel_filename_hyphen_run_is_quick(filename):
+    """A long hyphen run must be rejected without the old polynomial retry."""
+    started = time.perf_counter()
+    with pytest.raises(ValueError, match='invalid wheel name'):
+        Wheel(filename)
+    # Well under the pre-fix cost of 200 hyphens, with room for a slow machine.
+    assert time.perf_counter() - started < 0.5
 
 
 @contextlib.contextmanager

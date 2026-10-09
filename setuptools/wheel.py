@@ -25,10 +25,14 @@ from .unicode_utils import _read_utf8_with_fallback
 
 from distutils.util import get_platform
 
+# Components other than the platform must not cross a hyphen. Several `.+`
+# groups on one run of hyphens retry every split (pypa/setuptools#4087).
+# The platform stays `\S+` so compressed tags can contain dots. This is the
+# same constraint as ``WHEEL_INFO_RE`` in pypa/wheel.
 WHEEL_NAME = re.compile(
-    r"""^(?P<project_name>.+?)-(?P<version>\d.*?)
-    ((-(?P<build>\d.*?))?-(?P<py_version>.+?)-(?P<abi>.+?)-(?P<platform>.+?)
-    )\.whl$""",
+    r"""^(?P<project_name>[^\s-]+)-(?P<version>\d[^\s-]*)
+    ((-(?P<build>\d[^\s-]*))?-(?P<py_version>[^\s-]+)-(?P<abi>[^\s-]+)
+    -(?P<platform>\S+))\.whl$""",
     re.VERBOSE,
 ).match
 
