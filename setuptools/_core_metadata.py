@@ -313,10 +313,7 @@ _POSSIBLE_DYNAMIC_FIELDS = {
     "home-page": "url",
     "keywords": "keywords",
     "license": "license",
-    # XXX: License-File is complicated because the user gives globs that are expanded
-    #      during the build. Without special handling it is likely always
-    #      marked as Dynamic, which is an acceptable outcome according to:
-    #      https://github.com/pypa/setuptools/issues/4629#issuecomment-2331233677
+    # license-files from pyproject.toml/setup.cfg remain static after glob expansion
     "license-file": "license_files",
     "license-expression": "license_expression",  # PEP 639
     "maintainer": "maintainer",
