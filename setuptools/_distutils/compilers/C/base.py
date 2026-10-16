@@ -1271,14 +1271,28 @@ def get_compilers() -> dict[str, type[Compiler]]:
 
     Imports the concrete compiler modules so their classes are defined, then
     collects every non-abstract ``Compiler`` subclass.
+
+    Compilers are always loaded under the public ``distutils.*`` module names.
+    Importing them via ``setuptools._distutils.*`` would create a second copy
+    of each module (and of ``CompileError`` / related exceptions). Callers that
+    catch ``setuptools.errors.CompileError`` — which re-exports the
+    ``distutils.errors`` identity — would then miss exceptions raised by a
+    compiler obtained from ``setuptools._distutils.ccompiler`` (see
+    pypa/setuptools#5294).
     """
-    # ensure the concrete compiler classes are imported and thus registered
-    # as subclasses of Compiler
-    from . import cygwin, msvc, unix, zos  # noqa: F401
+    import importlib
+
+    # Ensure concrete compilers are imported under the public distutils.* names
+    # so their exception classes share identity with distutils.errors /
+    # setuptools.errors.
+    for _name in ('cygwin', 'msvc', 'unix', 'zos'):
+        importlib.import_module(f'distutils.compilers.C.{_name}')
+
+    DistCompiler = importlib.import_module('distutils.compilers.C.base').Compiler
 
     return {
         subclass.compiler_type: subclass
-        for subclass in _concrete_compilers()
+        for subclass in _concrete_compilers(DistCompiler)
         if getattr(subclass, 'compiler_type', None)
     }
 
