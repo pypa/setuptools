@@ -121,6 +121,47 @@ SETUP_SCRIPT_STUB = "__import__('setuptools').setup()"
 
 
 @pytest.mark.parametrize(
+    ("parent", "other"), [("pkg", "pkgextra"), ("ns.pkg", "ns.pkgextra")]
+)
+@pytest.mark.parametrize("editable", [False, True], ids=["wheel", "editable"])
+def test_packages_with_shared_name_prefix(tmp_path, venv, parent, other, editable):
+    """Physical nesting does not imply a parent/child relationship in imports."""
+    project = tmp_path / "project"
+    project.mkdir()
+    files = {
+        "pyproject.toml": dedent(f"""\
+            [build-system]
+            requires = ["setuptools"]
+            build-backend = "setuptools.build_meta"
+
+            [project]
+            name = "shared-prefix"
+            version = "1.0"
+
+            [tool.setuptools]
+            packages = ["{parent}", "{other}"]
+            package-dir = {{"{parent}" = "src", "{other}" = "src/extra"}}
+            """),
+        "src": {
+            "__init__.py": "VALUE = 1",
+            "extra": {"__init__.py": "VALUE = 2"},
+        },
+    }
+    jaraco.path.build(files, prefix=project)
+    cmd = ["python", "-m", "pip", "install", "--no-build-isolation"]
+    if editable:
+        cmd.append("--editable")
+    print(venv.run([*cmd, str(project)]))
+
+    script = (
+        "from importlib import import_module; "
+        f"assert import_module({parent!r}).VALUE == 1; "
+        f"assert import_module({other!r}).VALUE == 2"
+    )
+    venv.run(["python", "-c", script])
+
+
+@pytest.mark.parametrize(
     "files",
     [
         {**EXAMPLE, "setup.py": SETUP_SCRIPT_STUB},
