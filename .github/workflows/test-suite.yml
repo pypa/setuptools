@@ -42,8 +42,11 @@ jobs:
           fetch-depth: 0
       - name: Install build dependencies
         # Install dependencies for building packages on pre-release Pythons
-        # jaraco/skeleton#161
-        if: inputs.python == '3.15' && inputs.platform == 'ubuntu-latest'
+        # (jaraco/skeleton#161) and PyPy, which often lags on wheels
+        # (jaraco/skeleton#222).
+        if: >-
+          (inputs.python == '3.15' || startsWith(inputs.python, 'pypy'))
+          && inputs.platform == 'ubuntu-latest'
         run: |
           sudo apt update
           sudo apt install -y libxml2-dev libxslt-dev
