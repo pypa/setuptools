@@ -1,0 +1,65 @@
+name: Test Suite
+
+on:
+  workflow_call:
+    inputs:
+      python:
+        description: Python version
+        type: string
+        default: "3.x"
+      platform:
+        description: Runner platform
+        type: string
+        default: ubuntu-latest
+      tox-env:
+        description: >-
+          Tox environment to run; if empty, runs default tox
+        type: string
+        default: ""
+
+env:
+  # Environment variable to support color support (jaraco/skeleton#66)
+  FORCE_COLOR: 1
+
+  # Suppress noisy pip warnings
+  PIP_DISABLE_PIP_VERSION_CHECK: 'true'
+  PIP_NO_WARN_SCRIPT_LOCATION: 'true'
+
+  # Ensure tests can sense settings about the environment
+  TOX_OVERRIDE: >-
+    testenv.pass_env+=GITHUB_*,FORCE_COLOR
+
+jobs:
+  run:
+    runs-on: ${{ inputs.platform }}
+    # Tolerate failures on pre-release Pythons (jaraco/skeleton#199)
+    continue-on-error: ${{ inputs.python == '3.15' }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install build dependencies
+        # Install dependencies for building packages on pre-release Pythons
+        # (jaraco/skeleton#161) and PyPy, which often lags on wheels
+        # (jaraco/skeleton#222).
+        if: >-
+          (inputs.python == '3.15' || startsWith(inputs.python, 'pypy'))
+          && inputs.platform == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y libxml2-dev libxslt-dev
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python }}
+          allow-prereleases: true
+      - name: Install tox
+        run: python -m pip install tox
+      - name: Run
+        if: ${{ !inputs.tox-env }}
+        run: tox
+      - name: Run ${{ inputs.tox-env }}
+        if: ${{ inputs.tox-env }}
+        run: tox -e ${{ inputs.tox-env }}

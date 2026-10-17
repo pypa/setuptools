@@ -5,18 +5,13 @@ extend-select = [
 	"C901", # complex-structure
 	"I", # isort
 	"PERF401", # manual-list-comprehension
+	"UP", # pyupgrade (Code modernization for strings, annotations, conditions, ...)
 
 	# Ensure modern type annotation syntax and best practices
 	# Not including those covered by type-checkers or exclusive to Python 3.11+
 	"FA", # flake8-future-annotations
 	"F404", # late-future-import
 	"PYI", # flake8-pyi
-	"UP006", # non-pep585-annotation
-	"UP007", # non-pep604-annotation
-	"UP010", # unnecessary-future-import
-	"UP035", # deprecated-import
-	"UP037", # quoted-annotation
-	"UP043", # unnecessary-default-type-args
 
 	# local
 	"B",
@@ -26,28 +21,36 @@ extend-select = [
 	"RUF010",
 	"RUF100",
 	"TRY",
-	"UP",
 	"YTT",
 ]
 ignore = [
 	# upstream
+	"UP015", # redundant-open-modes, explicit is preferred
 
 	# Typeshed rejects complex or non-literal defaults for maintenance and testing reasons,
 	# irrelevant to this project.
 	"PYI011", # typed-argument-default-in-stub
 	# https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
 	"W191",
-	"E111",
-	"E114",
-	"E117",
 	"D206",
 	"D300",
-	"Q000",
-	"Q001",
-	"Q002",
-	"Q003",
 	"COM812",
 	"COM819",
+
+	# N999 (invalid-module-name) yields false positives when a project's
+	# source directory is the distribution name and is redirected to a
+	# different import package (e.g. namespace layouts); the dotted directory
+	# name is itself a valid module. See
+	# https://github.com/astral-sh/ruff/issues/27801.
+	"N999",
+
+	# B008 is over-reaching; see jaraco/skeleton#214
+	"B008", # function-call-in-default-argument
+
+	# PLC0414 flags `import X as X`, the idiom type checkers recognize as an
+	# explicit re-export, and its fix (with F401) silently drops public names.
+	# See jaraco/skeleton#210.
+	"PLC0414", # useless-import-alias
 
 	# local
 	"B028",
@@ -58,7 +61,8 @@ ignore = [
 ]
 
 [lint.flake8-comprehensions]
-# Retain the elegant dict(a=1) keyword-call style; C408 still flags dict()/dict([...])
+# Retain the elegant dict(a=1) keyword-call style; C408 still flags dict()
+# and dict([...]). See jaraco/skeleton#210.
 allow-dict-calls-with-keyword-arguments = true
 
 [format]
