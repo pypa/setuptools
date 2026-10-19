@@ -1,0 +1,2 @@
+Updated vendored packaging version to 26.3, which adds support for the
+``abi3t`` tag from :pep:`803`.
