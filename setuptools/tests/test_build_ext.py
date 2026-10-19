@@ -104,11 +104,7 @@ class TestBuildExt:
         wanted = orig.build_ext.get_ext_filename(cmd, 'foo')
         assert res == wanted
 
-    def test_abi3_filename(self):
-        """
-        Filename needs to be loadable by several versions
-        of Python 3 if 'is_abi3' is truthy on Extension()
-        """
+    def check_stable_abi(self, abi_name):
         print(get_abi3_suffix())
 
         extension = Extension('spam.eggs', ['eggs.c'], py_limited_api=True)
@@ -123,7 +119,17 @@ class TestBuildExt:
         elif sys.platform == 'win32':
             assert res.endswith('eggs.pyd')
         else:
-            assert 'abi3' in res
+            assert abi_name in res
+
+    def test_stable_abi_filename(self):
+        """
+        Test that extension filename is correct if 'py_limited_api' is
+        truthy on Extension(). Which stable ABI applies follows the
+        configured target: abi3t on a free-threaded build (PEP 803),
+        abi3 otherwise. Cross-build naming is covered by
+        test_abi3_filename_cross.
+        """
+        self.check_stable_abi('abi3t' if get_config_var('Py_GIL_DISABLED') else 'abi3')
 
     @pytest.mark.parametrize('abi_flags', ['', 't'])
     def test_abi3_filename_cross(self, monkeypatch, abi_flags):
