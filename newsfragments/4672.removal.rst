@@ -1,0 +1,9 @@
+Dash-separated and uppercase keys in ``setup.cfg`` are no longer accepted and now
+raise ``InvalidConfigError``. Previously they were normalized to their underscored
+lowercase equivalents with a deprecation warning, first issued in 2021. Replace
+affected keys with the underscored lowercase spelling, e.g. ``author_email``
+instead of ``author-email`` and ``name`` instead of ``Name``. Keys in
+``options.extras_require``, ``options.data_files``, ``options.entry_points``,
+``options.package_data`` and ``options.exclude_package_data`` are unaffected, as
+are sections that do not belong to setuptools. See
+https://github.com/pypa/setuptools/discussions/5011 for details.

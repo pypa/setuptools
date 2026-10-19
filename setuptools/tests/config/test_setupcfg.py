@@ -11,6 +11,7 @@ from packaging.requirements import InvalidRequirement
 
 from setuptools.config.setupcfg import ConfigHandler, Target, read_configuration
 from setuptools.dist import Distribution, _Distribution
+from setuptools.errors import InvalidConfigError
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
 from ..textwrap import DALS
@@ -426,7 +427,7 @@ class TestMetadata:
             pass
 
     @pytest.mark.parametrize(
-        ("error_msg", "config", "invalid"),
+        ("error_msg", "config"),
         [
             (
                 "Invalid dash-separated key 'author-email' in 'metadata' (setup.cfg)",
@@ -437,7 +438,6 @@ class TestMetadata:
                     maintainer_email = foo@foo.com
                     """
                 ),
-                {"author-email": "test@test.com"},
             ),
             (
                 "Invalid uppercase key 'Name' in 'metadata' (setup.cfg)",
@@ -448,25 +448,15 @@ class TestMetadata:
                     description = Some description
                     """
                 ),
-                {"Name": "foo"},
             ),
         ],
     )
-    def test_invalid_options_previously_deprecated(
-        self, tmpdir, error_msg, config, invalid
-    ):
-        # This test and related methods can be removed when no longer needed.
-        # Deprecation postponed due to push-back from the community in
-        # https://github.com/pypa/setuptools/issues/4910
+    def test_invalid_options(self, tmpdir, error_msg, config):
+        # Deprecated since 2021, enforced per
+        # https://github.com/pypa/setuptools/issues/4672
         fake_env(tmpdir, config)
-        with pytest.warns(SetuptoolsDeprecationWarning, match=re.escape(error_msg)):
-            dist = get_dist(tmpdir).__enter__()
-
-        tmpdir.join('setup.cfg').remove()
-
-        for field, value in invalid.items():
-            attr = field.replace("-", "_").lower()
-            assert getattr(dist.metadata, attr) == value
+        with pytest.raises(InvalidConfigError, match=re.escape(error_msg)):
+            get_dist(tmpdir).__enter__()
 
 
 class TestOptions:
