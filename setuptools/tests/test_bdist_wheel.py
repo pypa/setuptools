@@ -19,6 +19,7 @@ from packaging import tags
 
 import setuptools
 from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag
+from setuptools.command.build_ext import get_abi3_suffix
 from setuptools.dist import Distribution
 from setuptools.warnings import SetuptoolsDeprecationWarning
 
@@ -466,6 +467,32 @@ def test_limited_abi(monkeypatch, tmp_path, tmp_path_factory):
     dist_dir = tmp_path.joinpath("dist")
     monkeypatch.chdir(source_dir)
     bdist_wheel_cmd(bdist_dir=str(build_dir), dist_dir=str(dist_dir)).run()
+
+
+@pytest.mark.skipif(
+    'abi3extension-dist' not in EXAMPLES or not get_abi3_suffix(),
+    reason='requires a GIL-enabled build with stable-ABI suffix support',
+)
+@pytest.mark.parametrize('skip_build', [False, True])
+def test_abi3_filename_consistent(monkeypatch, tmp_path, tmp_path_factory, skip_build):
+    """Wheel creation must not change the build command's output filenames."""
+    from distutils.sysconfig import get_config_vars
+
+    monkeypatch.chdir(mkexample(tmp_path_factory, 'abi3extension-dist'))
+    monkeypatch.setitem(get_config_vars(), 'SOABI_PLATFORM', 'target-platform')
+    ext = os.path.splitext(get_config_vars()['EXT_SUFFIX'])[1]
+    cmd = bdist_wheel_cmd(
+        py_limited_api='cp32', dist_dir=str(tmp_path), skip_build=skip_build
+    )
+    build_ext = cmd.get_finalized_command('build_ext')
+    outputs = build_ext.get_outputs()
+    if skip_build:
+        cmd.run_command('build_ext')
+    cmd.run()
+    assert build_ext.get_outputs() == outputs
+    wheel = next(tmp_path.glob('*.whl'))
+    with ZipFile(wheel) as archive:
+        assert f'extension.abi3-target-platform{ext}' in archive.namelist()
 
 
 def test_build_from_readonly_tree(dummy_dist, monkeypatch, tmp_path):
