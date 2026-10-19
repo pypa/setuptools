@@ -16,7 +16,6 @@ import warnings
 from collections.abc import Iterable, Sequence
 from email.generator import BytesGenerator
 from glob import iglob
-from itertools import chain
 from typing import ClassVar, Literal, cast
 from zipfile import ZIP_DEFLATED, ZIP_STORED
 
@@ -30,8 +29,6 @@ from ..warnings import SetuptoolsDeprecationWarning
 from .egg_info import egg_info as egg_info_cls
 
 from distutils import log
-
-flatten = chain.from_iterable
 
 
 def safe_version(version: str) -> str:
@@ -51,12 +48,45 @@ setuptools_major_version = int(__version__.split(".")[0])
 PY_LIMITED_API_PATTERN = r"cp3\d"
 
 
+def _interpreter_name() -> str:
+    soabi = sysconfig.get_config_var("SOABI") or ""
+    if re.match(r"(?:cpython-|cp)\d", soabi):
+        return "cp"
+    if soabi.startswith("pypy"):
+        return "pp"
+    if soabi.startswith("graalpy"):
+        return "graalpy"
+    return tags.interpreter_name()
+
+
+def _python_version() -> tuple[int, int]:
+    # VERSION comes from the target configuration; py_version_short does not.
+    version = sysconfig.get_config_var("VERSION")
+    # Windows uses e.g. '315', whereas POSIX uses '3.15'.
+    match = re.fullmatch(r"(\d)\.?([0-9]+)", str(version))
+    if match is None:
+        soabi = str(sysconfig.get_config_var("SOABI"))
+        match = re.match(r"(?:cpython-|cp|pypy|graalpy[^-]*-)(\d)(\d+)", soabi)
+    return (int(match[1]), int(match[2])) if match else sys.version_info[:2]
+
+
 def _is_32bit_interpreter() -> bool:
+    size = sysconfig.get_config_var("SIZEOF_VOID_P")
+    if size is not None:
+        return size == 4
     return struct.calcsize("P") == 4
 
 
+def _is_debug(*, warn: bool = False) -> bool:
+    fallback = hasattr(sys, "gettotalrefcount")
+    suffix = sysconfig.get_config_var("EXT_SUFFIX")
+    if isinstance(suffix, str) and suffix.endswith(".pyd"):
+        fallback = suffix.startswith("_d")
+    return get_flag("Py_DEBUG", fallback, warn=warn)
+
+
 def python_tag() -> str:
-    return f"py{sys.version_info.major}"
+    return f"py{_python_version()[0]}"
 
 
 def get_platform(archive_root: str | None) -> str:
@@ -99,21 +129,22 @@ def get_flag(
 def get_abi_tag() -> str | None:
     """Return the ABI tag based on SOABI (if available) or emulate SOABI (PyPy2)."""
     soabi: str = sysconfig.get_config_var("SOABI")
-    impl = tags.interpreter_name()
+    impl = _interpreter_name()
     if not soabi and impl in ("cp", "pp") and hasattr(sys, "maxunicode"):
         d = ""
         u = ""
-        if get_flag("Py_DEBUG", hasattr(sys, "gettotalrefcount"), warn=(impl == "cp")):
+        if _is_debug(warn=(impl == "cp")):
             d = "d"
 
-        abi = f"{impl}{tags.interpreter_version()}{d}{u}"
+        impl_ver = "".join(map(str, _python_version()))
+        abi = f"{impl}{impl_ver}{d}{u}"
     elif soabi and impl == "cp" and soabi.startswith("cpython"):
         # non-Windows
         abi = "cp" + soabi.split("-")[1]
     elif soabi and impl == "cp" and soabi.startswith("cp"):
         # Windows
         abi = soabi.split("-")[0]
-        if hasattr(sys, "gettotalrefcount"):
+        if _is_debug() and not abi.endswith("d"):
             # using debug build; append "d" flag
             abi += "d"
     elif soabi and impl == "pp":
@@ -311,7 +342,7 @@ class bdist_wheel(Command):
         if not re.match(PY_LIMITED_API_PATTERN, self.py_limited_api):
             raise ValueError(f"py-limited-api must match '{PY_LIMITED_API_PATTERN}'")
 
-        if sysconfig.get_config_var("Py_GIL_DISABLED") and sys.version_info < (3, 15):
+        if sysconfig.get_config_var("Py_GIL_DISABLED") and _python_version() < (3, 15):
             raise ValueError(
                 f"`py_limited_api={self.py_limited_api!r}` not supported. "
                 "`Py_LIMITED_API` is incompatible with `Py_GIL_DISABLED` "
@@ -332,8 +363,8 @@ class bdist_wheel(Command):
 
     @property
     def abi_tag(self) -> str:
-        impl_name = tags.interpreter_name()
-        impl_ver = tags.interpreter_version()
+        impl_name = _interpreter_name()
+        impl_ver = "".join(map(str, _python_version()))
         tag = None
         if self.py_limited_api:
             tag = stable_abi_tag(impl_name, impl_ver)
@@ -381,24 +412,35 @@ class bdist_wheel(Command):
                 impl = self.python_tag
             tag = (impl, "none", plat_name)
         else:
-            impl_name = tags.interpreter_name()
-            impl_ver = tags.interpreter_version()
+            impl_name = _interpreter_name()
+            python_version = _python_version()
+            impl_ver = "".join(map(str, python_version))
             impl = impl_name + impl_ver
             abi_tag = self.abi_tag
             if "abi3" in abi_tag:
                 assert self.py_limited_api is not False
                 impl = self.py_limited_api
             tag = (impl, abi_tag, plat_name)
-            possible_tags = tags.parse_tag("-".join(tag))
-            # issue gh-374: allow overriding plat_name
-            sys_tags = (f"{t.interpreter}-{t.abi}-{plat_name}" for t in tags.sys_tags())
-            supported_tags = list(flatten(tags.parse_tag(t) for t in sys_tags))
-            # abi_tag can contain multiple (e.g. "abi3.abi3t") tags
-            # only one of them will be supported
-            assert any(t in supported_tags for t in possible_tags), (
-                f"would build wheel with unsupported tag {tag}"
-            )
+            self._validate_tag(tag)
         return tag
+
+    def _validate_tag(self, tag: tuple[str, str, str]) -> None:
+        impl_name = _interpreter_name()
+        python_version = _python_version()
+        abis = [str(get_abi_tag()).lower()]
+        # issue gh-374: allow overriding plat_name
+        if impl_name == "cp":
+            supported_tags = tags.cpython_tags(
+                python_version=python_version, abis=abis, platforms=[tag[2]]
+            )
+        else:
+            supported_tags = tags.generic_tags(
+                interpreter=tag[0], abis=abis, platforms=[tag[2]]
+            )
+        # A compressed ABI tag need only match one of the target's supported tags.
+        assert not tags.parse_tag("-".join(tag)).isdisjoint(supported_tags), (
+            f"would build wheel with unsupported tag {tag}"
+        )
 
     def run(self):
         build_scripts = self.reinitialize_command("build_scripts")
@@ -485,7 +527,7 @@ class bdist_wheel(Command):
         # Add to 'Distribution.dist_files' so that the "upload" command works
         getattr(self.distribution, "dist_files", []).append((
             "bdist_wheel",
-            f"{sys.version_info.major}.{sys.version_info.minor}",
+            ".".join(map(str, _python_version())),
             wheel_path,
         ))
 
