@@ -73,6 +73,7 @@ jobs:
     with:
       platform: ubuntu-latest
       tox-env: ${{ matrix.job }}
+    secrets: inherit
 
   check:  # This job does nothing and is only used for the branch protection
     if: always()
