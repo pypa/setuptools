@@ -19,6 +19,7 @@ import pytest
 from packaging import tags
 
 import setuptools
+from setuptools.archive_util import unpack_zipfile
 from setuptools.command.bdist_wheel import bdist_wheel, get_abi_tag, stable_abi_tag
 from setuptools.command.build_ext import get_abi3_suffix
 from setuptools.dist import Distribution
@@ -544,8 +545,7 @@ def test_version_specific_abi(monkeypatch, tmp_path, tmp_path_factory, limited_a
     wheel_path = next(dist_dir.glob("*.whl"))
     assert f"-{get_abi_tag()}-" in wheel_path.name
     installed = tmp_path / 'installed'
-    with ZipFile(wheel_path) as archive:
-        archive.extractall(installed)
+    unpack_zipfile(wheel_path, installed)
     subprocess.run(
         [sys.executable, '-c', 'import extension'], cwd=installed, check=True
     )

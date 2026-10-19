@@ -87,12 +87,11 @@ def get_abi3_suffix():
     if get_config_var('DYNLOADFILE') == 'dynload_hpux.o':
         return None
 
-    abi = '.abi3'
-    if get_config_var('Py_GIL_DISABLED'):
-        # The 3.13t and 3.14t loaders cannot import .abi3t files.
-        if suffix.startswith(('.cpython-313t', '.cpython-314t')):
-            return None
-        abi = '.abi3t'
+    # The 3.13t and 3.14t loaders cannot import .abi3t files.
+    if suffix.startswith(('.cpython-313t', '.cpython-314t')):
+        return None
+
+    abi = '.abi3t' if get_config_var('Py_GIL_DISABLED') else '.abi3'
     platform = get_config_var('SOABI_PLATFORM')
     _, ext = os.path.splitext(suffix)
     return f'{abi}-{platform}{ext}' if platform else f'{abi}{ext}'
