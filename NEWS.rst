@@ -1,3 +1,23 @@
+v84.2.0
+=======
+
+Features
+--------
+
+- Added support for building abi3t extensions and abi3.abi3t wheels on Python
+  3.15 and newer. See :pep:`803` and the `Python 3.15 "What's New" entry
+  <https://docs.python.org/3.15/whatsnew/3.15.html#pep-803-abi3t-stable-abi-for-free-threaded-builds>`_
+  for more details. (#5193)
+- Updated vendored packaging version to 26.3, which adds support for the
+  ``abi3t`` tag from :pep:`803`. (#5361)
+
+
+Bugfixes
+--------
+
+- Use target sysconfig data for stable-ABI extension filenames. (#5351)
+
+
 v84.1.0
 =======
 
