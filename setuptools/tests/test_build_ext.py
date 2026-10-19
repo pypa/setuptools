@@ -7,7 +7,6 @@ from importlib.util import cache_from_source as _compiled_file_name
 import pytest
 from jaraco import path
 
-from setuptools.command import build_ext as build_ext_mod
 from setuptools.command.build_ext import build_ext, get_abi3_suffix
 from setuptools.dist import Distribution
 from setuptools.errors import CompileError
@@ -17,13 +16,78 @@ from . import environment
 from .textwrap import DALS
 
 import distutils.command.build_ext as orig
-from distutils.sysconfig import get_config_var
+from distutils.sysconfig import get_config_var, get_config_vars
 
 IS_PYPY = '__pypy__' in sys.builtin_module_names
-# from a Mac running Python 3.14
-ABI3_EXT_SUFFIXES = ['.cpython-314-darwin.so', '.abi3.so', '.so']
-# from a Mac running Python 3.15t
-ABI3T_EXT_SUFFIXES = ['.cpython-315t-darwin.so', '.abi3t.so', '.so']
+
+
+@pytest.mark.parametrize(
+    ('config', 'expected'),
+    [
+        ({}, '.abi3.so'),
+        ({'SOABI_PLATFORM': ''}, '.abi3.so'),
+        ({'SOABI_PLATFORM': 0}, '.abi3.so'),
+        ({'SOABI_PLATFORM': 'aarch64-linux-gnu'}, '.abi3-aarch64-linux-gnu.so'),
+        ({'SOABI_PLATFORM': 'arm-linux-gnueabihf'}, '.abi3-arm-linux-gnueabihf.so'),
+        ({'SOABI_PLATFORM': 'x86_64-linux-musl'}, '.abi3-x86_64-linux-musl.so'),
+        ({'SOABI_PLATFORM': 'darwin'}, '.abi3-darwin.so'),
+        ({'SOABI_PLATFORM': 'iphonesimulator'}, '.abi3-iphonesimulator.so'),
+        (
+            {
+                'EXT_SUFFIX': '.cpython-315-target-platform.ext',
+                'SOABI_PLATFORM': 'target-platform',
+            },
+            '.abi3-target-platform.ext',
+        ),
+        ({'EXT_SUFFIX': '.cpython-315-target-platform.ext'}, '.abi3.ext'),
+        (
+            {
+                'EXT_SUFFIX': '.cpython-315t-aarch64-linux-gnu.so',
+                'SOABI_PLATFORM': 'aarch64-linux-gnu',
+                'Py_GIL_DISABLED': 1,
+            },
+            '.abi3t-aarch64-linux-gnu.so',
+        ),
+        ({'Py_GIL_DISABLED': 1}, '.abi3t.so'),
+        ({'Py_GIL_DISABLED': 1, 'SOABI_PLATFORM': 0}, '.abi3t.so'),
+        ({'Py_GIL_DISABLED': 1, 'VERSION': None}, '.abi3t.so'),
+        ({'Py_GIL_DISABLED': 1, 'VERSION': '3.14'}, '.abi3t.so'),
+        ({'Py_GIL_DISABLED': 1, 'VERSION': '3.13'}, '.abi3t.so'),
+        ({'EXT_SUFFIX': '.cp315-win_amd64.pyd'}, '.pyd'),
+        ({'EXT_SUFFIX': '.cp315-win_arm64.pyd'}, '.pyd'),
+        ({'EXT_SUFFIX': '.cp310-win32.pyd'}, '.pyd'),
+        ({'EXT_SUFFIX': '.cp315t-win_amd64.pyd', 'Py_GIL_DISABLED': 1}, '.pyd'),
+        ({'EXT_SUFFIX': '.pyd'}, '.pyd'),
+        ({'EXT_SUFFIX': '_d.cp315-win_amd64.pyd'}, None),
+        ({'EXT_SUFFIX': '_d.pyd'}, None),
+        ({'EXT_SUFFIX': '.pypy310-pp73-x86_64-linux-gnu.so'}, None),
+        ({'EXT_SUFFIX': '.pypy310-pp73-win_amd64.pyd'}, '.pyd'),
+        ({'EXT_SUFFIX': '.dll'}, None),
+        (
+            {'EXT_SUFFIX': '.cpython-312-x86_64-cygwin.dll', 'MACHDEP': 'cygwin'},
+            '.abi3.dll',
+        ),
+        ({'EXT_SUFFIX': '.cpython-315.sl', 'DYNLOADFILE': 'dynload_hpux.o'}, None),
+        ({'EXT_SUFFIX': '.cpython-315.so', 'DYNLOADFILE': 'dynload_hpux.o'}, None),
+        ({'EXT_SUFFIX': '.so'}, None),
+        ({'EXT_SUFFIX': ''}, None),
+        ({'EXT_SUFFIX': None}, None),
+        ({'HAVE_DYNAMIC_LOADING': 0}, None),
+    ],
+)
+def test_abi3_suffix(monkeypatch, config, expected):
+    config_vars = {
+        'EXT_SUFFIX': '.cpython-315-aarch64-linux-gnu.so',
+        'SOABI_PLATFORM': None,
+        'Py_GIL_DISABLED': 0,
+        'MACHDEP': 'linux',
+        'HAVE_DYNAMIC_LOADING': 1,
+        'DYNLOADFILE': 'dynload_shlib.o',
+    }
+    config_vars.update(config)
+    for name, value in config_vars.items():
+        monkeypatch.setitem(get_config_vars(), name, value)
+    assert get_abi3_suffix() == expected
 
 
 class TestBuildExt:
@@ -57,21 +121,37 @@ class TestBuildExt:
         else:
             assert abi_name in res
 
-    @pytest.mark.parametrize(
-        ('extension_name', 'suffixes'),
-        [
-            ("abi3", ABI3_EXT_SUFFIXES),
-            ("abi3t", ABI3T_EXT_SUFFIXES),
-        ],
-    )
-    def test_stable_abi_filename(self, monkeypatch, extension_name, suffixes):
+    def test_stable_abi_filename(self):
         """
-        Test that extension filename is correct if  'py_limited_abi' is
-        truthy on Extension()
+        Test that extension filename is correct if 'py_limited_api' is
+        truthy on Extension(). Which stable ABI applies follows the
+        configured target: abi3t on a free-threaded build (PEP 803),
+        abi3 otherwise. Cross-build naming is covered by
+        test_abi3_filename_cross.
         """
-        if sys.platform != 'win32':
-            monkeypatch.setattr(build_ext_mod, "EXTENSION_SUFFIXES", suffixes)
-        self.check_stable_abi(extension_name)
+        self.check_stable_abi('abi3t' if get_config_var('Py_GIL_DISABLED') else 'abi3')
+
+    @pytest.mark.parametrize('abi_flags', ['', 't'])
+    def test_abi3_filename_cross(self, monkeypatch, abi_flags):
+        suffix = f'.cpython-315{abi_flags}-aarch64-linux-gnu.so'
+        monkeypatch.setitem(get_config_vars(), 'EXT_SUFFIX', suffix)
+        monkeypatch.setitem(get_config_vars(), 'SOABI_PLATFORM', 'aarch64-linux-gnu')
+        monkeypatch.setitem(get_config_vars(), 'Py_GIL_DISABLED', bool(abi_flags))
+        monkeypatch.setitem(get_config_vars(), 'MACHDEP', 'linux')
+        monkeypatch.setitem(get_config_vars(), 'HAVE_DYNAMIC_LOADING', 1)
+        monkeypatch.setitem(get_config_vars(), 'DYNLOADFILE', 'dynload_shlib.o')
+        extensions = [
+            Extension('spam.eggs', ['eggs.c'], py_limited_api=True),
+            Extension('spam.normal', ['normal.c']),
+        ]
+        cmd = build_ext(Distribution(dict(ext_modules=extensions)))
+        cmd.finalize_options()
+        assert cmd.get_ext_filename('spam.eggs') == os.path.join(
+            'spam', f'eggs.abi3{abi_flags}-aarch64-linux-gnu.so'
+        )
+        assert cmd.get_ext_filename('spam.normal') == os.path.join(
+            'spam', 'normal' + suffix
+        )
 
     def test_ext_suffix_override(self):
         """

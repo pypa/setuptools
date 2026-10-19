@@ -79,6 +79,44 @@ def disable_info_traces() -> Iterator[None]:
         log.set_threshold(saved)
 
 
+def _resolve_namespace_dir(destination_eggdir, mod):
+    r"""
+    Return the directory for namespace package `mod` under `destination_eggdir`.
+
+    `mod` is a dotted module name, so every component must be an identifier.
+    ``os.path.join`` interprets its arguments as paths, so a component that is
+    absolute, drive-qualified, or UNC discards `destination_eggdir` entirely,
+    and one containing a separator escapes it (GHSA-xmj3-9gf7-h52w). Only
+    Windows treats a drive letter that way, but an absolute POSIX path escapes
+    just as readily, so the name is validated on every platform.
+
+    >>> _resolve_namespace_dir('dest', 'ns.pkg') == os.path.join('dest', 'ns', 'pkg')
+    True
+    >>> _resolve_namespace_dir('dest', '/tmp/outside')
+    Traceback (most recent call last):
+    ...
+    ValueError: invalid namespace package name: '/tmp/outside'
+    >>> _resolve_namespace_dir('dest', r'C:\Windows')
+    Traceback (most recent call last):
+    ...
+    ValueError: invalid namespace package name: 'C:\\Windows'
+    """
+    parts = mod.split('.')
+
+    if not all(part.isidentifier() for part in parts):
+        raise ValueError(f"invalid namespace package name: {mod!r}")
+
+    dest = os.path.join(destination_eggdir, *parts)
+
+    # Belt and braces: confirm the result really does resolve within the egg
+    # directory, catching an escape through a symlink already present in it.
+    root = os.path.realpath(destination_eggdir)
+    if not os.path.realpath(dest).startswith(os.path.join(root, '')):
+        raise ValueError(f"invalid namespace package name: {mod!r}")
+
+    return dest
+
+
 class Wheel:
     def __init__(self, filename) -> None:
         match = WHEEL_NAME(os.path.basename(filename))
@@ -253,7 +291,7 @@ class Wheel:
             namespace_packages = _read_utf8_with_fallback(namespace_packages).split()
 
             for mod in namespace_packages:
-                mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
+                mod_dir = _resolve_namespace_dir(destination_eggdir, mod)
                 mod_init = os.path.join(mod_dir, '__init__.py')
                 if not os.path.exists(mod_dir):
                     os.mkdir(mod_dir)

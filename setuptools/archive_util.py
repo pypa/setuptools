@@ -1,6 +1,7 @@
 """Utilities for extracting common archive formats"""
 
 import contextlib
+import ntpath
 import os
 import posixpath
 import shutil
@@ -13,6 +14,7 @@ from distutils.errors import DistutilsError
 
 __all__ = [
     "UnrecognizedFormat",
+    "UnsafeMember",
     "default_filter",
     "extraction_drivers",
     "unpack_archive",
@@ -26,9 +28,60 @@ class UnrecognizedFormat(DistutilsError):
     """Couldn't recognize the archive type"""
 
 
+class UnsafeMember(DistutilsError):
+    """An archive member that would be extracted outside the destination
+
+    Deliberately not an `UnrecognizedFormat`, which ``unpack_archive`` catches
+    to fall through to the next driver; an unsafe member must abort the
+    extraction rather than hand the archive to another driver.
+    """
+
+
 def default_filter(src, dst):
     """The default progress/filter callback; returns True for all files"""
     return dst
+
+
+def _resolve_dest(extract_dir, name):
+    r"""
+    Return the path where archive member `name` belongs under `extract_dir`,
+    raising `UnsafeMember` if the member would be written outside of it.
+
+    Both the tar and zip formats specify '/' as the only path separator, so a
+    backslash is never a legitimate separator in a member name and must not be
+    allowed to act as one on Windows (GHSA-grgh-hr87-3jpw). Names that are
+    absolute, drive-qualified, or UNC are rejected for the same reason.
+
+    A directory member keeps its trailing separator, as callers rely on it to
+    distinguish a directory from a file.
+
+    >>> _resolve_dest('dest', 'sub/file.txt') == os.path.join('dest', 'sub', 'file.txt')
+    True
+    >>> _resolve_dest('dest', 'sub/dir/') == os.path.join('dest', 'sub', 'dir', '')
+    True
+    >>> _resolve_dest('dest', '..\\escaped.txt')
+    Traceback (most recent call last):
+    ...
+    setuptools.archive_util.UnsafeMember: '..\\escaped.txt' would be extracted outside of 'dest'
+    """
+    if name.startswith('/') or '\\' in name or ntpath.splitdrive(name)[0]:
+        raise UnsafeMember(f"{name!r} would be extracted outside of {extract_dir!r}")
+
+    parts = name.split('/')
+
+    if '..' in parts:
+        raise UnsafeMember(f"{name!r} would be extracted outside of {extract_dir!r}")
+
+    dest = os.path.join(extract_dir, *parts)
+
+    # Belt and braces: confirm the result really does resolve within the root,
+    # catching an escape through a symlink already present in the destination.
+    root = os.path.realpath(extract_dir)
+    resolved = os.path.realpath(dest)
+    if resolved != root and not resolved.startswith(os.path.join(root, '')):
+        raise UnsafeMember(f"{name!r} would be extracted outside of {extract_dir!r}")
+
+    return dest
 
 
 def unpack_archive(
@@ -114,11 +167,7 @@ def _unpack_zipfile_obj(zipfile_obj, extract_dir, progress_filter=default_filter
     for info in zipfile_obj.infolist():
         name = info.filename
 
-        # don't extract absolute paths or ones with .. in them
-        if name.startswith('/') or '..' in name.split('/'):
-            continue
-
-        target = os.path.join(extract_dir, *name.split('/'))
+        target = _resolve_dest(extract_dir, name)
         target = progress_filter(name, target)
         if not target:
             continue
@@ -165,11 +214,7 @@ def _iter_open_tar(tar_obj, extract_dir, progress_filter):
     with contextlib.closing(tar_obj):
         for member in tar_obj:
             name = member.name
-            # don't extract absolute paths or ones with .. in them
-            if name.startswith('/') or '..' in name.split('/'):
-                continue
-
-            prelim_dst = os.path.join(extract_dir, *name.split('/'))
+            prelim_dst = _resolve_dest(extract_dir, name)
 
             try:
                 member = _resolve_tar_file_or_dir(tar_obj, member)

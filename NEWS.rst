@@ -1,3 +1,41 @@
+v84.1.0
+=======
+
+Features
+--------
+
+- ``setuptools.archive_util`` now raises the new ``UnsafeMember`` exception when
+  an archive member would be extracted outside of the extraction directory,
+  where previously such a member was silently skipped. Aborting makes a
+  malicious or malformed archive visible to the caller instead of yielding a
+  quietly incomplete extraction, and matches the behavior of the standard
+  library's ``tarfile`` extraction filters.
+
+
+Bugfixes
+--------
+
+- ``Wheel.install_as_egg`` no longer creates namespace package directories
+  outside of the destination egg directory. Entries in a wheel's
+  ``namespace_packages.txt`` were split on ``.`` and passed straight to
+  ``os.path.join``, so an entry that was absolute, drive-qualified, or UNC
+  discarded the destination and placed an ``__init__.py`` at a path chosen by
+  the wheel. Namespace entries are now validated as dotted module names on
+  every platform -- see GHSA-xmj3-9gf7-h52w.
+
+  This code path is reached only by the deprecated ``setup_requires``
+  mechanism when ``setup()`` is invoked outside a PEP 517 frontend; the
+  setuptools build backend never reaches it.
+- ``setuptools.archive_util`` no longer extracts archive members outside of the
+  requested extraction directory. Both the tar and zip formats specify ``/`` as
+  the only path separator, but the guard against ``..`` components split member
+  names on ``/`` alone, so a name such as ``..\escaped.txt`` was treated as a
+  single component and then resolved as a traversal by the filesystem on
+  Windows. Member names containing a backslash, a drive letter, or a UNC prefix
+  are now rejected on every platform, as are members whose resolved destination
+  falls outside the extraction directory -- see GHSA-grgh-hr87-3jpw.
+
+
 v84.0.0
 =======
 
