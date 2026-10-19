@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: tomli
-Version: 2.4.0
+Version: 2.4.1
 Summary: A lil' TOML parser
 Keywords: toml
 Author-email: Taneli Hukkinen <hukkin@users.noreply.github.com>
@@ -45,8 +45,8 @@ Project-URL: Homepage, https://github.com/hukkin/tomli
   - [Is there a `dumps`, `write` or `encode` function?](#is-there-a-dumps-write-or-encode-function)
   - [How do TOML types map into Python types?](#how-do-toml-types-map-into-python-types)
 - [Performance](#performance)
-  - [Pure Python](#pure-python)
   - [Mypyc generated wheel](#mypyc-generated-wheel)
+  - [Pure Python](#pure-python)
 
 <!-- mdformat-toc end -->
 
@@ -177,7 +177,7 @@ tomllib.loads("['This parses fine with Python 3.6+']")
 - it's lil'
 - pure Python with zero dependencies
 - the fastest pure Python parser [\*](#pure-python):
-  18x as fast as [tomlkit](https://pypi.org/project/tomlkit/),
+  14x as fast as [tomlkit](https://pypi.org/project/tomlkit/),
   2.1x as fast as [toml](https://pypi.org/project/toml/)
 - outputs [basic data types](#how-do-toml-types-map-into-python-types) only
 - 100% spec compliant: passes all tests in
@@ -223,48 +223,43 @@ The core library does not include write capability, as most TOML use cases are r
 
 The `benchmark/` folder in this repository contains a performance benchmark for comparing the various Python TOML parsers.
 
-Below are the results for commit [0724e2a](https://github.com/hukkin/tomli/tree/0724e2ab1858da7f5e05a9bffdb24c33589d951c).
-
-### Pure Python<a name="pure-python"></a>
-
-```console
-foo@bar:~/dev/tomli$ python --version
-Python 3.12.7
-foo@bar:~/dev/tomli$ pip freeze
-attrs==21.4.0
-click==8.1.7
-pytomlpp==1.0.13
-qtoml==0.3.1
-rtoml==0.11.0
-toml==0.10.2
-tomli @ file:///home/foo/dev/tomli
-tomlkit==0.13.2
-foo@bar:~/dev/tomli$ python benchmark/run.py
-Parsing data.toml 5000 times:
-------------------------------------------------------
-    parser |  exec time | performance (more is better)
------------+------------+-----------------------------
-     rtoml |    0.647 s | baseline (100%)
-  pytomlpp |    0.891 s | 72.62%
-     tomli |     3.14 s | 20.56%
-      toml |     6.69 s | 9.67%
-     qtoml |     8.27 s | 7.82%
-   tomlkit |     56.1 s | 1.15%
-```
+Below are the results for commit [064e492](https://github.com/hukkin/tomli/tree/064e492919b2338def788753b8c981c9131334c0).
 
 ### Mypyc generated wheel<a name="mypyc-generated-wheel"></a>
 
 ```console
+foo@bar:~/dev/tomli$ python --version
+Python 3.14.2
+foo@bar:~/dev/tomli$ pip freeze
+pytomlpp==1.1.0
+rtoml==0.13.0
+toml==0.10.2
+tomli @ file:///home/foo/dev/tomli
+tomlkit==0.13.3
 foo@bar:~/dev/tomli$ python benchmark/run.py
 Parsing data.toml 5000 times:
 ------------------------------------------------------
     parser |  exec time | performance (more is better)
 -----------+------------+-----------------------------
-     rtoml |    0.668 s | baseline (100%)
-  pytomlpp |    0.893 s | 74.81%
-     tomli |     1.96 s | 34.18%
-      toml |     6.64 s | 10.07%
-     qtoml |     8.26 s | 8.09%
-   tomlkit |     52.9 s | 1.26%
+     rtoml |    0.328 s | baseline (100%)
+  pytomlpp |    0.365 s | 89.75%
+     tomli |    0.838 s | 39.12%
+      toml |     3.01 s | 10.90%
+   tomlkit |     20.7 s | 1.59%
+```
+
+### Pure Python<a name="pure-python"></a>
+
+```console
+foo@bar:~/dev/tomli$ python benchmark/run.py
+Parsing data.toml 5000 times:
+------------------------------------------------------
+    parser |  exec time | performance (more is better)
+-----------+------------+-----------------------------
+     rtoml |    0.323 s | baseline (100%)
+  pytomlpp |    0.365 s | 88.40%
+     tomli |     1.44 s | 22.36%
+      toml |     3.03 s | 10.65%
+   tomlkit |     20.6 s | 1.57%
 ```
 
