@@ -1,19 +1,14 @@
 import importlib
 import pickle
 
+import packaging
+
 from setuptools import Distribution
-from setuptools.extern import ordered_set
 
 
 def test_reimport_extern():
-    ordered_set2 = importlib.import_module(ordered_set.__name__)
-    assert ordered_set is ordered_set2
-
-
-def test_orderedset_pickle_roundtrip():
-    o1 = ordered_set.OrderedSet([1, 2, 5])
-    o2 = pickle.loads(pickle.dumps(o1))
-    assert o1 == o2
+    packaging2 = importlib.import_module(packaging.__name__)
+    assert packaging is packaging2
 
 
 def test_distribution_picklable():

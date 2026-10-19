@@ -1,0 +1,5 @@
+cmake_minimum_required (VERSION 3.17.0)
+set (CMAKE_SYSTEM_VERSION 6.1 CACHE TYPE INTERNAL FORCE)
+project (launcher C)
+add_definitions(-DGUI=${GUI} -DWIN32_LEAN_AND_MEAN)
+add_executable(launcher ../launcher.c)

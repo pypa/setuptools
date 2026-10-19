@@ -13,9 +13,23 @@ objectives.
 .. toctree::
     :maxdepth: 1
 
-    python3
+    changed_keywords
+    dependency_links
     python_eggs
     easy_install
+    zip_safe
+    resource_extraction
     distutils/index
     distutils-legacy
     functionalities
+    commands
+    pkg_resources
+
+Notes for Consumers of Packages Built with Setuptools
+=====================================================
+
+
+.. toctree::
+   :maxdepth: 1
+
+   sdist-reproducibility

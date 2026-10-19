@@ -274,7 +274,7 @@ search path, though, you can find that directory using the Distutils
 :mod:`distutils.sysconfig` module::
 
     from distutils.sysconfig import get_python_inc
-    incdir = os.path.join(get_python_inc(plat_specific=1), 'Numerical')
+    incdir = os.path.join(get_python_inc(plat_specific=True), 'Numerical')
     setup(...,
           Extension(..., include_dirs=[incdir]),
           )
@@ -582,7 +582,7 @@ This information includes:
 | ``maintainer_email`` | email address of the      | email address   | \(3)   |
 |                      | package maintainer        |                 |        |
 +----------------------+---------------------------+-----------------+--------+
-| ``url``              | home page for the package | URL             | \(1)   |
+| ``url``              | home page for the package | URL             |        |
 +----------------------+---------------------------+-----------------+--------+
 | ``description``      | short, summary            | short string    |        |
 |                      | description of the        |                 |        |
@@ -612,8 +612,8 @@ Notes:
     It is recommended that versions take the form *major.minor[.patch[.sub]]*.
 
 (3)
-    Either the author or the maintainer must be identified. If maintainer is
-    provided, distutils lists it as the author in :file:`PKG-INFO`.
+    If maintainer is provided and author is not, distutils lists maintainer as
+    the author in :file:`PKG-INFO`.
 
 (4)
     The ``long_description`` field is used by PyPI when you publish a package,
@@ -644,7 +644,7 @@ Notes:
 
 'long string'
     Multiple lines of plain text in reStructuredText format (see
-    http://docutils.sourceforge.net/).
+    https://docutils.sourceforge.io/).
 
 'list of strings'
     See below.

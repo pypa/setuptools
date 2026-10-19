@@ -4,7 +4,6 @@ from setuptools import depends
 
 
 class TestGetModuleConstant:
-
     def test_basic(self):
         """
         Invoke get_module_constant on a module in

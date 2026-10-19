@@ -94,5 +94,3 @@ to add ``(command, filename)`` pairs to ``self.distribution.dist_files`` so that
 :command:`upload` can upload it to PyPI.  The *filename* in the pair contains no
 path information, only the name of the file itself.  In dry-run mode, pairs
 should still be added to represent what would have been created.
-
-

@@ -1,96 +1,207 @@
-.. _Automatic Resource Extraction:
+.. _Controlling files in the distribution:
 
-Automatic Resource Extraction
------------------------------
+Controlling files in the distribution
+=====================================
 
-If you are using tools that expect your resources to be "real" files, or your
-project includes non-extension native libraries or other files that your C
-extensions expect to be able to access, you may need to list those files in
-the ``eager_resources`` argument to ``setup()``, so that the files will be
-extracted together, whenever a C extension in the project is imported.
+For the most common use cases, ``setuptools`` will automatically find out which
+files are necessary for distributing the package. More precisely, the following
+files are included in a source distribution by default:
 
-This is especially important if your project includes shared libraries *other*
-than distutils-built C extensions, and those shared libraries use file
-extensions other than ``.dll``, ``.so``, or ``.dylib``, which are the
-extensions that setuptools 0.6a8 and higher automatically detects as shared
-libraries and adds to the ``native_libs.txt`` file for you.  Any shared
-libraries whose names do not end with one of those extensions should be listed
-as ``eager_resources``, because they need to be present in the filesystem when
-he C extensions that link to them are used.
+- :term:`pure Python module <Pure Module>` files implied by the ``py-modules`` and ``packages``
+  configuration parameters in ``pyproject.toml`` and/or equivalent
+  in ``setup.cfg``/``setup.py``;
+- C source files mentioned in the ``ext_modules`` or ``libraries``
+  ``setup()`` arguments;
+- Files that match the following glob patterns: ``tests/test*.py``,
+  ``test/test*.py``;
+- Scripts specified by the ``scripts-files`` configuration parameter
+  in ``pyproject.toml`` or ``scripts`` in ``setup.py``/``setup.cfg``;
+- All files specified by the ``package-data`` and ``data-files``
+  configuration parameters in ``pyproject.toml`` and/or equivalent
+  in ``setup.cfg``/``setup.py``;
+- The file specified by the ``license_file`` option in ``setup.cfg``;
+- All files specified by the ``license-files`` configuration parameter
+  in ``pyproject.toml`` and/or equivalent in ``setup.cfg``/``setup.py``;
+  note that if you don't explicitly set this parameter, ``setuptools``
+  will include any files that match the following glob patterns:
+  ``LICEN[CS]E*``, ``COPYING*``, ``NOTICE*``, ``AUTHORS**``;
+- ``pyproject.toml``;
+- ``setup.cfg``;
+- ``setup.py``;
+- ``README``, ``README.txt``, ``README.rst`` or ``README.md``;
+- ``MANIFEST.in``
 
-The ``pkg_resources`` runtime for compressed packages will automatically
-extract *all* C extensions and ``eager_resources`` at the same time, whenever
-*any* C extension or eager resource is requested via the ``resource_filename()``
-API.  (C extensions are imported using ``resource_filename()`` internally.)
-This ensures that C extensions will see all of the "real" files that they
-expect to see.
+Please note that the list above is guaranteed to work with the last stable version
+of ``setuptools``. The behavior of older versions might differ.
 
-Note also that you can list directory resource names in ``eager_resources`` as
-well, in which case the directory's contents (including subdirectories) will be
-extracted whenever any C extension or eager resource is requested.
+.. note::
+   .. versionadded:: v69.0.0
+      ``setuptools`` will attempt to include type information files
+      by default in the distribution
+      (``.pyi`` and ``py.typed``, as specified in :pep:`561`),
+      as long as they are contained inside of a package directory
+      (for the time being there is no automatic support for top-level ``.pyi`` files).
 
-Please note that if you're not sure whether you need to use this argument, you
-don't!  It's really intended to support projects with lots of non-Python
-dependencies and as a last resort for crufty projects that can't otherwise
-handle being compressed.  If your package is pure Python, Python plus data
-files, or Python plus C, you really don't need this.  You've got to be using
-either C or an external program that needs "real" files in your project before
-there's any possibility of ``eager_resources`` being relevant to your project.
+    *Please note however that this feature is* **EXPERIMENTAL** *and may change in
+    the future.*
 
-Defining Additional Metadata
-----------------------------
+    If you have ``.pyi`` and ``py.typed`` files in your project, but do not
+    wish to distribute them, you can opt out by setting
+    :doc:`exclude-package-data </userguide/datafiles>` to remove them.
 
-Some extensible applications and frameworks may need to define their own kinds
-of metadata to include in eggs, which they can then access using the
-``pkg_resources`` metadata APIs.  Ordinarily, this is done by having plugin
-developers include additional files in their ``ProjectName.egg-info``
-directory.  However, since it can be tedious to create such files by hand, you
-may want to create a distutils extension that will create the necessary files
-from arguments to ``setup()``, in much the same way that ``setuptools`` does
-for many of the ``setup()`` arguments it adds.  See the section below on
-:ref:`Creating ``distutils\`\` Extensions` for more details, especially the
-subsection on :ref:`Adding new EGG-INFO Files`.
+However, when building more complex packages (e.g. packages that include
+non-Python files, or that need to use custom C headers), you might find that
+not all files present in your project folder are included in package
+:term:`distribution archive <Distribution Package>`.
 
-Setting the ``zip_safe`` flag
------------------------------
+If you are using a :wiki:`Revision Control System`, such as git_ or mercurial_,
+and your source distributions only need to include files that you're
+tracking in revision control, you can use a ``setuptools`` :ref:`plugin <Adding
+Support for Revision Control Systems>`, such as :pypi:`setuptools-scm` or
+:pypi:`setuptools-svn` to automatically include all tracked files into the ``sdist``.
 
-For some use cases (such as bundling as part of a larger application), Python
-packages may be run directly from a zip file.
-Not all packages, however, are capable of running in compressed form, because
-they may expect to be able to access either source code or data files as
-normal operating system files.  So, ``setuptools`` can install your project
-as a zipfile or a directory, and its default choice is determined by the
-project's ``zip_safe`` flag.
+.. _Using MANIFEST.in:
 
-You can pass a True or False value for the ``zip_safe`` argument to the
-``setup()`` function, or you can omit it.  If you omit it, the ``bdist_egg``
-command will analyze your project's contents to see if it can detect any
-conditions that would prevent it from working in a zipfile.  It will output
-notices to the console about any such conditions that it finds.
+Alternatively, if you need finer control over the files (e.g. you don't want to
+distribute :wiki:`CI/CD`-related files) or you need automatically generated files,
+you can add a ``MANIFEST.in`` file at the root of your project,
+to specify any files that the default file location algorithm doesn't catch.
 
-Currently, this analysis is extremely conservative: it will consider the
-project unsafe if it contains any C extensions or datafiles whatsoever.  This
-does *not* mean that the project can't or won't work as a zipfile!  It just
-means that the ``bdist_egg`` authors aren't yet comfortable asserting that
-the project *will* work.  If the project contains no C or data files, and does
-no ``__file__`` or ``__path__`` introspection or source code manipulation, then
-there is an extremely solid chance the project will work when installed as a
-zipfile.  (And if the project uses ``pkg_resources`` for all its data file
-access, then C extensions and other data files shouldn't be a problem at all.
-See the :ref:`Accessing Data Files at Runtime` section above for more information.)
+This file contains instructions that tell ``setuptools`` which files exactly
+should be part of the ``sdist`` (or not).
 
-However, if ``bdist_egg`` can't be *sure* that your package will work, but
-you've checked over all the warnings it issued, and you are either satisfied it
-*will* work (or if you want to try it for yourself), then you should set
-``zip_safe`` to ``True`` in your ``setup()`` call.  If it turns out that it
-doesn't work, you can always change it to ``False``, which will force
-``setuptools`` to install your project as a directory rather than as a zipfile.
+.. attention::
+   Please note that ``setuptools`` supports the ``MANIFEST.in``,
+   and not ``MANIFEST`` (no extension). Any documentation, tutorial or example
+   that recommends using ``MANIFEST`` (no extension) is likely outdated.
 
-In the future, as we gain more experience with different packages and become
-more satisfied with the robustness of the ``pkg_resources`` runtime, the
-"zip safety" analysis may become less conservative.  However, we strongly
-recommend that you determine for yourself whether your project functions
-correctly when installed as a zipfile, correct any problems if you can, and
-then make an explicit declaration of ``True`` or ``False`` for the ``zip_safe``
-flag, so that it will not be necessary for ``bdist_egg`` to try to guess
-whether your project can work as a zipfile.
+.. tip::
+   The ``MANIFEST.in`` file contains commands that allow you to discover and
+   manipulate lists of files. There are many commands that can be used with
+   different objectives, but you should try to not make your ``MANIFEST.in``
+   file too fine grained.
+
+   A good idea is to start with a ``graft`` command (to add all
+   files inside a set of directories) and then fine tune the file selection
+   by removing the excess or adding isolated files.
+
+
+A :file:`MANIFEST.in` file consists of commands, one per line, instructing
+setuptools to add or remove some set of files from the sdist.  The commands
+are:
+
+=========================================================  ==================================================================================================
+Command                                                    Description
+=========================================================  ==================================================================================================
+:samp:`include {pat1} {pat2} ...`                          Add all files matching any of the listed patterns
+                                                           (Files must be given as paths relative to the root of the project)
+:samp:`exclude {pat1} {pat2} ...`                          Remove all files matching any of the listed patterns
+                                                           (Files must be given as paths relative to the root of the project)
+:samp:`recursive-include {dir-pattern} {pat1} {pat2} ...`  Add all files under directories matching ``dir-pattern`` that match any of the listed patterns
+:samp:`recursive-exclude {dir-pattern} {pat1} {pat2} ...`  Remove all files under directories matching ``dir-pattern`` that match any of the listed patterns
+:samp:`global-include {pat1} {pat2} ...`                   Add all files anywhere in the source tree matching any of the listed patterns
+:samp:`global-exclude {pat1} {pat2} ...`                   Remove all files anywhere in the source tree matching any of the listed patterns
+:samp:`graft {dir-pattern}`                                Add all files under directories matching ``dir-pattern``
+:samp:`prune {dir-pattern}`                                Remove all files under directories matching ``dir-pattern``
+=========================================================  ==================================================================================================
+
+The patterns here are glob-style patterns: ``*`` matches zero or more regular
+filename characters (on Unix, everything except forward slash; on Windows,
+everything except backslash and colon); ``?`` matches a single regular filename
+character, and ``[chars]`` matches any one of the characters between the square
+brackets (which may contain character ranges, e.g., ``[a-z]`` or
+``[a-fA-F0-9]``).  Setuptools also has support for ``**`` matching
+zero or more characters including forward slash, backslash, and colon.
+
+Directory patterns are relative to the root of the project directory; e.g.,
+``graft example*`` will include a directory named :file:`examples` in the
+project root but will not include :file:`docs/examples/`.
+
+File & directory names in :file:`MANIFEST.in` should be ``/``-separated;
+setuptools will automatically convert the slashes to the local platform's
+appropriate directory separator.
+
+Commands are processed in the order they appear in the :file:`MANIFEST.in`
+file.  For example, given the commands:
+
+.. code-block:: bash
+
+    graft tests
+    global-exclude *.py[cod]
+
+the contents of the directory tree :file:`tests` will first be added to the
+sdist, and then after that all files in the sdist with a ``.pyc``, ``.pyo``, or
+``.pyd`` extension will be removed from the sdist.  If the commands were in the
+opposite order, then ``*.pyc`` files etc. would be only be removed from what
+was already in the sdist before adding :file:`tests`, and if :file:`tests`
+happened to contain any ``*.pyc`` files, they would end up included in the
+sdist because the exclusion happened before they were included.
+
+An example of ``MANIFEST.in`` for a simple project that organized according to a
+:ref:`src-layout` is:
+
+.. code-block:: bash
+
+   # MANIFEST.in -- just for illustration
+   graft src
+   graft tests
+   graft docs
+   # `-> adds all files inside a directory
+
+   include tox.ini
+   # `-> matches file paths relative to the root of the project
+
+   global-exclude *~ *.py[cod] *.so
+   # `-> matches file names (regardless of directory)
+
+Once the correct files are present in the ``sdist``, they can then be used by
+binary extensions during the build process, or included in the final
+:term:`wheel <Wheel>` [#build-process]_ if you configure ``setuptools`` with
+``include_package_data=True``.
+
+.. important::
+   Please note that, when using ``include_package_data=True``, only files **inside
+   the package directory** are included in the final ``wheel``, by default.
+
+   So for example, if you create a :term:`Python project <Project>` that uses
+   :pypi:`setuptools-scm` and have a ``tests`` directory outside of the package
+   folder, the ``tests`` directory will be present in the ``sdist`` but not in the
+   ``wheel`` [#wheel-vs-sdist]_.
+
+   See :doc:`/userguide/datafiles` for more information.
+
+
+.. _Caching and Troubleshooting:
+
+Caching and Troubleshooting
+===========================
+
+Setuptools automatically creates a few directories to host build artefacts and
+cache files, such as ``build``, ``dist``, ``*.egg-info``.  While cache is
+useful to speed up incremental builds, in some edge cases it might become
+stale.  If you feel that caching is causing problems to your build, specially
+after changes in configuration or in the directory/file structure., consider
+removing ``build``, ``dist``, ``*.egg-info`` [#PKG-INFO]_ before rebuilding or
+reinstalling your project.
+
+----
+
+.. [#build-process]
+   You can think about the build process as two stages: first the ``sdist``
+   will be created and then the ``wheel`` will be produced from that ``sdist``.
+
+.. [#wheel-vs-sdist]
+   This happens because the ``sdist`` can contain files that are useful during
+   development or the build process itself, but not in runtime (e.g. tests,
+   docs, examples, etc...).
+   The ``wheel``, on the other hand, is a file format that has been optimized
+   and is ready to be unpacked into a running installation of Python or
+   :term:`Virtual Environment`.
+   Therefore it only contains items that are required during runtime.
+
+.. [#PKG-INFO]
+   When working from an extracted sdist (e.g. for patching), you might also consider removing
+   the ``PKG-INFO`` file to force its recreation.
+
+.. _git: https://git-scm.com
+.. _mercurial: https://www.mercurial-scm.org

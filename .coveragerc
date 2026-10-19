@@ -1,12 +1,28 @@
 [run]
-source =
-	setuptools
-	pkg_resources
 omit =
 	# leading `*/` for pytest-dev/pytest-cov#456
+	*/.tox/*
+
+	# local
 	*/_vendor/*
-	*/_distutils/tests/*
+	*/tools/*
+	*/setuptools/_distutils/*
+	# See #4588 for integration tests coverage
+	*/setuptools/tests/integration/*
+	*/setuptools/tests/test_integration.py
+
+disable_warnings =
+	couldnt-parse
+
+	# local
+	*/_validate_pyproject/*  # generated code, tested in `validate-pyproject`
 
 [report]
 show_missing = True
 skip_covered = True
+exclude_also =
+	# Exclude common false positives per
+	# https://coverage.readthedocs.io/en/latest/excluding.html#advanced-exclusion
+	# Ref jaraco/skeleton#97 and jaraco/skeleton#135
+	class .*\bProtocol\):
+	if TYPE_CHECKING:

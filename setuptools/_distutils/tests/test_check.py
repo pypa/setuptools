@@ -1,34 +1,56 @@
 """Tests for distutils.command.check."""
+
+import distutils.command.check as _check
+import importlib
 import os
+import sys
 import textwrap
-import unittest
-from test.support import run_unittest
-
-from distutils.command.check import check, HAS_DOCUTILS
-from distutils.tests import support
 from distutils.errors import DistutilsSetupError
+from distutils.tests import support
+from typing import ClassVar
 
-try:
-    import pygments
-except ImportError:
-    pygments = None
-
+import pytest
 
 HERE = os.path.dirname(__file__)
 
 
-class CheckTestCase(support.LoggingSilencer,
-                    support.TempdirManager,
-                    unittest.TestCase):
+@pytest.fixture
+def hide_pygments(monkeypatch, request):
+    """
+    Clear docutils and hide the presence of pygments.
+    """
+    clear_docutils(monkeypatch)
+    monkeypatch.setitem(sys.modules, 'pygments', None)
+    reload_check()
+    # restore 'check' to its normal state after monkeypatch is undone
+    request.addfinalizer(reload_check)
 
+
+def clear_docutils(monkeypatch):
+    docutils_names = [
+        name for name in sys.modules if name.partition('.')[0] == 'docutils'
+    ]
+    for name in docutils_names:
+        monkeypatch.delitem(sys.modules, name)
+
+
+def reload_check():
+    """
+    Reload the 'check' command module to reflect the import state.
+    """
+    importlib.reload(_check)
+
+
+@support.combine_markers
+class TestCheck(support.TempdirManager):
     def _run(self, metadata=None, cwd=None, **options):
         if metadata is None:
             metadata = {}
         if cwd is not None:
             old_dir = os.getcwd()
             os.chdir(cwd)
-        pkg_info, dist = self.create_dist(**metadata)
-        cmd = check(dist)
+        _pkg_info, dist = self.create_dist(**metadata)
+        cmd = _check.check(dist)
         cmd.initialize_options()
         for name, value in options.items():
             setattr(cmd, name, value)
@@ -43,121 +65,141 @@ class CheckTestCase(support.LoggingSilencer,
         # by default, check is checking the metadata
         # should have some warnings
         cmd = self._run()
-        self.assertEqual(cmd._warnings, 2)
+        assert cmd._warnings == 1
 
         # now let's add the required fields
         # and run it again, to make sure we don't get
         # any warning anymore
-        metadata = {'url': 'xxx', 'author': 'xxx',
-                    'author_email': 'xxx',
-                    'name': 'xxx', 'version': 'xxx'}
+        metadata = {
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'xxx',
+            'name': 'xxx',
+            'version': 'xxx',
+        }
         cmd = self._run(metadata)
-        self.assertEqual(cmd._warnings, 0)
+        assert cmd._warnings == 0
 
         # now with the strict mode, we should
         # get an error if there are missing metadata
-        self.assertRaises(DistutilsSetupError, self._run, {}, **{'strict': 1})
+        with pytest.raises(DistutilsSetupError):
+            self._run({}, strict=1)
 
         # and of course, no error when all metadata are present
-        cmd = self._run(metadata, strict=1)
-        self.assertEqual(cmd._warnings, 0)
+        cmd = self._run(metadata, strict=True)
+        assert cmd._warnings == 0
 
         # now a test with non-ASCII characters
-        metadata = {'url': 'xxx', 'author': '\u00c9ric',
-                    'author_email': 'xxx', 'name': 'xxx',
-                    'version': 'xxx',
-                    'description': 'Something about esszet \u00df',
-                    'long_description': 'More things about esszet \u00df'}
+        metadata = {
+            'url': 'xxx',
+            'author': '\u00c9ric',
+            'author_email': 'xxx',
+            'name': 'xxx',
+            'version': 'xxx',
+            'description': 'Something about esszet \u00df',
+            'long_description': 'More things about esszet \u00df',
+        }
         cmd = self._run(metadata)
-        self.assertEqual(cmd._warnings, 0)
+        assert cmd._warnings == 0
 
-    @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
+    def test_check_author_maintainer(self):
+        for kind in ("author", "maintainer"):
+            # ensure no warning when author_email or maintainer_email is given
+            # (the spec allows these fields to take the form "Name <email>")
+            metadata = {
+                'url': 'xxx',
+                kind + '_email': 'Name <name@email.com>',
+                'name': 'xxx',
+                'version': 'xxx',
+            }
+            cmd = self._run(metadata)
+            assert cmd._warnings == 0
+
+            # the check should not warn if only email is given
+            metadata[kind + '_email'] = 'name@email.com'
+            cmd = self._run(metadata)
+            assert cmd._warnings == 0
+
+            # the check should not warn if only the name is given
+            metadata[kind] = "Name"
+            del metadata[kind + '_email']
+            cmd = self._run(metadata)
+            assert cmd._warnings == 0
+
     def test_check_document(self):
-        pkg_info, dist = self.create_dist()
-        cmd = check(dist)
+        _pkg_info, dist = self.create_dist()
+        cmd = _check.check(dist)
 
         # let's see if it detects broken rest
         broken_rest = 'title\n===\n\ntest'
         msgs = cmd._check_rst_data(broken_rest)
-        self.assertEqual(len(msgs), 1)
+        assert len(msgs) == 1
 
         # and non-broken rest
         rest = 'title\n=====\n\ntest'
         msgs = cmd._check_rst_data(rest)
-        self.assertEqual(len(msgs), 0)
+        assert len(msgs) == 0
 
-    @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
     def test_check_restructuredtext(self):
         # let's see if it detects broken rest in long_description
         broken_rest = 'title\n===\n\ntest'
-        pkg_info, dist = self.create_dist(long_description=broken_rest)
-        cmd = check(dist)
+        _pkg_info, dist = self.create_dist(long_description=broken_rest)
+        cmd = _check.check(dist)
         cmd.check_restructuredtext()
-        self.assertEqual(cmd._warnings, 1)
+        assert cmd._warnings == 1
 
-        # let's see if we have an error with strict=1
-        metadata = {'url': 'xxx', 'author': 'xxx',
-                    'author_email': 'xxx',
-                    'name': 'xxx', 'version': 'xxx',
-                    'long_description': broken_rest}
-        self.assertRaises(DistutilsSetupError, self._run, metadata,
-                          **{'strict': 1, 'restructuredtext': 1})
+        # let's see if we have an error with strict=True
+        metadata = {
+            'url': 'xxx',
+            'author': 'xxx',
+            'author_email': 'xxx',
+            'name': 'xxx',
+            'version': 'xxx',
+            'long_description': broken_rest,
+        }
+        with pytest.raises(DistutilsSetupError):
+            self._run(metadata, strict=1, restructuredtext=1)
 
         # and non-broken rest, including a non-ASCII character to test #12114
         metadata['long_description'] = 'title\n=====\n\ntest \u00df'
-        cmd = self._run(metadata, strict=1, restructuredtext=1)
-        self.assertEqual(cmd._warnings, 0)
+        cmd = self._run(metadata, strict=True, restructuredtext=True)
+        assert cmd._warnings == 0
 
         # check that includes work to test #31292
         metadata['long_description'] = 'title\n=====\n\n.. include:: includetest.rst'
-        cmd = self._run(metadata, cwd=HERE, strict=1, restructuredtext=1)
-        self.assertEqual(cmd._warnings, 0)
+        cmd = self._run(metadata, cwd=HERE, strict=True, restructuredtext=True)
+        assert cmd._warnings == 0
 
-    @unittest.skipUnless(HAS_DOCUTILS, "won't test without docutils")
-    def test_check_restructuredtext_with_syntax_highlight(self):
-        # Don't fail if there is a `code` or `code-block` directive
-
-        example_rst_docs = []
-        example_rst_docs.append(textwrap.dedent("""\
+    code_examples: ClassVar[list[str]] = [
+        textwrap.dedent(
+            f"""
             Here's some code:
 
-            .. code:: python
+            .. {directive}:: python
 
                 def foo():
                     pass
-            """))
-        example_rst_docs.append(textwrap.dedent("""\
-            Here's some code:
+            """
+        ).lstrip()
+        for directive in ['code', 'code-block']
+    ]
 
-            .. code-block:: python
+    def check_rst_data(self, descr):
+        _pkg_info, dist = self.create_dist(long_description=descr)
+        cmd = _check.check(dist)
+        cmd.check_restructuredtext()
+        return cmd._check_rst_data(descr)
 
-                def foo():
-                    pass
-            """))
+    @pytest.mark.parametrize('descr', code_examples)
+    def test_check_rst_with_syntax_highlight_pygments(self, descr):
+        assert self.check_rst_data(descr) == []
 
-        for rest_with_code in example_rst_docs:
-            pkg_info, dist = self.create_dist(long_description=rest_with_code)
-            cmd = check(dist)
-            cmd.check_restructuredtext()
-            msgs = cmd._check_rst_data(rest_with_code)
-            if pygments is not None:
-                self.assertEqual(len(msgs), 0)
-            else:
-                self.assertEqual(len(msgs), 1)
-                self.assertEqual(
-                    str(msgs[0][1]),
-                    'Cannot analyze code. Pygments package not found.'
-                )
+    @pytest.mark.parametrize('descr', code_examples)
+    def test_check_rst_with_syntax_highlight_no_pygments(self, descr, hide_pygments):
+        (msg,) = self.check_rst_data(descr)
+        _, exc, _, _ = msg
+        assert str(exc) == 'Cannot analyze code. Pygments package not found.'
 
     def test_check_all(self):
-
-        metadata = {'url': 'xxx', 'author': 'xxx'}
-        self.assertRaises(DistutilsSetupError, self._run,
-                          {}, **{'strict': 1,
-                                 'restructuredtext': 1})
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(CheckTestCase)
-
-if __name__ == "__main__":
-    run_unittest(test_suite())
+        with pytest.raises(DistutilsSetupError):
+            self._run({}, strict=1, restructuredtext=1)

@@ -1,0 +1,68 @@
+import pytest
+
+from ... import errors
+from ..._util import split_quoted
+from ...errors import PlatformError
+from ...platform.detect import is_mingw
+from .. import cygwin
+
+
+class TestMinGW32Compiler:
+    @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
+    def test_compiler_type(self):
+        compiler = cygwin.MinGW32Compiler()
+        assert compiler.compiler_type == 'mingw32'
+
+    @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
+    def test_set_executables(self, monkeypatch):
+        monkeypatch.setenv('CC', 'cc')
+        monkeypatch.setenv('CXX', 'c++')
+
+        compiler = cygwin.MinGW32Compiler()
+
+        assert compiler.compiler == split_quoted('cc -O1 -Wall')
+        assert compiler.compiler_so == split_quoted('cc -shared -O1 -Wall')
+        assert compiler.compiler_cxx == split_quoted('c++ -O1 -Wall')
+        assert compiler.linker_exe == split_quoted('cc')
+        assert compiler.linker_so == split_quoted('cc -shared')
+
+    @pytest.mark.skipif('sys.platform == "cygwin"')
+    def test_no_bare_optimization_flag(self):
+        """
+        Every compiler invocation requests optimization as ``-O1`` and
+        never as a bare ``-O``. GCC treats the two as equivalent, but
+        ``cc1`` rejects the bare form when targeting 32-bit code (``-m32``).
+
+        https://github.com/pypa/setuptools/issues/4873
+        """
+        compiler = cygwin.MinGW32Compiler()
+
+        for args in (
+            compiler.compiler,
+            compiler.compiler_so,
+            compiler.compiler_cxx,
+            compiler.compiler_so_cxx,
+        ):
+            assert '-O' not in args
+            assert '-O1' in args
+
+    @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
+    def test_runtime_library_dir_option(self):
+        compiler = cygwin.MinGW32Compiler()
+        with pytest.raises(PlatformError):
+            compiler.runtime_library_dir_option('/usr/lib')
+
+    @pytest.mark.skipif(not is_mingw(), reason='not on mingw')
+    def test_cygwincc_error(self, monkeypatch):
+        monkeypatch.setattr(cygwin, 'is_cygwincc', lambda _: True)
+
+        with pytest.raises(errors.Error):
+            cygwin.MinGW32Compiler()
+
+    @pytest.mark.skipif('sys.platform == "cygwin"')
+    def test_configure_system_with_msvc_python(self):
+        # In case we have an MSVC Python build, but still want to use
+        # MinGW32Compiler, then configure_system() shouldn't fail at least.
+        # https://github.com/pypa/setuptools/issues/4456
+        compiler = cygwin.MinGW32Compiler()
+        compiler.configure_system()

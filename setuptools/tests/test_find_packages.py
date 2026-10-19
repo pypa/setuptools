@@ -1,37 +1,16 @@
-"""Tests for setuptools.find_packages()."""
+"""Tests for automatic package discovery"""
+
 import os
-import sys
 import shutil
 import tempfile
-import platform
+from typing import ClassVar
 
 import pytest
 
-from setuptools import find_packages
-from setuptools import find_namespace_packages
+from setuptools import find_namespace_packages, find_packages
+from setuptools.discovery import FlatLayoutPackageFinder
 
-
-# modeled after CPython's test.support.can_symlink
-def can_symlink():
-    TESTFN = tempfile.mktemp()
-    symlink_path = TESTFN + "can_symlink"
-    try:
-        os.symlink(TESTFN, symlink_path)
-        can = True
-    except (OSError, NotImplementedError, AttributeError):
-        can = False
-    else:
-        os.remove(symlink_path)
-    globals().update(can_symlink=lambda: can)
-    return can
-
-
-def has_symlink():
-    bad_symlink = (
-        # Windows symlink directory detection is broken on Python 3.2
-        platform.system() == 'Windows' and sys.version_info[:2] == (3, 2)
-    )
-    return can_symlink() and not bad_symlink
+from .compat.py39 import os_helper
 
 
 class TestFindPackages:
@@ -80,8 +59,7 @@ class TestFindPackages:
     def _touch(self, path, dir_=None):
         if dir_:
             path = os.path.join(dir_, path)
-        fp = open(path, 'w')
-        fp.close()
+        open(path, 'wb').close()
         return path
 
     def test_regular_package(self):
@@ -132,7 +110,7 @@ class TestFindPackages:
         packages = find_packages(self.dist_dir)
         assert 'build.pkg' not in packages
 
-    @pytest.mark.skipif(not has_symlink(), reason='Symlink support required')
+    @pytest.mark.skipif(not os_helper.can_symlink(), reason='Symlink support required')
     def test_symlinked_packages_are_included(self):
         """
         A symbolically-linked directory should be treated like any other
@@ -152,25 +130,24 @@ class TestFindPackages:
 
     def test_pep420_ns_package(self):
         packages = find_namespace_packages(
-            self.dist_dir, include=['pkg*'], exclude=['pkg.subpkg.assets'])
+            self.dist_dir, include=['pkg*'], exclude=['pkg.subpkg.assets']
+        )
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     def test_pep420_ns_package_no_includes(self):
-        packages = find_namespace_packages(
-            self.dist_dir, exclude=['pkg.subpkg.assets'])
-        self._assert_packages(
-            packages, ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg'])
+        packages = find_namespace_packages(self.dist_dir, exclude=['pkg.subpkg.assets'])
+        self._assert_packages(packages, ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     def test_pep420_ns_package_no_includes_or_excludes(self):
         packages = find_namespace_packages(self.dist_dir)
-        expected = [
-            'docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg', 'pkg.subpkg.assets']
+        expected = ['docs', 'pkg', 'pkg.nspkg', 'pkg.subpkg', 'pkg.subpkg.assets']
         self._assert_packages(packages, expected)
 
     def test_regular_package_with_nested_pep420_ns_packages(self):
         self._touch('__init__.py', self.pkg_dir)
         packages = find_namespace_packages(
-            self.dist_dir, exclude=['docs', 'pkg.subpkg.assets'])
+            self.dist_dir, exclude=['docs', 'pkg.subpkg.assets']
+        )
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
 
     def test_pep420_ns_package_no_non_package_dirs(self):
@@ -178,3 +155,65 @@ class TestFindPackages:
         shutil.rmtree(os.path.join(self.dist_dir, 'pkg/subpkg/assets'))
         packages = find_namespace_packages(self.dist_dir)
         self._assert_packages(packages, ['pkg', 'pkg.nspkg', 'pkg.subpkg'])
+
+
+class TestFlatLayoutPackageFinder:
+    EXAMPLES: ClassVar[dict] = {
+        "hidden-folders": (
+            [".pkg/__init__.py", "pkg/__init__.py", "pkg/nested/file.txt"],
+            ["pkg", "pkg.nested"],
+        ),
+        "private-packages": (
+            ["_pkg/__init__.py", "pkg/_private/__init__.py"],
+            ["pkg", "pkg._private"],
+        ),
+        "invalid-name": (
+            ["invalid-pkg/__init__.py", "other.pkg/__init__.py", "yet,another/file.py"],
+            [],
+        ),
+        "docs": (["pkg/__init__.py", "docs/conf.py", "docs/readme.rst"], ["pkg"]),
+        "tests": (
+            ["pkg/__init__.py", "tests/test_pkg.py", "tests/__init__.py"],
+            ["pkg"],
+        ),
+        "examples": (
+            [
+                "pkg/__init__.py",
+                "examples/__init__.py",
+                "examples/file.py",
+                "example/other_file.py",
+                # Sub-packages should always be fine
+                "pkg/example/__init__.py",
+                "pkg/examples/__init__.py",
+            ],
+            ["pkg", "pkg.examples", "pkg.example"],
+        ),
+        "tool-specific": (
+            [
+                "htmlcov/index.html",
+                "pkg/__init__.py",
+                "tasks/__init__.py",
+                "tasks/subpackage/__init__.py",
+                "fabfile/__init__.py",
+                "fabfile/subpackage/__init__.py",
+                # Sub-packages should always be fine
+                "pkg/tasks/__init__.py",
+                "pkg/fabfile/__init__.py",
+            ],
+            ["pkg", "pkg.tasks", "pkg.fabfile"],
+        ),
+    }
+
+    @pytest.mark.parametrize("example", EXAMPLES.keys())
+    def test_unwanted_directories_not_included(self, tmp_path, example):
+        files, expected_packages = self.EXAMPLES[example]
+        ensure_files(tmp_path, files)
+        found_packages = FlatLayoutPackageFinder.find(str(tmp_path))
+        assert set(found_packages) == set(expected_packages)
+
+
+def ensure_files(root_path, files):
+    for file in files:
+        path = root_path / file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()

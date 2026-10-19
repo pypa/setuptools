@@ -131,12 +131,12 @@ egg filename is as follows::
 
     name ["-" version ["-py" pyver ["-" required_platform]]] "." ext
 
-The "name" and "version" should be escaped using the ``to_filename()``
-function provided by ``pkg_resources``, after first processing them with
-``safe_name()`` and ``safe_version()`` respectively.  These latter two
-functions can also be used to later "unescape" these parts of the
-filename.  (For a detailed description of these transformations, please
-see the "Parsing Utilities" section of the ``pkg_resources`` manual.)
+The "name" and "version" should be escaped using ``pkg_resources`` functions
+``safe_name()`` and ``safe_version()`` respectively then using
+``to_filename()``. Note that the escaping is irreversible and the original
+name can only be retrieved from the distribution metadata. For a detailed
+description of these transformations, please see the "Parsing Utilities"
+section of the ``pkg_resources`` manual.
 
 The "pyver" string is the Python major version, as found in the first
 3 characters of ``sys.version``.  "required_platform" is essentially
@@ -192,6 +192,14 @@ project source directory and its ``.egg-info`` subdirectory).
 Python version, or platform information is included.  When the runtime
 searches for available eggs, ``.egg-link`` files are opened and the
 actual egg file/directory name is read from them.
+
+Note: Due to `pypa/setuptools#4167
+<https://github.com/pypa/setuptools/issues/4167>`_, the name in the egg-link
+filename does not match the filename components used in similar files, but
+instead presents with dash separators instead of underscore separators. For
+compatibility with pip prior to version 24.0, these dash separators are
+retained. In a future release, pip 24 or later will be required and the
+underscore separators will be used.
 
 Each ``.egg-link`` file should contain a single file or directory name,
 with no newlines.  This filename should be the base location of one or

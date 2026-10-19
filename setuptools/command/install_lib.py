@@ -1,13 +1,21 @@
+from __future__ import annotations
+
 import os
 import sys
 from itertools import product, starmap
+
+from .._path import StrPath
+from ..dist import Distribution
+
 import distutils.command.install_lib as orig
 
 
 class install_lib(orig.install_lib):
     """Don't add compiled flags to filenames of non-Python files"""
 
-    def run(self):
+    distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
+
+    def run(self) -> None:
         self.build()
         outfiles = self.install()
         if outfiles is not None:
@@ -44,7 +52,7 @@ class install_lib(orig.install_lib):
         """
         while pkg_name:
             yield pkg_name
-            pkg_name, sep, child = pkg_name.rpartition('.')
+            pkg_name, _sep, _child = pkg_name.rpartition('.')
 
     def _get_SVEM_NSPs(self):
         """
@@ -77,18 +85,25 @@ class install_lib(orig.install_lib):
         if not hasattr(sys, 'implementation'):
             return
 
-        base = os.path.join(
-            '__pycache__', '__init__.' + sys.implementation.cache_tag)
+        base = os.path.join('__pycache__', '__init__.' + sys.implementation.cache_tag)
         yield base + '.pyc'
         yield base + '.pyo'
         yield base + '.opt-1.pyc'
         yield base + '.opt-2.pyc'
 
     def copy_tree(
-            self, infile, outfile,
-            preserve_mode=1, preserve_times=1, preserve_symlinks=0, level=1
-    ):
-        assert preserve_mode and preserve_times and not preserve_symlinks
+        self,
+        infile: StrPath,
+        outfile: str,
+        # override: Using actual booleans
+        preserve_mode: bool = True,  # type: ignore[override]
+        preserve_times: bool = True,  # type: ignore[override]
+        preserve_symlinks: bool = False,  # type: ignore[override]
+        level: object = 1,
+    ) -> list[str]:
+        assert preserve_mode
+        assert preserve_times
+        assert not preserve_symlinks
         exclude = self.get_exclusions()
 
         if not exclude:
@@ -97,14 +112,14 @@ class install_lib(orig.install_lib):
         # Exclude namespace package __init__.py* files from the output
 
         from setuptools.archive_util import unpack_directory
+
         from distutils import log
 
-        outfiles = []
+        outfiles: list[str] = []
 
-        def pf(src, dst):
+        def pf(src: str, dst: str):
             if dst in exclude:
-                log.warn("Skipping installation of %s (namespace package)",
-                         dst)
+                log.warn("Skipping installation of %s (namespace package)", dst)
                 return False
 
             log.info("copying %s -> %s", src, os.path.dirname(dst))

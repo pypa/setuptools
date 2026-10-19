@@ -1,30 +1,25 @@
 """Tests for distutils.command.sdist."""
+
 import os
+import pathlib
+import shutil  # noqa: F401
 import tarfile
-import unittest
-import warnings
 import zipfile
-from os.path import join
-from textwrap import dedent
-from test.support import captured_stdout, run_unittest
-from .unix_compat import require_unix_id, require_uid_0, pwd, grp
-
-from .py38compat import check_warnings
-
-try:
-    import zlib
-    ZLIB_SUPPORT = True
-except ImportError:
-    ZLIB_SUPPORT = False
-
+from distutils.archive_util import ARCHIVE_FORMATS
 from distutils.command.sdist import sdist, show_formats
 from distutils.core import Distribution
-from distutils.tests.test_config import BasePyPIRCCommandTestCase
 from distutils.errors import DistutilsOptionError
-from distutils.spawn import find_executable
-from distutils.log import WARN
 from distutils.filelist import FileList
-from distutils.archive_util import ARCHIVE_FORMATS
+from os.path import join
+from textwrap import dedent
+
+import jaraco.path
+import path
+import pytest
+from more_itertools import ilen
+
+from . import support
+from .unix_compat import grp, pwd, require_uid_0, require_unix_id
 
 SETUP_PY = """
 from distutils.core import setup
@@ -48,33 +43,41 @@ somecode%(sep)sdoc.dat
 somecode%(sep)sdoc.txt
 """
 
-class SDistTestCase(BasePyPIRCCommandTestCase):
 
-    def setUp(self):
-        # PyPIRCCommandTestCase creates a temp dir already
-        # and put it in self.tmp_dir
-        super(SDistTestCase, self).setUp()
-        # setting up an environment
-        self.old_path = os.getcwd()
-        os.mkdir(join(self.tmp_dir, 'somecode'))
-        os.mkdir(join(self.tmp_dir, 'dist'))
-        # a package, and a README
-        self.write_file((self.tmp_dir, 'README'), 'xxx')
-        self.write_file((self.tmp_dir, 'somecode', '__init__.py'), '#')
-        self.write_file((self.tmp_dir, 'setup.py'), SETUP_PY)
-        os.chdir(self.tmp_dir)
+@pytest.fixture(autouse=True)
+def project_dir(request, distutils_managed_tempdir):
+    self = request.instance
+    self.tmp_dir = self.mkdtemp()
+    jaraco.path.build(
+        {
+            'somecode': {
+                '__init__.py': '#',
+            },
+            'README': 'xxx',
+            'setup.py': SETUP_PY,
+        },
+        self.tmp_dir,
+    )
+    with path.Path(self.tmp_dir):
+        yield
 
-    def tearDown(self):
-        # back to normal
-        os.chdir(self.old_path)
-        super(SDistTestCase, self).tearDown()
 
+def clean_lines(filepath):
+    with pathlib.Path(filepath).open(encoding='utf-8') as f:
+        yield from filter(None, map(str.strip, f))
+
+
+class TestSDist(support.TempdirManager):
     def get_cmd(self, metadata=None):
         """Returns a cmd"""
         if metadata is None:
-            metadata = {'name': 'fake', 'version': '1.0',
-                        'url': 'xxx', 'author': 'xxx',
-                        'author_email': 'xxx'}
+            metadata = {
+                'name': 'ns.fake--pkg',
+                'version': '1.0',
+                'url': 'xxx',
+                'author': 'xxx',
+                'author_email': 'xxx',
+            }
         dist = Distribution(metadata)
         dist.script_name = 'setup.py'
         dist.packages = ['somecode']
@@ -83,7 +86,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         cmd.dist_dir = 'dist'
         return dist, cmd
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_prune_file_list(self):
         # this test creates a project with some VCS dirs and an NFS rename
         # file, then launches sdist to check they get pruned on all systems
@@ -93,17 +96,15 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         self.write_file((self.tmp_dir, 'somecode', '.svn', 'ok.py'), 'xxx')
 
         os.mkdir(join(self.tmp_dir, 'somecode', '.hg'))
-        self.write_file((self.tmp_dir, 'somecode', '.hg',
-                         'ok'), 'xxx')
+        self.write_file((self.tmp_dir, 'somecode', '.hg', 'ok'), 'xxx')
 
         os.mkdir(join(self.tmp_dir, 'somecode', '.git'))
-        self.write_file((self.tmp_dir, 'somecode', '.git',
-                         'ok'), 'xxx')
+        self.write_file((self.tmp_dir, 'somecode', '.git', 'ok'), 'xxx')
 
         self.write_file((self.tmp_dir, 'somecode', '.nfs0001'), 'xxx')
 
         # now building a sdist
-        dist, cmd = self.get_cmd()
+        _dist, cmd = self.get_cmd()
 
         # zip is available universally
         # (tar might not be installed under win32)
@@ -115,27 +116,31 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         # now let's check what we have
         dist_folder = join(self.tmp_dir, 'dist')
         files = os.listdir(dist_folder)
-        self.assertEqual(files, ['fake-1.0.zip'])
+        assert files == ['ns_fake_pkg-1.0.zip']
 
-        zip_file = zipfile.ZipFile(join(dist_folder, 'fake-1.0.zip'))
+        zip_file = zipfile.ZipFile(join(dist_folder, 'ns_fake_pkg-1.0.zip'))
         try:
             content = zip_file.namelist()
         finally:
             zip_file.close()
 
         # making sure everything has been pruned correctly
-        expected = ['', 'PKG-INFO', 'README', 'setup.py',
-                    'somecode/', 'somecode/__init__.py']
-        self.assertEqual(sorted(content), ['fake-1.0/' + x for x in expected])
+        expected = [
+            '',
+            'PKG-INFO',
+            'README',
+            'setup.py',
+            'somecode/',
+            'somecode/__init__.py',
+        ]
+        assert sorted(content) == ['ns_fake_pkg-1.0/' + x for x in expected]
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
-    @unittest.skipIf(find_executable('tar') is None,
-                     "The tar command is not found")
-    @unittest.skipIf(find_executable('gzip') is None,
-                     "The gzip command is not found")
+    @pytest.mark.usefixtures('needs_zlib')
+    @pytest.mark.skipif("not shutil.which('tar')")
+    @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution(self):
         # now building a sdist
-        dist, cmd = self.get_cmd()
+        _dist, cmd = self.get_cmd()
 
         # creating a gztar then a tar
         cmd.formats = ['gztar', 'tar']
@@ -146,10 +151,10 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         dist_folder = join(self.tmp_dir, 'dist')
         result = os.listdir(dist_folder)
         result.sort()
-        self.assertEqual(result, ['fake-1.0.tar', 'fake-1.0.tar.gz'])
+        assert result == ['ns_fake_pkg-1.0.tar', 'ns_fake_pkg-1.0.tar.gz']
 
-        os.remove(join(dist_folder, 'fake-1.0.tar'))
-        os.remove(join(dist_folder, 'fake-1.0.tar.gz'))
+        os.remove(join(dist_folder, 'ns_fake_pkg-1.0.tar'))
+        os.remove(join(dist_folder, 'ns_fake_pkg-1.0.tar.gz'))
 
         # now trying a tar then a gztar
         cmd.formats = ['tar', 'gztar']
@@ -159,12 +164,11 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
         result = os.listdir(dist_folder)
         result.sort()
-        self.assertEqual(result, ['fake-1.0.tar', 'fake-1.0.tar.gz'])
+        assert result == ['ns_fake_pkg-1.0.tar', 'ns_fake_pkg-1.0.tar.gz']
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_add_defaults(self):
-
-        # http://bugs.python.org/issue2279
+        # https://bugs.python.org/issue2279
 
         # add_default should also include
         # data_files and package_data
@@ -172,8 +176,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
         # filling data_files by pointing files
         # in package_data
-        dist.package_data = {'': ['*.cfg', '*.dat'],
-                             'somecode': ['*.txt']}
+        dist.package_data = {'': ['*.cfg', '*.dat'], 'somecode': ['*.txt']}
         self.write_file((self.tmp_dir, 'somecode', 'doc.txt'), '#')
         self.write_file((self.tmp_dir, 'somecode', 'doc.dat'), '#')
 
@@ -193,12 +196,11 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         self.write_file((some_dir, 'file.txt'), '#')
         self.write_file((some_dir, 'other_file.txt'), '#')
 
-        dist.data_files = [('data', ['data/data.dt',
-                                     'buildout.cfg',
-                                     'inroot.txt',
-                                     'notexisting']),
-                           'some/file.txt',
-                           'some/other_file.txt']
+        dist.data_files = [
+            ('data', ['data/data.dt', 'buildout.cfg', 'inroot.txt', 'notexisting']),
+            'some/file.txt',
+            'some/other_file.txt',
+        ]
 
         # adding a script
         script_dir = join(self.tmp_dir, 'scripts')
@@ -215,119 +217,123 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         # now let's check what we have
         dist_folder = join(self.tmp_dir, 'dist')
         files = os.listdir(dist_folder)
-        self.assertEqual(files, ['fake-1.0.zip'])
+        assert files == ['ns_fake_pkg-1.0.zip']
 
-        zip_file = zipfile.ZipFile(join(dist_folder, 'fake-1.0.zip'))
+        zip_file = zipfile.ZipFile(join(dist_folder, 'ns_fake_pkg-1.0.zip'))
         try:
             content = zip_file.namelist()
         finally:
             zip_file.close()
 
         # making sure everything was added
-        expected = ['', 'PKG-INFO', 'README', 'buildout.cfg',
-                    'data/', 'data/data.dt', 'inroot.txt',
-                    'scripts/', 'scripts/script.py', 'setup.py',
-                    'some/', 'some/file.txt', 'some/other_file.txt',
-                    'somecode/', 'somecode/__init__.py', 'somecode/doc.dat',
-                    'somecode/doc.txt']
-        self.assertEqual(sorted(content), ['fake-1.0/' + x for x in expected])
+        expected = [
+            '',
+            'PKG-INFO',
+            'README',
+            'buildout.cfg',
+            'data/',
+            'data/data.dt',
+            'inroot.txt',
+            'scripts/',
+            'scripts/script.py',
+            'setup.py',
+            'some/',
+            'some/file.txt',
+            'some/other_file.txt',
+            'somecode/',
+            'somecode/__init__.py',
+            'somecode/doc.dat',
+            'somecode/doc.txt',
+        ]
+        assert sorted(content) == ['ns_fake_pkg-1.0/' + x for x in expected]
 
         # checking the MANIFEST
-        f = open(join(self.tmp_dir, 'MANIFEST'))
-        try:
-            manifest = f.read()
-        finally:
-            f.close()
-        self.assertEqual(manifest, MANIFEST % {'sep': os.sep})
+        manifest = pathlib.Path(self.tmp_dir, 'MANIFEST').read_text(encoding='utf-8')
+        assert manifest == MANIFEST % {'sep': os.sep}
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
-    def test_metadata_check_option(self):
+    @staticmethod
+    def warnings(messages, prefix='warning: '):
+        return [msg for msg in messages if msg.startswith(prefix)]
+
+    @pytest.mark.usefixtures('needs_zlib')
+    def test_metadata_check_option(self, caplog):
         # testing the `medata-check` option
-        dist, cmd = self.get_cmd(metadata={})
+        _dist, cmd = self.get_cmd(metadata={})
 
         # this should raise some warnings !
         # with the `check` subcommand
         cmd.ensure_finalized()
         cmd.run()
-        warnings = [msg for msg in self.get_logs(WARN) if
-                    msg.startswith('warning: check:')]
-        self.assertEqual(len(warnings), 2)
+        assert len(self.warnings(caplog.messages, 'warning: check: ')) == 1
 
         # trying with a complete set of metadata
-        self.clear_logs()
-        dist, cmd = self.get_cmd()
+        caplog.clear()
+        _dist, cmd = self.get_cmd()
         cmd.ensure_finalized()
-        cmd.metadata_check = 0
+        cmd.metadata_check = False
         cmd.run()
-        warnings = [msg for msg in self.get_logs(WARN) if
-                    msg.startswith('warning: check:')]
-        self.assertEqual(len(warnings), 0)
+        assert len(self.warnings(caplog.messages, 'warning: check: ')) == 0
 
-    def test_check_metadata_deprecated(self):
-        # makes sure make_metadata is deprecated
-        dist, cmd = self.get_cmd()
-        with check_warnings() as w:
-            warnings.simplefilter("always")
-            cmd.check_metadata()
-            self.assertEqual(len(w.warnings), 1)
-
-    def test_show_formats(self):
-        with captured_stdout() as stdout:
-            show_formats()
+    def test_show_formats(self, capsys):
+        show_formats()
 
         # the output should be a header line + one line per format
         num_formats = len(ARCHIVE_FORMATS.keys())
-        output = [line for line in stdout.getvalue().split('\n')
-                  if line.strip().startswith('--formats=')]
-        self.assertEqual(len(output), num_formats)
+        output = [
+            line
+            for line in capsys.readouterr().out.split('\n')
+            if line.strip().startswith('--formats=')
+        ]
+        assert len(output) == num_formats
 
     def test_finalize_options(self):
-        dist, cmd = self.get_cmd()
+        _dist, cmd = self.get_cmd()
         cmd.finalize_options()
 
         # default options set by finalize
-        self.assertEqual(cmd.manifest, 'MANIFEST')
-        self.assertEqual(cmd.template, 'MANIFEST.in')
-        self.assertEqual(cmd.dist_dir, 'dist')
+        assert cmd.manifest == 'MANIFEST'
+        assert cmd.template == 'MANIFEST.in'
+        assert cmd.dist_dir == 'dist'
 
         # formats has to be a string splitable on (' ', ',') or
         # a stringlist
         cmd.formats = 1
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
         cmd.formats = ['zip']
         cmd.finalize_options()
 
         # formats has to be known
         cmd.formats = 'supazipa'
-        self.assertRaises(DistutilsOptionError, cmd.finalize_options)
+        with pytest.raises(DistutilsOptionError):
+            cmd.finalize_options()
 
     # the following tests make sure there is a nice error message instead
     # of a traceback when parsing an invalid manifest template
 
-    def _check_template(self, content):
-        dist, cmd = self.get_cmd()
+    def _check_template(self, content, caplog):
+        _dist, cmd = self.get_cmd()
         os.chdir(self.tmp_dir)
         self.write_file('MANIFEST.in', content)
         cmd.ensure_finalized()
         cmd.filelist = FileList()
         cmd.read_template()
-        warnings = self.get_logs(WARN)
-        self.assertEqual(len(warnings), 1)
+        assert len(self.warnings(caplog.messages)) == 1
 
-    def test_invalid_template_unknown_command(self):
-        self._check_template('taunt knights *')
+    def test_invalid_template_unknown_command(self, caplog):
+        self._check_template('taunt knights *', caplog)
 
-    def test_invalid_template_wrong_arguments(self):
+    def test_invalid_template_wrong_arguments(self, caplog):
         # this manifest command takes one argument
-        self._check_template('prune')
+        self._check_template('prune', caplog)
 
-    @unittest.skipIf(os.name != 'nt', 'test relevant for Windows only')
-    def test_invalid_template_wrong_path(self):
+    @pytest.mark.skipif("platform.system() != 'Windows'")
+    def test_invalid_template_wrong_path(self, caplog):
         # on Windows, trailing slashes are not allowed
         # this used to crash instead of raising a warning: #8286
-        self._check_template('include examples/')
+        self._check_template('include examples/', caplog)
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_get_file_list(self):
         # make sure MANIFEST is recalculated
         dist, cmd = self.get_cmd()
@@ -339,14 +345,7 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         cmd.ensure_finalized()
         cmd.run()
 
-        f = open(cmd.manifest)
-        try:
-            manifest = [line.strip() for line in f.read().split('\n')
-                        if line.strip() != '']
-        finally:
-            f.close()
-
-        self.assertEqual(len(manifest), 5)
+        assert ilen(clean_lines(cmd.manifest)) == 5
 
         # adding a file
         self.write_file((self.tmp_dir, 'somecode', 'doc2.txt'), '#')
@@ -358,91 +357,76 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
 
         cmd.run()
 
-        f = open(cmd.manifest)
-        try:
-            manifest2 = [line.strip() for line in f.read().split('\n')
-                         if line.strip() != '']
-        finally:
-            f.close()
+        manifest2 = list(clean_lines(cmd.manifest))
 
         # do we have the new file in MANIFEST ?
-        self.assertEqual(len(manifest2), 6)
-        self.assertIn('doc2.txt', manifest2[-1])
+        assert len(manifest2) == 6
+        assert 'doc2.txt' in manifest2[-1]
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_manifest_marker(self):
         # check that autogenerated MANIFESTs have a marker
-        dist, cmd = self.get_cmd()
+        _dist, cmd = self.get_cmd()
         cmd.ensure_finalized()
         cmd.run()
 
-        f = open(cmd.manifest)
-        try:
-            manifest = [line.strip() for line in f.read().split('\n')
-                        if line.strip() != '']
-        finally:
-            f.close()
+        assert (
+            next(clean_lines(cmd.manifest))
+            == '# file GENERATED by distutils, do NOT edit'
+        )
 
-        self.assertEqual(manifest[0],
-                         '# file GENERATED by distutils, do NOT edit')
-
-    @unittest.skipUnless(ZLIB_SUPPORT, "Need zlib support to run")
+    @pytest.mark.usefixtures('needs_zlib')
     def test_manifest_comments(self):
         # make sure comments don't cause exceptions or wrong includes
-        contents = dedent("""\
+        contents = dedent(
+            """\
             # bad.py
             #bad.py
             good.py
-            """)
-        dist, cmd = self.get_cmd()
+            """
+        )
+        _dist, cmd = self.get_cmd()
         cmd.ensure_finalized()
         self.write_file((self.tmp_dir, cmd.manifest), contents)
         self.write_file((self.tmp_dir, 'good.py'), '# pick me!')
         self.write_file((self.tmp_dir, 'bad.py'), "# don't pick me!")
         self.write_file((self.tmp_dir, '#bad.py'), "# don't pick me!")
         cmd.run()
-        self.assertEqual(cmd.filelist.files, ['good.py'])
+        assert cmd.filelist.files == ['good.py']
 
-    @unittest.skipUnless(ZLIB_SUPPORT, 'Need zlib support to run')
+    @pytest.mark.usefixtures('needs_zlib')
     def test_manual_manifest(self):
         # check that a MANIFEST without a marker is left alone
-        dist, cmd = self.get_cmd()
+        _dist, cmd = self.get_cmd()
         cmd.formats = ['gztar']
         cmd.ensure_finalized()
         self.write_file((self.tmp_dir, cmd.manifest), 'README.manual')
-        self.write_file((self.tmp_dir, 'README.manual'),
-                         'This project maintains its MANIFEST file itself.')
+        self.write_file(
+            (self.tmp_dir, 'README.manual'),
+            'This project maintains its MANIFEST file itself.',
+        )
         cmd.run()
-        self.assertEqual(cmd.filelist.files, ['README.manual'])
+        assert cmd.filelist.files == ['README.manual']
 
-        f = open(cmd.manifest)
-        try:
-            manifest = [line.strip() for line in f.read().split('\n')
-                        if line.strip() != '']
-        finally:
-            f.close()
+        assert list(clean_lines(cmd.manifest)) == ['README.manual']
 
-        self.assertEqual(manifest, ['README.manual'])
-
-        archive_name = join(self.tmp_dir, 'dist', 'fake-1.0.tar.gz')
-        archive = tarfile.open(archive_name)
-        try:
+        archive_name = join(self.tmp_dir, 'dist', 'ns_fake_pkg-1.0.tar.gz')
+        with tarfile.open(archive_name) as archive:
             filenames = [tarinfo.name for tarinfo in archive]
-        finally:
-            archive.close()
-        self.assertEqual(sorted(filenames), ['fake-1.0', 'fake-1.0/PKG-INFO',
-                                             'fake-1.0/README.manual'])
+        assert sorted(filenames) == [
+            'ns_fake_pkg-1.0',
+            'ns_fake_pkg-1.0/PKG-INFO',
+            'ns_fake_pkg-1.0/README.manual',
+        ]
 
-    @unittest.skipUnless(ZLIB_SUPPORT, "requires zlib")
+    @pytest.mark.usefixtures('needs_zlib')
     @require_unix_id
     @require_uid_0
-    @unittest.skipIf(find_executable('tar') is None,
-                     "The tar command is not found")
-    @unittest.skipIf(find_executable('gzip') is None,
-                     "The gzip command is not found")
+    @pytest.mark.skipif("not shutil.which('tar')")
+    @pytest.mark.skipif("not shutil.which('gzip')")
     def test_make_distribution_owner_group(self):
         # now building a sdist
-        dist, cmd = self.get_cmd()
+        _dist, cmd = self.get_cmd()
 
         # creating a gztar and specifying the owner+group
         cmd.formats = ['gztar']
@@ -452,17 +436,14 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         cmd.run()
 
         # making sure we have the good rights
-        archive_name = join(self.tmp_dir, 'dist', 'fake-1.0.tar.gz')
-        archive = tarfile.open(archive_name)
-        try:
+        archive_name = join(self.tmp_dir, 'dist', 'ns_fake_pkg-1.0.tar.gz')
+        with tarfile.open(archive_name) as archive:
             for member in archive.getmembers():
-                self.assertEqual(member.uid, 0)
-                self.assertEqual(member.gid, 0)
-        finally:
-            archive.close()
+                assert member.uid == 0
+                assert member.gid == 0
 
         # building a sdist again
-        dist, cmd = self.get_cmd()
+        _dist, cmd = self.get_cmd()
 
         # creating a gztar
         cmd.formats = ['gztar']
@@ -470,20 +451,10 @@ class SDistTestCase(BasePyPIRCCommandTestCase):
         cmd.run()
 
         # making sure we have the good rights
-        archive_name = join(self.tmp_dir, 'dist', 'fake-1.0.tar.gz')
-        archive = tarfile.open(archive_name)
-
+        archive_name = join(self.tmp_dir, 'dist', 'ns_fake_pkg-1.0.tar.gz')
         # note that we are not testing the group ownership here
         # because, depending on the platforms and the container
         # rights (see #7408)
-        try:
+        with tarfile.open(archive_name) as archive:
             for member in archive.getmembers():
-                self.assertEqual(member.uid, os.getuid())
-        finally:
-            archive.close()
-
-def test_suite():
-    return unittest.TestLoader().loadTestsFromTestCase(SDistTestCase)
-
-if __name__ == "__main__":
-    run_unittest(test_suite())
+                assert member.uid == os.getuid()

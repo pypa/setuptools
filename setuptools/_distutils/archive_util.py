@@ -3,62 +3,68 @@
 Utility functions for creating archive files (tarballs, zip files,
 that sort of thing)."""
 
+from __future__ import annotations
+
+import contextlib
 import os
-from warnings import warn
-import sys
+from collections.abc import Callable
+from types import ModuleType
+from typing import Literal, overload
 
-try:
+from ._log import log
+from .dir_util import mkpath
+from .errors import DistutilsExecError
+from .spawn import spawn
+
+zipfile: ModuleType | None = None
+with contextlib.suppress(ImportError):
     import zipfile
-except ImportError:
-    zipfile = None
 
+grp: ModuleType | None = None
+pwd: ModuleType | None = None
+with contextlib.suppress(ImportError):
+    import grp
+    import pwd
 
-from distutils.errors import DistutilsExecError
-from distutils.spawn import spawn
-from distutils.dir_util import mkpath
-from distutils import log
-
-try:
-    from pwd import getpwnam
-except ImportError:
-    getpwnam = None
-
-try:
-    from grp import getgrnam
-except ImportError:
-    getgrnam = None
 
 def _get_gid(name):
     """Returns a gid, given a group name."""
-    if getgrnam is None or name is None:
+    if grp is None or name is None:
         return None
     try:
-        result = getgrnam(name)
+        result = grp.getgrnam(name)
     except KeyError:
         result = None
     if result is not None:
         return result[2]
     return None
+
 
 def _get_uid(name):
     """Returns an uid, given a user name."""
-    if getpwnam is None or name is None:
+    if pwd is None or name is None:
         return None
     try:
-        result = getpwnam(name)
+        result = pwd.getpwnam(name)
     except KeyError:
         result = None
     if result is not None:
         return result[2]
     return None
 
-def make_tarball(base_name, base_dir, compress="gzip", verbose=0, dry_run=0,
-                 owner=None, group=None):
+
+def make_tarball(
+    base_name: str,
+    base_dir: str | os.PathLike[str],
+    compress: Literal["gzip", "bzip2", "xz"] | None = "gzip",
+    verbose: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str:
     """Create a (possibly compressed) tar file from all the files under
     'base_dir'.
 
-    'compress' must be "gzip" (the default), "bzip2", "xz", "compress", or
-    None.  ("compress" will be deprecated in Python 3.2)
+    'compress' must be "gzip" (the default), "bzip2", "xz", or None.
 
     'owner' and 'group' can be used to define an owner and a group for the
     archive that is being built. If not provided, the current owner and group
@@ -69,22 +75,24 @@ def make_tarball(base_name, base_dir, compress="gzip", verbose=0, dry_run=0,
 
     Returns the output filename.
     """
-    tar_compression = {'gzip': 'gz', 'bzip2': 'bz2', 'xz': 'xz', None: '',
-                       'compress': ''}
-    compress_ext = {'gzip': '.gz', 'bzip2': '.bz2', 'xz': '.xz',
-                    'compress': '.Z'}
+    tar_compression = {
+        'gzip': 'gz',
+        'bzip2': 'bz2',
+        'xz': 'xz',
+        None: '',
+    }
+    compress_ext = {'gzip': '.gz', 'bzip2': '.bz2', 'xz': '.xz'}
 
     # flags for compression program, each element of list will be an argument
-    if compress is not None and compress not in compress_ext.keys():
+    if compress is not None and compress not in compress_ext:
         raise ValueError(
-              "bad value for 'compress': must be None, 'gzip', 'bzip2', "
-              "'xz' or 'compress'")
+            "bad value for 'compress': must be None, 'gzip', 'bzip2', 'xz'"
+        )
 
     archive_name = base_name + '.tar'
-    if compress != 'compress':
-        archive_name += compress_ext.get(compress, '')
+    archive_name += compress_ext.get(compress, '')
 
-    mkpath(os.path.dirname(archive_name), dry_run=dry_run)
+    mkpath(os.path.dirname(archive_name))
 
     # creating the tarball
     import tarfile  # late import so Python build itself doesn't break
@@ -103,28 +111,19 @@ def make_tarball(base_name, base_dir, compress="gzip", verbose=0, dry_run=0,
             tarinfo.uname = owner
         return tarinfo
 
-    if not dry_run:
-        tar = tarfile.open(archive_name, 'w|%s' % tar_compression[compress])
-        try:
-            tar.add(base_dir, filter=_set_uid_gid)
-        finally:
-            tar.close()
-
-    # compression using `compress`
-    if compress == 'compress':
-        warn("'compress' will be deprecated.", PendingDeprecationWarning)
-        # the option varies depending on the platform
-        compressed_name = archive_name + compress_ext[compress]
-        if sys.platform == 'win32':
-            cmd = [compress, archive_name, compressed_name]
-        else:
-            cmd = [compress, '-f', archive_name]
-        spawn(cmd, dry_run=dry_run)
-        return compressed_name
+    with tarfile.open(  # type: ignore[call-overload] # Dynamic mode
+        archive_name, f'w|{tar_compression[compress]}'
+    ) as tar:
+        tar.add(base_dir, filter=_set_uid_gid)
 
     return archive_name
 
-def make_zipfile(base_name, base_dir, verbose=0, dry_run=0):
+
+def make_zipfile(
+    base_name: str,
+    base_dir: str | os.PathLike[str],
+    verbose: bool = False,
+) -> str:
     """Create a zip file from all the files under 'base_dir'.
 
     The output zip file will be named 'base_name' + ".zip".  Uses either the
@@ -134,7 +133,7 @@ def make_zipfile(base_name, base_dir, verbose=0, dry_run=0):
     file.
     """
     zip_filename = base_name + ".zip"
-    mkpath(os.path.dirname(zip_filename), dry_run=dry_run)
+    mkpath(os.path.dirname(zip_filename))
 
     # If zipfile module is not available, try spawning an external
     # 'zip' command.
@@ -145,53 +144,54 @@ def make_zipfile(base_name, base_dir, verbose=0, dry_run=0):
             zipoptions = "-rq"
 
         try:
-            spawn(["zip", zipoptions, zip_filename, base_dir],
-                  dry_run=dry_run)
+            spawn(["zip", zipoptions, zip_filename, base_dir])
         except DistutilsExecError:
             # XXX really should distinguish between "couldn't find
             # external 'zip' command" and "zip failed".
-            raise DistutilsExecError(("unable to create zip file '%s': "
-                   "could neither import the 'zipfile' module nor "
-                   "find a standalone zip utility") % zip_filename)
+            raise DistutilsExecError(
+                f"unable to create zip file '{zip_filename}': "
+                "could neither import the 'zipfile' module nor "
+                "find a standalone zip utility"
+            )
 
     else:
-        log.info("creating '%s' and adding '%s' to it",
-                 zip_filename, base_dir)
+        log.info("creating '%s' and adding '%s' to it", zip_filename, base_dir)
 
-        if not dry_run:
-            try:
-                zip = zipfile.ZipFile(zip_filename, "w",
-                                      compression=zipfile.ZIP_DEFLATED)
-            except RuntimeError:
-                zip = zipfile.ZipFile(zip_filename, "w",
-                                      compression=zipfile.ZIP_STORED)
+        try:
+            zip = zipfile.ZipFile(zip_filename, "w", compression=zipfile.ZIP_DEFLATED)
+        except RuntimeError:
+            zip = zipfile.ZipFile(zip_filename, "w", compression=zipfile.ZIP_STORED)
 
-            with zip:
-                if base_dir != os.curdir:
-                    path = os.path.normpath(os.path.join(base_dir, ''))
+        with zip:
+            if base_dir != os.curdir:
+                path = os.path.normpath(os.path.join(base_dir, ''))
+                zip.write(path, path)
+                log.info("adding '%s'", path)
+            for dirpath, dirnames, filenames in os.walk(base_dir):
+                for name in dirnames:
+                    path = os.path.normpath(os.path.join(dirpath, name, ''))
                     zip.write(path, path)
                     log.info("adding '%s'", path)
-                for dirpath, dirnames, filenames in os.walk(base_dir):
-                    for name in dirnames:
-                        path = os.path.normpath(os.path.join(dirpath, name, ''))
+                for name in filenames:
+                    path = os.path.normpath(os.path.join(dirpath, name))
+                    if os.path.isfile(path):
                         zip.write(path, path)
                         log.info("adding '%s'", path)
-                    for name in filenames:
-                        path = os.path.normpath(os.path.join(dirpath, name))
-                        if os.path.isfile(path):
-                            zip.write(path, path)
-                            log.info("adding '%s'", path)
 
     return zip_filename
 
-ARCHIVE_FORMATS = {
+
+ARCHIVE_FORMATS: dict[
+    str, tuple[Callable[..., str], list[tuple[str, str | None]], str]
+] = {
     'gztar': (make_tarball, [('compress', 'gzip')], "gzip'ed tar-file"),
     'bztar': (make_tarball, [('compress', 'bzip2')], "bzip2'ed tar-file"),
     'xztar': (make_tarball, [('compress', 'xz')], "xz'ed tar-file"),
-    'ztar':  (make_tarball, [('compress', 'compress')], "compressed tar file"),
-    'tar':   (make_tarball, [('compress', None)], "uncompressed tar file"),
-    'zip':   (make_zipfile, [],"ZIP file")
-    }
+    'ztar': (make_tarball, [('compress', 'compress')], "compressed tar file"),
+    'tar': (make_tarball, [('compress', None)], "uncompressed tar file"),
+    'zip': (make_zipfile, [], "ZIP file"),
+}
+
 
 def check_archive_formats(formats):
     """Returns the first format from the 'format' list that is unknown.
@@ -203,8 +203,36 @@ def check_archive_formats(formats):
             return format
     return None
 
-def make_archive(base_name, format, root_dir=None, base_dir=None, verbose=0,
-                 dry_run=0, owner=None, group=None):
+
+@overload
+def make_archive(
+    base_name: str,
+    format: str,
+    root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes] | None = None,
+    base_dir: str | None = None,
+    verbose: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str: ...
+@overload
+def make_archive(
+    base_name: str | os.PathLike[str],
+    format: str,
+    root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes],
+    base_dir: str | None = None,
+    verbose: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str: ...
+def make_archive(
+    base_name: str | os.PathLike[str],
+    format: str,
+    root_dir: str | os.PathLike[str] | bytes | os.PathLike[bytes] | None = None,
+    base_dir: str | None = None,
+    verbose: bool = False,
+    owner: str | None = None,
+    group: str | None = None,
+) -> str:
     """Create an archive file (eg. zip or tar).
 
     'base_name' is the name of the file to create, minus any format-specific
@@ -225,22 +253,20 @@ def make_archive(base_name, format, root_dir=None, base_dir=None, verbose=0,
     if root_dir is not None:
         log.debug("changing into '%s'", root_dir)
         base_name = os.path.abspath(base_name)
-        if not dry_run:
-            os.chdir(root_dir)
+        os.chdir(root_dir)
 
     if base_dir is None:
         base_dir = os.curdir
 
-    kwargs = {'dry_run': dry_run}
+    kwargs: dict[str, str | bool | None] = {}
 
     try:
         format_info = ARCHIVE_FORMATS[format]
     except KeyError:
-        raise ValueError("unknown archive format '%s'" % format)
+        raise ValueError(f"unknown archive format '{format}'")
 
     func = format_info[0]
-    for arg, val in format_info[1]:
-        kwargs[arg] = val
+    kwargs.update(format_info[1])
 
     if format != 'zip':
         kwargs['owner'] = owner

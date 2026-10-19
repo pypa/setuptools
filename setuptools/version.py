@@ -1,6 +1,6 @@
-import pkg_resources
+from ._importlib import metadata
 
 try:
-    __version__ = pkg_resources.get_distribution('setuptools').version
-except Exception:
-    __version__ = 'unknown'
+    __version__ = metadata.version('setuptools') or '0.dev0+unknown'
+except Exception:  # noqa: BLE001 # intentional broad fallback
+    __version__ = '0.dev0+unknown'

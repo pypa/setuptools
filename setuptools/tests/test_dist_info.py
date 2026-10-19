@@ -1,74 +1,148 @@
-"""Test .dist-info style distributions.
-"""
+"""Test .dist-info style distributions."""
+
+import pathlib
+import re
+import shutil
+import subprocess
+import sys
+from functools import partial
+from typing import ClassVar
 
 import pytest
 
-import pkg_resources
+from setuptools.archive_util import unpack_archive
+
 from .textwrap import DALS
+
+read = partial(pathlib.Path.read_text, encoding="utf-8")
 
 
 class TestDistInfo:
+    def test_invalid_version(self, tmp_path):
+        """
+        Supplying an invalid version crashes dist_info.
+        """
+        config = "[metadata]\nname=proj\nversion=42\n[egg_info]\ntag_build=invalid!!!\n"
+        (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
+        msg = re.compile("invalid version", re.MULTILINE | re.IGNORECASE)
+        proc = run_command_inner("dist_info", cwd=tmp_path, check=False)
+        assert proc.returncode
+        assert msg.search(proc.stdout)
+        assert not list(tmp_path.glob("*.dist-info"))
 
-    metadata_base = DALS("""
-        Metadata-Version: 1.2
-        Requires-Dist: splort (==4)
-        Provides-Extra: baz
-        Requires-Dist: quux (>=1.1); extra == 'baz'
-        """)
+    def test_tag_arguments(self, tmp_path):
+        config = """
+        [metadata]
+        name=proj
+        version=42
+        [egg_info]
+        tag_date=1
+        tag_build=.post
+        """
+        (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
 
-    @classmethod
-    def build_metadata(cls, **kwargs):
-        lines = (
-            '{key}: {value}\n'.format(**locals())
-            for key, value in kwargs.items()
-        )
-        return cls.metadata_base + ''.join(lines)
+        print(run_command("dist_info", "--no-date", cwd=tmp_path))
+        dist_info = next(tmp_path.glob("*.dist-info"))
+        assert dist_info.name.startswith("proj-42")
+        shutil.rmtree(dist_info)
 
-    @pytest.fixture
-    def metadata(self, tmpdir):
-        dist_info_name = 'VersionedDistribution-2.718.dist-info'
-        versioned = tmpdir / dist_info_name
-        versioned.mkdir()
-        filename = versioned / 'METADATA'
-        content = self.build_metadata(
-            Name='VersionedDistribution',
-        )
-        filename.write_text(content, encoding='utf-8')
+        print(run_command("dist_info", "--tag-build", ".a", cwd=tmp_path))
+        dist_info = next(tmp_path.glob("*.dist-info"))
+        assert dist_info.name.startswith("proj-42a")
 
-        dist_info_name = 'UnversionedDistribution.dist-info'
-        unversioned = tmpdir / dist_info_name
-        unversioned.mkdir()
-        filename = unversioned / 'METADATA'
-        content = self.build_metadata(
-            Name='UnversionedDistribution',
-            Version='0.3',
-        )
-        filename.write_text(content, encoding='utf-8')
+    @pytest.mark.parametrize("keep_egg_info", (False, True))
+    def test_output_dir(self, tmp_path, keep_egg_info):
+        config = "[metadata]\nname=proj\nversion=42\n"
+        (tmp_path / "setup.cfg").write_text(config, encoding="utf-8")
+        out = tmp_path / "__out"
+        out.mkdir()
+        opts = ["--keep-egg-info"] if keep_egg_info else []
+        run_command("dist_info", "--output-dir", out, *opts, cwd=tmp_path)
+        assert len(list(out.glob("*.dist-info"))) == 1
+        assert len(list(tmp_path.glob("*.dist-info"))) == 0
+        expected_egg_info = int(keep_egg_info)
+        assert len(list(out.glob("*.egg-info"))) == expected_egg_info
+        assert len(list(tmp_path.glob("*.egg-info"))) == 0
+        assert len(list(out.glob("*.__bkp__"))) == 0
+        assert len(list(tmp_path.glob("*.__bkp__"))) == 0
 
-        return str(tmpdir)
 
-    def test_distinfo(self, metadata):
-        dists = dict(
-            (d.project_name, d)
-            for d in pkg_resources.find_distributions(metadata)
-        )
+class TestWheelCompatibility:
+    """Make sure the .dist-info directory produced with the ``dist_info`` command
+    is the same as the one produced by ``bdist_wheel``.
+    """
 
-        assert len(dists) == 2, dists
+    SETUPCFG = DALS(
+        """
+    [metadata]
+    name = {name}
+    version = {version}
 
-        unversioned = dists['UnversionedDistribution']
-        versioned = dists['VersionedDistribution']
+    [options]
+    install_requires =
+        foo>=12; sys_platform != "linux"
 
-        assert versioned.version == '2.718'  # from filename
-        assert unversioned.version == '0.3'  # from METADATA
+    [options.extras_require]
+    test = pytest
 
-    def test_conditional_dependencies(self, metadata):
-        specs = 'splort==4', 'quux>=1.1'
-        requires = list(map(pkg_resources.Requirement.parse, specs))
+    [options.entry_points]
+    console_scripts =
+        executable-name = my_package.module:function
+    discover =
+        myproj = my_package.other_module:function
+    """
+    )
 
-        for d in pkg_resources.find_distributions(metadata):
-            assert d.requires() == requires[:1]
-            assert d.requires(extras=('baz',)) == [
-                requires[0],
-                pkg_resources.Requirement.parse('quux>=1.1;extra=="baz"'),
-            ]
-            assert d.extras == ['baz']
+    EGG_INFO_OPTS: ClassVar[list[tuple[str, str]]] = [
+        # Related: #3088 #2872
+        ("", ""),
+        (".post", "[egg_info]\ntag_build = post\n"),
+        (".post", "[egg_info]\ntag_build = .post\n"),
+        (".post", "[egg_info]\ntag_build = post\ntag_date = 1\n"),
+        (".dev", "[egg_info]\ntag_build = .dev\n"),
+        (".dev", "[egg_info]\ntag_build = .dev\ntag_date = 1\n"),
+        ("a1", "[egg_info]\ntag_build = .a1\n"),
+        ("+local", "[egg_info]\ntag_build = +local\n"),
+    ]
+
+    @pytest.mark.parametrize("name", ["my-proj", "my_proj", "my.proj", "My.Proj"])
+    @pytest.mark.parametrize("version", ["0.42.13"])
+    @pytest.mark.parametrize(("suffix", "cfg"), EGG_INFO_OPTS)
+    def test_dist_info_is_the_same_as_in_wheel(
+        self, name, version, tmp_path, suffix, cfg
+    ):
+        config = self.SETUPCFG.format(name=name, version=version) + cfg
+
+        for i in "dir_wheel", "dir_dist":
+            (tmp_path / i).mkdir()
+            (tmp_path / i / "setup.cfg").write_text(config, encoding="utf-8")
+
+        run_command("bdist_wheel", cwd=tmp_path / "dir_wheel")
+        wheel = next(tmp_path.glob("dir_wheel/dist/*.whl"))
+        unpack_archive(wheel, tmp_path / "unpack")
+        wheel_dist_info = next(tmp_path.glob("unpack/*.dist-info"))
+
+        run_command("dist_info", cwd=tmp_path / "dir_dist")
+        dist_info = next(tmp_path.glob("dir_dist/*.dist-info"))
+
+        assert dist_info.name == wheel_dist_info.name
+        assert dist_info.name.startswith(f"my_proj-{version}{suffix}")
+        for file in "METADATA", "entry_points.txt":
+            assert read(dist_info / file) == read(wheel_dist_info / file)
+
+
+def run_command_inner(*cmd, **kwargs):
+    opts = {
+        "stderr": subprocess.STDOUT,
+        "stdout": subprocess.PIPE,
+        "text": True,
+        "encoding": "utf-8",
+        "check": True,
+        **kwargs,
+    }
+    cmd = [sys.executable, "-c", "__import__('setuptools').setup()", *map(str, cmd)]
+    return subprocess.run(cmd, **opts)  # noqa: PLW1510 # check provided via opts
+
+
+def run_command(*args, **kwargs):
+    return run_command_inner(*args, **kwargs).stdout

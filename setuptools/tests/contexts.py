@@ -1,12 +1,11 @@
-import tempfile
+import contextlib
+import io
 import os
 import shutil
-import sys
-import contextlib
 import site
-import io
+import sys
+import tempfile
 
-import pkg_resources
 from filelock import FileLock
 
 
@@ -28,11 +27,7 @@ def environment(**replacements):
     In a context, patch the environment with replacements. Pass None values
     to clear the values.
     """
-    saved = dict(
-        (key, os.environ[key])
-        for key in replacements
-        if key in os.environ
-    )
+    saved = {key: os.environ[key] for key in replacements if key in os.environ}
 
     # remove values that are null
     remove = (key for (key, value) in replacements.items() if value is None)
@@ -80,18 +75,6 @@ def save_user_site_setting():
 
 
 @contextlib.contextmanager
-def save_pkg_resources_state():
-    pr_state = pkg_resources.__getstate__()
-    # also save sys.path
-    sys_path = sys.path[:]
-    try:
-        yield pr_state, sys_path
-    finally:
-        sys.path[:] = sys_path
-        pkg_resources.__setstate__(pr_state)
-
-
-@contextlib.contextmanager
 def suppress_exceptions(*excs):
     try:
         yield
@@ -106,7 +89,7 @@ def multiproc(request):
     """
     try:
         worker_id = request.getfixturevalue('worker_id')
-    except Exception:
+    except Exception:  # noqa: BLE001 # intentional broad fallback
         return False
     return worker_id != 'master'
 
@@ -123,3 +106,26 @@ def session_locked_tmp_dir(request, tmp_path_factory, name):
         # ^-- prevent multiple workers to access the directory at once
         locked_dir.mkdir(exist_ok=True, parents=True)
         yield locked_dir
+
+
+@contextlib.contextmanager
+def save_paths():
+    """Make sure ``sys.path``, ``sys.meta_path`` and ``sys.path_hooks`` are preserved"""
+    prev = sys.path[:], sys.meta_path[:], sys.path_hooks[:]
+
+    try:
+        yield
+    finally:
+        sys.path, sys.meta_path, sys.path_hooks = prev
+
+
+@contextlib.contextmanager
+def save_sys_modules():
+    """Make sure initial ``sys.modules`` is preserved"""
+    prev_modules = sys.modules
+
+    try:
+        sys.modules = sys.modules.copy()
+        yield
+    finally:
+        sys.modules = prev_modules
