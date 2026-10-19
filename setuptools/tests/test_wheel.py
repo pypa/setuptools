@@ -21,6 +21,7 @@ from packaging.tags import parse_tag
 from setuptools._importlib import metadata
 from setuptools.wheel import Wheel, _resolve_namespace_dir
 
+from .compat.py39 import os_helper
 from .contexts import tempdir
 from .textwrap import DALS
 
@@ -712,6 +713,24 @@ def test_namespace_package_escape(tmp_path, mod):
 def test_namespace_package_resolves_dotted_name(tmp_path):
     expected = tmp_path / 'ns' / 'pkg'
     assert _resolve_namespace_dir(str(tmp_path), 'ns.pkg') == str(expected)
+
+
+@pytest.mark.skipif(not os_helper.can_symlink(), reason='Symlink support required')
+def test_namespace_package_rejects_symlinked_escape(tmp_path):
+    """
+    A namespace name that is a valid identifier must still not escape through
+    a symlink that already exists in the egg directory.
+    """
+    dest = tmp_path / 'dest'
+    dest.mkdir()
+    outside = tmp_path / 'outside'
+    outside.mkdir()
+    (dest / 'ns').symlink_to(outside, target_is_directory=True)
+
+    with pytest.raises(ValueError, match='invalid namespace package name'):
+        _resolve_namespace_dir(str(dest), 'ns')
+
+    assert _resolve_namespace_dir(str(dest), 'ok') == str(dest / 'ok')
 
 
 def test_install_as_egg_rejects_namespace_escape(tmp_path):
