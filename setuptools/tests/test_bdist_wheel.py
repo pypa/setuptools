@@ -7,6 +7,7 @@ import platform
 import shutil
 import stat
 import struct
+import subprocess
 import sys
 import sysconfig
 from contextlib import nullcontext, suppress
@@ -529,10 +530,12 @@ def test_limited_api(monkeypatch, tmp_path, tmp_path_factory):
 @pytest.mark.filterwarnings(
     "once:Config variable '.*' is unset.*, Python ABI tag may be incorrect"
 )
-def test_version_specific_abi(monkeypatch, tmp_path, tmp_path_factory):
-    """Extensions not using the limited API get a version-specific ABI tag."""
+@pytest.mark.parametrize('limited_api', [False, True])
+def test_version_specific_abi(monkeypatch, tmp_path, tmp_path_factory, limited_api):
+    """Version-specific wheels must import with or without py_limited_api."""
     source_dir = tmp_path_factory.mktemp("extension_dist")
-    (source_dir / "setup.py").write_text(VERSION_SPECIFIC_SETUPPY, encoding="utf-8")
+    setup_py = EXTENSION_SETUPPY if limited_api else VERSION_SPECIFIC_SETUPPY
+    (source_dir / "setup.py").write_text(setup_py, encoding="utf-8")
     (source_dir / "extension.c").write_text(EXTENSION_BODY, encoding="utf-8")
     build_dir = tmp_path.joinpath("build")
     dist_dir = tmp_path.joinpath("dist")
@@ -540,6 +543,12 @@ def test_version_specific_abi(monkeypatch, tmp_path, tmp_path_factory):
     bdist_wheel_cmd(bdist_dir=str(build_dir), dist_dir=str(dist_dir)).run()
     wheel_path = next(dist_dir.glob("*.whl"))
     assert f"-{get_abi_tag()}-" in wheel_path.name
+    installed = tmp_path / 'installed'
+    with ZipFile(wheel_path) as archive:
+        archive.extractall(installed)
+    subprocess.run(
+        [sys.executable, '-c', 'import extension'], cwd=installed, check=True
+    )
 
 
 @pytest.mark.skipif(

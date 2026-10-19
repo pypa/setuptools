@@ -53,6 +53,8 @@ IS_PYPY = '__pypy__' in sys.builtin_module_names
         ({'Py_GIL_DISABLED': 1, 'VERSION': None}, '.abi3t.so'),
         ({'Py_GIL_DISABLED': 1, 'VERSION': '3.14'}, '.abi3t.so'),
         ({'Py_GIL_DISABLED': 1, 'VERSION': '3.13'}, '.abi3t.so'),
+        ({'EXT_SUFFIX': '.cpython-313t-darwin.so', 'Py_GIL_DISABLED': 1}, None),
+        ({'EXT_SUFFIX': '.cpython-314t-darwin.so', 'Py_GIL_DISABLED': 1}, None),
         ({'EXT_SUFFIX': '.cp315-win_amd64.pyd'}, '.pyd'),
         ({'EXT_SUFFIX': '.cp315-win_arm64.pyd'}, '.pyd'),
         ({'EXT_SUFFIX': '.cp310-win32.pyd'}, '.pyd'),
@@ -169,11 +171,10 @@ class TestBuildExt:
         # Mock value needed to pass tests
         ext._links_to_dynamic = False
 
-        if not IS_PYPY:
+        if not IS_PYPY and get_abi3_suffix():
             expect = cmd.get_ext_filename('for_abi3')
         else:
-            # PyPy builds do not use ABI3 tag, so they will
-            # also get the overridden suffix.
+            # Builds without an ABI3 tag also get the overridden suffix.
             expect = 'for_abi3.test-suffix'
 
         try:
