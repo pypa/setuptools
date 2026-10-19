@@ -16,7 +16,7 @@ from packaging.utils import canonicalize_name
 from packaging.version import Version as parse_version
 
 import setuptools
-from setuptools.archive_util import _unpack_zipfile_obj
+from setuptools.archive_util import _resolve_dest, _unpack_zipfile_obj
 from setuptools.command.egg_info import _egg_basename, write_requirements
 
 from ._discovery import extras_from_deps
@@ -253,7 +253,7 @@ class Wheel:
             namespace_packages = _read_utf8_with_fallback(namespace_packages).split()
 
             for mod in namespace_packages:
-                mod_dir = os.path.join(destination_eggdir, *mod.split('.'))
+                mod_dir = _resolve_dest(destination_eggdir, mod.replace('.', '/'))
                 mod_init = os.path.join(mod_dir, '__init__.py')
                 if not os.path.exists(mod_dir):
                     os.mkdir(mod_dir)
