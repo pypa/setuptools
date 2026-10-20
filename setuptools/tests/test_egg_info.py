@@ -13,7 +13,7 @@ from unittest import mock
 import pytest
 from jaraco import path
 
-from setuptools import errors
+from setuptools import Extension, errors
 from setuptools.command.egg_info import egg_info, manifest_maker, write_entries
 from setuptools.dist import Distribution
 
@@ -163,6 +163,27 @@ class TestEggInfo:
             'top_level.txt',
         ]
         assert sorted(actual) == expected
+
+    def test_top_level_with_ext_package(self, tmpdir_cwd, env):
+        """
+        Extensions are built inside ``ext_package``, so that package -- and
+        not the bare extension name -- is the top-level name.
+        """
+        path.build({'bar': {'__init__.py': ''}})
+        dist = Distribution({
+            'name': 'foo',
+            'version': '0.0.1',
+            'packages': ['bar'],
+            'ext_package': 'bar',
+            'ext_modules': [Extension('_baz', ['_baz.c'])],
+        })
+        dist.script_name = 'setup.py'
+        ei = egg_info(dist)
+        ei.finalize_options()
+        ei.run()
+
+        with open(os.path.join(ei.egg_info, 'top_level.txt'), encoding="utf-8") as f:
+            assert f.read().split() == ['bar']
 
     def test_handling_utime_error(self, tmpdir_cwd, env):
         dist = Distribution()
