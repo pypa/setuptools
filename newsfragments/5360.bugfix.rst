@@ -1,1 +1,0 @@
-Changed wheel tags and stable-ABI validation to use sysconfig data.

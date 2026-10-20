@@ -1,4 +1,0 @@
-Fixed unimportable extensions on free-threaded Python 3.13 and 3.14 when
-``Extension.py_limited_api`` is enabled. These builds now use their
-version-specific extension suffix instead of using the unsupported ``.abi3t``
-suffix.
