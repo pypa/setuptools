@@ -1,4 +1,6 @@
 import io
+import stat
+import sys
 import tarfile
 import zipfile
 
@@ -127,6 +129,25 @@ def test_unpack_zipfile_creates_directory_members(tmp_path):
     archive_util.unpack_archive(archive, str(target))
 
     assert (target / 'empty').is_dir()
+
+
+@pytest.mark.skipif(sys.platform == 'win32', reason='non-Windows only')
+def test_unpack_zipfile_drops_special_mode_bits(tmp_path):
+    """
+    The setuid, setgid and sticky bits recorded for a zip member are not
+    applied to the extracted file, while its permission bits still are.
+    """
+    special = stat.S_ISUID | stat.S_ISGID | stat.S_ISVTX
+    archive = tmp_path / 'special.zip'
+    with zipfile.ZipFile(archive, mode='w') as zf:
+        info = zipfile.ZipInfo('run.sh')
+        info.external_attr = (stat.S_IFREG | special | 0o755) << 16
+        zf.writestr(info, b'#!/bin/sh\n')
+    target = tmp_path / 'dest'
+
+    archive_util.unpack_archive(str(archive), str(target))
+
+    assert stat.S_IMODE((target / 'run.sh').stat().st_mode) == 0o755
 
 
 @pytest.mark.skipif(not os_helper.can_symlink(), reason='Symlink support required')
