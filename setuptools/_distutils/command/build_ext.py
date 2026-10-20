@@ -12,6 +12,7 @@ import re
 import sys
 from collections.abc import Callable
 from distutils._log import log
+from itertools import filterfalse
 from site import USER_BASE
 from typing import ClassVar
 
@@ -746,20 +747,15 @@ class build_ext(Command):
 
     def get_export_symbols(self, ext: Extension) -> list[str]:
         """Return the list of symbols that a shared extension has to
-        export.  This returns, and possibly updates, 'ext.export_symbols'.
-
-        On Python 3.14 and below (that is, before a new export hook name was added),
-        it adds "PyInit_" + module_name to 'ext.export_symbols'.
-        Only relevant on Windows, where the .pyd file (DLL) must export the module
-        import hook function.
-
-        Since Python 3.15, nothing is added.
-        An export directive was added to the "PyMODINIT_FUNC" implementation
-        for Python 3.15, which is all that is needed.
+        export.  This returns, and possibly extends, 'ext.export_symbols'
+        with any symbols implied for the running Python (see
+        'implied_symbols').  Only relevant on Windows, where the .pyd file
+        (DLL) must export the module import hook function.
         """
         name = self._get_module_name_for_symbol(ext)
-        ext.export_symbols.extend(py314.implied_symbols(name))
-        return ext.export_symbols
+        symbols = ext.export_symbols
+        symbols.extend(filterfalse(symbols.__contains__, py314.implied_symbols(name)))
+        return symbols
 
     def _get_module_name_for_symbol(self, ext):
         # Package name should be used for `__init__` modules
