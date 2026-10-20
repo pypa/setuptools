@@ -423,10 +423,6 @@ class TestBuildExt(TempdirManager):
             assert cmd.get_export_symbols(modules[0]) == []
             assert cmd.get_export_symbols(modules[1]) == []
 
-    @pytest.mark.xfail(
-        reason="get_export_symbols is not idempotent; "
-        "repeated calls accumulate duplicate symbols (pypa/distutils#395)",
-    )
     def test_get_export_symbols_idempotent(self, monkeypatch):
         ext = Extension('foo', ['aaa'])
         dist = Distribution({'name': 'xx', 'ext_modules': [ext]})
