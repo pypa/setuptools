@@ -13,7 +13,6 @@ import textwrap
 import time
 from distutils import sysconfig
 from distutils.command.build_ext import build_ext
-from distutils.compat import py314
 from distutils.compilers.errors import PlatformError
 from distutils.core import Distribution
 from distutils.errors import (
@@ -423,13 +422,18 @@ class TestBuildExt(TempdirManager):
             assert cmd.get_export_symbols(modules[0]) == []
             assert cmd.get_export_symbols(modules[1]) == []
 
-    def test_get_export_symbols_idempotent(self, monkeypatch):
+    def test_get_export_symbols_idempotent(self):
+        """
+        Repeated calls to get_export_symbols should not accumulate
+        duplicate implied symbols.
+
+        This test can be removed once implied_symbols is removed (that is,
+        once support for Python 3.14 and earlier is dropped).
+        """
         ext = Extension('foo', ['aaa'])
         dist = Distribution({'name': 'xx', 'ext_modules': [ext]})
         cmd = self.build_ext(dist)
         cmd.ensure_finalized()
-        # Force the pre-3.15 path so an implied symbol is generated.
-        monkeypatch.setattr(py314.sys, 'version_info', (3, 14))
         expected = list(cmd.get_export_symbols(ext))
         assert cmd.get_export_symbols(ext) == expected
 
