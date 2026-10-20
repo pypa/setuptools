@@ -200,7 +200,7 @@ def write_pkg_file(self, file):  # noqa: C901  # is too complex (14)  # FIXME
     self._write_list(file, 'Obsoletes', self.get_obsoletes())
 
     # Setuptools specific for PEP 345
-    if hasattr(self, 'python_requires'):
+    if getattr(self, 'python_requires', None):
         write_field('Requires-Python', self.python_requires)
 
     # PEP 566
