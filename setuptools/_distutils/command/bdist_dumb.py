@@ -18,9 +18,7 @@ from ..util import get_platform
 class bdist_dumb(Command):
     description = "create a \"dumb\" built distribution"
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('bdist-dir=', 'd', "temporary directory for creating the distribution"),
         (
             'plat-name=',
@@ -59,9 +57,9 @@ class bdist_dumb(Command):
         ),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['keep-temp', 'skip-build', 'relative']
+    boolean_options: ClassVar = ['keep-temp', 'skip-build', 'relative']
 
-    default_format: ClassVar[dict[str, str]] = {'posix': 'gztar', 'nt': 'zip'}
+    default_format: ClassVar = {'posix': 'gztar', 'nt': 'zip'}
 
     def initialize_options(self):
         self.bdist_dir = None

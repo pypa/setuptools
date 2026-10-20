@@ -19,9 +19,7 @@ from ..util import change_root, convert_path
 class install_data(Command):
     description = "install data files"
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         (
             'install-dir=',
             'd',
@@ -31,7 +29,7 @@ class install_data(Command):
         ('force', 'f', "force installation (overwrite existing files)"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['force']
+    boolean_options: ClassVar = ['force']
 
     def initialize_options(self):
         self.install_dir = None

@@ -17,6 +17,7 @@ from typing import ClassVar
 
 from .._modified import newer_group
 from ..ccompiler import CCompiler, new_compiler, show_compilers
+from ..compat import py314
 from ..core import Command
 from ..errors import (
     CCompilerError,
@@ -57,9 +58,7 @@ class build_ext(Command):
     #     in between initialize_options() and finalize_options())
 
     sep_by = f" (separated by '{os.pathsep}')"
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('build-lib=', 'b', "directory for compiled extension modules"),
         ('build-temp=', 't', "directory for temporary files (build by-products)"),
         (
@@ -103,7 +102,7 @@ class build_ext(Command):
         ('user', None, "add user include, library and rpath"),
     ]
 
-    boolean_options: ClassVar[list[str]] = [
+    boolean_options: ClassVar = [
         'inplace',
         'debug',
         'force',
@@ -747,23 +746,19 @@ class build_ext(Command):
 
     def get_export_symbols(self, ext: Extension) -> list[str]:
         """Return the list of symbols that a shared extension has to
-        export.  This either uses 'ext.export_symbols' or, if it's not
-        provided, "PyInit_" + module_name.  Only relevant on Windows, where
-        the .pyd file (DLL) must export the module "PyInit_" function.
+        export.  This returns, and possibly updates, 'ext.export_symbols'.
+
+        On Python 3.14 and below (that is, before a new export hook name was added),
+        it adds "PyInit_" + module_name to 'ext.export_symbols'.
+        Only relevant on Windows, where the .pyd file (DLL) must export the module
+        import hook function.
+
+        Since Python 3.15, nothing is added.
+        An export directive was added to the "PyMODINIT_FUNC" implementation
+        for Python 3.15, which is all that is needed.
         """
         name = self._get_module_name_for_symbol(ext)
-        try:
-            # Unicode module name support as defined in PEP-489
-            # https://peps.python.org/pep-0489/#export-hook-name
-            name.encode('ascii')
-        except UnicodeEncodeError:
-            suffix = 'U_' + name.encode('punycode').replace(b'-', b'_').decode('ascii')
-        else:
-            suffix = "_" + name
-
-        initfunc_name = "PyInit" + suffix
-        if initfunc_name not in ext.export_symbols:
-            ext.export_symbols.append(initfunc_name)
+        ext.export_symbols.extend(py314.implied_symbols(name))
         return ext.export_symbols
 
     def _get_module_name_for_symbol(self, ext):

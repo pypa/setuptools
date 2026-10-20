@@ -35,9 +35,7 @@ class install_lib(Command):
     # decides both whether to generate .pyc files and what level of
     # optimization to use.
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('install-dir=', 'd', "directory to install to"),
         ('build-dir=', 'b', "build directory (where to install from)"),
         ('force', 'f', "force installation (overwrite existing files)"),
@@ -54,8 +52,8 @@ class install_lib(Command):
         ('skip-build', None, "skip the build steps"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['force', 'compile', 'skip-build']
-    negative_opt: ClassVar[dict[str, str]] = {'no-compile': 'compile'}
+    boolean_options: ClassVar = ['force', 'compile', 'skip-build']
+    negative_opt: ClassVar = {'no-compile': 'compile'}
 
     def initialize_options(self):
         # let the 'install' command dictate our installation directory

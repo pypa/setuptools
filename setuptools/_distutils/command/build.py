@@ -19,9 +19,7 @@ from ..util import get_platform
 class build(Command):
     description = "build everything needed to install"
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('build-base=', 'b', "base directory for build library"),
         ('build-purelib=', None, "build directory for platform-neutral distributions"),
         ('build-platlib=', None, "build directory for platform-specific distributions"),
@@ -44,7 +42,7 @@ class build(Command):
         ('executable=', 'e', "specify final destination interpreter path (build.py)"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['debug', 'force']
+    boolean_options: ClassVar = ['debug', 'force']
 
     help_options: ClassVar[list[tuple[str, str | None, str, Callable[[], object]]]] = [
         ('help-compiler', None, "list available compilers", show_compilers),
