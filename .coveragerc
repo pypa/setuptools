@@ -19,6 +19,7 @@ disable_warnings =
 
 [report]
 show_missing = True
+skip_covered = True
 exclude_also =
 	# Exclude common false positives per
 	# https://coverage.readthedocs.io/en/latest/excluding.html#advanced-exclusion
