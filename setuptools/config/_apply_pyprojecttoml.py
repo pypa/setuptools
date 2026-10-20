@@ -344,7 +344,8 @@ def _valid_command_options(cmdclass: Mapping = EMPTY) -> dict[str, set[str]]:
 
     from .._importlib import metadata
 
-    valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}
+    # mypy can't see the ClassVar (excluded `_distutils`)
+    valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}  # type: ignore[misc]
 
     unloaded_entry_points = metadata.entry_points(group='distutils.commands')
     loaded_entry_points = (_load_ep(ep) for ep in unloaded_entry_points)
