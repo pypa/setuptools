@@ -17,6 +17,7 @@ from typing import ClassVar
 
 from .._modified import newer_group
 from ..ccompiler import CCompiler, new_compiler, show_compilers
+from ..compat import py314
 from ..core import Command
 from ..errors import (
     CCompilerError,
@@ -752,25 +753,12 @@ class build_ext(Command):
         Only relevant on Windows, where the .pyd file (DLL) must export the module
         import hook function.
 
-        Since Python 3.15, don't add anything.
+        Since Python 3.15, nothing is added.
         An export directive was added to the "PyMODINIT_FUNC" implementation
         for Python 3.15, which is all that is needed.
         """
-        if sys.version_info < (3, 15):
-            name = self._get_module_name_for_symbol(ext)
-            try:
-                # Unicode module name support as defined in PEP-489
-                # https://peps.python.org/pep-0489/#export-hook-name
-                name.encode('ascii')
-            except UnicodeEncodeError:
-                name_bytes = name.encode('punycode').replace(b'-', b'_')
-                suffix = 'U_' + name_bytes.decode('ascii')
-            else:
-                suffix = "_" + name
-
-            initfunc_name = "PyInit" + suffix
-            if initfunc_name not in ext.export_symbols:
-                ext.export_symbols.append(initfunc_name)
+        name = self._get_module_name_for_symbol(ext)
+        ext.export_symbols.extend(py314.implied_symbols(name))
         return ext.export_symbols
 
     def _get_module_name_for_symbol(self, ext):
