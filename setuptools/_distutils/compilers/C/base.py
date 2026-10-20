@@ -122,16 +122,12 @@ class Compiler:
     }
     language_order: ClassVar[list[str]] = ["c++", "objc", "c"]
 
-    # Not ClassVar: instances reassign these in __init__ and set_*_dirs.
-    include_dirs: list[str] = []  # noqa: RUF012 # class-level default, overridden per instance
-    """
-    include dirs specific to this compiler class
-    """
-
-    library_dirs: list[str] = []  # noqa: RUF012 # class-level default, overridden per instance
-    """
-    library dirs specific to this compiler class
-    """
+    # Read as class-level defaults via ``self.__class__`` (so a subclass may
+    # define compiler-specific dirs), while each instance keeps its own list
+    # built up in ``__init__``; the class-level mutable default is therefore
+    # intentional and never mutated in place.
+    include_dirs: list[str] = []  # noqa: RUF012
+    library_dirs: list[str] = []  # noqa: RUF012
 
     def __init__(self, verbose: bool = False, force: bool = False) -> None:
         self.force = force

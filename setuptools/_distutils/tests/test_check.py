@@ -170,7 +170,7 @@ class TestCheck(support.TempdirManager):
         cmd = self._run(metadata, cwd=HERE, strict=True, restructuredtext=True)
         assert cmd._warnings == 0
 
-    code_examples: ClassVar[list[str]] = [
+    code_examples: ClassVar = [
         textwrap.dedent(
             f"""
             Here's some code:

@@ -24,9 +24,7 @@ from ..sysconfig import get_python_version
 class bdist_rpm(Command):
     description = "create an RPM distribution"
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('bdist-base=', None, "base directory for creating built distributions"),
         (
             'rpm-base=',
@@ -149,7 +147,7 @@ class bdist_rpm(Command):
         ('quiet', 'q', "Run the INSTALL phase of RPM building in quiet mode"),
     ]
 
-    boolean_options: ClassVar[list[str]] = [
+    boolean_options: ClassVar = [
         'keep-temp',
         'use-rpm-opt-flags',
         'rpm3-mode',
@@ -157,7 +155,7 @@ class bdist_rpm(Command):
         'quiet',
     ]
 
-    negative_opt: ClassVar[dict[str, str]] = {
+    negative_opt: ClassVar = {
         'no-keep-temp': 'keep-temp',
         'no-rpm-opt-flags': 'use-rpm-opt-flags',
         'rpm2-mode': 'rpm3-mode',

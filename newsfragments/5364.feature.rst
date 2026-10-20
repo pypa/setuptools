@@ -1,0 +1,1 @@
+Synced with pypa/distutils@6af719e20 including adaption to Python 3.15, which exports the module import hook itself, so ``PyInit_<name>`` is no longer added to an extension's export symbols (pypa/distutils#395).
