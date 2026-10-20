@@ -1,3 +1,22 @@
+v84.2.1
+=======
+
+Bugfixes
+--------
+
+- Changed wheel tags and stable-ABI validation to use sysconfig data. (#5360)
+- Fixed unimportable extensions on free-threaded Python 3.13 and 3.14 when
+  ``Extension.py_limited_api`` is enabled. These builds now use their
+  version-specific extension suffix instead of using the unsupported ``.abi3t``
+  suffix. (#5363)
+
+
+Improved Documentation
+----------------------
+
+- Replaced broken link to Python Eggs documentation with an archived version from the Wayback Machine. (#1929)
+
+
 v84.2.0
 =======
 
