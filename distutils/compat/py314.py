@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import sys
+from collections.abc import Iterator
 
 
-def implied_symbols(name: str) -> list[str]:
+def implied_symbols(name: str) -> Iterator[str]:
     """
-    Return the symbols a shared extension for the module ``name`` must
+    Yield the symbols a shared extension for the module ``name`` must
     export implicitly (that is, in addition to 'ext.export_symbols').
 
     On Python 3.14 and below (that is, before a new export hook name was
@@ -17,7 +18,7 @@ def implied_symbols(name: str) -> list[str]:
     to the "PyMODINIT_FUNC" implementation, which is all that is needed.
     """
     if sys.version_info >= (3, 15):
-        return []
+        return
 
     try:
         # Unicode module name support as defined in PEP-489
@@ -28,4 +29,4 @@ def implied_symbols(name: str) -> list[str]:
     else:
         suffix = "_" + name
 
-    return ["PyInit" + suffix]
+    yield "PyInit" + suffix
