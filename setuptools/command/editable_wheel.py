@@ -781,10 +781,14 @@ def _is_nested(pkg: str, pkg_path: str, parent: str, parent_path: str) -> bool:
     True
     >>> _is_nested("b.a", "path/b/a", "a", "path/a")
     False
+    >>> _is_nested("ab", "path/a/b", "a", "path/a")
+    False
+    >>> _is_nested("a.bc", "path/a/b/c", "a.b", "path/a/b")
+    False
     """
     norm_pkg_path = _path.normpath(pkg_path)
     rest = pkg.replace(parent, "", 1).strip(".").split(".")
-    return pkg.startswith(parent) and norm_pkg_path == _path.normpath(
+    return pkg.startswith(f"{parent}.") and norm_pkg_path == _path.normpath(
         Path(parent_path, *rest)
     )
 
