@@ -1,0 +1,2 @@
+Stopped marking ``License-File`` as ``Dynamic`` when ``license-files`` is
+statically configured in ``pyproject.toml``.
