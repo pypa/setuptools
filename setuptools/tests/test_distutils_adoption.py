@@ -86,6 +86,32 @@ def test_pip_import(venv):
     venv.run(cmd, **_TEXT_KWARGS)
 
 
+def test_frame_file_is_setup_handles_missing_file():
+    """
+    _distutils_hack.DistutilsMetaFinder.frame_file_is_setup should tolerate
+    frames whose f_globals does not have __file__ (#2940) or has __file__ set
+    to None, which can happen on Python 3.14+ during pip startup. #5263
+    """
+    from _distutils_hack import DistutilsMetaFinder
+
+    class Frame:
+        def __init__(self, filename):
+            self._globals = {"__file__": filename}
+
+        @property
+        def f_globals(self):
+            return self._globals
+
+    # Missing __file__: treated as not a setup.py
+    assert not DistutilsMetaFinder.frame_file_is_setup(Frame("MISSING"))
+    # __file__ is None (Python 3.14+ can land here): no crash, treated as not setup.py
+    assert not DistutilsMetaFinder.frame_file_is_setup(Frame(None))
+    # __file__ ends with setup.py: still detected
+    assert DistutilsMetaFinder.frame_file_is_setup(Frame("/some/dir/setup.py"))
+    # __file__ is something else: not a setup.py
+    assert not DistutilsMetaFinder.frame_file_is_setup(Frame("/some/dir/main.py"))
+
+
 def test_distutils_has_origin():
     """
     Distutils module spec should have an origin. #2990.

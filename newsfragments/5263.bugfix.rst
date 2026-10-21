@@ -1,0 +1,1 @@
+Guard against __file__ being None in _distutils_hack's frame detector so pip startup no longer crashes on Python 3.14 when a frame's globals carry a None __file__.
