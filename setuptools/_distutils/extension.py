@@ -22,7 +22,10 @@ from ._dataclass import lenient_dataclass
 # order to do anything.
 
 
-@lenient_dataclass()
+# ``eq=False`` keeps the historical identity-based equality and hash: the
+# dataclass conversion must not generate ``__eq__`` (which would force
+# ``__hash__`` to ``None`` and make ``Extension`` unhashable) -- see #5303.
+@lenient_dataclass(eq=False)
 class Extension:
     """Just a collection of attributes that describes an extension
     module and everything needed to build it (hopefully in a portable
