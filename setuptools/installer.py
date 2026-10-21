@@ -15,6 +15,8 @@ from ._importlib import metadata
 from .warnings import SetuptoolsDeprecationWarning
 from .wheel import Wheel
 
+_MetadataNotFound = getattr(metadata, 'MetadataNotFound', ())
+
 from distutils import log
 from distutils.errors import DistutilsError
 
@@ -60,9 +62,16 @@ def _fetch_build_eggs(dist, requires: _reqs._StrOrIter) -> list[metadata.Distrib
 
 
 def _dist_matches_req(egg_dist, req):
+    try:
+        name = egg_dist.name
+    except _MetadataNotFound:
+        return False
+    if name is None:
+        return False
     return (
-        packaging.utils.canonicalize_name(egg_dist.name)
+        packaging.utils.canonicalize_name(name)
         == packaging.utils.canonicalize_name(req.name)
+        and egg_dist.version is not None
         and egg_dist.version in req.specifier
     )
 
