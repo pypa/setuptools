@@ -1,0 +1,4 @@
+Extraction of tar archives now runs each member through tarfile's PEP 706
+``data`` filter, so archive-supplied setuid/setgid/sticky bits and ownership
+never reach the filesystem, and link resolution no longer relies on private
+``tarfile`` APIs.
