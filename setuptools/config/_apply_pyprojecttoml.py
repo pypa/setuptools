@@ -22,9 +22,12 @@ from typing import TYPE_CHECKING, Any, TypeVar
 
 from .. import _static
 from .._path import StrPath
+from ..compat.py314 import sentinel
 from ..errors import InvalidConfigError, RemovedConfigError
 from ..extension import Extension
 from ..warnings import SetuptoolsDeprecationWarning, SetuptoolsWarning
+
+_RESET = sentinel("_RESET", repr="<RESET>")
 
 if TYPE_CHECKING:
     from typing import TypeAlias
@@ -174,11 +177,14 @@ def _guess_content_type(file: str) -> str | None:
 
 
 def _long_description(
-    dist: Distribution, val: _ProjectReadmeValue, root_dir: StrPath | None
+    dist: Distribution, val: _ProjectReadmeValue | _RESET, root_dir: StrPath | None
 ):
     from setuptools.config import expand
 
     file: str | tuple[()]
+    if val is _RESET:  # reset by _handle_missing_dynamic
+        _set_config(dist, "long_description", None)
+        return
     if isinstance(val, str):
         file = val
         text = expand.read_files(file, root_dir)
@@ -247,7 +253,12 @@ def _project_urls(dist: Distribution, val: dict, _root_dir: StrPath | None):
     _set_config(dist, "project_urls", val)
 
 
-def _python_requires(dist: Distribution, val: str, _root_dir: StrPath | None):
+def _python_requires(dist: Distribution, val: str | _RESET, _root_dir: StrPath | None):
+    if val is _RESET:
+        # _finalize_requires copies dist.python_requires to metadata, so clear both
+        dist.python_requires = None
+        dist.metadata.python_requires = None
+        return
     _set_config(dist, "python_requires", _static.SpecifierSet(val))
 
 
@@ -333,7 +344,8 @@ def _valid_command_options(cmdclass: Mapping = EMPTY) -> dict[str, set[str]]:
 
     from .._importlib import metadata
 
-    valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}
+    # mypy can't see the ClassVar (excluded `_distutils`)
+    valid_options = {"global": _normalise_cmd_options(Distribution.global_options)}  # type: ignore[misc]
 
     unloaded_entry_points = metadata.entry_points(group='distutils.commands')
     loaded_entry_points = (_load_ep(ep) for ep in unloaded_entry_points)
@@ -492,6 +504,8 @@ _RESET_PREVIOUSLY_DEFINED: dict = {
     # Fix improper setting: given in `setup.py`, but not listed in `dynamic`
     # Use "immutable" data structures to avoid in-place modification.
     # dict: pyproject name => value to which reset
+    "readme": _RESET,
+    "requires-python": _RESET,
     "license": "",
     # XXX: `license-file` is currently not considered in the context of `dynamic`.
     #      See TestPresetField.test_license_files_exempt_from_dynamic

@@ -129,15 +129,17 @@ enabler = [
 type = [
 	# upstream
 	
-	# Exclude PyPy from type checks (python/mypy#20454 jaraco/skeleton#187)
-	"pytest-mypy >= 1.0.1; platform_python_implementation != 'PyPy'",
+	# Exclude PyPy (python/mypy#20454 jaraco/skeleton#187) and
+	# cygwin (python/mypy#21460) from type checks
+	"pytest-mypy >= 1.0.1; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin'",
 
 	# local
 
 	# pin mypy version so a new version doesn't suddenly cause the CI to fail,
 	# until types-setuptools is removed from typeshed.
 	# For help with static-typing issues, or mypy update, ping @Avasam
-	"mypy==1.18.*",
+	# Exclude cygwin from type checks due to dependency issues (python/mypy#21460)
+	"mypy==2.4.*; sys_platform != 'cygwin'",
 	# Typing fixes in version newer than we require at runtime
 	"importlib_metadata>=7.0.2; python_version < '3.10'",
 	# Imported unconditionally in tools/finalize.py

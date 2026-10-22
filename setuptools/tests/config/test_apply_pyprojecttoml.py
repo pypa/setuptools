@@ -613,6 +613,8 @@ class TestPresetField:
                 marks=[pytest.mark.filterwarnings("ignore:.*license. overwritten")],
             ),
             ("classifiers", "classifiers", ["Private :: Classifier"]),
+            ("long_description", "readme", "Some description"),
+            ("python_requires", "requires-python", ">=3.8"),
             ("entry_points", "scripts", {"console_scripts": ["foobar=foobar:main"]}),
             ("entry_points", "gui-scripts", {"gui_scripts": ["bazquux=bazquux:main"]}),
             pytest.param(
