@@ -1,0 +1,5 @@
+Fixed a Windows-only false ``Package '...' is absent from the `packages`
+configuration`` warning (and the resulting misclassification of the file as
+package data) that occurred when an ``Extension`` source path written with
+forward slashes (the documented, portable form) lived inside a subpackage:
+manifest paths and package directories are now normalized before comparison.

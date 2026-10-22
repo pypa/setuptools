@@ -181,7 +181,9 @@ class build_py(orig.build_py):
         src_dirs: dict[str, str] = {}
         for package in self.packages or ():
             # Locate package source directory
-            src_dirs[assert_relative(self.get_package_dir(package))] = package
+            src_dirs[
+                os.path.normpath(assert_relative(self.get_package_dir(package)))
+            ] = package
 
         if (
             self.existing_egg_info_dir
@@ -198,7 +200,7 @@ class build_py(orig.build_py):
 
         check = _IncludePackageDataAbuse()
         for path in self._filter_build_files(files, egg_info_dir):
-            d, f = os.path.split(assert_relative(path))
+            d, f = os.path.split(assert_relative(os.path.normpath(path)))
             prev = None
             oldf = f
             while d and d != prev and d not in src_dirs:
