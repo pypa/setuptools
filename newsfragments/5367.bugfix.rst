@@ -1,0 +1,1 @@
+Fixed a regression introduced in v84.2.0 that produced unimportable PyPy extension modules on Windows when ``py_limited_api=True`` by preserving PyPy's ABI-tagged extension suffix.

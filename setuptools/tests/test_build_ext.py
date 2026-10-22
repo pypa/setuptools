@@ -63,7 +63,8 @@ IS_PYPY = '__pypy__' in sys.builtin_module_names
         ({'EXT_SUFFIX': '_d.cp315-win_amd64.pyd'}, None),
         ({'EXT_SUFFIX': '_d.pyd'}, None),
         ({'EXT_SUFFIX': '.pypy310-pp73-x86_64-linux-gnu.so'}, None),
-        ({'EXT_SUFFIX': '.pypy310-pp73-win_amd64.pyd'}, '.pyd'),
+        ({'EXT_SUFFIX': '.pypy310-pp73-win_amd64.pyd'}, None),
+        ({'EXT_SUFFIX': '.pypy311-pp80-win_amd64.pyd'}, None),
         ({'EXT_SUFFIX': '.dll'}, None),
         (
             {'EXT_SUFFIX': '.cpython-312-x86_64-cygwin.dll', 'MACHDEP': 'cygwin'},
@@ -153,6 +154,27 @@ class TestBuildExt:
         )
         assert cmd.get_ext_filename('spam.normal') == os.path.join(
             'spam', 'normal' + suffix
+        )
+
+    @pytest.mark.parametrize(
+        'suffix',
+        [
+            '.pypy310-pp73-win_amd64.pyd',
+            '.pypy311-pp80-win_amd64.pyd',
+            '.pypy310-pp73-x86_64-linux-gnu.so',
+            '.pypy311-pp80-x86_64-linux-gnu.so',
+        ],
+    )
+    @pytest.mark.parametrize('limited_api', [False, True])
+    def test_pypy_ignores_limited_api(self, monkeypatch, suffix, limited_api):
+        """PyPy requires its own suffix even if an extension requests limited API."""
+        monkeypatch.delenv('SETUPTOOLS_EXT_SUFFIX', raising=False)
+        monkeypatch.setitem(get_config_vars(), 'EXT_SUFFIX', suffix)
+        extension = Extension('spam.eggs', ['eggs.c'], py_limited_api=limited_api)
+        cmd = build_ext(Distribution(dict(ext_modules=[extension])))
+        cmd.finalize_options()
+        assert cmd.get_ext_filename('spam.eggs') == os.path.join(
+            'spam', 'eggs' + suffix
         )
 
     def test_ext_suffix_override(self):
