@@ -10,11 +10,11 @@ from collections.abc import Iterable, Iterator
 from functools import partial
 from glob import glob
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, overload
 
 from more_itertools import unique_everseen
 
-from .._path import StrPath, StrPathT
+from .._path import BytesPath, BytesPathT, StrPath, StrPathT
 from ..dist import Distribution
 from ..warnings import SetuptoolsDeprecationWarning
 
@@ -50,21 +50,50 @@ class build_py(orig.build_py):
         if 'data_files' in self.__dict__:
             del self.__dict__['data_files']
 
-    def copy_file(  # type: ignore[override] # No overload, no bytes support
+    @overload  # type: ignore[override] # Truthy link with bytes is not supported, unlike supertype
+    def copy_file(
         self,
         infile: StrPath,
         outfile: StrPathT,
         preserve_mode: bool = True,
         preserve_times: bool = True,
         link: str | None = None,
-        level: object = 1,
-    ) -> tuple[StrPathT | str, bool]:
+        level: int = 1,
+    ) -> tuple[StrPathT | str, bool]: ...
+    @overload
+    def copy_file(
+        self,
+        infile: BytesPath,
+        outfile: BytesPathT,
+        preserve_mode: bool = True,
+        preserve_times: bool = True,
+        link: Literal[""] | None = None,
+        level: int = 1,
+    ) -> tuple[BytesPathT | bytes, bool]: ...
+    def copy_file(
+        self,
+        infile: StrPath | BytesPath,
+        outfile: StrPath | BytesPath,
+        preserve_mode: bool = True,
+        preserve_times: bool = True,
+        link: str | None = None,
+        level: int = 1,
+    ) -> tuple[StrPath | BytesPath, bool]:
         # Overwrite base class to allow using links
         if link:
-            infile = str(Path(infile).resolve())
-            outfile = str(Path(outfile).resolve())  # type: ignore[assignment] # Re-assigning a str when outfile is StrPath is ok
-        return super().copy_file(  # pyright: ignore[reportReturnType] # pypa/distutils#309
-            infile, outfile, preserve_mode, preserve_times, link, level
+            # NOTE: Explanation for the type ignores:
+            # 1. If link is truthy, then we only allow infile and outfile to be StrPath
+            # 2. Re-assigning a str when outfile is StrPath is ok
+            # We can't easily check for PathLike[str], so ignoring instead of asserting.
+            infile = str(Path(infile).resolve())  # type: ignore[arg-type]
+            outfile = str(Path(outfile).resolve())  # type: ignore[arg-type]
+        return super().copy_file(  # type: ignore[misc, type-var] # pyright: ignore[reportCallIssue]
+            infile,  # type: ignore[arg-type] # pyright: ignore[reportArgumentType]
+            outfile,  # pyright: ignore[reportArgumentType]
+            preserve_mode,
+            preserve_times,
+            link,
+            level,
         )
 
     def run(self) -> None:
@@ -138,7 +167,7 @@ class build_py(orig.build_py):
         )
         return self.exclude_data_files(package, src_dir, files)
 
-    def get_outputs(self, include_bytecode: bool = True) -> list[str]:  # type: ignore[override] # Using a real boolean instead of 0|1
+    def get_outputs(self, include_bytecode: bool = True) -> list[str]:
         """See :class:`setuptools.commands.build.SubCommand`"""
         if self.editable_mode:
             return list(self.get_output_mapping().keys())

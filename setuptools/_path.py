@@ -11,7 +11,9 @@ if TYPE_CHECKING:
     from typing import TypeAlias
 
 StrPath: TypeAlias = str | os.PathLike[str]  #  Same as _typeshed.StrPath
-StrPathT = TypeVar("StrPathT", bound=str | os.PathLike[str])
+StrPathT = TypeVar("StrPathT", bound=StrPath)
+BytesPath: TypeAlias = bytes | os.PathLike[bytes]  #  Same as _typeshed.BytesPath
+BytesPathT = TypeVar("BytesPathT", bound=BytesPath)
 
 
 def ensure_directory(path):

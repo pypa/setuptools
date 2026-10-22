@@ -5,7 +5,7 @@ requires = [
 	# jaraco/skeleton#174
 	# "coherent.licensed",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "build_with_distutils_stubs"
 backend-path = ["."]
 
 [project]
@@ -128,7 +128,7 @@ enabler = [
 
 type = [
 	# upstream
-	
+
 	# Exclude PyPy from type checks (python/mypy#20454 jaraco/skeleton#187)
 	"pytest-mypy >= 1.0.1; platform_python_implementation != 'PyPy'",
 
@@ -203,6 +203,7 @@ include-package-data = true
 [tool.setuptools.packages.find]
 include = [
 	"setuptools*",
+	"distutils-stubs*",
 	"_distutils_hack*",
 ]
 exclude = [

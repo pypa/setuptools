@@ -618,7 +618,7 @@ def _can_symlink_files(base_dir: Path) -> bool:
 
 
 def _simple_layout(
-    packages: Iterable[str], package_dir: dict[str, str], project_dir: StrPath
+    packages: Iterable[str], package_dir: Mapping[str, str], project_dir: StrPath
 ) -> bool:
     """Return ``True`` if:
     - all packages are contained by the same parent directory, **and**

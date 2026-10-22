@@ -34,7 +34,8 @@ class install(orig.install):
 
     distribution: Distribution  # override distutils.dist.Distribution with setuptools.dist.Distribution
 
-    user_options = orig.install.user_options + [
+    user_options: ClassVar = [
+        *orig.install.user_options,
         ('old-and-unmanageable', None, "Try not to use this!"),
         (
             'single-version-externally-managed',

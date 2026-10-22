@@ -153,12 +153,7 @@ class Extension(_Extension):
         # The *args is needed for compatibility as calls may use positional
         # arguments. py_limited_api may be set only via keyword.
         self.py_limited_api = py_limited_api
-        super().__init__(
-            name,
-            sources,  # type: ignore[arg-type] # Vendored version of setuptools supports PathLike
-            *args,
-            **kw,
-        )
+        super().__init__(name, sources, *args, **kw)
 
     def _convert_pyx_sources_to_lang(self):
         """

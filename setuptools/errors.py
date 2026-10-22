@@ -3,6 +3,8 @@
 Provides exceptions used by setuptools modules.
 """
 
+# Odd mypy issue with this specific import, alias and base classes on 3.12+
+# mypy: disable-error-code="valid-type,misc"
 from __future__ import annotations
 
 from distutils import errors as _distutils_errors
@@ -30,15 +32,15 @@ UnknownFileError = _distutils_errors.UnknownFileError
 BaseError = _distutils_errors.DistutilsError
 
 
-class InvalidConfigError(OptionError):  # type: ignore[valid-type, misc] # distutils imports are `Any` on python 3.12+
+class InvalidConfigError(OptionError):
     """Error used for invalid configurations."""
 
 
-class RemovedConfigError(OptionError):  # type: ignore[valid-type, misc] # distutils imports are `Any` on python 3.12+
+class RemovedConfigError(OptionError):
     """Error used for configurations that were deprecated and removed."""
 
 
-class RemovedCommandError(BaseError, RuntimeError):  # type: ignore[valid-type, misc] # distutils imports are `Any` on python 3.12+
+class RemovedCommandError(BaseError, RuntimeError):
     """Error used for commands that have been removed in setuptools.
 
     Since ``setuptools`` is built on ``distutils``, simply removing a command
@@ -48,7 +50,7 @@ class RemovedCommandError(BaseError, RuntimeError):  # type: ignore[valid-type, 
     """
 
 
-class PackageDiscoveryError(BaseError, RuntimeError):  # type: ignore[valid-type, misc] # distutils imports are `Any` on python 3.12+
+class PackageDiscoveryError(BaseError, RuntimeError):
     """Impossible to perform automatic discovery of packages and/or modules.
 
     The current project layout or given discovery options can lead to problems when

@@ -18,7 +18,7 @@ from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator
 from functools import partial, wraps
-from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypeVar
 
 from packaging.markers import default_environment as marker_env
 from packaging.requirements import InvalidRequirement, Requirement
@@ -102,8 +102,7 @@ def _apply(
     filenames = [*other_files, filepath]
 
     try:
-        # TODO: Temporary cast until mypy 1.12 is released with upstream fixes from typeshed
-        _Distribution.parse_config_files(dist, filenames=cast(list[str], filenames))
+        _Distribution.parse_config_files(dist, filenames=filenames)
         handlers = parse_configuration(
             dist, dist.command_options, ignore_option_errors=ignore_option_errors
         )
@@ -541,7 +540,7 @@ class ConfigMetadataHandler(ConfigHandler["DistributionMetadata"]):
         options: AllCommandOptions,
         ignore_option_errors: bool,
         ensure_discovered: expand.EnsurePackagesDiscovered,
-        package_dir: dict | None = None,
+        package_dir: dict[str, str] | None = None,
         root_dir: StrPath | None = os.curdir,
     ) -> None:
         super().__init__(target_obj, options, ignore_option_errors, ensure_discovered)
