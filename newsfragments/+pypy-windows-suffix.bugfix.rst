@@ -1,1 +1,0 @@
-Preserve PyPy's extension suffix on Windows when an extension sets ``py_limited_api=True``. This fixes a regression introduced in v84.2.0 that produced unimportable extension modules by replacing PyPy's ABI-tagged suffix with ``.pyd``.
