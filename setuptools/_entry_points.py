@@ -1,12 +1,12 @@
 import functools
 import itertools
 import operator
+from importlib import metadata
 
 from jaraco.functools import pass_none
 from jaraco.text import yield_lines
 from more_itertools import consume
 
-from ._importlib import metadata
 from ._itertools import ensure_unique
 from .errors import OptionError
 
