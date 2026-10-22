@@ -257,8 +257,7 @@ extensions).
 
 ``requires``
    .. warning::
-      ``requires`` is superseded by ``install_requires`` and should not be used
-      anymore.
+      ``requires`` is no longer supported. Use ``install_requires`` instead.
 
 .. _keyword/obsoletes:
 
