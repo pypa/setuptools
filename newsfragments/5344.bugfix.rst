@@ -1,0 +1,1 @@
+Fixed ``install_lib`` raising ``TypeError`` on Python builds where ``sys.implementation.cache_tag`` is ``None``.
