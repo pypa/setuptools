@@ -126,6 +126,9 @@ jobs:
             python${{ matrix.python }},
             python${{ matrix.python }}-devel,
             python${{ matrix.python }}-pip,
+            python${{ matrix.python }}-maturin,
+            rust,
+            cargo,
             gcc-core,
             git,
       - name: Record the currently selected Python version
