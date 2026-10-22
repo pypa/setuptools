@@ -36,7 +36,7 @@ class build_clib(Command):
         ('compiler=', 'c', "specify the compiler type"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['debug', 'force']
+    boolean_options: ClassVar = ['debug', 'force']
 
     help_options: ClassVar[list[tuple[str, str | None, str, Callable[[], object]]]] = [
         ('help-compiler', None, "list available compilers", show_compilers),

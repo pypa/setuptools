@@ -17,9 +17,7 @@ from ..util import convert_path
 class build_py(Command):
     description = "\"build\" pure Python modules (copy to build directory)"
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('build-lib=', 'd', "directory to \"build\" (copy) to"),
         ('compile', 'c', "compile .py to .pyc"),
         ('no-compile', None, "don't compile .py files [default]"),
@@ -34,8 +32,8 @@ class build_py(Command):
         ('force', 'f', "forcibly build everything (ignore file timestamps)"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['compile', 'force']
-    negative_opt: ClassVar[dict[str, str]] = {'no-compile': 'compile'}
+    boolean_options: ClassVar = ['compile', 'force']
+    negative_opt: ClassVar = {'no-compile': 'compile'}
 
     def initialize_options(self):
         self.build_lib = None

@@ -175,9 +175,7 @@ def _scheme_attrs(scheme):
 class install(Command):
     description = "install everything from build directory"
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         # Select installation scheme and set base director(y|ies)
         ('prefix=', None, "installation prefix"),
         ('exec-prefix=', None, "(Unix only) prefix for platform-specific files"),
@@ -237,7 +235,7 @@ class install(Command):
         ('record=', None, "filename in which to record list of installed files"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['compile', 'force', 'skip-build']
+    boolean_options: ClassVar = ['compile', 'force', 'skip-build']
 
     if HAS_USER_SITE:
         user_options.append((
@@ -247,7 +245,7 @@ class install(Command):
         ))
         boolean_options.append('user')
 
-    negative_opt: ClassVar[dict[str, str]] = {'no-compile': 'compile'}
+    negative_opt: ClassVar = {'no-compile': 'compile'}
 
     def initialize_options(self) -> None:
         """Initializes options."""
@@ -418,10 +416,10 @@ class install(Command):
         }
 
         # vars for compatibility on older Pythons
-        compat_vars = {
+        compat_vars = dict(
             # Python 3.9 and earlier
-            'py_version_nodot_plat': getattr(sys, 'winver', '').replace('.', ''),
-        }
+            py_version_nodot_plat=getattr(sys, 'winver', '').replace('.', ''),
+        )
 
         if HAS_USER_SITE:
             local_vars['userbase'] = self.install_userbase

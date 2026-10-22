@@ -67,7 +67,7 @@ class TextFile:
     an all-whitespace line), if 'rstrip_ws' is true but 'skip_blanks' is
     not."""
 
-    default_options: ClassVar[dict[str, str | int]] = {
+    default_options: ClassVar = {
         'strip_comments': 1,
         'skip_blanks': 1,
         'lstrip_ws': 0,

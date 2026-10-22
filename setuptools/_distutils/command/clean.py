@@ -14,9 +14,7 @@ from ..dir_util import remove_tree
 
 class clean(Command):
     description = "clean up temporary files from 'build' command"
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('build-base=', 'b', "base build directory [default: 'build.build-base']"),
         (
             'build-lib=',
@@ -33,7 +31,7 @@ class clean(Command):
         ('all', 'a', "remove all build output, not just temporary by-products"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['all']
+    boolean_options: ClassVar = ['all']
 
     def initialize_options(self):
         self.build_base = None

@@ -398,8 +398,12 @@ class TestBuildExt(TempdirManager):
         cmd.ensure_finalized()
         assert re.search(r'foo(_d)?\..*', cmd.get_ext_filename(modules[0].name))
         assert re.search(r'föö(_d)?\..*', cmd.get_ext_filename(modules[1].name))
-        assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
-        assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+        if sys.version_info < (3, 15):
+            assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
+            assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+        else:
+            assert cmd.get_export_symbols(modules[0]) == []
+            assert cmd.get_export_symbols(modules[1]) == []
 
     def test_export_symbols__init__(self):
         # https://github.com/python/cpython/issues/80074
@@ -411,8 +415,27 @@ class TestBuildExt(TempdirManager):
         dist = Distribution({'name': 'xx', 'ext_modules': modules})
         cmd = self.build_ext(dist)
         cmd.ensure_finalized()
-        assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
-        assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+        if sys.version_info < (3, 15):
+            assert cmd.get_export_symbols(modules[0]) == ['PyInit_foo']
+            assert cmd.get_export_symbols(modules[1]) == ['PyInitU_f_1gaa']
+        else:
+            assert cmd.get_export_symbols(modules[0]) == []
+            assert cmd.get_export_symbols(modules[1]) == []
+
+    def test_get_export_symbols_idempotent(self):
+        """
+        Repeated calls to get_export_symbols should not accumulate
+        duplicate implied symbols.
+
+        This test can be removed once implied_symbols is removed (that is,
+        once support for Python 3.14 and earlier is dropped).
+        """
+        ext = Extension('foo', ['aaa'])
+        dist = Distribution({'name': 'xx', 'ext_modules': [ext]})
+        cmd = self.build_ext(dist)
+        cmd.ensure_finalized()
+        expected = list(cmd.get_export_symbols(ext))
+        assert cmd.get_export_symbols(ext) == expected
 
     def test_compiler_option(self):
         # cmd.compiler is an option and
