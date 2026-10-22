@@ -80,7 +80,8 @@ def get_abi3_suffix():
     suffix = get_config_var('EXT_SUFFIX')
     if not isinstance(suffix, str) or get_config_var('HAVE_DYNAMIC_LOADING') == 0:
         return None
-    if suffix.endswith('.pyd') and not suffix.startswith('_d'):
+    # PyPy also uses .pyd on Windows, but does not support CPython's stable ABI.
+    if suffix == '.pyd' or (suffix.startswith('.cp') and suffix.endswith('.pyd')):
         return '.pyd'
     if not suffix.startswith('.cpython-'):
         return None
