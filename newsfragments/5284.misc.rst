@@ -1,0 +1,2 @@
+Fixed flakiness in the download helper for config-comparison tests by
+retrying transient network errors instead of only ``HTTPError``.

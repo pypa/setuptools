@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import time
 from pathlib import Path
-from urllib.error import HTTPError
+from urllib.error import URLError
 from urllib.request import urlopen
 
 __all__ = ["DOWNLOAD_DIR", "output_file", "retrieve_file", "urls_from_file"]
@@ -25,19 +25,28 @@ def output_file(url: str, download_dir: Path = DOWNLOAD_DIR) -> Path:
     return Path(download_dir, re.sub(r"[^\-_\.\w\d]+", "_", file_name))
 
 
-def retrieve_file(url: str, download_dir: Path = DOWNLOAD_DIR, wait: float = 5) -> Path:
+def retrieve_file(
+    url: str, download_dir: Path = DOWNLOAD_DIR, wait: float = 5, attempts: int = 3
+) -> Path:
     path = output_file(url, download_dir)
     if path.exists():
         print(f"Skipping {url} (already exists: {path})")
-    else:
-        download_dir.mkdir(exist_ok=True, parents=True)
-        print(f"Downloading {url} to {path}")
+        return path
+    download_dir.mkdir(exist_ok=True, parents=True)
+    print(f"Downloading {url} to {path}")
+    last_exc: URLError | None = None
+    for _ in range(attempts):
         try:
             download(url, path)
-        except HTTPError:
+        except URLError as exc:
+            # HTTPError subclasses URLError. Transient network failures
+            # (e.g. ConnectionResetError, see #5284) are retried.
+            last_exc = exc
             time.sleep(wait)  # wait a few seconds and try again.
-            download(url, path)
-    return path
+        else:
+            return path
+    assert last_exc is not None
+    raise last_exc
 
 
 def urls_from_file(list_file: Path) -> list[str]:
