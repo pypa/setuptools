@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = {"collections", "collections.abc", "shutil"}
+__lazy_modules__ = {"collections.abc", "shutil"}
 
 import shutil
 import sys

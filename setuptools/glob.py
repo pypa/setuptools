@@ -8,7 +8,7 @@ Changes include:
 
 from __future__ import annotations
 
-__lazy_modules__ = {"collections", "collections.abc", "fnmatch"}
+__lazy_modules__ = {"collections.abc", "fnmatch"}
 
 import fnmatch
 import os

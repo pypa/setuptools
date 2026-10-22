@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 __lazy_modules__ = {
-    "collections",
     "collections.abc",
     "distutils",
     "itertools",
     "re",
     "typing",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._importlib",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}.dist",
     f"{__spec__.parent}.build",
 }

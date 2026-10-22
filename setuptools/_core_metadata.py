@@ -7,17 +7,16 @@ See: https://packaging.python.org/en/latest/specifications/core-metadata/
 from __future__ import annotations
 
 __lazy_modules__ = {
-    "distutils",
     "distutils.util",
     "email",
     "email.message",
-    "packaging",
     "packaging.markers",
     "packaging.requirements",
     "packaging.utils",
     "packaging.version",
     "tempfile",
     "textwrap",
+    f"{__spec__.parent}",
     f"{__spec__.parent}._static",
     f"{__spec__.parent}.warnings",
 }

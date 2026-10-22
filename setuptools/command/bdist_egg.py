@@ -5,7 +5,6 @@ Build .egg distributions"""
 from __future__ import annotations
 
 __lazy_modules__ = {
-    "collections",
     "collections.abc",
     "distutils",
     "distutils.dir_util",

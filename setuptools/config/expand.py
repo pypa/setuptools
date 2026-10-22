@@ -23,7 +23,6 @@ from __future__ import annotations
 __lazy_modules__ = {
     "ast",
     "configparser",
-    "distutils",
     "distutils.errors",
     "glob",
     "importlib",
@@ -31,6 +30,7 @@ __lazy_modules__ = {
     "itertools",
     "pathlib",
     "types",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}._path",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}.discovery",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}.warnings",

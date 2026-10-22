@@ -38,6 +38,7 @@ __lazy_modules__ = {
     "tempfile",
     "tokenize",
     "warnings",
+    f"{__spec__.parent}",
     f"{__spec__.parent}._path",
     f"{__spec__.parent}._reqs",
 }

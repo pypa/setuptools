@@ -7,10 +7,8 @@ A wheel is a built archive format.
 from __future__ import annotations
 
 __lazy_modules__ = {
-    "collections",
     "collections.abc",
     "distutils",
-    "email",
     "email.generator",
     "glob",
     "packaging",
@@ -20,7 +18,6 @@ __lazy_modules__ = {
     "sysconfig",
     "typing",
     "warnings",
-    "wheel",
     "wheel.wheelfile",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}._core_metadata",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}._normalization",

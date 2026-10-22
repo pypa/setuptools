@@ -13,7 +13,6 @@ Create a wheel that, when installed, will make the source package 'editable'
 from __future__ import annotations
 
 __lazy_modules__ = {
-    "collections",
     "collections.abc",
     "contextlib",
     "io",

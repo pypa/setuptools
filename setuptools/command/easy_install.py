@@ -1,4 +1,4 @@
-__lazy_modules__ = {"types"}
+__lazy_modules__ = {"types", f"{(__spec__.parent or '').rsplit('.', 1)[0]}"}
 
 import os
 import sys

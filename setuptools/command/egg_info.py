@@ -5,7 +5,6 @@ Create a distribution's .egg-info directory and contents"""
 from __future__ import annotations
 
 __lazy_modules__ = {
-    "collections",
     "collections.abc",
     "distutils",
     "distutils.errors",
@@ -15,9 +14,12 @@ __lazy_modules__ = {
     "packaging.requirements",
     "packaging.version",
     "re",
+    "setuptools.command",
     "setuptools.command.setopt",
     "setuptools.glob",
     "typing",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}._importlib",
 }
 
 import functools

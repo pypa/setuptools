@@ -5,11 +5,12 @@ __lazy_modules__ = {
     "distutils.errors",
     "glob",
     "itertools",
-    "packaging",
     "packaging.requirements",
     "packaging.utils",
     "subprocess",
     "tempfile",
+    f"{__spec__.parent}",
+    f"{__spec__.parent}._importlib",
     f"{__spec__.parent}.wheel",
 }
 

@@ -8,6 +8,7 @@ __lazy_modules__ = {
     "pathlib",
     "shutil",
     "typing",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}._shutil",
     f"{__spec__.parent}.egg_info",
 }

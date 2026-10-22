@@ -1,22 +1,19 @@
 """Wheels support."""
 
 __lazy_modules__ = {
-    "collections",
     "collections.abc",
-    "distutils",
     "distutils.util",
     "email",
     "itertools",
-    "packaging",
     "packaging.requirements",
     "packaging.tags",
     "packaging.utils",
     "packaging.version",
     "setuptools.archive_util",
-    "setuptools.command",
     "setuptools.command.egg_info",
     "zipfile",
     f"{__spec__.parent}._discovery",
+    f"{__spec__.parent}._importlib",
     f"{__spec__.parent}.unicode_utils",
 }
 

@@ -12,7 +12,6 @@ with the help of ``tomllib`` or ``tomli``.
 from __future__ import annotations
 
 __lazy_modules__ = {
-    "collections",
     "collections.abc",
     "functools",
     "types",

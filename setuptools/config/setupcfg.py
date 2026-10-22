@@ -16,12 +16,13 @@ __lazy_modules__ = {
     "collections.abc",
     "contextlib",
     "functools",
-    "packaging",
     "packaging.markers",
     "packaging.requirements",
     "packaging.version",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}._path",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}.errors",
+    f"{__spec__.parent}",
 }
 
 import contextlib

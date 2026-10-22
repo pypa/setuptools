@@ -14,10 +14,9 @@ __lazy_modules__ = {
     "collections.abc",
     "io",
     "itertools",
-    "jaraco",
     "jaraco.text",
-    "packaging",
     "packaging.requirements",
+    f"{(__spec__.parent or '').rsplit('.', 1)[0]}",
     f"{(__spec__.parent or '').rsplit('.', 1)[0]}._reqs",
 }
 

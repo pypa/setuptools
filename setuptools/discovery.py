@@ -40,7 +40,6 @@ For the purposes of this module, the following nomenclature is used:
 from __future__ import annotations
 
 __lazy_modules__ = {
-    "collections",
     "collections.abc",
     "distutils",
     "distutils.util",

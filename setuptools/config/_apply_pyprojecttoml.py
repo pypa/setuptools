@@ -11,7 +11,6 @@ need to be processed before being applied.
 from __future__ import annotations
 
 __lazy_modules__ = {
-    "email",
     "email.headerregistry",
     "inspect",
     "itertools",

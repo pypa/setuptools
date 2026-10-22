@@ -4,7 +4,7 @@ Monkey patching of distutils.
 
 from __future__ import annotations
 
-__lazy_modules__ = {"distutils", "distutils.filelist", "inspect", "platform"}
+__lazy_modules__ = {"distutils.filelist", "inspect", "platform"}
 
 import inspect
 import platform

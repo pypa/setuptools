@@ -1,4 +1,4 @@
-__lazy_modules__ = {"distutils", "distutils.log", "inspect", "logging"}
+__lazy_modules__ = {"distutils.log", "inspect", "logging", f"{__spec__.parent}"}
 
 import inspect
 import logging

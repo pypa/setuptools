@@ -1,11 +1,6 @@
 """Convenience layer on top of stdlib's shutil and os"""
 
-__lazy_modules__ = {
-    "collections",
-    "collections.abc",
-    "distutils",
-    f"{__spec__.parent}.compat",
-}
+__lazy_modules__ = {"collections.abc", "distutils", f"{__spec__.parent}.compat"}
 
 import os
 import stat
