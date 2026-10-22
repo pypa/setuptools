@@ -192,16 +192,6 @@ nitpick_ignore += [
     ('py:mod', 'docutils'),  # there's no Sphinx site documenting this
 ]
 
-# Allow linking objects on other Sphinx sites seamlessly:
-intersphinx_mapping.update(
-    # python=('https://docs.python.org/3', None),
-    python=('https://docs.python.org/3.11', None),
-    # ^-- Python 3.11 is required because it still contains `distutils`.
-    #     Just leaving it as `3` would imply 3.12+, but that causes an
-    #     error with the cross references to distutils functions.
-    #     Inventory cache may cause errors, deleting it solves the problem.
-)
-
 # Add support for the unreleased "next-version" change notes
 extensions += ['sphinxcontrib.towncrier']
 # Extension needs a path from here to the towncrier config.
