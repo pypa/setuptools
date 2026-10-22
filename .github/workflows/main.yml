@@ -30,11 +30,14 @@ jobs:
         python:
         - "3.10"
         - "3.14"
-        - "3.14t"
+        - "3.15t"
         platform:
         - ubuntu-latest
         - macos-latest
         - windows-latest
+        exclude:
+        - python: "3.15t"  # PyNaCl lacks Windows 3.15t wheels.
+          platform: windows-latest
         include:
         - python: "3.11"
           platform: ubuntu-latest
@@ -45,6 +48,8 @@ jobs:
         # Disabled: cffi (required by PyNaCl) doesn't support free-threaded CPython 3.13t.
         # - python: "3.13t"
         #   platform: ubuntu-latest
+        - python: "3.14t"
+          platform: windows-latest
         - python: "3.15"
           platform: ubuntu-latest
         - python: pypy3.11
@@ -73,6 +78,7 @@ jobs:
     with:
       platform: ubuntu-latest
       tox-env: ${{ matrix.job }}
+    secrets: inherit
 
   check:  # This job does nothing and is only used for the branch protection
     if: always()

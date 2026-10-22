@@ -43,9 +43,7 @@ class sdist(Command):
         Placed here so user_options can view it"""
         return self.metadata_check
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('template=', 't', "name of manifest template file [default: MANIFEST.in]"),
         ('manifest=', 'm', "name of manifest file [default: MANIFEST]"),
         (
@@ -111,7 +109,7 @@ class sdist(Command):
         ),
     ]
 
-    boolean_options: ClassVar[list[str]] = [
+    boolean_options: ClassVar = [
         'use-defaults',
         'prune',
         'manifest-only',
@@ -124,7 +122,7 @@ class sdist(Command):
         ('help-formats', None, "list available distribution formats", show_formats),
     ]
 
-    negative_opt: ClassVar[dict[str, str]] = {
+    negative_opt: ClassVar = {
         'no-defaults': 'use-defaults',
         'no-prune': 'prune',
     }

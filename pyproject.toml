@@ -10,7 +10,7 @@ backend-path = ["."]
 
 [project]
 name = "setuptools"
-version = "84.0.0"
+version = "84.2.1"
 authors = [
 	{ name = "Python Packaging Authority", email = "distutils-sig@python.org" },
 ]
@@ -46,7 +46,7 @@ test = [
 	"virtualenv>=13.0.0",
 	"wheel>=0.44.0", # Consistent requirement normalisation in METADATA (see #4547)
 	"pip>=19.1", # For proper file:// URLs support.
-	"packaging>=24.2",
+	"packaging>=26.3",
 	"jaraco.envs>=2.2",
 	"pytest-xdist>=3", # Dropped dependency on pytest-fork and py
 	"jaraco.path>=3.7.2", # Typing fixes
@@ -95,7 +95,7 @@ doc = [
 ssl = []
 certs = []
 core = [
-	"packaging>=24.2",
+	"packaging>=26.3",
 	"more_itertools>=8.8",
 	"jaraco.text>=3.7",
 	"importlib_metadata>=6; python_version < '3.10'",

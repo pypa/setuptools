@@ -29,9 +29,7 @@ LANG_EXT = {"c": ".c", "c++": ".cxx"}
 class config(Command):
     description = "prepare to build"
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('compiler=', None, "specify the compiler type"),
         ('cc=', None, "specify the compiler executable"),
         ('include-dirs=', 'I', "list of directories to search for header files"),

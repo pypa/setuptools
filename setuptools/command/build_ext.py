@@ -6,7 +6,6 @@ import os
 import sys
 import textwrap
 from collections.abc import Iterator
-from importlib.machinery import EXTENSION_SUFFIXES
 from importlib.util import cache_from_source as _compiled_file_name
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -78,10 +77,24 @@ elif os.name != 'nt':
 
 def get_abi3_suffix():
     """Return the file extension for an abi3-compliant Extension()"""
-    for suffix in EXTENSION_SUFFIXES:
-        if '.abi3' in suffix or suffix == '.pyd':  # Unix
-            return suffix
-    return None
+    suffix = get_config_var('EXT_SUFFIX')
+    if not isinstance(suffix, str) or get_config_var('HAVE_DYNAMIC_LOADING') == 0:
+        return None
+    if suffix.endswith('.pyd') and not suffix.startswith('_d'):
+        return '.pyd'
+    if not suffix.startswith('.cpython-'):
+        return None
+    if get_config_var('DYNLOADFILE') == 'dynload_hpux.o':
+        return None
+
+    # The 3.13t and 3.14t loaders cannot import .abi3t files.
+    if suffix.startswith(('.cpython-313t', '.cpython-314t')):
+        return None
+
+    abi = '.abi3t' if get_config_var('Py_GIL_DISABLED') else '.abi3'
+    platform = get_config_var('SOABI_PLATFORM')
+    _, ext = os.path.splitext(suffix)
+    return f'{abi}-{platform}{ext}' if platform else f'{abi}{ext}'
 
 
 class build_ext(_build_ext):

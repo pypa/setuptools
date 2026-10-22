@@ -108,7 +108,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
             names.sort()
             return names
 
-    _zip_created_files: ClassVar[list[str]] = [
+    _zip_created_files: ClassVar = [
         'dist/',
         'dist/file1',
         'dist/file2',
@@ -116,7 +116,7 @@ class ArchiveUtilTestCase(support.TempdirManager):
         'dist/sub/file3',
         'dist/sub2/',
     ]
-    _created_files: ClassVar[list[str]] = [p.rstrip('/') for p in _zip_created_files]
+    _created_files: ClassVar = [p.rstrip('/') for p in _zip_created_files]
 
     def _create_files(self):
         # creating something to tar

@@ -1,3 +1,80 @@
+v84.2.1
+=======
+
+Bugfixes
+--------
+
+- Changed wheel tags and stable-ABI validation to use sysconfig data. (#5360)
+- Fixed unimportable extensions on free-threaded Python 3.13 and 3.14 when
+  ``Extension.py_limited_api`` is enabled. These builds now use their
+  version-specific extension suffix instead of using the unsupported ``.abi3t``
+  suffix. (#5363)
+
+
+Improved Documentation
+----------------------
+
+- Replaced broken link to Python Eggs documentation with an archived version from the Wayback Machine. (#1929)
+
+
+v84.2.0
+=======
+
+Features
+--------
+
+- Added support for building abi3t extensions and abi3.abi3t wheels on Python
+  3.15 and newer. See :pep:`803` and the `Python 3.15 "What's New" entry
+  <https://docs.python.org/3.15/whatsnew/3.15.html#pep-803-abi3t-stable-abi-for-free-threaded-builds>`_
+  for more details. (#5193)
+- Updated vendored packaging version to 26.3, which adds support for the
+  ``abi3t`` tag from :pep:`803`. (#5361)
+
+
+Bugfixes
+--------
+
+- Use target sysconfig data for stable-ABI extension filenames. (#5351)
+
+
+v84.1.0
+=======
+
+Features
+--------
+
+- ``setuptools.archive_util`` now raises the new ``UnsafeMember`` exception when
+  an archive member would be extracted outside of the extraction directory,
+  where previously such a member was silently skipped. Aborting makes a
+  malicious or malformed archive visible to the caller instead of yielding a
+  quietly incomplete extraction, and matches the behavior of the standard
+  library's ``tarfile`` extraction filters.
+
+
+Bugfixes
+--------
+
+- ``Wheel.install_as_egg`` no longer creates namespace package directories
+  outside of the destination egg directory. Entries in a wheel's
+  ``namespace_packages.txt`` were split on ``.`` and passed straight to
+  ``os.path.join``, so an entry that was absolute, drive-qualified, or UNC
+  discarded the destination and placed an ``__init__.py`` at a path chosen by
+  the wheel. Namespace entries are now validated as dotted module names on
+  every platform -- see GHSA-xmj3-9gf7-h52w.
+
+  This code path is reached only by the deprecated ``setup_requires``
+  mechanism when ``setup()`` is invoked outside a PEP 517 frontend; the
+  setuptools build backend never reaches it.
+- ``setuptools.archive_util`` no longer extracts archive members outside of the
+  requested extraction directory. Both the tar and zip formats specify ``/`` as
+  the only path separator, but the guard against ``..`` components split member
+  names on ``/`` alone, so a name such as ``..\escaped.txt`` was treated as a
+  single component and then resolved as a traversal by the filesystem on
+  Windows. Member names containing a backslash, a drive letter, or a UNC prefix
+  are now rejected on every platform, as are members whose resolved destination
+  falls outside the extraction directory -- see GHSA-grgh-hr87-3jpw.
+
+
 v84.0.0
 =======
 

@@ -16,16 +16,14 @@ from ..core import Command
 class install_scripts(Command):
     description = "install scripts (Python or otherwise)"
 
-    user_options: ClassVar[
-        list[tuple[str, str, str]] | list[tuple[str, str | None, str]]
-    ] = [
+    user_options: ClassVar = [
         ('install-dir=', 'd', "directory to install scripts to"),
         ('build-dir=', 'b', "build directory (where to install from)"),
         ('force', 'f', "force installation (overwrite existing files)"),
         ('skip-build', None, "skip the build steps"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['force', 'skip-build']
+    boolean_options: ClassVar = ['force', 'skip-build']
 
     def initialize_options(self):
         self.install_dir = None

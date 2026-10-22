@@ -23,18 +23,18 @@ def enabled():
     return PY39 and framework and homebrew and not venv and not ensurepip
 
 
-schemes = {
-    'osx_framework_library': {
-        'stdlib': '{installed_base}/{platlibdir}/python{py_version_short}',
-        'platstdlib': '{platbase}/{platlibdir}/python{py_version_short}',
-        'purelib': '{homebrew_prefix}/lib/python{py_version_short}/site-packages',
-        'platlib': '{homebrew_prefix}/{platlibdir}/python{py_version_short}/site-packages',
-        'include': '{installed_base}/include/python{py_version_short}{abiflags}',
-        'platinclude': '{installed_platbase}/include/python{py_version_short}{abiflags}',
-        'scripts': '{homebrew_prefix}/bin',
-        'data': '{homebrew_prefix}',
-    }
-}
+schemes = dict(
+    osx_framework_library=dict(
+        stdlib='{installed_base}/{platlibdir}/python{py_version_short}',
+        platstdlib='{platbase}/{platlibdir}/python{py_version_short}',
+        purelib='{homebrew_prefix}/lib/python{py_version_short}/site-packages',
+        platlib='{homebrew_prefix}/{platlibdir}/python{py_version_short}/site-packages',
+        include='{installed_base}/include/python{py_version_short}{abiflags}',
+        platinclude='{installed_platbase}/include/python{py_version_short}{abiflags}',
+        scripts='{homebrew_prefix}/bin',
+        data='{homebrew_prefix}',
+    )
+)
 
 
 @functools.lru_cache

@@ -31,7 +31,7 @@ class build_scripts(Command):
         ('executable=', 'e', "specify final destination interpreter path"),
     ]
 
-    boolean_options: ClassVar[list[str]] = ['force']
+    boolean_options: ClassVar = ['force']
 
     def initialize_options(self):
         self.build_dir = None
