@@ -1,5 +1,6 @@
 [distutils.commands]
 egg_info = setuptools.command.egg_info:egg_info
+dist_info = setuptools.command.dist_info:dist_info
 build_py = setuptools.command.build_py:build_py
 sdist = setuptools.command.sdist:sdist
 editable_wheel = setuptools.command.editable_wheel:editable_wheel

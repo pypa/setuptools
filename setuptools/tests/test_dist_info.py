@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 from functools import partial
+from importlib.metadata import Distribution
 from typing import ClassVar
 
 import pytest
@@ -15,6 +16,19 @@ from setuptools.archive_util import unpack_archive
 from .textwrap import DALS
 
 read = partial(pathlib.Path.read_text, encoding="utf-8")
+
+
+def test_bootstrap_metadata_registers_dist_info():
+    bootstrap = Distribution.at(
+        pathlib.Path(__file__).parents[2] / "bootstrap.egg-info"
+    )
+    commands = {
+        entry.name: entry.value
+        for entry in bootstrap.entry_points
+        if entry.group == "distutils.commands"
+    }
+
+    assert commands["dist_info"] == "setuptools.command.dist_info:dist_info"
 
 
 class TestDistInfo:
