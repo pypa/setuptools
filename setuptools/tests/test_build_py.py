@@ -410,14 +410,7 @@ class TestTypeInfoFiles:
     }
 
     @pytest.mark.parametrize(
-        "pyproject",
-        [
-            "default_pyproject",
-            pytest.param(
-                "dont_include_package_data",
-                marks=pytest.mark.xfail(reason="pypa/setuptools#4350"),
-            ),
-        ],
+        "pyproject", ["default_pyproject", "dont_include_package_data"]
     )
     @pytest.mark.parametrize("example", EXAMPLES.keys())
     def test_type_files_included_by_default(self, tmpdir_cwd, pyproject, example):
@@ -466,8 +459,12 @@ class TestTypeInfoFiles:
 
 
 def get_finalized_build_py(script_name="%build_py-test%"):
+    """Return a finalized build_py after running distribution discovery."""
     dist = Distribution({"script_name": script_name})
     dist.parse_config_files()
+    # ``build_py.finalize_options`` snapshots ``distribution.packages``, so
+    # package discovery must happen before the command is finalized.
+    dist.set_defaults()
     build_py = dist.get_command_obj("build_py")
     build_py.finalize_options()
     return build_py

@@ -1,0 +1,3 @@
+Fixed the ``test_type_files_included_by_default`` test failure by running
+package discovery before finalizing the ``build_py`` command, so the typing
+files are correctly reported as included -- by :user:`faresrafat3`
