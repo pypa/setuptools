@@ -1,0 +1,2 @@
+Clarified that ``package_dir`` recursively maps package names to directories
+without automatically adding packages to a distribution.
