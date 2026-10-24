@@ -215,6 +215,7 @@ class _ConfigExpander:
         self._expand_packages()
         self._canonic_package_data()
         self._canonic_package_data("exclude-package-data")
+        self._warn_about_missing_dynamic()
 
         # A distribution object is required for discovering the correct package_dir
         dist = self._ensure_dist()
@@ -227,6 +228,19 @@ class _ConfigExpander:
 
         dist._referenced_files.update(self._referenced_files)
         return self.config
+
+    def _warn_about_missing_dynamic(self) -> None:
+        """Warn when a directive cannot be used because ``project.dynamic`` omits it."""
+        for field in sorted(self.dynamic_cfg):
+            if not self._uses_dynamic_directive(field):
+                _MissingDynamicDirective.emit(field=field)
+
+    def _uses_dynamic_directive(self, field: str) -> bool:
+        if field in self.dynamic:
+            return True
+        return field == "entry-points" and any(
+            item in self.dynamic for item in ("scripts", "gui-scripts")
+        )
 
     def _expand_packages(self):
         packages = self.setuptools_cfg.get("packages")
@@ -475,3 +489,19 @@ class _ToolsTypoInMetadata(SetuptoolsWarning):
     _SUMMARY = (
         "Ignoring [tools.setuptools] in pyproject.toml, did you mean [tool.setuptools]?"
     )
+
+
+class _MissingDynamicDirective(SetuptoolsWarning):
+    _SUMMARY = "`tool.setuptools.dynamic.{field}` is ignored."
+
+    _DETAILS = """
+    The following seems to be defined in `tool.setuptools.dynamic`:
+
+    `{field}`
+
+    According to the spec, setuptools cannot use this value unless `{field}` is
+    listed as `dynamic` in the `[project]` table.
+
+    To prevent this problem, you can list `{field}` under `project.dynamic` or
+    remove the corresponding `tool.setuptools.dynamic.{field}` configuration.
+    """
