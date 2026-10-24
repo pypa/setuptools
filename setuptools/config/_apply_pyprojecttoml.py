@@ -421,11 +421,11 @@ def _some_attrgetter(*items):
     True
     """
 
-    def _acessor(obj):
+    def _accessor(obj):
         values = (_attrgetter(i)(obj) for i in items)
         return next((i for i in values if i is not None), None)
 
-    return _acessor
+    return _accessor
 
 
 PYPROJECT_CORRESPONDENCE: dict[str, _Correspondence] = {
