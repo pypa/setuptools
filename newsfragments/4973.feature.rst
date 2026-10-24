@@ -1,0 +1,2 @@
+PEP 517 ``get_requires_for_build_sdist`` and ``get_requires_for_build_wheel`` hooks
+now terminate as soon as it is determined there are no extra build dependencies.
