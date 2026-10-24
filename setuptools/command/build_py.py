@@ -173,6 +173,11 @@ class build_py(orig.build_py):
             self.mkpath(os.path.dirname(target))
             _outf, _copied = self.copy_file(srcfile, target)
             make_writable(target)
+            # The copy may have been skipped as up-to-date (e.g. when the
+            # destination was already created by ``build_module`` with
+            # ``preserve_mode=False``), so re-apply the source's permission
+            # bits explicitly to honor the executable bit on package data.
+            os.chmod(target, stat.S_IMODE(os.stat(srcfile).st_mode))
 
     def analyze_manifest(self) -> None:
         self.manifest_files: dict[str, list[str]] = {}
