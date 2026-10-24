@@ -1,0 +1,1 @@
+Fixed setuptools.msvc.EnvironmentInfo MSBuild property with VS2017+ -- by :user:`swt2c`

@@ -496,14 +496,30 @@ class SystemInfo:
 
     @property
     def VSInstallDir(self) -> str:
-        """
+        r"""
         Microsoft Visual Studio directory.
 
         Return
         ------
         str
             path
+
+        Known VS paths (VS2017+) take precedence over the registry,
+        which VS2017+ no longer populates.
+
+        >>> getfixture('windows_only')
+        >>> mp = getfixture('monkeypatch')
+        >>> ei = EnvironmentInfo(arch='irrelevant')
+        >>> mp.setitem(ei.si.known_vs_paths, ei.si.vs_ver, r'C:\VS\Fake')
+        >>> ei.si.VSInstallDir
+        'C:\\VS\\Fake'
         """
+        # First search in known VS paths (VS2017+)
+        try:
+            return self.known_vs_paths[self.vs_ver]
+        except KeyError:
+            pass
+
         # Default path
         default = os.path.join(
             self.ProgramFilesx86, f'Microsoft Visual Studio {self.vs_ver:0.1f}'
@@ -1316,24 +1332,41 @@ class EnvironmentInfo:
 
     @property
     def MSBuild(self):
-        """
+        r"""
         Microsoft Build Engine.
 
         Return
         ------
         list of str
             paths
+
+        VS2017 keeps a version-numbered folder; VS2019+ uses "Current".
+
+        >>> getfixture('windows_only')
+        >>> mp = getfixture('monkeypatch')
+        >>> ei = EnvironmentInfo(arch='irrelevant')
+        >>> mp.setitem(ei.si.known_vs_paths, 15.0, r'C:\VS\2017')
+        >>> mp.setattr(ei.si, 'vs_ver', 15.0)
+        >>> ei.MSBuild[0]
+        'C:\\VS\\2017\\MSBuild\\15.0\\bin'
+        >>> mp.setitem(ei.si.known_vs_paths, 16.0, r'C:\VS\2019')
+        >>> mp.setattr(ei.si, 'vs_ver', 16.0)
+        >>> ei.MSBuild[0]
+        'C:\\VS\\2019\\MSBuild\\Current\\bin'
         """
         if self.vs_ver < 12.0:
             return []
         elif self.vs_ver < 15.0:
             base_path = self.si.ProgramFilesx86
             arch_subdir = self.pi.current_dir(hidex86=True)
+            msbuild_ver_dir = f'{self.vs_ver:0.1f}'
         else:
             base_path = self.si.VSInstallDir
             arch_subdir = ''
+            # VS2019+ uses "Current", only VS2017 uses its version number
+            msbuild_ver_dir = 'Current' if self.vs_ver > 15.0 else f'{self.vs_ver:0.1f}'
 
-        path = rf'MSBuild\{self.vs_ver:0.1f}\bin{arch_subdir}'
+        path = rf'MSBuild\{msbuild_ver_dir}\bin{arch_subdir}'
         build = [os.path.join(base_path, path)]
 
         if self.vs_ver >= 15.0:
@@ -1511,8 +1544,8 @@ class EnvironmentInfo:
                     self.VsTDb,
                     self.SdkTools,
                     self.SdkSetup,
-                    self.FxTools,
                     self.MSBuild,
+                    self.FxTools,
                     self.HTMLHelpWorkshop,
                     self.FSharp,
                 ],
