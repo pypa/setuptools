@@ -43,16 +43,6 @@ class install_with_pth(install):
 
     def finalize_options(self):
         install.finalize_options(self)
-        self._restore_install_lib()
-
-    def _restore_install_lib(self):
-        """
-        Undo secondary effect of `extra_path` adding to `install_lib`
-        """
-        suffix = os.path.relpath(self.install_lib, self.install_libbase)
-
-        if suffix.strip() == self._pth_contents.strip():
-            self.install_lib = self.install_libbase
 
 
 setup_params = dict(
