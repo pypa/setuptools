@@ -165,6 +165,55 @@ class TestReadAttr:
         # `import super_complicated_dep` should not run, otherwise the build fails
         assert expand.read_attr(attr_desc, package_dir, tmp_path) == "42"
 
+    def test_missing_nested_module_reports_full_name(self, tmp_path):
+        files = {"src/project_pkg/__init__.py": ""}
+        write_files(files, tmp_path)
+
+        with pytest.raises(ModuleNotFoundError) as ctx:
+            expand.read_attr(
+                "project_pkg.missing.VERSION",
+                {"": "src"},
+                tmp_path,
+            )
+
+        assert str(ctx.value) == "No module named 'project_pkg.missing'"
+        assert ctx.value.name == "project_pkg.missing"
+
+    def test_missing_child_of_importable_package_reports_full_name(
+        self, tmp_path, monkeypatch
+    ):
+        write_files({"importable_pkg/__init__.py": ""}, tmp_path)
+        monkeypatch.syspath_prepend(tmp_path)
+
+        with pytest.raises(ModuleNotFoundError) as ctx:
+            expand._find_spec("importable_pkg.missing", None)
+
+        assert str(ctx.value) == "No module named 'importable_pkg.missing'"
+        assert ctx.value.name == "importable_pkg.missing"
+
+    def test_missing_dependency_keeps_its_name(self, tmp_path, monkeypatch):
+        files = {
+            "broken_pkg/__init__.py": "import unrelated_dependency",
+        }
+        write_files(files, tmp_path)
+        monkeypatch.syspath_prepend(tmp_path)
+
+        with pytest.raises(ModuleNotFoundError) as ctx:
+            expand.read_attr("broken_pkg.missing.VERSION", root_dir=tmp_path)
+
+        assert str(ctx.value) == "No module named 'unrelated_dependency'"
+        assert ctx.value.name == "unrelated_dependency"
+
+    def test_non_package_parent_keeps_importlib_diagnostic(self, tmp_path, monkeypatch):
+        write_files({"single_module.py": ""}, tmp_path)
+        monkeypatch.syspath_prepend(tmp_path)
+
+        with pytest.raises(ModuleNotFoundError) as ctx:
+            expand._find_spec("single_module.missing", None)
+
+        assert "__path__ attribute not found" in str(ctx.value)
+        assert ctx.value.name == "single_module.missing"
+
 
 @pytest.mark.parametrize(
     ("package_dir", "file", "module", "return_value"),

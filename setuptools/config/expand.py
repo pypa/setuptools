@@ -193,10 +193,28 @@ def read_attr(
 
 def _find_spec(module_name: str, module_path: StrPath | None) -> ModuleSpec:
     spec = importlib.util.spec_from_file_location(module_name, module_path)
-    spec = spec or importlib.util.find_spec(module_name)
+    try:
+        spec = spec or importlib.util.find_spec(module_name)
+    except ModuleNotFoundError as error:
+        missing_module = error.name
+        plain_missing_module = missing_module and error.args == (
+            f"No module named {missing_module!r}",
+        )
+        if plain_missing_module and (
+            missing_module == module_name
+            or module_name.startswith(f"{missing_module}.")
+        ):
+            raise ModuleNotFoundError(
+                f"No module named {module_name!r}",
+                name=module_name,
+            ) from error
+        raise
 
     if spec is None:
-        raise ModuleNotFoundError(module_name)
+        raise ModuleNotFoundError(
+            f"No module named {module_name!r}",
+            name=module_name,
+        )
 
     return spec
 
