@@ -1259,8 +1259,8 @@ other utility module.
    doing, leave it set to ``None``.
 
    .. versionchanged:: 3.2.3
-      Create ``.pyc`` files with an :func:`import magic tag
-      <imp.get_tag>` in their name, in a :file:`__pycache__` subdirectory
+      Create ``.pyc`` files with an import magic tag
+      (``imp.get_tag``) in their name, in a :file:`__pycache__` subdirectory
       instead of files without tag in the current directory.
 
    .. versionchanged:: 3.5
